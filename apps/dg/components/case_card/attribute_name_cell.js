@@ -1,42 +1,13 @@
-/* global React */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
-  var
-      // span = React.DOM.span,
-      span = React.DOM.span/*,
-      div = React.DOM.div*/;
 
   DG.React.Components.AttributeNameCell = DG.React.createComponent(
       (function () {
 
-        /**
-         * Props are
-         *    content: {span}
-         *    dragObject: {Object}
-         *    cellLeaveCallback: { function}
-         *    dropCallback: { function }
-         *    editAttributeCallback: {function}
-         */
-
         return {
 
           moveDirection: '',
-
-          getInitialState: function () {
-            return {
-              showPopup: false
-            };
-          },
-
-          componentDidMount: function () {
-          },
-
-          componentWillUnmount: function () {
-          },
-
-          componentWillReceiveProps: function (iNewProps) {
-          },
 
           render: function () {
             var this_ = this;
@@ -137,14 +108,13 @@ DG.React.ready(function () {
                 }),
                 tAttributeName = DG.React.Components.Dropdown({
                       className: tClassName,
+                      trigger: this.props.content,
+                      menuItems: tMenuItems,
                       ref: function (iDropdown) {
                         this.dropdown = iDropdown;
                       }.bind(this),
                       onRefCallback: assignCellRef
-                    },
-                    DG.React.Components.DropdownTrigger({},
-                        span({}, this.props.content)),
-                    DG.React.Components.DropdownContent({}, tMenuItems));
+                    });
 
             return tAttributeName;
           }
