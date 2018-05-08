@@ -242,26 +242,28 @@ DG.DataSet = SC.Object.extend((function() // closure
 
     /**
      * Marks an item for deletion.
-     * @param {integer} itemIndex
+     * @param {DG.DataItem} iItem
+     * @param {boolean} iSetAside whether to delete or set aside
      * @return {DG.DataItem} the deleted item.
      */
-    deleteDataItem: function (item, setAside) {
-      if (item) {
-        item.deleted = true;
-        item.setAside = setAside;
+    deleteDataItem: function (iItem, iSetAside) {
+      if (iItem) {
+        iItem.deleted = true;
+        iItem.setAside = iSetAside;
       }
-      return item;
+      return iItem;
     },
 
     /**
      * Marks an item for deletion.
-     * @param {integer} itemIndex
+     * @param {integer} iItemIndex
+     * @param {boolean} iSetAside whether to delete or set aside
      * @return {DG.DataItem} the deleted item.
      */
-    deleteDataItemByIndex: function (itemIndex) {
-      var index = this._clientToItemIndexMap[itemIndex],
+    deleteDataItemByIndex: function (iItemIndex, iSetAside) {
+      var index = this._clientToItemIndexMap[iItemIndex],
           item = this.getDataItem(index);
-      return item ? this.deleteDataItem(item) : null;
+      return item ? this.deleteDataItem(item, iSetAside) : null;
     },
 
     /**
