@@ -1020,7 +1020,6 @@ DG.DataContext = SC.Object.extend((function() // closure
             {Array of Number}       iChange.ids -- on output, the IDs of the deleted cases
    */
   deleteCasesAndChildren: function(iChange) {
-    var deletedItems = [];
     var tSetAside = iChange.setAside;
     var tNewChange;
     var items = {};
@@ -1035,7 +1034,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     if (iChange.cases) {
       iChange.cases.forEach(assembleItems);
-      deletedItems = this.deleteItems(Object.values(items), tSetAside);
+      this.deleteItems(Object.values(items), tSetAside);
       tNewChange = this.regenerateCollectionCases(null, 'deleteCases');
     }
     return tNewChange.deletedCases;
