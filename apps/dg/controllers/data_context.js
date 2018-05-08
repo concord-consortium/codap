@@ -1020,98 +1020,25 @@ DG.DataContext = SC.Object.extend((function() // closure
             {Array of Number}       iChange.ids -- on output, the IDs of the deleted cases
    */
   deleteCasesAndChildren: function(iChange) {
-    var deletedCases = [];
+    var deletedItems = [];
     var tSetAside = iChange.setAside;
-
-    iChange.ids = [];
-    iChange.collectionIDs = {};
-
-    // We are going to delete from the bottom up. That is, we find affected
-    // cases in the base collection, delete them, then, if their parents are
-    // now devoid of children, delete the parents, and so on up the chain.
-    var doDelete = function (iCase) {
-      if (iCase.get("isDestroyed"))
-        // case has already been destroyed. (Happens when we select parents and
-        // children and delete all)
-        return;
-
-      var tCollection = this.getCollectionForCase(iCase);
-      var tParent = iCase.parent;
-
-      // We store the set of deleted cases for later undoing.
-      deletedCases.push(iCase);
-      iChange.ids.push(iCase.get('id'));
-
-      // keep track of the affected collections
-      if (!iChange.collectionIDs[tCollection.get('id')]) {
-        tCollection.get('casesController').beginPropertyChanges();
-        iChange.collectionIDs[tCollection.get('id')] = tCollection;
-      }
-
-      if (tSetAside) {
-        tCollection.setAsideCase(iCase);
-      } else {
-        tCollection.deleteCase(iCase);
-      }
-
-      if (tParent) {
-        if (tParent.children.length === 0) {
-          doDelete(tParent);
-        }
-        else if (tParent.item !== tParent.children[0].item) {
-          // assign a new item to the parent
-          DG.Case._removeCaseFromItemMap(tParent);
-          tParent.item = tParent.children[0].item;
-          DG.Case._addCaseToItemMap(tParent);
-        }
-      }
-    }.bind(this);
-
-
-      // find the leaf node cases and call doDelete on each of them.
-      // The doDelete function will propagate up the parental hierarchy
-      // as far as appropriate.
-      var deleteCaseAndChildren = function (iCase) {
-        //var tCollection = this.getCollectionForCase( iCase);
-        var tChildren = iCase.get('children'), ix;
-        // we remove children in reverse order because removal from this list
-        // is immediate and would otherwise corrupt the list.
-        if (tChildren && tChildren.length) {
-          for (ix = tChildren.length - 1; ix >= 0; ix--) {
-            deleteCaseAndChildren(tChildren[ix]);
-          }
-        } else {
-          doDelete(iCase);
-        }
-      }.bind(this);
-
-    try {
-
-    try {
-
-      if (iChange.cases) {
-        iChange.cases.forEach(deleteCaseAndChildren);
-
-        // Call didDeleteCases() for each affected collection
-        DG.ObjectMap.forEach(iChange.collectionIDs, function(iCollectionID, iCollection) {
-          if (iCollection)
-            iCollection.didDeleteCases();
-        });
-
-        iChange.isComplete = true;
-        this.applyChange(iChange);
-
-        // invalidate dependents; aggregate functions may need to recalculate
-        this.invalidateAttrsOfCollections(
-            DG.ObjectMap.values(iChange.collectionIDs), iChange);
+    var tNewChange;
+    var items = {};
+    function assembleItems(iCase) {
+      var children = iCase.get('children');
+      var item = iCase.get('item');
+      items[item.id] = item;
+      if (children) {
+        children.forEach(assembleItems);
       }
     }
-    finally {
-      Object.values(iChange.collectionIDs).forEach(function (collection) {
-        collection.get('casesController').endPropertyChanges();
-      });
+
+    if (iChange.cases) {
+      iChange.cases.forEach(assembleItems);
+      deletedItems = this.deleteItems(Object.values(items), tSetAside);
+      tNewChange = this.regenerateCollectionCases(null, 'deleteCases');
     }
-    return deletedCases;
+    return tNewChange.deletedCases;
   },
 
   /**
@@ -1152,6 +1079,7 @@ DG.DataContext = SC.Object.extend((function() // closure
             var myCollection = iCase.collection;
             if (myCollection && myCollection === iCollection) {
               item.set('deleted', false);
+              item.set('setAside', false);
               // Note that we don't call addCase because the case in hand
               // has been destroyed. We allow regenerateCollectionCases to
               // actually bring about the addition of the case.
@@ -1174,7 +1102,7 @@ DG.DataContext = SC.Object.extend((function() // closure
             operation: 'createCases',
             isComplete: true,
             properties: {index: true},
-            collection: this_.getCollectionByID(collectionID),
+            collections: [this_.getCollectionByID(collectionID)],
             result: {
               caseIDs: caseIDs,
               caseID: caseIDs[0]
@@ -1353,11 +1281,21 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     // delete cases that remain marked for deletion
     this.forEachCollection(function (collection) {
-      var collectionDeletedCases = collection.deleteMarkedCases();
-      deletedCases = deletedCases.concat(collectionDeletedCases);
-      if (deletedCases && deletedCases.length)
-        addTrackedCollection(collection);
-    });
+      this.beginPropertyChanges();
+      collection.beginPropertyChanges();
+      collection.casesController.beginPropertyChanges();
+      try {
+        var collectionDeletedCases = collection.deleteMarkedCases();
+        // var collectionDeletedCases = collection.extractRetainedCases();
+        deletedCases = deletedCases.concat(collectionDeletedCases);
+        if (deletedCases && deletedCases.length)
+          addTrackedCollection(collection);
+      } finally {
+        collection.casesController.endPropertyChanges();
+        collection.endPropertyChanges();
+        this.endPropertyChanges();
+      }
+    }.bind(this));
 
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
@@ -1460,16 +1398,16 @@ DG.DataContext = SC.Object.extend((function() // closure
    * individual item. Issues a deleteCases change notice listing the deleted
    * cases. Returns the list of deleted cases.
    * @param iItems {DG.Item|[DG.Item]}
-   * @return {[Number]} Array of case ids.
+   * @return {[DG.ITEM]} Array of items.
    */
-  deleteItems: function (iItems) {
+  deleteItems: function (iItems, iSetAside) {
     var dataSet = this.getPath('model.dataSet');
     if (!Array.isArray(iItems)) {
       iItems = [iItems];
     }
     iItems.forEach(function (item) {
       if (!SC.none(item.itemIndex)) {
-        dataSet.deleteDataItemByIndex(item.itemIndex);
+        dataSet.deleteDataItemByIndex(item.itemIndex, iSetAside);
       } else {
         DG.logWarn('Attempt to delete non-Item.');
       }
