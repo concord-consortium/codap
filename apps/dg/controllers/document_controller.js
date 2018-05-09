@@ -1083,7 +1083,7 @@ DG.DocumentController = SC.Object.extend(
               isResizable: true,
             }),
             tContentView = DG.CaseCardView.create({
-              classNames: 'dg-opaque dg-scrollable'.w(),
+              classNames: 'dg-opaque'.w() /*dg-scrollable'.w()*/,
               context: iContext
             });
         tComponentView.set('model', tModel);

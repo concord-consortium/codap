@@ -35,7 +35,6 @@ DG.React.ready(function () {
 
 
           componentDidUpdate: function () {
-            this.props.setLocationCallback( 50, 300);
             this._renderLayer();
           },
 
@@ -52,12 +51,7 @@ DG.React.ready(function () {
 
 
           render: function () {
-            // Render a placeholder
-            return div({
-              ref: function( iElement) {
-                this.placeHolder = iElement;
-              }.bind( this)
-            });
+            return div({});
           }
         };
       })(), []);
