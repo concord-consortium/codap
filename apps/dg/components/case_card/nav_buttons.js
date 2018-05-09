@@ -34,12 +34,9 @@ DG.React.ready(function () {
                     span({
                       className: 'moonicon-icon-play',
                       onClick: this.getNext
-                    }),
-                tButtonPair = span({
-                      className: 'navbuttons-arrow'
-                    }, tFirstButton, tSecondButton
-                );
-            return span({className: 'react-data-card-navbuttons'}, tButtonPair);
+                    });
+            return span({className: 'react-data-card-navbuttons navbuttons-arrow'},
+                tFirstButton, tSecondButton);
           }
         };
       })(), []);

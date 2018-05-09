@@ -73,7 +73,7 @@ DG.React.ready(function () {
             if (this.state.active) {
               this.hide();
             } else {
-              this.show({ left: event.clientX, top: event.clientY });
+              this.show({ left: event.clientX, top: event.clientY + 12 });
             }
           },
 

@@ -17,22 +17,17 @@ DG.React.ready(function () {
 
         var ChangeListener = SC.Object.extend({
           dependent: null,
+          context: null,
 
           init: function () {
             sc_super();
 
-            DG.currDocumentController().get('contexts').forEach(function (context) {
-              this.guaranteeDataContextObserver(context);
-            }.bind(this));
+            this.guaranteeDataContextObserver(this.context);
 
-            DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
           },
 
           destroy: function () {
-            DG.currDocumentController().removeObserver('contexts.length', this, this.contextCountDidChange);
-            DG.currDocumentController().get('contexts').forEach(function (iContext) {
-              this.removeDataContextObserver(iContext);
-            }.bind(this));
+            this.removeDataContextObserver(this.context);
             this.dependent = null;
 
             sc_super();
@@ -46,13 +41,6 @@ DG.React.ready(function () {
 
           removeDataContextObserver: function (iDataContext) {
             iDataContext.removeObserver('changeCount', this, this.contextDataDidChange);
-          },
-
-          contextCountDidChange: function () {
-            DG.currDocumentController().contexts.forEach(function (context) {
-              this.guaranteeDataContextObserver(context);
-            }.bind(this));
-            this.dependent.incrementStateCount();
           },
 
           contextDataDidChange: function (iDataContext) {
@@ -82,7 +70,8 @@ DG.React.ready(function () {
 
           componentDidMount: function () {
             this.changeListener = ChangeListener.create({
-              dependent: this
+              dependent: this,
+              context: this.props.context
             });
           },
 
@@ -105,8 +94,8 @@ DG.React.ready(function () {
               var tCollection = iCollClient.get('collection'),
                   tParentCollection = tCollection.get('parent'),
                   tCmd = DG.DataContextUtilities.createCollectionCommand(
-                          iAttribute, tCollection, this.props.context, tParentCollection);
-              DG.UndoHistory.execute( tCmd);
+                      iAttribute, tCollection, this.props.context, tParentCollection);
+              DG.UndoHistory.execute(tCmd);
             }.bind(this);
 
             return DG.React.Components.CollectionHeader({
@@ -423,7 +412,7 @@ DG.React.ready(function () {
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
             return tr({
               key: 'attr-' + iIndex
-            }, tCell, td({ className: tValueClassName }, tValueField));
+            }, tCell, td({className: tValueClassName}, tValueField));
           },
 
           /**
