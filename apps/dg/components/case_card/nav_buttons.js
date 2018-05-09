@@ -3,44 +3,13 @@
 
 DG.React.ready(function () {
   var
-      // div = React.DOM.div,
-      // p = React.DOM.p,
-      // ul = React.DOM.ul,
-      // li = React.DOM.li,
       span = React.DOM.span//,
-      // italic = React.DOM.i,
-      // h1 = React.DOM.h1,
-      // h2 = React.DOM.h2,
-      // table = React.DOM.table,
-      // tbody = React.DOM.tbody,
-      // tr = React.DOM.tr,
-      // td = React.DOM.td,
-      // input = React.DOM.input
-      // kLeftAngleBracketChar = '&#x2039;',
-      // kRightAngleBracketChar = '&#x203a;',
-      // kInfoIconChar = '&#9432;';
   ;
 
   DG.React.Components.NavButtons = DG.React.createComponent(
       (function () {
 
         return {
-
-          getInitialState: function () {
-            return {};
-          },
-
-          componentDidMount: function () {
-          },
-
-          componentWillUnmount: function () {
-          },
-
-          componentWillReceiveProps: function (iNewProps) {
-          },
-
-          handleChange: function (iEvent) {
-          },
 
           getPrevious: function () {
             this.props.onPrevious(this.props.collectionClient, this.props.caseIndex);

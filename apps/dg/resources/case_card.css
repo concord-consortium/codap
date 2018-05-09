@@ -1,5 +1,6 @@
 .react-data-card-view {
-
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .react-data-card-view.drag-in-progress {

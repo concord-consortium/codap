@@ -33,7 +33,7 @@ DG.React.ready(function () {
                 tClassName = this.props.className || '',
                 tDropdownTriggerProps = Object.assign({}, this.props);
             delete tDropdownTriggerProps.children;
-            tDropdownTriggerProps.className = 'dropdown__trigger' + tClassName;
+            tDropdownTriggerProps.className = 'dropdown__trigger ' + tClassName;
             return a( tDropdownTriggerProps, tChildren);
           }
         };

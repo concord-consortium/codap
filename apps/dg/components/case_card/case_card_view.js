@@ -122,6 +122,8 @@ DG.CaseCardView = SC.View.extend(
           this.renderCard({ dragStatus: { dragObject: iDragObject, op: iOp } });
         }
 
+        // todo: handle data drags
+
       };
     }()));
 

@@ -47,23 +47,11 @@ DG.React.ready(function () {
             DG.mainPage.mainPane.removeListener({action: 'touchstart', target: this, method: this._onWindowClick});
           },
 
-          componentWillReceiveProps: function (iNewProps) {
-          },
-
-          isActive: function () {
-            return (typeof this.props.active === 'boolean') ?
-                this.props.active :
-                this.state.active;
-          },
-
           hide: function () {
             this.setState({
               active: false,
               location: null
             });
-            if (this.props.onHide) {
-              this.props.onHide();
-            }
           },
 
           show: function ( iLocation) {
@@ -71,21 +59,18 @@ DG.React.ready(function () {
               active: true,
               location: iLocation
             });
-            if (this.props.onShow) {
-              this.props.onShow();
-            }
           },
 
           _onWindowClick: function( event) {
             var dropdownElement = findDOMNode(this);
-            if (event.target !== dropdownElement && !dropdownElement.contains(event.target) && this.isActive()) {
+            if (event.target !== dropdownElement && !dropdownElement.contains(event.target) && this.state.active) {
               this.hide();
             }
           },
 
           _onToggleClick: function( event) {
             event.preventDefault();
-            if (this.isActive()) {
+            if (this.state.active) {
               this.hide();
             } else {
               this.show({ left: event.clientX, top: event.clientY });
@@ -93,10 +78,9 @@ DG.React.ready(function () {
           },
 
           render: function () {
-            var /*tChildren = this.props.children,*/
-                tClassName = this.props.className || '',
+            var tClassName = this.props.className || '',
                 tDisabled = this.props.disabled,
-                tActive = this.isActive(),
+                tActive = this.state.active,
                 tClasses = 'dropdown' + (tActive ? ' dropdown--active' : '') + (tDisabled ? ' dropdown--disabled' : ''),
                 tTrigger = DG.React.Components.DropdownTrigger({},
                     span({

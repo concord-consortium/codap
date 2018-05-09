@@ -20,23 +20,6 @@ DG.React.ready(function () {
 
         return {
 
-          moveDirection: '',
-
-          getInitialState: function () {
-            return {
-
-            };
-          },
-
-          componentDidMount: function () {
-          },
-
-          componentWillUnmount: function () {
-          },
-
-          componentWillReceiveProps: function (iNewProps) {
-          },
-
           render: function () {
             var this_ = this;
 

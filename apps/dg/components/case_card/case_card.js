@@ -4,22 +4,13 @@ sc_require('components/case_card/text_input');
 
 DG.React.ready(function () {
   var div = React.DOM.div,
-      // p = React.DOM.p,
-      // ul = React.DOM.ul,
-      // li = React.DOM.li,
       span = React.DOM.span, //,
-      // italic = React.DOM.i,
-      // h1 = React.DOM.h1,
-      // h2 = React.DOM.h2,
       table = React.DOM.table,
       tbody = React.DOM.tbody,
       tr = React.DOM.tr,
       td = React.DOM.td //,
       // input = React.DOM.input
   ;
-  // kLeftAngleBracketChar = '&#x2039;',
-  // kRightAngleBracketChar = '&#x203a;',
-  // kInfoIconChar = '&#9432;';
 
   DG.React.Components.CaseCard = DG.React.createComponent(
       (function () {
@@ -499,7 +490,7 @@ DG.React.ready(function () {
               return tSingleton;
             }
 
-            var tCardEntries = [], tCollEntries = [],
+            var tCollEntries = [],
                 tContext = this.props.context,
                 tChildmostSingletonSelection = childmostSingleSelection(tContext);
             tContext.get('collections').forEach(function (iCollection, iCollIndex) {
@@ -525,13 +516,13 @@ DG.React.ready(function () {
                     iAttr, iAttrIndex, tShouldSummarize, tChildmostSingletonSelection));
               }.bind(this));
               tCollEntries.push(table({
+                    key: 'table-' + iCollIndex
                     // style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
                   },
                   tbody({},
                       tCollectionHeader, tAttrEntries)));
             }.bind(this));
-            tCardEntries.push(tCollEntries);
-            return div({className: 'react-data-card'}, tCardEntries);
+            return div({className: 'react-data-card'}, tCollEntries);
           }
         };
       })(), []);
