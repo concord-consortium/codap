@@ -457,60 +457,90 @@ DG.React.ready(function () {
 
           render: function () {
 
-            function childmostSingleSelection(iContext) {
-              var tSingleton,
+            function getChildmostSelection(iContext) {
+              var tChildmostSel,
                   tCollections = iContext.get('collections'),
                   tCurrColl = tCollections[0],
                   tCurrIndex = 0;
               while (tCurrColl) {
                 var tSelectedCases = iContext.getCollectionByID(tCurrColl.get('id')).getPath('casesController.selection').toArray(),
                     tNumSelected = tSelectedCases.length;
-                if (tNumSelected === 1) {
-                  tSingleton = tSelectedCases[0];
+                if (tNumSelected > 0) {
+                  tChildmostSel = tSelectedCases;
                   tCurrColl = tCollections[++tCurrIndex];
                 }
                 else if (tNumSelected === 0) {
                   tCurrColl = tCollections[++tCurrIndex];
                 }
-                else {  // tNumSelected > 1
-                  tCurrColl = null;
-                }
               }
-              return tSingleton;
+              return tChildmostSel;
             }
 
             var tCollEntries = [],
                 tContext = this.props.context,
-                tChildmostSingletonSelection = childmostSingleSelection(tContext);
+                tChildmostSelection = getChildmostSelection(tContext);
+            // collection loop
             tContext.get('collections').forEach(function (iCollection, iCollIndex) {
 
-              function shouldSummarize() {
-                var tShould = (tCases.length > 1) &&
-                    (!tChildmostSingletonSelection ||
-                        !tChildmostSingletonSelection.get('collection').isDescendantOf(iCollection));
-                return tShould;
+              function getDescendantsOfCaseInCollection(iCase, iTargetColl) {
+                var tChildren = iCase.get('children');
+                if (tChildren && tChildren.length > 0) {
+                  if (tChildren[0].get('collection') === iTargetColl) {
+                    return tChildren;
+                  } else {
+                    var tResult = [];
+                    tChildren.forEach( function( iChild) {
+                      tResult = tResult.concat( getDescendantsOfCaseInCollection( iChild, iTargetColl));
+                    });
+                    return tResult;
+                  }
+                }
+                return [];
               }
 
-              var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
-                  tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
-                  tSelLength = tSelectedCases ? tSelectedCases.length : 0,
-                  tCase = tSelLength === 1 ? tSelectedCases[0] : null,
-                  tCases = tSelLength > 0 ? tSelectedCases : iCollection.get('cases'),
-                  tShouldSummarize = shouldSummarize(),
-                  tAttrEntries = [],
-                  tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
+                function getParentsOfChildmostSelection() {
+                  var tParents = [],
+                      tCollOfChildMostSelection = tChildmostSelection && tChildmostSelection[0].get('collection');
+                  if (tChildmostSelection &&
+                      tChildmostSelection[0].get('collection').isDescendantOf(iCollection)) {
+                    iCollection.get('cases').forEach(function (iCase) {
+                      // Which of my cases have descendants in tChildmostSelection?
+                      var tCandidates = getDescendantsOfCaseInCollection(iCase, tCollOfChildMostSelection);
+                      if (tCandidates.some(function (iCandidate) {
+                        return tChildmostSelection.indexOf(iCandidate) >= 0;
+                      })) {
+                        tParents.push(iCase);
+                      }
+                    });
+                  }
+                  return tParents;
+                }
 
-              iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
-                tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases,
-                    iAttr, iAttrIndex, tShouldSummarize, tChildmostSingletonSelection));
-              }.bind(this));
-              tCollEntries.push(table({
-                    key: 'table-' + iCollIndex
-                    // style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
-                  },
-                  tbody({},
-                      tCollectionHeader, tAttrEntries)));
-            }.bind(this));
+                var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
+                    tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
+                    tSelLength = tSelectedCases ? tSelectedCases.length : 0,
+                    tCase = tSelLength === 1 ? tSelectedCases[0] : null,
+                    tCases = tSelLength > 0 ? tSelectedCases :
+                        (tChildmostSelection ? getParentsOfChildmostSelection() : iCollection.get('cases')),
+                    tShouldSummarize = tCases.length > 0,
+                    tAttrEntries = [],
+                    tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
+
+                iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
+                  tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases,
+                      iAttr, iAttrIndex, tShouldSummarize, tChildmostSelection));
+                }.bind(this));
+                tCollEntries.push(table({
+                      key: 'table-' + iCollIndex
+                      // style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
+                    },
+                    tbody({},
+                        tCollectionHeader, tAttrEntries)));
+              }
+
+            .
+              bind(this)
+            );
             return div({className: 'react-data-card'}, tCollEntries);
           }
         };
