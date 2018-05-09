@@ -48,10 +48,10 @@ DG.React.ready(function () {
                 var tAttr = this_.props.dragStatus.dragObject.data.attribute,
                     tCallback = this_.props.dropCallback;
                 // Postpone the actual change so that we'll be outside this render
-                setTimeout( function() {
+                setTimeout(function () {
                   // Use SC.run to make Sproutcore happy with invokeLaters that will be called
-                  SC.run(function() {
-                    tCallback( tAttr);
+                  SC.run(function () {
+                    tCallback(tAttr);
                   });
                 }, 0);
               }
@@ -73,12 +73,9 @@ DG.React.ready(function () {
                 tNumSelected = tCollClient ?
                     tCollClient.getPath('casesController.selection').toArray().length : null,
                 tCaseIndex = SC.none(tCaseID) ? null : tCollection.getCaseIndexByID(tCaseID) + 1,
-                tHeaderString = tCaseIndex === null ?
-                    (tNumSelected > 1 ?
-                            'DG.CaseCard.namePlusSelectionCount'.loc(tNumSelected, tNumCases, tName) :
-                            'DG.CaseCard.namePlusCaseCount'.loc(tNumCases, tName)
-                    ) :
-                    'DG.CaseCard.indexString'.loc(tNumCases, tName),
+                tHeaderString = tNumSelected > 0 ?
+                    'DG.CaseCard.namePlusSelectionCount'.loc(tNumSelected, tNumCases, tName) :
+                    'DG.CaseCard.namePlusCaseCount'.loc(tNumCases, tName),
                 tNavButtons = DG.React.Components.NavButtons({
                   collectionClient: tCollClient,
                   caseIndex: tCaseIndex,
