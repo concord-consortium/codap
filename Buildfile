@@ -14,7 +14,8 @@ config :all, :required => [:sproutcore, 'sproutcore/ace'], :theme => 'sproutcore
 config :dg,
        :title => 'CODAP',
        :css_theme => 'ace.dg',
-       :layout => 'dg:lib/index.rhtml'
+       :layout => 'dg:lib/index.rhtml',
+       :manifest => 'manifest.webmanifest'
 
 # Production build (e.g. sc-build, make deploy) configuration
 mode :production do
