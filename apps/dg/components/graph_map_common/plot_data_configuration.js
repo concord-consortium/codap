@@ -702,7 +702,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
       // If the change is from a collection other than one we care about, bail
       var tChangedCollectionID = iChange.collection && iChange.collection.get('id'),
           tPlottedCollectionID = this.getPath('collectionClient.id'),
-          tChangedCollectionIDs = iChange.collections.map( function( iColl) {
+          tChangedCollectionIDs = iChange.collections && iChange.collections.map( function( iColl) {
             return iColl.get('id');
           }),
           tChangeIsRelevant = (tChangedCollectionID === tPlottedCollectionID) ||
