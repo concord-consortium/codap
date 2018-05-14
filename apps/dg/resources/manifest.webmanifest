@@ -1,0 +1,16 @@
+{
+  "name": "Common Online Data Analysis Platform",
+  "short_name": "CODAP",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "orientation": "landscape-primary",
+  "dir": "rtl",
+  "lang": "en-US",
+  "description": "A tool for exploratory data analysis.",
+  "icons": [{
+    "src": "images/codap_logo.png",
+    "sizes": "200x200",
+    "type": "image/png"
+  }]
+}
