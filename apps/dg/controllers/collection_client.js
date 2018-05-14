@@ -709,6 +709,56 @@ DG.CollectionClient = SC.Object.extend(
     });
   },
 
+  extractRetainedCases: function () {
+
+    this.getPath('collection.cases').beginPropertyChanges();
+    this.casesController.beginPropertyChanges();
+    this.beginPropertyChanges();
+    var tCollection = this.get('collection'),
+        tCases = tCollection.get('cases'),
+        tDeletedCaseIDs = [],
+        tDeletedCases = [],
+        tRetainedCases = [],
+        ix,
+        myCase;
+
+    try {
+      if (!tCases.some(function (iCase) {
+        return (iCase._deletable);
+      })) {
+        return [];
+      }
+      for (ix = 0; ix < tCases.length; ix++) {
+        myCase = tCases[ix];
+        if (myCase._deletable) {
+          tDeletedCases.push(myCase);
+          tDeletedCaseIDs.push(myCase.id);
+          DG.Case._removeCaseFromItemMap(myCase);
+          // tCollection.deleteCase(iCase, true);
+        } else {
+          tRetainedCases.push(myCase);
+        }
+      }
+      this.casesController.set('content', tRetainedCases);
+    } finally {
+      this.endPropertyChanges();
+      this.casesController.endPropertyChanges();
+      this.getPath('collection.cases').endPropertyChanges();
+    }
+
+    // // clear cases and create new array with retained cases
+    // tCases.set(length, 0);
+    // tRetainedCases.forEach(function (iCase) {
+    //   tCases.pushObject(iCase);
+    // });
+
+    if (tDeletedCaseIDs.length > 0) {
+      this.didDeleteCases();
+    }
+    //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
+    return tDeletedCases;
+
+  },
   deleteMarkedCases: function () {
     var tCollection = this.get('collection'),
         tCases = tCollection.get('cases'),
