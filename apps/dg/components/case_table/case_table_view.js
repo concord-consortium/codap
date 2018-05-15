@@ -2208,7 +2208,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
       // bail if we are in the actual table space
       if (this._slickGrid.getCellFromEvent(iEvent) || isInHeader(iEvent) ) {
-        return YES;
+        return NO;
       }
       var dataContext = this.get('dataContext');
       var tChange = {
@@ -2218,7 +2218,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         extend: false
       };
       dataContext.applyChange(tChange);
-      return YES;
+      return NO;
     },
     mouseDown: function () {
       return YES;
