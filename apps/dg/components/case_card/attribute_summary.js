@@ -17,19 +17,6 @@ DG.React.ready(function () {
 
         return {
 
-          getInitialState: function () {
-            return {};
-          },
-
-          componentDidMount: function () {
-          },
-
-          componentWillUnmount: function () {
-          },
-
-          componentWillReceiveProps: function (iNewProps) {
-          },
-
           render: function () {
             var tAttrID = this.props.attrID,
                 tAllNumeric = true,

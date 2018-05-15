@@ -92,6 +92,7 @@ DG.CaseCardView = SC.View.extend(
         },
 
         dragEntered: function (iDragObject, iEvent) {
+          console.log('dragEntered case card view');
           this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent}});
         },
 
@@ -108,6 +109,7 @@ DG.CaseCardView = SC.View.extend(
         },
 
         dragStarted: function (iDrag) {
+          console.log('dragStarted case card view');
           if (this.isValidAttribute(iDrag)) {
             this.set('dragInProgress', true);
           }

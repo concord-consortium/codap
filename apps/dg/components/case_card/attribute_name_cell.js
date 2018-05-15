@@ -87,12 +87,6 @@ DG.React.ready(function () {
                     disabled: !this.props.attributeCanBeRandomizedCallback(),
                     clickHandler: rerandomizeClickHandler
                   },
-                  /*
-                                    {label: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
-                                      disabled: false },
-                                    {label: 'DG.TableController.headerMenuItems.sortDescending'.loc(),
-                                      disabled: false },
-                  */
                   {
                     label: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
                     disabled: false,
@@ -110,9 +104,6 @@ DG.React.ready(function () {
                       className: tClassName,
                       trigger: this.props.content,
                       menuItems: tMenuItems,
-                      ref: function (iDropdown) {
-                        this.dropdown = iDropdown;
-                      }.bind(this),
                       onRefCallback: assignCellRef
                     });
 
