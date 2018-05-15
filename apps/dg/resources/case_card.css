@@ -9,8 +9,8 @@
 
 .react-data-card {
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 0;
+    left: 0;
     width: 100%;
     margin: 0 0 3px;
     font-size: 11px !important;
@@ -27,7 +27,7 @@
 }
 
 .react-data-card-navbuttons {
-    right: 0px;
+    right: 0;
     width: fit-content;
     display: inline-block;
     text-align: right;
@@ -72,7 +72,7 @@
 
 .react-data-card table {
     width: 100%;
-    margin-bottom: 0px;
+    margin-bottom: 0;
     margin-left: 0;
     border-bottom: gray thin solid;
 }
@@ -88,7 +88,7 @@
 .react-data-card td div {
     float: right;
     /*margin-right: 20px;*/
-    border: 0px;
+    border: 0;
 }
 
 .react-data-card td {
@@ -180,7 +180,6 @@ tr:nth-child(even) td.attr-cell {
 .react-data-card-attribute-menu-item {
     margin: 1px;
     padding: 2px 4px;
-    z-index: 20;
     font-family: 'Montserrat', sans-serif;
     font-size: 12px;
     text-align: left;

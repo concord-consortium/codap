@@ -36,10 +36,6 @@ DG.CaseCardController = DG.ComponentController.extend(
         );
       },
 
-      willCloseComponent: function() {
-        sc_super();
-      },
-
       toggleViewVisibility: function() {
         var tCaseCardView = this.get('view'),
             tOperation = tCaseCardView.get('isVisible') ? 'delete' : 'add',
