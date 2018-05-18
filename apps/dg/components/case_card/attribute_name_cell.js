@@ -54,19 +54,19 @@ DG.React.ready(function () {
             }
 
             function editAttributeClickHandler() {
-              clickHandler( this_.props.editAttributeCallback);
+              clickHandler(this_.props.editAttributeCallback);
             }
 
             function editFormulaClickHandler() {
-              clickHandler( this_.props.editFormulaCallback);
+              clickHandler(this_.props.editFormulaCallback);
             }
 
             function deleteAttributeClickHandler() {
-              clickHandler( this_.props.deleteAttributeCallback);
+              clickHandler(this_.props.deleteAttributeCallback);
             }
 
             function rerandomizeClickHandler() {
-              clickHandler( this_.props.rerandomizeCallback);
+              clickHandler(this_.props.rerandomizeCallback);
             }
 
             handleDropIfAny();
@@ -101,11 +101,14 @@ DG.React.ready(function () {
                       iItem.label);
                 }),
                 tAttributeName = DG.React.Components.Dropdown({
-                      className: tClassName,
-                      trigger: this.props.content,
-                      menuItems: tMenuItems,
-                      onRefCallback: assignCellRef
-                    });
+                  className: tClassName,
+                  trigger: this.props.content,
+                  menuItems: tMenuItems,
+                  ref: function (iDropdown) {
+                    this.dropdown = iDropdown;
+                  }.bind(this),
+                  onRefCallback: assignCellRef
+                });
 
             return tAttributeName;
           }

@@ -45,7 +45,7 @@ DG.React.ready(function () {
               this.setState({unit: iNewProps.unit});
           },
 
-          _onWindowClick: function( event) {
+          _onWindowClick: function (event) {
             var inputElement = findDOMNode(this);
             if (event.target !== inputElement && !inputElement.contains(event.target) && this.state.editing) {
               this.props.onToggleEditing(this);
@@ -58,29 +58,27 @@ DG.React.ready(function () {
           },
 
           render: function () {
-            var tInput = input({
-                  type: 'text',
-                  value: this.state.value,
-                  onChange: this.handleChange,
-                  autoFocus: true,
-                  onKeyDown: function (iEvent) {
-                    if (iEvent.keyCode === 13) {
-                      this.props.onToggleEditing(this);
-                    }
-                  }.bind(this)
-                }),
+            var
                 tUnits = SC.empty(this.state.value) ? '' : ' ' + (this.state.unit || ''),
-                tValue = span({
-                  className: 'react-data-card-value ' + this.props.className,
-                  onClick: function () {
-                    if (!this.state.editing && this.props.onToggleEditing)
-                      this.props.onToggleEditing(this);
-                  }.bind(this)
-                }, this.state.value + tUnits),
-                tResult =
-                    this.state.editing ?
-                        tInput :
-                        tValue;
+                tResult = this.state.editing ?
+                    input({
+                      type: 'text',
+                      value: this.state.value,
+                      onChange: this.handleChange,
+                      autoFocus: true,
+                      onKeyDown: function (iEvent) {
+                        if (iEvent.keyCode === 13) {
+                          this.props.onToggleEditing(this);
+                        }
+                      }.bind(this)
+                    }) :
+                    span({
+                      className: 'react-data-card-value ' + this.props.className,
+                      onClick: function () {
+                        if (!this.state.editing && this.props.onToggleEditing)
+                          this.props.onToggleEditing(this);
+                      }.bind(this)
+                    }, this.state.value + tUnits);
             return tResult;
           }
         };

@@ -75,7 +75,7 @@
     text-align: center;
     padding-top: 4px;
     padding-bottom: 4px;
-    background-color: #F0F0F0;
+    background-color: #bddfdf;
     white-space: nowrap;
 }
 
@@ -845,9 +845,9 @@
     top: 4px !important;
     height: 15px;
     font-size: 12px !important;
-    margin-left: auto;
-    margin-right: auto;
     position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dg-titlebar:hover .dg-titleview-empty {
@@ -1201,13 +1201,13 @@ input.dg-editor-text {
 }
 
 .slick-header-column.drag-insert-left {
-    border-left-color: black;
+    border-left-color: yellow;
     border-left-style: solid;
     border-left-width: thick;
 }
 
 .slick-header-column.drag-insert-right {
-    border-right-color: black;
+    border-right-color: yellow;
     border-right-style: solid;
     border-right-width: thick;
 }

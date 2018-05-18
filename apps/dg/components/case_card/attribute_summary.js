@@ -51,11 +51,9 @@ DG.React.ready(function () {
             }
             else {
               var tUniqueValue = Object.keys( tUniqueValues).join(', ');
-              return DG.React.Components.TextInput({
-                className: 'react-data-card-attribute-summary',
-                value: tUniqueValue,
-                unit: ''
-              });
+              return span({
+                className: 'react-data-card-attribute-summary'
+              }, tUniqueValue);
             }
           }
         };
