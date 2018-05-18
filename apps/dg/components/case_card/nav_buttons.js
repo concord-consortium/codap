@@ -21,20 +21,33 @@ DG.React.ready(function () {
 
           render: function () {
             var tCaseIndex = this.props.caseIndex,
-                tFirstButton = (this.props.numCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex <= 1)) ? '' :
-                span({
-                  className: 'moonicon-icon-reverse-play',
-                  onClick: this.getPrevious
-                }),
-                tSecondButton = (this.props.numCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases)) ?
-                    span({
-                      className: 'moonicon-icon-play',
-                      style: { 'color': 'transparent', 'cursor': 'default'}
-                    }) :
-                    span({
-                      className: 'moonicon-icon-play',
-                      onClick: this.getNext
-                    });
+                tNumCases = this.props.numCases,
+                tFirstTitle,
+                tFirstButton,
+                tSecondTitle,
+                tSecondButton;
+            if (!(tNumCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex <= 1))) {
+              tFirstTitle = !SC.none( tCaseIndex) ? 'DG.CaseCard.navPrevCase' : 'DG.CaseCard.navLastCase';
+              tFirstButton = span({
+                className: 'moonicon-icon-reverse-play',
+                onClick: this.getPrevious,
+                title: tFirstTitle.loc()
+              });
+            }
+            if(!(this.props.numCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases))) {
+              tSecondTitle = !SC.none( tCaseIndex) ? 'DG.CaseCard.navNextCase' : 'DG.CaseCard.navFirstCase';
+              tSecondButton = span({
+                className: 'moonicon-icon-play',
+                onClick: this.getNext,
+                title: tSecondTitle.loc()
+              });
+            }
+            else {
+              tSecondButton = span({
+                className: 'moonicon-icon-play',
+                style: { 'color': 'transparent', 'cursor': 'default'}
+              });
+            }
             return span({className: 'react-data-card-navbuttons navbuttons-arrow'},
                 tFirstButton, tSecondButton);
           }

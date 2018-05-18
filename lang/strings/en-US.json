@@ -120,6 +120,10 @@
     "DG.CaseCard.namePlusSelectionCount": "%@ selected of %@ %@",    // number selected, number of cases, Name
     "DG.CaseCard.summaryValues": "%@ values",    // number of unique values when categorical
     "DG.CaseCard.summaryRange": "%@–%@ %@",    // min, max, unit (if any)
+    "DG.CaseCard.navNextCase": "Select and show next case",
+    "DG.CaseCard.navPrevCase": "Select and show previous case",
+    "DG.CaseCard.navFirstCase": "Select and show first case",
+    "DG.CaseCard.navLastCase": "Select and show last case",
 
     // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",

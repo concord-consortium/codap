@@ -367,6 +367,55 @@ DG.DataContextUtilities = {
         context.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
       }
     });
+  },
+
+  stashAttributeValue: function( iContext, iCase, iAttr, iValue) {
+    var tAttrID = iAttr.get('id'),
+        originalValue = iCase.getStrValue(tAttrID),
+        newValue = DG.DataUtilities.canonicalizeInputValue(iValue),
+        contextName = iContext.get('name'),
+        collection = iCase.get('collection'),
+        collectionName = collection && collection.get('name') || "",
+        attr = collection && collection.getAttributeByID(tAttrID),
+        attrName = attr && attr.get('name'),
+        caseIndex = collection.getCaseIndexByID(iCase.get('id'));
+
+    function applyEditChange(attrID, iValue, isUndoRedo) {
+      SC.run(function () {
+        iContext.applyChange({
+          operation: 'updateCases',
+          cases: [iCase],
+          attributeIDs: [attrID],
+          values: [[iValue]]
+        });
+      });
+    }
+
+    var cmd = DG.Command.create({
+      name: 'caseTable.editCellValue',
+      undoString: 'DG.Undo.caseTable.editCellValue',
+      redoString: 'DG.Redo.caseTable.editCellValue',
+      log: "editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }"
+          .fmt(collectionName, caseIndex + 1, tAttrID, originalValue, newValue),
+      causedChange: true,
+      execute: function () {
+        applyEditChange(tAttrID, newValue);
+      },
+      undo: function () {
+        applyEditChange(tAttrID, originalValue, true);
+      },
+      redo: function () {
+        iContext = DG.currDocumentController().getContextByName(contextName);
+        collection = iContext && iContext.getCollectionByName(collectionName);
+        attr = collection && collection.getAttributeByName(attrName);
+        tAttrID = attr.get('id');
+        var cases = collection && collection.get('casesController');
+        iCase = cases && cases.objectAt(caseIndex);
+        if (iCase)
+          applyEditChange(tAttrID, newValue, true);
+      }
+    });
+    DG.UndoHistory.execute(cmd);
   }
 
 };

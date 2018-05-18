@@ -250,11 +250,17 @@ DG.ComponentView = SC.View.extend(
 
         controllerDidChange: function() {
           var tTitleBar = this.getPath('containerView.titlebar'),
+              tTitleView = tTitleBar && tTitleBar.get('titleView'),
+              tTitleViewLayer = tTitleView && tTitleView.get('layer'),
               tSpecialButtons = this.get('specialTitleBarButtons');
           tSpecialButtons.forEach( function( iButton, iIndex) {
             iButton.adjust({ left: 5 + iIndex * 30, width: 25 });
             tTitleBar.appendChild( iButton);
           });
+          if( tTitleView && tTitleViewLayer) {
+            tTitleView.adjust({left: 0, right: 0});
+            tTitleViewLayer.style.paddingLeft = (tSpecialButtons.length * 30 + 5) + 'px';
+          }
         }.observes('controller'),
 
         /**
@@ -326,7 +332,7 @@ DG.ComponentView = SC.View.extend(
             model: null,  // DG.ComponentModel. Needed to determine if closebox should show
             childViews: ('statusView versionView titleView ' +
             (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo')).w(),
-            titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
+            titleView: SC.LabelView.design(DG.MouseAndTouchView, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
               isEditable: YES,

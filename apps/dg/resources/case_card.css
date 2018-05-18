@@ -159,8 +159,7 @@ tr:nth-child(even) td.attr-cell {
 }
 
 .react-data-card-formula {
-    background-color: rgba(0,0,0,0.4);
-    color: white;
+    color: #555;
 }
 
 .dropdown {

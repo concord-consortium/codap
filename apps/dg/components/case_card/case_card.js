@@ -240,76 +240,16 @@ DG.React.ready(function () {
              * --------------------------Handling editing the value-----------------
              */
             var toggleEditing = function (iValueField) {
-              /**
-               * Apply the edited value, by storing it in the DG data context.
-               * Here we override the standard TextEditor.applyValue() method
-               * Because the default editor modifies our row data, instead
-               * of allowing the adapter to do it.  With this override we
-               * don't need to handle the "onCellChanged" event.
-               * @param item {DG.Case}
-               * @param state {String} -- the edited string value
-               */
-              var stashValue = function () {
-                var tCase = iCases[0],
-                    tValue = this.currEditField.state.value,
-                    tAttrID = iAttr.get('id'),
-                    originalValue = tCase.getStrValue(tAttrID),
-                    newValue = DG.DataUtilities.canonicalizeInputValue(tValue),
-                    contextName = iContext.get('name'),
-                    collection = tCase.get('collection'),
-                    collectionName = collection && collection.get('name') || "",
-                    attr = collection && collection.getAttributeByID(tAttrID),
-                    attrName = attr && attr.get('name'),
-                    caseIndex = collection.getCaseIndexByID(tCase.get('id'));
-
-                function applyEditChange(attrID, iValue, isUndoRedo) {
-                  SC.run(function () {
-                    iContext.applyChange({
-                      operation: 'updateCases',
-                      cases: [tCase],
-                      attributeIDs: [attrID],
-                      values: [[iValue]]
-                    });
-                  });
-                }
-
-                var cmd = DG.Command.create({
-                  name: 'caseTable.editCellValue',
-                  undoString: 'DG.Undo.caseTable.editCellValue',
-                  redoString: 'DG.Redo.caseTable.editCellValue',
-                  log: "editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }"
-                      .fmt(collectionName, caseIndex + 1, tAttrID, originalValue, newValue),
-                  causedChange: true,
-                  execute: function () {
-                    applyEditChange(tAttrID, newValue);
-                  },
-                  undo: function () {
-                    applyEditChange(tAttrID, originalValue, true);
-                  },
-                  redo: function () {
-                    iContext = DG.currDocumentController().getContextByName(contextName);
-                    collection = iContext && iContext.getCollectionByName(collectionName);
-                    attr = collection && collection.getAttributeByName(attrName);
-                    tAttrID = attr.get('id');
-                    var cases = collection && collection.get('casesController');
-                    tCase = cases && cases.objectAt(caseIndex);
-                    if (tCase)
-                      applyEditChange(tAttrID, newValue, true);
-                  }
-                });
-                DG.UndoHistory.execute(cmd);
-              }.bind(this);
-
               if (this.currEditField !== iValueField) {
                 iValueField.setState({editing: true});
                 if (this.currEditField) {
-                  stashValue();
+                  DG.DataContextUtilities.stashAttributeValue( iContext, iCases [0], iAttr, this.currEditField.state.value);
                   this.currEditField.setState({editing: false});
                 }
                 this.currEditField = iValueField;
               }
               else {  // Turn off editing
-                stashValue();
+                DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0], iAttr, this.currEditField.state.value);
                 iValueField.setState({editing: false});
                 this.currEditField = null;
               }
@@ -360,7 +300,7 @@ DG.React.ready(function () {
                 tUnitWithParens = '',
                 tHasFormula = iAttr.get('hasFormula'),
                 tFormula = iAttr.get('formula'),
-                tCase = iShouldSummarize ? null : iChildmostSelected || iCases[0],
+                tCase = iShouldSummarize ? null : iChildmostSelected[0] || iCases[0],
                 tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID);
             this.state.attrIndex++;
             if (isNotEmpty(tUnit))
@@ -523,7 +463,7 @@ DG.React.ready(function () {
                       tCase = tSelLength === 1 ? tSelectedCases[0] : null,
                       tCases = tSelLength > 0 ? tSelectedCases :
                           (tChildmostSelection ? getParentsOfChildmostSelection() : iCollection.get('cases')),
-                      tShouldSummarize = tCases.length > 0,
+                      tShouldSummarize = SC.none( tCase),
                       tAttrEntries = [],
                       tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
 
