@@ -1283,8 +1283,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     this.beginPropertyChanges();
     try {
       this.forEachCollection(function (collection) {
-          // var collectionDeletedCases = collection.deleteMarkedCases();
-          var collectionDeletedCases = collection.extractRetainedCases();
+          var collectionDeletedCases = collection.deleteMarkedCases();
           deletedCases = deletedCases.concat(collectionDeletedCases);
           if (deletedCases && deletedCases.length)
             addTrackedCollection(collection);
@@ -1296,7 +1295,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
     this.forEachCollection(function (collection) {
-      collection.get('collection').updateCaseIDToIndexMap();
+      collection.didDeleteCases();
     });
     var change = { collections: DG.ObjectMap.values(collections),
                   createdCases: createdCases, deletedCases: deletedCases };

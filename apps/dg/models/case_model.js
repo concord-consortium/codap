@@ -117,12 +117,12 @@ DG.Case = DG.BaseModel.extend((function() {
      */
     destroy: function() {
       //DG.log('removing case(%@) from collection(%@) with item(%@/%@)'.loc(this.get('id'), this.collection.get('name'), this.item.id, this.item.itemIndex));
-      if (this.parent) {
-        this.parent.children.removeObject(this);
-      }
-      if (this.collection) {
-        this.collection.cases.removeObject(this);
-      }
+      // if (this.parent) {
+      //   this.parent.children.removeObject(this);
+      // }
+      // if (this.collection) {
+      //   this.collection.cases.removeObject(this);
+      // }
 
       DG.Case._removeCaseFromItemMap(this);
 

@@ -709,36 +709,33 @@ DG.CollectionClient = SC.Object.extend(
     });
   },
 
-  extractRetainedCases: function () {
+  deleteMarkedCases: function () {
+    var tCollection = this.get('collection'),
+        tCases = tCollection.get('cases'),
+        tDeletedCases = [],
+        tRetainedCases = [];
+
+    // if there are no delete cases, this is a no-op
+    if (!tCases.some(function (iCase) {
+      return (iCase._deletable);
+    })) {
+      return [];
+    }
 
     this.getPath('collection.cases').beginPropertyChanges();
     this.casesController.beginPropertyChanges();
     this.beginPropertyChanges();
-    var tCollection = this.get('collection'),
-        tCases = tCollection.get('cases'),
-        tDeletedCaseIDs = [],
-        tDeletedCases = [],
-        tRetainedCases = [],
-        ix,
-        myCase;
-
     try {
-      if (!tCases.some(function (iCase) {
-        return (iCase._deletable);
-      })) {
-        return [];
-      }
-      for (ix = 0; ix < tCases.length; ix++) {
-        myCase = tCases[ix];
+      tCases.forEach(function (myCase) {
         if (myCase._deletable) {
           tDeletedCases.push(myCase);
-          tDeletedCaseIDs.push(myCase.id);
-          DG.Case._removeCaseFromItemMap(myCase);
-          // tCollection.deleteCase(iCase, true);
+          // DG.Case._removeCaseFromItemMap(myCase);
+          DG.Case.destroyCase(myCase);
         } else {
           tRetainedCases.push(myCase);
         }
-      }
+      });
+      this.setPath('collection.cases', tRetainedCases);
       this.casesController.set('content', tRetainedCases);
     } finally {
       this.endPropertyChanges();
@@ -746,40 +743,34 @@ DG.CollectionClient = SC.Object.extend(
       this.getPath('collection.cases').endPropertyChanges();
     }
 
-    // // clear cases and create new array with retained cases
-    // tCases.set(length, 0);
-    // tRetainedCases.forEach(function (iCase) {
-    //   tCases.pushObject(iCase);
-    // });
-
-    if (tDeletedCaseIDs.length > 0) {
-      this.didDeleteCases();
-    }
-    //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
-    return tDeletedCases;
-
-  },
-  deleteMarkedCases: function () {
-    var tCollection = this.get('collection'),
-        tCases = tCollection.get('cases'),
-        tDeletedCaseIDs = [],
-        tDeletedCases = [],
-        ix,
-        iCase;
-    for (ix = tCases.length - 1; ix >= 0; ix --) {
-      iCase = tCases[ix];
-      if (iCase._deletable) {
-        tDeletedCases.push(iCase);
-        tDeletedCaseIDs.push(iCase.id);
-        tCollection.deleteCase(iCase, true);
-      }
-    }
-    if (tDeletedCaseIDs.length > 0) {
+    if (tDeletedCases.length > 0) {
       this.didDeleteCases();
     }
     //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
     return tDeletedCases;
   },
+
+  // deleteMarkedCases: function () {
+  //   var tCollection = this.get('collection'),
+  //       tCases = tCollection.get('cases'),
+  //       tDeletedCaseIDs = [],
+  //       tDeletedCases = [],
+  //       ix,
+  //       iCase;
+  //   for (ix = tCases.length - 1; ix >= 0; ix --) {
+  //     iCase = tCases[ix];
+  //     if (iCase._deletable) {
+  //       tDeletedCases.push(iCase);
+  //       tDeletedCaseIDs.push(iCase.id);
+  //       tCollection.deleteCase(iCase, true);
+  //     }
+  //   }
+  //   if (tDeletedCaseIDs.length > 0) {
+  //     this.didDeleteCases();
+  //   }
+  //   //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
+  //   return tDeletedCases;
+  // },
 
   /**
     Returns a link object of the form { type: 'DG.CollectionRecord', id: collectionID }.
