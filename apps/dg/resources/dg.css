@@ -75,7 +75,7 @@
     text-align: center;
     padding-top: 4px;
     padding-bottom: 4px;
-    background-color: #F0F0F0;
+    background-color: #bddfdf;
     white-space: nowrap;
 }
 
@@ -563,6 +563,14 @@
     box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.40);
 }
 
+.dg-opaque {
+    background-color: white;
+}
+
+.dg-scrollable {
+    overflow: scroll;
+}
+
 .dg-titlebar {
     background-color: #72bfca;
     border-top-right-radius:6px;
@@ -672,6 +680,50 @@
     color: black;
 }
 
+.dg-card-icon:before {
+    font-family: 'icomoon';
+    content: "\32";
+}
+
+.dg-card-icon {
+    top: 2px !important;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+}
+
+.dg-card-icon:hover {
+    top: 1px !important;
+    font-size: 18px;
+}
+
+.dg-card-icon:active {
+    color: black;
+}
+
+.dg-table-icon:before {
+    font-family: 'icomoon';
+    content: "\31";
+}
+
+.dg-table-icon {
+    top: 2px !important;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+}
+
+.dg-table-icon:hover {
+    top: 1px !important;
+    font-size: 18px;
+}
+
+.dg-table-icon:active {
+    color: black;
+}
+
 .dg-play-icon:before {
     font-family: 'icomoon';
     content: "\4A";
@@ -759,6 +811,9 @@
 .tile-icon-table:before {
     content: "\31";
 }
+.tile-icon-card:before {
+    content: "\32";
+}
 .tile-icon-graph:before {
     content: "\33";
 }
@@ -790,9 +845,9 @@
     top: 4px !important;
     height: 15px;
     font-size: 12px !important;
-    margin-left: auto;
-    margin-right: auto;
     position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dg-titlebar:hover .dg-titleview-empty {
@@ -1146,13 +1201,13 @@ input.dg-editor-text {
 }
 
 .slick-header-column.drag-insert-left {
-    border-left-color: black;
+    border-left-color: yellow;
     border-left-style: solid;
     border-left-width: thick;
 }
 
 .slick-header-column.drag-insert-right {
-    border-right-color: black;
+    border-right-color: yellow;
     border-right-style: solid;
     border-right-width: thick;
 }

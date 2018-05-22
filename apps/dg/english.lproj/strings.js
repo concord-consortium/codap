@@ -95,6 +95,7 @@ SC.stringsFor("en", {
 
     // DG.DocumentController
     "DG.DocumentController.calculatorTitle": "Calculator",
+    "DG.DocumentController.caseCardTitle": "Case Card",
     "DG.DocumentController.caseTableTitle": "Case Table",
     "DG.DocumentController.graphTitle": "Graph",
     "DG.DocumentController.sliderTitle": "Slider",
@@ -102,7 +103,9 @@ SC.stringsFor("en", {
     "DG.DocumentController.mapTitle": "Map",
     "DG.DocumentController.enterURLPrompt": "Enter the URL of a web page to display",
     "DG.DocumentController.enterViewWebPageOKTip": "Displays the web page given by the URL",
- 
+    "DG.DocumentController.toggleToCaseCard": "Switch to case card view of the data",
+    "DG.DocumentController.toggleToCaseTable": "Switch to case table view of the data",
+
     // DG.Document
     "DG.Document.defaultDocumentName": "Untitled Document",
     "DG.Document.documentName.toolTip": "Click to edit document name",
@@ -110,6 +113,17 @@ SC.stringsFor("en", {
     // DG.SliderView
     "DG.SliderView.thumbView.toolTip": "Drag to change the slider's value",
     "DG.SliderView.startButton.toolTip": "Start/stop animation",
+
+    // DG.CaseCard
+    "DG.CaseCard.indexString": "1 of %@ %@",    // number of cases, Name
+    "DG.CaseCard.namePlusCaseCount": "%@ %@",    // <num>, Name; e.g. 27 Mammals
+    "DG.CaseCard.namePlusSelectionCount": "%@ selected of %@ %@",    // number selected, number of cases, Name
+    "DG.CaseCard.summaryValues": "%@ values",    // number of unique values when categorical
+    "DG.CaseCard.summaryRange": "%@–%@ %@",    // min, max, unit (if any)
+    "DG.CaseCard.navNextCase": "Select and show next case",
+    "DG.CaseCard.navPrevCase": "Select and show previous case",
+    "DG.CaseCard.navFirstCase": "Select and show first case",
+    "DG.CaseCard.navLastCase": "Select and show last case",
 
     // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",
@@ -356,6 +370,10 @@ SC.stringsFor("en", {
     "DG.Redo.component.minimize": "Redo minimizing component",
     "DG.Undo.dataContext.moveAttribute": "Undo moving case table attribute",
     "DG.Redo.dataContext.moveAttribute": "Redo moving case table attribute",
+    "DG.Undo.component.toggleTableToCard": "Undo changing case table to case card",
+    "DG.Redo.component.toggleTableToCard": "Redo changing case table to case card",
+    "DG.Undo.component.toggleCardToTable": "Undo changing case card to case table",
+    "DG.Redo.component.toggleCardToTable": "Redo changing case card to case table",
 
     // DG.DataContext
     "DG.DataContext.singleCaseName": "case",

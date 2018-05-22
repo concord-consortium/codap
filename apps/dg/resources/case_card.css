@@ -1,0 +1,194 @@
+.react-data-card-view {
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.react-data-card-view.drag-in-progress {
+    border: medium #ffe4b3 solid;
+}
+
+.react-data-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0 0 3px;
+    font-size: 11px !important;
+    background-color: white;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-family: 'Montserrat', sans-serif;
+    table-layout: fixed;
+    white-space: nowrap;
+}
+
+.react-data-card input {
+    font-size: 11px;
+}
+
+.react-data-card-navbuttons {
+    right: 0;
+    width: fit-content;
+    display: inline-block;
+    text-align: right;
+    color: cadetblue;
+}
+
+.navbuttons-arrow [class*="moonicon-"] {
+    font-size: 12px;
+    padding-left: 5px;
+    padding-right: 10px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.navbuttons-arrow [class*="moonicon-"]:hover {
+    color: #72bfca;
+}
+
+.react-data-card-collection-header {
+    background: #bddfdf !important;
+    margin-left: 0;
+    padding: 5px 0;
+    padding-left: 10px;
+}
+
+.react-data-card-collection-header.drop {
+    border-top: yellow 10px solid ;
+}
+
+.react-data-card-coll-header-cell {
+    width: 50%;
+    border: none;
+    text-align: left;
+    text-decoration: underline;
+    font-weight: bold;
+    white-space: normal;
+}
+
+.react-data-card-nav-header-cell {
+    text-align: right;
+}
+
+.react-data-card table {
+    width: 100%;
+    margin-bottom: 0;
+    margin-left: 0;
+    border-bottom: gray thin solid;
+}
+
+.react-data-card table tr {
+    width: 100%;
+}
+
+.react-data-card tr:nth-child(odd) {
+    background: #eeeeee;
+}
+
+.react-data-card td div {
+    float: right;
+    /*margin-right: 20px;*/
+    border: 0;
+}
+
+.react-data-card td {
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 0;
+    padding: 2px 3px 2px 3px;
+    text-overflow: ellipsis;
+}
+
+.react-data-card td.columnA {
+    width: 50%;
+}
+
+.react-data-card td.columnB {
+    width: 50%;
+}
+
+.react-data-card td span {
+    margin-right: 0;
+    font-size: 11px;
+}
+
+.react-data-card-header {
+    background-color: #f2ffe9 !important;
+    padding-top: 5px;
+    font-style: italic;
+    font-weight: bold;
+    margin-left: 5px;
+    text-decoration: underline;
+}
+
+.react-data-card-attribute {
+    cursor: pointer;
+    font-weight: normal;
+    text-align: right;
+}
+
+.react-data-card-attribute:hover {
+    text-decoration: underline;
+    color: #1b5798;
+}
+
+td.attr-cell {
+    background: #ccc;
+    text-align: right;
+}
+
+tr:nth-child(even) td.attr-cell {
+    background: #eee;
+}
+
+.react-data-card .attr-cell-upper {
+    border-top: thick yellow solid;
+}
+
+.react-data-card .attr-cell-lower {
+    border-bottom: thick yellow solid;
+}
+
+.react-data-card-value {
+    cursor: text;
+}
+
+.react-data-card-attribute-summary {
+    font-style: italic;
+}
+
+.react-data-card-formula {
+    color: #555;
+}
+
+.dropdown {
+    /*display: inline-block;*/
+}
+
+.dropdown__content {
+    display: grid;
+    cursor: pointer;
+    position: absolute;
+    padding: 2px;
+    background: #f0f0f0;
+    border: #718BB7 1px solid;
+    box-shadow: 2px 2px 3px #888888ad;
+}
+
+.react-data-card-attribute-menu-item {
+    margin: 1px;
+    padding: 2px 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    text-align: left;
+}
+
+.react-data-card-attribute-menu-item:hover {
+    background-color: white;
+}
+
+.react-data-card-attribute-menu-item.disabled {
+    color: #333333;
+}
+

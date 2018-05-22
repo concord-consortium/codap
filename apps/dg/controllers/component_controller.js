@@ -60,6 +60,12 @@ DG.ComponentController = SC.Object.extend((function () // closure
     },
 
     /**
+     * The component view will add these to its titlebar
+     * @property {[SC.View]}
+     */
+    specialTitleBarButtons: null,
+
+    /**
      * Whether the user interface should should confirm the close of this
      * component.
      *
@@ -68,6 +74,12 @@ DG.ComponentController = SC.Object.extend((function () // closure
     shouldConfirmClose: NO,
 
     shouldDestroyOnComponentDestroy: true,
+
+    init: function() {
+      sc_super();
+
+      this.set('specialTitleBarButtons', []);
+    },
 
     /**
      Give derived classes a chance to clean up after themselves.

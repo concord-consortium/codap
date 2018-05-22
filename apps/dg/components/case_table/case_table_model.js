@@ -16,7 +16,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/** @class  DG.CaseTableModel - The model for a slider. Holds onto a global value.
+/** @class  DG.CaseTableModel - The model for a case table.
 
  @extends SC.Object
  */

@@ -1020,7 +1020,6 @@ DG.DataContext = SC.Object.extend((function() // closure
             {Array of Number}       iChange.ids -- on output, the IDs of the deleted cases
    */
   deleteCasesAndChildren: function(iChange) {
-    // var deletedItems = [];
     var tSetAside = iChange.setAside;
     var tNewChange;
     var items = {};
@@ -1035,7 +1034,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     if (iChange.cases) {
       iChange.cases.forEach(assembleItems);
-      /*deletedItems = */this.deleteItems(Object.values(items), tSetAside);
+      this.deleteItems(Object.values(items), tSetAside);
       tNewChange = this.regenerateCollectionCases(null, 'deleteCases');
     }
     return tNewChange.deletedCases;
@@ -1208,7 +1207,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                                   oldName = attribute.get('name');
                                   if (names.indexOf(oldName) < 0)
                                     names.push(oldName);
-                                  iValue = collection.canonicalizeName(iValue);
+                                  iValue = DG.Attribute.canonicalizeName(iValue);
                                   if (names.indexOf(iValue) < 0)
                                     names.push(iValue);
                                 }
@@ -2608,6 +2607,7 @@ DG.DataContext.collectionDefaults = function() {
   };
   return defaultValues;
 };
+
 /**
  *  A factory function for creating an appropriate DG.DataContext object, i.e.
  *  either a DG.DataContext or an appropriate derived class. Derived classes should

@@ -119,26 +119,33 @@ DG.ContainerView = SC.View.extend(
       tileMenuItems: function() {
 
         function componentViewToClassName(iView) {
-          switch( iView.get('contentView').constructor) {
-            case DG.TableView:
-              return 'tile-icon-table';
-            case DG.GraphView:
-              return 'tile-icon-graph';
-            case DG.MapView:
-              return 'tile-icon-map';
-            case DG.SliderView:
-              return 'tile-icon-slider';
-            case DG.Calculator:
-              return 'tile-icon-calc';
-            case DG.TextView:
-              return 'tile-icon-comment';
-            case DG.GuideView:
-              return 'tile-icon-guide';
-            case DG.GameView:
-              return 'tile-icon-dataTool';
-            case DG.WebView:
-            case SC.WebView:
-              return 'tile-icon-mediaTool';
+          var tContentView = iView.get('contentView');
+          if( tContentView) {
+            switch (tContentView.constructor) {
+              case DG.TableView:
+                return 'tile-icon-table';
+              case DG.CaseCardView:
+                return 'tile-icon-card';
+              case DG.GraphView:
+                return 'tile-icon-graph';
+              case DG.MapView:
+                return 'tile-icon-map';
+              case DG.SliderView:
+                return 'tile-icon-slider';
+              case DG.Calculator:
+                return 'tile-icon-calc';
+              case DG.TextView:
+                return 'tile-icon-comment';
+              case DG.GuideView:
+                return 'tile-icon-guide';
+              case DG.GameView:
+                return 'tile-icon-dataTool';
+              case DG.WebView:
+              case SC.WebView:
+                return 'tile-icon-mediaTool';
+              default:
+                return 'tile-icon-dataTool';
+            }
           }
         }
 
@@ -350,7 +357,8 @@ DG.ContainerView = SC.View.extend(
       */
       coverUpComponentViews: function( iAction) {
         this.allComponentViews().forEach( function( iView) {
-          iView.cover( iAction);
+          if( iView.get('isVisible'))
+            iView.cover( iAction);
         });
       },
 

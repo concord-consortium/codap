@@ -47,14 +47,16 @@ DG.DragBorderView = SC.View.extend(
             return NO;
           }
           DG.globalEditorLock.commitCurrentEdit();
-          var tView = this.viewToDrag();
+          var tView = this.viewToDrag(),
+              tParentView = tView.get('parentView');
           // Make sure the enclosing view will be movable
           DG.ViewUtilities.convertViewLayoutToAbsolute(tView);
           // A click on a border should bring the view to the front
           tView.select();
           if (!this.canBeDragged())
             return NO;  // We won't get other events either
-          tView.get('parentView').coverUpComponentViews('cover');
+          if( tParentView.coverUpComponentViews)
+            tParentView.coverUpComponentViews('cover');
 
           var layout = this.viewToDrag().get('layout');
           this._mouseDownInfo = {
@@ -88,8 +90,10 @@ DG.DragBorderView = SC.View.extend(
           // apply one more time to set final position
           this.mouseDragged(evt);
           this._mouseDownInfo = null; // cleanup info
-          tContainer.coverUpComponentViews('uncover');
-          tContainer.updateFrame();
+          if( tContainer.coverUpComponentViews) {
+            tContainer.coverUpComponentViews('uncover');
+            tContainer.updateFrame();
+          }
           if ((tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
               (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
 
@@ -230,9 +234,34 @@ DG.ComponentView = SC.View.extend(
         showTitleBar: YES,
 
         /**
+         * These buttons are provided by the controller and are specific to the type of component.
+         * The buttons that toggle between case card and case table are an example.
+         * @property {[SC.View]}
+         */
+        specialTitleBarButtons: function() {
+          var tController = this.get('controller');
+          return tController ? tController.get('specialTitleBarButtons') : [];
+        }.property('controller'),
+
+        /**
          * @property {DG.ComponentController}
          */
         controller: null,
+
+        controllerDidChange: function() {
+          var tTitleBar = this.getPath('containerView.titlebar'),
+              tTitleView = tTitleBar && tTitleBar.get('titleView'),
+              tTitleViewLayer = tTitleView && tTitleView.get('layer'),
+              tSpecialButtons = this.get('specialTitleBarButtons');
+          tSpecialButtons.forEach( function( iButton, iIndex) {
+            iButton.adjust({ left: 5 + iIndex * 30, width: 25 });
+            tTitleBar.appendChild( iButton);
+          });
+          if( tTitleView && tTitleViewLayer) {
+            tTitleView.adjust({left: 0, right: 0});
+            tTitleViewLayer.style.paddingLeft = (tSpecialButtons.length * 30 + 5) + 'px';
+          }
+        }.observes('controller'),
 
         /**
          * @property {DG.ComponentModel}
@@ -270,7 +299,6 @@ DG.ComponentView = SC.View.extend(
           if (!this.get('showTitleBar')) {
             this.getPath('containerView.titlebar').adjust('height', 0);
           }
-
           // If we are in component mode we select the component after it is
           // rendered.
           if (kLockThingsDown) {
@@ -286,7 +314,7 @@ DG.ComponentView = SC.View.extend(
           }
         },
         contentView: SC.outlet('containerView.contentView'),
-        childViews: ('containerView' + (!kLockThingsDown ?
+        childViews: ('containerView' + (DG.get('componentMode') === 'no' ?
             ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),
         containerView: SC.View.design({
           layout: {left: 0, bottom: 0, right: 0},
@@ -304,7 +332,7 @@ DG.ComponentView = SC.View.extend(
             model: null,  // DG.ComponentModel. Needed to determine if closebox should show
             childViews: ('statusView versionView titleView ' +
             (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo')).w(),
-            titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
+            titleView: SC.LabelView.design(DG.MouseAndTouchView, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
               isEditable: YES,
@@ -664,7 +692,8 @@ DG.ComponentView = SC.View.extend(
         },
 
         select: function () {
-          this.parentView.select(this);
+          if( this.parentView.select)
+            this.parentView.select(this);
         },
         bringToFront: function () {
           this.parentView.bringToFront(this);
@@ -709,7 +738,7 @@ DG.ComponentView = SC.View.extend(
           }
           else {
             this.setPath('model.savedHeight', this.get('layout').height);
-            this.animate({height: 25},
+            this.animate({height: kTitleBarHeight},
                 {duration: 0.4, timing: 'ease-in-out'});
             setBorderVisibility(false);
             if (this.get('isSelected')) {

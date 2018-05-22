@@ -71,6 +71,12 @@ DG.MathUtilities = {
     return {roundedValue: tRoundedValue, decPlaces: tDecPlaces};
   },
 
+  formatNumber: function( iValue, iPrecision) {
+    var tNumFormat = DG.Format.number().fractionDigits(0, iPrecision);
+    tNumFormat.group(''); // Don't separate with commas
+    return tNumFormat(iValue);
+  },
+
   /** Clip to the integer range which EXCLUDES the upper value.
    *  Assumes that all values are integers.
    *  @returns integer in [iMin - iMax) range.

@@ -23,8 +23,6 @@
 sc_require('controllers/component_controller');
 sc_require('components/case_table/attribute_editor_view');
 
-/*global pluralize:true*/
-
 /** @class
 
   DG.CaseTableController provides controller functionality for DG.TableViews.
@@ -79,6 +77,9 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       init: function() {
         sc_super();
+        this.get('specialTitleBarButtons').push(
+            DG.CaseCardToggleButton.create()
+        );
         this.caseTableAdapters = [];
         // Init is called when the case table controller may not be fully
         // constructed, so, delay to the next Run Loop.
@@ -282,7 +283,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
           break;
         case 'cmdRandomizeAttribute':
-          this.randomizeAttribute( columnID);
+          DG.DataContextUtilities.randomizeAttribute( this.get('dataContext'), columnID);
           break;
         case 'cmdSortAscending':
           this.sortAttribute( columnID);
@@ -291,7 +292,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           this.sortAttribute( columnID, true);
           break;
         case 'cmdDeleteAttribute':
-          this.deleteAttribute( columnID);
+          DG.DataContextUtilities.deleteAttribute( this.get('dataContext'), columnID);
           break;
         }
       },
@@ -918,20 +919,6 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
-       * Randomize a single attribute
-       */
-      randomizeAttribute: function(iAttrID) {
-        var dataContext = this.get('dataContext');
-        if (dataContext && iAttrID) {
-          dataContext.invalidateDependencyAndNotify({ type: DG.DEP_TYPE_ATTRIBUTE,
-                                                      id: iAttrID },
-                                                    { type: DG.DEP_TYPE_SPECIAL,
-                                                      id: 'random' },
-                                                    true /* force aggregate */);
-        }
-      },
-
-      /**
        * Randomize all attributes
        */
       randomizeAllAttributes: function() {
@@ -969,47 +956,8 @@ DG.CaseTableController = DG.ComponentController.extend(
        * @param iChangedAttrProps {object}
        */
       updateAttribute: function(iAttrRef, iChangedAttrProps) {
-        var tDataContext = this.get('dataContext');
-        var tAttr = iAttrRef.attribute;
-        var tOldAttrProps = {
-          id: tAttr.get('id'),
-          name: tAttr.get('name'),
-          type: tAttr.get('type'),
-          unit: tAttr.get('unit'),
-          editable: tAttr.get('editable'),
-          precision: tAttr.get('precision'),
-          description: tAttr.get('description'),
-        };
-        DG.UndoHistory.execute(DG.Command.create({
-          name: "caseTable.editAttribute",
-          undoString: 'DG.Undo.caseTable.editAttribute',
-          redoString: 'DG.Redo.caseTable.editAttribute',
-          log: 'Edit attribute "%@"'.fmt(iChangedAttrProps.name),
-          _componentId: this.getPath('model.id'),
-          _controller: function() {
-            return DG.currDocumentController().componentControllersMap[this._componentId];
-          },
-          execute: function() {
-            var change = {
-                            operation: 'updateAttributes',
-                            collection: iAttrRef && iAttrRef.collection,
-                            attrPropsArray: [Object.assign({ id: iAttrRef.attribute.get('id')}, iChangedAttrProps)]
-                          };
-            tDataContext.applyChange( change);
-          },
-          undo: function() {
-            var change = {
-                            operation: 'updateAttributes',
-                            collection: iAttrRef && iAttrRef.collection,
-                            attrPropsArray: [tOldAttrProps]
-                          };
-            tDataContext.applyChange( change);
-          },
-          redo: function() {
-            tDataContext = this._controller().get('dataContext');
-            this.execute();
-          }
-        }));
+        DG.DataContextUtilities.updateAttribute( this.get('dataContext'), iAttrRef && iAttrRef.collection,
+            iAttrRef.attribute, iChangedAttrProps);
       },
 
       showEditAttributePane: function (iAttrRef, menuItem) {
@@ -1066,133 +1014,6 @@ DG.CaseTableController = DG.ComponentController.extend(
               refreshTable();
             }
           }));
-        }
-      },
-
-      /**
-       * Delete an attribute after requesting confirmation from the user.
-       *
-       */
-      deleteAttribute: function( iAttrID) {
-        var tDataContext = this.get('dataContext'),
-            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tAttrName = tAttrRef.attribute.get('name'),
-            tCollectionClient = tAttrRef.collection,
-            tCollection = tCollectionClient.get('collection');
-
-        var doDeleteAttribute = function() {
-          DG.UndoHistory.execute(DG.Command.create({
-            name: "caseTable.deleteAttribute",
-            undoString: 'DG.Undo.caseTable.deleteAttribute',
-            redoString: 'DG.Redo.caseTable.deleteAttribute',
-            log: 'Delete attribute "%@"'.fmt(tAttrName),
-            _componentId: this.getPath('model.id'),
-            _controller: function() {
-              return DG.currDocumentController().componentControllersMap[this._componentId];
-            },
-            _beforeStorage: {
-              changeFlag: tDataContext.get('flexibleGroupingChangeFlag'),
-              fromCollectionID: tCollection.get('id'),
-              fromCollectionName: tCollection.get('name'),
-              fromCollectionParent: tCollection.get('parent'),
-              fromCollectionChild: tCollection.get('children')[0]
-            },
-            _afterStorage: {},
-            execute: function() {
-              var change;
-              if ((tCollectionClient.get('attrsController').get('length') === 1) &&
-                  (tDataContext.get('collections').length !== 1) &&
-                  (tCollectionClient.getAttributeByID(iAttrID))) {
-                change = {
-                  operation: 'deleteCollection',
-                  collection: tCollectionClient
-                };
-              } else {
-                change = {
-                  operation: 'deleteAttributes',
-                  collection: tCollectionClient,
-                  attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
-                };
-              }
-              tDataContext.applyChange( change);
-              tDataContext.set('flexibleGroupingChangeFlag', true);
-            },
-            undo: function() {
-              var tChange;
-              var tStatus;
-              tDataContext = this._controller().get('dataContext');
-              if (tDataContext.getCollectionByID(tCollection.get('id'))) {
-                tChange = {
-                  operation: 'createAttributes',
-                  collection: tAttrRef && tAttrRef.collection,
-                  attrPropsArray: [tAttrRef.attribute],
-                  position: [tAttrRef.position]
-                };
-                tDataContext.applyChange(tChange);
-                tDataContext.set('flexibleGroupingChangeFlag',
-                    this._beforeStorage.changeFlag);
-                this._afterStorage.collection = tCollectionClient;
-              } else {
-                tAttrRef.attribute.collection = null;
-                tChange = {
-                  operation: 'createCollection',
-                  properties: {
-                    id: this._beforeStorage.fromCollectionID,
-                    name: this._beforeStorage.fromCollectionName,
-                    parent: this._beforeStorage.fromCollectionParent,
-                    children: [this._beforeStorage.fromCollectionChild]
-                  },
-                  attributes: [tAttrRef.attribute]
-                };
-                tStatus = tDataContext.applyChange(tChange);
-                this._afterStorage.collection = tStatus.collection;
-                tDataContext.regenerateCollectionCases();
-                tDataContext.set('flexibleGroupingChangeFlag',
-                    this._beforeStorage.changeFlag);
-              }
-            },
-            redo: function() {
-              var change;
-              var tCollectionClient1 = tDataContext.getCollectionByID(this._afterStorage.collection.get('id'));
-              if ((tCollectionClient1.get('attrsController').get('length') === 1) &&
-                  (tDataContext.get('collections').length !== 1) &&
-                  (tCollectionClient1.getAttributeByID(iAttrID))) {
-                change = {
-                  operation: 'deleteCollection',
-                  collection: tCollectionClient1
-                };
-              } else {
-                change = {
-                  operation: 'deleteAttributes',
-                  collection: tCollectionClient1,
-                  attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
-                };
-              }
-              tDataContext.applyChange( change);
-              tDataContext.set('flexibleGroupingChangeFlag', true);
-            }
-          }));
-        }.bind(this);
-
-        if (DG.UndoHistory.get('enabled')) {
-          doDeleteAttribute();
-        } else {
-          DG.AlertPane.warn({
-            message: 'DG.TableController.deleteAttribute.confirmMessage'.loc(tAttrName),
-            description: 'DG.TableController.deleteAttribute.confirmDescription'.loc(),
-            buttons: [
-              {
-                title: 'DG.TableController.deleteAttribute.okButtonTitle',
-                action: doDeleteAttribute,
-                localize: YES
-              },
-              {
-                title: 'DG.TableController.deleteAttribute.cancelButtonTitle',
-                localize: YES
-              }
-            ],
-            localize: false
-          });
         }
       },
 
@@ -1418,93 +1239,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         return tButtons;
       },
 
-      _makeUniqueCollectionName: function (candidateName) {
-        var context = this.dataContext;
-        var name = pluralize(candidateName);
-        var ix = 0;
-        while (!SC.none(context.getCollectionByName(name))) {
-          ix += 1;
-          name = pluralize(candidateName) + ix;
-        }
-        return name;
-      },
-
-      /**
-       * Helper method to create a DG.Command to create a new collection from
-       * a dragged attribute.
-       *
-       * @param attribute {DG.Attribute}
-       * @param collection {DG.collection}
-       * @param context  {DG.DataContext} The current DataContext
-       * @param parentCollectionID {number|undefined} Parent collection id, if
-       *                  collection is to be created as a child collection of
-       *                  another collection. Otherwise, it is created as the
-       *                  parent of the current parent collection.
-       * @returns {*}
-       * @private
-       */
-      _createCollectionCommand: function (attribute, collection, context, parentCollectionID) {
-        var collectionName = this._makeUniqueCollectionName(attribute.name);
-        var childCollectionID = null;
-        if (SC.none(parentCollectionID)) {
-          childCollectionID = context.getCollectionAtIndex(0).collection.id;
-        }
-        return DG.Command.create({
-          name: 'caseTable.createCollection',
-          undoString: 'DG.Undo.caseTable.createCollection',
-          redoString: 'DG.Redo.caseTable.createCollection',
-          log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
-              attribute.name),
-          _beforeStorage: {
-            context: context,
-            newCollectionName: collectionName,
-            newParentCollectionID: parentCollectionID,
-            newChildCollectionID: childCollectionID,
-            attributeID: attribute.id,
-            oldAttributePosition: collection.attrs.indexOf(
-                attribute),
-            oldCollectionID: collection.id,
-            changeFlag: context.get('flexibleGroupingChangeFlag')
-          },
-          execute: function () {
-            var context = this._beforeStorage.context;
-            var attribute = context.getAttrRefByID(
-                this._beforeStorage.attributeID).attribute;
-            var childCollectionID = this._beforeStorage.newChildCollectionID;
-            var childCollection = childCollectionID && context.getCollectionByID(
-                childCollectionID).collection;
-            var tChange = {
-              operation: 'createCollection',
-              properties: {
-                name: this._beforeStorage.newCollectionName,
-                parent: this._beforeStorage.newParentCollectionID
-              },
-              attributes: [attribute]
-            };
-            if (childCollection) {
-              tChange.properties.children = [childCollection];
-            }
-            context.applyChange(tChange);
-            context.set('flexibleGroupingChangeFlag', true);
-          },
-          undo: function () {
-            var context = this._beforeStorage.context;
-            var attribute = context.getAttrRefByID(
-                this._beforeStorage.attributeID).attribute;
-            var toCollection = context.getCollectionByID(
-                this._beforeStorage.oldCollectionID);
-            var tChange = {
-              operation: 'moveAttribute',
-              attr: attribute,
-              toCollection: toCollection,
-              position: this._beforeStorage.oldAttributePosition
-            };
-            context.applyChange(tChange);
-            context.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
-          }
-        });
-      },
-
       /**
        * Handles drop to leftDropZone.
        */
@@ -1514,7 +1248,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           return;
         }
         var context = this.dataContext;
-        DG.UndoHistory.execute(this._createCollectionCommand(dropData.attribute,
+        DG.UndoHistory.execute(DG.DataContextUtilities.createCollectionCommand(dropData.attribute,
             dropData.collection, context));
         this.setPath('contentView.leftDropTarget.dropData', null);
       }.observes('contentView.leftDropTarget.dropData')
