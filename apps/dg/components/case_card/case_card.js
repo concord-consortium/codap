@@ -348,7 +348,8 @@ DG.React.ready(function () {
                     DG.React.Components.TextInput({
                       value: tValue,
                       unit: tUnit,
-                      onToggleEditing: toggleEditing
+                      onToggleEditing: toggleEditing,
+                      isEditable: !iAttr.hasFormula()
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
             return tr({
