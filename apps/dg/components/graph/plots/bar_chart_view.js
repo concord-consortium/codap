@@ -508,6 +508,10 @@ DG.BarChartView = DG.ChartView.extend(
         var tRect = this._plottedElements[iIndex]/*,
         tIsMissingCase = SC.none( iCellIndices )*/;
 
+        // It can happen that we don't have cell indices yet. Bail for now cause we'll be back later.
+        if( !iCellIndices)
+          return;
+
         // show or hide if needed, then update if shown.
         // if( this.showHidePlottedElement(tRect, tIsMissingCase)) {
 
