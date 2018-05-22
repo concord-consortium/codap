@@ -848,6 +848,8 @@
     position: relative;
     text-overflow: ellipsis;
     white-space: nowrap;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .dg-titlebar:hover .dg-titleview-empty {
