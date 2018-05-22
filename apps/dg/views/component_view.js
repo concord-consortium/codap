@@ -259,7 +259,7 @@ DG.ComponentView = SC.View.extend(
           });
           if( tTitleView && tTitleViewLayer) {
             tTitleView.adjust({left: 0, right: 0});
-            tTitleViewLayer.style.paddingLeft = (tSpecialButtons.length * 30 + 5) + 'px';
+            tTitleViewLayer.style.paddingLeft = (tSpecialButtons.length * 10 + 5) + 'px';
           }
         }.observes('controller'),
 
@@ -332,7 +332,7 @@ DG.ComponentView = SC.View.extend(
             model: null,  // DG.ComponentModel. Needed to determine if closebox should show
             childViews: ('statusView versionView titleView ' +
             (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo')).w(),
-            titleView: SC.LabelView.design(DG.MouseAndTouchView, {
+            titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
               isEditable: YES,
