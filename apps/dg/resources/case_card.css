@@ -61,7 +61,6 @@
     width: 50%;
     border: none;
     text-align: left;
-    text-decoration: underline;
     font-weight: bold;
     white-space: normal;
 }
@@ -119,7 +118,6 @@
     font-style: italic;
     font-weight: bold;
     margin-left: 5px;
-    text-decoration: underline;
 }
 
 .react-data-card-attribute {
@@ -131,6 +129,10 @@
 .react-data-card-attribute:hover {
     text-decoration: underline;
     color: #1b5798;
+}
+
+.react-data-card .dg-floating-plus {
+    float: left;
 }
 
 td.attr-cell {

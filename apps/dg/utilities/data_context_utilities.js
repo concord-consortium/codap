@@ -416,6 +416,55 @@ DG.DataContextUtilities = {
       }
     });
     DG.UndoHistory.execute(cmd);
-  }
+  },
 
+  newAttribute: function( iDataContext, iCollection, iPosition, iEditorView, iAutoEdit) {
+    var tAttrName = iDataContext.getNewAttributeName(),
+        tAttrRef;
+
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "caseTable.createAttribute",
+      undoString: 'DG.Undo.caseTable.createAttribute',
+      redoString: 'DG.Redo.caseTable.createAttribute',
+      execute: function(isRedo) {
+        SC.run( function() {
+          tAttrRef = iDataContext.getAttrRefByName(tAttrName);
+          var change = {
+                operation: 'createAttributes',
+                collection: iCollection,
+                attrPropsArray: [{ name: tAttrName }],
+                position: iPosition
+              },
+              result = iDataContext && iDataContext.applyChange(change);
+          if(!isRedo && result.success) {
+            this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+                'attributeCreate', tAttrName, iCollection.get('name'));
+            if (iAutoEdit && iEditorView) {
+              iEditorView.invokeLater(function() {
+                iEditorView.beginEditAttributeName(tAttrName);
+              });
+            }
+          } else {
+            this.set('causedChange', false);
+          }
+        }.bind( this));
+      },
+      undo: function() {
+        tAttrRef = iDataContext.getAttrRefByName(tAttrName);
+        var attr = tAttrRef.attribute,
+            change = {
+              operation: 'deleteAttributes',
+              collection: iCollection,
+              attrs: [{ id: attr.get('id'), attribute: attr }]
+            },
+            result = iDataContext && iDataContext.applyChange( change);
+        if(!result.success) {
+          this.set('causedChange', false);
+        }
+      },
+      redo: function() {
+        this.execute(true);
+      }
+    }));
+  }
 };

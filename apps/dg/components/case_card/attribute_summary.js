@@ -51,6 +51,8 @@ DG.React.ready(function () {
             }
             else {
               var tUniqueValue = Object.keys( tUniqueValues).join(', ');
+              if(tUniqueValue==='undefined')
+                tUniqueValue = '';
               return span({
                 className: 'react-data-card-attribute-summary'
               }, tUniqueValue);

@@ -64,7 +64,6 @@ DG.DragCaseCardItemHandler = SC.Object.extend(
              * @param iEvent
              */
             handleStartDrag: function (iEvent) {
-              console.log('In handleStartDrag');
               var tDragView = SC.LabelView.create({
                 classNames: 'dg-drag-label'.w(),
                 layout: {width: 100, height: 20, top: -100, left: 0},
@@ -72,7 +71,6 @@ DG.DragCaseCardItemHandler = SC.Object.extend(
               });
               this.set('dragView', tDragView);
               SC.run(function () {
-                console.log('In SC.run of handleStartDrag');
                 // Make sure dragView is in front. Won't actually happen without this runloop.
                 if (tDragView.isDescendantOf(this.viewToAddTo))
                   this.viewToAddTo.removeChild(tDragView);
@@ -103,7 +101,6 @@ DG.DragCaseCardItemHandler = SC.Object.extend(
                   return;
                 // Initiate a drag
                 SC.run(function () {
-                  console.log('About to call DG.Drag.start');
                   DG.Drag.start({
                     event: iEvent,
                     source: this.viewToAddTo,

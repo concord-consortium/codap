@@ -53,7 +53,6 @@ DG.React.ready(function () {
           },
 
           handleChange: function (iEvent) {
-            console.log('handleChange: ' + iEvent.target.value);
             this.setState({value: iEvent.target.value});
           },
 
