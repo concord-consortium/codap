@@ -657,7 +657,10 @@ DG.CaseTableController = DG.ComponentController.extend(
        Delete the currently unselected cases.
        Passes the request on to the data context to do the heavy lifting.
        */
-      deleteUnselectedCases: function(iSetAside){
+      deleteUnselectedCases: function () {
+        this._deleteOrSetAsideUnselectedCases(false);
+      },
+      _deleteOrSetAsideUnselectedCases: function(iSetAside){
         /**
          * Adds iValue to iArray if iKey is not already seen
          * @return {boolean} whether entry was added
@@ -725,7 +728,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       setAsideUnselectedCases: function () {
-        this.deleteUnselectedCases(true);
+        this._deleteOrSetAsideUnselectedCases(true);
       },
 
       restoreSetAsideCases: function () {
