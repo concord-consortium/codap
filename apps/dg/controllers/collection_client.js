@@ -712,24 +712,65 @@ DG.CollectionClient = SC.Object.extend(
   deleteMarkedCases: function () {
     var tCollection = this.get('collection'),
         tCases = tCollection.get('cases'),
-        tDeletedCaseIDs = [],
         tDeletedCases = [],
-        ix,
-        iCase;
-    for (ix = tCases.length - 1; ix >= 0; ix --) {
-      iCase = tCases[ix];
-      if (iCase._deletable) {
-        tDeletedCases.push(iCase);
-        tDeletedCaseIDs.push(iCase.id);
-        tCollection.deleteCase(iCase, true);
-      }
+        tRetainedCases = [];
+
+    // if there are no delete cases, this is a no-op
+    if (!tCases.some(function (iCase) {
+      return (iCase._deletable);
+    })) {
+      return [];
     }
-    if (tDeletedCaseIDs.length > 0) {
+
+    this.getPath('collection.cases').beginPropertyChanges();
+    this.casesController.beginPropertyChanges();
+    this.beginPropertyChanges();
+    try {
+      tCases.forEach(function (myCase) {
+        if (myCase._deletable) {
+          tDeletedCases.push(myCase);
+          // DG.Case._removeCaseFromItemMap(myCase);
+          DG.Case.destroyCase(myCase);
+        } else {
+          tRetainedCases.push(myCase);
+        }
+      });
+      this.setPath('collection.cases', tRetainedCases);
+      this.casesController.set('content', tRetainedCases);
+    } finally {
+      this.endPropertyChanges();
+      this.casesController.endPropertyChanges();
+      this.getPath('collection.cases').endPropertyChanges();
+    }
+
+    if (tDeletedCases.length > 0) {
       this.didDeleteCases();
     }
     //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
     return tDeletedCases;
   },
+
+  // deleteMarkedCases: function () {
+  //   var tCollection = this.get('collection'),
+  //       tCases = tCollection.get('cases'),
+  //       tDeletedCaseIDs = [],
+  //       tDeletedCases = [],
+  //       ix,
+  //       iCase;
+  //   for (ix = tCases.length - 1; ix >= 0; ix --) {
+  //     iCase = tCases[ix];
+  //     if (iCase._deletable) {
+  //       tDeletedCases.push(iCase);
+  //       tDeletedCaseIDs.push(iCase.id);
+  //       tCollection.deleteCase(iCase, true);
+  //     }
+  //   }
+  //   if (tDeletedCaseIDs.length > 0) {
+  //     this.didDeleteCases();
+  //   }
+  //   //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
+  //   return tDeletedCases;
+  // },
 
   /**
     Returns a link object of the form { type: 'DG.CollectionRecord', id: collectionID }.

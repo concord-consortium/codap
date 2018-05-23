@@ -2049,15 +2049,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * @param recurse {boolean}
    */
   updateSelectedRows: function(recurse) {
-    var adapter = this.get('gridAdapter'),
-        selection = adapter && adapter.getSelectedRows(),
-        childView = this.get('childTable');
-    if( selection) {
-      this.setSelectedRows( selection);
-    }
-    if (recurse && childView) {
-      childView.updateSelectedRows(recurse);
-    }
+    this.invokeOnceLater(function () {
+      var adapter = this.get('gridAdapter'),
+          selection = adapter && adapter.getSelectedRows(),
+          childView = this.get('childTable');
+      if( selection) {
+          this.setSelectedRows( selection);
+      }
+      if (recurse && childView) {
+        childView.updateSelectedRows(recurse);
+      }
+    });
   },
 
   _scrollEventCount: 0,

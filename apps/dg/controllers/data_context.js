@@ -1279,27 +1279,22 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
 
     // delete cases that remain marked for deletion
-    this.forEachCollection(function (collection) {
-      this.beginPropertyChanges();
-      collection.beginPropertyChanges();
-      collection.casesController.beginPropertyChanges();
-      try {
-        var collectionDeletedCases = collection.deleteMarkedCases();
-        // var collectionDeletedCases = collection.extractRetainedCases();
-        deletedCases = deletedCases.concat(collectionDeletedCases);
-        if (deletedCases && deletedCases.length)
-          addTrackedCollection(collection);
-      } finally {
-        collection.casesController.endPropertyChanges();
-        collection.endPropertyChanges();
-        this.endPropertyChanges();
-      }
-    }.bind(this));
+    this.beginPropertyChanges();
+    try {
+      this.forEachCollection(function (collection) {
+          var collectionDeletedCases = collection.deleteMarkedCases();
+          deletedCases = deletedCases.concat(collectionDeletedCases);
+          if (deletedCases && deletedCases.length)
+            addTrackedCollection(collection);
+      }.bind(this));
+    } finally {
+      this.endPropertyChanges();
+    }
 
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
     this.forEachCollection(function (collection) {
-      collection.get('collection').updateCaseIDToIndexMap();
+      collection.didDeleteCases();
     });
     var change = { collections: DG.ObjectMap.values(collections),
                   createdCases: createdCases, deletedCases: deletedCases };

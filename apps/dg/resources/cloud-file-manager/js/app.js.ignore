@@ -17001,7 +17001,25 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Save Elsewhere",
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "I'll do it later",
     "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "The Concord Cloud has been shut down!",
-    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location."
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location.",
+    "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
+    "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
+    "~SHARE_DIALOG.LINK_TAB": "Link",
+    "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
+    "~SHARE_DIALOG.EMBED_TAB": "Embed",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Use this link when creating an activity in LARA",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP Server URL:",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],74:[function(require,module,exports){
@@ -17074,6 +17092,25 @@ module.exports={
   "~SHARE_DIALOG.COPY_ERROR": "Sorry, the info was not able to be copied to the clipboard.",
   "~SHARE_DIALOG.COPY_TITLE": "Copy Result",
   "~SHARE_DIALOG.LONGEVITY_WARNING": "The shared copy of this document will be retained until it has not been accessed for over a year.",
+
+  "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
+  "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
+  "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
+  "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
+  "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
+  "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
+  "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
+  "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
+  "~SHARE_DIALOG.LINK_TAB": "Link",
+  "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
+  "~SHARE_DIALOG.EMBED_TAB": "Embed",
+  "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
+  "~SHARE_DIALOG.LARA_MESSAGE": "Use this link when creating an activity in LARA",
+  "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP Server URL:",
+  "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
+  "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
+  "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
+  "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
 
   "~SHARE_UPDATE.TITLE": "Shared View Updated",
   "~SHARE_UPDATE.MESSAGE": "The shared view was updated successfully.",
@@ -17240,7 +17277,25 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Guardar en cualquier lugar",
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "Lo haré más tarde",
     "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concord Cloud ha sido cerrado",
-    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Por favor guardar sus documentos en otra ubicación."
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Por favor guardar sus documentos en otra ubicación.",
+    "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
+    "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
+    "~SHARE_DIALOG.LINK_TAB": "Link",
+    "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
+    "~SHARE_DIALOG.EMBED_TAB": "Embed",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Use this link when creating an activity in LARA",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP Server URL:",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],76:[function(require,module,exports){
@@ -17348,7 +17403,25 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "שמור במקום אחר",
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "יותר מאוחר",
     "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "ענן CONCORD נסגר!",
-    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "שמור מסמך במיקום אחר."
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "שמור מסמך במיקום אחר.",
+    "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
+    "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
+    "~SHARE_DIALOG.LINK_TAB": "Link",
+    "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
+    "~SHARE_DIALOG.EMBED_TAB": "Embed",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Use this link when creating an activity in LARA",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP Server URL:",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],77:[function(require,module,exports){
@@ -17456,7 +17529,25 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Farklı bir yere kaydet",
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "Bunu sonra yapacağım",
     "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concord Bulut Depolama sistemi kapatıldı!",
-    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Lütfen dosyanızı farklı bir yere kaydedin."
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Lütfen dosyanızı farklı bir yere kaydedin.",
+    "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
+    "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
+    "~SHARE_DIALOG.LINK_TAB": "Link",
+    "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
+    "~SHARE_DIALOG.EMBED_TAB": "Embed",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Use this link when creating an activity in LARA",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP Server URL:",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],78:[function(require,module,exports){
@@ -17564,7 +17655,25 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "儲存至其他位置",
     "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "稍後操作",
     "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "The Concord Cloud has been shut down!",
-    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location."
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location.",
+    "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
+    "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
+    "~SHARE_DIALOG.LINK_TAB": "Link",
+    "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
+    "~SHARE_DIALOG.EMBED_TAB": "Embed",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Use this link when creating an activity in LARA",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP Server URL:",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],79:[function(require,module,exports){
@@ -19755,27 +19864,27 @@ module.exports = React.createClass({
       className: 'share-top-dialog'
     }, sharing ? div({}, div({
       className: 'share-status'
-    }, "Shared view is ", strong({}, "enabled"), a({
+    }, tr("~SHARE_DIALOG.SHARE_STATE"), strong({}, tr("~SHARE_DIALOG.SHARE_STATE_ENABLED")), a({
       href: '#',
       onClick: this.toggleShare
-    }, 'Stop sharing')), div({
+    }, tr("~SHARE_DIALOG.STOP_SHARING"))), div({
       className: 'share-button'
     }, button({
       onClick: this.updateShare
-    }, "Update shared view"), div({
+    }, tr("~SHARE_DIALOG.UPDATE_SHARING")), div({
       className: 'share-button-help-sharing'
     }, a({
       href: this.state.link,
       target: '_blank'
-    }, 'Preview shared view')))) : div({}, div({
+    }, tr("~SHARE_DIALOG.PREVIEW_SHARING"))))) : div({}, div({
       className: 'share-status'
-    }, "Shared view is ", strong({}, "disabled")), div({
+    }, tr("~SHARE_DIALOG.SHARE_STATE"), strong({}, tr("~SHARE_DIALOG.SHARE_STATE_DISABLED"))), div({
       className: 'share-button'
     }, button({
       onClick: this.toggleShare
-    }, "Enable sharing"), div({
+    }, tr("~SHARE_DIALOG.ENABLE_SHARING")), div({
       className: 'share-button-help-not-sharing'
-    }, "When sharing is enabled, a copy of the current view is created.  This copy can be shared.")))), sharing ? div({}, ul({
+    }, tr("~SHARE_DIALOG.ENABLE_SHARING_MESSAGE"))))), sharing ? div({}, ul({
       className: 'sharing-tabs'
     }, li({
       className: "sharing-tab" + (this.state.tabSelected === 'link' ? ' sharing-tab-selected' : ''),
@@ -19783,22 +19892,22 @@ module.exports = React.createClass({
         marginLeft: 10
       },
       onClick: this.selectLinkTab
-    }, 'Link'), li({
+    }, tr("~SHARE_DIALOG.LINK_TAB")), li({
       className: "sharing-tab sharing-tab-embed" + (this.state.tabSelected === 'embed' ? ' sharing-tab-selected' : ''),
       onClick: this.selectEmbedTab
-    }, 'Embed'), this.props.enableLaraSharing ? li({
+    }, tr("~SHARE_DIALOG.EMBED_TAB")), this.props.enableLaraSharing ? li({
       className: "sharing-tab sharing-tab-lara" + (this.state.tabSelected === 'lara' ? ' sharing-tab-selected' : ''),
       onClick: this.selectLaraTab
-    }, 'LARA') : void 0), div({
+    }, "LARA") : void 0), div({
       className: 'sharing-tab-contents'
     }, (function() {
       switch (this.state.tabSelected) {
         case 'embed':
-          return div({}, "Embed code for including in webpages or other web-based content", document.execCommand || window.clipboardData ? a({
+          return div({}, tr("~SHARE_DIALOG.EMBED_MESSAGE", document.execCommand || window.clipboardData ? a({
             className: 'copy-link',
             href: '#',
             onClick: this.copy
-          }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, textarea({
+          }, tr('~SHARE_DIALOG.COPY')) : void 0), div({}, textarea({
             value: this.state.embed,
             readOnly: true
           })));
@@ -19814,7 +19923,7 @@ module.exports = React.createClass({
             className: 'lara-settings'
           }, div({
             className: 'codap-server-url'
-          }, "CODAP Server URL:", div({}, input({
+          }, tr("~SHARE_DIALOG.LARA_CODAP_URL"), div({}, input({
             value: this.state.codapServerUrl,
             onChange: this.changedCodapServerUrl
           }))), div({
@@ -19823,28 +19932,28 @@ module.exports = React.createClass({
             type: 'checkbox',
             checked: this.state.pageType === 'autolaunch',
             onChange: this.changedAutoscalingPage
-          }), "Autolaunch page"), this.state.pageType === 'autolaunch' ? div({
+          }), tr("~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE")), this.state.pageType === 'autolaunch' ? div({
             className: 'fullsceen-scaling'
           }, input({
             type: 'checkbox',
             checked: this.state.fullscreenScaling,
             onChange: this.changedFullscreenScaling
-          }), "Fullscreen button and scaling") : void 0, this.state.pageType === 'launch' ? div({
+          }), tr("~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING")) : void 0, this.state.pageType === 'launch' ? div({
             className: 'launch-button-text'
-          }, "Launch Button Text:", input({
+          }, tr("~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT"), input({
             value: this.state.launchButtonText,
             onChange: this.changedLaunchButtonText
           })) : void 0, div({}, input({
             type: 'checkbox',
             checked: this.state.graphVisToggles,
             onChange: this.changedGraphVisToggles
-          }), "Display data visibility toggles on graphs")));
+          }), tr("~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES"))));
         default:
-          return div({}, "Paste this into an email or text message ", document.execCommand || window.clipboardData ? a({
+          return div({}, tr("~SHARE_DIALOG.LINK_MESSAGE", document.execCommand || window.clipboardData ? a({
             className: 'copy-link',
             href: '#',
             onClick: this.copy
-          }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
+          }, tr('~SHARE_DIALOG.COPY')) : void 0), div({}, input({
             value: this.state.link,
             readOnly: true
           })), div({
