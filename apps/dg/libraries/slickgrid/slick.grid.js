@@ -387,7 +387,10 @@ if (typeof Slick === "undefined") {
             .delegate(".slick-header-column", "mouseleave", handleHeaderMouseLeave)
             .bind("draginit", handleHeaderDragInit)
             .bind("dragstart", handleHeaderDragStart)
-            .bind("drag", handleHeaderDrag)
+            // [CC Change] Configure the default distance (pixels) to recognize drag
+            // On Windows/Chrome drag started too soon.
+            .bind("drag", {distance: 5}, handleHeaderDrag)
+            // End [CC Change]
             .bind("dragend", handleHeaderDragEnd);
         $headerRowScroller
             .bind("scroll", handleHeaderRowScroll);
