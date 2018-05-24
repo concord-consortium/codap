@@ -353,8 +353,8 @@ DG.Case._removeCaseFromItemMap = function(iCase) {
       itemCaseMap = collectionID && DG.Case._itemCaseMaps[collectionID];
   if (!SC.none(itemID) && itemCaseMap) {
     delete itemCaseMap[itemID];
-    if (!DG.ObjectMap.length(itemCaseMap))
-      delete DG.Case._itemCaseMaps[collectionID];
+    // if (!DG.ObjectMap.length(itemCaseMap))
+    //   delete DG.Case._itemCaseMaps[collectionID];
   }
 };
 
