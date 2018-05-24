@@ -16,7 +16,6 @@ DG.React.ready(function () {
          *    value: {string | number}
          *    unit: {string}
          *    onToggleEditing: {function}
-         *    isEditable: {boolean}
          */
 
         return {
@@ -54,7 +53,6 @@ DG.React.ready(function () {
           },
 
           handleChange: function (iEvent) {
-            console.log('handleChange: ' + iEvent.target.value);
             this.setState({value: iEvent.target.value});
           },
 

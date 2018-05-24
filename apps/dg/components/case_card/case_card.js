@@ -8,7 +8,7 @@ DG.React.ready(function () {
       table = React.DOM.table,
       tbody = React.DOM.tbody,
       tr = React.DOM.tr,
-      td = React.DOM.td //,
+      td = React.DOM.td//,
       // input = React.DOM.input
   ;
 
@@ -289,6 +289,12 @@ DG.React.ready(function () {
 
                 rerandomizeAttribute = function () {
                   DG.DataContextUtilities.randomizeAttribute(iContext, iAttr.get('id'));
+                },
+
+                makeNewAttribute = function() {
+                  var position = 1; // Just after the first attribute
+                  DG.DataContextUtilities.newAttribute(iContext,
+                      iContext.getCollectionByID(iCollection.get('id')), position);
                 };
 
             /**
@@ -329,6 +335,7 @@ DG.React.ready(function () {
                 }, iAttr.get('name')),
                 tCell = DG.React.Components.AttributeNameCell({
                   content: tSpan,
+                  index: iIndex,
                   dragStatus: this.props.dragStatus,
                   dropCallback: handleDrop,
                   editAttributeCallback: editAttribute,
@@ -337,6 +344,7 @@ DG.React.ready(function () {
                   attributeIsEditableCallback: attributeIsEditable,
                   attributeCanBeRandomizedCallback: attributeCanBeRandomized,
                   rerandomizeCallback: rerandomizeAttribute,
+                  newAttributeCallback: makeNewAttribute,
                   cellLeaveCallback: handleCellLeave
                 }),
                 tValueField = iShouldSummarize ?
@@ -348,8 +356,7 @@ DG.React.ready(function () {
                     DG.React.Components.TextInput({
                       value: tValue,
                       unit: tUnit,
-                      onToggleEditing: toggleEditing,
-                      isEditable: !iAttr.hasFormula()
+                      onToggleEditing: toggleEditing
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
             return tr({

@@ -23,8 +23,7 @@
 DG.React.ready(function () {
   var
       findDOMNode = ReactDOM.findDOMNode,
-      td = React.DOM.td,
-      span = React.DOM.span;
+      div = React.DOM.div;
 
   DG.React.Components.Dropdown = DG.React.createComponent(
       (function () {
@@ -83,7 +82,7 @@ DG.React.ready(function () {
                 tActive = this.state.active,
                 tClasses = 'dropdown' + (tActive ? ' dropdown--active' : '') + (tDisabled ? ' dropdown--disabled' : ''),
                 tTrigger = DG.React.Components.DropdownTrigger({},
-                    span({
+                    div({
                       onClick: function( iEvent) {
                         if( !tDisabled) {
                           this._onToggleClick( iEvent);
@@ -103,7 +102,7 @@ DG.React.ready(function () {
             delete tCleanProps.trigger;
             delete tCleanProps.menuItems;
             tCleanProps.className = tClasses + ' ' + tClassName;
-            return td( tCleanProps, tTrigger, tMenuItems);
+            return div( tCleanProps, tTrigger, tMenuItems);
           }
         };
       })(), []);

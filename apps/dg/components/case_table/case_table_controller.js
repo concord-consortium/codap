@@ -749,58 +749,12 @@ DG.CaseTableController = DG.ComponentController.extend(
             collection = properties.collection,
             collectionID = collection && collection.get('id'),
             hierTableView = this.getPath('view.contentView'),
-            caseTableView = hierTableView && hierTableView.getChildTableViewForCollection(collectionID),
-            attrName = dataContext.getNewAttributeName(),
-            attrRef;
+            caseTableView = hierTableView && hierTableView.getChildTableViewForCollection(collectionID);
 
-        DG.UndoHistory.execute(DG.Command.create({
-          name: "caseTable.createAttribute",
-          undoString: 'DG.Undo.caseTable.createAttribute',
-          redoString: 'DG.Redo.caseTable.createAttribute',
-          _componentId: this.getPath('model.id'),
-          _controller: function() {
-            return DG.currDocumentController().componentControllersMap[this._componentId];
-          },
-          execute: function(isRedo) {
-            dataContext = this._controller().get('dataContext');
-            attrRef = dataContext.getAttrRefByName(attrName);
-            var change = {
-                        operation: 'createAttributes',
-                        collection: collection,
-                        attrPropsArray: [{ name: attrName }]
-                      },
-                result = dataContext && dataContext.applyChange(change);
-            if(!isRedo && result.success) {
-              this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
-                          'attributeCreate', attrName, collection.get('name'));
-              if (properties.autoEditName && caseTableView) {
-                this.invokeLater(function() {
-                  caseTableView.beginEditAttributeName(attrName);
-                });
-              }
-            } else {
-              this.set('causedChange', false);
-            }
-          },
-          undo: function() {
-            dataContext = this._controller().get('dataContext');
-            attrRef = dataContext.getAttrRefByName(attrName);
-            var attr = attrRef.attribute,
-                change = {
-                  operation: 'deleteAttributes',
-                  collection: collection,
-                  attrs: [{ id: attr.get('id'), attribute: attr }]
-                },
-                result = dataContext && dataContext.applyChange( change);
-            if(!result.success) {
-              this.set('causedChange', false);
-            }
-          },
-          redo: function() {
-            this.execute(true);
-          }
-        }));
-      },
+        DG.DataContextUtilities.newAttribute( dataContext, collection, null,
+            caseTableView, properties.autoEditName);
+
+    },
 
       /**
        * Method to create a new attribute with formula.

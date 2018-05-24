@@ -1,6 +1,10 @@
 // sc_require('react/dg-react');
+/* global React */
 
 DG.React.ready(function () {
+  var
+      img = React.DOM.img,
+      td = React.DOM.td;
 
   DG.React.Components.AttributeNameCell = DG.React.createComponent(
       (function () {
@@ -69,6 +73,10 @@ DG.React.ready(function () {
               clickHandler(this_.props.rerandomizeCallback);
             }
 
+            function newAttributeClickHandler() {
+              this_.props.newAttributeCallback();
+            }
+
             handleDropIfAny();
 
             var tClassName = 'attr-cell ' + dragLocation(),
@@ -101,16 +109,28 @@ DG.React.ready(function () {
                       iItem.label);
                 }),
                 tAttributeName = DG.React.Components.Dropdown({
-                  className: tClassName,
                   trigger: this.props.content,
                   menuItems: tMenuItems,
                   ref: function (iDropdown) {
                     this.dropdown = iDropdown;
                   }.bind(this),
                   onRefCallback: assignCellRef
-                });
+                }),
+                tNewAttrButton = (this.props.index === 0) ?
+                    img({
+                      src: static_url('images/add_circle_grey_72x72.png'),
+                      className: 'dg-floating-plus',
+                      width: 19,
+                      height: 19,
+                      title: 'DG.TableController.newAttributeTooltip'.loc(),
+                      onClick: newAttributeClickHandler
+                    }) :
+                    '';
 
-            return tAttributeName;
+            return td({
+              className: tClassName,
+              ref: assignCellRef
+            }, tNewAttrButton, tAttributeName);
           }
         };
       })(), []);
