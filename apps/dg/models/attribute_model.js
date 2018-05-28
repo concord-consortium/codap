@@ -75,8 +75,12 @@ DG.Attribute = DG.BaseModel.extend(
         if(SC.none( this._categoryMap) || !SC.isArray( this._categoryMap.__order) ||
               this._categoryMap.__order.length === 0 ){
           this.updateCategoryMap();
-          // Default order is alphabetical
-          this._categoryMap.__order.sort();
+          // Default order is alphameric
+          this._categoryMap.__order.sort( function( a, b) {
+            if( DG.isNumeric(a) && DG.isNumeric(b))
+              return a - b;
+            else return a < b;
+          });
         }
         return this._categoryMap;
       }.property(),
