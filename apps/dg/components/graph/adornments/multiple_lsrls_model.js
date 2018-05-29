@@ -51,6 +51,12 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
   }.property(),
 
   /**
+   * Set by PlotModel.
+   * @property {Boolean}
+   */
+  enableMeasuresForSelection: false,
+
+  /**
    Private cache.
    @property { Boolean }
    */
@@ -106,6 +112,13 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     });
   }.observes('plotModel'),
 
+  enableMeasuresForSelectionDidChange: function(){
+    var tEnabled = this.get('enableMeasuresForSelection');
+    this.get('lsrls').forEach( function( iLSRLModel) {
+      iLSRLModel.set('enableMeasuresForSelection', tEnabled);
+    });
+  }.observes('enableMeasuresForSelection'),
+
   /**
     True if any of my values needs computing
     @return { Boolean }
@@ -150,7 +163,8 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     var tLSRLModel = DG.LSRLModel.create( {
                       plotModel: this.get('plotModel'),
                       categoryIndex: iCategoryIndex,
-                      showSumSquares: this.get('showSumSquares')
+                      showSumSquares: this.get('showSumSquares'),
+                      enableMeasuresForSelection: this.get('enableMeasuresForSelection')
                     });
     tLSRLModel.set('isInterceptLocked', this.get('isInterceptLocked'));
     this.get('lsrls').push( tLSRLModel);

@@ -613,6 +613,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._elementOrderIsValid = false;
     this.updateSelection();
     this._isRenderingValid = false;
+    if( this.getPath('model.enableMeasuresForSelection'))
+      this.updateAdornments();
   }.observes('selection'),
 
   /**

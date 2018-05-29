@@ -892,7 +892,8 @@ DG.DocumentController = SC.Object.extend(
                       yAttributeName: tStorage && tStorage.yAttributeName,
                       y2AttributeName: tStorage && tStorage.y2AttributeName,
                       legendAttributeName: tStorage && tStorage.legendAttributeName,
-                      enableNumberToggle: tStorage && tStorage.enableNumberToggle
+                      enableNumberToggle: tStorage && tStorage.enableNumberToggle,
+                      enableMeasuresForSelection: tStorage && tStorage.enableMeasuresForSelection
                     })
                   },
                   defaultLayout: (iComponent && iComponent.size ? iComponent.size : {width: 300, height: 300}),
