@@ -39,7 +39,7 @@
     "no-useless-return": "error",
     "no-with": "error",
     "radix": "error",
-    "wrap-iife": "warn",
+    "wrap-iife": ["warn", "any"],
 
     // strict mode
     "strict": "off",
