@@ -433,7 +433,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         DG.assert(!SC.none(parentCaseIndex), 'parentCaseIndex does not exist');
         var parentCase = parentCollection.cases[parentCaseIndex];
         var parentsLastChild;
-        var priorIndex;
+        var priorIndex = -1;
 
         DG.assert(!SC.none(parentCase), 'parentCase does not exist');
         if (parentCase.children.length > 1) { // the newly added case is already known
