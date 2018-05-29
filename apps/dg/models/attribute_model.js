@@ -79,7 +79,7 @@ DG.Attribute = DG.BaseModel.extend(
           this._categoryMap.__order.sort( function( a, b) {
             if( DG.isNumeric(a) && DG.isNumeric(b))
               return a - b;
-            else return a < b;
+            else return a > b;
           });
         }
         return this._categoryMap;
