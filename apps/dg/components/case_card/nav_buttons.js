@@ -52,6 +52,6 @@ DG.React.ready(function () {
                 tFirstButton, tSecondButton);
           }
         };
-      })(), []);
+      }()), []);
 
 });

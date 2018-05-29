@@ -45,6 +45,6 @@ DG.React.ready(function () {
             }, this.props.children);
           }
         };
-      })(), []);
+      }()), []);
 
 });
