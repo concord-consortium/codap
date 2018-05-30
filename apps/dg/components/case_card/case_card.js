@@ -306,7 +306,7 @@ DG.React.ready(function () {
                 tUnitWithParens = '',
                 tHasFormula = iAttr.get('hasFormula'),
                 tFormula = iAttr.get('formula'),
-                tCase = iShouldSummarize ? null : iChildmostSelected[0] || iCases[0],
+                tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
                 tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID);
             this.state.attrIndex++;
             if (isNotEmpty(tUnit))
@@ -356,6 +356,7 @@ DG.React.ready(function () {
                     DG.React.Components.TextInput({
                       value: tValue,
                       unit: tUnit,
+                      isEditable: iAttr.get('editable'),
                       onToggleEditing: toggleEditing
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
@@ -468,9 +469,11 @@ DG.React.ready(function () {
                   var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
                       tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
                       tSelLength = tSelectedCases ? tSelectedCases.length : 0,
-                      tCase = tSelLength === 1 ? tSelectedCases[0] : null,
                       tCases = tSelLength > 0 ? tSelectedCases :
                           (tChildmostSelection ? getParentsOfChildmostSelection() : iCollection.get('cases')),
+                      tCasesLength = tCases ? tCases.length : 0,
+                      tCase = tSelLength === 1 ? tSelectedCases[0] :
+                          (tCasesLength === 1 ? tCases[0] : null),
                       tShouldSummarize = SC.none( tCase),
                       tAttrEntries = [],
                       tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
