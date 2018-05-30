@@ -243,7 +243,7 @@ DG.React.ready(function () {
               if (this.currEditField !== iValueField) {
                 iValueField.setState({editing: true});
                 if (this.currEditField) {
-                  DG.DataContextUtilities.stashAttributeValue( iContext, iCases [0], iAttr, this.currEditField.state.value);
+                  DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0], iAttr, this.currEditField.state.value);
                   this.currEditField.setState({editing: false});
                 }
                 this.currEditField = iValueField;
@@ -492,6 +492,6 @@ DG.React.ready(function () {
             return div({className: 'react-data-card'}, tCollEntries);
           }
         };
-      })(), []);
+      }()), []);
 
 });

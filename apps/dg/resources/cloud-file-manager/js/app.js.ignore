@@ -16966,16 +16966,16 @@ module.exports={
     "~CONFIRM.CLOSE_FILE": "You have unsaved changes. Are you sure you want to close the document?",
     "~CONFIRM.REVERT_TO_LAST_OPENED": "Are you sure you want to revert the document to its most recently opened state?",
     "~CONFIRM.REVERT_TO_SHARED_VIEW": "Are you sure you want to revert the document to its most recently shared state?",
-    "~CONFIRM_DIALOG.TITLE": "Are you sure?",
+    "~CONFIRM_DIALOG.TITLE": "Sind Sie sicher?",
     "~CONFIRM_DIALOG.YES": "Ja",
     "~CONFIRM_DIALOG.NO": "Nein",
-    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Drop file here or click here to select a file.",
-    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Sorry, you can choose only one file to open.",
-    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Sorry, you can't drop more than one file.",
-    "~IMPORT.LOCAL_FILE": "Local File",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Datei hierher ziehen oder klicken, um eine Datei auszuwählen",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Es kann nur eine Datei ausgewählt werden.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Sie können nur eine Datei hierher ziehen.",
+    "~IMPORT.LOCAL_FILE": "Lokale Datei",
     "~IMPORT.URL": "URL",
-    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Sorry, you can choose only one url to open.",
-    "~IMPORT_URL.PLEASE_ENTER_URL": "Please enter a url to import.",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Es kann nur eine URL verwendet werden.",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "Adresse zum Importieren eingeben.",
     "~URL_TAB.DROP_URL_HERE": "Drop URL here or enter URL below",
     "~URL_TAB.IMPORT": "Import",
     "~CLIENT_ERROR.TITLE": "Error",
@@ -17657,14 +17657,14 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "The Concord Cloud has been shut down!",
     "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location.",
     "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
-    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
-    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "啟用",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "中止",
     "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
     "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
-    "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
-    "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
+    "~SHARE_DIALOG.UPDATE_SHARING": "更新文件內容",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "預習文件內容",
     "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
-    "~SHARE_DIALOG.LINK_TAB": "Link",
+    "~SHARE_DIALOG.LINK_TAB": "文件連結",
     "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
     "~SHARE_DIALOG.EMBED_TAB": "Embed",
     "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
@@ -19643,7 +19643,7 @@ module.exports = SelectProviderDialogTab;
 
 
 },{}],99:[function(require,module,exports){
-var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
+var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, translate, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
 
@@ -19653,7 +19653,7 @@ ModalDialog = React.createFactory(require('./modal-dialog-view'));
 
 getQueryParam = require('../utils/get-query-param');
 
-tr = require('../utils/translate');
+translate = require('../utils/translate');
 
 socialIcons = require('svg-social-icons/lib/icons.json');
 
@@ -19795,7 +19795,7 @@ module.exports = React.createClass({
       if (mark) {
         document.body.removeChild(mark);
       }
-      this.props.client.alert(tr(copied ? "~SHARE_DIALOG.COPY_SUCCESS" : "~SHARE_DIALOG.COPY_ERROR"), tr("~SHARE_DIALOG.COPY_TITLE"));
+      this.props.client.alert(translate(copied ? "~SHARE_DIALOG.COPY_SUCCESS" : "~SHARE_DIALOG.COPY_ERROR"), translate("~SHARE_DIALOG.COPY_TITLE"));
     }
   },
   updateShare: function() {
@@ -19856,7 +19856,7 @@ module.exports = React.createClass({
     var sharing;
     sharing = this.state.link !== null;
     return ModalDialog({
-      title: tr('~DIALOG.SHARED'),
+      title: translate('~DIALOG.SHARED'),
       close: this.props.close
     }, div({
       className: 'share-dialog'
@@ -19864,27 +19864,27 @@ module.exports = React.createClass({
       className: 'share-top-dialog'
     }, sharing ? div({}, div({
       className: 'share-status'
-    }, tr("~SHARE_DIALOG.SHARE_STATE"), strong({}, tr("~SHARE_DIALOG.SHARE_STATE_ENABLED")), a({
+    }, translate("~SHARE_DIALOG.SHARE_STATE"), strong({}, translate("~SHARE_DIALOG.SHARE_STATE_ENABLED")), a({
       href: '#',
       onClick: this.toggleShare
-    }, tr("~SHARE_DIALOG.STOP_SHARING"))), div({
+    }, translate("~SHARE_DIALOG.STOP_SHARING"))), div({
       className: 'share-button'
     }, button({
       onClick: this.updateShare
-    }, tr("~SHARE_DIALOG.UPDATE_SHARING")), div({
+    }, translate("~SHARE_DIALOG.UPDATE_SHARING")), div({
       className: 'share-button-help-sharing'
     }, a({
       href: this.state.link,
       target: '_blank'
-    }, tr("~SHARE_DIALOG.PREVIEW_SHARING"))))) : div({}, div({
+    }, translate("~SHARE_DIALOG.PREVIEW_SHARING"))))) : div({}, div({
       className: 'share-status'
-    }, tr("~SHARE_DIALOG.SHARE_STATE"), strong({}, tr("~SHARE_DIALOG.SHARE_STATE_DISABLED"))), div({
+    }, translate("~SHARE_DIALOG.SHARE_STATE"), strong({}, translate("~SHARE_DIALOG.SHARE_STATE_DISABLED"))), div({
       className: 'share-button'
     }, button({
       onClick: this.toggleShare
-    }, tr("~SHARE_DIALOG.ENABLE_SHARING")), div({
+    }, translate("~SHARE_DIALOG.ENABLE_SHARING")), div({
       className: 'share-button-help-not-sharing'
-    }, tr("~SHARE_DIALOG.ENABLE_SHARING_MESSAGE"))))), sharing ? div({}, ul({
+    }, translate("~SHARE_DIALOG.ENABLE_SHARING_MESSAGE"))))), sharing ? div({}, ul({
       className: 'sharing-tabs'
     }, li({
       className: "sharing-tab" + (this.state.tabSelected === 'link' ? ' sharing-tab-selected' : ''),
@@ -19892,10 +19892,10 @@ module.exports = React.createClass({
         marginLeft: 10
       },
       onClick: this.selectLinkTab
-    }, tr("~SHARE_DIALOG.LINK_TAB")), li({
+    }, translate("~SHARE_DIALOG.LINK_TAB")), li({
       className: "sharing-tab sharing-tab-embed" + (this.state.tabSelected === 'embed' ? ' sharing-tab-selected' : ''),
       onClick: this.selectEmbedTab
-    }, tr("~SHARE_DIALOG.EMBED_TAB")), this.props.enableLaraSharing ? li({
+    }, translate("~SHARE_DIALOG.EMBED_TAB")), this.props.enableLaraSharing ? li({
       className: "sharing-tab sharing-tab-lara" + (this.state.tabSelected === 'lara' ? ' sharing-tab-selected' : ''),
       onClick: this.selectLaraTab
     }, "LARA") : void 0), div({
@@ -19903,27 +19903,27 @@ module.exports = React.createClass({
     }, (function() {
       switch (this.state.tabSelected) {
         case 'embed':
-          return div({}, tr("~SHARE_DIALOG.EMBED_MESSAGE", document.execCommand || window.clipboardData ? a({
+          return div({}, translate("~SHARE_DIALOG.EMBED_MESSAGE"), document.execCommand || window.clipboardData ? a({
             className: 'copy-link',
             href: '#',
             onClick: this.copy
-          }, tr('~SHARE_DIALOG.COPY')) : void 0), div({}, textarea({
+          }, translate('~SHARE_DIALOG.COPY')) : void 0, div({}, textarea({
             value: this.state.embed,
             readOnly: true
           })));
         case 'lara':
-          return div({}, "Use this link when creating an activity in LARA", document.execCommand || window.clipboardData ? a({
+          return div({}, translate("~SHARE_DIALOG.LARA_MESSAGE"), document.execCommand || window.clipboardData ? a({
             className: 'copy-link',
             href: '#',
             onClick: this.copy
-          }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
+          }, translate('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
             value: this.getLara(),
             readOnly: true
           })), div({
             className: 'lara-settings'
           }, div({
             className: 'codap-server-url'
-          }, tr("~SHARE_DIALOG.LARA_CODAP_URL"), div({}, input({
+          }, translate("~SHARE_DIALOG.LARA_CODAP_URL"), div({}, input({
             value: this.state.codapServerUrl,
             onChange: this.changedCodapServerUrl
           }))), div({
@@ -19932,28 +19932,28 @@ module.exports = React.createClass({
             type: 'checkbox',
             checked: this.state.pageType === 'autolaunch',
             onChange: this.changedAutoscalingPage
-          }), tr("~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE")), this.state.pageType === 'autolaunch' ? div({
+          }), translate("~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE")), this.state.pageType === 'autolaunch' ? div({
             className: 'fullsceen-scaling'
           }, input({
             type: 'checkbox',
             checked: this.state.fullscreenScaling,
             onChange: this.changedFullscreenScaling
-          }), tr("~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING")) : void 0, this.state.pageType === 'launch' ? div({
+          }), translate("~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING")) : void 0, this.state.pageType === 'launch' ? div({
             className: 'launch-button-text'
-          }, tr("~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT"), input({
+          }, translate("~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT"), input({
             value: this.state.launchButtonText,
             onChange: this.changedLaunchButtonText
           })) : void 0, div({}, input({
             type: 'checkbox',
             checked: this.state.graphVisToggles,
             onChange: this.changedGraphVisToggles
-          }), tr("~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES"))));
+          }), translate("~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES"))));
         default:
-          return div({}, tr("~SHARE_DIALOG.LINK_MESSAGE", document.execCommand || window.clipboardData ? a({
+          return div({}, translate("~SHARE_DIALOG.LINK_MESSAGE"), document.execCommand || window.clipboardData ? a({
             className: 'copy-link',
             href: '#',
             onClick: this.copy
-          }, tr('~SHARE_DIALOG.COPY')) : void 0), div({}, input({
+          }, translate('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
             value: this.state.link,
             readOnly: true
           })), div({
@@ -19970,9 +19970,9 @@ module.exports = React.createClass({
       className: 'buttons'
     }, button({
       onClick: this.props.close
-    }, tr('~SHARE_DIALOG.CLOSE'))), SHOW_LONGEVITY_WARNING ? div({
+    }, translate('~SHARE_DIALOG.CLOSE'))), SHOW_LONGEVITY_WARNING ? div({
       className: 'longevity-warning'
-    }, tr('~SHARE_DIALOG.LONGEVITY_WARNING')) : void 0));
+    }, translate('~SHARE_DIALOG.LONGEVITY_WARNING')) : void 0));
   }
 });
 

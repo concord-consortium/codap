@@ -50,6 +50,6 @@ DG.React.ready(function () {
             }, tChildren));
           }
         };
-      })(), []);
+      }()), []);
 
 });

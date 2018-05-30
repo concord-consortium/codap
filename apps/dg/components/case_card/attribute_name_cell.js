@@ -133,6 +133,6 @@ DG.React.ready(function () {
             }, tNewAttrButton, tAttributeName);
           }
         };
-      })(), []);
+      }()), []);
 
 });

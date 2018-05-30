@@ -82,6 +82,6 @@ DG.React.ready(function () {
             return tResult;
           }
         };
-      })(), []);
+      }()), []);
 
 });

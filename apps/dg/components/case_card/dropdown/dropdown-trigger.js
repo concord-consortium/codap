@@ -37,6 +37,6 @@ DG.React.ready(function () {
             return a( tDropdownTriggerProps, tChildren);
           }
         };
-      })(), []);
+      }()), []);
 
 });
