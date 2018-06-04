@@ -439,10 +439,12 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       doSelectCases: function( iChange) {
         var hierTableView = this.getPath('view.contentView');
-        if( hierTableView) {
-          hierTableView.updateSelectedRows();
-          hierTableView.scrollSelectionToView();
-        }
+        this.invokeOnceLater(function () {
+          if( hierTableView) {
+            hierTableView.updateSelectedRows();
+            hierTableView.scrollSelectionToView();
+          }
+        });
       },
 
       /**
