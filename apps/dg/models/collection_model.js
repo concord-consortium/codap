@@ -531,13 +531,18 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var collectionID = this.get('id'),
           createdCases = [];
       // Look for a case that references the item. If found we position it
-      function findOrCreateCaseForItem (item, parent, collection) {
-        var tCase = DG.Case.findCase(collectionID, item.get('id'));
+      function findOrCreateCaseForItem (items, parent, collection) {
+        var tCase;
+        items.some(function (item) {
+          tCase = DG.Case.findCase(collectionID, item.get('id'));
+          return !!tCase;
+        });
+        // var tCase = DG.Case.findCase(collectionID, item.get('id'));
         if (!tCase) {
           tCase = DG.Case.createCase({
             parent: parent,
             collection: collection,
-            item: item
+            item: items[0]
           });
           collection.addCase(tCase);
           createdCases.push(tCase);
@@ -571,7 +576,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       if (SC.none(childCollection)) {
         items.forEach(function (item) {
           // create a case
-          var theCase = findOrCreateCaseForItem(item, parent, this);
+          var theCase = findOrCreateCaseForItem([item], parent, this);
           theCase._deletable = false;
         }.bind(this));
       } else {
@@ -593,7 +598,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         // recreate cases for the items in each group
         DG.ObjectMap.forEach(itemGroups, function(key, list) {
           var childCases;
-          var theCase = findOrCreateCaseForItem(list[0], parent, this);
+          var theCase = findOrCreateCaseForItem(list, parent, this);
           theCase.children = [];
           theCase._deletable = false;
 
