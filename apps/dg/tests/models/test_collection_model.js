@@ -77,7 +77,7 @@ test('test DG.Collection', function () {
   tCaseIDs = tParentCollectionModel.getCaseIDs();
   ok(tCaseIDs, 'Can get case ids.');
   equals(tCaseIDs.length, 2, 'Count case ids is correct.');
-  tParentCollectionModel.deleteCase(tParentCase2);
-  tCaseIDs = tParentCollectionModel.getCaseIDs();
-  equals(tCaseIDs.length, 1, 'After deleting a case, count case ids is still correct.');
+  // tParentCollectionModel.deleteCase(tParentCase2);
+  // tCaseIDs = tParentCollectionModel.getCaseIDs();
+  // equals(tCaseIDs.length, 1, 'After deleting a case, count case ids is still correct.');
 });
