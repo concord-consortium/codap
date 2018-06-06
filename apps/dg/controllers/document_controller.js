@@ -935,7 +935,10 @@ DG.DocumentController = SC.Object.extend(
                   parentView: iParentView,
                   controller: DG.TextComponentController.create(),
                   componentClass: {type: 'DG.TextView', constructor: DG.TextView},
-                  contentProperties: {hint: "Type some notes here…"},
+                  contentProperties: {
+                    hint: "Type some notes here…",
+                    model: SC.Object.create({})
+                  },
                   defaultLayout: {width: 300, height: 100},
                   title: 'DG.DocumentController.textTitle'.loc(), // "Text"
                   isResizable: true
@@ -1148,7 +1151,9 @@ DG.DocumentController = SC.Object.extend(
                   parentView: iParentView,
                   controller: DG.WebViewController.create(),
                   componentClass: {type: 'DG.WebView', constructor: DG.WebView},
-                  contentProperties: {value: iURL, backgroundColor: 'white', model: {defaultTitle: iTitle}},
+                  contentProperties: {value: iURL, backgroundColor: 'white', model: SC.Object.create({
+                      defaultTitle: iTitle
+                  })},
                   defaultLayout: iLayout,
                   title: iTitle,
                   isResizable: true,
@@ -1189,7 +1194,7 @@ DG.DocumentController = SC.Object.extend(
                     controller: tController,
                     componentClass: {type: 'DG.GuideView', constructor: DG.GuideView},
                     contentProperties: {
-                      backgroundColor: 'white', guideModel: tModel,
+                      backgroundColor: 'white', guideModel: tModel, model: tModel,
                       controller: tController,
                       closeAction: {action: this.closeGuideView, target: this}
                     },
