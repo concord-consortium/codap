@@ -1739,10 +1739,22 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var props = {
               componentStorage: {}
             };
-            var rtn, errorMessage;
+            var name = iValues.name || iValues.title;
+            var success = true;
+            var component, errorMessage;
+
+            if (SC.none(name)) {
+              success = false;
+              errorMessage = "Components must have a name";
+            }
+
+            if (SC.none(typeClass)) {
+              success = false;
+              errorMessage = 'Unknown component type: ' + type;
+            }
 
             // If we have a valid type ...
-            if (!SC.none(typeClass)) {
+            if (success) {
               props.document = doc;
               props.type = typeClass;
               // the allowMoreThanOne=false restriction is historical. It prevented
@@ -1770,18 +1782,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               if (tValues.type === 'caseTable') {
                 mapTableLinkPropertiesFromDI(tValues, props.componentStorage);
               }
-              rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
-              errorMessage = !rtn && 'Component creation failed';
-            } else {
-              errorMessage = 'Unknown component type: ' + type;
+              component = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
+              errorMessage = !component && 'Component creation failed';
             }
-            if (rtn) {
+
+            if (success && component) {
               return {
                 success: true,
                 values: {
-                  id: rtn.getPath('model.id'),
-                  name: rtn.getPath('model.name'),
-                  title: rtn.get('title'),
+                  id: component.getPath('model.id'),
+                  name: component.getPath('model.name'),
+                  title: component.get('title'),
                   type: type
                 }
               };
