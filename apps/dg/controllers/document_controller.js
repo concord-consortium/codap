@@ -736,7 +736,7 @@ DG.DocumentController = SC.Object.extend(
               },
               title: tGameName,
               isResizable: true,
-              useLayout: false,
+              useLayout: !SC.none(iComponent),
               positionOnCreate: true
             });
             tView.select();
@@ -1157,7 +1157,7 @@ DG.DocumentController = SC.Object.extend(
                   defaultLayout: iLayout,
                   title: iTitle,
                   isResizable: true,
-                  useLayout: !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
+                  useLayout: !SC.none(iComponent) || !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
                 }
             );
             this._component = tView.getPath('controller.model');
