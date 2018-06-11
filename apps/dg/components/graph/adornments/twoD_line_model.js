@@ -128,20 +128,21 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
   /**
    Use the bounds of the given axes to recompute slope and intercept.
    */
-  recomputeSlopeAndInterceptIfNeeded: function( iXAxis, iYAxis) {
+  recomputeSlopeAndInterceptIfNeeded: function( iXAxis, iYAxis, iForSelection) {
     if( this.isComputingNeeded( iXAxis, iYAxis))
     {
-      this.recomputeSlopeAndIntercept( iXAxis, iYAxis);
+      this.recomputeSlopeAndIntercept( iXAxis, iYAxis, iForSelection);
       this._needsComputing = false;
     }
   },
 
   /**
    * @return { [{x:{Number}, y: {Number} legend: {String|Number}}] } with properties specific to a given subclass
+   * @param {Boolean}
    */
-  getCoordinates: function() {
+  getCoordinates: function( iForSelection) {
     var tValues = [],
-        tCases = this.getPath('plotModel.cases'),
+        tCases = iForSelection ? this.getPath('plotModel.selection') : this.getPath('plotModel.cases'),
         tXVarID = this.getPath('plotModel.xVarID'),
         tYVarID = this.getPath('plotModel.yVarID'),
         tlegendVarID = this.getPath('plotModel.legendVarID'),

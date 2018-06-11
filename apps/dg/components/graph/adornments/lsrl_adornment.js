@@ -136,6 +136,11 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
     this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
                 text: this.get('equationString'), fill: tLineColor });
     this.lineSeg.attr({ stroke: tLineColor });
+  },
+
+  enableMeasuresForSelectionDidChange:function() {
+    this.get('model').setComputingNeeded();
+    this.updateToModel();
   }
 
 });

@@ -38,12 +38,23 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
       rSquared: null,
 
       /**
+       * Set by MultipleLsrlsModel.
+       * @property {Boolean}
+       */
+      enableMeasuresForSelection: false,
+
+      enableMeasuresForSelectionDidChange: function() {
+        this.setComputingNeeded();
+      }.observes('enableMeasuresForSelection'),
+
+      /**
        We compute the slope and intercept of the lsrl for the displayed points
        */
-      recomputeSlopeAndIntercept: function () {
+      recomputeSlopeAndIntercept: function ( iXAxis, iYAxis) {
 
-        var tInterceptIsLocked = this.get('isInterceptLocked'),
-            tCoordinates = this.getCoordinates(),
+        var tForSelection = this.get('enableMeasuresForSelection'),
+            tInterceptIsLocked = this.get('isInterceptLocked'),
+            tCoordinates = this.getCoordinates( tForSelection),
             tAttrStats = this.getPath( 'plotModel.dataConfiguration.legendAttributeDescription.attributeStats'),
             tCategoryIndex = this.get('categoryIndex'),
             tSlopeIntercept;

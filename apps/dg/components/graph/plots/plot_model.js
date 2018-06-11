@@ -283,6 +283,16 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       wantsOtherAxis: false,
 
       /**
+       * Set by GraphModel. Passed down to relevant adornments.
+       * @property {Boolean}
+       */
+      enableMeasuresForSelection: false,
+
+      enableMeasuresForSelectionDidChange: function(){
+        // Do nothing. Subclasses may override
+      }.observes('enableMeasuresForSelection'),
+
+      /**
        @return { Boolean }
        */
       shouldPlottedCountBeChecked: function (iWhat) {

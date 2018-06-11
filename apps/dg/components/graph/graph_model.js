@@ -43,6 +43,11 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     numberToggle: null,
 
     /**
+     * @property {Boolean}
+     */
+    enableMeasuresForSelection: null,
+
+    /**
      @property { DG.AxisModel }
      */
     xAxis: null,
@@ -79,6 +84,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this._plots = [ iPlot];
         // TODO: Figure out a more elegant way to observe this property
         iPlot.addObserver('connectingLine', this, this.connectingLineChanged);
+        iPlot.set('enableMeasuresForSelection', this.get('enableMeasuresForSelection'));
       }
       return (this._plots.length < 1) ? null : this._plots[0];
     }.property(),
@@ -123,6 +129,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           var tYAttrIndex = iPlot.get('yAttributeIndex');
           this._plots.splice(tYAttrIndex, 0, iPlot);
         }
+        iPlot.set('enableMeasuresForSelection', this.get('enableMeasuresForSelection'));
       }
     },
 
@@ -325,6 +332,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.setPath('numberToggle.isEnabled', this.get('enableNumberToggle'));
     }.observes('enableNumberToggle'),
 
+    enableMeasuresForSelectionDidChange: function() {
+      var tEnabled = this.get('enableMeasuresForSelection');
+      this.get('plots').forEach( function( iPlot) {
+        iPlot.set('enableMeasuresForSelection', tEnabled);
+      });
+    }.observes('enableMeasuresForSelection'),
+
     /** Submenu items for hiding selected or unselected cases, or showing all cases */
     createHideShowSelectionMenuItems: function() {
 
@@ -334,27 +348,41 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           enableNumberToggleItemText = isNumberToggleEnabled
                                         ? 'DG.DataDisplayMenu.disableNumberToggle'
                                         : 'DG.DataDisplayMenu.enableNumberToggle',
+          isMeasuresForSelectionEnabled = this.get('enableMeasuresForSelection'),
+          enableMeasuresForSelectionItemText = isMeasuresForSelectionEnabled
+                                        ? 'DG.DataDisplayMenu.disableMeasuresForSelection'
+                                        : 'DG.DataDisplayMenu.enableMeasuresForSelection',
           self = this;
 
-      function toggleNumberToggle() {
-        var isEnabled = self.get('enableNumberToggle');
+      function toggleCapability( iCapability) {
+        var isEnabled = self.get('enable' + iCapability);
         DG.UndoHistory.execute(DG.Command.create({
-          name: isEnabled ? 'graph.display.disableNumberToggle' : 'graph.display.enableNumberToggle',
-          undoString: isEnabled ? 'DG.Undo.disableNumberToggle' : 'DG.Undo.enableNumberToggle',
-          redoString: isEnabled ? 'DG.Redo.disableNumberToggle' : 'DG.Redo.enableNumberToggle',
-          log: isEnabled ? "Disable Number Toggle" : "Enable Number Toggle",
+          name: isEnabled ? 'graph.display.disable' + iCapability : 'graph.display.enable' + iCapability,
+          undoString: isEnabled ? 'DG.Undo.disable' + iCapability : 'DG.Undo.enable' + iCapability,
+          redoString: isEnabled ? 'DG.Redo.disable' + iCapability : 'DG.Redo.enable' + iCapability,
+          log: isEnabled ? "Disable" + iCapability : "Enable" + iCapability,
           execute: function() {
-            this._undoData = !!self.get('enableNumberToggle');
-            self.set('enableNumberToggle', !isEnabled);
+            this._undoData = !!self.get('enable' + iCapability);
+            self.set('enable' + iCapability, !isEnabled);
           },
           undo: function() {
-            self.set('enableNumberToggle', this._undoData);
+            self.set('enable' + iCapability, this._undoData);
           }
         }));
       }
 
+      function toggleNumberToggle() {
+        toggleCapability('NumberToggle');
+      }
+
+      function toggleMeasuresForSelection() {
+        toggleCapability('MeasuresForSelection');
+      }
+
       menuItems.push({ title: enableNumberToggleItemText, isEnabled: true,
                         target: this, action: toggleNumberToggle });
+      menuItems.push({ title: enableMeasuresForSelectionItemText, isEnabled: true,
+                        target: this, action: toggleMeasuresForSelection });
       return menuItems;
     },
 
@@ -887,6 +915,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create( this.getModelPointStyleAccessors()),
           tActualYAttrIndex = iModelDesc.plotModelStorage.verticalAxisIsY2 ? tY2AttrIndex++ : tYAttrIndex++;
           tPlot.beginPropertyChanges();
+          tPlot.set('enableMeasuresForSelection', this.get('enableMeasuresForSelection'));
           tPlot.setIfChanged( 'dataConfiguration', tDataConfig);
           tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
           tPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
@@ -921,6 +950,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.set('enableNumberToggle', iStorage.enableNumberToggle);
       if( iStorage.enableNumberToggle && !SC.none( iStorage.numberToggleLastMode))
         this.setPath('numberToggle.lastMode', iStorage.numberToggleLastMode);
+      if( !SC.none( iStorage.enableMeasuresForSelection))
+        this.set('enableMeasuresForSelection', iStorage.enableMeasuresForSelection);
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 

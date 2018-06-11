@@ -52,7 +52,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
   modelPropertiesToObserve: [ ['slope', 'updateToModel'], ['intercept', 'updateToModel'],
                               ['isInterceptLocked', 'updateToModel'],
                               ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel'],
-                              ['sumSquaresResiduals', 'updateToModel']],
+                              ['sumSquaresResiduals', 'updateToModel'],
+                              ['enableMeasuresForSelection', 'enableMeasuresForSelectionDidChange']],
 
   /**
     The returned string should have a reasonable number of significant digits for the
@@ -230,6 +231,10 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     this.myElements.forEach(function (iElement) {
       tLayer.push(iElement);
     });
+  },
+
+  enableMeasuresForSelectionDidChange:function() {
+    // Subclasses may override
   }
 
 });

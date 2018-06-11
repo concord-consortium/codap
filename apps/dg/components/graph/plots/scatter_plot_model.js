@@ -159,6 +159,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             tMultipleLSRLs.set('showSumSquares', tSquaresVisible);
       }.observes('areSquaresVisible'),
 
+      enableMeasuresForSelectionDidChange: function(){
+        sc_super();
+        this.setPath('multipleLSRLs.enableMeasuresForSelection', this.get('enableMeasuresForSelection'));
+      }.observes('enableMeasuresForSelection'),
+
       /**
        If we need to make a movable line, do so. In any event toggle its visibility.
        */
@@ -229,7 +234,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           this.set('multipleLSRLs', DG.MultipleLSRLsModel.create( {
             plotModel: this,
             showSumSquares: this.get('areSquaresVisible'),
-            isInterceptLocked: this.get('isInterceptLocked')
+            isInterceptLocked: this.get('isInterceptLocked'),
+            enableMeasuresForSelection: this.get('enableMeasuresForSelection')
           }));
           this.setPath('multipleLSRLs.isVisible', true);
         }
