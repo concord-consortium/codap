@@ -21,7 +21,7 @@ DG.React.ready(function () {
             var tAttrID = this.props.attrID,
                 tAllNumeric = true,
                 tMin = Number.MAX_VALUE,
-                tMax = Number.MIN_VALUE,
+                tMax = -Number.MAX_VALUE,
                 tUniqueValues = {},
                 tNumUniqueValues,
                 tSummary;
@@ -43,14 +43,17 @@ DG.React.ready(function () {
             }
             tNumUniqueValues = Object.keys(tUniqueValues).length;
             if( tNumUniqueValues > 2 || tAllNumeric) {
-              tSummary = tAllNumeric ?
+              tSummary = (tMin === "Infinity") ? '' :
+                  tAllNumeric ?
                   (tMin === tMax ? (tMin + this.props.unit) :
                       'DG.CaseCard.summaryRange'.loc(tMin, tMax, this.props.unit)) :
                   'DG.CaseCard.summaryValues'.loc(tNumUniqueValues);
               return span({className: 'react-data-card-attribute-summary'}, tSummary);
             }
             else {
-              var tUniqueValue = Object.keys( tUniqueValues).join(', ');
+              var tUniqueValue = Object.keys( tUniqueValues).filter( function(iKey) {
+                return iKey !== 'undefined';
+              }).join(', ');
               if(tUniqueValue==='undefined')
                 tUniqueValue = '';
               return span({
