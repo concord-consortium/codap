@@ -29,11 +29,78 @@ DG.CaseCardController = DG.ComponentController.extend(
 
       reactDiv: null,
 
+      dataContext: SC.binding('view.contentView.context'),
+
       init: function() {
         sc_super();
         this.get('specialTitleBarButtons').push(
             DG.CaseTableToggleButton.create()
         );
+      },
+
+      /**
+       Destruction function.
+       */
+      destroy: function() {
+        var dataContext = this.get('dataContext');
+        if( dataContext)
+          dataContext.removeObserver('changeCount', this, 'contextDataDidChange');
+        sc_super();
+      },
+
+      /**
+       Configure the table for the new data context.
+       */
+      dataContextDidChange: function() {
+        var dataContext = this.get('dataContext');
+
+        if( dataContext !== this._prevDataContext) {
+          if( this._prevDataContext)
+            this._prevDataContext.removeObserver('changeCount', this, 'contextDataDidChange');
+          if( dataContext)
+            dataContext.addObserver('changeCount', this, 'contextDataDidChange');
+          this._prevDataContext = dataContext;
+        }
+      }.observes('dataContext'),
+
+      /**
+       Observer function called when the data context notifies that it has changed.
+       */
+      contextDataDidChange: function() {
+        var changes = this.getPath('dataContext.newChanges');
+
+        /**
+         Process each change that has occurred since the last notification.
+         */
+        var handleOneChange = function( iChange) {
+          var operation = iChange && iChange.operation;
+          switch( operation) {
+            case 'deleteDataContext':
+              this.dataContextWasDeleted();
+              break;
+            default:
+          }
+        }.bind( this);
+
+        // Process all changes that have occurred since the last notification.
+        if( changes) {
+          changes.forEach( function( iChange) {
+            handleOneChange( iChange);
+          });
+        }
+      },
+
+      /**
+       * Reacts to a notification that this component's data context was deleted.
+       * We need to remove ourself, too.
+       *
+       */
+      dataContextWasDeleted: function () {
+        var tComponentView = this.get('view'),
+            tContainerView = tComponentView.get('parentView');
+        this.willCloseComponent();
+        this.willSaveComponent();
+        tContainerView.removeComponentView( tComponentView);
       },
 
       toggleViewVisibility: function() {
