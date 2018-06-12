@@ -50,7 +50,8 @@ DG.React.ready(function () {
                   // case 'updateCases':
                   //   break;
                 default:
-                  this.dependent.incrementStateCount();
+                  if( this.dependent)
+                    this.dependent.incrementStateCount();
               }
             }.bind(this));
           }
