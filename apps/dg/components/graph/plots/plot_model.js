@@ -689,6 +689,12 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         return this.getPath('dataConfiguration.plottedCollectionIDs') || [];
       },
 
+      getPlottedCollectionIDsIncludesIDs: function(iCollectionIDs) {
+        var tPlottedCollectionIDs = this.getPlottedCollectionIDs();
+        return iCollectionIDs.some(function (iID) {
+          return tPlottedCollectionIDs.indexOf(iID) >= 0;
+        });
+      },
       /**
        Returns an array of attribute IDs corresponding to the attributes that
        are currently being plotted by the graph.
@@ -787,10 +793,9 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
               }
             break;
           case 'moveAttribute':
-            var tMovedID = iChange.attr && iChange.attr.get('id'),
-                tFromID = iChange.fromCollection && iChange.fromCollection.get('id'),
+            var tFromID = iChange.fromCollection && iChange.fromCollection.get('id'),
                 tToID = iChange.toCollection && iChange.toCollection.get('id');
-            isAffected = this.getPlottedAttributesIncludeIDs([tMovedID]) &&
+            isAffected = this.getPlottedCollectionIDsIncludesIDs([tFromID, tToID]) &&
                             tFromID !== tToID;
             break;
         }
