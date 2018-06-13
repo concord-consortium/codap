@@ -66,6 +66,8 @@ DG.GraphController = DG.DataDisplayController.extend(
           storage.isTransparent = this.getPath('graphModel.isTransparent');
           storage.plotBackgroundColor = this.getPath('graphModel.plotBackgroundColor');
           storage.plotBackgroundOpacity = this.getPath('graphModel.plotBackgroundOpacity');
+          storage.plotBackgroundImage = this.getPath('graphModel.plotBackgroundImage');
+          storage.plotBackgroundImageLockInfo = this.getPath('graphModel.plotBackgroundImageLockInfo');
           storage.enableNumberToggle = this.getPath('graphModel.enableNumberToggle');
           if (storage.enableNumberToggle)
             storage.numberToggleLastMode = this.getPath('graphModel.numberToggle.lastMode');
@@ -139,7 +141,151 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
         }.observes('view'),
 
-        makePngImage: function () {
+        addBackgroundImage: function () {
+
+          function handleAbnormal() {
+            console.log("Abort or error on file read.");
+          }
+
+          function handleRead() {
+            var tImage = this.result;
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'graph.addBackgroundImage',
+              undoString: 'DG.Undo.graph.addBackgroundImage',
+              redoString: 'DG.Redo.graph.addBackgroundImage',
+              _backgroundImage: null,
+              executeNotification: {
+                action: 'notify',
+                resource: 'component',
+                values: {
+                  operation: 'backgroundImage',
+                  type: 'DG.GraphView'
+                }
+              },
+              execute: function() {
+                tGraphModel.set('plotBackgroundImage', tImage);
+              },
+              undo: function() {
+                this._backgroundImage = tGraphModel.get('plotBackgroundImage');
+                tGraphModel.set('plotBackgroundImage', null);
+              },
+              redo: function() {
+                tGraphModel.set('plotBackgroundImage', this._backgroundImage);
+              }
+            }));
+
+          }
+
+          function parseData( iData) {
+            if( iData) {
+              var tReader = new FileReader();
+              tReader.onabort = handleAbnormal;
+              tReader.onerror = handleAbnormal;
+              tReader.onload = handleRead;
+              tReader.readAsDataURL(iData.file.object);
+            }
+          }
+
+          var tGraphModel = this.get('graphModel'),
+              tModelID = this.getPath('model.id');
+          return DG.cfmClient._ui.importDataDialog((function(_this) {
+            return function(data) {
+              return parseData(data);
+            };
+          })(this));
+
+        },
+
+        removeBackgroundImage: function() {
+          var tGraphModel = this.get('graphModel');
+
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'graph.removeBackgroundImage',
+            undoString: 'DG.Undo.graph.removeBackgroundImage',
+            redoString: 'DG.Redo.graph.removeBackgroundImage',
+            _backgroundImage: null,
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'backgroundImage',
+                type: 'DG.GraphView'
+              }
+            },
+            execute: function() {
+              this._backgroundImage = tGraphModel.get('plotBackgroundImage');
+              tGraphModel.set('plotBackgroundImage', null);
+            },
+            undo: function() {
+              tGraphModel.set('plotBackgroundImage', this._backgroundImage);
+            },
+            redo: function() {
+              tGraphModel.set('plotBackgroundImage', null);
+            }
+          }));
+        },
+
+        lockImageToAxes: function() {
+          var tGraphModel = this.get('graphModel'),
+              tInfo = { locked: true,
+                xAxisLowerBound: tGraphModel.getPath('xAxis.lowerBound'),
+                xAxisUpperBound: tGraphModel.getPath('xAxis.upperBound'),
+                yAxisLowerBound: tGraphModel.getPath('yAxis.lowerBound'),
+                yAxisUpperBound: tGraphModel.getPath('yAxis.upperBound')
+              };
+
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'graph.lockBackgroundImage',
+            undoString: 'DG.Undo.graph.lockBackgroundImage',
+            redoString: 'DG.Redo.graph.lockBackgroundImage',
+            _backgroundImage: null,
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'lockBackgroundImage',
+                type: 'DG.GraphView'
+              }
+            },
+            execute: function() {
+              tGraphModel.set('plotBackgroundImageLockInfo', tInfo);
+            },
+            undo: function() {
+              tGraphModel.set('plotBackgroundImageLockInfo', null);
+            },
+            redo: function() {
+              tGraphModel.set('plotBackgroundImageLockInfo', tInfo);
+            }
+          }));
+        },
+
+        unlockImageFromAxes: function() {
+          var tGraphModel = this.get('graphModel'),
+              tInfo = tGraphModel.get('plotBackgroundImageLockInfo');
+
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'graph.unlockBackgroundImage',
+            undoString: 'DG.Undo.graph.unlockBackgroundImage',
+            redoString: 'DG.Redo.graph.unlockBackgroundImage',
+            _backgroundImage: null,
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'unlockBackgroundImage',
+                type: 'DG.GraphView'
+              }
+            },
+            execute: function() {
+              tGraphModel.set('plotBackgroundImageLockInfo', null);
+            },
+            undo: function() {
+              tGraphModel.set('plotBackgroundImageLockInfo', tInfo);
+            }
+          }));
+        },
+
+       makePngImage: function () {
           var componentView = this.get('view');
           var graphView = componentView && componentView.get('contentView');
           var width = graphView.getPath('frame.width');

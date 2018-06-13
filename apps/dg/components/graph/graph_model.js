@@ -36,6 +36,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     isTransparent: false, // part of model state that determines whether plot views are transparent
     plotBackgroundColor: null, // part of model state that specifies color of plot background. Default is white
     plotBackgroundOpacity: 1, // part of model state that specifies opacity of plot background. Default is 1
+    plotBackgroundImage: null,  // to be displayed by the view as part of the background
+    plotBackgroundImageLockInfo: null,  // null if image not locked to axes
 
     /**
      * @property {DG.NumberToggleModel}
@@ -946,6 +948,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.set('plotBackgroundColor', iStorage.plotBackgroundColor);
       if( !SC.none( iStorage.plotBackgroundOpacity))
         this.set('plotBackgroundOpacity', iStorage.plotBackgroundOpacity);
+      if( !SC.none( iStorage.plotBackgroundImage))
+        this.set('plotBackgroundImage', iStorage.plotBackgroundImage);
+      if( !SC.none( iStorage.plotBackgroundImageLockInfo))
+        this.set('plotBackgroundImageLockInfo', iStorage.plotBackgroundImageLockInfo);
       if( !SC.none( iStorage.enableNumberToggle))
         this.set('enableNumberToggle', iStorage.enableNumberToggle);
       if( iStorage.enableNumberToggle && !SC.none( iStorage.numberToggleLastMode))

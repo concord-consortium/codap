@@ -62,6 +62,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   // Private properties
   _backgroundForClick: null,  // We make this once and keep it sized properly.
 
+  _backgroundImage: null,
+
   colorDidChange: function() {
     var tStoredColor = this.getPath('graphModel.plotBackgroundColor') || 'white',
         tStoredOpacity = this.getPath('graphModel.plotBackgroundOpacity'),
@@ -72,6 +74,15 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tNewColor.set('a', tStoredOpacity);
     this.set('backgroundColor', tNewColor.get('cssText'));
   }.observes('.graphModel.plotBackgroundColor', '.graphModel.plotBackgroundOpacity'),
+
+  backgroundImageDidChange: function() {
+    var tImage = this.getPath('graphModel.plotBackgroundImage');
+    if(tImage === null)
+      tImage = '';
+    if( this._backgroundImage.attr('src') !== tImage) {
+      this._backgroundImage.attr('src', tImage);
+    }
+  }.observes('.graphModel.plotBackgroundImage'),
 
   /**
    * Additional setup after creating the view
@@ -103,7 +114,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     if (!this._layerManager) return;
 
     var ln = DG.LayerNames;
-    this.get('layerManager').addNamedLayer( ln.kBackground )
+    this.get('layerManager').addNamedLayer( ln.kBackgroundImage )
+                  .addNamedLayer( ln.kBackground )
                   .addNamedLayer( ln.kGrid )
                   .addNamedLayer( ln.kIntervalShading )
                   .addNamedLayer( ln.kClick )
@@ -114,6 +126,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                   .addNamedLayer( ln.kAdornments )
                   .addNamedLayer( ln.kDataTip )
                   .addNamedLayer( ln.kCoverRects );
+
+    this._backgroundImage = this._paper.image('', 0, 0, this._paper.width, this._paper.height);
+    this.getPath('layerManager.' + DG.LayerNames.kBackgroundImage ).push( this._backgroundImage);
   },
 
   /**
@@ -136,6 +151,29 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tNeedToDeselectAll,
         tBaseSelection = [];//,
 //        tToolTip;
+
+    function updateBackgroundImage() {
+      if( !this_._paper)
+        return; // not yet ready
+      var tBackgroundImage = this_.getPath('graphModel.plotBackgroundImage'),
+          tLockInfo = this_.getPath('graphModel.plotBackgroundImageLockInfo');
+      if( this_._backgroundImage.attr('src') !== tBackgroundImage) {
+        this_._backgroundImage.attr('src', tBackgroundImage);
+      }
+      if( tLockInfo && tLockInfo.locked) {
+        var tXAxisView = this_.get('xAxisView'),
+            tYAxisView = this_.get('yAxisView'),
+            tLeft = tXAxisView.dataToCoordinate( tLockInfo.xAxisLowerBound),
+            tRight = tXAxisView.dataToCoordinate( tLockInfo.xAxisUpperBound),
+            tTop = tYAxisView.dataToCoordinate( tLockInfo.yAxisUpperBound),
+            tBottom = tYAxisView.dataToCoordinate( tLockInfo.yAxisLowerBound);
+        this_._backgroundImage.attr({ x: tLeft, y: tTop,
+          width: tRight - tLeft, height: tBottom - tTop});
+      }
+      else {
+        this_._backgroundImage.attr({width: this_._paper.width, height: this_._paper.height});
+      }
+    }
 
     function createRulerLines() {
 
@@ -333,6 +371,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
     tGridLayer.clear();
     tBackgroundLayer.clear();
+
+    updateBackgroundImage();
 
     createRulerLines();
 

@@ -126,15 +126,31 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
       /** Submenu items for copying/exporting component images */
       createImageExportMenuItems: function() {
-
-        return [
-          // Note that these 'built' string keys will have to be specially handled by any
-          // minifier we use
+        var tBackground = this.getPath('graphModel.plotBackgroundImage'),
+            tBackgroundCue = tBackground ?
+                  'DG.DataDisplayMenu.removeBackgroundImage' : 'DG.DataDisplayMenu.addBackgroundImage',
+            tBackgroundAction = tBackground ? 'removeBackgroundImage' : 'addBackgroundImage',
+            tBackgroundItems = [
+                  { title: tBackgroundCue, isEnabled: true,
+                    target: this, action: tBackgroundAction }
+                ];
+        if( tBackground) {
+          var tLockInfo = this.getPath('graphModel.plotBackgroundImageLockInfo'),
+              tLocked = tLockInfo && tLockInfo.locked,
+              tLockedCue = tLocked ? 'DG.DataDisplayMenu.unlockImageFromAxes' :
+                  'DG.DataDisplayMenu.lockImageToAxes',
+              tLockAction = tLocked ? 'unlockImageFromAxes' : 'lockImageToAxes';
+          tBackgroundItems.push(
+              { title: tLockedCue, isEnabled: true,
+                target: this, action: tLockAction }
+          );
+        }
+        return tBackgroundItems.concat([
           { title: ('DG.DataDisplayMenu.copyAsImage'), isEnabled: true,
             target: this, action: 'copyAsImage' },
           { title: ('DG.DataDisplayMenu.exportImage'), isEnabled: true,
             target: this, action: 'makePngImage' }
-        ];
+        ]);
       },
       
       createInspectorButtons: function () {

@@ -22,6 +22,7 @@
  * Define constants for layers used in a plot.
  */
 DG.LayerNames = {
+  kBackgroundImage: 'backgroundImage',
   kBackground: 'background',
   kGrid: 'grid',
   kIntervalShading: 'intervalShading',

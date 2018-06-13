@@ -373,7 +373,8 @@ DG.mainPage = SC.Page.design((function() {
       this.set('_isDraggingFileOrURL', false);
       this.set('_isDraggingAttr', false);
       this.set('dragAttributeData', null);
-      iEvent.preventDefault();
+      if( iEvent.preventDefault)
+        iEvent.preventDefault();
     },
 
     /**

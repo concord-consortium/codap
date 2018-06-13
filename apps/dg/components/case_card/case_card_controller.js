@@ -43,7 +43,7 @@ DG.CaseCardController = DG.ComponentController.extend(
        */
       destroy: function() {
         var dataContext = this.get('dataContext');
-        if( dataContext)
+        if( dataContext && dataContext.removeObserver)
           dataContext.removeObserver('changeCount', this, 'contextDataDidChange');
         sc_super();
       },
