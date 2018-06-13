@@ -32,7 +32,17 @@ DG.TextComponentController = DG.ComponentController.extend(
    *  This property is bound to the 'value' property of the textFieldView.
    *  @property {String}
    */
-  theText: "",
+  theText: function (k, v) {
+    if (!SC.none(v)) {
+      this.setPath('model.content.text', v);
+    }
+    return this.getPath('model.content.text');
+  }.property(),
+
+  theTextDidChange: function () {
+    this.notifyPropertyChange('theText');
+  }.observes('model.content.text'),
+
   previousValue: "",
   _session: null,
 

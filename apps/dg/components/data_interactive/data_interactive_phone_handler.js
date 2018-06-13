@@ -1696,15 +1696,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           webView: {
             name: directMapping,
             title: directMapping,
-            URL: function (key, value) {
-              return { key: 'URL', value: value,
-                        set: function(model, value) {
-                          var controller = DG.currDocumentController()
-                                              .getComponentControllerForModel(model);
-                          if (controller) controller.set('theURL', value);
-                        }
-                      };
-            },
+            URL: directMapping,
             cannotClose: directMapping
           }
         };
@@ -1823,7 +1815,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var component = iResources.component,
                 componentType = component && component.get('type'),
                 codapType = componentType && kTypeMap[componentType],
-                position, dimensions;
+                componentContent = DG.Component.getContent(component),
+                position, dimensions,
+                remapped = {};
 
             if (!component) {
               return {success: false, values: {error: 'Cannot find component'}};
@@ -1839,7 +1833,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               component.setPath('content.dimensions', dimensions);
               delete iValues.dimensions;
             }
-            remapProperties(iValues, component, codapType);
+
+            remapProperties(iValues, remapped, codapType);
+
+            Object.keys(remapped).forEach(function (key) {
+              componentContent.set(key, remapped[key]);
+            });
+
             return {
               success: true
             };

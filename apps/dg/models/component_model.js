@@ -69,6 +69,10 @@ DG.Component = DG.BaseModel.extend(
         return this.getPath('content.dimensions');
       }.property(),
 
+      contentDimensionsChanged: function() {
+        this.notifyPropertyChange('dimensions');
+      }.observes('*content.dimensions'),
+
       /**
        * This property is transient. The Plugin api uses it to convey position
        * to the view, which, in turn updates the layout. We persist the layout.
@@ -88,10 +92,6 @@ DG.Component = DG.BaseModel.extend(
         return this._position;
       }.property(),
 
-      contentDimensionsChanged: function() {
-        this.notifyPropertyChange('dimensions');
-      }.observes('*content.dimensions'),
-
       /*
        * An arbitrary version string to be presented in the header.
        * @property {string}
@@ -100,15 +100,24 @@ DG.Component = DG.BaseModel.extend(
         return this.getPath('content.version');
       }.property(),
 
+      contentVersionChanged: function() {
+        this.notifyPropertyChange('version');
+      }.observes('*content.version'),
+
       /**
        * If true, the close button will not show in the component title bar.
        * @property {Boolean}
        */
-      cannotClose: false,
+      cannotClose: function (iKey, iValue) {
+        if (!SC.none(iValue)) {
+          this.setPath('content.cannotClose');
+        }
+        return this.getPath('content.cannotClose');
+      }.property(),
 
-      contentVersionChanged: function() {
-        this.notifyPropertyChange('version');
-      }.observes('*content.version'),
+      cannotCloseChanged: function () {
+        this.notifyPropertyChange('cannotClose');
+      }.observes('content.cannotClose'),
 
       /**
        * Content is an arbitrary javascript object, serializable, and defined
