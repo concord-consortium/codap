@@ -359,6 +359,9 @@ DG.CaseTableController = DG.ComponentController.extend(
           case 'deleteDataContext':
             this.dataContextWasDeleted();
             break;
+          case 'createItems':
+            // Nothing to do here because we'll come back around to do createCases
+            break;
           default:
             DG.logWarn('Unhandled operation: ' + iChange.operation);
           }
