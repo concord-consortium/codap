@@ -111,7 +111,7 @@ read -p 'Have copied embedded mode image? ' ANSWER
 checkAnswer
 
 echo '10. on codap-server deploy embeddedMode image to release directory: '
-ssh ${CODAP_SERVER} "sudo cp codap_embeddedCODAP_${BUILD_NUM}.zip $SERVER_DIR_EMBEDDED_MODE"
+ssh ${CODAP_SERVER} "sudo deployEmbeddedCODAP codap_embeddedCODAP_${BUILD_NUM}.zip"
 
 read -p 'Have deployed embedded mode image? ' ANSWER
 checkAnswer
