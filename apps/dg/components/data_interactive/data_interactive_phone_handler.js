@@ -1610,11 +1610,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var kComponentStorageProperties = {
           calculator: {
             name: directMapping,
-            title: directMapping
+            title: directMapping,
+            cannotClose: directMapping
           },
           caseTable: {
             name: directMapping,
             title: directMapping,
+            cannotClose: directMapping
           },
           game: {
             currentGameName: function (key, value) {
@@ -1629,7 +1631,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             title: directMapping,
             URL: function (key, value) {
               return {key: 'currentGameUrl', value: value};
-            }
+            },
+            cannotClose: directMapping
           },
           graph: {
             name: directMapping,
@@ -1649,11 +1652,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             yAttributeName: directMapping,
             y2AttributeName: directMapping,
             legendAttributeName: directMapping,
-            enableNumberToggle: directMapping
+            enableNumberToggle: directMapping,
+            cannotClose: directMapping
           },
           guideView: {
             name: directMapping,
             title: directMapping,
+            cannotClose: directMapping
           },
           map: {
             name: directMapping,
@@ -1667,7 +1672,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             },
             context: function (key, value) {
               return {key: 'dataContextName', value: value.get('name')};
-            }
+            },
+            cannotClose: directMapping
           },
           slider: {
             animationDirection: directMapping,
@@ -1678,25 +1684,20 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             name: directMapping,
             title: directMapping,
             upperBound: directMapping,
-            value: directMapping
+            value: directMapping,
+            cannotClose: directMapping
           },
           text: {
             name: directMapping,
             text: directMapping,
-            title: directMapping
+            title: directMapping,
+            cannotClose: directMapping
           },
           webView: {
             name: directMapping,
             title: directMapping,
-            URL: function (key, value) {
-              return { key: 'URL', value: value,
-                        set: function(model, value) {
-                          var controller = DG.currDocumentController()
-                                              .getComponentControllerForModel(model);
-                          if (controller) controller.set('theURL', value);
-                        }
-                      };
-            },
+            URL: directMapping,
+            cannotClose: directMapping
           }
         };
 
@@ -1814,7 +1815,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var component = iResources.component,
                 componentType = component && component.get('type'),
                 codapType = componentType && kTypeMap[componentType],
-                position, dimensions;
+                componentContent = DG.Component.getContent(component),
+                position, dimensions,
+                remapped = {};
 
             if (!component) {
               return {success: false, values: {error: 'Cannot find component'}};
@@ -1830,7 +1833,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               component.setPath('content.dimensions', dimensions);
               delete iValues.dimensions;
             }
-            remapProperties(iValues, component, codapType);
+
+            remapProperties(iValues, remapped, codapType);
+
+            Object.keys(remapped).forEach(function (key) {
+              componentContent.set(key, remapped[key]);
+            });
+
             return {
               success: true
             };
