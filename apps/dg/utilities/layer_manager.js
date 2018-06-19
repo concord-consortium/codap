@@ -110,11 +110,13 @@ DG.LayerManager = function( iPaper) {
      * We have to give layers a chance to update pointers to elements before calling remove
      * @param iElement {Raphael Element }
      */
-    removeElement: function( iElement) {
+    removeElement: function( iElement, iCallRemove) {
+      iCallRemove = iCallRemove && iElement[0].constructor !== SVGCircleElement;
       this.forEach( function( iLayer) {
         iLayer.prepareToMoveOrRemove( iElement);
       });
-      iElement.remove();
+      if( iCallRemove)
+        iElement.remove();
       //this.testValidity();
     },
 

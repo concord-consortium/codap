@@ -88,31 +88,32 @@ DG.RaphaelLayer = SC.Object.extend(
      */
     push: function( iElement) {
       DG.assert( iElement);
-      this._map[iElement.id]=true;
-      if( !this._lastElement) {
-        // We have no elements, so this becomes our first. We need to insert after previous layer's last Element.
-        // But if there is no previous layer with a last element, then the given element moves to the paper's back.
-        var tLayer;
-        for( tLayer = this._prevLayer; tLayer; tLayer = tLayer._prevLayer) {
-          if( tLayer && tLayer._lastElement) {
-            break;
+      if( !this._map[iElement.id]) {
+        this._map[iElement.id] = true;
+        if (!this._lastElement) {
+          // We have no elements, so this becomes our first. We need to insert after previous layer's last Element.
+          // But if there is no previous layer with a last element, then the given element moves to the paper's back.
+          var tLayer;
+          for (tLayer = this._prevLayer; tLayer; tLayer = tLayer._prevLayer) {
+            if (tLayer && tLayer._lastElement) {
+              break;
+            }
           }
+          if (tLayer) {
+            iElement.insertAfter(tLayer._lastElement);
+          }
+          else
+            iElement.toBack();
         }
-        if( tLayer) {
-          iElement.insertAfter( tLayer._lastElement);
+        else {
+          iElement.insertAfter(this._lastElement);
         }
-        else
-          iElement.toBack();
+        this._lastElement = iElement;
+        if (!this._firstElement) {
+          this._firstElement = iElement;
+        }
+        DG.assert(iElement.next || (iElement === this._lastElement));
       }
-      else {
-        iElement.insertAfter( this._lastElement);
-      }
-      this._lastElement = iElement;
-      if( !this._firstElement ) {
-        this._firstElement = iElement;
-      }
-      DG.assert( iElement.next || (iElement === this._lastElement));
-      //DG.assert( this.isValid());
       return iElement;
     },
 
@@ -161,9 +162,8 @@ DG.RaphaelLayer = SC.Object.extend(
      */
     bringToFront: function( iElement) {
       if( this.contains( iElement)) {
-        this.prepareToMoveOrRemove( iElement); {
-          this.push( iElement);
-        }
+        this.prepareToMoveOrRemove( iElement);
+        this.push( iElement);
       }
     },
 

@@ -102,7 +102,7 @@ DG.BarChartView = DG.ChartView.extend(
           // We can get in here after a delete, in which case, iChanges can be referring to
           // a plot element that no longer exists.
           /*  Todo: Deal with these changes in order to get delete and add cases to work
-                    if (!this_._plottedElements[iIndex])
+                    if (!this_.get('plottedElements')[iIndex])
                       this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
                     var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
                     this_.privSetElementCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
@@ -197,7 +197,8 @@ DG.BarChartView = DG.ChartView.extend(
             tCases = this.getPath('model.cases'),
             tRC = this.createRenderContext(),
             tDataLength = tCases && tCases.get('length'),
-            tPlotElementLength = this._plottedElements.length,
+            tPlottedElements = this.get('plottedElements'),
+            tPlotElementLength = tPlottedElements.length,
             tLayerManager = this.get('layerManager'),
             tIndex, tCellIndices;
 
@@ -214,13 +215,13 @@ DG.BarChartView = DG.ChartView.extend(
         if (tDataLength < tPlotElementLength) {
           for (tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
             // It can happen during closing of a document that the elements no longer exist, so we have to test
-            if (!SC.none(this._plottedElements[tIndex])) {
-              this._plottedElements[tIndex].stop();
-              tLayerManager.removeElement(this._plottedElements[tIndex]);
-              DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex]);
+            if (!SC.none(tPlottedElements[tIndex])) {
+              tPlottedElements[tIndex].stop();
+              tLayerManager.removeElement(tPlottedElements[tIndex]);
+              DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex]);
             }
           }
-          this._plottedElements.length = tDataLength;
+          // tPlottedElements.length = tDataLength;
           // update all coordinates because we don't know which cases were deleted
           this.updateAllCoordinates(iAnimate, iCallback);
         }
@@ -358,7 +359,7 @@ DG.BarChartView = DG.ChartView.extend(
       getElementPositionsInParentFrame: function() {
 
         var tFrame = this.get('frame');
-        return this._plottedElements.map( function( iElement) {
+        return tPlottedElements.map( function( iElement) {
           var tX = iElement.attr('x') + tFrame.x,
               tY = iElement.attr('y') + tFrame.y,
               tWidth = iElement.attr('width'),
@@ -504,8 +505,8 @@ DG.BarChartView = DG.ChartView.extend(
       privSetElementCoords: function (iRC, iCase, iIndex, iCellIndices, iAnimate, iCallback) {
         DG.assert(iRC && iRC.xAxisView);
         DG.assert(iCase);
-        DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, this._plottedElements.length));
-        var tRect = this._plottedElements[iIndex]/*,
+        DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, tPlottedElements.length));
+        var tRect = this.get('plottedElements')[iIndex]/*,
         tIsMissingCase = SC.none( iCellIndices )*/;
 
         // It can happen that we don't have cell indices yet. Bail for now cause we'll be back later.
