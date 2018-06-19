@@ -146,7 +146,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
    */
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
     var this_ = this,
-        tPlotElementLength = this._plottedElements.length,
+        tPlotElementLength = this.get('plottedElements').length,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         // iChanges can be a single index or an array of indices
@@ -205,7 +205,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
 
    /**
-   * Set the coordinates and other attributes of the case circle (a Rafael element in this._plottedElements).
+   * Set the coordinates and other attributes of the case circle (a Rafael element in this.get('plottedElements')).
    * @param iRC {} case-invariant Render Context
    * @param iCase {DG.Case} the case data
    * @param iIndex {number} index of case in collection
@@ -215,8 +215,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
   setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
     DG.assert( iRC && iRC.xAxisView );
     DG.assert( iCase );
-    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
-    var tCircle = this._plottedElements[ iIndex],
+    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this.get('plottedElements').length ));
+    var tCircle = this.get('plottedElements')[ iIndex],
         tCoordX = iRC.xAxisView.dataToCoordinate( iCase.getNumValue( iRC.xVarID )),
         tCoordY = iRC.yAxisView.dataToCoordinate( iCase.getNumValue( iRC.yVarID )),
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);

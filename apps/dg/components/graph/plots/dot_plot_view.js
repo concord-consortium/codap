@@ -133,7 +133,7 @@ DG.DotPlotView = DG.PlotView.extend(
    */
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
     var this_ = this,
-        tPlotElementLength = this._plottedElements.length,
+        tPlotElementLength = this.get('plottedElements').length,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext();
 
@@ -223,7 +223,7 @@ DG.DotPlotView = DG.PlotView.extend(
   },
 
   /**
-   * Set the coordinates and other attributes of the case circle (a Rafael element in this._plottedElements).
+   * Set the coordinates and other attributes of the case circle (a Rafael element in this.get('plottedElements')).
    * @param {{}} iRC case-invariant Render Context
    * @param {DG.Case} iCase the case data
    * @param {number} iIndex index of case in collection
@@ -232,11 +232,11 @@ DG.DotPlotView = DG.PlotView.extend(
    * @returns {{cx:{Number},cy:{Number}}} final coordinates or null if not defined (hidden plot element)
    */
   setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
-    //DG.assert( iRC && iRC.categoryAxisView );
+    var tPlottedElements = this.get('plottedElements');
     DG.assert( iCase, 'There must be a case' );
-    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ),
-        'index %@ out of bounds for _plottedElements of length %@'.loc(iIndex, this._plottedElements.length));
-    var tCircle = this._plottedElements[ iIndex],
+    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, tPlottedElements.length ),
+        'index %@ out of bounds for plottedElements of length %@'.loc(iIndex, tPlottedElements.length));
+    var tCircle = tPlottedElements[ iIndex],
         tWorld = iCase.getNumValue( iRC.primaryVarID ),
         tScreenCoord = iRC.primaryAxisView.dataToCoordinate( tWorld),
         tIsMissingCase =(!DG.isFinite( tScreenCoord) || iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);

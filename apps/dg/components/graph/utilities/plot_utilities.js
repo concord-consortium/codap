@@ -583,7 +583,7 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
   forEachWithInvokeLater: function( iDoF, iEndF) {
     var tLoopIndex = 0,
         tNumCases = this._cases.length,
-        tIncrement = Math.ceil( tNumCases / 20),
+        tIncrement = Math.ceil( tNumCases / 10),
         tContinue = true,
 
         loop = function() {

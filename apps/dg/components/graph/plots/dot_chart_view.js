@@ -54,7 +54,8 @@ DG.DotChartView = DG.ChartView.extend(
             tCases = this.getPath('model.cases'),
             tRC = this.createRenderContext(),
             tDataLength = tCases && tCases.get('length'),
-            tPlotElementLength = this._plottedElements.length,
+            tPlottedElements = this.get('plottedElements'),
+            tPlotElementLength = tPlottedElements.length,
             tCandidateRadius = this.calcPointRadius(),
             tWantNewPointRadius = (this._pointRadius !== tCandidateRadius),
             tLayerManager = this.get('layerManager'),
@@ -86,13 +87,13 @@ DG.DotChartView = DG.ChartView.extend(
         if (tDataLength < tPlotElementLength) {
           for (tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
             // It can happen during closing of a document that the elements no longer exist, so we have to test
-            if (!SC.none(this._plottedElements[tIndex])) {
-              this._plottedElements[tIndex].stop();
-              tLayerManager.removeElement(this._plottedElements[tIndex]);
-              DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex]);
+            if (!SC.none(tPlottedElements[tIndex])) {
+              tPlottedElements[tIndex].stop();
+              tLayerManager.removeElement(tPlottedElements[tIndex]);
+              DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex]);
             }
           }
-          this._plottedElements.length = tDataLength;
+          // tPlottedElements.length = tDataLength;
           // update all coordinates because we don't know which cases were deleted
           tCases.forEach(function (iCase, iIndex) {
             tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
@@ -105,6 +106,7 @@ DG.DotChartView = DG.ChartView.extend(
       dataRangeDidChange: function (iSource, iQuestion, iKey, iChanges) {
         var this_ = this,
             tCases = this.getPath('model.cases'),
+            tPlottedElements = this.get('plottedElements'),
             tRC = this.createRenderContext(),
             tChanges = (SC.typeOf(iChanges) === SC.T_NUMBER ? [iChanges] : iChanges);
         tChanges = tChanges || [];
@@ -115,8 +117,8 @@ DG.DotChartView = DG.ChartView.extend(
         tChanges.forEach(function (iIndex) {
           // We can get in here after a delete, in which case, iChanges can be referring to
           // a plot element that no longer exists.
-          //DG.assert( this_._plottedElements[ iIndex], "dataRangeDidChange: missing plotted element!");
-          if (!this_._plottedElements[iIndex])
+          //DG.assert( this.get('plottedElements')[ iIndex], "dataRangeDidChange: missing plotted element!");
+          if (!tPlottedElements[iIndex])
             this_.callCreateElement(tCases.at(iIndex), iIndex, this_._createAnimationOn);
           var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
           this_.privSetElementCoords(tRC, tCases.at(iIndex), iIndex, tCellIndices);
@@ -125,7 +127,7 @@ DG.DotChartView = DG.ChartView.extend(
       },
 
       /**
-       * Set the coordinates and other attributes of the case circle (a Rafael element in this._plottedElements).
+       * Set the coordinates and other attributes of the case circle (a Rafael element in this.get('plottedElements')).
        * @param iRC {} case-invariant Render Context
        * @param iCase {DG.Case} the case data
        * @param iIndex {number} index of case in collection
@@ -146,8 +148,8 @@ DG.DotChartView = DG.ChartView.extend(
 
         DG.assert(iRC && iRC.xAxisView);
         DG.assert(iCase);
-        DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, this._plottedElements.length));
-        var tElement = this._plottedElements[iIndex],
+        DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, this.get('plottedElements').length));
+        var tElement = this.get('plottedElements')[iIndex],
             tIsMissingCase = SC.none(iCellIndices);
 
         // show or hide if needed, then update if shown.
@@ -198,25 +200,13 @@ DG.DotChartView = DG.ChartView.extend(
         return tRet;
       },
 
-      /**
-       * @param iCase
-       * @param iIndex
-       * @param iAnimate
-       */
-      createElement: function (iCase, iIndex, iAnimate) {
-        // Can't create circles if we don't have paper for them
-        if (!this.get('paper')) return;
+      assignElementAttributes: function( iElement, iIndex, iAnimate) {
+        sc_super();
 
         var this_ = this,
             tInitialTransform = null,
-            kOpaque = 1,
-            tCircle = this.get('paper').circle(0, 0, this._pointRadius)
-        // Note: we have to set cx and cy offscreen here rather than in creation because for some unknown
-        // reason, when we do it in creation, they end up zero rather than offscreen.
-            .attr({
-              cursor: "pointer", cx: -1000, cy: -1000
-            })
-            .addClass(DG.PlotUtilities.kColoredDotClassName)
+            kOpaque = 1;
+        iElement.addClass(DG.PlotUtilities.kColoredDotClassName)
             .hover(function (event) {
                   // Note that Firefox can come through here repeatedly so we have to check for existence
                   if (SC.none(tInitialTransform)) {
@@ -242,11 +232,28 @@ DG.DotChartView = DG.ChartView.extend(
                 this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
               });
             });
-        tCircle.index = iIndex;
-        tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
+        iElement.index = iIndex;
         if (iAnimate)
-          DG.PlotUtilities.doCreateCircleAnimation(tCircle);
-        return tCircle;
+          DG.PlotUtilities.doCreateCircleAnimation(iElement);
+        return iElement;
+      },
+
+      /**
+       * @param iCase
+       * @param iIndex
+       * @param iAnimate
+       */
+      createElement: function (iCase, iIndex, iAnimate) {
+        // Can't create circles if we don't have paper for them
+        if (!this.get('paper')) return;
+        var tCircle = this.get('paper').circle(0, 0, this._pointRadius)
+        // Note: we have to set cx and cy offscreen here rather than in creation because for some unknown
+        // reason, when we do it in creation, they end up zero rather than offscreen.
+            .attr({
+              cursor: "pointer", cx: -1000, cy: -1000
+            });
+        tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
+        return this.assignElementAttributes(tCircle, iIndex, iAnimate);
       },
 
       /**
@@ -263,6 +270,7 @@ DG.DotChartView = DG.ChartView.extend(
         var this_ = this,
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
+            tPlottedElements = this.get('plottedElements'),
             tRC = this.createRenderContext(),
             tDefaultR = this.calcPointRadius(),
             tFrame = this.get('frame'), // to convert from parent frame to this frame
@@ -312,8 +320,7 @@ DG.DotChartView = DG.ChartView.extend(
         var eachCaseFunc = function (iCase, iIndex) {
               var tCurrAttrs = getCaseCurrentLocation(iIndex),
                   tCellIndices = tModel.lookupCellForCaseIndex(iIndex),
-                  tNewElement = (iIndex < this._plottedElements.length) ?
-                      this._plottedElements[iIndex] : this_.callCreateElement(iCase, iIndex, false);
+                  tNewElement = this_.callCreateElement( iCase, iIndex);
               if (!SC.none(tCurrAttrs)) {
                 tTransAttrs = {
                   r: DG.isFinite(tCurrAttrs.r) && tCurrAttrs.r > 0 ? tCurrAttrs.r : tDefaultR,

@@ -128,7 +128,8 @@ DG.ChartView = DG.PlotView.extend(
         var this_ = this,
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
-            tPlotElementLength = this._plottedElements.length,
+            tPlottedElements = this.get('plottedElements'),
+            tPlotElementLength = tPlottedElements.length,
             tLayerManager = this.get('layerManager'),
             tIndex, tRC;
 
@@ -144,10 +145,10 @@ DG.ChartView = DG.PlotView.extend(
         this.computeCellParams();
 
         for (tIndex = tCases.get('length'); tIndex < tPlotElementLength; tIndex++) {
-          DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex], tLayerManager);
+          DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex], tLayerManager);
         }
         if (tCases.get('length') < tPlotElementLength) { // remove from array
-          tPlotElementLength = this._plottedElements.length = tCases.get('length');
+          tPlotElementLength = tPlottedElements.length = tCases.get('length');
         }
         tRC = this.createRenderContext();
         tCases.forEach(function (iCase, iIndex) {

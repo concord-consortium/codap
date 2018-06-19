@@ -49,6 +49,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this.notifyPropertyChange('paper');
   }.observes('*paperSource.paper'),
 
+  plottedElements: function() {
+    return this.getPath( 'paperSource.plottedElements');
+  }.property('paper'),
+
   /**
    * @property {DG.LayerManager}
    */
@@ -234,7 +238,6 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       // Required for initialization.
       this.modelDidChange();
     }
-    this._plottedElements = [];
   },
 
   /**
@@ -355,13 +358,33 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       this.drawData();
   },
 
-  callCreateElement: function(iCase, iIndex, iAnimate) {
-    var tElement = this.createElement( iCase, iIndex, iAnimate);
-    if( tElement) {
-      this._plottedElements[iIndex] = tElement;
-      this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tElement);
-      this._elementOrderIsValid = false; // So updateSelection will work
+  /**
+   * May be overridden to make sure a re-used element has the correct attributes for this plot view
+   * @param iCase {DG.Case}
+   * @param iIndex {Number}
+   */
+  assignElementAttributes: function( iElement, iIndex, iAnimate) {
+    if( iElement.events) {
+      iElement.events.forEach(function (iHandler) {
+        iHandler.unbind();
+      });
+      iElement.events.length = 0;
     }
+  },
+
+  callCreateElement: function(iCase, iIndex, iAnimate) {
+    var tPlottedElements = this.get('plottedElements'),
+        tElement;
+    if( iIndex < tPlottedElements.length) {
+      tElement = tPlottedElements[ iIndex];
+      this.assignElementAttributes( tElement, iIndex);
+    }
+    else {
+      tElement = this.createElement( iCase, iIndex, iAnimate);
+      tPlottedElements[ iIndex] = tElement;
+    }
+    this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tElement);
+    this._elementOrderIsValid = false; // So updateSelection will work
     return tElement;
   },
 
@@ -390,7 +413,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         tDataLength = tCases && tCases.get('length'),
-        tPlotElementLength = this._plottedElements.length,
+        tPlottedElements = this.get('plottedElements'),
+        tPlotElementLength = tPlottedElements.length,
         tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius()),
         tLayerManager = this.get('layerManager' ),
         tIndex;
@@ -422,13 +446,13 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     if (tDataLength < tPlotElementLength) {
       for (tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
         // It can happen during closing of a document that the elements no longer exist, so we have to test
-        if (!SC.none(this._plottedElements[tIndex])) {
-          this._plottedElements[tIndex].stop();
-          tLayerManager.removeElement(this._plottedElements[tIndex]);
-          DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex]);
+        if (!SC.none(tPlottedElements[tIndex])) {
+          tPlottedElements[tIndex].stop();
+          tLayerManager.removeElement(tPlottedElements[tIndex]);
+          DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex]);
         }
       }
-      this._plottedElements.length = tDataLength;
+      tPlottedElements.length = tDataLength;
 
     }
     if( (iProperty === 'hiddenCases') || (iOperation === 'deleteCases')) {
@@ -508,23 +532,23 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   _kAllowableInterval: 1000, // milliseconds
 
   // Private properties
-  _plottedElements: null, // Kept in the same order as the data
   _mustCreatePlottedElements: true,
   _elementOrderIsValid: false,  // Set to false when selection changes
   _mustMoveElementsToNewCoordinates: false,  // Set to true when collection is created or deleted
   
   /**
-   * Remove elements in _plottedElements beyond the length of the array of cases
+   * Remove elements in plottedElements beyond the length of the array of cases
    */
   removeExtraElements: function() {
     var tCasesLength = this.getPath('model.cases.length'),
-        tPlotElementLength = this._plottedElements.length,
+        tPlottedElements = this.get('plottedElements'),
+        tPlotElementLength = tPlottedElements.length,
         tLayerManager = this.get('layerManager');
     for( var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
-      DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex], tLayerManager);
+      DG.PlotUtilities.doHideRemoveAnimation( tPlottedElements[ tIndex], tLayerManager);
     }
     if( tCasesLength < tPlotElementLength ) { // remove from array
-      this._plottedElements.length = tCasesLength;
+      tPlottedElements.length = tCasesLength;
       this._elementOrderIsValid = false;
     }
   },
@@ -538,17 +562,18 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     var this_ = this,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
-        tLayerManager = this.get('layerManager' );
+        tLayerManager = this.get('layerManager' ),
+        tPlottedElements = this.get('plottedElements');
 
     if( SC.none( tCases))
       return; // No cases, nothing to draw
 
     // remove invalid case elements
     if( this._mustCreatePlottedElements) {
-      this._plottedElements.forEach( function( iElement) {
+      tPlottedElements.forEach( function( iElement) {
         tLayerManager.removeElement (iElement); // remove from plot
         });
-      this._plottedElements.length = 0; // remove from array
+      // tPlottedElements.length = 0; // remove from array
       this._mustCreatePlottedElements = false;
       this._mustMoveElementsToNewCoordinates = false;
       tRC.casesAdded = true; // ensure that cases are re-created below
@@ -566,18 +591,18 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
     // If we're going to be adding cases, then we'll want to call updateSelection because
     // these new cases may be selected. Setting _elementOrderIsValid to false accomplishes this.
-    if( this._plottedElements.length < tCases.get('length'))
+    if( tPlottedElements.length < tCases.get('length'))
       this_._elementOrderIsValid = false;
 
     // update case elements, adding them if necessary
     if( tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded || this._mustMoveElementsToNewCoordinates ) {
       this.resetCoordinates( tCases, tRC);
     }
-    DG.assert( this._plottedElements.length === tCases.get('length') );
+    DG.assert( tPlottedElements.length === tCases.get('length') );
   },
 
   resetCoordinates: function( iCases, iRC) {
-    var tPlotElementLength = this._plottedElements.length;
+    var tPlotElementLength = this.get('plottedElements').length;
     this.prepareToResetCoordinates();
     iCases.forEach( function( iCase, iIndex) {
       if( iIndex >= tPlotElementLength )
@@ -599,11 +624,12 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * Remove all the point elements
    */
   clear: function() {
-    var tLayerManager = this.get('layerManager' );
-    this._plottedElements.forEach( function( iElement) {
+    var tLayerManager = this.get('layerManager' ),
+        tPlottedElements = this.get('plottedElements');
+    tPlottedElements.forEach( function( iElement) {
       tLayerManager.removeElement (iElement); // remove from plot
     });
-    this._plottedElements.length = 0; // remove from array
+    // tPlottedElements.length = 0; // remove from array
     this._mustCreatePlottedElements = true;
   },
   /**
@@ -641,7 +667,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       return;
 
     var this_ = this,
-        tPlottedElements = this._plottedElements,
+        tPlottedElements = this.get('plottedElements'),
         // Use long path for selection because we can call this before bindings have happened
         // There must be a better way?
         tSelection = this.getPath('model.dataConfiguration.collectionClient.casesController.selection'),
@@ -717,11 +743,12 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     }.bind( this);
 
     var tCases = this.getPath('model.cases' ),
-        tElementsAreRects = this._plottedElements.length > 0 &&
-            this._plottedElements[0][0].constructor === SVGRectElement;
+        tPlottedElements = this.get('plottedElements'),
+        tElementsAreRects = tPlottedElements.length > 0 &&
+            tPlottedElements[0][0].constructor === SVGRectElement;
 
     this._selectionTree = new RTree();
-    this._plottedElements.forEach(function(iElement, iIndex){
+    tPlottedElements.forEach(function(iElement, iIndex){
       var tCase = tCases.unorderedAt(iIndex);
       if( tElementsAreRects) {
         doInsertion(iElement.attrs.x, iElement.attrs.y, tCase);
@@ -836,7 +863,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       tCases = this.getPath('model.cases' );
       tSelected = [];
 
-      this._plottedElements.forEach( function( iElement, iIndex) {
+      this.get('plottedElements').forEach( function( iElement, iIndex) {
         if( DG.ViewUtilities.ptInRect( { x: iElement.attrs.cx, y: iElement.attrs.cy }, iRect))
           tSelected.push( tCases.at( iIndex));
       });
@@ -848,8 +875,9 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * Remove all plotted elements
    */
   removePlottedElements: function( iAnimate) {
-    var tLayerManager = this.get('layerManager');
-    this._plottedElements.forEach( function(iElement) {
+    var tLayerManager = this.get('layerManager'),
+        tPlottedElements = this.get('plottedElements');
+    tPlottedElements.forEach( function(iElement) {
       iElement.stop();
       if( iAnimate) {
         DG.PlotUtilities.doHideRemoveAnimation( iElement, tLayerManager);
@@ -857,7 +885,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       else
         tLayerManager.removeElement( iElement);
     });
-    this._plottedElements.length = 0;
+    // tPlottedElements.length = 0;
   },
 
   /**
@@ -1073,7 +1101,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   updatePointSize: function() {
     this._pointRadius = this.calcPointRadius();
     var tAttr = { r: this._pointRadius };
-    this._plottedElements.forEach( function( iElement) {
+    this.get('plottedElements').forEach( function( iElement) {
       iElement.animate( tAttr, DG.PlotUtilities.kDefaultAnimationTime, '<>');
     });
   }.observes('fixedPointRadius'),

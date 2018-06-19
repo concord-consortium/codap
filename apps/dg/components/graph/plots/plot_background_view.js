@@ -253,8 +253,10 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
       if( tNeedToDeselectAll) {
-        this_.get('graphModel').selectAll( false);
-        tNeedToDeselectAll = false;
+        SC.run( function() {  // Needs to be in a run loop because invokeLast will be called
+          this_.get('graphModel').selectAll(false);
+          tNeedToDeselectAll = false;
+        });
       }
       var tX = (idX > 0) ? tStartPt.x : tStartPt.x + idX,
         tY = (idY > 0) ? tStartPt.y : tStartPt.y + idY,
@@ -274,7 +276,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
 
-      this_.getPath('layerManager').removeElement( tMarquee);
+      this_.getPath('layerManager').removeElement( tMarquee, true);
       tMarquee = null;
       tBaseSelection = [];
 

@@ -111,7 +111,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       return;
 
     var this_ = this,
-        tPlotElementLength = this._plottedElements.length,
+        tPlotElementLength = this.get('plottedElements').length,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         // iChanges can be a single index or an array of indices
@@ -137,7 +137,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
   },
 
   /**
-   * Set the coordinates and other attributes of the case circle (a Raphael element in this._plottedElements).
+   * Set the coordinates and other attributes of the case circle (a Raphael element in this.get('plottedElements')).
    * @param iRC {} case-invariant Render Context
    * @param iCase {DG.Case} the case data
    * @param iIndex {number} index of case in collection
@@ -146,8 +146,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
   setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
     DG.assert( iRC && iRC.map && iRC.latVarID && iRC.longVarID );
     DG.assert( iCase );
-    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
-    var tCircle = this._plottedElements[ iIndex],
+    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this.get('plottedElements').length ));
+    var tCircle = this.get('plottedElements')[ iIndex],
         tLat = iCase.getNumValue( iRC.latVarID),
         tLong = iCase.getNumValue( iRC.longVarID);
     if( tLong < iRC.westBound) {

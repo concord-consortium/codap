@@ -203,10 +203,11 @@ DG.PlotView = DG.PlotLayer.extend(
     @return {Array of {cx:{Number}, cy:{Number}, r: {Number}, fill: {String} }
   */
   getElementPositionsInParentFrame: function() {
-    DG.assert( this._plottedElements.length === 0 || this._plottedElements[0][0].constructor !== SVGRectElement,
+    var tFrame = this.get('frame'),
+        tPlottedElements = this.get('plottedElements');
+    DG.assert( tPlottedElements.length === 0 || tPlottedElements[0][0].constructor !== SVGRectElement,
         'Expecting circle, not rect');
-    var tFrame = this.get('frame');
-    return this._plottedElements.map( function( iElement) {
+    return tPlottedElements.map( function( iElement) {
         var tRadius =( iElement.isHidden() ? 0 : iElement.attr('r')); // use r:0 as proxy for hidden plot element
             return {
               cx: iElement.attr('cx') + tFrame.x,
@@ -226,7 +227,6 @@ DG.PlotView = DG.PlotLayer.extend(
   */
   animateFromTransferredElements: function() {
     var this_ = this,
-        // tElements = this._plottedElements,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         tFrame = this.get('frame'),
