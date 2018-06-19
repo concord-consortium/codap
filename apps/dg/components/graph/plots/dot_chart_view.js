@@ -289,6 +289,7 @@ DG.DotChartView = DG.ChartView.extend(
         }
 
         DG.sounds.playMixup();
+        tModel.set('isAnimating', false);
         this._getTransferredElementsToCasesMap(tNewToOldCaseMap, tOldToNewCaseMap);
         var hasElementMap = tNewToOldCaseMap.length > 0,
             hasVanishingElements = tOldToNewCaseMap.length > 0,
@@ -296,7 +297,7 @@ DG.DotChartView = DG.ChartView.extend(
             tTransAttrs;
 
         this.prepareToResetCoordinates();
-        this.removePlottedElements();
+        // this.removePlottedElements();
         this.computeCellParams();
         tOldElementAttrs.forEach(function (iElement, iIndex) {
           // adjust old coordinates from parent frame to this view
@@ -307,40 +308,47 @@ DG.DotChartView = DG.ChartView.extend(
           iElement.x -= tFrame.x;
           iElement.y -= tFrame.y;
         });
-        tCases.forEach(function (iCase, iIndex) {
-          var tCurrAttrs = getCaseCurrentLocation(iIndex),
-              tCellIndices = tModel.lookupCellForCaseIndex(iIndex),
-              tNewElement = this_.callCreateElement(iCase, iIndex, false);
-          if (!SC.none(tCurrAttrs)) {
-            tTransAttrs = {
-              r: DG.isFinite(tCurrAttrs.r) && tCurrAttrs.r > 0 ? tCurrAttrs.r : tDefaultR,
-              cx: DG.isFinite(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x + tCurrAttrs.width / 2,
-              cy: DG.isFinite(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y + tCurrAttrs.height / 2,
-              fill: tCurrAttrs.fill,
-              stroke: tCurrAttrs.stroke
-            };
-            tNewElement.attr(tTransAttrs);
-          }
-          this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
-          if (hasVanishingElements) {
-            tNewElementAttrs.push(tCurrAttrs);
-          }
-        });
-        if (hasVanishingElements) {
-          // create a vanishing element for each old point that needs one (used if many-to-one animation)
-          tOldElementAttrs.forEach(function (iOldAttrs, iIndex) {
-            var tNewIndex = tOldToNewCaseMap[iIndex],
-                tNewAttrs = tNewElementAttrs[tNewIndex];
-            if (SC.none(tNewIndex) || SC.none(tNewAttrs) || (iOldAttrs.r === 0))
-              return; // no vanishing element, if (1) element persists or (2) new circle hidden or (3) old circle hidden
-            this_.vanishPlottedElement(iOldAttrs, tNewAttrs);
-          });
-        }
-        this._mustCreatePlottedElements = false;  // because we just created them
-        this.set('transferredElementCoordinates', null);
+
+        var eachCaseFunc = function (iCase, iIndex) {
+              var tCurrAttrs = getCaseCurrentLocation(iIndex),
+                  tCellIndices = tModel.lookupCellForCaseIndex(iIndex),
+                  tNewElement = (iIndex < this._plottedElements.length) ?
+                      this._plottedElements[iIndex] : this_.callCreateElement(iCase, iIndex, false);
+              if (!SC.none(tCurrAttrs)) {
+                tTransAttrs = {
+                  r: DG.isFinite(tCurrAttrs.r) && tCurrAttrs.r > 0 ? tCurrAttrs.r : tDefaultR,
+                  cx: DG.isFinite(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x + tCurrAttrs.width / 2,
+                  cy: DG.isFinite(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y + tCurrAttrs.height / 2,
+                  fill: tCurrAttrs.fill,
+                  stroke: tCurrAttrs.stroke
+                };
+                tNewElement.attr(tTransAttrs);
+              }
+              this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
+              if (hasVanishingElements) {
+                tNewElementAttrs.push(tCurrAttrs);
+              }
+              return tModel.get('isAnimating');
+            }.bind(this),
+
+            finallyFunc = function() {
+              if (hasVanishingElements) {
+                // create a vanishing element for each old point that needs one (used if many-to-one animation)
+                tOldElementAttrs.forEach(function (iOldAttrs, iIndex) {
+                  var tNewIndex = tOldToNewCaseMap[iIndex],
+                      tNewAttrs = tNewElementAttrs[tNewIndex];
+                  if (SC.none(tNewIndex) || SC.none(tNewAttrs) || (iOldAttrs.r === 0))
+                    return; // no vanishing element, if (1) element persists or (2) new circle hidden or (3) old circle hidden
+                  this_.vanishPlottedElement(iOldAttrs, tNewAttrs);
+                });
+              }
+              this._mustCreatePlottedElements = false;  // because we just created them
+              this.set('transferredElementCoordinates', null);
+              turnOffAnimation();
+            }.bind( this);
 
         tModel.set('isAnimating', true);
-        SC.Timer.schedule({action: turnOffAnimation, interval: DG.PlotUtilities.kDefaultAnimationTime});
+        tCases.forEachWithInvokeLater( eachCaseFunc, finallyFunc);
       },
 
       /**
