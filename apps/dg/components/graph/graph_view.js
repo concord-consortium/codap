@@ -605,6 +605,7 @@ DG.GraphView = SC.View.extend(
           }
           if (tNewViewClass && (tViewClass !== tNewViewClass)) {
             tNewView = tNewViewClass.create(tSetup);
+            tNewView.adjust({top: 400});
             tNewView.set('model', tModel);
             this_.removeChild(tView);
             this_.appendChild(tNewView);

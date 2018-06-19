@@ -580,6 +580,31 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
     }.bind( this));
   },
 
+  forEachWithInvokeLater: function( iDoF, iEndF) {
+    var tLoopIndex = 0,
+        tNumCases = this._cases.length,
+        tIncrement = Math.ceil( tNumCases / 20),
+        tContinue = true,
+
+        loop = function() {
+          var tStopIndex = tLoopIndex + tIncrement;
+          if( tLoopIndex < tNumCases) {
+            for( ; tContinue && tLoopIndex < tNumCases && tLoopIndex < tStopIndex; tLoopIndex++) {
+              if( iDoF)
+                tContinue = iDoF( this.at( tLoopIndex), tLoopIndex);
+            }
+            if( tContinue)
+              this.invokeLater( loop, 0);
+          }
+          else {
+            if( iEndF)
+              iEndF();
+          }
+        }.bind( this);
+
+    loop();
+  },
+
   map: function( iTransF) {
     var tResult = DG.PlotUtilities.PlotCaseArray.create();
     this.forEach( function( iCase, iMapIndex) {
