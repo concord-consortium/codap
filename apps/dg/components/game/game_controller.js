@@ -295,7 +295,8 @@ DG.GameController = DG.ComponentController.extend(
 
         if (!SC.none(this.context)) {
           // Save information about the current game
-          tStorage.currentGameName = tStorage.currentGameName || this.getPath('context.gameName');
+          tStorage.currentGameName = tStorage.currentGameName ||
+              this.getPath('context.gameName') || this.getPath('context');
           tStorage.currentGameUrl = tStorage.currentGameUrl || this.getPath('context.gameUrl');
           tStorage.preventBringToFront = this.get('preventBringToFront');
           tStorage.preventDataContextReorg = this.get('preventDataContextReorg');
@@ -322,7 +323,7 @@ DG.GameController = DG.ComponentController.extend(
        *  @param  {String}  iDocumentID -- The ID of the document being restored.
        */
       restoreComponentStorage: function (iComponentStorage, iDocumentID) {
-        var gameName = iComponentStorage.currentGameName,
+        var gameName = iComponentStorage.currentGameName || iComponentStorage.name,
             // 'di' URL param can override stored URL
             storedGameUrl = iComponentStorage && iComponentStorage.currentGameUrl,
             gameUrl = DG.finalGameUrl(storedGameUrl),
@@ -348,7 +349,7 @@ DG.GameController = DG.ComponentController.extend(
             // given that the gameSpec doesn't know about the context.
             // This could change down the road, however, so we leave it.
             if (!dataContext && iContext) {
-              var contextGameName = iContext.get('gameName');
+              var contextGameName = iContext.get('gameName') || iContext.get('name');
               if (contextGameName === gameName) {
                 dataContext = iContext;
               }

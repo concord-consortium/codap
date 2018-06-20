@@ -74,6 +74,21 @@ DG.DataContext = SC.Object.extend((function() // closure
     return this.getPath('model.title');
   }.property(),
 
+  description: function (k, v) {
+    if (!SC.none(v)){
+      this.setPath('model.description', v);
+    }
+    return this.getPath('model.description');
+  }.property(),
+
+  preventReorg: function (k, v) {
+    if (!SC.none(v)){
+      this.setPath('model.preventReorg', v);
+    }
+    return this.getPath('model.preventReorg');
+  }.property(),
+
+
   /**
     The Dependency Manager object for this context
     @property {DG.DependencyMgr}

@@ -25,6 +25,11 @@ DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.pr
   /**
    * @type {String}
    */
+  name: null,
+
+  /**
+   * @type {String}
+   */
   title: null,
 
   /**
@@ -33,15 +38,34 @@ DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.pr
   version: null,
 
   /**
-   * @type {Object}
+   * @type {{width:number,height:number}}
    */
   dimensions: null,
 
-  /*
-   * At present a data interactive can have only one context.
-   * @type {DG.DataContext}
+  /**
+   * @type {boolean}
    */
-  context: null,
+  preventBringToFront: false,
+
+  /**
+   * @type {boolean}
+   */
+  preventDataContextReorg: true,
+
+  /**
+   * @type {boolean}
+   */
+  externalUndoAvailable: false,
+
+  /**
+   * @type {boolean}
+   */
+  standaloneUndoModeAvalable: false,
+
+  /**
+   * @type {Object}
+   */
+  savedState: null,
 
   init: function () {
     sc_super();

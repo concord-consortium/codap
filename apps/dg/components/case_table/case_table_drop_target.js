@@ -53,17 +53,20 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         }.property(),
 
         /**
-         * Drop is _not_ active if
-         *   (a) the dragged attribute is for another dataContext
-         *   (b) the dataContext has is owned by a plugin using the game API
-         *   (c) or is owned by a modern plugin that sets preventDataContextReorg.
+         * Drop is _not_ active if any of the following are true
+         *   (a) the dateContext 'preventReorg' flag is set,
+         *   (b) the dragged attribute is for another dataContext,
+         *   (c) the dataContext has is owned by a plugin using the game API,
+         *   (d) or is owned by a modern plugin that sets preventDataContextReorg.
          */
         isDropEnabled: function () {
           var dataInteractiveController = this.dataContext.get('owningDataInteractive');
           var hasGameInteractive = this.dataContext.get('hasGameInteractive');
+          var preventReorgFlag = this.dataContext.get('preventReorg');
           var dragAttribute = this.get('dragAttribute');
           var ownsThisAttribute = dragAttribute && !SC.none(this.dataContext.getCollectionByID(dragAttribute.collection.id));
-          var preventReorg = !ownsThisAttribute ||
+          var preventReorg = preventReorgFlag ||
+              !ownsThisAttribute ||
               hasGameInteractive ||
               (dataInteractiveController && dataInteractiveController.get('preventDataContextReorg'));
           return !preventReorg;

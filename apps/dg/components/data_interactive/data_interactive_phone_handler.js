@@ -631,8 +631,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         update: function (iResources, iValues) {
           var context = iResources.dataContext;
           if (context) {
-            ['title', 'description'].forEach(function (prop) {
-              if (iValues[prop]) {
+            ['title', 'description','preventReorg'].forEach(function (prop) {
+              if (!SC.none(iValues[prop])) {
                 context.set(prop, iValues[prop]);
               }
             });

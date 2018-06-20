@@ -27,184 +27,196 @@ sc_require('models/base_model');
  *
  * @extends SC.BaseModel
  */
-DG.DataContextRecord = DG.BaseModel.extend(
-  /** @scope DG.DataContextRecord.prototype */ {
+DG.DataContextRecord = DG.BaseModel.extend(/** @scope DG.DataContextRecord.prototype */ {
 
-    type: 'DG.DataContext',
+  type: 'DG.DataContext',
 
-    /**
-     * A relational link back to the parent DG.Document
-     * @property {DG.Document}
-     */
-    document: null,
+  /**
+   * A relational link back to the parent DG.Document
+   * @property {DG.Document}
+   */
+  document: null,
 
-    /**
-     * Externally specified identifier for data context.
-     * @type {string}
-     */
-    name: null,
+  /**
+   * Externally specified identifier for data context.
+   * @type {string}
+   */
+  name: null,
 
-    /**
-     * Displayable name for data context
-     * @type {string}
-     */
-    _title: null,
-    title: function(key, value) {
-      if (value) {
-        this._title = value;
-      }
-      return this._title || this.get('defaultTitle') || this.name ;
-    }.property('_title', 'name'),
-
-    /**
-     * A relational link to the collections in this context.
-     * @property {[DG.Collection]}
-     */
-    collections: null,
-    collectionsChangeCount: 0,
-
-    defaultTitle: function() {
-      var tTitle = '';
-      DG.ObjectMap.forEach(this.collections, function (collectionKey){
-        if( !SC.empty( tTitle))
-          tTitle += '/';
-        tTitle += this.collections[collectionKey].get('name');
-      }.bind(this));
-      return tTitle;
-    }.property(),
-
-    /**
-      The dependency mananager
-     */
-    dependencyMgr: null,
-
-    /**
-     * The base data set for the collections in this context.
-     * @property {DG.DataSet}
-     */
-    dataSet: null,
-
-    /**
-     * The context is has had its original organization modified.
-     * No new data should be added.
-     * @property {boolean}
-     */
-    flexibleGroupingChangeFlag: false,
-
-    /**
-     * Per-component storage, in a component specific format.
-     * @property {JSON}
-     */
-    contextStorage: null,
-
-    _savedShadowCopy: null,
-
-    init: function () {
-      this.collections = {};
-      this.dependencyMgr = DG.DependencyMgr.create({ dataContext: this });
-      this.dataSet = DG.DataSet.create({dataContextRecord: this});
-      sc_super();
-    },
-
-    verify: function () {
-      if (SC.empty(this.document)) {
-        DG.logWarn('Unattached data context: ' + this.id);
-      }
-      if (typeof this.document === 'number') {
-        DG.logWarn('Unresolved reference to document id, ' + this.document +
-          ', in data context: ' + this.id);
-      }
-    },
-
-    destroy: function() {
-      if (this.collections) {
-        DG.ObjectMap.forEach(this.collections, function( iCollectionID, iCollection) {
-          DG.Collection.destroyCollection( iCollection);
-        });
-      }
-      delete this.document.contexts[this.id];
-      sc_super();
-    },
-
-    createCollection: function( iProperties) {
-      iProperties = iProperties || {};
-      iProperties.context = this;
-      return DG.Collection.createCollection( iProperties);
-    },
-
-    addCollection: function (iCollection) {
-      this.collections[iCollection.id] = iCollection;
-      this.incrementProperty('collectionsChangeCount', 1);
-    },
-
-    removeCollection: function (iCollection) {
-      delete this.collections[iCollection.id];
-      this.incrementProperty('collectionsChangeCount', 1);
-    },
-
-    /**
-     * Prepares a streamable version of this object. Streamable means it is
-     * JSON ready and has all persistent data for the object and its sub-objects.
-     *
-     * In this case we take special care to avoid forward references among
-     * collections.
-     * @param {boolean} fullData Whether to generate data or externalDocumentId only.
-     *   TODO: This option is intended to support saving of document fragments and as
-     *   such, may be obsolescent.
-     * @param {boolean} excludeCases Whether to exclude cases.
-     * @returns {Object}
-     */
-    toArchive: function (fullData, excludeCases) {
-      function notEmpty(collection) {
-        return !(SC.none(
-            collection.attrs) || (collection.attrs.length === 0));
-      }
-      var obj;
-      var root;
-      fullData = true;
-      if ( fullData) {
-        obj = {
-            type: this.type,
-            document: this.document && this.document.id || undefined,
-            guid: this.id,
-            flexibleGroupingChangeFlag: this.flexibleGroupingChangeFlag,
-            name: this.get('name'),
-            title: this.get('title'),
-            collections: [],
-            setAsideItems: this.get('dataSet').archiveSetAsideItems(),
-            contextStorage: this.contextStorage
-          };
-
-        DG.ObjectMap.values(this.collections).some(function (collection){
-          if (SC.none(collection.parent) && notEmpty(collection)) {
-            root = collection;
-            return true;
-          }
-          return false;
-        });
-
-        if (root && root.children) {
-          while (root.children.length > 0) {
-            obj.collections.push(root.toArchive(excludeCases));
-            root = root.children[0];
-          }
-        }
-        if (!SC.none(root)) {
-          obj.collections.push(root.toArchive(excludeCases));
-        }
-      }
-      return obj;
-    },
-
-    savedShadowCopy: function() {
-      return this._savedShadowCopy;
-    },
-
-    updateSavedShadowCopy: function(shadow) {
-      this._savedShadowCopy = shadow;
+  /**
+   * Displayable name for data context
+   * @type {string}
+   */
+  _title: null,
+  title: function(key, value) {
+    if (value) {
+      this._title = value;
     }
+    return this._title || this.get('defaultTitle') || this.name ;
+  }.property('_title', 'name'),
 
-  });
+  /**
+   * A free-text description of the data context.
+   */
+  description: "",
+
+  /**
+   * If true, indicates the user should be prevented from moving attributes
+   * or creating new collections or attributes. Defaults to false.
+   */
+  preventReorg: false,
+
+  /**
+   * A relational link to the collections in this context.
+   * @property {[DG.Collection]}
+   */
+  collections: null,
+  collectionsChangeCount: 0,
+
+  defaultTitle: function() {
+    var tTitle = '';
+    DG.ObjectMap.forEach(this.collections, function (collectionKey){
+      if( !SC.empty( tTitle))
+        tTitle += '/';
+      tTitle += this.collections[collectionKey].get('name');
+    }.bind(this));
+    return tTitle;
+  }.property(),
+
+  /**
+    The dependency mananager
+   */
+  dependencyMgr: null,
+
+  /**
+   * The base data set for the collections in this context.
+   * @property {DG.DataSet}
+   */
+  dataSet: null,
+
+  /**
+   * The context is has had its original organization modified.
+   * No new data should be added.
+   * @property {boolean}
+   */
+  flexibleGroupingChangeFlag: false,
+
+  /**
+   * Per-component storage, in a component specific format.
+   * @property {JSON}
+   */
+  contextStorage: null,
+
+  _savedShadowCopy: null,
+
+  init: function () {
+    this.collections = {};
+    this.dependencyMgr = DG.DependencyMgr.create({ dataContext: this });
+    this.dataSet = DG.DataSet.create({dataContextRecord: this});
+    sc_super();
+  },
+
+  verify: function () {
+    if (SC.empty(this.document)) {
+      DG.logWarn('Unattached data context: ' + this.id);
+    }
+    if (typeof this.document === 'number') {
+      DG.logWarn('Unresolved reference to document id, ' + this.document +
+        ', in data context: ' + this.id);
+    }
+  },
+
+  destroy: function() {
+    if (this.collections) {
+      DG.ObjectMap.forEach(this.collections, function( iCollectionID, iCollection) {
+        DG.Collection.destroyCollection( iCollection);
+      });
+    }
+    delete this.document.contexts[this.id];
+    sc_super();
+  },
+
+  createCollection: function( iProperties) {
+    iProperties = iProperties || {};
+    iProperties.context = this;
+    return DG.Collection.createCollection( iProperties);
+  },
+
+  addCollection: function (iCollection) {
+    this.collections[iCollection.id] = iCollection;
+    this.incrementProperty('collectionsChangeCount', 1);
+  },
+
+  removeCollection: function (iCollection) {
+    delete this.collections[iCollection.id];
+    this.incrementProperty('collectionsChangeCount', 1);
+  },
+
+  /**
+   * Prepares a streamable version of this object. Streamable means it is
+   * JSON ready and has all persistent data for the object and its sub-objects.
+   *
+   * In this case we take special care to avoid forward references among
+   * collections.
+   * @param {boolean} fullData Whether to generate data or externalDocumentId only.
+   *   TODO: This option is intended to support saving of document fragments and as
+   *   such, may be obsolescent.
+   * @param {boolean} excludeCases Whether to exclude cases.
+   * @returns {Object}
+   */
+  toArchive: function (fullData, excludeCases) {
+    function notEmpty(collection) {
+      return !(SC.none(
+          collection.attrs) || (collection.attrs.length === 0));
+    }
+    var obj;
+    var root;
+    fullData = true;
+    if ( fullData) {
+      obj = {
+        type: this.type,
+        document: this.document && this.document.id || undefined,
+        guid: this.id,
+        flexibleGroupingChangeFlag: this.flexibleGroupingChangeFlag,
+        name: this.get('name'),
+        title: this.get('title'),
+        collections: [],
+        description: this.description,
+        preventReorg: this.preventReorg,
+        setAsideItems: this.get('dataSet').archiveSetAsideItems(),
+        contextStorage: this.contextStorage
+      };
+
+      DG.ObjectMap.values(this.collections).some(function (collection){
+        if (SC.none(collection.parent) && notEmpty(collection)) {
+          root = collection;
+          return true;
+        }
+        return false;
+      });
+
+      if (root && root.children) {
+        while (root.children.length > 0) {
+          obj.collections.push(root.toArchive(excludeCases));
+          root = root.children[0];
+        }
+      }
+      if (!SC.none(root)) {
+        obj.collections.push(root.toArchive(excludeCases));
+      }
+    }
+    return obj;
+  },
+
+  savedShadowCopy: function() {
+    return this._savedShadowCopy;
+  },
+
+  updateSavedShadowCopy: function(shadow) {
+    this._savedShadowCopy = shadow;
+  }
+
+});
 
 DG.DataContextRecord.createContext = function( iProperties) {
   function makeDataContextName() {
