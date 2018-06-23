@@ -434,7 +434,7 @@ DG.DataSet = SC.Object.extend((function() // closure
 
       return this.dataItems.filter(function (iItem) {
 
-        return (!iItem.isDeleted) && this.testItemAgainstQuery(iItem, parsedQuery);
+        return (!iItem.deleted) && this.testItemAgainstQuery(iItem, parsedQuery);
       }.bind(this));
 
     },
