@@ -611,9 +611,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.set( iAxisKey, tNewAxis );
         tAxisToDestroy.destroy();
 
-        // DG.busyCursor.show( function() {
-          this.synchPlotWithAttributes();
-        // }.bind( this));
+        this.synchPlotWithAttributes();
       }
     },
 

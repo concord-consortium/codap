@@ -116,13 +116,13 @@ DG.GraphView = SC.View.extend(
         if (!this._plotViews.contains(iPlotView)) {
           var tNewPlot = iPlotView.get('model'),
               tPlots = this.getPath('model.plots'),
-          //tPlotViews = this._plotViews,
               tIndexOfNewPlot = this._plotViews.length;
           tPlots.forEach(function (iPlot, iPlotIndex) {
             if (iPlot === tNewPlot)
               tIndexOfNewPlot = iPlotIndex;
           });
           this._plotViews.splice(tIndexOfNewPlot, 0, iPlotView);
+          iPlotView.set('isFirstPlot', tIndexOfNewPlot === 0);
         }
       },
 
@@ -605,7 +605,7 @@ DG.GraphView = SC.View.extend(
           }
           if (tNewViewClass && (tViewClass !== tNewViewClass)) {
             tNewView = tNewViewClass.create(tSetup);
-            tNewView.adjust({top: 400});
+            // tNewView.adjust({top: 400});
             tNewView.set('model', tModel);
             this_.removeChild(tView);
             this_.appendChild(tNewView);
@@ -740,11 +740,14 @@ DG.GraphView = SC.View.extend(
         tPlotViews.forEach(function (iPlotView, iIndex) {
           if (tPlots.indexOf(iPlotView.get('model')) < 0) {
             tIndexOfPlotViewToRemove = iIndex;
-            iPlotView.removePlottedElements(true /* animate */);
+            iPlotView.removePlottedElements(true /*call 'remove'*/, true /* animate */);
             iPlotView.destroy();
           }
         });
         tPlotViews.splice(tIndexOfPlotViewToRemove, 1);
+        tPlotViews.forEach( function( iPlotView, iIndex) {
+          iPlotView.set('isFirstPlot', iIndex === 0);
+        });
       }.observes('model.attributeRemoved'),
 
       /**

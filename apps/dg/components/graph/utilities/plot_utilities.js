@@ -395,7 +395,7 @@ DG.PlotUtilities = {
       function() {
         if( iLayerManager)
           iLayerManager.removeElement( this);
-        else
+        else if( this[0].constructor !== SVGCircleElement)
           this.remove();
       });
   },
@@ -532,100 +532,3 @@ DG.PlotUtilities = {
 
 };
 
-DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
-  /**
-   * @property [DG.Case]
-   */
-  _cases: null,
-  /**
-   * @property [Number]
-   */
-  _map: null,
-
-  init: function() {
-    sc_super();
-    this._cases = this._cases || [];
-    this._map = this._map || [];
-  },
-
-  length: function() {
-    return this._cases.length;
-  }.property( '_cases'),
-
-  at: function( iIndex) {
-    return this._cases[this._map[iIndex]];
-  },
-
-  /**
-   * Return the case at the given index in the original array
-   * @param iIndex {Number}
-   * @return {DG.Case}
-   */
-  unorderedAt: function( iIndex) {
-    return this._cases[iIndex];
-  },
-
-  push: function( iCase) {
-    this._cases.push( iCase);
-    this._map.push( this._cases.length - 1);
-  },
-
-  indexOf: function( iCase) {
-    return this._cases.indexOf( iCase);
-  },
-
-  forEach: function( iDoF) {
-    this._map.forEach( function( iMapValue, iIndex) {
-      iDoF( this._cases[iMapValue], iMapValue, iIndex);
-    }.bind( this));
-  },
-
-  forEachWithInvokeLater: function( iDoF, iEndF) {
-    var tLoopIndex = 0,
-        tNumCases = this._cases.length,
-        tIncrement = Math.ceil( tNumCases / 10),
-        tContinue = true,
-
-        loop = function() {
-          var tStopIndex = tLoopIndex + tIncrement;
-          if( tLoopIndex < tNumCases) {
-            for( ; tContinue && tLoopIndex < tNumCases && tLoopIndex < tStopIndex; tLoopIndex++) {
-              if( iDoF)
-                tContinue = iDoF( this.at( tLoopIndex), tLoopIndex);
-            }
-            if( tContinue)
-              this.invokeLater( loop, 0);
-          }
-          else {
-            if( iEndF)
-              iEndF();
-          }
-        }.bind( this);
-
-    loop();
-  },
-
-  map: function( iTransF) {
-    var tResult = DG.PlotUtilities.PlotCaseArray.create();
-    this.forEach( function( iCase, iMapIndex) {
-        tResult._cases[ iMapIndex] = iTransF( iCase, iMapIndex);
-        tResult._map.push( iMapIndex);
-      });
-    return tResult;
-  },
-
-  filter: function( iBoolF) {
-    var tResult = DG.PlotUtilities.PlotCaseArray.create();
-    this.forEach( function( iCase, iMapIndex) {
-      if( iBoolF( iCase, iMapIndex)) {
-        tResult._cases[ iMapIndex] = iCase;
-        tResult._map.push( iMapIndex);
-      }
-    }.bind( this));
-    return tResult;
-  },
-
-  reduce: function( iReduceFunc, accumulator) {
-    return this._cases.reduce(iReduceFunc, accumulator);
-  }
-});

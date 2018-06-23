@@ -132,20 +132,9 @@ DG.DotPlotView = DG.PlotView.extend(
    * Update the plot when case values have changed.
    */
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
-    var this_ = this,
-        tPlotElementLength = this.get('plottedElements').length,
-        tCases = this.getPath('model.cases'),
-        tRC = this.createRenderContext();
+    var tCases = this.getPath('model.cases');
 
-    // iChanges can be a single index or an array of indices
-    // Unless we keep track of the index of each point in each stack, we have to recompute
-    // all coordinates.
-    this.prepareToResetCoordinates();
-    tCases.forEach( function( iCase, iIndex) {
-      if( iIndex >= tPlotElementLength)
-        this_.callCreateElement( iCase, iIndex, this_._createAnimationOn);
-      this_.setCircleCoordinate( tRC, iCase, iIndex);
-    });
+    this.notifyPropertyChange('plotDisplayDidChange');
 
     this.updateAverages();
     this.rescaleOnParentCaseCompletion( tCases);
@@ -279,9 +268,14 @@ DG.DotPlotView = DG.PlotView.extend(
     return null;
   },
 
-  createElement: function( iDatum, iIndex, iAnimate) {
+  assignElementAttributes: function( iElement, iIndex, iAnimate) {
+    sc_super();
+
     var this_ = this,
-        tNumericPlace = this.getPath('model.primaryAxisPlace');
+        tNumericPlace = this.getPath('model.primaryAxisPlace'),
+        tIsDragging = false,
+        kOpaque = 1,
+        tInitialTransform = null;
 
     function changeCaseValues( iDelta) {
       var tPrimaryVarID = this_.getPath('model.primaryVarID'),
@@ -313,47 +307,46 @@ DG.DotPlotView = DG.PlotView.extend(
       this_.get('model').animateSelectionBackToStart([ tPrimaryVarID], [ tDelta]);
     }
 
-    var tIsDragging = false,
-      kOpaque = 1,
-      tInitialTransform = null,
-      tCircle = this.get('paper').circle( -100, -100, this._pointRadius)
-        .attr( { cursor: "pointer" })
-        .addClass( DG.PlotUtilities.kColoredDotClassName)
-        .hover( function (event) {  // over
+    iElement.hover(function (event) {  // over
               // Note that Firefox can come through here repeatedly so we have to check for existence
-              if( !tIsDragging && SC.none( tInitialTransform)) {
+              if (!tIsDragging && SC.none(tInitialTransform)) {
                 tInitialTransform = '';
-                this.animate( { opacity: kOpaque, transform: DG.PlotUtilities.kDataHoverTransform }, DG.PlotUtilities.kDataTipShowTime);
-                this_.showDataTip( this, iIndex);
+                this.animate({
+                  opacity: kOpaque,
+                  transform: DG.PlotUtilities.kDataHoverTransform
+                }, DG.PlotUtilities.kDataTipShowTime);
+                this_.showDataTip(this, iIndex);
               }
             },
-            function(event) { // out
-              if( !tIsDragging) {
+            function (event) { // out
+              if (!tIsDragging) {
                 this.stop();
-                this.animate( {opacity: DG.PlotUtilities.kDefaultPointOpacity,
-                                transform: tInitialTransform }, DG.PlotUtilities.kHighlightHideTime);
+                this.animate({
+                  opacity: DG.PlotUtilities.kDefaultPointOpacity,
+                  transform: tInitialTransform
+                }, DG.PlotUtilities.kHighlightHideTime);
                 tInitialTransform = null;
                 this_.hideDataTip();
               }
             })
-        .mousedown( function( iEvent) {
-              SC.run(function() {
-                this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey);
-              });
-            })
+        .mousedown(function (iEvent) {
+          SC.run(function () {
+            this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
+          });
+        })
         .drag(function (dx, dy) { // continue
               var tNewCoord = (tNumericPlace === DG.GraphTypes.EPlace.eX) ?
-                                this.ox + dx : this.oy + dy,
-                  tNewWorld = this_.get('primaryAxisView').coordinateToData( tNewCoord),
-                  tOldWorld = this_.getPath('model.cases').unorderedAt(this.index).getNumValue( this_.getPath('model.primaryVarID')),
+                  this.ox + dx : this.oy + dy,
+                  tNewWorld = this_.get('primaryAxisView').coordinateToData(tNewCoord),
+                  tOldWorld = this_.getPath('model.cases').unorderedAt(this.index).getNumValue(this_.getPath('model.primaryVarID')),
                   tCurrTransform = this.transform();
-              if( isFinite( tNewWorld)) {
+              if (isFinite(tNewWorld)) {
                 // Put the element into the initial transformed state so that changing case values
                 // will not be affected by the scaling in the current transform.
-                SC.run(function() {
-                  this.transform( tInitialTransform);
-                  changeCaseValues( tNewWorld - tOldWorld);
-                  this.transform( tCurrTransform);
+                SC.run(function () {
+                  this.transform(tInitialTransform);
+                  changeCaseValues(tNewWorld - tOldWorld);
+                  this.transform(tCurrTransform);
                 }.bind(this));
               }
             },
@@ -363,21 +356,24 @@ DG.DotPlotView = DG.PlotView.extend(
               this.ox = this.attr("cx");
               this.oy = this.attr("cy");
               // Save the initial world coordinate
-              this.w = this_.getPath('model.cases').unorderedAt(this.index).getNumValue( this_.getPath('model.primaryVarID'));
-              this.attr({opacity: kOpaque });
+              this.w = this_.getPath('model.cases').unorderedAt(this.index).getNumValue(this_.getPath('model.primaryVarID'));
+              this.attr({opacity: kOpaque});
             },
-            function() {  // end
-              this.animate( {transform: tInitialTransform }, DG.PlotUtilities.kHighlightHideTime);
-              returnCaseValuesToStart( this.index, this.w);
+            function () {  // end
+              this.animate({transform: tInitialTransform}, DG.PlotUtilities.kHighlightHideTime);
+              returnCaseValuesToStart(this.index, this.w);
               tIsDragging = false;
               this.ox = this.oy = this.w = undefined;
             });
-    //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "createElement index="+iIndex );
-    tCircle.index = iIndex;
-    tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
-    if( iAnimate)
-      DG.PlotUtilities.doCreateCircleAnimation( tCircle);
-    return tCircle;
+    return iElement;
+  },
+
+    createElement: function( iCase, iIndex, iAnimate) {
+      var tCircle = this.get('paper').circle(-100, -100, this._pointRadius);
+
+      tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
+
+      return this.assignElementAttributes( tCircle, iIndex, iAnimate);
   },
 
   /**

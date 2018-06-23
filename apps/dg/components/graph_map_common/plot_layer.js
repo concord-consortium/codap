@@ -364,20 +364,32 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * @param iIndex {Number}
    */
   assignElementAttributes: function( iElement, iIndex, iAnimate) {
+    // Remove event handlers
     if( iElement.events) {
       iElement.events.forEach(function (iHandler) {
         iHandler.unbind();
       });
       iElement.events.length = 0;
     }
+    var this_ = this;
+    iElement.addClass(DG.PlotUtilities.kColoredDotClassName)
+        .attr({cursor: 'pointer'})
+        .mousedown(function (iEvent) {
+          SC.run(function () {
+            this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
+          });
+        });
+    iElement.index = iIndex;
+    if (iAnimate)
+      DG.PlotUtilities.doCreateCircleAnimation(iElement);
+    return iElement;
   },
 
   callCreateElement: function(iCase, iIndex, iAnimate) {
     var tPlottedElements = this.get('plottedElements'),
         tElement;
-    if( iIndex < tPlottedElements.length) {
+    if( iIndex < tPlottedElements.length && tPlottedElements[ iIndex]) {
       tElement = tPlottedElements[ iIndex];
-      this.assignElementAttributes( tElement, iIndex);
     }
     else {
       tElement = this.createElement( iCase, iIndex, iAnimate);
@@ -385,7 +397,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     }
     this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tElement);
     this._elementOrderIsValid = false; // So updateSelection will work
-    return tElement;
+    return this.assignElementAttributes(tElement, iIndex, iAnimate);
   },
 
   /**
@@ -456,10 +468,13 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
     }
     if( (iProperty === 'hiddenCases') || (iOperation === 'deleteCases')) {
+      this.notifyPropertyChange('plotDisplayDidChange');
+/*
       this.prepareToResetCoordinates();
       tCases.forEach(function (iCase, iIndex) {
         this_.setCircleCoordinate(tRC, tCases.at(iIndex), iIndex);
       });
+*/
     }
 
     this._isRenderingValid = false;
@@ -874,7 +889,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   /**
    * Remove all plotted elements
    */
-  removePlottedElements: function( iAnimate) {
+  removePlottedElements: function( iCallRemove, iAnimate) {
     var tLayerManager = this.get('layerManager'),
         tPlottedElements = this.get('plottedElements');
     tPlottedElements.forEach( function(iElement) {
@@ -883,7 +898,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         DG.PlotUtilities.doHideRemoveAnimation( iElement, tLayerManager);
       }
       else
-        tLayerManager.removeElement( iElement);
+        tLayerManager.removeElement( iElement, iCallRemove);
     });
     // tPlottedElements.length = 0;
   },

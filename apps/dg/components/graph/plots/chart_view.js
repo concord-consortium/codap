@@ -70,9 +70,7 @@ DG.ChartView = DG.PlotView.extend(
         // Override because we're going to do the work in updateElements
         if (iOperation !== 'createCase' && iOperation !== 'createCases')
           this.get('model').invalidateCaches();
-        this.updateElements();
         this._elementOrderIsValid = false;
-        // this.selectionDidChange();
         this.installCleanup();  // Call explicitly since we're not calling sc_super
       },
 
@@ -146,9 +144,6 @@ DG.ChartView = DG.PlotView.extend(
 
         for (tIndex = tCases.get('length'); tIndex < tPlotElementLength; tIndex++) {
           DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex], tLayerManager);
-        }
-        if (tCases.get('length') < tPlotElementLength) { // remove from array
-          tPlotElementLength = tPlottedElements.length = tCases.get('length');
         }
         tRC = this.createRenderContext();
         tCases.forEach(function (iCase, iIndex) {

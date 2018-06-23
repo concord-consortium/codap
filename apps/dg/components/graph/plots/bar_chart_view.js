@@ -84,7 +84,14 @@ DG.BarChartView = DG.ChartView.extend(
       },
 
       destroy: function() {
+        var tLayerManager = this.get('layerManager'),
+            tPlottedElements = this.get('plottedElements');
+        tPlottedElements.forEach( function( iElement) {
+          tLayerManager.removeElement( iElement, true /* callRemove */);
+        });
+        tPlottedElements.length = 0;
         this.get('coverRectsLayer').clear();
+
         sc_super();
       },
 
@@ -221,7 +228,6 @@ DG.BarChartView = DG.ChartView.extend(
               DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex]);
             }
           }
-          // tPlottedElements.length = tDataLength;
           // update all coordinates because we don't know which cases were deleted
           this.updateAllCoordinates(iAnimate, iCallback);
         }
@@ -359,7 +365,7 @@ DG.BarChartView = DG.ChartView.extend(
       getElementPositionsInParentFrame: function() {
 
         var tFrame = this.get('frame');
-        return tPlottedElements.map( function( iElement) {
+        return this.get('plottedElements').map( function( iElement) {
           var tX = iElement.attr('x') + tFrame.x,
               tY = iElement.attr('y') + tFrame.y,
               tWidth = iElement.attr('width'),
@@ -410,10 +416,16 @@ DG.BarChartView = DG.ChartView.extend(
         var hasElementMap = tNewToOldCaseMap.length > 0,
             hasVanishingElements = tOldToNewCaseMap.length > 0,
             getCaseCurrentLocation = (hasElementMap ? caseLocationViaMap : caseLocationSimple),
+            tPlottedElements = this.get('plottedElements'),
             tTransAttrs;
 
         this.prepareToResetCoordinates();
         this.removePlottedElements();
+        // Normally we leave the elements (circles) for re-use. But since we want rects, we have let go of the circles.
+        tPlottedElements.forEach( function( iElement) {
+          iElement.remove();
+        });
+        tPlottedElements.length = 0;
         this.computeCellParams();
         tOldElementAttrs.forEach(function (iElement, iIndex) {
           // adjust old coordinates from parent frame to this view
@@ -505,7 +517,7 @@ DG.BarChartView = DG.ChartView.extend(
       privSetElementCoords: function (iRC, iCase, iIndex, iCellIndices, iAnimate, iCallback) {
         DG.assert(iRC && iRC.xAxisView);
         DG.assert(iCase);
-        DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, tPlottedElements.length));
+        DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, this.get('plottedElements').length));
         var tRect = this.get('plottedElements')[iIndex]/*,
         tIsMissingCase = SC.none( iCellIndices )*/;
 

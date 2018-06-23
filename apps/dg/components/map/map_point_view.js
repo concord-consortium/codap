@@ -175,7 +175,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   mouseUp: function( iEvent) {
     if( !this.get('marqueeContext'))
       return false;
-    this.getPath('layerManager').removeElement( this.marqueeContext.marquee);
+    this.get('layerManager').removeElement( this.marqueeContext.marquee, true /* callRemove*/ );
     this.marqueeContext = null;
     this.set('isInMarqueeMode', false);
     DG.logUser('marqueeDrag: end');
