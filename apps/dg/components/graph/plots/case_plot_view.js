@@ -209,13 +209,6 @@ DG.CasePlotView = DG.PlotView.extend(
 
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
         if (this._mustCreatePlottedElements) {
-/*
-          tPlottedElements.forEach(function (iElement) {
-            iElement.remove();
-          });
-          tPlottedElements.length = 0;
-*/
-
           this.setPath('model.isAnimating', true); // So the animation can finish
           animatePoints();  // will loop through all points using invokeLater
           this._mustCreatePlottedElements = false;
@@ -224,14 +217,6 @@ DG.CasePlotView = DG.PlotView.extend(
           tCases.forEach(function (iCase, iIndex) {
             this_.setCircleCoordinate(tRC, iCase, iIndex);
           });
-
-          // Get rid of any extra circles
-/*
-          for (tIndex = tCases.get('length'); tIndex < tPlottedElements.length; tIndex++) {
-            tPlottedElements[tIndex].remove();
-          }
-*/
-          // tPlottedElements.length = tCases.get('length');
         }
       },
 

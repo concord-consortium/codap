@@ -88,7 +88,7 @@ DG.RaphaelLayer = SC.Object.extend(
      */
     push: function( iElement) {
       DG.assert( iElement);
-      if( !this._map[iElement.id]) {
+      if( !this._map[iElement.id]) {  // If it's not already present in the layer
         this._map[iElement.id] = true;
         if (!this._lastElement) {
           // We have no elements, so this becomes our first. We need to insert after previous layer's last Element.

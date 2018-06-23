@@ -93,7 +93,6 @@ DG.DotChartView = DG.ChartView.extend(
               DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex]);
             }
           }
-          // tPlottedElements.length = tDataLength;
           // update all coordinates because we don't know which cases were deleted
           tCases.forEach(function (iCase, iIndex) {
             tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
@@ -206,35 +205,27 @@ DG.DotChartView = DG.ChartView.extend(
         var this_ = this,
             tInitialTransform = null,
             kOpaque = 1;
-        iElement.addClass(DG.PlotUtilities.kColoredDotClassName)
-            .hover(function (event) {
-                  // Note that Firefox can come through here repeatedly so we have to check for existence
-                  if (SC.none(tInitialTransform)) {
-                    tInitialTransform = '';
-                    this.animate({
-                      opacity: kOpaque,
-                      transform: DG.PlotUtilities.kDataHoverTransform
-                    }, DG.PlotUtilities.kDataTipShowTime);
-                    this_.showDataTip(this, iIndex);
-                  }
-                },
-                function (event) { // out
-                  this.stop();
-                  this.animate({
-                    opacity: DG.PlotUtilities.kDefaultPointOpacity,
-                    transform: tInitialTransform
-                  }, DG.PlotUtilities.kHighlightHideTime);
-                  tInitialTransform = null;
-                  this_.hideDataTip();
-                })
-            .mousedown(function (iEvent) {
-              SC.run(function () {
-                this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
-              });
+        iElement.hover(function (event) {
+              // Note that Firefox can come through here repeatedly so we have to check for existence
+              if (SC.none(tInitialTransform)) {
+                tInitialTransform = '';
+                this.animate({
+                  opacity: kOpaque,
+                  transform: DG.PlotUtilities.kDataHoverTransform
+                }, DG.PlotUtilities.kDataTipShowTime);
+                this_.showDataTip(this, iIndex);
+              }
+            },
+            function (event) { // out
+              this.stop();
+              this.animate({
+                opacity: DG.PlotUtilities.kDefaultPointOpacity,
+                transform: tInitialTransform
+              }, DG.PlotUtilities.kHighlightHideTime);
+              tInitialTransform = null;
+              this_.hideDataTip();
             });
-        iElement.index = iIndex;
-        if (iAnimate)
-          DG.PlotUtilities.doCreateCircleAnimation(iElement);
+
         return iElement;
       },
 
@@ -270,7 +261,6 @@ DG.DotChartView = DG.ChartView.extend(
         var this_ = this,
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
-            tPlottedElements = this.get('plottedElements'),
             tRC = this.createRenderContext(),
             tDefaultR = this.calcPointRadius(),
             tFrame = this.get('frame'), // to convert from parent frame to this frame
@@ -302,10 +292,15 @@ DG.DotChartView = DG.ChartView.extend(
         var hasElementMap = tNewToOldCaseMap.length > 0,
             hasVanishingElements = tOldToNewCaseMap.length > 0,
             getCaseCurrentLocation = (hasElementMap ? caseLocationViaMap : caseLocationSimple),
+            tPlottedElements = this.get('plottedElements'),
+            tElementsAreRects = tPlottedElements.length > 0 && tPlottedElements[0][0].constructor === SVGRectElement,
             tTransAttrs;
 
         this.prepareToResetCoordinates();
-        // this.removePlottedElements();
+        if( tElementsAreRects) {
+          this.removePlottedElements( true /* callRemove*/);
+          tPlottedElements.length = 0;
+        }
         this.computeCellParams();
         tOldElementAttrs.forEach(function (iElement, iIndex) {
           // adjust old coordinates from parent frame to this view

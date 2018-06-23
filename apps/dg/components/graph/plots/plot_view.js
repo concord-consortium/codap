@@ -226,8 +226,7 @@ DG.PlotView = DG.PlotLayer.extend(
       (c) one-to-one animation for moving within a collection (this is default).
   */
   animateFromTransferredElements: function() {
-    var this_ = this,
-        tCases = this.getPath('model.cases'),
+    var tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         tFrame = this.get('frame'),
         tOldPointAttrs = this.get('transferredElementCoordinates'),
@@ -248,6 +247,7 @@ DG.PlotView = DG.PlotLayer.extend(
     }
 
     this._getTransferredElementsToCasesMap( tNewToOldCaseMap, tOldToNewCaseMap );
+    this.set('transferredElementCoordinates', null);
     var hasElementMap = tNewToOldCaseMap.length > 0,
         hasVanishingElements = tOldToNewCaseMap.length > 0,
         getCaseCurrentLocation = ( hasElementMap ? caseLocationViaMap : caseLocationSimple ),
@@ -255,55 +255,60 @@ DG.PlotView = DG.PlotLayer.extend(
 
     this._elementOrderIsValid = false;
     DG.sounds.playMixup();
-    this.setPath('model.isAnimating', true); // So plot's standard draw won't wipe out animation
     this.prepareToResetCoordinates();
-    this.removePlottedElements();  // remove old circles
+    // this.removePlottedElements();  // remove old circles
     tOldPointAttrs.forEach( function( iPoint, iIndex ) {
         // adjust old coordinates from parent frame to this view
         iPoint.cx -= tFrame.x;
         iPoint.cy -= tFrame.y;
       });
-    tCases.forEach( function( iCase, iIndex) {
-        // create new circles, animating from old coordinates where possible
-        var tPt = getCaseCurrentLocation( iIndex ),
-            tAnimate = false,
-            tCallBack,
-            tNewElement = this_.callCreateElement( iCase, iIndex, false);
-        if( !SC.none( tPt)) {
-          tNewElement.attr( tPt);
-          tAnimate = true;
-          if( !tHaveInstalledCallback) {
-            tCallBack = function() {
-              this_.setPath('model.isAnimating', false);  // Allow standard draw
-              // Draw once more because it can happen that a graph layout has happened since we computed
-              // point coordinates
-              this_.drawData();
-            };
+
+    var eachCaseFunc = function (iCase, iIndex) {
+          // create new circles, animating from old coordinates where possible
+          var tPt = getCaseCurrentLocation( iIndex ),
+              tAnimate = false,
+              tCallBack,
+              tNewElement = this.callCreateElement( iCase, iIndex, false);
+          if( !SC.none( tPt)) {
+            tNewElement.attr( tPt);
+            tAnimate = true;
+            if( !tHaveInstalledCallback) {
+              tCallBack = function() {
+                this.setPath('model.isAnimating', false);  // Allow standard draw
+                // Draw once more because it can happen that a graph layout has happened since we computed
+                // point coordinates
+                this.drawData();
+              }.bind( this);
+            }
           }
-        }
-        // setCircleCoordinate returns null if coordinates are not valid
-        tPt = this_.setCircleCoordinate( tRC, iCase, iIndex, tAnimate, tCallBack);
-        if( tPt && tCallBack) {
-          tHaveInstalledCallback = true;
-        }
-        if( hasVanishingElements ) {
-          tNewPointAttrs.push( tPt );
-        }
-      });
-    if(!tHaveInstalledCallback)
-      this.setPath('model.isAnimating', false);
-    if( hasVanishingElements ){
-      // create a vanishing element for each old point that needs one (used if many-to-one animation)
-      tOldPointAttrs.forEach( function( iOldAttrs, iIndex ) {
-        var tNewIndex = tOldToNewCaseMap[ iIndex ],
-            tNewAttrs = tNewPointAttrs[ tNewIndex ];
-        if( SC.none(tNewIndex) || SC.none( tNewAttrs ) || (iOldAttrs.r===0))
-          return; // no vanishing element, if (1) element persists or (2) new circle hidden or (3) old circle hidden
-        this_.vanishPlottedElement( iOldAttrs, tNewAttrs );
-      });
-    }
-    this._mustCreatePlottedElements = false;
-    this.set('transferredElementCoordinates', null);
+          // setCircleCoordinate returns null if coordinates are not valid
+          tPt = this.setCircleCoordinate( tRC, iCase, iIndex, tAnimate, tCallBack);
+          if( tPt && tCallBack) {
+            tHaveInstalledCallback = true;
+          }
+          if( hasVanishingElements ) {
+            tNewPointAttrs.push( tPt );
+          }
+          return this.getPath('model.isAnimating');
+        }.bind( this),
+
+        finallyFunc = function () {
+          this._mustCreatePlottedElements = false;
+          if(!tHaveInstalledCallback)
+            this.setPath('model.isAnimating', false);
+          if( hasVanishingElements ){
+            // create a vanishing element for each old point that needs one (used if many-to-one animation)
+            tOldPointAttrs.forEach( function( iOldAttrs, iIndex ) {
+              var tNewIndex = tOldToNewCaseMap[ iIndex ],
+                  tNewAttrs = tNewPointAttrs[ tNewIndex ];
+              if( SC.none(tNewIndex) || SC.none( tNewAttrs ) || (iOldAttrs.r===0))
+                return; // no vanishing element, if (1) element persists or (2) new circle hidden or (3) old circle hidden
+              this.vanishPlottedElement( iOldAttrs, tNewAttrs );
+            });
+          }
+        }.bind( this);
+    this.setPath('model.isAnimating', true); // So plot's standard draw won't wipe out animation
+    tCases.forEachWithInvokeLater( eachCaseFunc, finallyFunc);
   },
 
   /**

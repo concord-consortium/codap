@@ -480,13 +480,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   redoString: 'DG.Redo.graph.'+name,
                   log: "Changed point color",
                   execute: function() {
-                    this.reduceKey = this.name + currentOpenSession;
-                    this._beforeStorage = {
-                      color: this_.getPath('dataDisplayModel.' + colorAttr),
-                      alpha: this_.getPath('dataDisplayModel.' + alphaAttr)
-                    };
-                    this_.setPath('dataDisplayModel.' + colorAttr, iColor.toHexString());
-                    this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
+                    SC.run( function() {
+                      this.reduceKey = this.name + currentOpenSession;
+                      this._beforeStorage = {
+                        color: this_.getPath('dataDisplayModel.' + colorAttr),
+                        alpha: this_.getPath('dataDisplayModel.' + alphaAttr)
+                      };
+                      this_.setPath('dataDisplayModel.' + colorAttr, iColor.toHexString());
+                      this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
+                    }.bind( this));
                   },
                   undo: function () {
                     this_.setPath('dataDisplayModel.' + colorAttr, this._beforeStorage.color);
