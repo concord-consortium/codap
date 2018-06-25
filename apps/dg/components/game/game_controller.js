@@ -296,7 +296,7 @@ DG.GameController = DG.ComponentController.extend(
         if (!SC.none(this.context)) {
           // Save information about the current game
           tStorage.currentGameName = tStorage.currentGameName ||
-              this.getPath('context.gameName') || this.getPath('context');
+              this.getPath('context.gameName') || this.getPath('context.name');
           tStorage.currentGameUrl = tStorage.currentGameUrl || this.getPath('context.gameUrl');
           tStorage.preventBringToFront = this.get('preventBringToFront');
           tStorage.preventDataContextReorg = this.get('preventDataContextReorg');
