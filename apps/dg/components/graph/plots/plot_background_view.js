@@ -157,6 +157,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         return; // not yet ready
       var tBackgroundImage = this_.getPath('graphModel.plotBackgroundImage'),
           tLockInfo = this_.getPath('graphModel.plotBackgroundImageLockInfo');
+      if( tBackgroundImage === null)
+        tBackgroundImage = '';
       if( this_._backgroundImage.attr('src') !== tBackgroundImage) {
         this_._backgroundImage.attr('src', tBackgroundImage);
       }
