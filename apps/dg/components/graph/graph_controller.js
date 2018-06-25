@@ -186,8 +186,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             }
           }
 
-          var tGraphModel = this.get('graphModel'),
-              tModelID = this.getPath('model.id');
+          var tGraphModel = this.get('graphModel');
           return DG.cfmClient._ui.importDataDialog((function(_this) {
             return function(data) {
               return parseData(data);
