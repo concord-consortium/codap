@@ -945,6 +945,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           var context = iResources.dataContext;
           var attrSpecs = SC.clone(Array.isArray(iValues) ? iValues : [iValues]);
+          if (attrSpecs.some(function(spec) { return !spec.name; })) {
+            return {success: false, values: {error: "Create attribute: name required"}};
+          }
           attrSpecs.forEach(function(attrSpec) {
             attrSpec.clientName = attrSpec.name;
             attrSpec.name = context.canonicalizeName(attrSpec.name);
