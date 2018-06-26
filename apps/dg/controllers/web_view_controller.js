@@ -78,8 +78,8 @@ DG.WebViewController = DG.ComponentController.extend(
     }
 
     tDialog = DG.CreateSingleTextDialog( {
-                    prompt: DG.DocumentController.enterURLPrompt,
-                    textValue: this.get('theURL'),
+                    prompt: 'DG.DocumentController.enterURLPrompt',
+                    textValue: this_.get('theURL'),
                     textHint: 'URL',
                     okTarget: null,
                     okAction: setURL,

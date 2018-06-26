@@ -1145,17 +1145,18 @@ DG.DocumentController = SC.Object.extend(
           log: 'Show webView: {title: "%@", url: "%@"}'.fmt(iTitle, iURL),
           isUndoable: !isInitialization,
           _component: null,
+          model: SC.Object.create({
+            defaultTitle: iTitle,
+            URL: iURL
+          }),
           executeNotification: DG.UndoHistory.makeComponentNotification('create', 'webView'),
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'webView'),
           execute: function () {
             tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
                   parentView: iParentView,
-                  controller: DG.WebViewController.create(),
+                  controller: DG.WebViewController.create({model: this.model}),
                   componentClass: {type: 'DG.WebView', constructor: DG.WebView},
-                  contentProperties: {value: iURL, backgroundColor: 'white', model: SC.Object.create({
-                      defaultTitle: iTitle,
-                      content: {URL: iURL}
-                  })},
+                  contentProperties: {value: iURL, backgroundColor: 'white', model: this.model},
                   defaultLayout: iLayout,
                   title: iTitle,
                   isResizable: true,
