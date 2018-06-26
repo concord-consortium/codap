@@ -448,7 +448,7 @@ DG.DocumentController = SC.Object.extend(
       /**
        * Creates the specified component and its associated view.
        * Clients should specify either iComponent or iComponentType.
-       * @param iComponent     {DG.ComponentModel} [Optional] -- The restored component.
+       * @param iComponent     {DG.Component} [Optional] -- The restored component.
        *                                              Should be specified when restoring from document.
        * @param iComponentType {String}            [Optional] -- The type of component to create.
        * @param iArgs          {Object}            [Optional] -- parameters defining this object.
@@ -1153,7 +1153,8 @@ DG.DocumentController = SC.Object.extend(
                   controller: DG.WebViewController.create(),
                   componentClass: {type: 'DG.WebView', constructor: DG.WebView},
                   contentProperties: {value: iURL, backgroundColor: 'white', model: SC.Object.create({
-                      defaultTitle: iTitle
+                      defaultTitle: iTitle,
+                      content: {URL: iURL}
                   })},
                   defaultLayout: iLayout,
                   title: iTitle,

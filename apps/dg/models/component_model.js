@@ -108,16 +108,17 @@ DG.Component = DG.BaseModel.extend(
        * If true, the close button will not show in the component title bar.
        * @property {Boolean}
        */
+      _cannotClose: false,
       cannotClose: function (iKey, iValue) {
         if (!SC.none(iValue)) {
-          this.setPath('content.cannotClose');
+          this._cannotClose = iValue;
         }
-        return this.getPath('content.cannotClose');
-      }.property(),
+        return this._cannotClose;
+      }.property('_cannotClose'),
 
-      cannotCloseChanged: function () {
-        this.notifyPropertyChange('cannotClose');
-      }.observes('content.cannotClose'),
+      // cannotCloseChanged: function () {
+      //   this.notifyPropertyChange('cannotClose');
+      // }.observes('content.cannotClose'),
 
       /**
        * Content is an arbitrary javascript object, serializable, and defined
@@ -171,7 +172,9 @@ DG.Component = DG.BaseModel.extend(
           if( tStorage.userSetTitle) {
             this.set('userSetTitle', tStorage.userSetTitle);
           }
-          this.set('cannotClose', tStorage.cannotClose);
+          if (!SC.none(tStorage.cannotClose)) {
+            this.set('cannotClose', tStorage.cannotClose);
+          }
         }
       },
 
@@ -184,12 +187,13 @@ DG.Component = DG.BaseModel.extend(
 
       toArchive: function () {
         var obj = {},
-            tStorage = this.get('componentStorage');
+            tStorage = this.get('componentStorage'),
+            tCannotClose = this.get('cannotClose');
         if( tStorage) {
           tStorage.title = tStorage.title || this.get('title');
           tStorage.name = tStorage.name || this.get('name');
           tStorage.userSetTitle = tStorage.userSetTitle || this.get('userSetTitle');
-          tStorage.cannotClose = tStorage.cannotClose || this.get('cannotClose');
+          tStorage.cannotClose = SC.none(tCannotClose)? tStorage.cannotClose: tCannotClose;
         }
         obj = {
           type: this.type,

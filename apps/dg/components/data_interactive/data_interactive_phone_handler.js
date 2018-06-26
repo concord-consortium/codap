@@ -1811,25 +1811,29 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
 
           update: function (iResources, iValues) {
-            if (!iResources.component || iResources.component.get('isDestroyed')) {
+            if (!iResources.component || iResources.component.get(
+                'isDestroyed')) {
               return {success: false, values: {error: 'Component not found'}};
             }
 
             var component = iResources.component,
                 componentType = component && component.get('type'),
                 codapType = componentType && kTypeMap[componentType],
-                componentContent = DG.Component.getContent(component),
-                position, dimensions,
-                remapped = {};
+                componentContent = DG.Component.getContent(component), position,
+                dimensions, remapped = {};
 
             if (!component) {
               return {success: false, values: {error: 'Cannot find component'}};
             }
 
-            if (iValues.position )  {
+            if (iValues.position) {
               position = iValues.position;
               component.set('position', position);
               delete iValues.position;
+            }
+            if (!SC.none(iValues.cannotClose)) {
+              component.set('cannotClose', iValues.cannotClose);
+              delete iValues.cannotClose;
             }
             if (iValues.dimensions) {
               dimensions = iValues.dimensions;
