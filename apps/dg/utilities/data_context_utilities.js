@@ -178,7 +178,6 @@ DG.DataContextUtilities = {
         undo: function() {
           var tChange;
           var tStatus;
-          var iDataContext;
           if (iDataContext.getCollectionByID(tCollection.get('id'))) {
             tChange = {
               operation: 'createAttributes',
