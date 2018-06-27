@@ -1743,14 +1743,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var props = {
               componentStorage: {}
             };
-            var name = iValues.name || iValues.title;
+            // var name = iValues.name || iValues.title;
             var success = true;
             var component, errorMessage;
 
-            if (SC.none(name)) {
-              success = false;
-              errorMessage = "Components must have a name";
-            }
+            // if (SC.none(name)) {
+            //   success = false;
+            //   errorMessage = "Components must have a name";
+            // }
 
             if (SC.none(typeClass)) {
               success = false;
