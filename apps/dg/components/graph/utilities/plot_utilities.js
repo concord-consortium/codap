@@ -395,8 +395,6 @@ DG.PlotUtilities = {
       function() {
         if( iLayerManager)
           iLayerManager.removeElement( this);
-        else if( this[0].constructor !== SVGCircleElement)
-          this.remove();
       });
   },
 

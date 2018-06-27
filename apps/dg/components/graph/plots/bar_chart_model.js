@@ -46,7 +46,7 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
         var tNaturalUpperBound;
         switch (this.get('breakdownType')) {
           case DG.Analysis.EBreakdownType.eCount:
-            tNaturalUpperBound = this.get('maxInCell');
+            tNaturalUpperBound = Math.max( 4, this.get('maxInCell'));
             break;
           case DG.Analysis.EBreakdownType.ePercent:
             tNaturalUpperBound = 100;

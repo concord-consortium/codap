@@ -96,9 +96,9 @@ DG.BarChartView = DG.ChartView.extend(
       },
 
       dataRangeDidChange: function (iSource, iQuestion, iKey, iChanges) {
-        var /*this_ = this,
+        var this_ = this,
             tCases = this.getPath('model.cases'),
-            tRC = this.createRenderContext(),*/
+            tRC = this.createRenderContext(),
             tChanges = (SC.typeOf(iChanges) === SC.T_NUMBER ? [iChanges] : iChanges);
         tChanges = tChanges || [];
 
@@ -108,12 +108,10 @@ DG.BarChartView = DG.ChartView.extend(
         tChanges.forEach(function (iIndex) {
           // We can get in here after a delete, in which case, iChanges can be referring to
           // a plot element that no longer exists.
-          /*  Todo: Deal with these changes in order to get delete and add cases to work
-                    if (!this_.get('plottedElements')[iIndex])
-                      this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
-                    var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
-                    this_.privSetElementCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
-          */
+          if (!this_.get('plottedElements')[iIndex])
+            this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
+          var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
+          this_.privSetElementCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
         });
         sc_super();
       },
@@ -131,6 +129,16 @@ DG.BarChartView = DG.ChartView.extend(
         tRC.barWidth = tRC.primaryAxisView.get('fullCellWidth') / 2;
 
         return tRC;
+      },
+
+      /**
+       * If defined, this function gets called after cases have been added or values changed, but only once,
+       * and only after a sufficient time has elapsed.
+       * @property { Function }
+       */
+      cleanupFunc: function () {
+        this.get('model').rescaleAxesFromData( true /* allow shrinkage */, true /* allow animation */);
+        sc_super();
       },
 
       /**
