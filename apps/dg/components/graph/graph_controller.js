@@ -304,10 +304,6 @@ DG.GraphController = DG.DataDisplayController.extend(
             this.openDrawToolWithImage(layer, width, height, title);
         },
 
-        rescaleAxes: function () {
-          this.graphModel.rescaleAxes();
-        },
-
         plotFunction: function () {
           this.graphModel.get('plot').togglePlotFunction();
         },
