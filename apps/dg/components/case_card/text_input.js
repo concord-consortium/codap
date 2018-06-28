@@ -60,6 +60,7 @@ DG.React.ready(function () {
             var
                 tUnits = SC.empty(this.state.value) ? '' : ' ' + (this.state.unit || ''),
                 tValueClassName = this.props.isEditable ? 'react-data-card-value ' : '',
+                tValue = SC.empty( this.state.value) ? '____' : this.state.value,
                 tResult = this.state.editing ?
                     input({
                       type: 'text',
@@ -74,11 +75,11 @@ DG.React.ready(function () {
                     }) :
                     span({
                       className: tValueClassName + this.props.className,
-                      onClick: function () {
+                      onDoubleClick: function () {
                         if (!this.state.editing && this.props.onToggleEditing && this.props.isEditable)
                           this.props.onToggleEditing(this);
                       }.bind(this)
-                    }, this.state.value + tUnits);
+                    }, tValue + tUnits);
             return tResult;
           }
         };
