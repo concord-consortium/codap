@@ -1091,11 +1091,11 @@ DG.DocumentController = SC.Object.extend(
               context: iContext
             });
         tComponentView.set('model', tModel);
-        tController.set('view', tComponentView);
         iParentView.appendChild(tComponentView);
         tComponentView.addContent(tContentView);
         tComponentView.set('contentView', tContentView);
         tComponentView.set('controller', tController);
+        tController.set('view', tComponentView);
         this.registerComponent(tModel);
         tContentView.initCardLayer();
 
