@@ -29,7 +29,9 @@ DG.CaseCardController = DG.ComponentController.extend(
 
       reactDiv: null,
 
-      dataContext: SC.binding('view.contentView.context'),
+      dataContext: function() {
+        return this.getPath('view.contentView.context');
+      }.property('*view.contentView.context'),
 
       init: function() {
         sc_super();
@@ -61,7 +63,7 @@ DG.CaseCardController = DG.ComponentController.extend(
             dataContext.addObserver('changeCount', this, 'contextDataDidChange');
           this._prevDataContext = dataContext;
         }
-      }.observes('dataContext'),
+      }.observes('dataContext', 'view'),
 
       /**
        Observer function called when the data context notifies that it has changed.
