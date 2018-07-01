@@ -581,6 +581,7 @@ DG.GraphView = SC.View.extend(
               tPlace = DG.GraphTypes.EPlace.eY2;
               break;
           }
+          tSetup.layout = { left: 0, top: 0, width: 0, height: 0 };
           if (this_.getPath('model.dataConfiguration')) {
             tAttr = this_.getPath('model.dataConfiguration').attributesByPlace[tPlace][0].get('attribute');
             if (tAttr !== DG.Analysis.kNullAttribute) {
