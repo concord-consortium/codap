@@ -263,7 +263,7 @@ DG.PlotView = DG.PlotLayer.extend(
         iPoint.cy -= tFrame.y;
       });
 
-    var eachCaseFunc = function (iCase, iIndex) {
+    var eachCaseFunc = function (iCase, iIndex, iIsLast) {
           // create new circles, animating from old coordinates where possible
           var tPt = getCaseCurrentLocation( iIndex ),
               tAnimate = false,
@@ -272,7 +272,7 @@ DG.PlotView = DG.PlotLayer.extend(
           if( !SC.none( tPt)) {
             tNewElement.attr( tPt);
             tAnimate = true;
-            if( !tHaveInstalledCallback) {
+            if( iIsLast) {
               tCallBack = function() {
                 this.setPath('model.isAnimating', false);  // Allow standard draw
                 // Draw once more because it can happen that a graph layout has happened since we computed
