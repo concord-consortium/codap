@@ -29,9 +29,7 @@ DG.CaseCardController = DG.ComponentController.extend(
 
       reactDiv: null,
 
-      dataContext: function() {
-        return this.getPath('view.contentView.context');
-      }.property('*view.contentView.context'),
+      dataContext: null,
 
       init: function() {
         sc_super();
