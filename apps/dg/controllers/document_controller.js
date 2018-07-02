@@ -1055,7 +1055,9 @@ DG.DocumentController = SC.Object.extend(
       },
 
       addCaseCard: function (iParentView, iLayout, iContext, iComponent, iTitle) {
-        var tController = DG.CaseCardController.create(),
+        var tController = DG.CaseCardController.create( {
+              dataContext: iContext
+            }),
             tTitle = iTitle || (iContext ? iContext.get('name') : 'DG.DocumentController.caseCardTitle'.loc()),
             tModel, tRestoredLayout = iLayout;
         if (!iComponent) {
