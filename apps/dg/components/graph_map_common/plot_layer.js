@@ -421,8 +421,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   dataDidChange: function(iObject, iProperty, iOperation) {
     if( !this.readyToDraw())
       return;   // not ready to create elements yet
-    var this_ = this,
-        tCases = this.getPath('model.cases'),
+    var tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         tDataLength = tCases && tCases.get('length'),
         tPlottedElements = this.get('plottedElements'),

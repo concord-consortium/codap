@@ -204,8 +204,7 @@ DG.CasePlotView = DG.PlotView.extend(
         var this_ = this,
             tCases = this.getPath('model.cases'),
             tPlottedElements = this.get('plottedElements'),
-            tRC = this.createRenderContext(),
-            tIndex;
+            tRC = this.createRenderContext();
 
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
         if (this._mustCreatePlottedElements) {
