@@ -44,7 +44,7 @@ DG.CaseCardController = DG.ComponentController.extend(
       destroy: function() {
         var dataContext = this.get('dataContext');
         if( dataContext && dataContext.removeObserver)
-          dataContext.removeObserver('changeCount', this, 'contextDataDidChange');
+          dataContext.removeObserver('changeCount', this, 'handleDataContextChanges');
         sc_super();
       },
 
@@ -56,9 +56,9 @@ DG.CaseCardController = DG.ComponentController.extend(
 
         if( dataContext !== this._prevDataContext) {
           if( this._prevDataContext)
-            this._prevDataContext.removeObserver('changeCount', this, 'contextDataDidChange');
+            this._prevDataContext.removeObserver('changeCount', this, 'handleDataContextChanges');
           if( dataContext)
-            dataContext.addObserver('changeCount', this, 'contextDataDidChange');
+            dataContext.addObserver('changeCount', this, 'handleDataContextChanges');
           this._prevDataContext = dataContext;
         }
       }.observes('dataContext', 'view'),
@@ -66,7 +66,7 @@ DG.CaseCardController = DG.ComponentController.extend(
       /**
        Observer function called when the data context notifies that it has changed.
        */
-      contextDataDidChange: function() {
+      handleDataContextChanges: function() {
         var changes = this.getPath('dataContext.newChanges');
 
         /**
