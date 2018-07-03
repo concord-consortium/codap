@@ -158,7 +158,8 @@ DG.MapModel = DG.DataDisplayModel.extend(
         }.bind( this));
       }.bind( this));
 
-      var tConfiguration = this.mapDataConfigurations.length > 0 ? this.mapDataConfigurations[0] : null,
+      var tConfiguration = this.mapDataConfigurations.length > 0 ? this.mapDataConfigurations[0] :
+                              DG.MapDataConfiguration.create({ initializer: {} }),
           tContext = tConfiguration.get('dataContext');
       // If the context has been discovered in the init of the configuration, we take this opportunity
       // to hook up our observer to it.
