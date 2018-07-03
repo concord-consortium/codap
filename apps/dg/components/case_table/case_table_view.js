@@ -1958,7 +1958,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var rowDistance = this.getMinScrollDistance(rowIndices);
     var viewport = this.get('gridViewport');
     var top = Math.max(viewport.top - rowDistance, 0);
-    if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top)) {
+    // The slickgrid viewport is measured in rows and includes the
+    // header and partial rows. To guarantee the value is within the visible
+    // viewport we add subtract from the viewport height two, for the header
+    // rows and one for the partial row.
+    if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top - 3)) {
       this.scrollAnimator.animate(this, viewport.top, top);
     } //else {
       // this is a BIG HACK. We generate a small animation when the nearest
@@ -2003,7 +2007,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     getMinScrollDistance: function (rowArray) {
       var viewport = this._slickGrid.getViewport(); // viewport.top, .bottom: row units
-      var viewMiddle = (viewport.top + viewport.bottom - 2) / 2;
+      var viewMiddle = (viewport.top + 3 + viewport.bottom) / 2;
       return rowArray.map(function (row) {
             return (viewMiddle - row);
           }).reduce(function(m, dist) {
@@ -2021,7 +2025,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
   },
 
+  isComponentDetached: function () {
+    var controller = getController(this);
+    return !controller.getPath('view.isVisible');
+  },
+
   scrollSelectionToView: function () {
+    if (this.isComponentDetached()) {
+      return;
+    }
     var selectedRows = this._slickGrid.getSelectedRows();
     if (selectedRows.length > 0) {
       this.scrollToView(selectedRows);

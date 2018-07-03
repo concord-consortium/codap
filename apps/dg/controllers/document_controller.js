@@ -1396,10 +1396,16 @@ DG.DocumentController = SC.Object.extend(
                     tTableLayout.height++;
                     tTableComponentView.animate(tTableLayout, {duration: 0.3, timing: 'ease-in-out'},
                         function () {
-                          tTableComponentView.select();
-                          tTableLayout.height--;
-                          tTableComponentView.adjust('height', tTableLayout.height);
-                          tTableComponentView.get('contentView').scrollSelectionToView();
+                          SC.run(function () {
+                            tTableComponentView.select();
+                            tTableLayout.height--;
+                            tTableComponentView.adjust('height',
+                                tTableLayout.height);
+                            this.invokeNext(function () {
+                              tTableComponentView.get(
+                                  'contentView').scrollSelectionToView();
+                            }.bind(this));
+                          }.bind(this));
                         });
                     tTableComponentView.set('cardView', iCardComponentView);
                     iCardComponentView.set('tableView', tTableComponentView);
