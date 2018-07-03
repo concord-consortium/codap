@@ -41,6 +41,12 @@ DG.MapModel = DG.DataDisplayModel.extend(
     baseMapLayerName: null,
 
     /**
+     * An array of data configurations, one per layer
+     * @property {[{DG.MapDataConfiguration}]}
+     */
+    mapDataConfigurations: null,
+
+    /**
      * Reflects (and determines) whether the mapPointView subview is showing
      * {@property Boolean}
      */
@@ -104,12 +110,73 @@ DG.MapModel = DG.DataDisplayModel.extend(
      */
     init: function() {
       sc_super();
+      var kLatNames = ['latitude', 'lat', 'latitud'],
+          kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud'],
+          kAreaNames = ['boundary', 'boundaries', 'polygon', 'polygons'];
+
+      this.mapDataConfigurations = [];
+      DG.currDocumentController().get('contexts').forEach(function (iContext) {
+        var tLatName, tLongName, tAreaName;
+
+        iContext.get('collections').forEach(function (iCollection) {
+          var tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
+              // Make a copy, all lower case. We will need the original if we find a match.
+              tLowerCaseNames = tAttrNames.map( function( iAttrName) {
+                return iAttrName.toLowerCase();
+              });
+
+          function pickOutName( iKNames) {
+            return tAttrNames.find(function (iAttrName, iIndex) {
+              return iKNames.find(function (iKName) {
+                return (iKName === tLowerCaseNames[ iIndex]);
+              });
+            });
+          }
+
+          tLatName = pickOutName( kLatNames);
+          tLongName = pickOutName( kLongNames);
+          tAreaName = pickOutName( kAreaNames);
+          if( !tAreaName) {  // Try for an attribute that has a boundary type
+            ((iCollection && iCollection.get('attrs')) || []).some( function( iAttr) {
+              if( iAttr.get('type') === 'boundary') {
+                tAreaName = iAttr.get('name');
+                return true;
+              } else {
+                return false;
+              }
+            });
+          }
+
+          if ((tLatName && tLongName) || tAreaName) {
+            this.mapDataConfigurations.push( DG.MapDataConfiguration.create({
+              initializer: {
+                context: iContext, collection: iCollection,
+                latName: tLatName, longName: tLongName, areaName: tAreaName
+              }
+            }));
+          }
+        }.bind( this));
+      }.bind( this));
+
+      var tConfiguration = this.mapDataConfigurations.length > 0 ? this.mapDataConfigurations[0] : null,
+          tContext = tConfiguration.get('dataContext');
+      // If the context has been discovered in the init of the configuration, we take this opportunity
+      // to hook up our observer to it.
+      if( tContext) {
+        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
+      }
+      this.set( 'dataConfiguration', tConfiguration);
+
+      var tLegendDescription = tConfiguration.get('legendAttributeDescription');
+
+      this.set('legend', DG.LegendModel.create( { dataConfiguration: tConfiguration }));
+      this.setPath('legend.attributeDescription', tLegendDescription);
 
       // base class doesn't do this because GraphModel has other initialization to do first
       this.invalidate();
 
-      this.set('center', [37.84, -122.10]); // San Francisco
-      this.set('zoom', 5);  // Reasonable default
+      this.set('center', [45.4408, 12.3155]); //
+      this.set('zoom', 1);  // Reasonable default
       this.set('baseMapLayerName', 'Topographic');
 
       this.set('gridModel', DG.MapGridModel.create({ dataConfiguration: this.get('dataConfiguration')}));

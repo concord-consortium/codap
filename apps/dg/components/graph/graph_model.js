@@ -250,6 +250,23 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           return [];
         }
       }
+
+      // Beginning of init
+      // Set up data configuration
+      var tConfiguration = this.get('dataConfigurationClass').create(),
+          tContext = tConfiguration.get('dataContext');
+      // If the context has been discovered in the init of the configuration, we take this opportunity
+      // to hook up our observer to it.
+      if( tContext) {
+        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
+      }
+      this.set( 'dataConfiguration', tConfiguration);
+
+      var tLegendDescription = tConfiguration.get('legendAttributeDescription');
+
+      this.set('legend', DG.LegendModel.create( { dataConfiguration: tConfiguration }));
+      this.setPath('legend.attributeDescription', tLegendDescription);
+
       var tDataContext = this.initialDataContext;
       var extraYAttributes = getExtraYAttributes(this);
       if( tDataContext) {

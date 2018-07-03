@@ -42,11 +42,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             },
             tPlace,
             tMapContext,
-            tCaptionName, tLatName, tLongName, tAreaName,
-            tCaptionAttr, tLatAttr, tLongAttr, tAreaAttr,
-            kLatNames = ['latitude', 'lat', 'latitud'],
-            kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud'],
-            kAreaNames = ['boundary', 'boundaries', 'polygon', 'polygons'];
+            tCaptionName,
+            tCaptionAttr, tLatAttr, tLongAttr, tAreaAttr;
 
         sc_super();
 
@@ -90,54 +87,16 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             attrDesc.addObserver('collection', this, 'collectionDidChange');
           }.bind(this);
 
-          var tMapCollection, tMapCollectionClient;
-          DG.currDocumentController().get('contexts').forEach(function (iContext) {
-            iContext.get('collections').forEach(function (iCollection) {
-              // If we've already identified a map context, we're done
-              if( tMapContext)
-                return;
-
-              var tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
-                  // Make a copy, all lower case. We will need the original if we find a match.
-                  tLowerCaseNames = tAttrNames.map( function( iAttrName) {
-                    return iAttrName.toLowerCase();
-                  });
-
-              function pickOutName( iKNames) {
-                return tAttrNames.find(function (iAttrName, iIndex) {
-                  return iKNames.find(function (iKName) {
-                    return (iKName === tLowerCaseNames[ iIndex]);
-                  }); 
-                });
-              }
-
-              tLatName = pickOutName( kLatNames);
-              tLongName = pickOutName( kLongNames);
-              tAreaName = pickOutName( kAreaNames);
-              if( !tAreaName) {  // Try for an attribute that has a boundary type
-                ((iCollection && iCollection.get('attrs')) || []).some( function( iAttr) {
-                  if( iAttr.get('type') === 'boundary') {
-                    tAreaName = iAttr.get('name');
-                    return true;
-                  } else {
-                    return false;
-                  }
-                });
-              }
-
-              if ((tLatName && tLongName) || tAreaName) {
-                tMapContext = iContext;
-                tMapCollection = iCollection;
-                tMapCollectionClient = iContext.getCollectionByID( iCollection.get('id'));
-              }
-            });
-          });
+          // When called we are given an initializer with info we need to be valid
+          var tMapContext = this.initializer.context,
+              tMapCollection = this.initializer.collection,
+              tMapCollectionClient = tMapContext.getCollectionByID(tMapCollection.get('id'));
           if (tMapCollection && tMapCollectionClient) {
             tCaptionName = tMapCollection.getAttributeNames()[0];
             tCaptionAttr = tCaptionName && tMapCollection.getAttributeByName(tCaptionName);
-            tLatAttr = tLatName && tMapCollection.getAttributeByName(tLatName);
-            tLongAttr = tLongName && tMapCollection.getAttributeByName(tLongName);
-            tAreaAttr = tAreaName && tMapCollection.getAttributeByName(tAreaName);
+            tLatAttr = this.initializer.latName && tMapCollection.getAttributeByName(this.initializer.latName);
+            tLongAttr = this.initializer.longName && tMapCollection.getAttributeByName(this.initializer.longName);
+            tAreaAttr = this.initializer.areaName && tMapCollection.getAttributeByName(this.initializer.areaName);
 
             configAttrDesc('caption', tCaptionAttr, tMapCollectionClient);
             configAttrDesc('x', tLongAttr, tMapCollectionClient);
@@ -164,6 +123,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
         this.attributesByPlace[DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
         this.attributesByPlace[DG.GraphTypes.EPlace.eArea][0] = attributeDescriptions.area;
         this.set('dataContext', tMapContext);
+
+        delete this.initializer;  // We don't need it any more
       },
 
       /**
