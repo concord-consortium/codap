@@ -99,9 +99,9 @@ DG.MapLayerView = SC.View.extend(
         var onLayerAdd = function (iLayerEvent) {
               var tParentView = this.get('parentView');
               this._map.off('layeradd', onLayerAdd);
-              tParentView.addPointLayer();
-              tParentView.addAreaLayer();
-              tParentView.addGridLayer();
+              tParentView.addPointLayers();
+              tParentView.addPolygonLayers();
+              // tParentView.addGridLayer();
               // We want the popup hints for the grid to be on top of the points. jQuery can
               // help with this if we hardcode the layer class names.
               // ToDo: The implementation below will not work properly when there are two maps.
@@ -182,6 +182,7 @@ DG.MapLayerView = SC.View.extend(
 
       backgroundChanged: function () {
         var tMap = this.get('map'),
+            tLayerOpacity = this.getPath('model.baseMapLayerToggle') ? 1.0 : 0.0,
             tNewLayerName = this.getPath('model.baseMapLayerName'),
             tNewLayer;
 
@@ -191,7 +192,7 @@ DG.MapLayerView = SC.View.extend(
           tMap.removeLayer(this.get('baseMapLayer'));
         if (this.get('baseMapLabels'))
           tMap.removeLayer(this.get('baseMapLabels'));
-        tNewLayer = L.esri.basemapLayer(tNewLayerName, {crossOrigin:true});
+        tNewLayer = L.esri.basemapLayer(tNewLayerName, {crossOrigin:true, opacity: tLayerOpacity});
         this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);

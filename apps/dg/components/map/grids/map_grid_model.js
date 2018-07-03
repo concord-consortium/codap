@@ -103,7 +103,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
   return {
     /**
      * Here we get access to the cases being plotted so we can determine how many points are in a grid rectangle
-     * {@property DG.MapDataConfiguration}
+     * {@property DG.MapPointDataConfiguration}
      */
     dataConfiguration: null,
 

@@ -1,5 +1,5 @@
 // ==========================================================================
-//                        DG.MapAreaLayer
+//                        DG.MapPolygonLayer
 //
 //  Author:   William Finzer
 //
@@ -21,12 +21,12 @@
 sc_require('components/graph_map_common/plot_layer');
 
 
-/** @class DG.MapAreaLayer - A plot of dots placed according to numeric values
+/** @class DG.MapPolygonLayer - A plot of dots placed according to numeric values
 
   @extends DG.PlotLayer
 */
-DG.MapAreaLayer = DG.PlotLayer.extend(
-/** @scope DG.MapAreaLayer.prototype */
+DG.MapPolygonLayer = DG.PlotLayer.extend(
+/** @scope DG.MapPolygonLayer.prototype */
 {
   displayProperties: [],
 
@@ -60,7 +60,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
    */
   readyToDraw: function() {
     var tModel = this.get('model');
-    return tModel && !SC.none(tModel.getPath('dataConfiguration.areaAttributeDescription.attributeID'));
+    return tModel && !SC.none(tModel.getPath('dataConfiguration.polygonAttributeDescription.attributeID'));
   },
 
   /**
@@ -80,7 +80,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
             [];
     return {
       map: this.get('map' ),
-      areaVarID: tModel.getPath('dataConfiguration.areaAttributeDescription.attributeID'),
+      polygonVarID: tModel.getPath('dataConfiguration.polygonAttributeDescription.attributeID'),
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       legendName: tLegendDesc && tLegendDesc.getPath('attribute.name'),
@@ -312,7 +312,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this);
 
       try {
-        var tBoundaryValue = iCase.getValue(tRC.areaVarID);
+        var tBoundaryValue = iCase.getValue(tRC.polygonVarID);
         if (!tBoundaryValue) return;
         if( tBoundaryValue instanceof Error) {
           stashFeature( null, tBoundaryValue.message);
@@ -341,7 +341,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         }
       }
       catch(er) {
-        DG.logWarn("Invalid JSON for map area, reported from DG.MapAreaLayer.addFeatures()");
+        DG.logWarn("Invalid JSON for map area, reported from DG.MapPolygonLayer.addFeatures()");
       }
     }.bind( this));
     this._areFeaturesAdded = true;

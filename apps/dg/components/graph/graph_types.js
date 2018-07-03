@@ -30,7 +30,7 @@ DG.GraphTypes = {
         eY: 1,
         eLegend: 2,
         eY2: 3,
-        eArea: 4,
+        ePolygon: 4,
         eCaption: 5,
         eLastPlace: 5,
         eNumPlaces: 6

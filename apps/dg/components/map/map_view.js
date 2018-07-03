@@ -45,9 +45,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       mapBinding: '.mapLayer.map',
 
       /**
-       * @property {DG.MapAreaLayer}
+       * @property [{DG.MapPolygonLayer}]
        */
-      mapAreaLayer: null,
+      mapPolygonLayers: null,
 
       /**
        * @property {DG.MapPointView}
@@ -268,16 +268,17 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }));
       }.observes('gridControl.persistedValue'),
 
-      addPointLayer: function () {
+      addPointLayers: function () {
         if( this.get('mapPointView'))
           return;
         var tMakeVisible = this.getPath('model.pointsShouldBeVisible');
 
         var tMapPointView = DG.MapPointView.create(
             {
-              mapLayer: this.get('mapLayer')
+              mapLayer: this.get('mapLayer'),
+              model: this.get('model')
             });
-        tMapPointView.set( 'model', this.get('model')); // Cannot pass in because of observer setup
+        // tMapPointView.set( 'model', this.get('model')); // Cannot pass in because of observer setup
         this.set('mapPointView', tMapPointView);
         this.appendChild( tMapPointView);
 
@@ -356,11 +357,13 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }.bind( this));
       }.observes('.model.linesShouldBeVisible'),
 
-      addAreaLayer: function () {
-        if( !this.getPath('model.areaVarID') || this.get('mapAreaLayer'))
+      addPolygonLayers: function () {
+        if( this.get('mapPolygonLayers'))
           return;
-
-        this.set('mapAreaLayer', DG.MapAreaLayer.create(
+        this.mapPolygonLayers = [];
+        // Todo: go through models and create polygon layers
+        this.getPath('model.mapLayerModels')
+        this.set('mapPolygonLayers', DG.MapPolygonLayer.create(
             {
               mapSource: this,
               model: this.get('model')
@@ -368,7 +371,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         if( !this.getPath('model.centerAndZoomBeingRestored')) {
           this.fitBounds();
         }
-        this.get('mapAreaLayer').addFeatures();
+        this.get('mapPolygonLayers').addFeatures();
       },
 
       addGridLayer: function () {
@@ -386,10 +389,12 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             }));
         // The size of any points depends on whether the grid is visible or not
         if( !this.get('mapPointView'))
-          this.addPointLayer();
+          this.addPointLayers();
         // Make the points smaller so they don't completely cover the grid cells
+/*
         if( tGridModel.get('visible'))
-          this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
+          this.setPath('mapPointView.mapPointLayers.fixedPointRadius', 3);
+*/
 
         this.gridVisibilityChanged();
 
@@ -401,8 +406,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        */
       fitBounds: function() {
         var tBounds;
-        if( this.getPath('model.areaVarID')) {
-          var tAreaLayer = this.get('mapAreaLayer'),
+        if( this.getPath('model.polygonVarID')) {
+          var tAreaLayer = this.get('mapPolygonLayers'),
               tAreaBounds = tAreaLayer && tAreaLayer.getBounds();
           if( !SC.none(tAreaBounds)) {
             if (!tBounds)
@@ -463,14 +468,14 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        * This is our chance to add the features to the area layer
        */
       createVisualization: function () {
-        this.get('mapAreaLayer').createVisualization();
+        this.get('mapPolygonLayers').createVisualization();
       },
 
       /**
        Called when the value of a global value changes (e.g. when a slider is dragged).
        */
       globalValueDidChange: function() {
-        var tAreaLayer = this.get('mapAreaLayer');
+        var tAreaLayer = this.get('mapPolygonLayers');
         if( tAreaLayer)
           tAreaLayer.refreshComputedLegendColors();
       },
@@ -489,7 +494,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       handleAttributeRemoved: function() {
         var tMapPointView = this.get('mapPointView'),
-            tMapAreaLayer = this.get('mapAreaLayer'),
+            tMapAreaLayer = this.get('mapPolygonLayers'),
             tMapGridModel = this.get('model.gridModel');
         if( !this.getPath('model.dataConfiguration.hasLatLongAttributes')) {
           this.setPath('model.connectingLineModel.isVisible', false);

@@ -45,7 +45,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   /**
    * @property {DG.MapPointLayer}
    */
-  mapPointLayer: null,
+  mapPointLayers: null,
 
   /**
    * @property {DG.MapLayerView}
@@ -64,7 +64,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
    * possibly because of the classNameBindings. So we use brute force.
    */
   marqueeModeDidChange: function() {
-    this.setPath('mapPointLayer.isInMarqueeMode', this.get('isInMarqueeMode'));
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.set('isInMarqueeMode', this.get('isInMarqueeMode'));
+    }.bind( this));
   }.observes('isInMarqueeMode'),
 
   /**
@@ -109,7 +111,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.getPath('layerManager.' + DG.LayerNames.kAdornments )
       .push( this.marqueeContext.marquee);
     DG.logUser('marqueeDrag: start');
-    this.get('mapPointLayer' ).preparePointSelection();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.preparePointSelection();
+    });
     this.marqueeContext.lastRect = {x:0, y:0, width: 0, height: 0};
     tDataContext.applyChange({
       operation: 'selectCases',
@@ -146,30 +150,31 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
       return;
     iBaseSelection = iBaseSelection || [];
 
-    //DG.log('Map rect: ' + JSON.stringify({iRect: iRect, iLast: iLast}));
-    var tSelection = this.get('mapPointLayer' ).getCasesForDelta( iRect, iLast),
-        tDeselection = this.get('mapPointLayer').getCasesForDelta(iLast, iRect),
-        tSelectChange = {
-                    operation: 'selectCases',
-                    collection: tCollection,
-                    cases: iBaseSelection.concat( tSelection),
-                    select: true,
-                    extend: true
-        },
-        tDeselectChange = {
-          operation: 'selectCases',
-          collection: tCollection,
-          cases: iBaseSelection.concat( tDeselection),
-          select: false,
-          extend: true
-        };
+    this.get('mapPointLayers' ).forEach( function( iLayer) {
+      var tSelection = iLayer.getCasesForDelta( iRect, iLast),
+          tDeselection = iLayer.getCasesForDelta(iLast, iRect),
+          tSelectChange = {
+            operation: 'selectCases',
+            collection: tCollection,
+            cases: iBaseSelection.concat( tSelection),
+            select: true,
+            extend: true
+          },
+          tDeselectChange = {
+            operation: 'selectCases',
+            collection: tCollection,
+            cases: iBaseSelection.concat( tDeselection),
+            select: false,
+            extend: true
+          };
 
-    if (tSelectChange.cases.length !== 0) {
-      tDataContext.applyChange( tSelectChange);
-    }
-    if (tDeselectChange.cases.length !== 0) {
-      tDataContext.applyChange( tDeselectChange);
-    }
+      if (tSelectChange.cases.length !== 0) {
+        tDataContext.applyChange( tSelectChange);
+      }
+      if (tDeselectChange.cases.length !== 0) {
+        tDataContext.applyChange( tDeselectChange);
+      }
+    });
   },
 
   mouseUp: function( iEvent) {
@@ -179,7 +184,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.marqueeContext = null;
     this.set('isInMarqueeMode', false);
     DG.logUser('marqueeDrag: end');
-    this.get('mapPointLayer' ).cleanUpPointSelection();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.cleanUpPointSelection();
+    });
 
     return true;
   },
@@ -203,14 +210,24 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
         }.bind(this);
 
     sc_super();
-    this.set('mapPointLayer', DG.MapPointLayer.create({
-      paperSource: this,
-      model: this.get('model'),
-      mapSource: this
-    }));
-    this.get('mapPointLayer').addObserver( 'plotDisplayDidChange', this, function() {
-      this.invokeLast( this.plottedPointsDidChange);
-    });
+
+    this.mapPointLayers = [];
+
+    this.getPath('model.mapLayerModels').forEach(function (iMapLayerModel) {
+      var tDataConfig = iMapLayerModel.get('dataConfiguration');
+      if (tDataConfig.get('hasLatLongAttributes')) {
+        var tLayer = DG.MapPointLayer.create({
+          paperSource: this,
+          model: iMapLayerModel,
+          mapSource: this,
+          dataConfiguration: tDataConfig
+        });
+        tLayer.addObserver('plotDisplayDidChange', this, function () {
+          this.invokeLast(this.plottedPointsDidChange);
+        }.bind(this));
+        this.mapPointLayers.push(tLayer);
+      }
+    }.bind(this));
 
     // When the underlying map zooms, we want to be hidden during the zoom so user doesn't see
     // points momentarily in wrong place.
@@ -227,7 +244,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   modelDidChange: function () {
-    this.setPath('mapPointLayer.model', this.get('model'));
+    // this.setPath('mapPointLayers.model', this.get('model'));
   }.observes('model'),
 
   shouldDraw: function() {
@@ -236,16 +253,22 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   doDraw: function() {
-    this.get('mapPointLayer' ).doDraw();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.doDraw();
+    });
   },
 
   clear: function() {
-    this.get('mapPointLayer' ).clear();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.clear();
+    });
   },
 
   gridVisibilityDidChange: function() {
     var tFixedSize = this.getPath('model.gridModel.visible') ? 3 : null;
-    this.setPath('mapPointLayer.fixedPointRadius', tFixedSize);
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.set('fixedPointRadius', tFixedSize);
+    });
   }.observes('model.gridModel.visible')
 
 });
