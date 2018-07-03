@@ -293,10 +293,11 @@ DG.GameController = DG.ComponentController.extend(
       createComponentStorage: function () {
         var tStorage = this.getPath('model.componentStorage');
 
-        if (!SC.none(this.context)) {
+        if (!SC.none(this.get('context'))) {
           // Save information about the current game
           tStorage.currentGameName = tStorage.currentGameName ||
               this.getPath('context.gameName') || this.getPath('context.name');
+          tStorage.title = this.getPath('model.title');
           tStorage.currentGameUrl = tStorage.currentGameUrl || this.getPath('context.gameUrl');
           tStorage.preventBringToFront = this.get('preventBringToFront');
           tStorage.preventDataContextReorg = this.get('preventDataContextReorg');
