@@ -1753,6 +1753,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   },
 
   adjustHeaderForOverflow: function () {
+    if (this.isComponentDetached()) {
+      return;
+    }
     function makeLinePair($el) {
       var text = $el.text();
       var $line1 = $('<span>').addClass('two-line-header-line-1').text(text);
