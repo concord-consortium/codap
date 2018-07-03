@@ -50,8 +50,10 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       }.observes('*paperSource.paper'),
 
       plottedElements: function () {
-        return this.getPath('paperSource.plottedElements');
+        return this.get('paperSource').getPlottedElements( this.plotLayerNumber);
       }.property('paper'),
+
+      plotLayerNumber: 0,
 
       /**
        * @property {DG.LayerManager}
@@ -115,7 +117,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
 
       /**
        The model on which this view is based.
-       @property { DG.PlotModel|DG.MapModel }
+       @property { DG.PlotModel|DG.MapLayerModel }
        */
       model: null,
 
@@ -545,22 +547,26 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
 
       _kAllowableInterval: 1000, // milliseconds
 
-      // Private properties
-      _elementOrderIsValid: false,  // Set to false when selection changes
-      _mustMoveElementsToNewCoordinates: false,  // Set to true when collection is created or deleted
+  // Private properties
 
-      /**
-       * Remove elements in plottedElements beyond the length of the array of cases
-       */
-      removeExtraElements: function () {
-        var tCasesLength = this.getPath('model.cases.length'),
-            tPlottedElements = this.get('plottedElements'),
-            tPlotElementLength = tPlottedElements.length,
-            tLayerManager = this.get('layerManager');
-        for (var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
-          DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex], tLayerManager);
-        }
-      },
+  _elementOrderIsValid: false,  // Set to false when selection changes
+  _mustMoveElementsToNewCoordinates: false,  // Set to true when collection is created or deleted
+
+  /**
+   * Remove elements in plottedElements beyond the length of the array of cases
+   */
+  removeExtraElements: function() {
+
+    var tCasesLength = this.getPath('model.cases.length'),
+
+        tPlottedElements = this.get('plottedElements'),
+        tPlotElementLength = tPlottedElements.length,
+        tLayerManager = this.get('layerManager');
+    for( var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
+      DG.PlotUtilities.doHideRemoveAnimation( tPlottedElements[ tIndex], tLayerManager);
+    }
+
+  },
 
       /**
        Subclasses will override
@@ -596,7 +602,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
           this_._elementOrderIsValid = false;
 
         // update case elements, adding them if necessary
-        if (tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded || this._mustMoveElementsToNewCoordinates) {
+        if( tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded || this._mustMoveElementsToNewCoordinates) {
           this.resetCoordinates(tCases, tRC);
         }
       },

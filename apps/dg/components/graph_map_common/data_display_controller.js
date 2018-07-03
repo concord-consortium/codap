@@ -229,10 +229,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
             init: function () {
               sc_super();
               this_.get('dataDisplayModel').addObserver('canSupportConfigurations', this, 'plotDidChange');
-              this_.getPath('dataDisplayModel.dataConfiguration.xAttributeDescription').
-                addObserver('attribute', this, 'plotDidChange');
-              this_.getPath('dataDisplayModel.dataConfiguration.yAttributeDescription').
-                addObserver('attribute', this, 'plotDidChange');
+
+              var tXAttrDescr = this_.getPath('dataDisplayModel.dataConfiguration.xAttributeDescription');
+              if( tXAttrDescr)
+                tXAttrDescr.addObserver('attribute', this, 'plotDidChange');
+              var tYAttrDescr = this_.getPath('dataDisplayModel.dataConfiguration.yAttributeDescription');
+              if( tYAttrDescr)
+                tYAttrDescr.addObserver('attribute', this, 'plotDidChange');
               this.plotDidChange(); // For initialization of visibility
             },
             plotDidChange: function () {
@@ -241,10 +244,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
           });
           tResult.push(tConfigurationButton);
 
+          // iconClass is different for MapView style control
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-inspector-pane-button dg-display-styles'.w(),
-            iconClass: kStylesPaneIconClass,
+            iconClass: this.getPath('model.type') === 'DG.MapView' ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
             showBlip: true,
             target: this,
             action: 'showHideStylesPane',
@@ -402,9 +406,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
             return; // don't reopen if we just closed
           }
 
+          // Note: Styles-pane title and icon are different for map views.
           this.stylesPane = DG.InspectorPickerPane.create(
               {
-                buttonIconClass: kStylesPaneIconClass,
+                // So we can identify closure through click on button icon
+                buttonIconClass: this.getPath('model.type') === 'DG.MapView' ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 250, height: 150},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -420,7 +426,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       title: DG.PickerTitleView.extend({
                         layout: {height: kTitleHeight},
                         flowSpacing: {left: 0, bottom: kLeading},
-                        title: 'DG.Inspector.styles',
+                        title: this.getPath('model.type') === 'DG.MapView' ? 'DG.Inspector.layers' : 'DG.Inspector.styles',
                         localize: true,
                         iconURL: static_url('images/icon-styles.svg')
                       }),

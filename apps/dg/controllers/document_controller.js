@@ -985,7 +985,7 @@ DG.DocumentController = SC.Object.extend(
             var tMapModel = DG.MapModel.create(),
                 tMapController = DG.MapController.create();
             // For maps the map model's data configuration finds a reasonable initial data context.
-            tMapController.set('dataContext', tMapModel.get('dataContext'));
+            // tMapController.set('dataContext', tMapModel.get('dataContext'));
 
             // map as component
             tView = docController.createComponentView(iComponent || this._component, {
@@ -993,7 +993,7 @@ DG.DocumentController = SC.Object.extend(
                   controller: tMapController,
                   componentClass: {type: 'DG.MapView', constructor: DG.MapView},
                   contentProperties: {model: tMapModel},
-                  defaultLayout: {width: 700, height: 450},
+                  defaultLayout: {width: 530, height: 360},
                   title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
                   isResizable: true
                 }

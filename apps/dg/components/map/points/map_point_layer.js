@@ -29,12 +29,14 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     {
       autoDestroyProperties: [],
 
-  /**
-   * @property {DG.MapModel}
-   */
-  model: null,
+      /**
+       * @property {DG.MapModel}
+       */
+      model: null,
 
-  mapSource: null,
+      mapSource: null,
+
+      dataConfiguration: null,
 
       map: function () {
         return this.getPath('mapSource.mapLayer.map');
@@ -52,9 +54,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
        * @returns {boolean}
        */
       readyToDraw: function () {
-        var tModel = this.get('model');
-        return tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
-            !SC.none(tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'));
+        return !SC.none(this.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
+            !SC.none(this.getPath('dataConfiguration.xAttributeDescription.attributeID'));
       },
 
       /**
@@ -65,8 +66,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         var tModel = this.get('model');
         if (!tModel)
           return; // not ready yet
-        var tConfig = tModel.get('dataConfiguration'),
-            tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+        var tConfig = this.get('dataConfiguration'),
+            tLegendDesc = tConfig.get('legendAttributeDescription'),
             tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
             tStrokeParams = this.getStrokeParams(),
             tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
@@ -169,7 +170,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
         // show or hide if needed, then update
-        this.showHidePlottedElement(tCircle, tIsMissingCase || tCircle.isHidden() || !iRC.pointsShouldBeVisible);
+        this.showHidePlottedElement(tCircle, tIsMissingCase /*|| tCircle.isHidden()*/ || !iRC.pointsShouldBeVisible);
         if (!tIsMissingCase) {
           var tAttrs = {
             cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
@@ -306,7 +307,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       },
 
       createElement: function (iCase, iIndex, iAnimate) {
-
         var tCircle = this.get('paper').circle(-100, -100, this._pointRadius);
         tCircle['case'] = iCase;
         tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
@@ -323,6 +323,25 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         }
       }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
           'model.transparency', 'model.strokeTransparency'),
+
+      /**
+       * Override so we just remove the plottedElements in our portion of the array.
+       */
+      removeExtraElements: function() {
+/*
+        var tCasesLength = this.getPath('model.cases.length'),
+            tPlottedElements = this.get('plottedElements'),
+            tPlotElementLength = tPlottedElements.length,
+            tLayerManager = this.get('layerManager');
+        for( var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
+          DG.PlotUtilities.doHideRemoveAnimation( tPlottedElements[ tIndex], tLayerManager);
+        }
+        if( tCasesLength < tPlotElementLength ) { // remove from array
+          tPlottedElements.length = tCasesLength;
+          this._elementOrderIsValid = false;
+        }
+*/
+      },
 
       updateSelection: function () {
         if (SC.none(this.get('map')))
