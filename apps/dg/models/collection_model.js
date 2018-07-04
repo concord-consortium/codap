@@ -563,11 +563,16 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var childCollection = this.children[0];
       var itemGroups = {};  // a hash value representing the values for the
                             // attributes of this collection
+      var attrs = [];
 
       if (SC.none(items)) {
         items = this.dataSet.getDataItems()
                   .filter(function (item) { return !item.deleted; });
       }
+
+      attrs = this.attrs.filter(function (attr) {
+        return SC.empty(attr.formula);
+      });
 
 
       // We are going to walk the itemGroups hash-map creating cases.
@@ -585,7 +590,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         // values for this collection's attributes and the values being arrays of items
         items.forEach(function (item) {
           if (!item.deleted) {
-            var values = this.attrs.map(function (attr) { return item.values[attr.id];}).join();
+            var values = attrs.map(function (attr) { return item.values[attr.id];}).join();
             var list = itemGroups[values] || [];
             if (list.length === 0) {
               itemGroups[values] = list;
