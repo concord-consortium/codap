@@ -1415,8 +1415,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       iItems = [iItems];
     }
     iItems.forEach(function (item) {
-      if (!SC.none(item.itemIndex)) {
-        dataSet.deleteDataItemByIndex(item.itemIndex, iSetAside);
+      if (!SC.none(item)) {
+        dataSet.deleteDataItem(item, iSetAside);
       } else {
         DG.logWarn('Attempt to delete non-Item.');
       }
