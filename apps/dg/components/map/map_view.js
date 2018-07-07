@@ -388,8 +388,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         if( !this.get('mapPointView'))
           this.addPointLayer();
         // Make the points smaller so they don't completely cover the grid cells
+/*
         if( tGridModel.get('visible'))
-          this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
+          this.setPath('mapPointView.mapPointLayers.fixedPointRadius', 3);
+*/
 
         this.gridVisibilityChanged();
 
