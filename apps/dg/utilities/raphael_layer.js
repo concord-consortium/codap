@@ -134,8 +134,13 @@ DG.RaphaelLayer = SC.Object.extend(
       else if( iElement === this._lastElement) {
         this._lastElement = iElement.prev;
       }
-      if( this._map[ iElement.id])
-        delete this._map[ iElement.id];
+      if( this._map[ iElement.id]) {
+        if( iElement.prev)
+          iElement.prev.next = iElement.next;
+        if( iElement.next)
+          iElement.next.prev = iElement.prev;
+        delete this._map[iElement.id];
+      }
     },
 
     forEach: function( iCallback) {
