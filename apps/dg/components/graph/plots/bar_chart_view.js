@@ -400,7 +400,7 @@ DG.BarChartView = DG.ChartView.extend(
             tNewElementAttrs = [], // used if many-to-one animation (parent to child collection)
             tNewToOldCaseMap = [],
             tOldToNewCaseMap = [],
-            tOldElementsAreCircles = tOldElementAttrs.length > 0 && tOldElementAttrs[0].type === 'circle';
+            tOldElementsAreCircles = tOldElementAttrs[0] && tOldElementAttrs[0].type === 'circle';
         if (!tCases)
           return;
 

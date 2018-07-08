@@ -388,7 +388,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   callCreateElement: function(iCase, iIndex, iAnimate) {
     var tPlottedElements = this.get('plottedElements'),
         tElement;
-    if( iIndex < tPlottedElements.length && tPlottedElements[ iIndex]) {
+    if( tPlottedElements[ iIndex]) {
       tElement = tPlottedElements[ iIndex];
     }
     else {
@@ -692,7 +692,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         tLayerManager = this.get('layerManager'),
         tCases = this.getPath('model.cases'),
         tUnselectedRadius = this._pointRadius,
-        tIsRect = tPlottedElements.length > 0 && tPlottedElements[0][0].constructor === SVGRectElement,
+        tIsRect = tPlottedElements[0] && tPlottedElements[0][0].constructor === SVGRectElement,
         tSelectedRadius = tUnselectedRadius + DG.PlotUtilities.kPointRadiusSelectionAddend;
 
     if(!tCases || !tSelection)
