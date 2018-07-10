@@ -68,7 +68,14 @@ DG.DataItem = SC.Object.extend({
   },
 
   getValue: function(attributeID) {
-    return this.values[attributeID];
+    var attr = DG.Attribute.getAttributeByID(attributeID);
+    var tCase;
+    if (attr.hasFormula()) {
+      tCase = DG.Case.findCase(attr.collection.id, this.id);
+      return (tCase.getRawValue(attributeID));
+    } else {
+      return this.values[attributeID];
+    }
   },
 
   /**
@@ -90,7 +97,7 @@ DG.DataItem = SC.Object.extend({
     Object.keys(this.values).map(function (key) {
       var attr = DG.Attribute.getAttributeByID(key);
       if (attr) {
-        nameValueMap[attr.name] = this.values[key];
+        nameValueMap[attr.name] = this.getValue(key);
       }
     }.bind(this));
     return {
