@@ -55,10 +55,8 @@ DG.Component = DG.BaseModel.extend(
       userSetTitle: false,
 
       titleChanged: function () {
-        if( !this.get('userSetTitle')) {
-          this._title = null;
-          this.notifyPropertyChange('title');
-        }
+        this._title = null;
+        this.notifyPropertyChange('title');
       }.observes('*content.title', '*content.defaultTitle'),
       
       /*
@@ -190,7 +188,7 @@ DG.Component = DG.BaseModel.extend(
             tStorage = this.get('componentStorage'),
             tCannotClose = this.get('cannotClose');
         if( tStorage) {
-          tStorage.title = tStorage.title || this.get('title');
+          tStorage.title = this.get('title') || tStorage.title;
           tStorage.name = tStorage.name || this.get('name');
           tStorage.userSetTitle = tStorage.userSetTitle || this.get('userSetTitle');
           tStorage.cannotClose = SC.none(tCannotClose)? tStorage.cannotClose: tCannotClose;
