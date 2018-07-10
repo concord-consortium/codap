@@ -414,8 +414,10 @@ DG.DataSet = SC.Object.extend((function() // closure
       }
 
       switch (parsedQuery.op) {
-        case '==': return leftValue === rightValue;
-        case '!=': return leftValue !== rightValue;
+// eslint-disable-next-line eqeqeq
+        case '==': return leftValue == rightValue; // jshint ignore:line
+// eslint-disable-next-line eqeqeq
+        case '!=': return leftValue != rightValue; // jshint ignore:line
         case '<':  return leftValue <   rightValue;
         case '<=': return leftValue <=  rightValue;
         case '>=': return leftValue >=  rightValue;
