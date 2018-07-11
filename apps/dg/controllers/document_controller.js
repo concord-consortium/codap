@@ -187,6 +187,9 @@ DG.DocumentController = SC.Object.extend(
        */
       documentName: function (iKey, iValue) {
         var content = this.get('content');
+        if (!content) {
+          return;
+        }
         if (iValue !== undefined) {
           content.set('name', iValue);
           DG.store.commitRecords();
@@ -197,6 +200,15 @@ DG.DocumentController = SC.Object.extend(
       documentNameDidChange: function () {
         this.notifyPropertyChange('documentName');
       }.observes('*content.name'),
+
+      setPageTitle: function () {
+        if (( DG.get('componentMode') === 'yes') || ( DG.get('embeddedMode') === 'yes')) {
+          return;
+        }
+        var name = this.get('documentName');
+        var nameString = 'DG.main.page.title'.loc(name, DG.USER_APPNAME);
+        $('title').text(nameString);
+      }.observes('documentName'),
 
       sharedMetadata: function (iKey, iSharedMetadata) {
         if (iSharedMetadata !== undefined) {

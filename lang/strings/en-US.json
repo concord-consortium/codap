@@ -16,6 +16,7 @@
     "DG.fileMenu.provider.examples.displayName": "Example Documents",
 
     // main.js
+    "DG.main.page.title": "%@1 - %@2", // document name, CODAP
     "DG.main.userEntryView.title": "What would you like to do?",
     "DG.main.userEntryView.openDocument": "Open Document or Browse Examples",
     "DG.main.userEntryView.newDocument": "Create New Document",

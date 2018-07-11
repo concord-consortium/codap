@@ -251,16 +251,6 @@ DG.appController = SC.Object.create((function () // closure
       };
     },
 
-    documentNameDidChange: function () {
-      // Update document title
-      var documentController = DG.currDocumentController
-          && DG.currDocumentController(),
-        nameString = '';
-      if (documentController) {
-        nameString = documentController.get('documentName') + ' - ';
-      }
-      $('title').text(nameString + 'CODAP');
-    }.observes('DG._currDocumentController.documentName'),
 
     dataSetDeleteAgent: SC.Object.extend({
       deleteWithAlert: function (menu) {
