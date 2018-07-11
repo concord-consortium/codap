@@ -12003,7 +12003,7 @@ CloudFileManagerClient = (function() {
   }
 
   CloudFileManagerClient.prototype.setAppOptions = function(appOptions1) {
-    var Provider, allProviders, availableProviders, base, base1, base2, base3, i, j, len, len1, provider, providerList, providerName, providerOptions, providerSpec, readableMimetypes, ref, ref1, requestedProviders, shareProvider;
+    var Provider, allProviders, availableProviders, base, base1, i, j, len, len1, provider, providerList, providerName, providerOptions, providerSpec, readableMimetypes, ref, ref1, requestedProviders, shareProvider;
     this.appOptions = appOptions1 != null ? appOptions1 : {};
     if ((base = this.appOptions).wrapFileContent == null) {
       base.wrapFileContent = true;
@@ -12071,9 +12071,6 @@ CloudFileManagerClient = (function() {
       shareProvider: shareProvider
     });
     (base1 = this.appOptions).ui || (base1.ui = {});
-    (base2 = this.appOptions.ui).windowTitleSuffix || (base2.windowTitleSuffix = document.title);
-    (base3 = this.appOptions.ui).windowTitleSeparator || (base3.windowTitleSeparator = ' - ');
-    this._setWindowTitle();
     this._ui.init(this.appOptions.ui);
     if (this.appOptions.autoSaveInterval) {
       this.autoSave(this.appOptions.autoSaveInterval);
@@ -13212,7 +13209,6 @@ CloudFileManagerClient = (function() {
       value = additionalState[key];
       state[key] = value;
     }
-    this._setWindowTitle(metadata != null ? metadata.name : void 0);
     if (hashParams !== null) {
       window.location.hash = hashParams;
     }
@@ -13282,13 +13278,6 @@ CloudFileManagerClient = (function() {
       });
     }
     return currentContent;
-  };
-
-  CloudFileManagerClient.prototype._setWindowTitle = function(name) {
-    var ref, ref1;
-    if ((ref = this.appOptions) != null ? (ref1 = ref.ui) != null ? ref1.windowTitleSuffix : void 0 : void 0) {
-      return document.title = "" + ((name != null ? name.length : void 0) > 0 ? name : tr("~MENUBAR.UNTITLED_DOCUMENT")) + this.appOptions.ui.windowTitleSeparator + this.appOptions.ui.windowTitleSuffix;
-    }
   };
 
   CloudFileManagerClient.prototype._getHashParams = function(metadata) {
@@ -18319,7 +18308,7 @@ module.exports = React.createClass({
 
 
 },{"../providers/provider-interface":65,"../utils/translate":79,"./modal-dialog-view":93}],87:[function(require,module,exports){
-var DropDown, DropdownItem, div, g, i, li, rect, ref, span, svg, ul;
+var DropDown, DropdownItem, cfmMenuClass, div, g, i, li, rect, ref, span, svg, ul;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li, svg = ref.svg, g = ref.g, rect = ref.rect;
 
@@ -18371,6 +18360,8 @@ DropdownItem = React.createFactory(React.createClass({
   }
 }));
 
+cfmMenuClass = 'cfm-menu';
+
 DropDown = React.createClass({
   displayName: 'Dropdown',
   getInitialState: function() {
@@ -18382,42 +18373,31 @@ DropDown = React.createClass({
   },
   componentWillMount: function() {
     if (window.addEventListener) {
-      window.addEventListener('mousedown', this.checkBlur, true);
-      return window.addEventListener('touchstart', this.checkBlur, true);
+      window.addEventListener('mousedown', this.checkClose, true);
+      return window.addEventListener('touchstart', this.checkClose, true);
     }
   },
   componentWillUnmount: function() {
     if (window.removeEventListener) {
-      window.removeEventListener('mousedown', this.checkBlur, true);
-      return window.removeEventListener('touchstart', this.checkBlur, true);
+      window.removeEventListener('mousedown', this.checkClose, true);
+      return window.removeEventListener('touchstart', this.checkClose, true);
     }
   },
-  checkBlur: function() {
-    if (this.state.showingMenu) {
-      return this.blur();
+  checkClose: function(evt) {
+    var elt;
+    if (!this.state.showingMenu) {
+      return;
     }
-  },
-  blur: function() {
-    var timeout;
-    this.unblur();
-    timeout = setTimeout(((function(_this) {
-      return function() {
-        return _this.setState({
-          showingMenu: false,
-          subMenu: false
-        });
-      };
-    })(this)), 500);
-    return this.setState({
-      timeout: timeout
-    });
-  },
-  unblur: function() {
-    if (this.state.timeout) {
-      clearTimeout(this.state.timeout);
+    elt = evt.target;
+    while (elt != null) {
+      if (typeof elt.className === "string" && elt.className.indexOf(cfmMenuClass) >= 0) {
+        return;
+      }
+      elt = elt.parentNode;
     }
     return this.setState({
-      timeout: null
+      showingMenu: false,
+      subMenu: false
     });
   },
   setSubMenu: function(subMenu) {
@@ -18441,7 +18421,7 @@ DropDown = React.createClass({
   },
   render: function() {
     var index, item, menuClass, ref1, select;
-    menuClass = this.state.showingMenu ? 'menu-showing' : 'menu-hidden';
+    menuClass = cfmMenuClass + " " + (this.state.showingMenu ? 'menu-showing' : 'menu-hidden');
     select = (function(_this) {
       return function(item) {
         return function() {
@@ -18452,7 +18432,7 @@ DropDown = React.createClass({
     return div({
       className: 'menu'
     }, ((ref1 = this.props.items) != null ? ref1.length : void 0) > 0 ? div({}, div({
-      className: 'menu-anchor',
+      className: cfmMenuClass + " menu-anchor",
       onClick: (function(_this) {
         return function() {
           return _this.select(null);
@@ -18477,9 +18457,7 @@ DropDown = React.createClass({
       width: 16,
       height: 2
     })))), div({
-      className: menuClass,
-      onMouseLeave: this.blur,
-      onMouseEnter: this.unblur
+      className: menuClass
     }, ul({}, (function() {
       var j, len, ref2, results;
       ref2 = this.props.items;
@@ -18633,12 +18611,10 @@ FileDialogTab = React.createClass({
   mixins: [AuthorizeMixin],
   getInitialState: function() {
     var initialState, ref1, ref2;
+    this._isMounted = true;
     initialState = this.getStateForFolder((ref1 = this.props.client.state.metadata) != null ? ref1.parent : void 0, true) || null;
     initialState.filename = ((ref2 = initialState.metadata) != null ? ref2.name : void 0) || '';
     return initialState;
-  },
-  componentDidMount: function() {
-    return this._isMounted = true;
   },
   componentWillUnmount: function() {
     return this._isMounted = false;

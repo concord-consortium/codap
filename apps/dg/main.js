@@ -58,8 +58,6 @@ DG.main = function main() {
 
   DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
-  DG.appController.documentNameDidChange();
-
   DG.showUserEntryView = true;
 
   /* begin CFM load/configuration */
@@ -295,7 +293,6 @@ DG.main = function main() {
           appOrMenuElemId: iViewConfig.navBarId,
           hideMenuBar: DG.get('hideCFMMenu'),
           ui: {
-            windowTitleSuffix: DG.USER_APPNAME,
             menu: [
               { name: 'DG.fileMenu.menuItem.newDocument'.loc(), action: 'newFileDialog' },
               { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
@@ -531,6 +528,10 @@ DG.main = function main() {
           DG.cfmClient && DG.cfmClient.dirty(DG.currDocumentController().get('hasUnsavedChanges'));
         }
 
+        function normalizeDocumentName(name) {
+          return name?name.replace(/\.codap$/, '').replace(/\.json$/, ''): 'unknown';
+        }
+
         switch (event.type) {
           case 'connected':
             DG.cfmClient = event.data.client;
@@ -557,6 +558,10 @@ DG.main = function main() {
               cfmShowUserEntryView();
             }
             DG.splash.hideSplash();
+            if (event.state.metadata && event.state.metadata.name) {
+              DG.currDocumentController().set('documentName',
+                  normalizeDocumentName(event.state.metadata.name));
+            }
             break;
 
           case "closedFile":
@@ -754,7 +759,9 @@ DG.main = function main() {
 
           case "renamedFile":
             SC.run(function() {
-              DG.currDocumentController().set('documentName', event.state.metadata.name);
+              var document = DG.currDocumentController();
+              var name = event.state.metadata.name;
+              document.set('documentName', name);
             });
             break;
         }
