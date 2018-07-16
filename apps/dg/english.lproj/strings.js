@@ -796,6 +796,9 @@ SC.stringsFor("en", {
     "DG.Inspector.mapPoints": "Points",
     "DG.Inspector.mapLines": "Connecting Lines",
 
+    // Map-layer Inspector
+    "DG.Inspector.layers": "Layers",
+
     // Game Controller
     "DG.GameController.continuityError": "Sorry, after columns in the case table have been reordered, new data cannot be accepted.",
 

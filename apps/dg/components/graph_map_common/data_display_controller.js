@@ -237,10 +237,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
           });
           tResult.push(tConfigurationButton);
 
+          // iconClass is different for MapView style control
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-display-styles'.w(),
-            iconClass: 'moonicon-icon-styles',
+            iconClass: this.getPath('model.type') === 'DG.MapView' ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
             showBlip: true,
             target: this,
             action: 'showStylesPane',
@@ -402,9 +403,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
             return;
           }
 
+          // Note: Styles-pane title and icon are different for map views.
           this.stylesPane = DG.InspectorPickerPane.create(
               {
-                buttonIconClass: 'moonicon-icon-styles',  // So we can identify closure through click on button icon
+                // So we can identify closure through click on button icon
+                buttonIconClass: this.getPath('model.type') === 'DG.MapView' ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 250, height: 150},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -420,7 +423,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       title: DG.PickerTitleView.extend({
                         layout: {height: kTitleHeight},
                         flowSpacing: {left: 0, bottom: kLeading},
-                        title: 'DG.Inspector.styles',
+                        title: this.getPath('model.type') === 'DG.MapView' ? 'DG.Inspector.layers' : 'DG.Inspector.styles',
                         localize: true,
                         iconURL: static_url('images/icon-styles.svg')
                       }),

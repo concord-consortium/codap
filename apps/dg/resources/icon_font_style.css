@@ -220,3 +220,6 @@
 .moonicon-icon-thumb:before {
 	content: "\5a";
 }
+.moonicon-icon-layers:before {
+	content: "\e92e";
+}
