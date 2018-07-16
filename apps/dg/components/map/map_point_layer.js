@@ -29,12 +29,14 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     {
       autoDestroyProperties: [],
 
-  /**
-   * @property {DG.MapModel}
-   */
-  model: null,
+      /**
+       * @property {DG.MapModel}
+       */
+      model: null,
 
-  mapSource: null,
+      mapSource: null,
+
+      dataConfiguration: null,
 
       map: function () {
         return this.getPath('mapSource.mapLayer.map');
@@ -52,9 +54,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
        * @returns {boolean}
        */
       readyToDraw: function () {
-        var tModel = this.get('model');
-        return tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
-            !SC.none(tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'));
+        return !SC.none(this.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
+            !SC.none(this.getPath('dataConfiguration.xAttributeDescription.attributeID'));
       },
 
       /**
@@ -65,8 +66,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         var tModel = this.get('model');
         if (!tModel)
           return; // not ready yet
-        var tConfig = tModel.get('dataConfiguration'),
-            tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+        var tConfig = this.get('dataConfiguration'),
+            tLegendDesc = tConfig.get('legendAttributeDescription'),
             tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
             tStrokeParams = this.getStrokeParams(),
             tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?

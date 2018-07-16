@@ -973,7 +973,7 @@ DG.DocumentController = SC.Object.extend(
             var tMapModel = DG.MapModel.create(),
                 tMapController = DG.MapController.create();
             // For maps the map model's data configuration finds a reasonable initial data context.
-            tMapController.set('dataContext', tMapModel.get('dataContext'));
+            // tMapController.set('dataContext', tMapModel.get('dataContext'));
 
             // map as component
             tView = docController.createComponentView(iComponent || this._component, {

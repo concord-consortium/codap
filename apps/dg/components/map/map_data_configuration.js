@@ -90,7 +90,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
           // When called we are given an initializer with info we need to be valid
           var tMapContext = this.initializer.context,
               tMapCollection = this.initializer.collection,
-              tMapCollectionClient = tMapContext.getCollectionByID(tMapCollection.get('id'));
+              tMapCollectionClient = tMapContext && tMapContext.getCollectionByID(tMapCollection.get('id'));
           if (tMapCollection && tMapCollectionClient) {
             tCaptionName = tMapCollection.getAttributeNames()[0];
             tCaptionAttr = tCaptionName && tMapCollection.getAttributeByName(tCaptionName);

@@ -45,7 +45,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   /**
    * @property {DG.MapPointLayer}
    */
-  mapPointLayer: null,
+  mapPointLayers: null,
 
   /**
    * @property {DG.MapLayerView}
@@ -64,7 +64,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
    * possibly because of the classNameBindings. So we use brute force.
    */
   marqueeModeDidChange: function() {
-    this.setPath('mapPointLayer.isInMarqueeMode', this.get('isInMarqueeMode'));
+    this.setPath('mapPointLayers.isInMarqueeMode', this.get('isInMarqueeMode'));
   }.observes('isInMarqueeMode'),
 
   /**
@@ -109,7 +109,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.getPath('layerManager.' + DG.LayerNames.kAdornments )
       .push( this.marqueeContext.marquee);
     DG.logUser('marqueeDrag: start');
-    this.get('mapPointLayer' ).preparePointSelection();
+    this.get('mapPointLayers' ).preparePointSelection();
     this.marqueeContext.lastRect = {x:0, y:0, width: 0, height: 0};
     tDataContext.applyChange({
       operation: 'selectCases',
@@ -147,8 +147,8 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     iBaseSelection = iBaseSelection || [];
 
     //DG.log('Map rect: ' + JSON.stringify({iRect: iRect, iLast: iLast}));
-    var tSelection = this.get('mapPointLayer' ).getCasesForDelta( iRect, iLast),
-        tDeselection = this.get('mapPointLayer').getCasesForDelta(iLast, iRect),
+    var tSelection = this.get('mapPointLayers' ).getCasesForDelta( iRect, iLast),
+        tDeselection = this.get('mapPointLayers').getCasesForDelta(iLast, iRect),
         tSelectChange = {
                     operation: 'selectCases',
                     collection: tCollection,
@@ -179,7 +179,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.marqueeContext = null;
     this.set('isInMarqueeMode', false);
     DG.logUser('marqueeDrag: end');
-    this.get('mapPointLayer' ).cleanUpPointSelection();
+    this.get('mapPointLayers' ).cleanUpPointSelection();
 
     return true;
   },
@@ -203,14 +203,22 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
         }.bind(this);
 
     sc_super();
-    this.set('mapPointLayer', DG.MapPointLayer.create({
-      paperSource: this,
-      model: this.get('model'),
-      mapSource: this
-    }));
-    this.get('mapPointLayer').addObserver( 'plotDisplayDidChange', this, function() {
-      this.invokeLast( this.plottedPointsDidChange);
-    });
+
+    this.mapPointLayers = [];
+    this.getPath('model.mapDataConfigurations').forEach( function( iConfig) {
+      if( iConfig.hasLatLongAttributes()) {
+        var tLayer = DG.MapPointLayer.create({
+          paperSource: this,
+          model: this.get('model'),
+          mapSource: this,
+          dataConfiguration: iConfig
+        });
+        tLayer.addObserver( 'plotDisplayDidChange', this, function() {
+          this.invokeLast( this.plottedPointsDidChange);
+        }.bind( this));
+        this.mapPointLayers.push( tLayer);
+      }
+    }.bind( this));
 
     // When the underlying map zooms, we want to be hidden during the zoom so user doesn't see
     // points momentarily in wrong place.
@@ -227,7 +235,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   modelDidChange: function () {
-    this.setPath('mapPointLayer.model', this.get('model'));
+    // this.setPath('mapPointLayers.model', this.get('model'));
   }.observes('model'),
 
   shouldDraw: function() {
@@ -236,16 +244,22 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   doDraw: function() {
-    this.get('mapPointLayer' ).doDraw();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.doDraw();
+    });
   },
 
   clear: function() {
-    this.get('mapPointLayer' ).clear();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.clear();
+    });
   },
 
   gridVisibilityDidChange: function() {
     var tFixedSize = this.getPath('model.gridModel.visible') ? 3 : null;
-    this.setPath('mapPointLayer.fixedPointRadius', tFixedSize);
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.set('fixedPointRadius', tFixedSize);
+    });
   }.observes('model.gridModel.visible')
 
 });
