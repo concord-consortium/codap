@@ -183,6 +183,7 @@ DG.MapLayerView = SC.View.extend(
 
       backgroundChanged: function () {
         var tMap = this.get('map'),
+            tLayerOpacity = this.getPath('model.baseMapLayerToggle') ? 1.0 : 0.0,
             tNewLayerName = this.getPath('model.baseMapLayerName'),
             tNewLayer;
 
@@ -192,7 +193,7 @@ DG.MapLayerView = SC.View.extend(
           tMap.removeLayer(this.get('baseMapLayer'));
         if (this.get('baseMapLabels'))
           tMap.removeLayer(this.get('baseMapLabels'));
-        tNewLayer = L.esri.basemapLayer(tNewLayerName);
+        tNewLayer = L.esri.basemapLayer(tNewLayerName, { opacity: tLayerOpacity });
         this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);

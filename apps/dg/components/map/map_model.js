@@ -41,6 +41,12 @@ DG.MapModel = DG.DataDisplayModel.extend(
     baseMapLayerName: null,
 
     /**
+     * Changes the visibility of the layer in Leaflet with the opacity parameter.
+     * {@property Boolean}
+     */
+    baseMapLayerToggle: true,
+
+    /**
      * An array of data configurations, one per layer
      * @property {[{DG.MapDataConfiguration}]}
      */
