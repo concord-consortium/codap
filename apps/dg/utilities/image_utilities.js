@@ -140,48 +140,97 @@ DG.ImageUtilities = (function () {
       // ######## convertImage begin ########
       //
       // find all svg elements that are not children of hidden divs
-      var svgs = $(rootEl).find('div:not(.sc-hidden)>svg');
+      var elements = $(rootEl).find('img,div:not(.sc-hidden)>svg');
       var canvas = makeCanvasEl(width, height);
-      var promises = [];
+      var jobList = [];
+      var jobIx = 0;
 
+      function perform(job) {
+        var elType = job && job.el && job.el.nodeName.toLowerCase();
+        if (!job) {
+          try {
+            return Promise.resolve(asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas));
+          } catch (e) {
+            return Promise.reject(e);
+          }
+        }
+        if (elType === 'svg') {
+          return makeSVGImage(makeDataURLFromSVGElement(job.el)).then(function (img) {
+              addImageToCanvas(canvas, img, job.l, job.t, job.w, job.h);
+              return perform(jobList[jobIx++]);
+            },
+            function (error) {
+              return Promise.reject(error);
+            }
+          );
+        } else if (elType === 'img') {
+          if (!SC.none(job.el.getAttribute('crossorigin'))) {
+            addImageToCanvas(canvas, job.el, job.l, job.t, job.w, job.h);
+          }
+          return perform(jobList[jobIx++]);
+        } else {
+          return perform(jobList[jobIx++]);
+        }
+
+      }
       // for each svg we calculate its geometry, then add it to the canvas
       // through a promise.
       // Note: This implementation starts a number of asynchronous operations,
       // one for each SVG in the hierarchy. If they overlap and are handled out
       // of order, it is possible that they may be written to the canvas in the
       // wrong order.
-      if (svgs) {
-        svgs.forEach(function (svg) {
-          var width = svg.offsetWidth || svg.width.baseVal.value;
-          var height = svg.offsetHeight || svg.height.baseVal.value;
-          var left = 0;
-          var top = 0;
-          $(svg).add($(svg).parentsUntil(rootEl)).each(function () {
-            left += this.offsetLeft || 0;
-            top += this.offsetTop || 0;
+      try {
+        if (elements) {
+          elements.forEach(function (element) {
+            var width = element.offsetWidth || (element.width.baseVal?element.width.baseVal.value:0);
+            var height = element.offsetHeight || (element.height.baseVal?element.height.baseVal.value:0);
+            var left = 0;
+            var top = 0;
+            var rect = element.getBoundingClientRect();
+            var rootRect = rootEl.getBoundingClientRect();
+            if (element.nodeName.toLowerCase() === "img") {
+              jobList.push({
+                el:element,
+                w: rect.width,
+                h: rect.height,
+                l: rect.left - rootRect.left,
+                t: rect.top - rootRect.top
+              });
+            } else {
+              $(element).add($(element).parentsUntil(rootEl)).each(function () {
+                left += this.offsetLeft || 0;
+                top += this.offsetTop || 0;
+              });
+              jobList.push({el: element, w: width, h: height, l: left, t: top});
+            }
           });
-          // DG.log('SVG width/height/left/top: ' + [width, height, left, top].join('/'));
-          var imgPromise = makeSVGImage(makeDataURLFromSVGElement(svg));
-          imgPromise.then(function (img) {
-                addImageToCanvas(canvas, img, left, top, width, height);
-              },
-              function (error) {
-                DG.logError(error);
-              }
-          );
-          promises.push(imgPromise);
-        });
+
+          return perform (jobList[jobIx++]);
+            // DG.log('SVG width/height/left/top: ' + [width, height, left, top].join('/'));
+          //   var imgPromise = makeSVGImage(makeDataURLFromSVGElement(element));
+          //   imgPromise.then(function (img) {
+          //         addImageToCanvas(canvas, img, left, top, width, height);
+          //       },
+          //       function (error) {
+          //         DG.logError(error);
+          //       }
+          //   );
+          // });
+
+        }
+      } catch (ex) {
+        DG.logError('saving image: ' + ex);
       }
+      return null;
 
       // when all promises have been fulfilled we make a blob, then invoke the
       // save image dialog.
-      return Promise.all(promises).then(function () {
-          return asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas);
-        },
-        function (error) {
-          DG.logError(error);
-        }
-      );
+      // return Promise.all(promises).then(function () {
+      //     return asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas);
+        // },
+        // function (error) {
+        //   DG.logError(error);
+        // }
     }
   };
 }());

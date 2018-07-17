@@ -264,7 +264,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             tMenu.popup(tImageExportButton);
           }.bind(this);
 
-          if (this.makePngImage) {  // Not implemented for map yet
+          if (this.makePngImage) {
             tImageExportButton = DG.IconButton.create({
               layout: {width: 32},
               iconExtent: {width: 30, height: 25},
@@ -976,6 +976,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
           DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height)
             .then(function (blob) {
               saveImage(blob);
+            }, function (msg) {
+              DG.log(msg);
             });
         },
 
@@ -987,7 +989,28 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 DG.appController.importDrawToolWithDataURL(dataURL, title);
               });
             });
-        }
+        },
+
+        makePngImage: function () {
+          var componentView = this.get('view');
+          var graphView = componentView && componentView.get('contentView');
+          var width = graphView.getPath('frame.width');
+          var height = graphView.getPath('frame.height');
+          this.convertToImage(graphView.get('layer'), width, height);
+        },
+
+        copyAsImage: function () {
+          var componentView = this.get('view'),
+              title = (componentView && componentView.get('title')) ||
+                  "DG.DocumentController.graphTitle".loc(),
+              graphView = componentView && componentView.get('contentView'),
+              layer = graphView && graphView.get('layer'),
+              width = graphView && graphView.getPath('frame.width'),
+              height = graphView && graphView.getPath('frame.height');
+          if (graphView)
+            this.openDrawToolWithImage(layer, width, height, title);
+        },
+
 
       };
 

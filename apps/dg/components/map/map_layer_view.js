@@ -140,7 +140,7 @@ DG.MapLayerView = SC.View.extend(
         this._map = L.map(this._layerID, {
           scrollWheelZoom: false,
           zoomSnap: 0,
-          attributionControl: false,
+          // attributionControl: false,
           trackResize: false
         })
             .setView(this.getPath('model.center'), this.getPath('model.zoom'));
@@ -192,7 +192,7 @@ DG.MapLayerView = SC.View.extend(
           tMap.removeLayer(this.get('baseMapLayer'));
         if (this.get('baseMapLabels'))
           tMap.removeLayer(this.get('baseMapLabels'));
-        tNewLayer = L.esri.basemapLayer(tNewLayerName);
+        tNewLayer = L.esri.basemapLayer(tNewLayerName, {crossOrigin:true});
         this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
