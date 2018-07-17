@@ -230,7 +230,7 @@ DG.MapController = DG.DataDisplayController.extend(
        */
       rescaleFunction: function() {
         this.get('mapView').fitBounds();
-      }
+      },
 
     };
 
