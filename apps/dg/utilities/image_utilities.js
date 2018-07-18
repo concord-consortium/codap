@@ -100,6 +100,11 @@ DG.ImageUtilities = (function () {
         ctx.drawImage(image, x, y, width, height);
       }
 
+      function drawRectToCanvas(canvas, color, x, y, width, height) {
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, width, height);
+      }
       /**
        * Convert a canvas object to a blob.
        * @param canvas
@@ -140,7 +145,7 @@ DG.ImageUtilities = (function () {
       // ######## convertImage begin ########
       //
       // find all svg elements that are not children of hidden divs
-      var elements = $(rootEl).find('img,div:not(.sc-hidden)>svg');
+      var elements = $(rootEl).find('div.dg-plot-view,img,div:not(.sc-hidden)>svg');
       var canvas = makeCanvasEl(width, height);
       var jobList = [];
       var jobIx = 0;
