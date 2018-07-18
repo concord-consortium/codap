@@ -3618,7 +3618,7 @@
             onstart && eve.on("raphael.drag.start." + this.id, onstart);
             onmove && eve.on("raphael.drag.move." + this.id, onmove);
             onend && eve.on("raphael.drag.end." + this.id, onend);
-            eve("raphael.drag.start." + this.id, start_scope || move_scope || this, e.clientX + scrollX, e.clientY + scrollY, e);
+            eve("raphael.drag.start." + this.id, start_scope || move_scope || this, /*[CC]*/ this._drag.x, this._drag.y /*[/CC]*/, e);
         }
         this._drag = {};
         draggable.push({el: this, start: start});
@@ -5921,6 +5921,7 @@
             }
         }
         $(o, {
+            // [CC] Fixed differently in Raphael 2.2.0 (https://github.com/DmitryBaranovskiy/raphael/blob/master/history.md)
             fill: "url('" /* [CC] + document.location [/CC] */ + "#" + id + "')",
             opacity: 1,
             "fill-opacity": 1
@@ -6393,8 +6394,9 @@
         var a = el.attrs,
             node = el.node,
             fontSize = node.firstChild ? toInt(R._g.doc.defaultView.getComputedStyle(node.firstChild, E).getPropertyValue("font-size"), 10) : 10;
-        // CODAP modification
+        // [CC] CODAP modification
         fontSize = isFinite( fontSize) ? fontSize : 10;
+        // [/CC]
 
         if (params[has]("text")) {
             a.text = params.text;
