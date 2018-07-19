@@ -274,6 +274,10 @@
     padding: 4px 5px 5px 5px;
 }
 
+.ace.menu .panel-background {
+    pointer-events: none;
+}
+
 .ace.menu .sc-menu-item.focus span, .ace.menu .sc-menu-item a:hover span {
     color: #79B2BC;
     text-decoration: underline;

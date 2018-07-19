@@ -33,6 +33,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
     /** @scope DG.DataDisplayController.prototype */
     (function () {
 
+      var kValuesPaneIconClass = 'moonicon-icon-values',
+          kConfigPaneIconClass = 'moonicon-icon-segmented-bar-chart',
+          kStylesPaneIconClass = 'moonicon-icon-styles';
+
       function getCollectionClientFromDragData(iContext, iDragData) {
         var collectionID = iDragData.collection && iDragData.collection.get('id');
         return iContext && !SC.none(collectionID) && iContext.getCollectionByID(collectionID);
@@ -204,22 +208,22 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
-            classNames: 'dg-display-values'.w(),
-            iconClass: 'moonicon-icon-values',
+            classNames: 'dg-inspector-pane-button dg-display-values'.w(),
+            iconClass: kValuesPaneIconClass,
             showBlip: true,
             target: this,
-            action: 'showValuesPane',
+            action: 'showHideValuesPane',
             toolTip: 'DG.Inspector.displayValues.toolTip',
             localize: true
           }));
 
           var tConfigurationButton = DG.IconButton.create({
             layout: {width: 32},
-            classNames: 'dg-display-configuration'.w(),
-            iconClass: 'moonicon-icon-segmented-bar-chart-icon',
+            classNames: 'dg-inspector-pane-button dg-display-configuration'.w(),
+            iconClass: kConfigPaneIconClass,
             showBlip: true,
             target: this,
-            action: 'showConfigurationPane',
+            action: 'showHideConfigurationPane',
             toolTip: 'DG.Inspector.displayConfiguration.toolTip',
             localize: true,
             init: function () {
@@ -239,11 +243,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
-            classNames: 'dg-display-styles'.w(),
-            iconClass: 'moonicon-icon-styles',
+            classNames: 'dg-inspector-pane-button dg-display-styles'.w(),
+            iconClass: kStylesPaneIconClass,
             showBlip: true,
             target: this,
-            action: 'showStylesPane',
+            action: 'showHideStylesPane',
             toolTip: 'DG.Inspector.displayStyles.toolTip',
             localize: true
           }));
@@ -281,19 +285,18 @@ DG.DataDisplayController = DG.ComponentController.extend(
          * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
          * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
          */
-        showValuesPane: function () {
+        showHideValuesPane: function () {
           var this_ = this,
               kTitleHeight = 26,
               kMargin = 20,
               kLeading = 5,
               kRowHeight = 20;
-          if( this.getPath('valuesPane.removedByClickInButton')) {
-            this.setPath('valuesPane.removedByClickInButton', false);
-            return;
+          if (DG.InspectorPickerPane.close(kValuesPaneIconClass)) {
+            return; // don't reopen if we just closed
           }
           this.valuesPane = DG.InspectorPickerPane.create(
               {
-                buttonIconClass: 'moonicon-icon-values',  // So we can identify closure through click on button icon
+                buttonIconClass: kValuesPaneIconClass,
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 200, height: 260},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -335,22 +338,20 @@ DG.DataDisplayController = DG.ComponentController.extend(
         },
 
         /**
-         * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
-         * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
+         * The content of the configuration pane depends on what plot is showing.
          */
-        showConfigurationPane: function () {
+        showHideConfigurationPane: function () {
           var this_ = this,
               kTitleHeight = 26,
               kMargin = 20,
               kLeading = 5,
               kRowHeight = 20;
-          if( this.getPath('configurationPane.removedByClickInButton')) {
-            this.setPath('configurationPane.removedByClickInButton', false);
-            return;
-          }
-          this.configurationPane = DG.InspectorPickerPane.create(
+              if (DG.InspectorPickerPane.close(kConfigPaneIconClass)) {
+                return; // don't reopen if we just closed
+              }
+              this.configurationPane = DG.InspectorPickerPane.create(
               {
-                buttonIconClass: 'moonicon-icon-segmented-bar-chart',  // So we can identify closure through click on button icon
+                buttonIconClass: kConfigPaneIconClass,
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 200, height: 260},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -389,7 +390,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         /**
          * The styles pane provides control over point size, color, and transparency.
          */
-        showStylesPane: function () {
+        showHideStylesPane: function () {
           var this_ = this,
               kTitleHeight = 26,
               kMargin = 20,
@@ -397,14 +398,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
               tStylesButton = this.get('inspectorButtons').find( function( iButton) {
                 return iButton.get('classNames').indexOf( 'dg-display-styles') >= 0;
               });
-          if( this.getPath('stylesPane.removedByClickInButton')) {
-            this.setPath('stylesPane.removedByClickInButton', false);
-            return;
+          if (DG.InspectorPickerPane.close(kStylesPaneIconClass)) {
+            return; // don't reopen if we just closed
           }
 
           this.stylesPane = DG.InspectorPickerPane.create(
               {
-                buttonIconClass: 'moonicon-icon-styles',  // So we can identify closure through click on button icon
+                buttonIconClass: kStylesPaneIconClass,
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 250, height: 150},
                 contentView: SC.View.extend(SC.FlowedLayout,
