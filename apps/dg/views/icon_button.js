@@ -19,7 +19,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/* global Tooltip */
+sc_require('utilities/tap_hold_gesture');
 sc_require('views/image_view');
 sc_require('views/tooltip_enabler');
 
@@ -29,7 +30,7 @@ sc_require('views/tooltip_enabler');
 
   @extends SC.View
 */
-DG.IconButton = SC.View.extend( DG.TooltipEnabler,
+DG.IconButton = SC.View.extend(SC.Gesturable, DG.TooltipEnabler,
 /** @scope DG.IconButton.prototype */
   (function() {
     var kTopOffset = 0,
@@ -54,7 +55,9 @@ DG.IconButton = SC.View.extend( DG.TooltipEnabler,
           valueBinding: '.parentView.title',
           localizeBinding: '.parentView.localize'
         }),
-      
+
+      gestures: [DG.TapHoldGesture],
+
       init: function() {
         sc_super();
         var tTitle = this.get('title') ? this.get('title').loc() : null,
@@ -162,6 +165,7 @@ DG.IconButton = SC.View.extend( DG.TooltipEnabler,
         }
       },
       touchStart: function( iTouch) {
+        this.gestureTouchStart(iTouch);
         this.beginPropertyChanges();
         this.set( 'isMouseOver', YES);
         this.set( 'isMouseDown', YES);
@@ -169,11 +173,30 @@ DG.IconButton = SC.View.extend( DG.TooltipEnabler,
         return YES;
       },
       touchEnd: function( iTouch) {
-        this._action(iTouch);
+        this.gestureTouchEnd(iTouch);
+        if (!DG.IconButton.clearTouchTooltip(iTouch.identifier))
+          this._action(iTouch);
         this.beginPropertyChanges();
         this.set( 'isMouseOver', NO);
         this.set( 'isMouseDown', NO);
         this.endPropertyChanges();
+      },
+
+      tapHold: function(touch) {
+        var tooltip = new Tooltip(this.get('layer'), {
+                                    container: DG.mainPage.getPath('mainPane.layer'),
+                                    placement: 'bottom-start',
+                                    trigger: 'manual',
+                                    title: this.get('displayToolTip')
+                                  });
+        DG.IconButton.showTouchTooltip(touch, tooltip);
+        this._tooltipTouchID = touch.identifier;
+      },
+
+      tapHoldCancelled: function() {
+        if (this._tooltipTouchID) {
+          DG.IconButton.hideTouchTooltip(this._tooltipTouchID, DG.IconButton.kTouchTooltipDefault);
+        }
       },
 
       toolTipDidChange: function() {
@@ -196,3 +219,63 @@ DG.IconButton = SC.View.extend( DG.TooltipEnabler,
   }()) // function closure
 );
 
+DG.IconButton.kTouchTooltipDefault = 5000;
+DG.IconButton.kTouchTooltipMin = 2000;
+DG.IconButton.kTouchTooltipMax = 8000;
+DG.IconButton.tooltips = {};
+
+DG.IconButton.showTouchTooltip = function(touch, tooltip) {
+  DG.IconButton.hideAllTouchTooltips();
+
+  tooltip.show();
+  DG.IconButton.tooltips[touch.identifier] =
+                  { touch: touch, tooltip: tooltip };
+
+  DG.IconButton.hideTouchTooltip(touch.identifier, DG.IconButton.kTouchTooltipMax);
+};
+
+DG.IconButton.hideTouchTooltip = function(touchID, delay) {
+  var entry = DG.IconButton.tooltips[touchID],
+      hideTooltip = function() {
+        var entry = DG.IconButton.tooltips[touchID];
+        if (entry) {
+          if (entry.tooltip) {
+            entry.tooltip.dispose();
+            entry.tooltip = null;
+          }
+          entry.timer = null;
+          if (entry.finished)
+            delete DG.IconButton.tooltips[touchID];
+        }
+      };
+  if (!entry) return;
+  
+  if (entry.timer) {
+    clearTimeout(entry.timer);
+    entry.timer = null;
+  }
+
+  if (delay) {
+    entry.timer = setTimeout(hideTooltip, delay);
+  }
+  else {
+    hideTooltip();
+  }
+};
+
+DG.IconButton.clearTouchTooltip = function(touchID) {
+  var entry = DG.IconButton.tooltips[touchID];
+  if (entry) {
+    entry.finished = true;
+    DG.IconButton.hideTouchTooltip(touchID, DG.IconButton.kTouchTooltipDefault);
+    return true;
+  }
+  return false;
+};
+
+DG.IconButton.hideAllTouchTooltips = function(delay) {
+  DG.ObjectMap.forEach(DG.IconButton.tooltips,
+                      function(touchID) {
+                        DG.IconButton.hideTouchTooltip(touchID, delay);
+                      });
+};
