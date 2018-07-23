@@ -89,7 +89,9 @@
     "moment": "^2.22.2",
     "papaparse": "^4.5.0",
     "pluralize": "^4.0.0",
+    "popper.js": "^1.14.3",
     "react": "^15.6.2",
-    "react-dom": "^15.6.2"
+    "react-dom": "^15.6.2",
+    "tooltip.js": "^1.2.0"
   }
 }

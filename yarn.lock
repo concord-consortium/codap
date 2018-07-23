@@ -2121,6 +2121,10 @@ pluralize@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-4.0.0.tgz#59b708c1c0190a2f692f1c7618c446b052fd1762"
 
+popper.js@^1.0.2, popper.js@^1.14.3:
+  version "1.14.3"
+  resolved "https://registry.yarnpkg.com/popper.js/-/popper.js-1.14.3.tgz#1438f98d046acf7b4d78cd502bf418ac64d4f095"
+
 prelude-ls@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.1.2.tgz#21932a549f5e52ffd9a827f570e04be62a97da54"
@@ -2727,6 +2731,12 @@ tiny-binary-search@^1.0.3:
 to-arraybuffer@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/to-arraybuffer/-/to-arraybuffer-1.0.1.tgz#7d229b1fcc637e466ca081180836a7aabff83f43"
+
+tooltip.js@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/tooltip.js/-/tooltip.js-1.2.0.tgz#8b16482f04397f4f9d7387843dccf186890c8860"
+  dependencies:
+    popper.js "^1.0.2"
 
 tough-cookie@~2.3.0:
   version "2.3.2"
