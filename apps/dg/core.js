@@ -349,21 +349,19 @@ DG = SC.Application.create((function () // closure
           paramsToRemove = Array.isArray(iParams) ? iParams : [iParams];
       paramsToRemove.forEach(function(iParam) {
         iParam = iParam.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        // match the leading delimiter along with the query parameter
         var regexS = "[\\?&]" + iParam + "=([^&]*)",
             regex = new RegExp(regexS),
             result = regex.exec(queryParams),
             match = result && result[0],
             matchIndex = result && result.index,
-            matchLength = match && match.length;
-        if ((matchIndex > 0) && (queryParams[matchIndex-1] === '&'))
-          match = '&' + match;
-        else if ((matchIndex + matchLength < queryParams.length) &&
-                  (queryParams[matchIndex + matchLength] === '&')) {
-          match = match + '&';
-        }
-        else if ((matchLength + 1 === queryParams.length))
-          match = '?' + match;
+            matchLength = match && match.length,
+            isFirstParam = matchIndex === 0,
+            isLastParam = matchIndex + matchLength >= queryParams.length;
 
+        // leave the initial question mark if there are more parameters
+        if (isFirstParam && !isLastParam)
+          match = match.substr(1) + '&';
         if (match)
           queryParams = queryParams.replace(match, '');
       });
