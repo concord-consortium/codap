@@ -56,9 +56,10 @@ DG.mainPage = SC.Page.design((function() {
       });
     },
 
-    sendEvent: function(action, evt, target) {
+    sendEvent: function(action, evt) {
       if( action === 'mouseDown' || action === 'touchStart' || action === 'click') {
-        this.hideInspectorPicker( target);
+        // use the underlying event target for class matching
+        this.hideInspectorPicker( evt.target);
       }
       this.listeners.forEach( function( iListener) {
         if( iListener.action === action) {
@@ -69,16 +70,21 @@ DG.mainPage = SC.Page.design((function() {
     },
 
     hideInspectorPicker: function( iTarget) {
-      var tInspectorPicker = this.get('inspectorPicker');
+      var tInspectorPicker = DG.get('inspectorPicker');
       if( tInspectorPicker) {
-        // We can detect that the mousedown causing us to hide the inspectorPicker occurred in
-        // the button that brings it up. In which case, when we handle that event, we won't want
-        // to show that inspector picker again for this mouse click. Convoluted? Yes!
-        if( iTarget && iTarget.iconClass && iTarget.iconClass === tInspectorPicker.buttonIconClass)
-            tInspectorPicker.set('removedByClickInButton', true);
-        tInspectorPicker.remove();
-        tInspectorPicker.destroy(); // We regenerate each time
-        this.set('inspectorPicker', null);
+        // We can detect that the event causing us to hide the inspectorPicker occurred in
+        // the button that brings it up. In which case, we let the button handle it.
+        var classes = iTarget && iTarget.className && iTarget.className.split(' ') || [],
+            parent = iTarget && iTarget.parentNode,
+            parentClasses = parent && parent.className && parent.className.split(' ') || [];
+        if ((classes.indexOf('dg-inspector-pane-button') >= 0) ||
+            (parentClasses.indexOf('dg-inspector-pane-button') >= 0) ||
+            (classes.indexOf(tInspectorPicker.get('buttonIconClass')) >= 0)) {
+          // click on launch button -- let the button handle it
+        }
+        else {
+          DG.InspectorPickerPane.close();
+        }
       }
     },
 
