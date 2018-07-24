@@ -20,6 +20,8 @@
 DG.mainPage = SC.Page.design((function() {
 
   var kIsMobileDevice = SC.browser.device !== SC.DEVICE.desktop,
+      kIsComponentMode = DG.get('componentMode') === 'yes',
+      kIsEmbeddedMode = DG.get('embeddedMode') === 'yes',
       kToolbarHeight = DG.STANDALONE_MODE ? 0 : 70,
       kInfobarHeight = 24,
       kIconTopPadding = 17;
@@ -31,8 +33,8 @@ DG.mainPage = SC.Page.design((function() {
   // Add childViews to this pane for views to display immediately on page load.
   mainPane: SC.MainPane.design({
 
-    isTextSelectable: YES, // Makes text selectable in the background page in
-                           // shared embedded mode
+    // Makes text selectable in the background page in shared embedded mode
+    isTextSelectable: kIsEmbeddedMode,
 
     /**
      * Objects in this array have an action they want to pay attention to, a receiver that will be
@@ -109,7 +111,7 @@ DG.mainPage = SC.Page.design((function() {
       layout: { height: kInfobarHeight },
       childViews: 'leftSide rightSide'.w(),
       anchorLocation: SC.ANCHOR_TOP,
-      isVisible: (DG.get('componentMode') !== 'yes') && (DG.get('embeddedMode') !== 'yes'),
+      isVisible: !(kIsComponentMode || kIsEmbeddedMode),
 
       // CFM wrapper view
       leftSide: SC.View.design({
@@ -288,7 +290,7 @@ DG.mainPage = SC.Page.design((function() {
     init: function() {
       sc_super();
       this.listeners = [];
-      if(( DG.get('componentMode') === 'yes') || ( DG.get('embeddedMode') === 'yes')) {
+      if (kIsComponentMode || kIsEmbeddedMode) {
         var tScrollView = this.get('scrollView');
         this.setPath('topView.isVisible', false);
         tScrollView.adjust('top', 0);

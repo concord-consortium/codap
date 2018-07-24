@@ -48,6 +48,12 @@ html, body {
     overflow: hidden;
     /* cf. https://developers.google.com/web/updates/2017/11/overscroll-behavior */
     overscroll-behavior: none;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 #codap {
