@@ -25,6 +25,8 @@
 DG.TextFieldView = SC.TextFieldView.extend(
 /** @scope DG.TextFieldView.prototype */ {
 
+  isTextSelectable: YES,
+
   /**
     Override SproutCore method to coordinate with DG.globalEditorLock.
     @returns  {Boolean} True if successful; false otherwise.
