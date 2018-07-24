@@ -13,7 +13,7 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
-.moonicon-icon-segmented-bar-chart-icon:before {
+.moonicon-icon-segmented-bar-chart:before {
 	content: "\e900";
 }
 .moonicon-icon-plug:before {

@@ -29,33 +29,48 @@
  @extends SC.PickerPane
  */
 DG.InspectorPickerPane = SC.PickerPane.extend(
-    /** @scope DG.InspectorPickerPane.prototype */ {
+  /** @scope DG.InspectorPickerPane.prototype */ {
 
-      /**
-       * We will set this to true if we find ourselves responding to a mousedown in this pickerpane's
-       * icon button, so that this fact can be detected and we'll be left removed.
-       */
-      removedByClickInButton: false,
+    /**
+     * We will set this to true if we find ourselves responding to a mousedown in this pickerpane's
+     * icon button, so that this fact can be detected and we'll be left removed.
+     */
+    removedByClickInButton: false,
 
-      isModal: false,
+    isModal: false,
 
-      init: function () {
-        sc_super();
-        DG.mainPage.mainPane.set('inspectorPicker', this);
-        this.set('removeTarget', this);
-      },
-      popup: function () {
-        var kLeading = 5,
-            tHeight = 0;
-        this.getPath('contentView.childViews').forEach(function (iView) {
-          tHeight += iView.frame().height + kLeading;
-        });
-        this.adjust('height', tHeight);
-        sc_super();
-      },
-      transitionIn: SC.View.SCALE_IN,
-      removeAction: function() {
-        console.log('removeAction');
-      }
-    });
+    init: function () {
+      sc_super();
+      DG.set('inspectorPicker', this);
+      this.set('removeTarget', this);
+    },
+    popup: function () {
+      var kLeading = 5,
+          tHeight = 0;
+      this.getPath('contentView.childViews').forEach(function (iView) {
+        tHeight += iView.frame().height + kLeading;
+      });
+      this.adjust('height', tHeight);
+      sc_super();
+    },
+    transitionIn: SC.View.SCALE_IN,
+    removeAction: function() {
+      console.log('removeAction');
+    }
+  });
 
+  /*
+   * Closes any open inspector pane.
+   * If no iClass is specified, returns true if an inspector was closed.
+   * If iClass is specified, returns true if an inspector with the specified class was closed.
+   */
+DG.InspectorPickerPane.close = function(iClass) {
+  var tInspectorPicker = DG.get('inspectorPicker'),
+      hasClass = tInspectorPicker && (tInspectorPicker.get('buttonIconClass') === iClass);
+  if (tInspectorPicker) {
+    tInspectorPicker.remove();
+    tInspectorPicker.destroy();
+    DG.set('inspectorPicker', null);
+  }
+  return (tInspectorPicker != null) && (!iClass || hasClass);
+};
