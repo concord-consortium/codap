@@ -275,9 +275,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         var tMapPointView = DG.MapPointView.create(
             {
-              mapLayer: this.get('mapLayer')
+              mapLayer: this.get('mapLayer'),
+              model: this.get('model')
             });
-        tMapPointView.set( 'model', this.get('model')); // Cannot pass in because of observer setup
+        // tMapPointView.set( 'model', this.get('model')); // Cannot pass in because of observer setup
         this.set('mapPointView', tMapPointView);
         this.appendChild( tMapPointView);
 

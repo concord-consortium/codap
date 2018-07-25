@@ -122,7 +122,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
         this.attributesByPlace[DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
         this.attributesByPlace[DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
         this.attributesByPlace[DG.GraphTypes.EPlace.eArea][0] = attributeDescriptions.area;
-        this.set('dataContext', tMapContext);
+        // this.set('dataContext', tMapContext); // undefined: check lines 44 & 91
+        this.set('dataContext', this.initializer.context);
 
         delete this.initializer;  // We don't need it any more
       },

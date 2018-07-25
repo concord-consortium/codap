@@ -555,7 +555,12 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * Remove elements in plottedElements beyond the length of the array of cases
    */
   removeExtraElements: function() {
+    // TODO: A single "paper" could now have multiple sets of cases, exceeding the number of plottedElements
+    // TODO: Is this class used only by leaflet maps?
     var tCasesLength = this.getPath('model.cases.length'),
+    // var tCasesLength = this.getPath('paperSource.model.mapLayerModels').reduce(function (a, b) {
+    //       return a.getPath('cases.length') + b.getPath('cases.length');
+    //     }),
         tPlottedElements = this.get('plottedElements'),
         tPlotElementLength = tPlottedElements.length,
         tLayerManager = this.get('layerManager');
@@ -613,6 +618,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     if( tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded || this._mustMoveElementsToNewCoordinates ) {
       this.resetCoordinates( tCases, tRC);
     }
+
+    // TODO: With multiple layers, elements length can exceed the current cases length
     DG.assert( tPlottedElements.length === tCases.get('length') );
   },
 
