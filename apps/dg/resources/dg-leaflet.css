@@ -51,14 +51,8 @@ sc_require('resources/leaflet-0/leaflet.css')
 .leaflet-container ~ div {
     z-index: 1100;
 }
-/*.leaflet-control {*/
-    /*z-index: inherit;*/
-/*}*/
-/*.leaflet-top,*/
-/*.leaflet-bottom {*/
-    /*z-index: inherit;*/
-/*}*/
-
-/*.leaflet-clickable {*/
-    /*cursor: inherit;*/
-/*}*/
+.dg .leaflet-container .leaflet-control-attribution {
+    margin: 10px;
+    opacity: .5;
+    width: 140px;
+}
