@@ -280,17 +280,7 @@ DG.ComponentView = SC.View.extend(
         isSelected: false,
 
         isSelectedChanged: function () {
-          var type = this.getPath('controller.model.type');
           this.setPath('containerView.titlebar.isSelected', this.get('isSelected'));
-
-          // If webview, overlay transparent layer to allow selection by clicking anywhere
-          if (type === 'DG.WebView') {
-            if (this.get('isSelected')) {
-              this.removeChild(this.overlayView);
-            } else {
-              this.appendChild(this.overlayView);
-            }
-          }
         }.observes('isSelected'),
 
         _modelSavedHeightBinding: SC.Binding.from('*model.savedHeight').oneWay(),
@@ -325,7 +315,7 @@ DG.ComponentView = SC.View.extend(
         },
         contentView: SC.outlet('containerView.contentView'),
         childViews: ('containerView' + (DG.get('componentMode') === 'no' ?
-            ' borderRight borderBottom borderLeft borderTop borderCorner overlayView' : '')).w(),
+            ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),
         containerView: SC.View.design({
           layout: {left: 0, bottom: 0, right: 0},
           childViews: 'titlebar coverSheet'.w(),
@@ -604,10 +594,6 @@ DG.ComponentView = SC.View.extend(
               }
             }),
 
-        overlayView: SC.View.design({
-          layout: {top:0, left:0, right: 0, bottom: 0},
-          backgroundColor: 'transparent'
-        }),
         title: function (iKey, iValue) {
           if (!SC.none(iValue))
             this.setPath('containerView.titlebar.titleView.value', iValue);
