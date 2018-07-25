@@ -148,13 +148,19 @@ DG.ImageUtilities = (function () {
       function perform(job) {
         var elType = job && job.el && job.el.nodeName.toLowerCase();
         if (!job) {
+          // we have drawn all the elements resolve the promise with a data URL or blob
           try {
             return Promise.resolve(asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas));
           } catch (e) {
             return Promise.reject(e);
           }
         }
-        if (elType === 'svg') {
+        if (elType === 'div') {
+          // get the background color from the base div
+          drawRectToCanvas(canvas,$(job.el).css('background-color'), job.l, job.t, job.w, job.h);
+          return perform(jobList[jobIx++]);
+        } else if (elType === 'svg') {
+          // add the svg as an image to the canvas
           return makeSVGImage(makeDataURLFromSVGElement(job.el)).then(function (img) {
               addImageToCanvas(canvas, img, job.l, job.t, job.w, job.h);
               return perform(jobList[jobIx++]);
@@ -164,6 +170,8 @@ DG.ImageUtilities = (function () {
             }
           );
         } else if (elType === 'img') {
+          // add an img to the canvas only if it has the crossorigin attribute.
+          // otherwise we will taint the canvas
           if (!SC.none(job.el.getAttribute('crossorigin'))) {
             addImageToCanvas(canvas, job.el, job.l, job.t, job.w, job.h);
           }
@@ -206,31 +214,12 @@ DG.ImageUtilities = (function () {
           });
 
           return perform (jobList[jobIx++]);
-            // DG.log('SVG width/height/left/top: ' + [width, height, left, top].join('/'));
-          //   var imgPromise = makeSVGImage(makeDataURLFromSVGElement(element));
-          //   imgPromise.then(function (img) {
-          //         addImageToCanvas(canvas, img, left, top, width, height);
-          //       },
-          //       function (error) {
-          //         DG.logError(error);
-          //       }
-          //   );
-          // });
-
         }
       } catch (ex) {
         DG.logError('saving image: ' + ex);
       }
       return null;
 
-      // when all promises have been fulfilled we make a blob, then invoke the
-      // save image dialog.
-      // return Promise.all(promises).then(function () {
-      //     return asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas);
-        // },
-        // function (error) {
-        //   DG.logError(error);
-        // }
     }
   };
 }());
