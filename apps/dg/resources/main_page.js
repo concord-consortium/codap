@@ -74,9 +74,13 @@ DG.mainPage = SC.Page.design((function() {
       if( tInspectorPicker) {
         // We can detect that the event causing us to hide the inspectorPicker occurred in
         // the button that brings it up. In which case, we let the button handle it.
-        var classes = iTarget && iTarget.className && iTarget.className.split(' ') || [],
+        var classes = iTarget && (typeof iTarget.className === 'string')
+                        ? iTarget.className.split(' ')
+                        : [],
             parent = iTarget && iTarget.parentNode,
-            parentClasses = parent && parent.className && parent.className.split(' ') || [];
+            parentClasses = parent && (typeof parent.className === 'string')
+                              ? parent.className.split(' ')
+                              : [];
         if ((classes.indexOf('dg-inspector-pane-button') >= 0) ||
             (parentClasses.indexOf('dg-inspector-pane-button') >= 0) ||
             (classes.indexOf(tInspectorPicker.get('buttonIconClass')) >= 0)) {
