@@ -36,9 +36,17 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
   kLineTopLeft: DG.Browser.customCursorStr(static_url('cursors/LinePivotTopLeft.cur'), 5, 5),
   kLineTopRight: DG.Browser.customCursorStr(static_url('cursors/LinePivotTopRight.cur'), 12, 5),
 
+  kHandleSize: 12,
+
+  /**
+    We add three rectangular "handles" to indicate draggability
+    @property { array of Raphael rectangle element }
+  */
+  hitHandles: null,
+
   /**
     The line is covered by three nearly transparent wider segments for hitting and hilighting
-    @property { Raphael line element }
+    @property { array of Raphael line element }
   */
   hitSegments: null,
 
@@ -176,7 +184,14 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
       return; // already created
     sc_super(); // Creates lineSeg, backgrndRect, and equation
 
-    var tLayer = this.get('layer');
+    var tPaper = this.get('paper'),
+        tLayer = this.get('layer');
+
+    this.hitHandles = [0, 1, 2].map(function(i) {
+      return tPaper.rect(0, 0, this.kHandleSize, this.kHandleSize)
+                    .addClass('dg-movable-line-handle')
+                    .attr({ fill: '#FFF', 'fill-opacity': 1 });
+    }.bind(this));
 
     // Hints (implemented as titles here) were good, but they cause layering problems that
     // prevent hitting the line if you are directly over lineSeg. Consider adding the hover
@@ -192,7 +207,7 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
                   .drag(dragContinue[i], dragBegin[i], dragEnd[i]);
     }.bind(this));
 
-    this.hitSegments.forEach( function( iElement) {
+    this.hitHandles.concat(this.hitSegments).forEach( function( iElement) {
       this.myElements.push( iElement);
       tLayer.push( iElement);
     }.bind( this));
@@ -287,15 +302,22 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
 
     DG.RenderingUtilities.updateLine( this.lineSeg, pts[0], pts[3]);
 
+    this.hitHandles.forEach(function(handle, i) {
+      var xCenter = (pts[i].x + pts[i+1].x) / 2,
+          yCenter = (pts[i].y + pts[i+1].y) / 2;
+      handle.toFront()
+            .attr({ x: xCenter - this.kHandleSize / 2, y: yCenter - this.kHandleSize / 2 });
+    }.bind(this));
+
     this.hitSegments.forEach(function(segment, i) {
-      DG.RenderingUtilities.updateLine( segment, pts[i], pts[i + 1]);
+      DG.RenderingUtilities.updateLine(segment, pts[i], pts[i + 1]);
     });
 
     var cursors = tSlope > 0
                     ? [this.kLineBotLeft, this.kLineSlideCur, this.kLineTopRight]
                     : [this.kLineTopLeft, this.kLineSlideCur, this.kLineBotRight];
     this.hitSegments.forEach(function(segment, i) {
-      segment.attr({ cursor: cursors[i] });
+      segment.toFront().attr({ cursor: cursors[i] });
     });
 
     tTextBox = this.equation.attr( { text: this.get('equationString') }).getBBox();

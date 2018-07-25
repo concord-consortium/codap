@@ -435,6 +435,14 @@
     pointer-events: all;
 }
 
+.dg-movable-line-handle {
+    display: none;
+}
+
+.dg-component-view-selected .dg-movable-line-handle {
+    display: initial;
+}
+
 .dg-axis-view {
     font-family: Montserrat-Regular;
     background-color: #F9F9F9;
