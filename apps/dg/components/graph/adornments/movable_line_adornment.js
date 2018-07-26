@@ -36,13 +36,19 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
   kLineTopLeft: DG.Browser.customCursorStr(static_url('cursors/LinePivotTopLeft.cur'), 5, 5),
   kLineTopRight: DG.Browser.customCursorStr(static_url('cursors/LinePivotTopRight.cur'), 12, 5),
 
+  kHandleSize: 12,
+
+  /**
+    We add three rectangular "handles" to indicate draggability
+    @property { array of Raphael rectangle element }
+  */
+  hitHandles: null,
+
   /**
     The line is covered by three nearly transparent wider segments for hitting and hilighting
-    @property { Raphael line element }
+    @property { array of Raphael line element }
   */
-  firstSegHit: null,
-  secondSegHit: null,
-  thirdSegHit: null,
+  hitSegments: null,
 
   equationString: function() {
     var tResult = sc_super();
@@ -75,23 +81,19 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
 
     function overScope() {
       var tAttributes = { stroke: DG.PlotUtilities.kLineHighlightColor };
-      this_.firstSegHit.stop();
-      this_.secondSegHit.stop();
-      this_.thirdSegHit.stop();
-      this_.firstSegHit.animate( tAttributes, DG.PlotUtilities.kHighlightShowTime);
-      this_.secondSegHit.animate( tAttributes, DG.PlotUtilities.kHighlightShowTime);
-      this_.thirdSegHit.animate( tAttributes, DG.PlotUtilities.kHighlightShowTime);
+      this_.hitSegments.forEach(function(segment) {
+        segment.stop();
+        segment.animate(tAttributes, DG.PlotUtilities.kHighlightShowTime);
+      });
     }
 
     function outScope() {
       var tAttributes = { stroke: DG.RenderingUtilities.kSeeThrough };
       if( !tDragging) {
-        this_.firstSegHit.stop();
-        this_.secondSegHit.stop();
-        this_.thirdSegHit.stop();
-        this_.firstSegHit.animate( tAttributes, DG.PlotUtilities.kHighlightHideTime);
-        this_.secondSegHit.animate( tAttributes, DG.PlotUtilities.kHighlightHideTime);
-        this_.thirdSegHit.animate( tAttributes, DG.PlotUtilities.kHighlightHideTime);
+        this_.hitSegments.forEach(function(segment) {
+          segment.stop();
+          segment.animate(tAttributes, DG.PlotUtilities.kHighlightHideTime);
+        });
       }
     }
 
@@ -182,28 +184,30 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
       return; // already created
     sc_super(); // Creates lineSeg, backgrndRect, and equation
 
-    var tLayer = this.get('layer');
+    var tPaper = this.get('paper'),
+        tLayer = this.get('layer');
+
+    this.hitHandles = [0, 1, 2].map(function(i) {
+      return tPaper.rect(0, 0, this.kHandleSize, this.kHandleSize)
+                    .addClass('dg-movable-line-handle')
+                    .attr({ fill: '#FFF', 'fill-opacity': 1 });
+    }.bind(this));
 
     // Hints (implemented as titles here) were good, but they cause layering problems that
     // prevent hitting the line if you are directly over lineSeg. Consider adding the hover
     // and drag routines to lineSeg.
-    this.firstSegHit = this.lineSeg.clone()
-              .attr({ 'stroke-width': 12,
-                  stroke: DG.RenderingUtilities.kSeeThrough//,
-                  //title: "Rotate the line around other end"
-      })
-              .hover( overScope, outScope)
-              .drag( continueRotation1, beginRotation, endRotation);
-    this.secondSegHit = this.firstSegHit.clone()
-              .attr( { cursor: this.kLineSlideCur })
-              .hover( overScope, outScope)
-              .drag( continueTranslate, beginDrag, endTranslate);
-    this.thirdSegHit = this.firstSegHit.clone()
-              //.attr( { title: "Rotate the line around other end" })
-              .hover( overScope, outScope)
-              .drag( continueRotation2, beginRotation, endRotation);
+    var dragContinue = [continueRotation1, continueTranslate, continueRotation2],
+        dragBegin = [beginRotation, beginDrag, beginRotation],
+        dragEnd = [endRotation, endTranslate, endRotation];
+    this.hitSegments = [0, 1, 2].map(function(i) {
+      return this.lineSeg.clone()
+                  .attr({ 'stroke-width': 12,
+                          stroke: DG.RenderingUtilities.kSeeThrough })
+                  .hover(overScope, outScope)
+                  .drag(dragContinue[i], dragBegin[i], dragEnd[i]);
+    }.bind(this));
 
-    [ this.firstSegHit, this.secondSegHit, this.thirdSegHit].forEach( function( iElement) {
+    this.hitHandles.concat(this.hitSegments).forEach( function( iElement) {
       this.myElements.push( iElement);
       tLayer.push( iElement);
     }.bind( this));
@@ -293,24 +297,28 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
                                       !DG.MathUtilities.isInRange( this.pivot2.y, tYLowerBound, tYUpperBound))
       this.pivot2 = tIntercepts.pt2;
 
-    DG.RenderingUtilities.updateLine( this.lineSeg,
-                worldToScreen( tIntercepts.pt1), worldToScreen( tIntercepts.pt2));
+    var pts = [tIntercepts.pt1, tBreakPt1, tBreakPt2, tIntercepts.pt2]
+                .map(function(pt) { return worldToScreen(pt); });
 
-    DG.RenderingUtilities.updateLine( this.firstSegHit,
-                worldToScreen( tIntercepts.pt1), worldToScreen( tBreakPt1));
-    DG.RenderingUtilities.updateLine( this.secondSegHit,
-                worldToScreen( tBreakPt1), worldToScreen( tBreakPt2));
-    DG.RenderingUtilities.updateLine( this.thirdSegHit,
-                worldToScreen( tBreakPt2), worldToScreen( tIntercepts.pt2));
+    DG.RenderingUtilities.updateLine( this.lineSeg, pts[0], pts[3]);
 
-    if( tSlope > 0) {
-      this.firstSegHit.attr({ cursor: this.kLineBotLeft });
-      this.thirdSegHit.attr({ cursor: this.kLineTopRight });
-    }
-    else {
-      this.firstSegHit.attr({ cursor: this.kLineTopLeft });
-      this.thirdSegHit.attr({ cursor: this.kLineBotRight });
-    }
+    this.hitHandles.forEach(function(handle, i) {
+      var xCenter = (pts[i].x + pts[i+1].x) / 2,
+          yCenter = (pts[i].y + pts[i+1].y) / 2;
+      handle.toFront()
+            .attr({ x: xCenter - this.kHandleSize / 2, y: yCenter - this.kHandleSize / 2 });
+    }.bind(this));
+
+    this.hitSegments.forEach(function(segment, i) {
+      DG.RenderingUtilities.updateLine(segment, pts[i], pts[i + 1]);
+    });
+
+    var cursors = tSlope > 0
+                    ? [this.kLineBotLeft, this.kLineSlideCur, this.kLineTopRight]
+                    : [this.kLineTopLeft, this.kLineSlideCur, this.kLineBotRight];
+    this.hitSegments.forEach(function(segment, i) {
+      segment.toFront().attr({ cursor: cursors[i] });
+    });
 
     tTextBox = this.equation.attr( { text: this.get('equationString') }).getBBox();
     tTextWidth = tTextBox.width;
