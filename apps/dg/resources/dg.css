@@ -56,6 +56,16 @@ html, body {
     -webkit-touch-callout: none;
 }
 
+/* SproutCore inexplicably left out -ms-user-select and -webkit-user-select */
+.sc-view.allow-select {
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: none;
+    -webkit-user-select: text;
+    user-select: text;
+    cursor:  text;
+}
+
 #codap {
     position: absolute;
     height: 100vh;
