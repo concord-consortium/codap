@@ -64,15 +64,19 @@ DG.PickerColorControl = SC.View.extend(
               ['rgb(233,222,187);', 'rgb(255,205,243);', 'rgb(157,175,255);', 'rgb(129,197,122);']
             ],
             move: function (iColor) {
-              if( this.setColorFunc)
-                this.setColorFunc( iColor, this.colorKey);
+              SC.run(function() {
+                if( this.setColorFunc)
+                  this.setColorFunc( iColor, this.colorKey);
+              }.bind(this));
             }.bind(this),
             change: function (iColor) {
-              if( this.setColorFunc)
-                this.setColorFunc( iColor, this.colorKey);
-              if ( this.closedFunc)
-                this.closedFunc( this.get('lastColor'), iColor);
-              this.set( 'lastColor', iColor, this.colorKey);
+              SC.run(function() {
+                if( this.setColorFunc)
+                  this.setColorFunc( iColor, this.colorKey);
+                if ( this.closedFunc)
+                  this.closedFunc( this.get('lastColor'), iColor);
+                this.set( 'lastColor', iColor, this.colorKey);
+              }.bind(this));
             }.bind(this)
           });
         }.bind(this));
