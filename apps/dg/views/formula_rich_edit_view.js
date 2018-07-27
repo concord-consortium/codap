@@ -103,7 +103,7 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
                   ? []
                   : options.completionData.reduce(function(memo, item) {
             if (item && item.label && item.label.match(regex))
-              memo.push({ text: item.value, hint: cmHintReplace });
+              memo.push({ text: item.value, className: 'dg-wants-touch', hint: cmHintReplace });
             return memo;
           }, [])).sort(cmSortCompletions),
           from: CodeMirror.Pos(cursor.line, start),
@@ -123,6 +123,8 @@ return {
   autoCorrect: false,
 
   autoCapitalize: false,
+
+  classNames: ['dg-wants-touch'],
 
   names: [],  // Will be filled with attribute and global variable names by client
 
