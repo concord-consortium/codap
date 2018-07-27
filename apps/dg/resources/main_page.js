@@ -19,7 +19,7 @@
 // This page describes the main user interface for your application.
 DG.mainPage = SC.Page.design((function() {
 
-  var kButtonWidth = 40,
+  var kIsMobileDevice = SC.browser.device !== SC.DEVICE.desktop,
       kToolbarHeight = DG.STANDALONE_MODE ? 0 : 70,
       kInfobarHeight = 24,
       kIconTopPadding = 17;
@@ -266,6 +266,8 @@ DG.mainPage = SC.Page.design((function() {
       layout: { top: kInfobarHeight + kToolbarHeight },
       horizontalAlign: SC.ALIGN_LEFT,
       verticalAlign: SC.ALIGN_TOP,
+      horizontalOverlay: kIsMobileDevice,
+      verticalOverlay: kIsMobileDevice,
       classNames: 'dg-doc-background'.w(),
       alwaysBounceVertical: false,
       contentView: DG.ContainerView.design( {
