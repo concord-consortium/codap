@@ -1,8 +1,13 @@
-/* global process */
-var webpack = require('webpack'),
+/* global process, __dirname */
+var path = require('path'),
+    ExtractTextPlugin = require("extract-text-webpack-plugin"),
+    webpack = require('webpack'),
     WebpackShellPlugin = require('webpack-shell-plugin');
 var production = (process.env.NODE_ENV === 'production'),
-    plugins = [];
+    bundlePath = path.resolve(__dirname, 'apps/dg/resources/build'),
+    plugins = [
+      new ExtractTextPlugin('codap-lib-bundle.css')
+    ];
 
 /*
  * Configure production-only plugins
@@ -29,11 +34,10 @@ if (production) {
  * Therefore, we build the bundle with a .js extension initially and then rename it
  * with the .js.ignore extension after all plugins have run.
  */
-var bundlePath = 'apps/dg/resources/build',
-    srcBundleName = 'codap-lib-bundle.js',
+var srcBundleName = 'codap-lib-bundle.js',
     dstBundleName = 'codap-lib-bundle.js.ignore',
-    srcBundle = bundlePath + '/' + srcBundleName,
-    dstBundle = bundlePath + '/' + dstBundleName,
+    srcBundle = path.resolve(bundlePath, srcBundleName),
+    dstBundle = path.resolve(bundlePath, dstBundleName),
     echoCmd = "echo Renaming '" + srcBundleName + "' to '" + dstBundleName + "'...\n",
     renameBundleCmd = ['mv', srcBundle, dstBundle].join(' ');
 plugins.push(new WebpackShellPlugin({
@@ -48,6 +52,17 @@ var config = {
   output: {
     path: bundlePath,
     filename: srcBundleName
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: "css-loader"
+        })
+      }
+    ]
   },
   plugins: plugins,
   performance: {
