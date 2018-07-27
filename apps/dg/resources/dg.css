@@ -42,6 +42,14 @@
 @font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.woff') format('woff');}
 @font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.svg') format('svg');}
 
+html, body {
+    /* cf. https://www.bram.us/2016/05/02/prevent-overscroll-bounce-in-ios-mobilesafari-pure-css/ */
+    position: fixed;
+    overflow: hidden;
+    /* cf. https://developers.google.com/web/updates/2017/11/overscroll-behavior */
+    overscroll-behavior: none;
+}
+
 #codap {
     position: absolute;
     height: 100vh;
