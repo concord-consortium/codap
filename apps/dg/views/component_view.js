@@ -692,6 +692,11 @@ DG.ComponentView = SC.View.extend(
         },
 
         select: function () {
+          this.set('isVisible', true);  // note that case table may have visibility set to false
+          if( this.savedLayout) {
+            this.animate( this.savedLayout,
+                {duration: 0.4, timing: 'ease-in-out'});
+          }
           if( this.parentView.select)
             this.parentView.select(this);
         },
