@@ -452,6 +452,7 @@ DG.PlotView = DG.PlotLayer.extend(
                             DG.MathUtilities.nQuantileValues(
                                 tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
                             [];
+    this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,
