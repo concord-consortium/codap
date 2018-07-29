@@ -764,14 +764,16 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._selectionTree = new RTree();
     tPlottedElements.forEach(function(iElement, iIndex){
       var tCase = tCases.unorderedAt(iIndex);
-      if( tElementsAreRects) {
-        doInsertion(iElement.attrs.x, iElement.attrs.y, tCase);
-        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y, tCase);
-        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y + iElement.attrs.height, tCase);
-        doInsertion(iElement.attrs.x, iElement.attrs.y + iElement.attrs.height, tCase);
-      }
-      else {
-        doInsertion(iElement.attrs.cx, iElement.attrs.cy, tCase);
+      if( tCase) {  // Some plottedElements have no case and are waiting for reuse
+        if (tElementsAreRects) {
+          doInsertion(iElement.attrs.x, iElement.attrs.y, tCase);
+          doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y, tCase);
+          doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y + iElement.attrs.height, tCase);
+          doInsertion(iElement.attrs.x, iElement.attrs.y + iElement.attrs.height, tCase);
+        }
+        else {
+          doInsertion(iElement.attrs.cx, iElement.attrs.cy, tCase);
+        }
       }
     }.bind(this));
   },
