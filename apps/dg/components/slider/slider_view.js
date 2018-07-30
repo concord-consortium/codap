@@ -173,6 +173,7 @@ DG.SliderView = SC.View.extend(
             layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + 16 },
             classNames: 'dg-slider-label'.w(),
             isEditable: true,
+            isTextSelectable: YES,
             exampleNode: null,
             inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
               sc_super();

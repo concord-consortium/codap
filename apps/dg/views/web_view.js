@@ -29,6 +29,8 @@ DG.WebView = SC.View.extend(
       classNames: ['dg-web-view'],
       childViews: ['loadingView', 'webView'],
 
+      isTextSelectable: YES,
+
       /**
        * The URL provided.
        * @type {String}

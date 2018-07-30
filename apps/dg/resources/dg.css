@@ -48,6 +48,22 @@ html, body {
     overflow: hidden;
     /* cf. https://developers.google.com/web/updates/2017/11/overscroll-behavior */
     overscroll-behavior: none;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* SproutCore inexplicably left out -ms-user-select and -webkit-user-select */
+.sc-view.allow-select {
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -webkit-user-select: text;
+    user-select: text;
+    cursor:  text;
 }
 
 #codap {
