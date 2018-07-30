@@ -43,19 +43,16 @@ sc_require('resources/leaflet-0/leaflet.css')
 }
 
 .leaflet-popup-tip {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
+    width: 0;
+    height: 0;
+    padding: 0;
 }
 
-.leaflet-control {
-    z-index: inherit;
+.leaflet-container ~ div {
+    z-index: 1100;
 }
-.leaflet-top,
-.leaflet-bottom {
-    z-index: inherit;
-}
-
-.leaflet-clickable {
-    cursor: inherit;
+.dg .leaflet-container .leaflet-control-attribution {
+    margin: 10px;
+    opacity: .5;
+    width: 140px;
 }

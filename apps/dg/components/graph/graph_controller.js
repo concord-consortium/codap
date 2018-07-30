@@ -284,25 +284,6 @@ DG.GraphController = DG.DataDisplayController.extend(
           }));
         },
 
-       makePngImage: function () {
-          var componentView = this.get('view');
-          var graphView = componentView && componentView.get('contentView');
-          var width = graphView.getPath('frame.width');
-          var height = graphView.getPath('frame.height');
-          this.convertToImage(graphView.get('layer'), width, height);
-        },
-
-        copyAsImage: function () {
-          var componentView = this.get('view'),
-              title = (componentView && componentView.get('title')) ||
-                        "DG.DocumentController.graphTitle".loc(),
-              graphView = componentView && componentView.get('contentView'),
-              layer = graphView && graphView.get('layer'),
-              width = graphView && graphView.getPath('frame.width'),
-              height = graphView && graphView.getPath('frame.height');
-          if (graphView)
-            this.openDrawToolWithImage(layer, width, height, title);
-        },
 
         plotFunction: function () {
           this.graphModel.get('plot').togglePlotFunction();
