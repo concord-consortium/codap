@@ -1,6 +1,12 @@
-/*global require:true, React:true, ReactDOM:true, Popper:true, Tooltip:true, Papa:true */
+/*global require:true, CodeMirror: true, React:true, ReactDOM:true, Popper:true, Tooltip:true, Papa:true */
 /*global iframePhone:true, L:true, deepEqual:true, Promise:true, pluralize:true, moment:true */
-/* exported React, ReactDOM, Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, moment */
+/* exported CodeMirror, React, ReactDOM, Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, moment */
+CodeMirror = require('codemirror/lib/codemirror.js');
+require('codemirror/lib/codemirror.css');
+require('codemirror/addon/display/placeholder.js');
+require('codemirror/addon/hint/show-hint.js');
+require('codemirror/addon/hint/show-hint.css');
+require('codemirror/addon/mode/simple.js');
 React = require('react');
 ReactDOM = require('react-dom');
 Popper = require('popper.js');

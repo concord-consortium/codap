@@ -21,8 +21,6 @@
 // ==========================================================================
 
 sc_require('views/text_field_view');
-sc_require('libraries/codemirror/codemirror');
-sc_require('libraries/codemirror/addons/display/placeholder');
 
 /** @class
 
@@ -103,7 +101,7 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
                   ? []
                   : options.completionData.reduce(function(memo, item) {
             if (item && item.label && item.label.match(regex))
-              memo.push({ text: item.value, hint: cmHintReplace });
+              memo.push({ text: item.value, className: 'dg-wants-touch', hint: cmHintReplace });
             return memo;
           }, [])).sort(cmSortCompletions),
           from: CodeMirror.Pos(cursor.line, start),
@@ -123,6 +121,8 @@ return {
   autoCorrect: false,
 
   autoCapitalize: false,
+
+  classNames: ['dg-wants-touch'],
 
   names: [],  // Will be filled with attribute and global variable names by client
 
@@ -172,6 +172,23 @@ return {
 
     // initialize coloring
     this.addSemanticClasses(this._cm);
+
+    // Propagation of the touchend event leads to touches that set focus()
+    // and then immediately clear it among other oddities. CodeMirror's 
+    // internal touchend handler ends with a call to preventDefault(), but
+    // propagation still occurs. By piggy-backing our touchend handler on
+    // CodeMirror's, we can stop the propagation without modifying the
+    // CodeMirror code itself. The need for this should be revisited as
+    // CodeMirror is upgraded moving forward. If it could be determined
+    // (via simpler test case, for instance), that this is simply a
+    // CodeMirror bug rather than an interaction with SproutCore, etc.,
+    // then it would make sense to submit a PR to CodeMirror.
+    if (this._cm.display && this._cm.display.scroller) {
+      this._cm.display.scroller.addEventListener('touchend', function(evt) {
+        evt.preventDefault();
+        evt.stopImmediatePropagation();
+      });
+    }
 
     this._cm.on('keydown', function(cm, evt) {
       if (evt.keyCode === SC.Event.KEY_ESC) {

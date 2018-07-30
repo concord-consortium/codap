@@ -867,6 +867,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                                       if( !ioMenuItem.disabled)
                                         ++enabledItems;
                                    });
+          // add 'dg-wants-touch' class to menus
+          setTimeout(function() {
+            $('.slick-header-menu')
+              .addClass(function(index, classes) {
+                return (!classes || (classes.indexOf('dg-wants-touch') < 0))
+                        ? 'dg-wants-touch' : '';
+              });
+            }, 10);
         }
         // Only show the menu if there's at least one enabled item
         return (enabledItems > 0);
