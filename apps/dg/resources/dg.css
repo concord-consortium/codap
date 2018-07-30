@@ -60,7 +60,7 @@ html, body {
 .sc-view.allow-select {
     -khtml-user-select: text;
     -moz-user-select: text;
-    -ms-user-select: none;
+    -ms-user-select: text;
     -webkit-user-select: text;
     user-select: text;
     cursor:  text;
