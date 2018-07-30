@@ -863,6 +863,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var tCases = iChange.cases || tController,
         // Use the appropriate utility function for the job
         tFunction = iChange.select ? selectCaseAndChildren : deselectCaseAndChildren;
+    // DG.log('selectCases: %@ %@ cases'.loc(iChange.select?'select':'deselect', tCases? tCases.get('length'): 0));
 
     if (iChange.select && !iChange.extend && tCases.length === 0) {
       this.forEachCollection( function( iCollectionClient) {

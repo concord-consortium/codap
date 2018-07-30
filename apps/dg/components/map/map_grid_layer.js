@@ -97,7 +97,12 @@ DG.MapGridLayer = SC.Object.extend(
     tModel.forEachRect( function( iRect, iLongIndex, iLatIndex) {
       var handleClick = function( iEvent) {
             var tExtend = iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey;
-            tModel.selectCasesInRect( iLongIndex, iLatIndex, tExtend);
+            // Below is the Leaflet Way to stop the click from propagating.
+            L.DomEvent.stopPropagation(iEvent);
+            SC.run(function () {
+              tModel.selectCasesInRect( iLongIndex, iLatIndex, tExtend);
+            });
+            return false;
           }.bind( this),
 
           handleMouseover = function( iEvent) {

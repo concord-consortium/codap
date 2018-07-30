@@ -708,5 +708,6 @@ SC.stringsFor("es", {
     "DG.DataDisplayMenu.addBackgroundImage": "Add Background Image",
     "DG.DataDisplayMenu.lockImageToAxes": "Lock Background Image to Axes",
     "DG.DataDisplayMenu.unlockImageFromAxes": "Unlock Background Image from Axes",
-    "DG.DataDisplayMenu.removeBackgroundImage": "Remove Background Image"
+    "DG.DataDisplayMenu.removeBackgroundImage": "Remove Background Image",
+    "DG.main.page.title": "%@1 - %@2"
 });

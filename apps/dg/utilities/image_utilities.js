@@ -100,6 +100,11 @@ DG.ImageUtilities = (function () {
         ctx.drawImage(image, x, y, width, height);
       }
 
+      function drawRectToCanvas(canvas, color, x, y, width, height) {
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, width, height);
+      }
       /**
        * Convert a canvas object to a blob.
        * @param canvas
@@ -140,48 +145,86 @@ DG.ImageUtilities = (function () {
       // ######## convertImage begin ########
       //
       // find all svg elements that are not children of hidden divs
-      var svgs = $(rootEl).find('div:not(.sc-hidden)>svg');
+      var elements = $(rootEl).find('div.dg-plot-view,img,div:not(.sc-hidden)>svg');
       var canvas = makeCanvasEl(width, height);
-      var promises = [];
+      var jobList = [];
+      var jobIx = 0;
 
+      function perform(job) {
+        var elType = job && job.el && job.el.nodeName.toLowerCase();
+        if (!job) {
+          // we have drawn all the elements resolve the promise with a data URL or blob
+          try {
+            return Promise.resolve(asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas));
+          } catch (e) {
+            return Promise.reject(e);
+          }
+        }
+        if (elType === 'div') {
+          // get the background color from the base div
+          drawRectToCanvas(canvas,$(job.el).css('background-color'), job.l, job.t, job.w, job.h);
+          return perform(jobList[jobIx++]);
+        } else if (elType === 'svg') {
+          // add the svg as an image to the canvas
+          return makeSVGImage(makeDataURLFromSVGElement(job.el)).then(function (img) {
+              addImageToCanvas(canvas, img, job.l, job.t, job.w, job.h);
+              return perform(jobList[jobIx++]);
+            },
+            function (error) {
+              return Promise.reject(error);
+            }
+          );
+        } else if (elType === 'img') {
+          // add an img to the canvas only if it has the crossorigin attribute.
+          // otherwise we will taint the canvas
+          if (!SC.none(job.el.getAttribute('crossorigin'))) {
+            addImageToCanvas(canvas, job.el, job.l, job.t, job.w, job.h);
+          }
+          return perform(jobList[jobIx++]);
+        } else {
+          return perform(jobList[jobIx++]);
+        }
+
+      }
       // for each svg we calculate its geometry, then add it to the canvas
       // through a promise.
       // Note: This implementation starts a number of asynchronous operations,
       // one for each SVG in the hierarchy. If they overlap and are handled out
       // of order, it is possible that they may be written to the canvas in the
       // wrong order.
-      if (svgs) {
-        svgs.forEach(function (svg) {
-          var width = svg.offsetWidth || svg.width.baseVal.value;
-          var height = svg.offsetHeight || svg.height.baseVal.value;
-          var left = 0;
-          var top = 0;
-          $(svg).add($(svg).parentsUntil(rootEl)).each(function () {
-            left += this.offsetLeft || 0;
-            top += this.offsetTop || 0;
+      try {
+        if (elements) {
+          elements.forEach(function (element) {
+            var width = element.offsetWidth || (element.width.baseVal?element.width.baseVal.value:0);
+            var height = element.offsetHeight || (element.height.baseVal?element.height.baseVal.value:0);
+            var left = 0;
+            var top = 0;
+            var rect = element.getBoundingClientRect();
+            var rootRect = rootEl.getBoundingClientRect();
+            if (element.nodeName.toLowerCase() === "img") {
+              jobList.push({
+                el:element,
+                w: rect.width,
+                h: rect.height,
+                l: rect.left - rootRect.left,
+                t: rect.top - rootRect.top
+              });
+            } else {
+              $(element).add($(element).parentsUntil(rootEl)).each(function () {
+                left += this.offsetLeft || 0;
+                top += this.offsetTop || 0;
+              });
+              jobList.push({el: element, w: width, h: height, l: left, t: top});
+            }
           });
-          // DG.log('SVG width/height/left/top: ' + [width, height, left, top].join('/'));
-          var imgPromise = makeSVGImage(makeDataURLFromSVGElement(svg));
-          imgPromise.then(function (img) {
-                addImageToCanvas(canvas, img, left, top, width, height);
-              },
-              function (error) {
-                DG.logError(error);
-              }
-          );
-          promises.push(imgPromise);
-        });
-      }
 
-      // when all promises have been fulfilled we make a blob, then invoke the
-      // save image dialog.
-      return Promise.all(promises).then(function () {
-          return asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas);
-        },
-        function (error) {
-          DG.logError(error);
+          return perform (jobList[jobIx++]);
         }
-      );
+      } catch (ex) {
+        DG.logError('saving image: ' + ex);
+      }
+      return null;
+
     }
   };
 }());
