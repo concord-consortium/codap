@@ -18315,9 +18315,16 @@ ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = re
 DropdownItem = React.createFactory(React.createClass({
   displayName: 'DropdownItem',
   clicked: function() {
-    return this.props.select(this.props.item);
+    if (this.props.item.items) {
+      return this.showSubMenu();
+    } else {
+      return this.props.select(this.props.item);
+    }
   },
   mouseEnter: function() {
+    return this.showSubMenu();
+  },
+  showSubMenu: function() {
     var base, menu, menuItem;
     if (this.props.item.items) {
       menuItem = $(ReactDOM.findDOMNode(this.refs.item));
@@ -18360,14 +18367,13 @@ DropdownItem = React.createFactory(React.createClass({
   }
 }));
 
-cfmMenuClass = 'cfm-menu';
+cfmMenuClass = 'cfm-menu dg-wants-touch';
 
 DropDown = React.createClass({
   displayName: 'Dropdown',
   getInitialState: function() {
     return {
       showingMenu: false,
-      timeout: null,
       subMenu: null
     };
   },
