@@ -42,7 +42,7 @@ DG.React.ready(function () {
             var tChildren = this.props.children,
                 tLocation = this.props.location || this.state.location;
             return DG.React.Components.RenderInBody({}, div({
-              className: 'dropdown__content',
+              className: 'dropdown__content dg-wants-touch',
               style: {
                 left: tLocation.left,
                 top: tLocation.top
