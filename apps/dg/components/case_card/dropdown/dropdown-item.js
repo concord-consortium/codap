@@ -38,10 +38,13 @@ DG.React.ready(function () {
 
           render: function () {
 
-            var tClassName = this.classNameDefault + (this.props.disabled ? ' disabled' : '');
+            var tClassName = this.classNameDefault + (this.props.disabled ? ' disabled' : ''),
+                tClickHandler = this.props.disabled ? null : this.props.clickHandler;
+
             return div({
               className: tClassName,
-              onMouseDown: this.props.disabled ? null : this.props.clickHandler,
+              onMouseDown: tClickHandler,
+              onTouchStart: tClickHandler
             }, this.props.children);
           }
         };
