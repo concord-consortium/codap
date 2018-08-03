@@ -475,7 +475,6 @@ DG.BarChartView = DG.ChartView.extend(
             this_.vanishPlottedElement(iOldAttrs, tNewAttrs);
           });
         }
-        this._mustCreatePlottedElements = false;  // because we just created them
         this.set('transferredElementCoordinates', null);
 
         tModel.set('isAnimating', true);

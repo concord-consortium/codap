@@ -87,6 +87,10 @@ DG.RaphaelLayer = SC.Object.extend(
      * @return {Raphael Element } The original element
      */
     push: function( iElement) {
+/*
+      this.isValid();
+      DG.RenderingUtilities.testPaperValidity( this._paper);
+*/
       DG.assert( iElement);
       if( !this._map[iElement.id]) {  // If it's not already present in the layer
         this._map[iElement.id] = true;
@@ -114,6 +118,10 @@ DG.RaphaelLayer = SC.Object.extend(
         }
         DG.assert(iElement.next || (iElement === this._lastElement));
       }
+/*
+      this.isValid();
+      DG.RenderingUtilities.testPaperValidity( this._paper);
+*/
       return iElement;
     },
 
@@ -123,6 +131,19 @@ DG.RaphaelLayer = SC.Object.extend(
      * @param iElement {Raphael Element}
      */
     prepareToMoveOrRemove: function( iElement) {
+/*
+      this.isValid();
+      DG.RenderingUtilities.testPaperValidity( this._paper);
+*/
+      // Special cases for which iElement is at the bottom or top of the paper
+      if( iElement === this._paper.bottom) {
+        this._paper.bottom = iElement.next;
+        this._paper.bottom.prev = null;
+      }
+      if( iElement === this._paper.top) {
+        this._paper.top = iElement.prev;
+        this._paper.top.next = null;
+      }
       if( iElement === this._firstElement) {
         if( this._firstElement === this._lastElement) {
           // After the move there will be no more elements in this layer
@@ -135,12 +156,16 @@ DG.RaphaelLayer = SC.Object.extend(
         this._lastElement = iElement.prev;
       }
       if( this._map[ iElement.id]) {
-        if( iElement.prev)
+        if( iElement.prev && iElement.prev.next === iElement)
           iElement.prev.next = iElement.next;
-        if( iElement.next)
+        if( iElement.next && iElement.next.prev === iElement)
           iElement.next.prev = iElement.prev;
         delete this._map[iElement.id];
       }
+/*
+      this.isValid();
+      DG.RenderingUtilities.testPaperValidity( this._paper);
+*/
     },
 
     forEach: function( iCallback) {
@@ -179,7 +204,8 @@ DG.RaphaelLayer = SC.Object.extend(
      * @returns {boolean|null}
      */
     isValid: function() {
-      var tIsValid = true;
+      var tIsValid = true/*,
+          tOutput = 'Layer ' + this.name + '-> '*/;
       if(!this._firstElement && !this._lastElement)
         return true;
       if(!this._firstElement || !this._lastElement || this._firstElement.removed || this._lastElement.removed)
@@ -189,9 +215,11 @@ DG.RaphaelLayer = SC.Object.extend(
         this.forEach( function( iElement) {
           tIsValid = tIsValid && this._map[iElement.id];
           tFoundLast = tFoundLast || (iElement === this._lastElement);
+          // tOutput += iElement.id + ': ' + DG.RenderingUtilities.svgElementClass( iElement) + ', ';
         }.bind( this));
         tIsValid = tIsValid && tFoundLast;
       }
+      // console.log( tOutput);
       if( !tIsValid)
         console.log('Invalid layer: ' + this.name);
       return tIsValid;
