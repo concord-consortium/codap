@@ -32,6 +32,9 @@ DG.PlottedFormulaEditContext = SC.Object.extend({
     var formulaContext = this,
         formulaLabel = iOptions.formulaPrompt.loc(),
         formulaView = DG.FormulaTextEditView.create({
+                        // SC defers to INPUT elements on mobile Safari in ignoreTouchHandle().
+                        // In this case, we want SC to dispatch the touch normally.
+                        classNames: ['dg-wants-sc-touch'],
                         layout: { height: 20 },
                         borderStyle: SC.BORDER_BEZEL,
                         isVisible: false,
@@ -45,6 +48,9 @@ DG.PlottedFormulaEditContext = SC.Object.extend({
                         desiredExtent: 20,
                         mouseDown: function(evt) {
                           formulaContext.openFormulaEditorDialog();
+                        },
+                        touchStart: function(evt) {
+                          this.mouseDown();
                         }
                       });
     this.set('formulaView', formulaView);
