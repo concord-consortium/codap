@@ -19,7 +19,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/* global Tooltip */
 sc_require('utilities/tap_hold_gesture');
 sc_require('views/image_view');
 sc_require('views/tooltip_enabler');
@@ -174,7 +173,7 @@ DG.IconButton = SC.View.extend(SC.Gesturable, DG.TooltipEnabler,
       },
       touchEnd: function( iTouch) {
         this.gestureTouchEnd(iTouch);
-        if (!DG.IconButton.clearTouchTooltip(iTouch.identifier))
+        if (!DG.TouchTooltips.clearTouchTooltip(iTouch.identifier))
           this._action(iTouch);
         this.beginPropertyChanges();
         this.set( 'isMouseOver', NO);
@@ -183,19 +182,13 @@ DG.IconButton = SC.View.extend(SC.Gesturable, DG.TooltipEnabler,
       },
 
       tapHold: function(touch) {
-        var tooltip = new Tooltip(this.get('layer'), {
-                                    container: DG.mainPage.getPath('mainPane.layer'),
-                                    placement: 'bottom-start',
-                                    trigger: 'manual',
-                                    title: this.get('displayToolTip')
-                                  });
-        DG.IconButton.showTouchTooltip(touch, tooltip);
-        this._tooltipTouchID = touch.identifier;
+        this._tooltipTouchID = DG.TouchTooltips.showTouchTooltip(
+                                    touch, this, this.get('displayToolTip'));
       },
 
       tapHoldCancelled: function() {
         if (this._tooltipTouchID) {
-          DG.IconButton.hideTouchTooltip(this._tooltipTouchID, DG.IconButton.kTouchTooltipDefault);
+          DG.TouchTooltips.hideTouchTooltip(this._tooltipTouchID);
         }
       },
 
@@ -218,64 +211,3 @@ DG.IconButton = SC.View.extend(SC.Gesturable, DG.TooltipEnabler,
     };
   }()) // function closure
 );
-
-DG.IconButton.kTouchTooltipDefault = 5000;
-DG.IconButton.kTouchTooltipMin = 2000;
-DG.IconButton.kTouchTooltipMax = 8000;
-DG.IconButton.tooltips = {};
-
-DG.IconButton.showTouchTooltip = function(touch, tooltip) {
-  DG.IconButton.hideAllTouchTooltips();
-
-  tooltip.show();
-  DG.IconButton.tooltips[touch.identifier] =
-                  { touch: touch, tooltip: tooltip };
-
-  DG.IconButton.hideTouchTooltip(touch.identifier, DG.IconButton.kTouchTooltipMax);
-};
-
-DG.IconButton.hideTouchTooltip = function(touchID, delay) {
-  var entry = DG.IconButton.tooltips[touchID],
-      hideTooltip = function() {
-        var entry = DG.IconButton.tooltips[touchID];
-        if (entry) {
-          if (entry.tooltip) {
-            entry.tooltip.dispose();
-            entry.tooltip = null;
-          }
-          entry.timer = null;
-          if (entry.finished)
-            delete DG.IconButton.tooltips[touchID];
-        }
-      };
-  if (!entry) return;
-  
-  if (entry.timer) {
-    clearTimeout(entry.timer);
-    entry.timer = null;
-  }
-
-  if (delay) {
-    entry.timer = setTimeout(hideTooltip, delay);
-  }
-  else {
-    hideTooltip();
-  }
-};
-
-DG.IconButton.clearTouchTooltip = function(touchID) {
-  var entry = DG.IconButton.tooltips[touchID];
-  if (entry) {
-    entry.finished = true;
-    DG.IconButton.hideTouchTooltip(touchID, DG.IconButton.kTouchTooltipDefault);
-    return true;
-  }
-  return false;
-};
-
-DG.IconButton.hideAllTouchTooltips = function(delay) {
-  DG.ObjectMap.forEach(DG.IconButton.tooltips,
-                      function(touchID) {
-                        DG.IconButton.hideTouchTooltip(touchID, delay);
-                      });
-};
