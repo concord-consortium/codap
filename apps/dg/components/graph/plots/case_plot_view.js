@@ -172,8 +172,8 @@ DG.CasePlotView = DG.PlotView.extend(
                 var tContinue = this.getPath('model.isAnimating'),
                     tPoint;
                 if (tContinue) {
-                  if( iIndex < tPlottedElements.length) {
-                    tPoint = tPlottedElements[ iIndex];
+                  if (iIndex < tPlottedElements.length) {
+                    tPoint = tPlottedElements[iIndex];
                   }
                   else {
                     tPoint = this.callCreateElement(null, iIndex);
@@ -201,22 +201,13 @@ DG.CasePlotView = DG.PlotView.extend(
           return;
         }
 
-        var this_ = this,
-            tCases = this.getPath('model.cases'),
+        var tCases = this.getPath('model.cases'),
             tPlottedElements = this.get('plottedElements'),
             tRC = this.createRenderContext();
 
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
-        if (this._mustCreatePlottedElements) {
-          this.setPath('model.isAnimating', true); // So the animation can finish
-          animatePoints();  // will loop through all points using invokeLater
-          this._mustCreatePlottedElements = false;
-        }
-        else {
-          tCases.forEach(function (iCase, iIndex) {
-            this_.setCircleCoordinate(tRC, iCase, iIndex);
-          });
-        }
+        this.setPath('model.isAnimating', true); // So the animation can finish
+        animatePoints();  // will loop through all points using invokeLater
       },
 
       /**

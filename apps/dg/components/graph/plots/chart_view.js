@@ -134,11 +134,6 @@ DG.ChartView = DG.PlotView.extend(
         if (!tCases)
           return; // We can get here before things are linked up during restore
 
-        if (this._mustCreatePlottedElements) {
-          this.removePlottedElements();
-          tCases.forEach(this.callCreateElement.bind(this));
-          this._mustCreatePlottedElements = false;
-        }
 
         this.computeCellParams();
 

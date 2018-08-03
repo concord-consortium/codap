@@ -393,6 +393,13 @@ DG.PlotUtilities = {
   doHideRemoveAnimation: function( iElement, iLayerManager) {
     iElement.animate( { 'fill-opacity': 0, 'stroke-opacity': 0}, this.kDefaultAnimationTime, '<>',
       function() {
+        // Remove event handlers
+        if( iElement.events) {
+          iElement.events.forEach(function (iHandler) {
+            iHandler.unbind();
+          });
+          iElement.events.length = 0;
+        }
         if( iLayerManager)
           iLayerManager.removeElement( this);
       });
