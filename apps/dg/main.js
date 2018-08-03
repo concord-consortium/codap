@@ -53,7 +53,13 @@ DG.main = function main() {
   // then apply to any element that needs it, such as the jQueryUI autocomplete menu.
   var orgIgnoreTouchHandle = SC.RootResponder.prototype.ignoreTouchHandle;
   SC.RootResponder.prototype.ignoreTouchHandle = function(evt) {
-    return $(evt.target).closest('.dg-wants-touch').length || orgIgnoreTouchHandle(evt);
+    var dgWantsTouch = $(evt.target).closest('.dg-wants-touch').length,
+        wantsSCTouch = $(evt.target).closest('.dg-wants-sc-touch').length;
+    DG.log("ignoreTouchHandle: dgWantsTouch: %@, wantsSCTouch: %@",
+            !!dgWantsTouch, !!wantsSCTouch);
+    return wantsSCTouch
+              ? NO
+              : (dgWantsTouch ? YES : orgIgnoreTouchHandle(evt));
   };
 
   DG.getPath('mainPage.mainPane').appendTo($('#codap'));
