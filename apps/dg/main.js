@@ -55,8 +55,6 @@ DG.main = function main() {
   SC.RootResponder.prototype.ignoreTouchHandle = function(evt) {
     var dgWantsTouch = $(evt.target).closest('.dg-wants-touch').length,
         wantsSCTouch = $(evt.target).closest('.dg-wants-sc-touch').length;
-    DG.log("ignoreTouchHandle: dgWantsTouch: %@, wantsSCTouch: %@",
-            !!dgWantsTouch, !!wantsSCTouch);
     return wantsSCTouch
               ? NO
               : (dgWantsTouch ? YES : orgIgnoreTouchHandle(evt));
