@@ -49,45 +49,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
         legendView: null,
         stylesPane: null,
 
-        storeDimension: function (iDataConfiguration, iStorage, iDim) {
-          var tCollection = iDataConfiguration && iDataConfiguration.get(iDim + 'CollectionClient'),
-              tAttrDesc = iDataConfiguration && iDataConfiguration.get(iDim + 'AttributeDescription'),
-              tAttrs = (tAttrDesc && tAttrDesc.get('attributes')) || [];
-          if (tCollection && (tAttrs.length > 0)) {
-            iStorage._links_[iDim + 'Coll'] = tCollection.toLink();
-            var tKey = iDim + 'Attr';
-            tAttrs.forEach(function (iAttr) {
-              DG.ArchiveUtils.addLink(iStorage, tKey, iAttr);
-            });
-          }
-          iStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
-          iStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
-        },
-
+        /**
+         * With the advent of map plotting multiple data contexts there is nothing we can do in common for
+         * maps and graphs.
+         * @return {{}}
+         */
         createComponentStorage: function () {
-          var storage = {_links_: {}},
-              dataContext = this.get('dataContext'),
-              dataConfiguration = this.getPath('dataDisplayModel.dataConfiguration'),
-              hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases');
-
-          if (dataContext)
-            storage._links_.context = dataContext.toLink();
-
-          this.storeDimension(dataConfiguration, storage, 'legend');
-
-          if (hiddenCases) {
-            storage._links_.hiddenCases = hiddenCases
-                .filter(function(iCase) {return !!iCase;})
-                .map(function (iCase) {
-                  return iCase.toLink();
-                });
-          }
-          storage.pointColor = this.getPath('dataDisplayModel.pointColor');
-          storage.strokeColor = this.getPath('dataDisplayModel.strokeColor');
-          storage.pointSizeMultiplier = this.getPath('dataDisplayModel.pointSizeMultiplier');
-          storage.transparency = this.getPath('dataDisplayModel.transparency');
-          storage.strokeTransparency = this.getPath('dataDisplayModel.strokeTransparency');
-          return storage;
+          return {};
         },
 
         restoreComponentStorage: function (iStorage, iDocumentID) {

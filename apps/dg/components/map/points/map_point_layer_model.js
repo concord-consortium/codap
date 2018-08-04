@@ -154,41 +154,40 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
       },
 
       createStorage: function() {
-        var tStorage = {};
-        tStorage.center = this.get('center');
-        tStorage.zoom = this.get('zoom');
-        tStorage.baseMapLayerName = this.get('baseMapLayerName');
-        var tPointsVisible = this.get('pointsShouldBeVisible');
+        var tStorage = sc_super(),
+            // tDataConfiguration = this.get('dataConfiguration'),
+            tPointsVisible = this.get('pointsShouldBeVisible'),
+            tGridModel = this.get('gridModel');
+/*
+        tDataConfiguration.addToStorageForDimension(tStorage, 'long');
+        tDataConfiguration.addToStorageForDimension(tStorage, 'lat');
+*/
+        tStorage.pointColor = this.getPath('pointColor');
+        tStorage.strokeColor = this.getPath('strokeColor');
+        tStorage.pointSizeMultiplier = this.getPath('pointSizeMultiplier');
+        tStorage.transparency = this.getPath('transparency');
+        tStorage.strokeTransparency = this.getPath('strokeTransparency');
+
         if( tPointsVisible !== null)
           tStorage.pointsShouldBeVisible = tPointsVisible;
         tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible');
-        tStorage.grid = this.get('gridModel').createStorage();
+        if( tGridModel)
+          tStorage.grid = tGridModel.createStorage();
         return tStorage;
       },
 
       restoreStorage: function( iStorage) {
         sc_super();
 
-        if( iStorage.mapModelStorage) {
-          this.set('center', iStorage.mapModelStorage.center);
-          this.set('zoom', iStorage.mapModelStorage.zoom);
-          this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
-          this.set('centerAndZoomBeingRestored', true);
-          if( !SC.none( iStorage.mapModelStorage.pointsShouldBeVisible))
-            this.set('pointsShouldBeVisible', iStorage.mapModelStorage.pointsShouldBeVisible);
-          if( !SC.none( iStorage.mapModelStorage.linesShouldBeVisible))
-            this.set('linesShouldBeVisible', iStorage.mapModelStorage.linesShouldBeVisible);
+        var tStorage = iStorage.mapModelStorage || iStorage,
+            tGridModel = this.get('gridModel');
 
-          if( iStorage.mapModelStorage.areaColor)
-            this.set('areaColor', iStorage.mapModelStorage.areaColor);
-          if( iStorage.mapModelStorage.areaTransparency)
-            this.set('areaTransparency', iStorage.mapModelStorage.areaTransparency);
-          if( iStorage.mapModelStorage.areaStrokeColor)
-            this.set('areaStrokeColor', iStorage.mapModelStorage.areaStrokeColor);
-          if( iStorage.mapModelStorage.areaStrokeTransparency)
-            this.set('areaStrokeTransparency', iStorage.mapModelStorage.areaStrokeTransparency);
+        if (!SC.none(tStorage.pointsShouldBeVisible))
+          this.set('pointsShouldBeVisible', tStorage.pointsShouldBeVisible);
+        if (!SC.none(tStorage.linesShouldBeVisible))
+          this.set('linesShouldBeVisible', tStorage.linesShouldBeVisible);
 
-          this.get('gridModel').restoreStorage( iStorage.mapModelStorage.grid);
-        }
+        if( tGridModel)
+          this.get('gridModel').restoreStorage(tStorage.grid);
       }
     });

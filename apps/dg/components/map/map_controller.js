@@ -44,6 +44,10 @@ DG.MapController = DG.DataDisplayController.extend(
       }.property('dataDisplayModel'),
       mapView: null,
 
+      /**
+       * We must store information for the mapModel.
+       * @return {Object}
+       */
       createComponentStorage: function() {
         var storage = sc_super();
 

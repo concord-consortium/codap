@@ -18,11 +18,9 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph_map_common/data_display_model');
-
 /** @class  DG.MapModel - The model for a map.
 
- @extends DG.DataDisplayModel
+ @extends DG.Object
  */
 DG.MapModel = SC.Object.extend(
     /** @scope DG.MapModel.prototype */
@@ -271,6 +269,9 @@ DG.MapModel = SC.Object.extend(
         tStorage.center = this.get('center');
         tStorage.zoom = this.get('zoom');
         tStorage.baseMapLayerName = this.get('baseMapLayerName');
+        tStorage.layerModels = this.get('mapLayerModels').map( function( iLayerModel) {
+          return iLayerModel.createStorage();
+        });
 
         return tStorage;
       },
@@ -281,6 +282,11 @@ DG.MapModel = SC.Object.extend(
           this.set('zoom', iStorage.mapModelStorage.zoom);
           this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
           this.set('centerAndZoomBeingRestored', true);
+          this.get('mapLayerModels').forEach( function( iLayerModel, iIndex) {
+            var tLayerStorage = SC.isArray( iStorage.mapModelStorage.layerModels) ?
+                iStorage.mapModelStorage.layerModels[ iIndex] : iStorage;
+            iLayerModel.restoreStorage( tLayerStorage);
+          });
         }
       }
 

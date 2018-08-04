@@ -54,7 +54,7 @@ DG.MapPolygonLayerModel = DG.MapLayerModel.extend(
       canRescale: true,
 
       createStorage: function() {
-        var tStorage = {};
+        var tStorage = sc_super();
         tStorage.areaColor = this.get('areaColor');
         tStorage.areaTransparency = this.get('areaTransparency');
         tStorage.areaStrokeColor = this.get('areaStrokeColor');
@@ -66,17 +66,15 @@ DG.MapPolygonLayerModel = DG.MapLayerModel.extend(
       restoreStorage: function( iStorage) {
         sc_super();
 
-        if( iStorage.mapModelStorage) {
-          if( iStorage.mapModelStorage.areaColor)
-            this.set('areaColor', iStorage.mapModelStorage.areaColor);
-          if( iStorage.mapModelStorage.areaTransparency)
-            this.set('areaTransparency', iStorage.mapModelStorage.areaTransparency);
-          if( iStorage.mapModelStorage.areaStrokeColor)
-            this.set('areaStrokeColor', iStorage.mapModelStorage.areaStrokeColor);
-          if( iStorage.mapModelStorage.areaStrokeTransparency)
-            this.set('areaStrokeTransparency', iStorage.mapModelStorage.areaStrokeTransparency);
+        var tStorage = iStorage.mapModelStorage || iStorage;
 
-          this.get('gridModel').restoreStorage( iStorage.mapModelStorage.grid);
-        }
+        if (tStorage.areaColor)
+          this.set('areaColor', tStorage.areaColor);
+        if (tStorage.areaTransparency)
+          this.set('areaTransparency', tStorage.areaTransparency);
+        if (tStorage.areaStrokeColor)
+          this.set('areaStrokeColor', tStorage.areaStrokeColor);
+        if (tStorage.areaStrokeTransparency)
+          this.set('areaStrokeTransparency', tStorage.areaStrokeTransparency);
       }
     });
