@@ -728,6 +728,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 SC.run( function() {
                   this_.setupAttributeMenu(iEvent, iAxisView, iIndex);
                 });
+                iEvent.preventDefault();
+                iEvent.stopImmediatePropagation();
               }
 
               iNode.unmousedown(mouseDownHandler); // In case it got added already
