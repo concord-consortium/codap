@@ -196,7 +196,30 @@ DG.MapLayerView = SC.View.extend(
         this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
-      }.observes('model.baseMapLayerName')
+      }.observes('model.baseMapLayerName'),
+
+      /**
+       * When an attribute has been removed we can no longer display, so we clear ourselves.
+       * Subclasses may override.
+       */
+      handleAttributeRemoved: function() {
+        var tMapPointView = this.get('mapPointView'),
+            tMapAreaLayer = this.get('mapPolygonLayers'),
+            tMapGridModel = this.get('model.gridModel');
+        if( !this.getPath('model.dataConfiguration.hasLatLongAttributes')) {
+          this.setPath('model.connectingLineModel.isVisible', false);
+          this.setPath('model.pointsShouldBeVisible', false);
+          if( tMapPointView)
+            this.get('mapPointView').clear();
+          if(tMapGridModel) {
+            tMapGridModel.set('visible', false);
+            tMapGridModel.clear();
+          }
+        }
+        if( !this.getPath('model.hasAreaAttribute') && tMapAreaLayer) {
+          tMapAreaLayer.clear();
+        }
+      }.observes('model.attributeRemoved'),
 
     }
 );

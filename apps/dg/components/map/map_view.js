@@ -70,11 +70,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       legendView: null,
 
       /**
-       * @property {DG.MapConnectingLineAdornment}
-       */
-      connectingLineAdorn: null,
-
-      /**
        * SC.SegmentedView
        */
       backgroundControl: null,
@@ -318,16 +313,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.updateMarqueeToolVisibility();
       }.observes('model.pointsShouldBeVisible'),
 
-      /**
-       * Something about the points (aside from visibility) changed. Take appropriate action.
-       */
-      pointsDidChange: function() {
-        var tGridModel = this.getPath('mapGridLayer.model');
-        if( tGridModel)
-            tGridModel.rectArrayMustChange();
-        this.updateConnectingLine();
-      }.observes('mapPointView.pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
-
       modelPointsDidChange: function() {
         this.get('legendView').displayDidChange();
       }.observes('model.pointColor', 'model.transparency'),
@@ -360,18 +345,23 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       addPolygonLayers: function () {
         if( this.get('mapPolygonLayers'))
           return;
-        this.mapPolygonLayers = [];
-        // Todo: go through models and create polygon layers
-        this.getPath('model.mapLayerModels')
-        this.set('mapPolygonLayers', DG.MapPolygonLayer.create(
-            {
-              mapSource: this,
-              model: this.get('model')
-            }));
+        this.set('mapPolygonLayers', []);
+        var tPolygonLayers = this.get('mapPolygonLayers');
+        this.getPath('model.mapLayerModels').forEach( function( iLayerModel) {
+          if( iLayerModel.constructor === DG.MapPolygonLayerModel) {
+            tPolygonLayers.push( DG.MapPolygonLayer.create(
+                {
+                  mapSource: this,
+                  model: iLayerModel
+                }));
+          }
+        }.bind( this));
+        tPolygonLayers.forEach( function( iPolygonLayer) {
+          iPolygonLayer.addFeatures();
+        });
         if( !this.getPath('model.centerAndZoomBeingRestored')) {
           this.fitBounds();
         }
-        this.get('mapPolygonLayers').addFeatures();
       },
 
       addGridLayer: function () {
@@ -405,27 +395,21 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        * Cause the map to shrink or expand to encompass the data
        */
       fitBounds: function() {
-        var tBounds;
-        if( this.getPath('model.polygonVarID')) {
-          var tAreaLayer = this.get('mapPolygonLayers'),
-              tAreaBounds = tAreaLayer && tAreaLayer.getBounds();
-          if( !SC.none(tAreaBounds)) {
-            if (!tBounds)
-              tBounds = tAreaBounds;
-            else
-              tBounds.extend(tAreaBounds);
-          }
+        var tPolygonLayers = this.get('mapPolygonLayers'),
+            tPointView = this.get('mapPointView'),
+            tBounds = tPointView ? tPointView.getBounds() : null;
+        if( tPolygonLayers) {
+          tPolygonLayers.forEach(function (iLayer) {
+            var tPolyBounds = iLayer.getBounds();
+            if (!SC.none(tPolyBounds)) {
+              if (!tBounds)
+                tBounds = tPolyBounds;
+              else
+                tBounds.extend(tPolyBounds);
+            }
+          });
         }
-        if (this.getPath('model.hasLatLongAttributes')) {
-          var tPointBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
-          if( !SC.none( tPointBounds)) {
-            if (!tBounds)
-              tBounds = tPointBounds;
-            else
-              tBounds.extend(tPointBounds);
-          }
-        }
-        if ( tBounds && tBounds.isValid()) {
+        if (tBounds && tBounds.isValid()) {
           this._fitBoundsInProgress = true;
           this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
           this.get('mapLayer')._setIdle();
@@ -468,16 +452,24 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        * This is our chance to add the features to the area layer
        */
       createVisualization: function () {
-        this.get('mapPolygonLayers').createVisualization();
+        var tPolygonLayers = this.get('mapPolygonLayers');
+        if( tPolygonLayers) {
+          tPolygonLayers.forEach( function( iLayer) {
+            iLayer.createVisualization();
+          });
+        }
       },
 
       /**
        Called when the value of a global value changes (e.g. when a slider is dragged).
        */
       globalValueDidChange: function() {
-        var tAreaLayer = this.get('mapPolygonLayers');
-        if( tAreaLayer)
-          tAreaLayer.refreshComputedLegendColors();
+        var tPolygonLayers = this.get('mapPolygonLayers');
+        if( tPolygonLayers) {
+          tPolygonLayers.forEach( function( iLayer) {
+            iLayer.refreshComputedLegendColors();
+          });
+        }
       },
 
       handleLegendModelChange: function() {
@@ -492,33 +484,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.adjustLayout( this.renderContext( this.get('tagName')));
       }.observes('*legendView.desiredExtent'),
 
-      handleAttributeRemoved: function() {
-        var tMapPointView = this.get('mapPointView'),
-            tMapAreaLayer = this.get('mapPolygonLayers'),
-            tMapGridModel = this.get('model.gridModel');
-        if( !this.getPath('model.dataConfiguration.hasLatLongAttributes')) {
-          this.setPath('model.connectingLineModel.isVisible', false);
-          this.setPath('model.pointsShouldBeVisible', false);
-          if( tMapPointView)
-            this.get('mapPointView').clear();
-          if(tMapGridModel) {
-            tMapGridModel.set('visible', false);
-            tMapGridModel.clear();
-          }
-        }
-        if( !this.getPath('model.hasAreaAttribute') && tMapAreaLayer) {
-          tMapAreaLayer.clear();
-        }
-      }.observes('model.attributeRemoved'),
-
-      updateConnectingLine: function() {
-        var tConnectingLineAdorn = this.get('connectingLineAdorn');
-        if( tConnectingLineAdorn) {
-          tConnectingLineAdorn.invalidateModel();
-          tConnectingLineAdorn.updateToModel( false /* do not animate */);
-        }
-      },
-
       handleMapLayerDisplayChange: function() {
         var tMapPointView = this.get('mapPointView'),
             tLastEventType = this.getPath( 'mapLayer.lastEventType');
@@ -530,9 +495,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             tMapPointView.doDraw();
             tMapPointView.set('isVisible', true);
           }
+          tMapPointView.updateConnectingLines();
         }
-
-        this.updateConnectingLine();
 
         var tMap = this.getPath('mapLayer.map'),
             tCenter = tMap.getCenter(),

@@ -861,6 +861,26 @@ DG.PlotDataConfiguration = SC.Object.extend(
               return this.dataContext.getCaseByID(iID);
             }.bind(this)
         ));
+      },
+
+      /**
+       *
+       * @param ioStorage {Object}
+       * @param iDim {String}
+       */
+      addToStorageForDimension: function( ioStorage, iDim) {
+        var tCollection = this.get(iDim + 'CollectionClient'),
+            tAttrDesc = this.get(iDim + 'AttributeDescription'),
+            tAttrs = (tAttrDesc && tAttrDesc.get('attributes')) || [];
+        if (tCollection && (tAttrs.length > 0)) {
+          ioStorage._links_[iDim + 'Coll'] = tCollection.toLink();
+          var tKey = iDim + 'Attr';
+          tAttrs.forEach(function (iAttr) {
+            DG.ArchiveUtils.addLink(iStorage, tKey, iAttr);
+          });
+        }
+        ioStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
+        ioStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
       }
 
     });

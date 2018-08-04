@@ -170,9 +170,37 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
 
       _observedDataConfiguration: null,
 
+      /**
+       * Store the information needed to put my data configuration back together.
+       * @return {Object}
+       */
+      createStorage: function () {
+        var tStorage = {_links_: {}},
+            tDataContext = this.get('dataContext'),
+            tDataConfiguration = this.get('dataConfiguration'),
+            tHiddenCases = tDataConfiguration && tDataConfiguration.get('hiddenCases');
+
+        if (tHiddenCases) {
+          tStorage._links_.tHiddenCases = tHiddenCases
+              .filter(function (iCase) {
+                return !!iCase;
+              })
+              .map(function (iCase) {
+                return iCase.toLink();
+              });
+        }
+
+        if (tDataContext)
+          tStorage._links_.context = tDataContext.toLink();
+
+        tDataConfiguration.addToStorageForDimension( tStorage, 'legend');
+
+
+        return tStorage;
+      },
+
       restoreStorage: function( iStorage) {
         sc_super();
-
         var tLegendAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'legendColl', 'legendAttr'),
             tDataConfig = this.get('dataConfiguration');
         tDataConfig.setAttributeAndCollectionClient('legendAttributeDescription', tLegendAttrRef,

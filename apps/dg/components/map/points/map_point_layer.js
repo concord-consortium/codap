@@ -44,6 +44,11 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 
       isInMarqueeMode: false, // Set by parent during marquee select to allow us to suppress data tips
 
+      /**
+       * @property {DG.MapConnectingLineAdornment}
+       */
+      connectingLineAdorn: null,
+
       init: function () {
         sc_super();
         this.setPath('dataTip.showOnlyLegendData', true);
@@ -348,7 +353,44 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         if (SC.none(this.get('map')))
           return;
         sc_super();
-      }
+      },
+
+      /**
+       * Defer to dataConfiguration.
+       * @return { L.LatLngBounds | null }
+       */
+      getBounds: function() {
+          return this.get('dataConfiguration').getLatLongBounds();
+      },
+
+      /**
+       * When an attribute has been removed we can no longer display, so we clear ourselves.
+       */
+      handleAttributeRemoved: function () {
+        sc_super();
+
+        this.setPath('model.connectingLineModel.isVisible', false);
+        this.setPath('model.pointsShouldBeVisible', false);
+        this.setPath('model.gridModel.visible', false);
+      }.observes('model.attributeRemoved'),
+
+      updateConnectingLine: function() {
+        var tConnectingLineAdorn = this.get('connectingLineAdorn');
+        if( tConnectingLineAdorn) {
+          tConnectingLineAdorn.invalidateModel();
+          tConnectingLineAdorn.updateToModel( false /* do not animate */);
+        }
+      },
+
+      /**
+       * Something about the points (aside from visibility) changed. Take appropriate action.
+       */
+      pointsDidChange: function() {
+        var tGridModel = this.getPath('mapGridLayer.model');
+        if( tGridModel)
+          tGridModel.rectArrayMustChange();
+        this.updateConnectingLine();
+      }.observes('pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange')
 
     });
 

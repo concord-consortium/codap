@@ -90,6 +90,27 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   /**
+   * Go through each of the mapPointLayers and merge their separate LatLongBounds into one
+   * @return {L.LatLngBounds | null}
+   */
+  getBounds: function() {
+    var tBounds,
+        tPointLayers = this.get('mapPointLayers');
+    if( tPointLayers) {
+      tPointLayers.forEach( function( iLayer) {
+        var tPointBounds = iLayer.getBounds();
+        if (!SC.none(tPointBounds)) {
+          if (!tBounds)
+            tBounds = tPointBounds;
+          else
+            tBounds.extend(tPointBounds);
+        }
+      });
+    }
+    return tBounds;
+  },
+
+  /**
    * Handles a marquee mouse down.
    * @param {{clientX:number, clientY:number}} iEvent
    * @returns {boolean}
@@ -255,6 +276,12 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   doDraw: function() {
     this.get('mapPointLayers').forEach( function( iLayer) {
       iLayer.doDraw();
+    });
+  },
+
+  updateConnectingLines: function() {
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.updateConnectingLine();
     });
   },
 

@@ -49,9 +49,32 @@ DG.GraphController = DG.DataDisplayController.extend(
         axisMultiTarget: null,
 
         createComponentStorage: function () {
-          var storage = sc_super(),
-              dataConfiguration = this.getPath('graphModel.dataConfiguration'),
-              plotModels = this.getPath('graphModel.plots');
+          var storage = {_links_: {}},
+              dataContext = this.get('dataContext'),
+              dataConfiguration = this.getPath('dataDisplayModel.dataConfiguration'),
+              hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases');
+
+          if (dataContext)
+            storage._links_.context = dataContext.toLink();
+
+          dataConfiguration.addToStorageForDimension(storage, 'legend');
+
+          if (hiddenCases) {
+            storage._links_.hiddenCases = hiddenCases
+                .filter(function (iCase) {
+                  return !!iCase;
+                })
+                .map(function (iCase) {
+                  return iCase.toLink();
+                });
+          }
+          storage.pointColor = this.getPath('dataDisplayModel.pointColor');
+          storage.strokeColor = this.getPath('dataDisplayModel.strokeColor');
+          storage.pointSizeMultiplier = this.getPath('dataDisplayModel.pointSizeMultiplier');
+          storage.transparency = this.getPath('dataDisplayModel.transparency');
+          storage.strokeTransparency = this.getPath('dataDisplayModel.strokeTransparency');
+
+          var plotModels = this.getPath('graphModel.plots');
 
           var storeAxis = function (iDim) {
             var tAxis = this.getPath('graphModel.' + iDim + 'Axis');
@@ -73,9 +96,9 @@ DG.GraphController = DG.DataDisplayController.extend(
             storage.numberToggleLastMode = this.getPath('graphModel.numberToggle.lastMode');
           storage.enableMeasuresForSelection = this.getPath('graphModel.enableMeasuresForSelection');
 
-          this.storeDimension(dataConfiguration, storage, 'x');
-          this.storeDimension(dataConfiguration, storage, 'y');
-          this.storeDimension(dataConfiguration, storage, 'y2');
+          dataConfiguration.addToStorageForDimension(storage, storage, 'x');
+          dataConfiguration.addToStorageForDimension(storage, 'y');
+          dataConfiguration.addToStorageForDimension(storage, 'y2');
 
           storeAxis('x');
           storeAxis('y');

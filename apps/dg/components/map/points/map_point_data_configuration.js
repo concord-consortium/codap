@@ -135,6 +135,14 @@ DG.MapPointDataConfiguration = DG.MapDataConfiguration.extend(
         return tSource ? tSource.getPath('casesController.arrangedObjects') : null;
       }.property(),
 
+      longAttributeDescription: function() {
+        return this.get('xAttributeDescription');
+      }.property('xAttributeDescription'),
+
+      latAttributeDescription: function() {
+        return this.get('yAttributeDescription');
+      }.property('yAttributeDescription'),
+
       latAttributeID: function () {
         return this.getPath('yAttributeDescription.attributeID');
       }.property(),
