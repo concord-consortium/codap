@@ -96,7 +96,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             storage.numberToggleLastMode = this.getPath('graphModel.numberToggle.lastMode');
           storage.enableMeasuresForSelection = this.getPath('graphModel.enableMeasuresForSelection');
 
-          dataConfiguration.addToStorageForDimension(storage, storage, 'x');
+          dataConfiguration.addToStorageForDimension(storage, 'x');
           dataConfiguration.addToStorageForDimension(storage, 'y');
           dataConfiguration.addToStorageForDimension(storage, 'y2');
 

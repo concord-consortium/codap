@@ -217,6 +217,9 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         }
         return this;
       }
+      else if( !tContext.hasObserverFor('changeCount', this)) {
+        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
+      }
       return this.getPath('dataConfiguration.dataContext');
     }.property(),  // Todo: Figure out if this can be cacheable
 

@@ -175,7 +175,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
         // show or hide if needed, then update
-        this.showHidePlottedElement(tCircle, tIsMissingCase || tCircle.isHidden() || !iRC.pointsShouldBeVisible);
+        this.showHidePlottedElement(tCircle, tIsMissingCase /*|| tCircle.isHidden()*/ || !iRC.pointsShouldBeVisible);
         if (!tIsMissingCase) {
           var tAttrs = {
             cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
@@ -312,7 +312,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       },
 
       createElement: function (iCase, iIndex, iAnimate) {
-
         var tCircle = this.get('paper').circle(-100, -100, this._pointRadius);
         tCircle['case'] = iCase;
         tCircle.node.setAttribute('shape-rendering', 'geometric-precision');

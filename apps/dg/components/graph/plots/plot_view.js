@@ -35,6 +35,11 @@ DG.PlotView = DG.PlotLayer.extend(
   plotIndex: 0,
   numPlots: 1,
 
+  plotIndexDidChange: function() {
+    // Keep my plotLayerNumber in synch
+    this.set('plotLayerNumber', this.get('plotIndex'));
+  }.observes('plotIndex'),
+
   /**
     @property { DG.AxisView}
   */
@@ -180,8 +185,10 @@ DG.PlotView = DG.PlotLayer.extend(
    * @param iNumPlots Number of plotviews owned by graph
    */
   doDraw: function doDraw( iIndex, iNumPlots) {
-    this.set('plotIndex', iIndex);
-    this.set('numPlots', iNumPlots);
+    if( !SC.none( iIndex)) {
+      this.set('plotIndex', iIndex);
+      this.set('numPlots', iNumPlots);
+    }
     if( !this._areAdornmentsInitialized) {
       this.initializeAdornments();
     } else {

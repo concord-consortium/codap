@@ -50,8 +50,10 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       }.observes('*paperSource.paper'),
 
       plottedElements: function () {
-        return this.getPath('paperSource.plottedElements');
+        return this.get('paperSource').getPlottedElements( this.plotLayerNumber);
       }.property('paper'),
+
+      plotLayerNumber: 0,
 
       /**
        * @property {DG.LayerManager}
@@ -115,7 +117,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
 
       /**
        The model on which this view is based.
-       @property { DG.PlotModel|DG.MapModel }
+       @property { DG.PlotModel|DG.MapLayerModel }
        */
       model: null,
 

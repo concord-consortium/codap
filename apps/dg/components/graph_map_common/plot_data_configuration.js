@@ -876,7 +876,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
           ioStorage._links_[iDim + 'Coll'] = tCollection.toLink();
           var tKey = iDim + 'Attr';
           tAttrs.forEach(function (iAttr) {
-            DG.ArchiveUtils.addLink(iStorage, tKey, iAttr);
+            DG.ArchiveUtils.addLink(ioStorage, tKey, iAttr);
           });
         }
         ioStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
