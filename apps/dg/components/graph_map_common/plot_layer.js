@@ -571,7 +571,6 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         var this_ = this,
             tCases = this.getPath('model.cases'),
             tRC = this.createRenderContext(),
-            tLayerManager = this.get('layerManager'),
             tPlottedElements = this.get('plottedElements');
 
         if (SC.none(tCases))
@@ -1000,7 +999,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
           iPlottedElement.show();
           // Note that there is a possible problem in that if someone stops this animation, the element will
           // likely be invisible or only partially visible
-          iPlottedElement.animate({'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'stroke-opacity': 1},
+          iPlottedElement.animate({'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'opacity': 1},
               DG.PlotUtilities.kDefaultAnimationTime, '<>');
         }
         return !iWantHidden;
