@@ -628,8 +628,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var values = {};
       valueArray.forEach(function (value, ix) {
         var attrID = attrIDs[ix];
-        var attr = context.getAttrRefByID(attrID).attribute;
-        values[attr.name] = value;
+        var ref = context.getAttrRefByID(attrID);
+        var attr = ref && ref.attribute;
+        if( attr)
+          values[attr.name] = value;
       });
       return context.addItems(values);
     }
