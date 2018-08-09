@@ -3,6 +3,8 @@
  */
 
 sc_require('formula/formula');
+sc_require('libraries/codemirror/codemirror');
+sc_require('libraries/codemirror/addons/mode/simple');
 
 /* global CodeMirror */
 CodeMirror.defineSimpleMode("codapFormula", {
