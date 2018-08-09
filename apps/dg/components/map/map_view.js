@@ -65,14 +65,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       mapGridMarqueeView: null,
 
       /**
-       * @property {DG.LegendView}
+       * @property [{DG.LegendView}]
        */
-      legendView: null,
-
-      /**
-       * SC.SegmentedView
-       */
-      backgroundControl: null,
+      legendViews: null,
 
       /**
        * SC.SliderView
@@ -102,37 +97,12 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       init: function () {
         sc_super();
-        var tLegendView = DG.LegendView.create({layout: { bottom: 0, height: 0 }}),
-            tMapLayer = DG.MapLayerView.create( { model: this.get('model') });
+        var tMapLayer = DG.MapLayerView.create( { model: this.get('model') });
 
         this.set('mapLayer', tMapLayer);
         this.appendChild( tMapLayer);
 
-        this.set('legendView', tLegendView);
-        this.appendChild( tLegendView);
-        tLegendView.set('model', this.getPath('model.legend'));
-
-        var tItems = [
-          SC.Object.create( { label: 'Oceans',
-            value: 'Oceans', id: 'dg-map-oceans-background-button'}),
-          SC.Object.create( { label: 'Topo',
-            value: 'Topographic', id: 'dg-map-topographic-background-button'} ),
-          SC.Object.create( { label: 'Streets',
-            value: 'Streets', id: 'dg-map-streets-background-button'} )
-        ];
-
-        this.backgroundControl = SC.SegmentedView.create({
-          controlSize: SC.SMALL_CONTROL_SIZE,
-          layout: { width: 170, height: 18, top: 5, right: 5 },
-          items: tItems,
-          value: [this.getPath('model.baseMapLayerName')],
-          itemTitleKey: 'label',
-          itemValueKey: 'value',
-          itemLayerIdKey: 'id',
-          action: 'changeBaseMap',
-          target: this
-        });
-        this.appendChild( this.backgroundControl );
+        this.legendViews = [];
 
         this.gridControl = SC.SliderView.create({
           controlSize: SC.SMALL_CONTROL_SIZE,
@@ -207,28 +177,27 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.setPath('mapGridMarqueeView.isVisible', tGridInMarqueeMode);
       }.observes('mapPointView.isInMarqueeMode', 'mapGridLayer.isInMarqueeMode'),
 
-      changeBaseMap: function() {
-        var tBackground = this.backgroundControl.get('value'),
-            tOldBackground = this.getPath('model.baseMapLayerName');
+      changeBaseMap: function( iNewValue) {
+        var tOldBackground = this.getPath('model.baseMapLayerName');
         DG.UndoHistory.execute(DG.Command.create({
           name: "map.changeBaseMap",
           undoString: 'DG.Undo.map.changeBaseMap',
           redoString: 'DG.Redo.map.changeBaseMap',
-          log: 'Map base layer changed: %@'.fmt(tBackground),
+          log: 'Map base layer changed: %@'.fmt(iNewValue),
           _componentId: this.getPath('controller.model.id'),
           _controller: function() {
             return DG.currDocumentController().componentControllersMap[this._componentId];
           },
           execute: function() {
-            this._controller().setPath('view.contentView.model.baseMapLayerName', tBackground);
+            this._controller().setPath('view.contentView.model.baseMapLayerName', iNewValue);
           },
           undo: function() {
             this._controller().setPath('view.contentView.model.baseMapLayerName', tOldBackground);
             this._controller().setPath('view.contentView.backgroundControl.value', [tOldBackground]);
           },
           redo: function() {
-            this._controller().setPath('view.contentView.model.baseMapLayerName', tBackground);
-            this._controller().setPath('view.contentView.backgroundControl.value', [tBackground]);
+            this._controller().setPath('view.contentView.model.baseMapLayerName', iNewValue);
+            this._controller().setPath('view.contentView.backgroundControl.value', [iNewValue]);
           }
         }));
       },
@@ -595,8 +564,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       dragEnded: function() {
         DG.GraphDropTarget.dragEnded.apply( this, arguments);
-        if( !this.getPath('model.hasLatLongAttributes'))
-          this.setPath('mapPointView.isVisible', false);
       },
 
       /**

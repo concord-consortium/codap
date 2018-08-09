@@ -150,6 +150,25 @@ DG.MapModel = SC.Object.extend(
 
       },
 
+      handleDroppedContext: function( iContext) {
+        // Nothing to do since contexts get dealt with at the MapLayerModel
+      },
+
+      /**
+       Sets the attribute for the legend for the layer that uses the given context
+       @param  {DG.DataContext}      iDataContext -- The data context for this graph
+       @param  {Object}              iAttrRefs -- The attribute to set for the axis
+       {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
+       {DG.Attribute}        iAttrRefs.attribute -- Array of attributes to set for the legend
+       */
+      changeAttributeForLegend: function( iDataContext, iAttrRefs) {
+        this.get('mapLayerModels').forEach( function( iLayerModel) {
+          if( iDataContext === iLayerModel.get('dataContext')) {
+            iLayerModel.changeAttributeForLegend( iDataContext, iAttrRefs);
+          }
+        });
+      },
+
       someLayerReturnsTrue: function (iPropName) {
         return this.get('mapLayerModels').some(function (iLayerModel) {
           return iLayerModel.get(iPropName);

@@ -1037,6 +1037,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return SC.none( parent);
     },
 
+    handleDroppedContext: function( iContext) {
+      if( this.get('dataContext') !== iContext) {
+        this.reset();
+      }
+    },
+
     isPlotAffectedByChange: function(iChange) {
       var plotModel = this.get('plot'),
           toggleModel = this.get('enableNumberToggle') && this.get('numberToggle');
