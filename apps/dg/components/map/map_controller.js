@@ -118,7 +118,7 @@ DG.MapController = DG.DataDisplayController.extend(
           controlSize: SC.SMALL_CONTROL_SIZE,
           layout: { width: 170, height: 18, top: 5, right: 5 },
           items: tItems,
-          value: this.getPath('mapView.backgroundControl.value'),
+          value: this.getPath('mapView.model.baseMapLayerName'),
           itemTitleKey: 'label',
           itemValueKey: 'value',
           itemLayerIdKey: 'id',
@@ -622,11 +622,8 @@ DG.MapController = DG.DataDisplayController.extend(
       },
 
       // Copied and modified from map_view.js so it calls back the original and updates its value
-      changeBaseMap: function(iThisView) {
-        var tMapView = this.getPath('mapView'),
-            tMapViewBgControl = tMapView.getPath('backgroundControl');
-        tMapViewBgControl.set('value', iThisView.get('value'));
-        tMapView.get('changeBaseMap').call(tMapView);
+      changeBaseMap: function(iSegmentedView) {
+        this.getPath('mapView').changeBaseMap( iSegmentedView.get('value'));
       }
     };
 

@@ -892,6 +892,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
           if (SC.none(iDragData)) // The over-notification caused by the * in the observes
             return;       // means we get here at times there isn't any drag data.
 
+          var this_ = this;
+
           DG.UndoHistory.execute(DG.Command.create({
             name: 'axis.attributeChange',
             undoString: 'DG.Undo.axisAttributeChange',
@@ -899,40 +901,32 @@ DG.DataDisplayController = DG.ComponentController.extend(
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
-            _controller: function () {
-              return DG.currDocumentController().componentControllersMap[this._componentId];
-            },
             execute: function () {
-              var controller = this._controller();
-              this._beforeStorage = controller.createComponentStorage();
+              this._beforeStorage = this_.createComponentStorage();
 
-              var tDragContext = iDragData.context;
-              if (!SC.none(tDragContext) && (tDragContext !== controller.get('dataContext'))) {
-                controller.get('dataDisplayModel').reset();
-                controller.set('dataContext', tDragContext);
-              }
-
-              var tDataContext = controller.get('dataContext'),
-                  tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+              var tDragContext = iDragData.context,
+                  tCollectionClient = getCollectionClientFromDragData(tDragContext, iDragData),
+                  tDisplayModel = this_.get('dataDisplayModel');
+              tDisplayModel.handleDroppedContext( tDragContext);
+              this_.set('dataContext', tDragContext);
 
               iView.dragData = null;
 
-              controller.get('dataDisplayModel').changeAttributeForLegend(
-                  tDataContext,
+              tDisplayModel.changeAttributeForLegend(
+                  tDragContext,
                   {
                     collection: tCollectionClient,
                     attributes: [iDragData.attribute]
                   });
 
               this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
-            },
+            }.bind( this),
             undo: function () {
-              var controller = this._controller();
-              this._afterStorage = controller.createComponentStorage();
-              controller.restoreComponentStorage(this._beforeStorage);
+              this._afterStorage = this_.createComponentStorage();
+              this_.restoreComponentStorage(this._beforeStorage);
             },
             redo: function () {
-              this._controller().restoreComponentStorage(this._afterStorage);
+              this_.restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
             }
           }));

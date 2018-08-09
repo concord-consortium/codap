@@ -234,14 +234,15 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
 
     this.mapPointLayers = [];
 
-    this.getPath('model.mapLayerModels').forEach(function (iMapLayerModel) {
+    this.getPath('model.mapLayerModels').forEach(function (iMapLayerModel, iIndex) {
       var tDataConfig = iMapLayerModel.get('dataConfiguration');
       if (tDataConfig.get('hasLatLongAttributes')) {
         var tLayer = DG.MapPointLayer.create({
           paperSource: this,
           model: iMapLayerModel,
           mapSource: this,
-          dataConfiguration: tDataConfig
+          dataConfiguration: tDataConfig,
+          plotLayerNumber: iIndex,
         });
         tLayer.addObserver('plotDisplayDidChange', this, function () {
           this.invokeLast(this.plottedPointsDidChange);
