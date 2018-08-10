@@ -21,8 +21,6 @@
 // ==========================================================================
 
 sc_require('views/text_field_view');
-sc_require('libraries/codemirror/codemirror');
-sc_require('libraries/codemirror/addons/display/placeholder');
 
 /** @class
 
