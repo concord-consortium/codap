@@ -99,8 +99,11 @@ DG.MapLayerView = SC.View.extend(
         var onLayerAdd = function (iLayerEvent) {
               var tParentView = this.get('parentView');
               this._map.off('layeradd', onLayerAdd);
-              tParentView.addPointLayers();
-              tParentView.addPolygonLayers();
+              this.invokeLater( function() {
+                tParentView.addPointLayers();
+                tParentView.addPolygonLayers();
+                tParentView.adjustLayout();
+              });
               // tParentView.addGridLayer();
               // We want the popup hints for the grid to be on top of the points. jQuery can
               // help with this if we hardcode the layer class names.

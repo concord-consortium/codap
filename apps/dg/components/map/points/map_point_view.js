@@ -259,6 +259,17 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   /**
+   *
+   * @return {[DG.LegendView]}
+   */
+  createLegendViews: function() {
+    var tViews = this.get('mapPointLayers').map( function( iLayer) {
+      return DG.LegendView.create( { model: iLayer.getPath('model.legend')});
+    });
+    return tViews;
+  },
+
+  /**
    * Something about the points changed. Let my dependents know.
    */
   plottedPointsDidChange: function() {

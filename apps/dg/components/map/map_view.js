@@ -70,6 +70,12 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       legendViews: null,
 
       /**
+       * Assigned on creation. Called with newly created LegendView.
+       * @property {Function}
+       */
+      legendViewCreationCallback: null,
+
+      /**
        * SC.SliderView
        */
       gridControl: null,
@@ -235,30 +241,23 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       addPointLayers: function () {
         if( this.get('mapPointView'))
           return;
-        var tMakeVisible = this.getPath('model.pointsShouldBeVisible');
 
         var tMapPointView = DG.MapPointView.create(
             {
               mapLayer: this.get('mapLayer'),
               model: this.get('model')
             });
-        // tMapPointView.set( 'model', this.get('model')); // Cannot pass in because of observer setup
+
         this.set('mapPointView', tMapPointView);
         this.appendChild( tMapPointView);
 
-        if( this.getPath('model.hasLatLongAttributes')) {
-          if (!this.getPath('model.centerAndZoomBeingRestored')) {
-            this.fitBounds();
-          }
-          this.setPathIfChanged('marqueeTool.isVisible', tMakeVisible);
-          this.setPathIfChanged('model.pointsShouldBeVisible', tMakeVisible);
-          if( tMakeVisible && this.getPath('model.linesShouldBeVisible')) {
-            this.lineVisibilityChanged();
-          }
-        }
-        else {
-          tMapPointView.set('isVisible', false);
-        }
+        var tPointLegendViews = tMapPointView.createLegendViews();
+        tPointLegendViews.forEach( function( iView) {
+          this.appendChild( iView);
+          this.legendViewCreationCallback( iView);
+        }.bind( this));
+        this.set('legendViews', this.get('legendViews').concat( tPointLegendViews));
+
         this.adjustLayout( this.renderContext( this.get('tagName')));
       },
 
@@ -314,6 +313,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       addPolygonLayers: function () {
         if( this.get('mapPolygonLayers'))
           return;
+        var tLegendViews = this.get('legendViews');
         this.set('mapPolygonLayers', []);
         var tPolygonLayers = this.get('mapPolygonLayers');
         this.getPath('model.mapLayerModels').forEach( function( iLayerModel) {
@@ -323,6 +323,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
                   mapSource: this,
                   model: iLayerModel
                 }));
+            var tLegendView = DG.LegendView.create( { model: iLayerModel.get('legend')});
+            this.appendChild( tLegendView);
+            tLegendViews.push( tLegendView);
+            this.legendViewCreationCallback( tLegendView);
           }
         }.bind( this));
         tPolygonLayers.forEach( function( iPolygonLayer) {
@@ -397,20 +401,24 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       adjustLayout: function( context, firstTime) {
         var tMapLayer = this.get('mapLayer'),
             tMapPointView = this.get('mapPointView' ),
-            tLegendView = this.get('legendView'),
-            tLegendHeight = SC.none( tLegendView) ? 0 : tLegendView.get('desiredExtent' );
+            tLegendHeight = 0;
 
-        if( this._isRenderLayoutInProgress || !tMapPointView || !tLegendView)
+        if( this._isRenderLayoutInProgress || !tMapPointView)
           return;
         this._isRenderLayoutInProgress = true;
+
+        this.get('legendViews').forEach( function( iLegendView) {
+          var tHeight = iLegendView.get('desiredExtent');
+          iLegendView.set('layout', { bottom: tLegendHeight, height: tHeight });
+          tLegendHeight += tHeight;
+        }.bind( this));
 
         // adjust() method avoids triggering observers if layout parameter is already at correct value.
         tMapPointView.adjust('bottom', tLegendHeight);
         tMapLayer.adjust('bottom', tLegendHeight);
-        tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
 
         this._isRenderLayoutInProgress = false;
-      }.observes('model.dataConfiguration.attributeAssignment'),
+      }.observes('model.legendAttributeChange'),
 
       /**
        * Private property to prevent recursive execution of renderLayout. Seems most important in Firefox.
@@ -440,18 +448,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           });
         }
       },
-
-      handleLegendModelChange: function() {
-        var tLegendModel = this.getPath('model.legend');
-        this.setPath('legendView.model', tLegendModel);
-      }.observes('.model.legend'),
-
-      /**
-       * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.
-       */
-      handleLegendLayoutChange: function() {
-        this.adjustLayout( this.renderContext( this.get('tagName')));
-      }.observes('*legendView.desiredExtent'),
 
       handleMapLayerDisplayChange: function() {
         var tMapPointView = this.get('mapPointView'),

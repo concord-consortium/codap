@@ -113,7 +113,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
        */
       displayDidChange: function () {
         this.notifyPropertyChange('plotDisplayDidChange');
-      },
+      }.observes('model.isVisible'),
 
       /**
        The model on which this view is based.
@@ -387,7 +387,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         return iElement;
       },
 
-      callCreateElement: function (iCase, iIndex, iAnimate) {
+      callCreateElement: function (iCase, iIndex, iAnimate, iIsVisible) {
         var tPlottedElements = this.get('plottedElements'),
             tElement;
         if (tPlottedElements[iIndex]) {
@@ -399,7 +399,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         }
         this.getPath('layerManager.' + DG.LayerNames.kPoints).push(tElement);
         this._elementOrderIsValid = false; // So updateSelection will work
-        return this.assignElementAttributes(tElement, iIndex, iAnimate);
+        return this.assignElementAttributes(tElement, iIndex, iAnimate, iIsVisible);
       },
 
       /**
@@ -612,7 +612,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         this.prepareToResetCoordinates();
         iCases.forEach(function (iCase, iIndex) {
           if (iIndex >= tPlotElementLength)
-            this.callCreateElement(iCase, iIndex, true);
+            this.callCreateElement(iCase, iIndex, true, iRC.isVisible);
           this.setCircleCoordinate(iRC, iCase, iIndex);
         }.bind(this));
         this._mustMoveElementsToNewCoordinates = false;

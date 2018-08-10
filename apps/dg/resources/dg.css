@@ -553,6 +553,7 @@ html, body {
 
 .dg-legend-view {
     background-color: #F9F9F9;
+    z-index: unset !important;
 }
 
 .legend-key {

@@ -217,7 +217,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         }
         return this;
       }
-      else if( !tContext.hasObserverFor('changeCount', this)) {
+      else if( tContext && !tContext.hasObserverFor('changeCount', this)) {
         tContext.addObserver('changeCount', this, 'handleDataContextNotification');
       }
       return this.getPath('dataConfiguration.dataContext');
@@ -509,7 +509,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /** create a menu item that removes the attribute on the given axis/legend */
-    createRemoveAttributeMenuItem: function( iXYorLegend, isForSubmenu, iAttrIndex ) {
+    createRemoveAttributeMenuItem: function( iAxisOrLegendView, iXYorLegend, isForSubmenu, iAttrIndex ) {
       iAttrIndex = iAttrIndex || 0;
       var tDescKey = iXYorLegend + 'AttributeDescription',
           tAxisKey = iXYorLegend + 'Axis', // not used by removeLegendAttribute()
@@ -540,7 +540,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /** create a menu item that changes the attribute type on the given axis/legend */
-    createChangeAttributeTypeMenuItem: function( iXYorLegend ) {
+    createChangeAttributeTypeMenuItem: function( iAxisView, iXYorLegend ) {
       var tDescKey = iXYorLegend + 'AttributeDescription',
           tAxisKey = iXYorLegend + 'Axis',
           tDescription = this.getPath( 'dataConfiguration.' + tDescKey),

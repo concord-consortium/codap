@@ -94,6 +94,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           legendVarID: tLegendVarID,
           updatedPositions: true,
           pointsShouldBeVisible: this.getPath('model.pointsShouldBeVisible'),
+          isVisible: this.getPath( 'model.isVisible'),
 
           pointColor: tModel.get('pointColor') || DG.PlotUtilities.kDefaultPointColor,
           strokeColor: tStrokeParams.strokeColor,
@@ -175,7 +176,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
         // show or hide if needed, then update
-        this.showHidePlottedElement(tCircle, tIsMissingCase /*|| tCircle.isHidden()*/ || !iRC.pointsShouldBeVisible);
         if (!tIsMissingCase) {
           var tAttrs = {
             cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
@@ -183,11 +183,20 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
           };
           this.updatePlottedElement(tCircle, tAttrs, iAnimate, iCallback);
+          if( iRC.isVisible && tCircle.attr('opacity') === 0) {
+            tCircle.show();
+            tCircle.animate({opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+          }
+          else if( !iRC.isVisible && tCircle.attr('opacity') === 1) {
+            tCircle.animate( { opacity: 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>', function() {
+              tCircle.hide();
+            });
+          }
         }
         tCircle['case'] = iCase;  // Because sorting the cases messes up any correspondence between index and case
       },
 
-      assignElementAttributes: function (iElement, iIndex, iAnimate) {
+      assignElementAttributes: function (iElement, iIndex, iAnimate, iIsVisible) {
         /*
             function changeCaseValues( iDeltaValues) {
               var tXVarID = this_.getPath('model.xVarID'),
@@ -306,8 +315,12 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 //            })
         ;
         iElement.index = iIndex;
-        if (iAnimate)
+        if (iAnimate && iIsVisible)
           DG.PlotUtilities.doCreateCircleAnimation(iElement);
+        else if( !iIsVisible) {
+          iElement.attr( {opacity: 0 });
+          iElement.hide();
+        }
         return iElement;
       },
 

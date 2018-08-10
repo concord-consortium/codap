@@ -28,7 +28,7 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
     /** @scope DG.MapPointLayerModel.prototype */
     {
       /**
-       * Reflects (and determines) whether the mapPointViews subview is showing
+       * Reflects (and determines) whether the points show
        * {@property Boolean}
        */
       pointsShouldBeVisible: true,
@@ -155,13 +155,10 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
 
       createStorage: function() {
         var tStorage = sc_super(),
-            // tDataConfiguration = this.get('dataConfiguration'),
+            tDataConfiguration = this.get('dataConfiguration'),
             tPointsVisible = this.get('pointsShouldBeVisible'),
             tGridModel = this.get('gridModel');
-/*
-        tDataConfiguration.addToStorageForDimension(tStorage, 'long');
-        tDataConfiguration.addToStorageForDimension(tStorage, 'lat');
-*/
+        tDataConfiguration.addToStorageForDimension(tStorage, 'legend');
         tStorage.pointColor = this.getPath('pointColor');
         tStorage.strokeColor = this.getPath('strokeColor');
         tStorage.pointSizeMultiplier = this.getPath('pointSizeMultiplier');

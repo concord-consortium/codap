@@ -213,14 +213,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
           tResult.push(tConfigurationButton);
 
           // iconClass is different for MapView style control
+        var tIsMapView = this.getPath('model.type') === 'DG.MapView';
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-inspector-pane-button dg-display-styles'.w(),
-            iconClass: this.getPath('model.type') === 'DG.MapView' ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
+            iconClass: tIsMapView ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
             showBlip: true,
             target: this,
             action: 'showHideStylesPane',
-            toolTip: 'DG.Inspector.displayStyles.toolTip',
+            toolTip: tIsMapView ? 'DG.Inspector.displayLayers.toolTip' : 'DG.Inspector.displayStyles.toolTip',
             localize: true
           }));
 
@@ -367,6 +368,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               kTitleHeight = 26,
               kMargin = 20,
               kLeading = 5,
+              tIsMapView = this.getPath('model.type') === 'DG.MapView',
               tStylesButton = this.get('inspectorButtons').find( function( iButton) {
                 return iButton.get('classNames').indexOf( 'dg-display-styles') >= 0;
               });
@@ -378,7 +380,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           this.stylesPane = DG.InspectorPickerPane.create(
               {
                 // So we can identify closure through click on button icon
-                buttonIconClass: this.getPath('model.type') === 'DG.MapView' ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
+                buttonIconClass: tIsMapView ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 250, height: 150},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -396,7 +398,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                         flowSpacing: {left: 0, bottom: kLeading},
                         title: this.getPath('model.type') === 'DG.MapView' ? 'DG.Inspector.layers' : 'DG.Inspector.styles',
                         localize: true,
-                        iconURL: static_url('images/icon-styles.svg')
+                        iconURL: tIsMapView ? static_url('images/icon-layers.svg') :
+                            static_url('images/icon-styles.svg')
                       }),
                       init: function () {
                         sc_super();
@@ -775,9 +778,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
           // --Craig and Kirk 2012-06-07
           tMenuItems.push({isSeparator: YES});
           var kNotForSubmenu = false;
-          tMenuItems.push(tDataDisplayModel.createRemoveAttributeMenuItem(tAxisKey, kNotForSubmenu, iAttrIndex));
+          tMenuItems.push(tDataDisplayModel.createRemoveAttributeMenuItem(
+              iAxisView, tAxisKey, kNotForSubmenu, iAttrIndex));
           if (tAxisKey !== 'y2')
-            tMenuItems.push(tDataDisplayModel.createChangeAttributeTypeMenuItem(tAxisKey, kNotForSubmenu, iAttrIndex));
+            tMenuItems.push(tDataDisplayModel.createChangeAttributeTypeMenuItem(iAxisView, tAxisKey));
           tAttributeMenu.set('items', tMenuItems);
           tAttributeMenu.selectedAxis = tOrientation;
           tAttributeMenu.isLegend = iAxisView.instanceOf(DG.LegendView);
