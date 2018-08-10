@@ -164,6 +164,20 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
     this.features = [];
   },
 
+  isVisibleChanged: function() {
+    var tIsVisible = this.getPath('model.isVisible'),
+        tMap = this.get('map');
+    this.features.forEach( function( iFeature) {
+      var tHasLayer = tMap.hasLayer( iFeature);
+      if( tIsVisible && !tHasLayer) {
+        tMap.addLayer( iFeature);
+      }
+      else if( !tIsVisible && tHasLayer) {
+        tMap.removeLayer( iFeature);
+      }
+    });
+  }.observes('model.isVisible'),
+
   hasLegendWithFormula: function () {
     return this.getPath('model.dataConfiguration.legendAttributeDescription.attribute.hasFormula');
   },
@@ -250,7 +264,8 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
     this._featuresRemainingToFetch = 0;
     var tRC = this.createRenderContext(),
         tModel = this.get('model'),
-        tCases = tModel.getPath( 'dataConfiguration.allCases');//,
+        tCases = tModel.getPath( 'dataConfiguration.allCases'),
+        tIsVisible = tModel.get('isVisible');//,
         //tCaptionID = tModel.getPath('dataConfiguration.captionAttributeDescription.attributeID'),
         //tCaptionName = tModel.getPath('dataConfiguration.captionAttributeDescription.attribute.name');
     tCases.forEach( function( iCase, iIndex) {
@@ -278,6 +293,9 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
                 .on('mouseover', handleMouseover)
                 .on('mouseout', handleMouseout)
                 .addTo(tRC.map);
+            if( !tIsVisible) {
+              tRC.map.removeLayer( this.features[iIndex]);
+            }
           }.bind( this),
 
           handleClick = function( iEvent) {

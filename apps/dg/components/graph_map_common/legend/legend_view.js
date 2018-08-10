@@ -80,7 +80,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       */
       desiredExtent: function() {
         var tLabelHeight = this.get('labelExtent').y,
-            tExtent = tLabelHeight + 2 * kVMargin;
+            tExtent = tLabelHeight + (tLabelHeight === 0 ? 0 : 2 * kVMargin);
         switch( this.get('attributeType')) {
           case DG.Analysis.EAttributeType.eNumeric:
             tExtent += this.get('choroplethView').desiredExtent( tLabelHeight);

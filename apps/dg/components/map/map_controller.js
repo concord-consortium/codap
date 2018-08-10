@@ -44,6 +44,23 @@ DG.MapController = DG.DataDisplayController.extend(
       }.property('dataDisplayModel'),
       mapView: null,
 
+      mapViewDidChange: function() {
+        this.setPath('mapView.legendViewCreationCallback', this.setUpLegendView.bind( this));
+      }.observes('mapView'),
+
+      /**
+       * A MapView may have multiple legend views. The Label of each needs to be configured
+       * properly to show its menu on mouseDown.
+       * @param iLegendView {DG.LegendView}
+       */
+      setUpLegendView: function( iLegendView) {
+        this.addAxisHandler( iLegendView);
+        iLegendView.addObserver('labelNode', this,
+            function () {
+              this.addAxisHandler(iLegendView);
+            }.bind( this));
+      },
+
       /**
        * We must store information for the mapModel.
        * @return {Object}
@@ -151,15 +168,11 @@ DG.MapController = DG.DataDisplayController.extend(
           // Left-side layer toggle
           tDataCollectionLayer.appendChild(SC.CheckboxView.create({
             layout: { width: 80 },
-            title: tDataConfig.getPath('collectionClient.title'),
-            value: true,
+            title: tDataConfig.getPath('collectionClient.name'),
+            value: iMapLayerModel.get('isVisible'),
             localize: false,
             valueDidChange: function (iThisView) {
-              // tMapLayerModel.togglePoints(iThisView.get('value'));
-              iMapLayerModel.set('pointsShouldBeVisible', iThisView.get('value'));
-              this.getPath('mapView.plottedPointsDidChange');
-              // tMapLayerModel.propertyDidChange('pointsShouldBeVisible');
-              // mapPointLayers[iConfigIdx].notifyPropertyChange('pointsShouldBeVisible');
+              iMapLayerModel.set('isVisible', iThisView.get('value'));
             }.bind(this).observes('value')
           }));
 

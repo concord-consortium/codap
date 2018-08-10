@@ -75,7 +75,23 @@ DG.MapModel = SC.Object.extend(
                 // Make a copy, all lower case. We will need the original if we find a match.
                 tLowerCaseNames = tAttrNames.map(function (iAttrName) {
                   return iAttrName.toLowerCase();
-                });
+                }),
+                configureLayer = function (iInitializer, iDataConfigClass, iLayerModelClass) {
+                  tDataConfiguration = iDataConfigClass.create({
+                    initializer: iInitializer
+                  });
+                  tLegend = DG.LegendModel.create({
+                    dataConfiguration: tDataConfiguration,
+                    attributeDescription: tDataConfiguration.get('legendAttributeDescription')
+                  });
+                  tLegend.addObserver('attributeDescription.attribute', this, this.legendAttributeDidChange);
+                  tMapLayerModel = iLayerModelClass.create({
+                    dataConfiguration: tDataConfiguration,
+                    legend: tLegend
+                  });
+                  this.mapLayerModels.push(tMapLayerModel);
+                  tMapLayerModel.invalidate();
+                }.bind(this);
 
             function pickOutName(iKNames) {
               return tAttrNames.find(function (iAttrName, iIndex) {
@@ -100,46 +116,24 @@ DG.MapModel = SC.Object.extend(
             }
 
             if (tLatName && tLongName) {
-              tDataConfiguration = DG.MapPointDataConfiguration.create({
-                initializer: {
-                  context: iContext, collection: iCollection,
-                  latName: tLatName, longName: tLongName
-                }
-              });
-              tLegend = DG.LegendModel.create({
-                dataConfiguration: tDataConfiguration,
-                attributeDescription: tDataConfiguration.get('legendAttributeDescription')
-              });
-              tMapLayerModel = DG.MapPointLayerModel.create({
-                dataConfiguration: tDataConfiguration,
-                legend: tLegend
-              });
-              this.mapLayerModels.push( tMapLayerModel);
-              tMapLayerModel.invalidate();
+              configureLayer({
+                    context: iContext, collection: iCollection,
+                    latName: tLatName, longName: tLongName
+                  },
+                  DG.MapPointDataConfiguration, DG.MapPointLayerModel);
             }
             if (tPolygonName) {
-              tDataConfiguration = DG.MapPolygonDataConfiguration.create({
-                initializer: {
-                  context: iContext, collection: iCollection,
-                  polygonName: tPolygonName
-                }
-              });
-              tLegend = DG.LegendModel.create({
-                dataConfiguration: tDataConfiguration,
-                attributeDescription: tDataConfiguration.get('legendAttributeDescription')
-              });
-              tMapLayerModel = DG.MapPolygonLayerModel.create({
-                dataConfiguration: tDataConfiguration,
-                legend: tLegend
-              });
-              this.mapLayerModels.push( tMapLayerModel);
-              tMapLayerModel.invalidate();
+              configureLayer({
+                    context: iContext, collection: iCollection,
+                    polygonName: tPolygonName
+                  },
+                  DG.MapPolygonDataConfiguration, DG.MapPolygonLayerModel);
             }
           }.bind(this));
         }.bind(this));
 
-        if( this.mapLayerModels.length === 0) {
-          this.mapLayerModels.push( DG.MapLayerModel.create( {
+        if (this.mapLayerModels.length === 0) {
+          this.mapLayerModels.push(DG.MapLayerModel.create({
             dataConfiguration: DG.MapDataConfiguration.create({initializer: {}})
           }));
         }
@@ -150,8 +144,60 @@ DG.MapModel = SC.Object.extend(
 
       },
 
-      handleDroppedContext: function( iContext) {
+      destroy: function() {
+        this.get('mapLayerModels').forEach( function( iLayerModel) {
+          iLayerModel.get('legend').removeObserver('attributeDescription.attribute',
+              this, this.legendAttributeDidChange);
+        });
+        sc_super();
+      },
+
+      legendAttributeDidChange: function() {
+        this.notifyPropertyChange('legendAttributeChange');
+      },
+
+      handleDroppedContext: function (iContext) {
         // Nothing to do since contexts get dealt with at the MapLayerModel
+      },
+
+      /** create a menu item that removes the attribute on the given legend */
+      createRemoveAttributeMenuItem: function( iLegendView ) {
+        var tAttribute = iLegendView.getPath('model.attributeDescription.attribute') || DG.Analysis.kNullAttribute,
+            tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
+            tTitle = ('DG.DataDisplayMenu.removeAttribute_legend').loc( tName );
+        return {
+          title: tTitle,
+          target: this,
+          itemAction: this.removeLegendAttribute,
+          isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+          log: "attributeRemoved: { attribute: %@, axis: %@ }".fmt(tName, 'legend'),
+          args: [ iLegendView.getPath('model.dataConfiguration') ]
+        };
+      },
+
+      createChangeAttributeTypeMenuItem: function( iLegendView) {
+        var tDescription = this.getPath( 'model.attributeDescription'),
+            tAttribute = tDescription && tDescription.get( 'attribute'),
+            tAttributeName = tAttribute && (tAttribute !== -1) ? tAttribute.get('name') : '',
+            tIsNumeric = tDescription && tDescription.get( 'isNumeric'),
+            tTitle =( tIsNumeric ? 'DG.DataDisplayMenu.treatAsCategorical' : 'DG.DataDisplayMenu.treatAsNumeric').loc();
+        return {
+          title: tTitle,
+          target: this,
+          itemAction: this.changeAttributeType, // call with args, toggling 'numeric' setting
+          isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+          log: "plotAxisAttributeChangeType: { axis: legend, attribute: %@, numeric: %@ }".
+              fmt( tAttributeName, !tIsNumeric),
+          args: [ iLegendView.getPath('model.dataConfiguration'), !tIsNumeric ]
+        };
+      },
+
+      removeLegendAttribute: function( iDataConfiguration) {
+        iDataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', null);
+      },
+
+      changeAttributeType: function( iDataConfiguration, iTreatAsNumeric) {
+        iDataConfiguration.setAttributeType( 'legendAttributeDescription', iTreatAsNumeric );
       },
 
       /**
@@ -161,10 +207,10 @@ DG.MapModel = SC.Object.extend(
        {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
        {DG.Attribute}        iAttrRefs.attribute -- Array of attributes to set for the legend
        */
-      changeAttributeForLegend: function( iDataContext, iAttrRefs) {
-        this.get('mapLayerModels').forEach( function( iLayerModel) {
-          if( iDataContext === iLayerModel.get('dataContext')) {
-            iLayerModel.changeAttributeForLegend( iDataContext, iAttrRefs);
+      changeAttributeForLegend: function (iDataContext, iAttrRefs) {
+        this.get('mapLayerModels').forEach(function (iLayerModel) {
+          if (iDataContext === iLayerModel.get('dataContext')) {
+            iLayerModel.changeAttributeForLegend(iDataContext, iAttrRefs);
           }
         });
       },
@@ -207,9 +253,9 @@ DG.MapModel = SC.Object.extend(
         return false;
       }.property(),
 
-      selectAll: function( iBool) {
-        this.get('mapLayerModels').forEach( function( iMapLayerModel) {
-          iMapLayerModel.selectAll( iBool);
+      selectAll: function (iBool) {
+        this.get('mapLayerModels').forEach(function (iMapLayerModel) {
+          iMapLayerModel.selectAll(iBool);
         });
       },
 
@@ -263,23 +309,23 @@ DG.MapModel = SC.Object.extend(
 
       _observedDataConfiguration: null,
 
-      checkboxDescriptions: function() {
+      checkboxDescriptions: function () {
         var tDescriptions = [];
-        this.get('mapLayerModels').forEach( function( iMapLayerModel) {
-          tDescriptions = tDescriptions.concat( iMapLayerModel.get('checkBoxDescriptions'));
+        this.get('mapLayerModels').forEach(function (iMapLayerModel) {
+          tDescriptions = tDescriptions.concat(iMapLayerModel.get('checkBoxDescriptions'));
         });
         return tDescriptions;
       }.property(),
 
-      lastValueControls: function() {
+      lastValueControls: function () {
         var tControls = [];
-        this.get('mapLayerModels').forEach( function( iMapLayerModel) {
-          tControls = tControls.concat( iMapLayerModel.get('lastValueControls'));
+        this.get('mapLayerModels').forEach(function (iMapLayerModel) {
+          tControls = tControls.concat(iMapLayerModel.get('lastValueControls'));
         });
         return tControls;
       }.property(),
 
-      createHideShowSelectionMenuItems: function() {
+      createHideShowSelectionMenuItems: function () {
         return [];  // Todo: stopgap. Fix so that it does the right thing for the available mapLayerModels
       },
 
@@ -288,7 +334,7 @@ DG.MapModel = SC.Object.extend(
         tStorage.center = this.get('center');
         tStorage.zoom = this.get('zoom');
         tStorage.baseMapLayerName = this.get('baseMapLayerName');
-        tStorage.layerModels = this.get('mapLayerModels').map( function( iLayerModel) {
+        tStorage.layerModels = this.get('mapLayerModels').map(function (iLayerModel) {
           return iLayerModel.createStorage();
         });
 
@@ -301,10 +347,10 @@ DG.MapModel = SC.Object.extend(
           this.set('zoom', iStorage.mapModelStorage.zoom);
           this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
           this.set('centerAndZoomBeingRestored', true);
-          this.get('mapLayerModels').forEach( function( iLayerModel, iIndex) {
-            var tLayerStorage = SC.isArray( iStorage.mapModelStorage.layerModels) ?
-                iStorage.mapModelStorage.layerModels[ iIndex] : iStorage;
-            iLayerModel.restoreStorage( tLayerStorage);
+          this.get('mapLayerModels').forEach(function (iLayerModel, iIndex) {
+            var tLayerStorage = SC.isArray(iStorage.mapModelStorage.layerModels) ?
+                iStorage.mapModelStorage.layerModels[iIndex] : iStorage;
+            iLayerModel.restoreStorage(tLayerStorage);
           });
         }
       }

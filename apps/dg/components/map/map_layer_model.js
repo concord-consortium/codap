@@ -27,6 +27,8 @@ sc_require('components/graph_map_common/data_display_model');
 DG.MapLayerModel = DG.DataDisplayModel.extend(
     /** @scope DG.MapLayerModel.prototype */
     {
+      isVisible: true,
+
       init: function() {
         sc_super();
       },
@@ -194,6 +196,7 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
           tStorage._links_.context = tDataContext.toLink();
 
         tDataConfiguration.addToStorageForDimension( tStorage, 'legend');
+        tStorage.isVisible = this.get('isVisible');
 
 
         return tStorage;
@@ -205,5 +208,7 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
             tDataConfig = this.get('dataConfiguration');
         tDataConfig.setAttributeAndCollectionClient('legendAttributeDescription', tLegendAttrRef,
             iStorage.legendRole, iStorage.legendAttributeType);
+        if( !SC.none( iStorage.isVisible))
+          this.set('isVisible', iStorage.isVisible);
       }
     });
