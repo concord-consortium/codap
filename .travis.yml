@@ -2,12 +2,12 @@ sudo: false
 language: node_js
 node_js: node
 install:
+- travis_retry bundle install
 - travis_retry gem install s3_website
-- travis_retry gem install sproutcore -v 1.11
 - travis_retry pip install awscli --upgrade --user
 - travis_retry yarn
-before_script: npm run build:travis
-script: "./bin/s3_deploy.sh"
+script: npm run build:travis
+after_script: "./bin/s3_deploy.sh"
 cache:
   bundler: true
   directories:
