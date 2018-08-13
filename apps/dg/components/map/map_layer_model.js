@@ -162,7 +162,7 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
         return true;
       },
 
-      checkBoxDescriptions: function() {
+      checkboxDescriptions: function() {
         return [];
       }.property(),
 

@@ -33,8 +33,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
     /** @scope DG.DataDisplayController.prototype */
     (function () {
 
-      var kValuesPaneIconClass = 'moonicon-icon-values',
-          kConfigPaneIconClass = 'moonicon-icon-segmented-bar-chart',
+      var kConfigPaneIconClass = 'moonicon-icon-segmented-bar-chart',
           kStylesPaneIconClass = 'moonicon-icon-styles';
 
       function getCollectionClientFromDragData(iContext, iDragData) {
@@ -44,6 +43,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
 
       return {
+        kValuesPaneIconClass: 'moonicon-icon-values',
+
         dataContext: null,
         dataDisplayModel: null,
         legendView: null,
@@ -177,7 +178,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-inspector-pane-button dg-display-values'.w(),
-            iconClass: kValuesPaneIconClass,
+            iconClass: this.kValuesPaneIconClass,
             showBlip: true,
             target: this,
             action: 'showHideValuesPane',
@@ -252,62 +253,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
           }
 
           return tResult;
-        },
-
-        /**
-         * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
-         * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
-         */
-        showHideValuesPane: function () {
-          var this_ = this,
-              kTitleHeight = 26,
-              kMargin = 20,
-              kLeading = 5,
-              kRowHeight = 20;
-          if (DG.InspectorPickerPane.close(kValuesPaneIconClass)) {
-            return; // don't reopen if we just closed
-          }
-          this.valuesPane = DG.InspectorPickerPane.create(
-              {
-                buttonIconClass: kValuesPaneIconClass,
-                classNames: 'dg-inspector-picker'.w(),
-                layout: {width: 200, height: 260},
-                contentView: SC.View.extend(SC.FlowedLayout,
-                    {
-                      layoutDirection: SC.LAYOUT_VERTICAL,
-                      isResizable: false,
-                      isClosable: false,
-                      defaultFlowSpacing: {left: kMargin, bottom: kLeading},
-                      canWrap: false,
-                      align: SC.ALIGN_TOP,
-                      layout: {right: 22},
-                      childViews: 'title showLabel'.w(),
-                      title: DG.PickerTitleView.extend({
-                        layout: {height: kTitleHeight},
-                        flowSpacing: {left: 0, bottom: kLeading},
-                        title: 'DG.Inspector.values',
-                        localize: true,
-                        iconURL: static_url('images/icon-values.svg')
-                      }),
-                      showLabel: SC.LabelView.extend({
-                        layout: {height: kRowHeight},
-                        value: 'DG.Inspector.displayShow',
-                        localize: true
-                      }),
-                      init: function () {
-                        sc_super();
-                        this_.getPath('dataDisplayModel.checkboxDescriptions').forEach(function (iDesc) {
-                          iDesc.layout = {height: kRowHeight};
-                          iDesc.localize = true;
-                          this.appendChild(SC.CheckboxView.create(iDesc));
-                        }.bind(this));
-                        this_.getPath('dataDisplayModel.lastValueControls').forEach(function (iControl) {
-                          this.appendChild(iControl);
-                        }.bind(this));
-                      }
-                    })
-              });
-          this.valuesPane.popup(this.get('inspectorButtons')[2], SC.PICKER_POINTER);
         },
 
         /**

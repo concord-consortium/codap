@@ -49,6 +49,37 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
         this.notifyPropertyChange('longVarID');
       }.observes('*dataConfiguration.longAttributeID'),
 
+      xVarID: function() {
+        return this.get('longVarID');
+      }.property('longVarID'),
+
+      yVarID: function() {
+        return this.get('latVarID');
+      }.property('latVarID'),
+
+      /**
+       * @property {DG.MapGridModel }
+       */
+      gridModel: null,
+
+      /**
+       * @property {DG.connectingLinesModel }
+       */
+      connectingLinesModel: null,
+
+      init: function() {
+        sc_super();
+
+        this.gridModel = DG.MapGridModel.create( {
+          dataConfiguration: this.get('dataConfiguration')
+        });
+        
+        this.connectingLinesModel = DG.ConnectingLineModel.create({
+          plotModel: this,
+          isVisible: false
+        });
+      },
+
       handleOneDataContextChange: function( iNotifier, iChange) {
         sc_super();
 
@@ -93,7 +124,7 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
           tItems = tItems.concat([
             {
               title: 'DG.Inspector.mapGrid',
-              value: this_.getPath('gridModel.visible'),
+              value: this_.getPath('gridModel.isVisible'),
               classNames: 'dg-map-grid-check'.w(),
               valueDidChange: function () {
                 this_.toggleGrid();
@@ -109,7 +140,7 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
             },
             {
               title: 'DG.Inspector.mapLines',
-              value: this_.get('linesShouldBeVisible'),
+              value: this_.getPath('connectingLinesModel.isVisible'),
               classNames: 'dg-map-lines-check'.w(),
               valueDidChange: function () {
                 this_.toggleLines();
@@ -120,26 +151,19 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
         return tItems;
       }.property(),
 
-      togglePoints: function(iControlValue) {
-        var mapModel = this;
+      togglePoints: function() {
+        var tMapLayerModel = this;
         DG.UndoHistory.execute(DG.Command.create({
           name: "map.togglePoints",
-          undoString: 'DG.Undo.map.showPoints',
-          redoString: 'DG.Redo.map.showPoints',
           _firstTime: true,
           execute: function() {
-            var tPointsVisible = mapModel.get('pointsShouldBeVisible');
+            var tPointsVisible = tMapLayerModel.get('pointsShouldBeVisible');
             if( tPointsVisible !== false)
               tPointsVisible = true;
 
-            // TODO: hack
-            if (typeof(iControlValue) !== 'undefined') {
-              tPointsVisible = !iControlValue;
-            }
+            tMapLayerModel.set('pointsShouldBeVisible', !tPointsVisible);
 
-            mapModel.set('pointsShouldBeVisible', !tPointsVisible);
-
-            this.log = 'mapAction: {mapAction: %@}'.fmt(mapModel.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints');
+            this.log = 'mapAction: {mapAction: %@}'.fmt(tMapLayerModel.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints');
             if (this._firstTime) {
               this._firstTime = false;
               this.set('name', !tPointsVisible ? 'map.showPoints' : 'map.hidePoints');
@@ -153,11 +177,66 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
         }));
       },
 
+      toggleGrid: function() {
+        var tMapLayerModel = this;
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.toggleGrid",
+          _firstTime: true,
+          execute: function() {
+            var tGridIsVisible = tMapLayerModel.getPath('gridModel.isVisible');
+            if( tGridIsVisible !== false)
+              tGridIsVisible = true;
+
+            tMapLayerModel.setPath('gridModel.isVisible', !tGridIsVisible);
+
+            this.log = 'mapAction: {mapAction: %@}'.fmt(tMapLayerModel.getPath('gridModel.isVisible') ? 'showGrid' :
+                'hideGrid');
+            if (this._firstTime) {
+              this._firstTime = false;
+              this.set('name', !tGridIsVisible ? 'map.showGrid' : 'map.hideGrid');
+              this.set('undoString', !tGridIsVisible ? 'DG.Undo.map.showGrid' : 'DG.Undo.map.hideGrid');
+              this.set('redoString', !tGridIsVisible ? 'DG.Redo.map.showGrid' : 'DG.Redo.map.hideGrid');
+            }
+          },
+          undo: function() {
+            this.execute();
+          }
+        }));
+      },
+
+      toggleLines: function() {
+        var tMapLayerModel = this;
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.toggleLines",
+          _firstTime: true,
+          execute: function() {
+            var tLinesAreVisible = tMapLayerModel.getPath('connectingLinesModel.isVisible');
+            if( tLinesAreVisible !== false)
+              tLinesAreVisible = true;
+
+            tMapLayerModel.setPath('connectingLinesModel.isVisible', !tLinesAreVisible);
+
+            this.log = 'mapAction: {mapAction: %@}'.fmt(tMapLayerModel.getPath('connectingLinesModel.isVisible') ?
+                'showLines' : 'hideLines');
+            if (this._firstTime) {
+              this._firstTime = false;
+              this.set('name', !tLinesAreVisible ? 'map.showLines' : 'map.hideLines');
+              this.set('undoString', !tLinesAreVisible ? 'DG.Undo.map.showLines' : 'DG.Undo.map.hideLines');
+              this.set('redoString', !tLinesAreVisible ? 'DG.Redo.map.showLines' : 'DG.Redo.map.hideLines');
+            }
+          },
+          undo: function() {
+            this.execute();
+          }
+        }));
+      },
+
       createStorage: function() {
         var tStorage = sc_super(),
             tDataConfiguration = this.get('dataConfiguration'),
             tPointsVisible = this.get('pointsShouldBeVisible'),
-            tGridModel = this.get('gridModel');
+            tGridModel = this.get('gridModel'),
+            tConnectingLinesModel = this.get('connectingLinesModel');
         tDataConfiguration.addToStorageForDimension(tStorage, 'legend');
         tStorage.pointColor = this.getPath('pointColor');
         tStorage.strokeColor = this.getPath('strokeColor');
@@ -170,6 +249,8 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
         tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible');
         if( tGridModel)
           tStorage.grid = tGridModel.createStorage();
+        if( tConnectingLinesModel)
+          tStorage.connectingLines = tConnectingLinesModel.createStorage();
         return tStorage;
       },
 
@@ -177,7 +258,8 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
         sc_super();
 
         var tStorage = iStorage.mapModelStorage || iStorage,
-            tGridModel = this.get('gridModel');
+            tGridModel = this.get('gridModel'),
+            tConnectingLinesModel = this.get('connectingLinesModel');
 
         if (!SC.none(tStorage.pointsShouldBeVisible))
           this.set('pointsShouldBeVisible', tStorage.pointsShouldBeVisible);
@@ -185,6 +267,8 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
           this.set('linesShouldBeVisible', tStorage.linesShouldBeVisible);
 
         if( tGridModel)
-          this.get('gridModel').restoreStorage(tStorage.grid);
+          tGridModel.restoreStorage(tStorage.grid);
+        if( tConnectingLinesModel)
+          tConnectingLinesModel.restoreStorage(tStorage.grid);
       }
     });

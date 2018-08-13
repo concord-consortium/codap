@@ -32,14 +32,14 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
   classNames: 'dg-marquee-mode'.w(),
 
   /**
-   * @property {DG.MapGridModel}
+   * @property {DG.gridModel}
    */
-  mapGridModel: function() {
+  gridModel: function() {
     return this.getPath('mapGridLayer.model');
   }.property(),
 
   mapGridModelDidChange: function() {
-    this.notifyPropertyChange('mapGridModel');
+    this.notifyPropertyChange('gridModel');
   }.observes('*mapGridLayer.model'),
 
   /**
@@ -78,10 +78,10 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
           scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
       if( iEvent.shiftKey) {
-        //tBaseSelection = this_.getPath( 'mapGridModel.selection').toArray();
+        //tBaseSelection = this_.getPath( 'gridModel.selection').toArray();
       }
       else
-        this_.get('mapGridModel').deselectAll();
+        this_.get('gridModel').deselectAll();
       tStartPt = DG.ViewUtilities.windowToViewCoordinates(
                     { x: iWindowX - scrollLeft, y: iWindowY - scrollTop }, this_);
       tMarquee = this_._paper.rect( tStartPt.x, tStartPt.y, 0, 0)
@@ -96,7 +96,7 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
 
       /* global L */
       var tMap = this_.get('map'),
-          tMapGridModel = this_.get('mapGridModel'),
+          tMapGridModel = this_.get('gridModel'),
           tLatLngBounds,
           tX = (idX > 0) ? tStartPt.x : tStartPt.x + idX,
           tY = (idY > 0) ? tStartPt.y : tStartPt.y + idY,
@@ -130,7 +130,7 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
       this_.setPath('mapGridLayer.isInMarqueeMode', false);
 
 /*
-      var tNumCases = this_.getPath( 'mapGridModel.casesController.selection.length');
+      var tNumCases = this_.getPath( 'gridModel.casesController.selection.length');
       if( tNumCases > 0)  // We must have something > 0
         DG.logUser("marqueeSelection: %@", tNumCases);
 */

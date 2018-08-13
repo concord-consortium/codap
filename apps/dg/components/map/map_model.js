@@ -309,14 +309,6 @@ DG.MapModel = SC.Object.extend(
 
       _observedDataConfiguration: null,
 
-      checkboxDescriptions: function () {
-        var tDescriptions = [];
-        this.get('mapLayerModels').forEach(function (iMapLayerModel) {
-          tDescriptions = tDescriptions.concat(iMapLayerModel.get('checkBoxDescriptions'));
-        });
-        return tDescriptions;
-      }.property(),
-
       lastValueControls: function () {
         var tControls = [];
         this.get('mapLayerModels').forEach(function (iMapLayerModel) {

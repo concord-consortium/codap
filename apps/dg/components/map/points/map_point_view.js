@@ -30,8 +30,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   autoDestroyProperties: [ ],
 
   displayProperties: ['model.dataConfiguration.attributeAssignment',
-                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType',
-                      'model.gridModel.visible'],
+                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType'],
 
   classNames: ['dg-map-layer'],
   // When we go into marquee-mode we add this class which makes us translucent and able receive mousedown events.
@@ -301,14 +300,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.get('mapPointLayers').forEach( function( iLayer) {
       iLayer.clear();
     });
-  },
-
-  gridVisibilityDidChange: function() {
-    var tFixedSize = this.getPath('model.gridModel.visible') ? 3 : null;
-    this.get('mapPointLayers').forEach( function( iLayer) {
-      iLayer.set('fixedPointRadius', tFixedSize);
-    });
-  }.observes('model.gridModel.visible')
+  }
 
 });
 

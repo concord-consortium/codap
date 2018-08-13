@@ -43,7 +43,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
        */
       paper: function () {
         return this.getPath('paperSource.paper');
-      }.property(),
+      }.property('paperSource'),
 
       paperDidChange: function () {
         this.notifyPropertyChange('paper');

@@ -281,6 +281,11 @@ html, body {
     background-color: #0066bb;
 }
 
+.dg-inspector-layer-title {
+    border-bottom: solid #C1C5C7 1px !important;
+    font-weight: bold;
+}
+
 .dg-inspector-radio {
     padding-left: 24px;
 }

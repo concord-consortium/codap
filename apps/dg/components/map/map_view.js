@@ -285,31 +285,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.get('legendView').displayDidChange();
       }.observes('model.pointColor', 'model.transparency'),
 
-      /**
-       Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
-       because we don't want to destroy the adornment.
-       */
-      lineVisibilityChanged: function() {
-        var tMapModel = this.get('model' ),
-            tAdornModel = tMapModel && tMapModel.get( 'connectingLineModel' ),
-            tLinesAreVisible = tMapModel.get('linesShouldBeVisible'),
-            tAdorn = this.get('connectingLineAdorn');
-            tAdornModel.set('isVisible', tLinesAreVisible);
-        if( tAdornModel && tLinesAreVisible && !tAdorn) {
-          tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
-                                                          mapSource: this, layerName: DG.LayerNames.kConnectingLines,
-                                                          unselectedLineWidth: 1, selectedLineWidth: 3 });
-          this.set('connectingLineAdorn', tAdorn);
-        }
-
-        this.invokeLast( function() {
-          if( tAdorn) {
-            tAdorn.updateVisibility();
-            this.updateMarqueeToolVisibility();
-          }
-        }.bind( this));
-      }.observes('.model.linesShouldBeVisible'),
-
       addPolygonLayers: function () {
         if( this.get('mapPolygonLayers'))
           return;
@@ -337,33 +312,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }
       },
 
-      addGridLayer: function () {
-        if( !this.getPath('model.hasLatLongAttributes') || this.get('mapGridLayer'))
-          return;
-
-        var tGridModel = this.getPath('model.gridModel');
-        tGridModel.initializeRectArray();
-
-        this.set('mapGridLayer', DG.MapGridLayer.create(
-            {
-              mapSource: this,
-              model: tGridModel,
-              showTips: true /* !this.getPath('model.pointsShouldBeVisible') */
-            }));
-        // The size of any points depends on whether the grid is visible or not
-        if( !this.get('mapPointView'))
-          this.addPointLayers();
-        // Make the points smaller so they don't completely cover the grid cells
-/*
-        if( tGridModel.get('visible'))
-          this.setPath('mapPointView.mapPointLayers.fixedPointRadius', 3);
-*/
-
-        this.gridVisibilityChanged();
-
-        this.setPath('mapGridMarqueeView.mapGridLayer', this.get('mapGridLayer'));
-      },
-
       /**
        * Cause the map to shrink or expand to encompass the data
        */
@@ -388,11 +336,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           this.get('mapLayer')._setIdle();
         }
       },
-
-      gridVisibilityChanged: function() {
-        this.gridControl.set('isVisible', this.getPath('model.gridModel.visible'));
-        this.updateMarqueeToolVisibility();
-      }.observes('*model.gridModel.visible'),
 
       /**
        Set the layout (view position) for our subviews.
