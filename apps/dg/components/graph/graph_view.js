@@ -27,8 +27,7 @@ DG.GraphView = SC.View.extend(
     {
       displayProperties: ['model.dataConfiguration.attributeAssignment'],
 
-      // touch is generally handled by Raphael rather than SproutCore
-      classNames: ['dg-graph-view', 'dg-wants-touch'],
+      classNames: ['dg-graph-view'],
 
       /**
        The model on which this view is based.
