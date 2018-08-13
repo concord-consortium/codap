@@ -24,98 +24,113 @@
  */
 DG.MapModel = SC.Object.extend(
     /** @scope DG.MapModel.prototype */
-    {
-      /**
-       * These two properties are from the Leaflet Map and are kept in synch for save and restore
-       * by my view.
-       */
-      center: null,
-      zoom: null,
+    (function () {
+      var kLatNames = ['latitude', 'lat', 'latitud'],
+          kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud'],
+          kPolygonNames = ['boundary', 'boundaries', 'polygon', 'polygons'];
 
-      /**
-       * This is the name of the layer used as an argument to L.esri.basemapLayer
-       * {@property String}
-       */
-      baseMapLayerName: null,
+      return {
+        /**
+         * These two properties are from the Leaflet Map and are kept in synch for save and restore
+         * by my view.
+         */
+        center: null,
+        zoom: null,
 
-      /**
-       * Changes the visibility of the layer in Leaflet with the opacity parameter.
-       * {@property Boolean}
-       */
-      baseMapLayerToggle: true,
+        /**
+         * This is the name of the layer used as an argument to L.esri.basemapLayer
+         * {@property String}
+         */
+        baseMapLayerName: null,
 
-      /**
-       * An array of layer models such as mapPointLayerModel and mapPolygonLayerModel
-       * @property {[DG.MapLayerModel]}
-       */
-      mapLayerModels: null,
+        /**
+         * Changes the visibility of the layer in Leaflet with the opacity parameter.
+         * {@property Boolean}
+         */
+        baseMapLayerToggle: true,
 
-      /**
-       * Set to true during restore as flag to use to know whether to fit bounds or not
-       */
-      centerAndZoomBeingRestored: false,
+        /**
+         * An array of layer models such as mapPointLayerModel and mapPolygonLayerModel
+         * @property {[DG.MapLayerModel]}
+         */
+        mapLayerModels: null,
 
-      /**
-       Prepare dependencies.
-       */
-      init: function () {
-        sc_super();
-        var kLatNames = ['latitude', 'lat', 'latitud'],
-            kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud'],
-            kPolygonNames = ['boundary', 'boundaries', 'polygon', 'polygons'];
+        /**
+         * Set to true during restore as flag to use to know whether to fit bounds or not
+         */
+        centerAndZoomBeingRestored: false,
 
-        this.mapLayerModels = [];
-        DG.currDocumentController().get('contexts').forEach(function (iContext) {
-          var tLatName, tLongName, tPolygonName;
-
-          iContext.get('collections').forEach(function (iCollection) {
-            var tMapLayerModel, tDataConfiguration,
-                tLegend,
-                tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
-                // Make a copy, all lower case. We will need the original if we find a match.
-                tLowerCaseNames = tAttrNames.map(function (iAttrName) {
-                  return iAttrName.toLowerCase();
-                }),
-                configureLayer = function (iInitializer, iDataConfigClass, iLayerModelClass) {
-                  tDataConfiguration = iDataConfigClass.create({
-                    initializer: iInitializer
-                  });
-                  tLegend = DG.LegendModel.create({
-                    dataConfiguration: tDataConfiguration,
-                    attributeDescription: tDataConfiguration.get('legendAttributeDescription')
-                  });
-                  tLegend.addObserver('attributeDescription.attribute', this, this.legendAttributeDidChange);
-                  tMapLayerModel = iLayerModelClass.create({
-                    dataConfiguration: tDataConfiguration,
-                    legend: tLegend
-                  });
-                  this.mapLayerModels.push(tMapLayerModel);
-                  tMapLayerModel.invalidate();
-                }.bind(this);
-
-            function pickOutName(iKNames) {
-              return tAttrNames.find(function (iAttrName, iIndex) {
-                return iKNames.find(function (iKName) {
-                  return (iKName === tLowerCaseNames[iIndex]);
+        _addLayersForCollection: function (iContext, iCollection) {
+          var tLatName, tLongName, tPolygonName,
+              tMapLayerModel, tDataConfiguration,
+              tLegend,
+              tLayerWasAdded = false,
+              tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
+              // Make a copy, all lower case. We will need the original if we find a match.
+              tLowerCaseNames = tAttrNames.map(function (iAttrName) {
+                return iAttrName.toLowerCase();
+              }),
+              configureLayer = function (iInitializer, iDataConfigClass, iLayerModelClass) {
+                tDataConfiguration = iDataConfigClass.create({
+                  initializer: iInitializer
                 });
-              });
-            }
+                tLegend = DG.LegendModel.create({
+                  dataConfiguration: tDataConfiguration,
+                  attributeDescription: tDataConfiguration.get('legendAttributeDescription')
+                });
+                tLegend.addObserver('attributeDescription.attribute', this, this.legendAttributeDidChange);
+                tMapLayerModel = iLayerModelClass.create({
+                  dataConfiguration: tDataConfiguration,
+                  legend: tLegend
+                });
+                tMapLayerModel.addObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
+                tMapLayerModel.addObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
+                this.mapLayerModels.push(tMapLayerModel);
+                tMapLayerModel.invalidate();
+              }.bind(this),
 
-            tLatName = pickOutName(kLatNames);
-            tLongName = pickOutName(kLongNames);
-            tPolygonName = pickOutName(kPolygonNames);
-            if (!tPolygonName) {  // Try for an attribute that has a boundary type
-              ((iCollection && iCollection.get('attrs')) || []).some(function (iAttr) {
-                if (iAttr.get('type') === 'boundary') {
-                  tPolygonName = iAttr.get('name');
-                  return true;
-                } else {
-                  return false;
-                }
-              });
-            }
+              contextAndAttributesAlreadyPresent = function() {
+                return this.get('mapLayerModels').some( function( iLayerModel) {
+                  var tDataConfig = iLayerModel.get('dataConfiguration'),
+                      tExistingContext = tDataConfig.get('dataContext'),
+                      tExistingLatID = tDataConfig.get('latAttributeID'),
+                      tExistingLongID = tDataConfig.get('longAttributeID'),
+                      tExistingPolygonID = tDataConfig.get('polygonAttributeID');
+                  if( iContext === tExistingContext) {
+                    var tProposedLatID = tLatName && iCollection.getAttributeByName( tLatName).get('id'),
+                        tProposedLongID = tLongName && iCollection.getAttributeByName( tLongName).get('id'),
+                        tProposedPolygonID = tPolygonName && iCollection.getAttributeByName( tPolygonName).get('id');
+                    return (tExistingLatID === tProposedLatID && tExistingLongID === tProposedLongID) ||
+                        tExistingPolygonID === tProposedPolygonID;
+                  }
+                  else return false;
+                });
+              }.bind( this);
 
+          function pickOutName(iKNames) {
+            return tAttrNames.find(function (iAttrName, iIndex) {
+              return iKNames.find(function (iKName) {
+                return (iKName === tLowerCaseNames[iIndex]);
+              });
+            });
+          }
+
+          tLatName = pickOutName(kLatNames);
+          tLongName = pickOutName(kLongNames);
+          tPolygonName = pickOutName(kPolygonNames);
+          if (!tPolygonName) {  // Try for an attribute that has a boundary type
+            ((iCollection && iCollection.get('attrs')) || []).some(function (iAttr) {
+              if (iAttr.get('type') === 'boundary') {
+                tPolygonName = iAttr.get('name');
+                return true;
+              } else {
+                return false;
+              }
+            });
+          }
+          if (!contextAndAttributesAlreadyPresent()) {
             if (tLatName && tLongName) {
+              tLayerWasAdded = true;
               configureLayer({
                     context: iContext, collection: iCollection,
                     latName: tLatName, longName: tLongName
@@ -123,237 +138,315 @@ DG.MapModel = SC.Object.extend(
                   DG.MapPointDataConfiguration, DG.MapPointLayerModel);
             }
             if (tPolygonName) {
+              tLayerWasAdded = true;
               configureLayer({
                     context: iContext, collection: iCollection,
                     polygonName: tPolygonName
                   },
                   DG.MapPolygonDataConfiguration, DG.MapPolygonLayerModel);
             }
+          }
+          return tLayerWasAdded;
+        },
+
+        _processDocumentContexts: function() {
+          var tLayerWasAdded = false;
+          DG.currDocumentController().get('contexts').forEach(function (iContext) {
+            iContext.get('collections').forEach(function (iCollection) {
+              if( this._addLayersForCollection(iContext, iCollection))
+                tLayerWasAdded = true;
+            }.bind(this));
           }.bind(this));
-        }.bind(this));
+          return tLayerWasAdded;
+        },
 
-        if (this.mapLayerModels.length === 0) {
-          this.mapLayerModels.push(DG.MapLayerModel.create({
-            dataConfiguration: DG.MapDataConfiguration.create({initializer: {}})
-          }));
-        }
+        /**
+         Prepare dependencies.
+         */
+        init: function () {
+          sc_super();
 
-        this.set('center', [45.4408, 12.3155]); //
-        this.set('zoom', 1);  // Reasonable default
-        this.set('baseMapLayerName', 'Topographic');
+          this.mapLayerModels = [];
 
-      },
+          this._processDocumentContexts();
 
-      destroy: function() {
-        this.get('mapLayerModels').forEach( function( iLayerModel) {
-          iLayerModel.get('legend').removeObserver('attributeDescription.attribute',
-              this, this.legendAttributeDidChange);
-        });
-        sc_super();
-      },
-
-      legendAttributeDidChange: function() {
-        this.notifyPropertyChange('legendAttributeChange');
-      },
-
-      handleDroppedContext: function (iContext) {
-        // Nothing to do since contexts get dealt with at the MapLayerModel
-      },
-
-      /** create a menu item that removes the attribute on the given legend */
-      createRemoveAttributeMenuItem: function( iLegendView ) {
-        var tAttribute = iLegendView.getPath('model.attributeDescription.attribute') || DG.Analysis.kNullAttribute,
-            tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
-            tTitle = ('DG.DataDisplayMenu.removeAttribute_legend').loc( tName );
-        return {
-          title: tTitle,
-          target: this,
-          itemAction: this.removeLegendAttribute,
-          isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
-          log: "attributeRemoved: { attribute: %@, axis: %@ }".fmt(tName, 'legend'),
-          args: [ iLegendView.getPath('model.dataConfiguration') ]
-        };
-      },
-
-      createChangeAttributeTypeMenuItem: function( iLegendView) {
-        var tDescription = this.getPath( 'model.attributeDescription'),
-            tAttribute = tDescription && tDescription.get( 'attribute'),
-            tAttributeName = tAttribute && (tAttribute !== -1) ? tAttribute.get('name') : '',
-            tIsNumeric = tDescription && tDescription.get( 'isNumeric'),
-            tTitle =( tIsNumeric ? 'DG.DataDisplayMenu.treatAsCategorical' : 'DG.DataDisplayMenu.treatAsNumeric').loc();
-        return {
-          title: tTitle,
-          target: this,
-          itemAction: this.changeAttributeType, // call with args, toggling 'numeric' setting
-          isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
-          log: "plotAxisAttributeChangeType: { axis: legend, attribute: %@, numeric: %@ }".
-              fmt( tAttributeName, !tIsNumeric),
-          args: [ iLegendView.getPath('model.dataConfiguration'), !tIsNumeric ]
-        };
-      },
-
-      removeLegendAttribute: function( iDataConfiguration) {
-        iDataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', null);
-      },
-
-      changeAttributeType: function( iDataConfiguration, iTreatAsNumeric) {
-        iDataConfiguration.setAttributeType( 'legendAttributeDescription', iTreatAsNumeric );
-      },
-
-      /**
-       Sets the attribute for the legend for the layer that uses the given context
-       @param  {DG.DataContext}      iDataContext -- The data context for this graph
-       @param  {Object}              iAttrRefs -- The attribute to set for the axis
-       {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
-       {DG.Attribute}        iAttrRefs.attribute -- Array of attributes to set for the legend
-       */
-      changeAttributeForLegend: function (iDataContext, iAttrRefs) {
-        this.get('mapLayerModels').forEach(function (iLayerModel) {
-          if (iDataContext === iLayerModel.get('dataContext')) {
-            iLayerModel.changeAttributeForLegend(iDataContext, iAttrRefs);
+/*
+          if (this.mapLayerModels.length === 0) {
+            this.mapLayerModels.push(DG.MapLayerModel.create({
+              dataConfiguration: DG.MapDataConfiguration.create({initializer: {}})
+            }));
           }
-        });
-      },
+*/
 
-      someLayerReturnsTrue: function (iPropName) {
-        return this.get('mapLayerModels').some(function (iLayerModel) {
-          return iLayerModel.get(iPropName);
-        });
-      },
+          this.set('center', [45.4408, 12.3155]); //
+          this.set('zoom', 1);  // Reasonable default
+          this.set('baseMapLayerName', 'Topographic');
 
-      /**
-       * Override superclass
-       * @returns {boolean}
-       */
-      wantsInspector: function () {
-        return this.someLayerReturnsTrue('wantsInspector');
-      },
+        },
 
-      hasLatLongAttributes: function () {
-        return this.someLayerReturnsTrue('hasLatLongAttributes');
-      }.property(),
+        destroy: function () {
+          this.get('mapLayerModels').forEach(function (iLayerModel) {
+            iLayerModel.removeObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
+            iLayerModel.removeObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
+            var tLegend = iLayerModel.get('legend');
+            tLegend && tLegend.removeObserver('attributeDescription.attribute',
+                this, this.legendAttributeDidChange);
+          }.bind( this));
+          sc_super();
+        },
 
-      hasPolygonAttribute: function () {
-        return this.someLayerReturnsTrue('hasPolygonAttribute');
-      }.property('dataConfiguration'),
+        /**
+         * Called by MapController when the document's count of data contexts changes.
+         * Run through our list of contexts looking for any that are no longer present.
+         *  For each of those, remove corresponding layer(s).
+         * For any newly encountered contexts, check to see if each contains map attributes and, if so,
+         *  add a layer for each.
+         */
+        adaptToNewOrRemovedContexts: function() {
+          var tDocumentContexts = DG.currDocumentController().get('contexts'),
+              tLayerModelsToRemove = [],
+              tLayerModelWasAdded = false,
+              tLayerModels = this.get('mapLayerModels');
+          tLayerModels.forEach( function( iLayerModel) {
+            var tLayerContext = iLayerModel.getPath('dataConfiguration.dataContext');
+            if( tLayerContext && tDocumentContexts.indexOf( tLayerContext) < 0) {
+              // Previously valid context has gone away
+              tLayerModelsToRemove.push( iLayerModel);
+            }
+          });
+          tLayerModelsToRemove.forEach( function( iLayerModel) {
+            var tIndex = tLayerModels.indexOf( iLayerModel);
+            tLayerModels.splice( tIndex, 1);
+          });
+          tLayerModelWasAdded = this._processDocumentContexts();
+          if( tLayerModelsToRemove.length > 0 || tLayerModelWasAdded)
+            this.notifyPropertyChange('mapLayerModelsChange');
+        },
 
-      /**
-       * We can rescale if we have some data to rescale to.
-       * @return {Boolean}
-       */
-      canRescale: function () {
-        return this.someLayerReturnsTrue('canRescale');
-      }.property('hasNumericAxis', 'plot'),
+        legendAttributeDidChange: function () {
+          this.notifyPropertyChange('legendAttributeChange');
+        },
 
-      /**
-       * Not yet. Compare with dot chart <==> bart chart
-       * @property {Boolean}
-       */
-      canSupportConfigurations: function () {
-        return false;
-      }.property(),
+        handleDroppedContext: function (iContext) {
+          // Nothing to do since contexts get dealt with at the MapLayerModel
+        },
 
-      selectAll: function (iBool) {
-        this.get('mapLayerModels').forEach(function (iMapLayerModel) {
-          iMapLayerModel.selectAll(iBool);
-        });
-      },
+        /** create a menu item that removes the attribute on the given legend */
+        createRemoveAttributeMenuItem: function (iLegendView) {
+          var tAttribute = iLegendView.getPath('model.attributeDescription.attribute') || DG.Analysis.kNullAttribute,
+              tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get('name'),
+              tTitle = ('DG.DataDisplayMenu.removeAttribute_legend').loc(tName);
+          return {
+            title: tTitle,
+            target: this,
+            itemAction: this.removeLegendAttribute,
+            isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+            log: "attributeRemoved: { attribute: %@, axis: %@ }".fmt(tName, 'legend'),
+            args: [iLegendView.getPath('model.dataConfiguration')]
+          };
+        },
 
-      /**
-       * Returns true if the specified change could affect the current map
-       * @param     {object}  - iChange
-       * @returns   {boolean} - true if the change could affect the plot; false otherwise
-       */
-      isAffectedByChange: function (iChange) {
-        var attrs, i, collChange, collChanges, collChangeCount;
+        createChangeAttributeTypeMenuItem: function (iLegendView) {
+          var tDescription = this.getPath('model.attributeDescription'),
+              tAttribute = tDescription && tDescription.get('attribute'),
+              tAttributeName = tAttribute && (tAttribute !== -1) ? tAttribute.get('name') : '',
+              tIsNumeric = tDescription && tDescription.get('isNumeric'),
+              tTitle = (tIsNumeric ? 'DG.DataDisplayMenu.treatAsCategorical' : 'DG.DataDisplayMenu.treatAsNumeric').loc();
+          return {
+            title: tTitle,
+            target: this,
+            itemAction: this.changeAttributeType, // call with args, toggling 'numeric' setting
+            isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+            log: "plotAxisAttributeChangeType: { axis: legend, attribute: %@, numeric: %@ }".fmt(tAttributeName, !tIsNumeric),
+            args: [iLegendView.getPath('model.dataConfiguration'), !tIsNumeric]
+          };
+        },
 
-        // returns true if the specified list of attribute IDs contains any
-        // that are being displayed in the map in any graph place
-        var containsMappedAttrs = function (iAttrIDs) {
-          var mappedAttrs = this.getPath('dataConfiguration.placedAttributeIDs'),
-              attrCount = iAttrIDs && iAttrIDs.length,
-              i, attrID;
-          for (i = 0; i < attrCount; ++i) {
-            attrID = iAttrIDs[i];
-            if (mappedAttrs.indexOf(attrID) >= 0)
-              return true;
-          }
+        removeLegendAttribute: function (iDataConfiguration) {
+          iDataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', null);
+        },
+
+        changeAttributeType: function (iDataConfiguration, iTreatAsNumeric) {
+          iDataConfiguration.setAttributeType('legendAttributeDescription', iTreatAsNumeric);
+        },
+
+        /**
+         Sets the attribute for the legend for the layer that uses the given context
+         @param  {DG.DataContext}      iDataContext -- The data context for this graph
+         @param  {Object}              iAttrRefs -- The attribute to set for the axis
+         {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
+         {DG.Attribute}        iAttrRefs.attribute -- Array of attributes to set for the legend
+         */
+        changeAttributeForLegend: function (iDataContext, iAttrRefs) {
+          this.get('mapLayerModels').forEach(function (iLayerModel) {
+            if (iDataContext === iLayerModel.get('dataContext')) {
+              iLayerModel.changeAttributeForLegend(iDataContext, iAttrRefs);
+            }
+          });
+        },
+
+        someLayerReturnsTrue: function (iPropName) {
+          return this.get('mapLayerModels').some(function (iLayerModel) {
+            return iLayerModel.get(iPropName);
+          });
+        },
+
+        somethingIsSelectable: function() {
+          return this.someLayerReturnsTrue('somethingIsSelectable');
+        }.property(),
+        somethingIsSelectableDidChange: function() {
+          this.notifyPropertyChange( 'somethingIsSelectable');
+        },
+
+        /**
+         * When changed by user action, value is passed to all grid models
+         * @property {Number}
+         */
+        gridMultiplier: 1,
+        gridMultiplerDidChange: function() {
+          this.get('mapLayerModels').forEach( function( iLayerModel) {
+            iLayerModel.setPath('gridModel.gridMultiplier', this.get('gridMultiplier'));
+          }.bind( this));
+        }.observes( 'gridMultiplier'),
+
+        gridIsVisible: function() {
+          return this.someLayerReturnsTrue('gridIsVisible');
+        }.property(),
+        gridIsVisibleDidChange: function() {
+          this.notifyPropertyChange( 'gridIsVisible');
+        },
+
+        /**
+         * Override superclass
+         * @returns {boolean}
+         */
+        wantsInspector: function () {
+          return this.someLayerReturnsTrue('wantsInspector');
+        },
+
+        hasLatLongAttributes: function () {
+          return this.someLayerReturnsTrue('hasLatLongAttributes');
+        }.property(),
+
+        hasPolygonAttribute: function () {
+          return this.someLayerReturnsTrue('hasPolygonAttribute');
+        }.property('dataConfiguration'),
+
+        /**
+         * We can rescale if we have some data to rescale to.
+         * @return {Boolean}
+         */
+        canRescale: function () {
+          return this.someLayerReturnsTrue('canRescale');
+        }.property('hasNumericAxis', 'plot'),
+
+        /**
+         * Not yet. Compare with dot chart <==> bart chart
+         * @property {Boolean}
+         */
+        canSupportConfigurations: function () {
           return false;
-        }.bind(this);
+        }.property(),
 
-        switch (iChange.operation) {
-          case 'createCases':
-          case 'deleteCases':
-            return true;
-          case 'updateCases':
-            attrs = iChange.attributeIDs;
-            if (!attrs) return true;  // all attributes affected
-            return containsMappedAttrs(attrs);
-          case 'dependentCases':
-            collChanges = iChange.changes;
-            collChangeCount = collChanges ? collChanges.length : 0;
-            for (i = 0; i < collChangeCount; ++i) {
-              collChange = collChanges[i];
-              if (collChange) {
-                attrs = collChange.attributeIDs;
-                if (attrs && containsMappedAttrs(attrs))
-                  return true;
-              }
+        selectAll: function (iBool) {
+          this.get('mapLayerModels').forEach(function (iMapLayerModel) {
+            iMapLayerModel.selectAll(iBool);
+          });
+        },
+
+        /**
+         * Returns true if the specified change could affect the current map
+         * @param     {object}  - iChange
+         * @returns   {boolean} - true if the change could affect the plot; false otherwise
+         */
+        isAffectedByChange: function (iChange) {
+          var attrs, i, collChange, collChanges, collChangeCount;
+
+          // returns true if the specified list of attribute IDs contains any
+          // that are being displayed in the map in any graph place
+          var containsMappedAttrs = function (iAttrIDs) {
+            var mappedAttrs = this.getPath('dataConfiguration.placedAttributeIDs'),
+                attrCount = iAttrIDs && iAttrIDs.length,
+                i, attrID;
+            for (i = 0; i < attrCount; ++i) {
+              attrID = iAttrIDs[i];
+              if (mappedAttrs.indexOf(attrID) >= 0)
+                return true;
             }
             return false;
-        }
+          }.bind(this);
 
-        // For now, we'll assume all other changes affect us
-        return true;
-      },
+          switch (iChange.operation) {
+            case 'createCases':
+            case 'deleteCases':
+              return true;
+            case 'updateCases':
+              attrs = iChange.attributeIDs;
+              if (!attrs) return true;  // all attributes affected
+              return containsMappedAttrs(attrs);
+            case 'dependentCases':
+              collChanges = iChange.changes;
+              collChangeCount = collChanges ? collChanges.length : 0;
+              for (i = 0; i < collChangeCount; ++i) {
+                collChange = collChanges[i];
+                if (collChange) {
+                  attrs = collChange.attributeIDs;
+                  if (attrs && containsMappedAttrs(attrs))
+                    return true;
+                }
+              }
+              return false;
+          }
 
-      _observedDataConfiguration: null,
+          // For now, we'll assume all other changes affect us
+          return true;
+        },
 
-      checkboxDescriptions: function () {
-        var tDescriptions = [];
-        this.get('mapLayerModels').forEach(function (iMapLayerModel) {
-          tDescriptions = tDescriptions.concat(iMapLayerModel.get('checkBoxDescriptions'));
-        });
-        return tDescriptions;
-      }.property(),
+        _observedDataConfiguration: null,
 
-      lastValueControls: function () {
-        var tControls = [];
-        this.get('mapLayerModels').forEach(function (iMapLayerModel) {
-          tControls = tControls.concat(iMapLayerModel.get('lastValueControls'));
-        });
-        return tControls;
-      }.property(),
-
-      createHideShowSelectionMenuItems: function () {
-        return [];  // Todo: stopgap. Fix so that it does the right thing for the available mapLayerModels
-      },
-
-      createStorage: function () {
-        var tStorage = {};
-        tStorage.center = this.get('center');
-        tStorage.zoom = this.get('zoom');
-        tStorage.baseMapLayerName = this.get('baseMapLayerName');
-        tStorage.layerModels = this.get('mapLayerModels').map(function (iLayerModel) {
-          return iLayerModel.createStorage();
-        });
-
-        return tStorage;
-      },
-
-      restoreStorage: function (iStorage) {
-        if (iStorage.mapModelStorage) {
-          this.set('center', iStorage.mapModelStorage.center);
-          this.set('zoom', iStorage.mapModelStorage.zoom);
-          this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
-          this.set('centerAndZoomBeingRestored', true);
-          this.get('mapLayerModels').forEach(function (iLayerModel, iIndex) {
-            var tLayerStorage = SC.isArray(iStorage.mapModelStorage.layerModels) ?
-                iStorage.mapModelStorage.layerModels[iIndex] : iStorage;
-            iLayerModel.restoreStorage(tLayerStorage);
+        lastValueControls: function () {
+          var tControls = [];
+          this.get('mapLayerModels').forEach(function (iMapLayerModel) {
+            tControls = tControls.concat(iMapLayerModel.get('lastValueControls'));
           });
-        }
-      }
+          return tControls;
+        }.property(),
 
-    });
+        createHideShowSelectionMenuItems: function () {
+          return [];  // Todo: stopgap. Fix so that it does the right thing for the available mapLayerModels
+        },
+
+        createStorage: function () {
+          var tStorage = {};
+          tStorage.center = this.get('center');
+          tStorage.zoom = this.get('zoom');
+          tStorage.baseMapLayerName = this.get('baseMapLayerName');
+          tStorage.gridMultiplier = this.get('gridMultiplier');
+          tStorage.layerModels = this.get('mapLayerModels').map(function (iLayerModel) {
+            return iLayerModel.createStorage();
+          });
+
+          return tStorage;
+        },
+
+        restoreStorage: function (iStorage) {
+          if (iStorage.mapModelStorage) {
+            this.set('center', iStorage.mapModelStorage.center);
+            this.set('zoom', iStorage.mapModelStorage.zoom);
+            this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
+            if( !SC.none(iStorage.mapModelStorage.gridMultiplier))
+              this.set('gridMultiplier', iStorage.mapModelStorage.gridMultiplier);
+            this.set('centerAndZoomBeingRestored', true);
+            this.get('mapLayerModels').forEach(function (iLayerModel, iIndex) {
+              var tLayerStorage = SC.isArray(iStorage.mapModelStorage.layerModels) ?
+                  iStorage.mapModelStorage.layerModels[iIndex] : iStorage;
+              iLayerModel.restoreStorage(tLayerStorage);
+            });
+          }
+        }
+
+      };
+
+    }()) // function closure
+);
 

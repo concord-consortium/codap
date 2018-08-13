@@ -32,6 +32,10 @@ DG.MapPolygonLayerModel = DG.MapLayerModel.extend(
       areaStrokeColor: DG.PlotUtilities.kDefaultMapStrokeColor,
       areaStrokeTransparency: DG.PlotUtilities.kDefaultMapStrokeOpacity,
 
+      init: function() {
+        sc_super();
+      },
+
       polygonVarID: function() {
         return this.getPath('dataConfiguration.polygonAttributeDescription.attributeID');
       }.property(),

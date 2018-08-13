@@ -73,7 +73,8 @@ DG.PlotAdornmentModel = SC.Object.extend(
     Set the contents of the adornment model from the restored storage.
    */
   restoreStorage: function( iStorage) {
-    this.set('isVisible', iStorage.isVisible || false);
+    if( iStorage)
+      this.set('isVisible', iStorage.isVisible || false);
   }
 
 });

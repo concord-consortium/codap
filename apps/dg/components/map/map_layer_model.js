@@ -33,6 +33,13 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
         sc_super();
       },
 
+      somethingIsSelectable: function() {
+        return false;
+      },
+
+      gridIsVisible: function() {
+        return false;
+      },
 
       //============================
       handleLegendAttrChange: function() {
@@ -162,7 +169,7 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
         return true;
       },
 
-      checkBoxDescriptions: function() {
+      checkboxDescriptions: function() {
         return [];
       }.property(),
 

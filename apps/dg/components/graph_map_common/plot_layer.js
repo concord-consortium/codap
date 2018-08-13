@@ -43,7 +43,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
        */
       paper: function () {
         return this.getPath('paperSource.paper');
-      }.property(),
+      }.property('paperSource'),
 
       paperDidChange: function () {
         this.notifyPropertyChange('paper');
@@ -269,7 +269,9 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       },
 
       destroy: function () {
-        this.removePlottedElements();
+        if( this.get('paperSource')) {
+          this.removePlottedElements();
+        }
         this.removeObserver('model.dataConfiguration.cases', this, 'dataDidChange');
         this.removeObserver('model.dataConfiguration.hiddenCases', this, 'dataDidChange');
         this.removeObserver('model.dataConfiguration.dataContext.selectionChangeCount', this, 'selectionChangeCount');

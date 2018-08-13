@@ -30,8 +30,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   autoDestroyProperties: [ ],
 
   displayProperties: ['model.dataConfiguration.attributeAssignment',
-                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType',
-                      'model.gridModel.visible'],
+                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType'],
 
   classNames: ['dg-map-layer'],
   // When we go into marquee-mode we add this class which makes us translucent and able receive mousedown events.
@@ -120,8 +119,6 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     if (!this.get('isInMarqueeMode')) {
       return false;
     }
-    var tDataContext = this.getPath('model.dataContext'),
-      tCollection = this.getPath('model.collectionClient');
     this.marqueeContext = {};
     this.marqueeContext.startPt = DG.ViewUtilities.windowToViewCoordinates(
         { x: iEvent.clientX - 5, y: iEvent.clientY - 5 }, this);
@@ -132,15 +129,17 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.getPath('layerManager.' + DG.LayerNames.kAdornments )
       .push( this.marqueeContext.marquee);
     DG.logUser('marqueeDrag: start');
+    this.marqueeContext.lastRect = {x:0, y:0, width: 0, height: 0};
     this.get('mapPointLayers').forEach( function( iLayer) {
       iLayer.preparePointSelection();
-    });
-    this.marqueeContext.lastRect = {x:0, y:0, width: 0, height: 0};
-    tDataContext.applyChange({
-      operation: 'selectCases',
-      collection: tCollection,
-      cases: null,
-      select: false
+      var tDataContext = iLayer.getPath('model.dataContext'),
+          tCollection = iLayer.getPath('model.collectionClient');
+      tDataContext.applyChange({
+        operation: 'selectCases',
+        collection: tCollection,
+        cases: null,
+        select: false
+      });
     });
     return true;
   },
@@ -165,13 +164,13 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   selectPointsInRect: function( iRect, iBaseSelection, iLast) {
-    var tDataContext = this.getPath('model.dataContext'),
-        tCollection = this.getPath('model.collectionClient');
-    if( SC.none( tDataContext))
-      return;
     iBaseSelection = iBaseSelection || [];
 
     this.get('mapPointLayers' ).forEach( function( iLayer) {
+      var tDataContext = iLayer.getPath('model.dataContext'),
+          tCollection = iLayer.getPath('model.collectionClient');
+      if( SC.none( tDataContext))
+        return;
       var tSelection = iLayer.getCasesForDelta( iRect, iLast),
           tDeselection = iLayer.getCasesForDelta(iLast, iRect),
           tSelectChange = {
@@ -301,14 +300,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.get('mapPointLayers').forEach( function( iLayer) {
       iLayer.clear();
     });
-  },
-
-  gridVisibilityDidChange: function() {
-    var tFixedSize = this.getPath('model.gridModel.visible') ? 3 : null;
-    this.get('mapPointLayers').forEach( function( iLayer) {
-      iLayer.set('fixedPointRadius', tFixedSize);
-    });
-  }.observes('model.gridModel.visible')
+  }
 
 });
 

@@ -45,13 +45,29 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       isInMarqueeMode: false, // Set by parent during marquee select to allow us to suppress data tips
 
       /**
-       * @property {DG.MapConnectingLineAdornment}
+       * @property { DG.GridLayer }
        */
-      connectingLineAdorn: null,
+      gridLayer: null,
+
+      /**
+       * @property {DG.MapconnectingLinesAdornment}
+       */
+      connectingLinesAdorn: null,
 
       init: function () {
         sc_super();
         this.setPath('dataTip.showOnlyLegendData', true);
+        this.addGridLayer();
+        this.lineVisibilityChanged();
+      },
+
+      destroy: function() {
+        var tPlottedElements = this.get('plottedElements'); // Grab these so we can remove them later
+        sc_super();
+        // This is a difference between graphs in which we'll reuse the plotted elements and maps for which we won't
+        tPlottedElements.forEach(function (iElement) {
+          iElement.remove();
+        });
       },
 
       /**
@@ -94,7 +110,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           legendVarID: tLegendVarID,
           updatedPositions: true,
           pointsShouldBeVisible: this.getPath('model.pointsShouldBeVisible'),
-          isVisible: this.getPath( 'model.isVisible'),
+          isVisible: this.getPath( 'model.isVisible') && this.getPath('model.pointsShouldBeVisible'),
 
           pointColor: tModel.get('pointColor') || DG.PlotUtilities.kDefaultPointColor,
           strokeColor: tStrokeParams.strokeColor,
@@ -338,9 +354,10 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         if (this.readyToDraw()) {
           this.drawData();
           this.updateSelection();
+          this.updateConnectingLine();
         }
       }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
-          'model.transparency', 'model.strokeTransparency'),
+          'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible'),
 
       /**
        * Override so we just remove the plottedElements in our portion of the array.
@@ -376,21 +393,37 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       },
 
       /**
+       * When the model changes visibility, we show or hide everything.
+       * But, if we're showing, we respect the isVisible flag of grid and lines and points.
+       */
+      isVisibleChanged: function() {
+        var tIsVisible = this.getPath('model.isVisible'),
+            tGrid = this.get('gridLayer'),
+            tLines = this.get('connectingLinesAdorn');
+        if( tIsVisible) {
+          tGrid && tGrid.show();
+          tLines && tLines.show();
+        }
+        else {
+          tGrid && tGrid.hide();
+          tLines && tLines.hide();
+        }
+      }.observes('model.isVisible'),
+
+      /**
        * When an attribute has been removed we can no longer display, so we clear ourselves.
        */
       handleAttributeRemoved: function () {
-        sc_super();
-
         this.setPath('model.connectingLineModel.isVisible', false);
         this.setPath('model.pointsShouldBeVisible', false);
-        this.setPath('model.gridModel.visible', false);
+        this.setPath('model.gridModel.isVisible', false);
       }.observes('model.attributeRemoved'),
 
       updateConnectingLine: function() {
-        var tConnectingLineAdorn = this.get('connectingLineAdorn');
-        if( tConnectingLineAdorn) {
-          tConnectingLineAdorn.invalidateModel();
-          tConnectingLineAdorn.updateToModel( false /* do not animate */);
+        var tConnectingLinesAdorn = this.get('connectingLinesAdorn');
+        if( tConnectingLinesAdorn) {
+          tConnectingLinesAdorn.invalidateModel();
+          tConnectingLinesAdorn.updateToModel( false /* do not animate */);
         }
       },
 
@@ -398,11 +431,67 @@ DG.MapPointLayer = DG.PlotLayer.extend(
        * Something about the points (aside from visibility) changed. Take appropriate action.
        */
       pointsDidChange: function() {
-        var tGridModel = this.getPath('mapGridLayer.model');
+        var tGridModel = this.getPath('gridLayer.model');
         if( tGridModel)
           tGridModel.rectArrayMustChange();
         this.updateConnectingLine();
-      }.observes('pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange')
+      }.observes('pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
+
+      addGridLayer: function () {
+        if( this.get('gridLayer'))
+          return;
+
+        var tGridModel = this.getPath('model.gridModel');
+        tGridModel.initializeRectArray();
+
+        this.set('gridLayer', DG.MapGridLayer.create(
+            {
+              mapSource: this.get('mapSource'),
+              model: tGridModel,
+              showTips: true /* !this.getPath('model.pointsShouldBeVisible') */
+            }));
+        // Make the points smaller so they don't completely cover the grid cells
+/*
+        if (tGridModel.get('isVisible'))
+          this.setPath('mapPointView.mapPointLayers.fixedPointRadius', 3);
+*/
+
+        // this.gridVisibilityChanged();
+
+        this.setPath('mapGridMarqueeView.gridLayer', this.get('gridLayer'));
+      },
+
+      gridVisibilityDidChange: function() {
+/*
+        var tFixedSize = this.getPath('model.gridModel.isVisible') ? 3 : null;
+        this.get('mapPointLayers').forEach( function( iLayer) {
+          iLayer.set('fixedPointRadius', tFixedSize);
+        });
+*/
+      }.observes('model.gridModel.isVisible'),
+
+      /**
+       Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
+       because we don't want to destroy the adornment.
+       */
+      lineVisibilityChanged: function() {
+        var tLineModel = this.getPath( 'model.connectingLinesModel' ),
+            tLinesAreVisible = tLineModel.get('isVisible'),
+            tLineAdorn = this.get('connectingLinesAdorn');
+        if( tLineModel && tLinesAreVisible && !tLineAdorn) {
+          tLineAdorn = DG.MapConnectingLineAdornment.create({ model: tLineModel, paperSource: this,
+            mapSource: this.get('mapSource'), layerName: DG.LayerNames.kConnectingLines,
+            unselectedLineWidth: 1, selectedLineWidth: 3, parentView: this.get('mapSource') });
+          this.set('connectingLinesAdorn', tLineAdorn);
+        }
+
+        this.invokeLast( function() {
+          if( tLineAdorn) {
+            tLineAdorn.updateVisibility();
+            // this.updateMarqueeToolVisibility();
+          }
+        }.bind( this));
+      }.observes('.model.connectingLinesModel.isVisible'),
 
     });
 
