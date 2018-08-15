@@ -25,6 +25,7 @@
 // ==========================================================================
 /*global DG, sc_static */
 
+sc_require('components/case_table/case_table_drop_target');
 sc_require('views/raphael_base');
 
 // The width of the area between the left and right tables
@@ -34,7 +35,7 @@ DG.RDV_DIVIDER_WIDTH = 48;
   The DG.RelationDividerView is the divider view between case tables in which relationship
   lines are drawn to indicate the parent-child relationships.
  */
-DG.RelationDividerView = SC.View.extend( (function() {
+DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
 
       // The width of the horizontal portion of the relationship curves
   var RDV_RELATION_LEFT_MARGIN = 12,
@@ -108,7 +109,15 @@ DG.RelationDividerView = SC.View.extend( (function() {
     if( dividerView) dividerView.displayDidChange();
   }.observes('leftTable','rightTable'),
   
-  childViews: [ 'headerView', 'dividerView' ],
+  childViews: [ 'headerView', 'dividerView', 'labelView' ],
+
+  /** Shows the drop-target message when an attribute is dragged over. It needs to be added to the childViews array above. */
+  labelView: SC.LabelView.extend({
+    value: '',
+    layout: {
+      left: 2, right: 2, top: 2, bottom: 2
+    }
+  }),
   
   headerView: DG.RaphaelBaseView.extend({
     layout: { left: 0, top: 0, right: 0, height: 54 },
