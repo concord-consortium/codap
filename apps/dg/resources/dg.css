@@ -557,7 +557,7 @@ html, body {
 }
 
 .dg-legend-view {
-    background-color: #F9F9F9;
+    background-color: rgba(249, 249, 249, 0.31);
     z-index: unset !important;
 }
 

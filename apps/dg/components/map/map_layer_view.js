@@ -143,7 +143,7 @@ DG.MapLayerView = SC.View.extend(
         this._map = L.map(this._layerID, {
           scrollWheelZoom: false,
           zoomSnap: 0,
-          trackResize: false
+          trackResize: true
         })
             .setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd)
