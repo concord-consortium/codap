@@ -206,7 +206,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
             dividerViews = [];
         childViews.forEach( function( iChildView) {
           if( iChildView.kindOf( DG.RelationDividerView))
-            dividerViews.push( iChildView);
+            dividerViews.pushObject( iChildView); // Note: array.push is not SproutCore-friendly.
         });
         return dividerViews;
       }.property(),
@@ -381,7 +381,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     leftDropTarget: null,
 
     makeRelationDividerView: function () {
-      return  this.relationDividerView.create({});
+      return this.relationDividerView.create({
+        name: 'dividerTarget',
+        dataContext: this.model.get('context')
+      });
     },
 
     makeChildTableView: function () {
