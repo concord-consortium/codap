@@ -293,7 +293,6 @@ DG.PlotView = DG.PlotLayer.extend(
         }.bind( this),
 
         finallyFunc = function () {
-          this._mustCreatePlottedElements = false;
           if(!tHaveInstalledCallback)
             this.setPath('model.isAnimating', false);
           if( hasVanishingElements ){

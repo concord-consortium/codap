@@ -103,7 +103,7 @@ DG.LayerManager = function( iPaper) {
         iFromLayer.prepareToMoveOrRemove( iElement);
         iToLayer.push( iElement);
       }
-      //this.testValidity();
+      // this.testValidity();
     },
 
     /**
@@ -117,7 +117,7 @@ DG.LayerManager = function( iPaper) {
       });
       if( iCallRemove)
         iElement.remove();
-      //this.testValidity();
+      // this.testValidity();
     },
 
     setVisibility: function( iName, iVisibility, iAttrs) {
@@ -150,6 +150,9 @@ DG.LayerManager = function( iPaper) {
       });
       if( tFoundDuplicate)
         DG.logError('Found duplicate element');
+
+      if( !DG.RenderingUtilities.testPaperValidity( this._paper))
+        DG.logError('Invalid Paper');
       // @endif
     }
 

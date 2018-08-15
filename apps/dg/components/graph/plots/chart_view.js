@@ -128,23 +128,19 @@ DG.ChartView = DG.PlotView.extend(
             tCases = tModel.get('cases'),
             tPlottedElements = this.get('plottedElements'),
             tPlotElementLength = tPlottedElements.length,
-            tLayerManager = this.get('layerManager'),
-            tIndex, tRC;
+            tRC;
 
         if (!tCases)
           return; // We can get here before things are linked up during restore
 
-        if (this._mustCreatePlottedElements) {
-          this.removePlottedElements();
-          tCases.forEach(this.callCreateElement.bind(this));
-          this._mustCreatePlottedElements = false;
-        }
 
         this.computeCellParams();
 
+/*
         for (tIndex = tCases.get('length'); tIndex < tPlotElementLength; tIndex++) {
           DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex], tLayerManager);
         }
+*/
         tRC = this.createRenderContext();
         tCases.forEach(function (iCase, iIndex) {
           var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);

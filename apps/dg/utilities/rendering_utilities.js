@@ -121,6 +121,55 @@ DG.RenderingUtilities = {
       var tTransform = 'r%@,%@,%@'.fmt( iRotation, iCenterX, iCenterY);
       iElement.attr( {transform: tTransform });
     }
+  },
+
+  testPaperValidity: function( iPaper) {
+/*
+    this.printPaper( iPaper);
+    var map = {},
+        bot = iPaper.bottom;
+    while (bot) {
+      if( map[bot.id]) {
+        return false;
+      }
+      map[bot.id] = true;
+      bot = bot.next;
+    }
+*/
+    return true;
+  },
+
+  svgElementClass: function( iElement) {
+    var tClass;
+    switch (iElement[0].constructor) {
+      case SVGImageElement: tClass = 'I'; break;
+      case SVGRectElement: tClass = 'R'; break;
+      case SVGPathElement: tClass = 'P'; break;
+      case SVGCircleElement: tClass = 'C'; break;
+      default: tClass = '?';
+    }
+    return tClass;
+  },
+
+  printPaper: function( iPaper) {
+/*
+    var tPrintout = 'Paper-> ',
+        tElement = iPaper.bottom,
+        tMap = {},
+        tEnd = false;
+    while( tElement && !tEnd) {
+      tEnd = tMap[tElement.id];
+      if( !tEnd) {
+        tMap[ tElement.id] = true;
+        tPrintout += tElement.id + ': ' + this.svgElementClass( tElement) + ', ';
+        tElement = tElement.next;
+      }
+      else {
+        tPrintout += 'FAILED - repetition of ' + tElement.id;
+      }
+    }
+*/
+    // console.log( tPrintout);
   }
 
 };
