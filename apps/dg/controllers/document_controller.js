@@ -408,6 +408,7 @@ DG.DocumentController = SC.Object.extend(
         iProperties.model = iModel;
         var context = DG.DataContext.factory(iProperties);
         this.get('contexts').pushObject(context);
+        this.propertyDidChange('contextsLength');
         return context;
       },
 
@@ -426,6 +427,7 @@ DG.DocumentController = SC.Object.extend(
           if (dataContextIndex >= 0) {
             dataContext.applyChange({operation: 'deleteDataContext'});
             this.contexts.splice(dataContextIndex, 1);
+            this.propertyDidChange('contextsLength');
           } else {
             DG.logWarn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
           }

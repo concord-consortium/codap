@@ -112,15 +112,15 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
 
         this.gridControl = SC.SliderView.create({
           controlSize: SC.SMALL_CONTROL_SIZE,
-          layout: {width: 40, height: 16, top: 18, right: 58},
+          layout: {width: 40, height: 16, top: 33, right: 58},
           toolTip: 'DG.MapView.gridControlHint'.loc(),
           classNames: ['dg-map-grid-slider'],
           minimum: 0.1,
           maximum: 2.0,
           step: 0,
-          value: this.getPath('model.gridMultiplier'),
-          persistedValue: this.getPath('model.gridMultiplier'),
-          previousPersistedValue: this.getPath('model.gridMultiplier'),
+          value: this.getPath('model.gridModel.gridMultiplier'),
+          persistedValue: this.getPath('model.gridModel.gridMultiplier'),
+          previousPersistedValue: this.getPath('model.gridModel.gridMultiplier'),
           isVisible: false,
           mouseUp: function (iEvent) {
             sc_super();
@@ -135,7 +135,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
 
         this.marqueeTool = SC.ImageButtonView.create({
           buttonBehavior: SC.PUSH_BEHAVIOR,
-          layout: {right: 10, top: 10, width: 32, height: 32},
+          layout: {right: 10, top: 25, width: 32, height: 32},
           toolTip: 'DG.MapView.marqueeHint'.loc(),
           image: 'dg-map-marquee',
           action: 'setMarqueeMode',
@@ -210,7 +210,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
 
       changeGridSize: function () {
         var tControlValue = this.gridControl.get('value');
-        this.setPath('model.gridMultiplier', tControlValue);
+        this.setPath('model.gridModel.gridMultiplier', tControlValue);
       }.observes('gridControl.value'),
 
       changePersistedGridSize: function () {
@@ -229,11 +229,11 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
           execute: function () {
           },
           undo: function () {
-            this._controller().setPath('view.contentView.model.gridMultiplier', tPreviousControlValue);
+            this._controller().setPath('view.contentView.model.gridModel.gridMultiplier', tPreviousControlValue);
             this._controller().setPath('view.contentView.gridControl.value', tPreviousControlValue);
           },
           redo: function () {
-            this._controller().setPath('view.contentView.model.gridMultiplier', tControlValue);
+            this._controller().setPath('view.contentView.model.gridModel.gridMultiplier', tControlValue);
             this._controller().setPath('view.contentView.gridControl.value', tControlValue);
           }
         }));
@@ -269,8 +269,6 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         }.bind( this));
 
         this.adjustLayout(this.renderContext(this.get('tagName')));
-        this.updateMarqueeToolVisibility();
-        this.updateGridControlVisibility();
       },
 
       numberOfLayerModelsChanged: function () {
@@ -299,16 +297,31 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
           processLayerArray( tPointLayers);
           this.displayDidChange();
         }
-        this.updateMarqueeToolVisibility();
       }.observes('model.mapLayerModelsChange'),
 
       updateMarqueeToolVisibility: function () {
-        this.setPath('marqueeTool.isVisible', this.getPath('model.somethingIsSelectable'));
-      }.observes('model.somethingIsSelectable'),
+        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
+            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
+            tGridIsVisible = this.getPath('model.gridModel.visible');
+        this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible || tGridIsVisible);
+      },
 
-      updateGridControlVisibility: function () {
-        this.setPath('gridControl.isVisible', this.getPath('model.gridIsVisible'));
-      }.observes('model.gridIsVisible'),
+      pointVisibilityChanged: function () {
+        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
+            tModel = this.get('model'),
+            tFillOpacity = tPointsAreVisible ? tModel.get('transparency') || DG.PlotUtilities.kDefaultPointOpacity : 1,
+            tStrokeOpacity = tPointsAreVisible ? tModel.get('strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity : 1,
+            tAttrs = {'fill-opacity': tFillOpacity, 'stroke-opacity': tStrokeOpacity};
+        // todo: The following invokeLater could be eliminated with the function passed in as a completion of
+        // animation callback
+        this.get('layerManager').setVisibility(DG.LayerNames.kPoints, tPointsAreVisible, tAttrs);
+        this.get('layerManager').setVisibility(DG.LayerNames.kSelectedPoints, tPointsAreVisible, tAttrs);
+        this.updateMarqueeToolVisibility();
+      }.observes('model.pointsShouldBeVisible'),
+
+      modelPointsDidChange: function () {
+        this.get('legendView').displayDidChange();
+      }.observes('model.pointColor', 'model.transparency'),
 
       addPolygonLayers: function () {
         var tNewLayerAdded = false;

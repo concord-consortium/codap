@@ -62,12 +62,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       },
 
       destroy: function() {
-        var tPlottedElements = this.get('plottedElements'); // Grab these so we can remove them later
         sc_super();
-        // This is a difference between graphs in which we'll reuse the plotted elements and maps for which we won't
-        tPlottedElements.forEach(function (iElement) {
-          iElement.remove();
-        });
       },
 
       /**

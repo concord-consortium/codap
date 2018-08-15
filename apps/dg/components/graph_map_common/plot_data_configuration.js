@@ -401,23 +401,25 @@ DG.PlotDataConfiguration = SC.Object.extend(
       setAttributeAndCollectionClient: function (iDescription, iAttrRefs, iRole, iType) {
         this._casesCache = null;  // because setting a new attribute and collection client can require recomputation of cases
         var tDescription = this.get(iDescription);
-        //tDescription.invalidateCaches();  // So that notification order won't be important
-        tDescription.removeAllAttributes();
-        tDescription.beginPropertyChanges();
-        tDescription.set('collectionClient', (iAttrRefs && iAttrRefs.collection) || null);
-        tDescription.setCases(this.get('cases'));
-        if (!SC.none(iAttrRefs)) {
-          iAttrRefs.attributes.forEach(function (iAttribute) {
-            tDescription.addAttribute(iAttribute);
-          });
+        if( tDescription) {
+          //tDescription.invalidateCaches();  // So that notification order won't be important
+          tDescription.removeAllAttributes();
+          tDescription.beginPropertyChanges();
+          tDescription.set('collectionClient', (iAttrRefs && iAttrRefs.collection) || null);
+          tDescription.setCases(this.get('cases'));
+          if (!SC.none(iAttrRefs)) {
+            iAttrRefs.attributes.forEach(function (iAttribute) {
+              tDescription.addAttribute(iAttribute);
+            });
+          }
+          if (!SC.none(iRole))
+            tDescription.set('role', iRole);
+          if (!SC.none(iType))
+            tDescription.setPath('attributeStats.attributeType', iType);
+          this._casesCache = null;
+          tDescription.invalidateCaches(this.get('cases'));  // So that notification order won't be important
+          tDescription.endPropertyChanges();
         }
-        if (!SC.none(iRole))
-          tDescription.set('role', iRole);
-        if (!SC.none(iType))
-          tDescription.setPath('attributeStats.attributeType', iType);
-        this._casesCache = null;
-        tDescription.invalidateCaches(this.get('cases'));  // So that notification order won't be important
-        tDescription.endPropertyChanges();
       },
 
       /**
@@ -879,8 +881,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
             DG.ArchiveUtils.addLink(ioStorage, tKey, iAttr);
           });
         }
-        ioStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
-        ioStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
+        if( tAttrDesc) {
+          ioStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
+          ioStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
+        }
       }
 
     });

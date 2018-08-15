@@ -232,10 +232,26 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     sc_super();
 
     this.mapPointLayers = [];
+    this.addMapPointLayers();
 
+    // When the underlying map zooms, we want to be hidden during the zoom so user doesn't see
+    // points momentarily in wrong place.
+    this.getPath('mapLayer.map')
+        .on('zoomstart', handleZoomStart)
+        .on('zoomend', handleZoomEnd);
+  },
+
+  /** For each mapLayerModel that has lat/long attributes, if we don't already have a corresponding
+   *  mapPointLayer, make one and stash it.
+   */
+  addMapPointLayers: function() {
+    var tMapPointLayers = this.get('mapPointLayers'),
+        tExistingMapPointLayerModels = tMapPointLayers.map( function( iLayer) {
+          return iLayer.get('model');
+        });
     this.getPath('model.mapLayerModels').forEach(function (iMapLayerModel, iIndex) {
       var tDataConfig = iMapLayerModel.get('dataConfiguration');
-      if (tDataConfig.get('hasLatLongAttributes')) {
+      if (tDataConfig.get('hasLatLongAttributes') && tExistingMapPointLayerModels.indexOf( iMapLayerModel) < 0) {
         var tLayer = DG.MapPointLayer.create({
           paperSource: this,
           model: iMapLayerModel,
@@ -246,15 +262,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
         tLayer.addObserver('plotDisplayDidChange', this, function () {
           this.invokeLast(this.plottedPointsDidChange);
         }.bind(this));
-        this.mapPointLayers.push(tLayer);
+        tMapPointLayers.push(tLayer);
       }
     }.bind(this));
-
-    // When the underlying map zooms, we want to be hidden during the zoom so user doesn't see
-    // points momentarily in wrong place.
-    this.getPath('mapLayer.map')
-        .on('zoomstart', handleZoomStart)
-        .on('zoomend', handleZoomEnd);
   },
 
   /**

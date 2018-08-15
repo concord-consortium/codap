@@ -137,8 +137,9 @@ DG.MapPolygonDataConfiguration = DG.PlotDataConfiguration.extend(
       allCases: function () {
         if( this.get('hasPolygonAttribute') || this.get('hasLatLongAttributes')) {
           var tSource = this.get('collectionClient');
-          return tSource ? tSource.getPath('casesController.arrangedObjects') : null;
+          return tSource ? tSource.getPath('casesController.arrangedObjects') : [];
         }
+        else return [];
       }.property(),
 
       /**

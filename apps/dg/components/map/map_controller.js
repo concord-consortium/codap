@@ -48,6 +48,29 @@ DG.MapController = DG.DataDisplayController.extend(
           this.setPath('mapView.legendViewCreationCallback', this.setUpLegendView.bind(this));
         }.observes('mapView'),
 
+        init: function() {
+          sc_super();
+
+          // We respond to changes in the number data contexts
+          DG.currDocumentController().addObserver('contextsLength', this, this.contextCountDidChange);
+        },
+
+        destroy: function() {
+          var tDocController = DG.currDocumentController();
+          tDocController && tDocController.removeObserver('contextsLength', this, this.contextCountDidChange);
+
+          sc_super();
+        },
+
+        contextCountDidChange: function() {
+          this.invokeLater( function() {
+            SC.run( function() {
+              this.get('mapModel').adaptToNewOrRemovedContexts();
+              this.set('_inspectorButtons', null);
+            }.bind( this));
+          }.bind( this), 100);
+        },
+
         /**
          * A MapView may have multiple legend views. The Label of each needs to be configured
          * properly to show its menu on mouseDown.
@@ -227,10 +250,11 @@ DG.MapController = DG.DataDisplayController.extend(
           tResultArray.push(createBaseLayer());
 
           tMapLayerModels.forEach(function (iMapLayerModel) {
-
             var this_ = this,
                 tDataConfig = iMapLayerModel.get('dataConfiguration'),
                 tLegendAttrDesc = tDataConfig.get('legendAttributeDescription');
+            if( !tLegendAttrDesc)
+              return; // No legend indicates this layer model has nothing to contribute
             var tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap'),
                 tAttrColor = !tLegendAttrDesc.get('isNull') ? DG.ColorUtilities.calcAttributeColor(tLegendAttrDesc) : null,
                 kRowHeight = 20,

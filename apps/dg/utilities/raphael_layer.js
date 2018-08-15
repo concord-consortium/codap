@@ -138,11 +138,13 @@ DG.RaphaelLayer = SC.Object.extend(
       // Special cases for which iElement is at the bottom or top of the paper
       if( iElement === this._paper.bottom) {
         this._paper.bottom = iElement.next;
-        this._paper.bottom.prev = null;
+        if( this._paper.bottom)
+          this._paper.bottom.prev = null;
       }
       if( iElement === this._paper.top) {
         this._paper.top = iElement.prev;
-        this._paper.top.next = null;
+        if( this._paper.top)
+          this._paper.top.next = null;
       }
       if( iElement === this._firstElement) {
         if( this._firstElement === this._lastElement) {

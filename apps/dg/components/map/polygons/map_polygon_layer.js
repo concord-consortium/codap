@@ -49,6 +49,10 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
   },
 
   destroy: function() {
+    var tMap = this.get('map');
+    this.features.forEach( function( iFeature) {
+      tMap.removeLayer( iFeature);
+    });
     this.features = null;
 
     sc_super();
