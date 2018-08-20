@@ -1214,19 +1214,23 @@ input.dg-editor-text {
     background-color: white;
     width: 30px;
 }
-.dg-table-drop-target  .sc-label-view {
-    -webkit-writing-mode: vertical-lr;
-    writing-mode: vertical-lr;
+
+.dg-table-drop-target .sc-label-view {
+    -webkit-writing-mode: vertical-rl;
+    writing-mode: vertical-rl;
     text-align: center;
-    padding: 0.5em;
     transform: rotate(180deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 .dg-table-drop-target .sc-label-view:lang(zh) {
     transform: rotate(0deg);
 }
 
 .dg-table-drop-target.dg-table-drop-target-show .sc-label-view {
-    border: medium #ffe4b3 solid;
+    outline: 4px solid #ffe4b3;
 }
 
 .dg-table-drop-target-show .slick-header{

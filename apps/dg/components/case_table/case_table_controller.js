@@ -161,7 +161,38 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.updateTableAdapters();
 
         var contentView = this.getPath('view.contentView');
-        if( contentView) contentView.setCaseTableAdapters( this.get('caseTableAdapters'));
+
+        // Handle divider views for the drag-attribute listener setup.
+        if (contentView) {
+          var dividerDropDataCallback = function (iDivider) {
+            var dropData = iDivider.getPath('dropData');
+            if (SC.none(dropData)) {
+              return;
+            }
+            var context = iDivider.getPath('dataContext');
+            var parentTable = iDivider.getPath('leftTable');
+
+            DG.UndoHistory.execute(DG.DataContextUtilities.createCollectionCommand(dropData.attribute, dropData.collection, context, parentTable.getPath('gridAdapter.collection.id')));
+
+            iDivider.setPath('dropData', null);
+          };
+
+          // Remove the observer and destroy stray divider views before the new setup.
+          var oldDividerViews = contentView.getPath('dividerViews');
+          oldDividerViews.forEach(function (iDividerView) {
+            iDividerView.removeObserver('dropData', dividerDropDataCallback);
+            iDividerView.destroy();
+          });
+
+          // This creates new divider views along other stuff.
+          contentView.setCaseTableAdapters(this.get('caseTableAdapters'));
+
+          // Setup an observer for the drop-target divider views.
+          var dividerViews = contentView.getPath('dividerViews');
+          dividerViews.forEach(function (iDividerView) {
+            iDividerView.addObserver('dropData', dividerDropDataCallback);
+          });
+        }
 
         if( dataContext !== this._prevDataContext) {
           if( this._prevDataContext)
