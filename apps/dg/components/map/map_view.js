@@ -272,10 +272,31 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
       },
 
       numberOfLayerModelsChanged: function () {
-        // The routines to add point and polygon layers check to avoid duplicates, so we can just all them.
-        this.addPointLayers();
-        this.addPolygonLayers();
-        this.displayDidChange();
+
+        function processLayerArray( iLayerArray) {
+          iLayerArray.filter( function( iLayer) {
+            return tMapLayerModels.indexOf( iLayer.get('model')) < 0;
+          }).forEach( function( iLayerToRemove) {
+            iLayerArray.splice( iLayerArray.indexOf( iLayerToRemove) , 1);
+            iLayerToRemove.destroy();
+          });
+        }
+
+        var tMapLayerModels = this.getPath( 'model.mapLayerModels'),
+            tPolygonLayers = this.get('mapPolygonLayers'),
+            tPointLayers = this.getPath('mapPointView.mapPointLayers');
+        if( tMapLayerModels.length > tPolygonLayers.length + tPointLayers.length) {
+          // The routines to add point and polygon layers check to avoid duplicates, so we can just call them both.
+          this.addPointLayers();
+          this.addPolygonLayers();
+          this.displayDidChange();
+          this.fitBounds();
+        }
+        else {
+          processLayerArray( tPolygonLayers);
+          processLayerArray( tPointLayers);
+          this.displayDidChange();
+        }
       }.observes('model.mapLayerModelsChange'),
 
       updateMarqueeToolVisibility: function () {

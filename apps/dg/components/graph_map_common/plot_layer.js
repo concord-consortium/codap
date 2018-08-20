@@ -269,7 +269,12 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       },
 
       destroy: function () {
-        this.removePlottedElements();
+        if( this.get('paperSource')) {
+          this.removePlottedElements();
+          this.get('plottedElements').forEach(function (iElement) {
+            iElement.remove();
+          });
+        }
         this.removeObserver('model.dataConfiguration.cases', this, 'dataDidChange');
         this.removeObserver('model.dataConfiguration.hiddenCases', this, 'dataDidChange');
         this.removeObserver('model.dataConfiguration.dataContext.selectionChangeCount', this, 'selectionChangeCount');

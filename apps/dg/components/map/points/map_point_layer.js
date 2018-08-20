@@ -61,6 +61,10 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         this.lineVisibilityChanged();
       },
 
+      destroy: function() {
+        sc_super();
+      },
+
       /**
        * Augment my base class by checking to make sure we have the attributes we need.
        * @returns {boolean}
@@ -405,8 +409,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
        * When an attribute has been removed we can no longer display, so we clear ourselves.
        */
       handleAttributeRemoved: function () {
-        sc_super();
-
         this.setPath('model.connectingLineModel.isVisible', false);
         this.setPath('model.pointsShouldBeVisible', false);
         this.setPath('model.gridModel.isVisible', false);

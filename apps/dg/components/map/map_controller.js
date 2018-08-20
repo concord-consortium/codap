@@ -52,12 +52,12 @@ DG.MapController = DG.DataDisplayController.extend(
           sc_super();
 
           // We respond to changes in the number data contexts
-          DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
+          DG.currDocumentController().addObserver('contextsLength', this, this.contextCountDidChange);
         },
 
         destroy: function() {
           var tDocController = DG.currDocumentController();
-          tDocController && tDocController.removeObserver('contexts.length', this, this.contextCountDidChange);
+          tDocController && tDocController.removeObserver('contextsLength', this, this.contextCountDidChange);
 
           sc_super();
         },
@@ -67,7 +67,6 @@ DG.MapController = DG.DataDisplayController.extend(
             SC.run( function() {
               this.get('mapModel').adaptToNewOrRemovedContexts();
               this.set('_inspectorButtons', null);
-              this.rescaleFunction();
             }.bind( this));
           }.bind( this), 100);
         },

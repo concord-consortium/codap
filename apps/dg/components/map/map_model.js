@@ -201,16 +201,22 @@ DG.MapModel = SC.Object.extend(
         adaptToNewOrRemovedContexts: function() {
           var tDocumentContexts = DG.currDocumentController().get('contexts'),
               tLayerModelsToRemove = [],
-              tLayerWasAdded = false;
-          this.get('mapLayerModels').forEach( function( iLayerModel) {
+              tLayerModelWasAdded = false,
+              tLayerModels = this.get('mapLayerModels');
+          tLayerModels.forEach( function( iLayerModel) {
             var tLayerContext = iLayerModel.getPath('dataConfiguration.dataContext');
             if( tLayerContext && tDocumentContexts.indexOf( tLayerContext) < 0) {
               // Previously valid context has gone away
               tLayerModelsToRemove.push( iLayerModel);
             }
           });
-          tLayerWasAdded = this._processDocumentContexts();
-          this.notifyPropertyChange('mapLayerModelsChange');
+          tLayerModelsToRemove.forEach( function( iLayerModel) {
+            var tIndex = tLayerModels.indexOf( iLayerModel);
+            tLayerModels.splice( tIndex, 1);
+          });
+          tLayerModelWasAdded = this._processDocumentContexts();
+          if( tLayerModelsToRemove.length > 0 || tLayerModelWasAdded)
+            this.notifyPropertyChange('mapLayerModelsChange');
         },
 
         legendAttributeDidChange: function () {
