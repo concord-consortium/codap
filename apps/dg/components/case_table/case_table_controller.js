@@ -172,7 +172,6 @@ DG.CaseTableController = DG.ComponentController.extend(
             var context = iDivider.getPath('dataContext');
             var parentTable = iDivider.getPath('leftTable');
 
-            // TODO: Add the rest of UNDO procedures in createCollectionCommand.
             DG.UndoHistory.execute(DG.DataContextUtilities.createCollectionCommand(dropData.attribute, dropData.collection, context, parentTable.getPath('gridAdapter.collection.id')));
 
             iDivider.setPath('dropData', null);
