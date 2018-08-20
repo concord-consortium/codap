@@ -156,21 +156,22 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * @returns {{}}
        */
       parseResourceSelector: function (iResource) {
-        var selectorRE = /([A-Za-z0-9_]+)\[([#_A-Za-z0-9][^\]]*)]/;
+        // selects phrases like 'aaaa[bbbb]' or 'aaaa' in a larger context
+        var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
+        // selects complete strings matching the pattern 'aaaa[bbbb]' or 'aaaa'
+        var clauseRE =   /^([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?$/;
         var result = {};
-        var selectors = iResource.split('.');
+        var selectors = iResource.match(selectorRE);
         result.type = '';
         selectors.forEach(function (selector) {
           var resourceType, resourceName;
-          var match = selectorRE.exec(selector);
-          if (selectorRE.test(selector)) {
-            resourceType = match[1];
-            resourceName = match[2];
+          var match = clauseRE.exec(selector);
+          resourceType = match[1];
+          resourceName = match[2];
+          if (resourceName !== undefined) {
             result[resourceType] = resourceName;
-            result.type = resourceType;
-          } else {
-            result.type = selector;
           }
+          result.type = resourceType;
         });
 
         return result;
