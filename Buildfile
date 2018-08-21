@@ -26,7 +26,8 @@ end
 # Debug build (e.g. sc-server) configuration
 mode :debug do
   config :dg ,
-         :google_analytics_id => nil
+         :google_analytics_id => nil,
+         :preferred_language => 'en' # language for sc-server can be changed here
 end
 
 # proxy for local dev.
