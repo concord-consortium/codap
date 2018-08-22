@@ -19751,7 +19751,16 @@ module.exports = React.createClass({
     }).call(this);
     try {
       mark = document.createElement('mark');
-      mark.innerText = toCopy;
+      mark.textContent = toCopy;
+      mark.style.all = 'unset';
+      mark.style.position = 'fixed';
+      mark.style.top = 0;
+      mark.style.clip = 'rect(0, 0, 0, 0)';
+      mark.style.whiteSpace = 'pre';
+      mark.style.webkitUserSelect = 'text';
+      mark.style.MozUserSelect = 'text';
+      mark.style.msUserSelect = 'text';
+      mark.style.userSelect = 'text';
       document.body.appendChild(mark);
       selection = document.getSelection();
       selection.removeAllRanges();
