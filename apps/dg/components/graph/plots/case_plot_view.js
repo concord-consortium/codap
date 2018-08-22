@@ -160,53 +160,151 @@ DG.CasePlotView = DG.PlotView.extend(
       /**
        We may clear and draw everything from scratch if required.
        */
+
       drawData: function () {
-        var animatePoints = function () {
-          // If the user closes the graph component while the animation is happening, we're likely to
-          // crash because we no longer have paper to draw points on. Detect and bail!
-          // If the user drags an attribute to an axis during animation, this can destroy our model. Likewise, bail.
-          if (!this.get('paper') || !this.get('model'))
-            return;
-
-          var loopDoF = function (iCase, iIndex) {
-                var tContinue = this.getPath('model.isAnimating'),
-                    tPoint;
-                if (tContinue) {
-                  if (iIndex < tPlottedElements.length) {
-                    tPoint = tPlottedElements[iIndex];
-                  }
-                  else {
-                    tPoint = this.callCreateElement(null, iIndex);
-                  }
-                  tPoint.attr({'fill-opacity': 0, fill: 'yellow'});
-                  this.setCircleCoordinate(tRC, iCase, iIndex, true);
-                }
-                return tContinue;
-              }.bind(this),
-
-              loopEndF = function () {
-                this.setPath('model.isAnimating', false);
-                this.updateSelection();
-              }.bind(this);
-          tCases.forEachWithInvokeLater(loopDoF, loopEndF);
-
-        }.bind(this);
-
-        if (this.getPath('model.isAnimating'))
-          return; // Points are animating to new position
-
-        if (!SC.none(this.get('transferredElementCoordinates'))) {
-          this.animateFromTransferredElements();
+        if (!this.get('paper') || !this.get('model') || !this.getPath('model.cases'))
           return;
+
+        function dataCoordinate(iValue, iMin, iMax) {
+          return iMin + kMargin + iValue * (iMax - iMin - 2 * kMargin);
         }
 
-        var tCases = this.getPath('model.cases'),
-            tPlottedElements = this.get('plottedElements'),
-            tRC = this.createRenderContext();
+        function createCircleDescription(iIndex) {
+          var tWorldCoords = tModel.getWorldCoords(iIndex);
+          return {
+            type: 'circle',
+            cx: dataCoordinate(tWorldCoords.x, tXPixelMin, tXPixelMax),
+            cy: dataCoordinate(tWorldCoords.y, tYPixelMin, tYPixelMax),
+            r: tR / 2,
+            fill: 'yellow',
+            stroke: tStrokeParams.strokeColor,
+            'stroke-opacity': tStrokeParams.strokeTransparency,
+            cursor: 'pointer'
+          };
+        }
 
-        this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
-        this.setPath('model.isAnimating', true); // So the animation can finish
-        animatePoints();  // will loop through all points using invokeLater
+        var finishPointSet = function () {
+              function changeCaseValues(iIndex, iWorldValues) {
+                this_.get('model').setWorldCoords(iIndex, iWorldValues);
+              }
+
+              var this_ = this,
+                  tIsDragging = false,
+                  kOpaque = 1,
+                  tInitialTransform = null;
+              tPointSet
+                  .hover(function (event) {  // over
+                        // Note that Firefox can come through here repeatedly so we have to check for existence
+                        if (!tIsDragging && SC.none(tInitialTransform)) {
+                          tInitialTransform = this.transform();
+                          this.animate({
+                            opacity: kOpaque,
+                            transform: DG.PlotUtilities.kDataHoverTransform
+                          }, DG.PlotUtilities.kDataTipShowTime);
+                        }
+                      },
+                      function (event) { // out
+                        if (!tIsDragging) {
+                          this.stop();
+                          this.animate({transform: tInitialTransform}, DG.PlotUtilities.kHighlightHideTime);
+                          tInitialTransform = null;
+                        }
+                      })
+                  .mousedown(function (iEvent) {
+                    this_.get('model').selectCaseByIndex(this.index, iEvent.shiftKey);
+                  })
+                  .drag(function (dx, dy) { // continue
+                        // TODO: drag all selected cases, not just this case.
+                        var tWorldX = this_.get('xAxisView').coordinateToData(this.ox + dx),
+                            tWorldY = this_.get('yAxisView').coordinateToData(this.oy + dy),
+                            tPoint = {x: tWorldX, y: tWorldY},
+                            tRC = this_.createRenderContext(),
+                            tCurrTransform = this.transform();
+                        if (isFinite(tPoint.x) && isFinite(tPoint.y)) {
+                          // Put the element into the initial transformed state so that changing case values
+                          // will not be affected by the scaling in the current transform.
+                          this.transform(tInitialTransform);
+                          changeCaseValues(this.index, tPoint);
+                          this.transform(tCurrTransform);
+                        }
+                        this_.setCircleCoordinate(tRC, this_.getPath('model.cases').at(this.index), this.index);
+                      },
+                      function (x, y) { // begin
+                        tIsDragging = true;
+                        this.ox = this.attr("cx");
+                        this.oy = this.attr("cy");
+                        this.animate({opacity: kOpaque}, DG.PlotUtilities.kDataTipShowTime, "bounce");
+                        this.toFront();
+                      },
+                      function () {  // end
+                        this.animate({transform: tInitialTransform}, DG.PlotUtilities.kHighlightHideTime);
+                        tIsDragging = false;
+                      })
+              ;
+            }.bind(this),
+
+            tXPixelMin = this.getPath('xAxisView.pixelMin'),
+            tXPixelMax = this.getPath('xAxisView.pixelMax'),
+            tYPixelMax = this.getPath('yAxisView.pixelMin'),
+            tYPixelMin = this.getPath('yAxisView.pixelMax'),
+
+            tPointSet,
+            tPlottedElements = this.get('plottedElements'),
+            tModel = this.get('model'),
+            tNumCases = tModel.get('cases').length(),
+            kMargin = 10,
+            tR = this.calcPointRadius(),
+            tColor = tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
+            tStrokeParams = this.getStrokeParams();
+        if (!tPlottedElements || tPlottedElements.length === 0) {
+          var tStart = 0,
+              tInc = 200,
+              loop = function () {
+                var tDescriptions = [];
+                tXPixelMax = this.getPath('xAxisView.pixelMax');
+                tYPixelMax = this.getPath('yAxisView.pixelMin');
+                if( tXPixelMax < 30 || tYPixelMax < 30) {
+                  this.invokeLater( loop, 100);
+                  return;
+                }
+                for (var i = tStart; i < tStart + tInc && i < tNumCases; i++) {
+                  tDescriptions.push(createCircleDescription(i));
+                }
+                tPointSet = this.get('paper').add(tDescriptions).forEach(function (iElement, iIndex) {
+                  tPlottedElements.push(iElement);
+                  iElement.addClass(DG.PlotUtilities.kDotClassName);
+                  iElement.index = iIndex;
+                  iElement.node.setAttribute('shape-rendering', 'geometric-precision');
+                  return true;
+                });
+                finishPointSet();
+                this.setPath('model.isAnimating', true);
+                tPointSet.animate({
+                      r: tR,
+                      fill: tColor
+                    },
+                    DG.PlotUtilities.kDefaultAnimationTime, '<>',
+                    function () {
+                      this.setPath('model.isAnimating', false);
+                    }.bind(this));
+                tInc *= 2;
+                tStart += tInc;
+                if (i < tNumCases) {
+                  this.invokeLater(loop, 10);
+                }
+                tPointSet.clear();
+              }.bind(this);
+          loop();
+        }
+        else if (tPlottedElements.length > 0 && !this.getPath('model.isAnimating')) {
+          tPlottedElements.forEach(function (iCircle, iIndex) {
+            var tCoords = tModel.getWorldCoords(iIndex);
+            iCircle.attr({
+              cx: dataCoordinate(tCoords.x, tXPixelMin, tXPixelMax),
+              cy: dataCoordinate(tCoords.y, tYPixelMin, tYPixelMax)
+            });
+          });
+        }
       },
 
       /**
