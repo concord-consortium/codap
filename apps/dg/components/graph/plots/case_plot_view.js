@@ -186,7 +186,6 @@ DG.CasePlotView = DG.PlotView.extend(
 
               loopEndF = function () {
                 this.setPath('model.isAnimating', false);
-                this._elementOrderIsValid = false;  // otherwise updateSelection will do nothing
                 this.updateSelection();
               }.bind(this);
           tCases.forEachWithInvokeLater(loopDoF, loopEndF);
