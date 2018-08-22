@@ -75,7 +75,7 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
         tNumCases = this._cases.length,
         // Get a bit happening early with two iterations.
         tFirstIncrement = Math.min(200, tNumCases / 20),
-        tCountdown = (tNumCases > 1000) ? 3 : 0,
+        tCountdown = (tNumCases > 1000) ? 5 : 0,
         tIncrement = tNumCases - tCountdown * tFirstIncrement,
         tContinue = true,
 
@@ -88,7 +88,7 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
                 tContinue = iDoF(this.at(tLoopIndex), tLoopIndex, tLoopIndex === tNumCases - 1);
             }
             if (tContinue)
-              this.invokeLater(loop, 0);
+              this.invokeLater(loop, 100);
           }
           else {
             if (iEndF)
