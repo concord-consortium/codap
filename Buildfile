@@ -15,7 +15,8 @@ config :dg,
        :title => 'CODAP',
        :css_theme => 'ace.dg',
        :layout => 'dg:lib/index.rhtml',
-       :manifest => 'manifest.webmanifest'
+       :manifest => 'manifest.webmanifest',
+       :bootstrap => 'build/codap-lib-bundle.js.ignore'
 
 # Production build (e.g. sc-build, make deploy) configuration
 mode :production do
