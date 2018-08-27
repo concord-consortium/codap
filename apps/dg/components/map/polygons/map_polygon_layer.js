@@ -244,7 +244,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
             fillColor: DG.PlotUtilities.kMapAreaNoLegendSelectedColor
           });
         }
-        tFeature.bringToFront();
+        // tFeature.bringToFront();
       }
       else {
         tFeature.setStyle( {
@@ -257,6 +257,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
           weight: DG.PlotUtilities.kMapAreaUnselectedBorderWeight,
           fillColor: tRC.calcCaseColorString( iCase)
         });
+        tFeature.bringToBack();
       }
     }.bind( this));
   },
@@ -299,6 +300,9 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
                 .addTo(tRC.map);
             if( !tIsVisible) {
               tRC.map.removeLayer( this.features[iIndex]);
+            }
+            else {
+              this.features[iIndex].bringToBack();
             }
           }.bind( this),
 
