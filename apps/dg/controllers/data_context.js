@@ -1394,7 +1394,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     this.invalidateAttrsOfCollections(collections, change);
 
-    // generate object containing case and items ids
+    // generate object containing case and item ids
     function creatIdObject() {
       var caseIDs = [];
       var itemIDs = [];
