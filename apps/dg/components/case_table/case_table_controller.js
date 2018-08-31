@@ -184,7 +184,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             iDividerView.destroy();
           });
 
-          // This creates new divider views along other stuff.
+          // This creates new divider views along with other stuff.
           contentView.setCaseTableAdapters(this.get('caseTableAdapters'));
 
           // Setup an observer for the drop-target divider views.
@@ -309,6 +309,12 @@ DG.CaseTableController = DG.ComponentController.extend(
         switch( iArgs.command) {
         case 'cmdEditFormula':
           this.editAttributeFormula( columnID);
+          break;
+        case 'cmdFreezeFormula':
+          this.freezeFormula( columnID);
+          break;
+        case 'cmdUnfreezeFormula':
+          this.unfreezeFormula( columnID);
           break;
         case 'cmdEditAttribute':
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
@@ -1018,12 +1024,47 @@ DG.CaseTableController = DG.ComponentController.extend(
       editAttributeFormula: function( iAttrID ) {
         var tDataContext = this.get('dataContext'),
             tRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tAttrName = tRef && tRef.attribute.get('name'),
-            tAttrFormula = tRef && tRef.attribute.get('formula');
+            tAttrName = tRef && tRef.attribute.get('name');
+
         DG.assert( tRef && tAttrName, "editAttributeFormula() is missing the attribute reference or attribute name" );
         // for now we use the newAttribute() method which will replace one attribute formula with another
         // if the new attribute has the same name as the old.
+
+        // Opening the formula editor automatically unfreezes if applicable.
+        if (tRef.attribute.get('hasFrozenFormula')) {
+          this.unfreezeFormula(iAttrID);
+        }
+
+        var tAttrFormula = tRef.attribute.get('formula');
         this.editAttributeProperties({ collection: tRef.collection }, tAttrName, tAttrFormula || '' );
+      },
+
+      /**
+       * A switch for temporarily using the already-calculated values ignoring the existing formula. The formula itself is preserved for "unfreezing".
+       * @param iAttrID
+       */
+      freezeFormula: function ( iAttrID ) {
+        var tDataContext = this.get('dataContext'),
+            tRef = tDataContext && tDataContext.getAttrRefByID(iAttrID),
+            tAttrName = tRef && tRef.attribute.get('name'),
+            hierTableView = this.getPath('view.contentView');
+
+        DG.assert( tRef && tAttrName, "freezeFormula() is missing the attribute reference or attribute name" );
+
+        tRef.attribute.freezeFormula(tDataContext);
+        hierTableView.updateColumnInfo();
+      },
+
+      unfreezeFormula: function ( iAttrID ) {
+        var tDataContext = this.get('dataContext'),
+            tRef = tDataContext && tDataContext.getAttrRefByID(iAttrID),
+            tAttrName = tRef && tRef.attribute.get('name'),
+            hierTableView = this.getPath('view.contentView');
+
+        DG.assert( tRef && tAttrName, "unfreezeFormula() is missing the attribute reference or attribute name" );
+
+        tRef.attribute.unfreezeFormula(tDataContext);
+        hierTableView.updateColumnInfo();
       },
 
       showDeletePopup: function() {

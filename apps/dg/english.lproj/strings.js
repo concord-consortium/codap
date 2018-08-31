@@ -497,6 +497,8 @@ SC.stringsFor("en", {
     // DG.TableController
     "DG.TableController.headerMenuItems.editAttribute": "Edit Attribute Properties...",
     "DG.TableController.headerMenuItems.editFormula": "Edit Formula...",
+    "DG.TableController.headerMenuItems.freezeFormula": "Freeze Formula",
+    "DG.TableController.headerMenuItems.unfreezeFormula": "Unfreeze Formula",
     "DG.TableController.headerMenuItems.randomizeAttribute": "Rerandomize",
     "DG.TableController.headerMenuItems.sortAscending": "Sort Ascending (A→Z, 0→9)",
     "DG.TableController.headerMenuItems.sortDescending": "Sort Descending (9→0, Z→A)",

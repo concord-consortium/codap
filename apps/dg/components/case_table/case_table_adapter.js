@@ -476,6 +476,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
           hasFormula = iAttribute.hasFormula(),
+          hasFrozenFormula = iAttribute.hasFrozenFormula(),
           columnInfo = {
             context: context,
             collection: collection,
@@ -486,7 +487,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             name: getColumnHeaderString( iAttribute),
             field: attrName,
             focusable: !hasFormula,
-            cssClass: hasFormula? 'dg-formula-column': undefined,
+            cssClass: hasFormula? 'dg-formula-column': (hasFrozenFormula? 'dg-frozen-formula-column': undefined),
             toolTip: getToolTipString( iAttribute),
             formatter: cellFormatter,
             tooltipFormatter: tooltipFormatter,
@@ -507,6 +508,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                     command: 'cmdEditFormula',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');
+                    }
+                  },
+                  { title: (hasFormula || !(hasFormula||hasFrozenFormula))? 'DG.TableController.headerMenuItems.freezeFormula'.loc(): 'DG.TableController.headerMenuItems.unfreezeFormula'.loc(),
+                    command: (hasFormula || !(hasFormula||hasFrozenFormula))? 'cmdFreezeFormula': 'cmdUnfreezeFormula',
+                    updater: function ( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = !iColumn.attribute.get('editable') || !(hasFormula||hasFrozenFormula);
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
@@ -588,7 +595,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       column.field = iAttribute.get('name');
       column.toolTip = getToolTipString( iAttribute);
       column.formatter = cellFormatter;
-      column.cssClass = iAttribute.get('hasFormula')? 'dg-formula-column': undefined;
+      column.cssClass = iAttribute.get('hasFormula')? 'dg-formula-column': (iAttribute.get('hasFrozenFormula')? 'dg-frozen-formula-column': undefined);
       if( iAttribute.get('editable') && !iAttribute.get('hasFormula'))
         column.editor = DG.CaseTableCellEditor;
       else

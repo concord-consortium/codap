@@ -1498,6 +1498,15 @@ DG.DataContext = SC.Object.extend((function() // closure
     var newPosition = constrainInt(position, 0, attrCount);
     DG.assert(originalPosition !== -1, 'Moving attribute is found in original collection');
     var casesAffected;
+
+    // Automatically freeze the formula when moving to a parent collection.
+    if (iAttr.hasFormula()) {
+      var collectionIDs = allCollections.map(function (collection) { return collection.id; });
+      if (collectionIDs.indexOf(toCollection.id) < collectionIDs.indexOf(fromCollection.id)) {
+        iAttr.freezeFormula(dataContext);
+      }
+    }
+
     // remove attribute from old collection
     DG.UndoHistory.execute(DG.Command.create({
       name: 'dataContext.moveAttribute',

@@ -59,6 +59,12 @@ DG.Attribute = DG.BaseModel.extend(
       formula: '',
 
       /**
+       * Temporary storage of the formula when it is frozen.
+       * @property {String}
+       */
+      frozenFormula: '',
+
+      /**
        * The map of attribute and category color values, for the attribute.
        * For special color keys and values, see:
        *   DG.ColorUtilities.getAttributeColorFromColorMap(),
@@ -285,6 +291,14 @@ DG.Attribute = DG.BaseModel.extend(
       }.property('formula').cacheable(),
 
       /**
+       * {Computed} True if the attribute has a frozen formula.
+       * @property {Boolean}
+       */
+      hasFrozenFormula: function () {
+        return !SC.empty(this.get('frozenFormula'));
+      }.property('frozenFormula').cacheable(),
+
+      /**
        * Evaluates the attribute's formula in the context of the specified namespace object.
        * @param iCase {Object}    Namespace object with property:value pairs for evaluation context
        * @return {Number | ?} Result of evaluation
@@ -393,6 +407,112 @@ DG.Attribute = DG.BaseModel.extend(
           this._cachedValues = {};
         }
       }.observes('formula'),
+
+      freezeFormula: function (iContext) {
+        var tCollection = iContext.getCollectionForAttribute(this),
+          tAttrName = this.get('name'),
+          tFormula = '',
+          tFrozenFormula = this.get('formula');
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "caseTable.editAttributeFormula",
+          undoString: 'DG.Undo.caseTable.editAttributeFormula',
+          redoString: 'DG.Redo.caseTable.editAttributeFormula',
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          execute: function() {
+            var tChange = {
+                operation: 'createAttributes',
+                collection: tCollection,
+                attrPropsArray: [{ name: tAttrName, formula: tFormula }]
+              },
+              tResult = iContext && iContext.applyChange( tChange);
+            if( tResult.success) {
+              var action = "attributeEditFormula";
+              this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+                action, tAttrName, tCollection.get('name'), tFormula);
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          undo: function() {
+            var tChange, tResult, action; // eslint-disable-line no-unused-vars
+            tChange = {
+              operation: 'createAttributes',
+              collection: tCollection,
+              attrPropsArray: [{ name: tAttrName, formula: tFrozenFormula }]
+            };
+
+            tResult = iContext && iContext.applyChange( tChange);
+            if( tResult.success) {
+              action = "attributeEditFormula";
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          redo: function() {
+            this.execute();
+          }
+        }));
+
+        this.set('formula', tFormula);
+        this.set('frozenFormula', tFrozenFormula);
+      },
+
+      unfreezeFormula: function (iContext) {
+        var tCollection = iContext.getCollectionForAttribute(this),
+          tAttrName = this.get('name'),
+          tFormula = this.get('frozenFormula'),
+          tFrozenFormula = '';
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "caseTable.editAttributeFormula",
+          undoString: 'DG.Undo.caseTable.editAttributeFormula',
+          redoString: 'DG.Redo.caseTable.editAttributeFormula',
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          execute: function() {
+            var tChange = {
+                operation: 'createAttributes',
+                collection: tCollection,
+                attrPropsArray: [{ name: tAttrName, formula: tFormula }]
+              },
+              tResult = iContext && iContext.applyChange( tChange);
+            if( tResult.success) {
+              var action = "attributeEditFormula";
+              this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+                action, tAttrName, tCollection.get('name'), tFormula);
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          undo: function() {
+            var tChange, tResult, action; // eslint-disable-line no-unused-vars
+            tChange = {
+              operation: 'createAttributes',
+              collection: tCollection,
+              attrPropsArray: [{ name: tAttrName, formula: tFrozenFormula }]
+            };
+
+            tResult = iContext && iContext.applyChange( tChange);
+            if( tResult.success) {
+              action = "attributeEditFormula";
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          redo: function() {
+            this.execute();
+          }
+        }));
+
+        this.set('formula', tFormula);
+        this.set('frozenFormula', tFrozenFormula);
+      },
 
       namespaceDidChange: function () {
         // mark all cached values as invalid
