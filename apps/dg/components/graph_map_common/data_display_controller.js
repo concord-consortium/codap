@@ -199,6 +199,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               sc_super();
               this_.get('dataDisplayModel').addObserver('canSupportConfigurations', this, 'plotDidChange');
 
+              // Todo: Deal with fact that maps no longer have x&y attributes at this level
               var tXAttrDescr = this_.getPath('dataDisplayModel.dataConfiguration.xAttributeDescription');
               if( tXAttrDescr)
                 tXAttrDescr.addObserver('attribute', this, 'plotDidChange');

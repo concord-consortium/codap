@@ -244,7 +244,6 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
             fillColor: DG.PlotUtilities.kMapAreaNoLegendSelectedColor
           });
         }
-        // tFeature.bringToFront();
       }
       else {
         tFeature.setStyle( {

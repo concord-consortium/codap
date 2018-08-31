@@ -163,11 +163,6 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
         tLineNum = 0;
 
     if( !tPaper) {
-/*
-      this.invokeOnceLater( function() {
-        this.updateLine( iAnimate);
-      }.bind( this));
-*/
       return;
     }
     if( !tCoordinatesKeyedByParentID)

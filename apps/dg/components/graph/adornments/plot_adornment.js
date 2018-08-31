@@ -41,7 +41,7 @@ DG.PlotAdornment = SC.Object.extend(
    */
   paper: function() {
     return this.getPath('paperSource.paper');
-  }.property('*paperSource.paper'),
+  }.property(),
 
   paperDidChange: function() {
     this.notifyPropertyChange('paper');

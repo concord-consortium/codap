@@ -208,10 +208,10 @@ DG.MapController = DG.DataDisplayController.extend(
                 tBaseLayer.appendChild(SC.CheckboxView.create({
                   layout: {height: 25, width: 50},
                   title: 'Base',
-                  value: this.getPath('mapModel.baseMapLayerToggle'),
+                  value: this.getPath('mapModel.baseMapLayerIsVisible'),
                   localize: false,
                   valueDidChange: function (iThisView) {
-                    this.setPath('mapModel.baseMapLayerToggle', iThisView.get('value'));
+                    this.setPath('mapModel.baseMapLayerIsVisible', iThisView.get('value'));
                     var tMapLayer = this.getPath('mapView.mapLayer');
                     tMapLayer.getPath('backgroundChanged').call(tMapLayer);
                   }.bind(this).observes('value')
@@ -250,7 +250,8 @@ DG.MapController = DG.DataDisplayController.extend(
           tResultArray.push(createBaseLayer());
 
           tMapLayerModels.forEach(function (iMapLayerModel) {
-            var this_ = this,
+            var currentOpenSession = null,
+                this_ = this,
                 tDataConfig = iMapLayerModel.get('dataConfiguration'),
                 tLegendAttrDesc = tDataConfig.get('legendAttributeDescription');
             if( !tLegendAttrDesc)
@@ -398,8 +399,7 @@ DG.MapController = DG.DataDisplayController.extend(
             tDataCollectionLayer.appendChild(tDataCollectionLayerControls);
 
             if (iMapLayerModel.get('hasLatLongAttributes')) {
-              var currentOpenSession = null,
-                  setCategoryColorFinalized = function () {
+              var setCategoryColorFinalized = function () {
                     currentOpenSession = null;
                   },
                   setColor = function (iColor) {
@@ -671,7 +671,7 @@ DG.MapController = DG.DataDisplayController.extend(
                   var tInitialColor = tCategoryMap[iCategory] ?
                       tCategoryMap[iCategory] :
                       DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
-                  tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).setAlpha(iMapLayerModel('transparency'));
+                  tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).setAlpha(iMapLayerModel.get('transparency'));
                   tContentView.appendChild(DG.PickerControlView.create({
                     layout: {height: 2 * kRowHeight},
                     label: iCategory,

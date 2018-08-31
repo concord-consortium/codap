@@ -1,5 +1,5 @@
 // ==========================================================================
-//                            DG.DataDisplayModel
+//                            DG.DataLayerModel
 //
 //  Author:   William Finzer
 //
@@ -21,12 +21,12 @@
 sc_require('alpha/destroyable');
 sc_require('components/graph/utilities/plot_utilities');
 
-/** @class  DG.DataDisplayModel - The model for a for use in a display situation such as a graph or map.
+/** @class  DG.DataLayerModel - The model for a for use in a display situation such as a graph or map.
 
  @extends SC.Object
  */
-DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
-  /** @scope DG.DataDisplayModel.prototype */
+DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
+  /** @scope DG.DataLayerModel.prototype */
   {
     autoDestroyProperties: [ 'dataConfiguration', 'legend' ],
 

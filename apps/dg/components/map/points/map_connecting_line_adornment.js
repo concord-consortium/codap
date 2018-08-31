@@ -34,7 +34,10 @@ DG.MapConnectingLineAdornment = DG.ConnectingLineAdornment.extend(
       mapSource: null,
       map: function () {
         return this.getPath('mapSource.mapLayer.map');
-      }.property('mapSource.mapLayer.map'),
+      }.property(),
+      mapDidChange: function() {
+        this.propertyDidChange('map');
+      }.observes('mapSource.mapLayer.map'),
 
       init: function () {
         sc_super();
@@ -54,7 +57,7 @@ DG.MapConnectingLineAdornment = DG.ConnectingLineAdornment.extend(
           if (!tMap)
             tMap = this.get('map');
           return tMap.latLngToContainerPoint([iY, iX]);
-        }.bind(this)
+        }.bind(this);
 
         this.doUpdateLine(iAnimate, getCoords);
       }

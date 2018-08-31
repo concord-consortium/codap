@@ -47,7 +47,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   mapPointLayers: null,
 
   /**
-   * @property {DG.MapLayerView}
+   * @property {DG.BaseMapView}
    */
   mapLayer: null,
 

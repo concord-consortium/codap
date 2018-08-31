@@ -18,13 +18,13 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph_map_common/data_display_model');
+sc_require('components/graph_map_common/data_layer_model');
 
-/** @class  DG.MapModel - The model for a map.
+/** @class  DG.MapLayerModel - The model for a layer in a map.
 
- @extends DG.DataDisplayModel
+ @extends DG.DataLayerModel
  */
-DG.MapLayerModel = DG.DataDisplayModel.extend(
+DG.MapLayerModel = DG.DataLayerModel.extend(
     /** @scope DG.MapLayerModel.prototype */
     {
       isVisible: true,
@@ -35,11 +35,11 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
 
       somethingIsSelectable: function() {
         return false;
-      },
+      }.property(),
 
       gridIsVisible: function() {
         return false;
-      },
+      }.property(),
 
       //============================
       handleLegendAttrChange: function() {
@@ -114,7 +114,7 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
       },
 
       /**
-       * Not yet. Compare with dot chart <==> bart chart
+       * Not yet. Compare with dot chart <==> bar chart
        * @property {Boolean}
        */
       canSupportConfigurations: function() {

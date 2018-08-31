@@ -39,7 +39,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
       model: null,
 
       /**
-       * @property {DG.MapLayerView}
+       * @property {DG.BaseMapView}
        */
       mapLayer: null,
       mapBinding: '.mapLayer.map',
@@ -58,11 +58,6 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
        * @property {DG.MapGridLayer}
        */
       mapGridLayer: null,
-
-      /**
-       * @property {DG.MapGridMarqueeView}
-       */
-      mapGridMarqueeView: null,
 
       /**
        * @property [{DG.LegendView}]
@@ -103,7 +98,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
 
       init: function () {
         sc_super();
-        var tMapLayer = DG.MapLayerView.create({model: this.get('model')});
+        var tMapLayer = DG.BaseMapView.create({model: this.get('model')});
 
         this.set('mapLayer', tMapLayer);
         this.appendChild(tMapLayer);
@@ -143,11 +138,6 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         });
         this.appendChild(this.marqueeTool);
 
-        this.mapGridMarqueeView = DG.MapGridMarqueeView.create({
-          isVisible: false
-        });
-        this.appendChild(this.mapGridMarqueeView);
-
         // Don't trigger undo events until the map has settled down initially
         this._ignoreMapDisplayChanges = true;
         tMapLayer._setIdle();
@@ -180,7 +170,6 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
                 'dg-map-marquee-selected' :
                 'dg-map-marquee';
         this.setPath('marqueeTool.image', tImage);
-        this.setPath('mapGridMarqueeView.isVisible', tGridInMarqueeMode);
       }.observes('mapPointView.isInMarqueeMode', 'mapGridLayer.isInMarqueeMode'),
 
       changeBaseMap: function (iNewValue) {

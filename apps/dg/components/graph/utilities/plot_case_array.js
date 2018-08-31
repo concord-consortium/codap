@@ -121,5 +121,9 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
 
   reduce: function( iReduceFunc, accumulator) {
     return this._cases.reduce(iReduceFunc, accumulator);
+  },
+
+  toArray: function() {
+    return this._cases.slice();
   }
 });

@@ -70,7 +70,7 @@ DG.RaphaelBaseView = SC.View.extend(DG.Destroyable,
         var tElements = this._plottedElementsMap[iIndex];
         if( !tElements) {
           tElements = [];
-          this._plottedElementsMap[ iIndex] = tElements
+          this._plottedElementsMap[ iIndex] = tElements;
         }
         return tElements;
       },

@@ -18,13 +18,13 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph_map_common/data_display_model');
+sc_require('components/graph_map_common/data_layer_model');
 
 /** @class  DG.GraphModel - The model for a graph.
 
- @extends DG.DataDisplayModel
+ @extends DG.DataLayerModel
  */
-DG.GraphModel = DG.DataDisplayModel.extend(
+DG.GraphModel = DG.DataLayerModel.extend(
   /** @scope DG.GraphModel.prototype */
   {
     autoDestroyProperties: [ 'plot', 'xAxis', 'yAxis', 'y2Axis' ],

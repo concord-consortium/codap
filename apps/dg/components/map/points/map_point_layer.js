@@ -45,12 +45,12 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       isInMarqueeMode: false, // Set by parent during marquee select to allow us to suppress data tips
 
       /**
-       * @property { DG.GridLayer }
+       * @property { DG.MapGridLayer }
        */
       gridLayer: null,
 
       /**
-       * @property {DG.MapconnectingLinesAdornment}
+       * @property {DG.MapConnectingLineAdornment}
        */
       connectingLinesAdorn: null,
 
@@ -452,8 +452,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 */
 
         // this.gridVisibilityChanged();
-
-        this.setPath('mapGridMarqueeView.gridLayer', this.get('gridLayer'));
       },
 
       gridVisibilityDidChange: function() {

@@ -18,14 +18,14 @@
 //  limitations under the License.
 // ==========================================================================
 /* global L */
-sc_require('components/graph_map_common/plot_data_configuration');
+sc_require('components/map/map_data_configuration');
 
 /** @class  DG.MapPolygonDataConfiguration - The object that describes the manner in which attributes are
  assigned to places in a map.
 
- @extends DG.PlotDataConfiguration
+ @extends DG.MapDataConfiguration
  */
-DG.MapPolygonDataConfiguration = DG.PlotDataConfiguration.extend(
+DG.MapPolygonDataConfiguration = DG.MapDataConfiguration.extend(
     /** @scope DG.MapPolygonDataConfiguration.prototype */
     {
       /**
@@ -135,7 +135,7 @@ DG.MapPolygonDataConfiguration = DG.PlotDataConfiguration.extend(
        * @property {SC.Array of DG.Case} All cases, both hidden and visible
        */
       allCases: function () {
-        if( this.get('hasPolygonAttribute') || this.get('hasLatLongAttributes')) {
+        if( this.get('hasPolygonAttribute')) {
           var tSource = this.get('collectionClient');
           return tSource ? tSource.getPath('casesController.arrangedObjects') : [];
         }
