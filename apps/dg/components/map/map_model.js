@@ -286,9 +286,11 @@ DG.MapModel = SC.Object.extend(
         },
 
         someLayerReturnsTrue: function (iPropName) {
-          return this.get('mapLayerModels').some(function (iLayerModel) {
-            return iLayerModel.get(iPropName);
+          var tResult =  this.get('mapLayerModels').some(function (iLayerModel) {
+            var tLayerResult = iLayerModel.get(iPropName);
+            return tLayerResult;
           });
+          return tResult;
         },
 
         somethingIsSelectable: function() {
@@ -413,7 +415,120 @@ DG.MapModel = SC.Object.extend(
         }.property(),
 
         createHideShowSelectionMenuItems: function () {
-          return [];  // Todo: stopgap. Fix so that it does the right thing for the available mapLayerModels
+          var getSelectionSpecs = function() {
+                var tSpecs =  { numSelected: 0,
+                         numUnSelected: 0,
+                         numHidden: 0,
+                         selectionData: [/*{
+                           dataConfig: null,
+                           cases: null,
+                           selected: null
+                         }*/]};
+                this.get('mapLayerModels').forEach( function( iLayerModel) {
+                  var tConfig = iLayerModel.get('dataConfiguration');
+                  if( !tSpecs.selectionData.find( function(iSpec) {
+                    return iSpec.dataConfig === tConfig;
+                  })) {
+                    var tData = {
+                      dataConfig: tConfig,
+                      cases: tConfig.get('cases').toArray(),
+                      selected: tConfig.get('selection').toArray(),
+                      hidden: tConfig.get('hiddenCases').toArray()
+                    };
+                    tSpecs.numSelected += tData.selected.length;
+                    tSpecs.numUnSelected += (tData.cases.length - tData.selected.length);
+                    tSpecs.numHidden += tData.hidden.length;
+                    tSpecs.selectionData.push( tData);
+                  }
+                });
+                return tSpecs;
+              }.bind( this);
+
+          var tSelectionSpecs = getSelectionSpecs(),
+              tSomethingIsSelected = tSelectionSpecs.numSelected > 0,
+              tSomethingIsUnselected = tSelectionSpecs.numUnSelected > 0,
+              tSomethingHidden = tSelectionSpecs.numHidden > 0,
+              tHideSelectedNumber = tSelectionSpecs.numSelected > 1 ? 'Plural' : 'Sing',
+              tHideUnselectedNumber = tSelectionSpecs.numUnSelected > 1 ? 'Plural' : 'Sing';
+
+          function hideSelectedCases() {
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'graph.display.hideSelectedCases',
+              undoString: 'DG.Undo.hideSelectedCases',
+              redoString: 'DG.Redo.hideSelectedCases',
+              log: "Hide %@ selected cases".fmt(tSelectionSpecs.numSelected.length),
+              execute: function() {
+                this._undoData = tSelectionSpecs;
+                tSelectionSpecs.selectionData.forEach( function( iData) {
+                  iData.dataConfig.hideCases( iData.selected);
+                });
+              },
+              undo: function() {
+                this._undoData.selectionData.forEach( function( iData) {
+                  iData.dataConfig.showCases( iData.selected);
+                });
+              }
+            }));
+          }
+
+          function hideUnselectedCases() {
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'graph.display.hideUnselectedCases',
+              undoString: 'DG.Undo.hideUnselectedCases',
+              redoString: 'DG.Redo.hideUnselectedCases',
+              log: "Hide %@ unselected cases".fmt(tSelectionSpecs.numCases - tSelectionSpecs.numSelected),
+              execute: function() {
+                this._undoData = tSelectionSpecs;
+                tSelectionSpecs.selectionData.forEach( function( iData) {
+                  var tUnselected = DG.ArrayUtils.subtract( iData.cases, iData.selected,
+                      function( iCase) {
+                        return iCase.get('id');
+                      });
+                  iData.dataConfig.hideCases( tUnselected );
+                });
+              },
+              undo: function() {
+                this._undoData.selectionData.forEach(function (iData) {
+                  var tUnselected = DG.ArrayUtils.subtract(iData.cases, iData.selected,
+                      function (iCase) {
+                        return iCase.get('id');
+                      });
+                  iData.dataConfig.showCases(tUnselected);
+                });
+              }
+            }));
+          }
+
+          function showAllCases() {
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'graph.display.showAllCases',
+              undoString: 'DG.Undo.showAllCases',
+              redoString: 'DG.Redo.showAllCases',
+              log: "Show all cases",
+              execute: function() {
+                this._undoData = tSelectionSpecs;
+                tSelectionSpecs.selectionData.forEach( function( iData) {
+                  iData.dataConfig.showAllCases();
+                });
+              },
+              undo: function() {
+                this._undoData.selectionData.forEach( function( iData) {
+                  iData.dataConfig.hideCases( iData.hidden);
+                });
+              }
+            }));
+          }
+
+          return [
+            // Note that these 'built' string keys will have to be specially handled by any
+            // minifier we use
+            { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
+              target: this, action: hideSelectedCases },
+            { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
+              target: this, action: hideUnselectedCases },
+            { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
+              target: this, action: showAllCases }
+          ];
         },
 
         createStorage: function () {

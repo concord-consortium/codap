@@ -35,11 +35,11 @@ DG.MapLayerModel = DG.DataDisplayModel.extend(
 
       somethingIsSelectable: function() {
         return false;
-      },
+      }.property(),
 
       gridIsVisible: function() {
         return false;
-      },
+      }.property(),
 
       //============================
       handleLegendAttrChange: function() {
