@@ -316,6 +316,9 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdUnfreezeFormula':
           this.unfreezeFormula( columnID);
           break;
+        case 'cmdConvertToValues':
+          this.convertToValues( columnID);
+          break;
         case 'cmdEditAttribute':
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
           break;
@@ -1064,6 +1067,18 @@ DG.CaseTableController = DG.ComponentController.extend(
         DG.assert( tRef && tAttrName, "unfreezeFormula() is missing the attribute reference or attribute name" );
 
         tRef.attribute.unfreezeFormula(tDataContext);
+        hierTableView.updateColumnInfo();
+      },
+
+      convertToValues: function ( iAttrID ) {
+        var tDataContext = this.get('dataContext'),
+          tRef = tDataContext && tDataContext.getAttrRefByID(iAttrID),
+          tAttrName = tRef && tRef.attribute.get('name'),
+          hierTableView = this.getPath('view.contentView');
+
+        DG.assert( tRef && tAttrName, "convertToValues() is missing the attribute reference or attribute name" );
+
+        tRef.attribute.convertToValues(tDataContext);
         hierTableView.updateColumnInfo();
       },
 

@@ -514,6 +514,59 @@ DG.Attribute = DG.BaseModel.extend(
         this.set('frozenFormula', tFrozenFormula);
       },
 
+      convertToValues: function (iContext) {
+        var tCollection = iContext.getCollectionForAttribute(this),
+          tAttrName = this.get('name'),
+          tFormula = '',
+          tFrozenFormula = '';
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "caseTable.editAttributeFormula",
+          undoString: 'DG.Undo.caseTable.editAttributeFormula',
+          redoString: 'DG.Redo.caseTable.editAttributeFormula',
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          execute: function() {
+            var tChange = {
+                operation: 'createAttributes',
+                collection: tCollection,
+                attrPropsArray: [{ name: tAttrName, formula: tFormula }]
+              },
+              tResult = iContext && iContext.applyChange( tChange);
+            if( tResult.success) {
+              var action = "attributeEditFormula";
+              this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+                action, tAttrName, tCollection.get('name'), tFormula);
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          undo: function() {
+            var tChange, tResult, action; // eslint-disable-line no-unused-vars
+            tChange = {
+              operation: 'createAttributes',
+              collection: tCollection,
+              attrPropsArray: [{ name: tAttrName, formula: tFrozenFormula }]
+            };
+
+            tResult = iContext && iContext.applyChange( tChange);
+            if( tResult.success) {
+              action = "attributeEditFormula";
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          redo: function() {
+            this.execute();
+          }
+        }));
+
+        this.set('formula', tFormula);
+        this.set('frozenFormula', tFrozenFormula);
+      },
+
       namespaceDidChange: function () {
         // mark all cached values as invalid
         DG.ObjectMap.forEach(this._cachedValues,

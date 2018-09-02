@@ -516,6 +516,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                       ioMenuItem.disabled = !iColumn.attribute.get('editable') || !(hasFormula||hasFrozenFormula);
                     }
                   },
+                  { title: 'Convert Formula to Values',
+                    command: 'cmdConvertToValues',
+                    updater: function ( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = !iColumn.attribute.get('editable') || !(hasFormula||hasFrozenFormula);
+                    }
+                  },
                   { title: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
                     command: 'cmdRandomizeAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
