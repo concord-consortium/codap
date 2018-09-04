@@ -1223,6 +1223,7 @@ input.dg-editor-text {
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: none;
 }
 
 .dg-table-drop-target .sc-label-view:lang(zh) {
