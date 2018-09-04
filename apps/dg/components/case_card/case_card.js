@@ -399,6 +399,16 @@ DG.React.ready(function () {
           },
 
           moveToNextCase: function (iCollectionClient, iCaseIndex) {
+            if (!iCaseIndex && iCollectionClient.collection.parent) {
+              var tContext = this.props.context,
+                  tCollections = tContext.get('collections'),
+                  tCurrColl = tCollections[0];
+              var tSelectedParentCase = tContext.getCollectionByID(tCurrColl.get('id')).getPath('casesController.selection').toArray();
+              if (tSelectedParentCase.length) {
+                var tSelectedParentCaseID = tSelectedParentCase[0].children[0].id;  
+                iCaseIndex = iCollectionClient.getCaseIndexByID(tSelectedParentCaseID); 
+              }
+            }
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
             if (SC.none(iCaseIndex) || iCaseIndex < tNumCases) {
               var tNext = SC.none(iCaseIndex) ? 0 : iCaseIndex; // because in zero-based this is the index of the next case
