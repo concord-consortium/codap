@@ -281,7 +281,7 @@ DG.React.ready(function () {
                 }.bind(this),
 
                 attributeIsEditable = function () {
-                  return iAttr.get('editable');
+                  return iAttr.get('editable') && !iAttr.get('formula');
                 },
 
                 attributeCanBeRandomized = function () {
@@ -357,7 +357,7 @@ DG.React.ready(function () {
                     DG.React.Components.TextInput({
                       value: tValue,
                       unit: tUnit,
-                      isEditable: iAttr.get('editable'),
+                      isEditable: iAttr.get('editable') && !iAttr.get('formula'),
                       onToggleEditing: toggleEditing
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
