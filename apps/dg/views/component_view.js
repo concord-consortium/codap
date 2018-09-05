@@ -692,9 +692,13 @@ DG.ComponentView = SC.View.extend(
         },
 
         select: function () {
+          var savedLayout = this.savedLayout;
           this.set('isVisible', true);  // note that case table may have visibility set to false
-          if( this.savedLayout) {
-            this.animate( this.savedLayout,
+          if( savedLayout) {
+            // we only want to animate to saved layout one time, so delete it
+            // from the object.
+            delete this.savedLayout;
+            this.animate( savedLayout,
                 {duration: 0.4, timing: 'ease-in-out'});
           }
           if( this.parentView.select)
