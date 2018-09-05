@@ -386,27 +386,50 @@ DG.React.ready(function () {
           },
 
           /**
+           * --------------------------Get first child case of selected parent case-----------------
+           */
+          getParentFirstChildCaseID: function () {
+              var tSelectedParentFirstCaseID,
+                  tContext = this.props.context,
+                  tCollections = tContext.get('collections'),
+                  tCurrColl = tCollections[0];
+              var tSelectedParentCase = tContext.getCollectionByID(tCurrColl.get('id')).getPath('casesController.selection').toArray();
+              if (tSelectedParentCase.length) {
+                tSelectedParentFirstCaseID = tSelectedParentCase[0].children[0].id;
+              }
+              return tSelectedParentFirstCaseID;
+          },
+
+          /**
            *
            * @param iCollectionClient
            * @param iCaseIndex  {
            */
           moveToPreviousCase: function (iCollectionClient, iCaseIndex) {
+            var tPrevIndex = null;
+            var tNumCases = iCollectionClient.getPath('collection.cases').length;
+            if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
+              var tSelectedParentFirstCaseID = this.getParentFirstChildCaseID();
+              if (tSelectedParentFirstCaseID) {
+                  tPrevIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID) - 1;
+                  if (tPrevIndex < 0) {
+                    tPrevIndex = tNumCases - 1;
+                  }
+              }
+            }
             if (SC.none(iCaseIndex) || iCaseIndex > 1) {
-              var tNumCases = iCollectionClient.getPath('collection.cases').length,
-                  tPrevIndex = SC.none(iCaseIndex) ? tNumCases - 1 : iCaseIndex - 2; // because we need zero-based
+              if (tPrevIndex === null) {
+                tPrevIndex = SC.none(iCaseIndex) ? tNumCases - 1 : iCaseIndex - 2; // because we need zero-based
+              }
               this.moveToCase(iCollectionClient, tPrevIndex);
             }
           },
 
           moveToNextCase: function (iCollectionClient, iCaseIndex) {
-            if (!iCaseIndex && iCollectionClient.collection.parent) {
-              var tContext = this.props.context,
-                  tCollections = tContext.get('collections'),
-                  tCurrColl = tCollections[0];
-              var tSelectedParentCase = tContext.getCollectionByID(tCurrColl.get('id')).getPath('casesController.selection').toArray();
-              if (tSelectedParentCase.length) {
-                var tSelectedParentCaseID = tSelectedParentCase[0].children[0].id;  
-                iCaseIndex = iCollectionClient.getCaseIndexByID(tSelectedParentCaseID); 
+            if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
+              var tSelectedParentFirstCaseID = this.getParentFirstChildCaseID();
+              if (tSelectedParentFirstCaseID) {
+                  iCaseIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID);
               }
             }
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
