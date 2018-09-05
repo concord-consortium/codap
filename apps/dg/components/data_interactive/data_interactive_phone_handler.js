@@ -1132,7 +1132,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var context = iResources.dataContext;
           var collection = iResources.collection;
           var cases = Array.isArray(iValues)?iValues: [iValues];
-          var caseIDs = [];
+          var IDs = [];
           var requester = this.get('id');
           var requests = [];
 
@@ -1146,12 +1146,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var changeResult = context.applyChange(req);
             var success = success && (changeResult && changeResult.success);
             if (changeResult.success) {
-              changeResult.caseIDs.forEach(function (id) {
-                caseIDs.push({id: id});
-              });
+              for (index = 0; index < changeResult.caseIDs.length; index++) {
+                var caseid = changeResult.caseIDs[index];
+                var itemid = (index <= changeResult.itemIDs.length) ? changeResult.itemIDs[index] : null;
+                IDs.push({id: caseid, itemID: itemid});
+              }
             }
           });
-          return {success: success, values: caseIDs};
+          return {success: success, values: IDs};
         }
       },
 
