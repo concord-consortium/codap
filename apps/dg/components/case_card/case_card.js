@@ -330,11 +330,10 @@ DG.React.ready(function () {
                 style: spanStyle
               });
             } else if (tType === 'qualitative') {
-              if (tValue === null || tValue === undefined || tValue === "") {
+              if (SC.empty(tValue)) {
                 tValue = "";
               } else {
                 var color = DG.PlotUtilities.kDefaultPointColor,
-                    tWidth = tValue;
                     spanStyle = {
                       backgroundColor: color,
                       width: tValue + '%',
@@ -364,7 +363,7 @@ DG.React.ready(function () {
                 tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
               }
               tValue = tResult;
-            } else if (DG.isNumeric(tValue) && typeof tValue != 'boolean') {
+            } else if (DG.isNumeric(tValue) && typeof tValue !== 'boolean') {
               var tPrecision = iAttr.get('precision');
               tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
               tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
