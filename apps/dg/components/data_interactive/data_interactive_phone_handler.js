@@ -1145,6 +1145,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           requests.forEach(function (req) {
             var changeResult = context.applyChange(req);
             var success = success && (changeResult && changeResult.success);
+            var index;
             if (changeResult.success) {
               for (index = 0; index < changeResult.caseIDs.length; index++) {
                 var caseid = changeResult.caseIDs[index];
