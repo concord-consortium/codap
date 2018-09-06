@@ -355,13 +355,13 @@ DG.React.ready(function () {
                       tBoundaryObject.jsonBoundaryObject.properties.THUMB;
               if (tThumb !== null && tThumb !== undefined) {
                     tBoundaryInternalImage = img({
-											className: 'react-data-card-thumbnail',
+                      className: 'react-data-card-thumbnail',
                       src: tThumb
                     });
                 tBoundaryValueField = span({}, tBoundaryInternalImage);
               }
               else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof Error)) {
-								tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
+                tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
               }
               tValue = tResult;
             } else if (DG.isNumeric(tValue) && typeof tValue != 'boolean') {
