@@ -311,6 +311,8 @@ DG.React.ready(function () {
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
                 tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID),
                 tType = iAttr.get('type');
+            if( tValue && tValue.jsonBoundaryObject)
+              tType = 'boundary';								
             this.state.attrIndex++;
             if (isNotEmpty(tUnit))
               tUnitWithParens = ' (' + tUnit + ')';
