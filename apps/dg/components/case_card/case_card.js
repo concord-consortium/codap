@@ -8,7 +8,8 @@ DG.React.ready(function () {
       table = React.DOM.table,
       tbody = React.DOM.tbody,
       tr = React.DOM.tr,
-      td = React.DOM.td//,
+      td = React.DOM.td,
+      img = React.DOM.img//,
       // input = React.DOM.input
   ;
 
@@ -308,16 +309,66 @@ DG.React.ready(function () {
                 tHasFormula = iAttr.get('hasFormula'),
                 tFormula = iAttr.get('formula'),
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
-                tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID);
+                tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID),
+                tType = iAttr.get('type');
             this.state.attrIndex++;
             if (isNotEmpty(tUnit))
               tUnitWithParens = ' (' + tUnit + ')';
-            if (DG.isNumeric(tValue)) {
+
+            var tColorValueField,
+                tQualitativeValueField,
+                tBoundaryValueField;
+            if (tValue instanceof Error) {
+              tValue = tValue.name + tValue.message;
+            } else if (DG.isColorSpecString(tValue)) {
+              var tColor = tinycolor( tValue.toLowerCase().replace(/\s/gi,'')),
+                  spanStyle = {
+                    backgroundColor: tColor.toString('rgb'),
+                  };
+              tColorValueField = span({
+                className: 'react-data-card-color-table-cell',
+                style: spanStyle
+              });
+            } else if (tType === 'qualitative') {
+              if (tValue === null || tValue === undefined || tValue === "") {
+                tValue = "";
+              } else {
+                var color = DG.PlotUtilities.kDefaultPointColor,
+                    tWidth = tValue;
+                    spanStyle = {
+                      backgroundColor: color,
+                      width: tValue + '%',
+                    },
+                    tQualitativeInternalSpan = span({
+                      className: 'react-data-card-qualitative-bar',
+                      style: spanStyle
+                    });
+                tQualitativeValueField = span({
+                  className: 'react-data-card-qualitative-backing'
+                }, tQualitativeInternalSpan);
+              }
+            } else if (tType === 'boundary') {
+              var tResult = 'a boundary',
+                  tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tValue),
+                  tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
+                      tBoundaryObject.jsonBoundaryObject.properties &&
+                      tBoundaryObject.jsonBoundaryObject.properties.THUMB;
+              if (tThumb !== null && tThumb !== undefined) {
+                    tBoundaryInternalImage = img({
+											className: 'react-data-card-thumbnail',
+                      src: tThumb
+                    });
+                tBoundaryValueField = span({}, tBoundaryInternalImage);
+              }
+              else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof Error)) {
+								tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
+              }
+              tValue = tResult;
+            } else if (DG.isNumeric(tValue) && typeof tValue != 'boolean') {
               var tPrecision = iAttr.get('precision');
               tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
               tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
-            }
-            else if (SC.none(tValue) || (typeof tValue === 'object')) {
+            } else if (SC.none(tValue) || (typeof tValue === 'object')) {
               tValue = '';
             }
             tFormula = isNotEmpty(tFormula) ? ((isNotEmpty(tDescription) || isNotEmpty(tUnit)) ? '\n' : '')
@@ -361,6 +412,15 @@ DG.React.ready(function () {
                       onToggleEditing: toggleEditing
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
+                if (tColorValueField) {
+                  tValueField = tColorValueField;
+                }
+                else if (tBoundaryValueField) {
+                  tValueField = tBoundaryValueField;
+                }
+                else if (tQualitativeValueField) {
+                  tValueField = tQualitativeValueField;
+                }
             return tr({
               key: 'attr-' + iIndex
             }, tCell, td({className: tValueClassName}, tValueField));
