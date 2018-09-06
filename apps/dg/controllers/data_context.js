@@ -558,6 +558,8 @@ DG.DataContext = SC.Object.extend((function() // closure
                   {Boolean}             result.success -- true on success, false on failure
                   {Number}              result.caseID -- the case ID of the first newly created case
                   {[Number]}            result.caseIDs -- an array ids of all cases created
+                  {Number}              result.itemID -- the item ID of the first newly created item
+                  {[Number]}            result.itemIDs -- an array ids of all items created
 
    */
   doCreateCases: function( iChange) {
@@ -578,7 +580,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
       if (newCase) {
         result.success = true;
-        result.caseIDs.push( newCase.get('id'));
+        result.caseIDs.push(newCase.get('id'));
+        result.itemIDs.push(newCase.item.id);
       }
     }
     /**
@@ -601,7 +604,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collection,
         valuesArrays,
         parentIsValid = true,
-        result = { success: false, caseIDs: [] };
+        result = { success: false, caseIDs: [], itemIDs: [] };
 
     if( !iChange.collection) {
       iChange.collection = this.get('childCollection');
@@ -630,6 +633,9 @@ DG.DataContext = SC.Object.extend((function() // closure
         if( result.caseIDs && (result.caseIDs.length > 0)) {
           result.caseID = result.caseIDs[0];
         }
+        if( result.itemIDs && (result.itemIDs.length > 0)) {
+          result.itemID = result.itemIDs[0];
+        }
       }
     } finally {
       collection.casesController.endPropertyChanges();
@@ -651,9 +657,11 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   doCreateItems: function (iChange) {
 
-    var caseIDs = this.addItems(iChange.items);
+    var IDs = this.addItems(iChange.items);
+    var caseIDs = IDs.caseIDs;
+    var itemIDs = IDs.itemIDs;
 
-    return {success: true, caseIDs: caseIDs};
+    return {success: true, caseIDs: caseIDs, itemIDs: itemIDs};
   },
   /**
      Updates values in one or more items
@@ -1386,9 +1394,17 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     this.invalidateAttrsOfCollections(collections, change);
 
-    return results && results.createdCases.map(function(iCase){
-      return iCase.id;
-    });
+    // generate object containing case and item ids
+    function creatIdObject() {
+      var caseIDs = [];
+      var itemIDs = [];
+      results.createdCases.forEach(function(iCase) {
+        caseIDs.push(iCase.id);
+        itemIDs.push(iCase.item.id);
+      });
+      return {caseIDs: caseIDs, itemIDs: itemIDs}
+    }
+    return results && creatIdObject();
   },
 
     /**
