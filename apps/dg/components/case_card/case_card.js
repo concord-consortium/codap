@@ -391,9 +391,9 @@ DG.React.ready(function () {
           getSelectedCaseFirstChildCaseID: function (iCollection) {
               var tSelectedCaseFirstChildCaseID,
                   tContext = this.props.context;
-              var tSelectedCase = tContext.getCollectionByID(iCollection.get('id')).getPath('casesController.selection').toArray();
-              if (tSelectedCase.length) {
-                tSelectedCaseFirstChildCaseID = tSelectedCase[0].children[0].id;
+              var tSelectedCases = tContext.getCollectionByID(iCollection.get('id')).getPath('casesController.selection').toArray();
+              if (tSelectedCases.length) {
+                tSelectedCaseFirstChildCaseID = tSelectedCases[0].get('children')[0].id;
               }
               return tSelectedCaseFirstChildCaseID;
           },
@@ -406,7 +406,7 @@ DG.React.ready(function () {
           moveToPreviousCase: function (iCollectionClient, iCaseIndex) {
             var tPrevIndex = null;
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
-            if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
+            if (SC.none(iCaseIndex) && iCollectionClient.getPath('collection.parent')) {
               var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
               if (tSelectedParentFirstCaseID) {
                   tPrevIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID) - 1;
@@ -416,7 +416,7 @@ DG.React.ready(function () {
               }
             }
             if (SC.none(iCaseIndex) || iCaseIndex > 1) {
-              if (tPrevIndex === null) {
+              if (SC.none(tPrevIndex)) {
                 tPrevIndex = SC.none(iCaseIndex) ? tNumCases - 1 : iCaseIndex - 2; // because we need zero-based
               }
               this.moveToCase(iCollectionClient, tPrevIndex);
