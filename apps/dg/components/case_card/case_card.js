@@ -386,18 +386,16 @@ DG.React.ready(function () {
           },
 
           /**
-           * --------------------------Get first child case of selected parent case-----------------
+           * -------------------Get first child case of selected case-----------------
            */
-          getParentFirstChildCaseID: function () {
-              var tSelectedParentFirstCaseID,
-                  tContext = this.props.context,
-                  tCollections = tContext.get('collections'),
-                  tCurrColl = tCollections[0];
-              var tSelectedParentCase = tContext.getCollectionByID(tCurrColl.get('id')).getPath('casesController.selection').toArray();
-              if (tSelectedParentCase.length) {
-                tSelectedParentFirstCaseID = tSelectedParentCase[0].children[0].id;
+          getSelectedCaseFirstChildCaseID: function (iCollection) {
+              var tSelectedCaseFirstChildCaseID,
+                  tContext = this.props.context;
+              var tSelectedCase = tContext.getCollectionByID(iCollection.get('id')).getPath('casesController.selection').toArray();
+              if (tSelectedCase.length) {
+                tSelectedCaseFirstChildCaseID = tSelectedCase[0].children[0].id;
               }
-              return tSelectedParentFirstCaseID;
+              return tSelectedCaseFirstChildCaseID;
           },
 
           /**
@@ -409,7 +407,7 @@ DG.React.ready(function () {
             var tPrevIndex = null;
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
             if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
-              var tSelectedParentFirstCaseID = this.getParentFirstChildCaseID();
+              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
               if (tSelectedParentFirstCaseID) {
                   tPrevIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID) - 1;
                   if (tPrevIndex < 0) {
@@ -427,7 +425,7 @@ DG.React.ready(function () {
 
           moveToNextCase: function (iCollectionClient, iCaseIndex) {
             if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
-              var tSelectedParentFirstCaseID = this.getParentFirstChildCaseID();
+              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
               if (tSelectedParentFirstCaseID) {
                   iCaseIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID);
               }
