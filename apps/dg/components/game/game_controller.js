@@ -272,7 +272,7 @@ DG.GameController = DG.ComponentController.extend(
             // Documented property for plugin state is result.values
             // Some plugins use result.status for historical reasons.
             // We continue to support, for now.
-            modelStorage.savedGameState = result.values || result.state;
+            modelStorage.savedGameState = result && (result.values || result.state);
             callback(result);
           });
         } else {
