@@ -206,6 +206,9 @@ DG.DocumentController = SC.Object.extend(
           return;
         }
         var name = this.get('documentName');
+        if (SC.empty(name)) {
+            name = 'DG.Document.defaultDocumentName'.loc();
+        }
         var nameString = 'DG.main.page.title'.loc(name, DG.USER_APPNAME);
         $('title').text(nameString);
       }.observes('documentName'),

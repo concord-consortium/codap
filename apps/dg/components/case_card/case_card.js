@@ -178,8 +178,15 @@ DG.React.ready(function () {
             }
 
             function handleMouseLeave(iEvent) {
-              if (tMouseIsDown && !tDragInProgress) {
-                doDragStart(iEvent);
+              if (tMouseIsDown) {
+                if (!tDragInProgress) {
+                  doDragStart(iEvent);
+                }
+                if (tDragHandler) {
+                  tDragHandler.handleDoDrag(iEvent.clientX - tStartCoordinates.x,
+                    iEvent.clientY - tStartCoordinates.y,
+                    iEvent.clientX, iEvent.clientY, iEvent);
+                }
               }
             }
 
