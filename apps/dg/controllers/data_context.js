@@ -1402,7 +1402,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         caseIDs.push(iCase.id);
         itemIDs.push(iCase.item.id);
       });
-      return {caseIDs: caseIDs, itemIDs: itemIDs}
+      return {caseIDs: caseIDs, itemIDs: itemIDs};
     }
     return results && creatIdObject();
   },

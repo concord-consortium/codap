@@ -56,6 +56,16 @@
    # these in your Buildfile with the 'bootstrap' config.
 -%>
 
+
+    <script>
+      window.SC = window.SC || { MODULE_INFO: {}, LAZY_INSTANTIATION: {} };
+      SC.buildMode = '<%=SC.build_mode%>';
+      SC.buildNumber = '<%=target[:build_number]%>';
+      SC.buildLocale = '<%=language%>';
+    </script>
+
+    <%= bootstrap %>
+
     <script src="../../../../codap-config.js" type="text/javascript"></script>
     <!-- https://www.html5rocks.com/en/tutorials/speed/script-loading/ -->
     <script>
@@ -76,16 +86,6 @@
         });
       }());
     </script>
-
-
-    <script>
-      window.SC = window.SC || { MODULE_INFO: {}, LAZY_INSTANTIATION: {} };
-      SC.buildMode = '<%=SC.build_mode%>';
-      SC.buildNumber = '<%=target[:build_number]%>';
-      SC.buildLocale = '<%=language%>';
-    </script>
-
-    <%= bootstrap %>
 
     <% #
        # This line should appear in your head area to include the stylesheets
