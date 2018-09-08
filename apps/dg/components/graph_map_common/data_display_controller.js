@@ -99,11 +99,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
       /** Submenu items for copying/exporting component images */
       createImageExportMenuItems: function() {
+        var tIsMapView = this.getPath('model.type') === 'DG.MapView';
         var tBackground = this.getPath('graphModel.plotBackgroundImage'),
             tBackgroundCue = tBackground ?
                   'DG.DataDisplayMenu.removeBackgroundImage' : 'DG.DataDisplayMenu.addBackgroundImage',
             tBackgroundAction = tBackground ? 'removeBackgroundImage' : 'addBackgroundImage',
-            tBackgroundItems = [
+            tBackgroundItems = tIsMapView ? [] : [
                   { title: tBackgroundCue, isEnabled: true,
                     target: this, action: tBackgroundAction }
                 ];
@@ -125,7 +126,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             target: this, action: 'makePngImage' }
         ]);
       },
-      
+
       createInspectorButtons: function () {
           var tResult = sc_super(),
               this_ = this;
