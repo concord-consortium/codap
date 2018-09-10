@@ -8,7 +8,8 @@ DG.React.ready(function () {
       table = React.DOM.table,
       tbody = React.DOM.tbody,
       tr = React.DOM.tr,
-      td = React.DOM.td//,
+      td = React.DOM.td,
+      img = React.DOM.img//,
       // input = React.DOM.input
   ;
 
@@ -315,16 +316,67 @@ DG.React.ready(function () {
                 tHasFormula = iAttr.get('hasFormula'),
                 tFormula = iAttr.get('formula'),
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
-                tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID);
+                tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID),
+                tType = iAttr.get('type');
+            if( tValue && tValue.jsonBoundaryObject)
+              tType = 'boundary';								
             this.state.attrIndex++;
             if (isNotEmpty(tUnit))
               tUnitWithParens = ' (' + tUnit + ')';
-            if (DG.isNumeric(tValue)) {
+
+            var tColorValueField,
+                tQualitativeValueField,
+                tBoundaryValueField;
+            if (tValue instanceof Error) {
+              tValue = tValue.name + tValue.message;
+            } else if (DG.isColorSpecString(tValue)) {
+              var tColor = tinycolor( tValue.toLowerCase().replace(/\s/gi,'')),
+                  spanStyle = {
+                    backgroundColor: tColor.toString('rgb'),
+                  };
+              tColorValueField = span({
+                className: 'react-data-card-color-table-cell',
+                style: spanStyle
+              });
+            } else if (tType === 'qualitative') {
+              if (SC.empty(tValue)) {
+                tValue = "";
+              } else {
+                var color = DG.PlotUtilities.kDefaultPointColor,
+                    spanStyle = {
+                      backgroundColor: color,
+                      width: tValue + '%',
+                    },
+                    tQualitativeInternalSpan = span({
+                      className: 'react-data-card-qualitative-bar',
+                      style: spanStyle
+                    });
+                tQualitativeValueField = span({
+                  className: 'react-data-card-qualitative-backing'
+                }, tQualitativeInternalSpan);
+              }
+            } else if (tType === 'boundary') {
+              var tResult = 'a boundary',
+                  tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tValue),
+                  tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
+                      tBoundaryObject.jsonBoundaryObject.properties &&
+                      tBoundaryObject.jsonBoundaryObject.properties.THUMB;
+              if (tThumb !== null && tThumb !== undefined) {
+                    tBoundaryInternalImage = img({
+                      className: 'react-data-card-thumbnail',
+                      src: tThumb
+                    });
+                tBoundaryValueField = span({}, tBoundaryInternalImage);
+              }
+              else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof Error)) {
+                tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
+              }
+              tValue = tResult;
+            } else if (DG.isNumeric(tValue) && typeof tValue !== 'boolean') {
               var tPrecision = iAttr.get('precision');
               tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
               tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
-            }
-            else if (SC.none(tValue) || (typeof tValue === 'object')) {
+            } else if (SC.none(tValue) || (typeof tValue === 'object')) {
               tValue = '';
             }
             tFormula = isNotEmpty(tFormula) ? ((isNotEmpty(tDescription) || isNotEmpty(tUnit)) ? '\n' : '')
@@ -368,6 +420,15 @@ DG.React.ready(function () {
                       onToggleEditing: toggleEditing
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
+                if (tColorValueField) {
+                  tValueField = tColorValueField;
+                }
+                else if (tBoundaryValueField) {
+                  tValueField = tBoundaryValueField;
+                }
+                else if (tQualitativeValueField) {
+                  tValueField = tQualitativeValueField;
+                }
             return tr({
               key: 'attr-' + iIndex
             }, tCell, td({className: tValueClassName}, tValueField));
@@ -393,19 +454,50 @@ DG.React.ready(function () {
           },
 
           /**
+           * -------------------Get first child case of selected case-----------------
+           */
+          getSelectedCaseFirstChildCaseID: function (iCollection) {
+              var tSelectedCaseFirstChildCaseID,
+                  tContext = this.props.context;
+              var tSelectedCases = tContext.getCollectionByID(iCollection.get('id')).getPath('casesController.selection').toArray();
+              if (tSelectedCases.length) {
+                tSelectedCaseFirstChildCaseID = tSelectedCases[0].get('children')[0].id;
+              }
+              return tSelectedCaseFirstChildCaseID;
+          },
+
+          /**
            *
            * @param iCollectionClient
            * @param iCaseIndex  {
            */
           moveToPreviousCase: function (iCollectionClient, iCaseIndex) {
+            var tPrevIndex = null;
+            var tNumCases = iCollectionClient.getPath('collection.cases').length;
+            if (SC.none(iCaseIndex) && iCollectionClient.getPath('collection.parent')) {
+              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
+              if (tSelectedParentFirstCaseID) {
+                  tPrevIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID) - 1;
+                  if (tPrevIndex < 0) {
+                    tPrevIndex = tNumCases - 1;
+                  }
+              }
+            }
             if (SC.none(iCaseIndex) || iCaseIndex > 1) {
-              var tNumCases = iCollectionClient.getPath('collection.cases').length,
-                  tPrevIndex = SC.none(iCaseIndex) ? tNumCases - 1 : iCaseIndex - 2; // because we need zero-based
+              if (SC.none(tPrevIndex)) {
+                tPrevIndex = SC.none(iCaseIndex) ? tNumCases - 1 : iCaseIndex - 2; // because we need zero-based
+              }
               this.moveToCase(iCollectionClient, tPrevIndex);
             }
           },
 
           moveToNextCase: function (iCollectionClient, iCaseIndex) {
+            if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
+              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
+              if (tSelectedParentFirstCaseID) {
+                  iCaseIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID);
+              }
+            }
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
             if (SC.none(iCaseIndex) || iCaseIndex < tNumCases) {
               var tNext = SC.none(iCaseIndex) ? 0 : iCaseIndex; // because in zero-based this is the index of the next case
