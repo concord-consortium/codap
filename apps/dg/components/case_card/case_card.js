@@ -393,19 +393,50 @@ DG.React.ready(function () {
           },
 
           /**
+           * -------------------Get first child case of selected case-----------------
+           */
+          getSelectedCaseFirstChildCaseID: function (iCollection) {
+              var tSelectedCaseFirstChildCaseID,
+                  tContext = this.props.context;
+              var tSelectedCases = tContext.getCollectionByID(iCollection.get('id')).getPath('casesController.selection').toArray();
+              if (tSelectedCases.length) {
+                tSelectedCaseFirstChildCaseID = tSelectedCases[0].get('children')[0].id;
+              }
+              return tSelectedCaseFirstChildCaseID;
+          },
+
+          /**
            *
            * @param iCollectionClient
            * @param iCaseIndex  {
            */
           moveToPreviousCase: function (iCollectionClient, iCaseIndex) {
+            var tPrevIndex = null;
+            var tNumCases = iCollectionClient.getPath('collection.cases').length;
+            if (SC.none(iCaseIndex) && iCollectionClient.getPath('collection.parent')) {
+              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
+              if (tSelectedParentFirstCaseID) {
+                  tPrevIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID) - 1;
+                  if (tPrevIndex < 0) {
+                    tPrevIndex = tNumCases - 1;
+                  }
+              }
+            }
             if (SC.none(iCaseIndex) || iCaseIndex > 1) {
-              var tNumCases = iCollectionClient.getPath('collection.cases').length,
-                  tPrevIndex = SC.none(iCaseIndex) ? tNumCases - 1 : iCaseIndex - 2; // because we need zero-based
+              if (SC.none(tPrevIndex)) {
+                tPrevIndex = SC.none(iCaseIndex) ? tNumCases - 1 : iCaseIndex - 2; // because we need zero-based
+              }
               this.moveToCase(iCollectionClient, tPrevIndex);
             }
           },
 
           moveToNextCase: function (iCollectionClient, iCaseIndex) {
+            if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
+              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
+              if (tSelectedParentFirstCaseID) {
+                  iCaseIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID);
+              }
+            }
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
             if (SC.none(iCaseIndex) || iCaseIndex < tNumCases) {
               var tNext = SC.none(iCaseIndex) ? 0 : iCaseIndex; // because in zero-based this is the index of the next case
