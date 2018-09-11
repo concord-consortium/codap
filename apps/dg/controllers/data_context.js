@@ -658,6 +658,9 @@ DG.DataContext = SC.Object.extend((function() // closure
   doCreateItems: function (iChange) {
 
     var IDs = this.addItems(iChange.items);
+    if (!IDs) {
+      return {success: false};
+    }
     var caseIDs = IDs.caseIDs;
     var itemIDs = IDs.itemIDs;
 
