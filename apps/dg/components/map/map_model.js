@@ -83,6 +83,8 @@ DG.MapModel = SC.Object.extend(
                   dataConfiguration: tDataConfiguration,
                   legend: tLegend
                 });
+                tMapLayerModel.addObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
+                tMapLayerModel.addObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
                 this.mapLayerModels.push(tMapLayerModel);
                 tMapLayerModel.invalidate();
               }.bind(this),
@@ -176,10 +178,12 @@ DG.MapModel = SC.Object.extend(
 
         destroy: function () {
           this.get('mapLayerModels').forEach(function (iLayerModel) {
+            iLayerModel.removeObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
+            iLayerModel.removeObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
             var tLegend = iLayerModel.get('legend');
             tLegend && tLegend.removeObserver('attributeDescription.attribute',
                 this, this.legendAttributeDidChange);
-          });
+          }.bind( this));
           sc_super();
         },
 
@@ -203,6 +207,8 @@ DG.MapModel = SC.Object.extend(
             }
           });
           tLayerModelsToRemove.forEach( function( iLayerModel) {
+            iLayerModel.removeObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
+            iLayerModel.removeObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
             var tIndex = tLayerModels.indexOf( iLayerModel);
             tLayerModels.splice( tIndex, 1);
           });
@@ -279,6 +285,31 @@ DG.MapModel = SC.Object.extend(
             return tLayerResult;
           });
           return tResult;
+        },
+
+        somethingIsSelectable: function() {
+          return this.someLayerReturnsTrue('somethingIsSelectable');
+        }.property(),
+        somethingIsSelectableDidChange: function() {
+          this.notifyPropertyChange( 'somethingIsSelectable');
+        },
+
+        /**
+         * When changed by user action, value is passed to all grid models
+         * @property {Number}
+         */
+        gridMultiplier: 1,
+        gridMultiplerDidChange: function() {
+          this.get('mapLayerModels').forEach( function( iLayerModel) {
+            iLayerModel.setPath('gridModel.gridMultiplier', this.get('gridMultiplier'));
+          }.bind( this));
+        }.observes( 'gridMultiplier'),
+
+        gridIsVisible: function() {
+          return this.someLayerReturnsTrue('gridIsVisible');
+        }.property(),
+        gridIsVisibleDidChange: function() {
+          this.notifyPropertyChange( 'gridIsVisible');
         },
 
         /**
@@ -499,6 +530,7 @@ DG.MapModel = SC.Object.extend(
           tStorage.center = this.get('center');
           tStorage.zoom = this.get('zoom');
           tStorage.baseMapLayerName = this.get('baseMapLayerName');
+          tStorage.gridMultiplier = this.get('gridMultiplier');
           tStorage.layerModels = this.get('mapLayerModels').map(function (iLayerModel) {
             return iLayerModel.createStorage();
           });
@@ -511,6 +543,8 @@ DG.MapModel = SC.Object.extend(
             this.set('center', iStorage.mapModelStorage.center);
             this.set('zoom', iStorage.mapModelStorage.zoom);
             this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
+            if( !SC.none(iStorage.mapModelStorage.gridMultiplier))
+              this.set('gridMultiplier', iStorage.mapModelStorage.gridMultiplier);
             this.set('centerAndZoomBeingRestored', true);
             this.get('mapLayerModels').forEach(function (iLayerModel, iIndex) {
               var tLayerStorage = SC.isArray(iStorage.mapModelStorage.layerModels) ?

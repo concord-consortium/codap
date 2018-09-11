@@ -431,10 +431,12 @@ DG.MapPointLayer = DG.PlotLayer.extend(
        * Something about the points (aside from visibility) changed. Take appropriate action.
        */
       pointsDidChange: function() {
-        var tGridModel = this.getPath('gridLayer.model');
-        if( tGridModel)
-          tGridModel.rectArrayMustChange();
-        this.updateConnectingLine();
+        if( this.getPath( 'model.isVisible')) {
+          var tGridModel = this.getPath('gridLayer.model');
+          if (tGridModel)
+            tGridModel.rectArrayMustChange();
+          this.updateConnectingLine();
+        }
       }.observes('pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
 
       addGridLayer: function () {

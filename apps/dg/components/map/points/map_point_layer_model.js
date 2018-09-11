@@ -184,8 +184,8 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
           _firstTime: true,
           execute: function () {
             var tGridIsVisible = tMapLayerModel.getPath('gridModel.isVisible');
-            if (tGridIsVisible !== false)
-              tGridIsVisible = true;
+            // if (tGridIsVisible !== true)
+            //   tGridIsVisible = false;
 
             tMapLayerModel.setPath('gridModel.isVisible', !tGridIsVisible);
 
@@ -240,11 +240,11 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
       }.observes('isVisible', 'pointsShouldBeVisible', 'gridModel.isVisible', 'connectingLinesModel.isVisible'),
 
       gridIsVisible: function() {
-        return this.getPath('gridModel.isVisible');
+        return this.get('isVisible') && this.getPath('gridModel.isVisible');
       }.property(),
       gridIsVisibleDidChange: function() {
         this.notifyPropertyChange('gridIsVisible');
-      }.observes( 'gridModel.isVisible'),
+      }.observes( 'isVisible', 'pointsShouldBeVisible', 'gridModel.isVisible', 'connectingLinesModel.isVisible'),
 
       createStorage: function () {
         var tStorage = sc_super(),
