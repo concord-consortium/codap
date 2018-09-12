@@ -1,4 +1,4 @@
-/* global React */
+/* global React, tinycolor */
 // sc_require('react/dg-react');
 sc_require('components/case_card/text_input');
 
@@ -326,14 +326,18 @@ DG.React.ready(function () {
 
             var tColorValueField,
                 tQualitativeValueField,
-                tBoundaryValueField;
+                tBoundaryValueField,
+                tColor,
+                spanStyle,
+                tBoundaryInternalImage,
+                tQualitativeInternalSpan;
             if (tValue instanceof Error) {
               tValue = tValue.name + tValue.message;
             } else if (DG.isColorSpecString(tValue)) {
-              var tColor = tinycolor( tValue.toLowerCase().replace(/\s/gi,'')),
-                  spanStyle = {
-                    backgroundColor: tColor.toString('rgb'),
-                  };
+              tColor = tinycolor( tValue.toLowerCase().replace(/\s/gi,''));
+              spanStyle = {
+                backgroundColor: tColor.toString('rgb')
+              };
               tColorValueField = span({
                 className: 'react-data-card-color-table-cell',
                 style: spanStyle
@@ -342,15 +346,15 @@ DG.React.ready(function () {
               if (SC.empty(tValue)) {
                 tValue = "";
               } else {
-                var color = DG.PlotUtilities.kDefaultPointColor,
-                    spanStyle = {
-                      backgroundColor: color,
-                      width: tValue + '%',
-                    },
-                    tQualitativeInternalSpan = span({
-                      className: 'react-data-card-qualitative-bar',
-                      style: spanStyle
-                    });
+                tColor = DG.PlotUtilities.kDefaultPointColor;
+                spanStyle = {
+                  backgroundColor: tColor,
+                  width: tValue + '%',
+                };
+                tQualitativeInternalSpan = span({
+                  className: 'react-data-card-qualitative-bar',
+                  style: spanStyle
+                });
                 tQualitativeValueField = span({
                   className: 'react-data-card-qualitative-backing'
                 }, tQualitativeInternalSpan);
