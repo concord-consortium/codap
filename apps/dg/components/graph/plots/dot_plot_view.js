@@ -137,7 +137,7 @@ DG.DotPlotView = DG.PlotView.extend(
     this.notifyPropertyChange('plotDisplayDidChange');
 
     this.updateAverages();
-    this.rescaleOnParentCaseCompletion( tCases);
+    this.rescalePlot();
     sc_super();
   },
 

@@ -25,7 +25,7 @@ sc_require('components/graph_map_common/plot_layer');
   @extends DG.PlotLayer
 */
 DG.PlotView = DG.PlotLayer.extend(
-/** @scope DG.PlotView.prototype */ 
+/** @scope DG.PlotView.prototype */
 {
   autoDestroyProperties: ['plottedCountAdorn'],
 
@@ -132,7 +132,7 @@ DG.PlotView = DG.PlotLayer.extend(
     this.displayDidChange();
   }.observes('xAxisView.model.lowerBound', 'xAxisView.model.upperBound',
       'yAxisView.model.lowerBound', 'yAxisView.model.upperBound', '.model.axisBounds'),
-  
+
   /** Invalidate and update adornments shared by all plot types */
   updateAdornments: function() {
     var tCountAdornModel = this.plottedCountAdorn && this.plottedCountAdorn.get('model');
@@ -144,20 +144,29 @@ DG.PlotView = DG.PlotLayer.extend(
     if( this.plottedValueAdorn)
       this.plottedValueAdorn.updateToModel();
   },
-  
+
   rescaleOnParentCaseCompletion: function( iCases) {
+    // should iCases be iCases._cases?
+    // present version of this function doesn't appear to
+    // access cases correctly, seems to be specifically
+    // designed to handle new cases only, and is no longer
+    // called - consider removing
     var caseCount = iCases && iCases.length,
         lastCase = caseCount && iCases[ caseCount - 1],
         lastCaseID = lastCase && lastCase.get('id'),
         openParentCaseID = this.getPath('model.openParentCaseID');
     if( !SC.none( lastCaseID) && (lastCaseID === openParentCaseID)) {
-      var plot = this.get('model');
-      if( plot && plot.rescaleAxesFromData) {
-        plot.rescaleAxesFromData( false /* don't allow scale shrinkage */,
-                                  false /* don't animate points */ );
-      }
-      this.setPath('model.openParentCaseID', null);
+      rescalePlot();
     }
+  },
+
+  rescalePlot: function () {
+    var plot = this.get('model');
+    if( plot && plot.rescaleAxesFromData) {
+      plot.rescaleAxesFromData( false /* don't allow scale shrinkage */,
+                                false /* don't animate points */ );
+    }
+    this.setPath('model.openParentCaseID', null);
   },
 
   /**

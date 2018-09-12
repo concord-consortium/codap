@@ -200,7 +200,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
 
         this.updateAdornments();
 
-        this.rescaleOnParentCaseCompletion(tCases);
+        this.rescalePlot();
 
         sc_super();
       },
