@@ -18,7 +18,6 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/map/map_grid_marquee_view');
 
 /** @class  DG.MapView
 
