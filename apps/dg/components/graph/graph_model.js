@@ -18,13 +18,13 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph_map_common/data_display_model');
+sc_require('components/graph_map_common/data_layer_model');
 
 /** @class  DG.GraphModel - The model for a graph.
 
- @extends DG.DataDisplayModel
+ @extends DG.DataLayerModel
  */
-DG.GraphModel = DG.DataDisplayModel.extend(
+DG.GraphModel = DG.DataLayerModel.extend(
   /** @scope DG.GraphModel.prototype */
   {
     autoDestroyProperties: [ 'plot', 'xAxis', 'yAxis', 'y2Axis' ],
@@ -250,6 +250,23 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           return [];
         }
       }
+
+      // Beginning of init
+      // Set up data configuration
+      var tConfiguration = this.get('dataConfigurationClass').create(),
+          tContext = tConfiguration.get('dataContext');
+      // If the context has been discovered in the init of the configuration, we take this opportunity
+      // to hook up our observer to it.
+      if( tContext) {
+        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
+      }
+      this.set( 'dataConfiguration', tConfiguration);
+
+      var tLegendDescription = tConfiguration.get('legendAttributeDescription');
+
+      this.set('legend', DG.LegendModel.create( { dataConfiguration: tConfiguration }));
+      this.setPath('legend.attributeDescription', tLegendDescription);
+
       var tDataContext = this.initialDataContext;
       var extraYAttributes = getExtraYAttributes(this);
       if( tDataContext) {
@@ -1018,6 +1035,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     isParentCase: function( iCase) {
       var parent = iCase.get('parent');
       return SC.none( parent);
+    },
+
+    handleDroppedContext: function( iContext) {
+      if( this.get('dataContext') !== iContext) {
+        this.reset();
+      }
     },
 
     isPlotAffectedByChange: function(iChange) {

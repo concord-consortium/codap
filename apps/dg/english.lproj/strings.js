@@ -753,6 +753,7 @@ SC.stringsFor("en", {
     // Display Inspector
     "DG.Inspector.displayValues.toolTip": "Change what is shown along with the points",
     "DG.Inspector.displayStyles.toolTip": "Change the appearance of the display",
+    "DG.Inspector.displayLayers.toolTip": "Change the appearance of the map layers",
     "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
     "DG.Inspector.makeImage.toolTip": "Save the image as a PNG file",
     "DG.Inspector.displayShow": "Show …",
@@ -798,6 +799,9 @@ SC.stringsFor("en", {
     "DG.Inspector.mapGrid": "Grid",
     "DG.Inspector.mapPoints": "Points",
     "DG.Inspector.mapLines": "Connecting Lines",
+
+    // Map-layer Inspector
+    "DG.Inspector.layers": "Layers",
 
     // Game Controller
     "DG.GameController.continuityError": "Sorry, after columns in the case table have been reordered, new data cannot be accepted.",

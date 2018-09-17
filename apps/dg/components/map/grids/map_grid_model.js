@@ -103,7 +103,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
   return {
     /**
      * Here we get access to the cases being plotted so we can determine how many points are in a grid rectangle
-     * {@property DG.MapDataConfiguration}
+     * {@property DG.MapPointDataConfiguration}
      */
     dataConfiguration: null,
 
@@ -137,7 +137,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     /**
      * {@property Boolean}
      */
-    visible: false,
+    isVisible: false,
 
     forEachRect: function( iFunc) {
       var tRectArray = this.get('rectArray');
@@ -349,7 +349,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     createStorage: function () {
       var tStorage = {};
       tStorage.gridMultiplier = this.get('gridMultiplier');
-      tStorage.visible = this.get('visible');
+      tStorage.isVisible = this.get('isVisible');
 
       return tStorage;
     },
@@ -362,7 +362,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       if (iStorage) {
         this.beginPropertyChanges();
         this.set('gridMultiplier', iStorage.gridMultiplier ? iStorage.gridMultiplier : 1);
-        this.set('visible', iStorage.visible);
+        this.set('isVisible', iStorage.isVisible);
         this.endPropertyChanges();
       }
     }

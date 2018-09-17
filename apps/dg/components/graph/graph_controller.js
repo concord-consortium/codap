@@ -49,9 +49,32 @@ DG.GraphController = DG.DataDisplayController.extend(
         axisMultiTarget: null,
 
         createComponentStorage: function () {
-          var storage = sc_super(),
-              dataConfiguration = this.getPath('graphModel.dataConfiguration'),
-              plotModels = this.getPath('graphModel.plots');
+          var storage = {_links_: {}},
+              dataContext = this.get('dataContext'),
+              dataConfiguration = this.getPath('dataDisplayModel.dataConfiguration'),
+              hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases');
+
+          if (dataContext)
+            storage._links_.context = dataContext.toLink();
+
+          dataConfiguration.addToStorageForDimension(storage, 'legend');
+
+          if (hiddenCases) {
+            storage._links_.hiddenCases = hiddenCases
+                .filter(function (iCase) {
+                  return !!iCase;
+                })
+                .map(function (iCase) {
+                  return iCase.toLink();
+                });
+          }
+          storage.pointColor = this.getPath('dataDisplayModel.pointColor');
+          storage.strokeColor = this.getPath('dataDisplayModel.strokeColor');
+          storage.pointSizeMultiplier = this.getPath('dataDisplayModel.pointSizeMultiplier');
+          storage.transparency = this.getPath('dataDisplayModel.transparency');
+          storage.strokeTransparency = this.getPath('dataDisplayModel.strokeTransparency');
+
+          var plotModels = this.getPath('graphModel.plots');
 
           var storeAxis = function (iDim) {
             var tAxis = this.getPath('graphModel.' + iDim + 'Axis');
@@ -73,9 +96,9 @@ DG.GraphController = DG.DataDisplayController.extend(
             storage.numberToggleLastMode = this.getPath('graphModel.numberToggle.lastMode');
           storage.enableMeasuresForSelection = this.getPath('graphModel.enableMeasuresForSelection');
 
-          this.storeDimension(dataConfiguration, storage, 'x');
-          this.storeDimension(dataConfiguration, storage, 'y');
-          this.storeDimension(dataConfiguration, storage, 'y2');
+          dataConfiguration.addToStorageForDimension(storage, 'x');
+          dataConfiguration.addToStorageForDimension(storage, 'y');
+          dataConfiguration.addToStorageForDimension(storage, 'y2');
 
           storeAxis('x');
           storeAxis('y');
@@ -140,6 +163,62 @@ DG.GraphController = DG.DataDisplayController.extend(
             graphView.set('controller', this);
           }
         }.observes('view'),
+
+        /**
+         * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
+         * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
+         */
+        showHideValuesPane: function () {
+          var this_ = this,
+              kTitleHeight = 26,
+              kMargin = 20,
+              kLeading = 5,
+              kRowHeight = 20;
+          if (DG.InspectorPickerPane.close(this.kValuesPaneIconClass)) {
+            return; // don't reopen if we just closed
+          }
+          this.valuesPane = DG.InspectorPickerPane.create(
+              {
+                buttonIconClass: this.kValuesPaneIconClass,
+                classNames: 'dg-inspector-picker'.w(),
+                layout: {width: 200, height: 260},
+                contentView: SC.View.extend(SC.FlowedLayout,
+                    {
+                      layoutDirection: SC.LAYOUT_VERTICAL,
+                      isResizable: false,
+                      isClosable: false,
+                      defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                      canWrap: false,
+                      align: SC.ALIGN_TOP,
+                      layout: {right: 22},
+                      childViews: 'title showLabel'.w(),
+                      title: DG.PickerTitleView.extend({
+                        layout: {height: kTitleHeight},
+                        flowSpacing: {left: 0, bottom: kLeading},
+                        title: 'DG.Inspector.values',
+                        localize: true,
+                        iconURL: static_url('images/icon-values.svg')
+                      }),
+                      showLabel: SC.LabelView.extend({
+                        layout: {height: kRowHeight},
+                        value: 'DG.Inspector.displayShow',
+                        localize: true
+                      }),
+                      init: function () {
+                        sc_super();
+                        this_.getPath('dataDisplayModel.checkboxDescriptions').forEach(function (iDesc) {
+                          iDesc.layout = {height: kRowHeight};
+                          iDesc.localize = true;
+                          this.appendChild(SC.CheckboxView.create(iDesc));
+                        }.bind(this));
+                        this_.getPath('dataDisplayModel.lastValueControls').forEach(function (iControl) {
+                          this.appendChild(iControl);
+                        }.bind(this));
+                      }
+                    })
+              });
+          this.valuesPane.popup(this.get('inspectorButtons')[2], SC.PICKER_POINTER);
+        },
 
         addBackgroundImage: function () {
 

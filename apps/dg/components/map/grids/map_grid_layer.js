@@ -71,7 +71,7 @@ DG.MapGridLayer = SC.Object.extend(
   marqueeContext: null,
 
   isVisible: function() {
-    return this.getPath('model.visible');
+    return this.getPath('model.isVisible');
   }.property(),
 
   init: function() {
@@ -135,11 +135,21 @@ DG.MapGridLayer = SC.Object.extend(
     this.set('grid', tRectangles);
   },
 
+  show: function() {
+    if( this.getPath('model.isVisible'))
+      this.addGridToMap();
+  },
+
+  hide: function() {
+    if( this.getPath('model.isVisible'))
+      this.removeGridFromMap();
+  },
+
   selectionDidChange: function() {
     var tIndex = 0,
         tRectangles = this.get('grid');
     if( !tRectangles || // We haven't been asked to construct them yet
-        !this.getPath('model.visible'))
+        !this.getPath('model.isVisible'))
       return;
     this.get('model').forEachRect( function( iRect, iLongIndex, iLatIndex) {
       var tLeafRect = tRectangles[ tIndex],
@@ -158,6 +168,10 @@ DG.MapGridLayer = SC.Object.extend(
   addGridToMap: function() {
     var tMap = this.get('map'),
         tRectangles = this.get('grid');
+    if( !tRectangles) {
+      this.addGridLayer();
+      tRectangles = this.get('grid');
+    }
     tRectangles.forEach( function( iRect) {
       iRect.addTo( tMap);
     });
@@ -177,7 +191,7 @@ DG.MapGridLayer = SC.Object.extend(
   },
 
   visibilityHasChanged: function() {
-    if( this.getPath('model.visible')) {
+    if( this.getPath('model.isVisible')) {
       if(!this.get('grid'))
         this.addGridLayer();
       this.addGridToMap();
@@ -186,7 +200,7 @@ DG.MapGridLayer = SC.Object.extend(
       if(this.get('grid'))
         this.removeGridFromMap();
     }
-  }.observes('model.visible'),
+  }.observes('model.isVisible'),
 
   gridRectArrayChanged: function() {
     this.removeGridFromMap();

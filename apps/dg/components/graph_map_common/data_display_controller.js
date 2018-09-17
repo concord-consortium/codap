@@ -33,8 +33,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
     /** @scope DG.DataDisplayController.prototype */
     (function () {
 
-      var kValuesPaneIconClass = 'moonicon-icon-values',
-          kConfigPaneIconClass = 'moonicon-icon-segmented-bar-chart',
+      var kConfigPaneIconClass = 'moonicon-icon-segmented-bar-chart',
           kStylesPaneIconClass = 'moonicon-icon-styles';
 
       function getCollectionClientFromDragData(iContext, iDragData) {
@@ -44,50 +43,20 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
 
       return {
+        kValuesPaneIconClass: 'moonicon-icon-values',
+
         dataContext: null,
         dataDisplayModel: null,
         legendView: null,
         stylesPane: null,
 
-        storeDimension: function (iDataConfiguration, iStorage, iDim) {
-          var tCollection = iDataConfiguration && iDataConfiguration.get(iDim + 'CollectionClient'),
-              tAttrDesc = iDataConfiguration && iDataConfiguration.get(iDim + 'AttributeDescription'),
-              tAttrs = (tAttrDesc && tAttrDesc.get('attributes')) || [];
-          if (tCollection && (tAttrs.length > 0)) {
-            iStorage._links_[iDim + 'Coll'] = tCollection.toLink();
-            var tKey = iDim + 'Attr';
-            tAttrs.forEach(function (iAttr) {
-              DG.ArchiveUtils.addLink(iStorage, tKey, iAttr);
-            });
-          }
-          iStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
-          iStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
-        },
-
+        /**
+         * With the advent of map plotting multiple data contexts there is nothing we can do in common for
+         * maps and graphs.
+         * @return {{}}
+         */
         createComponentStorage: function () {
-          var storage = {_links_: {}},
-              dataContext = this.get('dataContext'),
-              dataConfiguration = this.getPath('dataDisplayModel.dataConfiguration'),
-              hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases');
-
-          if (dataContext)
-            storage._links_.context = dataContext.toLink();
-
-          this.storeDimension(dataConfiguration, storage, 'legend');
-
-          if (hiddenCases) {
-            storage._links_.hiddenCases = hiddenCases
-                .filter(function(iCase) {return !!iCase;})
-                .map(function (iCase) {
-                  return iCase.toLink();
-                });
-          }
-          storage.pointColor = this.getPath('dataDisplayModel.pointColor');
-          storage.strokeColor = this.getPath('dataDisplayModel.strokeColor');
-          storage.pointSizeMultiplier = this.getPath('dataDisplayModel.pointSizeMultiplier');
-          storage.transparency = this.getPath('dataDisplayModel.transparency');
-          storage.strokeTransparency = this.getPath('dataDisplayModel.strokeTransparency');
-          return storage;
+          return {};
         },
 
         restoreComponentStorage: function (iStorage, iDocumentID) {
@@ -130,11 +99,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
       /** Submenu items for copying/exporting component images */
       createImageExportMenuItems: function() {
+        var tIsMapView = this.getPath('model.type') === 'DG.MapView';
         var tBackground = this.getPath('graphModel.plotBackgroundImage'),
             tBackgroundCue = tBackground ?
                   'DG.DataDisplayMenu.removeBackgroundImage' : 'DG.DataDisplayMenu.addBackgroundImage',
             tBackgroundAction = tBackground ? 'removeBackgroundImage' : 'addBackgroundImage',
-            tBackgroundItems = [
+            tBackgroundItems = tIsMapView ? [] : [
                   { title: tBackgroundCue, isEnabled: true,
                     target: this, action: tBackgroundAction }
                 ];
@@ -156,7 +126,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             target: this, action: 'makePngImage' }
         ]);
       },
-      
+
       createInspectorButtons: function () {
           var tResult = sc_super(),
               this_ = this;
@@ -209,7 +179,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-inspector-pane-button dg-display-values'.w(),
-            iconClass: kValuesPaneIconClass,
+            iconClass: this.kValuesPaneIconClass,
             showBlip: true,
             target: this,
             action: 'showHideValuesPane',
@@ -229,10 +199,14 @@ DG.DataDisplayController = DG.ComponentController.extend(
             init: function () {
               sc_super();
               this_.get('dataDisplayModel').addObserver('canSupportConfigurations', this, 'plotDidChange');
-              this_.getPath('dataDisplayModel.dataConfiguration.xAttributeDescription').
-                addObserver('attribute', this, 'plotDidChange');
-              this_.getPath('dataDisplayModel.dataConfiguration.yAttributeDescription').
-                addObserver('attribute', this, 'plotDidChange');
+
+              // Todo: Deal with fact that maps no longer have x&y attributes at this level
+              var tXAttrDescr = this_.getPath('dataDisplayModel.dataConfiguration.xAttributeDescription');
+              if( tXAttrDescr)
+                tXAttrDescr.addObserver('attribute', this, 'plotDidChange');
+              var tYAttrDescr = this_.getPath('dataDisplayModel.dataConfiguration.yAttributeDescription');
+              if( tYAttrDescr)
+                tYAttrDescr.addObserver('attribute', this, 'plotDidChange');
               this.plotDidChange(); // For initialization of visibility
             },
             plotDidChange: function () {
@@ -241,14 +215,16 @@ DG.DataDisplayController = DG.ComponentController.extend(
           });
           tResult.push(tConfigurationButton);
 
+          // iconClass is different for MapView style control
+        var tIsMapView = this.getPath('model.type') === 'DG.MapView';
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-inspector-pane-button dg-display-styles'.w(),
-            iconClass: kStylesPaneIconClass,
+            iconClass: tIsMapView ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
             showBlip: true,
             target: this,
             action: 'showHideStylesPane',
-            toolTip: 'DG.Inspector.displayStyles.toolTip',
+            toolTip: tIsMapView ? 'DG.Inspector.displayLayers.toolTip' : 'DG.Inspector.displayStyles.toolTip',
             localize: true
           }));
 
@@ -279,62 +255,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
           }
 
           return tResult;
-        },
-
-        /**
-         * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
-         * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
-         */
-        showHideValuesPane: function () {
-          var this_ = this,
-              kTitleHeight = 26,
-              kMargin = 20,
-              kLeading = 5,
-              kRowHeight = 20;
-          if (DG.InspectorPickerPane.close(kValuesPaneIconClass)) {
-            return; // don't reopen if we just closed
-          }
-          this.valuesPane = DG.InspectorPickerPane.create(
-              {
-                buttonIconClass: kValuesPaneIconClass,
-                classNames: 'dg-inspector-picker'.w(),
-                layout: {width: 200, height: 260},
-                contentView: SC.View.extend(SC.FlowedLayout,
-                    {
-                      layoutDirection: SC.LAYOUT_VERTICAL,
-                      isResizable: false,
-                      isClosable: false,
-                      defaultFlowSpacing: {left: kMargin, bottom: kLeading},
-                      canWrap: false,
-                      align: SC.ALIGN_TOP,
-                      layout: {right: 22},
-                      childViews: 'title showLabel'.w(),
-                      title: DG.PickerTitleView.extend({
-                        layout: {height: kTitleHeight},
-                        flowSpacing: {left: 0, bottom: kLeading},
-                        title: 'DG.Inspector.values',
-                        localize: true,
-                        iconURL: static_url('images/icon-values.svg')
-                      }),
-                      showLabel: SC.LabelView.extend({
-                        layout: {height: kRowHeight},
-                        value: 'DG.Inspector.displayShow',
-                        localize: true
-                      }),
-                      init: function () {
-                        sc_super();
-                        this_.getPath('dataDisplayModel.checkboxDescriptions').forEach(function (iDesc) {
-                          iDesc.layout = {height: kRowHeight};
-                          iDesc.localize = true;
-                          this.appendChild(SC.CheckboxView.create(iDesc));
-                        }.bind(this));
-                        this_.getPath('dataDisplayModel.lastValueControls').forEach(function (iControl) {
-                          this.appendChild(iControl);
-                        }.bind(this));
-                      }
-                    })
-              });
-          this.valuesPane.popup(this.get('inspectorButtons')[2], SC.PICKER_POINTER);
         },
 
         /**
@@ -395,6 +315,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               kTitleHeight = 26,
               kMargin = 20,
               kLeading = 5,
+              tIsMapView = this.getPath('model.type') === 'DG.MapView',
               tStylesButton = this.get('inspectorButtons').find( function( iButton) {
                 return iButton.get('classNames').indexOf( 'dg-display-styles') >= 0;
               });
@@ -402,9 +323,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
             return; // don't reopen if we just closed
           }
 
+          // Note: Styles-pane title and icon are different for map views.
           this.stylesPane = DG.InspectorPickerPane.create(
               {
-                buttonIconClass: kStylesPaneIconClass,
+                // So we can identify closure through click on button icon
+                buttonIconClass: tIsMapView ? 'moonicon-icon-layers' : 'moonicon-icon-styles',
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 250, height: 150},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -420,9 +343,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       title: DG.PickerTitleView.extend({
                         layout: {height: kTitleHeight},
                         flowSpacing: {left: 0, bottom: kLeading},
-                        title: 'DG.Inspector.styles',
+                        title: this.getPath('model.type') === 'DG.MapView' ? 'DG.Inspector.layers' : 'DG.Inspector.styles',
                         localize: true,
-                        iconURL: static_url('images/icon-styles.svg')
+                        iconURL: tIsMapView ? static_url('images/icon-layers.svg') :
+                            static_url('images/icon-styles.svg')
                       }),
                       init: function () {
                         sc_super();
@@ -801,9 +725,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
           // --Craig and Kirk 2012-06-07
           tMenuItems.push({isSeparator: YES});
           var kNotForSubmenu = false;
-          tMenuItems.push(tDataDisplayModel.createRemoveAttributeMenuItem(tAxisKey, kNotForSubmenu, iAttrIndex));
+          tMenuItems.push(tDataDisplayModel.createRemoveAttributeMenuItem(
+              iAxisView, tAxisKey, kNotForSubmenu, iAttrIndex));
           if (tAxisKey !== 'y2')
-            tMenuItems.push(tDataDisplayModel.createChangeAttributeTypeMenuItem(tAxisKey, kNotForSubmenu, iAttrIndex));
+            tMenuItems.push(tDataDisplayModel.createChangeAttributeTypeMenuItem(iAxisView, tAxisKey));
           tAttributeMenu.set('items', tMenuItems);
           tAttributeMenu.selectedAxis = tOrientation;
           tAttributeMenu.isLegend = iAxisView.instanceOf(DG.LegendView);
@@ -918,6 +843,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
           if (SC.none(iDragData)) // The over-notification caused by the * in the observes
             return;       // means we get here at times there isn't any drag data.
 
+          var this_ = this;
+
           DG.UndoHistory.execute(DG.Command.create({
             name: 'axis.attributeChange',
             undoString: 'DG.Undo.axisAttributeChange',
@@ -925,40 +852,32 @@ DG.DataDisplayController = DG.ComponentController.extend(
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
-            _controller: function () {
-              return DG.currDocumentController().componentControllersMap[this._componentId];
-            },
             execute: function () {
-              var controller = this._controller();
-              this._beforeStorage = controller.createComponentStorage();
+              this._beforeStorage = this_.createComponentStorage();
 
-              var tDragContext = iDragData.context;
-              if (!SC.none(tDragContext) && (tDragContext !== controller.get('dataContext'))) {
-                controller.get('dataDisplayModel').reset();
-                controller.set('dataContext', tDragContext);
-              }
-
-              var tDataContext = controller.get('dataContext'),
-                  tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+              var tDragContext = iDragData.context,
+                  tCollectionClient = getCollectionClientFromDragData(tDragContext, iDragData),
+                  tDisplayModel = this_.get('dataDisplayModel');
+              tDisplayModel.handleDroppedContext( tDragContext);
+              this_.set('dataContext', tDragContext);
 
               iView.dragData = null;
 
-              controller.get('dataDisplayModel').changeAttributeForLegend(
-                  tDataContext,
+              tDisplayModel.changeAttributeForLegend(
+                  tDragContext,
                   {
                     collection: tCollectionClient,
                     attributes: [iDragData.attribute]
                   });
 
               this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
-            },
+            }.bind( this),
             undo: function () {
-              var controller = this._controller();
-              this._afterStorage = controller.createComponentStorage();
-              controller.restoreComponentStorage(this._beforeStorage);
+              this._afterStorage = this_.createComponentStorage();
+              this_.restoreComponentStorage(this._beforeStorage);
             },
             redo: function () {
-              this._controller().restoreComponentStorage(this._afterStorage);
+              this_.restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
             }
           }));

@@ -206,6 +206,9 @@ DG.DocumentController = SC.Object.extend(
           return;
         }
         var name = this.get('documentName');
+        if (SC.empty(name)) {
+            name = 'DG.Document.defaultDocumentName'.loc();
+        }
         var nameString = 'DG.main.page.title'.loc(name, DG.USER_APPNAME);
         $('title').text(nameString);
       }.observes('documentName'),
@@ -408,6 +411,7 @@ DG.DocumentController = SC.Object.extend(
         iProperties.model = iModel;
         var context = DG.DataContext.factory(iProperties);
         this.get('contexts').pushObject(context);
+        this.propertyDidChange('contextsLength');
         return context;
       },
 
@@ -426,6 +430,7 @@ DG.DocumentController = SC.Object.extend(
           if (dataContextIndex >= 0) {
             dataContext.applyChange({operation: 'deleteDataContext'});
             this.contexts.splice(dataContextIndex, 1);
+            this.propertyDidChange('contextsLength');
           } else {
             DG.logWarn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
           }
@@ -984,8 +989,6 @@ DG.DocumentController = SC.Object.extend(
           execute: function () {
             var tMapModel = DG.MapModel.create(),
                 tMapController = DG.MapController.create();
-            // For maps the map model's data configuration finds a reasonable initial data context.
-            tMapController.set('dataContext', tMapModel.get('dataContext'));
 
             // map as component
             tView = docController.createComponentView(iComponent || this._component, {
@@ -993,7 +996,7 @@ DG.DocumentController = SC.Object.extend(
                   controller: tMapController,
                   componentClass: {type: 'DG.MapView', constructor: DG.MapView},
                   contentProperties: {model: tMapModel},
-                  defaultLayout: {width: 700, height: 450},
+                  defaultLayout: {width: 530, height: 360},
                   title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
                   isResizable: true
                 }

@@ -18,7 +18,6 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/map/map_grid_marquee_view');
 
 /** @class  DG.MapView
 
@@ -26,7 +25,7 @@ sc_require('components/map/map_grid_marquee_view');
 
  @extends SC.View
  */
-DG.MapView = SC.View.extend( DG.GraphDropTarget,
+DG.MapView = SC.View.extend(DG.GraphDropTarget,
     /** @scope DG.MapView.prototype */ {
 
       displayProperties: ['model.dataConfiguration.attributeAssignment'],
@@ -39,15 +38,15 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       model: null,
 
       /**
-       * @property {DG.MapLayerView}
+       * @property {DG.BaseMapView}
        */
       mapLayer: null,
       mapBinding: '.mapLayer.map',
 
       /**
-       * @property {DG.MapAreaLayer}
+       * @property [{DG.MapPolygonLayer}]
        */
-      mapAreaLayer: null,
+      mapPolygonLayers: null,
 
       /**
        * @property {DG.MapPointView}
@@ -60,24 +59,15 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       mapGridLayer: null,
 
       /**
-       * @property {DG.MapGridMarqueeView}
+       * @property [{DG.LegendView}]
        */
-      mapGridMarqueeView: null,
+      legendViews: null,
 
       /**
-       * @property {DG.LegendView}
+       * Assigned on creation. Called with newly created LegendView.
+       * @property {Function}
        */
-      legendView: null,
-
-      /**
-       * @property {DG.MapConnectingLineAdornment}
-       */
-      connectingLineAdorn: null,
-
-      /**
-       * SC.SegmentedView
-       */
-      backgroundControl: null,
+      legendViewCreationCallback: null,
 
       /**
        * SC.SliderView
@@ -97,61 +87,36 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       _mapDisplayChangeInProgress: false,
       _mapDisplayChange: null,
 
-      paper: function() {
+      paper: function () {
         return this.getPath('mapPointView.paper');
       }.property(),
 
-      layerManager: function() {
+      layerManager: function () {
         return this.getPath('mapPointView.layerManager');
       }.property(),
 
       init: function () {
         sc_super();
-        var tLegendView = DG.LegendView.create({layout: { bottom: 0, height: 0 }}),
-            tMapLayer = DG.MapLayerView.create( { model: this.get('model') });
+        var tMapLayer = DG.BaseMapView.create({model: this.get('model')});
 
         this.set('mapLayer', tMapLayer);
-        this.appendChild( tMapLayer);
+        this.appendChild(tMapLayer);
 
-        this.set('legendView', tLegendView);
-        this.appendChild( tLegendView);
-        tLegendView.set('model', this.getPath('model.legend'));
-
-        var tItems = [
-          SC.Object.create( { label: 'Oceans',
-            value: 'Oceans', id: 'dg-map-oceans-background-button'}),
-          SC.Object.create( { label: 'Topo',
-            value: 'Topographic', id: 'dg-map-topographic-background-button'} ),
-          SC.Object.create( { label: 'Streets',
-            value: 'Streets', id: 'dg-map-streets-background-button'} )
-        ];
-
-        this.backgroundControl = SC.SegmentedView.create({
-          controlSize: SC.SMALL_CONTROL_SIZE,
-          layout: { width: 170, height: 18, top: 5, right: 5 },
-          items: tItems,
-          value: [this.getPath('model.baseMapLayerName')],
-          itemTitleKey: 'label',
-          itemValueKey: 'value',
-          itemLayerIdKey: 'id',
-          action: 'changeBaseMap',
-          target: this
-        });
-        this.appendChild( this.backgroundControl );
+        this.legendViews = [];
 
         this.gridControl = SC.SliderView.create({
           controlSize: SC.SMALL_CONTROL_SIZE,
-          layout: { width: 40, height: 16, top: 33, right: 58 },
+          layout: {width: 40, height: 16, top: 16, right: 58},
           toolTip: 'DG.MapView.gridControlHint'.loc(),
-          classNames:   ['dg-map-grid-slider'],
+          classNames: ['dg-map-grid-slider'],
           minimum: 0.1,
           maximum: 2.0,
           step: 0,
-          value: this.getPath('model.gridModel.gridMultiplier'),
-          persistedValue: this.getPath('model.gridModel.gridMultiplier'),
-          previousPersistedValue: this.getPath('model.gridModel.gridMultiplier'),
+          value: this.getPath('model.gridMultiplier'),
+          persistedValue: this.getPath('model.gridMultiplier'),
+          previousPersistedValue: this.getPath('model.gridMultiplier'),
           isVisible: false,
-          mouseUp: function( iEvent) {
+          mouseUp: function (iEvent) {
             sc_super();
             if (this.get('value') !== this.get('persistedValue')) {
               this.set('previousPersistedValue', this.get('persistedValue'));
@@ -160,22 +125,17 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             }
           }
         });
-        this.appendChild( this.gridControl );
+        this.appendChild(this.gridControl);
 
         this.marqueeTool = SC.ImageButtonView.create({
           buttonBehavior: SC.PUSH_BEHAVIOR,
-          layout: { right: 10, top: 25, width: 32, height: 32 },
+          layout: {right: 10, top: 9, width: 32, height: 32},
           toolTip: 'DG.MapView.marqueeHint'.loc(),
           image: 'dg-map-marquee',
           action: 'setMarqueeMode',
           isVisible: false
         });
-        this.appendChild( this.marqueeTool);
-
-        this.mapGridMarqueeView = DG.MapGridMarqueeView.create({
-          isVisible: false
-        });
-        this.appendChild( this.mapGridMarqueeView);
+        this.appendChild(this.marqueeTool);
 
         // Don't trigger undo events until the map has settled down initially
         this._ignoreMapDisplayChanges = true;
@@ -184,17 +144,17 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
       },
 
-      destroy: function() {
+      destroy: function () {
         this._ignoreMapDisplayChanges = true; // So we don't install an idleTask in response to layout changes
         this.model.destroy(); // so that it can unlink observers
         DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
         sc_super();
       },
 
-      setMarqueeMode: function() {
+      setMarqueeMode: function () {
         var tMapPointView = this.get('mapPointView'),
             tMapGridLayer = this.get('mapGridLayer');
-        if( tMapPointView && tMapPointView.get('isVisible')) {
+        if (tMapPointView && tMapPointView.get('isVisible')) {
           tMapPointView.set('isInMarqueeMode', true);
         }
         else if (tMapGridLayer && tMapGridLayer.get('isVisible')) {
@@ -203,47 +163,45 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         DG.logUser('marqueeToolSelect');
       },
 
-      marqueeModeChanged: function() {
+      marqueeModeChanged: function () {
         var tGridInMarqueeMode = this.getPath('mapGridLayer.isInMarqueeMode'),
             tImage = (this.getPath('mapPointView.isInMarqueeMode') || tGridInMarqueeMode) ?
-            'dg-map-marquee-selected' :
-            'dg-map-marquee';
+                'dg-map-marquee-selected' :
+                'dg-map-marquee';
         this.setPath('marqueeTool.image', tImage);
-        this.setPath('mapGridMarqueeView.isVisible', tGridInMarqueeMode);
       }.observes('mapPointView.isInMarqueeMode', 'mapGridLayer.isInMarqueeMode'),
 
-      changeBaseMap: function() {
-        var tBackground = this.backgroundControl.get('value'),
-            tOldBackground = this.getPath('model.baseMapLayerName');
+      changeBaseMap: function (iNewValue) {
+        var tOldBackground = this.getPath('model.baseMapLayerName');
         DG.UndoHistory.execute(DG.Command.create({
           name: "map.changeBaseMap",
           undoString: 'DG.Undo.map.changeBaseMap',
           redoString: 'DG.Redo.map.changeBaseMap',
-          log: 'Map base layer changed: %@'.fmt(tBackground),
+          log: 'Map base layer changed: %@'.fmt(iNewValue),
           _componentId: this.getPath('controller.model.id'),
-          _controller: function() {
+          _controller: function () {
             return DG.currDocumentController().componentControllersMap[this._componentId];
           },
-          execute: function() {
-            this._controller().setPath('view.contentView.model.baseMapLayerName', tBackground);
+          execute: function () {
+            this._controller().setPath('view.contentView.model.baseMapLayerName', iNewValue);
           },
-          undo: function() {
+          undo: function () {
             this._controller().setPath('view.contentView.model.baseMapLayerName', tOldBackground);
             this._controller().setPath('view.contentView.backgroundControl.value', [tOldBackground]);
           },
-          redo: function() {
-            this._controller().setPath('view.contentView.model.baseMapLayerName', tBackground);
-            this._controller().setPath('view.contentView.backgroundControl.value', [tBackground]);
+          redo: function () {
+            this._controller().setPath('view.contentView.model.baseMapLayerName', iNewValue);
+            this._controller().setPath('view.contentView.backgroundControl.value', [iNewValue]);
           }
         }));
       },
 
-      changeGridSize: function() {
+      changeGridSize: function () {
         var tControlValue = this.gridControl.get('value');
-        this.setPath('model.gridModel.gridMultiplier', tControlValue);
+        this.setPath('model.gridMultiplier', tControlValue);
       }.observes('gridControl.value'),
 
-      changePersistedGridSize: function() {
+      changePersistedGridSize: function () {
         var tControlValue = this.gridControl.get('persistedValue'),
             tPreviousControlValue = this.gridControl.get('previousPersistedValue');
 
@@ -253,206 +211,183 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           redoString: 'DG.Redo.map.changeGridSize',
           log: "Map grid size changed: {from: %@, to: %@}".fmt(tPreviousControlValue, tControlValue),
           _componentId: this.getPath('controller.model.id'),
-          _controller: function() {
+          _controller: function () {
             return DG.currDocumentController().componentControllersMap[this._componentId];
           },
-          execute: function() { },
-          undo: function() {
-            this._controller().setPath('view.contentView.model.gridModel.gridMultiplier', tPreviousControlValue);
+          execute: function () {
+          },
+          undo: function () {
+            this._controller().setPath('view.contentView.model.gridMultiplier', tPreviousControlValue);
             this._controller().setPath('view.contentView.gridControl.value', tPreviousControlValue);
           },
-          redo: function() {
-            this._controller().setPath('view.contentView.model.gridModel.gridMultiplier', tControlValue);
+          redo: function () {
+            this._controller().setPath('view.contentView.model.gridMultiplier', tControlValue);
             this._controller().setPath('view.contentView.gridControl.value', tControlValue);
           }
         }));
       }.observes('gridControl.persistedValue'),
 
-      addPointLayer: function () {
-        if( this.get('mapPointView'))
-          return;
-        var tMakeVisible = this.getPath('model.pointsShouldBeVisible');
+      addPointLayers: function () {
+        if (!this.get('mapPointView')) {
 
-        var tMapPointView = DG.MapPointView.create(
-            {
-              mapLayer: this.get('mapLayer')
-            });
-        tMapPointView.set( 'model', this.get('model')); // Cannot pass in because of observer setup
-        this.set('mapPointView', tMapPointView);
-        this.appendChild( tMapPointView);
+          var tMapPointView = DG.MapPointView.create(
+              {
+                mapLayer: this.get('mapLayer'),
+                model: this.get('model')
+              });
 
-        if( this.getPath('model.hasLatLongAttributes')) {
-          if (!this.getPath('model.centerAndZoomBeingRestored')) {
-            this.fitBounds();
-          }
-          this.setPathIfChanged('marqueeTool.isVisible', tMakeVisible);
-          this.setPathIfChanged('model.pointsShouldBeVisible', tMakeVisible);
-          if( tMakeVisible && this.getPath('model.linesShouldBeVisible')) {
-            this.lineVisibilityChanged();
-          }
+          this.set('mapPointView', tMapPointView);
+          this.appendChild(tMapPointView);
         }
         else {
-          tMapPointView.set('isVisible', false);
-        }
-        this.adjustLayout( this.renderContext( this.get('tagName')));
-      },
-
-      updateMarqueeToolVisibility: function() {
-        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
-            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
-            tGridIsVisible = this.getPath('model.gridModel.visible');
-        this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible || tGridIsVisible);
-      },
-
-      pointVisibilityChanged: function() {
-        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
-            tModel = this.get('model'),
-            tFillOpacity = tPointsAreVisible ? tModel.get( 'transparency')|| DG.PlotUtilities.kDefaultPointOpacity : 1,
-            tStrokeOpacity = tPointsAreVisible ? tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity : 1,
-            tAttrs = { 'fill-opacity': tFillOpacity, 'stroke-opacity':  tStrokeOpacity};
-        // todo: The following invokeLater could be eliminated with the function passed in as a completion of
-        // animation callback
-        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible, tAttrs);
-        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible, tAttrs);
-        this.updateMarqueeToolVisibility();
-      }.observes('model.pointsShouldBeVisible'),
-
-      /**
-       * Something about the points (aside from visibility) changed. Take appropriate action.
-       */
-      pointsDidChange: function() {
-        var tGridModel = this.getPath('mapGridLayer.model');
-        if( tGridModel)
-            tGridModel.rectArrayMustChange();
-        this.updateConnectingLine();
-      }.observes('mapPointView.pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
-
-      modelPointsDidChange: function() {
-        this.get('legendView').displayDidChange();
-      }.observes('model.pointColor', 'model.transparency'),
-
-      /**
-       Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
-       because we don't want to destroy the adornment.
-       */
-      lineVisibilityChanged: function() {
-        var tMapModel = this.get('model' ),
-            tAdornModel = tMapModel && tMapModel.get( 'connectingLineModel' ),
-            tLinesAreVisible = tMapModel.get('linesShouldBeVisible'),
-            tAdorn = this.get('connectingLineAdorn');
-            tAdornModel.set('isVisible', tLinesAreVisible);
-        if( tAdornModel && tLinesAreVisible && !tAdorn) {
-          tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
-                                                          mapSource: this, layerName: DG.LayerNames.kConnectingLines,
-                                                          unselectedLineWidth: 1, selectedLineWidth: 3 });
-          this.set('connectingLineAdorn', tAdorn);
+          this.get('mapPointView').addMapPointLayers();
         }
 
-        this.invokeLast( function() {
-          if( tAdorn) {
-            tAdorn.updateVisibility();
-            this.updateMarqueeToolVisibility();
-          }
+        var tAlreadyUsedMapPointLegends = this.get('legendViews').map(function (iLegendView) {
+              return iLegendView.get('model');
+            }),
+            tUnusedMapPointLayers = this.getPath('mapPointView.mapPointLayers').filter( function( iLayer) {
+              return tAlreadyUsedMapPointLegends.indexOf( iLayer.getPath('model.legend')) < 0;
+            });
+        tUnusedMapPointLayers.forEach(function (iMapPointLayer) {
+          var tNewLegendView = DG.LegendView.create( { model: iMapPointLayer.getPath('model.legend')});
+          this.appendChild(tNewLegendView);
+          this.legendViewCreationCallback(tNewLegendView);
+          this.get('legendViews').push( tNewLegendView);
         }.bind( this));
-      }.observes('.model.linesShouldBeVisible'),
 
-      addAreaLayer: function () {
-        if( !this.getPath('model.areaVarID') || this.get('mapAreaLayer'))
-          return;
+        this.adjustLayout(this.renderContext(this.get('tagName')));
+        this.updateMarqueeToolVisibility();
+        this.updateGridControlVisibility();
+      },
 
-        this.set('mapAreaLayer', DG.MapAreaLayer.create(
-            {
-              mapSource: this,
-              model: this.get('model')
-            }));
-        if( !this.getPath('model.centerAndZoomBeingRestored')) {
+      numberOfLayerModelsChanged: function () {
+
+        function processLayerArray( iLayerArray) {
+          iLayerArray.filter( function( iLayer) {
+            return tMapLayerModels.indexOf( iLayer.get('model')) < 0;
+          }).forEach( function( iLayerToRemove) {
+            iLayerArray.splice( iLayerArray.indexOf( iLayerToRemove) , 1);
+            iLayerToRemove.destroy();
+          });
+        }
+
+        var tMapLayerModels = this.getPath( 'model.mapLayerModels'),
+            tPolygonLayers = this.get('mapPolygonLayers'),
+            tPointLayers = this.getPath('mapPointView.mapPointLayers');
+        if( tMapLayerModels.length > tPolygonLayers.length + tPointLayers.length) {
+          // The routines to add point and polygon layers check to avoid duplicates, so we can just call them both.
+          this.addPointLayers();
+          this.addPolygonLayers();
+          this.displayDidChange();
           this.fitBounds();
         }
-        this.get('mapAreaLayer').addFeatures();
+        else {
+          processLayerArray( tPolygonLayers);
+          processLayerArray( tPointLayers);
+          this.displayDidChange();
+        }
+        this.updateMarqueeToolVisibility();
+      }.observes('model.mapLayerModelsChange'),
+
+      updateMarqueeToolVisibility: function () {
+        this.setPath('marqueeTool.isVisible', this.getPath('model.somethingIsSelectable'));
       },
 
-      addGridLayer: function () {
-        if( !this.getPath('model.hasLatLongAttributes') || this.get('mapGridLayer'))
-          return;
+      somethingIsSelectableDidChange: function() {
+        this.updateMarqueeToolVisibility();
+      }.observes('model.somethingIsSelectable'),
 
-        var tGridModel = this.getPath('model.gridModel');
-        tGridModel.initializeRectArray();
+      updateGridControlVisibility: function () {
+        this.setPath('gridControl.isVisible', this.getPath('model.gridIsVisible'));
+      },
 
-        this.set('mapGridLayer', DG.MapGridLayer.create(
-            {
-              mapSource: this,
-              model: tGridModel,
-              showTips: true /* !this.getPath('model.pointsShouldBeVisible') */
-            }));
-        // The size of any points depends on whether the grid is visible or not
-        if( !this.get('mapPointView'))
-          this.addPointLayer();
-        // Make the points smaller so they don't completely cover the grid cells
-        if( tGridModel.get('visible'))
-          this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
+      gridIsVisibleDidChange: function() {
+        this.updateGridControlVisibility();
+      }.observes('model.gridIsVisible'),
 
-        this.gridVisibilityChanged();
-
-        this.setPath('mapGridMarqueeView.mapGridLayer', this.get('mapGridLayer'));
+      addPolygonLayers: function () {
+        var tNewLayerAdded = false;
+        if (!this.get('mapPolygonLayers')) {
+          this.set('mapPolygonLayers', []);
+        }
+        var tLegendViews = this.get('legendViews'),
+            tPolygonLayers = this.get('mapPolygonLayers'),
+            tModelsForExistingLayers = tPolygonLayers.map(function (iLayer) {
+              return iLayer.get('model');
+            });
+        this.getPath('model.mapLayerModels').forEach(function (iLayerModel) {
+          if (iLayerModel.constructor === DG.MapPolygonLayerModel &&
+              tModelsForExistingLayers.indexOf(iLayerModel) < 0) {
+            var tNewLayer = DG.MapPolygonLayer.create(
+                {
+                  mapSource: this,
+                  model: iLayerModel
+                });
+            tPolygonLayers.push(tNewLayer);
+            tNewLayer.addFeatures();
+            var tLegendView = DG.LegendView.create({model: iLayerModel.get('legend')});
+            this.appendChild(tLegendView);
+            tLegendViews.push(tLegendView);
+            this.legendViewCreationCallback(tLegendView);
+            tNewLayerAdded = true;
+          }
+        }.bind(this));
+        if (!this.getPath('model.centerAndZoomBeingRestored') && tNewLayerAdded) {
+          this.fitBounds();
+        }
       },
 
       /**
        * Cause the map to shrink or expand to encompass the data
        */
-      fitBounds: function() {
-        var tBounds;
-        if( this.getPath('model.areaVarID')) {
-          var tAreaLayer = this.get('mapAreaLayer'),
-              tAreaBounds = tAreaLayer && tAreaLayer.getBounds();
-          if( !SC.none(tAreaBounds)) {
-            if (!tBounds)
-              tBounds = tAreaBounds;
-            else
-              tBounds.extend(tAreaBounds);
-          }
+      fitBounds: function () {
+        var tPolygonLayers = this.get('mapPolygonLayers'),
+            tPointView = this.get('mapPointView'),
+            tBounds = tPointView ? tPointView.getBounds() : null;
+        if (tPolygonLayers) {
+          tPolygonLayers.forEach(function (iLayer) {
+            var tPolyBounds = iLayer.getBounds();
+            if (!SC.none(tPolyBounds)) {
+              if (!tBounds)
+                tBounds = tPolyBounds;
+              else
+                tBounds.extend(tPolyBounds);
+            }
+          });
         }
-        if (this.getPath('model.hasLatLongAttributes')) {
-          var tPointBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
-          if( !SC.none( tPointBounds)) {
-            if (!tBounds)
-              tBounds = tPointBounds;
-            else
-              tBounds.extend(tPointBounds);
-          }
-        }
-        if ( tBounds && tBounds.isValid()) {
+        if (tBounds && tBounds.isValid()) {
           this._fitBoundsInProgress = true;
-          this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+          this.getPath('mapLayer.map').fitBounds(tBounds, {padding: this.kPadding, animate: true});
           this.get('mapLayer')._setIdle();
         }
       },
-
-      gridVisibilityChanged: function() {
-        this.gridControl.set('isVisible', this.getPath('model.gridModel.visible'));
-        this.updateMarqueeToolVisibility();
-      }.observes('*model.gridModel.visible'),
 
       /**
        Set the layout (view position) for our subviews.
        @returns {void}
        */
-      adjustLayout: function( context, firstTime) {
+      adjustLayout: function (context, firstTime) {
         var tMapLayer = this.get('mapLayer'),
-            tMapPointView = this.get('mapPointView' ),
-            tLegendView = this.get('legendView'),
-            tLegendHeight = SC.none( tLegendView) ? 0 : tLegendView.get('desiredExtent' );
+            tMapPointView = this.get('mapPointView'),
+            tLegendHeight = 0;
 
-        if( this._isRenderLayoutInProgress || !tMapPointView || !tLegendView)
+        if (this._isRenderLayoutInProgress || !tMapPointView)
           return;
         this._isRenderLayoutInProgress = true;
+
+        this.get('legendViews').forEach(function (iLegendView) {
+          var tHeight = iLegendView.get('desiredExtent');
+          iLegendView.set('layout', {bottom: tLegendHeight, height: tHeight});
+          tLegendHeight += tHeight;
+        }.bind(this));
 
         // adjust() method avoids triggering observers if layout parameter is already at correct value.
         tMapPointView.adjust('bottom', tLegendHeight);
         tMapLayer.adjust('bottom', tLegendHeight);
-        tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
 
         this._isRenderLayoutInProgress = false;
-      }.observes('model.dataConfiguration.attributeAssignment'),
+      }.observes('model.legendAttributeChange'),
 
       /**
        * Private property to prevent recursive execution of renderLayout. Seems most important in Firefox.
@@ -463,60 +398,29 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        * This is our chance to add the features to the area layer
        */
       createVisualization: function () {
-        this.get('mapAreaLayer').createVisualization();
+        var tPolygonLayers = this.get('mapPolygonLayers');
+        if (tPolygonLayers) {
+          tPolygonLayers.forEach(function (iLayer) {
+            iLayer.createVisualization();
+          });
+        }
       },
 
       /**
        Called when the value of a global value changes (e.g. when a slider is dragged).
        */
-      globalValueDidChange: function() {
-        var tAreaLayer = this.get('mapAreaLayer');
-        if( tAreaLayer)
-          tAreaLayer.refreshComputedLegendColors();
-      },
-
-      handleLegendModelChange: function() {
-        var tLegendModel = this.getPath('model.legend');
-        this.setPath('legendView.model', tLegendModel);
-      }.observes('.model.legend'),
-
-      /**
-       * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.
-       */
-      handleLegendLayoutChange: function() {
-        this.adjustLayout( this.renderContext( this.get('tagName')));
-      }.observes('*legendView.desiredExtent'),
-
-      handleAttributeRemoved: function() {
-        var tMapPointView = this.get('mapPointView'),
-            tMapAreaLayer = this.get('mapAreaLayer'),
-            tMapGridModel = this.get('model.gridModel');
-        if( !this.getPath('model.dataConfiguration.hasLatLongAttributes')) {
-          this.setPath('model.connectingLineModel.isVisible', false);
-          this.setPath('model.pointsShouldBeVisible', false);
-          if( tMapPointView)
-            this.get('mapPointView').clear();
-          if(tMapGridModel) {
-            tMapGridModel.set('visible', false);
-            tMapGridModel.clear();
-          }
-        }
-        if( !this.getPath('model.hasAreaAttribute') && tMapAreaLayer) {
-          tMapAreaLayer.clear();
-        }
-      }.observes('model.attributeRemoved'),
-
-      updateConnectingLine: function() {
-        var tConnectingLineAdorn = this.get('connectingLineAdorn');
-        if( tConnectingLineAdorn) {
-          tConnectingLineAdorn.invalidateModel();
-          tConnectingLineAdorn.updateToModel( false /* do not animate */);
+      globalValueDidChange: function () {
+        var tPolygonLayers = this.get('mapPolygonLayers');
+        if (tPolygonLayers) {
+          tPolygonLayers.forEach(function (iLayer) {
+            iLayer.refreshComputedLegendColors();
+          });
         }
       },
 
-      handleMapLayerDisplayChange: function() {
+      handleMapLayerDisplayChange: function () {
         var tMapPointView = this.get('mapPointView'),
-            tLastEventType = this.getPath( 'mapLayer.lastEventType');
+            tLastEventType = this.getPath('mapLayer.lastEventType');
         if (tMapPointView) {
           if (tLastEventType === 'dragstart') {
             tMapPointView.set('isVisible', false);
@@ -525,9 +429,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             tMapPointView.doDraw();
             tMapPointView.set('isVisible', true);
           }
+          tMapPointView.updateConnectingLines();
         }
-
-        this.updateConnectingLine();
 
         var tMap = this.getPath('mapLayer.map'),
             tCenter = tMap.getCenter(),
@@ -543,11 +446,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.setPath('mapLayer.lastEventType', null);
       }.observes('mapLayer.displayChangeCount'),
 
-      handleClick: function() {
+      handleClick: function () {
         this.get('model').selectAll(false);
       }.observes('mapLayer.clickCount'),
 
-      handleIdle: function() {
+      handleIdle: function () {
         var tModel = this.get('model'),
             oldCenter = tModel.get('center'),
             oldZoom = tModel.get('zoom');
@@ -560,10 +463,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }
 
         if (this._mapDisplayChange) {
-            var newCenter = this._mapDisplayChange.center,
-                newZoom = this._mapDisplayChange.zoom,
-                centerChanged = !newCenter.equals(oldCenter),
-                zoomChanged = newZoom !== oldZoom;
+          var newCenter = this._mapDisplayChange.center,
+              newZoom = this._mapDisplayChange.zoom,
+              centerChanged = !newCenter.equals(oldCenter),
+              zoomChanged = newZoom !== oldZoom;
 
           if (this._mapDisplayChangeInProgress && (centerChanged || zoomChanged)) {
             var change = 'change';
@@ -576,20 +479,20 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
               change = 'zoom';
             }
             DG.UndoHistory.execute(DG.Command.create({
-              name: "map."+change,
-              undoString: 'DG.Undo.map.'+change,
-              redoString: 'DG.Redo.map.'+change,
+              name: "map." + change,
+              undoString: 'DG.Undo.map.' + change,
+              redoString: 'DG.Redo.map.' + change,
               log: 'mapEvent: %@ at {center: %@, zoom: %@}'.fmt(change, newCenter, newZoom),
               _componentId: this.getPath('controller.model.id'),
-              _controller: function() {
+              _controller: function () {
                 return DG.currDocumentController().componentControllersMap[this._componentId];
               },
-              execute: function() {
+              execute: function () {
                 var view = this._controller().getPath('view.contentView');
                 view.setPath('model.center', newCenter);
                 view.setPath('model.zoom', newZoom);
               },
-              undo: function() {
+              undo: function () {
                 // Tell the map to change, but also ignore any events until those changes are done...
                 var controller = this._controller(),
                     view = controller.getPath('view.contentView'),
@@ -599,7 +502,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
                 view.setPath('model.center', oldCenter);
                 view.setPath('model.zoom', oldZoom);
               },
-              redo: function() {
+              redo: function () {
                 // Tell the map to change, but also ignore any events until those changes are done...
                 var controller = this._controller(),
                     view = controller.getPath('view.contentView'),
@@ -618,24 +521,22 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       /**
        * Override the two mixin methods because the drop target view is mapPointView
        */
-      dragStarted: function() {
-        DG.GraphDropTarget.dragStarted.apply( this, arguments);
-        if( !this.getPath('model.hasLatLongAttributes'))
+      dragStarted: function () {
+        DG.GraphDropTarget.dragStarted.apply(this, arguments);
+        if (!this.getPath('model.hasLatLongAttributes'))
           this.setPath('mapPointView.isVisible', true);
       },
 
-      dragEnded: function() {
-        DG.GraphDropTarget.dragEnded.apply( this, arguments);
-        if( !this.getPath('model.hasLatLongAttributes'))
-          this.setPath('mapPointView.isVisible', false);
+      dragEnded: function () {
+        DG.GraphDropTarget.dragEnded.apply(this, arguments);
       },
 
       /**
 
        */
-      selectionDidChange: function() {
+      selectionDidChange: function () {
         var tAdorn = this.get('connectingLineAdorn');
-        if( tAdorn) {
+        if (tAdorn) {
           tAdorn.updateSelection();
         }
       }.observes('selection'),
@@ -643,7 +544,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       /**
        * We've animated to our initial position and along the way lost our bounds.
        */
-      didReachInitialPosition: function() {
+      didReachInitialPosition: function () {
         this.fitBounds();
       }
 

@@ -106,6 +106,32 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
   },
 
   /**
+   * Called when our entire layer is being hidden. Don't delete the elements. Just hide them.
+   */
+  hide: function() {
+    this.get('myElements').forEach( function( iElement) {
+      iElement.animate( {'stroke-opacity': 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>',
+          function() {
+            this.hide();
+          });
+    });
+  },
+
+  /**
+   * Called when our entire layer is being shown after being hidden. Just show the elements.
+   */
+  show: function() {
+    if( this.getPath('model.isVisible')) {
+      this.get('myElements').forEach(function (iElement) {
+        iElement.animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
+            function () {
+              this.show();
+            });
+      });
+    }
+  },
+
+  /**
    * Create or update our lines, one for each parent present.
    * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
    */
@@ -137,9 +163,6 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
         tLineNum = 0;
 
     if( !tPaper) {
-      this.invokeOnceLater( function() {
-        this.updateLine( iAnimate);
-      }.bind( this));
       return;
     }
     if( !tCoordinatesKeyedByParentID)

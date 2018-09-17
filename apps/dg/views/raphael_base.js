@@ -64,11 +64,16 @@ DG.RaphaelBaseView = SC.View.extend(DG.Destroyable,
         return this._layerManager;
       }.property(),
 
-      _plottedElements: null,
+      _plottedElementsMap: null,
 
-      plottedElements: function() {
-        return this._plottedElements;
-      }.property(),
+      getPlottedElements: function( iIndex) {
+        var tElements = this._plottedElementsMap[iIndex];
+        if( !tElements) {
+          tElements = [];
+          this._plottedElementsMap[ iIndex] = tElements;
+        }
+        return tElements;
+      },
 
       /**
        During createVisualization, stash elements in here that should be removed and regenerated
@@ -85,7 +90,7 @@ DG.RaphaelBaseView = SC.View.extend(DG.Destroyable,
       init: function () {
         sc_super();
         this._elementsToClear = [];
-        this._plottedElements = [];
+        this._plottedElementsMap = [];
       },
 
       /**
@@ -94,6 +99,8 @@ DG.RaphaelBaseView = SC.View.extend(DG.Destroyable,
       destroy: function () {
         this._elementsToClear = null;
         this._paper = null;
+        this._plottedElementsMap.length = 0;
+        this._plottedElementsMap = null;
 
         sc_super();
       },

@@ -1,5 +1,5 @@
 // ==========================================================================
-//                            DG.DataDisplayModel
+//                            DG.DataLayerModel
 //
 //  Author:   William Finzer
 //
@@ -21,12 +21,12 @@
 sc_require('alpha/destroyable');
 sc_require('components/graph/utilities/plot_utilities');
 
-/** @class  DG.DataDisplayModel - The model for a for use in a display situation such as a graph or map.
+/** @class  DG.DataLayerModel - The model for a for use in a display situation such as a graph or map.
 
  @extends SC.Object
  */
-DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
-  /** @scope DG.DataDisplayModel.prototype */
+DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
+  /** @scope DG.DataLayerModel.prototype */
   {
     autoDestroyProperties: [ 'dataConfiguration', 'legend' ],
 
@@ -158,20 +158,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     init: function() {
       sc_super();
 
-      var tConfiguration = this.get('dataConfigurationClass').create(),
-          tContext = tConfiguration.get('dataContext');
-      // If the context has been discovered in the init of the configuration, we take this opportunity
-      // to hook up our observer to it.
-      if( tContext) {
-        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
-      }
-      this.set( 'dataConfiguration', tConfiguration);
-
-      var tLegendDescription = tConfiguration.get('legendAttributeDescription');
-
-      this.set('legend', DG.LegendModel.create( { dataConfiguration: tConfiguration }));
-      this.setPath('legend.attributeDescription', tLegendDescription);
-    },
+     },
 
     destroy: function() {
       if( this.get('dataContext'))
@@ -229,6 +216,9 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           iValue.addObserver('changeCount', this, 'handleDataContextNotification');
         }
         return this;
+      }
+      else if( tContext && !tContext.hasObserverFor('changeCount', this)) {
+        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
       }
       return this.getPath('dataConfiguration.dataContext');
     }.property(),  // Todo: Figure out if this can be cacheable
@@ -519,7 +509,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /** create a menu item that removes the attribute on the given axis/legend */
-    createRemoveAttributeMenuItem: function( iXYorLegend, isForSubmenu, iAttrIndex ) {
+    createRemoveAttributeMenuItem: function( iAxisOrLegendView, iXYorLegend, isForSubmenu, iAttrIndex ) {
       iAttrIndex = iAttrIndex || 0;
       var tDescKey = iXYorLegend + 'AttributeDescription',
           tAxisKey = iXYorLegend + 'Axis', // not used by removeLegendAttribute()
@@ -550,7 +540,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /** create a menu item that changes the attribute type on the given axis/legend */
-    createChangeAttributeTypeMenuItem: function( iXYorLegend ) {
+    createChangeAttributeTypeMenuItem: function( iAxisView, iXYorLegend ) {
       var tDescKey = iXYorLegend + 'AttributeDescription',
           tAxisKey = iXYorLegend + 'Axis',
           tDescription = this.getPath( 'dataConfiguration.' + tDescKey),

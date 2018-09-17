@@ -25,29 +25,43 @@ sc_require('components/graph/adornments/connecting_line_adornment');
  * @extends DG.ConnectingLineAdornment
  */
 DG.MapConnectingLineAdornment = DG.ConnectingLineAdornment.extend(
-/** @scope DG.MapConnectingLineAdornment.prototype */
-{
+    /** @scope DG.MapConnectingLineAdornment.prototype */
+    {
 
-  /**
-   * @property {DG.MapView}
-   */
-  mapSource: null,
-  mapBinding: '.mapSource.mapLayer.map',
+      /**
+       * @property {DG.MapView}
+       */
+      mapSource: null,
+      map: function () {
+        return this.getPath('mapSource.mapLayer.map');
+      }.property(),
+      mapDidChange: function() {
+        this.propertyDidChange('map');
+      }.observes('mapSource.mapLayer.map'),
 
-  /**
-   * Create or update our lines, one for each parent present.
-   * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
-   */
-  updateLine: function( iAnimate ) {
-    var tMap = this.get('map');
+      init: function () {
+        sc_super();
+        if (this.getPath('model.isVisible')) {
+          this.updateToModel();
+        }
+      },
 
-    function getCoords( iX, iY) {
-      return tMap.latLngToContainerPoint([iY, iX]);
-    }
+      /**
+       * Create or update our lines, one for each parent present.
+       * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
+       */
+      updateLine: function (iAnimate) {
+        var tMap;
 
-    this.doUpdateLine( iAnimate, getCoords);
-  }
+        var getCoords = function (iX, iY) {
+          if (!tMap)
+            tMap = this.get('map');
+          return tMap.latLngToContainerPoint([iY, iX]);
+        }.bind(this);
 
-});
+        this.doUpdateLine(iAnimate, getCoords);
+      }
+
+    });
 
 

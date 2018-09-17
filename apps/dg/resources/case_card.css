@@ -156,6 +156,32 @@ tr:nth-child(even) td.attr-cell {
     cursor: text;
 }
 
+.react-data-card-color-table-cell {
+    display: inline-block;
+    width: 100%;
+    height: 15px;
+}
+
+.react-data-card-qualitative-backing {
+    width: 100%;
+    display: block;
+    height: 7px;
+    border-radius: 3px;
+    background-color: lightgrey;
+}
+
+.react-data-card-qualitative-bar {
+    display: block;
+    height: 7px;
+    border-width:0;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.react-data-card-thumbnail {
+		width: 14px;
+}
+
 .react-data-card-attribute-summary {
     font-style: italic;
 }

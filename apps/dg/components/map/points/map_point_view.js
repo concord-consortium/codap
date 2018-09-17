@@ -30,8 +30,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   autoDestroyProperties: [ ],
 
   displayProperties: ['model.dataConfiguration.attributeAssignment',
-                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType',
-                      'model.gridModel.visible'],
+                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType'],
 
   classNames: ['dg-map-layer'],
   // When we go into marquee-mode we add this class which makes us translucent and able receive mousedown events.
@@ -45,10 +44,10 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   /**
    * @property {DG.MapPointLayer}
    */
-  mapPointLayer: null,
+  mapPointLayers: null,
 
   /**
-   * @property {DG.MapLayerView}
+   * @property {DG.BaseMapView}
    */
   mapLayer: null,
 
@@ -64,7 +63,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
    * possibly because of the classNameBindings. So we use brute force.
    */
   marqueeModeDidChange: function() {
-    this.setPath('mapPointLayer.isInMarqueeMode', this.get('isInMarqueeMode'));
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.set('isInMarqueeMode', this.get('isInMarqueeMode'));
+    }.bind( this));
   }.observes('isInMarqueeMode'),
 
   /**
@@ -88,6 +89,27 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   /**
+   * Go through each of the mapPointLayers and merge their separate LatLongBounds into one
+   * @return {L.LatLngBounds | null}
+   */
+  getBounds: function() {
+    var tBounds,
+        tPointLayers = this.get('mapPointLayers');
+    if( tPointLayers) {
+      tPointLayers.forEach( function( iLayer) {
+        var tPointBounds = iLayer.getBounds();
+        if (!SC.none(tPointBounds)) {
+          if (!tBounds)
+            tBounds = tPointBounds;
+          else
+            tBounds.extend(tPointBounds);
+        }
+      });
+    }
+    return tBounds;
+  },
+
+  /**
    * Handles a marquee mouse down.
    * @param {{clientX:number, clientY:number}} iEvent
    * @returns {boolean}
@@ -97,8 +119,6 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     if (!this.get('isInMarqueeMode')) {
       return false;
     }
-    var tDataContext = this.getPath('model.dataContext'),
-      tCollection = this.getPath('model.collectionClient');
     this.marqueeContext = {};
     this.marqueeContext.startPt = DG.ViewUtilities.windowToViewCoordinates(
         { x: iEvent.clientX - 5, y: iEvent.clientY - 5 }, this);
@@ -109,13 +129,17 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.getPath('layerManager.' + DG.LayerNames.kAdornments )
       .push( this.marqueeContext.marquee);
     DG.logUser('marqueeDrag: start');
-    this.get('mapPointLayer' ).preparePointSelection();
     this.marqueeContext.lastRect = {x:0, y:0, width: 0, height: 0};
-    tDataContext.applyChange({
-      operation: 'selectCases',
-      collection: tCollection,
-      cases: null,
-      select: false
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.preparePointSelection();
+      var tDataContext = iLayer.getPath('model.dataContext'),
+          tCollection = iLayer.getPath('model.collectionClient');
+      tDataContext.applyChange({
+        operation: 'selectCases',
+        collection: tCollection,
+        cases: null,
+        select: false
+      });
     });
     return true;
   },
@@ -140,36 +164,37 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   selectPointsInRect: function( iRect, iBaseSelection, iLast) {
-    var tDataContext = this.getPath('model.dataContext'),
-        tCollection = this.getPath('model.collectionClient');
-    if( SC.none( tDataContext))
-      return;
     iBaseSelection = iBaseSelection || [];
 
-    //DG.log('Map rect: ' + JSON.stringify({iRect: iRect, iLast: iLast}));
-    var tSelection = this.get('mapPointLayer' ).getCasesForDelta( iRect, iLast),
-        tDeselection = this.get('mapPointLayer').getCasesForDelta(iLast, iRect),
-        tSelectChange = {
-                    operation: 'selectCases',
-                    collection: tCollection,
-                    cases: iBaseSelection.concat( tSelection),
-                    select: true,
-                    extend: true
-        },
-        tDeselectChange = {
-          operation: 'selectCases',
-          collection: tCollection,
-          cases: iBaseSelection.concat( tDeselection),
-          select: false,
-          extend: true
-        };
+    this.get('mapPointLayers' ).forEach( function( iLayer) {
+      var tDataContext = iLayer.getPath('model.dataContext'),
+          tCollection = iLayer.getPath('model.collectionClient');
+      if( SC.none( tDataContext))
+        return;
+      var tSelection = iLayer.getCasesForDelta( iRect, iLast),
+          tDeselection = iLayer.getCasesForDelta(iLast, iRect),
+          tSelectChange = {
+            operation: 'selectCases',
+            collection: tCollection,
+            cases: iBaseSelection.concat( tSelection),
+            select: true,
+            extend: true
+          },
+          tDeselectChange = {
+            operation: 'selectCases',
+            collection: tCollection,
+            cases: iBaseSelection.concat( tDeselection),
+            select: false,
+            extend: true
+          };
 
-    if (tSelectChange.cases.length !== 0) {
-      tDataContext.applyChange( tSelectChange);
-    }
-    if (tDeselectChange.cases.length !== 0) {
-      tDataContext.applyChange( tDeselectChange);
-    }
+      if (tSelectChange.cases.length !== 0) {
+        tDataContext.applyChange( tSelectChange);
+      }
+      if (tDeselectChange.cases.length !== 0) {
+        tDataContext.applyChange( tDeselectChange);
+      }
+    });
   },
 
   mouseUp: function( iEvent) {
@@ -179,7 +204,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.marqueeContext = null;
     this.set('isInMarqueeMode', false);
     DG.logUser('marqueeDrag: end');
-    this.get('mapPointLayer' ).cleanUpPointSelection();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.cleanUpPointSelection();
+    });
 
     return true;
   },
@@ -203,20 +230,52 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
         }.bind(this);
 
     sc_super();
-    this.set('mapPointLayer', DG.MapPointLayer.create({
-      paperSource: this,
-      model: this.get('model'),
-      mapSource: this
-    }));
-    this.get('mapPointLayer').addObserver( 'plotDisplayDidChange', this, function() {
-      this.invokeLast( this.plottedPointsDidChange);
-    });
+
+    this.mapPointLayers = [];
+    this.addMapPointLayers();
 
     // When the underlying map zooms, we want to be hidden during the zoom so user doesn't see
     // points momentarily in wrong place.
     this.getPath('mapLayer.map')
         .on('zoomstart', handleZoomStart)
         .on('zoomend', handleZoomEnd);
+  },
+
+  /** For each mapLayerModel that has lat/long attributes, if we don't already have a corresponding
+   *  mapPointLayer, make one and stash it.
+   */
+  addMapPointLayers: function() {
+    var tMapPointLayers = this.get('mapPointLayers'),
+        tExistingMapPointLayerModels = tMapPointLayers.map( function( iLayer) {
+          return iLayer.get('model');
+        });
+    this.getPath('model.mapLayerModels').forEach(function (iMapLayerModel, iIndex) {
+      var tDataConfig = iMapLayerModel.get('dataConfiguration');
+      if (tDataConfig.get('hasLatLongAttributes') && tExistingMapPointLayerModels.indexOf( iMapLayerModel) < 0) {
+        var tLayer = DG.MapPointLayer.create({
+          paperSource: this,
+          model: iMapLayerModel,
+          mapSource: this,
+          dataConfiguration: tDataConfig,
+          plotLayerNumber: iIndex,
+        });
+        tLayer.addObserver('plotDisplayDidChange', this, function () {
+          this.invokeLast(this.plottedPointsDidChange);
+        }.bind(this));
+        tMapPointLayers.push(tLayer);
+      }
+    }.bind(this));
+  },
+
+  /**
+   *
+   * @return {[DG.LegendView]}
+   */
+  createLegendViews: function() {
+    var tViews = this.get('mapPointLayers').map( function( iLayer) {
+      return DG.LegendView.create( { model: iLayer.getPath('model.legend')});
+    });
+    return tViews;
   },
 
   /**
@@ -227,7 +286,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   modelDidChange: function () {
-    this.setPath('mapPointLayer.model', this.get('model'));
+    // this.setPath('mapPointLayers.model', this.get('model'));
   }.observes('model'),
 
   shouldDraw: function() {
@@ -236,17 +295,22 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   doDraw: function() {
-    this.get('mapPointLayer' ).doDraw();
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.doDraw();
+    });
+  },
+
+  updateConnectingLines: function() {
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.updateConnectingLine();
+    });
   },
 
   clear: function() {
-    this.get('mapPointLayer' ).clear();
-  },
-
-  gridVisibilityDidChange: function() {
-    var tFixedSize = this.getPath('model.gridModel.visible') ? 3 : null;
-    this.setPath('mapPointLayer.fixedPointRadius', tFixedSize);
-  }.observes('model.gridModel.visible')
+    this.get('mapPointLayers').forEach( function( iLayer) {
+      iLayer.clear();
+    });
+  }
 
 });
 

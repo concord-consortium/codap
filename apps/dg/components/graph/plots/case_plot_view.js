@@ -259,6 +259,7 @@ DG.CasePlotView = DG.PlotView.extend(
         if (!tPlottedElements || tPlottedElements.length === 0) {
           var tStart = 0,
               tInc = 200,
+              i,
               loop = function () {
                 var tDescriptions = [];
                 tXPixelMax = this.getPath('xAxisView.pixelMax');
@@ -267,7 +268,7 @@ DG.CasePlotView = DG.PlotView.extend(
                   this.invokeLater( loop, 100);
                   return;
                 }
-                for (var i = tStart; i < tStart + tInc && i < tNumCases; i++) {
+                for (i = tStart; i < tStart + tInc && i < tNumCases; i++) {
                   tDescriptions.push(createCircleDescription(i));
                 }
                 tPointSet = this.get('paper').add(tDescriptions).forEach(function (iElement, iIndex) {

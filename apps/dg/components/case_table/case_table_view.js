@@ -633,7 +633,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         if( attr)
           values[attr.name] = value;
       });
-      return context.addItems(values);
+      var result = context.addItems(values);
+      return result && result.caseIDs;
     }
 
     function doDeleteCase(caseIDs) {
@@ -1127,7 +1128,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         redoString: 'DG.Redo.caseTable.insertCases',
         log: "insert %@ cases in table".fmt(caseCount),
         execute: function() {
-          newCaseIDs = dataContext.addItems(newItems, beforeItemID);
+          newCaseIDs = dataContext.addItems(newItems, beforeItemID).caseIDs;
         },
         undo: function() {
           var cases = newCaseIDs.map(function(caseID) { return DG.store.find('DG.Case', caseID); });

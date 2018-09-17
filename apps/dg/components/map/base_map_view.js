@@ -1,5 +1,5 @@
 // ==========================================================================
-//                            DG.MapLayerView
+//                            DG.BaseMapView
 //
 //  Author:   William Finzer
 //
@@ -19,7 +19,7 @@
 // ==========================================================================
 
 /* global L */
-/** @class  DG.MapLayerView
+/** @class  DG.BaseMapView
 
  A view on a map.
 
@@ -28,8 +28,8 @@
 
  @extends SC.Object
  */
-DG.MapLayerView = SC.View.extend(
-    /** @scope DG.MapLayerView.prototype */ {
+DG.BaseMapView = SC.View.extend(
+    /** @scope DG.BaseMapView.prototype */ {
 
       model: null,
 
@@ -99,19 +99,12 @@ DG.MapLayerView = SC.View.extend(
         var onLayerAdd = function (iLayerEvent) {
               var tParentView = this.get('parentView');
               this._map.off('layeradd', onLayerAdd);
-              tParentView.addPointLayer();
-              tParentView.addAreaLayer();
-              tParentView.addGridLayer();
-              // We want the popup hints for the grid to be on top of the points. jQuery can
-              // help with this if we hardcode the layer class names.
-              // ToDo: The implementation below will not work properly when there are two maps.
-              // The popups for the second grid will appear on the first map. Presumably we can
-              // use more selective selectors to solve this problem.
-/*
-              this.invokeOnce(function () {
-                $('.leaflet-popup-pane').insertAfter('.map-layer');
+              this.invokeLater( function() {
+                // invokeLater is needed to insure that the parent view has its legendViewCallback
+                tParentView.addPointLayers();
+                tParentView.addPolygonLayers();
+                tParentView.adjustLayout();
               });
-*/
             }.bind(this),
 
             onDisplayChangeEvent = function (iEvent) {
@@ -140,7 +133,7 @@ DG.MapLayerView = SC.View.extend(
         this._map = L.map(this._layerID, {
           scrollWheelZoom: false,
           zoomSnap: 0,
-          trackResize: false
+          trackResize: true
         })
             .setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd)
@@ -182,6 +175,7 @@ DG.MapLayerView = SC.View.extend(
 
       backgroundChanged: function () {
         var tMap = this.get('map'),
+            tLayerOpacity = this.getPath('model.baseMapLayerIsVisible') ? 1.0 : 0.0,
             tNewLayerName = this.getPath('model.baseMapLayerName'),
             tNewLayer;
 
@@ -191,7 +185,7 @@ DG.MapLayerView = SC.View.extend(
           tMap.removeLayer(this.get('baseMapLayer'));
         if (this.get('baseMapLabels'))
           tMap.removeLayer(this.get('baseMapLabels'));
-        tNewLayer = L.esri.basemapLayer(tNewLayerName, {crossOrigin:true});
+        tNewLayer = L.esri.basemapLayer(tNewLayerName, {crossOrigin:true, opacity: tLayerOpacity});
         this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);

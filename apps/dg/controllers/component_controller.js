@@ -49,7 +49,7 @@ DG.ComponentController = SC.Object.extend((function () // closure
         this._inspectorButtons = this.createInspectorButtons();
       }
       return this._inspectorButtons;
-    }.property(),
+    }.property('_inspectorButtons'),
 
     /**
      * Subclasses will call sc_super and push onto array.

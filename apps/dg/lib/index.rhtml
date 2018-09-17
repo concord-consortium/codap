@@ -26,7 +26,7 @@
     <meta http-equiv="Content-Script-Type" content="text/javascript"  >
     <meta name="apple-mobile-web-app-capable" content="yes"  >
     <meta name="apple-mobile-web-app-status-bar-style" content="<%= config.status_bar_style || 'default' %>"  >
-    <meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"  >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"  >
 
     <% if config.touch_enabled %>
     <% if config.precomposed_icon %>
@@ -56,7 +56,16 @@
    # these in your Buildfile with the 'bootstrap' config.
 -%>
 
-    <script src="<%= sc_static('build/codap-lib-bundle.js.ignore') %>" type="text/javascript"></script>
+
+    <script>
+      window.SC = window.SC || { MODULE_INFO: {}, LAZY_INSTANTIATION: {} };
+      SC.buildMode = '<%=SC.build_mode%>';
+      SC.buildNumber = '<%=target[:build_number]%>';
+      SC.buildLocale = '<%=language%>';
+    </script>
+
+    <%= bootstrap %>
+
     <script src="../../../../codap-config.js" type="text/javascript"></script>
     <!-- https://www.html5rocks.com/en/tutorials/speed/script-loading/ -->
     <script>
@@ -77,16 +86,6 @@
         });
       }());
     </script>
-
-
-    <script>
-      window.SC = window.SC || { MODULE_INFO: {}, LAZY_INSTANTIATION: {} };
-      SC.buildMode = '<%=SC.build_mode%>';
-      SC.buildNumber = '<%=target[:build_number]%>';
-      SC.buildLocale = '<%=language%>';
-    </script>
-
-    <%= bootstrap %>
 
     <% #
        # This line should appear in your head area to include the stylesheets

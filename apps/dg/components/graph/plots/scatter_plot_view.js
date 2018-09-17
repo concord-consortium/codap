@@ -82,23 +82,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
        */
       isFirstPlot: true,
 
-      /**
-       * There can be more than one scatterplot in a graph. The zeroth one will use the _plottedElements
-       * array in RaphaelBaseView. Others will construct their own array and use it.
-       * @property {Array of Element}
-       */
-      _myPlottedElements: null,
-      plottedElements: function() {
-        if( this.isFirstPlot) {
-          return sc_super();
-        }
-        else {
-          if( this._myPlottedElements === null)
-            this._myPlottedElements = [];
-          return this._myPlottedElements;
-        }
-      }.property( 'isFirstPlot'),
-
       isFirstPlotChanged: function() {
         if( this.isFirstPlot) {
           if( SC.isArray( this._myPlottedElements)) {

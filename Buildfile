@@ -15,7 +15,8 @@ config :dg,
        :title => 'CODAP',
        :css_theme => 'ace.dg',
        :layout => 'dg:lib/index.rhtml',
-       :manifest => 'manifest.webmanifest'
+       :manifest => 'manifest.webmanifest',
+       :bootstrap => 'build/codap-lib-bundle.js.ignore'
 
 # Production build (e.g. sc-build, make deploy) configuration
 mode :production do
@@ -26,7 +27,8 @@ end
 # Debug build (e.g. sc-server) configuration
 mode :debug do
   config :dg ,
-         :google_analytics_id => nil
+         :google_analytics_id => nil,
+         :preferred_language => 'en' # language for sc-server can be changed here
 end
 
 # proxy for local dev.

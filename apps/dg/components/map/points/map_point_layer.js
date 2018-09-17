@@ -29,12 +29,14 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     {
       autoDestroyProperties: [],
 
-  /**
-   * @property {DG.MapModel}
-   */
-  model: null,
+      /**
+       * @property {DG.MapModel}
+       */
+      model: null,
 
-  mapSource: null,
+      mapSource: null,
+
+      dataConfiguration: null,
 
       map: function () {
         return this.getPath('mapSource.mapLayer.map');
@@ -42,9 +44,30 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 
       isInMarqueeMode: false, // Set by parent during marquee select to allow us to suppress data tips
 
+      /**
+       * @property { DG.MapGridLayer }
+       */
+      gridLayer: null,
+
+      /**
+       * @property {DG.MapConnectingLineAdornment}
+       */
+      connectingLinesAdorn: null,
+
       init: function () {
         sc_super();
         this.setPath('dataTip.showOnlyLegendData', true);
+        this.addGridLayer();
+        this.lineVisibilityChanged();
+      },
+
+      destroy: function() {
+        var tPlottedElements = this.get('plottedElements');
+        sc_super();
+        // Since our plotted elements are not going to be reused, we have to fully remove them.
+        tPlottedElements.forEach(function (iElement) {
+          iElement.remove();
+        });
       },
 
       /**
@@ -52,9 +75,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
        * @returns {boolean}
        */
       readyToDraw: function () {
-        var tModel = this.get('model');
-        return tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
-            !SC.none(tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'));
+        return !SC.none(this.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
+            !SC.none(this.getPath('dataConfiguration.xAttributeDescription.attributeID'));
       },
 
       /**
@@ -65,8 +87,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         var tModel = this.get('model');
         if (!tModel)
           return; // not ready yet
-        var tConfig = tModel.get('dataConfiguration'),
-            tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+        var tConfig = this.get('dataConfiguration'),
+            tLegendDesc = tConfig.get('legendAttributeDescription'),
             tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
             tStrokeParams = this.getStrokeParams(),
             tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
@@ -88,6 +110,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           legendVarID: tLegendVarID,
           updatedPositions: true,
           pointsShouldBeVisible: this.getPath('model.pointsShouldBeVisible'),
+          isVisible: this.getPath( 'model.isVisible') && this.getPath('model.pointsShouldBeVisible'),
 
           pointColor: tModel.get('pointColor') || DG.PlotUtilities.kDefaultPointColor,
           strokeColor: tStrokeParams.strokeColor,
@@ -169,7 +192,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
         // show or hide if needed, then update
-        this.showHidePlottedElement(tCircle, tIsMissingCase || tCircle.isHidden() || !iRC.pointsShouldBeVisible);
         if (!tIsMissingCase) {
           var tAttrs = {
             cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
@@ -177,11 +199,20 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
           };
           this.updatePlottedElement(tCircle, tAttrs, iAnimate, iCallback);
+          if( iRC.isVisible && tCircle.attr('opacity') === 0) {
+            tCircle.show();
+            tCircle.animate({opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+          }
+          else if( !iRC.isVisible && tCircle.attr('opacity') === 1) {
+            tCircle.animate( { opacity: 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>', function() {
+              tCircle.hide();
+            });
+          }
         }
         tCircle['case'] = iCase;  // Because sorting the cases messes up any correspondence between index and case
       },
 
-      assignElementAttributes: function (iElement, iIndex, iAnimate) {
+      assignElementAttributes: function (iElement, iIndex, iAnimate, iIsVisible) {
         /*
             function changeCaseValues( iDeltaValues) {
               var tXVarID = this_.getPath('model.xVarID'),
@@ -300,13 +331,16 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 //            })
         ;
         iElement.index = iIndex;
-        if (iAnimate)
+        if (iAnimate && iIsVisible)
           DG.PlotUtilities.doCreateCircleAnimation(iElement);
+        else if( !iIsVisible) {
+          iElement.attr( {opacity: 0 });
+          iElement.hide();
+        }
         return iElement;
       },
 
       createElement: function (iCase, iIndex, iAnimate) {
-
         var tCircle = this.get('paper').circle(-100, -100, this._pointRadius);
         tCircle['case'] = iCase;
         tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
@@ -320,15 +354,144 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         if (this.readyToDraw()) {
           this.drawData();
           this.updateSelection();
+          this.updateConnectingLine();
         }
       }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
-          'model.transparency', 'model.strokeTransparency'),
+          'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible'),
+
+      /**
+       * Override so we just remove the plottedElements in our portion of the array.
+       */
+      removeExtraElements: function() {
+/*
+        var tCasesLength = this.getPath('model.cases.length'),
+            tPlottedElements = this.get('plottedElements'),
+            tPlotElementLength = tPlottedElements.length,
+            tLayerManager = this.get('layerManager');
+        for( var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
+          DG.PlotUtilities.doHideRemoveAnimation( tPlottedElements[ tIndex], tLayerManager);
+        }
+        if( tCasesLength < tPlotElementLength ) { // remove from array
+          tPlottedElements.length = tCasesLength;
+          this._elementOrderIsValid = false;
+        }
+*/
+      },
 
       updateSelection: function () {
         if (SC.none(this.get('map')))
           return;
         sc_super();
-      }
+      },
+
+      /**
+       * Defer to dataConfiguration.
+       * @return { L.LatLngBounds | null }
+       */
+      getBounds: function() {
+          return this.get('dataConfiguration').getLatLongBounds();
+      },
+
+      /**
+       * When the model changes visibility, we show or hide everything.
+       * But, if we're showing, we respect the isVisible flag of grid and lines and points.
+       */
+      isVisibleChanged: function() {
+        var tIsVisible = this.getPath('model.isVisible'),
+            tGrid = this.get('gridLayer'),
+            tLines = this.get('connectingLinesAdorn');
+        if( tIsVisible) {
+          tGrid && tGrid.show();
+          tLines && tLines.show();
+        }
+        else {
+          tGrid && tGrid.hide();
+          tLines && tLines.hide();
+        }
+      }.observes('model.isVisible'),
+
+      /**
+       * When an attribute has been removed we can no longer display, so we clear ourselves.
+       */
+      handleAttributeRemoved: function () {
+        this.setPath('model.connectingLineModel.isVisible', false);
+        this.setPath('model.pointsShouldBeVisible', false);
+        this.setPath('model.gridModel.isVisible', false);
+      }.observes('model.attributeRemoved'),
+
+      updateConnectingLine: function() {
+        var tConnectingLinesAdorn = this.get('connectingLinesAdorn');
+        if( tConnectingLinesAdorn) {
+          tConnectingLinesAdorn.invalidateModel();
+          tConnectingLinesAdorn.updateToModel( false /* do not animate */);
+        }
+      },
+
+      /**
+       * Something about the points (aside from visibility) changed. Take appropriate action.
+       */
+      pointsDidChange: function() {
+        if( this.getPath( 'model.isVisible')) {
+          var tGridModel = this.getPath('gridLayer.model');
+          if (tGridModel)
+            tGridModel.rectArrayMustChange();
+          this.updateConnectingLine();
+        }
+      }.observes('pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
+
+      addGridLayer: function () {
+        if( this.get('gridLayer'))
+          return;
+
+        var tGridModel = this.getPath('model.gridModel');
+        tGridModel.initializeRectArray();
+
+        this.set('gridLayer', DG.MapGridLayer.create(
+            {
+              mapSource: this.get('mapSource'),
+              model: tGridModel,
+              showTips: true /* !this.getPath('model.pointsShouldBeVisible') */
+            }));
+        // Make the points smaller so they don't completely cover the grid cells
+/*
+        if (tGridModel.get('isVisible'))
+          this.setPath('mapPointView.mapPointLayers.fixedPointRadius', 3);
+*/
+
+        // this.gridVisibilityChanged();
+      },
+
+      gridVisibilityDidChange: function() {
+/*
+        var tFixedSize = this.getPath('model.gridModel.isVisible') ? 3 : null;
+        this.get('mapPointLayers').forEach( function( iLayer) {
+          iLayer.set('fixedPointRadius', tFixedSize);
+        });
+*/
+      }.observes('model.gridModel.isVisible'),
+
+      /**
+       Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
+       because we don't want to destroy the adornment.
+       */
+      lineVisibilityChanged: function() {
+        var tLineModel = this.getPath( 'model.connectingLinesModel' ),
+            tLinesAreVisible = tLineModel.get('isVisible'),
+            tLineAdorn = this.get('connectingLinesAdorn');
+        if( tLineModel && tLinesAreVisible && !tLineAdorn) {
+          tLineAdorn = DG.MapConnectingLineAdornment.create({ model: tLineModel, paperSource: this,
+            mapSource: this.get('mapSource'), layerName: DG.LayerNames.kConnectingLines,
+            unselectedLineWidth: 1, selectedLineWidth: 3, parentView: this.get('mapSource') });
+          this.set('connectingLinesAdorn', tLineAdorn);
+        }
+
+        this.invokeLast( function() {
+          if( tLineAdorn) {
+            tLineAdorn.updateVisibility();
+            // this.updateMarqueeToolVisibility();
+          }
+        }.bind( this));
+      }.observes('.model.connectingLinesModel.isVisible'),
 
     });
 
