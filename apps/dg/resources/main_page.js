@@ -300,6 +300,12 @@ DG.mainPage = SC.Page.design((function() {
       this.invokeLater( 'setupDragDrop', 300);
     },
 
+    viewDidResize: function() {
+      if (DG.KEEP_IN_BOUNDS_PREF) {
+        DG.currDocumentController().enforceViewBounds();
+      }
+    },
+
     classNameBindings: [
         '_isDraggingFileOrURL:dg-receive-outside-drop',
         '_isDraggingAttr:dg-attr-drop'

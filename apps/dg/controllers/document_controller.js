@@ -553,10 +553,37 @@ DG.DocumentController = SC.Object.extend(
       restoreComponentControllersAndViews: function () {
         var components = this.get('components');
         if (components) {
+          if (DG.KEEP_IN_BOUNDS_PREF) {
+            var scaleBounds = {x:0, y:0};
+            DG.ObjectMap.forEach(components, function (key, iComponent) {
+              scaleBounds.x = Math.max(scaleBounds.x, iComponent.layout.left + iComponent.layout.width);
+              scaleBounds.y = Math.max(scaleBounds.y, iComponent.layout.top + iComponent.layout.height);
+            }.bind(this));
+            this.set('scaleBoundsX', scaleBounds.x);
+            this.set('scaleBoundsY', scaleBounds.y);
+          }
           DG.ObjectMap.forEach(components, function (key, iComponent) {
+            if (DG.KEEP_IN_BOUNDS_PREF) {
+              iComponent.layout.leftOrig = iComponent.layout.left;
+              iComponent.layout.topOrig = iComponent.layout.top;
+              iComponent.layout.widthOrig = iComponent.layout.width;
+              iComponent.layout.heightOrig = iComponent.layout.height;
+            }
             this.createComponentAndView(iComponent);
           }.bind(this));
         }
+      },
+
+      enforceViewBounds: function () {
+        DG.ObjectMap.forEach(this.componentControllersMap,
+            function (iComponentID, iController) {
+              if (iController) {
+                var view = iController.get('view');
+                if (view) {
+                  view.enforceViewBounds();
+                }
+              }
+            });
       },
 
       /**
