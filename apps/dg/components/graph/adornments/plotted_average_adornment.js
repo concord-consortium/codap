@@ -103,8 +103,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     if( iShow && DG.isFinite( iDisplayValue ) ) {
       // set up parameters used by DG.LineLabelMixin.updateTextToModel()
       this.value = iAxisValue; // for St.Dev., iAxisValue not equal to iDisplayValue
-      this.valueString = this.titleString( iDisplayValue, iValue );
       this.valueAxisView = this.getPath('parentView.primaryAxisView');
+      this.valueString = this.titleString( iDisplayValue, iValue );
       this.updateTextToModel( iFractionFromTop );
       this.textElement.show();
       this.backgrndRect.show();
@@ -323,8 +323,9 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   titleString: function( axisValue ) {
     // convert resource to string with rounding, and insert axis value number
     DG.assert( isFinite( axisValue ));
-    var tPrecision = this.titlePrecision + (this.getPath('model.precision') || 0);
-    return this.titleResource.loc( axisValue.toFixed( tPrecision ));
+    var tPrecision = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
+        tNumFormat = DG.Format.number().fractionDigits( 0, tPrecision).group('');
+    return this.titleResource.loc( tNumFormat( axisValue));
   }
 
 });
