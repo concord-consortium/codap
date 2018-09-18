@@ -131,7 +131,7 @@ DG.ToolTip = SC.Object.extend(
       tY -= (tY + tShadowYOffset + tRectHeight) - tPaper.height;
     // If the tip rectangle encompasses tipOrigin, move the tip rectangle up and to the left
     if( DG.ViewUtilities.ptInRect( this.tipOrigin,
-            { x: tX, y: tY, width: tRectWidth + kShadowWidth, height: tRectHeight + kShadowWidth })) {
+            { x: tX, y: tY, width: tRectWidth + kShadowWidth + 5, height: tRectHeight + kShadowWidth + 5})) {
       tX = Math.max( 0, this.tipOrigin.x - tRadius - tRectWidth - kShadowWidth - kRectXOffset);
       tY = Math.max( 0, this.tipOrigin.y - tRadius - tRectHeight - kShadowWidth - kRectYOffset);
     }
