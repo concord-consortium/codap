@@ -348,6 +348,7 @@ DG.ContainerView = SC.View.extend(
           }.bind(this));
           iView.adjust({width: 0, height: 0});
         }
+        return tFinalRect;
       },
       
       /** coverUpComponentViews - Request each component view to cover up its contents with a see-through layer.

@@ -774,7 +774,6 @@ DG.ComponentView = SC.View.extend(
           if (tContainerWidth < scaleBoundsX || tContainerHeight < scaleBoundsY) {
             scalePercent = Math.min(tContainerWidth / scaleBoundsX, tContainerHeight / scaleBoundsY)
           }
-          //console.log("scalePercent: " + scalePercent);
           var tMinWidth = this.get('contentMinWidth') || kMinSize,
               tNewWidth = Math.max(tMinWidth, tLayout.widthOrig * scalePercent),
               tMinHeight = this.get('contentMinWidth') || kMinSize,
@@ -791,6 +790,22 @@ DG.ComponentView = SC.View.extend(
           this.adjust('height', tNewHeight);
           this.adjust('left', tNewLeft);
           this.adjust('top', tNewTop);
+        },
+        configureViewBoundsLayout : function (iNewPos) {
+          var tTitleBar = this.getPath('containerView.titlebar'),
+              scaleBoundsX = DG.currDocumentController().get('scaleBoundsX'),
+              scaleBoundsY = DG.currDocumentController().get('scaleBoundsY'),
+              tLayout = this.getPath('layout'),
+              tContainerWidth = tTitleBar.getContainerWidth(),
+              tContainerHeight = tTitleBar.getContainerHeight(),
+              scalePercent = 1;
+          if (tContainerWidth < scaleBoundsX || tContainerHeight < scaleBoundsY) {
+            scalePercent = Math.min(tContainerWidth / scaleBoundsX, tContainerHeight / scaleBoundsY)
+          }
+          tLayout.topOrig = iNewPos.y / scalePercent;
+          tLayout.leftOrig = iNewPos.x / scalePercent;
+          tLayout.heightOrig = iNewPos.height / scalePercent;
+          tLayout.widthOrig = iNewPos.width / scalePercent;
         },
 
         destroy: function () {
@@ -960,6 +975,7 @@ DG.ComponentView._createComponent = function (iParams) {
 DG.ComponentView.restoreComponent = function (iParams) {
 
   var tComponentView = this._createComponent(iParams),
+      tNewPos,
       tSuperView = iParams.parentView,
       tUseLayoutForPosition = iParams.useLayout;
 
@@ -971,11 +987,14 @@ DG.ComponentView.restoreComponent = function (iParams) {
     tUseLayoutForPosition = true;
   }
   if (!tUseLayoutForPosition) {
-    tSuperView.positionNewComponent(tComponentView, iParams.position, iParams.positionOnCreate);
+    tNewPos = tSuperView.positionNewComponent(tComponentView, iParams.position, iParams.positionOnCreate);
   }
   tSuperView.appendChild(tComponentView);
   tSuperView.updateFrame();
   if (DG.KEEP_IN_BOUNDS_PREF) {
+    if (!tUseLayoutForPosition) {
+      tComponentView.configureViewBoundsLayout(tNewPos);
+    }
     tComponentView.enforceViewBounds();
   }
 
@@ -997,6 +1016,7 @@ DG.ComponentView.restoreComponent = function (iParams) {
 DG.ComponentView.addComponent = function (iParams) {
   var tParams = $.extend({}, iParams, {layout: $.extend(true, {}, iParams.layout)}),
       tSuperView = tParams.parentView,
+      tNewPos,
       tUseLayoutForPosition = tParams.useLayout || false;
   if (!SC.none(tParams.layout.width))
     tParams.layout.width += DG.ViewUtilities.horizontalPadding();
@@ -1006,11 +1026,15 @@ DG.ComponentView.addComponent = function (iParams) {
   var tComponentView = this._createComponent(iParams);
 
   if (!tUseLayoutForPosition) {
-    tSuperView.positionNewComponent(tComponentView, iParams.position);
+    tNewPos = tSuperView.positionNewComponent(tComponentView, iParams.position);
   }
   tSuperView.appendChild(tComponentView);
   tComponentView.bringToFront();
   tSuperView.updateFrame();
+
+  if (DG.KEEP_IN_BOUNDS_PREF && !tUseLayoutForPosition) {
+    tComponentView.configureViewBoundsLayout(tNewPos);
+  }
 
   return tComponentView;
 };
