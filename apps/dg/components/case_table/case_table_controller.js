@@ -310,14 +310,8 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdEditFormula':
           this.editAttributeFormula( columnID);
           break;
-        case 'cmdFreezeFormula':
-          this.freezeFormula( columnID);
-          break;
-        case 'cmdUnfreezeFormula':
-          this.unfreezeFormula( columnID);
-          break;
-        case 'cmdConvertToValues':
-          this.convertToValues( columnID);
+        case 'cmdDeleteFormulaKeepValues':
+          this.deleteFormulaKeepValues( columnID);
           break;
         case 'cmdEditAttribute':
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
@@ -1033,52 +1027,23 @@ DG.CaseTableController = DG.ComponentController.extend(
         // for now we use the newAttribute() method which will replace one attribute formula with another
         // if the new attribute has the same name as the old.
 
-        // Opening the formula editor automatically unfreezes if applicable.
-        if (tRef.attribute.get('hasFrozenFormula')) {
-          this.unfreezeFormula(iAttrID);
-        }
-
         var tAttrFormula = tRef.attribute.get('formula');
         this.editAttributeProperties({ collection: tRef.collection }, tAttrName, tAttrFormula || '' );
       },
 
       /**
-       * A switch for temporarily using the already-calculated values ignoring the existing formula. The formula itself is preserved for "unfreezing".
+       * Converts the formula output to raw values.
        * @param iAttrID
        */
-      freezeFormula: function ( iAttrID ) {
-        var tDataContext = this.get('dataContext'),
-            tRef = tDataContext && tDataContext.getAttrRefByID(iAttrID),
-            tAttrName = tRef && tRef.attribute.get('name'),
-            hierTableView = this.getPath('view.contentView');
-
-        DG.assert( tRef && tAttrName, "freezeFormula() is missing the attribute reference or attribute name" );
-
-        tRef.attribute.freezeFormula(tDataContext);
-        hierTableView.updateColumnInfo();
-      },
-
-      unfreezeFormula: function ( iAttrID ) {
-        var tDataContext = this.get('dataContext'),
-            tRef = tDataContext && tDataContext.getAttrRefByID(iAttrID),
-            tAttrName = tRef && tRef.attribute.get('name'),
-            hierTableView = this.getPath('view.contentView');
-
-        DG.assert( tRef && tAttrName, "unfreezeFormula() is missing the attribute reference or attribute name" );
-
-        tRef.attribute.unfreezeFormula(tDataContext);
-        hierTableView.updateColumnInfo();
-      },
-
-      convertToValues: function ( iAttrID ) {
+      deleteFormulaKeepValues: function (iAttrID ) {
         var tDataContext = this.get('dataContext'),
           tRef = tDataContext && tDataContext.getAttrRefByID(iAttrID),
           tAttrName = tRef && tRef.attribute.get('name'),
           hierTableView = this.getPath('view.contentView');
 
-        DG.assert( tRef && tAttrName, "convertToValues() is missing the attribute reference or attribute name" );
+        DG.assert( tRef && tAttrName, "deleteFormulaKeepValues() is missing the attribute reference or attribute name" );
 
-        tRef.attribute.convertToValues(tDataContext);
+        tRef.attribute.deleteFormulaKeepValues(tDataContext);
         hierTableView.updateColumnInfo();
       },
 

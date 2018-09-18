@@ -1334,10 +1334,6 @@ input.dg-editor-text {
     background-color: rgba(0,0,0,0.05);
 }
 
-.dg-frozen-formula-column {
-    background-color: rgba(0,0,255,0.1);
-}
-
 .slick-row.even .slick-cell.dg-index-column {
     background-color: #EEFEE3
 }
