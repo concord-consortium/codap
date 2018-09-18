@@ -150,7 +150,7 @@ DG.CaseTableDataManager = SC.Object.extend({
           },
           formatter: function (row, cell, cellValue, colInfo, rowItem) {
             var caseCount = this.subcaseCount(this._rowCaseMap[row]);
-            var setName = this.context.getCaseNameForCount(this.collection, 2);
+            var setName = this.context.getCaseNameForCount(this.collection, caseCount);
             return '%@ %@'.loc(caseCount, setName);
           }.bind(this)
         };

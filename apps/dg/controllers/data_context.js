@@ -22,7 +22,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/*global pluralize:true*/
 /** @class
 
   Coordinating controller which manages a set of collections that form the
@@ -2347,7 +2347,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var tCollection = iCollectionClient.get('collection'),
         tLabels = tCollection && tCollection.get('labels'),
         tSingName = tLabels ? tLabels.singleCase : tCollection.get('caseName'),
-        tPluralName = tLabels ? tLabels.pluralCase : tCollection.get('name');
+        tPluralName = tLabels ? tLabels.pluralCase : tCollection.get('title');
+    tSingName = tSingName || (tPluralName && pluralize.singular(tPluralName));
     tSingName = tSingName || 'DG.DataContext.singleCaseName'.loc();
     tPluralName = tPluralName || 'DG.DataContext.pluralCaseName'.loc();
     return (iCount === 1) ? tSingName : tPluralName;
