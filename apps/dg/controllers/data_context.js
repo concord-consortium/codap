@@ -482,6 +482,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'deleteDataContext':
         result = this.destroy();
         break;
+      case 'updateDataContext':
+        result = this.doUpdateDataContextMetadata(iChange);
+        break;
       default:
         DG.logWarn('DataContext.performChange: unknown operation: '
             + iChange.operation);
@@ -530,19 +533,53 @@ DG.DataContext = SC.Object.extend((function() // closure
      */
     doUpdateCollection: function (iChange) {
       var success = true;
+      var updatedProperties = {};
+      var kMetaProperties = ['name', 'title'];
       var collection = (SC.typeOf(iChange.collection) === SC.T_STRING)
           ? this.getCollectionByName(iChange.collection)
           : iChange.collection;
       DG.ObjectMap.forEach(iChange.properties, function(key, value) {
-        // name is not mutable
-        if (key !== 'name') {
+        if (kMetaProperties.contains(key)) {
+          updatedProperties[key] = value;
           collection.set(key, value);
         } else {
-          DG.logWarn('Attempt to update immutable collection name ignored: %@ -> %@'.loc(
-              this.get('name'), name));
+          DG.logWarn('Attempt to update "%@" of collection %@[%@] not permitted.',
+              key, collection.get('name'), collection.get('id'));
+          delete iChange.properties.key;
         }
-      });
-      return {success: success};
+      }.bind(this));
+      return {
+        success: success,
+        properties: updatedProperties
+      };
+    },
+    /**
+     * Updates the properties of a dataContext. That is: title, description, preventReorg...
+     * @param {object} iChange
+     *    {String}              iChange.operation -- 'updateDataContext'
+     *    {Object}              iChange.properties -- new property values
+     * @returns {{success: boolean}}
+     */
+    doUpdateDataContextMetadata: function (iChange) {
+      var success = true;
+      var updatedProperties = {};
+      var kMetaProperties = ['name', 'title', 'description', 'preventReorg'];
+      DG.ObjectMap.forEach(iChange.properties, function(key, value) {
+        // name is not mutable
+        if (kMetaProperties.contains(key)) {
+          this.set(key, value);
+          updatedProperties[key] = value;
+        } else {
+          DG.logWarn('Attempt to update "%@" of data context %@[%@] not permitted.',
+              key, this.get('name'), this.get('id'));
+          delete iChange.properties.key;
+        }
+      }.bind(this));
+      return {
+        success: success,
+        properties: updatedProperties
+      };
+
     },
   /**
     Creates one or more cases according to the arguments specified.
