@@ -1021,13 +1021,13 @@ DG.CaseTableController = DG.ComponentController.extend(
       editAttributeFormula: function( iAttrID ) {
         var tDataContext = this.get('dataContext'),
             tRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tAttrName = tRef && tRef.attribute.get('name');
+            tAttrName = tRef && tRef.attribute.get('name'),
+            tAttrFormula = tRef.attribute.get('formula');
 
         DG.assert( tRef && tAttrName, "editAttributeFormula() is missing the attribute reference or attribute name" );
         // for now we use the newAttribute() method which will replace one attribute formula with another
         // if the new attribute has the same name as the old.
 
-        var tAttrFormula = tRef.attribute.get('formula');
         this.editAttributeProperties({ collection: tRef.collection }, tAttrName, tAttrFormula || '' );
       },
 
