@@ -88,7 +88,6 @@
     "codemirror": "^5.39.2",
     "deep-equal": "^1.0.1",
     "esri-leaflet": "^2.2.1",
-    "fastclick": "^1.0.6",
     "iframe-phone": "^1.2.0",
     "leaflet": "1.0.0",
     "moment": "^2.22.2",

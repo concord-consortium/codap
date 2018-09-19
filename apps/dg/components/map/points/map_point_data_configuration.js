@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 /* global L */
-sc_require('components/graph_map_common/map_data_configuration');
+sc_require('components/map/map_data_configuration');
 
 /** @class  DG.MapPointDataConfiguration - The object that describes the manner in which latitude and
  *  longitude attributes are assigned to places in a map.
