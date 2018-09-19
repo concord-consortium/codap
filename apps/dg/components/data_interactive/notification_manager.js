@@ -139,6 +139,7 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
           DG.ObjectMap.forEach(iChange.result, function (k, v) {
             switch (k) {
               case 'success':
+              case 'properties':
               case 'caseIDs':
               case 'caseID':
               case 'attrIDs':

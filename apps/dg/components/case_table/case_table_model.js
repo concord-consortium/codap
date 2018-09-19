@@ -34,9 +34,10 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @property {string}
    */
   name: function (k, v) {
-    if (!SC.none(v)) {
-      this.setPath('context.name', v);
-    }
+    this.context.applyChange({
+      operation: 'updateDataContext',
+      properties: {name: v}
+    });
     return this.getPath('context.name');
   }.property(),
 
@@ -46,7 +47,10 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    */
   title: function(k, v) {
     if (!SC.none(v)) {
-      this.setPath('context.title', v);
+      this.context.applyChange({
+        operation: 'updateDataContext',
+        properties: {title: v}
+      });
     }
     return this.getPath('context.title');
   }.property(),

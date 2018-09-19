@@ -211,7 +211,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    */
   collectionName: function (key, value) {
     if (value !== undefined) {
-      this.setPath('collection.name', value);
+      this.dataContext.applyChange({
+        operation: 'updateCollection',
+        collection: this.collection,
+        properties: {name: value}
+      });
     }
     return this.getPath('collection.name');
   }.property().cacheable(),
