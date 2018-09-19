@@ -554,13 +554,10 @@ DG.DocumentController = SC.Object.extend(
         var components = this.get('components');
         if (components) {
           if (DG.KEEP_IN_BOUNDS_PREF) {
-            var scaleBounds = {x:0, y:0};
-            DG.ObjectMap.forEach(components, function (key, iComponent) {
-              scaleBounds.x = Math.max(scaleBounds.x, iComponent.layout.left + iComponent.layout.width);
-              scaleBounds.y = Math.max(scaleBounds.y, iComponent.layout.top + iComponent.layout.height);
-            }.bind(this));
-            this.set('scaleBoundsX', scaleBounds.x);
-            this.set('scaleBoundsY', scaleBounds.y);
+            this.computeScaleBounds();
+            if (Object.keys(components).length) {
+              this.computeScaleFactor();
+            }
           }
           DG.ObjectMap.forEach(components, function (key, iComponent) {
             if (DG.KEEP_IN_BOUNDS_PREF) {
@@ -575,6 +572,7 @@ DG.DocumentController = SC.Object.extend(
       },
 
       enforceViewBounds: function () {
+        this.computeScaleFactor();
         DG.ObjectMap.forEach(this.componentControllersMap,
             function (iComponentID, iController) {
               if (iController) {
@@ -584,6 +582,56 @@ DG.DocumentController = SC.Object.extend(
                 }
               }
             });
+      },
+
+      computeScaleBounds: function (iNewPos) {
+        var components = this.get('components');
+        if (components) {
+          var scaleBounds = {x:0, y:0},
+              storedScaleFactor = this.get('scaleFactor'),
+              scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
+          if (iNewPos) {
+            scaleBounds.x = Math.max(scaleBounds.x, iNewPos.x + iNewPos.width);
+            scaleBounds.y = Math.max(scaleBounds.y, iNewPos.y + iNewPos.height);
+          }
+          DG.ObjectMap.forEach(components, function (key, iComponent) {
+            if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
+              if (iComponent.layout &&
+                  (iComponent.layout.left && iComponent.layout.width &&
+                  iComponent.layout.top && iComponent.layout.height)) {
+                scaleBounds.x = Math.max(scaleBounds.x,
+                  iComponent.layout.left + iComponent.layout.width);
+                scaleBounds.y = Math.max(scaleBounds.y,
+                  iComponent.layout.top + iComponent.layout.height);
+              }
+            }
+          }.bind(this));
+          this.set('scaleBoundsX', scaleBounds.x / scaleFactor);
+          this.set('scaleBoundsY', scaleBounds.y / scaleFactor);
+          console.log("scaleBoundsX: " + scaleBounds.x / scaleFactor);
+          console.log("scaleBoundsY: " + scaleBounds.y / scaleFactor);
+        }
+      },
+
+      computeScaleFactor: function () {
+        var docView = DG.mainPage.get('docView'),
+            components = this.get('components'),
+            containerWidth = window.innerWidth,
+            containerHeight = window.innerHeight,
+            scaleBoundsX = this.get('scaleBoundsX'),
+            scaleBoundsY = this.get('scaleBoundsY'),
+            scaleFactor = 1;
+        if (!SC.none(docView)) {
+          while (!SC.none(docView.parentView.parentView)) {
+            docView = docView.parentView;
+          }
+          containerHeight = window.innerHeight - docView.get('frame').y;
+        }
+        if (containerWidth < scaleBoundsX || containerHeight < scaleBoundsY) {
+          scaleFactor = Math.min(containerWidth / scaleBoundsX, containerHeight / scaleBoundsY)
+        }
+        this.set('scaleFactor', scaleFactor);
+        console.log("scaleFactor: " + scaleFactor);
       },
 
       /**
@@ -1263,7 +1311,19 @@ DG.DocumentController = SC.Object.extend(
         var tGuideComponentView = this._singletonViews.guideView;
         if (tGuideComponentView) {
           tGuideComponentView.set('isVisible', false);
+          if (DG.KEEP_IN_BOUNDS_PREF) {
+            this.computeScaleBounds();
+          }
         }
+      },
+
+      guideViewHidden: function () {
+        var tGuideComponentView = this._singletonViews.guideView,
+            guideHidden = false;
+        if (tGuideComponentView) {
+          guideHidden = !tGuideComponentView.get('isVisible');
+        }
+        return guideHidden;
       },
 
       /**
@@ -1587,6 +1647,9 @@ DG.DocumentController = SC.Object.extend(
             tController.set('model', null);
             tController.set('view', null);
           }
+        }
+        if (DG.KEEP_IN_BOUNDS_PREF) {
+          this.computeScaleBounds();
         }
         // the view will be destroyed elsewhere
       },
