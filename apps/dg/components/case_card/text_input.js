@@ -29,13 +29,16 @@ DG.React.ready(function () {
           },
 
           componentDidMount: function () {
+            window.addEventListener('mousedown', this._onMouseDown, true);
+            window.addEventListener('mouseup', this._onMouseUp, true);
             DG.mainPage.mainPane.addListener({action: 'click', target: this, method: this._onWindowClick});
             DG.mainPage.mainPane.addListener({action: 'touchstart', target: this, method: this._onWindowClick});
           },
-
           componentWillUnmount: function () {
             DG.mainPage.mainPane.removeListener({action: 'click', target: this, method: this._onWindowClick});
             DG.mainPage.mainPane.removeListener({action: 'touchstart', target: this, method: this._onWindowClick});
+            window.removeListener('mousedown', this._onMouseDown, true);
+            window.removeListener('mouseup', this._onMouseUp, true);
           },
 
           componentWillReceiveProps: function (iNewProps) {
@@ -43,6 +46,20 @@ DG.React.ready(function () {
               this.setState({value: iNewProps.value});
             if (iNewProps.unit !== this.state.unit)
               this.setState({unit: iNewProps.unit});
+          },
+
+          _onMouseDown: function (e) {
+            var inputElement = findDOMNode(this);
+            if (e.target === inputElement) {
+              e.stopPropagation();
+            }
+          },
+
+          _onMouseUp: function (e) {
+            var inputElement = findDOMNode(this);
+            if (e.target === inputElement) {
+              e.stopPropagation();
+            }
           },
 
           _onWindowClick: function (event) {
