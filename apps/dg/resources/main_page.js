@@ -268,6 +268,8 @@ DG.mainPage = SC.Page.design((function() {
       layout: { top: kInfobarHeight + kToolbarHeight },
       horizontalAlign: SC.ALIGN_LEFT,
       verticalAlign: SC.ALIGN_TOP,
+      hasVerticalScroller: !DG.KEEP_IN_BOUNDS_PREF,
+      hasHorizontalScroller: !DG.KEEP_IN_BOUNDS_PREF,
       horizontalOverlay: kIsMobileDevice,
       verticalOverlay: kIsMobileDevice,
       classNames: 'dg-doc-background'.w(),
