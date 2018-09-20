@@ -628,8 +628,8 @@ DG.ComponentView = SC.View.extend(
               dragCursor: kCornerBorderCursor,
               dragAdjust: function (evt, info) {
                 // Don't let user drag right edge off left of window
-                var tMinHeight = this.get('contentMinHeight') || kMinSize;
-                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize;
+                var tMinHeight = this.get('contentMinHeight') || kMinSize,
+                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize,
                     tMinWidth = this.get('contentMinWidth') || kMinSize,
                     tLoc = Math.max(evt.pageX, tMinWidth),
                     tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
@@ -725,7 +725,7 @@ DG.ComponentView = SC.View.extend(
 
         getInspectorDimensions : function () {
             var tInspectorWidth = 0,
-                tInspectorHeight = 0;
+                tInspectorHeight = 0,
                 tButtons = this.getPath('inspectorButtons');
 
             if (tButtons && tButtons.length) {
@@ -746,7 +746,7 @@ DG.ComponentView = SC.View.extend(
               scaleFactor = DG.currDocumentController().get('scaleFactor'),
               tMinWidth = this.get('contentMinWidth') || kMinSize,
               tMinHeight = this.get('contentMinWidth') || kMinSize;
-              if (type == DG.Calculator) {
+              if (type === DG.Calculator) {
                 tMinWidth = tLayout.width;
                 tMinHeight = tLayout.height;
               }
@@ -769,8 +769,7 @@ DG.ComponentView = SC.View.extend(
             controller.updateModelLayout();
         },
         configureViewBoundsLayout : function (iNewPos) {
-          var tTitleBar = this.getPath('containerView.titlebar'),
-              tLayout = this.getPath('layout'),
+          var tLayout = this.getPath('layout'),
               scaleFactor = DG.currDocumentController().get('scaleFactor');
           tLayout.topOrig = iNewPos.y / scaleFactor;
           tLayout.leftOrig = iNewPos.x / scaleFactor;

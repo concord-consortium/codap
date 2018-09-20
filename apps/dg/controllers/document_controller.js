@@ -622,7 +622,6 @@ DG.DocumentController = SC.Object.extend(
        */
       computeScaleFactor: function () {
         var docView = DG.mainPage.get('docView'),
-            components = this.get('components'),
             containerWidth = window.innerWidth,
             containerHeight = window.innerHeight,
             scaleBoundsX = this.get('scaleBoundsX'),
@@ -635,7 +634,7 @@ DG.DocumentController = SC.Object.extend(
           containerHeight = window.innerHeight - docView.get('frame').y;
         }
         if (containerWidth < scaleBoundsX || containerHeight < scaleBoundsY) {
-          scaleFactor = Math.min(containerWidth / scaleBoundsX, containerHeight / scaleBoundsY)
+          scaleFactor = Math.min(containerWidth / scaleBoundsX, containerHeight / scaleBoundsY);
         }
         this.set('scaleFactor', scaleFactor);
         console.log("scaleFactor: " + scaleFactor);
