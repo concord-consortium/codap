@@ -554,6 +554,7 @@ DG.DocumentController = SC.Object.extend(
         var components = this.get('components');
         if (components) {
           if (DG.KEEP_IN_BOUNDS_PREF) {
+            this.set('scaleFactor', 1);
             this.computeScaleBounds();
             if (Object.keys(components).length) {
               this.computeScaleFactor();
@@ -583,7 +584,10 @@ DG.DocumentController = SC.Object.extend(
               }
             });
       },
-
+      /**
+       Computed when we add component, delete component, move component, resize component.
+       ScaleBounds are used to determine if we need to rescale when resize browser
+       */
       computeScaleBounds: function (iNewPos) {
         var components = this.get('components');
         if (components) {
@@ -612,7 +616,10 @@ DG.DocumentController = SC.Object.extend(
           console.log("scaleBoundsY: " + scaleBounds.y / scaleFactor);
         }
       },
-
+      /**
+       Computed when we resize browser or load document.
+       ScaleFactor is used to compute non-scaled position and size of components.
+       */
       computeScaleFactor: function () {
         var docView = DG.mainPage.get('docView'),
             components = this.get('components'),
