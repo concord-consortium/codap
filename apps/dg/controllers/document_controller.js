@@ -600,7 +600,7 @@ DG.DocumentController = SC.Object.extend(
           }
           DG.ObjectMap.forEach(components, function (key, iComponent) {
             if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
-              if (iComponent.layout &&
+              if (iComponent.layout && iComponent.layout.isVisible &&
                   (iComponent.layout.left && iComponent.layout.width &&
                   iComponent.layout.top && iComponent.layout.height)) {
                 scaleBounds.x = Math.max(scaleBounds.x,
