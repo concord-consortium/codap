@@ -435,39 +435,88 @@ DG.GraphModel = DG.DataLayerModel.extend(
       @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
-      var tDescKey, tAxisKey, tOtherDim,
-          newAttribute = iAttrRefs.attributes[0];
+      var this_ = this,
+          tTargetDescKey, tTargetAxisKey, tOtherDim;
 
-      switch( iOrientation) {
+      function switchAxes() {
+
+        function synchAxis( iDescKey, iAxisKey, iAxisClass) {
+          var tCurrentAxisClass = this_.get( iAxisKey).constructor,
+              tAxisModelParams = { dataConfiguration: tDataConfiguration };
+
+          // If the variable and axis are incompatible, we'll have to change the axis
+          if( iAxisClass !== tCurrentAxisClass ) {
+            var tAxisToDestroy = this_.get( iAxisKey ),
+                tNewAxis = iAxisClass.create(tAxisModelParams);
+            tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
+            this_.set( iAxisKey, tNewAxis );
+            tAxisToDestroy.destroy();
+          }
+        }
+
+        // We want to reconfigure the graph without triggering any of the responses to the
+        // changes until we're done. Note that while the axes may change, the plot type should not.
+        var tSourceDescKey = tOtherDim + 'AttributeDescription',
+            tTargetRole = tDataConfiguration.getPath( tSourceDescKey + '.role'),
+            tTargetType = tDataConfiguration.getPath( tSourceDescKey + '.attributeStats.attributeType'),
+            tSourceRole = tDataConfiguration.getPath( tTargetDescKey + '.role'),
+            tSourceType = tDataConfiguration.getPath( tTargetDescKey + '.attributeStats.attributeType'),
+            tSourceAxisKey = tOtherDim + 'Axis',
+            tTargetAxisClass = this_.get( tSourceAxisKey).constructor,
+            tSourceAxisClass = this_.get( tTargetAxisKey).constructor,
+            tAttrsForSource = SC.none(tCurrentAttribute) ? [] : [tCurrentAttribute],
+            tCollClientForSource = tDataConfiguration.getPath(tSourceDescKey + '.collectionClient'),
+            tAttrRefsForSource = {
+              attributes: tAttrsForSource,
+              collection: tCollClientForSource
+            };
+        tDataConfiguration.setAttributeAndCollectionClient(tTargetDescKey, iAttrRefs,
+            tTargetRole, tTargetType);
+        tDataConfiguration.setAttributeAndCollectionClient(tSourceDescKey, tAttrRefsForSource,
+            tSourceRole, tSourceType);
+        synchAxis(tTargetDescKey, tTargetAxisKey, tTargetAxisClass);
+        synchAxis(tSourceDescKey, tSourceAxisKey, tSourceAxisClass);
+        this_.invalidate();
+        this_.rescaleAxesFromData(true, true);
+      }
+
+      switch (iOrientation) {
         case 'horizontal':
-          tDescKey = 'xAttributeDescription';
-          tAxisKey = 'xAxis';
+          tTargetDescKey = 'xAttributeDescription';
+          tTargetAxisKey = 'xAxis';
           tOtherDim = 'y';
           break;
         case 'vertical':
-          tDescKey = 'yAttributeDescription';
-          tAxisKey = 'yAxis';
+          tTargetDescKey = 'yAttributeDescription';
+          tTargetAxisKey = 'yAxis';
           tOtherDim = 'x';
           break;
         case 'vertical2':
-          tDescKey = 'y2AttributeDescription';
-          tAxisKey = 'y2Axis';
+          tTargetDescKey = 'y2AttributeDescription';
+          tTargetAxisKey = 'y2Axis';
           tOtherDim = 'x';
           break;
       }
 
-      iAttrRefs.attributes[0] = newAttribute;
-      this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
+      this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 
-      var dataConfiguration = this.get('dataConfiguration');
-      dataConfiguration.set('dataContext', iDataContext);
-      dataConfiguration.setAttributeAndCollectionClient( tDescKey, iAttrRefs);
+      var tDataConfiguration = this.get('dataConfiguration'),
+          tCurrentAttribute = tDataConfiguration.getPath(tTargetDescKey + '.attribute'),
+          tOtherAttribute = tDataConfiguration.getPath(tOtherDim + 'AttributeDescription.attribute'),
+          tIsAxisSwitch = iAttrRefs.attributes[0] === tOtherAttribute;
+      if (tIsAxisSwitch) {
+        switchAxes();
+      }
+      else {
+        tDataConfiguration.set('dataContext', iDataContext);
+        tDataConfiguration.setAttributeAndCollectionClient(tTargetDescKey, iAttrRefs);
 
-      // Make sure correct kind of axis is installed
-      this.privSyncAxisWithAttribute( tDescKey, tAxisKey );
-      this.privSyncOtherAxisWithAttribute( tOtherDim);
-      this.invalidate();
-      this.set('aboutToChangeConfiguration', false ); // reset for next time
+        // Make sure correct kind of axis is installed
+        this.privSyncAxisWithAttribute(tTargetDescKey, tTargetAxisKey);
+        this.privSyncOtherAxisWithAttribute(tOtherDim);
+        this.invalidate();
+      }
+      this.set('aboutToChangeConfiguration', false); // reset for next time
     },
 
     /**

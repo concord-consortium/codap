@@ -794,6 +794,8 @@ DG.GraphView = SC.View.extend(
         var synchOneAxis = function (iPrefix) {
           var tCurrentViewClass = this.get(iPrefix + 'AxisView').constructor,
               tAttrType = this.getPath('model.dataConfiguration.' + iPrefix + 'AttributeDescription.attribute.type'),
+              tCurrentAxisModel = this.getPath('model.' + iPrefix + 'Axis'),
+              tCurrentAxisModelClass = tCurrentAxisModel.constructor,
               tNewViewClass, tNewView, tOldView, tOtherView;
           if (tCurrentViewClass === DG.CellLinearAxisView && tAttrType === 'qualitative') {
             tNewViewClass = DG.QualCellLinearAxisView;
@@ -801,11 +803,14 @@ DG.GraphView = SC.View.extend(
           else if (tCurrentViewClass === DG.QualCellLinearAxisView && tAttrType === 'numeric') {
             tNewViewClass = DG.CellLinearAxisView;
           }
+          else if( tCurrentAxisModelClass === DG.CountAxisModel) {
+            tNewViewClass = DG.CountAxisView;
+          }
           if (!SC.none(tNewViewClass)) {
             tOldView = this.get(iPrefix + 'AxisView');
             tNewView = tNewViewClass.create({
               orientation: tOldView.get('orientation'),
-              model: tOldView.get('model')
+              model: tCurrentAxisModel
             });
             this.removeChild(tOldView);
             this.appendChild(tNewView);
