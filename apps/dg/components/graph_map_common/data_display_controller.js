@@ -862,6 +862,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     collection: tCollectionClient,
                     attributes: [iDragData.attribute]
                   });
+              this.get('view').select();
 
               this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
             }.bind( this),

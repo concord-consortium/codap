@@ -453,6 +453,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             this.log = 'plotAxisAttributeChange: ' +
                 '{ "orientation": "%@", "attribute": "%@" }'
                     .fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
+            controller.get('view').select();
             SC.Benchmark.end(tBenchmarkName);
             SC.Benchmark.log(tBenchmarkName);
             //console.profileEnd();
@@ -504,6 +505,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   collection: tCollectionClient,
                   attributes: [iDragData.attribute]
                 });
+              controller.get('view').select();
 
               this.log = 'Attribute dragged and dropped: %@, %@'.fmt('vertical', iDragData.attribute.get('name'));
             },
@@ -556,6 +558,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   collection: tCollectionClient,
                   attributes: [iDragData.attribute]
                 });
+              controller.get('view').select();
 
               this.log = 'changeAttributeOnSecondYAxis: { attribute: %@ }'.fmt(iDragData.attribute.get('name'));
             },
