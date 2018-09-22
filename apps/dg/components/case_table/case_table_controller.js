@@ -313,6 +313,9 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdDeleteFormulaKeepValues':
           this.deleteFormulaKeepValues( columnID);
           break;
+        case 'cmdRecoverDeletedFormula':
+          this.recoverDeletedFormula( columnID);
+          break;
         case 'cmdEditAttribute':
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
           break;
@@ -1045,7 +1048,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           tPrevFormula = tRef && tRef.attribute.get('formula');
 
         DG.assert( tRef && tAttrName, "deleteFormulaKeepValues() is missing the attribute reference or attribute name" );
-        
+
         DG.UndoHistory.execute(DG.Command.create({
           name: "caseTable.editAttributeFormula",
           undoString: 'DG.Undo.caseTable.editAttributeFormula',
@@ -1062,6 +1065,10 @@ DG.CaseTableController = DG.ComponentController.extend(
               },
               tResult = tDataContext && tDataContext.applyChange( tChange);
             if( tResult.success) {
+              tRef.attribute.set('formula', tFormula);
+              tRef.attribute.set('deletedFormula', tPrevFormula);
+              hierTableView.updateColumnInfo();
+
               var action = "attributeEditFormula";
               this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
                 action, tAttrName, tCollection.get('name'), tFormula);
@@ -1079,6 +1086,10 @@ DG.CaseTableController = DG.ComponentController.extend(
 
             tResult = tDataContext && tDataContext.applyChange( tChange);
             if( tResult.success) {
+              tRef.attribute.set('formula', tPrevFormula);
+              tRef.attribute.set('deletedFormula', tFormula);
+              hierTableView.updateColumnInfo();
+
               action = "attributeEditFormula";
               this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
                 action, tAttrName, tCollection.get('name'), tPrevFormula);
@@ -1090,9 +1101,75 @@ DG.CaseTableController = DG.ComponentController.extend(
             this.execute();
           }
         }));
+      },
 
-        tRef.attribute.set('formula', tFormula);
-        hierTableView.updateColumnInfo();
+      /**
+       * If a formula has been deleted recently, restore it from the attribute property.
+       * @param iAttrID
+       */
+      recoverDeletedFormula: function (iAttrID) {
+        var tDataContext = this.get('dataContext'),
+          tRef = tDataContext && tDataContext.getAttrRefByID(iAttrID),
+          tCollection = tRef && tDataContext.getCollectionForAttribute(tRef.attribute),
+          tAttrName = tRef && tRef.attribute.get('name'),
+          hierTableView = this.getPath('view.contentView'),
+          tFormula = tRef && tRef.attribute.get('deletedFormula'),
+          tPrevFormula = '';
+
+        DG.assert( tRef && tAttrName, "recoverDeletedFormula() is missing the attribute reference or attribute name" );
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "caseTable.editAttributeFormula",
+          undoString: 'DG.Undo.caseTable.editAttributeFormula',
+          redoString: 'DG.Redo.caseTable.editAttributeFormula',
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          execute: function() {
+            var tChange = {
+                operation: 'createAttributes',
+                collection: tCollection,
+                attrPropsArray: [{ name: tAttrName, formula: tFormula }]
+              },
+              tResult = tDataContext && tDataContext.applyChange( tChange);
+            if( tResult.success) {
+              tRef.attribute.set('formula', tFormula);
+              tRef.attribute.set('deletedFormula', tPrevFormula);
+              hierTableView.updateColumnInfo();
+
+              var action = "attributeEditFormula";
+              this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+                action, tAttrName, tCollection.get('name'), tFormula);
+            } else {
+              this.set('causedChange', false);
+            }
+          }.bind(this),
+          undo: function() {
+            var tChange, tResult, action; // eslint-disable-line no-unused-vars
+            tChange = {
+              operation: 'createAttributes',
+              collection: tCollection,
+              attrPropsArray: [{ name: tAttrName, formula: tPrevFormula }]
+            };
+
+            tResult = tDataContext && tDataContext.applyChange( tChange);
+            if( tResult.success) {
+              tRef.attribute.set('formula', tPrevFormula);
+              tRef.attribute.set('deletedFormula', tFormula);
+              hierTableView.updateColumnInfo();
+
+              action = "attributeEditFormula";
+              this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+                action, tAttrName, tCollection.get('name'), tPrevFormula);
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          redo: function() {
+            this.execute();
+          }
+        }));
       },
 
       showDeletePopup: function() {

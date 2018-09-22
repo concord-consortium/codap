@@ -59,6 +59,12 @@ DG.Attribute = DG.BaseModel.extend(
       formula: '',
 
       /**
+       * Recently formula preserved for later recovery
+       * @property {String}
+       */
+      deletedFormula: '',
+
+      /**
        * The map of attribute and category color values, for the attribute.
        * For special color keys and values, see:
        *   DG.ColorUtilities.getAttributeColorFromColorMap(),
@@ -285,6 +291,14 @@ DG.Attribute = DG.BaseModel.extend(
       }.property('formula').cacheable(),
 
       /**
+       * {Computed} True if the attribute has a recently-deleted formula.
+       * @property {Boolean}
+       */
+      hasDeletedFormula: function () {
+        return !SC.empty(this.get('deletedFormula'));
+      }.property('deletedFormula').cacheable(),
+
+      /**
        * Evaluates the attribute's formula in the context of the specified namespace object.
        * @param iCase {Object}    Namespace object with property:value pairs for evaluation context
        * @return {Number | ?} Result of evaluation
@@ -392,6 +406,9 @@ DG.Attribute = DG.BaseModel.extend(
             this.destroyDGFormula();
           this._cachedValues = {};
         }
+
+        // Discard old deleted formula waiting for recovery.
+        this.set('deletedFormula', '');
       }.observes('formula'),
 
       namespaceDidChange: function () {
@@ -475,6 +492,7 @@ DG.Attribute = DG.BaseModel.extend(
           editable: this.editable,
           hidden: this.hidden,
           formula: this.hasFormula() ? this.formula : undefined,
+          deletedFormula: this.hasDeletedFormula() ? this.deletedFormula : undefined,
           guid: this.id,
           precision: this.precision,
           unit: this.unit

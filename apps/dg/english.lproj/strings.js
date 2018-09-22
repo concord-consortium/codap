@@ -498,6 +498,7 @@ SC.stringsFor("en", {
     "DG.TableController.headerMenuItems.editAttribute": "Edit Attribute Properties...",
     "DG.TableController.headerMenuItems.editFormula": "Edit Formula...",
     "DG.TableController.headerMenuItems.deleteFormula": "Delete Formula (Keeping Values)",
+    "DG.TableController.headerMenuItems.recoverFormula": "Recover Deleted Formula",
     "DG.TableController.headerMenuItems.randomizeAttribute": "Rerandomize",
     "DG.TableController.headerMenuItems.sortAscending": "Sort Ascending (A→Z, 0→9)",
     "DG.TableController.headerMenuItems.sortDescending": "Sort Descending (9→0, Z→A)",
