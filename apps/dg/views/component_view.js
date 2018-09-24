@@ -496,11 +496,11 @@ DG.ComponentView = SC.View.extend(
                   tMinY = -kTitleBarHeight / 2,
                   tMaxY = tContainerHeight - kTitleBarHeight / 2;
               if (DG.KEEP_IN_BOUNDS_PREF) {
-                var inspectorDimensions = tOuterView.getInspectorDimensions();
+                var tInspectorDimensions = tOuterView.getInspectorDimensions();
                 tMinX = 0;
-                tMaxX = tContainerWidth - (info.width + inspectorDimensions.width);
+                tMaxX = tContainerWidth - (info.width + tInspectorDimensions.width);
                 tMinY = 0;
-                tMaxY = tContainerHeight - (Math.max(info.height, inspectorDimensions.height));
+                tMaxY = tContainerHeight - (Math.max(info.height, tInspectorDimensions.height));
               }
 
               tX = Math.min(Math.max(tX, tMinX), tMaxX);
@@ -511,9 +511,9 @@ DG.ComponentView = SC.View.extend(
 
               if (DG.KEEP_IN_BOUNDS_PREF) {
                 var tLayout = tOuterView.getPath('layout'),
-                    scaleFactor = DG.currDocumentController().get('scaleFactor');
-                tLayout.topOrig = tY / scaleFactor;
-                tLayout.leftOrig = tX / scaleFactor;
+                    tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                tLayout.topOrig = tY / tScaleFactor;
+                tLayout.leftOrig = tX / tScaleFactor;
               }
             },
             canBeDragged: function () {
@@ -542,16 +542,16 @@ DG.ComponentView = SC.View.extend(
                     tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
                     tContainerWidth = this.getContainerWidth();
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var inspectorDimensions = this.parentView.getInspectorDimensions();
-                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + inspectorDimensions.width));
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
                 }
                 // Don't let width of component become too small
                 tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 this.parentView.adjust('width', tNewWidth);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.getPath('layout'),
-                      scaleFactor = DG.currDocumentController().get('scaleFactor');
-                  tLayout.widthOrig = tNewWidth / scaleFactor;
+                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                  tLayout.widthOrig = tNewWidth / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -568,15 +568,15 @@ DG.ComponentView = SC.View.extend(
                     tNewHeight = info.height + (evt.pageY - info.pageY),
                     tContainerHeight = this.getContainerHeight();
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  tMaxHeight = tContainerHeight - info.top;
+                  tMaxHeight = Math.min(tMaxHeight, tContainerHeight - info.top)
                 }
                 tNewHeight = DG.ViewUtilities.roundToGrid(Math.min(
                     Math.max(tNewHeight, tMinHeight), tMaxHeight));
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.getPath('layout'),
-                      scaleFactor = DG.currDocumentController().get('scaleFactor');
-                  tLayout.heightOrig = tNewHeight / scaleFactor;
+                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                  tLayout.heightOrig = tNewHeight / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -593,8 +593,6 @@ DG.ComponentView = SC.View.extend(
                     tContainerWidth = this.getContainerWidth();
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   evt.pageX = Math.max(0, evt.pageX);
-                  //var inspectorDimensions = this.parentView.getInspectorDimensions();
-                  //tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + inspectorDimensions.width));
                 }
                 var tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
                     tLoc;
@@ -606,9 +604,9 @@ DG.ComponentView = SC.View.extend(
                 }
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.getPath('layout'),
-                      scaleFactor = DG.currDocumentController().get('scaleFactor');
-                  tLayout.widthOrig = tNewWidth / scaleFactor;
-                  tLayout.leftOrig = tLoc / scaleFactor;
+                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                  tLayout.widthOrig = tNewWidth / tScaleFactor;
+                  tLayout.leftOrig = tLoc / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -639,8 +637,8 @@ DG.ComponentView = SC.View.extend(
                     tContainerHeight = this.getContainerHeight();
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   tMaxHeight = tContainerHeight - info.top;
-                  var inspectorDimensions = this.parentView.getInspectorDimensions();
-                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + inspectorDimensions.width));
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
                 }
                 // Don't let width or height of component become too small
                 tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
@@ -649,9 +647,9 @@ DG.ComponentView = SC.View.extend(
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.getPath('layout'),
-                      scaleFactor = DG.currDocumentController().get('scaleFactor');
-                  tLayout.heightOrig = tNewHeight / scaleFactor;
-                  tLayout.widthOrig = tNewWidth / scaleFactor;
+                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                  tLayout.heightOrig = tNewHeight / tScaleFactor;
+                  tLayout.widthOrig = tNewWidth / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -726,14 +724,21 @@ DG.ComponentView = SC.View.extend(
         getInspectorDimensions : function () {
             var tInspectorWidth = 0,
                 tInspectorHeight = 0,
-                tButtons = this.getPath('inspectorButtons');
-
+                tButtons = this.getPath('inspectorButtons'),
+                tLayout = this.getPath('layout');
             if (tButtons && tButtons.length) {
               if (tButtons[0].parentView && tButtons[0].parentView.layout) {
                 tInspectorWidth = tButtons[0].parentView.layout.width;
                 tInspectorHeight = tButtons[0].parentView.layout.height;
+              } else {
+                const BUTTONHORIZONTALSPACE = 50;
+                const BUTTONVERTICALSPACE = 43;
+                tInspectorWidth = BUTTONHORIZONTALSPACE;
+                tInspectorHeight = BUTTONVERTICALSPACE * tButtons.length;
               }
             }
+            tLayout.inspectorWidth = tInspectorWidth;
+            tLayout.inspectorHeight = tInspectorHeight;
             return {width : tInspectorWidth, height : tInspectorHeight};
         },
         enforceViewBounds : function () {
@@ -743,17 +748,19 @@ DG.ComponentView = SC.View.extend(
               tLayout = this.getPath('layout'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
-              scaleFactor = DG.currDocumentController().get('scaleFactor'),
+              tScaleFactor = DG.currDocumentController().get('scaleFactor'),
               tMinWidth = this.get('contentMinWidth') || kMinSize,
               tMinHeight = this.get('contentMinWidth') || kMinSize;
               if (type === DG.Calculator) {
                 tMinWidth = tLayout.width;
                 tMinHeight = tLayout.height;
               }
-          var tNewWidth = Math.max(tMinWidth, tLayout.widthOrig * scaleFactor),
-              tNewHeight = Math.max(tMinHeight, tLayout.heightOrig * scaleFactor),
-              tNewLeft = tLayout.leftOrig * scaleFactor,
-              tNewTop = tLayout.topOrig * scaleFactor;
+          var tNewWidth = Math.max(tMinWidth,
+              DG.ViewUtilities.floorToGrid(tLayout.widthOrig * tScaleFactor)),
+              tNewHeight = Math.max(tMinHeight,
+              DG.ViewUtilities.floorToGrid(tLayout.heightOrig * tScaleFactor)),
+              tNewLeft = DG.ViewUtilities.floorToGrid(tLayout.leftOrig * tScaleFactor),
+              tNewTop = DG.ViewUtilities.floorToGrid(tLayout.topOrig * tScaleFactor);
           if ((tNewLeft + tNewWidth + tInspectorDimensions.width) > tContainerWidth) {
             tNewLeft = Math.max(0,  tContainerWidth - tNewWidth - tInspectorDimensions.width);
           }
@@ -770,11 +777,11 @@ DG.ComponentView = SC.View.extend(
         },
         configureViewBoundsLayout : function (iNewPos) {
           var tLayout = this.getPath('layout'),
-              scaleFactor = DG.currDocumentController().get('scaleFactor');
-          tLayout.topOrig = iNewPos.y / scaleFactor;
-          tLayout.leftOrig = iNewPos.x / scaleFactor;
-          tLayout.heightOrig = iNewPos.height / scaleFactor;
-          tLayout.widthOrig = iNewPos.width / scaleFactor;
+              tScaleFactor = DG.currDocumentController().get('scaleFactor');
+          tLayout.topOrig = iNewPos.y / tScaleFactor;
+          tLayout.leftOrig = iNewPos.x / tScaleFactor;
+          tLayout.heightOrig = iNewPos.height / tScaleFactor;
+          tLayout.widthOrig = iNewPos.width / tScaleFactor;
         },
 
         destroy: function () {

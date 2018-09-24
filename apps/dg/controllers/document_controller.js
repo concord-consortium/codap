@@ -585,8 +585,8 @@ DG.DocumentController = SC.Object.extend(
             });
       },
       /**
-       Computed when we add component, delete component, move component, resize component.
-       ScaleBounds are used to determine if we need to rescale when resize browser
+       Computed when we add, delete, move, resize component.
+       ScaleBounds are used to determine if rescale is needed when browser resizes
        */
       computeScaleBounds: function (iNewPos) {
         var components = this.get('components');
@@ -603,10 +603,20 @@ DG.DocumentController = SC.Object.extend(
               if (iComponent.layout && iComponent.layout.isVisible &&
                   (iComponent.layout.left && iComponent.layout.width &&
                   iComponent.layout.top && iComponent.layout.height)) {
-                scaleBounds.x = Math.max(scaleBounds.x,
-                  iComponent.layout.left + iComponent.layout.width);
-                scaleBounds.y = Math.max(scaleBounds.y,
-                  iComponent.layout.top + iComponent.layout.height);
+                var unscaledRightEdge = iComponent.layout.left + iComponent.layout.width;
+                unscaledRightEdge = unscaledRightEdge / scaleFactor;
+                if (iComponent.layout.inspectorWidth) {
+                  unscaledRightEdge += iComponent.layout.inspectorWidth;
+                }
+                var unscaledBottomEdge = iComponent.layout.top + iComponent.layout.height;
+                unscaledBottomEdge = unscaledBottomEdge / scaleFactor;
+                if (iComponent.layout.inspectorHeight) {
+                  if (iComponent.layout.inspectorHeight > iComponent.layout.height) {
+                    unscaledBottomEdge = iComponent.layout.top / scaleFactor + iComponent.layout.inspectorHeight;
+                  }
+                }
+                scaleBounds.x = Math.max(scaleBounds.x, unscaledRightEdge);
+                scaleBounds.y = Math.max(scaleBounds.y, unscaledBottomEdge);
               }
             }
           }.bind(this));
