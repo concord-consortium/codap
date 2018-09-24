@@ -556,7 +556,7 @@ DG.DocumentController = SC.Object.extend(
           if (DG.KEEP_IN_BOUNDS_PREF) {
             this.set('scaleFactor', 1);
             this.set('scaleBoundsX', 0);
-            this.set('scaleBoundsY', 0);	
+            this.set('scaleBoundsY', 0);
             this.computeScaleBounds();
             if (Object.keys(components).length) {
               this.computeScaleFactor();
@@ -624,10 +624,10 @@ DG.DocumentController = SC.Object.extend(
               }
             }.bind(this));
             var storedScaleBoundsX = this.get('scaleBoundsX'),
-                storedScaleBoundsY = this.get('scaleBoundsY');  
+                storedScaleBoundsY = this.get('scaleBoundsY');
             if ((!storedScaleBoundsX || !storedScaleBoundsX) ||
-							  (storedScaleBoundsX == 0 || storedScaleBoundsX == 0) ||
-							  (scaleBounds.x > storedScaleBoundsX || scaleBounds.y > storedScaleBoundsY)) {
+                (storedScaleBoundsX == 0 || storedScaleBoundsX == 0) ||
+                (scaleBounds.x > storedScaleBoundsX || scaleBounds.y > storedScaleBoundsY)) {
               this.set('scaleBoundsX', scaleBounds.x);
               this.set('scaleBoundsY', scaleBounds.y);
               console.log("scaleBoundsX: " + scaleBounds.x);
