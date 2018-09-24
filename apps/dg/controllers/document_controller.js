@@ -555,6 +555,8 @@ DG.DocumentController = SC.Object.extend(
         if (components) {
           if (DG.KEEP_IN_BOUNDS_PREF) {
             this.set('scaleFactor', 1);
+            this.set('scaleBoundsX', 0);
+            this.set('scaleBoundsY', 0);	
             this.computeScaleBounds();
             if (Object.keys(components).length) {
               this.computeScaleFactor();
@@ -594,36 +596,44 @@ DG.DocumentController = SC.Object.extend(
           var scaleBounds = {x:0, y:0},
               storedScaleFactor = this.get('scaleFactor'),
               scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
-          if (iNewPos) {
-            scaleBounds.x = Math.max(scaleBounds.x, iNewPos.x + iNewPos.width);
-            scaleBounds.y = Math.max(scaleBounds.y, iNewPos.y + iNewPos.height);
-          }
-          DG.ObjectMap.forEach(components, function (key, iComponent) {
-            if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
-              if (iComponent.layout && iComponent.layout.isVisible &&
-                  (iComponent.layout.left && iComponent.layout.width &&
-                  iComponent.layout.top && iComponent.layout.height)) {
-                var unscaledRightEdge = iComponent.layout.left + iComponent.layout.width;
-                unscaledRightEdge = unscaledRightEdge / scaleFactor;
-                if (iComponent.layout.inspectorWidth) {
-                  unscaledRightEdge += iComponent.layout.inspectorWidth;
-                }
-                var unscaledBottomEdge = iComponent.layout.top + iComponent.layout.height;
-                unscaledBottomEdge = unscaledBottomEdge / scaleFactor;
-                if (iComponent.layout.inspectorHeight) {
-                  if (iComponent.layout.inspectorHeight > iComponent.layout.height) {
-                    unscaledBottomEdge = iComponent.layout.top / scaleFactor + iComponent.layout.inspectorHeight;
-                  }
-                }
-                scaleBounds.x = Math.max(scaleBounds.x, unscaledRightEdge);
-                scaleBounds.y = Math.max(scaleBounds.y, unscaledBottomEdge);
-              }
+          if (scaleFactor = 1) {
+            if (iNewPos) {
+              scaleBounds.x = Math.max(scaleBounds.x, iNewPos.x + iNewPos.width);
+              scaleBounds.y = Math.max(scaleBounds.y, iNewPos.y + iNewPos.height);
             }
-          }.bind(this));
-          this.set('scaleBoundsX', scaleBounds.x);
-          this.set('scaleBoundsY', scaleBounds.y);
-          console.log("scaleBoundsX: " + scaleBounds.x);
-          console.log("scaleBoundsY: " + scaleBounds.y);
+            DG.ObjectMap.forEach(components, function (key, iComponent) {
+              if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
+                if (iComponent.layout && iComponent.layout.isVisible &&
+                    (iComponent.layout.left && iComponent.layout.width &&
+                    iComponent.layout.top && iComponent.layout.height)) {
+                  var unscaledRightEdge = iComponent.layout.left + iComponent.layout.width;
+                  unscaledRightEdge = unscaledRightEdge / scaleFactor;
+                  if (iComponent.layout.inspectorWidth) {
+                    unscaledRightEdge += iComponent.layout.inspectorWidth;
+                  }
+                  var unscaledBottomEdge = iComponent.layout.top + iComponent.layout.height;
+                  unscaledBottomEdge = unscaledBottomEdge / scaleFactor;
+                  if (iComponent.layout.inspectorHeight) {
+                    if (iComponent.layout.inspectorHeight > iComponent.layout.height) {
+                      unscaledBottomEdge = iComponent.layout.top / scaleFactor + iComponent.layout.inspectorHeight;
+                    }
+                  }
+                  scaleBounds.x = Math.max(scaleBounds.x, unscaledRightEdge);
+                  scaleBounds.y = Math.max(scaleBounds.y, unscaledBottomEdge);
+                }
+              }
+            }.bind(this));
+            var storedScaleBoundsX = this.get('scaleBoundsX'),
+                storedScaleBoundsY = this.get('scaleBoundsY');  
+            if ((!storedScaleBoundsX || !storedScaleBoundsX) ||
+							  (storedScaleBoundsX == 0 || storedScaleBoundsX == 0) ||
+							  (scaleBounds.x > storedScaleBoundsX || scaleBounds.y > storedScaleBoundsY)) {
+              this.set('scaleBoundsX', scaleBounds.x);
+              this.set('scaleBoundsY', scaleBounds.y);
+              console.log("scaleBoundsX: " + scaleBounds.x);
+              console.log("scaleBoundsY: " + scaleBounds.y);
+            }
+          }
         }
       },
       /**
@@ -1328,7 +1338,7 @@ DG.DocumentController = SC.Object.extend(
         if (tGuideComponentView) {
           tGuideComponentView.set('isVisible', false);
           if (DG.KEEP_IN_BOUNDS_PREF) {
-            this.computeScaleBounds();
+            //this.computeScaleBounds();
           }
         }
       },
@@ -1665,7 +1675,7 @@ DG.DocumentController = SC.Object.extend(
           }
         }
         if (DG.KEEP_IN_BOUNDS_PREF) {
-          this.computeScaleBounds();
+          //this.computeScaleBounds();
         }
         // the view will be destroyed elsewhere
       },
