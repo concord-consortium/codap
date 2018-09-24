@@ -768,9 +768,7 @@ DG.main = function main() {
     }
   }
 
-  if(( DG.get('componentMode') !== 'yes') && ( DG.get('embeddedMode') !== 'yes')) { // Usual DG game situation is that we're not in component or transparent mode
-    DG.splash.showSplash();
-  }
+  DG.splash.showSplash();
 
   if (DG.get('embeddedMode') === 'yes') {
     $('html').addClass('dg-embedded-mode');
