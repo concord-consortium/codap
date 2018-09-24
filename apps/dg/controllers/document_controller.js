@@ -620,10 +620,10 @@ DG.DocumentController = SC.Object.extend(
               }
             }
           }.bind(this));
-          this.set('scaleBoundsX', scaleBounds.x / scaleFactor);
-          this.set('scaleBoundsY', scaleBounds.y / scaleFactor);
-          console.log("scaleBoundsX: " + scaleBounds.x / scaleFactor);
-          console.log("scaleBoundsY: " + scaleBounds.y / scaleFactor);
+          this.set('scaleBoundsX', scaleBounds.x);
+          this.set('scaleBoundsY', scaleBounds.y);
+          console.log("scaleBoundsX: " + scaleBounds.x);
+          console.log("scaleBoundsY: " + scaleBounds.y);
         }
       },
       /**
