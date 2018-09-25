@@ -1075,7 +1075,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             } else {
               this.set('causedChange', false);
             }
-          }.bind(this),
+          },
           undo: function() {
             var tChange, tResult, action; // eslint-disable-line no-unused-vars
             tChange = {
@@ -1144,7 +1144,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             } else {
               this.set('causedChange', false);
             }
-          }.bind(this),
+          },
           undo: function() {
             var tChange, tResult, action; // eslint-disable-line no-unused-vars
             tChange = {
