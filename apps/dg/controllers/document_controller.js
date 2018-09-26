@@ -596,7 +596,7 @@ DG.DocumentController = SC.Object.extend(
           var scaleBounds = {x:0, y:0},
               storedScaleFactor = this.get('scaleFactor'),
               scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
-          if (scaleFactor = 1) {
+          if (scaleFactor === 1) {
             if (iNewPos) {
               scaleBounds.x = Math.max(scaleBounds.x, iNewPos.x + iNewPos.width);
               scaleBounds.y = Math.max(scaleBounds.y, iNewPos.y + iNewPos.height);
@@ -606,17 +606,22 @@ DG.DocumentController = SC.Object.extend(
                 if (iComponent.layout && iComponent.layout.isVisible &&
                     (iComponent.layout.left && iComponent.layout.width &&
                     iComponent.layout.top && iComponent.layout.height)) {
-                  var unscaledRightEdge = iComponent.layout.left + iComponent.layout.width;
-                  unscaledRightEdge = unscaledRightEdge / scaleFactor;
-                  if (iComponent.layout.inspectorWidth) {
-                    unscaledRightEdge += iComponent.layout.inspectorWidth;
-                  }
-                  var unscaledBottomEdge = iComponent.layout.top + iComponent.layout.height;
-                  unscaledBottomEdge = unscaledBottomEdge / scaleFactor;
-                  if (iComponent.layout.inspectorHeight) {
-                    if (iComponent.layout.inspectorHeight > iComponent.layout.height) {
-                      unscaledBottomEdge = iComponent.layout.top / scaleFactor + iComponent.layout.inspectorHeight;
+
+                  var tInspectorDimensions = { width: 0, height : 0 };
+                  var controller = DG.currDocumentController().componentControllersMap[iComponent.get('id')];
+                  if (controller) {
+                    var view = controller.get('view');
+                    if (view) {
+                      tInspectorDimensions = view.getInspectorDimensions();
                     }
+                  }
+                  var unscaledRightEdge = (iComponent.layout.left + iComponent.layout.width) / scaleFactor;
+                  if (tInspectorDimensions.width) {
+                    unscaledRightEdge += tInspectorDimensions.width;
+                  }
+                  var unscaledBottomEdge = (iComponent.layout.top + iComponent.layout.height) / scaleFactor;
+                  if (tInspectorDimensions.height && tInspectorDimensions.height > iComponent.layout.height) {
+                    unscaledBottomEdge = iComponent.layout.top / scaleFactor + tInspectorDimensions.height;
                   }
                   scaleBounds.x = Math.max(scaleBounds.x, unscaledRightEdge);
                   scaleBounds.y = Math.max(scaleBounds.y, unscaledBottomEdge);
@@ -626,7 +631,7 @@ DG.DocumentController = SC.Object.extend(
             var storedScaleBoundsX = this.get('scaleBoundsX'),
                 storedScaleBoundsY = this.get('scaleBoundsY');
             if ((!storedScaleBoundsX || !storedScaleBoundsX) ||
-                (storedScaleBoundsX == 0 || storedScaleBoundsX == 0) ||
+                (storedScaleBoundsX === 0 || storedScaleBoundsX === 0) ||
                 (scaleBounds.x > storedScaleBoundsX || scaleBounds.y > storedScaleBoundsY)) {
               this.set('scaleBoundsX', scaleBounds.x);
               this.set('scaleBoundsY', scaleBounds.y);
@@ -1337,9 +1342,6 @@ DG.DocumentController = SC.Object.extend(
         var tGuideComponentView = this._singletonViews.guideView;
         if (tGuideComponentView) {
           tGuideComponentView.set('isVisible', false);
-          if (DG.KEEP_IN_BOUNDS_PREF) {
-            //this.computeScaleBounds();
-          }
         }
       },
 
@@ -1673,9 +1675,6 @@ DG.DocumentController = SC.Object.extend(
             tController.set('model', null);
             tController.set('view', null);
           }
-        }
-        if (DG.KEEP_IN_BOUNDS_PREF) {
-          //this.computeScaleBounds();
         }
         // the view will be destroyed elsewhere
       },

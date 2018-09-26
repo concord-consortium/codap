@@ -568,7 +568,7 @@ DG.ComponentView = SC.View.extend(
                     tNewHeight = info.height + (evt.pageY - info.pageY),
                     tContainerHeight = this.getContainerHeight();
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  tMaxHeight = Math.min(tMaxHeight, tContainerHeight - info.top)
+                  tMaxHeight = Math.min(tMaxHeight, tContainerHeight - info.top);
                 }
                 tNewHeight = DG.ViewUtilities.roundToGrid(Math.min(
                     Math.max(tNewHeight, tMinHeight), tMaxHeight));
@@ -724,33 +724,42 @@ DG.ComponentView = SC.View.extend(
         getInspectorDimensions : function () {
             var tInspectorWidth = 0,
                 tInspectorHeight = 0,
-                tButtons = this.getPath('inspectorButtons'),
-                tLayout = this.getPath('layout');
+                tButtons = this.getPath('inspectorButtons');
             if (tButtons && tButtons.length) {
               if (tButtons[0].parentView && tButtons[0].parentView.layout) {
                 tInspectorWidth = tButtons[0].parentView.layout.width;
                 tInspectorHeight = tButtons[0].parentView.layout.height;
               } else {
-                const BUTTONHORIZONTALSPACE = 50;
-                const BUTTONVERTICALSPACE = 43;
+                var BUTTONHORIZONTALSPACE = 50,
+                    BUTTONVERTICALSPACE = 43;
                 tInspectorWidth = BUTTONHORIZONTALSPACE;
                 tInspectorHeight = BUTTONVERTICALSPACE * tButtons.length;
               }
             }
-            tLayout.inspectorWidth = tInspectorWidth;
-            tLayout.inspectorHeight = tInspectorHeight;
             return {width : tInspectorWidth, height : tInspectorHeight};
         },
         enforceViewBounds : function () {
           var tTitleBar = this.getPath('containerView.titlebar'),
               type = this.getPath('controller.model.type'),
-              tInspectorDimensions = this.getInspectorDimensions(),
+              tInspectorDims = this.getInspectorDimensions(),
               tLayout = this.getPath('layout'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
               tScaleFactor = DG.currDocumentController().get('scaleFactor'),
+              tScaleBoundsX = DG.currDocumentController().get('scaleBoundsX'),
+              tScaleBoundsY = DG.currDocumentController().get('scaleBoundsY'),
               tMinWidth = this.get('contentMinWidth') || kMinSize,
               tMinHeight = this.get('contentMinWidth') || kMinSize;
+              if (tScaleBoundsX < (tLayout.left + tLayout.width + tInspectorDims.width)) {
+                var tNewBoundsX = tLayout.left + tLayout.width + tInspectorDims.width;
+                DG.currDocumentController().set('scaleBoundsX', tNewBoundsX);
+              }
+              if (tScaleBoundsY < (tLayout.top + tLayout.height) ||
+                  tScaleBoundsY < (tLayout.top + tInspectorDims.height)) {
+                var tHeight = (tLayout.height > tInspectorDims.height) ? tLayout.height : tInspectorDims.height;
+                var tNewBoundsY = tLayout.top + tHeight;
+                DG.currDocumentController().set('scaleBoundsY', tNewBoundsY);
+              }
               if (type === DG.Calculator) {
                 tMinWidth = tLayout.width;
                 tMinHeight = tLayout.height;
@@ -761,8 +770,8 @@ DG.ComponentView = SC.View.extend(
               DG.ViewUtilities.floorToGrid(tLayout.heightOrig * tScaleFactor)),
               tNewLeft = DG.ViewUtilities.floorToGrid(tLayout.leftOrig * tScaleFactor),
               tNewTop = DG.ViewUtilities.floorToGrid(tLayout.topOrig * tScaleFactor);
-          if ((tNewLeft + tNewWidth + tInspectorDimensions.width) > tContainerWidth) {
-            tNewLeft = Math.max(0,  tContainerWidth - tNewWidth - tInspectorDimensions.width);
+          if ((tNewLeft + tNewWidth + tInspectorDims.width) > tContainerWidth) {
+            tNewLeft = Math.max(0,  tContainerWidth - tNewWidth - tInspectorDims.width);
           }
           if (tNewTop + tNewHeight > tContainerHeight) {
             tNewTop = Math.max(0, tContainerHeight - tNewHeight);
