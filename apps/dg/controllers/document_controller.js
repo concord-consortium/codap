@@ -580,7 +580,7 @@ DG.DocumentController = SC.Object.extend(
             function (iComponentID, iController) {
               if (iController) {
                 var view = iController.get('view');
-                if (view) {
+                if (view && view.get('isVisible')) {
                   view.enforceViewBounds();
                 }
               }
@@ -635,8 +635,6 @@ DG.DocumentController = SC.Object.extend(
                 (scaleBounds.x > storedScaleBoundsX || scaleBounds.y > storedScaleBoundsY)) {
               this.set('scaleBoundsX', scaleBounds.x);
               this.set('scaleBoundsY', scaleBounds.y);
-              console.log("scaleBoundsX: " + scaleBounds.x);
-              console.log("scaleBoundsY: " + scaleBounds.y);
             }
           }
         }
@@ -662,7 +660,6 @@ DG.DocumentController = SC.Object.extend(
           scaleFactor = Math.min(containerWidth / scaleBoundsX, containerHeight / scaleBoundsY);
         }
         this.set('scaleFactor', scaleFactor);
-        console.log("scaleFactor: " + scaleFactor);
       },
 
       /**

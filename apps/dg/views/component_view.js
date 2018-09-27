@@ -743,6 +743,7 @@ DG.ComponentView = SC.View.extend(
               type = this.getPath('controller.model.type'),
               tInspectorDims = this.getInspectorDimensions(),
               tLayout = this.getPath('layout'),
+              tIsVisible = this.getPath('isVisible'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
               tScaleFactor = DG.currDocumentController().get('scaleFactor'),
@@ -750,12 +751,14 @@ DG.ComponentView = SC.View.extend(
               tScaleBoundsY = DG.currDocumentController().get('scaleBoundsY'),
               tMinWidth = this.get('contentMinWidth') || kMinSize,
               tMinHeight = this.get('contentMinWidth') || kMinSize;
-              if (tScaleBoundsX < (tLayout.left + tLayout.width + tInspectorDims.width)) {
+              if (tIsVisible &&
+                  tScaleBoundsX < (tLayout.left + tLayout.width + tInspectorDims.width)) {
                 var tNewBoundsX = tLayout.left + tLayout.width + tInspectorDims.width;
                 DG.currDocumentController().set('scaleBoundsX', tNewBoundsX);
               }
-              if (tScaleBoundsY < (tLayout.top + tLayout.height) ||
-                  tScaleBoundsY < (tLayout.top + tInspectorDims.height)) {
+              if (tIsVisible &&
+                  (tScaleBoundsY < (tLayout.top + tLayout.height) ||
+                  tScaleBoundsY < (tLayout.top + tInspectorDims.height))) {
                 var tHeight = (tLayout.height > tInspectorDims.height) ? tLayout.height : tInspectorDims.height;
                 var tNewBoundsY = tLayout.top + tHeight;
                 DG.currDocumentController().set('scaleBoundsY', tNewBoundsY);
