@@ -382,7 +382,9 @@ DG.BarChartView = DG.ChartView.extend(
               tCx = tX + tWidth / 2,
               tCy = tY + tHeight / 2,
               tResult = { x: tX, y: tY, width: tWidth, height: tHeight, cx: tCx, cy: tCy, r: tR,
-                fill: iElement.attr('fill'), type: 'rect' };
+                fill: iElement.attr('fill'), type: 'rect', stroke: iElement.attr('stroke'),
+                'stroke-opacity': iElement.attr('stroke-opacity')
+              };
           return tResult;
         });
       },
@@ -406,6 +408,9 @@ DG.BarChartView = DG.ChartView.extend(
 
         function turnOffAnimation() {
           tModel.set('isAnimating', false);
+          this_.get('plottedElements').forEach( function( iElement) {
+            iElement.stop();
+          });
           this_.displayDidChange(); // Force redisplay in correct position
         }
 
@@ -479,8 +484,7 @@ DG.BarChartView = DG.ChartView.extend(
 
         tModel.set('isAnimating', true);
         SC.Timer.schedule({action: turnOffAnimation, interval: DG.PlotUtilities.kDefaultAnimationTime});
-      }
-      ,
+      },
 
       /**
        We need to decide on the number of points in a row. To do so, we find the

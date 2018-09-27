@@ -138,6 +138,41 @@ DG.DotChartView = DG.ChartView.extend(
         this.privSetElementCoords(iRC, iCase, iIndex, tCellIndices, iAnimate, iCallback);
       },
 
+      privGetElementCoordAttrs: function (iElement, iRC, iCase, iIndex, iCellIndices) {
+        var tCellHalfWidth = iRC.cellHalfWidth,
+            tNumInRow = this.get('numPointsInRow'),
+            tOverlap = this.get('overlap'),
+            tRow = Math.floor(iCellIndices.indexInCell / tNumInRow),
+            tCol = iCellIndices.indexInCell - tRow * tNumInRow,
+            tRadius = this._pointRadius,
+            tPointSize = 2 * tRadius,
+            tPrimaryCoord = iRC.primaryAxisView.cellToCoordinate(iCellIndices.primaryCell) -
+                (tNumInRow - 1) * tPointSize / 2 + tCol * tPointSize,
+            tSecondaryCoord = iRC.secondaryAxisView.cellToCoordinate(iCellIndices.secondaryCell),
+            tOffset = ((tRow + 0.5) * (tPointSize - tOverlap) + 1 + tOverlap / 2),
+            tCoordX, tCoordY;
+
+        DG.assert(DG.isFinite(tPrimaryCoord) && DG.isFinite(tSecondaryCoord), 'tPrimaryCoord & tSecondaryCoord');
+
+        if (iRC.isVerticalOrientation) {
+          tCoordX = tPrimaryCoord;
+          tCoordY = tSecondaryCoord + tCellHalfWidth - tOffset;
+        }
+        else {
+          tCoordX = tSecondaryCoord - tCellHalfWidth + tOffset;
+          tCoordY = tPrimaryCoord;
+        }
+        DG.assert(isFinite(tCoordX) && isFinite(tCoordY));
+
+        var tAttrs = {
+          cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(iElement),
+          fill: iRC.calcCaseColorString(iCase), stroke: iRC.strokeColor,
+          'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
+        };
+
+        return tAttrs;
+      },
+
       /**
        We set the coordinates of the points.
        Note the tricky computation for secondary coordinate: the 0.5 is to left the center up half a point size.
@@ -153,36 +188,7 @@ DG.DotChartView = DG.ChartView.extend(
 
         // show or hide if needed, then update if shown.
         if (this.showHidePlottedElement(tElement, tIsMissingCase)) {
-          var tCellHalfWidth = iRC.cellHalfWidth,
-              tNumInRow = this.get('numPointsInRow'),
-              tOverlap = this.get('overlap'),
-              tRow = Math.floor(iCellIndices.indexInCell / tNumInRow),
-              tCol = iCellIndices.indexInCell - tRow * tNumInRow,
-              tRadius = this._pointRadius,
-              tPointSize = 2 * tRadius,
-              tPrimaryCoord = iRC.primaryAxisView.cellToCoordinate(iCellIndices.primaryCell) -
-                  (tNumInRow - 1) * tPointSize / 2 + tCol * tPointSize,
-              tSecondaryCoord = iRC.secondaryAxisView.cellToCoordinate(iCellIndices.secondaryCell),
-              tOffset = ((tRow + 0.5) * (tPointSize - tOverlap) + 1 + tOverlap / 2),
-              tCoordX, tCoordY;
-
-          DG.assert(DG.isFinite(tPrimaryCoord) && DG.isFinite(tSecondaryCoord), 'tPrimaryCoord & tSecondaryCoord');
-
-          if (iRC.isVerticalOrientation) {
-            tCoordX = tPrimaryCoord;
-            tCoordY = tSecondaryCoord + tCellHalfWidth - tOffset;
-          }
-          else {
-            tCoordX = tSecondaryCoord - tCellHalfWidth + tOffset;
-            tCoordY = tPrimaryCoord;
-          }
-          DG.assert(isFinite(tCoordX) && isFinite(tCoordY));
-
-          var tAttrs = {
-            cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tElement),
-            fill: iRC.calcCaseColorString(iCase), stroke: iRC.strokeColor,
-            'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
-          };
+          var tAttrs = this.privGetElementCoordAttrs({_selected: false}, iRC, iCase, iIndex, iCellIndices);
           this.updatePlottedElement(tElement, tAttrs, iAnimate, iCallback);
         }
       },
@@ -199,7 +205,7 @@ DG.DotChartView = DG.ChartView.extend(
         return tRet;
       },
 
-      assignElementAttributes: function( iElement, iIndex, iAnimate) {
+      assignElementAttributes: function (iElement, iIndex, iAnimate) {
         sc_super();
 
         var this_ = this,
@@ -261,6 +267,7 @@ DG.DotChartView = DG.ChartView.extend(
         var this_ = this,
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
+            tPaper = this.get('paper'),
             tRC = this.createRenderContext(),
             tDefaultR = this.calcPointRadius(),
             tFrame = this.get('frame'), // to convert from parent frame to this frame
@@ -270,11 +277,6 @@ DG.DotChartView = DG.ChartView.extend(
             tOldToNewCaseMap = [];
         if (!tCases)
           return;
-
-        function turnOffAnimation() {
-          tModel.set('isAnimating', false);
-          this_.displayDidChange(); // Force redisplay in correct position
-        }
 
         function caseLocationSimple(iIndex) {
           // assume a 1 to 1 correspondence of the current case indices to the new cases
@@ -292,15 +294,11 @@ DG.DotChartView = DG.ChartView.extend(
         var hasElementMap = tNewToOldCaseMap.length > 0,
             hasVanishingElements = tOldToNewCaseMap.length > 0,
             getCaseCurrentLocation = (hasElementMap ? caseLocationViaMap : caseLocationSimple),
-            tPlottedElements = this.get('plottedElements'),
-            tElementsAreRects = tPlottedElements.length > 0 && tPlottedElements[0][0].constructor === SVGRectElement,
+            tElementsWereRects = tOldElementAttrs.length > 0 && tOldElementAttrs[0].type === 'rect',
+            tRects = [],
             tTransAttrs;
 
         this.prepareToResetCoordinates();
-        if( tElementsAreRects) {
-          this.removePlottedElements( true /* callRemove*/);
-          tPlottedElements.length = 0;
-        }
         this.computeCellParams();
         tOldElementAttrs.forEach(function (iElement, iIndex) {
           // adjust old coordinates from parent frame to this view
@@ -311,29 +309,54 @@ DG.DotChartView = DG.ChartView.extend(
           iElement.x -= tFrame.x;
           iElement.y -= tFrame.y;
         });
+        if (tElementsWereRects) {
+          this.removePlottedElements();
+        }
 
         var eachCaseFunc = function (iCase, iIndex) {
               var tCurrAttrs = getCaseCurrentLocation(iIndex),
                   tCellIndices = tModel.lookupCellForCaseIndex(iIndex),
-                  tNewElement = this_.callCreateElement( iCase, iIndex);
-              if (!SC.none(tCurrAttrs)) {
+                  tNewElement;
+              if (tElementsWereRects) {
+                var tRectAttrs = tOldElementAttrs[iIndex];
+                tNewElement = tPaper.rect(0, 0, 0, 0);
+                tNewElement.attr( tRectAttrs);
+                var tCircleAttrs = this.privGetElementCoordAttrs(tNewElement, tRC, iCase, iIndex, tCellIndices);
                 tTransAttrs = {
-                  r: DG.isFinite(tCurrAttrs.r) && tCurrAttrs.r > 0 ? tCurrAttrs.r : tDefaultR,
-                  cx: DG.isFinite(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x + tCurrAttrs.width / 2,
-                  cy: DG.isFinite(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y + tCurrAttrs.height / 2,
+                  x: tCircleAttrs.cx - tCircleAttrs.r,
+                  y: tCircleAttrs.cy - tCircleAttrs.r,
+                  width: 2 * tCircleAttrs.r,
+                  height: 2 * tCircleAttrs.r,
+                  r: tCircleAttrs.r,
                   fill: tCurrAttrs.fill,
                   stroke: tCurrAttrs.stroke
                 };
-                tNewElement.attr(tTransAttrs);
+                tNewElement.animate(tTransAttrs, DG.PlotUtilities.kDefaultAnimationTime);
+                tRects.push(tNewElement);
               }
-              this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
-              if (hasVanishingElements) {
-                tNewElementAttrs.push(tCurrAttrs);
+              else {
+                tNewElement = this_.callCreateElement(iCase, iIndex);
+                if (!SC.none(tCurrAttrs)) {
+                  tTransAttrs = {
+                    r: DG.isFinite(tCurrAttrs.r) && tCurrAttrs.r > 0 ? tCurrAttrs.r : tDefaultR,
+                    cx: DG.isFinite(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x + tCurrAttrs.width / 2,
+                    cy: DG.isFinite(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y + tCurrAttrs.height / 2,
+                    fill: tCurrAttrs.fill,
+                    stroke: tCurrAttrs.stroke
+                  };
+                  tNewElement.attr(tTransAttrs);
+                }
+                this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
+                if (hasVanishingElements) {
+                  tNewElementAttrs.push(tCurrAttrs);
+                }
               }
               return tModel.get('isAnimating');
             }.bind(this),
 
-            finallyFunc = function() {
+            finallyFunc = function () {
+              if (tElementsWereRects) {
+              }
               if (hasVanishingElements) {
                 // create a vanishing element for each old point that needs one (used if many-to-one animation)
                 tOldElementAttrs.forEach(function (iOldAttrs, iIndex) {
@@ -345,11 +368,26 @@ DG.DotChartView = DG.ChartView.extend(
                 });
               }
               this.set('transferredElementCoordinates', null);
-              turnOffAnimation();
-            }.bind( this);
+            }.bind(this);
 
         tModel.set('isAnimating', true);
-        tCases.forEachWithInvokeLater( eachCaseFunc, finallyFunc);
+        tCases.forEachWithInvokeLater(eachCaseFunc, finallyFunc);
+        SC.Timer.schedule({
+          action: function () {
+            if (tElementsWereRects) {
+              tRects.forEach(function (iRect) {
+                iRect.remove();
+              });
+              tCases.forEach(function (iCase, iIndex) {
+                var tElement = this_.callCreateElement(iCase, iIndex),
+                    tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
+                tElement.attr(this_.privGetElementCoordAttrs(tElement, tRC, iCase, iIndex, tCellIndices));
+              }.bind(this));
+            }
+            tModel.set('isAnimating', false);
+            this_.displayDidChange(); // Force redisplay in correct position
+          }, interval: DG.PlotUtilities.kDefaultAnimationTime
+        });
       },
 
       /**

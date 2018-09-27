@@ -47,6 +47,8 @@ DG.CountAxisModel = DG.CellLinearAxisModel.extend(
 
   init: function() {
     sc_super();
+    this.set('attributeDescription',
+        DG.AttributePlacementDescription.create());  // because we observe it even though we don't use it
   },
 
   /**

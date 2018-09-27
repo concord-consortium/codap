@@ -806,7 +806,7 @@ DG.GraphView = SC.View.extend(
           else if( tCurrentAxisModelClass === DG.CountAxisModel) {
             tNewViewClass = DG.CountAxisView;
           }
-          if (!SC.none(tNewViewClass)) {
+          if (!SC.none(tNewViewClass) && tNewViewClass !== tCurrentViewClass) {
             tOldView = this.get(iPrefix + 'AxisView');
             tNewView = tNewViewClass.create({
               orientation: tOldView.get('orientation'),
