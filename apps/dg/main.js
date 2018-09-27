@@ -50,6 +50,15 @@ DG.main = function main() {
               : (dgWantsTouch ? YES : orgIgnoreTouchHandle(evt));
   };
 
+  var orgIgnoreMouseHandle = SC.RootResponder.prototype.ignoreMouseHandle;
+  SC.RootResponder.prototype.ignoreMouseHandle = function(evt) {
+    var dgWantsMouse = $(evt.target).closest('.dg-wants-mouse').length,
+        wantsSCMouse = $(evt.target).closest('.dg-wants-sc-mouse').length;
+    return wantsSCMouse
+              ? NO
+              : (dgWantsMouse ? YES : orgIgnoreMouseHandle(evt));
+  };	
+	
   DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
   DG.showUserEntryView = true;
