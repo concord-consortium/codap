@@ -327,9 +327,21 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    * @param attributeID {number}
    */
   getPreferredColumnWidth: function (attributeID) {
+    var this_ = this;
+
+    function isNewContext() {
+      return this_.getPath('collection.collection.attrs').length === 1 &&
+          this_.getPath('collection.collection.cases').length === 0;
+    }
+
     var model = this.model;
     var prefWidth = model && model.getPreferredAttributeWidth(attributeID);
     var columnWidth = prefWidth || kDefaultColumnWidth;
+    // Special case for a new context's table we want a double-wide column
+    if( !prefWidth && isNewContext()) {
+      columnWidth *= 2;
+      model.setPreferredAttributeWidth( attributeID, columnWidth);
+    }
     return columnWidth;
   },
 

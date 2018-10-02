@@ -87,7 +87,7 @@ DG.appController = SC.Object.create((function () // closure
           isUndoable: false,
           execute: function () {
             dataContext = DG.appController.createDataContextFromCSV(
-                'DG.AppController.createDataSet.initialAttribute'.loc(), /*'Attribute'*/
+                'DG.AppController.createDataSet.initialAttribute'.loc(), /*'AttributeName'*/
                 'DG.AppController.createDataSet.name'.loc() /* 'New Dataset' */
             );
             caseTable = documentController.addCaseTable(
