@@ -510,7 +510,7 @@ DG.ComponentView = SC.View.extend(
               tOuterView.adjust('top', tY);
 
               if (DG.KEEP_IN_BOUNDS_PREF) {
-                var tLayout = tOuterView.getPath('layout'),
+                var tLayout = tOuterView.get('layout'),
                     tScaleFactor = DG.currDocumentController().get('scaleFactor');
                 tLayout.topOrig = tY / tScaleFactor;
                 tLayout.leftOrig = tX / tScaleFactor;
@@ -549,7 +549,7 @@ DG.ComponentView = SC.View.extend(
                 tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 this.parentView.adjust('width', tNewWidth);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.getPath('layout'),
+                  var tLayout = this.parentView.get('layout'),
                       tScaleFactor = DG.currDocumentController().get('scaleFactor');
                   tLayout.widthOrig = tNewWidth / tScaleFactor;
                 }
@@ -574,7 +574,7 @@ DG.ComponentView = SC.View.extend(
                     Math.max(tNewHeight, tMinHeight), tMaxHeight));
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.getPath('layout'),
+                  var tLayout = this.parentView.get('layout'),
                       tScaleFactor = DG.currDocumentController().get('scaleFactor');
                   tLayout.heightOrig = tNewHeight / tScaleFactor;
                 }
@@ -603,7 +603,7 @@ DG.ComponentView = SC.View.extend(
                   this.parentView.adjust('left', tLoc);
                 }
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.getPath('layout'),
+                  var tLayout = this.parentView.get('layout'),
                       tScaleFactor = DG.currDocumentController().get('scaleFactor');
                   tLayout.widthOrig = tNewWidth / tScaleFactor;
                   tLayout.leftOrig = tLoc / tScaleFactor;
@@ -646,7 +646,7 @@ DG.ComponentView = SC.View.extend(
                 tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.getPath('layout'),
+                  var tLayout = this.parentView.get('layout'),
                       tScaleFactor = DG.currDocumentController().get('scaleFactor');
                   tLayout.heightOrig = tNewHeight / tScaleFactor;
                   tLayout.widthOrig = tNewWidth / tScaleFactor;
@@ -724,7 +724,7 @@ DG.ComponentView = SC.View.extend(
         getInspectorDimensions : function () {
             var tInspectorWidth = 0,
                 tInspectorHeight = 0,
-                tButtons = this.getPath('inspectorButtons');
+                tButtons = this.get('inspectorButtons');
             if (tButtons && tButtons.length) {
               if (tButtons[0].parentView && tButtons[0].parentView.layout) {
                 tInspectorWidth = tButtons[0].parentView.layout.width;
@@ -742,8 +742,8 @@ DG.ComponentView = SC.View.extend(
           var tTitleBar = this.getPath('containerView.titlebar'),
               type = this.getPath('controller.model.type'),
               tInspectorDims = this.getInspectorDimensions(),
-              tLayout = this.getPath('layout'),
-              tIsVisible = this.getPath('isVisible'),
+              tLayout = this.get('layout'),
+              tIsVisible = this.get('isVisible'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
               tScaleFactor = DG.currDocumentController().get('scaleFactor'),
@@ -779,16 +779,13 @@ DG.ComponentView = SC.View.extend(
           if (tNewTop + tNewHeight > tContainerHeight) {
             tNewTop = Math.max(0, tContainerHeight - tNewHeight);
           }
-          this.adjust('width', tNewWidth);
-          this.adjust('height', tNewHeight);
-          this.adjust('left', tNewLeft);
-          this.adjust('top', tNewTop);
+          this.adjust({width: tNewWidth, height: tNewHeight, left: tNewLeft, top: tNewTop});
           var controller = this.get('controller');
           if (controller && controller.view)
             controller.updateModelLayout();
         },
         configureViewBoundsLayout : function (iNewPos) {
-          var tLayout = this.getPath('layout'),
+          var tLayout = this.get('layout'),
               tScaleFactor = DG.currDocumentController().get('scaleFactor');
           tLayout.topOrig = iNewPos.y / tScaleFactor;
           tLayout.leftOrig = iNewPos.x / tScaleFactor;

@@ -587,26 +587,41 @@ DG.DocumentController = SC.Object.extend(
             });
       },
       /**
+       Sets scaleBoundsX and scaleBoundsY of inBoundsScaling property, these
+       values are the target bounds of the component layout and used to determine
+       when we need to scale and reposition components due to changes in the
+       parent container size.
        Computed when we add, delete, move, resize component.
-       ScaleBounds are used to determine if rescale is needed when browser resizes
+       @param iNewPos: a new position that will be included in the component
+                       list once the component creation is complete
        */
+
       computeScaleBounds: function (iNewPos) {
         var components = this.get('components');
         if (components) {
           var scaleBounds = {x:0, y:0},
               storedScaleFactor = this.get('scaleFactor'),
               scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
+          // Only compute new bounds if scaleFactor = 1, the max value.
+          // In this case we are showing the components with original layout
+          // and the container may include additional space where the bounds
+          // can grow. If scaleFactor < 1, then the container edge has
+          // already reached the boundary edge and there is no space for the
+          // bounds to grow.
           if (scaleFactor === 1) {
             if (iNewPos) {
               scaleBounds.x = Math.max(scaleBounds.x, iNewPos.x + iNewPos.width);
               scaleBounds.y = Math.max(scaleBounds.y, iNewPos.y + iNewPos.height);
             }
             DG.ObjectMap.forEach(components, function (key, iComponent) {
+              // If we have a valid, visible component, determine if its position and
+              // size are determining factors in the computing the scaleBounds
               if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
                 if (iComponent.layout && iComponent.layout.isVisible &&
                     (iComponent.layout.left && iComponent.layout.width &&
                     iComponent.layout.top && iComponent.layout.height)) {
 
+                  // Include the inspector size in scaleBounds calculation
                   var tInspectorDimensions = { width: 0, height : 0 };
                   var controller = DG.currDocumentController().componentControllersMap[iComponent.get('id')];
                   if (controller) {
@@ -615,14 +630,17 @@ DG.DocumentController = SC.Object.extend(
                       tInspectorDimensions = view.getInspectorDimensions();
                     }
                   }
-                  var unscaledRightEdge = (iComponent.layout.left + iComponent.layout.width) / scaleFactor;
+                  // Get the rightmost edge of the component
+                  var unscaledRightEdge = (iComponent.layout.left + iComponent.layout.width);
                   if (tInspectorDimensions.width) {
                     unscaledRightEdge += tInspectorDimensions.width;
                   }
-                  var unscaledBottomEdge = (iComponent.layout.top + iComponent.layout.height) / scaleFactor;
+                  // Get the bottommost edge of the component
+                  var unscaledBottomEdge = (iComponent.layout.top + iComponent.layout.height);
                   if (tInspectorDimensions.height && tInspectorDimensions.height > iComponent.layout.height) {
-                    unscaledBottomEdge = iComponent.layout.top / scaleFactor + tInspectorDimensions.height;
+                    unscaledBottomEdge = iComponent.layout.top + tInspectorDimensions.height;
                   }
+                  // Do the rightmost or bottommost edge determine new scaleBounds?
                   scaleBounds.x = Math.max(scaleBounds.x, unscaledRightEdge);
                   scaleBounds.y = Math.max(scaleBounds.y, unscaledBottomEdge);
                 }
