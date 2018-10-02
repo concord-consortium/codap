@@ -76,6 +76,38 @@ DG.DocumentController = SC.Object.extend(
       }.property(),
 
       /**
+       *  The current in-bounds mode scaling preferences.
+       *  Bound to the document's 'inBoundsScaling' property.
+       *  @property {Object} containing scaleFactor, scaleBoundsX, scaleBoundsY
+       */
+      _inBoundsScaling: null,
+      inBoundsScaling: function () {
+        return this._inBoundsScaling;
+      }.property(),
+
+      setInBoundsScaleFactor: function (sF) {
+        if (this._inBoundsScaling && sF) {
+          this._inBoundsScaling.scaleFactor = sF;
+        }
+      },
+
+      setInBoundsScaleBounds: function (sX, sY) {
+        if (this._inBoundsScaling && sX && sY) {
+          this._inBoundsScaling.scaleBoundsX = sX;
+          this._inBoundsScaling.scaleBoundsY = sY;
+        }
+      },
+
+      setInBoundsScaling: function (sF, sX, sY) {
+        if (!this._inBoundsScaling) {
+          this._inBoundsScaling = {scaleFactor:sF, scaleBoundsX:sX, scaleBoundsY:sY};
+        } else {
+          this.setInBoundsScaleFactor(sF);
+          this.setInBoundsScaleBounds(sX, sY);
+        }
+      },
+
+      /**
        * Returns an array of the GameControllers defined in this document.
        */
       dataInteractives: function () {
@@ -270,6 +302,10 @@ DG.DocumentController = SC.Object.extend(
         this.setDocument(this.get('content') || this.createDocument());
 
         this.clearChangedObjects();
+
+        if (DG.KEEP_IN_BOUNDS_PREF) {
+          this.setInBoundsScaling(1, 0, 0);
+        }
       },
 
       destroy: function () {
@@ -554,9 +590,7 @@ DG.DocumentController = SC.Object.extend(
         var components = this.get('components');
         if (components) {
           if (DG.KEEP_IN_BOUNDS_PREF) {
-            this.set('scaleFactor', 1);
-            this.set('scaleBoundsX', 0);
-            this.set('scaleBoundsY', 0);
+            this.setInBoundsScaling(1, 0, 0);
             this.computeScaleBounds();
             if (Object.keys(components).length) {
               this.computeScaleFactor();
@@ -600,7 +634,7 @@ DG.DocumentController = SC.Object.extend(
         var components = this.get('components');
         if (components) {
           var scaleBounds = {x:0, y:0},
-              storedScaleFactor = this.get('scaleFactor'),
+              storedScaleFactor = this.inBoundsScaling().scaleFactor,
               scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
           // Only compute new bounds if scaleFactor = 1, the max value.
           // In this case we are showing the components with original layout
@@ -646,13 +680,13 @@ DG.DocumentController = SC.Object.extend(
                 }
               }
             }.bind(this));
-            var storedScaleBoundsX = this.get('scaleBoundsX'),
-                storedScaleBoundsY = this.get('scaleBoundsY');
-            if ((!storedScaleBoundsX || !storedScaleBoundsX) ||
-                (storedScaleBoundsX === 0 || storedScaleBoundsX === 0) ||
-                (scaleBounds.x > storedScaleBoundsX || scaleBounds.y > storedScaleBoundsY)) {
-              this.set('scaleBoundsX', scaleBounds.x);
-              this.set('scaleBoundsY', scaleBounds.y);
+            var storedInBoundsScaling = this.inBoundsScaling(),
+                scaleBoundsX = storedInBoundsScaling.scaleBoundsX,
+                scaleBoundsY = storedInBoundsScaling.scaleBoundsY;
+            if ((!scaleBoundsX || !scaleBoundsY) ||
+                (scaleBoundsX === 0 || scaleBoundsY === 0) ||
+                (scaleBounds.x > scaleBoundsX || scaleBounds.y > scaleBoundsY)) {
+              this.setInBoundsScaleBounds(scaleBounds.x, scaleBounds.y);
             }
           }
         }
@@ -665,8 +699,9 @@ DG.DocumentController = SC.Object.extend(
         var docView = DG.mainPage.get('docView'),
             containerWidth = window.innerWidth,
             containerHeight = window.innerHeight,
-            scaleBoundsX = this.get('scaleBoundsX'),
-            scaleBoundsY = this.get('scaleBoundsY'),
+            storedInBoundsScaling = this.inBoundsScaling(),
+            scaleBoundsX = storedInBoundsScaling.scaleBoundsX,
+            scaleBoundsY = storedInBoundsScaling.scaleBoundsY,
             scaleFactor = 1;
         if (!SC.none(docView)) {
           while (!SC.none(docView.parentView.parentView)) {
@@ -677,7 +712,7 @@ DG.DocumentController = SC.Object.extend(
         if (containerWidth < scaleBoundsX || containerHeight < scaleBoundsY) {
           scaleFactor = Math.min(containerWidth / scaleBoundsX, containerHeight / scaleBoundsY);
         }
-        this.set('scaleFactor', scaleFactor);
+        this.setInBoundsScaleFactor(scaleFactor);
       },
 
       /**

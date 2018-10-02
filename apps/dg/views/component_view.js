@@ -511,7 +511,8 @@ DG.ComponentView = SC.View.extend(
 
               if (DG.KEEP_IN_BOUNDS_PREF) {
                 var tLayout = tOuterView.get('layout'),
-                    tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                    tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                    tScaleFactor = tInBoundsScaling.scaleFactor;
                 tLayout.topOrig = tY / tScaleFactor;
                 tLayout.leftOrig = tX / tScaleFactor;
               }
@@ -550,7 +551,8 @@ DG.ComponentView = SC.View.extend(
                 this.parentView.adjust('width', tNewWidth);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.get('layout'),
-                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
                   tLayout.widthOrig = tNewWidth / tScaleFactor;
                 }
               },
@@ -575,7 +577,8 @@ DG.ComponentView = SC.View.extend(
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.get('layout'),
-                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
                   tLayout.heightOrig = tNewHeight / tScaleFactor;
                 }
               },
@@ -604,7 +607,8 @@ DG.ComponentView = SC.View.extend(
                 }
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.get('layout'),
-                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
                   tLayout.widthOrig = tNewWidth / tScaleFactor;
                   tLayout.leftOrig = tLoc / tScaleFactor;
                 }
@@ -647,7 +651,8 @@ DG.ComponentView = SC.View.extend(
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
                   var tLayout = this.parentView.get('layout'),
-                      tScaleFactor = DG.currDocumentController().get('scaleFactor');
+                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
                   tLayout.heightOrig = tNewHeight / tScaleFactor;
                   tLayout.widthOrig = tNewWidth / tScaleFactor;
                 }
@@ -746,15 +751,16 @@ DG.ComponentView = SC.View.extend(
               tIsVisible = this.get('isVisible'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
-              tScaleFactor = DG.currDocumentController().get('scaleFactor'),
-              tScaleBoundsX = DG.currDocumentController().get('scaleBoundsX'),
-              tScaleBoundsY = DG.currDocumentController().get('scaleBoundsY'),
+              tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+              tScaleFactor = tInBoundsScaling.scaleFactor,
+              tScaleBoundsX = tInBoundsScaling.scaleBoundsX,
+              tScaleBoundsY = tInBoundsScaling.scaleBoundsY,
               tMinWidth = this.get('contentMinWidth') || kMinSize,
               tMinHeight = this.get('contentMinWidth') || kMinSize;
               if (tIsVisible &&
                   tScaleBoundsX < (tLayout.left + tLayout.width + tInspectorDims.width)) {
                 var tNewBoundsX = tLayout.left + tLayout.width + tInspectorDims.width;
-                DG.currDocumentController().set('scaleBoundsX', tNewBoundsX);
+                DG.currDocumentController().setInBoundsScaleBounds(tNewBoundsX, tScaleBoundsY);
               }
               if (tIsVisible &&
                   (tScaleBoundsY < (tLayout.top + tLayout.height) ||
@@ -786,7 +792,8 @@ DG.ComponentView = SC.View.extend(
         },
         configureViewBoundsLayout : function (iNewPos) {
           var tLayout = this.get('layout'),
-              tScaleFactor = DG.currDocumentController().get('scaleFactor');
+              tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+              tScaleFactor = tInBoundsScaling.scaleFactor;
           tLayout.topOrig = iNewPos.y / tScaleFactor;
           tLayout.leftOrig = iNewPos.x / tScaleFactor;
           tLayout.heightOrig = iNewPos.height / tScaleFactor;
