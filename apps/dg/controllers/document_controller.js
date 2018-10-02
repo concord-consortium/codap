@@ -597,12 +597,6 @@ DG.DocumentController = SC.Object.extend(
             }
           }
           DG.ObjectMap.forEach(components, function (key, iComponent) {
-            if (DG.KEEP_IN_BOUNDS_PREF) {
-              iComponent.layout.leftOrig = iComponent.layout.left;
-              iComponent.layout.topOrig = iComponent.layout.top;
-              iComponent.layout.widthOrig = iComponent.layout.width;
-              iComponent.layout.heightOrig = iComponent.layout.height;
-            }
             this.createComponentAndView(iComponent);
           }.bind(this));
         }

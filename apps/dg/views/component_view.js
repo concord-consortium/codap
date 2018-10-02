@@ -510,11 +510,10 @@ DG.ComponentView = SC.View.extend(
               tOuterView.adjust('top', tY);
 
               if (DG.KEEP_IN_BOUNDS_PREF) {
-                var tLayout = tOuterView.get('layout'),
-                    tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
                     tScaleFactor = tInBoundsScaling.scaleFactor;
-                tLayout.topOrig = tY / tScaleFactor;
-                tLayout.leftOrig = tX / tScaleFactor;
+                tOuterView.originalLayout.top = tY / tScaleFactor;
+                tOuterView.originalLayout.left = tX / tScaleFactor;
               }
             },
             canBeDragged: function () {
@@ -550,10 +549,9 @@ DG.ComponentView = SC.View.extend(
                 tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 this.parentView.adjust('width', tNewWidth);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.get('layout'),
-                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
                       tScaleFactor = tInBoundsScaling.scaleFactor;
-                  tLayout.widthOrig = tNewWidth / tScaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -576,10 +574,9 @@ DG.ComponentView = SC.View.extend(
                     Math.max(tNewHeight, tMinHeight), tMaxHeight));
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.get('layout'),
-                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
                       tScaleFactor = tInBoundsScaling.scaleFactor;
-                  tLayout.heightOrig = tNewHeight / tScaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -606,11 +603,10 @@ DG.ComponentView = SC.View.extend(
                   this.parentView.adjust('left', tLoc);
                 }
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.get('layout'),
-                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
                       tScaleFactor = tInBoundsScaling.scaleFactor;
-                  tLayout.widthOrig = tNewWidth / tScaleFactor;
-                  tLayout.leftOrig = tLoc / tScaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                  this.parentView.originalLayout.left = tLoc / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -650,11 +646,10 @@ DG.ComponentView = SC.View.extend(
                 tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
                 this.parentView.adjust('height', tNewHeight);
                 if (DG.KEEP_IN_BOUNDS_PREF) {
-                  var tLayout = this.parentView.get('layout'),
-                      tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
                       tScaleFactor = tInBoundsScaling.scaleFactor;
-                  tLayout.heightOrig = tNewHeight / tScaleFactor;
-                  tLayout.widthOrig = tNewWidth / tScaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -748,6 +743,7 @@ DG.ComponentView = SC.View.extend(
               type = this.getPath('controller.model.type'),
               tInspectorDims = this.getInspectorDimensions(),
               tLayout = this.get('layout'),
+              tOriginalLayout = this.get('originalLayout'),
               tIsVisible = this.get('isVisible'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
@@ -774,11 +770,11 @@ DG.ComponentView = SC.View.extend(
                 tMinHeight = tLayout.height;
               }
           var tNewWidth = Math.max(tMinWidth,
-              DG.ViewUtilities.floorToGrid(tLayout.widthOrig * tScaleFactor)),
+              DG.ViewUtilities.floorToGrid(tOriginalLayout.width * tScaleFactor)),
               tNewHeight = Math.max(tMinHeight,
-              DG.ViewUtilities.floorToGrid(tLayout.heightOrig * tScaleFactor)),
-              tNewLeft = DG.ViewUtilities.floorToGrid(tLayout.leftOrig * tScaleFactor),
-              tNewTop = DG.ViewUtilities.floorToGrid(tLayout.topOrig * tScaleFactor);
+              DG.ViewUtilities.floorToGrid(tOriginalLayout.height * tScaleFactor)),
+              tNewLeft = DG.ViewUtilities.floorToGrid(tOriginalLayout.left * tScaleFactor),
+              tNewTop = DG.ViewUtilities.floorToGrid(tOriginalLayout.top * tScaleFactor);
           if ((tNewLeft + tNewWidth + tInspectorDims.width) > tContainerWidth) {
             tNewLeft = Math.max(0,  tContainerWidth - tNewWidth - tInspectorDims.width);
           }
@@ -791,13 +787,13 @@ DG.ComponentView = SC.View.extend(
             controller.updateModelLayout();
         },
         configureViewBoundsLayout : function (iNewPos) {
-          var tLayout = this.get('layout'),
+          var tOriginalLayout = this.get('originalLayout'),
               tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
               tScaleFactor = tInBoundsScaling.scaleFactor;
-          tLayout.topOrig = iNewPos.y / tScaleFactor;
-          tLayout.leftOrig = iNewPos.x / tScaleFactor;
-          tLayout.heightOrig = iNewPos.height / tScaleFactor;
-          tLayout.widthOrig = iNewPos.width / tScaleFactor;
+          tOriginalLayout.top = iNewPos.y / tScaleFactor;
+          tOriginalLayout.left = iNewPos.x / tScaleFactor;
+          tOriginalLayout.height = iNewPos.height / tScaleFactor;
+          tOriginalLayout.width = iNewPos.width / tScaleFactor;
         },
 
         destroy: function () {
@@ -944,6 +940,7 @@ DG.ComponentView._createComponent = function (iParams) {
       tIsResizable = iParams.isResizable,
       tComponentView = DG.ComponentView.create({
         layout: iParams.layout,
+        originalLayout: iParams.layout,
         isVisible: tMakeItVisible,
         showTitleBar: !tIsStandaloneInteractive,
         isResizable: !tIsStandaloneInteractive
