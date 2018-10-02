@@ -139,6 +139,12 @@ DG.DragBorderView = SC.View.extend(
                       this._oldLayout.height = layout.height;
                       tContainer.updateFrame();
                     }.bind(this));
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tViewToDrag.configureViewBoundsLayout({height:layout.height,
+                                             width:layout.width,
+                                             x:layout.left,
+                                             y:layout.top});
+                }
               },
               redo: function () {
                 var layout = SC.clone(this._oldLayout);
@@ -152,6 +158,12 @@ DG.DragBorderView = SC.View.extend(
                       this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
                       tContainer.updateFrame();
                     }.bind(this));
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tViewToDrag.configureViewBoundsLayout({height:layout.height,
+                                             width:layout.width,
+                                             x:layout.left,
+                                             y:layout.top});
+                }
               }
             }));
           }
