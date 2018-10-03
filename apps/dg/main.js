@@ -50,6 +50,15 @@ DG.main = function main() {
               : (dgWantsTouch ? YES : orgIgnoreTouchHandle(evt));
   };
 
+  var orgIgnoreMouseHandle = SC.RootResponder.prototype.ignoreMouseHandle;
+  SC.RootResponder.prototype.ignoreMouseHandle = function(evt) {
+    var dgWantsMouse = $(evt.target).closest('.dg-wants-mouse').length,
+        wantsSCMouse = $(evt.target).closest('.dg-wants-sc-mouse').length;
+    return wantsSCMouse
+              ? NO
+              : (dgWantsMouse ? YES : orgIgnoreMouseHandle(evt));
+  };	
+	
   DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
   DG.showUserEntryView = true;
@@ -768,9 +777,7 @@ DG.main = function main() {
     }
   }
 
-  if(( DG.get('componentMode') !== 'yes') && ( DG.get('embeddedMode') !== 'yes')) { // Usual DG game situation is that we're not in component or transparent mode
-    DG.splash.showSplash();
-  }
+  DG.splash.showSplash();
 
   if (DG.get('embeddedMode') === 'yes') {
     $('html').addClass('dg-embedded-mode');

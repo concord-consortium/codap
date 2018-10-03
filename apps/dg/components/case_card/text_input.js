@@ -32,7 +32,6 @@ DG.React.ready(function () {
             DG.mainPage.mainPane.addListener({action: 'click', target: this, method: this._onWindowClick});
             DG.mainPage.mainPane.addListener({action: 'touchstart', target: this, method: this._onWindowClick});
           },
-
           componentWillUnmount: function () {
             DG.mainPage.mainPane.removeListener({action: 'click', target: this, method: this._onWindowClick});
             DG.mainPage.mainPane.removeListener({action: 'touchstart', target: this, method: this._onWindowClick});
@@ -63,6 +62,7 @@ DG.React.ready(function () {
                 tValue = SC.empty( this.state.value) ? '____' : this.state.value,
                 tResult = this.state.editing ?
                     input({
+                      className: 'dg-wants-mouse',
                       type: 'text',
                       value: this.state.value,
                       onChange: this.handleChange,

@@ -253,6 +253,11 @@ DG = SC.Application.create((function () // closure
     return !SC.empty(standaloneParam) && standaloneParam !== 'false';
   };
 
+  var keepInBoundsPref = function () {
+    var keepInBoundsParam = getUrlParameter('inbounds');
+    return !SC.empty(keepInBoundsParam) && keepInBoundsParam === 'true';
+  };
+
   return Object.assign({ // return from closure
 
     NAMESPACE: 'DG',
@@ -392,6 +397,8 @@ DG = SC.Application.create((function () // closure
     IS_DEV_BUILD: isDevBuild(),
 
     NO_DATA_TIP_PREF: noDataTipPref(),
+
+    KEEP_IN_BOUNDS_PREF: keepInBoundsPref(),
 
     STANDALONE_MODE: useStandaloneMode(),
     STANDALONE_PLUGIN: getUrlParameter('standalone'),

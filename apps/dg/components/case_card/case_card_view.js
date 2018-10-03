@@ -82,9 +82,20 @@ DG.CaseCardView = SC.View.extend(
           return tAttrs.indexOf(tDragAttr) >= 0;
         },
 
+        canAcceptDrop: function (iDrag) {
+          var canAcceptDrop = false,
+              tContext = this.get('context'),
+              ownedByGame = tContext.get('hasGameInteractive'),
+              preventReorgFlag = tContext.get('preventReorg');
+          if (!preventReorgFlag && !ownedByGame) {
+            canAcceptDrop = true;
+          }
+          return canAcceptDrop;
+        },
+
         computeDragOperations: function (iDrag) {
           var tResult;
-          if (this.isValidAttribute(iDrag))
+          if (this.isValidAttribute(iDrag) && this.canAcceptDrop(iDrag))
             tResult = SC.DRAG_LINK;
           else
             tResult = SC.DRAG_NONE;
@@ -108,7 +119,7 @@ DG.CaseCardView = SC.View.extend(
         },
 
         dragStarted: function (iDrag) {
-          if (this.isValidAttribute(iDrag)) {
+          if (this.isValidAttribute(iDrag) &&  this.canAcceptDrop(iDrag)) {
             this.set('dragInProgress', true);
           }
         },

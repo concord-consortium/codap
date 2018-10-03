@@ -492,6 +492,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
           hasFormula = iAttribute.hasFormula(),
+          hasDeletedFormula = iAttribute.hasDeletedFormula(),
           columnInfo = {
             context: context,
             collection: collection,
@@ -523,6 +524,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                     command: 'cmdEditFormula',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');
+                    }
+                  },
+                  { title: hasDeletedFormula ? 'DG.TableController.headerMenuItems.recoverFormula'.loc() : 'DG.TableController.headerMenuItems.deleteFormula'.loc(),
+                    command: hasDeletedFormula ? 'cmdRecoverDeletedFormula' : 'cmdDeleteFormulaKeepValues',
+                    updater: function ( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = !iColumn.attribute.get('editable') || (!hasFormula && !hasDeletedFormula);
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),

@@ -1,6 +1,6 @@
 // ==========================================================================
 //                          DG.ViewUtilities
-// 
+//
 //  A collection of utilities for manipulating views
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -27,6 +27,10 @@ DG.ViewUtilities = {
 
   roundToGrid: function( iNumber) {
     return DG.ViewUtilities.kGridSize * Math.round( iNumber / DG.ViewUtilities.kGridSize);
+  },
+
+  floorToGrid: function( iNumber) {
+    return DG.ViewUtilities.kGridSize * Math.floor( iNumber / DG.ViewUtilities.kGridSize);
   },
 
   /**
@@ -205,7 +209,7 @@ DG.ViewUtilities = {
 
     return tLoc;
   },
-  
+
   /* normalFormForRect: The given rectangle is expected to have properties left, top,
     right, and bottom. Return a rectangle with left <= right and bottom <= top.
   */

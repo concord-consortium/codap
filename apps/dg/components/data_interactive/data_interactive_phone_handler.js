@@ -1833,6 +1833,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           },
 
+          notify: function (iResources, iValues) {
+            if (!iResources.component || iResources.component.get(
+                'isDestroyed')) {
+              return {success: false, values: {error: 'Component not found'}};
+            }
+            var component = iResources.component;
+            if (iValues.request && iValues.request === 'select') {
+              var view = DG.currDocumentController().componentControllersMap[component.get('id')].get('view');
+              if (!view) {
+                return {success: false, values: {error: 'Cannot find component view'}};
+              }
+              view.select();
+            }
+
+            return {
+              success: true
+            };
+          },
+
           update: function (iResources, iValues) {
             if (!iResources.component || iResources.component.get(
                 'isDestroyed')) {

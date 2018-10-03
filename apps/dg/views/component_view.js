@@ -1,8 +1,8 @@
 // ==========================================================================
 //                          DG.ComponentView
-// 
+//
 //  Routines for changing coordinates along an animation path
-//  
+//
 //  Author:   William Finzer
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -139,6 +139,12 @@ DG.DragBorderView = SC.View.extend(
                       this._oldLayout.height = layout.height;
                       tContainer.updateFrame();
                     }.bind(this));
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tViewToDrag.configureViewBoundsLayout({height:layout.height,
+                                             width:layout.width,
+                                             x:layout.left,
+                                             y:layout.top});
+                }
               },
               redo: function () {
                 var layout = SC.clone(this._oldLayout);
@@ -152,8 +158,17 @@ DG.DragBorderView = SC.View.extend(
                       this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
                       tContainer.updateFrame();
                     }.bind(this));
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tViewToDrag.configureViewBoundsLayout({height:layout.height,
+                                             width:layout.width,
+                                             x:layout.left,
+                                             y:layout.top});
+                }
               }
             }));
+          }
+          if (DG.KEEP_IN_BOUNDS_PREF) {
+            DG.currDocumentController().computeScaleBounds();
           }
           return YES; // handled!
         },
@@ -187,14 +202,14 @@ DG.DragBorderView = SC.View.extend(
           return DG.ComponentView.findComponentViewParent(this);
         },
         getContainerWidth: function () {
-          return window.innerWidth; // go global
+          return $('#codap').width();
         },
         getContainerHeight: function () {
           var tDocView = this.viewToDrag();
           while (!SC.none(tDocView.parentView.parentView)) {
             tDocView = tDocView.parentView;
           }
-          return window.innerHeight - tDocView.get('frame').y;
+          return $('#codap').height() - tDocView.get('frame').y;
         }
       };
     }())
@@ -224,8 +239,9 @@ DG.ComponentView = SC.View.extend(
           kBottomBorderCursor = SC.Cursor.create({cursorStyle: SC.S_RESIZE_CURSOR}),
           kLeftBorderCursor = SC.Cursor.create({cursorStyle: SC.W_RESIZE_CURSOR}),
           kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR}),
-          kLockThingsDown = DG.get('componentMode') === 'yes' || DG.get('embeddedMode') === 'yes'
-          ;
+          kViewInComponentMode = DG.get('componentMode') === 'yes',
+          kViewInEmbeddedMode = DG.get('embeddedMode') === 'yes',
+          kLockThingsDown = kViewInComponentMode;
       return {
         classNames: ['dg-component-view'],
         classNameBindings: ['isSelected:dg-component-view-selected'],
@@ -301,7 +317,7 @@ DG.ComponentView = SC.View.extend(
           }
           // If we are in component mode we select the component after it is
           // rendered.
-          if (kLockThingsDown) {
+          if (kViewInComponentMode) {
             this.invokeLater(function () {
               this.select();
             }.bind(this));
@@ -331,7 +347,8 @@ DG.ComponentView = SC.View.extend(
             }.observes('isSelected'),
             model: null,  // DG.Component. Needed to determine if closebox should show
             childViews: ('statusView versionView titleView ' +
-            (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo')).w(),
+            (!kLockThingsDown ? 'minimize closeBox ' : '') +
+            ((kViewInComponentMode || kViewInEmbeddedMode) ? 'undo redo ' : '')).w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
@@ -454,15 +471,17 @@ DG.ComponentView = SC.View.extend(
                   isVisible: SC.platform.touch
                 }) :
                 null,
-            undo: kLockThingsDown ?
+            undo: (kViewInEmbeddedMode || kViewInComponentMode) ?
                 DG.TitleBarUndoButton.design({
-                  layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 3 : kTitleBarHeight), 
+                           top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-undo'],
                 }) :
                 null,
-            redo: kLockThingsDown ?
+            redo: (kViewInEmbeddedMode || kViewInComponentMode) ?
                 DG.TitleBarRedoButton.design({
-                  layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 2 : 0), 
+                           top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-redo'],
                 }) :
                 null,
@@ -483,15 +502,31 @@ DG.ComponentView = SC.View.extend(
                   tX = DG.ViewUtilities.roundToGrid(info.left + (evt.pageX - info.pageX)),
                   tY = DG.ViewUtilities.roundToGrid(info.top + (evt.pageY - info.pageY)),
                   tContainerWidth = this.getContainerWidth(),
-                  tContainerHeight = this.getContainerHeight();
+                  tContainerHeight = this.getContainerHeight(),
+                  tMinX = -info.width + kMinSize,
+                  tMaxX = tContainerWidth - kMinSize,
+                  tMinY = -kTitleBarHeight / 2,
+                  tMaxY = tContainerHeight - kTitleBarHeight / 2;
+              if (DG.KEEP_IN_BOUNDS_PREF) {
+                var tInspectorDimensions = tOuterView.getInspectorDimensions();
+                tMinX = 0;
+                tMaxX = tContainerWidth - (info.width + tInspectorDimensions.width);
+                tMinY = 0;
+                tMaxY = tContainerHeight - (Math.max(info.height, tInspectorDimensions.height));
+              }
 
-              tX = Math.min(Math.max(tX, -info.width + kMinSize),
-                  tContainerWidth - kMinSize);
+              tX = Math.min(Math.max(tX, tMinX), tMaxX);
               tOuterView.adjust('left', tX);
 
-              tY = Math.min(Math.max(tY, -kTitleBarHeight / 2),
-                  tContainerHeight - kTitleBarHeight / 2);
+              tY = Math.min(Math.max(tY, tMinY), tMaxY);
               tOuterView.adjust('top', tY);
+
+              if (DG.KEEP_IN_BOUNDS_PREF) {
+                var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                    tScaleFactor = tInBoundsScaling.scaleFactor;
+                tOuterView.originalLayout.top = tY / tScaleFactor;
+                tOuterView.originalLayout.left = tX / tScaleFactor;
+              }
             },
             canBeDragged: function () {
               return !kLockThingsDown;
@@ -516,10 +551,20 @@ DG.ComponentView = SC.View.extend(
                 var tMinWidth = this.get('contentMinWidth') || kMinSize,
                     tLoc = Math.max(evt.pageX, tMinWidth),
                     tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
-                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize;
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tContainerWidth = this.getContainerWidth();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
+                }
                 // Don't let width of component become too small
                 tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 this.parentView.adjust('width', tNewWidth);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                }
               },
               canBeDragged: function () {
                 return this.parentView.get('isResizable');
@@ -530,12 +575,21 @@ DG.ComponentView = SC.View.extend(
               layout: {bottom: 0, height: kDragWidth},
               dragCursor: kBottomBorderCursor,
               dragAdjust: function (evt, info) {
-                var tMinHeight = this.get('contentMinHeight') || kMinSize;
-                var tMaxHeight = this.get('contentMaxHeight') || kMaxSize;
-                var tNewHeight = info.height + (evt.pageY - info.pageY);
+                var tMinHeight = this.get('contentMinHeight') || kMinSize,
+                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize,
+                    tNewHeight = info.height + (evt.pageY - info.pageY),
+                    tContainerHeight = this.getContainerHeight();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tMaxHeight = Math.min(tMaxHeight, tContainerHeight - info.top);
+                }
                 tNewHeight = DG.ViewUtilities.roundToGrid(Math.min(
                     Math.max(tNewHeight, tMinHeight), tMaxHeight));
                 this.parentView.adjust('height', tNewHeight);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
+                }
               },
               canBeDragged: function () {
                 return this.parentView.get('isResizable');
@@ -546,16 +600,25 @@ DG.ComponentView = SC.View.extend(
               layout: {left: 0, width: kDragWidth},
               dragCursor: kLeftBorderCursor,
               dragAdjust: function (evt, info) {
-                var tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize;
-                var tMinWidth = this.get('contentMinWidth') || kMinSize;
-                var tContainerWidth = this.getContainerWidth(),
-                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
+                var tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tMinWidth = this.get('contentMinWidth') || kMinSize,
+                    tContainerWidth = this.getContainerWidth();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  evt.pageX = Math.max(0, evt.pageX);
+                }
+                var tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
                     tLoc;
                 tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 tLoc = info.left + info.width - tNewWidth;
                 if (tLoc < tContainerWidth - tMinWidth) {
                   this.parentView.adjust('width', tNewWidth);
                   this.parentView.adjust('left', tLoc);
+                }
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                  this.parentView.originalLayout.left = tLoc / tScaleFactor;
                 }
               },
               canBeDragged: function () {
@@ -575,19 +638,31 @@ DG.ComponentView = SC.View.extend(
               dragCursor: kCornerBorderCursor,
               dragAdjust: function (evt, info) {
                 // Don't let user drag right edge off left of window
-                var tMinHeight = this.get('contentMinHeight') || kMinSize;
-                var tMaxHeight = this.get('contentMaxHeight') || kMaxSize;
-                var tMinWidth = this.get('contentMinWidth') || kMinSize,
+                var tMinHeight = this.get('contentMinHeight') || kMinSize,
+                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize,
+                    tMinWidth = this.get('contentMinWidth') || kMinSize,
                     tLoc = Math.max(evt.pageX, tMinWidth),
                     tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
                     tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY)),
-                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize;
-
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tContainerWidth = this.getContainerWidth(),
+                    tContainerHeight = this.getContainerHeight();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tMaxHeight = tContainerHeight - info.top;
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
+                }
                 // Don't let width or height of component become too small
                 tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 this.parentView.adjust('width', tNewWidth);
                 tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
                 this.parentView.adjust('height', tNewHeight);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                }
               },
               canBeDragged: function () {
                 return this.parentView.get('isResizable');
@@ -657,6 +732,81 @@ DG.ComponentView = SC.View.extend(
             return this.getPath('contentView.containerMaxHeight');
           }
         }.property(),
+
+        getInspectorDimensions : function () {
+            var tInspectorWidth = 0,
+                tInspectorHeight = 0,
+                tButtons = this.get('inspectorButtons');
+            if (tButtons && tButtons.length) {
+              if (tButtons[0].parentView && tButtons[0].parentView.layout) {
+                tInspectorWidth = tButtons[0].parentView.layout.width;
+                tInspectorHeight = tButtons[0].parentView.layout.height;
+              } else {
+                var BUTTONHORIZONTALSPACE = 50,
+                    BUTTONVERTICALSPACE = 43;
+                tInspectorWidth = BUTTONHORIZONTALSPACE;
+                tInspectorHeight = BUTTONVERTICALSPACE * tButtons.length;
+              }
+            }
+            return {width : tInspectorWidth, height : tInspectorHeight};
+        },
+        enforceViewBounds : function () {
+          var tTitleBar = this.getPath('containerView.titlebar'),
+              type = this.getPath('controller.model.type'),
+              tInspectorDims = this.getInspectorDimensions(),
+              tLayout = this.get('layout'),
+              tOriginalLayout = this.get('originalLayout'),
+              tIsVisible = this.get('isVisible'),
+              tContainerWidth = tTitleBar.getContainerWidth(),
+              tContainerHeight = tTitleBar.getContainerHeight(),
+              tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+              tScaleFactor = tInBoundsScaling.scaleFactor,
+              tScaleBoundsX = tInBoundsScaling.scaleBoundsX,
+              tScaleBoundsY = tInBoundsScaling.scaleBoundsY,
+              tMinWidth = this.get('contentMinWidth') || kMinSize,
+              tMinHeight = this.get('contentMinWidth') || kMinSize;
+              if (tIsVisible &&
+                  tScaleBoundsX < (tLayout.left + tLayout.width + tInspectorDims.width)) {
+                var tNewBoundsX = tLayout.left + tLayout.width + tInspectorDims.width;
+                DG.currDocumentController().setInBoundsScaleBounds(tNewBoundsX, tScaleBoundsY);
+              }
+              if (tIsVisible &&
+                  (tScaleBoundsY < (tLayout.top + tLayout.height) ||
+                  tScaleBoundsY < (tLayout.top + tInspectorDims.height))) {
+                var tHeight = (tLayout.height > tInspectorDims.height) ? tLayout.height : tInspectorDims.height;
+                var tNewBoundsY = tLayout.top + tHeight;
+                DG.currDocumentController().set('scaleBoundsY', tNewBoundsY);
+              }
+              if (type === DG.Calculator) {
+                tMinWidth = tLayout.width;
+                tMinHeight = tLayout.height;
+              }
+          var tNewWidth = Math.max(tMinWidth,
+              DG.ViewUtilities.floorToGrid(tOriginalLayout.width * tScaleFactor)),
+              tNewHeight = Math.max(tMinHeight,
+              DG.ViewUtilities.floorToGrid(tOriginalLayout.height * tScaleFactor)),
+              tNewLeft = DG.ViewUtilities.floorToGrid(tOriginalLayout.left * tScaleFactor),
+              tNewTop = DG.ViewUtilities.floorToGrid(tOriginalLayout.top * tScaleFactor);
+          if ((tNewLeft + tNewWidth + tInspectorDims.width) > tContainerWidth) {
+            tNewLeft = Math.max(0,  tContainerWidth - tNewWidth - tInspectorDims.width);
+          }
+          if (tNewTop + tNewHeight > tContainerHeight) {
+            tNewTop = Math.max(0, tContainerHeight - tNewHeight);
+          }
+          this.adjust({width: tNewWidth, height: tNewHeight, left: tNewLeft, top: tNewTop});
+          var controller = this.get('controller');
+          if (controller && controller.view)
+            controller.updateModelLayout();
+        },
+        configureViewBoundsLayout : function (iNewPos) {
+          var tOriginalLayout = this.get('originalLayout'),
+              tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+              tScaleFactor = tInBoundsScaling.scaleFactor;
+          tOriginalLayout.top = iNewPos.y / tScaleFactor;
+          tOriginalLayout.left = iNewPos.x / tScaleFactor;
+          tOriginalLayout.height = iNewPos.height / tScaleFactor;
+          tOriginalLayout.width = iNewPos.width / tScaleFactor;
+        },
 
         destroy: function () {
           if (this.containerView.contentView)
@@ -802,6 +952,7 @@ DG.ComponentView._createComponent = function (iParams) {
       tIsResizable = iParams.isResizable,
       tComponentView = DG.ComponentView.create({
         layout: iParams.layout,
+        originalLayout: iParams.layout,
         isVisible: tMakeItVisible,
         showTitleBar: !tIsStandaloneInteractive,
         isResizable: !tIsStandaloneInteractive
@@ -825,6 +976,7 @@ DG.ComponentView._createComponent = function (iParams) {
 DG.ComponentView.restoreComponent = function (iParams) {
 
   var tComponentView = this._createComponent(iParams),
+      tNewPos,
       tSuperView = iParams.parentView,
       tUseLayoutForPosition = iParams.useLayout;
 
@@ -836,10 +988,16 @@ DG.ComponentView.restoreComponent = function (iParams) {
     tUseLayoutForPosition = true;
   }
   if (!tUseLayoutForPosition) {
-    tSuperView.positionNewComponent(tComponentView, iParams.position, iParams.positionOnCreate);
+    tNewPos = tSuperView.positionNewComponent(tComponentView, iParams.position, iParams.positionOnCreate);
   }
   tSuperView.appendChild(tComponentView);
   tSuperView.updateFrame();
+  if (DG.KEEP_IN_BOUNDS_PREF) {
+    if (!tUseLayoutForPosition) {
+      tComponentView.configureViewBoundsLayout(tNewPos);
+    }
+    tComponentView.enforceViewBounds();
+  }
 
   return tComponentView;
 };
@@ -859,6 +1017,7 @@ DG.ComponentView.restoreComponent = function (iParams) {
 DG.ComponentView.addComponent = function (iParams) {
   var tParams = $.extend({}, iParams, {layout: $.extend(true, {}, iParams.layout)}),
       tSuperView = tParams.parentView,
+      tNewPos,
       tUseLayoutForPosition = tParams.useLayout || false;
   if (!SC.none(tParams.layout.width))
     tParams.layout.width += DG.ViewUtilities.horizontalPadding();
@@ -868,11 +1027,16 @@ DG.ComponentView.addComponent = function (iParams) {
   var tComponentView = this._createComponent(iParams);
 
   if (!tUseLayoutForPosition) {
-    tSuperView.positionNewComponent(tComponentView, iParams.position);
+    tNewPos = tSuperView.positionNewComponent(tComponentView, iParams.position);
   }
   tSuperView.appendChild(tComponentView);
   tComponentView.bringToFront();
   tSuperView.updateFrame();
+
+  if (DG.KEEP_IN_BOUNDS_PREF && !tUseLayoutForPosition) {
+    tComponentView.configureViewBoundsLayout(tNewPos);
+    DG.currDocumentController().computeScaleBounds(tNewPos);
+  }
 
   return tComponentView;
 };

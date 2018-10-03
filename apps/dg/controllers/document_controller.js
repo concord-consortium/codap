@@ -76,6 +76,38 @@ DG.DocumentController = SC.Object.extend(
       }.property(),
 
       /**
+       *  The current in-bounds mode scaling preferences.
+       *  Bound to the document's 'inBoundsScaling' property.
+       *  @property {Object} containing scaleFactor, scaleBoundsX, scaleBoundsY
+       */
+      _inBoundsScaling: null,
+      inBoundsScaling: function () {
+        return this._inBoundsScaling;
+      }.property(),
+
+      setInBoundsScaleFactor: function (sF) {
+        if (this._inBoundsScaling && sF) {
+          this._inBoundsScaling.scaleFactor = sF;
+        }
+      },
+
+      setInBoundsScaleBounds: function (sX, sY) {
+        if (this._inBoundsScaling && sX && sY) {
+          this._inBoundsScaling.scaleBoundsX = sX;
+          this._inBoundsScaling.scaleBoundsY = sY;
+        }
+      },
+
+      setInBoundsScaling: function (sF, sX, sY) {
+        if (!this._inBoundsScaling) {
+          this._inBoundsScaling = {scaleFactor:sF, scaleBoundsX:sX, scaleBoundsY:sY};
+        } else {
+          this.setInBoundsScaleFactor(sF);
+          this.setInBoundsScaleBounds(sX, sY);
+        }
+      },
+
+      /**
        * Returns an array of the GameControllers defined in this document.
        */
       dataInteractives: function () {
@@ -270,6 +302,10 @@ DG.DocumentController = SC.Object.extend(
         this.setDocument(this.get('content') || this.createDocument());
 
         this.clearChangedObjects();
+
+        if (DG.KEEP_IN_BOUNDS_PREF) {
+          this.setInBoundsScaling(1, 0, 0);
+        }
       },
 
       destroy: function () {
@@ -553,10 +589,123 @@ DG.DocumentController = SC.Object.extend(
       restoreComponentControllersAndViews: function () {
         var components = this.get('components');
         if (components) {
+          if (DG.KEEP_IN_BOUNDS_PREF) {
+            this.setInBoundsScaling(1, 0, 0);
+            this.computeScaleBounds();
+            if (Object.keys(components).length) {
+              this.computeScaleFactor();
+            }
+          }
           DG.ObjectMap.forEach(components, function (key, iComponent) {
             this.createComponentAndView(iComponent);
           }.bind(this));
         }
+      },
+
+      enforceViewBounds: function () {
+        this.computeScaleFactor();
+        DG.ObjectMap.forEach(this.componentControllersMap,
+            function (iComponentID, iController) {
+              if (iController) {
+                var view = iController.get('view');
+                if (view && view.get('isVisible')) {
+                  view.enforceViewBounds();
+                }
+              }
+            });
+      },
+      /**
+       Sets scaleBoundsX and scaleBoundsY of inBoundsScaling property, these
+       values are the target bounds of the component layout and used to determine
+       when we need to scale and reposition components due to changes in the
+       parent container size.
+       Computed when we add, delete, move, resize component.
+       @param iNewPos: a new position that will be included in the component
+                       list once the component creation is complete
+       */
+      computeScaleBounds: function (iNewPos) {
+        var components = this.get('components');
+        if (components) {
+          var scaleBounds = {x:0, y:0},
+              storedScaleFactor = this.inBoundsScaling().scaleFactor,
+              scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
+          // Only compute new bounds if scaleFactor = 1, the max value.
+          // In this case we are showing the components with original layout
+          // and the container may include additional space where the bounds
+          // can grow. If scaleFactor < 1, then the container edge has
+          // already reached the boundary edge and there is no space for the
+          // bounds to grow.
+          if (scaleFactor === 1) {
+            if (iNewPos) {
+              scaleBounds.x = Math.max(scaleBounds.x, iNewPos.x + iNewPos.width);
+              scaleBounds.y = Math.max(scaleBounds.y, iNewPos.y + iNewPos.height);
+            }
+            DG.ObjectMap.forEach(components, function (key, iComponent) {
+              // If we have a valid, visible component, determine if its position and
+              // size are determining factors in the computing the scaleBounds
+              if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
+                if (iComponent.layout && iComponent.layout.isVisible &&
+                    (iComponent.layout.left && iComponent.layout.width &&
+                    iComponent.layout.top && iComponent.layout.height)) {
+
+                  // Include the inspector size in scaleBounds calculation
+                  var tInspectorDimensions = { width: 0, height : 0 };
+                  var controller = DG.currDocumentController().componentControllersMap[iComponent.get('id')];
+                  if (controller) {
+                    var view = controller.get('view');
+                    if (view) {
+                      tInspectorDimensions = view.getInspectorDimensions();
+                    }
+                  }
+                  // Get the rightmost edge of the component
+                  var unscaledRightEdge = (iComponent.layout.left + iComponent.layout.width);
+                  if (tInspectorDimensions.width) {
+                    unscaledRightEdge += tInspectorDimensions.width;
+                  }
+                  // Get the bottommost edge of the component
+                  var unscaledBottomEdge = (iComponent.layout.top + iComponent.layout.height);
+                  if (tInspectorDimensions.height && tInspectorDimensions.height > iComponent.layout.height) {
+                    unscaledBottomEdge = iComponent.layout.top + tInspectorDimensions.height;
+                  }
+                  // Do the rightmost or bottommost edge determine new scaleBounds?
+                  scaleBounds.x = Math.max(scaleBounds.x, unscaledRightEdge);
+                  scaleBounds.y = Math.max(scaleBounds.y, unscaledBottomEdge);
+                }
+              }
+            }.bind(this));
+            var storedInBoundsScaling = this.inBoundsScaling(),
+                scaleBoundsX = storedInBoundsScaling.scaleBoundsX,
+                scaleBoundsY = storedInBoundsScaling.scaleBoundsY;
+            if ((!scaleBoundsX || !scaleBoundsY) ||
+                (scaleBoundsX === 0 || scaleBoundsY === 0) ||
+                (scaleBounds.x > scaleBoundsX || scaleBounds.y > scaleBoundsY)) {
+              this.setInBoundsScaleBounds(scaleBounds.x, scaleBounds.y);
+            }
+          }
+        }
+      },
+      /**
+       Computed when we resize browser or load document.
+       ScaleFactor is used to compute non-scaled position and size of components.
+       */
+      computeScaleFactor: function () {
+        var docView = DG.mainPage.get('docView'),
+            containerWidth = $('#codap').width(),
+            containerHeight = $('#codap').height(),
+            storedInBoundsScaling = this.inBoundsScaling(),
+            scaleBoundsX = storedInBoundsScaling.scaleBoundsX,
+            scaleBoundsY = storedInBoundsScaling.scaleBoundsY,
+            scaleFactor = 1;
+        if (!SC.none(docView)) {
+          while (!SC.none(docView.parentView.parentView)) {
+            docView = docView.parentView;
+          }
+          containerHeight -= docView.get('frame').y;
+        }
+        if (containerWidth < scaleBoundsX || containerHeight < scaleBoundsY) {
+          scaleFactor = Math.min(containerWidth / scaleBoundsX, containerHeight / scaleBoundsY);
+        }
+        this.setInBoundsScaleFactor(scaleFactor);
       },
 
       /**
@@ -1237,6 +1386,15 @@ DG.DocumentController = SC.Object.extend(
         if (tGuideComponentView) {
           tGuideComponentView.set('isVisible', false);
         }
+      },
+
+      guideViewHidden: function () {
+        var tGuideComponentView = this._singletonViews.guideView,
+            guideHidden = false;
+        if (tGuideComponentView) {
+          guideHidden = !tGuideComponentView.get('isVisible');
+        }
+        return guideHidden;
       },
 
       /**
