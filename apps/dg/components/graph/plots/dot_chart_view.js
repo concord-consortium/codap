@@ -355,8 +355,6 @@ DG.DotChartView = DG.ChartView.extend(
             }.bind(this),
 
             finallyFunc = function () {
-              if (tElementsWereRects) {
-              }
               if (hasVanishingElements) {
                 // create a vanishing element for each old point that needs one (used if many-to-one animation)
                 tOldElementAttrs.forEach(function (iOldAttrs, iIndex) {
