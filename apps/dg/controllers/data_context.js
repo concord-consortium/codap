@@ -1554,6 +1554,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var newPosition = constrainInt(position, 0, attrCount);
     DG.assert(originalPosition !== -1, 'Moving attribute is found in original collection');
     var casesAffected;
+
     // remove attribute from old collection
     DG.UndoHistory.execute(DG.Command.create({
       name: 'dataContext.moveAttribute',
