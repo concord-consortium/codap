@@ -1,8 +1,8 @@
 // ==========================================================================
 //                          DG.ContainerView
-// 
+//
 //  The top level view in a DG document.
-//  
+//
 //  Author:   William Finzer
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -29,7 +29,7 @@ sc_require('views/inspector/inspector_view');
   @extends SC.View
 */
 DG.ContainerView = SC.View.extend(
-/** @scope DG.ContainerView.prototype */ 
+/** @scope DG.ContainerView.prototype */
   (function() {
     var kDocMargin = 16;
     return {
@@ -68,7 +68,7 @@ DG.ContainerView = SC.View.extend(
       // We want the container to encompass the entire window or the
       // entire content, whichever is greater.
       layout: { left: 0, top: 0, minWidth: '100%', minHeight: '100%' },
-      
+
       /**
         Indicates that this view's layout should never be considered fixed.
         A fixed layout has a fixed width and height and is unaffected by changes
@@ -185,7 +185,7 @@ DG.ContainerView = SC.View.extend(
 
         this.adjust({ width: tWidth, height: tHeight });
       },
-      
+
       removeComponentView: function( iComponentView) {
         var tCloseAction = iComponentView.get('closeAction');
         if( tCloseAction) {
@@ -250,7 +250,7 @@ DG.ContainerView = SC.View.extend(
           this.incrementProperty('nextZIndex');
         }
       },
-      
+
       /* sendToBack - The given child view will be placed at the beginning of the list, thus
         rendered first and appearing behind all others.
       */
@@ -302,8 +302,16 @@ DG.ContainerView = SC.View.extend(
                                       tDocRect,
                                       tOffset,
                                       tViewRects.concat( tReservedRects),
-                                      iPosition),
-            tFinalRect = { x: tLoc.x, y: tLoc.y, width: tViewRect.width, height: tViewRect.height},
+                                      iPosition);
+        if (DG.KEEP_IN_BOUNDS_PREF) {
+          if (tLoc.x + tViewRect.width > window.innerWidth) {
+            tLoc.x = Math.max(0, window.innerWidth - tViewRect.width);
+          }
+          if (tLoc.y + tViewRect.height > window.innerHeight) {
+            tLoc.y = Math.max(0, window.innerHeight - tViewRect.height);
+          }
+        }                             
+        var tFinalRect = { x: tLoc.x, y: tLoc.y, width: tViewRect.width, height: tViewRect.height},
             tOptions = { duration: 0.5, timing: 'ease-in-out'},
             tIsGameView = iView.get('contentView').constructor === DG.GameView;
         if( tIsGameView) {
@@ -348,8 +356,9 @@ DG.ContainerView = SC.View.extend(
           }.bind(this));
           iView.adjust({width: 0, height: 0});
         }
+        return tFinalRect;
       },
-      
+
       /** coverUpComponentViews - Request each component view to cover up its contents with a see-through layer.
        * We need to do this when we're dragging or resizing one component, so that the event handlers in components
        * we are passing over don't get in the way.
