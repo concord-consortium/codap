@@ -202,7 +202,7 @@ DG.DragBorderView = SC.View.extend(
           return DG.ComponentView.findComponentViewParent(this);
         },
         getContainerWidth: function () {
-          return containerWidth = $('#codap').width();
+          return $('#codap').width();
         },
         getContainerHeight: function () {
           var tDocView = this.viewToDrag();
