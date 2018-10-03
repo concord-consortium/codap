@@ -458,13 +458,15 @@ DG.ComponentView = SC.View.extend(
                 null,
             undo: (kViewInEmbeddedMode || kViewInComponentMode) ?
                 DG.TitleBarUndoButton.design({
-                  layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 3 : kTitleBarHeight), 
+                           top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-undo'],
                 }) :
                 null,
             redo: (kViewInEmbeddedMode || kViewInComponentMode) ?
                 DG.TitleBarRedoButton.design({
-                  layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 2 : 0), 
+                           top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-redo'],
                 }) :
                 null,
