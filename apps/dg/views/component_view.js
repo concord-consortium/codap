@@ -202,14 +202,14 @@ DG.DragBorderView = SC.View.extend(
           return DG.ComponentView.findComponentViewParent(this);
         },
         getContainerWidth: function () {
-          return window.innerWidth; // go global
+          return containerWidth = $('#codap').width();
         },
         getContainerHeight: function () {
           var tDocView = this.viewToDrag();
           while (!SC.none(tDocView.parentView.parentView)) {
             tDocView = tDocView.parentView;
           }
-          return window.innerHeight - tDocView.get('frame').y;
+          return $('#codap').height() - tDocView.get('frame').y;
         }
       };
     }())

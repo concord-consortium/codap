@@ -623,7 +623,6 @@ DG.DocumentController = SC.Object.extend(
        @param iNewPos: a new position that will be included in the component
                        list once the component creation is complete
        */
-
       computeScaleBounds: function (iNewPos) {
         var components = this.get('components');
         if (components) {
@@ -691,8 +690,8 @@ DG.DocumentController = SC.Object.extend(
        */
       computeScaleFactor: function () {
         var docView = DG.mainPage.get('docView'),
-            containerWidth = window.innerWidth,
-            containerHeight = window.innerHeight,
+            containerWidth = $('#codap').width(),
+            containerHeight = $('#codap').height(),
             storedInBoundsScaling = this.inBoundsScaling(),
             scaleBoundsX = storedInBoundsScaling.scaleBoundsX,
             scaleBoundsY = storedInBoundsScaling.scaleBoundsY,
@@ -701,7 +700,7 @@ DG.DocumentController = SC.Object.extend(
           while (!SC.none(docView.parentView.parentView)) {
             docView = docView.parentView;
           }
-          containerHeight = window.innerHeight - docView.get('frame').y;
+          containerHeight -= docView.get('frame').y;
         }
         if (containerWidth < scaleBoundsX || containerHeight < scaleBoundsY) {
           scaleFactor = Math.min(containerWidth / scaleBoundsX, containerHeight / scaleBoundsY);
