@@ -709,5 +709,9 @@ SC.stringsFor("es", {
     "DG.DataDisplayMenu.lockImageToAxes": "Lock Background Image to Axes",
     "DG.DataDisplayMenu.unlockImageFromAxes": "Unlock Background Image from Axes",
     "DG.DataDisplayMenu.removeBackgroundImage": "Remove Background Image",
-    "DG.main.page.title": "%@1 - %@2"
+    "DG.main.page.title": "%@1 - %@2",
+    "DG.TableController.headerMenuItems.deleteFormula": "Delete Formula (Keeping Values)",
+    "DG.TableController.headerMenuItems.recoverFormula": "Recover Deleted Formula",
+    "DG.Inspector.displayLayers.toolTip": "Change the appearance of the map layers",
+    "DG.Inspector.layers": "Layers"
 });
