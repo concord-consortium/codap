@@ -1,8 +1,8 @@
 // ==========================================================================
 //                          DG.ComponentView
-// 
+//
 //  Routines for changing coordinates along an animation path
-//  
+//
 //  Author:   William Finzer
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -224,8 +224,9 @@ DG.ComponentView = SC.View.extend(
           kBottomBorderCursor = SC.Cursor.create({cursorStyle: SC.S_RESIZE_CURSOR}),
           kLeftBorderCursor = SC.Cursor.create({cursorStyle: SC.W_RESIZE_CURSOR}),
           kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR}),
-          kLockThingsDown = DG.get('componentMode') === 'yes' || DG.get('embeddedMode') === 'yes'
-          ;
+          kViewInComponentMode = DG.get('componentMode') === 'yes',
+          kViewInEmbeddedMode = DG.get('embeddedMode') === 'yes',
+          kLockThingsDown = kViewInComponentMode;
       return {
         classNames: ['dg-component-view'],
         classNameBindings: ['isSelected:dg-component-view-selected'],
@@ -301,7 +302,7 @@ DG.ComponentView = SC.View.extend(
           }
           // If we are in component mode we select the component after it is
           // rendered.
-          if (kLockThingsDown) {
+          if (kViewInComponentMode) {
             this.invokeLater(function () {
               this.select();
             }.bind(this));
@@ -331,7 +332,8 @@ DG.ComponentView = SC.View.extend(
             }.observes('isSelected'),
             model: null,  // DG.Component. Needed to determine if closebox should show
             childViews: ('statusView versionView titleView ' +
-            (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo')).w(),
+            (!kLockThingsDown ? 'minimize closeBox ' : '') +
+            ((kViewInComponentMode || kViewInEmbeddedMode) ? 'undo redo ' : '')).w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
@@ -454,15 +456,17 @@ DG.ComponentView = SC.View.extend(
                   isVisible: SC.platform.touch
                 }) :
                 null,
-            undo: kLockThingsDown ?
+            undo: (kViewInEmbeddedMode || kViewInComponentMode) ?
                 DG.TitleBarUndoButton.design({
-                  layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 3 : kTitleBarHeight), 
+                           top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-undo'],
                 }) :
                 null,
-            redo: kLockThingsDown ?
+            redo: (kViewInEmbeddedMode || kViewInComponentMode) ?
                 DG.TitleBarRedoButton.design({
-                  layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 2 : 0), 
+                           top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-redo'],
                 }) :
                 null,
