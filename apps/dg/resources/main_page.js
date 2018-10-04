@@ -303,6 +303,7 @@ DG.mainPage = SC.Page.design((function() {
     },
 
     viewDidResize: function() {
+      sc_super();
       if (DG.KEEP_IN_BOUNDS_PREF) {
         DG.currDocumentController().enforceViewBounds();
       }
