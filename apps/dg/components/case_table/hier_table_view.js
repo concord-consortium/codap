@@ -61,7 +61,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      @property   {DG.DataContext}
      */
     dataContext: null,
-    layout: { left: 0, top: 0, right: 0, bottom: 0 },
+    layout: { left: 0, top: 0, right: 0, bottom: 8 },
 
     /**
      * Whether the component is ready.
@@ -94,7 +94,17 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     init: function() {
       sc_super();
       // Adjust the horizontal scrollbar so that the right scroll arrow can be hit.
-      this.set('horizontalScrollerLayout', { left: 0, right: 18, top: 0, bottom: 0 });
+      this.set('horizontalScrollerLayout', { left: 0, right: 18, top: 0, bottom: 8 });
+    },
+
+    /**
+     * Gives us a chance to add/remove classes to the component view in which I'm displayed.
+     * For a hierarchical table view, the need is to give move the scroll bar up a bit so that
+     * it is more accessible to the mouse.
+     * @param iMyComponentView {DG.ComponentView}
+     */
+    adjustComponentViewClasses: function( iMyComponentView) {
+      iMyComponentView.get('classNames').push('dg-case-table-component-view');
     },
 
     /**

@@ -830,6 +830,9 @@ DG.ComponentView = SC.View.extend(
           iView.set('layout', {top: this.get('showTitleBar') ? kTitleBarHeight : 0});
           this.containerView.appendChild(iView);
           this.containerView.setContentView(iView);
+          if( iView.adjustComponentViewClasses) {
+            iView.adjustComponentViewClasses( this);
+          }
         },
 
         /**
