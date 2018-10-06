@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+/*global pluralize:true*/
+
 sc_require('components/graph/adornments/plot_adornment');
 
 /** @class  Draws a line.
@@ -101,8 +103,9 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
 
           getSlopeUnit = function () {
             var tYUnit = this_.getPath('yAxisView.model.firstAttributeUnit'),
-                tXUnit = this_.getPath('xAxisView.model.firstAttributeUnit').singularize(),
+                tXUnit = this_.getPath('xAxisView.model.firstAttributeUnit'),
                 tSlash = (tXUnit === '') ? '' : '/';
+            tXUnit = pluralize.singular( tXUnit);
             return (tXUnit === '' && tYUnit === '') ? '' :
                       ' ' + tYUnit + tSlash + tXUnit + ')';
           },
