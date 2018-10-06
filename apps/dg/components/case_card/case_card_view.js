@@ -53,6 +53,13 @@ DG.CaseCardView = SC.View.extend(
 
         classNameBindings: ['dragInProgress'],
 
+        _mouseYInDrag: 0,
+
+        /*
+        @property {SC.Timer}
+         */
+        _scrollTimer: null,
+
         initCardLayer: function () {
           var tLayer = this.get('layer'),
               tReactCard = DG.React.Components.CaseCard({
@@ -107,6 +114,49 @@ DG.CaseCardView = SC.View.extend(
         },
 
         dragUpdated: function (iDragObject, iEvent) {
+
+          function scrollUp() {
+            if( this_._mouseYInDrag < 5 && tLayer.scrollTop > 0) {
+              tLayer.scrollTop -= 10;
+            }
+            else if(this_._scrollTimer && this_._scrollTimer.isValid){
+              this_._scrollTimer.invalidate();
+            }
+          }
+
+          function scrollDown() {
+            if( this_._mouseYInDrag > tFrameHeight - 10) {
+              tLayer.scrollTop += 10;
+            }
+            else if(this_._scrollTimer && this_._scrollTimer.isValid){
+              this_._scrollTimer.invalidate();
+            }
+          }
+
+          function setupScrollTimer( iAction) {
+            if( !this_._scrollTimer || !this_._scrollTimer.isValid) {
+              this_._scrollTimer = SC.Timer.schedule({
+                target: this_,
+                action: iAction,
+                interval: 100,
+                repeats: YES
+              });
+            }
+          }
+
+          var this_ = this,
+              tViewPoint = DG.ViewUtilities.windowToViewCoordinates({x: iEvent.clientX, y: iEvent.clientY}, this),
+              tLayer = this.get('layer'),
+              tScrollTop = tLayer.scrollTop,
+              tFrameHeight = this.get('frame').height;
+          this._mouseYInDrag = tViewPoint.y;
+          if( tViewPoint.y < 5 && tScrollTop > 0) {
+            setupScrollTimer( scrollUp);
+          }
+          else if( tViewPoint.y > tFrameHeight - 10) {
+            setupScrollTimer( scrollDown);
+          }
+
           this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent}});
         },
 
@@ -125,6 +175,8 @@ DG.CaseCardView = SC.View.extend(
         },
 
         dragEnded: function () {
+          if( this._scrollTimer && this._scrollTimer.isValid)
+            this._scrollTimer.invalidate();
           this.set('dragInProgress', false);
           this.dragExited();
         },

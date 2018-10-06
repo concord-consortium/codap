@@ -117,12 +117,13 @@ DG.React.ready(function () {
                 tMouseIsDown = false,
                 tStartCoordinates,
                 tDragInProgress = false,
-                tDragHandler,
-                tIndex = 0;
+                tDragHandler;
 
+/*
             function logit(iString) {
               console.log(++tIndex + ': ' + iString);
             }
+*/
 
             function isNotEmpty(iString) {
               return iString !== undefined && iString !== null && iString !== '';
@@ -192,7 +193,7 @@ DG.React.ready(function () {
             }
 
             function doDragStart(iEvent) {
-              logit('In doDragStart with tDragInProgress = ' + tDragInProgress);
+              // logit('In doDragStart with tDragInProgress = ' + tDragInProgress);
               if (!tDragInProgress) {
                 tDragHandler = DG.DragCaseCardItemHandler.create({
                   viewToAddTo: DG.mainPage.docView,
@@ -592,9 +593,7 @@ DG.React.ready(function () {
                       },
                       tbody({},
                           tCollectionHeader, tAttrEntries)));
-                }
-
-                    .bind(this)
+                }.bind(this)
             );
             return div({className: 'react-data-card'}, tCollEntries);
           }
