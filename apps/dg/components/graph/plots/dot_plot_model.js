@@ -475,30 +475,34 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var tControls = sc_super(),
             kRowHeight = 23,
             kButtonWidth = 120,
-            this_ = this;
-
-        tControls.push(
-            SC.PopupButtonView.create({
+            tButton = SC.PopupButtonView.create({
               layout: {height: kRowHeight, width: kButtonWidth},
               title: 'DG.Inspector.graphMovableValue'.loc(),
-                classNames: 'dg-movable-value-button',
-                menu: SC.MenuPane.extend({
+              classNames: 'dg-movable-value-button',
+              menu: SC.MenuPane.extend({
                 layout: {width: 100},
                 items: [
                   {
                     title: 'DG.Inspector.graphAdd'.loc(),
-                    target: this_,
-                    action: this_.addMovableValue
+                    target: this,
+                    action: function() {
+                      tButton.setPath('parentView.parentView.isVisible', false);
+                      this.addMovableValue();
+                    }
                   },
                   {
                     title: 'DG.Inspector.graphRemove'.loc(),
-                    target: this_,
-                    action: this_.removeMovableValue
+                    target: this,
+                    action: function() {
+                      tButton.setPath('parentView.parentView.isVisible', false);
+                      this.removeMovableValue();
+                    }
                   },
                 ]
               })
-            })
-        );
+            });
+
+        tControls.push( tButton);
         return tControls;
       }.property(),
 
