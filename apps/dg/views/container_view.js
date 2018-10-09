@@ -304,13 +304,20 @@ DG.ContainerView = SC.View.extend(
                                       tViewRects.concat( tReservedRects),
                                       iPosition);
         if (DG.KEEP_IN_BOUNDS_PREF) {
-          if (tLoc.x + tViewRect.width > window.innerWidth) {
-            tLoc.x = Math.max(0, window.innerWidth - tViewRect.width);
+          var HORIZONTALBUFFER = 50,
+              containerWidth = $('#codap').width();
+          if ((tLoc.x + tViewRect.width + HORIZONTALBUFFER) > containerWidth) {
+            tLoc.x = Math.max(0, containerWidth - tViewRect.width - HORIZONTALBUFFER);
           }
-          if (tLoc.y + tViewRect.height > window.innerHeight) {
-            tLoc.y = Math.max(0, window.innerHeight - tViewRect.height);
+          var tDocView = this.parentView;
+          while (!SC.none(tDocView.parentView.parentView)) {
+            tDocView = tDocView.parentView;
           }
-        }                             
+          var containerHeight = $('#codap').height() - tDocView.get('frame').y;
+          if ((tLoc.y + tViewRect.height) > containerHeight) {
+            tLoc.y = Math.max(0, containerHeight - tViewRect.height);
+          }
+        }
         var tFinalRect = { x: tLoc.x, y: tLoc.y, width: tViewRect.width, height: tViewRect.height},
             tOptions = { duration: 0.5, timing: 'ease-in-out'},
             tIsGameView = iView.get('contentView').constructor === DG.GameView;
