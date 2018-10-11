@@ -462,7 +462,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
             });
           }
 
-          var tVisible = this_.getPath('model.areSquaresVisible'),
+          var kRemoveFromPaper = true,
+              tVisible = this_.getPath('model.areSquaresVisible'),
               tAnimateRemove = !tVisible && this_._squares && (this_._squares.length > 0),
               tAnimateShow = tVisible && (!this_._squares || (this_._squares.length === 0)),
               tLayerManager = this_.get('layerManager'),
@@ -473,11 +474,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
             if (tAnimateRemove) {
               iElement.animate({'stroke-opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
                   function () {
-                    tLayerManager.removeElement(iElement);
+                    tLayerManager.removeElement(iElement, kRemoveFromPaper);
                   });
             }
             else
-              tLayerManager.removeElement(iElement);
+              tLayerManager.removeElement(iElement, kRemoveFromPaper);
           });
           this_._squares = [];
           if (!tVisible)
