@@ -297,10 +297,6 @@ DG.DocumentController = SC.Object.extend(
           nextLogMonitorId: 1
         });
 
-        // If we were created with a 'content' property pointing to our document,
-        // then use it; otherwise, create a new document.
-        this.setDocument(this.get('content') || this.createDocument());
-
         this.clearChangedObjects();
 
         if (DG.KEEP_IN_BOUNDS_PREF) {
@@ -357,6 +353,9 @@ DG.DocumentController = SC.Object.extend(
 
           // Create the individual DataContexts
           this.restoreDataContexts();
+
+          // Set guide index if query parameter set.
+          this.updateGuideFromURL();
 
           // Create the individual component views
           SC.run(function () {
@@ -1662,8 +1661,10 @@ DG.DocumentController = SC.Object.extend(
         // remove dataContexts
         this.contexts = [];
 
-        this.notificationManager.destroy();
-        this.notificationManager = null;
+        if (this.notificationManager)  {
+          this.notificationManager.destroy();
+          this.notificationManager = null;
+        }
 
         // remove document
         DG.Document.destroyDocument(DG.activeDocument);
@@ -1811,6 +1812,28 @@ DG.DocumentController = SC.Object.extend(
         });
       },
 
+      /**
+       * The guide index of a restored document can be modified with a URL query
+       * parameter. This method performs that operation if the query parameter
+       * is present. The method edits the component storage object. **It should,
+       * thus, be called only before the component controller and view are
+       * constructed.**
+       */
+      updateGuideFromURL: function () {
+        var guideIndex = DG.get('initialGuideIndex');
+        if (SC.empty(guideIndex)) return;
+        DG.set('initialGuideIndex', '');
+        var components = this.get('components');
+        var guideComponentKey = Object.keys(components).find(function (iComponentKey) {
+          var tComponent = components[iComponentKey];
+          return tComponent.type === 'DG.GuideView';
+        });
+        var guideComponent = guideComponentKey && components[guideComponentKey];
+        if (guideComponent && !Number.isNaN(guideIndex)) {
+          guideComponent.componentStorage.isVisible = true;
+          guideComponent.componentStorage.currentItemIndex = Number(guideIndex);
+        }
+      },
       /**
        * Ensures that the state of all components, data contexts and
        * data contexts are current and up-to-date.

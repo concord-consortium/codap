@@ -523,6 +523,21 @@ DG = SC.Application.create((function () // closure
       return getUrlParameter('embeddedServer', 'no');
     }.property(),
 
+    /**
+     * Returns the index of a guide page, if set as a query parameter. This is
+     * taken to designate the guid page that should be present when CODAP opens
+     * the document. This value should override whichever guide page is current
+     * in the document and if the parameter is present and the guide is closed
+     * in the document, the guide should be opened.
+     */
+    _guideIndex: getUrlParameter('guideIndex', undefined),
+    initialGuideIndex: function (key, value) {
+      if (value !== undefined) {
+        this._guideIndex = value;
+      }
+      return this._guideIndex;
+    }.property(),
+
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',
       'graphButton',
