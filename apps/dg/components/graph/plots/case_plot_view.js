@@ -162,8 +162,9 @@ DG.CasePlotView = DG.PlotView.extend(
        */
 
       drawData: function () {
-        if (!this.get('paper') || !this.get('model') || !this.getPath('model.cases'))
+        if (!this.get('paper') || !this.get('model') || !this.getPath('model.cases') || this.getPath('model.isAnimating'))
           return;
+        this.setPath('model.isAnimating', true);
 
         function dataCoordinate(iValue, iMin, iMax) {
           return iMin + kMargin + iValue * (iMax - iMin - 2 * kMargin);
@@ -284,14 +285,14 @@ DG.CasePlotView = DG.PlotView.extend(
                       r: tR,
                       fill: tColor
                     },
-                    DG.PlotUtilities.kDefaultAnimationTime, '<>',
-                    function () {
-                      this.setPath('model.isAnimating', false);
-                    }.bind(this));
-                tInc *= 2;
+                    DG.PlotUtilities.kDefaultAnimationTime, '<>');
                 tStart += tInc;
-                if (i < tNumCases) {
+                tInc *= 2;
+                if (tStart < tNumCases) {
                   this.invokeLater(loop, 10);
+                }
+                else {
+                  this.setPath('model.isAnimating', false);
                 }
                 tPointSet.clear();
               }.bind(this);

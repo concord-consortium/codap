@@ -89,8 +89,7 @@ DG.DotChartView = DG.ChartView.extend(
             // It can happen during closing of a document that the elements no longer exist, so we have to test
             if (!SC.none(tPlottedElements[tIndex])) {
               tPlottedElements[tIndex].stop();
-              tLayerManager.removeElement(tPlottedElements[tIndex]);
-              DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex]);
+              DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex], tLayerManager);
             }
           }
           // update all coordinates because we don't know which cases were deleted

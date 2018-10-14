@@ -464,7 +464,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
             if (!SC.none(tPlottedElements[tIndex])) {
               tPlottedElements[tIndex].stop();
               tLayerManager.removeElement(tPlottedElements[tIndex]);
-              DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex]);
+              DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex], tLayerManager);
             }
           }
           tPlottedElements.length = tDataLength;
