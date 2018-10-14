@@ -83,7 +83,7 @@ html, body {
 .dg-busy-cover {
     cursor: wait;
     background-color: rgba(255, 255, 255, 0.01) !important;
-    z-index: 10000;
+    z-index: 1000000;
 }
 
 /* Default font for case tables */
@@ -238,7 +238,7 @@ html, body {
 .dg-inspector-view{
     background-color: #01879E;
     border-radius: 6px;
-    z-index: 1000;
+    z-index: 100000;
 }
 
 .inspector-cover {
