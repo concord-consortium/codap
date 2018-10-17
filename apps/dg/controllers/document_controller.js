@@ -299,6 +299,12 @@ DG.DocumentController = SC.Object.extend(
 
         this.clearChangedObjects();
 
+        // If we were created with a 'content' property pointing to our document,
+        // then use it; otherwise, create a new document.
+        if (SC.empty(DG.get('initialGuideIndex'))) {
+          this.setDocument(this.get('content') || this.createDocument());
+        }
+
         if (DG.KEEP_IN_BOUNDS_PREF) {
           this.setInBoundsScaling(1, 0, 0);
         }
