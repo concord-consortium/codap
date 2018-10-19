@@ -104,8 +104,9 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           getSlopeUnit = function () {
             var tYUnit = this_.getPath('yAxisView.model.firstAttributeUnit'),
                 tXUnit = this_.getPath('xAxisView.model.firstAttributeUnit'),
-                tSlash = (tXUnit === '') ? '' : '/';
-            tXUnit = pluralize.singular( tXUnit);
+                tSlash = (tXUnit === '') ? '' : '/',
+                tSingularX = pluralize.singular( tXUnit);
+            tXUnit = SC.empty( tSingularX) ? tXUnit : tSingularX;
             return (tXUnit === '' && tYUnit === '') ? '' :
                       ' ' + tYUnit + tSlash + tXUnit + ')';
           },
