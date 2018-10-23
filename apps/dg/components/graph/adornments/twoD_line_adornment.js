@@ -192,7 +192,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
         tLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
         tLineColor = this.get('lineColor'),
         tEquationColor = DG.color(DG.ColorUtilities.colorNameToHexColor(tLineColor)).darker(1).color,
-        tOriginalCoordinates, tReturnPoint, tDragPoint;
+        tOriginalCoordinates, tReturnPoint;
 
     this.lineSeg = tPaper.line(0, 0, 0, 0)
         .attr({stroke: tLineColor, 'stroke-opacity': 0});
@@ -228,8 +228,6 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
 
       tOriginalCoordinates = this_.getPath('model.equationCoords');
       tReturnPoint = SC.none( tOriginalCoordinates) ? getCurrentCoords() : tOriginalCoordinates;
-      tDragPoint = DG.ViewUtilities.windowToViewCoordinates(
-          {x: iWindowX, y: iWindowY}, this_.parentView);
     }
 
     function continueDrag( idX, idY) {
