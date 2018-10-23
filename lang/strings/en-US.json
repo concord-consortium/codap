@@ -289,6 +289,8 @@
     "DG.Redo.graph.moveMovableValue": "Redo moving movable value",
     "DG.Undo.graph.moveMovablePoint": "Undo moving movable point",
     "DG.Redo.graph.moveMovablePoint": "Redo moving movable point",
+    "DG.Undo.graph.repositionEquation": "Undo repositioning equation",
+    "DG.Redo.graph.repositionEquation": "Redo repositioning equation",
     "DG.Undo.graph.changePointColor": "Undo changing data color",
     "DG.Redo.graph.changePointColor": "Redo changing data color",
     "DG.Undo.graph.changeStrokeColor": "Undo changing stroke color",

@@ -259,11 +259,7 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
     if( tIntercepts.pt2.x < tIntercepts.pt1.x)
       swapIntercepts();
 
-    var tTextAnchor = worldToScreen({ x: (tIntercepts.pt1.x + tIntercepts.pt2.x) / 2,
-                                      y: (tIntercepts.pt1.y + tIntercepts.pt2.y) / 2 }),
-        tPaperWidth = this.get('paper').width,
-        tPaperHeight = this.get('paper').height,
-        tBreakPt1, tBreakPt2, tTextBox, tTextWidth, tAlign, tBackgrndX;
+    var tBreakPt1, tBreakPt2;
 
     if( tLocked) {
       // The only break point is the origin, if it's visible.
@@ -320,29 +316,8 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
       segment.toFront().attr({ cursor: cursors[i] });
     });
 
-    tTextBox = this.equation.attr( { text: this.get('equationString') }).getBBox();
-    tTextWidth = tTextBox.width;
-    tTextWidth += 10; // padding
-    if( tTextAnchor.x < tPaperWidth / 2) {
-      tAlign = 'start';
-      tTextAnchor.x = Math.min( tTextAnchor.x, tPaperWidth - tTextWidth);
-      tBackgrndX = tTextAnchor.x;
-    }
-    else {
-      tAlign = 'end';
-      tTextAnchor.x = Math.max( tTextAnchor.x, tTextWidth);
-      tBackgrndX = tTextAnchor.x - tTextBox.width;
-    }
-    // We don't want the equation to sit on the line because then we can't drag it
-    tTextAnchor.y += tTextBox.height / 2;
-    // Keep the equation inside the plot bounds
-    tTextAnchor.y = Math.min( Math.max( tTextAnchor.y, tTextBox.height / 2), tPaperHeight - tTextBox.height / 2);
+    this.positionEquationAndBackground();
 
-    // At last set the equation attributes
-    this.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
-      width: tTextWidth, height: tTextBox.height });
-    this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
-                text: this.get('equationString') });
   },
 
   /**

@@ -34,6 +34,11 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     @property { Raphael line element }
   */
   lineSeg: null,
+  /**
+   * element on top of lineSeg, transparent, thicker
+   * @property { Raphael line element }
+   */
+  coverSeg: null,
 
   equation: null,
 
@@ -55,7 +60,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
                               ['isInterceptLocked', 'updateToModel'],
                               ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel'],
                               ['sumSquaresResiduals', 'updateToModel'],
-                              ['enableMeasuresForSelection', 'enableMeasuresForSelectionDidChange']],
+                              ['enableMeasuresForSelection', 'enableMeasuresForSelectionDidChange'],
+                              ['equationCoords', 'updateToModel']],
 
   /**
     The returned string should have a reasonable number of significant digits for the
@@ -185,56 +191,195 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     var tPaper = this.get('paper'),
         tLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
         tLineColor = this.get('lineColor'),
-        tEquationColor = DG.color(DG.ColorUtilities.colorNameToHexColor(tLineColor)).darker(2).color;
+        tEquationColor = DG.color(DG.ColorUtilities.colorNameToHexColor(tLineColor)).darker(1).color,
+        tOriginalCoordinates, tReturnPoint, tDragPoint;
+
     this.lineSeg = tPaper.line(0, 0, 0, 0)
         .attr({stroke: tLineColor, 'stroke-opacity': 0});
     this.lineSeg.animatable = true;
 
-    function highlightEquation( iEquation, iBackgroundRect) {
-      tLayer.bringToFront( iBackgroundRect);
-      tLayer.bringToFront( iEquation);
-      iBackgroundRect.attr('fill-opacity', 1);
+    this.coverSeg = tPaper.line(0, 0, 0, 0)
+        .attr({stroke: tLineColor, 'stroke-opacity': 0.001, 'stroke-width': 6 })
+        .hover(highlightElements, unHighlightElements);
+    this.coverSeg.animatable = false;
+
+    function highlightElements() {
+      tLayer.bringToFront( this_.backgrndRect);
+      tLayer.bringToFront( this_.equation);
+      this_.backgrndRect.attr('fill-opacity', 1);
+      this_.lineSeg.attr('stroke-width', 2);
+    }
+
+    function unHighlightElements() {
+      this_.backgrndRect.attr('fill-opacity', kBackgroundOpacity);
+      this_.lineSeg.attr('stroke-width', 1);
+    }
+
+    function beginDrag( iWindowX, iWindowY) {
+
+      function getCurrentCoords() {
+        var tXCenter = this_.backgrndRect.attr('x') + this_.backgrndRect.attr('width') / 2,
+            tYCenter = this_.backgrndRect.attr('y') + this_.backgrndRect.attr('height') / 2;
+        return {
+          proportionCenterX: tXCenter / this_.get('paper').width,
+          proportionCenterY: tYCenter / this_.get('paper').height
+        };
+      }
+
+      tOriginalCoordinates = this_.getPath('model.equationCoords');
+      tReturnPoint = SC.none( tOriginalCoordinates) ? getCurrentCoords() : tOriginalCoordinates;
+      tDragPoint = DG.ViewUtilities.windowToViewCoordinates(
+          {x: iWindowX, y: iWindowY}, this_.parentView);
+    }
+
+    function continueDrag( idX, idY) {
+      var tPaper = this_.get('paper');
+      this_.setPath( 'model.equationCoords', {
+        proportionCenterX: tReturnPoint.proportionCenterX + idX / tPaper.width,
+        proportionCenterY: tReturnPoint.proportionCenterY + idY / tPaper.height});
+    }
+
+    function endDrag( iEvent) {
+      var tOriginal = tOriginalCoordinates,
+          tNew;
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "graph.repositionEquation",
+        undoString: 'DG.Undo.graph.repositionEquation',
+        redoString: 'DG.Redo.graph.repositionEquation',
+        log: "Moved equation from %@ to %@".fmt( tOriginal, this.getPath('model.coordinates')),
+        execute: function() {
+          tNew = this_.getPath('model.equationCoords');
+        }.bind( this),
+        undo: function() {
+          this_.setPath('model.equationCoords', tOriginal);
+        }.bind( this),
+        redo: function() {
+          this_.setPath('model.equationCoords', tNew);
+        }.bind( this)
+      }));
     }
 
     this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
-        .attr({fill: 'yellow', 'stroke-width': 0, 'fill-opacity': kBackgroundOpacity})
-        .hover(function () {
-              highlightEquation( this_.equation, this);
-            },
-            function () {
-              this.attr('fill-opacity', kBackgroundOpacity);
-            })
-        .touchstart(function () {
-          highlightEquation( this_.equation, this);
-        })
-        .touchend(function () {
-          this.attr('fill-opacity', kBackgroundOpacity);
-        });
+        .attr({fill: 'yellow', 'stroke-width': 0, 'fill-opacity': kBackgroundOpacity, cursor: 'move'})
+        .hover(highlightElements, unHighlightElements)
+        .touchstart(highlightElements)
+        .touchend(unHighlightElements)
+        .drag( continueDrag, beginDrag, endDrag);
     // Put the text below the hit segments in z-order so user can still hit the line
     this.equation = tPaper.text(0, 0, '')
-        .attr({'stroke-opacity': 0, fill: tEquationColor })
+        .attr({'stroke-opacity': 0, fill: tEquationColor, cursor: 'move' })
         .addClass('dg-graph-adornment')
-        .hover(function () {
-              highlightEquation(this, this_.backgrndRect);
-            },
-            function () {
-              this_.backgrndRect.attr('fill-opacity', kBackgroundOpacity);
-            })
-        .touchstart(function () {
-          highlightEquation(this, this_.backgrndRect);
-        })
-        .touchend(function () {
-          this_.backgrndRect.attr('fill-opacity', kBackgroundOpacity);
-        });
+        .hover(highlightElements, unHighlightElements)
+        .touchstart(highlightElements)
+        .touchend(unHighlightElements)
+        .drag( continueDrag, beginDrag, endDrag);
     this.equation.animatable = true;
 
     // Tune up the line rendering a bit
     this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
 
-    this.myElements = [this.lineSeg, this.backgrndRect, this.equation];
+    this.myElements = [this.lineSeg, this.coverSeg, this.backgrndRect, this.equation];
     this.myElements.forEach(function (iElement) {
       tLayer.push(iElement);
     });
+  },
+
+  positionEquationAndBackground: function() {
+    var this_ = this,
+        tModel = this.get('model');
+    if( !tModel.get('isVisible')) // Only update if we're visible
+      return;
+    tModel.recomputeSlopeAndInterceptIfNeeded();
+    var tSlope = tModel.get('slope'),
+        tIntercept = tModel.get('intercept');
+    if( SC.none( tSlope) || SC.none( tIntercept) || !isFinite( tSlope) || !isFinite( tIntercept)) {
+      this.hideElements();
+      return;
+    }
+    this.showElements();
+    if( this.myElements === null)
+      this.createElements();
+    var tXAxisView = this.get( 'xAxisView'),
+        tYAxisView = this.get( 'yAxisView'),
+        tYLowerBound = tYAxisView.getPath('model.lowerBound'),
+        tYUpperBound = tYAxisView.getPath('model.upperBound'),
+        // Form of tIntercepts is { pt1: { x, y }, pt2: { x, y }} in world coordinates
+        tIntercepts = (tModel.get('isVertical')) ?
+            { pt1: { x: tModel.get('xIntercept'), y: tYLowerBound },
+              pt2: { x: tModel.get('xIntercept'), y: tYUpperBound }} :
+            DG.PlotUtilities.lineToAxisIntercepts(
+                tSlope, tIntercept, tXAxisView.get('model'), tYAxisView.get('model') );
+
+    function worldToScreen( iWorld) {
+      return { x: tXAxisView.dataToCoordinate( iWorld.x),
+        y: tYAxisView.dataToCoordinate( iWorld.y) };
+    }
+
+    function swapIntercepts() {
+      var tSwap = tIntercepts.pt1;
+      tIntercepts.pt1 = tIntercepts.pt2;
+      tIntercepts.pt2 = tSwap;
+    }
+
+    function computeBestCoords() {
+      var tTextAnchor = worldToScreen({ x: (tIntercepts.pt1.x + tIntercepts.pt2.x) / 2,
+            y: (tIntercepts.pt1.y + tIntercepts.pt2.y) / 2 });
+
+          if( tTextAnchor.x < tPaperWidth / 2) {
+        tAlign = 'start';
+        tTextAnchor.x = Math.min( tTextAnchor.x, tPaperWidth - tTextWidth);
+        tBackgrndX = tTextAnchor.x;
+      }
+      else {
+        tAlign = 'end';
+        tTextAnchor.x = Math.max( tTextAnchor.x, tTextWidth);
+        tBackgrndX = tTextAnchor.x - tTextBox.width;
+      }
+      // We don't want the equation to sit on the line
+      tTextAnchor.y += 3 * tTextBox.height / 2;
+      // Keep the equation inside the plot bounds
+      tTextAnchor.y = Math.min( Math.max( tTextAnchor.y, tTextBox.height / 2), tPaperHeight - tTextBox.height / 2);
+      this_.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
+        width: tTextWidth, height: tTextBox.height });
+      this_.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign});
+    }
+
+    function computeCoordsFromModel() {
+      var tBoxCenterX = tEquationCoords.proportionCenterX * tPaperWidth,
+          tBoxCenterY = tEquationCoords.proportionCenterY * tPaperHeight,
+          tBoxX = tBoxCenterX - tTextWidth / 2,
+          tBoxY = tBoxCenterY - tTextBox.height / 2;
+      this_.backgrndRect.attr({ x: tBoxX, y: tBoxY, width: tTextWidth, height: tTextBox.height});
+      this_.equation.attr( { x: tBoxCenterX, y: tBoxCenterY, 'text-anchor': 'middle'});
+    }
+
+    if( tIntercepts.pt2.x < tIntercepts.pt1.x)
+      swapIntercepts();
+
+    var tPaperWidth = this.get('paper').width,
+        tPaperHeight = this.get('paper').height,
+        tLineColor = this.get('lineColor'),
+        tEquationColor = DG.color(DG.ColorUtilities.colorNameToHexColor(tLineColor)).darker(1).color,
+        tEquationCoords = this.getPath('model.equationCoords'),
+        tScreen1 = worldToScreen( tIntercepts.pt1),
+        tScreen2 = worldToScreen( tIntercepts.pt2),
+        tTextBox, tTextWidth, tAlign, tBackgrndX;
+
+    DG.RenderingUtilities.updateLine( this.lineSeg, tScreen1, tScreen2);
+    DG.RenderingUtilities.updateLine( this.coverSeg, tScreen1, tScreen2);
+
+    tTextBox = this.equation.attr( { text: this.get('equationString') }).getBBox();
+    tTextWidth = tTextBox.width;
+    tTextWidth += 10; // padding
+    if( SC.none(tEquationCoords)) {
+      computeBestCoords();
+    }
+    else {
+      computeCoordsFromModel();
+    }
+
+    this.equation.attr({text: this.get('equationString'), fill: tEquationColor});
+    this.lineSeg.attr({ stroke: tLineColor });
   },
 
   enableMeasuresForSelectionDidChange:function() {
