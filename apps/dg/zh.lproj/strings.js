@@ -713,5 +713,7 @@ SC.stringsFor("zh", {
     "DG.TableController.headerMenuItems.deleteFormula": "Delete Formula (Keeping Values)",
     "DG.TableController.headerMenuItems.recoverFormula": "Recover Deleted Formula",
     "DG.Inspector.displayLayers.toolTip": "Change the appearance of the map layers",
-    "DG.Inspector.layers": "Layers"
+    "DG.Inspector.layers": "Layers",
+    "DG.Undo.graph.repositionEquation": "Undo repositioning equation",
+    "DG.Redo.graph.repositionEquation": "Redo repositioning equation"
 });
