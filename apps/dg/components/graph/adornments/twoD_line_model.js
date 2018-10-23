@@ -62,6 +62,12 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
   sumSquaresResiduals: null,
 
   /**
+   * Coordinates of the center of the equation rectangle as a proportion of the plot frame
+   * @property {{proportionCenterX: {Number}, proportionCenterY: {Number}}
+   */
+  equationCoords: null,
+
+  /**
     Is the intercept locked at the origin?
     @property { Boolean }
   */
@@ -164,6 +170,7 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
     var tStorage = sc_super();
     DG.ObjectMap.copy( tStorage, {
       isInterceptLocked: this.get('isInterceptLocked'),
+      equationCoords: this.get('equationCoords')
     });
     return tStorage;
   },
@@ -173,7 +180,11 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
    */
   restoreStorage: function( iStorage) {
     sc_super();
-    this.set('isInterceptLocked', iStorage.isInterceptLocked);
+    if( iStorage) {
+      this.set('isInterceptLocked', iStorage.isInterceptLocked);
+      if( iStorage.equationCoords)
+        this.set('equationCoords', iStorage.equationCoords);
+    }
   }
 
 });

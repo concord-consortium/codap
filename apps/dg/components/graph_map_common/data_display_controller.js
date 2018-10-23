@@ -868,7 +868,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             }.bind( this),
             undo: function () {
               this._afterStorage = this_.createComponentStorage();
-              this_.restoreComponentStorage(this._beforeStorage);
+              this_.restoreComponentStorage(this_._beforeStorage);
             },
             redo: function () {
               this_.restoreComponentStorage(this._afterStorage);

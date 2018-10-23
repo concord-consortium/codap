@@ -32,6 +32,8 @@ DG.MovableLineModel = DG.TwoDLineModel.extend(
     @return { Boolean }
   */
   isComputingNeeded: function( iXAxis, iYAxis) {
+    iXAxis = iXAxis || this.getPath('plotModel.xAxis');
+    iYAxis = iYAxis || this.getPath('plotModel.yAxis');
     if( this._needsComputing)
       return true;
     if( this.isVertical) {
@@ -70,6 +72,8 @@ DG.MovableLineModel = DG.TwoDLineModel.extend(
     Use the bounds of the given axes to recompute slope and intercept.
   */
   recomputeSlopeAndIntercept: function( iXAxis, iYAxis) {
+    iXAxis = iXAxis || this.getPath('plotModel.xAxis');
+    iYAxis = iYAxis || this.getPath('plotModel.yAxis');
     var tLowerX = iXAxis.get('lowerBound'),
         tUpperX = iXAxis.get('upperBound'),
         tLowerY = iYAxis.get('lowerBound'),

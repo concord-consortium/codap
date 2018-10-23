@@ -183,6 +183,10 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     var storage = sc_super();
     storage.showSumSquares = this.showSumSquares;
     storage.isInterceptLocked = this.isInterceptLocked;
+    storage.lsrls = [];
+    this.get('lsrls').forEach( function( iLSRL) {
+      storage.lsrls.push( iLSRL.createStorage());
+    });
     return storage;
   },
   
@@ -194,6 +198,11 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
       iLSRL.set('showSumSquares', this.showSumSquares);
       iLSRL.set('isInterceptLocked', this.isInterceptLocked);
     }.bind( this));
+    if( SC.isArray( iStorage.lsrls)) {
+      this.get('lsrls').forEach( function( iLSRL, iIndex) {
+        iLSRL.restoreStorage( iStorage.lsrls[ iIndex]);
+      });
+    }
   }
 
 });
