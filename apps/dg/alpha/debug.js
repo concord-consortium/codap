@@ -264,7 +264,13 @@ DG.Debug = SC.Object.create( (function() {
         replaceArgs: [].slice.call(arguments, 2)
       };
 
-      DG.currDocumentController().notificationManager.notifyLogMessageSubscribers(values);
+      var notificationManager = DG.currDocumentController().notificationManager;
+
+      // Notification manager will not exist before there is a document.
+      // Neither, of course, will any entities to notify.
+      if (notificationManager) {
+        notificationManager.notifyLogMessageSubscribers(values);
+      }
 
       var args = [].slice.call(arguments, 1);
 
