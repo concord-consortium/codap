@@ -463,6 +463,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleInteractiveFrame: {
         update: function (iResources, iValues) {
           var diModel = iResources.interactiveFrame.getPath('model.content');
+          var diComponent = DG.currDocumentController().getComponentByID(this.get('id'));
           var title = iValues.title || iValues.name;
           var userSetTitle = iResources.interactiveFrame.getPath('model.userSetTitle');
           DG.assert(diModel, 'DataInteractiveModel  exists' );
@@ -476,6 +477,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               diModel.set('version', iValues.version);
             if (iValues.dimensions)
               diModel.set('dimensions', iValues.dimensions);
+            if (!SC.none(iValues.cannotClose))
+              diComponent.set('cannotClose', iValues.cannotClose);
             if (!SC.none(iValues.preventBringToFront)) {
               // Todo 7/2016: we should be managing this value in the model only,
               // and deriving the value in the controller.
