@@ -12585,8 +12585,8 @@ CloudFileManagerClient = (function() {
     currentContent = this._createOrUpdateCurrentContent(stringContent, metadata);
     return metadata.provider.save(currentContent, metadata, (function(_this) {
       return function(err, statusCode) {
+        var failures;
         if (err) {
-          metadata.autoSaveDisabled = true;
           _this._setState({
             metadata: metadata,
             saving: null
@@ -12594,19 +12594,34 @@ CloudFileManagerClient = (function() {
           if (statusCode === 403) {
             return _this.confirmAuthorizeAndSave(stringContent, callback);
           } else {
-            return _this.alert(err);
+            failures = _this.state.failures;
+            if (!failures) {
+              failures = 1;
+            } else {
+              failures++;
+            }
+            _this._setState({
+              failures: failures
+            });
+            if (failures === 1) {
+              return _this.alert(err);
+            }
           }
+        } else {
+          _this._setState({
+            failures: 0
+          });
+          if (_this.state.metadata !== metadata) {
+            _this._closeCurrentFile();
+          }
+          if (metadata.autoSaveDisabled != null) {
+            delete metadata.autoSaveDisabled;
+          }
+          _this._fileChanged('savedFile', currentContent, metadata, {
+            saved: true
+          }, _this._getHashParams(metadata));
+          return typeof callback === "function" ? callback(currentContent, metadata) : void 0;
         }
-        if (_this.state.metadata !== metadata) {
-          _this._closeCurrentFile();
-        }
-        if (metadata.autoSaveDisabled != null) {
-          delete metadata.autoSaveDisabled;
-        }
-        _this._fileChanged('savedFile', currentContent, metadata, {
-          saved: true
-        }, _this._getHashParams(metadata));
-        return typeof callback === "function" ? callback(currentContent, metadata) : void 0;
       };
     })(this));
   };
@@ -13250,7 +13265,8 @@ CloudFileManagerClient = (function() {
       metadata: null,
       dirty: false,
       saving: null,
-      saved: false
+      saved: false,
+      failures: null
     });
   };
 
@@ -17052,6 +17068,7 @@ module.exports={
   "~FILE_STATUS.SAVED": "All changes saved",
   "~FILE_STATUS.SAVED_TO_PROVIDER": "All changes saved to %{providerName}",
   "~FILE_STATUS.UNSAVED": "Unsaved",
+  "~FILE_STATUS.FAILURE": "Retrying...",
 
   "~FILE_DIALOG.FILENAME": "Filename",
   "~FILE_DIALOG.OPEN": "Open",
@@ -17866,7 +17883,10 @@ App = React.createClass({
         }) : tr('~FILE_STATUS.SAVED'), {
           message: message,
           type: 'info'
-        }) : event.state.dirty ? {
+        }) : event.state.failures ? {
+          message: tr('~FILE_STATUS.FAILURE'),
+          type: 'alert'
+        } : event.state.dirty ? {
           message: tr('~FILE_STATUS.UNSAVED'),
           type: 'alert'
         } : null;
