@@ -243,7 +243,11 @@ DG.Debug = SC.Object.create( (function() {
         formatStr: iMessage,
         replaceArgs: [].slice.call(arguments, 1)
       };
-      DG.currDocumentController().notificationManager.notifyLogMessageSubscribers(values);
+      var notificationManager = DG.currDocumentController().notificationManager;
+      if (notificationManager) {
+        notificationManager.notifyLogMessageSubscribers(values);
+      }
+
       DG.Debug._handleLogMessage(DG.LOGGER_LEVEL_USER, YES, iMessage, arguments);
     },
 
