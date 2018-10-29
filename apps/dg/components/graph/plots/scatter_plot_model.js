@@ -111,6 +111,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         sc_super();
       },
 
+      dataConfigurationDidChange: function() {
+        sc_super();
+        this.setPath('dataConfiguration.sortCasesByLegendCategories', false);
+      }.observes('dataConfiguration'),
+
       /**
        * Used for notification
        */

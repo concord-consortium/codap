@@ -841,6 +841,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             dataConfiguration.addObserver('arrangedObjectArrays', this, 'sourceArraysDidChange');
             dataConfiguration.addObserver('hiddenCases', this, 'dataConfigurationDidChange');
             this._observedDataConfiguration = dataConfiguration;
+            dataConfiguration.set('sortCasesByLegendCategories', true); // subclasses may override to false
           }
         }
       },

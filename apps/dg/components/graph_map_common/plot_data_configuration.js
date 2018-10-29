@@ -506,6 +506,14 @@ DG.PlotDataConfiguration = SC.Object.extend(
         return placedAttrs;
       }.property(),
 
+      /**
+       * Plots (dot chart, dot plot) that wish cases that belong to the same legend category to
+       * be contiguous in the array of cases will use the default (true) for this property.
+       * Plots (scatterplot) that do not wish this sorting to occur will set the property to false.
+       * @property {Boolean}
+       */
+      sortCasesByLegendCategories: true,
+
       _casesCache: null, // Array of DG.Case
       _plotCaseArray: null, // DG.PlotUtilities.PlotCaseArray
 
@@ -572,7 +580,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
             for (var index = 0; index < tResult.length; index++) {
               tMapOriginalToSorted.push(index);
             }
-            if (tLegendAttrDesc &&
+            if (this.get('sortCasesByLegendCategories') && tLegendAttrDesc &&
                 tLegendAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eCategorical) {
               var tLegendID = tLegendAttrDesc.getPath('attribute.id'),
                   tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap');
