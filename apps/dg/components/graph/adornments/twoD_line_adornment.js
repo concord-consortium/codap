@@ -111,7 +111,13 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
             var tYUnit = this_.getPath('yAxisView.model.firstAttributeUnit'),
                 tXUnit = this_.getPath('xAxisView.model.firstAttributeUnit'),
                 tSlash = (tXUnit === '') ? '' : '/',
-                tSingularX = pluralize.singular( tXUnit);
+                tSingularX;
+            if (tXUnit.match(/((^[sS])|(\W[sS]))$/)) {
+              tSingularX = tXUnit;
+            }
+            else {
+              tSingularX = pluralize.singular(tXUnit);
+            }
             tXUnit = SC.empty( tSingularX) ? tXUnit : tSingularX;
             return (tXUnit === '' && tYUnit === '') ? '' :
                       ' ' + tYUnit + tSlash + tXUnit + ')';
