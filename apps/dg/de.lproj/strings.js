@@ -714,6 +714,6 @@ SC.stringsFor("de", {
     "DG.TableController.headerMenuItems.recoverFormula": "Formel wiederherstellen",
     "DG.Inspector.displayLayers.toolTip": "Aussehen der Kartenebenen ändern",
     "DG.Inspector.layers": "Ebenen",
-    "DG.Undo.graph.repositionEquation": "Undo repositioning equation",
-    "DG.Redo.graph.repositionEquation": "Redo repositioning equation"
+    "DG.Undo.graph.repositionEquation": "Rückgängig: Gleichung verschieben",
+    "DG.Redo.graph.repositionEquation": "Wiederholen: Gleichung verschieben"
 });
