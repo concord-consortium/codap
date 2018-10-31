@@ -12585,8 +12585,8 @@ CloudFileManagerClient = (function() {
     currentContent = this._createOrUpdateCurrentContent(stringContent, metadata);
     return metadata.provider.save(currentContent, metadata, (function(_this) {
       return function(err, statusCode) {
-        var failures;
         if (err) {
+          metadata.autoSaveDisabled = true;
           _this._setState({
             metadata: metadata,
             saving: null
@@ -12594,34 +12594,19 @@ CloudFileManagerClient = (function() {
           if (statusCode === 403) {
             return _this.confirmAuthorizeAndSave(stringContent, callback);
           } else {
-            failures = _this.state.failures;
-            if (!failures) {
-              failures = 1;
-            } else {
-              failures++;
-            }
-            _this._setState({
-              failures: failures
-            });
-            if (failures === 1) {
-              return _this.alert(err);
-            }
+            return _this.alert(err);
           }
-        } else {
-          _this._setState({
-            failures: 0
-          });
-          if (_this.state.metadata !== metadata) {
-            _this._closeCurrentFile();
-          }
-          if (metadata.autoSaveDisabled != null) {
-            delete metadata.autoSaveDisabled;
-          }
-          _this._fileChanged('savedFile', currentContent, metadata, {
-            saved: true
-          }, _this._getHashParams(metadata));
-          return typeof callback === "function" ? callback(currentContent, metadata) : void 0;
         }
+        if (_this.state.metadata !== metadata) {
+          _this._closeCurrentFile();
+        }
+        if (metadata.autoSaveDisabled != null) {
+          delete metadata.autoSaveDisabled;
+        }
+        _this._fileChanged('savedFile', currentContent, metadata, {
+          saved: true
+        }, _this._getHashParams(metadata));
+        return typeof callback === "function" ? callback(currentContent, metadata) : void 0;
       };
     })(this));
   };
@@ -13265,8 +13250,7 @@ CloudFileManagerClient = (function() {
       metadata: null,
       dirty: false,
       saving: null,
-      saved: false,
-      failures: null
+      saved: false
     });
   };
 
@@ -16929,14 +16913,14 @@ module.exports={
     "~DIALOG.RENAME": "Umbenennen",
     "~DIALOG.SHARED": "Teilen",
     "~DIALOG.IMPORT_DATA": "Daten importieren",
-    "~PROVIDER.LOCAL_STORAGE": "Local Storage",
+    "~PROVIDER.LOCAL_STORAGE": "Lokaler Speicher",
     "~PROVIDER.READ_ONLY": "Leseansicht",
     "~PROVIDER.GOOGLE_DRIVE": "Google Drive",
     "~PROVIDER.DOCUMENT_STORE": "Concord Cloud",
     "~PROVIDER.LOCAL_FILE": "Lokale Datei",
     "~FILE_STATUS.SAVING": "Speichern",
     "~FILE_STATUS.SAVED": "Gespeichert",
-    "~FILE_STATUS.SAVED_TO_PROVIDER": "All changes saved to %{providerName}",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "Alle Änderungen gespeichert %{providerName}",
     "~FILE_STATUS.UNSAVED": "Ungespeichert",
     "~FILE_DIALOG.FILENAME": "Dateiname",
     "~FILE_DIALOG.OPEN": "Öffnen",
@@ -16952,25 +16936,25 @@ module.exports={
     "~FILE_DIALOG.DOWNLOAD_NOTE": "Achtung: Bei Safari könnte diese Datei \"unbekannt\" heißen und sollte manuell mit der .codap Erweiterung versehen werden.",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
     "~DOWNLOAD_DIALOG.CANCEL": "Abbrechen",
-    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Include sharing information in downloaded file",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Information über Teilen im Dokument ",
     "~RENAME_DIALOG.RENAME": "Umbenennen",
     "~RENAME_DIALOG.CANCEL": "Abbrechen",
     "~SHARE_DIALOG.COPY": "Kopieren",
-    "~SHARE_DIALOG.VIEW": "View",
+    "~SHARE_DIALOG.VIEW": "Ansicht",
     "~SHARE_DIALOG.CLOSE": "Schließen",
-    "~SHARE_DIALOG.COPY_SUCCESS": "The info has been copied to the clipboard.",
-    "~SHARE_DIALOG.COPY_ERROR": "Sorry, the info was not able to be copied to the clipboard.",
-    "~SHARE_DIALOG.COPY_TITLE": "Copy Result",
-    "~SHARE_DIALOG.LONGEVITY_WARNING": "The shared copy of this document will be retained until it has not been accessed for over a year.",
-    "~SHARE_UPDATE.TITLE": "Shared View Updated",
-    "~SHARE_UPDATE.MESSAGE": "The shared view was updated successfully.",
-    "~CONFIRM.OPEN_FILE": "You have unsaved changes. Are you sure you want to open a new document?",
-    "~CONFIRM.NEW_FILE": "You have unsaved changes. Are you sure you want to create a new document?",
-    "~CONFIRM.AUTHORIZE_OPEN": "Authorization is required to open the document. Would you like to proceed with authorization?",
-    "~CONFIRM.AUTHORIZE_SAVE": "Authorization is required to save the document. Would you like to proceed with authorization?",
-    "~CONFIRM.CLOSE_FILE": "You have unsaved changes. Are you sure you want to close the document?",
-    "~CONFIRM.REVERT_TO_LAST_OPENED": "Are you sure you want to revert the document to its most recently opened state?",
-    "~CONFIRM.REVERT_TO_SHARED_VIEW": "Are you sure you want to revert the document to its most recently shared state?",
+    "~SHARE_DIALOG.COPY_SUCCESS": "Die Information wurde kopiert.",
+    "~SHARE_DIALOG.COPY_ERROR": "Entschuldigung, diese Information konnte nicht kopiert werden.",
+    "~SHARE_DIALOG.COPY_TITLE": "Ergebnis kopieren",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "Die geteilte Kopie des Dokuments wird aufbewahrt, bis ein Jahr lang niemand mehr darauf zugreift.",
+    "~SHARE_UPDATE.TITLE": "Geteilte Anschicht aktualisiert",
+    "~SHARE_UPDATE.MESSAGE": "Die geteilte Ansicht wurde erfolgreich aktualisiert.",
+    "~CONFIRM.OPEN_FILE": "Es gibt ungesicherte Änderungen. Wollen Sie wirklich ein neues Dokument öffnen?",
+    "~CONFIRM.NEW_FILE": "Es gibt ungesicherte Änderungen. Wollen Sie wirklich ein neues Dokument erstellen?",
+    "~CONFIRM.AUTHORIZE_OPEN": "Um dieses Dokument zu öffnen, müssen Sie sich authorisieren. Wollen Sie fortfahren?",
+    "~CONFIRM.AUTHORIZE_SAVE": "Um dieses Dokument zu speichern, müssen Sie sich authorisieren. Wollen Sie fortfahren?",
+    "~CONFIRM.CLOSE_FILE": "Es gibt ungesicherte Änderungen. Wollen Sie das Dokument wirklich schließen?",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "Sind Sie sicher, dass Sie das Dokument in den zuletzt geöffneten Zustand zurückversetzen möchten?",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "Sind Sie sicher, dass Sie das Dokument in den zuletzt geteilten Zustand zurückversetzen möchten?",
     "~CONFIRM_DIALOG.TITLE": "Sind Sie sicher?",
     "~CONFIRM_DIALOG.YES": "Ja",
     "~CONFIRM_DIALOG.NO": "Nein",
@@ -16981,50 +16965,51 @@ module.exports={
     "~IMPORT.URL": "URL",
     "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Es kann nur eine URL verwendet werden.",
     "~IMPORT_URL.PLEASE_ENTER_URL": "Adresse zum Importieren eingeben.",
-    "~URL_TAB.DROP_URL_HERE": "Drop URL here or enter URL below",
-    "~URL_TAB.IMPORT": "Import",
-    "~CLIENT_ERROR.TITLE": "Error",
-    "~ALERT_DIALOG.TITLE": "Alert",
-    "~ALERT_DIALOG.CLOSE": "Close",
-    "~ALERT.NO_PROVIDER": "Could not open the specified document because an appropriate provider is not available.",
-    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Login to Google",
-    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Connecting to Google...",
-    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Missing required clientId in googleDrive provider options",
-    "~DOCSTORE.LOAD_403_ERROR": "You don't have permission to load %{filename}.<br><br>If you are using some else's shared document it may have been unshared.",
-    "~DOCSTORE.LOAD_SHARED_404_ERROR": "Unable to load the requested shared document.<br><br>Perhaps the file was not shared?",
-    "~DOCSTORE.LOAD_404_ERROR": "Unable to load %{filename}",
-    "~DOCSTORE.SAVE_403_ERROR": "You don't have permission to save '%{filename}'.<br><br>You may need to log in again.",
-    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "Unable to create %{filename}.  File already exists.",
-    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Unable to save %{filename}: [%{message}]",
-    "~DOCSTORE.SAVE_ERROR": "Unable to save %{filename}",
-    "~DOCSTORE.REMOVE_403_ERROR": "You don't have permission to remove %{filename}.<br><br>You may need to log in again.",
-    "~DOCSTORE.REMOVE_ERROR": "Unable to remove %{filename}",
-    "~DOCSTORE.RENAME_403_ERROR": "You don't have permission to rename %{filename}.<br><br>You may need to log in again.",
-    "~DOCSTORE.RENAME_ERROR": "Unable to rename %{filename}",
-    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud Alert",
-    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Alert",
-    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Save Elsewhere",
-    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "I'll do it later",
-    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "The Concord Cloud has been shut down!",
-    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location.",
-    "~SHARE_DIALOG.SHARE_STATE": "Shared view: ",
-    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "enabled",
-    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "disabled",
-    "~SHARE_DIALOG.ENABLE_SHARING": "Enable sharing",
-    "~SHARE_DIALOG.STOP_SHARING": "Stop sharing",
-    "~SHARE_DIALOG.UPDATE_SHARING": "Update shared view",
-    "~SHARE_DIALOG.PREVIEW_SHARING": "Preview shared view",
-    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When sharing is enabled, a copy of the current view is created.  This copy can be shared.",
+    "~URL_TAB.DROP_URL_HERE": "Ziehen Sie die URL hierher oder geben Sie die URL unten ein",
+    "~URL_TAB.IMPORT": "Importieren",
+    "~CLIENT_ERROR.TITLE": "Fehler",
+    "~ALERT_DIALOG.TITLE": "Alarm",
+    "~ALERT_DIALOG.CLOSE": "Schließen",
+    "~ALERT.NO_PROVIDER": "Das angegebene Dokument konnte nicht geöffnet werden, da kein geeigneter Anbieter verfügbar ist.",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Login für Google",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Verbinde zu Google...",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Fehlende erforderliche ClientId in den GoogleDrive Optionen",
+    "~DOCSTORE.LOAD_403_ERROR": "Sie haben keine Erlaubnis, um %{filename}.<br><br> zu laden. Falls Sie ein geteiltes Dokument nutzen, könnte es ungeteilt worden sein.",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "Das angeforderte geteilte Dokument konnte nicht geladen werden. <br><br> Möglicherweise wurde die Datei nicht geteilt?",
+    "~DOCSTORE.LOAD_404_ERROR": "%{filename} kann nicht geladen werden",
+    "~DOCSTORE.SAVE_403_ERROR": "Sie haben keine Berechtigung, um '%{filename}'.<br><br> zu speichern. Loggen Sie sich erneut ein.",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "%{filename} kann nicht erstellt werden. Das Dokument existiert bereits.",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Kann nicht gespeichert werden: %{filename}: [%{message}]",
+    "~DOCSTORE.SAVE_ERROR": "Kann nicht gespeichert werden: %{filename}",
+    "~DOCSTORE.REMOVE_403_ERROR": "Sie haben keine Berechtigung, um '%{filename}'.<br><br> zu löschen. Loggen Sie sich erneut ein.",
+    "~DOCSTORE.REMOVE_ERROR": "Kann nicht gelöscht werden: %{filename}",
+    "~DOCSTORE.RENAME_403_ERROR": "Sie haben keine Berechtigung, um %{filename} umzubenennen.<br><br> Loggin Sie sich erneut ein.",
+    "~DOCSTORE.RENAME_ERROR": "Kann nicht umbenannt werden: %{filename}",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud Alarm",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Alarm",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "An anderer Stelle speichern",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "Ich werde es später tun",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Die Concord Cloud ist nicht erreichbar.",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Bitte speichern Sie Ihre Dokumente an anderer Stelle.",
+    "~SHARE_DIALOG.SHARE_STATE": "Geteilte Ansicht:␣",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "aktiviert",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "deaktiviert",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Teilen aktivieren",
+    "~SHARE_DIALOG.STOP_SHARING": "Teilen stoppen",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Geteilte Ansicht aktualisieren",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Vorschau zu geteilter Ansicht",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "When Teilen aktiviert ist, wird eine Kopie der aktuellen Ansicht erstellt. Diese Kopie kann geteilt werden.",
     "~SHARE_DIALOG.LINK_TAB": "Link",
-    "~SHARE_DIALOG.LINK_MESSAGE": "Paste this into an email or text message ",
-    "~SHARE_DIALOG.EMBED_TAB": "Embed",
-    "~SHARE_DIALOG.EMBED_MESSAGE": "Embed code for including in webpages or other web-based content",
-    "~SHARE_DIALOG.LARA_MESSAGE": "Use this link when creating an activity in LARA",
+    "~SHARE_DIALOG.LINK_MESSAGE": "In eine Email oder Nachricht einfügen␣",
+    "~SHARE_DIALOG.EMBED_TAB": "Einbetten",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Code einbetten für Webseiten oder andere Inhalte",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Diesen Link verwenden, um eine Aktivität in LARA zu erstellen",
     "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP Server URL:",
-    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
-    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
-    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch Seite",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Vollbild und Skalieren",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Textbutton",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Datensichtbarkeit in Graphen anzeigen",
+    "~FILE_STATUS.FAILURE": "Erneut versuchen..."
 }
 
 },{}],74:[function(require,module,exports){
@@ -17068,7 +17053,6 @@ module.exports={
   "~FILE_STATUS.SAVED": "All changes saved",
   "~FILE_STATUS.SAVED_TO_PROVIDER": "All changes saved to %{providerName}",
   "~FILE_STATUS.UNSAVED": "Unsaved",
-  "~FILE_STATUS.FAILURE": "Retrying...",
 
   "~FILE_DIALOG.FILENAME": "Filename",
   "~FILE_DIALOG.OPEN": "Open",
@@ -17301,7 +17285,8 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],76:[function(require,module,exports){
@@ -17427,7 +17412,8 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],77:[function(require,module,exports){
@@ -17553,7 +17539,8 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],78:[function(require,module,exports){
@@ -17679,7 +17666,8 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],79:[function(require,module,exports){
@@ -17883,10 +17871,7 @@ App = React.createClass({
         }) : tr('~FILE_STATUS.SAVED'), {
           message: message,
           type: 'info'
-        }) : event.state.failures ? {
-          message: tr('~FILE_STATUS.FAILURE'),
-          type: 'alert'
-        } : event.state.dirty ? {
+        }) : event.state.dirty ? {
           message: tr('~FILE_STATUS.UNSAVED'),
           type: 'alert'
         } : null;
