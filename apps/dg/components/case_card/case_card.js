@@ -16,6 +16,12 @@ DG.React.ready(function () {
   DG.React.Components.CaseCard = DG.React.createComponent(
       (function () {
 
+        var kSelectDelay = 1000,  // ms
+            kSelectInterval = 100,  // ms
+            gWaitingForSelect = false,
+            gTimeOfLastSelectCall,  // time
+            gSelectTimer; // SC.Timer
+
         var ChangeListener = SC.Object.extend({
           dependent: null,
           context: null,
@@ -45,14 +51,38 @@ DG.React.ready(function () {
           },
 
           contextDataDidChange: function (iDataContext) {
+            var this_ = this;
+
+            function doIncrement() {
+              if( this_.dependent)
+                this_.dependent.incrementStateCount();
+            }
+
+            function checkTime() {
+              var tNow = Date.now();
+              if( tNow - gTimeOfLastSelectCall > kSelectDelay) {
+                doIncrement();
+                gWaitingForSelect = false;
+                gSelectTimer = null;
+              }
+              else {
+                gSelectTimer = SC.Timer.schedule({target: this, action: checkTime, interval: kSelectInterval});
+              }
+            }
+
             iDataContext.get('newChanges').forEach(function (iChange) {
               switch (iChange.operation) {
-                  // case 'selectCases':
+                  case 'selectCases':
+                    gTimeOfLastSelectCall = Date.now();
+                    if( !gWaitingForSelect) {
+                      gWaitingForSelect = true;
+                      gSelectTimer = SC.Timer.schedule({target: this, action: checkTime, interval: kSelectInterval});
+                    }
+                    break;
                   // case 'updateCases':
                   //   break;
                 default:
-                  if( this.dependent)
-                    this.dependent.incrementStateCount();
+                  doIncrement();
               }
             }.bind(this));
           }

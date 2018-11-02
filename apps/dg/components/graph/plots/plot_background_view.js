@@ -149,7 +149,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tLastRect,
         tStartPt,
         tNeedToDeselectAll,
-        tBaseSelection = [];//,
+        tBaseSelection = [],
+        tStartTime;//,
 //        tToolTip;
 
     function updateBackgroundImage() {
@@ -252,22 +253,24 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     function continueMarquee( idX, idY) {
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
-      if( tNeedToDeselectAll) {
-        SC.run( function() {  // Needs to be in a run loop because invokeLast will be called
-          this_.get('graphModel').selectAll(false);
-          tNeedToDeselectAll = false;
-        });
-      }
+      // tStartTime = Date.now();
       var tX = (idX > 0) ? tStartPt.x : tStartPt.x + idX,
         tY = (idY > 0) ? tStartPt.y : tStartPt.y + idY,
         tWidth = Math.abs( idX),
         tHeight = Math.abs( idY),
         tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
       tMarquee.attr( tRect);
+      if( tNeedToDeselectAll) {
+        SC.run( function() {  // Needs to be in a run loop because invokeLast will be called
+          this_.get('graphModel').selectAll(false);
+          tNeedToDeselectAll = false;
+        });
+      }
       SC.run(function(){
         this_.get('parentView').selectPointsInRect( tRect, tBaseSelection, tLastRect);
       });
       tLastRect = tRect;
+      // console.log('marquee interval: ' + (Date.now() - tStartTime));
     }
 
     function endMarquee( idX, idY) {

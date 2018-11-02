@@ -319,9 +319,11 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
           case 'updateAttributes':
             this.dataRangeDidChange(this, 'revision', this, lastChange.indices);
             break;
+/*  This case not needed because selectionDidChange will get called elsewhere
           case 'selectCases':
             this.selectionDidChange();
             break;
+*/
         }
       }.observes('.model.lastChange'),
 

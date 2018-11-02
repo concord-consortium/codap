@@ -68,6 +68,7 @@ DG.ViewUtilities = {
       iView = iView.parentView;
     } while( !SC.none( iView));
     // When embedded, CODAP need not be at the window origin
+    // todo: Store this offset globally and recompute only when there's a DOM resize
     var codapOffset = $('#codap').offset();
     return { x: iWindowPt.x - codapOffset.left, y: iWindowPt.y - codapOffset.top };
   },

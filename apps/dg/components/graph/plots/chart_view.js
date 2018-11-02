@@ -149,7 +149,7 @@ DG.ChartView = DG.PlotView.extend(
           this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices);
         });
 
-        this.updateSelection();
+        // this.updateSelection();
       },
 
       /**
