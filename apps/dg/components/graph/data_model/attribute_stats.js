@@ -428,6 +428,18 @@ DG.AttributeStats = SC.Object.extend(
       }.observes('*categoricalStats.cellMap'),
 
       /**
+       @property{Object} The names of the properties of this object are the cell names
+       */
+      cellNames: function () {
+        if (!this._categoricalCacheIsValid)
+          this._computeCategoricalStats();
+        return this.categoricalStats.get('cellNames');
+      }.property(),
+      cellNamesDidChange: function () {
+        this.notifyPropertyChange('cellNames');
+      }.observes('*categoricalStats.cellMap'),
+
+      /**
        @return{Number} corresponding to given name
        */
       cellNameToCellNumber: function (iCellName) {

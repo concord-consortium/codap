@@ -131,7 +131,7 @@ DG.AttributePlacementDescription = SC.Object.extend(
        * @property {[{String}]}
        */
       cellNames: function () {
-        return this.getPath('attributeStats.categoricalStats.cellNames');
+        return this.getPath('attributeStats.cellNames');
       }.property(),
       cellNamesDidChange: function() {
         this.notifyPropertyChange('cellNames');
