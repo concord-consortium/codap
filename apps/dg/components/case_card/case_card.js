@@ -20,7 +20,8 @@ DG.React.ready(function () {
             kSelectInterval = 100,  // ms
             gWaitingForSelect = false,
             gTimeOfLastSelectCall,  // time
-            gSelectTimer; // SC.Timer
+            gSelectTimer, // SC.Timer
+            gMoveArrowClickInProgress = false;
 
         var ChangeListener = SC.Object.extend({
           dependent: null,
@@ -73,10 +74,16 @@ DG.React.ready(function () {
             iDataContext.get('newChanges').forEach(function (iChange) {
               switch (iChange.operation) {
                   case 'selectCases':
-                    gTimeOfLastSelectCall = Date.now();
-                    if( !gWaitingForSelect) {
-                      gWaitingForSelect = true;
-                      gSelectTimer = SC.Timer.schedule({target: this, action: checkTime, interval: kSelectInterval});
+                    if( gMoveArrowClickInProgress) {
+                      gMoveArrowClickInProgress = false;
+                      doIncrement();
+                    }
+                    else {
+                      gTimeOfLastSelectCall = Date.now();
+                      if (!gWaitingForSelect) {
+                        gWaitingForSelect = true;
+                        gSelectTimer = SC.Timer.schedule({target: this, action: checkTime, interval: kSelectInterval});
+                      }
                     }
                     break;
                   // case 'updateCases':
@@ -475,6 +482,7 @@ DG.React.ready(function () {
            * @param iCaseIndex { Number} zero-based
            */
           moveToCase: function (iCollectionClient, iCaseIndex) {
+            gMoveArrowClickInProgress = true; // So we won't delay reflecting move
             var tCase = iCollectionClient.getCaseAt(iCaseIndex),
                 tChange = {
                   operation: 'selectCases',
