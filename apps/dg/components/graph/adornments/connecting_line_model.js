@@ -48,6 +48,8 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     return this._values;
   }.property(),
 
+  parentCollectionFirstAttribute: null,
+
   /**
    * True if we need to compute new values to match new cells.
    * Note that this does not detect data changes where means need recomputing anyway.
@@ -82,6 +84,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     */
   recomputeValue: function() {
     var tCases = this.getPath('plotModel.cases'),
+        tFirstCase = tCases.at(0),
         tXVarID = this.getPath( 'plotModel.xVarID'),
         tYKey = 'plotModel.' + (this.getPath('plotModel.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
         tYVarID = this.getPath(tYKey),
@@ -94,8 +97,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
 
     var getCategoryMap = function() {
       var tMap = null,
-          tLegendIsCategorical = tLegendDesc && tLegendDesc.get('isCategorical'),
-          tFirstCase = tCases.at(0);
+          tLegendIsCategorical = tLegendDesc && tLegendDesc.get('isCategorical');
       if( tLegendIsCategorical && tFirstCase) {
         var tCaseParentCollectionID = tFirstCase.getPath('parent.collection.id'),
             tLegendCollID = tLegendDesc.getPath( 'collectionClient.id');
@@ -104,6 +106,11 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
       }
       return tMap;
     }.bind( this);
+
+    var tParent = tFirstCase ? tFirstCase.getPath('parent.collection') : null,
+        tParentAttributes = tParent ? tParent.get('attrs') : null,
+        tFirstParentAttribute = tParentAttributes ? tParentAttributes[0] : null;
+    this.set('parentCollectionFirstAttribute', tFirstParentAttribute);
 
     // create an array of points to connect for each parent collection
     var tValues = {},
@@ -137,7 +144,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
 
   /**
    * Pass this along
-   * @param iIndex {Number} of parent
+   * @param iParentID {Number} of parent
    * @param iExtend {Boolean}
    */
   selectParent: function( iParentID, iExtend) {

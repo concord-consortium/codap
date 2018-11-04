@@ -117,6 +117,19 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       }.observes('dataConfiguration'),
 
       /**
+       Returns true if the plot is affected by the specified change such that
+       a redraw is required, false otherwise.
+       @param    {Object}    iChange -- The change request to/from the DataContext
+       @returns  {Boolean}   True if the plot must redraw, false if it is unaffected
+       */
+      isAffectedByChange: function (iChange) {
+        if (!iChange || !iChange.operation) return false;
+        return sc_super() ||
+            (this.isAdornmentVisible('connectingLine') &&
+                (iChange.operation === 'moveAttribute' || iChange.operation === 'moveCases'));
+      },
+
+      /**
        * Used for notification
        */
       lineDidChange: function () {

@@ -319,6 +319,12 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
           case 'updateAttributes':
             this.dataRangeDidChange(this, 'revision', this, lastChange.indices);
             break;
+          case 'moveAttribute':
+            this.handleMoveAttribute();
+            break;
+          case 'moveCases':
+            this.handleMoveCases();
+            break;
 /*  This case not needed because selectionDidChange will get called elsewhere
           case 'selectCases':
             this.selectionDidChange();
@@ -345,6 +351,20 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
 
       selectionChangeCount: function () {
         this._elementOrderIsValid = false;
+      },
+
+      /**
+       * subclasses will override as needed
+       */
+      handleMoveAttribute: function() {
+
+      },
+
+      /**
+       * subclasses will override as needed
+       */
+      handleMoveCases: function() {
+
       },
 
       /**
