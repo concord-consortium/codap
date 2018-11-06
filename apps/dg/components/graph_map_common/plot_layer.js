@@ -905,7 +905,6 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         var tLayerManager = this.get('layerManager'),
             tPlottedElements = this.get('plottedElements');
         tPlottedElements.forEach(function (iElement) {
-          iElement.stop();
           if (iAnimate) {
             DG.PlotUtilities.doHideRemoveAnimation(iElement, tLayerManager);
           }
