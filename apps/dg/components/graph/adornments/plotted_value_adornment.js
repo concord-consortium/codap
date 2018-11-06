@@ -28,17 +28,8 @@ sc_require('components/graph/adornments/line_label_mixin');
 DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 /** @scope DG.PlottedValueAdornment.prototype */
 {
-
-  /**
-    A number of entities here were designed to be single-valued but
-    need to be multi-valued when split by a categorical attribute
-    (e.g. 'value', 'valueString', 'valueSegment',
-    DG.LineLabelMixin.createTextElement() and
-    DG.LineLabelMixin.updateTextToModel()). To simplify things,
-    we introduce the notion of a 'currentIndex', which indicates
-    which of the now multi-valued elements is to be returned.
-   */
-  currentIndex: 0,
+  statisticsKey: 'plottedValue',
+  lastHoverValue: null,
 
   /**
     @property { DG.CellLinearAxisView }
@@ -46,35 +37,23 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   valueAxisView: null,
 
   /**
-    The value is drawn as a line segement.
-    @property { Raphael line element }
+    @property { DG.CellAxisView }
   */
-  valueSegment: function() {
-    var segments = this.get('valueSegments'),
-        index = this.get('currentIndex') || 0;
-    return segments && (index != null) ? segments[index] : null;
-  }.property('valueSegments', 'currentIndex'),
+  splitAxisView: null,
+
+  valueTextElement: null,
 
   /**
     The value is drawn as a line segement.
-    @property { Raphael line element }
+    @property [{Object}]
   */
   valueSegments: null,
 
   /**
     @property { Number }
   */
-  value: function() {
-    var values = this.get('values'),
-        index = this.get('currentIndex') || 0;
-    return values && (index != null) ? values[index] : null;
-  }.property('values', 'currentIndex'),
-
-  /**
-    @property { Number }
-  */
   values: function() {
-    var splitAxisModel = this.getPath('model.splitAxisModel'),
+    var splitAxisModel = this.get('splitAxisModel'),
         values = [];
     if (splitAxisModel && splitAxisModel.forEachCellDo) {
       splitAxisModel.forEachCellDo(function(iIndex, iName) {
@@ -86,17 +65,6 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     }
     return values;
   }.property(),
-
-  /**
-    The returned string should have a reasonable number of significant digits for the
-      circumstances.
-    @property { String read only }
-  */
-  valueString: function() {
-    var strings = this.get('valueStrings'),
-        index = this.get('currentIndex') || 0;
-    return strings && (index != null) ? strings[index] : null;
-  }.property('valueStrings', 'currentIndex'),
 
   /**
     The returned string should have a reasonable number of significant digits for the
@@ -132,21 +100,110 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     return this.getPath('model.splitAxisModel');
   }.property(),
 
-  /**
+  init: function() {
+    sc_super();
 
-  */
-  createElements: function() {
-    if( this.myElements && (this.myElements.length > 0))
-      return; // already created
-    var tLayer = this.get('layer');
+    this.valueSegments = [];
     this.myElements = [];
-    this.valueSegment = this.get('paper').path('').attr( { stroke: 'green' });
-    this.myElements.push( this.valueSegment);
-    this.myElements.push( this.createBackgroundRect());
-    this.myElements.push( this.createTextElement());
-    this.myElements.forEach( function( iElement) {
-      tLayer.push( iElement);
-    });
+  },
+
+  /**
+   * valueSegments will contain an array of { valueSegment, backgroundRect, textElement }
+  */
+  createElements: function( iNumCells) {
+    var this_ = this;
+    if( this.valueSegments.length === iNumCells)
+      return; // already the right number
+
+    function createSegment() {
+      var tSegment = tPaper.path('')
+          .addClass('dg-plotted-value');
+      return tSegment;
+    }
+
+    function createTextElement() {
+      var tText = tPaper.text( 0, 0, '')
+          .attr({ 'text-anchor': 'start', opacity: 1 })
+          .hide()
+          .addClass('dg-graph-adornment');
+      return tText;
+    }
+
+    function createBackgroundRect() {
+      var tBackgrndRect = tPaper.rect(0, 0, 0, 0)
+          .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
+      return tBackgrndRect;
+    }
+
+    function createCover( iCellNum) {
+      var tHoverWidth = 5;        /** width of invisible 'cover' line that has popup text */
+
+      function overScope() {
+        var tHoverColor = "rgba(0, 255, 0, 0.2)",
+            tHoverDelay = 10,
+            tAttributes = { stroke: tHoverColor },
+            tValueElement = this_.valueTextElement,
+            tValueText = this_.get('valueStrings')[ iCellNum],
+            tSegmentBox = this.getBBox();
+        this.stop();
+        this.animate( tAttributes, tHoverDelay );
+
+        tValueElement.attr('text', tValueText);
+        if( tSegmentBox.y === tSegmentBox.y2) { // horizontal segment
+          tValueElement.attr( { x: tSegmentBox.x2 - 5, y: tSegmentBox.y - 6, 'text-anchor': 'end'});
+        }
+        else {
+          tValueElement.attr( { x: tSegmentBox.x + 3, y: tSegmentBox.y + 6, 'text-anchor': 'start'});
+        }
+        tValueElement.show();
+
+        // Log this hover provided it wasn't the last hover
+        if( tValueText !== this_.lastHoverValue) {
+          this_.updateHoverLog( this_.statisticsKey+"=" + tValueText );
+          this_.lastHoverValue = tValueText;
+        }
+      }
+
+      function outScope() {
+        var tAttributes = { stroke: DG.RenderingUtilities.kTransparent };
+        this.stop();
+        this.animate( tAttributes, DG.PlotUtilities.kHighlightHideTime );
+        this_.valueTextElement.hide();
+      }
+
+      var tCover = tPaper.path('M0,0')
+          .attr({ 'stroke-width':tHoverWidth, stroke:DG.RenderingUtilities.kTransparent })
+          .hover( overScope, outScope);
+      return tCover;
+    }
+
+    var tLayerManager = this.getPath('paperSource.layerManager'),
+        tLayer = this.get('layer'),
+        tPaper = this.get('paper'),
+        tValueSegments = this.get('valueSegments');
+    if( !this.valueTextElement) {
+      this.valueTextElement = createTextElement();
+    }
+    while( tValueSegments.length < iNumCells) {
+      var tValueSegment = {
+        valueSegment: createSegment(),
+        backgroundRect: createBackgroundRect(),
+        cover: createCover(tValueSegments.length)
+      };
+      tValueSegments.push( tValueSegment);
+      DG.ObjectMap.forEach( tValueSegment, function( iKey, iElement) {
+        this.myElements.push( iElement);
+        tLayer.push( iElement);
+      }.bind(this));
+    }
+
+    while( tValueSegments.length > iNumCells) {
+      var tSegmentToRemove = tValueSegments.pop();
+      DG.ObjectMap.forEach( tSegmentToRemove, function( iKey, iElement) {
+        tLayerManager.removeElement( iElement, true /* callRemove */);
+        iElement.remove();
+      });
+    }
   },
 
   /**
@@ -155,32 +212,40 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   updateToModel: function() {
     if (this.getPath('model.isVisible')) {
 
-      if (!this.myElements || !this.myElements.length)
-        this.createElements();
+      var tSplitAxisModel = this.get('splitAxisModel'), // categorical axis
+          tNumCells = tSplitAxisModel.get('numberOfCells');
 
-      var tAxisView = this.get('valueAxisView'),
+      this.createElements( tNumCells);  // if needed
+
+      var tValueAxisView = this.get('valueAxisView'),
+          tSplitAxisView = this.get('splitAxisView'),
+          tCellWidth = tSplitAxisView.get('fullCellWidth'),
           tPaper = this.get('paper'),
-          tPlottedValues = this.get('values'),
-          tIndex = this.get('currentIndex') || 0,
-          tPlottedValue = tPlottedValues && tPlottedValues[tIndex],
-          tCoord, tPt1, tPt2;
+          tPlottedValues = this.get('values');
+      for( var tIndex = 0; tIndex < tNumCells; tIndex++) {
+        var tPlottedValue = tPlottedValues && tPlottedValues[tIndex],
+            tValueSegment = this.get('valueSegments')[tIndex].valueSegment,
+            tCover = this.get('valueSegments')[tIndex].cover,
+            tCoord, tPt1, tPt2;
 
-      if (DG.isFinite(tPlottedValue)) {
-        tCoord = tAxisView.dataToCoordinate(tPlottedValue);
-        if (tAxisView.get('orientation') === 'horizontal') {
-          tPt1 = {x: tCoord, y: tPaper.height};
-          tPt2 = {x: tCoord, y: 0};
+        if (DG.isFinite(tPlottedValue)) {
+          tCoord = tValueAxisView.dataToCoordinate(tPlottedValue);
+          if (tValueAxisView.get('orientation') === 'horizontal') {
+            tPt1 = {x: tCoord, y: tPaper.height - tIndex * tCellWidth};
+            tPt2 = {x: tCoord, y: tPaper.height - (tIndex + 1) * tCellWidth};
+          }
+          else {
+            tPt1 = {x: tIndex * tCellWidth, y: tCoord};
+            tPt2 = {x: (tIndex + 1) * tCellWidth, y: tCoord};
+          }
+          DG.RenderingUtilities.updateLine(tValueSegment, tPt1, tPt2);
+          DG.RenderingUtilities.updateLine(tCover, tPt1, tPt2);
         }
         else {
-          tPt1 = {x: 0, y: tCoord};
-          tPt2 = {x: tPaper.width, y: tCoord};
+          tValueSegment.attr({path: ''});
+          tCover.attr({path: ''});
         }
-        DG.RenderingUtilities.updateLine(this.valueSegment, tPt1, tPt2);
       }
-      else
-        this.valueSegment.attr({path: ''});
-
-      this.updateTextToModel(1 / 4); // offset from top of plot
     }
   }.observes('DG.globalsController.globalNameChanges'),
 
@@ -206,7 +271,16 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     }
 
     return tPlottedValue;
+  },
+
+  /**
+   * Create a user log of the the hover over the average line, but remove duplicates
+   * @param logString
+   */
+  updateHoverLog: function( logString ) {
+    DG.logUser("%@: %@", "hoverOverPlottedValue", logString );
   }
+
 });
 
 DG.PlottedValueAdornment.createFormulaEditView = function(iPlottedValue) {
