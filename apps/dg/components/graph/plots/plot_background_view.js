@@ -253,7 +253,6 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     function continueMarquee( idX, idY) {
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
-      // tStartTime = Date.now();
       var tX = (idX > 0) ? tStartPt.x : tStartPt.x + idX,
         tY = (idY > 0) ? tStartPt.y : tStartPt.y + idY,
         tWidth = Math.abs( idX),
@@ -270,7 +269,6 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this_.get('parentView').selectPointsInRect( tRect, tBaseSelection, tLastRect);
       });
       tLastRect = tRect;
-      // console.log('marquee interval: ' + (Date.now() - tStartTime));
     }
 
     function endMarquee( idX, idY) {

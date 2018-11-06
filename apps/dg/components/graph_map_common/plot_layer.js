@@ -325,11 +325,6 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
           case 'moveCases':
             this.handleMoveCases();
             break;
-/*  This case not needed because selectionDidChange will get called elsewhere
-          case 'selectCases':
-            this.selectionDidChange();
-            break;
-*/
         }
       }.observes('.model.lastChange'),
 

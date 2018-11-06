@@ -539,10 +539,6 @@ DG.DocumentController = SC.Object.extend(
               // if we are asked to create *a* case table we will create all case
               // tables.
               if (iComponent && iComponent.componentStorage && iComponent.componentStorage._links_) {
-                // Todo: Get rid of this kludge whereby we make case table visible even if it has
-                //    has been hidden by the transition to case card. Without doing so, the transition
-                //    from case card to case table results in a table that doesn't work right
-                // iComponent.layout.isVisible = true;
                 tView = this.addCaseTable(docView, iComponent);
               } else {
                 tView = this.openCaseTablesForEachContext();
