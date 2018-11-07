@@ -539,10 +539,6 @@ DG.DocumentController = SC.Object.extend(
               // if we are asked to create *a* case table we will create all case
               // tables.
               if (iComponent && iComponent.componentStorage && iComponent.componentStorage._links_) {
-                // Todo: Get rid of this kludge whereby we make case table visible even if it has
-                //    has been hidden by the transition to case card. Without doing so, the transition
-                //    from case card to case table results in a table that doesn't work right
-                iComponent.layout.isVisible = true;
                 tView = this.addCaseTable(docView, iComponent);
               } else {
                 tView = this.openCaseTablesForEachContext();
@@ -964,8 +960,13 @@ DG.DocumentController = SC.Object.extend(
         }
         var context = iProperties.dataContext || resolveContextLink(iComponent);
         var caseTableController = getCaseTableForContext(this.findComponentsByType(DG.CaseTableController), context),
+/*
+            dataCardExists = DG.mainPage.getComponentsOfType(DG.CaseCardView).some(function (iCaseCardView) {
+              return iCaseCardView.get('context') === context;
+            }),
+*/
             caseTableView;
-        if (!caseTableController) {
+        if (!caseTableController/* && !dataCardExists*/) {
           var component = this.getCaseTableComponent(iComponent, context, iProperties);
           var model = component.get('content') || DG.CaseTableModel.create({context: context});
           var controller = DG.CaseTableController.create(iProperties);
@@ -1224,7 +1225,35 @@ DG.DocumentController = SC.Object.extend(
       },
 
       addCaseCard: function (iParentView, iLayout, iContext, iComponent, iTitle) {
-        var tController = DG.CaseCardController.create( {
+/*
+        var this_ = this;
+
+        function getCaseTableForContext(caseTables, context) {
+          if (!context) {
+            return null;
+          }
+          return caseTables.find(function (caseTable) {
+            return caseTable.dataContext === context;
+          });
+        }
+*/
+
+        function findPreexistingCaseCardComponentView() {
+          return DG.mainPage.getPath('docView.childViews').find( function( iChildView) {
+            return iChildView.contentIsInstanceOf && iChildView.contentIsInstanceOf( DG.CaseCardView) &&
+                iChildView.getPath('contentView.context') === iContext;
+          });
+/*
+          tExists = tExists ||
+              !SC.none( getCaseTableForContext(this_.findComponentsByType(DG.CaseTableController), iContext));
+*/
+        }
+
+        var tPreexistingCaseCard = findPreexistingCaseCardComponentView();
+        if (tPreexistingCaseCard) { // We've already got one for this context. Only one allowed.
+          return tPreexistingCaseCard;
+        }
+        var tController = DG.CaseCardController.create({
               dataContext: iContext
             }),
             tTitle = iTitle || (iContext ? iContext.get('name') : 'DG.DocumentController.caseCardTitle'.loc()),
@@ -1253,7 +1282,7 @@ DG.DocumentController = SC.Object.extend(
         }
         var tComponentView = DG.ComponentView.create({
               layout: tRestoredLayout,
-              isVisible: true,
+              isVisible: !SC.none(tRestoredLayout.isVisible) ? tRestoredLayout.isVisible : true,
               showTitleBar: true,
               isResizable: true,
             }),

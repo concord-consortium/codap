@@ -166,6 +166,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         // update connecting lines
         if (this.connectingLineAdorn) {
           this.connectingLineAdorn.invalidateModel();
+          this.connectingLineAdorn.updateToModel();
         }
         this.updateAdornments();
       },
@@ -203,6 +204,31 @@ DG.ScatterPlotView = DG.PlotView.extend(
         this.rescaleOnParentCaseCompletion(tCases);
 
         sc_super();
+      },
+
+      /**
+       * Connecting line adornment, if any, will need updating
+       */
+      handleUpdateConnectingLine: function() {
+        if( this.connectingLineAdorn && this.connectingLineAdorn.wantVisible()) {
+          this.connectingLineAdorn.invalidateModel();
+          this.connectingLineAdorn.updateToModel( true /* animate */);
+        }
+      },
+
+      /**
+       * Connecting line adornment, if any, will need updating
+       */
+      handleMoveAttribute: function() {
+        this.handleUpdateConnectingLine();
+      },
+
+       /**
+       * Connecting line adornment, if any, will need updating
+       */
+      handleMoveCases: function() {
+        this.getPath('model.dataConfiguration').invalidateCaches();
+        this.handleUpdateConnectingLine();
       },
 
       updateAdornments: function () {

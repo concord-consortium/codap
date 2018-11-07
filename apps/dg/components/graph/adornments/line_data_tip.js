@@ -40,8 +40,8 @@ DG.LineDataTip = DG.DataTip.extend(
   getDataTipText: function() {
     var tResult = '';
     if( this.info) {
-      tResult = 'DG.DataTip.connectingLine'.loc( this.info.parentName,
-                                                this.info.lineIndex,
+      tResult = 'DG.DataTip.connectingLine'.loc( this.info.groupingAttributeName,
+                                                this.info.groupingAttributeValue,
                                                 this.info.numChildren,
                                                 this.info.childrenName);
     }

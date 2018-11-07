@@ -254,18 +254,21 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
 
   showDataTip: function( iEvent, iParentID) {
     if( this._dataTip) {
-      var tParent = this.getPath( 'model.plotModel.dataContext').getCaseByID( iParentID);
+      var tContext = this.getPath( 'model.plotModel.dataContext'),
+          tParent = tContext && tContext.getCaseByID( iParentID),
+          tGroupingAttribute = this.getPath('model.parentCollectionFirstAttribute');
       if( SC.none( tParent))
         return;
 
-      var tParentName = tParent.getPath('collection.name' ),
+      var tGroupingAttributeName = tGroupingAttribute.get('name' ),
+          tGroupingValue = tParent.getValue(tGroupingAttribute.get('id')),
           tChildren = tParent.get('children' ).flatten(),
           tNumChildren = SC.isArray(tChildren) ? tChildren.get('length') : 0,
           tChildrenName = (tNumChildren > 0) ? tChildren[ 0].getPath('collection.name') : '';
       this._dataTip.show(
         {
-          lineIndex: tParent.get('collection').getCaseIndexByID( iParentID) + 1,
-          parentName: tParentName,
+          groupingAttributeValue: tGroupingValue,
+          groupingAttributeName: tGroupingAttributeName,
           numChildren: tNumChildren,
           childrenName: tChildrenName
         },

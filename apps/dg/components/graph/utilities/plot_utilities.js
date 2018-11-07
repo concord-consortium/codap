@@ -414,13 +414,14 @@ DG.PlotUtilities = {
   setPlottedPointAttributes: function( o, params) {
     var node = o.node,
         attrs = o.attrs,
-        vis = node.style.visibility,
         R = Raphael,
         has = "hasOwnProperty";
-    node.style.visibility = "hidden";
     for (var att in params) {
       if (params[has](att)) {
         if (!R._availableAttrs[has](att)) {
+          continue;
+        }
+        if( o.attr(att) === params[att]) {
           continue;
         }
         var value = params[att];
@@ -489,8 +490,6 @@ DG.PlotUtilities = {
         }
       }
     }
-
-    node.style.visibility = vis;
   },
 
   mapAxisViewClassToAxisModelClass: function( iViewClass) {
