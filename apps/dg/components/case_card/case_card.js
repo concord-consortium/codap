@@ -326,8 +326,8 @@ DG.React.ready(function () {
                   DG.DataContextUtilities.deleteAttribute(iContext, iAttr.get('id'));
                 }.bind(this),
 
-                attributeIsEditable = function () {
-                  return iAttr.get('editable') && !iAttr.get('formula');
+                formulaIsEditable = function () {
+                  return iAttr.get('editable');
                 },
 
                 attributeCanBeRandomized = function () {
@@ -443,7 +443,7 @@ DG.React.ready(function () {
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
                   deleteAttributeCallback: deleteAttribute,
-                  attributeIsEditableCallback: attributeIsEditable,
+                  attributeIsEditableCallback: formulaIsEditable,
                   attributeCanBeRandomizedCallback: attributeCanBeRandomized,
                   rerandomizeCallback: rerandomizeAttribute,
                   newAttributeCallback: makeNewAttribute,
