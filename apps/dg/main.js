@@ -57,8 +57,8 @@ DG.main = function main() {
     return wantsSCMouse
               ? NO
               : (dgWantsMouse ? YES : orgIgnoreMouseHandle(evt));
-  };	
-	
+  };
+
   DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
   DG.showUserEntryView = true;
@@ -171,7 +171,7 @@ DG.main = function main() {
   function removeDuplicateCaseIDs(content) {
     var cases = {},
         duplicates = {};
-    
+
     if (content.contexts) {
       content.contexts.forEach(function(context) {
         if (context.collections) {
@@ -783,6 +783,7 @@ DG.main = function main() {
     $('html').addClass('dg-embedded-mode');
 
     startEmbeddedServer();
+    translateQueryParameters();
   }
   else {
     // only start embedded server if embeddedMode is not on
