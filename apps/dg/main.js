@@ -755,7 +755,7 @@ DG.main = function main() {
                 DG.appController.importFile(event.data.file.object);
               }
               else if (event.data.url && (event.data.via === "select")) {
-                DG.appController.importURL(event.data.url);
+                DG.appController.importURL(event.data.url, event.data.componentType);
               }
             });
             break;
