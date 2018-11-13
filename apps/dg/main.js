@@ -757,6 +757,9 @@ DG.main = function main() {
               else if (event.data.url && (event.data.via === "select")) {
                 DG.appController.importURL(event.data.url, event.data.componentType);
               }
+              else if (event.data.text && event.data.name) {
+                DG.appController.importText(event.data.text, event.data.name);
+              }
             });
             break;
 
