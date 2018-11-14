@@ -64,6 +64,7 @@ DG.React.ready(function () {
               if( tNow - gTimeOfLastSelectCall > kSelectDelay) {
                 doIncrement();
                 gWaitingForSelect = false;
+                gSelectTimer.invalidate();
                 gSelectTimer = null;
               }
               else {

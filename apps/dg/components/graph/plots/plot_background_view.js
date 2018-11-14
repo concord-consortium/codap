@@ -149,8 +149,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tLastRect,
         tStartPt,
         tNeedToDeselectAll,
-        tBaseSelection = [],
-        tStartTime;//,
+        tBaseSelection = [];
 //        tToolTip;
 
     function updateBackgroundImage() {
