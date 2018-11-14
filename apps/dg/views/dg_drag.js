@@ -45,7 +45,7 @@ DG.Drag = SC.Drag.extend({
 
     // compute the ghost offset from the original start location
 
-    var loc = { x: evt.pageX, y: evt.pageY };
+    var loc = { x: evt.clientX, y: evt.clientY };
     this.set('location', loc);
 
     if (this.get('sourceIsDraggable')) {
@@ -62,7 +62,7 @@ DG.Drag = SC.Drag.extend({
         dv.set('isVisible', NO);
       }
 
-      if (this.ghostActsLikeCursor) this.ghostOffset = { x: 14, y: 14 };
+      if (this.ghostActsLikeCursor) this.ghostOffset = { x: 14 - window.pageXOffset, y: 14 - window.pageYOffset};
       else this.ghostOffset = { x: (loc.x - origin.x), y: (loc.y - origin.y) };
 
       // position the ghost view
@@ -104,7 +104,7 @@ DG.Drag = SC.Drag.extend({
 
   _findDropTarget: function( iEvent) {
     var tTargets = this._dropTargets(),
-        tLoc = { x: iEvent.pageX, y: iEvent.pageY },
+        tLoc = { x: iEvent.clientX, y: iEvent.clientY },
         tResult = null;
     tTargets.forEach( function( iTarget) {
       if( (iTarget.constructor === DG.AxisMultiTarget) || (iTarget.get('orientation') === 'vertical2')) {

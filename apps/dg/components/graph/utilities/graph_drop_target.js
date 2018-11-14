@@ -51,10 +51,11 @@ DG.GraphDropTarget =
    * and scrolling of CODAP div.
    *
    * Note that we are forgoing computation of possible scaling, which Sproutcore does do.
+   * @override View.convertFrameToView
    */
   convertFrameToView: function (frame, targetView) {
     var tOffset = $(this.containerLayer()).offset();
-    return { x: tOffset.left, y: tOffset.top, width: frame.width, height: frame.height };
+    return { x: tOffset.left - window.pageXOffset, y: tOffset.top - window.pageYOffset, width: frame.width, height: frame.height };
   },
 
   computeDragOperations: function( iDrag) {

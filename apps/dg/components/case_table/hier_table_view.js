@@ -98,6 +98,15 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     },
 
     /**
+     * Adjustments needed to accommodate shared embedded mode CODAP
+     * @override View.convertFrameToView
+     **/
+    convertFrameToView: function (frame, targetView) {
+      var tOffset = $(this.containerLayer()).offset();
+      return { x: tOffset.left - window.pageXOffset, y: tOffset.top - window.pageYOffset, width: frame.width, height: frame.height };
+    },
+
+    /**
      * Gives us a chance to add/remove classes to the component view in which I'm displayed.
      * For a hierarchical table view, the need is to give move the scroll bar up a bit so that
      * it is more accessible to the mouse.

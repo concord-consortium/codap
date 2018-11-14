@@ -128,6 +128,15 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
           }
         },
 
+        /**
+         * Adjustments needed to accommodate shared embedded mode CODAP
+         * @override View.convertFrameToView
+         **/
+        convertFrameToView: function (frame, targetView) {
+          var tOffset = $(this.containerLayer()).offset();
+          return { x: tOffset.left - window.pageXOffset, y: tOffset.top - window.pageYOffset, width: frame.width, height: frame.height };
+        },
+
         computeDragOperations: function( iDrag) {
           this.extractDragInfo( iDrag);
           if( this.get('isDropEnabled'))
