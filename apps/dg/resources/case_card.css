@@ -86,8 +86,9 @@
 
 .react-data-card td div {
     float: right;
-    /*margin-right: 20px;*/
+    width: 100%;
     border: 0;
+    cursor: pointer;
 }
 
 .react-data-card td {
@@ -120,10 +121,14 @@
     margin-left: 5px;
 }
 
+.react-data-card-row {
+    width: 1px; /* Hack so that width of 100% for attribute name will work */
+}
+
 .react-data-card-attribute {
-    cursor: pointer;
     font-weight: normal;
     text-align: right;
+    font-size: 11px;
 }
 
 .react-data-card-attribute:hover {
@@ -132,7 +137,9 @@
 }
 
 .react-data-card .dg-floating-plus {
-    float: left;
+    position: absolute;
+    left: 4px;
+    cursor: pointer;
 }
 
 td.attr-cell {

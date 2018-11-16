@@ -424,7 +424,7 @@ DG.React.ready(function () {
             }
             tFormula = isNotEmpty(tFormula) ? ((isNotEmpty(tDescription) || isNotEmpty(tUnit)) ? '\n' : '')
                 + tFormula : '';
-            var tSpan = span({
+            var tSpan = div({
                   className: 'react-data-card-attribute',
                   title: tDescription + tUnitWithParens + tFormula,
                   onMouseDown: handleMouseDown,
@@ -473,7 +473,8 @@ DG.React.ready(function () {
                   tValueField = tQualitativeValueField;
                 }
             return tr({
-              key: 'attr-' + iIndex
+              key: 'attr-' + iIndex,
+              className: 'react-data-card-row'
             }, tCell, td({className: tValueClassName}, tValueField));
           },
 

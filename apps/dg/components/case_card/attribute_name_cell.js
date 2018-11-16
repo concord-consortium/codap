@@ -4,6 +4,7 @@
 DG.React.ready(function () {
   var
       img = React.DOM.img,
+      div = React.DOM.div,
       td = React.DOM.td;
 
   DG.React.Components.AttributeNameCell = DG.React.createComponent(
@@ -108,14 +109,6 @@ DG.React.ready(function () {
                       },
                       iItem.label);
                 }),
-                tAttributeName = DG.React.Components.Dropdown({
-                  trigger: this.props.content,
-                  menuItems: tMenuItems,
-                  ref: function (iDropdown) {
-                    this.dropdown = iDropdown;
-                  }.bind(this),
-                  onRefCallback: assignCellRef
-                }),
                 tNewAttrButton = (this.props.index === 0) ?
                     img({
                       src: static_url('images/add_circle_grey_72x72.png'),
@@ -125,12 +118,24 @@ DG.React.ready(function () {
                       title: 'DG.TableController.newAttributeTooltip'.loc(),
                       onClick: newAttributeClickHandler
                     }) :
-                    '';
+                    '',
+                tNameDiv = div({
+                  className: 'react-name-cell'
+                }, this.props.content),
+                tCellWithDropdown = DG.React.Components.Dropdown({
+                  trigger: tNameDiv,
+                  menuItems: tMenuItems,
+                  ref: function (iDropdown) {
+                    this.dropdown = iDropdown;
+                  }.bind(this),
+                  onRefCallback: assignCellRef
+                }),
+                tNameCell = td({
+                  className: tClassName,
+                  ref: assignCellRef
+                }, tNewAttrButton, tCellWithDropdown);
 
-            return td({
-              className: tClassName,
-              ref: assignCellRef
-            }, tNewAttrButton, tAttributeName);
+            return tNameCell;
           }
         };
       }()), []);
