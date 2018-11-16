@@ -363,7 +363,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     newAttrButtonView: DG.ImageView.extend({
       classNames: ['dg-floating-plus'],
-      layout: { top: -1, right: 0, width: 36, height: 36 },
+      layout: { top: 0, right: 0, width: 22, height: 22 },
       // https://www.materialui.co/icon/add-circle
       value: static_url('images/add_circle_grey_72x72.png'),
       tooltip: 'DG.TableController.newAttributeTooltip'.loc(),
