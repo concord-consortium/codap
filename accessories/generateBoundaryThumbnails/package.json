@@ -1,7 +1,7 @@
 {
   "author": "Concord Consortium",
   "dependencies": {
-    "btoa": "^1.1.2",
+    "btoa": "^1.2.1",
     "librsvg": "^0.7.0",
     "mercator-projection": "0.0.2"
   },
