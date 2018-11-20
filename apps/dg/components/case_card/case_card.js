@@ -424,7 +424,7 @@ DG.React.ready(function () {
             }
             tFormula = isNotEmpty(tFormula) ? ((isNotEmpty(tDescription) || isNotEmpty(tUnit)) ? '\n' : '')
                 + tFormula : '';
-            var tSpan = div({
+            var tDiv = div({
                   className: 'react-data-card-attribute',
                   title: tDescription + tUnitWithParens + tFormula,
                   onMouseDown: handleMouseDown,
@@ -437,7 +437,7 @@ DG.React.ready(function () {
                   onTouchCancel: handleTouchCancel
                 }, iAttr.get('name')),
                 tCell = DG.React.Components.AttributeNameCell({
-                  content: tSpan,
+                  content: tDiv,
                   index: iIndex,
                   dragStatus: this.props.dragStatus,
                   dropCallback: handleDrop,

@@ -387,18 +387,22 @@ DG.DataContext = SC.Object.extend((function() // closure
                           Other change properties are operation-specific
    */
   applyChange: function( iChange) {
-    var result = this.performChange( iChange);
+    var this_ = this,
+        result = this.performChange( iChange);
     iChange.result = DG.ObjectMap.join((iChange.result || {}), result);
     // TODO: Figure out how/when to prune the changes array so it doesn't grow unbounded.
     this.changes.push( iChange);
     ++ this._changeCount;
 
-    // Delay the notification until the end of the runloop, so that SproutCore has a
-    // chance to flush its caches, update bindings, etc.
-    this.invokeLast( function() {
-                        this.set('changeCount', this._changeCount);
-                        this._prevChangeCount = this._changeCount;
-                      }.bind( this));
+    // We may not be in a runloop if we got here through an event
+    SC.run( function() {
+      // Delay the notification until the end of the runloop, so that SproutCore has a
+      // chance to flush its caches, update bindings, etc.
+      this_.invokeLast( function() {
+        this_.set('changeCount', this_._changeCount);
+        this_._prevChangeCount = this_._changeCount;
+      });
+    });
     return iChange.result;
   },
 
