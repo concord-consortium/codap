@@ -150,12 +150,14 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tOtherYAttributes = this.getPath('otherYAttributeDescription.attributes'),
               tOtherYCount = SC.isArray(tOtherYAttributes) ? tOtherYAttributes.length : 0,
               tBaseLabelIndex = (this.get('orientation') === 'vertical2') ? tOtherYCount : 0,
+              tNoAttributesOnThisAxis = this.getPath('model.noAttributes'),
               tNoAttributesOnEitherAxis = this.noAttributesOnEitherAxis(),
               tLabels, tNumAttributes, tNode, tAttributes, tAttribute;
           if (SC.none(this._paper))
             return [];
 
-          if( tNoAttributesOnEitherAxis) {
+          if( (this.constructor === DG.AxisView) && (tNoAttributesOnEitherAxis ||
+              (tNoAttributesOnThisAxis && DG.ComponentView.isComponentViewForViewSelected( this)))) {
             tLabels = ['DG.AxisView.emptyGraphCue'.loc()];
             tNumAttributes = 0;
           }
@@ -257,13 +259,14 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             value: ''
           });
           this.appendChild( this._hiddenDragView);
-
+          DG.mainPage.docView.addObserver('selectedChildView', this, this.doDraw);
         },
 
         /**
          * Make sure we don't hang around pointing to otherAxisView
          */
         destroy: function() {
+          DG.mainPage.docView.removeObserver('selectedChildView', this, this.doDraw);
           this.otherAxisView = null;  // break circular references
           this.get('labelNodes').forEach( function( iNode) {
             iNode.remove();

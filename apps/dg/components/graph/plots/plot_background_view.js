@@ -233,7 +233,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tNeedToDeselectAll = false;
       }
       // Only deselect everything if we are the currently selected component
-      else if(DG.ComponentView.findComponentViewParent(this_) === DG.mainPage.docView.get('selectedChildView')) {
+      else if(DG.ComponentView.isComponentViewForViewSelected(this_)) {
         tNeedToDeselectAll = false;
         SC.run(function(){
           this_.get('graphModel').selectAll( false);

@@ -1051,3 +1051,7 @@ DG.ComponentView.findComponentViewParent = function (iView) {
 
   return iView;
 };
+
+DG.ComponentView.isComponentViewForViewSelected = function (iView) {
+  return DG.ComponentView.findComponentViewParent( iView) === DG.mainPage.docView.get('selectedChildView');
+};
