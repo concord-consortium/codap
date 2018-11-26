@@ -92,6 +92,8 @@ DG.RaphaelLayer = SC.Object.extend(
       DG.RenderingUtilities.testPaperValidity( this._paper);
 */
       DG.assert( iElement);
+      if( !this._paper.botom) // We nulled this out in preparation for this push
+        this._paper.bottom = iElement;
       if( !this._map[iElement.id]) {  // If it's not already present in the layer
         this._map[iElement.id] = true;
         if (!this._lastElement) {
