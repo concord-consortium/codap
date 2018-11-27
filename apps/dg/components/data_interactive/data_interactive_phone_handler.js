@@ -1009,7 +1009,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
           return applyChangeAndProcessResult(context, change, iMetadata);
         },
-        'delete': function (iResources) {
+        'delete': function (iResources, iValues, iMetadata) {
           var context = iResources.dataContext;
           var change = {
             operation: 'deleteAttributes',
@@ -1017,6 +1017,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             attrs: [iResources.attribute],
             requester: this.get('id')
           };
+          if (iMetadata && iMetadata.dirtyDocument === false) {
+            change.dirtyDocument = false;
+          }
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success);
           return {
