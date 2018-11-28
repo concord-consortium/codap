@@ -488,24 +488,34 @@ DG.appController = SC.Object.create((function () // closure
     },
     /**
      *
-     * @param iURL - the URL of a data interactive, csv or json document based on
+     * @param iURL - the URL of a webpage, data interactive, csv or json document based on
      * file extension in pathname.
+     * @param iComponentType - (optional) the type of the component, defaults to DG.GameView
      * @returns {Boolean}
      */
-    importURL: function (iURL) {
+    importURL: function (iURL, iComponentType) {
 
       var addInteractive = function () {
         var tDoc = DG.currDocumentController(),
-          tComponent = DG.Component.createComponent({
-            "type": "DG.GameView",
-            "document": tDoc.get('content') ,
-            "componentStorage": {
-              "currentGameName": "",
-              "currentGameUrl": iURL,
-              allowInitGameOverride: true
-            }
-          });
-        tDoc.createComponentAndView( tComponent);
+            tComponent;
+
+        switch (iComponentType || "DG.GameView") {
+          case "DG.GameView":
+            tComponent = DG.Component.createComponent({
+              "type": "DG.GameView",
+              "document": tDoc.get('content') ,
+              "componentStorage": {
+                "currentGameName": "",
+                "currentGameUrl": iURL,
+                allowInitGameOverride: true
+              }
+            });
+            tDoc.createComponentAndView( tComponent);
+            break;
+          case "DG.WebView":
+            tDoc.addWebView(DG.mainPage.get('docView'), null, iURL, 'Web Page', {width: 600, height: 400});
+            break;
+        }
       }.bind(this);
 
       // from: http://www.abeautifulsite.net/parsing-urls-in-javascript/

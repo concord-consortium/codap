@@ -23,7 +23,7 @@ DG.splash = SC.Object.create({
   isShowing: false,
 
   showSplash: function () {
-    if (DG.Browser.isCompatibleBrowser() && !this.get('isShowing') &&  DG.get('componentMode') !== 'yes' ) {
+    if (DG.Browser.isCompatibleBrowser() && !this.get('isShowing') &&  DG.get('componentMode') !== 'yes' && DG.get('hideSplashScreen') !== 'yes') {
       var kHeight = 200,
           kPadding = 20,
           kRatio = 1936 / 649;

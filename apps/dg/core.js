@@ -508,6 +508,24 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     /**
+     * hideSplashScreen can be passed as a Url parameter named tools with values 'yes' or 'no'.
+     *  With the value 'yes' DG will not display the CODAP splash screen.
+     *  The default is 'no'.
+     */
+    hideSplashScreen: function () {
+      return getUrlParameter('hideSplashScreen', 'no');
+    }.property(),
+
+    /**
+     * hideWebViewLoading can be passed as a Url parameter named tools with values 'yes' or 'no'.
+     *  With the value 'yes' DG will not display the loading view when loading webviews.
+     *  The default is 'no'.
+     */
+    hideWebViewLoading: function () {
+      return getUrlParameter('hideWebViewLoading', 'no');
+    }.property(),
+
+    /**
      * If set, amends the options object sent to the CFM at initialization.
      * See the main.js:cfmInit().
      * @param {Object}

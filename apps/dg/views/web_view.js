@@ -27,7 +27,7 @@
 DG.WebView = SC.View.extend(
 /** @scope DG.WebView.prototype */ {
       classNames: ['dg-web-view'],
-      childViews: ['loadingView', 'webView'],
+      childViews: DG.get('hideWebViewLoading') !== 'yes' ? ['loadingView', 'webView'] : ['webView'],
 
       isTextSelectable: YES,
 
