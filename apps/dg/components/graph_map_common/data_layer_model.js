@@ -294,7 +294,16 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       if (tContext) {
         tContext.applyChange( tChange);
       }
-      DG.logUser( iSelect ? "selectAll" : "deselectAll");
+      var tOperation = iSelect ? "selectAll" : "deselectAll";
+      DG.currDocumentController().notificationManager.sendNotification({
+        action: 'notify',
+        resource: 'component',
+        values: {
+          operation: tOperation,
+          type: ''
+        }
+      });
+      DG.logUser( tOperation);
     },
 
     /**
@@ -575,6 +584,14 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           undoString: 'DG.Undo.hideSelectedCases',
           redoString: 'DG.Redo.hideSelectedCases',
           log: "Hide %@ selected cases".fmt(tSelection.length),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'hideSelected',
+              type: ''
+            }
+          },
           execute: function() {
             this._undoData = tSelection;
             self.get('dataConfiguration' ).hideCases( tSelection );
@@ -594,6 +611,14 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           undoString: 'DG.Undo.hideUnselectedCases',
           redoString: 'DG.Redo.hideUnselectedCases',
           log: "Hide unselected cases",
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'hideUnselected',
+              type: ''
+            }
+          },
           execute: function() {
             var tUnselected = DG.ArrayUtils.subtract( tCases, tSelection,
                 function( iCase) {

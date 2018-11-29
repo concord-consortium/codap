@@ -845,6 +845,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'legendAttributeChange',
+                type: this.get('dataDisplayModel').constructor.toString(),
+                attributeName: iDragData.attribute.get('name')
+              }
+            },
             execute: function () {
               this._beforeStorage = this_.createComponentStorage();
 

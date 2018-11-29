@@ -128,6 +128,14 @@ DG.NumericPlotModelMixin =
       redoString: 'DG.Redo.axisRescaleFromData',
       causedChange: iUserAction,        // if this was not triggered by user, don't add to undo stack
       log: "Rescale axes from data",
+      executeNotification: {
+        action: 'notify',
+        resource: 'component',
+        values: {
+          operation: 'rescaleGraph',
+          type: 'DG.GraphView'
+        }
+      },
       execute: function() {
 
         iPlaces.forEach( function( iPlace) {
