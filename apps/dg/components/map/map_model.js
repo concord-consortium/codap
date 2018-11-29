@@ -183,7 +183,9 @@ DG.MapModel = SC.Object.extend(
             var tLegend = iLayerModel.get('legend');
             tLegend && tLegend.removeObserver('attributeDescription.attribute',
                 this, this.legendAttributeDidChange);
+            iLayerModel.destroy();
           }.bind( this));
+          this.set('mapLayerModels', null);
           sc_super();
         },
 
