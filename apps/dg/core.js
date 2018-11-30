@@ -526,6 +526,15 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     /**
+     * hideUndoRedoInComponent can be passed as a url parameter with values 'yes' or 'no'.
+     *  With the value 'yes' DG will not display the undo/redo buttons in the component
+     *  when embeddedMore or componentMode is enabled.
+     */
+    hideUndoRedoInComponent: function () {
+      return getUrlParameter('hideUndoRedoInComponent', 'no');
+    }.property(),
+
+    /**
      * If set, amends the options object sent to the CFM at initialization.
      * See the main.js:cfmInit().
      * @param {Object}
