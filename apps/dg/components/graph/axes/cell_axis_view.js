@@ -157,6 +157,12 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
      Since I'm a leaf class I implement doDraw.
      */
     doDraw: function doDraw() {
+
+      // We can get stuck if we have height or width of zero
+      var tFrame = this.get('frame');
+      if( !tFrame || (tFrame.height === 0 || tFrame.width === 0))
+        return;
+
       var this_ = this,
           tModel = this.get('model'),
           tNumCells = tModel.get('numberOfCells'),

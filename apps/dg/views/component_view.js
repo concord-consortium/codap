@@ -310,6 +310,11 @@ DG.ComponentView = SC.View.extend(
           return !SC.none(this.get('_modelSavedHeight'));
         }.property('_modelSavedHeight'),
 
+        isMinimizedChanged: function() {
+          var tIsMinimize = this.get('isMinimized');
+          this.setPath('contentView.isVisible', !tIsMinimize);
+        }.observes('isMinimized'),
+
         init: function () {
           sc_super();
           if (!this.get('showTitleBar')) {
@@ -899,9 +904,11 @@ DG.ComponentView = SC.View.extend(
             this.setPath('model.savedHeight', null);
           }
           else {
-            this.setPath('model.savedHeight', this.get('layout').height);
+            var tHeightToBeSaved = this.get('layout').height;
             this.animate({height: kTitleBarHeight},
-                {duration: 0.4, timing: 'ease-in-out'});
+                {duration: 0.4, timing: 'ease-in-out'}, function() {
+                  this.setPath('model.savedHeight', tHeightToBeSaved);
+                });
             setBorderVisibility(false);
             if (this.get('isSelected')) {
               this.parentView.select(null);
