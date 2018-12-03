@@ -1,4 +1,3 @@
-// ==========================================================================
 //                          DG.ComponentView
 //
 //  Routines for changing coordinates along an animation path
@@ -241,6 +240,8 @@ DG.ComponentView = SC.View.extend(
           kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR}),
           kViewInComponentMode = DG.get('componentMode') === 'yes',
           kViewInEmbeddedMode = DG.get('embeddedMode') === 'yes',
+          kHideUndoRedoInComponent = DG.get('hideUndoRedoInComponent') === 'yes',
+          kShowUndoRedoButtons = (kViewInComponentMode || kViewInEmbeddedMode) && !kHideUndoRedoInComponent,
           kLockThingsDown = kViewInComponentMode;
       return {
         classNames: ['dg-component-view'],
@@ -348,7 +349,7 @@ DG.ComponentView = SC.View.extend(
             model: null,  // DG.Component. Needed to determine if closebox should show
             childViews: ('statusView versionView titleView ' +
             (!kLockThingsDown ? 'minimize closeBox ' : '') +
-            ((kViewInComponentMode || kViewInEmbeddedMode) ? 'undo redo ' : '')).w(),
+            (kShowUndoRedoButtons ? 'undo redo ' : '')).w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
@@ -471,16 +472,16 @@ DG.ComponentView = SC.View.extend(
                   isVisible: SC.platform.touch
                 }) :
                 null,
-            undo: (kViewInEmbeddedMode || kViewInComponentMode) ?
+            undo: kShowUndoRedoButtons ?
                 DG.TitleBarUndoButton.design({
-                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 3 : kTitleBarHeight), 
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 3 : kTitleBarHeight),
                            top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-undo'],
                 }) :
                 null,
-            redo: (kViewInEmbeddedMode || kViewInComponentMode) ?
+            redo: kShowUndoRedoButtons ?
                 DG.TitleBarRedoButton.design({
-                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 2 : 0), 
+                  layout: {right: (kViewInEmbeddedMode ? kTitleBarHeight * 2 : 0),
                            top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-redo'],
                 }) :
