@@ -328,6 +328,9 @@ DG.ComponentView = SC.View.extend(
               this.select();
             }.bind(this));
           }
+          if (DG.KEEP_IN_BOUNDS_PREF && !this.originalLayout) {
+            this.originalLayout = {};
+          }
         },
         setFocusToComponentTitle: function () {
           var titleView = this.getPath('containerView.titlebar.titleView');
