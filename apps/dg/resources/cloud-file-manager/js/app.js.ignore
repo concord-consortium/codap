@@ -17024,8 +17024,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch Seite",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Vollbild und Skalieren",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Textbutton",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Datensichtbarkeit in Graphen anzeigen",
-    "~FILE_STATUS.FAILURE": "Erneut versuchen..."
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Datensichtbarkeit in Graphen anzeigen"
 }
 
 },{}],74:[function(require,module,exports){
@@ -17302,8 +17301,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
-    "~FILE_STATUS.FAILURE": "Retrying..."
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],76:[function(require,module,exports){
@@ -17429,8 +17427,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "הפעלה אוטומטית של הדף",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "כפתור מסך מלא ומירכוז",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "הפעלת כפתור טקסט:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "הצגת מידע ויזואלי בגרפים",
-    "~FILE_STATUS.FAILURE": "מנסה שוב..."
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "הצגת מידע ויזואלי בגרפים"
 }
 
 },{}],77:[function(require,module,exports){
@@ -17556,8 +17553,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
-    "~FILE_STATUS.FAILURE": "Retrying..."
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],78:[function(require,module,exports){
@@ -17683,8 +17679,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Autolaunch page",
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
-    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
-    "~FILE_STATUS.FAILURE": "Retrying..."
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs"
 }
 
 },{}],79:[function(require,module,exports){
