@@ -418,6 +418,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             values: {
               operation: 'attributeChange',
               type: 'DG.GraphView',
+              id: this.getPath('graphModel.id'),
               attributeName: iDragData.attribute.get('name'),
               axisOrientation: iAxis.getPath('model.orientation')
             }

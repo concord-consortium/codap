@@ -294,16 +294,7 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       if (tContext) {
         tContext.applyChange( tChange);
       }
-      var tOperation = iSelect ? "selectAll" : "deselectAll";
-      DG.currDocumentController().notificationManager.sendNotification({
-        action: 'notify',
-        resource: 'component',
-        values: {
-          operation: tOperation,
-          type: ''
-        }
-      });
-      DG.logUser( tOperation);
+      DG.logUser( iSelect ? "selectAll" : "deselectAll");
     },
 
     /**

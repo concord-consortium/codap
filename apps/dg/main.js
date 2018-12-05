@@ -57,8 +57,8 @@ DG.main = function main() {
     return wantsSCMouse
               ? NO
               : (dgWantsMouse ? YES : orgIgnoreMouseHandle(evt));
-  };	
-	
+  };
+
   DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
   DG.showUserEntryView = true;
@@ -171,7 +171,7 @@ DG.main = function main() {
   function removeDuplicateCaseIDs(content) {
     var cases = {},
         duplicates = {};
-    
+
     if (content.contexts) {
       content.contexts.forEach(function(context) {
         if (context.collections) {
@@ -207,16 +207,16 @@ DG.main = function main() {
         a;
 
     if (DG.cfmBaseUrl) {
-      // safely parse the url and check to only allow codap.concord.org or a domain with no tld (like localhost or dev)
+      // safely parse the url and check to only allow *.concord.org or a domain with no tld (like localhost or dev)
       a = document.createElement("A");
       a.href = DG.cfmBaseUrl;
-      if ((a.hostname === 'codap.concord.org') || (a.hostname.indexOf('.') === -1)) {
+      if (/\.concord\.org$/.test(a.hostname) || (a.hostname.indexOf('.') === -1)) {
         a.pathname = (a.pathname[a.pathname.length - 1] === '/' ? a.pathname : (a.pathname + '/')) + filename;
         url = a.href;
         DG.logWarn('Loading the ' + filename + ' CFM file from ' + url);
       }
       else {
-        DG.logError('The cfmBaseUrl domain (' + a.hostname + ') either needs to be codap.concord.org or not have a TLD (like localhost)');
+        DG.logError('The cfmBaseUrl domain (' + a.hostname + ') either needs to be *.concord.org or not have a TLD (like localhost)');
       }
     }
 
@@ -755,7 +755,10 @@ DG.main = function main() {
                 DG.appController.importFile(event.data.file.object);
               }
               else if (event.data.url && (event.data.via === "select")) {
-                DG.appController.importURL(event.data.url);
+                DG.appController.importURL(event.data.url, event.data.componentType);
+              }
+              else if (event.data.text && event.data.name) {
+                DG.appController.importText(event.data.text, event.data.name);
               }
             });
             break;
@@ -783,6 +786,7 @@ DG.main = function main() {
     $('html').addClass('dg-embedded-mode');
 
     startEmbeddedServer();
+    translateQueryParameters();
   }
   else {
     // only start embedded server if embeddedMode is not on

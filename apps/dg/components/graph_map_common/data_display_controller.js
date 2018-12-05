@@ -851,6 +851,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               values: {
                 operation: 'legendAttributeChange',
                 type: this.get('dataDisplayModel').constructor.toString(),
+                id: this.getPath('model.id'),
                 attributeName: iDragData.attribute.get('name')
               }
             },
