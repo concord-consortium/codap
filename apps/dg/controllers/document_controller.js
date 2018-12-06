@@ -901,7 +901,7 @@ DG.DocumentController = SC.Object.extend(
                 width: tGameParams.width,
                 height: tGameParams.height
               },
-              position: iComponent.position,
+              position: iComponent && iComponent.position,
               title: tGameName,
               isResizable: true,
               useLayout: !SC.none(iComponent),
@@ -978,7 +978,7 @@ DG.DocumentController = SC.Object.extend(
             componentClass: componentClassDef,
             contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
             defaultLayout: {width: 500, height: 200},
-            position: (iComponent && iComponent.position ? iComponent.position : null),
+            position: iComponent && iComponent.position,
             isResizable: true
           };
           caseTableView = this.createComponentView(component, props);
@@ -1070,7 +1070,7 @@ DG.DocumentController = SC.Object.extend(
                     })
                   },
                   defaultLayout: (iComponent && iComponent.size ? iComponent.size : {width: 300, height: 300}),
-                  position: (iComponent && iComponent.position ? iComponent.position : null),
+                  position: iComponent && iComponent.position,
                   isResizable: true
                 }
             );
@@ -1114,7 +1114,7 @@ DG.DocumentController = SC.Object.extend(
                     model: SC.Object.create({})
                   },
                   defaultLayout: {width: 300, height: 100},
-                  position: iComponent.position,
+                  position: iComponent && iComponent.position,
                   title: 'DG.DocumentController.textTitle'.loc(), // "Text"
                   isResizable: true
                 }
@@ -1154,7 +1154,7 @@ DG.DocumentController = SC.Object.extend(
                   componentClass: {type: 'DG.MapView', constructor: DG.MapView},
                   contentProperties: {model: tMapModel},
                   defaultLayout: {width: 530, height: 360},
-                  position: iComponent.position,
+                  position: iComponent && iComponent.position,
                   title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
                   isResizable: true
                 }
@@ -1196,7 +1196,7 @@ DG.DocumentController = SC.Object.extend(
                   componentClass: {type: 'DG.SliderView', constructor: DG.SliderView},
                   contentProperties: {id: this._componentId, model: tSliderModel},
                   defaultLayout: {width: 300, height: 98},
-                  position: iComponent.position,
+                  position: iComponent && iComponent.position,
                   isResizable: true
                 }
             );
@@ -1220,7 +1220,7 @@ DG.DocumentController = SC.Object.extend(
               componentClass: {type: 'DG.Calculator', constructor: DG.Calculator},
               contentProperties: {},
               defaultLayout: {},
-              position: iComponent.position,
+              position: iComponent && iComponent.position,
               title: 'DG.DocumentController.calculatorTitle'.loc(), // "Calculator"
               isResizable: false
             }
@@ -1363,7 +1363,7 @@ DG.DocumentController = SC.Object.extend(
                   componentClass: {type: 'DG.WebView', constructor: DG.WebView},
                   contentProperties: {value: iURL, backgroundColor: 'white', model: this.model},
                   defaultLayout: iLayout,
-                  position: iComponent.position,
+                  position: iComponent && iComponent.position,
                   title: iTitle,
                   isResizable: true,
                   useLayout: !SC.none(iComponent) || !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
@@ -1408,7 +1408,7 @@ DG.DocumentController = SC.Object.extend(
                       closeAction: {action: this.closeGuideView, target: this}
                     },
                     defaultLayout: {width: 400, height: 200},
-                    position: iComponent.position,
+                    position: iComponent && iComponent.position,
                     isResizable: true,
                     useLayout: true
                   }
@@ -1779,7 +1779,7 @@ DG.DocumentController = SC.Object.extend(
                 allow_user_variables: iAllowUserVariables
               },
               defaultLayout: {},
-              position: iComponent.position,
+              position: iComponent && iComponent.position,
               title: iTitle,
               isResizable: true
             }
