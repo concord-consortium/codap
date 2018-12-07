@@ -51,18 +51,26 @@ DG.MathUtilities = {
     tLower = Math.pow(10, iSigDigits - 1);
     tUpper = tLower * 10;
     while (iValue > tUpper) {
-      iValue /= 10;
+      iValue = iValue / 10;
       tAdjustedPlaces++;
     }
     while (iValue < tLower) {
-      iValue *= 10;
+      iValue = iValue * 10;
       tAdjustedPlaces--;
     }
 
     tNewValue = Math.floor(iValue);
     if (iValue - tNewValue > 0.5)
       tNewValue++;
-    tNewValue = tNewValue * Math.pow(10, tAdjustedPlaces);
+    var tCounter = tAdjustedPlaces;
+    while( tCounter < 0) {
+      tNewValue = tNewValue / 10;
+      tCounter++;
+    }
+    while( tCounter > 0) {
+      tNewValue = tNewValue * 10;
+      tCounter--;
+    }
 
     tRoundedValue = tSign * tNewValue;
     if (tAdjustedPlaces > 0)

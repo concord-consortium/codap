@@ -79,15 +79,16 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
   updateSymbols: function( iAnimate ) {
 
     function formatValueString( iValue) {
-      var tValueString = '';
+      var tValueString = '',
+          tPercValue = DG.MathUtilities.roundToSignificantDigits(iValue.percent, 2).roundedValue; // 2 significant digits
       if( tShowCount && !tShowPercent) {
         tValueString = iValue.count.toString();
       }
       else if( tShowPercent && !tShowCount) {
-        tValueString = '%@%'.fmt( Math.round(iValue.percent));
+        tValueString = '%@%'.fmt( tPercValue);
       }
       else if( tShowCount && tShowPercent) {
-        tValueString = '%@ (%@%)'.fmt( iValue.count, Math.round(iValue.percent));
+        tValueString = '%@ (%@%)'.fmt( iValue.count, tPercValue);
       }
       return tValueString;
     }
