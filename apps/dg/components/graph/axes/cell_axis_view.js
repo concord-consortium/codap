@@ -127,7 +127,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         // of the axes, knowing the thePixel is in plot view coordinates, not axis view coordinates.
         if( this.get('isVertical')) {
           iCoord = Math.min( Math.max( tPixelMax + 1, iCoord), tPixelMin - 1);
-          tCell = Math.floor( (iCoord - tPixelMax) * tNumCells / ( tPixelMin - tPixelMax));
+          tCell = Math.floor( (tPixelMin - iCoord) * tNumCells / ( tPixelMin - tPixelMax));
         }
         else {  // horizontal
           iCoord = Math.max( Math.min( tPixelMax - tPixelMin - 1, iCoord), 1.0);

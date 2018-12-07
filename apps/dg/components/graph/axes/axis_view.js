@@ -391,8 +391,15 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          */
         cellToCoordinate: function (iCellNum) {
           var tNumCells = this.get('numberOfCells'),
-              tCoordinate = Math.abs((iCellNum + 0.5) / tNumCells * (this.get('pixelMax') -
-                  this.get('pixelMin')));
+              tPixelWidth = Math.abs( this.get('pixelMax') - this.get('pixelMin')),
+              tDistanceToCell = (iCellNum + 0.5) / tNumCells * tPixelWidth,
+              tCoordinate;
+          if( this.get('orientation') === 'horizontal') {
+            tCoordinate = this.get('pixelMin') + tDistanceToCell;
+          }
+          else {
+            tCoordinate = this.get('pixelMin') - tDistanceToCell;
+          }
 
           return tCoordinate;
         },

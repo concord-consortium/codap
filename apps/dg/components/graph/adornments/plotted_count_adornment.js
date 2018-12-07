@@ -145,13 +145,14 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       var tIndexPrimary = Math.floor(i/this.numCellsOnSecondary),
           tIndexSecondary = i%this.numCellsOnSecondary,
           tIndexX=( this.xIsPrimaryAxis ? tIndexPrimary : tIndexSecondary ),
-          tIndexY=( this.xIsPrimaryAxis ? tIndexSecondary : tIndexPrimary );
+          tIndexY=( this.xIsPrimaryAxis ? tIndexSecondary : tIndexPrimary ),
+          tCountFromTop = this.numCellsOnY - tIndexY - 1;
       tIsNewElement = ( i >= tNumElements );
       tValue = tValuesArray[i];
       DG.assert( tValue.primaryCell === tIndexPrimary && tValue.secondaryCell === tIndexSecondary, "unexpected cell arrangement");
       tAttrs = { // position in upper-right of cell, with margin
           x: ((tIndexX+1)*tCellWidth) - this.marginX,
-          y: this.marginY + tYOffset/3 + (tIndexY*tCellHeight ),
+          y: this.marginY + tYOffset/3 + (tCountFromTop*tCellHeight ),
           'font-size': tFontSize,
           text: formatValueString( tValue)
       };
