@@ -861,7 +861,7 @@ DG.DocumentController = SC.Object.extend(
         }
 
         var tGameParams = {
-              width: 640, height: 480
+              width: 300, height: 200
             },
             // 'di' URL param can override stored URL
             storedGameUrl = iComponent && iComponent.getPath('componentStorage.currentGameUrl'),
@@ -904,7 +904,7 @@ DG.DocumentController = SC.Object.extend(
               position: iComponent && iComponent.position,
               title: tGameName,
               isResizable: true,
-              useLayout: !SC.none(iComponent),
+              useLayout: false,
               positionOnCreate: true
             });
             tView.select();
