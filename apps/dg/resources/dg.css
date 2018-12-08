@@ -1335,7 +1335,7 @@ input.dg-editor-text {
 }
 
 .dg-formula-column {
-    background-color: rgba(0,0,0,0.05);
+    background-color: rgba(256, 256, 0, 0.2);
 }
 
 .slick-row.even .slick-cell.dg-index-column {
