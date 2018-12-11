@@ -103,6 +103,21 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
        */
       canRescale: true,
 
+      /**
+       * @override
+       * @return {boolean}
+       */
+      hasValidMapAttributes: function() {
+        var tDataConfiguration = this.get('dataConfiguration'),
+            kAttrPrefixes = ['Lat', 'Long'];
+        return kAttrPrefixes.every( function( iPrefix) {
+          var tLowerCasePrefix = iPrefix.toLowerCase(),
+              tAttrName = tDataConfiguration.getPath( tLowerCasePrefix + 'AttributeDescription.attribute.name'),
+              tCandidates = DG.MapConstants['k' + iPrefix + 'Names'];
+          return tCandidates.indexOf( tAttrName.toLowerCase()) >= 0;
+        });
+      },
+
       animateSelectionBackToStart: function (iAttrIDs, iDeltas) {
         if (SC.none(this.caseValueAnimator))
           this.caseValueAnimator = DG.CaseValueAnimator.create();

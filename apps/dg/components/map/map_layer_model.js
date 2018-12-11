@@ -41,7 +41,14 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
         return false;
       }.property(),
 
-      //============================
+      /**
+       * Base class returns false
+       * @return {boolean}
+       */
+      hasValidMapAttributes: function() {
+        return false;
+      },
+
       handleLegendAttrChange: function() {
         var tLegendAttrDesc = this.getPath('dataConfiguration.legendAttributeDescription');
         if( tLegendAttrDesc) {
@@ -53,7 +60,11 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
       handleOneDataContextChange: function( iNotifier, iChange) {
         sc_super();
 
-        var tOperation = iChange && iChange.operation;
+        var tDataConfiguration = this.get('dataConfiguration'),
+            tOperation = iChange && iChange.operation;
+
+        if( !tDataConfiguration)
+          return; // Occurs when a notification was queued up before a destroy took place
 
         if (tOperation === 'deleteCases')
           this.get('dataConfiguration').synchHiddenCases();
@@ -66,6 +77,16 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
         iChange.indices = this.buildIndices( iChange);
         this.dataRangeDidChange( this, 'revision', this, iChange.indices);
         this.set('lastChange', iChange);
+      },
+
+      /**
+       * One or more of the attributes belonging to the collection used by this layer has been changed;
+       * e.g. by having its name changed.
+       * @param iChange {Object}
+       */
+      handleUpdateAttributes: function( iChange) {
+        if( this.isAffectedByChange( iChange))
+          this.notifyPropertyChange( 'attributeUpdated');
       },
 
       /**
@@ -84,8 +105,8 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
       },
 
       /**
-       @param {CaseModel} The the case to be selected.
-       @param {Boolean} Should the current selection be extended?
+       @param {CaseModel} iCase The case to be selected.
+       @param {Boolean} iExtend Should the current selection be extended?
        */
       selectCase: function( iCase, iExtend) {
         var tSelection = this.get('selection'),

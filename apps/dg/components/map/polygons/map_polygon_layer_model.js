@@ -57,6 +57,17 @@ DG.MapPolygonLayerModel = DG.MapLayerModel.extend(
        */
       canRescale: true,
 
+      /**
+       * @override
+       * @return {*|Number|boolean}
+       */
+      hasValidMapAttributes: function() {
+        var tMapAttribute = this.getPath( 'dataConfiguration.polygonAttributeDescription.attribute'),
+            tAttrName = tMapAttribute && tMapAttribute.get('name');
+        return tAttrName && (DG.MapConstants.kPolygonNames.indexOf( tAttrName.toLowerCase()) ||
+            tMapAttribute.get('type') === DG.Analysis.EAttributeType.eBoundary);
+      },
+
       createStorage: function() {
         var tStorage = sc_super();
         tStorage.areaColor = this.get('areaColor');

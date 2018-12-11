@@ -410,15 +410,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         }
       }.observes('model.isVisible'),
 
-      /**
-       * When an attribute has been removed we can no longer display, so we clear ourselves.
-       */
-      handleAttributeRemoved: function () {
-        this.setPath('model.connectingLineModel.isVisible', false);
-        this.setPath('model.pointsShouldBeVisible', false);
-        this.setPath('model.gridModel.isVisible', false);
-      }.observes('model.attributeRemoved'),
-
       updateConnectingLine: function() {
         var tConnectingLinesAdorn = this.get('connectingLinesAdorn');
         if( tConnectingLinesAdorn) {
