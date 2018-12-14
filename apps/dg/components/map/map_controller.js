@@ -52,23 +52,46 @@ DG.MapController = DG.DataDisplayController.extend(
           sc_super();
 
           // We respond to changes in the number data contexts
-          DG.currDocumentController().addObserver('contextsLength', this, this.contextCountDidChange);
+          DG.currDocumentController().addObserver('contextsLength', this, this.handleDataContextChange);
+          DG.currDocumentController().notificationManager.addObserver('mostRecentDataContextChanges', this,
+              this.dataContextDidChange);
         },
 
         destroy: function() {
-          var tDocController = DG.currDocumentController();
-          tDocController && tDocController.removeObserver('contextsLength', this, this.contextCountDidChange);
+          var tDocController = DG.currDocumentController(),
+              tNotificationManager = tDocController && tDocController.notificationManager;
+          tDocController && tDocController.removeObserver('contextsLength', this, this.handleDataContextChange);
+          tNotificationManager && tNotificationManager.removeObserver('mostRecentDataContextChanges', this,
+              this.dataContextDidChange);
 
           sc_super();
         },
 
-        contextCountDidChange: function() {
+        handleDataContextChange: function() {
           this.invokeLater( function() {
             SC.run( function() {
               this.get('mapModel').adaptToNewOrRemovedContexts();
               this.set('_inspectorButtons', null);
             }.bind( this));
           }.bind( this), 100);
+        },
+
+        /**
+         *
+         * @param iNotificationManager {DG.NotificationManager}
+         */
+        dataContextDidChange: function( iNotificationManager) {
+          var tChanges = iNotificationManager.get('mostRecentDataContextChanges'),
+              tMeaningfulChange = false;
+          tChanges.forEach( function( iChange) {
+            switch (iChange.operation) {
+              case 'updateAttributes':
+                tMeaningfulChange = true;
+                break;
+            }
+          });
+          if( tMeaningfulChange)
+            this.handleDataContextChange();
         },
 
         /**

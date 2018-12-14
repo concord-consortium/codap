@@ -47,6 +47,13 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
   }
 
   return {
+
+    /**
+     * Stashed as part of contextDataDidChange for later retrieval by observers such as maps
+     * @property [Object]
+     */
+    mostRecentDataContextChanges: null,
+
     init: function () {
       sc_super();
       this.invokeLater(function () {
@@ -204,6 +211,8 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
           DG.log('Response: ' + JSON.stringify(response));
         });
       });
+
+      this.set('mostRecentDataContextChanges', originalChanges);
     },
 
     notifyLogMessageSubscribers: function (iValues) {
