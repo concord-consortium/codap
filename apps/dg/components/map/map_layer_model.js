@@ -211,7 +211,7 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
             tHiddenCases = tDataConfiguration && tDataConfiguration.get('hiddenCases');
 
         if (tHiddenCases) {
-          tStorage._links_.tHiddenCases = tHiddenCases
+          tStorage._links_.hiddenCases = tHiddenCases
               .filter(function (iCase) {
                 return !!iCase;
               })
