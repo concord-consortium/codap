@@ -245,7 +245,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             desiredExtent: function (iRowHeight) {
 
               var tCellWidth = Math.max(kMinWidth, Math.min(kMaxWidth, this.maxCellNameExtent())),
-                  tWidth = this.getPath('parentView.frame.width') || tCellWidth,
+                  tWidth = this.getPath('frame.width') || tCellWidth,
                   tNumColumns = Math.max(2, Math.floor(tWidth / tCellWidth)),
                   tNumCells = this.model ? this.getPath('model.numberOfCells') : 0,
                   tNumRows = Math.ceil(tNumCells / tNumColumns);
