@@ -194,7 +194,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       tViewCoord = ( isFinite( tWorldCoord ) ? tPrimaryAxisView.dataToCoordinate( tWorldCoord) : tOffScreen );
       p.width = ( isFinite( tSpread )? Math.abs(tPrimaryAxisView.dataToCoordinate( tWorldCoord+tSpread) - tViewCoord) : 0 );
       p.x = ( tIsHorizontal ? tViewCoord : i*tCellHeight );
-      p.y = ( tIsHorizontal ? (i+1)*tCellHeight : tViewCoord );
+      p.y = ( tIsHorizontal ? (tNumValues - i)*tCellHeight : tViewCoord );
       p.spreadStart = ( isFinite( tSpreadStart) ?
           tPrimaryAxisView.dataToCoordinate( tSpreadStart) : tOffScreen);
       p.lowerWhisker = ( isFinite( tLowerWhisker) ?
@@ -239,7 +239,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       // save the following values for updateTextElement() which is called during hover over the cover element
       tCover.textStatValue = tStat;
       tCover.textAxisPosition = this.getTextPositionOnAxis( tWorldCoord, tSpread );
-      tCover.textCrossPosition = ((1/tNumValues) * (i + this.titleFraction)); // text position in range [0-1] on cross axis
+      tCover.textCrossPosition = (((tNumValues - i - 1)/tNumValues) + this.titleFraction); // text position in range [0-1] on cross axis
       tCover.value = tValuesArray[ i];
 
       tSymbol.toFront(); // keep averages on top of cases

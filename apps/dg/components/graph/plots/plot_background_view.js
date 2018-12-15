@@ -340,7 +340,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
       var drawVerticalLines = function () {
             var tHeight = tYCellWidth * tNumYCells;
-            tYCoord = tYView.cellToCoordinate(tNumXCells - 1);
+            tYCoord = tYView.cellToCoordinate(tNumYCells - 1);
             tTop = tYCoord - tYCellWidth / 2;
             for (tIndex = 1; tIndex < tNumXCells; tIndex++) {
               var tLine;
