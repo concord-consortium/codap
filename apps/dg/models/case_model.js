@@ -148,31 +148,23 @@ DG.Case = DG.BaseModel.extend((function() {
      * @returns {Number | String | null}
      */
     getRawValue: function( iAttrID) {
-
       if( !SC.none( iAttrID)) {
-
-        // If we have an attribute formula, we must evaluate it.
         var tAttr = DG.Attribute.getAttributeByID( iAttrID);
         var valuesMap = this.get('_valuesMap');
-        if (tAttr && tAttr.get('hasFormula') &&
-          // we only do the evaluation if it's one of this case's attributes
-          (this.getPath('collection.id') === tAttr.getPath('collection.id'))) {
-          return tAttr.evalFormula( this);
+
+        // If we have an attribute formula, we must evaluate it.
+        if (tAttr && tAttr.get('hasFormula')) {
+          var calculatedValue = tAttr.evalFormula(this);
+
+          // If formula is invalid, return the cached value.
+          if (SC.empty(calculatedValue) && !SC.none(valuesMap[iAttrID])) {
+            return valuesMap[iAttrID];
+          } else {
+            return calculatedValue;
+          }
+        } else {
+          return valuesMap[iAttrID]; // Otherwise return the cached item value for iAttrID.
         }
-
-        // If we have a cached value, simply return it
-
-        if( tAttr && valuesMap && (!SC.none(valuesMap[iAttrID])) &&
-              // we only do the evaluation if it's one of this case's attributes
-            (this.getPath('collection.id') === tAttr.getPath('collection.id'))) {
-          return valuesMap[iAttrID];
-        }
-
-        // one last chance if we've got a parent and it has 'getValue'
-        // Need for this seems to have been brought about by a particular import of boundary file data. Can't hurt.
-        var tParent = this.get('parent');
-        if( tParent /*&& tParent.getValue*/)
-          return tParent.getRawValue( iAttrID);
       }
       // if we get here, return value is undefined
     },

@@ -355,19 +355,18 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
       // evaluation time.
       // Client is responsible for putting '_case_' into evaluation context.
       var attributeID = attribute.get('id');
-      this.attrFns[ iName] = isValidAttrReference()
-                              ? function(iEvalContext) {
-                                  var tCase = iEvalContext._caseMap_
-                                                ? iEvalContext._caseMap_[collectionID]
-                                                : iEvalContext._case_,
-                                      tValue = tCase && tCase.getRawValue(attributeID);
-                                  // Propagate error values immediately
-                                  if( tValue instanceof Error) throw tValue;
-                                  return tValue;
-                                }
-                              : function(iEvalContext) {
-                                  throw new DG.HierReferenceError(iName);
-                                };
+
+      // Previously, we had limited the formula attribute reference to be inside a collection (except for aggregates.)
+      // We have since removed this restriction to always evaluate at item level.
+      this.attrFns[ iName] = function(iEvalContext) {
+        var tCase = iEvalContext._caseMap_
+          ? iEvalContext._caseMap_[collectionID]
+          : iEvalContext._case_,
+          tValue = tCase && tCase.getRawValue(attributeID);
+        // Propagate error values immediately
+        if( tValue instanceof Error) throw tValue;
+        return tValue;
+      };
 
       // Track the number of attribute references for each collection
       // This needs to be tracked per aggregate function instance so
