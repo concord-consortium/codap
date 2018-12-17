@@ -340,12 +340,10 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
       var drawVerticalLines = function () {
             var tHeight = tYCellWidth * tNumYCells;
-            tYCoord = tYView.cellToCoordinate(0);
+            tYCoord = tYView.cellToCoordinate(tNumYCells - 1);
             tTop = tYCoord - tYCellWidth / 2;
-            for (tIndex = 0; tIndex < tNumXCells; tIndex++) {
+            for (tIndex = 1; tIndex < tNumXCells; tIndex++) {
               var tLine;
-              if (tIndex === 0)
-                continue;
               tXCoord = tXView.cellToCoordinate(tIndex, kIgnoreDragging);
               tLeft = tXCoord - tXCellWidth / 2;
               tLine = tPaper.line(tLeft, tTop, tLeft, tTop + tHeight);
@@ -358,7 +356,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             var tWidth = tXCellWidth * tNumXCells;
             tXCoord = tXView.cellToCoordinate(0);
             tLeft = tXCoord - tXCellWidth / 2;
-            for (tIndex = 0; tIndex < tNumYCells - 1; tIndex++) {
+            for (tIndex = 1; tIndex < tNumYCells; tIndex++) {
               var tLine;
               tYCoord = tYView.cellToCoordinate(tIndex, kIgnoreDragging);
               tTop = tYCoord - tYCellWidth / 2;

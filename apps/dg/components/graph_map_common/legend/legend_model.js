@@ -60,9 +60,14 @@ DG.LegendModel = SC.Object.extend(
     @property { String }
   */
   label: function() {
-    var tDesc = this.get('attributeDescription'),
-        tAttr = SC.none( tDesc) ? DG.Analysis.kNullAttribute : tDesc.get('attribute');
-    return ( tAttr === DG.Analysis.kNullAttribute) ? '' : tAttr.get('name');
+    var tResult = '',
+        tDesc = this.get('attributeDescription'),
+        tAttr = SC.none( tDesc) ? DG.Analysis.kNullAttribute : tDesc.get('attribute'),
+        tName = tAttr && tAttr.get('name' ),
+        tUnit = tAttr && tAttr.get('unit' );
+    if( tAttr !== DG.Analysis.kNullAttribute)
+        tResult = tName + (!SC.empty( tUnit) ? ' (' + tUnit + ')' : '');
+    return tResult;
   }.property(),
   labelDidChange: function() {
     this.notifyPropertyChange('label');

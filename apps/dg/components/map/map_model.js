@@ -25,9 +25,6 @@
 DG.MapModel = SC.Object.extend(
     /** @scope DG.MapModel.prototype */
     (function () {
-      var kLatNames = ['latitude', 'lat', 'latitud'],
-          kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud'],
-          kPolygonNames = ['boundary', 'boundaries', 'polygon', 'polygons'];
 
       return {
         /**
@@ -85,6 +82,8 @@ DG.MapModel = SC.Object.extend(
                 });
                 tMapLayerModel.addObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
                 tMapLayerModel.addObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
+                tMapLayerModel.addObserver('attributeRemoved', this, this.removeMapLayerModel);
+                tMapLayerModel.addObserver('attributeUpdated', this, this.handleAttributeUpdated);
                 this.mapLayerModels.push(tMapLayerModel);
                 tMapLayerModel.invalidate();
               }.bind(this),
@@ -115,9 +114,9 @@ DG.MapModel = SC.Object.extend(
             });
           }
 
-          tLatName = pickOutName(kLatNames);
-          tLongName = pickOutName(kLongNames);
-          tPolygonName = pickOutName(kPolygonNames);
+          tLatName = pickOutName(DG.MapConstants.kLatNames);
+          tLongName = pickOutName(DG.MapConstants.kLongNames);
+          tPolygonName = pickOutName(DG.MapConstants.kPolygonNames);
           if (!tPolygonName) {  // Try for an attribute that has a boundary type
             ((iCollection && iCollection.get('attrs')) || []).some(function (iAttr) {
               if (iAttr.get('type') === 'boundary') {
@@ -178,15 +177,26 @@ DG.MapModel = SC.Object.extend(
 
         destroy: function () {
           this.get('mapLayerModels').forEach(function (iLayerModel) {
-            iLayerModel.removeObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
-            iLayerModel.removeObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
-            var tLegend = iLayerModel.get('legend');
-            tLegend && tLegend.removeObserver('attributeDescription.attribute',
-                this, this.legendAttributeDidChange);
-            iLayerModel.destroy();
+            this.destroyMapLayer( iLayerModel);
           }.bind( this));
           this.set('mapLayerModels', null);
           sc_super();
+        },
+
+        /**
+         * Called during destroy and also when a given layer is no longer relevant due to an attribute
+         * being deleted.
+         * @param iLayerModel
+         */
+        destroyMapLayer: function(iLayerModel) {
+          iLayerModel.removeObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
+          iLayerModel.removeObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
+          iLayerModel.removeObserver('attributeRemoved', this, this.removeMapLayerModel);
+          iLayerModel.removeObserver('attributeUpdated', this, this.handleAttributeUpdated);
+          var tLegend = iLayerModel.get('legend');
+          tLegend && tLegend.removeObserver('attributeDescription.attribute',
+              this, this.legendAttributeDidChange);
+          iLayerModel.destroy();
         },
 
         /**
@@ -209,8 +219,7 @@ DG.MapModel = SC.Object.extend(
             }
           });
           tLayerModelsToRemove.forEach( function( iLayerModel) {
-            iLayerModel.removeObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
-            iLayerModel.removeObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
+            this.destroyMapLayer( iLayerModel);
             var tIndex = tLayerModels.indexOf( iLayerModel);
             tLayerModels.splice( tIndex, 1);
           });
@@ -225,6 +234,30 @@ DG.MapModel = SC.Object.extend(
 
         handleDroppedContext: function (iContext) {
           // Nothing to do since contexts get dealt with at the MapLayerModel
+        },
+
+        /**
+         * An attribute critical to the given layer model has been removed.
+         * This means we should delete this layer model and notify so the view layer
+         * can update
+         * @param iMapLayerModel {DG.MapLayerModel}
+         */
+        removeMapLayerModel: function(iMapLayerModel) {
+          var tMapLayerModels = this.get('mapLayerModels'),
+              tIndex = tMapLayerModels.indexOf( iMapLayerModel);
+          tMapLayerModels.splice( tIndex, 1);
+          this.destroyMapLayer( iMapLayerModel);
+          this.notifyPropertyChange('mapLayerModelsChange');
+        },
+
+        /**
+         * An attribute critical to the given layer model has been updated, (e.g. its name was changed).
+         * We ask the layer model whether the attributes assigned to it still work. If not,
+         * @param iMapLayerModel {DG.MapLayerModel}
+         */
+        handleAttributeUpdated: function( iMapLayerModel) {
+          if( !iMapLayerModel.hasValidMapAttributes())
+            this.removeMapLayerModel( iMapLayerModel);
         },
 
         /** create a menu item that removes the attribute on the given legend */

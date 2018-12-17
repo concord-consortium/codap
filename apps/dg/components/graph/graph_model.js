@@ -1150,6 +1150,32 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     /**
+     * One or more of the attributes used on this graph has been changed; e.g. by having its name changed.
+     * We pass responsibility for dealing with the change to the appropriate sub-model.
+     * @override
+     * @param iChange {Object}
+     */
+    handleUpdateAttributes: function( iChange) {
+      var tDataConfiguration = this.get('dataConfiguration'),
+          tChangedAttrIDs = iChange && iChange.result && iChange.result.attrIDs;
+      if( SC.isArray( tChangedAttrIDs)) {
+        tChangedAttrIDs.forEach( function( iAttrID) {
+          ['x', 'y', 'y2', 'legend'].forEach( function( iKey) {
+            var tAssignedAttrs = tDataConfiguration.getPath( iKey + 'AttributeDescription.attributes'),
+                tAssignedAttrIDs = tAssignedAttrs && tAssignedAttrs.map(function (iAttr) {
+                  return iAttr.get('id');
+                });
+            if( tAssignedAttrIDs && tAssignedAttrIDs.indexOf( iAttrID) >= 0) {
+              var tSubModel = (iKey === 'legend') ? this.get( iKey) : this.get( iKey + 'Axis');
+              if( tSubModel)
+                tSubModel.handleUpdateAttribute( iAttrID);
+            }
+          }.bind( this));
+        }.bind( this));
+      }
+    },
+
+    /**
      @private
      */
     dataDidChange: function( iSource, iKey, iChange ) {

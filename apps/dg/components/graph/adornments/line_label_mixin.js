@@ -81,7 +81,7 @@ DG.LineLabelMixin =
       // Don't change the alignment unless the current alignment no longer works
       switch( tAlign) {
         case 'start':
-          tBackgrndAnchor.x = tValueCoord;
+          tBackgrndAnchor.x = tValueCoord + 2;
           if( tTextBox.width + kPadding < tPaper.width - tValueCoord) {
             tTextAnchor.x = tValueCoord + kPadding;
           }
@@ -93,7 +93,7 @@ DG.LineLabelMixin =
             tTextAnchor.x = kPadding;
           break;
         case 'end':
-          tBackgrndAnchor.x = tValueCoord - tTextBox.width;
+          tBackgrndAnchor.x = tValueCoord - tTextBox.width - 2;
           if( tTextBox.width + kPadding < tValueCoord) {
             tTextAnchor.x = tValueCoord - kPadding;
           }
@@ -112,12 +112,12 @@ DG.LineLabelMixin =
       tBackgrndAnchor.x = tTextAnchor.x - tTextBox.width / 2;
       tAlign = 'middle';
       if( tTextBox.height > tValueCoord) {
-        tTextAnchor.y += tTextBox.height / 2;
-        tBackgrndAnchor.y = tValueCoord;
+        tTextAnchor.y += tTextBox.height / 2 + 2;
+        tBackgrndAnchor.y = tValueCoord + 2;
       }
       else {
-        tTextAnchor.y -= tTextBox.height / 2;
-        tBackgrndAnchor.y = tValueCoord - tTextBox.height;
+        tTextAnchor.y -= tTextBox.height / 2 + 2;
+        tBackgrndAnchor.y = tValueCoord - tTextBox.height - 2;
       }
     }
     

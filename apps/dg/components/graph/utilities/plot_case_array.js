@@ -85,7 +85,8 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
           if (tLoopIndex < tNumCases) {
             for (; tContinue && tLoopIndex < tNumCases && tLoopIndex < tStopIndex; tLoopIndex++) {
               if (iDoF)
-                tContinue = iDoF(this.at(tLoopIndex), tLoopIndex, tLoopIndex === tNumCases - 1);
+                tContinue = iDoF(this.at(tLoopIndex), this._map[ tLoopIndex],
+                    tLoopIndex === tNumCases - 1);
             }
             if (tContinue)
               this.invokeLater(loop, 100);
