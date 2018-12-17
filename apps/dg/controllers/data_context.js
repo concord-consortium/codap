@@ -682,10 +682,11 @@ DG.DataContext = SC.Object.extend((function() // closure
       collection.casesController.endPropertyChanges();
     }
 
-    // invalidate dependents; aggregate functions may need to recalculate
     // Always regenerate the collection to ensure proper table structure with formulas.
     // TODO: Only regenerate when dependency attributes change.
     var casesAffected = this.regenerateCollectionCases(this.get('collections'));
+
+    // invalidate dependents; aggregate functions may need to recalculate
     this.invalidateAttrsOfCollections(casesAffected.collections, iChange);
 
     return result;
@@ -1030,6 +1031,9 @@ DG.DataContext = SC.Object.extend((function() // closure
                                 name: attr.get('name') };
                     });
     this.invalidateDependentsAndNotify(attrNodes, iChange);
+
+    // Formula attribute may require regenerating the hierarchical structure.
+    this.regenerateCollectionCases(this.get('collections'));
 
     return { success: true, caseIDs: iChange.caseIDs };
   },

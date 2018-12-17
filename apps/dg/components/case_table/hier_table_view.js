@@ -470,6 +470,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
    */
   refresh: function() {
     this.get('contentView').refreshTables();
+
+    // For when the table is updated by internal value change (no UI event)
+    this.refreshDividers();
   },
 
   /**
