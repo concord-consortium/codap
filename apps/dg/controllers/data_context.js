@@ -683,7 +683,10 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
 
     // invalidate dependents; aggregate functions may need to recalculate
-    this.invalidateAttrsOfCollections([collection], iChange);
+    // Always regenerate the collection to ensure proper table structure with formulas.
+    // TODO: Only regenerate when dependency attributes change.
+    var casesAffected = this.regenerateCollectionCases(this.get('collections'));
+    this.invalidateAttrsOfCollections(casesAffected.collections, iChange);
 
     return result;
   },
@@ -2358,6 +2361,10 @@ DG.DataContext = SC.Object.extend((function() // closure
     var attr = DG.Attribute.getAttributeByID(attrID),
         attrNodes = [{ type: DG.DEP_TYPE_ATTRIBUTE, id: attrID, name: attr.get('name') }];
     this.invalidateDependentsAndNotify(attrNodes);
+
+    // Always regenerate collection to ensure the proper table structure.
+    var casesAffected = this.regenerateCollectionCases(this.get('collections'));
+    this.invalidateAttrsOfCollections(casesAffected.collections);
   },
 
   /**
