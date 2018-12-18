@@ -738,8 +738,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
               DG.PlotUtilities.kDotClasses.forEach(function (iClass) {
                 tElement.removeClass(iClass);
               });
-              tElement.addClass(this_.getPlottedElementClass(tIsSelected,
-                  tIsColored));
+              tElement.addClass( tClass);
               tLayerManager.moveElementFromTo(tElement, tFrom, tTo);
               tElement.attr({r: tRadius});
               if (tIsSelected)
