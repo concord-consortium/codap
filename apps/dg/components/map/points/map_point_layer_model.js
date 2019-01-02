@@ -86,6 +86,9 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
         var tGridModel = this.get('gridModel');
         if (tGridModel)
           tGridModel.handleDataContextChange(iChange);
+
+        if( iChange.operation === 'moveCases')
+          this.notifyPropertyChange('casesDidReorder');
       },
 
       /**

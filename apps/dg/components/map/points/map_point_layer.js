@@ -419,7 +419,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       },
 
       /**
-       * Something about the points (aside from visibility) changed. Take appropriate action.
+       * Something about the points (aside from visibility or case order) changed. Take appropriate action.
        */
       pointsDidChange: function() {
         if( this.getPath( 'model.isVisible')) {
@@ -429,6 +429,24 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           this.updateConnectingLine();
         }
       }.observes('pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
+
+      /**
+       * Case order has changed. Sort the plottedElements to the new order
+       */
+      casesDidReorder: function() {
+        if( this.getPath( 'model.isVisible')) {
+          var tCases = this.getPath('model.cases'),
+              tMapCaseIdToIndex = {},
+              tPlottedElements = this.get('plottedElements');
+          tCases.forEach( function( iCase, iIndex) {
+            tMapCaseIdToIndex[iCase.get('id')] = iIndex;
+          });
+          tPlottedElements.sort( function( iEl1, iEl2) {
+            return tMapCaseIdToIndex[iEl1['case'].get('id')] - tMapCaseIdToIndex[iEl2['case'].get('id')];
+          });
+          this.updateConnectingLine();
+        }
+      }.observes('model.casesDidReorder'),
 
       addGridLayer: function () {
         if( this.get('gridLayer'))
