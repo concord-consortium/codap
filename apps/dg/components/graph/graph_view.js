@@ -281,8 +281,7 @@ DG.GraphView = SC.View.extend(
         this.get('plotViews').forEach( function( iPlotView) {
           iPlotView.destroy();
         });
-        // wff, 6/18/16 - Destroying the model doesn't seem like a good idea. Not sure.
-        //this.model.destroy(); // so that it can unlink observers
+        this.model.destroy(); // so that it can unlink observers
         sc_super();
       },
 
