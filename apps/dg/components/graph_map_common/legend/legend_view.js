@@ -308,27 +308,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       attributeTypeDidChange: function() {
         this.notifyPropertyChange('attributeType');
         this.displayDidChange();
-      }.observes('*model.attributeDescription.attributeStats.attributeType'),
-
-      selectionDidChange: function() {
-        if( this.get('isNumeric')) {
-          // not doing anything yet
-        }
-        else {
-          var tSelectionMap = this.getPath('model.selectionMap'),
-              tRectangles = this.get('rectangles');
-          if( SC.none( tSelectionMap) || SC.none( tRectangles))
-              return;
-          DG.ObjectMap.forEach( tRectangles, function( iKey, iRect) {
-            if( tSelectionMap[ iKey]) {
-              iRect.addClass(DG.PlotUtilities.kLegendKeySelected);
-            }
-            else {
-              iRect.removeClass(DG.PlotUtilities.kLegendKeySelected);
-            }
-          });
-        }
-      }.observes('model.selectionMap')
+      }.observes('*model.attributeDescription.attributeStats.attributeType')
 
     };
   }()));
