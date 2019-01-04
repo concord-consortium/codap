@@ -635,11 +635,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
         var updateConnectingLine = function () {
           if (tAdorn) {
             tAdorn.updateToModel(true /*animate*/);
+            //    this.adornmentDidChange('connectingLine', 'connectingLineAdorn', DG.ConnectingLineAdornment);
+            this.updatePointSize();
+            this._elementOrderIsValid = false;
+            this.updateSelection();
           }
-          //    this.adornmentDidChange('connectingLine', 'connectingLineAdorn', DG.ConnectingLineAdornment);
-          this.updatePointSize();
-          this._elementOrderIsValid = false;
-          this.updateSelection();
         }.bind(this);
 
         var tPlotModel = this.get('model'),
