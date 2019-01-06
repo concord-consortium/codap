@@ -137,6 +137,9 @@ DG.main = function main() {
   }
   function validateDocument(content) {
     if (!content) return null;
+    if (typeof content === 'string' && content[0] !== '{') {
+      return content;
+    }
 
     // October, 2017: There have been as-yet-unexplained occurrences of documents
     // with duplicate cases. Rather than failing outright, we eliminate the
@@ -463,6 +466,70 @@ DG.main = function main() {
     });
   }
 
+  function parseURL(url) {
+    var a = document.createElement('a');
+    a.href = url;
+    return a;
+  }
+  /**
+   * find expected content from mimeType or URL path extension
+   * @param mimeType
+   * @param url
+   * @return mimeType
+   */
+  function getExpectedContentType(mimeType, url) {
+    var extensionMap = {
+      codap: 'application/json',
+      json: 'application/json',
+      csv: 'application/csv',
+      txt: 'application/csv'
+    };
+    var parsedURL = url && parseURL(url);
+    var path = parsedURL && parsedURL.pathname;
+    if (mimeType) {
+      return mimeType;
+    }
+    if (path) {
+      return extensionMap[path.replace(/.*\./g, '')];
+    }
+  }
+
+  function resolveDocument(iDocContents, iMetadata) {
+    return new Promise(function (resolve, reject) {
+      var expectedContentType = getExpectedContentType(iMetadata.contentType,
+          iMetadata.url);
+      var url = iMetadata.url && parseURL(iMetadata.url);
+      var urlPath = url && url.pathname;
+      var datasetName = urlPath?
+          urlPath.replace(/.*\//g, '').replace(/\..*/, ''): 'data';
+      if (expectedContentType === 'application/csv') {
+        resolve(DG.DocumentArchiver.create({})
+            .convertCSVDataToCODAPDocument(iDocContents, datasetName,
+                datasetName, iMetadata.url));
+      }
+      else if (expectedContentType === 'application/json') {
+        docContentsPromise(iDocContents).then(
+          function (contents) {
+            // check if this is a valid CODAP document
+            var docContents = validateDocument(iDocContents);
+            if (!docContents) {
+              reject('DG.AppController.openDocument.error.invalid_format'.loc());
+            } else {
+              resolve(docContents);
+            }
+          },
+          function (message) {
+            reject(message);
+          }
+        );
+      }
+      else {
+        reject ('Error opening document: %@ -- unknown mime type: %@'
+            .loc(iMetadata.url, expectedContentType));
+      }
+    });
+  }
+
   function syncProperty(iDstObj, iSrcObj, iProperty) {
     if(typeof(iSrcObj[iProperty]) !== "undefined")
       iDstObj[iProperty] = iSrcObj[iProperty];
@@ -618,34 +685,30 @@ DG.main = function main() {
             setTimeout(function(){
               SC.run(function() {
                 DG.cfmClient.hideBlockingModal();
-                docContentsPromise(event.data.content)
-                  .then(function(iDocContents) {
-                    SC.run(function() {
-                      var metadata = event.data.content.metadata,
+                resolveDocument(event.data.content, event.data.metadata)
+                  .then(
+                    function(iDocContents) {
+                      SC.run(function () {
+                        var metadata = event.data.content.metadata,
                             sharedMetadata = metadata && metadata.shared,
-                            cfmSharedMetadata = sharedMetadata
-                                                  ? $.extend(true, {}, sharedMetadata)
-                                                  : {};
-
-                        // check if this is a valid CODAP document
-                        var docContents = validateDocument(iDocContents);
-                        if (!docContents) {
-                          event.callback('DG.AppController.openDocument.error.invalid_format'.loc());
-                          return;
-                        }
+                            cfmSharedMetadata = sharedMetadata ? $.extend(true,
+                                {}, sharedMetadata) : {};
 
                         DG.appController.closeDocument();
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
-                          .setDocument(DG.Document.createDocument(docContents));
+                            .setDocument(
+                                DG.Document.createDocument(iDocContents));
                         DG.set('showUserEntryView', false);
                         // acknowledge successful open; return shared metadata
                         event.callback(null, cfmSharedMetadata);
-                      },  // then() error handler
-                      function(iReason) {
-                        event.callback('DG.AppController.openDocument.error.general'.loc());
                       });
-                    });
+                    },  // then() error handler
+                    function(iReason) {
+                      DG.warn(iReason);
+                      event.callback('DG.AppController.openDocument.error.general'.loc());
+                    }
+                  );
               });
             }, 0);
             break;

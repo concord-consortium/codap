@@ -22,6 +22,7 @@
 
 sc_require('models/document_model');
 sc_require('models/remote_boundaries');
+sc_require('models/component_model');
 
 /* globals Promise */
 
