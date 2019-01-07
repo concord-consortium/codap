@@ -13182,7 +13182,8 @@ CloudFileManagerClient = (function() {
       hashParams = null;
     }
     return this._event('openedFile', {
-      content: content != null ? content.getClientContent() : void 0
+      content: content != null ? content.getClientContent() : void 0,
+      metadata: metadata
     }, (function(_this) {
       return function(iError, iSharedMetadata) {
         if (iError) {
@@ -16550,7 +16551,6 @@ URLProvider = (function(superClass) {
       provider: this
     });
     return $.ajax({
-      dataType: 'json',
       url: metadata.url,
       success: function(data) {
         return callback(null, cloudContentFactory.createEnvelopedCloudContent(data), metadata);

@@ -170,11 +170,13 @@ DG.DocumentArchiver = SC.Object.extend(
      *
      * @param {string} iText The contents of a CSV or tab-delimited file formatted
      *   according to the [rfc4180](http://www.ietf.org/rfc/rfc4180.txt) standard.
-     * @param {string} iFileName The name of the file or URL from which the
+   *   @param {string} iContextName name of the context we will create
+   *   @param {string} iCollectionName name of the collection we will create
+     * @param {string} iFileURL The name of the file or URL from which the
      *   CSV text was extracted.
      * @returns {Object||undefined} A streamable CODAP document.
      */
-    convertCSVDataToCODAPDocument: function (iText, iContextName, iCollectionName, iFileName) {
+    convertCSVDataToCODAPDocument: function (iText, iContextName, iCollectionName, iFileURL) {
       /**
        * Returns table stats object:
        *   numRows {number}
@@ -226,7 +228,27 @@ DG.DocumentArchiver = SC.Object.extend(
         tAttrNames = [], tTableStats, ix,
         tDoc = {
           name: 'DG.Document.defaultDocumentName'.loc(),
-          components: [],
+          guid: 1,
+          components: [
+            {
+              "type": "DG.TableView",
+              "componentStorage": {
+                "_links_": {
+                  "context": {
+                    "type": "DG.DataContextRecord",
+                    "id": 4
+                  }
+                }
+              }
+            },
+            {
+              "type": "DG.TextView",
+              "componentStorage": {
+                "text": "url=" + iFileURL,
+                "name": "Data Source"
+              }
+            }
+          ],
           contexts: [
             {
               "type": "DG.DataContext",
@@ -237,7 +259,7 @@ DG.DocumentArchiver = SC.Object.extend(
                 }
               ],
               "contextStorage": {
-                "gameUrl": iFileName
+                "gameUrl": iFileURL
               }
             }
           ],
@@ -265,7 +287,8 @@ DG.DocumentArchiver = SC.Object.extend(
       });
 
       if (result.errors && result.errors.length > 0) {
-        DG.logWarn("CSV Parse errors (%@): %@".loc(iFileName, JSON.stringify(result.errors)));
+        DG.logWarn("CSV Parse errors (%@): %@".loc(iFileURL, JSON.stringify(result.errors)));
+        return;
       }
 
       // if we have a csv with semicolon separators we assume are using the EU
@@ -299,7 +322,7 @@ DG.DocumentArchiver = SC.Object.extend(
       tTableStats = getTableStats(tValuesArray);
 
       if (!tValuesArray || tValuesArray.length < 1) {
-        DG.logWarn('CSV or Tab-delimited parsing failed: ' + iFileName);
+        DG.logWarn('CSV or Tab-delimited parsing failed: ' + iFileURL);
         return;
       }
 
