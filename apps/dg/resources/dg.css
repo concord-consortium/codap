@@ -1093,6 +1093,12 @@ body.dg .sc-view.dg-doc-background {
     stroke-width: 1.5px;
 }
 
+.dg-plotted-value-background {
+    stroke: white;
+    stroke-opacity: 0.6;
+    stroke-width: 3px;
+}
+
 .rescale-button {
     background-image: static_url('images/rescale.png');
     cursor: pointer;

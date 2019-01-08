@@ -108,7 +108,7 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   },
 
   /**
-   * valueSegments will contain an array of { valueSegment, backgroundRect, textElement }
+   * valueSegments will contain an array of { valueSegment, background, textElement }
   */
   createElements: function( iNumCells) {
     var this_ = this;
@@ -129,10 +129,10 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       return tText;
     }
 
-    function createBackgroundRect() {
-      var tBackgrndRect = tPaper.rect(0, 0, 0, 0)
-          .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
-      return tBackgrndRect;
+    function createBackground() {
+      var tBackgrnd = tPaper.path('')
+          .addClass('dg-plotted-value-background');
+      return tBackgrnd;
     }
 
     function createCover( iCellNum) {
@@ -186,8 +186,8 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     }
     while( tValueSegments.length < iNumCells) {
       var tValueSegment = {
+        background: createBackground(),
         valueSegment: createSegment(),
-        backgroundRect: createBackgroundRect(),
         cover: createCover(tValueSegments.length)
       };
       tValueSegments.push( tValueSegment);
@@ -225,6 +225,7 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       for( var tIndex = 0; tIndex < tNumCells; tIndex++) {
         var tPlottedValue = tPlottedValues && tPlottedValues[tIndex],
             tValueSegment = this.get('valueSegments')[tIndex].valueSegment,
+            tBackground = this.get('valueSegments')[tIndex].background,
             tCover = this.get('valueSegments')[tIndex].cover,
             tCoord, tPt1, tPt2;
 
@@ -240,10 +241,12 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
           }
           DG.RenderingUtilities.updateLine(tValueSegment, tPt1, tPt2);
           DG.RenderingUtilities.updateLine(tCover, tPt1, tPt2);
+          DG.RenderingUtilities.updateLine(tBackground, tPt1, tPt2);
         }
         else {
           tValueSegment.attr({path: ''});
           tCover.attr({path: ''});
+          tBackground.attr({path: ''});
         }
       }
     }
