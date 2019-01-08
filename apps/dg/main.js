@@ -496,16 +496,17 @@ DG.main = function main() {
 
   function resolveDocument(iDocContents, iMetadata) {
     return new Promise(function (resolve, reject) {
+      var urlString = iMetadata.url || ('file:' + iMetadata.filename);
       var expectedContentType = getExpectedContentType(iMetadata.contentType,
-          iMetadata.url);
-      var url = iMetadata.url && parseURL(iMetadata.url);
+          urlString);
+      var url = urlString && parseURL(urlString);
       var urlPath = url && url.pathname;
       var datasetName = urlPath?
           urlPath.replace(/.*\//g, '').replace(/\..*/, ''): 'data';
       if (expectedContentType === 'application/csv') {
         resolve(DG.DocumentArchiver.create({})
             .convertCSVDataToCODAPDocument(iDocContents, datasetName,
-                datasetName, iMetadata.url));
+                datasetName, urlString));
       }
       else if (expectedContentType === 'application/json') {
         docContentsPromise(iDocContents).then(
@@ -525,7 +526,7 @@ DG.main = function main() {
       }
       else {
         reject ('Error opening document: %@ -- unknown mime type: %@'
-            .loc(iMetadata.url, expectedContentType));
+            .loc(urlString, expectedContentType));
       }
     });
   }
@@ -705,7 +706,7 @@ DG.main = function main() {
                       });
                     },  // then() error handler
                     function(iReason) {
-                      DG.warn(iReason);
+                      DG.logWarn(iReason);
                       event.callback('DG.AppController.openDocument.error.general'.loc());
                     }
                   );
