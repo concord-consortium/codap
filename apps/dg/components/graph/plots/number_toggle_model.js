@@ -346,6 +346,30 @@ return {
   },
 
   /**
+   * Show the cases for the parent with the given index and hide all others.
+   */
+  maintainSingleParent: function( iIndexOfParent) {
+    var toggleIndex, toggleCount = this.get('numberOfToggleIndices'),
+        casesToHide = [], toggleCases;
+
+    this.beginVisibilityChanges();
+
+    // accumulate cases to hide so they can be hidden all at once
+    for (toggleIndex = 0; toggleIndex < toggleCount; ++toggleIndex) {
+      if( toggleIndex !== iIndexOfParent) {
+        toggleCases = this.getCasesForIndex(toggleIndex);
+        // append toggleCases to casesToHide without duplicating any arrays
+        toggleCases.reduce(reduceCase, casesToHide);
+      }
+    }
+    // hide all cases in one fell swoop
+    if (casesToHide && casesToHide.length)
+      hideShowCases(this.get('dataConfiguration'), casesToHide, false);
+
+    this.endVisibilityChanges();
+  },
+
+  /**
    *
    * @param iIndex
    * @return {Boolean}
@@ -373,6 +397,37 @@ return {
                             var caseID = iCase.get('id');
                             // to be visible cases must be plotted and not hidden
                             return tPlottedMap[caseID] && !tHiddenMap[caseID];
+                          });
+  },
+
+/**
+   *
+   * @param iIndex
+   * @return {Boolean}
+   */
+  allChildrenAreVisible: function( iIndex) {
+    var tChildren = this.childrenOfParent( iIndex ),
+        tPlotted = this.getPath('dataConfiguration.cases'),
+        tHidden = this.get('hiddenCases'),
+        tPlottedMap = {},
+        tHiddenMap = {};
+
+    // Note: Ideally, these maps should be cached, as they're currently being created for
+    // each parent case independently, but figuring out the right time to invalidate the
+    // caches is non-trivial, and so is left as a potential future optimization.
+
+    // id map of all plotted cases (does not include cases not plotted due to missing values)
+    (tPlotted || []).forEach(function(iCase) { tPlottedMap[iCase.get('id')] = true; });
+    // id map of all hidden cases
+    (tHidden || []).forEach(function(iCase) {
+      if(iCase)
+        tHiddenMap[iCase.get('id')] = true;
+    });
+
+    return tChildren.every(function(iCase) {
+                            var caseID = iCase.get('id');
+                            // All children are visible if none are hidden
+                            return !tHiddenMap[caseID];
                           });
   },
 
@@ -411,6 +466,25 @@ return {
       this.set('lastMode', false);
   }.observes('hiddenCases'),
 
+  /**
+   * Return true if there is more than one parent and only one is marked to show children.
+   */
+  shouldMaintainSingleParentVisbility: function( ioResult) {
+    var tToggleCount = this.get('numberOfToggleIndices') - 1,
+        tNumberForWhichAllAreShowing = 0,
+        tIndex = 0;
+    if( tToggleCount > 1) {
+      while( tIndex < tToggleCount && tNumberForWhichAllAreShowing  < 2) {
+        if( this.allChildrenAreVisible( tIndex)) {
+          tNumberForWhichAllAreShowing++;
+          ioResult.parentIndex = tIndex;
+        }
+        tIndex++;
+      }
+    }
+    return tNumberForWhichAllAreShowing === 1;
+  },
+
   isAffectedByChange: function(iChange) {
 
     function isRelevantChange(iChange) {
@@ -439,14 +513,19 @@ return {
    * When the data context changes we notify
    */
   handleDataContextNotification: function(iNotifier, iChange) {
+    var tIsCreateCase = iChange.operation.indexOf('createCase') === 0,
+        tSingleParentToMaintain = { parentIndex: null };
     if (this.get('isEnabled')) {
       // if cases are created while in lastMode, ensure only last parent is visible
-      if (this.get('lastMode') && (iChange.operation.indexOf('createCase') === 0)) {
+      if (this.get('lastMode') && tIsCreateCase) {
         this.invokeOnce(function() { this.showOnlyLastParentCase(); }.bind(this));
-        return;
       }
-      if( this.isAffectedByChange(iChange))
+      else if( tIsCreateCase && this.shouldMaintainSingleParentVisbility( tSingleParentToMaintain)) {
+        this.invokeOnce(function() { this.maintainSingleParent(tSingleParentToMaintain.parentIndex); }.bind(this));
+      }
+      else if( this.isAffectedByChange(iChange)) {
         this.invalidate();
+      }
     }
   }
 
