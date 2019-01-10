@@ -212,8 +212,8 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   updateToModel: function() {
     if (this.getPath('model.isVisible')) {
 
-      var tSplitAxisModel = this.get('splitAxisModel'), // categorical axis
-          tNumCells = tSplitAxisModel.get('numberOfCells');
+      var tSplitAxisModel = this.get('splitAxisModel'), // categorical axis if any
+          tNumCells = tSplitAxisModel ? tSplitAxisModel.get('numberOfCells') : 1;
 
       this.createElements( tNumCells);  // if needed
 
