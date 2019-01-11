@@ -508,7 +508,7 @@ DG.main = function main() {
             .convertCSVDataToCODAPDocument(iDocContents, datasetName,
                 datasetName, urlString));
       }
-      else if (expectedContentType === 'application/json') {
+      else if (expectedContentType === 'application/json' || typeof iDocContents === 'object') {
         docContentsPromise(iDocContents).then(
           function (contents) {
             // check if this is a valid CODAP document
