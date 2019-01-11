@@ -286,9 +286,15 @@ DG.DocumentArchiver = SC.Object.extend(
         skipEmptyLines: true
       });
 
-      if (result.errors && result.errors.length > 0) {
-        DG.logWarn("CSV Parse errors (%@): %@".loc(iFileURL, JSON.stringify(result.errors)));
-        return;
+      if (result.errors) {
+        // Ignore the undetectable delimiter warning, but otherwise log and abort
+        if (result.errors.length > 1 ||
+            (result.errors.length === 1 &&
+                result.errors[0].code !== 'UndetectableDelimiter')) {
+          DG.logWarn("CSV Parse errors (%@): %@".loc(iFileURL,
+              JSON.stringify(result.errors)));
+          return;
+        }
       }
 
       // if we have a csv with semicolon separators we assume are using the EU
