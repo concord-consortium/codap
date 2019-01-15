@@ -318,7 +318,22 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                 }
               });
 
-            }
+            },
+
+            selectionDidChange: function() {
+              var tSelectionMap = this.getPath('model.selectionMap'),
+                  tCategoryKeys = this.get('categoryKeys');
+              if (SC.none(tSelectionMap) || SC.none(tCategoryKeys))
+                return;
+              DG.ObjectMap.forEach(tCategoryKeys, function (iCategory, iCatKey) {
+                if (tSelectionMap[iCategory]) {
+                  iCatKey.keyRect.addClass(DG.PlotUtilities.kLegendKeySelected);
+                }
+                else {
+                  iCatKey.keyRect.removeClass(DG.PlotUtilities.kLegendKeySelected);
+                }
+              });
+            }.observes('*model.selectionMap')
 
           };
         }()

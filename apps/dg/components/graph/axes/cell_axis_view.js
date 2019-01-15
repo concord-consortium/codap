@@ -278,9 +278,14 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         tMaxWidth = Math.max( tMaxWidth, tTextExtent.width);
         if(SC.none( tPrevLabelEnd))
           tCollision = tTextExtent.width > this_.get('fullCellWidth');
-        else
+        else if( this_.get('orientation') === 'horizontal') {
           tCollision = tCollision || (tCoord - tTextExtent.width / 2 < tPrevLabelEnd);
-        tPrevLabelEnd = (tCoord + tTextExtent.width / 2);
+          tPrevLabelEnd = (tCoord + tTextExtent.width / 2);
+        }
+        else {  // vertical
+          tCollision = tCollision || (tCoord + tTextExtent.width / 2 > tPrevLabelEnd);
+          tPrevLabelEnd = (tCoord - tTextExtent.width / 2);
+        }
       } // measureOneCell
 
       // iLabelSpec has form { element: {Raphael element}, coord: {Number}, height: {Number}, width: {Number} }

@@ -83,6 +83,7 @@ DG.MapController = DG.DataDisplayController.extend(
         dataContextDidChange: function( iNotificationManager) {
           var tChanges = iNotificationManager.get('mostRecentDataContextChanges'),
               tMeaningfulChange = false;
+          if (!tChanges) { return; }
           tChanges.forEach( function( iChange) {
             switch (iChange.operation) {
               case 'updateAttributes':

@@ -22,6 +22,7 @@
 
 sc_require('models/document_model');
 sc_require('models/remote_boundaries');
+sc_require('models/component_model');
 
 /* globals Promise */
 
@@ -1039,8 +1040,8 @@ DG.DocumentController = SC.Object.extend(
           executeNotification: DG.UndoHistory.makeComponentNotification('create', 'graph'),
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'graph'),
           log: 'Create graph component',
-          isUndoable: !isInitialization,
           _component: null,
+          isUndoable: !isInitialization,
           execute: function () {
             SC.Benchmark.start('addGraph');
             var tContextIds = DG.DataContext.contextIDs(null),
@@ -1054,7 +1055,7 @@ DG.DocumentController = SC.Object.extend(
             else if (tStorage && tStorage.dataContext) {
               tController.set('dataContext', tStorage.dataContext);
             }
-            tView = docController.createComponentView(iComponent || this._component, {
+            tView = docController.createComponentView(iComponent, {
                   parentView: iParentView,
                   controller: tController,
                   componentClass: {type: 'DG.GraphView', constructor: DG.GraphView},
@@ -1077,8 +1078,7 @@ DG.DocumentController = SC.Object.extend(
             this._component = tView.getPath('controller.model');
 
             // add id's to notifications
-            this.executeNotification.values.id = this._component.get('id');
-            this.undoNotification.values.id = this._component.get('id');
+            this.executeNotification.values.id = this.undoNotification.values.id = tView.getPath('controller.model.id');
 
 
             SC.Benchmark.end('addGraph');

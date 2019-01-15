@@ -42,16 +42,6 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function() {
   plotModel: null,
 
   /**
-    Set on construction; changing it in the model will change it here
-    Determines whether plotted value computations are evaluated over
-    subplots when a univariate plot is split. Defaults to false for
-    now since the subplot rendering hasn't been implemented yet.
-    @type {boolean}
-    @default {false}
-   */
-  splitEval: false,
-
-  /**
     Utility function for identifying the name of the primary attribute.
     @returns  {String}  the name of the variable on the primary axis
    */
@@ -84,9 +74,8 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function() {
     // grouping by collection; therefore, if we don't have a split attribute
     // we specify a non-falsy 'groupVarID' which will prevent the default
     // grouping but won't actually generate values that would split into groups.
-    var splitEval = this.get('splitEval');
-    return splitEval ? this.getPath('plotModel.secondaryVarID') || -1 : -1;
-  }.property('splitEval', 'plotModel'),
+    return this.getPath('plotModel.secondaryVarID') || -1;
+  }.property('plotModel'),
 
     /**
      * Return true if the given case is currently among those being plotted.
@@ -236,16 +225,6 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
 /** @scope DG.PlottedFunctionModel.prototype */ 
 {
   /**
-    Controls split/cell evaluation; set to false to disable
-    Determines whether plotted value computations are evaluated over
-    subplots when a univariate plot is split. Defaults to false for
-    now since the subplot rendering hasn't been implemented yet.
-    @property {boolean}
-    @default {false}
-   */
-  splitEval: false,
-
-  /**
     The algebraic expression to plot.
     @property {DG.Formula}
   */
@@ -300,7 +279,6 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
                       .create({ ownerSpec: owner,
                                 adornmentKey: adornmentKey,
                                 plotModel: this.get('plotModel'),
-                                splitEval: this.get('splitEval'),
                                 collection: this.get('primaryCollection') });
     this._expression = DG.Formula.create({ context: context, source: iSource });
     this._expression.addObserver('dependentChange', this, 'dependentDidChange');
@@ -331,14 +309,12 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
     on the secondary axis, if any.
    */
   splitAxisModel: function() {
-    if (this.get('splitEval')) {
-      if (!this.getPath('plotModel.yAxis.isNumeric'))
-        return this.getPath('plotModel.yAxis');
-      if (!this.getPath('plotModel.xAxis.isNumeric'))
-        return this.getPath('plotModel.xAxis');
-    }
+    if (!this.getPath('plotModel.yAxis.isNumeric'))
+      return this.getPath('plotModel.yAxis');
+    if (!this.getPath('plotModel.xAxis.isNumeric'))
+      return this.getPath('plotModel.xAxis');
     return null;
-  }.property('splitEval', 'plotModel'),
+  }.property('plotModel'),
 
   /**
     Observer function called when the formula indicates that

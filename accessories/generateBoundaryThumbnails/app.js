@@ -115,24 +115,19 @@ function usage () {
       }
     }
     function renderLine(coords) {
-      var pathDef = coords.map(function (pt, ix){
-        if (ix === 0) {
-          return 'M'+ pt.x + ',' + pt.y + ' L';
-        } else {
+      var start = coords.shift();
+      var pathDef = 'M' + start.x + ',' + start.y + ' L' + coords.map(function (pt, ix){
           return pt.x + ' ' + pt.y + ' ';
-        }
       }).join();
       return '<path stroke-width="1" stroke="blue" d="' + pathDef + '" />';
     }
     function renderPolygon(coords) {
       var pathDef = coords.map(function (linearRing) {
-        return linearRing.map(function (pt, ix){
-          if (ix === 0) {
-            return 'M'+ pt.x + ',' + pt.y + ' L';
-          } else {
-            return pt.x + ' ' + pt.y + ' ';
-          }
+        var start = linearRing.shift();
+        var pathDef = 'M' + start.x + ',' + start.y + ' L' + linearRing.map(function (pt, ix){
+          return pt.x + ' ' + pt.y + ' ';
         }).join();
+        return pathDef;
       }).join();
       var svg = '<path stroke-width="0" fill="blue" d="' + pathDef + '"/>';
       return svg;
@@ -296,6 +291,7 @@ function usage () {
           };
         }
         var svg = renderGeoJSONToSVG(boundary);
+        // console.log(svg);
         var png = svg && convertSVGtoPNG(svg);
         var dataURI = png && formatAsDataURI(png, 'image/png');
         if (dataURI) {

@@ -239,7 +239,9 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       // save the following values for updateTextElement() which is called during hover over the cover element
       tCover.textStatValue = tStat;
       tCover.textAxisPosition = this.getTextPositionOnAxis( tWorldCoord, tSpread );
-      tCover.textCrossPosition = (((tNumValues - i - 1)/tNumValues) + this.titleFraction); // text position in range [0-1] on cross axis
+      tCover.textCrossPosition = tIsHorizontal ?
+          1 - ((1/tNumValues) * (i + 1 - this.titleFraction)) :
+          ((1/tNumValues) * (i + this.titleFraction)); // text position in range [0-1] on cross axis
       tCover.value = tValuesArray[ i];
 
       tSymbol.toFront(); // keep averages on top of cases
