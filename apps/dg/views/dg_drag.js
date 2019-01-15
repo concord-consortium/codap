@@ -102,6 +102,10 @@ DG.Drag = SC.Drag.extend({
     }
   },
 
+  _endDrag: function () {
+    sc_super();
+  },
+
   _findDropTarget: function( iEvent) {
     var tTargets = this._dropTargets(),
         tLoc = { x: iEvent.clientX, y: iEvent.clientY },

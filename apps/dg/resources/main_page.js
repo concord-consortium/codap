@@ -299,6 +299,9 @@ DG.mainPage = SC.Page.design((function() {
         tScrollView.set('hasHorizontalScroller', false);
         tScrollView.set('hasVerticalScroller', false);
       }
+
+      DG.PluginOverlayContainer.create();
+
       this.invokeLater( 'setupDragDrop', 300);
     },
 
