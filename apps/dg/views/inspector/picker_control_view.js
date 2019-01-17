@@ -36,6 +36,12 @@ DG.PickerControlView = SC.View.extend(
        */
       label: null,
 
+      toolTip: null,
+
+      toolTipDidChange: function() {
+        this.setPath('labelView.toolTip', this.get('toolTip'));
+      }.observes('toolTip'),
+
       childViews: 'labelView controlView'.w(),
 
       labelView: SC.LabelView.extend({
@@ -55,6 +61,7 @@ DG.PickerControlView = SC.View.extend(
           tControlView.adjust('right', 10);
         }
         this.setPath('labelView.value', this.get('label'));
+        this.setPath('labelView.toolTip', this.get('toolTip'));
       }
     });
 

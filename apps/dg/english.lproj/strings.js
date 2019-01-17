@@ -527,9 +527,13 @@ SC.stringsFor("en", {
     "DG.TableController.deleteDataSet.confirmDescription": "This action cannot be undone.",
     "DG.TableController.deleteDataSet.okButtonTitle": "Delete Data Set",
     "DG.TableController.deleteDataSet.cancelButtonTitle": "Cancel",
-    "DG.TableController.attrEditor.precisionHint": "Number of digits after decimal point",
+    "DG.TableController.attrEditor.precisionNumericHint": "Number of digits after decimal point",
+    "DG.TableController.attrEditor.precisionDateHint": "Determines how much of the date is displayed",
     "DG.TableController.attrEditor.unitHint": "Unit of measure, if applicable",
     "DG.TableController.attrEditor.descriptionHint": "Describe the attribute",
+    "DG.TableController.attrEditor.typeHint": "Set to force the attribute to be treated as a certain type",
+    "DG.TableController.attrEditor.nameHint": "The attribute name appears in the case table, case card, and on graph axes",
+    "DG.TableController.attrEditor.editableHint": "If the attribute is not editable, its values and/or formula cannot be changed",
     "DG.TableController.setScoreDlg.applyTooltip": "Set the formula for the '%@' attribute",
     "DG.TableController.setScoreDlg.formulaHint": "Type a formula for computing values of this attribute",
     "DG.TableController.newAttributeTooltip": "Add a new attribute to this table",
@@ -561,6 +565,7 @@ SC.stringsFor("en", {
     "DG.CaseTable.attributeEditor.type": "type",
     "DG.CaseTable.attributeEditor.unit": "unit",
     "DG.CaseTable.attributeEditor.precision": "precision",
+    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second",
     "DG.CaseTable.attributeEditor.editable": "editable",
     "DG.CaseTable.insertCasesDialog.title": "Insert Cases",
     "DG.CaseTable.insertCasesDialog.numCasesPrompt": "# cases to insert:",
@@ -572,6 +577,15 @@ SC.stringsFor("en", {
 
     // DG.CaseTableController
     "DG.CaseTableController.allTables": "All tables",
+
+    // DG.AttributeFormat
+    // See docs at https://momentjs.com/docs/#/parsing/string-format/
+    "DG.AttributeFormat.DatePrecision.year": "YYYY",
+    "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
+    "DG.AttributeFormat.DatePrecision.day": "MMM d, YYYY",
+    "DG.AttributeFormat.DatePrecision.hour": "MMM d, YYYY HH:00",
+    "DG.AttributeFormat.DatePrecision.minute": "MMM d, YYYY HH:mm",
+    "DG.AttributeFormat.DatePrecision.second": "MMM d, YYYY HH:mm:ss",
 
     // DG.AttributeFormulaView
     "DG.AttrFormView.attrNamePrompt": "Attribute Name:",

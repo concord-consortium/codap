@@ -103,8 +103,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           } else if (DG.isColorSpecString(cellValue)) {
             result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
                 rowItem);
-          } else if (DG.isDate(cellValue)) {
-            result = DG.formatDate(cellValue);
+          } else if (DG.isDate(cellValue) || type === 'date') {
+            result = DG.formatDate(DG.createDate(cellValue), precision);
           } else if (typeof cellValue === 'string') {
             result = stringFormatter(cellValue);
           }

@@ -94,25 +94,49 @@ DG.isDateString = DG.DateUtilities.isDateString;
   Uses toLocaleDateString() for default date formatting.
   Optionally uses toLocaleTimeString() for default time formatting.
  */
-DG.DateUtilities.formatDate = function(x) {
+DG.DateUtilities.formatDate = function(x, precision) {
   if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
   // use moment.js for formatting to avoid browser bugs
   /* global moment */
   var mom = DG.isDate(x) ? moment(x) : moment(Number(x) * 1000),
-      h = mom.hours(),
-      m = mom.minutes(),
-      s = mom.seconds(),
-      ms = mom.milliseconds(),
-      hasTime = (h + m + s + ms) > 0,
-      hasSeconds = (s + ms) > 0,
-      hasMilliseconds = ms > 0,
       formatString = 'l';
-  if( hasTime) {
-    if( hasSeconds) {
-      formatString += ' h:mm:ss' + (hasMilliseconds ? '.SSS A' : ' A');
+  if(precision) {
+    switch (precision) {
+      case DG.Attribute.DATE_PRECISION_YEAR:
+        formatString = "DG.AttributeFormat.DatePrecision.year".loc();
+        break;
+      case DG.Attribute.DATE_PRECISION_MONTH:
+        formatString = "DG.AttributeFormat.DatePrecision.month".loc();
+        break;
+      case DG.Attribute.DATE_PRECISION_DAY:
+        formatString = "DG.AttributeFormat.DatePrecision.day".loc();
+        break;
+      case DG.Attribute.DATE_PRECISION_HOUR:
+        formatString = "DG.AttributeFormat.DatePrecision.hour".loc();
+        break;
+      case DG.Attribute.DATE_PRECISION_MINUTE:
+        formatString = "DG.AttributeFormat.DatePrecision.minute".loc();
+        break;
+      case DG.Attribute.DATE_PRECISION_SECOND:
+        formatString = "DG.AttributeFormat.DatePrecision.second".loc();
+        break;
     }
-    else
-      formatString += ' LT';
+  }
+  else {
+    var h = mom.hours(),
+        m = mom.minutes(),
+        s = mom.seconds(),
+        ms = mom.milliseconds(),
+        hasTime = (h + m + s + ms) > 0,
+        hasSeconds = (s + ms) > 0,
+        hasMilliseconds = ms > 0;
+    if (hasTime) {
+      if (hasSeconds) {
+        formatString += ' h:mm:ss' + (hasMilliseconds ? '.SSS A' : ' A');
+      }
+      else
+        formatString += ' LT';
+    }
   }
   return mom.format( formatString);
 };

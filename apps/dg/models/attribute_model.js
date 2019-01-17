@@ -619,3 +619,26 @@ DG.Attribute.attributeTypes = [
   DG.Attribute.TYPE_QUALITATIVE,
   DG.Attribute.TYPE_BOUNDARY
 ];
+
+/**
+ * Date precision options
+ *
+ * @type {string[]}
+ */
+DG.Attribute.DATE_PRECISION_NONE = '';
+DG.Attribute.DATE_PRECISION_YEAR = 'year';
+DG.Attribute.DATE_PRECISION_MONTH = 'month';
+DG.Attribute.DATE_PRECISION_DAY = 'day';
+DG.Attribute.DATE_PRECISION_HOUR = 'hour';
+DG.Attribute.DATE_PRECISION_MINUTE = 'minute';
+DG.Attribute.DATE_PRECISION_SECOND = 'second';
+
+DG.Attribute.datePrecisionOptions = [
+  DG.Attribute.DATE_PRECISION_NONE,
+  DG.Attribute.DATE_PRECISION_YEAR,
+  DG.Attribute.DATE_PRECISION_MONTH,
+  DG.Attribute.DATE_PRECISION_DAY,
+  DG.Attribute.DATE_PRECISION_HOUR,
+  DG.Attribute.DATE_PRECISION_MINUTE,
+  DG.Attribute.DATE_PRECISION_SECOND
+];

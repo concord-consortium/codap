@@ -71,6 +71,7 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
           layout: {height: kRowHeight},
           label: 'DG.CaseTable.attributeEditor.name',
           localize: true,
+          toolTip: 'DG.TableController.attrEditor.nameHint',
           controlView: SC.TextFieldView.extend({
             layout: {
               centerY: 0,
@@ -102,6 +103,7 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
           layout: {height: kRowHeight * 1.5},
           label: 'DG.CaseTable.attributeEditor.type',
           localize: true,
+          toolTip: 'DG.TableController.attrEditor.typeHint',
           controlView: SC.SelectView.extend({
             layout: {
               width: kControlWidth,
@@ -123,27 +125,28 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
           layout: {height: kRowHeight},
           label: 'DG.CaseTable.attributeEditor.unit',
           localize: true,
+          toolTip: 'DG.TableController.attrEditor.unitHint',
           controlView: SC.TextFieldView.extend({
             layout: {
               width: kControlWidth,
               height: kControlHeight
             },
             backgroundColor: 'white',
-            hint: 'DG.TableController.attrEditor.unitHint',
             localize: true
           })
         }),
 
         precisionCtl: DG.PickerControlView.design({
-          layout: {height: kRowHeight},
+          layout: {height: kRowHeight * 1.5},
           label: 'DG.CaseTable.attributeEditor.precision',
           localize: true,
-          controlView: SC.TextFieldView.extend({
-            layout: {width: kControlWidth},
-            backgroundColor: 'white',
-            validator: SC.Validator.PositiveInteger,
-            hint: 'DG.TableController.attrEditor.precisionHint',
-            localize: true
+          controlView: SC.SelectView.extend({
+            layout: {
+              width: kControlWidth,
+              height: 24
+            },
+            itemTitleKey: 'title',
+            itemValueKey: 'value'
           })
         }),
 
@@ -151,6 +154,7 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
           layout: {height: kRowHeight},
           label: 'DG.CaseTable.attributeEditor.editable',
           localize: true,
+          toolTip: 'DG.TableController.attrEditor.editableHint',
           controlView: SC.RadioView.extend({
             layout: {width: kControlWidth},
             items: [
@@ -198,6 +202,59 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
         })
       }),
 
+      typeDidChange: function() {
+        this.updatePrecisionMenu( this.getPath('contentView.typeCtl.controlView.value'),
+            this.getPath('attrRef.attribute.precision'));
+      }.observes('contentView.typeCtl.controlView.value'),
+
+      updatePrecisionMenu: function( iType, iPrecisionValue) {
+        var tNumericPrecisions = [' ','0','1','2','3','4','5','6','7','8'],
+            tDatePrecisions = DG.Attribute.datePrecisionOptions;
+
+        function isValueOfGivenType() {
+          var result = false;
+          if( iType === 'numeric')
+            result = tNumericPrecisions.indexOf( iPrecisionValue) >= 0;
+          else if( iType === 'date')
+            result = tDatePrecisions.indexOf( iPrecisionValue) >= 0;
+          return result;
+        }
+
+        var control = this.getPath('contentView.precisionCtl.controlView'),
+            precisionList;
+        control.set('isEnabled', true);
+        if( isValueOfGivenType())
+          control.set('value', iPrecisionValue);
+        else control.set('value', '');
+        this.setPath('contentView.precisionCtl.toolTip', 'DG.TableController.attrEditor.precisionNumericHint'.loc());
+        switch (iType) {
+          case 'numeric':
+          case 'none':
+            precisionList = tNumericPrecisions.map(function (iInteger) {
+              return {
+                value: iInteger.trim(),
+                title: iInteger
+              };
+            });
+            break;
+          case 'date':
+            precisionList = "DG.CaseTable.attributeEditor.datePrecisionOptions".loc().w();
+            precisionList.unshift(" ");
+            precisionList = precisionList.map(function (iOption, iIndex) {
+              var tValue = DG.Attribute.datePrecisionOptions[iIndex];
+              return {
+                value: tValue,
+                title: iOption
+              };
+            });
+            this.setPath('contentView.precisionCtl.toolTip', 'DG.TableController.attrEditor.precisionDateHint'.loc());
+            break;
+          default:
+            control.set('isEnabled', false);
+        }
+        control.set('items', precisionList);
+      },
+
       attrRefDidChange: function () {
         var attrRef = this.get('attrRef');
         var attr = attrRef.attribute;
@@ -213,6 +270,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
               contentView.setPath(ctlName + '.controlView.value', val);
             }
           }.bind(this));
+          this.updatePrecisionMenu(this.getPath('contentView.typeCtl.controlView.value'),
+              this.getPath('attrRef.attribute.precision'));
         }
       }.observes('attrRef'),
 
