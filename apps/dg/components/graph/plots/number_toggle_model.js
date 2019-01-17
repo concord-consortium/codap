@@ -346,9 +346,10 @@ return {
   },
 
   /**
-   * Show the cases for the parent with the given index and hide all others.
+   * Show the cases for the parents with the given indices and hide all others.
+   * @param iParentIndices {[Number]}
    */
-  maintainSingleParent: function( iIndexOfParent) {
+  maintainCurrentParentVisibility: function(iParentIndices) {
     var toggleIndex, toggleCount = this.get('numberOfToggleIndices'),
         casesToHide = [], toggleCases;
 
@@ -356,7 +357,7 @@ return {
 
     // accumulate cases to hide so they can be hidden all at once
     for (toggleIndex = 0; toggleIndex < toggleCount; ++toggleIndex) {
-      if( toggleIndex !== iIndexOfParent) {
+      if( iParentIndices.indexOf( toggleIndex) < 0) {
         toggleCases = this.getCasesForIndex(toggleIndex);
         // append toggleCases to casesToHide without duplicating any arrays
         toggleCases.reduce(reduceCase, casesToHide);
@@ -467,22 +468,24 @@ return {
   }.observes('hiddenCases'),
 
   /**
-   * Return true if there is more than one parent and only one is marked to show children.
+   * Return true if there is more than one parent and not all are marked to show children.
+   * @return {{parentIndices [Integer]}}
    */
-  shouldMaintainSingleParentVisbility: function( ioResult) {
+  shouldMaintainCurrentParentVisbility: function(ioResult) {
     var tToggleCount = this.get('numberOfToggleIndices') - 1,
         tNumberForWhichAllAreShowing = 0,
         tIndex = 0;
+    ioResult.parentIndices = [];
     if( tToggleCount > 1) {
-      while( tIndex < tToggleCount && tNumberForWhichAllAreShowing  < 2) {
+      while( tIndex < tToggleCount) {
         if( this.allChildrenAreVisible( tIndex)) {
           tNumberForWhichAllAreShowing++;
-          ioResult.parentIndex = tIndex;
+          ioResult.parentIndices.push( tIndex);
         }
         tIndex++;
       }
     }
-    return tNumberForWhichAllAreShowing === 1;
+    return tNumberForWhichAllAreShowing > 0 && tNumberForWhichAllAreShowing < tToggleCount;
   },
 
   isAffectedByChange: function(iChange) {
@@ -514,14 +517,14 @@ return {
    */
   handleDataContextNotification: function(iNotifier, iChange) {
     var tIsCreateCase = iChange.operation.indexOf('createCase') === 0,
-        tSingleParentToMaintain = { parentIndex: null };
+        tParentsToMaintain = { parentIndices: null };
     if (this.get('isEnabled')) {
       // if cases are created while in lastMode, ensure only last parent is visible
       if (this.get('lastMode') && tIsCreateCase) {
         this.invokeOnce(function() { this.showOnlyLastParentCase(); }.bind(this));
       }
-      else if( tIsCreateCase && this.shouldMaintainSingleParentVisbility( tSingleParentToMaintain)) {
-        this.invokeOnce(function() { this.maintainSingleParent(tSingleParentToMaintain.parentIndex); }.bind(this));
+      else if( tIsCreateCase && this.shouldMaintainCurrentParentVisbility( tParentsToMaintain)) {
+        this.invokeOnce(function() { this.maintainCurrentParentVisibility(tParentsToMaintain.parentIndices); }.bind(this));
       }
       else if( this.isAffectedByChange(iChange)) {
         this.invalidate();
