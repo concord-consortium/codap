@@ -55,9 +55,12 @@ DG.PlottedFormulaEditContext = SC.Object.extend({
                       });
     this.set('formulaView', formulaView);
     this.set('clientOptions', iOptions ? DG.copy(iOptions) : {});
+/*  We can get here as the document is opened which is a bug. And actually
+    it's better to have the user click in the place where the formula goes anyway.
     if( SC.empty( this.getPath('plottedFormula.expression'))) {
       this.openFormulaEditorDialog();
     }
+*/
     return formulaView;
   },
 
