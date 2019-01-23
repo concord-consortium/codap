@@ -496,8 +496,9 @@ DG.main = function main() {
 
   function resolveDocument(iDocContents, iMetadata) {
     return new Promise(function (resolve, reject) {
-      var urlString = iMetadata.url || ('file:' + iMetadata.filename);
-      var expectedContentType = getExpectedContentType(iMetadata.contentType,
+      var metadata = iMetadata || {};
+      var urlString = metadata.url || ('file:' + metadata.filename);
+      var expectedContentType = getExpectedContentType(metadata.contentType,
           urlString);
       var url = urlString && parseURL(urlString);
       var urlPath = url && url.pathname;
