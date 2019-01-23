@@ -1449,21 +1449,21 @@ img.flag {
 }
 
 /* Adjustments for greek language */
-.sc-theme .sc-list-view.sc-source-list .sc-list-item-view.sc-group-item:lang(he),
-.alert-dialog .buttons button:lang(he),
-.confirm-dialog .buttons button:lang(he),
-.download-dialog .buttons a:lang(he),
-.download-dialog .buttons button:lang(he),
-.document-store-auth .document-store-footer button:lang(he),
-.google-drive-auth .google-drive-footer button.tabbed-panel .workspace-tab-component .dialogTab .buttons a:lang(he),
-.menu-bar .menu-bar-file-status-alert:lang(he),
-.modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-title:lang(he),
-.modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-blocking-message button:lang(he),
-.rename-dialog .buttons button:lang(he),
-.share-dialog .share-button button:lang(he),
-.share-dialog .buttons button:lang(he),
-.tabbed-panel .workspace-tab-component .dialogTab .buttons button:lang(he),
-.tabbed-panel .workspace-tab-component .dialogTab .buttons a:lang(he)
+.dg:lang(el) .sc-theme .sc-list-view.sc-source-list .sc-list-item-view.sc-group-item,
+.dg:lang(el) .alert-dialog .buttons button,
+.dg:lang(el) .confirm-dialog .buttons button,
+.dg:lang(el) .download-dialog .buttons a,
+.dg:lang(el) .download-dialog .buttons button,
+.dg:lang(el) .document-store-auth .document-store-footer button,
+.dg:lang(el) .google-drive-auth .google-drive-footer button.tabbed-panel .workspace-tab-component .dialogTab .buttons a,
+.dg:lang(el) .menu-bar .menu-bar-file-status-alert,
+.dg:lang(el) .modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-title,
+.dg:lang(el) .modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-blocking-message button,
+.dg:lang(el) .rename-dialog .buttons button,
+.dg:lang(el) .share-dialog .share-button button,
+.dg:lang(el) .share-dialog .buttons button,
+.dg:lang(el) .tabbed-panel .workspace-tab-component .dialogTab .buttons button,
+.dg:lang(el) .tabbed-panel .workspace-tab-component .dialogTab .buttons a
 {
     text-transform:none;
 }
