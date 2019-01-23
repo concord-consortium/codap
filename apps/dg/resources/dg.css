@@ -1447,3 +1447,23 @@ img.flag {
 .menu.dg-locales-menu {
     padding-left: 0;
 }
+
+/* Adjustments for greek language */
+.sc-theme .sc-list-view.sc-source-list .sc-list-item-view.sc-group-item:lang(he),
+.alert-dialog .buttons button:lang(he),
+.confirm-dialog .buttons button:lang(he),
+.download-dialog .buttons a:lang(he),
+.download-dialog .buttons button:lang(he),
+.document-store-auth .document-store-footer button:lang(he),
+.google-drive-auth .google-drive-footer button.tabbed-panel .workspace-tab-component .dialogTab .buttons a:lang(he),
+.menu-bar .menu-bar-file-status-alert:lang(he),
+.modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-title:lang(he),
+.modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-blocking-message button:lang(he),
+.rename-dialog .buttons button:lang(he),
+.share-dialog .share-button button:lang(he),
+.share-dialog .buttons button:lang(he),
+.tabbed-panel .workspace-tab-component .dialogTab .buttons button:lang(he),
+.tabbed-panel .workspace-tab-component .dialogTab .buttons a:lang(he)
+{
+    text-transform:none;
+}

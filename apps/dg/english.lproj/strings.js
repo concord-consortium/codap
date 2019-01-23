@@ -842,10 +842,11 @@ SC.stringsFor("en", {
     // Web View
     "DG.WebView.defaultTitle": "Web Page",
 
-    "DG.Locale.name.de": "German",
+    "DG.Locale.name.zh": "Chinese",
     "DG.Locale.name.en": "English",
-    "DG.Locale.name.es": "Spanish",
+    "DG.Locale.name.de": "German",
+    "DG.Locale.name.el": "Greek",
     "DG.Locale.name.he": "Hebrew",
-    "DG.Locale.name.tr": "Turkish",
-    "DG.Locale.name.zh": "Chinese"
+    "DG.Locale.name.es": "Spanish",
+    "DG.Locale.name.tr": "Turkish"
 });

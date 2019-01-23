@@ -733,4 +733,5 @@ SC.stringsFor("de", {
     "DG.CaseCard.attrHintFormula": "%@\n%@",
     "DG.AppController.optionMenuItems.help-forum": "Help Forum...",
     "DG.AppController.showHelpForumTitle": "Help Forum"
+    "DG.Locale.name.el": "Greek"
 });
