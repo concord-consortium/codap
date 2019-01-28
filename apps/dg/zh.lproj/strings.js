@@ -432,7 +432,6 @@ SC.stringsFor("zh", {
     "DG.TableController.deleteDataSet.confirmDescription": "這個動作無法復原",
     "DG.TableController.deleteDataSet.okButtonTitle": "刪除資料組",
     "DG.TableController.deleteDataSet.cancelButtonTitle": "取消",
-    "DG.TableController.attrEditor.precisionHint": "小數點後的位數",
     "DG.TableController.attrEditor.unitHint": "可用的測量單位",
     "DG.TableController.attrEditor.descriptionHint": "描述這個變項",
     "DG.TableController.setScoreDlg.applyTooltip": "設定一個公式針對 '%@' 變項",
@@ -715,5 +714,17 @@ SC.stringsFor("zh", {
     "DG.Inspector.displayLayers.toolTip": "Change the appearance of the map layers",
     "DG.Inspector.layers": "Layers",
     "DG.Undo.graph.repositionEquation": "Undo repositioning equation",
-    "DG.Redo.graph.repositionEquation": "Redo repositioning equation"
+    "DG.Redo.graph.repositionEquation": "Redo repositioning equation",
+    "DG.TableController.attrEditor.precisionNumericHint": "Number of digits after decimal point",
+    "DG.TableController.attrEditor.precisionDateHint": "Determines how much of the date is displayed",
+    "DG.TableController.attrEditor.typeHint": "Set to force the attribute to be treated as a certain type",
+    "DG.TableController.attrEditor.nameHint": "The attribute name appears in the case table, case card, and on graph axes",
+    "DG.TableController.attrEditor.editableHint": "If the attribute is not editable, its values and/or formula cannot be changed",
+    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second",
+    "DG.AttributeFormat.DatePrecision.year": "YYYY",
+    "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
+    "DG.AttributeFormat.DatePrecision.day": "MMM d, YYYY",
+    "DG.AttributeFormat.DatePrecision.hour": "MMM d, YYYY HH:00",
+    "DG.AttributeFormat.DatePrecision.minute": "MMM d, YYYY HH:mm",
+    "DG.AttributeFormat.DatePrecision.second": "MMM d, YYYY HH:mm:ss"
 });

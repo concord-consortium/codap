@@ -432,7 +432,6 @@ SC.stringsFor("de", {
     "DG.TableController.deleteDataSet.confirmDescription": "Diese Aktion kann nicht rückgängig gemacht werden.",
     "DG.TableController.deleteDataSet.okButtonTitle": "Datensatz löschen",
     "DG.TableController.deleteDataSet.cancelButtonTitle": "Abbrechen",
-    "DG.TableController.attrEditor.precisionHint": "Anzahl der Stellen nach dem Komma",
     "DG.TableController.attrEditor.unitHint": "Einheit der Messung, falls angebbar",
     "DG.TableController.attrEditor.descriptionHint": "Das Merkmal beschreiben",
     "DG.TableController.setScoreDlg.applyTooltip": "Eine Formel für das Merkmal '%@' eingeben",
@@ -715,5 +714,17 @@ SC.stringsFor("de", {
     "DG.Inspector.displayLayers.toolTip": "Aussehen der Kartenebenen ändern",
     "DG.Inspector.layers": "Ebenen",
     "DG.Undo.graph.repositionEquation": "Rückgängig: Gleichung verschieben",
-    "DG.Redo.graph.repositionEquation": "Wiederholen: Gleichung verschieben"
+    "DG.Redo.graph.repositionEquation": "Wiederholen: Gleichung verschieben",
+    "DG.TableController.attrEditor.precisionNumericHint": "Number of digits after decimal point",
+    "DG.TableController.attrEditor.precisionDateHint": "Determines how much of the date is displayed",
+    "DG.TableController.attrEditor.typeHint": "Set to force the attribute to be treated as a certain type",
+    "DG.TableController.attrEditor.nameHint": "The attribute name appears in the case table, case card, and on graph axes",
+    "DG.TableController.attrEditor.editableHint": "If the attribute is not editable, its values and/or formula cannot be changed",
+    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second",
+    "DG.AttributeFormat.DatePrecision.year": "YYYY",
+    "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
+    "DG.AttributeFormat.DatePrecision.day": "MMM d, YYYY",
+    "DG.AttributeFormat.DatePrecision.hour": "MMM d, YYYY HH:00",
+    "DG.AttributeFormat.DatePrecision.minute": "MMM d, YYYY HH:mm",
+    "DG.AttributeFormat.DatePrecision.second": "MMM d, YYYY HH:mm:ss"
 });

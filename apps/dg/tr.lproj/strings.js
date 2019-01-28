@@ -432,7 +432,6 @@ SC.stringsFor("tr", {
     "DG.TableController.deleteDataSet.confirmDescription": "Bu işlem geri alınamaz.",
     "DG.TableController.deleteDataSet.okButtonTitle": "Veri Setini Sil",
     "DG.TableController.deleteDataSet.cancelButtonTitle": "İptal Et",
-    "DG.TableController.attrEditor.precisionHint": "Noktadan sonraki basamak sayısı",
     "DG.TableController.attrEditor.unitHint": "Varsa, ölçü birimi",
     "DG.TableController.attrEditor.descriptionHint": "Özelliği tanımla",
     "DG.TableController.setScoreDlg.applyTooltip": "'%@' özelliği için formülü ayarla",
@@ -715,5 +714,17 @@ SC.stringsFor("tr", {
     "DG.Inspector.displayLayers.toolTip": "Change the appearance of the map layers",
     "DG.Inspector.layers": "Layers",
     "DG.Undo.graph.repositionEquation": "Undo repositioning equation",
-    "DG.Redo.graph.repositionEquation": "Redo repositioning equation"
+    "DG.Redo.graph.repositionEquation": "Redo repositioning equation",
+    "DG.TableController.attrEditor.precisionNumericHint": "Number of digits after decimal point",
+    "DG.TableController.attrEditor.precisionDateHint": "Determines how much of the date is displayed",
+    "DG.TableController.attrEditor.typeHint": "Set to force the attribute to be treated as a certain type",
+    "DG.TableController.attrEditor.nameHint": "The attribute name appears in the case table, case card, and on graph axes",
+    "DG.TableController.attrEditor.editableHint": "If the attribute is not editable, its values and/or formula cannot be changed",
+    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second",
+    "DG.AttributeFormat.DatePrecision.year": "YYYY",
+    "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
+    "DG.AttributeFormat.DatePrecision.day": "MMM d, YYYY",
+    "DG.AttributeFormat.DatePrecision.hour": "MMM d, YYYY HH:00",
+    "DG.AttributeFormat.DatePrecision.minute": "MMM d, YYYY HH:mm",
+    "DG.AttributeFormat.DatePrecision.second": "MMM d, YYYY HH:mm:ss"
 });

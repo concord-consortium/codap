@@ -432,7 +432,6 @@ SC.stringsFor("he", {
     "DG.TableController.deleteDataSet.confirmDescription": "פעולה זו אינה ניתנת לביצוע מחדש",
     "DG.TableController.deleteDataSet.okButtonTitle": "מחק סט נתונים",
     "DG.TableController.deleteDataSet.cancelButtonTitle": "בטל",
-    "DG.TableController.attrEditor.precisionHint": "מספר ספרות לאחר הנקודה העשרונית",
     "DG.TableController.attrEditor.unitHint": "יחידת מדידה, אם יישומי",
     "DG.TableController.attrEditor.descriptionHint": "תיאור המשתנה",
     "DG.TableController.setScoreDlg.applyTooltip": "קבע את הנוסחה למשתנה '%@'",
@@ -715,5 +714,17 @@ SC.stringsFor("he", {
     "DG.Inspector.displayLayers.toolTip": "שינוי תצוגת שכבות המפה",
     "DG.Inspector.layers": "שכבות",
     "DG.Undo.graph.repositionEquation": "Undo repositioning equation",
-    "DG.Redo.graph.repositionEquation": "Redo repositioning equation"
+    "DG.Redo.graph.repositionEquation": "Redo repositioning equation",
+    "DG.TableController.attrEditor.precisionNumericHint": "Number of digits after decimal point",
+    "DG.TableController.attrEditor.precisionDateHint": "Determines how much of the date is displayed",
+    "DG.TableController.attrEditor.typeHint": "Set to force the attribute to be treated as a certain type",
+    "DG.TableController.attrEditor.nameHint": "The attribute name appears in the case table, case card, and on graph axes",
+    "DG.TableController.attrEditor.editableHint": "If the attribute is not editable, its values and/or formula cannot be changed",
+    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second",
+    "DG.AttributeFormat.DatePrecision.year": "YYYY",
+    "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
+    "DG.AttributeFormat.DatePrecision.day": "MMM d, YYYY",
+    "DG.AttributeFormat.DatePrecision.hour": "MMM d, YYYY HH:00",
+    "DG.AttributeFormat.DatePrecision.minute": "MMM d, YYYY HH:mm",
+    "DG.AttributeFormat.DatePrecision.second": "MMM d, YYYY HH:mm:ss"
 });
