@@ -1969,26 +1969,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * @param {[number]} rowIndices
    */
   scrollToView: function (rowIndices) {
-    var rowDistance = this.getMinScrollDistance(rowIndices);
+    var minDeltaFromMidViewPort = this.getMinScrollDelta(rowIndices); // in rows
     var viewport = this.get('gridViewport');
-    var top = Math.max(viewport.top - rowDistance, 0);
+    var viewportHeight = viewport.bottom - viewport.top; // in rows
+    var viewportCenterHeight = Math.max(viewportHeight - 4, 0);
+    var viewportCenterDelta = (viewportHeight - viewportCenterHeight - 1) / 2;
+    var isARowVisible = (Math.abs(minDeltaFromMidViewPort) <= (viewportCenterHeight / 2));
+    var newTop = Math.max(viewport.top + viewportCenterDelta - minDeltaFromMidViewPort, 0);
+    // DG.log('collection,minDeltaFromMidViewPort,viewportHeight,viewportCenterHeight,viewportCenterDelta,isARowVisible,newTop=['+[this.get('collectionName'),minDeltaFromMidViewPort,viewportHeight,viewportCenterHeight,viewportCenterDelta,isARowVisible,newTop].join() + ']');
     // The slickgrid viewport is measured in rows and includes the
     // header and partial rows. To guarantee the value is within the visible
     // viewport we add subtract from the viewport height two, for the header
     // rows and one for the partial row.
-    if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top - 3)) {
-      this.scrollAnimator.animate(this, viewport.top, top);
-    } //else {
-      // this is a BIG HACK. We generate a small animation when the nearest
-      // selected point is already visible. We do this to avoid an issue
-      // that occurs when a user selects from the case table after a selection
-      // has occurred that does not involve the case table. This later issue
-      // is not well understood. Hence the hack.
-     // this.scrollAnimator.animate(this, viewport.top-0.1, viewport.top);
-
-    //}
-    //DG.log(JSON.stringify({rowIndices:rowIndices,min:rowDistance,
-    //  viewportTop:viewport.top,viewportBottom: viewport.bottom,top:top}));
+    if (!isARowVisible && viewport.top !== newTop) {
+      this.scrollAnimator.animate(this, viewport.top, newTop);
+    }
   },
 
     animateScrollToTop: function (rowIndex) {
@@ -2019,14 +2014,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * @param  rowArray {[Number]}   Array of indices of rows
      * @return {Number} number of rows distant
      */
-    getMinScrollDistance: function (rowArray) {
+    getMinScrollDelta: function (rowArray) {
       var viewport = this._slickGrid.getViewport(); // viewport.top, .bottom: row units
-      var viewMiddle = (viewport.top + 3 + viewport.bottom) / 2;
-      return rowArray.map(function (row) {
-            return (viewMiddle - row);
-          }).reduce(function(m, dist) {
-            return (Math.abs(m) > Math.abs(dist)?dist: m);
-          }, Number.MAX_VALUE);
+      var viewMiddle = (viewport.top/* + 3*/ + viewport.bottom) / 2;
+      var distances = rowArray.map(function (row) {return viewMiddle - row;});
+      var minDist = distances.reduce(function(minimumDist, dist) {
+          return (Math.abs(minimumDist) > Math.abs(dist))? dist: minimumDist;
+        }, Number.MAX_VALUE);
+      return minDist;
     },
 
   /**
