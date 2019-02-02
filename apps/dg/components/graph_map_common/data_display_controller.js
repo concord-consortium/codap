@@ -829,7 +829,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         },
 
         /**
-         The plot or legend view has received a drop of an attribute. Our job is to forward this properly on to
+         The plot, map, or legend view has received a drop of an attribute. Our job is to forward this properly on to
          the graph so that the configuration can be changed.
          */
         plotOrLegendViewDidAcceptDrop: function (iView, iKey, iDragData) {
@@ -885,7 +885,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               this._afterStorage = null;
             }
           }));
-        }.observes('*legendView.dragData', '*mapView.dragData'),
+        },
 
         convertToImage: function (rootEl, width, height) {
 
