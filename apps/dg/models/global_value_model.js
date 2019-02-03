@@ -40,6 +40,16 @@ DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
    */
   value: '',
 
+  valueDidChange: function () {
+    DG.currDocumentController().notificationManager.sendNotification({
+      action: 'notify',
+      resource: 'global[%@]'.loc(this.name),
+      values: {
+        globalValue: this.value
+      }
+    });
+  }.observes('value'),
+
   /**
    * A relational link back to the document.
    * @property {DG.Document}

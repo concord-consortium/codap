@@ -1690,7 +1690,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           guideView: {
             name: directMapping,
             title: directMapping,
-            cannotClose: directMapping
+            cannotClose: directMapping,
+            items: directMapping
           },
           map: {
             name: directMapping,
