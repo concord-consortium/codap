@@ -328,24 +328,14 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     function computeBestCoords() {
       var tTextAnchor = worldToScreen({ x: (tIntercepts.pt1.x + tIntercepts.pt2.x) / 2,
             y: (tIntercepts.pt1.y + tIntercepts.pt2.y) / 2 });
-
-          if( tTextAnchor.x < tPaperWidth / 2) {
-        tAlign = 'start';
-        tTextAnchor.x = Math.min( tTextAnchor.x, tPaperWidth - tTextWidth);
-        tBackgrndX = tTextAnchor.x;
-      }
-      else {
-        tAlign = 'end';
-        tTextAnchor.x = Math.max( tTextAnchor.x, tTextWidth);
-        tBackgrndX = tTextAnchor.x - tTextBox.width;
-      }
+      tBackgrndX = tTextAnchor.x - tTextWidth / 2;
       // We don't want the equation to sit on the line
       tTextAnchor.y += 3 * tTextBox.height / 2;
       // Keep the equation inside the plot bounds
       tTextAnchor.y = Math.min( Math.max( tTextAnchor.y, tTextBox.height / 2), tPaperHeight - tTextBox.height / 2);
       this_.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
         width: tTextWidth, height: tTextBox.height });
-      this_.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign});
+      this_.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': 'middle'});
     }
 
     function computeCoordsFromModel() {
@@ -360,21 +350,28 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     if( tIntercepts.pt2.x < tIntercepts.pt1.x)
       swapIntercepts();
 
-    var tPaperWidth = this.get('paper').width,
+    var kPadding = 10,
+        tPaperWidth = this.get('paper').width,
         tPaperHeight = this.get('paper').height,
         tLineColor = this.get('lineColor'),
         tEquationColor = DG.color(DG.ColorUtilities.colorNameToHexColor(tLineColor)).darker(1).color,
         tEquationCoords = this.getPath('model.equationCoords'),
         tScreen1 = worldToScreen( tIntercepts.pt1),
         tScreen2 = worldToScreen( tIntercepts.pt2),
-        tTextBox, tTextWidth, tAlign, tBackgrndX;
+        tEquation = this.get('equation').transform(''),
+        tTextBox, tTextWidth, tBackgrndX;
 
     DG.RenderingUtilities.updateLine( this.lineSeg, tScreen1, tScreen2);
     DG.RenderingUtilities.updateLine( this.coverSeg, tScreen1, tScreen2);
 
-    tTextBox = this.equation.attr( { text: this.get('equationString') }).getBBox();
+    tTextBox = tEquation.attr( { text: this.get('equationString'), fill: tEquationColor }).getBBox();
     tTextWidth = tTextBox.width;
-    tTextWidth += 10; // padding
+    tTextWidth += kPadding; // padding
+    if( tTextWidth > tPaperWidth) {
+      var tTransform = tPaperWidth / tTextWidth;
+      tEquation.transform( 's' + tTransform);
+      tTextWidth = tPaperWidth;
+    }
     if( SC.none(tEquationCoords)) {
       computeBestCoords();
     }
@@ -382,7 +379,6 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       computeCoordsFromModel();
     }
 
-    this.equation.attr({text: this.get('equationString'), fill: tEquationColor});
     this.lineSeg.attr({ stroke: tLineColor });
   },
 

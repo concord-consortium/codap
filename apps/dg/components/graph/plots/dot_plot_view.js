@@ -54,11 +54,11 @@ DG.DotPlotView = DG.PlotView.extend(
   @property{DG.CellLinearAxisView}
   */
   secondaryAxisView: function() {
-    switch( this.getPath('model.secondaryAxisPlace')) {
+    switch( this.getPath('model.primaryAxisPlace')) {
       case DG.GraphTypes.EPlace.eX:
-        return this.get('xAxisView');
-      case DG.GraphTypes.EPlace.eY:
         return this.get('yAxisView');
+      case DG.GraphTypes.EPlace.eY:
+        return this.get('xAxisView');
       default:
         return null;
     }

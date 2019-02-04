@@ -34,12 +34,16 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   /**
     @property { DG.CellLinearAxisView }
   */
-  valueAxisView: null,
+  valueAxisView: function() {
+    return this.getPath('parentView.primaryAxisView');
+  }.property(),
 
   /**
     @property { DG.CellAxisView }
   */
-  splitAxisView: null,
+  splitAxisView: function() {
+    return this.getPath('parentView.secondaryAxisView');
+  }.property(),
 
   valueTextElement: null,
 
