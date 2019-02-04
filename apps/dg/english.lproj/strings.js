@@ -579,13 +579,13 @@ SC.stringsFor("en", {
     "DG.CaseTableController.allTables": "All tables",
 
     // DG.AttributeFormat
-    // See docs at https://momentjs.com/docs/#/parsing/string-format/
+    // See docs at https://momentjs.com/docs/#/displaying/format/
     "DG.AttributeFormat.DatePrecision.year": "YYYY",
     "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
-    "DG.AttributeFormat.DatePrecision.day": "MMM d, YYYY",
-    "DG.AttributeFormat.DatePrecision.hour": "MMM d, YYYY HH:00",
-    "DG.AttributeFormat.DatePrecision.minute": "MMM d, YYYY HH:mm",
-    "DG.AttributeFormat.DatePrecision.second": "MMM d, YYYY HH:mm:ss",
+    "DG.AttributeFormat.DatePrecision.day": "MMM D, YYYY",
+    "DG.AttributeFormat.DatePrecision.hour": "MMM D, YYYY HH:00",
+    "DG.AttributeFormat.DatePrecision.minute": "MMM D, YYYY HH:mm",
+    "DG.AttributeFormat.DatePrecision.second": "MMM D, YYYY HH:mm:ss",
 
     // DG.AttributeFormulaView
     "DG.AttrFormView.attrNamePrompt": "Attribute Name:",
