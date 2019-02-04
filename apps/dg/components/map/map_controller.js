@@ -136,6 +136,14 @@ DG.MapController = DG.DataDisplayController.extend(
         }.observes('view'),
 
         /**
+         * We override here just so we can be observing things that make sense.
+         * But superclass can do the work regardless.
+         */
+        plotOrLegendViewDidAcceptDrop: function (iView, iKey, iDragData) {
+          sc_super();
+        }.observes('*mapView.dragData'),
+
+        /**
          * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
          * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
          */

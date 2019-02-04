@@ -148,6 +148,9 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         this._ignoreMapDisplayChanges = true; // So we don't install an idleTask in response to layout changes
         this.model.destroy(); // so that it can unlink observers
         DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
+        this.get('legendViews').forEach( function( iLegendView) {
+          iLegendView.removeObserver('dragData', this, this.legendDidAcceptDrop);
+        });
         sc_super();
       },
 
@@ -251,6 +254,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
             });
         tUnusedMapPointLayers.forEach(function (iMapPointLayer) {
           var tNewLegendView = DG.LegendView.create( { model: iMapPointLayer.getPath('model.legend')});
+          this.observeLegendView( tNewLegendView);
           this.appendChild(tNewLegendView);
           this.legendViewCreationCallback(tNewLegendView);
           this.get('legendViews').push( tNewLegendView);
@@ -327,6 +331,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
             tPolygonLayers.push(tNewLayer);
             tNewLayer.addFeatures();
             var tLegendView = DG.LegendView.create({model: iLayerModel.get('legend')});
+            this.observeLegendView( tLegendView);
             this.appendChild(tLegendView);
             tLegendViews.push(tLegendView);
             this.legendViewCreationCallback(tLegendView);
@@ -361,6 +366,20 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
           this.getPath('mapLayer.map').fitBounds(tBounds, {padding: this.kPadding, animate: true});
           this.get('mapLayer')._setIdle();
         }
+      },
+
+      observeLegendView: function( iLegendView) {
+        iLegendView.addObserver('dragData', this, this.legendDidAcceptDrop);
+      },
+
+      /**
+       * We pass the notification along to our controller by setting dragData as though the drop
+       * had been received by us.
+       * @param iView
+       * @param iKey
+       */
+      legendDidAcceptDrop: function(iView, iKey) {
+        this.set('dragData', iView.get('dragData'));
       },
 
       /**
