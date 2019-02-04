@@ -541,9 +541,7 @@ DG.PlotView = DG.PlotLayer.extend(
         parentView: this,
         model: tPlottedValue,
         paperSource: this.get('paperSource'),
-        layerName: DG.LayerNames.kAdornments//,
-        // valueAxisView: this.get('primaryAxisView'),
-        // splitAxisView: this.get('secondaryAxisView')
+        layerName: DG.LayerNames.kAdornments
       });
     }
   }.observes('.model.plottedValue'),
