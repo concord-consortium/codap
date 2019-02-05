@@ -268,6 +268,7 @@ DG = SC.Application.create((function () // closure
      * Semantic version number
      */
     VERSION: '2.0',
+    CODAP_SERVER: SC.buildMode==='debug'?'//codap-server.concord.org':'//codap.concord.org',
 
     /*
      * Build number
@@ -280,7 +281,10 @@ DG = SC.Application.create((function () // closure
 
     IS_SRRI_BUILD: isSrriBuild.property(),
 
-    exampleListBaseURL: '//codap.concord.org/resources/latest/example-documents',
+    exampleListBaseURL: function () {
+
+      return getUrlParameter('exampleURL') || this.get('CODAP_SERVER') + '/resources/latest/example-documents';
+    }.property(),
 
     exampleListURL: function () {
       return '%@1/index.json.%@2'.loc(this.get('exampleListBaseURL'), SC.Locale.currentLanguage);
@@ -301,7 +305,7 @@ DG = SC.Application.create((function () // closure
      */
     pluginURL: function () {
       return getUrlParameter('pluginURL') ||
-          '//codap.concord.org/plugins/releases/latest';
+          this.get('CODAP_SERVER') + '/plugins/releases/latest';
     }.property(),
 
     /**
@@ -495,7 +499,9 @@ DG = SC.Application.create((function () // closure
      * This URL specifies the location of a JSON file that describes the boundaries (country, state,
      * county, congressional district, PUMA) that CODAP supports.
      */
-    boundarySpecsUrl: '//codap.concord.org/codap-data/boundaries/default_boundary_specs.json',
+    boundarySpecsUrl: function() {
+      return this.get('CODAP_SERVER') + '/codap-data/boundaries/default_boundary_specs.json';
+    }.property(),
 
     /**
      * embeddedMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
