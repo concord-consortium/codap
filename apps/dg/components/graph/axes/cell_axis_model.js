@@ -77,7 +77,59 @@ DG.CellAxisModel = DG.AxisModel.extend(
     var stats = this.getPath('attributeDescription.attributeStats');
     return stats ? stats.cellNameToCellNumber( iCellName) : 0;
   },
+
+  /**
+   * For a cell axis, not all the underlying categories need be displayed; e.g. if a given
+   * category has no points, it will not appear.
+   * Use this routine to compute the underlying index in the cellMap from the displayed index.
+   * @param {Number} iDisplayedIndex
+   * @return {Number}
+   */
+  displayedCellIndexToUnderlyingIndex: function( iDisplayedIndex) {
+    var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap'),
+        tAttribute = this.getPath('attributeDescription.attribute'),
+        tCellIndex = 0,
+        tResult = iDisplayedIndex;
+    if( DG.ObjectMap.length(tCellMap) > 0) {
+      tAttribute.forEachCategory(function (iName, iColor, iIndex) {
+        var tValues = tCellMap[iName],
+            tNumUses = tValues ? tValues.cases.length : 0;
+        if (tNumUses > 0) {
+          if( tCellIndex === iDisplayedIndex)
+            tResult = iIndex;
+          tCellIndex++;
+        }
+      });
+    }
+    return tResult;
+  },
   
+  /**
+   * For a cell axis, not all the underlying categories need be display; e.g. if a given
+   * category has no points, it will not appear.
+   * Use this routine to compute the displayed index on the axis from the underlying index.
+   * @param {Number} iUnderlyingIndex
+   * @return {Number}
+   */
+  underlyingIndexToDisplayedIndex: function( iUnderlyingIndex) {
+    var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap'),
+        tAttribute = this.getPath('attributeDescription.attribute'),
+        tDisplayedIndex = 0,
+        tResult = iUnderlyingIndex;
+    if( DG.ObjectMap.length(tCellMap) > 0) {
+      tAttribute.forEachCategory(function (iName, iColor, iIndex) {
+        if( iIndex === iUnderlyingIndex)
+          tResult = tDisplayedIndex;
+        var tValues = tCellMap[iName],
+            tNumUses = tValues ? tValues.cases.length : 0;
+        if (tNumUses > 0) {
+          tDisplayedIndex++;
+        }
+      });
+    }
+    return tResult;
+  },
+
   /**
     Go through each of the cells passing the given function, whose signature
       is ( iCellIndex, iName, iNumUses, iNumSelected )

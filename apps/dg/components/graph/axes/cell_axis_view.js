@@ -195,8 +195,10 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 return;
             SC.run(function() {
               if( tCategoryInCurrentCell !== tCellBeingDragged) {
-                tCellBeingDragged = swapCategories( tModel.get('attributeDescription'),
-                    tCategoryInCurrentCell, tCellBeingDragged);
+                tCellBeingDragged = tModel.underlyingIndexToDisplayedIndex(
+                    swapCategories(tModel.get('attributeDescription'),
+                        tModel.displayedCellIndexToUnderlyingIndex(tCategoryInCurrentCell),
+                        tModel.displayedCellIndexToUnderlyingIndex(tCellBeingDragged)));
               }
               this_.set('dragInfo', {
                 cellBeingDragged: tCellBeingDragged, position: tCurrentCoord,
