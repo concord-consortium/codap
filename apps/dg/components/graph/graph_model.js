@@ -351,6 +351,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.setPath('numberToggle.isEnabled', this.get('enableNumberToggle'));
     }.observes('enableNumberToggle'),
 
+    numberToggleLastModeDidChange: function() {
+      this.setPath('numberToggle.lastMode', this.get('numberToggleLastMode'));
+    }.observes('numberToggleLastMode'),
+
     enableMeasuresForSelectionDidChange: function() {
       var tEnabled = this.get('enableMeasuresForSelection');
       this.get('plots').forEach( function( iPlot) {

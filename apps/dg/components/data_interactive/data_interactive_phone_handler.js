@@ -1685,6 +1685,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             y2AttributeName: directMapping,
             legendAttributeName: directMapping,
             enableNumberToggle: directMapping,
+            numberToggleLastMode: directMapping,
             cannotClose: directMapping
           },
           guideView: {
