@@ -505,6 +505,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
 
           var tReturnValues = {};
+          tReturnValues.id = this.get('id');
           tReturnValues.title = diModel.get('title');
           tReturnValues.version = diModel.get('version');
           tReturnValues.dimensions = diModel.get('dimensions');
@@ -1685,6 +1686,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             y2AttributeName: directMapping,
             legendAttributeName: directMapping,
             enableNumberToggle: directMapping,
+            numberToggleLastMode: directMapping,
             cannotClose: directMapping
           },
           guideView: {
