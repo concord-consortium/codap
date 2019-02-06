@@ -122,6 +122,8 @@ DG.RemoteBoundaries.addBoundaries = function(boundaries) {
 };
 
 DG.RemoteBoundaries.registerDefaultBoundaries = function() {
+  var specsURL = DG.get('boundarySpecsUrl');
+  var baseURL = specsURL && specsURL.replace(/\/[^/]*$/, '/');
   if (!DG.currDocumentController().get('ready')) return;
 
   function addBoundaries() {
@@ -141,6 +143,10 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
       success: function (boundarySpecs, status, jqXHR) {
         DG.remoteBoundaries = [];
         boundarySpecs.forEach(function (spec) {
+          var url = spec.url;
+          if (!(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//'))) {
+            spec.url = baseURL + url;
+          }
           // eliminate unattached global warning
           var boundarySpec = $.extend({ allowDetached: true }, spec);
           DG.remoteBoundaries.push(DG.RemoteBoundaries.create(boundarySpec));
