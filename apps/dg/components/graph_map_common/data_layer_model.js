@@ -682,10 +682,47 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
      {DG.Attribute}        iAttrRefs.attribute -- Array of attributes to set for the legend
      */
     changeAttributeForLegend: function( iDataContext, iAttrRefs) {
-      this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
+
+      function newAttributeCollectionIsDescendant() {
+
+        function isDescendantOf(iColl1, iColl2) {
+          // Is iColl1 a descendant of iColl2
+          var tChildren = iColl2 && iColl2.get('children'),
+              found = false;
+          while (!found && tChildren) {
+            var tChild = tChildren.length >= 0 && tChildren[0];
+            if (tChild === iColl1)
+              found = true;
+            else tChildren = tChild && tChild.get('children');
+          }
+          return found;
+        }
+
+        // iAttrRefs.collection is actually a CollectionClient
+        var tNewCollection = iAttrRefs.collection.get('collection'),
+            tXCollection = dataConfiguration.getPath('xAttributeDescription.collectionClient.collection'),
+            tYCollection = dataConfiguration.getPath('yAttributeDescription.collectionClient.collection'),
+            tPolygonCollection = dataConfiguration.getPath('polygonAttributeDescription.collectionClient.collection'),
+            tChildMost;
+        if(tPolygonCollection)
+          tChildMost = tPolygonCollection;
+        else if( tXCollection && tYCollection){
+          tChildMost = isDescendantOf(tXCollection, tYCollection) ? tXCollection : tYCollection;
+        }
+        else {
+          tChildMost = tXCollection || tYCollection;
+        }
+        return isDescendantOf(tNewCollection, tChildMost);
+      }
 
       var dataConfiguration = this.get('dataConfiguration'),
           tStartingLegendAttrID = dataConfiguration.getPath('legendAttributeDescription.attributeID');
+
+      if( newAttributeCollectionIsDescendant())
+        return; // Because legend attribute has to be at same level as or higher than existing data attributes
+
+      this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
+
       if( iDataContext)
         dataConfiguration.set('dataContext', iDataContext);
       dataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', iAttrRefs);
