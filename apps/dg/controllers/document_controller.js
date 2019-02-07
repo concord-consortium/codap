@@ -1183,10 +1183,14 @@ DG.DocumentController = SC.Object.extend(
           executeNotification: DG.UndoHistory.makeComponentNotification('create', 'slider'),
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'slider'),
           execute: function () {
-            if (SC.none(this._global)) {
-              this._global = docController.createGlobalValue();
+            if (!(iComponent)) {
+              if (SC.none(this._global)) {
+                this._global = docController.createGlobalValue();
+              } else {
+                DG.globalsController.registerGlobalValue(this._global);
+              }
             } else {
-              DG.globalsController.registerGlobalValue(this._global);
+              this._global = DG.globalsController.getGlobalValueByName(iComponent.componentStorage.title)/* docController.DG.ArchiveUtils.getLinkID(iComponent.componentStorage, 'content')*/;
             }
 
             var tSliderModel = DG.SliderModel.create({content: this._global});

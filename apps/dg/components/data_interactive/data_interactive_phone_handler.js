@@ -255,7 +255,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         if (resourceSelector.global) {
-          result.global = DG.globalsController.getGlobalValueByName(resourceSelector.global);
+          result.global = DG.globalsController.getGlobalValueByName(resourceSelector.global) ||
+              DG.globalsController.getGlobalValueByID(resourceSelector.global);
         }
 
         if (resourceSelector.collection) {

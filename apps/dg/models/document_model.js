@@ -55,12 +55,7 @@ DG.Document = DG.BaseModel.extend(
       }
     },
     getGlobalValueByName: function (name) {
-      var key;
-      for (key in this.globalValues) {
-        if (this.globalValues[key].name === name) {
-          return this.globalValues[key];
-        }
-      }
+      return DG.globalsController.getGlobalValueByName(name);
     },
     // init: function () {},
     destroy: function () {
