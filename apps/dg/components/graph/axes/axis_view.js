@@ -259,14 +259,17 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             value: ''
           });
           this.appendChild( this._hiddenDragView);
-          DG.mainPage.docView.addObserver('selectedChildView', this, this.doDraw);
+          // A plain axis view will need to redraw each time the component becomes selected/unselected
+          if( this.constructor === DG.AxisView)
+            DG.mainPage.docView.addObserver('selectedChildView', this, this.doDraw);
         },
 
         /**
          * Make sure we don't hang around pointing to otherAxisView
          */
         destroy: function() {
-          DG.mainPage.docView.removeObserver('selectedChildView', this, this.doDraw);
+          if( this.constructor === DG.AxisView)
+            DG.mainPage.docView.removeObserver('selectedChildView', this, this.doDraw);
           this.otherAxisView = null;  // break circular references
           this.get('labelNodes').forEach( function( iNode) {
             iNode.remove();
