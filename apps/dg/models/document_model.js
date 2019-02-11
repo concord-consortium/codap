@@ -90,7 +90,8 @@ DG.Document = DG.BaseModel.extend(
           globalValues: [],
           appName: DG.APPNAME,
           appVersion: DG.VERSION,
-          appBuildNum: DG.BUILD_NUM
+          appBuildNum: DG.BUILD_NUM,
+          lang: SC.Locale.currentLanguage
         };
       DG.ObjectMap.forEach(this.globalValues, function (globalKey) {
         var globalValue = this.globalValues[globalKey];
