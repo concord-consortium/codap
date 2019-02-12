@@ -81,9 +81,9 @@ DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
 
   toArchive: function () {
     return {
-      name: this.name,
-      value: this.value,
-      guid: this.id
+      name: this.get('name'),
+      value: this.get('value'),
+      guid: this.get('id')
     };
   }
 });

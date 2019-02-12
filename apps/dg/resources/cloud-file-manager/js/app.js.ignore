@@ -16314,7 +16314,7 @@ ReadOnlyProvider = (function(superClass) {
   };
 
   ReadOnlyProvider.prototype._loadTree = function(callback) {
-    var complete;
+    var baseUrl, complete;
     complete = (function(_this) {
       return function(iTree) {
         return Promise.all(_this.promises).then((function() {
@@ -16348,12 +16348,13 @@ ReadOnlyProvider = (function(superClass) {
         };
       })(this));
     } else if (this.options.src) {
+      baseUrl = this.options.src.replace(/\/[^\/]*$/, '/');
       return $.ajax({
         dataType: 'json',
         url: this.options.src,
         success: (function(_this) {
           return function(iResponse) {
-            _this.tree = _this._convertJSONToMetadataTree(iResponse);
+            _this.tree = _this._convertJSONToMetadataTree(iResponse, baseUrl);
             if (_this.options.alphabetize) {
               _this.tree.sort(function(iMeta1, iMeta2) {
                 if (iMeta1.name < iMeta2.name) {
@@ -16382,8 +16383,8 @@ ReadOnlyProvider = (function(superClass) {
     }
   };
 
-  ReadOnlyProvider.prototype._convertJSONToMetadataTree = function(json, parent) {
-    var filename, i, item, itemContent, len, metadata, newFolderPromise, tree, type;
+  ReadOnlyProvider.prototype._convertJSONToMetadataTree = function(json, baseUrl, parent) {
+    var filename, i, item, itemContent, len, metadata, newFolderPromise, tree, type, url;
     if (parent == null) {
       parent = null;
     }
@@ -16392,12 +16393,16 @@ ReadOnlyProvider = (function(superClass) {
       for (i = 0, len = json.length; i < len; i++) {
         item = json[i];
         type = CloudMetadata.mapTypeToCloudMetadataType(item.type);
+        url = item.url || item.location;
+        if (baseUrl && !(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//'))) {
+          url = baseUrl + url;
+        }
         metadata = new CloudMetadata({
           name: item.name,
           type: type,
           description: item.description,
           content: item.content != null ? cloudContentFactory.createEnvelopedCloudContent(item.content) : void 0,
-          url: item.url || item.location,
+          url: url,
           parent: parent,
           provider: this,
           providerData: {
@@ -16409,14 +16414,14 @@ ReadOnlyProvider = (function(superClass) {
             return function(iItem, iMetadata) {
               return new Promise(function(resolve, reject) {
                 if (iItem.children != null) {
-                  iMetadata.providerData.children = _this._convertJSONToMetadataTree(iItem.children, iMetadata);
+                  iMetadata.providerData.children = _this._convertJSONToMetadataTree(iItem.children, baseUrl, iMetadata);
                   return resolve(iMetadata);
                 } else if (iItem.url != null) {
                   return $.ajax({
                     dataType: 'json',
                     url: iItem.url,
                     success: function(iResponse) {
-                      iMetadata.providerData.children = _this._convertJSONToMetadataTree(iResponse, iMetadata);
+                      iMetadata.providerData.children = _this._convertJSONToMetadataTree(iResponse, baseUrl, iMetadata);
                       if (_this.options.alphabetize || iItem.alphabetize) {
                         iMetadata.providerData.children.sort(function(iMeta1, iMeta2) {
                           if (iMeta1.name < iMeta2.name) {
@@ -16461,7 +16466,7 @@ ReadOnlyProvider = (function(superClass) {
           }
         });
         if (type === CloudMetadata.Folder) {
-          metadata.providerData.children = this._convertJSONToMetadataTree(itemContent, metadata);
+          metadata.providerData.children = this._convertJSONToMetadataTree(itemContent, baseUrl, metadata);
         }
         tree.push(metadata);
       }
