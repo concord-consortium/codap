@@ -402,6 +402,7 @@ DG.SliderController = DG.ComponentController.extend(
           storage.animationMode = sliderModel.get('animationMode');
           storage.restrictToMultiplesOf = sliderModel.get('restrictToMultiplesOf');
           storage.maxPerSecond = sliderModel.get('maxPerSecond');
+          storage.userTitle = sliderModel.get('userChangedTitle');
         }
         return storage;
       },
@@ -421,6 +422,7 @@ DG.SliderController = DG.ComponentController.extend(
           sliderModel.set('animationMode', iComponentStorage.animationMode);
           sliderModel.set('restrictToMultiplesOf', iComponentStorage.restrictToMultiplesOf);
           sliderModel.set('maxPerSecond', iComponentStorage.maxPerSecond);
+          sliderModel.set('userChangedTitle', iComponentStorage.userChangedTitle);
           var axisModel = sliderModel.get('axis');
           if (axisModel && !SC.none( iComponentStorage.lowerBound) && !SC.none( iComponentStorage.upperBound))
             axisModel.setLowerAndUpperBounds(iComponentStorage.lowerBound, iComponentStorage.upperBound);

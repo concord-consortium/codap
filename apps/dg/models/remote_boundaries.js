@@ -109,7 +109,6 @@ DG.RemoteBoundaries = DG.RemoteResource.extend({
   }
 });
 
-DG.remoteBoundaries = null;
 // determines whether boundaries are cached across document loads
 DG.enableBoundariesCache = false;
 
@@ -127,21 +126,21 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
   if (!DG.currDocumentController().get('ready')) return;
 
   function addBoundaries() {
-    if( DG.remoteBoundaries) {
-      DG.remoteBoundaries.forEach(function(remoteBoundary) {
+    if( DG.activeDocument.remoteBoundaries) {
+      DG.activeDocument.remoteBoundaries.forEach(function(remoteBoundary) {
         DG.RemoteBoundaries.addBoundaries(remoteBoundary);
       });
     }
   }
 
   // first time - create internal array of boundaries
-  if (!DG.remoteBoundaries) {
+  if (!DG.activeDocument.remoteBoundaries) {
     $.ajax({
       url: DG.get('boundarySpecsUrl'),
       context: this,
       dataType: 'json',
       success: function (boundarySpecs, status, jqXHR) {
-        DG.remoteBoundaries = [];
+        DG.activeDocument.remoteBoundaries = [];
         boundarySpecs.forEach(function (spec) {
           var url = spec.url;
           if (!(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//'))) {
@@ -149,7 +148,7 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
           }
           // eliminate unattached global warning
           var boundarySpec = $.extend({ allowDetached: true }, spec);
-          DG.remoteBoundaries.push(DG.RemoteBoundaries.create(boundarySpec));
+          DG.activeDocument.remoteBoundaries.push(DG.RemoteBoundaries.create(boundarySpec));
         });
         addBoundaries();
       }.bind(this),
@@ -158,8 +157,6 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
       }
     });
   }
-  else
-    addBoundaries();
 
 };
 
