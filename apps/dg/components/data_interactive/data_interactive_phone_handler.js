@@ -1778,7 +1778,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             };
             // var name = iValues.name || iValues.title;
             var success = true;
-            var component, errorMessage;
+            var component, errorMessage,global;
 
             // if (SC.none(name)) {
             //   success = false;
@@ -1819,8 +1819,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               if (tValues.type === 'caseTable') {
                 mapTableLinkPropertiesFromDI(tValues, props.componentStorage);
               }
-              component = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
-              errorMessage = !component && 'Component creation failed';
+              if (tValues.type === 'slider' && tValues.globalValueName) {
+                global = DG.globalsController.getGlobalValueByName(tValues.globalValueName);
+                if (global) {
+                  DG.ArchiveUtils.addLink(props.componentStorage, "model", global);
+                  component = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
+                  errorMessage = !component && 'Component creation failed';
+                } else {
+                  errorMessage = "Global not found: '%@'".loc(tValues.globalValueName);
+                }
+              }
             }
 
             if (success && component) {
