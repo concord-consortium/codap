@@ -1,6 +1,6 @@
 /*global require:true, CodeMirror: true, React:true, ReactDOM:true, Popper:true, Tooltip:true, Papa:true */
-/*global iframePhone:true, L:true, deepEqual:true, Promise:true, pluralize:true, moment:true */
-/* exported CodeMirror, React, ReactDOM, Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, moment */
+/*global iframePhone:true, L:true, deepEqual:true, Promise:true, pluralize:true, moment:true, nanoid:true */
+/* exported CodeMirror, React, ReactDOM, Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, moment, nanoid */
 CodeMirror = require('codemirror/lib/codemirror.js');
 require('codemirror/lib/codemirror.css');
 require('codemirror/addon/display/placeholder.js');
@@ -19,3 +19,4 @@ deepEqual = require('deep-equal');
 Promise = require('es6-promise').Promise;
 pluralize = require('pluralize');
 moment = require('moment');
+nanoid = require('nanoid');

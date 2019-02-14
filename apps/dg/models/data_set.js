@@ -28,11 +28,9 @@ sc_require('models/data_item');
  * Attribute id.
  * Item indices, once assigned to a DataItem, are not reused.
  */
-
+/*global nanoid: true */
 DG.DataSet = SC.Object.extend((function() // closure
 /** @scope DG.DataSet.prototype */ {
-
-  var nextDataItemID = 0;
 
   return {
     /**
@@ -156,11 +154,11 @@ DG.DataSet = SC.Object.extend((function() // closure
         dataItem = data;
         if (!dataItem.id) {
           DG.logWarn("DG.DataSet.addDataItem: Received DataItem without ID!");
-          dataItem.id = nextDataItemID++;
+          dataItem.id = nanoid(16);
         }
       } else if (typeof data === 'object') {
         dataItem = DG.DataItem.create({
-          id: nextDataItemID++,
+          id: nanoid(16),
           dataSet: this,
           values: DG.DataUtilities.canonicalizeAttributeValues(this.attrs, data)
         });
@@ -343,7 +341,7 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     /**
-     * Retrieves an existing DataItem.
+     * Retrieves an existing DataItem by index.
      *
      * @param {integer} itemIndex
      * @return {DG.DataItem|undefined}
@@ -473,7 +471,7 @@ DG.DataSet = SC.Object.extend((function() // closure
       return this.dataItems.filter(function (item) {
           return item.setAside;
         }).map(function (item) {
-          return item.toArchive().values;
+          return {id: item.id, values: item.toArchive().values};
         });
       },
     /**
