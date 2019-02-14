@@ -73,8 +73,12 @@ DG.SliderModel = SC.Object.extend(
     id: null,
     idBinding: '*content.id',
   
-    name: null,
-    nameBinding: '*content.name',
+    name: function (key, value) {
+      if (!SC.none(value)) {
+        this.content.set('name', value);
+      }
+      return this.content.get('name');
+    }.property(),
   
     defaultTitle: function() {
       return this.getPath('content.name');
@@ -84,6 +88,18 @@ DG.SliderModel = SC.Object.extend(
       this.notifyPropertyChange('defaultTitle');
     }.observes('*content.name'),
 
+    _title: null,
+    title: function (key, value) {
+      if (!SC.none(value)) {
+        this._title = value;
+      }
+      return this._title || this.get('defaultTitle');
+    }.property(),
+
+    titleDidChange: function () {
+      this.set('userChangedTitle', true);
+    }.observes('title'),
+
     value: null,
     valueBinding: '*content.value',
 
@@ -91,6 +107,7 @@ DG.SliderModel = SC.Object.extend(
     animationMode: DG.SliderTypes.EAnimationMode.eOnceOnly,
     restrictToMultiplesOf: null,
     maxPerSecond: null,
+    userChangedTitle: false, // user changed the title
 
     /**
      * DG.GraphAnimator

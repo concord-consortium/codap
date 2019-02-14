@@ -500,7 +500,8 @@ DG = SC.Application.create((function () // closure
      * county, congressional district, PUMA) that CODAP supports.
      */
     boundarySpecsUrl: function() {
-      return this.get('CODAP_SERVER') + '/codap-data/boundaries/default_boundary_specs.json';
+      return getUrlParameter('boundarySpec')
+          || this.get('CODAP_SERVER') + '/codap-data/boundaries/default_boundary_specs.json';
     }.property(),
 
     /**

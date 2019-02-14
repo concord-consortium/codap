@@ -55,12 +55,7 @@ DG.Document = DG.BaseModel.extend(
       }
     },
     getGlobalValueByName: function (name) {
-      var key;
-      for (key in this.globalValues) {
-        if (this.globalValues[key].name === name) {
-          return this.globalValues[key];
-        }
-      }
+      return DG.globalsController.getGlobalValueByName(name);
     },
     // init: function () {},
     destroy: function () {
@@ -90,7 +85,8 @@ DG.Document = DG.BaseModel.extend(
           globalValues: [],
           appName: DG.APPNAME,
           appVersion: DG.VERSION,
-          appBuildNum: DG.BUILD_NUM
+          appBuildNum: DG.BUILD_NUM,
+          lang: SC.Locale.currentLanguage
         };
       DG.ObjectMap.forEach(this.globalValues, function (globalKey) {
         var globalValue = this.globalValues[globalKey];

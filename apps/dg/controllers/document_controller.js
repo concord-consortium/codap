@@ -354,10 +354,6 @@ DG.DocumentController = SC.Object.extend(
 
           this.notificationManager = DG.NotificationManager.create({});
 
-          this.invokeLater(function () {
-            DG.RemoteBoundaries.registerDefaultBoundaries();
-          });
-
           // Create the individual DataContexts
           this.restoreDataContexts();
 
@@ -373,6 +369,10 @@ DG.DocumentController = SC.Object.extend(
           this.set('changeCount', 0);
           this.updateSavedChangeCount();
           this.set('ready', true);
+
+          this.invokeLater(function () {
+            DG.RemoteBoundaries.registerDefaultBoundaries();
+          });
         } catch (e) {
           DG.logError(e);
         }
@@ -1183,10 +1183,15 @@ DG.DocumentController = SC.Object.extend(
           executeNotification: DG.UndoHistory.makeComponentNotification('create', 'slider'),
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'slider'),
           execute: function () {
-            if (SC.none(this._global)) {
-              this._global = docController.createGlobalValue();
+            var globalName = iComponent && (iComponent.componentStorage.name || iComponent.componentStorage.title);
+            if (!iComponent || !globalName) {
+              if (SC.none(this._global)) {
+                this._global = docController.createGlobalValue();
+              } else {
+                DG.globalsController.registerGlobalValue(this._global);
+              }
             } else {
-              DG.globalsController.registerGlobalValue(this._global);
+              this._global = globalName;
             }
 
             var tSliderModel = DG.SliderModel.create({content: this._global});
