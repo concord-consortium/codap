@@ -38,6 +38,7 @@ DG.InspectorPickerPane = SC.PickerPane.extend(
       removedByClickInButton: false,
 
       isModal: false,
+      acceptsKeyPane: false,  // So that we don't prevent text entry elsewhere
 
       init: function () {
         sc_super();
