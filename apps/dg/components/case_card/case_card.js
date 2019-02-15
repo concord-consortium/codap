@@ -348,20 +348,19 @@ DG.React.ready(function () {
             /**
              * --------------------------Body of renderAttribute-----------------
              */
-            var tDescription = iAttr.get('description') || '',
+            var tName = iAttr.get('name'),
+                tDescription = iAttr.get('description') || '',
                 tAttrID = iAttr.get('id'),
                 tUnit = iAttr.get('unit') || '',
-                tUnitWithParens = '',
                 tHasFormula = iAttr.get('hasFormula'),
                 tFormula = iAttr.get('formula'),
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
                 tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID),
-                tType = iAttr.get('type');
+                tType = iAttr.get('type'),
+                tTitle = '';
             if( tValue && tValue.jsonBoundaryObject)
               tType = 'boundary';								
             this.state.attrIndex++;
-            if (isNotEmpty(tUnit))
-              tUnitWithParens = ' (' + tUnit + ')';
 
             var tColorValueField,
                 tQualitativeValueField,
@@ -422,11 +421,16 @@ DG.React.ready(function () {
             } else if (SC.none(tValue) || (typeof tValue === 'object')) {
               tValue = '';
             }
-            tFormula = isNotEmpty(tFormula) ? ((isNotEmpty(tDescription) || isNotEmpty(tUnit)) ? '\n' : '')
-                + tFormula : '';
+            tTitle = 'DG.CaseCard.attrHintPlain'.loc( tName);
+            if( isNotEmpty( tUnit))
+              tTitle = 'DG.CaseCard.attrHintUnitsOnly'.loc( tTitle, tUnit);
+            if( isNotEmpty( tDescription))
+              tTitle = 'DG.CaseCard.attrHintDescription'.loc( tTitle, tDescription);
+            if( isNotEmpty( tFormula))
+              tTitle = 'DG.CaseCard.attrHintFormula'.loc( tTitle, tFormula);
             var tDiv = div({
                   className: 'react-data-card-attribute',
-                  title: tDescription + tUnitWithParens + tFormula,
+                  title: tTitle,
                   onMouseDown: handleMouseDown,
                   onMouseUp: handleMouseUp,
                   onMouseLeave: handleMouseLeave,

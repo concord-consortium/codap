@@ -125,6 +125,10 @@ SC.stringsFor("en", {
     "DG.CaseCard.navPrevCase": "Select and show previous case",
     "DG.CaseCard.navFirstCase": "Select and show first case",
     "DG.CaseCard.navLastCase": "Select and show last case",
+    "DG.CaseCard.attrHintPlain": "%@",
+    "DG.CaseCard.attrHintUnitsOnly": "%@ in %@",
+    "DG.CaseCard.attrHintDescription": "%@: %@",
+    "DG.CaseCard.attrHintFormula": "%@\n%@",
 
     // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",
