@@ -726,5 +726,9 @@ SC.stringsFor("he", {
     "DG.AttributeFormat.DatePrecision.day": "MMM D, YYYY",
     "DG.AttributeFormat.DatePrecision.hour": "MMM D, YYYY HH:00",
     "DG.AttributeFormat.DatePrecision.minute": "MMM D, YYYY HH:mm",
-    "DG.AttributeFormat.DatePrecision.second": "MMM D, YYYY HH:mm:ss"
+    "DG.AttributeFormat.DatePrecision.second": "MMM D, YYYY HH:mm:ss",
+    "DG.CaseCard.attrHintPlain": "%@",
+    "DG.CaseCard.attrHintUnitsOnly": "%@ in %@",
+    "DG.CaseCard.attrHintDescription": "%@: %@",
+    "DG.CaseCard.attrHintFormula": "%@\n%@"
 });
