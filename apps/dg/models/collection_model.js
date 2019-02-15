@@ -368,6 +368,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var dataSet = this.get('dataSet');
       var values = DG.DataUtilities.canonicalizeAttributeValues(this.attrs, iProperties.values);
       var parent = iProperties.parent;
+      var itemID = iProperties.itemID;
 
       // Relate it to its parent collection
       iProperties.collection = this;
@@ -379,11 +380,15 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         // if parent and parent has children create item with parent's values and new values
         // if parent and parent has no children add new values to parent item
         if (SC.none(parent)) {
-          item = dataSet.addDataItem(values);
+          item = dataSet.addDataItem(DG.DataItem.create({id: itemID, values: values}));
         } else {
           parent = DG.store.resolve(parent);
           if (parent.get('children').length > 0) {
-            item = dataSet.addDataItem(joinValues(values, parent.item));
+            if (!SC.none(itemID)) {
+              item = dataSet.addDataItem(DG.DataItem.create({id: itemID, values: joinValues(values, parent.item)}));
+            } else {
+              item = dataSet.addDataItem(joinValues(values, parent.item));
+            }
           } else {
             item = parent.get('item');
             item.updateData(values);

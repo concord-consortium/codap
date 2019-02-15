@@ -21,6 +21,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
+/*global nanoid */
 
 /**
     @namespace Data value utility functions
@@ -262,4 +263,13 @@ DG.DataUtilities.compareDescending = function(value1, value2) {
     case kTypeError: return strCompareDescending(String(v1.value), String(v2.value));
     default: return 0;  // other types are not ordered
   }
+};
+
+/**
+ * Create a globally unique id, or really globally wildly improbable id.
+ *
+ * @return {string}
+ */
+DG.DataUtilities.createUniqueID = function () {
+  return 'id:' + nanoid(16);
 };

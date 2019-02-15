@@ -75,9 +75,9 @@ DG.SliderModel = SC.Object.extend(
   
     name: function (key, value) {
       if (!SC.none(value)) {
-        this.content.set('name', value);
+        this.setPath('content.name', value);
       }
-      return this.content.get('name');
+      return this.getPath('content.name');
     }.property(),
   
     defaultTitle: function() {

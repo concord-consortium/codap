@@ -27,6 +27,7 @@ DG.DataContextUtilities = {
       id: iAttribute.get('id'),
       name: iAttribute.get('name'),
       type: iAttribute.get('type'),
+      cid: iAttribute.get('cid'),
       unit: iAttribute.get('unit'),
       editable: iAttribute.get('editable'),
       precision: iAttribute.get('precision'),

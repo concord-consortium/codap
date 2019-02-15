@@ -109,6 +109,12 @@ DG.Attribute = DG.BaseModel.extend(
       type: null,
 
       /**
+       * Globally unique id supporting collaboration.
+       * @property {String}
+       */
+      cid: null,
+
+      /**
        * A relational link back to the parent collection.
        * @property {DG.CollectionRecord}
        */
@@ -484,6 +490,7 @@ DG.Attribute = DG.BaseModel.extend(
           name: this.get('name'),
           type: this.type,
           title: this.get('title'),
+          cid: this.get('cid'),
           defaultMin: this.defaultMin,
           defaultMax: this.defaultMax,
           description: this.get('description'),
@@ -537,6 +544,11 @@ DG.Attribute.createAttribute = function (iProperties) {
     if(DG.ObjectMap.length(iProperties.categoryMap) > 0)
       iProperties._categoryMap = iProperties.categoryMap;
     delete iProperties.categoryMap;
+  }
+
+  // create collaborative id,  if not already there.
+  if (!iProperties.cid) {
+    iProperties.cid = DG.DataUtilities.createUniqueID();
   }
 
   iProperties.collection = collection;

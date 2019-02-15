@@ -317,6 +317,7 @@ DG.Case = DG.BaseModel.extend((function() {
       result = {
         parent: (this.get('parent') && this.get('parent').id)  || undefined,
         guid: this.id,
+        itemID: this.item.id,
         values: this.get('archivableValues')
       };
       return result;
