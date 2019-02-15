@@ -94,6 +94,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           global: this.handleGlobal,
           globalList: this.handleGlobalList,
           item: this.handleItems,
+          itemByID: this.handleItemByID,
           itemByCaseID: this.handleItemByCaseID,
           itemSearch: this.handleItemSearch,
           interactiveFrame: this.handleInteractiveFrame,
@@ -300,7 +301,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (resourceSelector.item) {
           dataSet = result.dataContext && result.dataContext.get('dataSet');
           result.item = dataSet && serializeItem(dataSet,
-              dataSet.getDataItemByID(Number(resourceSelector.item)));
+              dataSet.getDataItem(Number(resourceSelector.item)));
+        }
+
+        if (resourceSelector.itemByID) {
+          dataSet = result.dataContext && result.dataContext.get('dataSet');
+          result.itemByID = dataSet &&
+              serializeItem(dataSet,dataSet.getDataItemByID(resourceSelector.itemByID));
         }
 
         if (resourceSelector.itemSearch) {
@@ -1445,6 +1452,70 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
+      handleItemByID:{
+        get: function (iResources) {
+          var success = (iResources.itemByID !== null),
+              item;
+
+          if (success) {
+            item = iResources.itemByID;
+          }
+          return {
+            success: success,
+            values: item
+          };
+        },
+
+        'update': function (iResources, iValues) {
+          var item = iResources.itemByID;
+          // var itemID = item && item.id;
+          // var newValues = item.values;
+          var context = iResources.dataContext;
+          var createdCaseIDs, deletedCaseIDs, caseChanges;
+          if (item !== null) {
+            caseChanges = context.applyChange({
+              operation: 'updateItems',
+              items: {id: item.id, values: iValues},
+              requester: this.get('id')
+            });
+            if (caseChanges) {
+              createdCaseIDs = caseChanges.createdCases? caseChanges.createdCases.map(function (iCase) {return iCase.id; }): [];
+              deletedCaseIDs = caseChanges.deletedCases? caseChanges.deletedCases.map(function (iCase) {return iCase.id; }): [];
+              return {
+                success: true,
+                values: {
+                  createdCases: createdCaseIDs,
+                  deletedCases: deletedCaseIDs
+                }
+              };
+            }
+          } else {
+            return { success: false, values: {error: "item not found"}};
+          }
+        },
+
+        'delete': function (iResources) {
+          var item = iResources.itemByID;
+          var items = [item];
+          var context = iResources.dataContext;
+          var success = (item !== null);
+          var deletedItems;
+          if (success) {
+            context.applyChange({
+              operation: 'deleteItems',
+              items: items,
+              requester: this.get('id')
+            });
+            deletedItems = context.deleteItems(items);
+            if (deletedItems) {
+              return {success: true, values: deletedItems && deletedItems.map(function (item) {return item.id;})};
+            }
+          } else {
+            return {success: success};
+          }
+        }
+
+      },
       handleItemByCaseID: {
         get: function (iResources) {
           var success = (iResources.itemByCaseID !== null),
