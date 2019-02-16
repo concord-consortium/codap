@@ -884,6 +884,7 @@ DG.GraphView = SC.View.extend(
         var tMulti = DG.AxisMultiTarget.create(),
             tExtent = tMulti.get('desiredExtent');
         this.appendChild(tMulti);
+        tMulti.set('dataConfiguration', this.getPath('model.dataConfiguration'));
         tMulti.set('attributeDescription', this.getPath('model.yAxis.attributeDescription'));
         tMulti.set('otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
         //tMulti.set('layout', { left: 0, top: 0, width: tExtent.width, height: tExtent.height });
