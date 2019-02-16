@@ -38,6 +38,8 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
     dragIsInside: false,
 
+    dataConfiguration: null,
+
     /**
      We're adding attributes to this description
      @property { DG.AttributeDescription }
@@ -89,7 +91,8 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     },
 
     /**
-     * A dragged attribute is valid for a drop if there is already at least one attribute
+     * For adding a numeric attribute to the y-axis:
+     * A dragged attribute is valid for such a drop if there is already at least one attribute
      * and the dragged attribute is not one of them. There must also be an attribute on the
      * 'other' axis since we only support multiple attributes for scatter plots for now.
      * @param iDrag
@@ -97,14 +100,19 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
      */
     isValidAttribute: function( iDrag) {
       var tDragAttr = iDrag.data.attribute,
-          tCurrAttr = this.get('plottedAttribute' ),
+          tDragAttrIsNominal = tDragAttr.isNominal(),
+          tCurrAttr = this.get('plottedAttribute'),
           tOtherAttr = this.get('otherPlottedAttribute'),
-          tOtherDescr = this.get('otherAttributeDescription');
-      return (tOtherAttr !== DG.Analysis.kNullAttribute) &&
-          (tCurrAttr !== DG.Analysis.kNullAttribute) &&
-          (tCurrAttr !== tDragAttr) &&
-          !tDragAttr.isNominal() &&
-          tOtherDescr && tOtherDescr.get('isNumeric');
+          tOtherDescr = this.get('otherAttributeDescription'),
+          tValidForScatterplot = (tOtherAttr !== DG.Analysis.kNullAttribute) &&
+              (tCurrAttr !== DG.Analysis.kNullAttribute) &&
+              (tCurrAttr !== tDragAttr) &&
+              !tDragAttrIsNominal &&
+              tOtherDescr && tOtherDescr.get('isNumeric'),
+          tConfigurationHasAtLeastOneAttribute = this.get('dataConfiguration').hasAtLeastOneAttributeAssigned(),
+          tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute;
+
+      return tValidForScatterplot || tValidForPlotSplit;
     },
 
     // Draw an orange frame to show we're a drop target.
