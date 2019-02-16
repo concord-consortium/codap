@@ -484,6 +484,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
         this_.rescaleAxesFromData(true, true);
       }
 
+      function removeAllButZerothAttribute() {
+        var tNumAttributes = tDataConfiguration.getPath(tTargetDescKey + '.attributes').length;
+        while( tNumAttributes > 1) {
+          this_.removeAttribute(tTargetDescKey, tTargetAxisKey, --tNumAttributes);
+        }
+      }
+
       switch (iOrientation) {
         case 'horizontal':
           tTargetDescKey = 'xAttributeDescription';
@@ -512,6 +519,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
         switchAxes();
       }
       else {
+        if( tTargetAxisKey === 'yAxis')
+          removeAllButZerothAttribute();
         tDataConfiguration.set('dataContext', iDataContext);
         tDataConfiguration.setAttributeAndCollectionClient(tTargetDescKey, iAttrRefs);
 
