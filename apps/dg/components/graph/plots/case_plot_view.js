@@ -164,6 +164,15 @@ DG.CasePlotView = DG.PlotView.extend(
       drawData: function () {
         if (!this.get('paper') || !this.get('model') || !this.getPath('model.cases') || this.getPath('model.isAnimating'))
           return;
+
+        if( this.getPath('model.isAnimating'))
+          return; // Points are animating to new position
+
+        if( !SC.none( this.get('transferredElementCoordinates'))) {
+          this.animateFromTransferredElements();
+          return;
+        }
+
         this.setPath('model.isAnimating', true);
 
         function dataCoordinate(iValue, iMin, iMax) {
