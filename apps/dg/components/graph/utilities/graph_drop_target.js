@@ -42,6 +42,10 @@ DG.GraphDropTarget =
    */
   dragData:null,
 
+  getDataConfiguration: function() {
+    return this.get('dataConfiguration') || this.getPath('model.dataConfiguration');
+  },
+
   /**
    * Override SC.View for CODAP drop targets.
    * [CODAP fix] When the CODAP div is not at (0, 0) and when the page is scrolled,
@@ -79,6 +83,30 @@ DG.GraphDropTarget =
     return YES;
   },
 
+  isValidAttributeForPlotSplit: function( iDrag) {
+    var tDragAttr = iDrag.data.attribute,
+        tDragAttrIsNominal = tDragAttr.isNominal(),
+        tDataConfiguration = this.getDataConfiguration(),
+        tConfigurationHasAtLeastOneAttribute = tDataConfiguration &&
+            tDataConfiguration.hasAtLeastOneAttributeAssigned(),
+        tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute;
+    return tValidForPlotSplit;
+  },
+
+  isValidAttributeForScatterplot: function( iDrag) {
+    var tDragAttr = iDrag.data.attribute,
+        tDragAttrIsNominal = tDragAttr.isNominal(),
+        tCurrAttr = this.get('plottedAttribute'),
+        tOtherAttr = this.get('otherPlottedAttribute'),
+        tOtherDescr = this.get('otherAttributeDescription'),
+        tValidForScatterplot = (tOtherAttr !== DG.Analysis.kNullAttribute) &&
+            (tCurrAttr !== DG.Analysis.kNullAttribute) &&
+            (tCurrAttr !== tDragAttr) &&
+            !tDragAttrIsNominal &&
+            tOtherDescr && tOtherDescr.get('isNumeric');
+    return tValidForScatterplot;
+  },
+
   isValidAttribute: function( iDrag) {
     var tDragAttr = iDrag.data.attribute,
         tCurrAttr = this.get('plottedAttribute');
@@ -87,45 +115,51 @@ DG.GraphDropTarget =
 
   // Draw an orange frame to show we're a drop target.
   dragStarted: function( iDrag) {
-    var kWidth = 3,
-        tPaper = this.get('paper' ),
-        tFrame;
-
+    var tPaper = this.get('paper' );
     if (!tPaper) return;
+
+    var kWidth = 3,
+        tFrame,
+        tDraggedName = iDrag.data.attribute.get('name'),
+        tAttrName = this.getPath('plottedAttribute.name'),
+        tDropHint;
 
     function isEmpty( iString) {
       return SC.empty( iString) || iString === 'undefined';
     }
 
     if( this.isValidAttribute( iDrag)) {
-      if( this.get('orientation') === 'vertical2') {
+      if (this.get('orientation') === 'vertical2') {
         this.set('isVisible', true);
         var tParentView = this.get('parentView');
-        if( tParentView)
-          tParentView.makeSubviewFrontmost( this);
+        if (tParentView)
+          tParentView.makeSubviewFrontmost(this);
+        tDropHint = 'DG.GraphView.splitPlotHorizontally'.loc( tDraggedName);
+      }
+      else {
+        tDropHint = isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
+            'DG.GraphView.replaceAttribute'.loc(tAttrName, tDraggedName);
       }
 
-      tFrame = { x: kWidth, y: kWidth,
-                    width: tPaper.width - 2 * kWidth,
-                    height: tPaper.height - 2 * kWidth };
+      tFrame = {
+        x: kWidth, y: kWidth,
+        width: tPaper.width - 2 * kWidth,
+        height: tPaper.height - 2 * kWidth
+      };
 
-      if( this.get('isVertical')) {
+      if (this.get('isVertical')) {
         tFrame.y += 18 + 2 * kWidth;
         tFrame.height -= 18 + 2 * kWidth;
       }
 
-      if( SC.none( this.borderFrame)) {
+      if (SC.none(this.borderFrame)) {
         this.borderFrame = tPaper.path('')
-          .addClass( this.kDropFrameClass);
+            .addClass(this.kDropFrameClass);
       }
-      this.borderFrame.attr( { path:  DG.RenderingUtilities.pathForFrame( tFrame) } )
-                      .show();
+      this.borderFrame.attr({path: DG.RenderingUtilities.pathForFrame(tFrame)})
+          .show();
 
-      var tDraggedName = iDrag.data.attribute.get('name' ),
-          tAttrName = this.getPath('plottedAttribute.name' ),
-          tString = isEmpty( tAttrName) ? this.get('blankDropHint' ).loc(tDraggedName) :
-                                          'DG.GraphView.replaceAttribute'.loc( tAttrName, tDraggedName );
-      this.set('dropHintString', tString);
+      this.set('dropHintString', tDropHint);
     }
   },
 

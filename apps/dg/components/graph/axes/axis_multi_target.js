@@ -93,38 +93,28 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     /**
      * For adding a numeric attribute to the y-axis:
      * A dragged attribute is valid for such a drop if there is already at least one attribute
-     * and the dragged attribute is not one of them. There must also be an attribute on the
-     * 'other' axis since we only support multiple attributes for scatter plots for now.
+     * and the dragged attribute is not one of them.
+     * If the dragged attribute is not nominal there must also be an attribute on the
+     * 'other' axis since we only support multiple numeric attributes for scatter plots for now.
      * @param iDrag
      * @return {Boolean}
      */
     isValidAttribute: function( iDrag) {
-      var tDragAttr = iDrag.data.attribute,
-          tDragAttrIsNominal = tDragAttr.isNominal(),
-          tCurrAttr = this.get('plottedAttribute'),
-          tOtherAttr = this.get('otherPlottedAttribute'),
-          tOtherDescr = this.get('otherAttributeDescription'),
-          tValidForScatterplot = (tOtherAttr !== DG.Analysis.kNullAttribute) &&
-              (tCurrAttr !== DG.Analysis.kNullAttribute) &&
-              (tCurrAttr !== tDragAttr) &&
-              !tDragAttrIsNominal &&
-              tOtherDescr && tOtherDescr.get('isNumeric'),
-          tConfigurationHasAtLeastOneAttribute = this.get('dataConfiguration').hasAtLeastOneAttributeAssigned(),
-          tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute;
-
-      return tValidForScatterplot || tValidForPlotSplit;
+      return this.isValidAttributeForScatterplot( iDrag) || this.isValidAttributeForPlotSplit( iDrag);
     },
 
     // Draw an orange frame to show we're a drop target.
     dragStarted:function ( iDrag ) {
       var kPadding = 3,
-          kPlusWidth = 24;
+          kPlusWidth = 24,
+          tIsValidForScatterplot = this.isValidAttributeForScatterplot( iDrag),
+          tIsValidForPlotSplit = this.isValidAttributeForPlotSplit( iDrag);
 
       function pathForPlus() {
         return 'M-6,-18 h6 v6 h6 v6 h-6 v6 h-6 v-6 h-6 v-6 h6 v-6Z';
       }
 
-      if( this.isValidAttribute( iDrag ) ) {
+      if( tIsValidForScatterplot || tIsValidForPlotSplit ) {
         this.set('isVisible', true);
         var tParentView = this.get('parentView');
         if( tParentView)
@@ -141,7 +131,9 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           .show();
 
         var tDraggedName = iDrag.data.attribute.get( 'name' ),
-            tString = 'DG.GraphView.addAttribute'.loc( tDraggedName );
+            tString = tIsValidForScatterplot ?
+                'DG.GraphView.addAttribute'.loc( tDraggedName ) :
+                'DG.GraphView.splitPlotVertically'.loc( tDraggedName);
         this.set( 'dropHintString', tString );
       }
     },

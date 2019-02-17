@@ -712,6 +712,8 @@
     // DG.GraphView
     "DG.GraphView.replaceAttribute": "Replace %@ with %@",
     "DG.GraphView.addAttribute": "Add attribute %@",
+    "DG.GraphView.splitPlotVertically": "Split vertically by attribute %@",
+    "DG.GraphView.splitPlotHorizontally": "Split horizontally by attribute %@",
     "DG.GraphView.addToEmptyPlace": "Create axis with %@",
     "DG.GraphView.addToEmptyX": "Create x-axis with %@",
     "DG.GraphView.dropInPlot": "Color points by values of %@",
