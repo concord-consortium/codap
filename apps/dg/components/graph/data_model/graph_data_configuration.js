@@ -28,17 +28,65 @@ sc_require('components/graph_map_common/plot_data_configuration');
 DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
 /** @scope DG.GraphDataConfiguration.prototype */ 
 {
+  topSplitCollectionClient: function () {
+    return this.getPath('topSplitAttributeDescription.collectionClient');
+  }.property(),
+
+  rightSplitCollectionClient: function () {
+    return this.getPath('rightSplitAttributeDescription.collectionClient');
+  }.property(),
+
+  topSplitCollectionDidChange: function () {
+    this.notifyPropertyChange('topSplitCollectionClient');
+  }.observes('*topSplitAttributeDescription.collectionClient'),
+
+  rightSplitCollectionDidChange: function () {
+    this.notifyPropertyChange('rightSplitCollectionClient');
+  }.observes('*rightSplitAttributeDescription.collectionClient'),
+
+  /**
+   @property { DG.AttributePlacementDescription }
+   */
+  topSplitAttributeDescription: function (iKey, iValue) {
+    return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eTopSplit);
+  }.property(),
+
+  /**
+   @property { DG.AttributePlacementDescription }
+   */
+  rightSplitAttributeDescription: function (iKey, iValue) {
+    return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eRightSplit);
+  }.property(),
+
+  topSplitAttributeID: function () {
+    return this.getPath('topSplitAttributeDescription.attributeID');
+  }.property(),
+
+  rightSplitAttributeID: function () {
+    return this.getPath('rightSplitAttributeDescription.attributeID');
+  }.property(),
+
+  topSplitAttributeIDDidChange: function () {
+    this.notifyPropertyChange('topSplitAttributeID');
+  }.observes('*topSplitAttributeDescription.attributeID'),
+
+  rightSplitAttributeIDDidChange: function () {
+    this.notifyPropertyChange('rightSplitAttributeID');
+  }.observes('*rightSplitAttributeDescription.attributeID'),
+
   /**
    * It is in initialization that we specialize from base class
    */
   init: function() {
 
     var attributeDescriptions = {
-                                  x: DG.AttributePlacementDescription.create(),
-                                  y: DG.AttributePlacementDescription.create(),
-                                  y2: DG.AttributePlacementDescription.create(),
-                                  legend: DG.AttributePlacementDescription.create()
-                                },
+          x: DG.AttributePlacementDescription.create(),
+          y: DG.AttributePlacementDescription.create(),
+          y2: DG.AttributePlacementDescription.create(),
+          legend: DG.AttributePlacementDescription.create(),
+          topSplit: DG.AttributePlacementDescription.create(),
+          rightSplit: DG.AttributePlacementDescription.create()
+        },
         tPlace,
         tDefaults = DG.currDocumentController().collectionDefaults();
 
@@ -110,10 +158,90 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY2][0] = attributeDescriptions.y2;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
+    this.attributesByPlace[ DG.GraphTypes.EPlace.eTopSplit][0] = attributeDescriptions.topSplit;
+    this.attributesByPlace[ DG.GraphTypes.EPlace.eRightSplit][0] = attributeDescriptions.rightSplit;
+  },
+
+  destroy: function () {
+    var topSplitDesc = this.get('topSplitAttributeDescription'),
+        rightSplitDesc = this.get('rightSplitAttributeDescription');
+
+    if (topSplitDesc)
+      topSplitDesc.removeObserver('collectionClient', this, 'topSplitCollectionDidChange');
+    if (rightSplitDesc)
+      rightSplitDesc.removeObserver('collectionClient', this, 'rightSplitCollectionDidChange');
+
+    sc_super();
   },
 
   legendColorMapDidChange: function() {
     this._casesCache = null;
+  },
+
+  /**
+   Returns true if this graph references attributes in collections with aggregate
+   functions, which is useful when determining whether a graph needs to be redrawn.
+   @property   {Boolean}
+   */
+  hasAggregates: function () {
+    var tResult = sc_super();
+    if( !tResult) {
+      var collectionIDs = {},
+          foundID,
+
+          considerCollection = function (iDescriptor) {
+            var collection = this.getPath(iDescriptor + 'AttributeDescription.collectionClient'),
+                collectionID = collection && collection.get('id');
+            if (!SC.none(collectionID))
+              collectionIDs[collectionID] = collection;
+          }.bind(this);
+
+      // Consider each of our split collections in turn
+      considerCollection('topSplit');
+      considerCollection('rightSplit');
+
+      // Search through our set of collections, stopping on the first one that has aggregates.
+      foundID = DG.ObjectMap.findKey(collectionIDs,
+          function (iCollectionID, iCollection) {
+            return iCollection && iCollection.get('hasAggregates');
+          });
+      tResult = !SC.none(foundID);
+    }
+    return tResult;
+  }.property(),
+
+  /**
+   * @property {Boolean}
+   */
+  hasSplitAttribute: function() {
+    return !!this.get('rightSplitAttributeID') || !!this.get('topSplitAttributeID');
+  }.property( 'rightSplitAttributeID', 'topSplitAttributeID'),
+
+  attributeAssignmentDidChange: function () {
+    sc_super();
+  }.observes('.topSplitAttributeDescription.attribute', '.rightSplitAttributeDescription.attribute'),
+
+  /**
+   * Utility method
+   */
+  invalidateAttributeDescriptionCaches: function (iCases, iChange) {
+    sc_super();
+    if (this.get('topSplitAttributeDescription'))
+      this.get('topSplitAttributeDescription').invalidateCaches(iCases, iChange);
+    if (this.get('rightSplitAttributeDescription'))
+      this.get('rightSplitAttributeDescription').invalidateCaches(iCases, iChange);
+  },
+
+  /**
+   *
+   * @returns {Boolean}
+   */
+  atLeastOneFormula: function () {
+    var tProperties = ['topSplitAttributeDescription', 'rightSplitAttributeDescription'];
+    return (sc_super() ||
+        tProperties.some(function (iProperty) {
+          return this.getPath(iProperty + '.hasFormula');
+        }.bind(this)));
   }
 
 });

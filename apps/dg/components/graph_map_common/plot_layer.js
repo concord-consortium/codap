@@ -576,7 +576,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
    */
   removeExtraElements: function() {
 
-    var tCasesLength = this.getPath('model.cases.length'),
+    var tCasesLength = this.getPath('model.cases').length(),
 
         tPlottedElements = this.get('plottedElements'),
         tPlotElementLength = tPlottedElements.length,

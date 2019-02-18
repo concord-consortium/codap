@@ -42,8 +42,28 @@ DG.GraphView = SC.View.extend(
       y2AxisView: null,
       yAxisMultiTarget: null,
       legendView: null,
-      plotBackgroundView: null,
       numberToggleView: null,
+
+      /**
+       * The following three arrays are instrumental in bringing about splitting of a graph
+       * into multiple plot views.
+       * @property [{DG.AxisView}]
+       */
+      xAxisViewArray: null,
+      yAxisViewArray: null,
+      y2AxisViewArray: null,
+
+      /**
+       * @property {DG.PlotBackgroundView}
+       */
+      plotBackgroundView: null,
+
+      /**
+       * When the graph is split into multiple plots, this 2-dim array holds one plot background view
+       * for each cell. It is shared by the possibly multiple (scatter)plot views in that cell.
+       * @property [[{DG.PlotBackgroundView}]]
+       */
+      plotBackgroundViewArray: null,
 
       _functionEditorView: null,
       functionEditorView: function( iKey, iValue) {
@@ -93,7 +113,8 @@ DG.GraphView = SC.View.extend(
           this._plotViews.forEach(function (iPlotView) {
             iPlotView.destroy();
           });
-          this._plotViews = [iValue];
+          this._plotViews[0] = iValue;
+          this._plotViews.length = 1;
         }
         return (this._plotViews.length < 1) ? null : this._plotViews[0];
       }.property(),
@@ -102,9 +123,19 @@ DG.GraphView = SC.View.extend(
       _drawPlotsInvocations: 0, // Used to limit redrawing of plots to what is necessary
       _displayDidChangeInvocationsOfDrawPlots: 0, // Another attempt to limit redrawing
 
+      /**
+       * This array of plot views is the one that is the only such if the graph is not split.
+       * @property [{DG.PlotView}]
+       */
       plotViews: function () {
         return this._plotViews;
       }.property(),
+
+      /**
+       * This 3-dim array of plot views is parallel to the array of plot models owned by my model.
+       * @property [[[{DG.PlotView}]]]
+       */
+      splitPlotViewArray: null,
 
       /**
        * If not already present, adds the given plotView to my array.
@@ -196,6 +227,8 @@ DG.GraphView = SC.View.extend(
       },
 
       init: function () {
+        var this_ = this;
+
         this.currTime = 0; // For measuring time spent
 
         function getAxisViewClass(iAxis, iAttributeType) {
@@ -210,6 +243,14 @@ DG.GraphView = SC.View.extend(
               return DG.CountAxisView;
           }
           return null;
+        }
+
+        function initPlotViewAndAxisViewArrays() {
+          this_.splitPlotViewArray = [[ this_._plotViews]];
+          this_.plotBackgroundViewArray = [[ this_.plotBackgroundView]];
+          this_.xAxisViewArray = [ this_.get('xAxisView')];
+          this_.yAxisViewArray = [ this_.get('yAxisView')];
+          this_.y2AxisViewArray = [ this_.get('y2AxisView')];
         }
 
         var tXAxis = this.getPath('model.xAxis'),
@@ -274,6 +315,8 @@ DG.GraphView = SC.View.extend(
         }.bind(this));
         this.appendChild(tY2AxisView); // So it will be on top and drag-hilite will show over plot
         tY2AxisView.set('isVisible', tY2Axis.constructor !== DG.AxisModel);
+
+        initPlotViewAndAxisViewArrays();
       },
 
       destroy: function () {
@@ -310,22 +353,38 @@ DG.GraphView = SC.View.extend(
       },
 
       /**
+       * Signature of iFunc is <DG.PlotView, iRow, iCol, iIndex>
+       * @param iFunc {Function}
+       */
+      forEachPlotViewDo: function( iFunc) {
+        if (this.getPath('model.isSplit')) {
+          this.get('splitPlotViewArray').forEach( function( iColArray, iRowIndex){
+            iColArray.forEach( function( iPlotViewArray, iColIndex) {
+              iPlotViewArray.forEach( function( iPlotView, iIndex) {
+                iFunc( iPlotView, iRowIndex, iColIndex, iIndex);
+              });
+            });
+          });
+        }
+        else {
+          var tPlotViews = this.get('plotViews');
+          tPlotViews.forEach( function( iPlotView, iIndex) {
+            iFunc( iPlotView, 0, 0, iIndex);
+          });
+        }
+      },
+
+      /**
        * Draw my plot views
        */
       drawPlots: function ( iChangedProperty) {
-        //console.profile('drawPlots');
-        var tPlotViews = this.get('plotViews'),
-            tNumPlots = tPlotViews.length;/*,
-            tTime = Date.now(),
-            tTimeAdded;*/
-        this.get('plotViews').forEach(function (iPlotView, iIndex) {
+        if( this._isConfigurationInProgress)
+          return; // Not a good time to draw
+        var tNumPlots = this.get('plotViews').length;
+        this.forEachPlotViewDo(function (iPlotView, iRow, iCol, iIndex) {
           if (iPlotView.readyToDraw())
             iPlotView.doDraw(iIndex, tNumPlots, iChangedProperty);
         });
-        //tTimeAdded = Date.now() - tTime;
-        //this.currTime += tTimeAdded;
-        //console.log('drawPlots: added ' + tTimeAdded + 'ms for a total of ' + this.currTime + 'ms');
-        //console.profileEnd();
       },
 
       pointsDidChange: function ( iModel, iProperty) {
@@ -435,7 +494,124 @@ DG.GraphView = SC.View.extend(
 
         sc_super();
 
-        var tXAxisView = this.get('xAxisView'),
+        function layoutUnsplitPlot() {
+            if (firstTime) {
+              // set or reset all layout parameters (initializes all parameters)
+              tXAxisView.set('layout', {left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight});
+              tYAxisView.set('layout', {
+                left: 0, top: tNumberToggleHeight + tFunctionViewHeight +
+                tPlottedValueViewHeight,
+                bottom: tLegendHeight, width: tYWidth
+              });
+              tY2AxisView.set('layout', {
+                right: 0,
+                top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
+                bottom: tLegendHeight,
+                width: tY2DesiredWidth
+              });
+              tPlotBackground.set('layout', {
+                left: tYWidth,
+                right: tSpaceForY2,
+                top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
+                bottom: tXHeight + tLegendHeight
+              });
+              this_.makeSubviewFrontmost(tY2AxisView);
+            }
+            else {
+              // adjust() method avoids triggering observers if layout parameter is already at correct value.
+              var tCurrXHeight = tXAxisView.get('layout').height;
+              tXAxisView.adjust({left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight});
+              if (tCurrXHeight !== tXHeight)
+                tXAxisView.notifyPropertyChange('drawHeight');
+
+              var tCurrYWidth = tYAxisView.get('layout').width;
+              tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth,
+                top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight});
+              if (tCurrYWidth !== tYWidth)
+                tYAxisView.notifyPropertyChange('drawWidth');
+
+              tY2AxisView.adjust({bottom: tLegendHeight, width: tY2DesiredWidth,
+                top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight});
+              if (!tHasY2Attribute) {
+                tY2AxisView.set('isVisible', false);
+              }
+              tPlotBackground.adjust({
+                left: tYWidth,
+                right: tSpaceForY2,
+                top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
+                bottom: tXHeight + tLegendHeight
+              });
+            }
+          }
+
+        function layoutSplitPlots() {
+          var tXAxisViewArray = this_.get('xAxisViewArray'),
+              tYAxisViewArray = this_.get('yAxisViewArray'),
+              tY2AxisViewArray = this_.get('y2AxisViewArray'),
+              tPlotBackgroundViewArray = this_.get('plotBackgroundViewArray'),
+              tNumRows = this_.getPath('model.numSplitRows'),
+              tNumColumns = this_.getPath('model.numSplitColumns'),
+              tFrame = this_.get('frame'),
+              tRowHeight = (tFrame.height - tXHeight - tLegendHeight - tFunctionViewHeight -
+                  tPlottedValueViewHeight - tNumberToggleHeight) / tNumRows,
+              tColWidth = (tFrame.width - tYWidth - tY2DesiredWidth) / tNumColumns,
+              tRowIndex, tColIndex;
+          for( tRowIndex = 0; tRowIndex < tNumRows; tRowIndex++) {
+            var tThisYAxisView = tYAxisViewArray[tRowIndex],
+                tTop = tNumberToggleHeight + tFunctionViewHeight +
+                    tPlottedValueViewHeight + tRowIndex * tRowHeight;
+            if( tThisYAxisView) {
+              if (firstTime) {
+                tThisYAxisView.set('layout', {
+                  left: 0, top: tTop, height: tRowHeight, width: tYWidth
+                });
+                tY2AxisViewArray[tRowIndex].set('layout', {
+                  right: 0, top: tTop, height: tRowHeight, width: tY2DesiredWidth
+                });
+                if (!tHasY2Attribute) {
+                  tY2AxisViewArray[tRowIndex].set('isVisible', false);
+                }
+              }
+              else {
+                var tCurrYWidth = tThisYAxisView.get('layout').width;
+                tThisYAxisView.adjust({height: tRowHeight, width: tYWidth, top: tTop});
+                if (tCurrYWidth !== tYWidth && tRowIndex === 0)
+                  tThisYAxisView.notifyPropertyChange('drawWidth');
+              }
+              for (tColIndex = 0; tColIndex < tNumColumns; tColIndex++) {
+                var tBackgroundView = tPlotBackgroundViewArray[tRowIndex][tColIndex],
+                    tLeft = tYWidth + tColIndex * tColWidth;
+
+                if (tRowIndex === 0) {
+                  var tThisXAxisView = tXAxisViewArray[tColIndex],
+                      tCurrXHeight;
+                  if (tThisXAxisView) {
+                    if (firstTime) {
+                      tThisXAxisView.set('layout',
+                          {left: tLeft, width: tColWidth, bottom: tLegendHeight, height: tXHeight});
+                    }
+                    else {
+                      tCurrXHeight = tThisXAxisView.get('layout').height;
+                      tThisXAxisView.adjust({left: tLeft, width: tColWidth, bottom: tLegendHeight, height: tXHeight});
+                      if (tCurrXHeight !== tXHeight && tRowIndex === 0 && tColIndex === 0)
+                        tThisXAxisView.notifyPropertyChange('drawHeight');
+
+                    }
+                  }
+                }
+                if( tBackgroundView) {
+                  if (firstTime)
+                    tBackgroundView.set('layout', {left: tLeft, top: tTop, width: tColWidth, height: tRowHeight});
+                  else
+                    tBackgroundView.adjust({left: tLeft, top: tTop, width: tColWidth, height: tRowHeight});
+                }
+              }
+            }
+          }
+        }
+
+        var this_ = this,
+            tXAxisView = this.get('xAxisView'),
             tYAxisView = this.get('yAxisView'),
             tY2AxisView = this.get('y2AxisView'),
             tY2AttributeID = this.getPath('model.dataConfiguration.y2AttributeID'),
@@ -457,61 +633,19 @@ DG.GraphView = SC.View.extend(
                 tFunctionView.get('desiredExtent') : 0,
             tPlottedValueViewHeight = (tPlottedValueView && tPlottedValueView.get('isVisible')) ?
                 tPlottedValueView.get('desiredExtent') : 0;
-
         if (!SC.none(tXAxisView) && !SC.none(tYAxisView) && ( tPlotViews.length > 0)) {
-          if (firstTime) {
-            // set or reset all layout parameters (initializes all parameters)
-            tXAxisView.set('layout', {left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight});
-            tYAxisView.set('layout', {left: 0, top: tNumberToggleHeight + tFunctionViewHeight +
-                                              tPlottedValueViewHeight,
-              bottom: tLegendHeight, width: tYWidth});
-            tY2AxisView.set('layout', {
-              right: 0,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
-              bottom: tLegendHeight,
-              width: tY2DesiredWidth
-            });
-            tPlotBackground.set('layout', {
-              left: tYWidth,
-              right: tSpaceForY2,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
-              bottom: tXHeight + tLegendHeight
-            });
-            if( tFunctionView)
-              tFunctionView.adjust( 'top', tNumberToggleHeight);
-            if( tPlottedValueView)
-              tPlottedValueView.adjust( 'top', tNumberToggleHeight + tFunctionViewHeight);
+          if (this.getPath('model.isSplit'))
+            layoutSplitPlots();
+          else
+            layoutUnsplitPlot();
+          if (tFunctionView)
+            tFunctionView.adjust('top', tNumberToggleHeight);
+          if (tPlottedValueView)
+            tPlottedValueView.adjust('top', tNumberToggleHeight + tFunctionViewHeight);
+          if( firstTime) {
             tLegendView.set('layout', {bottom: 0, height: tLegendHeight});
-            this.makeSubviewFrontmost(tY2AxisView);
           }
           else {
-            // adjust() method avoids triggering observers if layout parameter is already at correct value.
-            var tCurrXHeight = tXAxisView.get('layout').height;
-            tXAxisView.adjust({left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight});
-            if (tCurrXHeight !== tXHeight)
-              tXAxisView.notifyPropertyChange('drawHeight');
-
-            var tCurrYWidth = tYAxisView.get('layout').width;
-            tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight});
-            if (tCurrYWidth !== tYWidth)
-              tYAxisView.notifyPropertyChange('drawWidth');
-
-            tY2AxisView.adjust({bottom: tLegendHeight, width: tY2DesiredWidth,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight});
-            if (!tHasY2Attribute) {
-              tY2AxisView.set('isVisible', false);
-            }
-            tPlotBackground.adjust({
-              left: tYWidth,
-              right: tSpaceForY2,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
-              bottom: tXHeight + tLegendHeight
-            });
-            if( tFunctionView)
-              tFunctionView.adjust( 'top', tNumberToggleHeight);
-            if( tPlottedValueView)
-              tPlottedValueView.adjust( 'top', tNumberToggleHeight + tFunctionViewHeight);
             tLegendView.adjust('height', tLegendHeight);
             if (tNumberToggleView)
               tNumberToggleView.adjust('height', tNumberToggleHeight);
@@ -550,6 +684,11 @@ DG.GraphView = SC.View.extend(
        * Private property to prevent recursive execution of renderLayout. Seems most important in Firefox.
        */
       _isRenderLayoutInProgress: false,
+
+      /**
+       * Private property to prevent recursive execution of renderLayout. Seems most important in Firefox.
+       */
+      _isConfigurationInProgress: false,
 
       /**
        When a model axis changes, we need to respond by changing its corresponding view.
@@ -672,6 +811,97 @@ DG.GraphView = SC.View.extend(
           }
         }
       }.observes('.model.plot'),
+
+      /**
+       * Our model has experienced a change in attributes that determine the splitting into multiple
+       * plots. We make sure we have the necessary axis views and plot views assigned to the correct
+       * models.
+       */
+      handleSplitAttributeChange: function() {
+        var this_ = this;
+
+        function configureAxisViewArrays() {
+
+          function configureOneAxisViewArray(iAxisModelArray, ioAxisViewArray) {
+            // The zeroth element of the view array is already correctly configured
+            var tViewClass = ioAxisViewArray[0].constructor,
+                tOrientation = ioAxisViewArray[0].get('orientation'),
+                tNumModels = iAxisModelArray.length,
+                tIndex;
+            for( tIndex = 1; tIndex < tNumModels; tIndex++) {
+              var tCurrentView = ioAxisViewArray[tIndex],
+                  tNewView;
+              if( !tCurrentView || tCurrentView.constructor !== tViewClass) {
+                tNewView = tViewClass.create( {
+                  orientation: tOrientation,
+                  model: iAxisModelArray[ tIndex]
+                });
+                this_.appendChild( tNewView);
+                if( tCurrentView) {
+                  this_.removeChild( tCurrentView);
+                  tCurrentView.destroy();
+                }
+                ioAxisViewArray[ tIndex] = tNewView;
+              }
+            }
+          }
+
+          configureOneAxisViewArray( this_.getPath('model.xAxisArray'), this_.get('xAxisViewArray'));
+          configureOneAxisViewArray( this_.getPath('model.yAxisArray'), this_.get('yAxisViewArray'));
+          configureOneAxisViewArray( this_.getPath('model.y2AxisArray'), this_.get('y2AxisViewArray'));
+        }
+
+        function configurePlotViewArrays() {
+          var tModel = this_.get('model'),
+              tPlotViewArray = this_.get('splitPlotViewArray'),
+              tPlotBackgroundViewArray = this_.get('plotBackgroundViewArray'),
+              tPlotViewClass = tPlotViewArray[0][0][0].constructor;
+          tModel.forEachSplitPlotElementDo( function( iPlotModelArray, iRow, iColumn) {
+            if( iRow !== 0 || iColumn !== 0) {
+              iPlotModelArray.forEach( function( iPlotModel, iIndex) {
+                if( !tPlotViewArray[iRow])
+                  tPlotViewArray[iRow] = [];
+                if( !tPlotViewArray[iRow][iColumn])
+                  tPlotViewArray[iRow][iColumn] = [];
+                if( !tPlotBackgroundViewArray[iRow])
+                  tPlotBackgroundViewArray[iRow] = [];
+                var
+                    tBackgroundView = tPlotBackgroundViewArray[iRow][iColumn],
+                    tCurrentPlotView = tPlotViewArray[ iRow][iColumn][iIndex],
+                    tNewPlotView;
+                if(!tBackgroundView) {
+                  tBackgroundView = DG.PlotBackgroundView.create({
+                    xAxisView: this_.get('xAxisViewArray')[iColumn],
+                    yAxisView: this_.get('yAxisViewArray')[iRow],
+                    graphModel: this_.get('model')
+                  });
+                  tPlotBackgroundViewArray[iRow][iColumn] = tBackgroundView;
+                  this_.appendChild( tBackgroundView);
+                }
+                if( !tCurrentPlotView || tCurrentPlotView.constructor !== tPlotViewClass) {
+                  tNewPlotView = tPlotViewClass.create( {
+                    paperSource: tPlotBackgroundViewArray[iRow][iColumn],
+                    model: iPlotModel,
+                    parentView: this_,
+                    xAxisView: this_.get('xAxisViewArray')[iColumn],
+                    yAxisView: this_.get('yAxisViewArray')[iRow],
+                    y2AxisView: this_.get('y2AxisViewArray')[iRow]
+                  });
+                  tPlotViewArray[ iRow][iColumn][iIndex] = tNewPlotView;
+                  if( tCurrentPlotView)
+                    tCurrentPlotView.destroy();
+                }
+              });
+            }
+          });
+        }
+
+        this._isConfigurationInProgress = true; // Prevent drawing until all this is done
+        configureAxisViewArrays();
+        configurePlotViewArrays();
+        this._isConfigurationInProgress = false;
+
+      }.observes('.model.splitAttributeChange'),
 
       plotWithoutView: function () {
         var tPlots = this.getPath('model.plots'),

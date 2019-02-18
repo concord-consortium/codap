@@ -32,8 +32,10 @@ DG.GraphTypes = {
         eY2: 3,
         ePolygon: 4,
         eCaption: 5,
-        eLastPlace: 5,
-        eNumPlaces: 6
+        eTopSplit: 6,
+        eRightSplit: 7,
+        eLastPlace: 7,
+        eNumPlaces: 8
   }
 
 };

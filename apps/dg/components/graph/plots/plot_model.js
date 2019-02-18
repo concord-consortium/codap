@@ -34,6 +34,16 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       dataConfiguration: null,
 
       /**
+       * @property {Number}
+       */
+      splitPlotRowIndex: 0,
+
+      /**
+       * @property {Number}
+       */
+      splitPlotColIndex: 0,
+
+      /**
        @property { DG.DataContext }  The data context
        */
       dataContext: function () {
@@ -58,10 +68,38 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       }.observes('*dataConfiguration.collectionClient'),
 
       /**
-       @property { SC.Array }
+       * Only used if we are one plot in an array of split plots.
+       @property { [{DG.Case}] }
+       */
+      _casesCache: null,
+
+      /**
+       @property { [{DG.Case}] }
        */
       cases: function () {
-        return this.getPath('dataConfiguration.cases');
+        var tCases;
+        if( this.getPath('dataConfiguration.hasSplitAttribute')) {
+          if( !this._casesCache) {
+            var tRowAttrDescription = this.getPath('dataConfiguration.rightSplitAttributeDescription'),
+                tColAttrDescription = this.getPath('dataConfiguration.topSplitAttributeDescription'),
+                tRowAttrID = tRowAttrDescription.getPath('attribute.id'),
+                tColAttrID = tColAttrDescription.getPath('attribute.id'),
+                tRowValue = (tRowAttrID === DG.Attribute.kNullAttribute) ? null :
+                  tRowAttrDescription.getPath('attributeStats.cellNames')[ this.get('splitPlotRowIndex')],
+                tColValue = (tColAttrID === DG.Attribute.kNullAttribute) ? null :
+                  tColAttrDescription.getPath('attributeStats.cellNames')[ this.get('splitPlotColIndex')];
+            this._casesCache = this.getPath('dataConfiguration.cases').filter( function( iCase) {
+              return (tRowValue === null || iCase.getValue( tRowAttrID) === tRowValue) &&
+                  (tColValue === null || iCase.getValue( tColAttrID) === tColValue);
+            });
+          }
+          tCases = this._casesCache;
+        }
+        else {
+          tCases = this.getPath('dataConfiguration.cases');
+          this._casesCache = null;
+        }
+        return tCases;
       }.property(),
 
       casesDidChange: function () {
@@ -551,6 +589,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        Called when attribute configuration changes occur, for instance.
        */
       invalidateCaches: function () {
+        this._casesCache = null;
         this.notifyPropertyChange('plotConfiguration');
       },
 

@@ -497,19 +497,26 @@ DG.GraphController = DG.DataDisplayController.extend(
               controller.handlePossibleForeignDataContext( iDragData.context);
 
               var tDataContext = controller.get('dataContext'),
-                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+                  tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
+                  tGraphModel = controller.get('graphModel'),
+                  tAttrRefs = {
+                    collection: tCollectionClient,
+                    attributes: [iDragData.attribute]
+                  };
 
               iAxisMultiTarget.dragData = null;
 
-              controller.get('graphModel').addAttributeToAxis(
-                tDataContext,
-                {
-                  collection: tCollectionClient,
-                  attributes: [iDragData.attribute]
-                });
-              controller.get('view').select();
+              if( iDragData.attribute.isNominal()) {
+                tGraphModel.splitVerticallyByAttribute( tDataContext, tAttrRefs);
 
-              this.log = 'Attribute dragged and dropped: %@, %@'.fmt('vertical', iDragData.attribute.get('name'));
+                this.log = 'Graph split vertically attribute %@'.fmt(iDragData.attribute.get('name'));
+              }
+              else {
+                tGraphModel.addAttributeToAxis( tDataContext, tAttrRefs);
+
+                this.log = 'Attribute dragged and dropped: %@, %@'.fmt('vertical', iDragData.attribute.get('name'));
+              }
+              controller.get('view').select();
             },
             undo: function() {
               var controller = this._controller();
