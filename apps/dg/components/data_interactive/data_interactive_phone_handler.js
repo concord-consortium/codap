@@ -1890,7 +1890,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               if (tValues.type === 'caseTable') {
                 mapTableLinkPropertiesFromDI(tValues, props.componentStorage);
               }
-              if (tValues.type === 'slider' && tValues.globalValueName) {
+              if (!(tValues.type === 'slider' && tValues.globalValueName)) {
+                component = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
+                errorMessage = !component && 'Component creation failed';
+              }
+              else {
                 global = DG.globalsController.getGlobalValueByName(tValues.globalValueName);
                 if (global) {
                   DG.ArchiveUtils.addLink(props.componentStorage, "model", global);
