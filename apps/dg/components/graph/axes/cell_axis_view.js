@@ -70,11 +70,15 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           break;
         case 'vertical2':
         case 'horizontal':
+        case 'right':
           tCoord = 0;
+          break;
+        case 'top':
+          tCoord = this.get('drawHeight');
           break;
       }
       return tCoord;
-    }.property('drawWidth'),
+    }.property('drawWidth', 'drawHeight'),
 
     /**
      @property {Number} Each time we draw the axis, we set this property to the maximum width
@@ -102,8 +106,13 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tStop = { x: tPixelMax, y: tCoord + 1 };
           break;
         case 'vertical2':
+        case 'right':
           tStart = { x: tCoord + 1, y: tPixelMin };
           tStop = { x: tCoord + 1, y: tPixelMax };
+          break;
+        case 'top':
+          tStart = { x: tPixelMin, y: tCoord - 1 };
+          tStop = { x: tPixelMax, y: tCoord - 1 };
           break;
       }
       return this._paper.line( tStart.x, tStart.y, tStop.x, tStop.y)
@@ -164,12 +173,14 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         return;
 
       var this_ = this,
+          kHorizontalOrientations = ['horizontal', 'top'],
           tModel = this.get('model'),
           tNumCells = tModel.get('numberOfCells'),
           tBaseline = this_.get('axisLineCoordinate'),
           tOrientation = this.get('orientation'),
-          tRotation = (tOrientation === 'horizontal') ? 0 : -90, // default to parallel to axis
-          tCursorClass = (tOrientation === 'horizontal') ? 'dg-axis-cell-label-x' : 'dg-axis-cell-label-y',
+          tIsHorizontal = kHorizontalOrientations.indexOf( tOrientation) >= 0,
+          tRotation = tIsHorizontal ? 0 : -90, // default to parallel to axis
+          tCursorClass = tIsHorizontal ? 'dg-axis-cell-label-x' : 'dg-axis-cell-label-y',
           tMaxHeight = DG.RenderingUtilities.kDefaultFontHeight,  // So there will be a default extent
           tCentering = this.get('centering'),
           tTickOffset = tCentering ? 0 : this.get('fullCellWidth') / 2,
@@ -280,7 +291,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         tMaxWidth = Math.max( tMaxWidth, tTextExtent.width);
         if(SC.none( tPrevLabelEnd))
           tCollision = tTextExtent.width > this_.get('fullCellWidth');
-        else if( this_.get('orientation') === 'horizontal') {
+        else if( tIsHorizontal) {
           tCollision = tCollision || (tCoord - tTextExtent.width / 2 < tPrevLabelEnd);
           tPrevLabelEnd = (tCoord + tTextExtent.width / 2);
         }
@@ -319,6 +330,28 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 tLabelX += iLabelSpec.height / 3;
             }
             break;
+          case 'top':
+            this_._elementsToClear.push(
+                this_._paper.line( tCoord - tTickOffset, tBaseline, tCoord - tTickOffset, tBaseline - kTickLength)
+                    .attr( { stroke: DG.PlotUtilities.kAxisColor }));
+            tLabelX = tCoord - tTickOffset + 1;
+            tLabelY = tBaseline - kTickLength - kAxisGap - iLabelSpec.height / 3;
+            if( tRotation === -90) {
+              tAnchor = 'end';
+              if( iIndex === 0)
+                tLabelX += iLabelSpec.height / 3;
+            }
+            break;
+          case 'right':
+            this_._elementsToClear.push(
+                this_._paper.line( tBaseline, tCoord + tTickOffset, tBaseline + kTickLength, tCoord + tTickOffset)
+                    .attr( { stroke: DG.PlotUtilities.kAxisColor }));
+            tLabelX = tBaseline + kTickLength + kAxisGap + iLabelSpec.height / 3;
+            tLabelY = tCoord + tTickOffset;
+            if( tRotation === 0) {
+              tAnchor = 'start';
+            }
+            break;
         }
         iLabelSpec.element.attr( { x: tLabelX, y: tLabelY, 'text-anchor': tAnchor });
         DG.RenderingUtilities.rotateText( iLabelSpec.element, tRotation, tLabelX, tLabelY);
@@ -345,10 +378,19 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
       this.renderLabel();
       // By changing maxLabelExtent we can trigger notification that causes the graph to re-layout
       // axes and plot if needed.
-      this.setIfChanged('maxLabelExtent',
-            (tOrientation === 'horizontal') ?
-              ((tRotation === 0) ? tMaxHeight : tMaxWidth) :  // horizontal
-              ((tRotation === 0) ? tMaxWidth : tMaxHeight));  // vertical
+      var tNewExtent;
+      switch (tOrientation) {
+        case 'horizontal':
+        case 'top':
+          tNewExtent = (tRotation === 0) ? tMaxHeight : tMaxWidth;
+          break;
+        case 'vertical':
+        case 'vertical2':
+        case 'right':
+          tNewExtent = (tRotation === 0) ? tMaxWidth : tMaxHeight;
+          break;
+      }
+      this.setIfChanged('maxLabelExtent', tNewExtent);
     }
 
   };

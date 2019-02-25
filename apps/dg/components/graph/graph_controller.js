@@ -99,10 +99,14 @@ DG.GraphController = DG.DataDisplayController.extend(
           dataConfiguration.addToStorageForDimension(storage, 'x');
           dataConfiguration.addToStorageForDimension(storage, 'y');
           dataConfiguration.addToStorageForDimension(storage, 'y2');
+          dataConfiguration.addToStorageForDimension(storage, 'topSplit');
+          dataConfiguration.addToStorageForDimension(storage, 'rightSplit');
 
           storeAxis('x');
           storeAxis('y');
           storeAxis('y2');
+          storeAxis('top');
+          storeAxis('right');
 
           if (plotModels) {
             storage.plotModels = [];
@@ -148,6 +152,8 @@ DG.GraphController = DG.DataDisplayController.extend(
               isFinite(iStorage.y2LowerBound) && isFinite(iStorage.y2UpperBound)) {
             y2Axis.setLowerAndUpperBounds(iStorage.y2LowerBound, iStorage.y2UpperBound);
           }
+          graphModel.updateAxisArrays();
+          graphModel.updateSplitPlotArray();
         },
 
         viewDidChange: function () {
@@ -436,21 +442,19 @@ DG.GraphController = DG.DataDisplayController.extend(
             var controller = this._controller();
             this._beforeStorage = controller.createComponentStorage();
 
-            controller.handlePossibleForeignDataContext( iDragData.context);
+            controller.handlePossibleForeignDataContext(iDragData.context);
 
             var tDataContext = controller.get('dataContext'),
-                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
-
-            iAxis.dragData = null;
-
-            controller.get('graphModel').changeAttributeForAxis(
-                tDataContext,
-                {
+                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
+                tOrientation = iAxis.get('orientation'),
+                tModel = controller.get('graphModel'),
+                tAttrRefs = {
                   collection: tCollectionClient,
                   attributes: [iDragData.attribute]
-                },
-                iAxis.get('orientation')
-            );
+                };
+
+            iAxis.dragData = null;
+            tModel.changeAttributeForAxis(tDataContext, tAttrRefs, tOrientation);
 
             this.log = 'plotAxisAttributeChange: ' +
                 '{ "orientation": "%@", "attribute": "%@" }'
@@ -507,7 +511,7 @@ DG.GraphController = DG.DataDisplayController.extend(
               iAxisMultiTarget.dragData = null;
 
               if( iDragData.attribute.isNominal()) {
-                tGraphModel.splitVerticallyByAttribute( tDataContext, tAttrRefs);
+                tGraphModel.splitByAttribute( tDataContext, tAttrRefs, 'top');
 
                 this.log = 'Graph split vertically attribute %@'.fmt(iDragData.attribute.get('name'));
               }
@@ -554,19 +558,22 @@ DG.GraphController = DG.DataDisplayController.extend(
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
-              controller.handlePossibleForeignDataContext( iDragData.context);
-
               var tDataContext = controller.get('dataContext'),
-                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+                  tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
+                  tOrientation = iY2Axis.get('orientation'),
+                  tModel = controller.get('graphModel'),
+                  tAttrRefs = {
+                    collection: tCollectionClient,
+                    attributes: [iDragData.attribute]
+                  };
 
               iY2Axis.dragData = null;
-
-              controller.get('graphModel').changeAttributeForY2Axis(
-                tDataContext,
-                {
-                  collection: tCollectionClient,
-                  attributes: [iDragData.attribute]
-                });
+              if( iDragData.attribute.isNominal()) {
+                tModel.splitByAttribute( tDataContext, tAttrRefs, 'right');
+              }
+              else {
+                tModel.changeAttributeForAxis( tDataContext, tAttrRefs, tOrientation);
+              }
               controller.get('view').select();
 
               this.log = 'changeAttributeOnSecondYAxis: { attribute: %@ }'.fmt(iDragData.attribute.get('name'));

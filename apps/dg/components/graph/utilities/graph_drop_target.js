@@ -186,7 +186,7 @@ DG.GraphDropTarget =
 
   isVertical: function() {
     var tOrientation = this.get('orientation');
-    return tOrientation && tOrientation.indexOf( 'vertical') >= 0;
+    return tOrientation && ['vertical', 'vertical2', 'right'].indexOf( tOrientation) >= 0;
   }.property(),
 
   showDropHint: function() {

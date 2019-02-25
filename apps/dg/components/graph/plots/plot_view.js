@@ -239,7 +239,8 @@ DG.PlotView = DG.PlotLayer.extend(
         tOldPointAttrs = this.get('transferredElementCoordinates'),
         tNewPointAttrs = [], // used if many-to-one animation
         tNewToOldCaseMap = [],
-        tOldToNewCaseMap = [];
+        tOldToNewCaseMap = [],
+        tLoopIndex = 0;
     // During undo/redo we can get here without cases. Bail!
     if( !tCases || !tRC)
       return;
@@ -275,7 +276,8 @@ DG.PlotView = DG.PlotLayer.extend(
           var tPt = getCaseCurrentLocation( iIndex ),
               tAnimate = false,
               tCallBack,
-              tNewElement = this.callCreateElement( iCase, iIndex, false);
+              tNewElement = this.callCreateElement( iCase, tLoopIndex, false);
+          tLoopIndex++;
           if( !SC.none( tPt)) {
             tNewElement.attr( tPt);
             tAnimate = true;

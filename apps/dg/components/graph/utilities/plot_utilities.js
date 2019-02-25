@@ -391,7 +391,7 @@ DG.PlotUtilities = {
    * @param iLayerManager
    */
   doHideRemoveAnimation: function( iElement, iLayerManager) {
-    if( iElement) {
+    if( iElement)
       iElement.animate({'fill-opacity': 0, opacity: 0}, this.kDefaultAnimationTime, '<>',
           function () {
             // Remove event handlers
@@ -405,7 +405,6 @@ DG.PlotUtilities = {
             if (iLayerManager)
               iLayerManager.removeElement(this);
           });
-    }
   },
 
   /**

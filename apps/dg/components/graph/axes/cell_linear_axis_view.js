@@ -184,15 +184,17 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         }
 
         function doTranslate( idX, idY) {
-          if( !tClickHandling && this_._isDragging) {
-            //DG.SoundUtilities.drag();
-            var tDelta = this_.get('isVertical') ? idY : idX,
-                tLowerBound = this_.getPath('model.lowerBound'),
-                tCurrentDelta = tHelper.coordinateToDataGivenCell( 0, 0) -
-                    tHelper.coordinateToDataGivenCell( 0, tDelta),
-                tIncDelta = tCurrentDelta - (tLowerBound - this_._lowerBoundAtDragStart);
-            this_.get('model').translate( tIncDelta);
-          }
+          SC.run(function () {
+            if (!tClickHandling && this_._isDragging) {
+              //DG.SoundUtilities.drag();
+              var tDelta = this_.get('isVertical') ? idY : idX,
+                  tLowerBound = this_.getPath('model.lowerBound'),
+                  tCurrentDelta = tHelper.coordinateToDataGivenCell(0, 0) -
+                      tHelper.coordinateToDataGivenCell(0, tDelta),
+                  tIncDelta = tCurrentDelta - (tLowerBound - this_._lowerBoundAtDragStart);
+              this_.get('model').translate(tIncDelta);
+            }
+          });
         }
 
         // We are dragging in the lower portion of the axis. The upper bound will remain fixed

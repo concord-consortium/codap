@@ -70,9 +70,18 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          */
         desiredExtent: function () {
           var tLabelExtent = this.get('labelExtent'),
-              tDimension = (Raphael.version < "2.0") ?
-                  'y' :
-                  ((this.get('orientation') === 'horizontal') ? 'y' : 'x');
+              tDimension;
+          switch (this.get('orientation')) {
+            case 'horizontal':
+            case 'top':
+              tDimension = 'y';
+              break;
+            case 'vertical':
+            case 'vertical2':
+            case 'right':
+              tDimension = 'x';
+              break;
+          }
           return tLabelExtent[ tDimension];
         }.property('labelNode'),
 
@@ -289,31 +298,37 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tDrawWidth = this.get('drawWidth'),
               tDrawHeight = this.get('drawHeight'),
               tIsVertical = this.get('isVertical'),
-              //tRotation = tIsVertical ? -90 : 0,
+              tOrientation = this.get('orientation'),
               tTotalLength = 0,
               tLayout = tNodes.map(function (iNode) {
                 var tExtent = iNode.extent();
                 tTotalLength += tIsVertical ? tExtent.height : tExtent.width;
                 return { node: iNode, extent: tExtent };
               }),
-              tPosition = tIsVertical ? ((tDrawHeight + tTotalLength) / 2) : ((tDrawWidth - tTotalLength) / 2),
-              tV2 = this.get('orientation') === 'vertical2';
+              tPosition = tIsVertical ? ((tDrawHeight + tTotalLength) / 2) : ((tDrawWidth - tTotalLength) / 2);
           tLayout.forEach(function (iLayout) {
             var tNode = iLayout.node,
                 tLabelExtent = { x: iLayout.extent.width, y: iLayout.extent.height },
                 tLoc = { }; // The center of the node
 
-            if (tIsVertical) {
-              tLoc.x = tLabelExtent.x / 4 + 2;
-              tLoc.y = tPosition - tLabelExtent.y / 2;
-              tPosition -= tLabelExtent.y + 4;
-              if (tV2)
-                tLoc.x = tDrawWidth - tLabelExtent.x / 2 - 2;
-            }
-            else {  // horizontal
-              tLoc.x = tPosition + tLabelExtent.x / 2;
-              tLoc.y = tDrawHeight - tLabelExtent.y / 2 - 2;
-              tPosition += tLabelExtent.x + 4;
+            switch( tOrientation) {
+              case 'vertical':
+              case 'vertical2':
+              case 'right':
+                tLoc.x = tLabelExtent.x / 4 + 2;
+                tLoc.y = tPosition - tLabelExtent.y / 2;
+                tPosition -= tLabelExtent.y + 4;
+                if (tOrientation === 'vertical2' || tOrientation === 'right')
+                  tLoc.x = tDrawWidth - tLabelExtent.x / 2 - 2;
+                break;
+              case 'horizontal':
+              case 'top':
+                tLoc.x = tPosition + tLabelExtent.x / 2;
+                tLoc.y = tDrawHeight - tLabelExtent.y / 2 - 2;
+                tPosition += tLabelExtent.x + 4;
+                if( tOrientation === 'top')
+                  tLoc.y = tLabelExtent.y / 3;
+                break;
             }
             tNode.set('loc', tLoc);
           });
@@ -397,11 +412,16 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tPixelWidth = Math.abs( this.get('pixelMax') - this.get('pixelMin')),
               tDistanceToCell = (iCellNum + 0.5) / tNumCells * tPixelWidth,
               tCoordinate;
-          if( this.get('orientation') === 'horizontal') {
-            tCoordinate = this.get('pixelMin') + tDistanceToCell;
-          }
-          else {
-            tCoordinate = this.get('pixelMin') - tDistanceToCell;
+          switch (this.get('orientation')) {
+            case 'horizontal':
+            case 'top':
+              tCoordinate = this.get('pixelMin') + tDistanceToCell;
+              break;
+            case 'vertical':
+            case 'vertical2':
+            case 'right':
+              tCoordinate = this.get('pixelMin') - tDistanceToCell;
+              break;
           }
 
           return tCoordinate;

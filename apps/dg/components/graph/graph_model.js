@@ -52,19 +52,34 @@ DG.GraphModel = DG.DataLayerModel.extend(
     /**
      @property { DG.AxisModel }
      */
-    xAxis: null,
+    xAxis: function( iKey, iValue) {
+      if( iValue) {
+        this.get('xAxisArray')[0] = iValue;
+      }
+      return this.get('xAxisArray')[0];
+    }.property(),
 
     /**
      @property { DG.AxisModel }
      */
-    yAxis: null,
+    yAxis: function( iKey, iValue) {
+      if( iValue) {
+        this.get('yAxisArray')[0] = iValue;
+      }
+      return this.get('yAxisArray')[0];
+    }.property(),
 
     /**
      * This second axis is only instantiated when the user has indicated a desire to plot an attribute on an axis
      * to the right of the plot.
      * @property { DG.AxisModel }
      */
-    y2Axis: null,
+    y2Axis: function( iKey, iValue) {
+      if( iValue) {
+        this.get('y2AxisArray')[0] = iValue;
+      }
+      return this.get('y2AxisArray')[0];
+    }.property(),
 
     /*
      * With the possibility of splitting plots, we have arrays of each of the axes
@@ -72,6 +87,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
     xAxisArray: null,
     yAxisArray: null,
     y2AxisArray: null,
+
+    // When plots are split, we have top and right axis
+    topAxis: null,
+    rightAxis: null,
 
     /**
      * Returns the first plot in _plots, if any. When used to set,
@@ -316,13 +335,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
       ['x', 'y', 'y2', 'legend', 'rightSplit', 'topSplit'].forEach(function (iKey) {
         configureAttributeDescription(iKey);
         if( ['x', 'y', 'y2'].indexOf( iKey) >= 0) {
+          this.set(iKey + 'AxisArray', []);
           var tDescription = this.getPath(
               'dataConfiguration.' + (iKey + 'AttributeDescription'));
           this.set(iKey + 'Axis',
               getAxisClassFromType(tDescription.get('attributeType')).create(
                   {dataConfiguration: this.dataConfiguration}));
           this.setPath(iKey + 'Axis.attributeDescription', tDescription);
-          this.set(iKey + 'AxisArray', [this.get( iKey + 'Axis')]);
         }
       }.bind(this));
 
@@ -355,7 +374,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
         });
       }
 
-      // GraphModel calls init() on itself (cf. reset()) so we need to handle init() and re-init()
+      // The top and right axes are always DG.CellAxis, so we might as well create them here
+      this.set('topAxis', DG.CellAxisModel.create( {
+        dataConfiguration: tConfiguration, attributeDescription: tConfiguration.get('topSplitAttributeDescription')
+      }));
+      this.set('rightAxis', DG.CellAxisModel.create( {
+        dataConfiguration: tConfiguration, attributeDescription: tConfiguration.get('rightSplitAttributeDescription')
+      }));
+
       var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
           numberToggle = this.get('numberToggle'),
           numberToggleLastMode = this.get('numberToggleLastMode'),
@@ -675,11 +701,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.notifyPropertyChange('y2AttributeAdded');
     },
 
-    splitVerticallyByAttribute: function( iDataContext, iAttrRefs) {
+    splitByAttribute: function( iDataContext, iAttrRefs, iSplitPosition) {
       this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 
       var tDataConfiguration = this.get('dataConfiguration'),
-          tTargetDescKey = 'topSplitAttributeDescription';
+          tTargetDescKey = iSplitPosition + 'SplitAttributeDescription';
       tDataConfiguration.set('dataContext', iDataContext);
       tDataConfiguration.setAttributeAndCollectionClient(tTargetDescKey, iAttrRefs);
 
@@ -1213,7 +1239,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
-      ['x', 'y', 'y2', 'legend'].forEach( function( iKey) {
+      ['x', 'y', 'y2', 'legend', 'topSplit', 'rightSplit'].forEach( function( iKey) {
         var tAttrRef = this.instantiateAttributeRefFromStorage(iStorage, iKey + 'Coll', iKey + 'Attr');
         tDataConfig.setAttributeAndCollectionClient(iKey + 'AttributeDescription', tAttrRef,
             iStorage[iKey + 'Role'], iStorage[iKey + 'AttributeType']);
@@ -1221,7 +1247,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.set('aboutToChangeConfiguration', false ); // We're done
 
-      ['x', 'y', 'y2'].forEach( function( iKey) {
+      ['x', 'y', 'y2', 'top', 'right'].forEach( function( iKey) {
         var tAxisClassName = iStorage[iKey + 'AxisClass'],
             tAxisClass = tAxisClassName && DG[tAxisClassName.substring(3)], // convert string to axis class
             tPrevAxis = this.get( iKey + 'Axis'),

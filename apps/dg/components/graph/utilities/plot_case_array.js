@@ -125,8 +125,9 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
     var tResult = DG.PlotUtilities.PlotCaseArray.create();
     this.forEach( function( iCase, iMapIndex) {
       if( iBoolF( iCase, iMapIndex)) {
-        tResult._cases[ iMapIndex] = iCase;
-        tResult._map.push( iMapIndex);
+        var tCaseIndex = tResult._cases.length;
+        tResult._cases.push( iCase);
+        tResult._map.push( tCaseIndex);
       }
     }.bind( this));
     return tResult;
