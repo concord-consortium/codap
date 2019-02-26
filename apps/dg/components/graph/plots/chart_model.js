@@ -75,6 +75,9 @@ DG.ChartModel = DG.PlotModel.extend(
     return this.getPath( 'dataConfiguration.xAttributeDescription.isNull') ||
         this.getPath( 'dataConfiguration.yAttributeDescription.isNull');
   }.property(),
+  canSupportConfigurationsChanged: function() {
+    this.notifyPropertyChange('canSupportConfigurations');
+  }.observes('dataConfiguration.xAttributeDescription.isNull', 'dataConfiguration.yAttributeDescription.isNull'),
 
   /**
    * @property {Boolean}

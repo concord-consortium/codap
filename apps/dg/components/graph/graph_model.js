@@ -80,12 +80,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
       if( !SC.none( iPlot)) {
         this._plots.forEach( function( iPlot) {
           iPlot.removeObserver('connectingLine', this, this.connectingLineChanged);
+          iPlot.removeObserver('canSupportConfigurations', this, this.canSupportConfigurationsChanged);
           this.removePlotObserver( iPlot);
           iPlot.destroy();
         }.bind( this));
         this._plots = [ iPlot];
         // TODO: Figure out a more elegant way to observe this property
         iPlot.addObserver('connectingLine', this, this.connectingLineChanged);
+        iPlot.addObserver('canSupportConfigurations', this, this.canSupportConfigurationsChanged);
         iPlot.set('enableMeasuresForSelection', this.get('enableMeasuresForSelection'));
       }
       return (this._plots.length < 1) ? null : this._plots[0];
@@ -663,6 +665,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
     canSupportConfigurations: function() {
       return this.getPath('plot.canSupportConfigurations');
     }.property('plot'),
+    canSupportConfigurationsChanged: function() {
+      this.notifyPropertyChange('canSupportConfigurations');
+    },
 
     rescaleAxesFromData: function( iShrink, iAnimate) {
       var tPlot = this.get('plot');
