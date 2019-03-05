@@ -1067,6 +1067,7 @@ DG.DocumentController = SC.Object.extend(
                       y2AttributeName: tStorage && tStorage.y2AttributeName,
                       legendAttributeName: tStorage && tStorage.legendAttributeName,
                       enableNumberToggle: tStorage && tStorage.enableNumberToggle,
+                      numberToggleLastMode: tStorage && tStorage.numberToggleLastMode,
                       enableMeasuresForSelection: tStorage && tStorage.enableMeasuresForSelection
                     })
                   },
