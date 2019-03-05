@@ -990,14 +990,8 @@ DG.appController = SC.Object.create((function () // closure
      */
     showHelpSite: function () {
       var tHelpURL = DG.get('showHelpURL'),
-          tWidth = 400, tHeight = 400,
-          tBrowser = SC.browser;
-      if(tBrowser.name === SC.BROWSER.safari && tBrowser.os === SC.OS.ios) {
-        this.openWebView( tHelpURL, 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
-      }
-      else {
-        window.open(tHelpURL);
-      }
+          tWidth = 400, tHeight = 400;
+      this.openWebView( tHelpURL, 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
     },
 
     /**
