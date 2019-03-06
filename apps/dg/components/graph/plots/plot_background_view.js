@@ -37,7 +37,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                       'graphModel.plotBackgroundColor', 'graphModel.plotBackgroundOpacity'],
 
   classNames: 'dg-plot-view'.w(),
-  classNameBindings: ['graphModel.isTransparent:dg-plot-view-transparent'],
+  // classNameBindings: ['graphModel.isTransparent:dg-plot-view-transparent'],
 
   /**
    * @property {DG.GraphModel}
@@ -64,12 +64,20 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
   _backgroundImage: null,
 
+  /**
+   * If true, darken the background slightly (useful for grid of plots)
+   * @property {Boolean}
+   */
+  darkenBackground: false,
+
   colorDidChange: function() {
     var tStoredColor = this.getPath('graphModel.plotBackgroundColor') || 'white',
         tStoredOpacity = this.getPath('graphModel.plotBackgroundOpacity'),
         tNewColor = tStoredColor ? SC.Color.from( tStoredColor) : null;
     if( !tNewColor)
         return;
+    if( this.get('darkenBackground'))
+      tNewColor = tNewColor.sub( SC.Color.from('#101010'));
     if( !SC.none(tStoredOpacity))
         tNewColor.set('a', tStoredOpacity);
     this.set('backgroundColor', tNewColor.get('cssText'));

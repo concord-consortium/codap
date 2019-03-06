@@ -425,6 +425,24 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           tMultipleMovable.set('axisModel', this.get('primaryAxisModel'));
       },
 
+      /**
+       * Return a list of objects { key, class, useAdornmentModelsArray, storage }
+       * Subclasses should override calling sc_super first.
+       * @return {[Object]}
+       */
+      getAdornmentSpecs: function() {
+        var tSpecs = sc_super(),
+            tMedianAdorn = this.getAdornmentModel('plottedMedian');
+        if( tMedianAdorn)
+          tSpecs.push( {
+            key: 'plottedMedian',
+            class: tMedianAdorn.constructor,
+            useAdornmentModelsArray: true,
+            storage: tMedianAdorn.createStorage()
+          });
+        return tSpecs;
+      },
+
       checkboxDescriptions: function () {
         var this_ = this;
         return sc_super().concat([

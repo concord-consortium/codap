@@ -949,7 +949,8 @@ DG.GraphView = SC.View.extend(
                   tBackgroundView = DG.PlotBackgroundView.create({
                     xAxisView: this_.get('xAxisViewArray')[iColumn],
                     yAxisView: this_.get('yAxisViewArray')[iRow],
-                    graphModel: this_.get('model')
+                    graphModel: this_.get('model'),
+                    darkenBackground: (iRow + iColumn) % 2 !== 0
                   });
                   tPlotBackgroundViewArray[iRow][iColumn] = tBackgroundView;
                   this_.appendChild( tBackgroundView);

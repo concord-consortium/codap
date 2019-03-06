@@ -1062,6 +1062,52 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       },
 
       /**
+       *
+       * @param {Object} iAdornments
+       */
+      installAdornmentModels: function( iAdornments) {
+        var this_ = this;
+        DG.ObjectMap.forEach( iAdornments, function( iKey, iValue) {
+          this_.set( iKey, iValue);
+        });
+      },
+
+      /**
+       * Return a list of objects { key, class, storage }
+       * Subclasses should override calling sc_super first.
+       * @return {[Object]}
+       */
+      getAdornmentSpecs: function() {
+        var tSpecs = [],
+            tPlottedCount = this.get('plottedCount');
+        if( tPlottedCount)
+          tSpecs.push( {
+            key: 'plottedCount',
+            class: tPlottedCount.constructor,
+            storage: tPlottedCount.createStorage()
+          });
+        return tSpecs;
+      },
+
+      /**
+       * For each adornment in source, make a corresponding adornment for me.
+       * @param {DG.PlotModel} iSourcePlot
+       */
+      installAdornmentModelsFrom: function( iSourcePlot) {
+        var this_ = this,
+            tAdornmentSpecs = iSourcePlot.getAdornmentSpecs();
+        tAdornmentSpecs.forEach( function( iSpec) {
+          var tAdornmentModel = iSpec.class.create();
+          tAdornmentModel.restoreStorage( iSpec.storage);
+          tAdornmentModel.set('plotModel', this_);
+          if( iSpec.useAdornmentModelsArray)
+            this_.setAdornmentModel( iSpec.key, tAdornmentModel);
+          else
+            this_.set( iSpec.key, tAdornmentModel);
+        });
+      },
+
+      /**
        * Get an array of non-missing case counts in each axis cell.
        * Also cell index on primary and secondary axis, with primary axis as major axis.
        * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).

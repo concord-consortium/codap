@@ -951,12 +951,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       tOperativePlot.setIfChanged( 'dataConfiguration', tConfig );
       tOperativePlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
       tOperativePlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
-      for( var tProperty in tAdornmentModels ) {
-        if( tAdornmentModels.hasOwnProperty( tProperty )) {
-          var tModel = tAdornmentModels[tProperty];
-          tOperativePlot.setIfChanged( tProperty, tModel);
-        }
-      }
+      tOperativePlot.installAdornmentModels( tAdornmentModels);
       tOperativePlot.endPropertyChanges();
 
       this.setIfChanged('plot', tOperativePlot);
@@ -1108,7 +1103,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     updateSplitPlotArray: function() {
       var this_ = this,
-          tPlotClass = this.get('plot').constructor;  // All plots will be of this class
+          tRootPlot = this.get('plot'),
+          tPlotClass = tRootPlot.constructor;  // All plots will be of this class
+
       this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
         var tCurrentPlot = iPlotArray[0],
             tNewPlot;
@@ -1123,6 +1120,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
             yAttributeIndex: 0
           });
           tNewPlot = tPlotClass.create(tProperties);
+          tNewPlot.installAdornmentModelsFrom( tRootPlot);
           this_.addPlotObserver(tNewPlot);
           iPlotArray[0] = tNewPlot;
           if (tCurrentPlot) {
