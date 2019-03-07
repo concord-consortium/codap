@@ -292,6 +292,16 @@ DG.PlotDataConfiguration = SC.Object.extend(
       },
 
       /**
+       *
+       * @param iPrefixes {[String]}
+       */
+      noAttributesFor: function( iPrefixes) {
+        return iPrefixes.every( function( iPrefix) {
+          return this.getPath( iPrefix + 'AttributeDescription.noAttributes');
+        }.bind( this));
+      },
+
+      /**
        Returns true if this graph references attributes in collections with aggregate
        functions, which is useful when determining whether a graph needs to be redrawn.
        @property   {Boolean}
@@ -647,7 +657,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
       attributeAssignmentDidChange: function () {
         this.notifyPropertyChange('attributeAssignment');
       }.observes('.xAttributeDescription.attribute', '.yAttributeDescription.attribute', '.y2AttributeDescription.attribute',
-          '.legendAttributeDescription.attribute'),
+          '.legendAttributeDescription.attribute', '.topAttributeDescription.attribute',
+          '.rightAttributeDescription.attribute'),
 
       /**
        Iteration through all attribute descriptions.

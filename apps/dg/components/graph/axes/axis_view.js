@@ -31,10 +31,10 @@ sc_require('views/raphael_base');
 DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
     /** @scope DG.AxisView.prototype */ (function () {
       return {
-        displayProperties: ['model.attributeDescription.attribute',
+        displayProperties: ['suppressLabel',
+          'model.attributeDescription.attribute',
           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
-          'otherYAttributeDescription.attribute',
-          'otherAxisView.desiredExtent'],
+          'otherYAttributeDescription.attribute'],
         classNames: 'dg-axis-view'.w(),
 
         /**
@@ -48,6 +48,25 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          @property { String }
          */
         orientation: null,
+
+        /**
+         * When this set, we use its paper rather than our own for rendering our label.
+         * @property {DG.RaphaelBaseView}
+         */
+        paperSourceForLabel: null,
+
+        paperForLabel: function() {
+          if( this.get('paperSourceForLabel'))
+            return this.getPath('paperSourceForLabel.paper');
+          else return this.get('paper');
+        }.property('paperSourceForLabel'),
+
+        /**
+         * In some situations we don't want to show the label; e.g. split right or split top
+         * we only show the label on one of the axes.
+         * @property {Boolean}
+         */
+        suppressLabel: false,
 
         /**
          * @property {DG.Attribute}
@@ -69,6 +88,9 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          @property { Number }
          */
         desiredExtent: function () {
+          if( this.get('paperSourceForLabel'))
+            return 0; // it will be laid out independently of us
+
           var tLabelExtent = this.get('labelExtent'),
               tDimension;
           switch (this.get('orientation')) {
@@ -83,21 +105,24 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               break;
           }
           return tLabelExtent[ tDimension];
-        }.property('labelNode'),
+        }.property('labelNode', 'paperSourceForLabel'),
 
         /**
-         * A y-axis gets its pixelMin from the corresponding x-axis
-         * @property { DG.AxisView }
+         * When we are the "other" axis, our partner needs to know how much to offset pixelMin
+         * @property {Number}
          */
-        otherAxisView: null,
+        pixelMinOffset: function() {
+          var tPaperSourceForLabel = this.get('paperSourceForLabel');
+          return tPaperSourceForLabel ? tPaperSourceForLabel.get('desiredExtent') : 0;
+        }.property('paperSourceForLabel'),
 
         /**
          * Return whether both my model and my otherAxisView's model have no attributes assigned
          * @return{Boolean}
          */
         noAttributesOnEitherAxis: function() {
-          return this.getPath('model.noAttributes') &&
-                  this.getPath('otherAxisView.model.noAttributes');
+          var tDataConfiguration = this.getPath('model.dataConfiguration');
+          return tDataConfiguration && tDataConfiguration.noAttributesFor(['x', 'y']);
         },
 
         /**
@@ -107,14 +132,13 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         pixelMin: function() {
           var tResult = 0;
           if( this.get('isVertical')) {
-            var tOtherDrawHeight = this.getPath('otherAxisView.drawHeight') || 0;
-            tResult = this.get('drawHeight') -  tOtherDrawHeight;
+            tResult = this.get('drawHeight');
           }
           return tResult;
         }.property(),
         pixelMinDidChange: function() {
           this.notifyPropertyChange('pixelMin');
-        }.observes('*otherAxisView.drawHeight', 'drawHeight'),
+        }.observes('drawHeight'),
 
         /**
          Coordinate of my maximum value (Y: top end, X: right end)
@@ -162,7 +186,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tNoAttributesOnThisAxis = this.getPath('model.noAttributes'),
               tNoAttributesOnEitherAxis = this.noAttributesOnEitherAxis(),
               tLabels, tNumAttributes, tNode, tAttributes, tAttribute;
-          if (SC.none(this._paper))
+          if (SC.none(this.get('paperForLabel')))
             return [];
 
           if( (this.constructor === DG.AxisView) && (tNoAttributesOnEitherAxis ||
@@ -178,7 +202,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           tLabels.forEach(function (iLabel, iIndex) {
             if (tLabelCount >= this_._labelNodes.length) {
               tNode = DG.LabelNode.create({
-                paper: this_._paper,
+                paper: this_.get('paperForLabel'),
                 rotation: tRotation,
                 colorIndex: tBaseLabelIndex + iIndex,
                 numColors: tNumAttributes,
@@ -274,12 +298,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         },
 
         /**
-         * Make sure we don't hang around pointing to otherAxisView
+         * Remove observer and nodes
          */
         destroy: function() {
           if( this.constructor === DG.AxisView)
             DG.mainPage.docView.removeObserver('selectedChildView', this, this.doDraw);
-          this.otherAxisView = null;  // break circular references
           this.get('labelNodes').forEach( function( iNode) {
             iNode.remove();
             iNode.destroy();
@@ -294,9 +317,15 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          * Note that only y-axes of scatterplots are equipped to handle multiple attributes.
          */
         renderLabel: function () {
+          if( this.get('suppressLabel')) {
+            this.suppressLabelChanged();  // Guarantee that it's hidden
+            return;
+          }
+
           var tNodes = this.get('labelNodes'),
-              tDrawWidth = this.get('drawWidth'),
-              tDrawHeight = this.get('drawHeight'),
+              tPaperForLabel = this.get('paperForLabel'),
+              tDrawWidth = tPaperForLabel ? tPaperForLabel.width: 0,
+              tDrawHeight = tPaperForLabel ? tPaperForLabel.height : 0,
               tIsVertical = this.get('isVertical'),
               tOrientation = this.get('orientation'),
               tTotalLength = 0,
@@ -333,6 +362,21 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             tNode.set('loc', tLoc);
           });
         },
+
+        suppressLabelChanged: function() {
+          var tLabelNodes = this._labelNodes,
+              tSuppress = this.get('suppressLabel');
+          if (tLabelNodes) {
+            tLabelNodes.forEach(function (iNode) {
+              if( tSuppress)
+                iNode.hide();
+              else
+                iNode.show();
+            });
+          }
+          if( !tSuppress)
+            this.renderLabel();
+        }.observes('suppressLabel'),
 
         /**
          Graph controller observes this property to detect that a drag has taken place.
@@ -470,12 +514,16 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         },
 
         isValidAttribute: function (iDrag) {
-          if (this.get('orientation') === 'vertical2') {
-            return this.isValidAttributeForScatterplot( iDrag) ||
-                this.isValidAttributeForPlotSplit( iDrag);
+          switch (this.get('orientation')) {
+            case 'vertical2':
+            case 'top':
+              return this.isValidAttributeForScatterplot( iDrag) ||
+                  this.isValidAttributeForPlotSplit( iDrag);
+            case 'right':
+              return this.isValidAttributeForPlotSplit( iDrag);
+            default:
+              return DG.GraphDropTarget.isValidAttribute.call(this, iDrag);
           }
-          else
-            return DG.GraphDropTarget.isValidAttribute.call(this, iDrag);
         }
       };
     }()));

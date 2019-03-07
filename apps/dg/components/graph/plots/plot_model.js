@@ -44,6 +44,14 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       splitPlotColIndex: 0,
 
       /**
+       * The zeroth plot in a graph that has been split has siblings. When things change
+       * that should be reflected in these siblings, the zeroth plot explicitly tells sibs
+       * to make the change.
+       * @property {[{DG.PlotModel}]}
+       */
+      siblingPlots: null,
+
+      /**
        @property { DG.DataContext }  The data context
        */
       dataContext: function () {
@@ -80,8 +88,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         var tCases;
         if( this.getPath('dataConfiguration.hasSplitAttribute')) {
           if( !this._casesCache) {
-            var tRowAttrDescription = this.getPath('dataConfiguration.rightSplitAttributeDescription'),
-                tColAttrDescription = this.getPath('dataConfiguration.topSplitAttributeDescription'),
+            var tRowAttrDescription = this.getPath('dataConfiguration.rightAttributeDescription'),
+                tColAttrDescription = this.getPath('dataConfiguration.topAttributeDescription'),
                 tRowAttrID = tRowAttrDescription.getPath('attribute.id'),
                 tColAttrID = tColAttrDescription.getPath('attribute.id'),
                 tRowValue = (tRowAttrID === DG.Attribute.kNullAttribute) ? null :
@@ -352,7 +360,22 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         var this_ = this;
 
         function toggle() {
-          this_.toggleAdornmentVisibility('plottedValue', 'togglePlotValue');
+
+          function doToggle( iPlot) {
+            iPlot.toggleAdornmentVisibility('plottedValue', 'togglePlotValue');
+          }
+
+          this_.get('siblingPlots').forEach( doToggle);
+          doToggle( this_);
+        }
+
+        function connectFunctions() {
+          var tSiblingPlots = this_.get('siblingPlots'),
+              tMasterPlottedValue = this_.getAdornmentModel('plottedValue');
+          tMasterPlottedValue.set('siblingPlottedFunctions',
+              tSiblingPlots.map( function( iPlot) {
+                return iPlot.getAdornmentModel( 'plottedValue');
+              }));
         }
 
         var willShow = !this.isAdornmentVisible('plottedValue');
@@ -363,9 +386,11 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
           log: "togglePlotValue: %@".fmt(willShow ? "show" : "hide"),
           execute: function () {
             toggle();
+            connectFunctions();
           },
           undo: function () {
             toggle();
+            this_.getAdornmentModel('plottedValue').set('siblingPlottedFunctions', null);
           }
         }));
       },
@@ -377,8 +402,14 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         var this_ = this;
 
         function toggle() {
-          var tCurrentValue = this_.getPath('plottedCount.isShowing' + iWhat);
-          this_.setPath('plottedCount.isShowing' + iWhat, !tCurrentValue);
+
+          function doToggle( iPlot) {
+            var tCurrentValue = iPlot.getPath('plottedCount.isShowing' + iWhat);
+            iPlot.setPath('plottedCount.isShowing' + iWhat, !tCurrentValue);
+          }
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
         }
 
         var tInitialValue = this_.getPath('plottedCount.isShowing' + iWhat),
@@ -405,6 +436,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         sc_super();
 
         this._adornmentModels = {};
+        this.siblingPlots = [];
 
         this.addObserver('dataConfiguration', this, 'dataConfigurationDidChange');
         this.addObserver('xAxis', this, 'xAxisDidChange');
@@ -441,6 +473,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
                 iModel.destroy();
             });
         this._adornmentModels = null;
+        this.siblingPlots = null;
 
         sc_super();
 
@@ -486,6 +519,10 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
           yAxis.addObserver('upperBound', this, 'axisBoundsDidChange');
           this._observedYAxis = yAxis;
         }
+      },
+
+      addSibling: function( iPlotModel) {
+        this.get('siblingPlots').push( iPlotModel);
       },
 
       /**
@@ -597,6 +634,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        */
       invalidateCaches: function () {
         this._casesCache = null;
+        this.invalidateAggregateAdornments();
         this.notifyPropertyChange('plotConfiguration');
       },
 
@@ -609,6 +647,22 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       getDataMinAndMaxForDimension: function (iPlace) {
         var tDataConfiguration = this.get('dataConfiguration');
         return tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension(iPlace);
+      },
+
+      updateAdornmentModels: function() {
+        ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
+          var adornmentModel = this.getAdornmentModel(iAdornmentKey);
+          if (adornmentModel) {
+            if (adornmentModel.setComputingNeeded)
+              adornmentModel.setComputingNeeded();  // invalidate if axis model/attribute change
+            if (iAdornmentKey === 'multipleMovableValues') {
+              adornmentModel.recomputeValueIfNeeded(this.get('primaryAxisModel'));
+            }
+            else {
+              adornmentModel.recomputeValueIfNeeded(); // recompute only if/when visible
+            }
+          }
+        }.bind(this));
       },
 
       /**
@@ -978,6 +1032,15 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       },
 
       /**
+       * When making a copy of a plot (e.g. for use in split) the returned object
+       * holds those properties that should be assigned to the copy.
+       * @return {{}}
+       */
+      getPropsForCopy: function() {
+        return {};
+      },
+
+      /**
        * Create the model data to save with document.
        * Derived plot models will add to this storage.
        * @return {Object} the saved data.
@@ -1097,9 +1160,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         var this_ = this,
             tAdornmentSpecs = iSourcePlot.getAdornmentSpecs();
         tAdornmentSpecs.forEach( function( iSpec) {
-          var tAdornmentModel = iSpec.class.create();
+          var tAdornmentModel = iSpec.class.create({ plotModel: this_ });
           tAdornmentModel.restoreStorage( iSpec.storage);
-          tAdornmentModel.set('plotModel', this_);
           if( iSpec.useAdornmentModelsArray)
             this_.setAdornmentModel( iSpec.key, tAdornmentModel);
           else

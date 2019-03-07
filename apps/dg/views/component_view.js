@@ -338,7 +338,12 @@ DG.ComponentView = SC.View.extend(
             titleView.beginEditing();
           }
         },
-        contentView: SC.outlet('containerView.contentView'),
+        contentView: function( iKey, iValue) {
+          if( iValue) {
+            this.setPath('containerView.contentView', iValue);
+          }
+          return this.getPath('containerView.contentView');
+        }.property(),
         childViews: ('containerView' + (DG.get('componentMode') === 'no' ?
             ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),
         containerView: SC.View.design({
@@ -976,6 +981,9 @@ DG.ComponentView._createComponent = function (iParams) {
         showTitleBar: !tIsStandaloneInteractive,
         isResizable: !tIsStandaloneInteractive
       });
+  if( iParams.controller)
+    iParams.controller.set('view', tComponentView);
+  iParams.contentProperties.controller = iParams.controller;
   tComponentView.addContent(tComponentClass.create(iParams.contentProperties));
 
   if (iParams.controller)
@@ -999,8 +1007,10 @@ DG.ComponentView.restoreComponent = function (iParams) {
       tSuperView = iParams.parentView,
       tUseLayoutForPosition = iParams.useLayout;
 
-  if (iParams.controller)
+  if (iParams.controller) {
+    iParams.controller.set('view', tComponentView);
     tComponentView.set('controller', iParams.controller);
+  }
 
   //default to use the existing layout if present, even when requested otherwise.
   if (SC.none(tUseLayoutForPosition) && !SC.none(iParams.layout.left) && !SC.none(iParams.layout.top)) {

@@ -97,6 +97,19 @@ DG.GraphDropTarget =
     var tDragAttr = iDrag.data.attribute,
         tDragAttrIsNominal = tDragAttr.isNominal(),
         tCurrAttr = this.get('plottedAttribute'),
+        tXDescription = this.getPath('dataConfiguration.xAttributeDescription'),
+        tCurrXAttr = tXDescription ? tXDescription.get('attribute') : DG.Analysis.kNullAttribute,
+        tY1Description = this.getPath('dataConfiguration.yAttributeDescription'),
+        tY1Attr = tY1Description ? tY1Description.get('attribute') : DG.Analysis.kNullAttribute,
+        tValidForScatterplot = (tCurrXAttr !== DG.Analysis.kNullAttribute) &&
+            (tY1Attr !== DG.Analysis.kNullAttribute) &&
+            (tY1Attr !== tDragAttr) &&
+            (tCurrAttr !== tDragAttr) &&
+            tXDescription.get('isNumeric') &&
+            tY1Description.get('isNumeric') &&
+            !tDragAttrIsNominal;
+
+/*
         tOtherAttr = this.get('otherPlottedAttribute'),
         tOtherDescr = this.get('otherAttributeDescription'),
         tValidForScatterplot = (tOtherAttr !== DG.Analysis.kNullAttribute) &&
@@ -104,6 +117,7 @@ DG.GraphDropTarget =
             (tCurrAttr !== tDragAttr) &&
             !tDragAttrIsNominal &&
             tOtherDescr && tOtherDescr.get('isNumeric');
+*/
     return tValidForScatterplot;
   },
 
@@ -113,7 +127,11 @@ DG.GraphDropTarget =
     return SC.none( tCurrAttr) || (tCurrAttr !== tDragAttr);
   },
 
-  // Draw an orange frame to show we're a drop target.
+  /**
+   * Draw an orange frame to show we're a drop target.
+   * Set the dropHintString for later display on dragEntered
+   * @param iDrag {Object}
+   */
   dragStarted: function( iDrag) {
     var tPaper = this.get('paper' );
     if (!tPaper) return;
@@ -134,12 +152,10 @@ DG.GraphDropTarget =
         var tParentView = this.get('parentView');
         if (tParentView)
           tParentView.makeSubviewFrontmost(this);
-        tDropHint = 'DG.GraphView.splitPlotHorizontally'.loc( tDraggedName);
       }
-      else {
-        tDropHint = isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
-            'DG.GraphView.replaceAttribute'.loc(tAttrName, tDraggedName);
-      }
+      tDropHint = iDrag.data.attribute.isNominal() ? 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName) :
+          (isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
+              'DG.GraphView.replaceAttribute'.loc(tAttrName, tDraggedName));
 
       tFrame = {
         x: kWidth, y: kWidth,

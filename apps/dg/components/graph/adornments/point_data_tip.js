@@ -44,7 +44,7 @@ DG.PointDataTip = DG.DataTip.extend(
 
         var this_ = this,
             tPlot = this.getPath('plotLayer.model'),  // Use of plotBinding doesn't work the first time
-            tCases = tPlot.get('cases'),
+            tCases = tPlot && tPlot.get('cases'),
             tCase = tCases ? tCases.unorderedAt(this.get('caseIndex')) : null;
 
         function getNameValuePair(iKey) {

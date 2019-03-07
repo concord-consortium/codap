@@ -28,51 +28,51 @@ sc_require('components/graph_map_common/plot_data_configuration');
 DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
 /** @scope DG.GraphDataConfiguration.prototype */ 
 {
-  topSplitCollectionClient: function () {
-    return this.getPath('topSplitAttributeDescription.collectionClient');
+  topCollectionClient: function () {
+    return this.getPath('topAttributeDescription.collectionClient');
   }.property(),
 
-  rightSplitCollectionClient: function () {
-    return this.getPath('rightSplitAttributeDescription.collectionClient');
+  rightCollectionClient: function () {
+    return this.getPath('rightAttributeDescription.collectionClient');
   }.property(),
 
-  topSplitCollectionDidChange: function () {
-    this.notifyPropertyChange('topSplitCollectionClient');
-  }.observes('*topSplitAttributeDescription.collectionClient'),
+  topCollectionDidChange: function () {
+    this.notifyPropertyChange('topCollectionClient');
+  }.observes('*topAttributeDescription.collectionClient'),
 
-  rightSplitCollectionDidChange: function () {
-    this.notifyPropertyChange('rightSplitCollectionClient');
-  }.observes('*rightSplitAttributeDescription.collectionClient'),
+  rightCollectionDidChange: function () {
+    this.notifyPropertyChange('rightCollectionClient');
+  }.observes('*rightAttributeDescription.collectionClient'),
 
   /**
    @property { DG.AttributePlacementDescription }
    */
-  topSplitAttributeDescription: function (iKey, iValue) {
+  topAttributeDescription: function (iKey, iValue) {
     return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eTopSplit);
   }.property(),
 
   /**
    @property { DG.AttributePlacementDescription }
    */
-  rightSplitAttributeDescription: function (iKey, iValue) {
+  rightAttributeDescription: function (iKey, iValue) {
     return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eRightSplit);
   }.property(),
 
-  topSplitAttributeID: function () {
-    return this.getPath('topSplitAttributeDescription.attributeID');
+  topAttributeID: function () {
+    return this.getPath('topAttributeDescription.attributeID');
   }.property(),
 
-  rightSplitAttributeID: function () {
-    return this.getPath('rightSplitAttributeDescription.attributeID');
+  rightAttributeID: function () {
+    return this.getPath('rightAttributeDescription.attributeID');
   }.property(),
 
-  topSplitAttributeIDDidChange: function () {
-    this.notifyPropertyChange('topSplitAttributeID');
-  }.observes('*topSplitAttributeDescription.attributeID'),
+  topAttributeIDDidChange: function () {
+    this.notifyPropertyChange('topAttributeID');
+  }.observes('*topAttributeDescription.attributeID'),
 
-  rightSplitAttributeIDDidChange: function () {
-    this.notifyPropertyChange('rightSplitAttributeID');
-  }.observes('*rightSplitAttributeDescription.attributeID'),
+  rightAttributeIDDidChange: function () {
+    this.notifyPropertyChange('rightAttributeID');
+  }.observes('*rightAttributeDescription.attributeID'),
 
   /**
    * It is in initialization that we specialize from base class
@@ -84,8 +84,8 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
           y: DG.AttributePlacementDescription.create(),
           y2: DG.AttributePlacementDescription.create(),
           legend: DG.AttributePlacementDescription.create(),
-          topSplit: DG.AttributePlacementDescription.create(),
-          rightSplit: DG.AttributePlacementDescription.create()
+          top: DG.AttributePlacementDescription.create(),
+          right: DG.AttributePlacementDescription.create()
         },
         tPlace,
         tDefaults = DG.currDocumentController().collectionDefaults();
@@ -158,18 +158,18 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY2][0] = attributeDescriptions.y2;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eTopSplit][0] = attributeDescriptions.topSplit;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eRightSplit][0] = attributeDescriptions.rightSplit;
+    this.attributesByPlace[ DG.GraphTypes.EPlace.eTopSplit][0] = attributeDescriptions.top;
+    this.attributesByPlace[ DG.GraphTypes.EPlace.eRightSplit][0] = attributeDescriptions.right;
   },
 
   destroy: function () {
-    var topSplitDesc = this.get('topSplitAttributeDescription'),
-        rightSplitDesc = this.get('rightSplitAttributeDescription');
+    var topDesc = this.get('topAttributeDescription'),
+        rightDesc = this.get('rightAttributeDescription');
 
-    if (topSplitDesc)
-      topSplitDesc.removeObserver('collectionClient', this, 'topSplitCollectionDidChange');
-    if (rightSplitDesc)
-      rightSplitDesc.removeObserver('collectionClient', this, 'rightSplitCollectionDidChange');
+    if (topDesc)
+      topDesc.removeObserver('collectionClient', this, 'topCollectionDidChange');
+    if (rightDesc)
+      rightDesc.removeObserver('collectionClient', this, 'rightCollectionDidChange');
 
     sc_super();
   },
@@ -197,8 +197,8 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
           }.bind(this);
 
       // Consider each of our split collections in turn
-      considerCollection('topSplit');
-      considerCollection('rightSplit');
+      considerCollection('top');
+      considerCollection('right');
 
       // Search through our set of collections, stopping on the first one that has aggregates.
       foundID = DG.ObjectMap.findKey(collectionIDs,
@@ -214,22 +214,18 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
    * @property {Boolean}
    */
   hasSplitAttribute: function() {
-    return !!this.get('rightSplitAttributeID') || !!this.get('topSplitAttributeID');
-  }.property( 'rightSplitAttributeID', 'topSplitAttributeID'),
-
-  attributeAssignmentDidChange: function () {
-    sc_super();
-  }.observes('.topSplitAttributeDescription.attribute', '.rightSplitAttributeDescription.attribute'),
+    return !!this.get('rightAttributeID') || !!this.get('topAttributeID');
+  }.property( 'rightAttributeID', 'topAttributeID'),
 
   /**
    * Utility method
    */
   invalidateAttributeDescriptionCaches: function (iCases, iChange) {
     sc_super();
-    if (this.get('topSplitAttributeDescription'))
-      this.get('topSplitAttributeDescription').invalidateCaches(iCases, iChange);
-    if (this.get('rightSplitAttributeDescription'))
-      this.get('rightSplitAttributeDescription').invalidateCaches(iCases, iChange);
+    if (this.get('topAttributeDescription'))
+      this.get('topAttributeDescription').invalidateCaches(iCases, iChange);
+    if (this.get('rightAttributeDescription'))
+      this.get('rightAttributeDescription').invalidateCaches(iCases, iChange);
   },
 
   /**
@@ -237,7 +233,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
    * @returns {Boolean}
    */
   atLeastOneFormula: function () {
-    var tProperties = ['topSplitAttributeDescription', 'rightSplitAttributeDescription'];
+    var tProperties = ['topAttributeDescription', 'rightAttributeDescription'];
     return (sc_super() ||
         tProperties.some(function (iProperty) {
           return this.getPath(iProperty + '.hasFormula');

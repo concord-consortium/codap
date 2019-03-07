@@ -189,13 +189,19 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          if (SC.none(this_.movablePoint)) {
-            this_.createMovablePoint(); // Default is to be visible
+
+          function doToggle( iPlot) {
+            if (SC.none(iPlot.movablePoint)) {
+              iPlot.createMovablePoint(); // Default is to be visible
+            }
+            else {
+              iPlot.movablePoint.recomputePositionIfNeeded(iPlot.get('xAxis'), iPlot.get('yAxis'));
+              iPlot.movablePoint.set('isVisible', !iPlot.movablePoint.get('isVisible'));
+            }
           }
-          else {
-            this_.movablePoint.recomputePositionIfNeeded(this_.get('xAxis'), this_.get('yAxis'));
-            this_.movablePoint.set('isVisible', !this_.movablePoint.get('isVisible'));
-          }
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
         }
 
         var willShow = !this.movablePoint || !this.movablePoint.get('isVisible');
@@ -220,13 +226,19 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          if (SC.none(this_.movableLine)) {
-            this_.createMovableLine(); // Default is to be visible
+
+          function doToggle(iPlot) {
+            if (SC.none(iPlot.movableLine)) {
+              iPlot.createMovableLine(); // Default is to be visible
+            }
+            else {
+              iPlot.movableLine.recomputeSlopeAndInterceptIfNeeded(iPlot.get('xAxis'), iPlot.get('yAxis'));
+              iPlot.movableLine.set('isVisible', !iPlot.movableLine.get('isVisible'));
+            }
           }
-          else {
-            this_.movableLine.recomputeSlopeAndInterceptIfNeeded(this_.get('xAxis'), this_.get('yAxis'));
-            this_.movableLine.set('isVisible', !this_.movableLine.get('isVisible'));
-          }
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
         }
 
         var willShow = !this.movableLine || !this.movableLine.get('isVisible');
@@ -266,12 +278,18 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          if (SC.none(this_.multipleLSRLs)) {
-            this_.createLSRLLines();
+
+          function doToggle( iPlot) {
+            if (SC.none(iPlot.get('multipleLSRLs'))) {
+              iPlot.createLSRLLines();
+            }
+            else {
+              iPlot.setPath('multipleLSRLs.isVisible', !iPlot.getPath('multipleLSRLs.isVisible'));
+            }
           }
-          else {
-            this_.multipleLSRLs.set('isVisible', !this_.multipleLSRLs.get('isVisible'));
-          }
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
         }
 
         var willShow = !this.multipleLSRLs || !this.multipleLSRLs.get('isVisible');
@@ -296,13 +314,48 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          if( !SC.none(this_.movableLine)) {
-            this_.movableLine.toggleInterceptLocked();
-            this_.movableLine.recomputeSlopeAndInterceptIfNeeded(this_.get('xAxis'), this_.get('yAxis'));
+
+          function doToggle( iPlot) {
+            if (!SC.none(iPlot.movableLine)) {
+              iPlot.movableLine.toggleInterceptLocked();
+              iPlot.movableLine.recomputeSlopeAndInterceptIfNeeded(iPlot.get('xAxis'), iPlot.get('yAxis'));
+            }
+            if (!SC.none(iPlot.multipleLSRLs)) {
+              iPlot.multipleLSRLs.toggleInterceptLocked();
+            }
           }
-          if( !SC.none(this_.multipleLSRLs)) {
-            this_.multipleLSRLs.toggleInterceptLocked();
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
+        }
+
+        function gatherUndoData() {
+
+          function doGatherUndoData( iPlot) {
+            tResult.push( {
+              movableLine: iPlot.movableLine ? iPlot.movableLine.createStorage() : null,
+              lsrlStorage: iPlot.multipleLSRLs ? iPlot.multipleLSRLs.createStorage() : null
+            });
           }
+
+          var tResult = [];
+          doGatherUndoData( this_);
+          this_.get('siblingPlots').forEach( doGatherUndoData);
+          return tResult;
+        }
+
+        function restoreFromUndoData( iUndoData) {
+
+          function doRestoreFromUndoData( iPlot, iIndexMinusOne) {
+            var tUndoData = iUndoData[ iIndexMinusOne + 1];
+            if( iPlot.movableLine)
+              iPlot.movableLine.restoreStorage(tUndoData.movableLine);
+            if( iPlot.multipleLSRLs)
+              iPlot.multipleLSRLs.restoreStorage(tUndoData.lsrlStorage);
+          }
+
+          doRestoreFromUndoData( this_, -1);
+          this_.get('siblingPlots').forEach( doRestoreFromUndoData);
         }
 
         var willLock = (this.movableLine && !this.movableLine.get('isInterceptLocked')) ||
@@ -313,15 +366,12 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           redoString: (willLock ? 'DG.Redo.graph.lockIntercept' : 'DG.Redo.graph.unlockIntercept'),
           log: "lockIntercept: %@".fmt(willLock),
           execute: function () {
-            this._undoData = {
-              movableLine: this_.movableLine ? this_.movableLine.createStorage() : null,
-              lsrlStorage: this_.multipleLSRLs ? this_.multipleLSRLs.createStorage() : null
-            };
+            this._undoData = gatherUndoData();
             toggle();
           },
           undo: function () {
-            this_.movableLine.restoreStorage(this._undoData.movableLine);
-            this_.multipleLSRLs.restoreStorage(this._undoData.lsrlStorage);
+            restoreFromUndoData( this._undoData);
+            this._undoData = null;
           }
         }));
       },
@@ -333,7 +383,22 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          this_.toggleAdornmentVisibility('plottedFunction', 'togglePlotFunction');
+
+          function doToggle( iPlot) {
+            iPlot.toggleAdornmentVisibility('plottedFunction', 'togglePlotFunction');
+          }
+
+          this_.get('siblingPlots').forEach( doToggle);
+          doToggle( this_);
+        }
+
+        function connectFunctions() {
+          var tSiblingPlots = this_.get('siblingPlots'),
+              tMasterPlottedFunction = this_.getAdornmentModel('plottedFunction');
+          tMasterPlottedFunction.set('siblingPlottedFunctions',
+              tSiblingPlots.map( function( iPlot) {
+                return iPlot.getAdornmentModel( 'plottedFunction');
+              }));
         }
 
         var willShow = !this.isAdornmentVisible('plottedFunction');
@@ -344,9 +409,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           log: "togglePlotFunction: %@".fmt(willShow ? "show" : "hide"),
           execute: function () {
             toggle();
+            connectFunctions();
           },
           undo: function () {
             toggle();
+            this_.getAdornmentModel('plottedFunction').set('siblingPlottedFunctions', null);
           }
         }));
       },
@@ -358,9 +425,15 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          var tAdornModel = this_.toggleAdornmentVisibility('connectingLine', 'toggleConnectingLine');
-          if (tAdornModel && tAdornModel.get('isVisible'))
-            tAdornModel.recomputeValue(); // initialize
+
+          function doToggle( iPlot) {
+            var tAdornModel = iPlot.toggleAdornmentVisibility('connectingLine', 'toggleConnectingLine');
+            if (tAdornModel && tAdornModel.get('isVisible'))
+              tAdornModel.recomputeValue(); // initialize
+          }
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
         }
 
         var willShow = !this.isAdornmentVisible('connectingLine');
@@ -385,7 +458,13 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          this_.set('areSquaresVisible', !this_.get('areSquaresVisible'));
+
+          function doToggle( iPlot) {
+            iPlot.set('areSquaresVisible', !iPlot.get('areSquaresVisible'));
+          }
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
         }
 
         var willShow = !this.get('areSquaresVisible');
@@ -435,6 +514,53 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       dilate: function (iFixedPoint, iFactor) {
         this.doDilation([DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY], iFixedPoint, iFactor);
+      },
+
+      /**
+       * Return a list of objects { key, class, useAdornmentModelsArray, storage }
+       * Subclasses should override calling sc_super first.
+       * @return {[Object]}
+       */
+      getAdornmentSpecs: function() {
+        var tSpecs = sc_super(),
+        this_ = this;
+        ['movablePoint', 'movableLine', 'multipleLSRLs'].forEach( function( iKey) {
+          var tAdorn = this_.get( iKey);
+          if (tAdorn)
+            tSpecs.push({
+              key: iKey,
+              class: tAdorn.constructor,
+              useAdornmentModelsArray: false,
+              storage: tAdorn.createStorage()
+            });
+        });
+        DG.ObjectMap.forEach( this._adornmentModels, function( iKey, iAdorn) {
+          tSpecs.push( {
+            key: iKey,
+            class: iAdorn.constructor,
+            useAdornmentModelsArray: true,
+            storage: iAdorn.createStorage()
+          });
+        });
+        return tSpecs;
+      },
+
+      /**
+       * Base class will do most of the work. We just have to finish up setting the axes.
+       * @param {DG.PlotModel} iSourcePlot
+       */
+      installAdornmentModelsFrom: function( iSourcePlot) {
+        sc_super();
+        var tMovablePoint = this.get('movablePoint');
+        if (tMovablePoint) {
+          tMovablePoint.set('xAxis', this.get('xAxis'));
+          tMovablePoint.set('yAxis', this.get('yAxis'));
+          tMovablePoint.recomputeCoordinates(this.get('xAxis'), this.get('yAxis'));
+        }
+        var tMultipleLSRLs = this.get('multipleLSRLs');
+        if (tMultipleLSRLs) {
+          tMultipleLSRLs.recomputeSlopeAndInterceptIfNeeded(this.get('xAxis'), this.get('yAxis'));
+        }
       },
 
       checkboxDescriptions: function () {
@@ -544,6 +670,18 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           }
         ]);
       }.property(),
+
+      /**
+       * When making a copy of a plot (e.g. for use in split) the returned object
+       * holds those properties that should be assigned to the copy.
+       * @return {{}}
+       */
+      getPropsForCopy: function() {
+        var tResult = sc_super();
+        return $.extend( tResult, {
+          areSquaresVisible: this.get('areSquaresVisible')
+        });
+      },
 
       /**
        * @return { Object } with properties specific to a given subclass

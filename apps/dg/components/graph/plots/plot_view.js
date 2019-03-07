@@ -207,7 +207,7 @@ DG.PlotView = DG.PlotLayer.extend(
   /**
     For use in transferring current element positions of this plot to a new plot about
     to take its place.
-    @return {Array of {cx:{Number}, cy:{Number}, r: {Number}, fill: {String} }
+    @return {[{cx:{Number}, cy:{Number}, r: {Number}, fill: {String} ]}
   */
   getElementPositionsInParentFrame: function() {
     var tFrame = this.get('frame'),

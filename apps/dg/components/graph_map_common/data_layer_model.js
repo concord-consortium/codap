@@ -514,6 +514,10 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
         case 'legend':
           tAction = this.removeLegendAttribute;
           break;
+        case 'top':
+        case 'right':
+          tAction = this.removeSplitAttribute;
+          break;
       }
       return {
         title: tTitle,
@@ -647,6 +651,12 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
      */
     removeLegendAttribute: function() {
       this.changeAttributeForLegend( null, null);
+    },
+
+    /**
+     * Subclasses will override
+     */
+    removeSplitAttribute: function() {
     },
 
     /**

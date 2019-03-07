@@ -44,9 +44,13 @@ DG.GraphController = DG.DataDisplayController.extend(
         }.property('dataDisplayModel'),
         xAxisView: null,
         yAxisView: null,
+        bottomAxisLabelView: null,
+        leftAxisLabelView: null,
         y2AxisView: null,
         plotView: null,
         axisMultiTarget: null,
+        topAxisView: null,
+        rightAxisView: null,
 
         createComponentStorage: function () {
           var storage = {_links_: {}},
@@ -99,8 +103,8 @@ DG.GraphController = DG.DataDisplayController.extend(
           dataConfiguration.addToStorageForDimension(storage, 'x');
           dataConfiguration.addToStorageForDimension(storage, 'y');
           dataConfiguration.addToStorageForDimension(storage, 'y2');
-          dataConfiguration.addToStorageForDimension(storage, 'topSplit');
-          dataConfiguration.addToStorageForDimension(storage, 'rightSplit');
+          dataConfiguration.addToStorageForDimension(storage, 'top');
+          dataConfiguration.addToStorageForDimension(storage, 'right');
 
           storeAxis('x');
           storeAxis('y');
@@ -137,38 +141,76 @@ DG.GraphController = DG.DataDisplayController.extend(
           graphModel.stopAnimation();
 
           // Configure the axes
-          var xAxis = graphModel.get('xAxis'),
-              yAxis = graphModel.get('yAxis'),
-              y2Axis = graphModel.get('y2Axis');
-          if (xAxis && xAxis.get('isNumeric') &&
-              isFinite(iStorage.xLowerBound) && isFinite(iStorage.xUpperBound)) {
-            xAxis.setLowerAndUpperBounds(iStorage.xLowerBound, iStorage.xUpperBound);
-          }
-          if (yAxis && yAxis.get('isNumeric') &&
-              isFinite(iStorage.yLowerBound) && isFinite(iStorage.yUpperBound)) {
-            yAxis.setLowerAndUpperBounds(iStorage.yLowerBound, iStorage.yUpperBound);
-          }
-          if (y2Axis && y2Axis.get('isNumeric') &&
-              isFinite(iStorage.y2LowerBound) && isFinite(iStorage.y2UpperBound)) {
-            y2Axis.setLowerAndUpperBounds(iStorage.y2LowerBound, iStorage.y2UpperBound);
-          }
+          ['x', 'y', 'y2'].forEach(function (iKey) {
+            var tAxis = graphModel.get(iKey + 'Axis');
+            if (tAxis && tAxis.get('isNumeric') &&
+                isFinite(iStorage[iKey + 'LowerBound']) && isFinite(iStorage[iKey + 'UpperBound'])) {
+              tAxis.setLowerAndUpperBounds(iStorage[iKey + 'LowerBound'], iStorage[iKey + 'UpperBound']);
+            }
+          });
           graphModel.updateAxisArrays();
           graphModel.updateSplitPlotArray();
         },
 
+        /**
+         * @property {DG.GraphView}
+         */
+        graphView: function () {
+          return this.getPath('view.containerView.contentView');
+        }.property('view'),
+
         viewDidChange: function () {
-          var componentView = this.get('view'),
-              graphView = componentView && componentView.get('contentView');
+          this.notifyPropertyChange('graphView');
+          var graphView = this.get('graphView');
           if (graphView) {
             this.set('xAxisView', graphView.get('xAxisView'));
             this.set('yAxisView', graphView.get('yAxisView'));
+            this.set('bottomAxisLabelView', graphView.get('bottomAxisLabelView'));
+            this.set('leftAxisLabelView', graphView.get('leftAxisLabelView'));
             this.set('y2AxisView', graphView.get('y2AxisView'));
             this.set('plotView', graphView.get('plotBackgroundView'));
             this.set('legendView', graphView.get('legendView'));
             this.set('axisMultiTarget', graphView.get('yAxisMultiTarget'));
+            this.set('topAxisView', graphView.get('topAxisView'));
+            this.set('rightAxisView', graphView.get('rightAxisView'));
             graphView.set('controller', this);
+            graphView.addObserver('plotViewsReconfigured', this, this.addPlotViewObservers);
+            graphView.addObserver('plotViewsWillBeDestroyed', this, this.removePlotViewObservers);
+            this.addPlotViewObservers();
           }
-        }.observes('view'),
+        }.observes('*view.containerView.contentView'),
+
+        /**
+         * We get here through notification when our graphView has deleted all the plot views except the root
+         * so that it can create new ones that work for a new attribute configuration.
+         */
+        addPlotViewObservers: function() {
+          var this_ = this;
+          this.get('graphView').get('plotBackgroundViewArray').forEach(
+              function( iBackgroundViewArray, iRow){
+                iBackgroundViewArray.forEach( function( iBackgroundPlotView, iCol){
+                  // We don't have to add to the root plotView
+                  if( (iRow !== 0 || iCol !== 0) && iBackgroundPlotView)
+                    iBackgroundPlotView.addObserver('dragData', this_, this_.plotOrLegendViewDidAcceptDrop);
+                });
+              } );
+        },
+
+        /**
+         * We get here through notification when our graphView is about to delete all the plot views except the root
+         * so that it can create new ones that work for a new attribute configuration.
+         */
+        removePlotViewObservers: function() {
+          var this_ = this;
+          this.get('graphView').get('plotBackgroundViewArray').forEach(
+              function( iBackgroundViewArray, iRow){
+                iBackgroundViewArray.forEach( function( iBackgroundPlotView, iCol){
+                  // We don't have to add to the root plotView
+                  if( (iRow !== 0 || iCol !== 0) && iBackgroundPlotView)
+                    iBackgroundPlotView.removeObserver('dragData', this_, this_.plotOrLegendViewDidAcceptDrop);
+                });
+              } );
+        },
 
         /**
          * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
@@ -247,22 +289,22 @@ DG.GraphController = DG.DataDisplayController.extend(
                   type: 'DG.GraphView'
                 }
               },
-              execute: function() {
+              execute: function () {
                 tGraphModel.set('plotBackgroundImage', tImage);
               },
-              undo: function() {
+              undo: function () {
                 this._backgroundImage = tGraphModel.get('plotBackgroundImage');
                 tGraphModel.set('plotBackgroundImage', null);
               },
-              redo: function() {
+              redo: function () {
                 tGraphModel.set('plotBackgroundImage', this._backgroundImage);
               }
             }));
 
           }
 
-          function parseData( iData) {
-            if( iData) {
+          function parseData(iData) {
+            if (iData) {
               var tReader = new FileReader();
               tReader.onabort = handleAbnormal;
               tReader.onerror = handleAbnormal;
@@ -272,15 +314,15 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
 
           var tGraphModel = this.get('graphModel');
-          return DG.cfmClient._ui.importDataDialog((function(_this) {
-            return function(data) {
+          return DG.cfmClient._ui.importDataDialog((function (_this) {
+            return function (data) {
               return parseData(data);
             };
           })(this));
 
         },
 
-        removeBackgroundImage: function() {
+        removeBackgroundImage: function () {
           var tGraphModel = this.get('graphModel');
 
           DG.UndoHistory.execute(DG.Command.create({
@@ -296,22 +338,23 @@ DG.GraphController = DG.DataDisplayController.extend(
                 type: 'DG.GraphView'
               }
             },
-            execute: function() {
+            execute: function () {
               this._backgroundImage = tGraphModel.get('plotBackgroundImage');
               tGraphModel.set('plotBackgroundImage', null);
             },
-            undo: function() {
+            undo: function () {
               tGraphModel.set('plotBackgroundImage', this._backgroundImage);
             },
-            redo: function() {
+            redo: function () {
               tGraphModel.set('plotBackgroundImage', null);
             }
           }));
         },
 
-        lockImageToAxes: function() {
+        lockImageToAxes: function () {
           var tGraphModel = this.get('graphModel'),
-              tInfo = { locked: true,
+              tInfo = {
+                locked: true,
                 xAxisLowerBound: tGraphModel.getPath('xAxis.lowerBound'),
                 xAxisUpperBound: tGraphModel.getPath('xAxis.upperBound'),
                 yAxisLowerBound: tGraphModel.getPath('yAxis.lowerBound'),
@@ -331,19 +374,19 @@ DG.GraphController = DG.DataDisplayController.extend(
                 type: 'DG.GraphView'
               }
             },
-            execute: function() {
+            execute: function () {
               tGraphModel.set('plotBackgroundImageLockInfo', tInfo);
             },
-            undo: function() {
+            undo: function () {
               tGraphModel.set('plotBackgroundImageLockInfo', null);
             },
-            redo: function() {
+            redo: function () {
               tGraphModel.set('plotBackgroundImageLockInfo', tInfo);
             }
           }));
         },
 
-        unlockImageFromAxes: function() {
+        unlockImageFromAxes: function () {
           var tGraphModel = this.get('graphModel'),
               tInfo = tGraphModel.get('plotBackgroundImageLockInfo');
 
@@ -360,10 +403,10 @@ DG.GraphController = DG.DataDisplayController.extend(
                 type: 'DG.GraphView'
               }
             },
-            execute: function() {
+            execute: function () {
               tGraphModel.set('plotBackgroundImageLockInfo', null);
             },
-            undo: function() {
+            undo: function () {
               tGraphModel.set('plotBackgroundImageLockInfo', tInfo);
             }
           }));
@@ -403,78 +446,79 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
         },
 
-      /**
-       An axis view has received a drop of an attribute. Our job is the tell the graph
-       model which attribute and collection client to change so that we move into the
-       desired configuration of attributes.
-       Note that we need the '*' in the observes because the views are swapped out when the
-       graph gets reconfigured.
-       */
-      axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
-        if (SC.none(iDragData)) // The over-notification caused by the * in the observes
-          return;       // means we get here at times there isn't any drag data.
+        /**
+         An axis view has received a drop of an attribute. Our job is the tell the graph
+         model which attribute and collection client to change so that we move into the
+         desired configuration of attributes.
+         Note that we need the '*' in the observes because the views are swapped out when the
+         graph gets reconfigured.
+         */
+        axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
+          if (SC.none(iDragData)) // The over-notification caused by the * in the observes
+            return;       // means we get here at times there isn't any drag data.
 
-        DG.UndoHistory.execute(DG.Command.create({
-          name: 'axis.attributeChange',
-          undoString: 'DG.Undo.axisAttributeChange',
-          redoString: 'DG.Redo.axisAttributeChange',
-          executeNotification: {
-            action: 'notify',
-            resource: 'component',
-            values: {
-              operation: 'attributeChange',
-              type: 'DG.GraphView',
-              id: this.getPath('graphModel.id'),
-              attributeName: iDragData.attribute.get('name'),
-              axisOrientation: iAxis.getPath('model.orientation')
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'axis.attributeChange',
+            undoString: 'DG.Undo.axisAttributeChange',
+            redoString: 'DG.Redo.axisAttributeChange',
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'attributeChange',
+                type: 'DG.GraphView',
+                id: this.getPath('graphModel.id'),
+                attributeName: iDragData.attribute.get('name'),
+                axisOrientation: iAxis.getPath('model.orientation')
+              }
+            },
+            _beforeStorage: null,
+            _afterStorage: null,
+            _componentId: this.getPath('model.id'),
+            _controller: function () {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            execute: function () {
+              var tBenchmarkName = 'Drag attribute ' + iDragData.attribute.get('name') + ' to graph axis';
+              SC.Benchmark.start(tBenchmarkName);
+              //console.profile(tBenchmarkName);
+              var controller = this._controller();
+              this._beforeStorage = controller.createComponentStorage();
+
+              controller.handlePossibleForeignDataContext(iDragData.context);
+
+              var tDataContext = controller.get('dataContext'),
+                  tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
+                  tOrientation = iAxis.get('orientation'),
+                  tModel = controller.get('graphModel'),
+                  tAttrRefs = {
+                    collection: tCollectionClient,
+                    attributes: [iDragData.attribute]
+                  };
+
+              iAxis.dragData = null;
+              tModel.changeAttributeForAxis(tDataContext, tAttrRefs, tOrientation);
+
+              this.log = 'plotAxisAttributeChange: ' +
+                  '{ "orientation": "%@", "attribute": "%@" }'
+                      .fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
+              controller.get('view').select();
+              SC.Benchmark.end(tBenchmarkName);
+              SC.Benchmark.log(tBenchmarkName);
+              //console.profileEnd();
+            },
+            undo: function () {
+              var controller = this._controller();
+              this._afterStorage = controller.createComponentStorage();
+              controller.restoreComponentStorage(this._beforeStorage);
+            },
+            redo: function () {
+              this._controller().restoreComponentStorage(this._afterStorage);
+              this._afterStorage = null;
             }
-          },
-          _beforeStorage: null,
-          _afterStorage: null,
-          _componentId: this.getPath('model.id'),
-          _controller: function() {
-            return DG.currDocumentController().componentControllersMap[this._componentId];
-          },
-          execute: function() {
-            var tBenchmarkName = 'Drag attribute ' + iDragData.attribute.get('name') + ' to graph axis';
-            SC.Benchmark.start(tBenchmarkName);
-            //console.profile(tBenchmarkName);
-            var controller = this._controller();
-            this._beforeStorage = controller.createComponentStorage();
-
-            controller.handlePossibleForeignDataContext(iDragData.context);
-
-            var tDataContext = controller.get('dataContext'),
-                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
-                tOrientation = iAxis.get('orientation'),
-                tModel = controller.get('graphModel'),
-                tAttrRefs = {
-                  collection: tCollectionClient,
-                  attributes: [iDragData.attribute]
-                };
-
-            iAxis.dragData = null;
-            tModel.changeAttributeForAxis(tDataContext, tAttrRefs, tOrientation);
-
-            this.log = 'plotAxisAttributeChange: ' +
-                '{ "orientation": "%@", "attribute": "%@" }'
-                    .fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
-            controller.get('view').select();
-            SC.Benchmark.end(tBenchmarkName);
-            SC.Benchmark.log(tBenchmarkName);
-            //console.profileEnd();
-          },
-          undo: function() {
-            var controller = this._controller();
-            this._afterStorage = controller.createComponentStorage();
-            controller.restoreComponentStorage(this._beforeStorage);
-          },
-          redo: function() {
-            this._controller().restoreComponentStorage(this._afterStorage);
-            this._afterStorage = null;
-          }
-        }));
-      }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
+          }));
+        }.observes('*xAxisView.dragData', '*yAxisView.dragData', '*bottomAxisLabelView.dragData',
+            '*leftAxisLabelView.dragData', '*rightAxisView.dragData', '*topAxisView.dragData'),
 
         /**
          The add attribute target has received a drop of an attribute. We respond by adding an
@@ -491,14 +535,14 @@ DG.GraphController = DG.DataDisplayController.extend(
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
-            _controller: function() {
+            _controller: function () {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
-            execute: function() {
+            execute: function () {
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
-              controller.handlePossibleForeignDataContext( iDragData.context);
+              controller.handlePossibleForeignDataContext(iDragData.context);
 
               var tDataContext = controller.get('dataContext'),
                   tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
@@ -510,25 +554,25 @@ DG.GraphController = DG.DataDisplayController.extend(
 
               iAxisMultiTarget.dragData = null;
 
-              if( iDragData.attribute.isNominal()) {
-                tGraphModel.splitByAttribute( tDataContext, tAttrRefs, 'top');
+              if (iDragData.attribute.isNominal()) {
+                tGraphModel.splitByAttribute(tDataContext, tAttrRefs, 'top');
 
                 this.log = 'Graph split vertically attribute %@'.fmt(iDragData.attribute.get('name'));
               }
               else {
-                tGraphModel.addAttributeToAxis( tDataContext, tAttrRefs);
+                tGraphModel.addAttributeToAxis(tDataContext, tAttrRefs);
 
                 this.log = 'Attribute dragged and dropped: %@, %@'.fmt('vertical', iDragData.attribute.get('name'));
               }
               controller.get('view').select();
             },
-            undo: function() {
+            undo: function () {
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
               controller.get('graphModel').notifyPropertyChange('attributeRemoved');
             },
-            redo: function() {
+            redo: function () {
               this._controller().restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
               this._controller().get('graphModel').notifyPropertyChange('attributeAdded');
@@ -551,10 +595,10 @@ DG.GraphController = DG.DataDisplayController.extend(
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
-            _controller: function() {
+            _controller: function () {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
-            execute: function() {
+            execute: function () {
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
@@ -568,23 +612,23 @@ DG.GraphController = DG.DataDisplayController.extend(
                   };
 
               iY2Axis.dragData = null;
-              if( iDragData.attribute.isNominal()) {
-                tModel.splitByAttribute( tDataContext, tAttrRefs, 'right');
+              if (iDragData.attribute.isNominal()) {
+                tModel.splitByAttribute(tDataContext, tAttrRefs, 'right');
               }
               else {
-                tModel.changeAttributeForAxis( tDataContext, tAttrRefs, tOrientation);
+                tModel.changeAttributeForY2Axis(tDataContext, tAttrRefs, tOrientation);
               }
               controller.get('view').select();
 
               this.log = 'changeAttributeOnSecondYAxis: { attribute: %@ }'.fmt(iDragData.attribute.get('name'));
             },
-            undo: function() {
+            undo: function () {
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
               controller.get('graphModel').notifyPropertyChange('attributeRemoved');
             },
-            redo: function() {
+            redo: function () {
               this._controller().restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
               this._controller().get('graphModel').notifyPropertyChange('y2AttributeAdded');
@@ -597,13 +641,14 @@ DG.GraphController = DG.DataDisplayController.extend(
          in which case we want to override the default behavior and simulate drop on the x-axis, which is probably
          what the user intended, but missed.
          */
-        plotOrLegendViewDidAcceptDrop: function( iView, iKey, iDragData) {
+        plotOrLegendViewDidAcceptDrop: function (iView, iKey, iDragData) {
           var tDataConfig = this.getPath('graphModel.dataConfiguration');
-          if( !tDataConfig.get('xAttributeID') &&
+          iDragData = iDragData || iView.get('dragData'); // In certain situations we have to get it directly
+          if (!tDataConfig.get('xAttributeID') &&
               !tDataConfig.get('yAttributeID') &&
               !tDataConfig.get('legendAttributeID')) {
             iView.dragData = null;  // So we don't come back around
-            this.axisViewDidAcceptDrop( this.get('xAxisView'), iKey, iDragData);
+            this.axisViewDidAcceptDrop(this.get('xAxisView'), iKey, iDragData);
           }
           else
             sc_super();
@@ -617,18 +662,18 @@ DG.GraphController = DG.DataDisplayController.extend(
               currentOpenSession = null,
               tBkgColor = tinycolor(this.getPath('graphModel.plotBackgroundColor') || 'white'),
               tOpacity = this.getPath('graphModel.plotBackgroundOpacity');
-          tOpacity = SC.none( tOpacity) ? 1 : tOpacity;
+          tOpacity = SC.none(tOpacity) ? 1 : tOpacity;
           var tInitialColor = tBkgColor.setAlpha(tOpacity),
               getStylesLayer = function () {
                 return this.stylesPane.layer();
               }.bind(this),
               createSetColorAndAlphaCommand = function (name, colorAttr, alphaAttr, iColor) {
                 return DG.Command.create({
-                  name: 'data.style.'+name,
-                  undoString: 'DG.Undo.graph.'+name,
-                  redoString: 'DG.Redo.graph.'+name,
+                  name: 'data.style.' + name,
+                  undoString: 'DG.Undo.graph.' + name,
+                  redoString: 'DG.Redo.graph.' + name,
                   log: "Changed background color",
-                  execute: function() {
+                  execute: function () {
                     this.reduceKey = this.name + currentOpenSession;
                     this._beforeStorage = {
                       color: this_.getPath('graphModel.' + colorAttr),
@@ -671,8 +716,8 @@ DG.GraphController = DG.DataDisplayController.extend(
                 })
               })
           );
-          tResult.push( SC.CheckboxView.create({
-            layout: {height: 25 },
+          tResult.push(SC.CheckboxView.create({
+            layout: {height: 25},
             title: 'DG.Inspector.graphTransparency',
             value: this.getPath('graphModel.isTransparent'),
             classNames: 'dg-graph-transparent-check'.w(),
@@ -685,10 +730,10 @@ DG.GraphController = DG.DataDisplayController.extend(
                 undoString: 'DG.Undo.graph.toggleTransparent',
                 redoString: 'DG.Redo.graph.toggleTransparent',
                 log: logMessage,
-                execute: function() {
+                execute: function () {
                   this.get('graphModel').toggleProperty('isTransparent');
                 }.bind(this),
-                undo: function() {
+                undo: function () {
                   this.get('graphModel').toggleProperty('isTransparent');
                 }.bind(this)
               }));

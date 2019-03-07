@@ -37,7 +37,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                       'graphModel.plotBackgroundColor', 'graphModel.plotBackgroundOpacity'],
 
   classNames: 'dg-plot-view'.w(),
-  // classNameBindings: ['graphModel.isTransparent:dg-plot-view-transparent'],
+  classNameBindings: ['graphModel.isTransparent:dg-plot-view-transparent'],
 
   /**
    * @property {DG.GraphModel}
@@ -52,6 +52,18 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     @property { DG.AxisView }
   */
   yAxisView: null,
+
+  /**
+   * Which of the split plots do I correspond to?
+   * @property (Number}
+   */
+  rowIndex: 0,
+
+  /**
+   * Which of the split plots do I correspond to?
+   * @property (Number}
+   */
+  colIndex: 0,
 
   /**
    * Dynamically set to true/false during episodes such as marquee select
@@ -98,7 +110,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   didCreateLayer:function () {
     var tGraphView = this.get( 'parentView' );
     sc_super();
-    tGraphView.get( 'plotViews' ).forEach( function ( iPlotView ) {
+    tGraphView.getPlotViewArray( this.get('rowIndex'), this.get('colIndex')).forEach( function ( iPlotView ) {
       iPlotView.didCreateLayer();
     } );
     tGraphView.drawPlots();
@@ -273,7 +285,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         });
       }
       SC.run(function(){
-        this_.get('parentView').selectPointsInRect( tRect, tBaseSelection, tLastRect);
+        this_.get('parentView').selectPointsInRect( tRect, tBaseSelection, tLastRect,
+            this_.get('rowIndex'), this_.get('colIndex'));
       });
       tLastRect = tRect;
     }

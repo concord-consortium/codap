@@ -1958,10 +1958,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   errorMessage = "Global not found: '%@'".loc(tValues.globalValueName);
                 }
               }
-              else {
-                component = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
-                errorMessage = !component && 'Component creation failed';
-              }
             }
 
             if (success && component) {

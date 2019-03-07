@@ -133,7 +133,7 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         var tDraggedName = iDrag.data.attribute.get( 'name' ),
             tString = tIsValidForScatterplot ?
                 'DG.GraphView.addAttribute'.loc( tDraggedName ) :
-                'DG.GraphView.splitPlotVertically'.loc( tDraggedName);
+                'DG.GraphView.layoutPlotsSideBySide'.loc( tDraggedName);
         this.set( 'dropHintString', tString );
       }
     },

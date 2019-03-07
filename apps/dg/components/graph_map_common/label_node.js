@@ -61,6 +61,18 @@ DG.LabelNode = SC.Object.extend(
         sc_super();
       },
 
+      hide: function() {
+        this._textElement.hide();
+        if( this._circleElement)
+          this._circleElement.hide();
+      },
+
+      show: function() {
+        this._textElement.show();
+        if( this._circleElement)
+          this._circleElement.show();
+      },
+
       numColorsChanged: function() {
         var tTextColor = 'blue',
             tPointColor = 'lightblue';
