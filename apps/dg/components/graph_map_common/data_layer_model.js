@@ -698,6 +698,9 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           return found;
         }
 
+        if( !iAttrRefs)
+          return false; // Since we didn't get an attribute, its collection is not a descendant
+
         // iAttrRefs.collection is actually a CollectionClient
         var tNewCollection = iAttrRefs.collection.get('collection'),
             tXCollection = dataConfiguration.getPath('xAttributeDescription.collectionClient.collection'),
