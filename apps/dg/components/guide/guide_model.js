@@ -90,12 +90,16 @@ DG.GuideModel = SC.Object.extend(
         if (iStorage.currentItemIndex) {
           this.set('currentItemIndex', iStorage.currentItemIndex);
         }
+        if (iStorage.isVisible)
+          this.set('isVisible', iStorage.isVisible);
         if( iStorage.title)
           this.set('title', iStorage.title);
         if( iStorage.items)
           this.set('items', iStorage.items);
       this.endPropertyChanges();
     },
+
+    isVisible: false,
 
     itemsDidChange: function () {
       if (!this.items) {

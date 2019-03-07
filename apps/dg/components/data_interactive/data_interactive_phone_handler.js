@@ -1789,7 +1789,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             name: directMapping,
             title: directMapping,
             cannotClose: directMapping,
-            items: directMapping
+            items: directMapping,
+            currentItemIndex: directMapping,
+            isVisible: directMapping
           },
           map: {
             name: directMapping,

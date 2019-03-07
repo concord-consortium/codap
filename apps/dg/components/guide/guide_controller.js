@@ -71,6 +71,21 @@ DG.GuideController = DG.ComponentController.extend(
       }
     }.observes('guideModel.title', 'guideModel.items'),
 
+    isVisibleDidChange: function () {
+      var tComponentView = this.get('view');
+      var visibility = this.getPath('guideModel.isVisible');
+      if (!SC.none(visibility) && tComponentView) {
+        if (visibility) {
+          tComponentView.set('isVisible', true);
+          tComponentView.select();
+          tComponentView.scrollToVisible();
+        }
+        else {
+          tComponentView.set('isVisible', false);
+        }
+      }
+    }.observes('guideModel.isVisible'),
+
     showGuide: function() {
       DG.UndoHistory.execute(DG.Command.create({
         name: 'guide.show',
@@ -79,13 +94,10 @@ DG.GuideController = DG.ComponentController.extend(
         log: 'Show guide',
         execute: function() {
           // Guides are singletons that are never destroyed, so it's ok to reference the view directly
-          var tComponentView = this.get('view');
-          tComponentView.setPath('isVisible', true);
-          tComponentView.select();
-          tComponentView.scrollToVisible();
+          this.getPath('guideModel.isVisible', true);
         }.bind(this),
         undo: function() {
-          this.setPath('view.isVisible', false);
+          this.getPath('guideModel.isVisible', false);
         }.bind(this)
       }));
     },
@@ -141,14 +153,12 @@ DG.GuideController = DG.ComponentController.extend(
 
     createComponentStorage:function () {
       var tStorage = this.get('guideModel' ).createComponentStorage();
-      tStorage.isVisible = this.getPath('view.isVisible' );
+      tStorage.isVisible = this.getPath('guideModel.isVisible' );
       return tStorage;
     },
 
     restoreComponentStorage:function ( iComponentStorage ) {
       this.get('guideModel' ).restoreComponentStorage( iComponentStorage);
-      if( !SC.none( iComponentStorage.isVisible))
-        this.tempIsVisible = iComponentStorage.isVisible;
     }
 
 });
