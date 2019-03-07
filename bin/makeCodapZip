@@ -59,7 +59,8 @@ ZIP_FILE=codap_${BUILD_NUM}.zip
 WORK_DIR=${ROOTDIR}/dist/$BUILD_NUM
 INDEX_HTML=${WORK_DIR}/index.html
 
-REDIRECT_PATH=./static/dg/en/cert/index.html
+REDIRECT_PATH_P1=./static/dg/
+REDIRECT_PATH_P2=/cert/index.html
 
 # BUILD_OPTS=${BUILD_OPTS} "--dont-minify"
 # BUILD_OPTS=${BUILD_OPTS} "--logfile=build.log"
@@ -73,6 +74,7 @@ mkdir -p ${WORK_DIR}
 # Build to a temp directory
 sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
 
+LANG_ARRAY=\[`/bin/ls -m ${WORK_DIR}/static/dg|sed "s/[a-z][a-z]*/'&'/g"`\]
 #
 # Generate top level index.html redirector
 cat > ${INDEX_HTML} << END_DOC
@@ -80,11 +82,32 @@ cat > ${INDEX_HTML} << END_DOC
 <html>
 <head>
 <title>Redirect</title>
+<style>
+  body {
+    margin: 0; 
+    padding: 0;
+  }
+  iframe {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+  }
+</style>
+
 </head>
 <body>
 <script type="text/javascript">
-  var s = window.location.search + window.location.hash;
-  window.location.replace("${REDIRECT_PATH}" + s);
+  var supportedLangs = $LANG_ARRAY;
+  var langDigraph = navigator.language.replace(/-.*$/, '');
+  var searchAndHash = window.location.search + window.location.hash;
+  if (supportedLangs.indexOf(langDigraph)<0) { langDigraph = "en"; }
+  window.location.replace("${REDIRECT_PATH_P1}" + langDigraph + "${REDIRECT_PATH_P2}" + searchAndHash);
+  //var codapURL = "${REDIRECT_PATH_P1}" + langDigraph + "${REDIRECT_PATH_P2}" + searchAndHash;
+  //var iFrame='<iframe width="100%" src="' + codapURL + '"></iframe>'
+  //document.body.innerHTML = iFrame;
 </script>
 </body>
 </html>

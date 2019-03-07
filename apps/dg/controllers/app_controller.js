@@ -334,6 +334,8 @@ DG.appController = SC.Object.create((function () // closure
       return [
         { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
           target: this, dgAction: 'showHelpSite', id: 'dg-optionMenuItem-help-website' },
+        { localize: true, title: 'DG.AppController.optionMenuItems.help-forum', // "Help...",
+          target: this, dgAction: 'showHelpForum', id: 'dg-optionMenuItem-help-forum' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
           target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' }
         // { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
@@ -984,17 +986,26 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Open a new tab with the CODAP website.
+     Open a new tab with the CODAP help pages.
      */
     showHelpSite: function () {
       var tHelpURL = DG.get('showHelpURL'),
+          tWidth = 400, tHeight = 400;
+      this.openWebView( tHelpURL, 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
+    },
+
+    /**
+     Open a new tab with the CODAP help forum.
+     */
+    showHelpForum: function () {
+      var tHelpForumURL = DG.get('showHelpForumURL'),
           tWidth = 400, tHeight = 400,
           tBrowser = SC.browser;
       if(tBrowser.name === SC.BROWSER.safari && tBrowser.os === SC.OS.ios) {
-        this.openWebView( DG.get('showHelpURL'), 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
+        this.openWebView( tHelpForumURL, 'DG.AppController.showHelpForumTitle'.loc(), tWidth, tHeight);
       }
       else {
-        window.open(tHelpURL);
+        window.open(tHelpForumURL);
       }
     },
 

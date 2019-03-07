@@ -322,10 +322,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
       // GraphModel calls init() on itself (cf. reset()) so we need to handle init() and re-init()
       var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
           numberToggle = this.get('numberToggle'),
+          numberToggleLastMode = this.get('numberToggleLastMode'),
           dataConfiguration = this.get('dataConfiguration');
       if (!numberToggle) {
         numberToggle = DG.NumberToggleModel.create({ dataConfiguration: dataConfiguration,
                                                       isEnabled: showNumberToggle });
+        if (numberToggle && numberToggleLastMode) {
+          numberToggle.set('lastMode', numberToggleLastMode);
+        }
         this.set('numberToggle', numberToggle);
       }
       else {
