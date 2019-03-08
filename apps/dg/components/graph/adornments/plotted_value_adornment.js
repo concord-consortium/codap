@@ -217,16 +217,19 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     if (this.getPath('model.isVisible')) {
 
       var tSplitAxisModel = this.get('splitAxisModel'), // categorical axis if any
-          tNumCells = tSplitAxisModel ? tSplitAxisModel.get('numberOfCells') : 1;
+          tNumCells = tSplitAxisModel ? tSplitAxisModel.get('numberOfCells') : 1,
+          tValueAxisView = this.get('valueAxisView'),
+          tSplitAxisView = this.get('splitAxisView');
 
-      this.createElements( tNumCells);  // if needed
+      if (!(tValueAxisView && tSplitAxisView))
+        return;   // happens when the plot is going awayu
 
-      var tValueAxisView = this.get('valueAxisView'),
-          tSplitAxisView = this.get('splitAxisView'),
-          tCellWidth = tSplitAxisView.get('fullCellWidth'),
+      this.createElements(tNumCells);  // if needed
+
+      var tCellWidth = tSplitAxisView.get('fullCellWidth'),
           tPaper = this.get('paper'),
           tPlottedValues = this.get('values');
-      for( var tIndex = 0; tIndex < tNumCells; tIndex++) {
+      for (var tIndex = 0; tIndex < tNumCells; tIndex++) {
         var tPlottedValue = tPlottedValues && tPlottedValues[tIndex],
             tValueSegment = this.get('valueSegments')[tIndex].valueSegment,
             tBackground = this.get('valueSegments')[tIndex].background,
