@@ -64,12 +64,24 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
     return this._cases.indexOf( iCase);
   },
 
+  /**
+   * Call the given function once for each case in the order specified by the indices in the _map array.
+   * @param iDoF {Function} Signature is (case, index in the original array, index in the map array)
+   *      Third parameter seldom (if ever) used.
+   */
   forEach: function( iDoF) {
     this._map.forEach( function( iMapValue, iIndex) {
       iDoF( this._cases[iMapValue], iMapValue, iIndex);
     }.bind( this));
   },
 
+  /**
+   *
+   * @param iDoF {Function} Called once for each case with signature (case, index in mapped order, boolean
+   *    for whether the invocation is that last one. Returns true if the looping should continue or false
+   *    if the looping should stop
+   * @param iEndF {Function} Optional. Called after all looping invocations had ended. No parameters.
+   */
   forEachWithInvokeLater: function( iDoF, iEndF) {
     var tLoopIndex = 0,
         tNumCases = this._cases.length,
@@ -85,7 +97,7 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
           if (tLoopIndex < tNumCases) {
             for (; tContinue && tLoopIndex < tNumCases && tLoopIndex < tStopIndex; tLoopIndex++) {
               if (iDoF)
-                tContinue = iDoF(this.at(tLoopIndex), this._map[ tLoopIndex],
+                tContinue = iDoF(this.at(tLoopIndex), tLoopIndex,
                     tLoopIndex === tNumCases - 1);
             }
             if (tContinue)
