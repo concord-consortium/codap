@@ -558,6 +558,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               extension: extension
             };
           }
+          function handleRequest (request) {
+            if (request === 'openGuideConfiguration') {
+              DG.currDocumentController().configureGuide();
+            }
+            return {success: true};
+          }
           var result = {success: true};
           var imageData;
           if (iValues.dirty) {
@@ -576,6 +582,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 }
               };
             }
+          }
+          if (iValues.request) {
+            result = handleRequest(iValues.request);
           }
           return result;
         }

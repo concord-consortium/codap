@@ -510,6 +510,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   doCreateCollection: function( iChange) {
     var tCollection = this.guaranteeCollection( iChange.properties);
+    var results;
     if (tCollection) {
       iChange.attributes && iChange.attributes.forEach( function( iAttrSpec) {
         if (!SC.none(iAttrSpec.id) && !SC.none(iAttrSpec.collection)) {
@@ -521,7 +522,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       // if this is a recreation of the collection make sure the ordering corresponds
       // to DI expectations.
       iChange.attributes && tCollection.reorderAttributes(iChange.attributes.getEach('name'));
-      return { success: true, collection: tCollection };
+      results = this.regenerateCollectionCases();
+      if (results) {
+        return { success: true, collection: tCollection };
+      }
     }
     return { success: false };
   },
