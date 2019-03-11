@@ -730,5 +730,7 @@ SC.stringsFor("tr", {
     "DG.CaseCard.attrHintPlain": "%@",
     "DG.CaseCard.attrHintUnitsOnly": "%@ in %@",
     "DG.CaseCard.attrHintDescription": "%@: %@",
-    "DG.CaseCard.attrHintFormula": "%@\n%@"
+    "DG.CaseCard.attrHintFormula": "%@\n%@",
+    "DG.AppController.optionMenuItems.help-forum": "Help Forum...",
+    "DG.AppController.showHelpForumTitle": "Help Forum"
 });

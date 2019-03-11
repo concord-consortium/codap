@@ -362,7 +362,7 @@ SC.stringsFor("zh", {
     "DG.Formula.DateLongDayThursday": "星期四",
     "DG.Formula.DateLongDayFriday": "星期五",
     "DG.Formula.DateLongDaySaturday": "星期六",
-    "DG.Utilities.date.localDatePattern": "(?:(?:[0-3]?\\d-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-\\d{2}(?:\\d{2})?)|(?:[01]?\\d/[0-3]?\\d/\\d{2}(?:\\d{2})?))",
+    "DG.Utilities.date.localDatePattern": "(?:(?:[0-3]?\\d-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-\\d{2}(?:\\d{2})?)|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \\d{1,2}( |,) *\\d{4}|(?:[01]?\\d/[0-3]?\\d/\\d{2}(?:\\d{2})?))",
     "DG.Utilities.date.timePattern": "(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d(?:\\.\\d{3})?)? ?(?:[ap]m)?)",
     "DG.Utilities.date.iso8601Pattern": "^\\d{4}-[01]\\d-[0-3]\\d(?:[T ][0-2]\\d:[0-5]\\d(?::[0-5]\\d(?:\\.\\d{3,6})?)?(?:Z|(?:[-+]?[01]\\d:[0-5]\\d)|(?: ?[-+][0-2]\\d{3}))?)?$",
     "DG.Utilities.colorPattern": "(?:rgb\\((?:\\d{1,3},){2}\\d{1,3}\\))|(?:rgba\\((?:\\d{1,3},){3}[\\d\\.]*\\))|(?:#[\\da-f]{6})",
@@ -730,5 +730,7 @@ SC.stringsFor("zh", {
     "DG.CaseCard.attrHintPlain": "%@",
     "DG.CaseCard.attrHintUnitsOnly": "%@ in %@",
     "DG.CaseCard.attrHintDescription": "%@: %@",
-    "DG.CaseCard.attrHintFormula": "%@\n%@"
+    "DG.CaseCard.attrHintFormula": "%@\n%@",
+    "DG.AppController.optionMenuItems.help-forum": "Help Forum...",
+    "DG.AppController.showHelpForumTitle": "Help Forum"
 });
