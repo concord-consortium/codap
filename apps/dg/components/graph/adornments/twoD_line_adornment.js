@@ -148,7 +148,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
         return 'DG.ScatterPlotModel.slopeOnly'.loc( tSlopeString, tXVar);
       }
       // When the intercept string is zero, don't display it (even if the numeric value is not zero).
-      if (tInterceptString === "0")
+      if (tIntNumFormat(tIntercept) === "0")
         tInterceptString = tSign = "";
       // Note that a space has been added to the number part of the slope.
       if (tSlopeString === "1 ")
