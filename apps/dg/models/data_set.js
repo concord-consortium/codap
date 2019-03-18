@@ -342,6 +342,10 @@ DG.DataSet = SC.Object.extend((function() // closure
       return ret;
     },
 
+    getDataItemCount: function() {
+      return this._clientToItemIndexMap.length;
+    },
+
     getDataItems: function() {
       return this._clientToItemIndexMap
               .map(function(index) { return this.dataItems[index]; }.bind(this));
