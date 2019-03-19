@@ -159,9 +159,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       parseResourceSelector: function (iResource) {
         // selects phrases like 'aaaa[bbbb]' or 'aaaa' in a larger context
-        var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
+        // var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
+        var selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*\])?)/g;
         // selects complete strings matching the pattern 'aaaa[bbbb]' or 'aaaa'
-        var clauseRE =   /^([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?$/;
+        // var clauseRE =   /^([\w]+)(?:\[\s*([^\]][^\]]*)\s*\])?$/;
+        var clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*\])?$/;
         var result = {};
         var selectors = iResource.match(selectorRE);
         result.type = '';

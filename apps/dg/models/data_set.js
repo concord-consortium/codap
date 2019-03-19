@@ -378,6 +378,12 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     parseSearchQuery: function (queryString) {
+      if (queryString === '*') {
+        return {
+          valid: true,
+          op: '*'
+        };
+      }
       // for now this is a simple single expression of "left op right" where op is a comparison operator
       // this could be expanded (along with the testCaseAgainstQuery method below) using the shunting yard algorithm
       var matches = queryString.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]+)/),
@@ -414,14 +420,15 @@ DG.DataSet = SC.Object.extend((function() // closure
       var getValue = function (token) {
             return token.attr ? iItem.getValue(token.attr.id) : token.value;
           },
-          leftValue = getValue(parsedQuery.left),
-          rightValue = getValue(parsedQuery.right);
+          leftValue = parsedQuery.left && getValue(parsedQuery.left),
+          rightValue = parsedQuery.right && getValue(parsedQuery.right);
 
       if (!parsedQuery.valid) {
         return false;
       }
 
       switch (parsedQuery.op) {
+        case '*': return true;
 // eslint-disable-next-line eqeqeq
         case '==': return leftValue == rightValue; // jshint ignore:line
 // eslint-disable-next-line eqeqeq
