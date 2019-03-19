@@ -731,6 +731,6 @@ SC.stringsFor("el", {
     "DG.CaseCard.attrHintUnitsOnly": "%@ στο %@",
     "DG.CaseCard.attrHintDescription": "%@: %@",
     "DG.CaseCard.attrHintFormula": "%@\n%@",
-    "DG.AppController.optionMenuItems.help-forum": "Help Forum...",
-    "DG.AppController.showHelpForumTitle": "Help Forum"
+    "DG.AppController.optionMenuItems.help-forum": "Χώρος Συζητήσεων Βοήθειας...",
+    "DG.AppController.showHelpForumTitle": "Χώρος Συζητήσεων Βοήθειας"
 });
