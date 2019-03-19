@@ -186,6 +186,11 @@ DG.DataContext = SC.Object.extend((function() // closure
       return tResult;
     }.property('collectionCount'),
 
+    itemCount: function() {
+      var dataSet = this.get('dataSet');
+      return dataSet && dataSet.getDataItemCount();
+    }.property(),
+
     dataSet: function () {
       return this.getPath('model.dataSet');
     }.property(),

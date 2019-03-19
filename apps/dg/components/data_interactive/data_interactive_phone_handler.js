@@ -96,6 +96,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           item: this.handleItems,
           itemByID: this.handleItemByID,
           itemByCaseID: this.handleItemByCaseID,
+          itemCount: this.handleItemCount,
           itemSearch: this.handleItemSearch,
           interactiveFrame: this.handleInteractiveFrame,
           logMessage: this.handleLogMessage,
@@ -169,9 +170,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var match = clauseRE.exec(selector);
           resourceType = match[1];
           resourceName = match[2];
-          if (resourceName !== undefined) {
-            result[resourceType] = resourceName;
-          }
+          result[resourceType] = resourceName || "";
           result.type = resourceType;
         });
 
@@ -260,6 +259,18 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               DG.globalsController.getGlobalValueByID(resourceSelector.global);
         }
 
+        if (resourceSelector.dataContextList != null) {
+          result.dataContextList = DG.currDocumentController()
+            .get('contexts')
+            .map(function (context) {
+              return {
+                name: context.get('name'),
+                guid: context.get('id'),
+                title: context.get('title')
+              };
+            });
+        }
+
         if (resourceSelector.collection) {
           result.collection = dataContext &&
               (dataContext.getCollectionByName(resourceSelector.collection) ||
@@ -310,6 +321,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               serializeItem(dataSet,dataSet.getDataItemByID(resourceSelector.itemByID));
         }
 
+        if (resourceSelector.itemCount != null) {
+          result.itemCount = result.dataContext && result.dataContext.get('itemCount');
+        }
+
         if (resourceSelector.itemSearch) {
           dataSet = result.dataContext && result.dataContext.get('dataSet');
           result.itemSearch = dataSet &&
@@ -327,7 +342,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         DG.ObjectMap.forEach(resourceSelector, function (key, value) {
           // Make sure we got values for every non-terminal selector.
-          if (SC.none(result[key]) && key !== 'type') {
+          if (SC.none(result[key]) && (key !== 'type') && (key !== resourceSelector.type)) {
             throw (new Error('Unable to resolve %@: %@'.loc(key, value)));
             //DG.log('Unable to resolve %@: %@'.loc(key, value));
           }
@@ -760,18 +775,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        *
        */
       handleDataContextList: {
-        get: function (iResources, iValues) {
-          var values = DG.currDocumentController().get('contexts').map(function (context) {
-            return {
-              name: context.get('name'),
-              guid: context.get('id'),
-              title: context.get('title')
-            };
-          });
-          return {
-            success: true,
-            values: values
-          };
+        get: function (iResources) {
+          var success = (iResources.dataContextList != null);
+          return success ? { success: true, values: iResources.dataContextList } : { success: false };
         }
       },
 
@@ -1586,6 +1592,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           } else {
             return {success: success};
           }
+        }
+      },
+
+      handleItemCount: {
+        get: function (iResources) {
+          var success = (iResources.itemCount != null);
+          return success ? { success: true, values: iResources.itemCount } : { success: false };
         }
       },
 
