@@ -17157,7 +17157,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Πλήκτρο πλήρους οθόνης και κλιμάκωση",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Κείμενο Πλήκτρου Εκτέλεσης",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Η προβολή δεδομένων ενεργοποιεί τα γραφήματα",
-    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
+    "~CONFIRM.CHANGE_LANGUAGE": "Έχετε μη αποθηκευμένες αλλαγές. Είστε σίγουροι ότι θέλετε να αλλάξετε γλώσσα;"
 }
 
 },{}],75:[function(require,module,exports){
