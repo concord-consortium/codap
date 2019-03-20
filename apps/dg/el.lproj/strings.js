@@ -732,5 +732,6 @@ SC.stringsFor("el", {
     "DG.CaseCard.attrHintDescription": "%@: %@",
     "DG.CaseCard.attrHintFormula": "%@\n%@",
     "DG.AppController.optionMenuItems.help-forum": "Χώρος Συζητήσεων Βοήθειας...",
-    "DG.AppController.showHelpForumTitle": "Χώρος Συζητήσεων Βοήθειας"
+    "DG.AppController.showHelpForumTitle": "Χώρος Συζητήσεων Βοήθειας",
+    "DG.Locale.name.el": "Greek"
 });
