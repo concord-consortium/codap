@@ -1308,13 +1308,20 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var success = false;
           var changeResult;
           if (collection && theCase && iValues) {
-            changeResult = context.applyChange({
-              operation: 'updateCases',
+            var change = {
               collection: collection,
               cases: [theCase],
-              values: [iValues.values],
               requester: this.get('id')
-            });
+            };
+            if (iValues.caseOrder) {
+              change.operation = 'moveCases';
+              change.caseOrder = [iValues.caseOrder];
+            }
+            else {
+              change.operation = 'updateCases';
+              change.values = [iValues.values];
+            }
+            changeResult = context.applyChange(change);
             success = (changeResult && changeResult.success);
           }
           return {
