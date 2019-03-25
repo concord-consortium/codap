@@ -1294,6 +1294,33 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             values: values
           };
         },
+        notify: function (iResources, iValues) {
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+          if (!(iResources.caseByID || iResources.caseByIndex)) {
+            return {success: false, values: {error: 'Case not found'}};
+          }
+
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var theCase = iResources.caseByIndex || iResources.caseByID;
+          var success = false;
+          var changeResult;
+          if (collection && theCase && iValues && iValues.caseOrder) {
+            changeResult = context.applyChange({
+              operation: 'moveCases',
+              collection: collection,
+              cases: [theCase],
+              caseOrder: [iValues.caseOrder],
+              requester: this.get('id')
+            });
+            success = (changeResult && changeResult.success);
+          }
+          return {
+            success: success
+          };
+        },
         update: function (iResources, iValues) {
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
@@ -1307,21 +1334,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var theCase = iResources.caseByIndex || iResources.caseByID;
           var success = false;
           var changeResult;
-          if (collection && theCase && iValues) {
-            var change = {
+          if (collection && theCase && iValues && iValues.values) {
+            changeResult = context.applyChange({
+              operation: 'updateCases',
               collection: collection,
               cases: [theCase],
+              values: [iValues.values],
               requester: this.get('id')
-            };
-            if (iValues.caseOrder) {
-              change.operation = 'moveCases';
-              change.caseOrder = [iValues.caseOrder];
-            }
-            else {
-              change.operation = 'updateCases';
-              change.values = [iValues.values];
-            }
-            changeResult = context.applyChange(change);
+            });
             success = (changeResult && changeResult.success);
           }
           return {
