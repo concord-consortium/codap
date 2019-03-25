@@ -37,6 +37,11 @@ DG.GuideModel = SC.Object.extend(
     items: null,
 
     /**
+     * @property { Boolean }
+     */
+    isVisible: false,
+
+    /**
      * @property {String}
      */
     currentURL: function () {
@@ -98,8 +103,6 @@ DG.GuideModel = SC.Object.extend(
           this.set('items', iStorage.items);
       this.endPropertyChanges();
     },
-
-    isVisible: false,
 
     itemsDidChange: function () {
       if (!this.items) {

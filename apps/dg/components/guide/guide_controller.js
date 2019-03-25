@@ -86,6 +86,10 @@ DG.GuideController = DG.ComponentController.extend(
       }
     }.observes('guideModel.isVisible'),
 
+    willCloseComponent: function () {
+      this.setPath('guideModel.isVisible', false);
+    },
+
     showGuide: function() {
       DG.UndoHistory.execute(DG.Command.create({
         name: 'guide.show',
@@ -93,11 +97,10 @@ DG.GuideController = DG.ComponentController.extend(
         redoString: 'DG.Redo.guide.show',
         log: 'Show guide',
         execute: function() {
-          // Guides are singletons that are never destroyed, so it's ok to reference the view directly
-          this.getPath('guideModel.isVisible', true);
+          this.setPath('guideModel.isVisible', true);
         }.bind(this),
         undo: function() {
-          this.getPath('guideModel.isVisible', false);
+          this.setPath('guideModel.isVisible', false);
         }.bind(this)
       }));
     },
