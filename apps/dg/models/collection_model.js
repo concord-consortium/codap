@@ -487,12 +487,26 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       }
     },
 
-    moveCase: function(iCase, position) {
+    /**
+     * Changes the order of the specified case within this collection.
+     * If moving multiple cases, clients should pass false for iSkipIDMapUpdate
+     * in all calls except the last, or call updateCaseIDToIndexMap() directly
+     * once all moves are complete.
+     * @param   {DG.Case} iCase The case to move.
+     * @param   {number}  position The desired index of the moved case
+     * @param   {boolean} iSkipIDMapUpdate If true, the re-mapping of case IDs to indices will be skipped.
+     */
+    moveCase: function(iCase, position, iSkipIDMapUpdate) {
       var currentPosition = this.cases.indexOf(iCase);
       if (currentPosition >= 0 && currentPosition !== position) {
-        this.cases.insertAt(position, this.cases.removeAt(currentPosition));
+        this.cases.removeAt(currentPosition);
+        this.cases.insertAt(position, iCase);
+      }
+      if (!iSkipIDMapUpdate) {
+        this.updateCaseIDToIndexMap();
       }
     },
+
     /**
      * Deletes the specified case from this collection.
      * Clients should call updateCaseIDToIndexMap() after deleting cases.

@@ -452,6 +452,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'updateCases':
         result = this.doUpdateCases( iChange);
         break;
+      case 'moveCases':
+        result = this.doMoveCases( iChange);
+        break;
       case 'deleteCases':
         result = this.doDeleteCases( iChange);
         shouldDirtyDoc = false;
@@ -1087,6 +1090,42 @@ DG.DataContext = SC.Object.extend((function() // closure
     } else {
       return this.doUpdateCasesFromHashOfNameValues(iChange);
     }
+  },
+
+  /*
+   * Change the order of cases within the collection.
+   */
+  doMoveCases: function( iChange) {
+    var cases = iChange.cases;
+    var changeCount = cases.length;
+    var success = true;
+    var caseIDs = [];
+    cases.forEach(function (iCase, iIndex) {
+      var collection = iCase.get('collection');
+      var caseOrder = iChange.caseOrder[iIndex];
+      // only update the ID map after the last case
+      var skipIDMapUpdate = iIndex < changeCount - 1;
+      if (caseOrder === 'first') {
+        collection.moveCase(iCase, 0, skipIDMapUpdate);
+      }
+      else if (caseOrder === 'last') {
+        var caseCount = collection.getPath('cases.length');
+        collection.moveCase(iCase, caseCount - 1, skipIDMapUpdate);
+      }
+      else {
+        // could potentially support moving a case to a particular index,
+        // or perhaps before/after another case with a particular ID, etc.
+      }
+      // Note that when a sort occurs, all of the caseIDs are listed.
+      // In this case, we could list all of the cases affected, i.e. all of
+      // the cases whose indices were changed, or simply list all of the
+      // cases as is true when sorting. In point of fact, however, there
+      // don't appear to be any clients that use this information, so
+      // simply listing the IDs of the cases that were actually moved
+      // seems sufficient.
+      caseIDs.push(iCase.id);
+    });
+    return { success: success, caseIDs: caseIDs};
   },
 
   /**

@@ -357,6 +357,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'createCase':
           case 'createCases':
+          case 'moveCases':
             this.doCreateCases( iChange);
             invalidateAggregates = false; // handled by doDependentCases
             break;
