@@ -235,7 +235,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'globalList'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
-          if (SC.none(resourceSelector.dataContext) ) {
+          if (!(resourceSelector.dataContext) ) {
             if (action !== 'create' ||
                 (resourceSelector.type !== 'dataContext' &&
                 resourceSelector.type !== 'dataContextFromURL')) {
