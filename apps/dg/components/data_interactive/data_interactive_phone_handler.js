@@ -1538,10 +1538,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         },
 
         'delete': function (iResources) {
-          var item = iResources.itemByID;
-          var items = [item];
           var context = iResources.dataContext;
-          var success = (item != null);
+          var item = iResources.itemByID;
+          var dataSet = context && context.get('dataSet');
+          // DataContext/deleteItems expects actual SC.Items
+          var scItem = dataSet && dataSet.getDataItemByID(item.id);
+          var items = [scItem];
+          var success = (scItem != null);
           var deletedItems;
           if (success) {
             context.applyChange({
