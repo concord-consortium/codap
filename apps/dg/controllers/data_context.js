@@ -1786,9 +1786,24 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     }
 
-    // Create/update each specified attribute
+    function shouldRegenerateCases() {
+      // Shouldn't regenerate if the attributes are in the right-most
+      // collection and the collection survives the attribute removal.
+      var didDeleteAttributes = deletedNodes.length;
+      var children = collection && collection.getPath('collection.children');
+      var isLastChild = !children || !children.get('length');
+      var attrCount = collection.getAttributeCount();
+      return collection && didDeleteAttributes && (!isLastChild || !attrCount);
+    }
+
     if( collection && iChange.attrs) {
+      // Delete each specified attribute
       iChange.attrs.forEach( deleteAttribute);
+      // regenerate collections in case they've changed
+      if (shouldRegenerateCases()) {
+        this.regenerateCollectionCases();
+      }
+      // notify dependents for formula evaluation
       this.invalidateDependentsAndNotify(deletedNodes);
       DG.store.commitRecords();
     }
