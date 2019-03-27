@@ -329,11 +329,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (resourceSelector.itemSearch) {
           dataSet = result.dataContext && result.dataContext.get('dataSet');
-          result.itemSearch = dataSet &&
-              dataSet.getItemsBySearch(resourceSelector.itemSearch)
-                  .map(function (item) {
-                    return serializeItem(dataSet, item);
-                  });
+          var items = dataSet && dataSet.getItemsBySearch(resourceSelector.itemSearch);
+          result.itemSearch = items && items.map(function (item) {
+                                        return serializeItem(dataSet, item);
+                                      });
         }
 
         if (resourceSelector.itemByCaseID) {
@@ -373,7 +372,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       filterResultValues: function (resultValues) {
         var maxLevels = 10;
         function renameKeys (obj) {
-          if (obj.guid !== null && obj.guid !== undefined) {
+          if (obj.guid != null) {
             obj.id = obj.guid;
           }
           return obj;
@@ -1389,7 +1388,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
           }
-          var success = (iResources.caseSearch !== null),
+          var success = (iResources.caseSearch != null),
               cases = [];
 
           if (success) {
@@ -1406,7 +1405,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleItems: {
         get: function (iResources) {
-          var success = (iResources.item !== null),
+          var success = (iResources.item != null),
               item;
 
           if (success) {
@@ -1435,7 +1434,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var item = iResources.item;
           var context = iResources.dataContext;
           var createdCaseIDs, deletedCaseIDs, caseChanges;
-          if (item !== null) {
+          if (item != null) {
             caseChanges = context.applyChange({
               operation: 'updateItems',
               items: {id: item.id, values: iValues},
@@ -1465,7 +1464,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleItemSearch: {
         get: function (iResources) {
-          var success = (iResources.itemSearch !== null),
+          var success = (iResources.itemSearch != null),
               items = [];
 
           if (success) {
@@ -1480,7 +1479,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var items = iResources.itemSearch;
           var context = iResources.dataContext;
           var deletedItems;
-          if (context && (items !== null)) {
+          if (context && (items != null)) {
             context.applyChange({
               operation: 'deleteItems',
               items: items,
@@ -1498,7 +1497,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleItemByID:{
         get: function (iResources) {
-          var success = (iResources.itemByID !== null),
+          var success = (iResources.itemByID != null),
               item;
 
           if (success) {
@@ -1516,7 +1515,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           // var newValues = item.values;
           var context = iResources.dataContext;
           var createdCaseIDs, deletedCaseIDs, caseChanges;
-          if (item !== null) {
+          if (item != null) {
             caseChanges = context.applyChange({
               operation: 'updateItems',
               items: {id: item.id, values: iValues},
@@ -1539,10 +1538,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         },
 
         'delete': function (iResources) {
-          var item = iResources.itemByID;
-          var items = [item];
           var context = iResources.dataContext;
-          var success = (item !== null);
+          var item = iResources.itemByID;
+          var dataSet = context && context.get('dataSet');
+          // DataContext/deleteItems expects actual SC.Items
+          var scItem = dataSet && dataSet.getDataItemByID(item.id);
+          var items = [scItem];
+          var success = (scItem != null);
           var deletedItems;
           if (success) {
             context.applyChange({
@@ -1562,7 +1564,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
       handleItemByCaseID: {
         get: function (iResources) {
-          var success = (iResources.itemByCaseID !== null),
+          var success = (iResources.itemByCaseID != null),
               items = [];
 
           if (success) {
@@ -1580,7 +1582,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           // var newValues = item.values;
           var context = iResources.dataContext;
           var createdCaseIDs, deletedCaseIDs, caseChanges;
-          if (item !== null) {
+          if (item != null) {
             caseChanges = context.applyChange({
               operation: 'updateItems',
               items: {id: item.id, values: iValues},
@@ -1606,7 +1608,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var item = iResources.itemByCaseID;
           var items = [item];
           var context = iResources.dataContext;
-          var success = (item !== null);
+          var success = (item != null);
           var deletedItems;
           if (success) {
             context.applyChange({
@@ -2061,8 +2063,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                     width: layout.width || 0
                   };
                 }
-                if ((layout.left !== undefined && layout.left !== null) ||
-                    (layout.x !== undefined && (layout.x !== null))) {
+                if ((layout.left != null) || (layout.x != null)) {
                   rtn.position = {
                     left: layout.left || layout.x || 0,
                     top: layout.top || layout.y || 0
