@@ -419,6 +419,12 @@ DG.CollectionClient = SC.Object.extend(
   },
 
   parseSearchQuery: function (queryString) {
+      if (queryString === '*') {
+        return {
+          valid: true,
+          op: '*'
+        };
+      }
     // for now this is a simple single expression of "left op right" where op is a comparison operator
     // this could be expanded (along with the testCaseAgainstQuery method below) using the shunting yard algorithm
     var matches = queryString.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]+)/),
@@ -456,14 +462,15 @@ DG.CollectionClient = SC.Object.extend(
     var getValue = function (attr) {
           return attr.id ? iCase.getValue(attr.id) : attr.value;
         },
-        leftValue = getValue(parsedQuery.left),
-        rightValue = getValue(parsedQuery.right);
+        leftValue = parsedQuery.left && getValue(parsedQuery.left),
+        rightValue = parsedQuery.right && getValue(parsedQuery.right);
 
     if (!parsedQuery.valid) {
       return false;
     }
 
     switch (parsedQuery.op) {
+      case '*':  return true;
       case '==': return leftValue === rightValue;
       case '!=': return leftValue !== rightValue;
       case '<':  return leftValue <   rightValue;
