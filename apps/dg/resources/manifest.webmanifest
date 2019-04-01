@@ -4,7 +4,7 @@
   "start_url": "../index.html",
   "display": "standalone",
   "background_color": "#ececec",
-  "theme_color": "#f8f8f8f",
+  "theme_color": "#f8f8f8",
   "orientation": "landscape-primary",
   "lang": "en-US",
   "description": "A tool for exploratory data analysis.",
