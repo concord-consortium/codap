@@ -861,9 +861,14 @@ DG.ComponentView = SC.View.extend(
             // from the object.
             delete this.savedLayout;
             this.animate( savedLayout,
-                {duration: 0.4, timing: 'ease-in-out'});
+                {duration: 0.4, timing: 'ease-in-out'},
+                function () {
+                  // We make a minor change to trigger a resize of the internal
+                  // divs. Case table, otherwise displays empty table.
+                  this.adjust({height: savedLayout.height - 1});
+                });
           }
-          if( this.parentView.select)
+          if( this.parentView && this.parentView.select)
             this.parentView.select(this);
         },
         bringToFront: function () {

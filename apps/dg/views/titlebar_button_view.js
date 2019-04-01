@@ -38,7 +38,8 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
         classNameBindings: ['isSelected:dg-close-icon-selected'],
         isVisible: false, // to start with
         doIt: function() {
-          var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
+          var tComponentId = this.parentView.viewToDrag().getPath(
+              'controller.model.id'),
               tController = DG.currDocumentController().componentControllersMap[tComponentId],
               tShouldConfirmClose = tController.get('shouldConfirmClose'),
               tConfirmCloseMessage = tController.get('confirmCloseMessage')
@@ -46,30 +47,39 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
               tConfirmCloseDescription = tController.get('confirmCloseDescription')
                   || 'DG.Component.closeComponent.confirmCloseDescription';
 
-          var closeComponentAfterConfirm = function () {
-            DG.closeComponent(tComponentId);
-          }.bind(this);
-
-          if (tShouldConfirmClose) {
-            DG.AlertPane.warn({
-              message: tConfirmCloseMessage,
-              description: tConfirmCloseDescription,
-              buttons: [
-                { title: 'DG.Component.closeComponent.okButtonTitle',
-                  action: closeComponentAfterConfirm,
-                  localize: YES
-                },
-                { title: 'DG.Component.closeComponent.cancelButtonTitle',
-                  localize: YES,
-                  isCancel: YES,
-                  isDefault: YES
-                }
-              ],
-              localize: YES
-            });
-
+          // Some components are not closed, but are hidden. These are
+          // distinguished by presence of toggleViewVisiblity method.
+          if (tController.toggleViewVisibility) {
+            tController.toggleViewVisibility();
           } else {
-            DG.closeComponent(tComponentId);
+
+            var closeComponentAfterConfirm = function () {
+              DG.closeComponent(tComponentId);
+            }.bind(this);
+
+            if (tShouldConfirmClose) {
+              DG.AlertPane.warn({
+                message: tConfirmCloseMessage,
+                description: tConfirmCloseDescription,
+                buttons: [
+                  {
+                    title: 'DG.Component.closeComponent.okButtonTitle',
+                    action: closeComponentAfterConfirm,
+                    localize: YES
+                  },
+                  {
+                    title: 'DG.Component.closeComponent.cancelButtonTitle',
+                    localize: YES,
+                    isCancel: YES,
+                    isDefault: YES
+                  }
+                ],
+                localize: YES
+              });
+
+            } else {
+              DG.closeComponent(tComponentId);
+            }
           }
         },
 

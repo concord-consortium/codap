@@ -61,6 +61,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      @property   {DG.DataContext}
      */
     dataContext: null,
+
     layout: { left: 0, top: 0, right: 0, bottom: 8 },
 
     /**
@@ -166,9 +167,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         frame.width = this.get('frameSize') || frame.width;
 
         this.parentViewDidResizeOrScroll();
-
-        // sc_super generates a call that will pass 'arguments'
-        return sc_super(); // jshint ignore:line
+        return sc_super();
       },
 
       parentViewDidResizeOrScroll: function() {
@@ -390,7 +389,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       allowsIndirectAdjustments: NO
     }),
 
-   childTableView: DG.CaseTableView.extend ( SC.SplitChild, {
+    childTableView: DG.CaseTableView.extend ( SC.SplitChild, {
       name: 'childTableView',
       minimumSize: kMinTableWidth,
       autoResizeStyle: SC.RESIZE_AUTOMATIC,
@@ -465,27 +464,27 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       this.contentView.removeObserver('frameSize', this, 'contentWidthDidChange');
     },
 
-  /**
-    Refreshes each of the individual table views.
-   */
-  refresh: function() {
-    this.get('contentView').refreshTables();
-  },
+    /**
+      Refreshes each of the individual table views.
+     */
+    refresh: function() {
+      this.get('contentView').refreshTables();
+    },
 
-  /**
-    Refreshes each of the individual table views.
-   */
-  refreshDividers: function() {
-    this.get('contentView').refreshDividers();
-  },
+    /**
+      Refreshes each of the individual table views.
+     */
+    refreshDividers: function() {
+      this.get('contentView').refreshDividers();
+    },
 
-  mouseDown: function(ev) {
-    // if not in a current edit, background clicks should complete any edit
-    if (ev.target.tagName !== 'INPUT') {
-      DG.globalEditorLock.commitCurrentEdit();
-    }
-    return NO;
-  },
+    mouseDown: function(ev) {
+      // if not in a current edit, background clicks should complete any edit
+      if (ev.target.tagName !== 'INPUT') {
+        DG.globalEditorLock.commitCurrentEdit();
+      }
+      return NO;
+    },
 
     touchStart: function( ev) {
       this.mouseDown(ev);
@@ -505,182 +504,182 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
     _lastContentWidth: null,
 
-  /**
-   * Width of the contained table set changed.
-   */
-  contentWidthDidChange: function (sender, key, value) {
-    var tContentWidth = this.getPath('contentView.frame.width');
-    var tWidth = this.get('frame').width;
-    var tComponentView = DG.ComponentView.findComponentViewParent( this);
-    if (SC.none(tComponentView)) {
-      return;
-    }
-    var horizontalScrollActive = this.get('isHorizontalScrollActive');
-
-    if (!horizontalScrollActive || tWidth > tContentWidth) {
-      tComponentView.adjust('width', tContentWidth);
-    }
-    this._lastContentWidth = tContentWidth;
-  },
-
-  /**
-    Observer function called when any of the child tables is changed.
-   */
-  _klugeAdjust: false,
-  gridViewDidChange: function( iNotifier) {
-    this.refreshDividers();
-
-    // adjusting the width fixes initial redraw problems in Safari
-    if( !this._klugeAdjust) {
-      this._klugeAdjust = true;
-      var tComponentView = DG.ComponentView.findComponentViewParent( this),
-          tComponentFrame = tComponentView && tComponentView.get('frame'),
-          tComponentWidth = tComponentFrame && tComponentFrame.width;
-      if( tComponentWidth)
-        tComponentView.adjust('width', tComponentWidth + 1);
-    }
-  },
-
-  /**
-    Attaches the specified set of DG.CaseTableAdapters to the individual child table views.
-    @param  {[DG.CaseTableAdapter]} iAdapters
-   */
-  setCaseTableAdapters: function( iAdapters) {
-    function setUpDividerView(parentTable, childTable, relationView) {
-      if( relationView && parentTable && childTable) {
-        relationView.beginPropertyChanges();
-        relationView.set('leftTable', parentTable);
-        relationView.set('rightTable', childTable);
-        relationView.endPropertyChanges();
+    /**
+     * Width of the contained table set changed.
+     */
+    contentWidthDidChange: function (sender, key, value) {
+      var tContentWidth = this.getPath('contentView.frame.width');
+      var tWidth = this.get('frame').width;
+      var tComponentView = DG.ComponentView.findComponentViewParent( this);
+      if (SC.none(tComponentView)) {
+        return;
       }
-    }
-    var contentView = this.get('contentView');
-    var childTableViews = this.get('childTableViews');
-    var caseTablesInAdapterOrder = [];
-    var childTableView;
-    var lastChildTableView = null;
-    var x;
+      var horizontalScrollActive = this.get('isHorizontalScrollActive');
 
-    // Remove all the contents of the view. We are going to recreate the order.
-    while(!SC.none(x = contentView.get('childViews')[0])) {
-      contentView.removeChild(x);
-    }
+      if (!horizontalScrollActive || tWidth > tContentWidth) {
+        tComponentView.adjust('width', tContentWidth);
+      }
+      this._lastContentWidth = tContentWidth;
+    },
 
-    // find out which adapters are already mapped to views.
-    iAdapters.forEach(function (adapter, ix) {
-      caseTablesInAdapterOrder[ix] = childTableViews.findProperty('gridAdapter', adapter);
-    });
+    /**
+      Observer function called when any of the child tables is changed.
+     */
+    _klugeAdjust: false,
+    gridViewDidChange: function( iNotifier) {
+      this.refreshDividers();
 
-    // now we are going to rebuild the view, left first...
-    if (SC.none(this.leftDropTarget)) {
-      this.leftDropTarget = DG.CaseTableDropTarget.create({
-        name:'leftTarget',
-        dataContext: this.model.get('context')
+      // adjusting the width fixes initial redraw problems in Safari
+      if( !this._klugeAdjust) {
+        this._klugeAdjust = true;
+        var tComponentView = DG.ComponentView.findComponentViewParent( this),
+            tComponentFrame = tComponentView && tComponentView.get('frame'),
+            tComponentWidth = tComponentFrame && tComponentFrame.width;
+        if( tComponentWidth)
+          tComponentView.adjust('width', tComponentWidth + 1);
+      }
+    },
+
+    /**
+      Attaches the specified set of DG.CaseTableAdapters to the individual child table views.
+      @param  {[DG.CaseTableAdapter]} iAdapters
+     */
+    setCaseTableAdapters: function( iAdapters) {
+      function setUpDividerView(parentTable, childTable, relationView) {
+        if( relationView && parentTable && childTable) {
+          relationView.beginPropertyChanges();
+          relationView.set('leftTable', parentTable);
+          relationView.set('rightTable', childTable);
+          relationView.endPropertyChanges();
+        }
+      }
+      var contentView = this.get('contentView');
+      var childTableViews = this.get('childTableViews');
+      var caseTablesInAdapterOrder = [];
+      var childTableView;
+      var lastChildTableView = null;
+      var x;
+
+      // Remove all the contents of the view. We are going to recreate the order.
+      while(!SC.none(x = contentView.get('childViews')[0])) {
+        contentView.removeChild(x);
+      }
+
+      // find out which adapters are already mapped to views.
+      iAdapters.forEach(function (adapter, ix) {
+        caseTablesInAdapterOrder[ix] = childTableViews.findProperty('gridAdapter', adapter);
+      });
+
+      // now we are going to rebuild the view, left first...
+      if (SC.none(this.leftDropTarget)) {
+        this.leftDropTarget = DG.CaseTableDropTarget.create({
+          name:'leftTarget',
+          dataContext: this.model.get('context')
+        });
+      }
+      contentView.appendChild(this.leftDropTarget);
+
+      // if not mapped to views create new views
+      iAdapters.forEach(function (adapter, ix) {
+        var divider;
+        if (!caseTablesInAdapterOrder[ix]) {
+          childTableView = this.makeChildTableView();
+          childTableView.set('gridAdapter', adapter);
+          caseTablesInAdapterOrder[ix] = childTableView;
+        }
+        if (ix > 0) {
+          divider = this.makeRelationDividerView();
+          setUpDividerView(caseTablesInAdapterOrder[ix-1], caseTablesInAdapterOrder[ix], divider);
+          contentView.appendChild(divider);
+        }
+        if (ix + 1 === iAdapters.length) {
+          // We mark the rightmost case table. While initializing we need to
+          // ignore width adjustments until we have generated all the case tables.
+          // after this, we try to avoid empty space to the right of the rightmost
+          // table.
+          caseTablesInAdapterOrder[ix].set('isRightmost', true);
+        }
+        contentView.appendChild(caseTablesInAdapterOrder[ix]);
+        if (lastChildTableView) {
+          lastChildTableView.set('childTable', caseTablesInAdapterOrder[ix]);
+          caseTablesInAdapterOrder[ix].set('parentTable', lastChildTableView);
+        } else {
+          caseTablesInAdapterOrder[ix].set('parentTable', null);
+        }
+        lastChildTableView = caseTablesInAdapterOrder[ix];
+        lastChildTableView.set('childTable', null);
+      }.bind(this));
+      this.updateSelectedRows();
+      contentView.scheduleTiling();
+      if (!contentView.hasObserverFor('frameSize', this, 'contentWidthDidChange')) {
+        contentView.addObserver('frameSize', this, 'contentWidthDidChange');
+      }
+    },
+
+    /**
+      Refreshes the column header information for each subtable view.
+     */
+    updateColumnInfo: function() {
+      var childTableViews = this.get('childTableViews') || [];
+      childTableViews.forEach( function( iTableView) {
+                                  iTableView.updateColumnInfo();
+                              });
+    },
+
+    /**
+      Refreshes the row data for each subtable view.
+     */
+    updateRowData: function() {
+      this.refresh();
+      this.refreshDividers();
+    },
+
+    /**
+      Updates the row count for each subtable view.
+
+      @param forceRedraw {Boolean} Whether to force a re-indexing of the rows
+     */
+    updateRowCount: function( forceRedraw) {
+      var childTableViews = this.get('childTableViews') || [];
+      childTableViews.forEach( function( iTableView) {
+                                  iTableView.updateRowCount( forceRedraw);
+                              });
+    },
+
+    /**
+      Updates the set of selected rows for each subtable view.
+     */
+    updateSelectedRows: function() {
+      var childTableViews = this.get('childTableViews') || [];
+      childTableViews.forEach( function( iTableView) {
+                                  iTableView.updateSelectedRows();
+                              });
+    },
+
+    scrollSelectionToView: function () {
+      var childTableViews = this.get('childTableViews') || [];
+      childTableViews.forEach( function( iTableView) {
+        iTableView.scrollSelectionToView();
+      });
+    },
+
+    scrollToCaseByID: function (collectionClient, caseID) {
+      if (SC.none(collectionClient)) {
+        return;
+      }
+      DG.assert(collectionClient.constructor === DG.CollectionClient, 'Correct type');
+      var view = this.findViewForCollection(collectionClient);
+      view.scrollToCase(caseID);
+    },
+
+    findViewForCollection: function (iCollection) {
+      var childTableViews = this.get('childTableViews') || [];
+      return childTableViews.find(function (childTableView) {
+        var viewCollection = childTableView.getPath('gridAdapter.collection');
+        return viewCollection === iCollection;
       });
     }
-    contentView.appendChild(this.leftDropTarget);
-
-    // if not mapped to views create new views
-    iAdapters.forEach(function (adapter, ix) {
-      var divider;
-      if (!caseTablesInAdapterOrder[ix]) {
-        childTableView = this.makeChildTableView();
-        childTableView.set('gridAdapter', adapter);
-        caseTablesInAdapterOrder[ix] = childTableView;
-      }
-      if (ix > 0) {
-        divider = this.makeRelationDividerView();
-        setUpDividerView(caseTablesInAdapterOrder[ix-1], caseTablesInAdapterOrder[ix], divider);
-        contentView.appendChild(divider);
-      }
-      if (ix + 1 === iAdapters.length) {
-        // We mark the rightmost case table. While initializing we need to
-        // ignore width adjustments until we have generated all the case tables.
-        // after this, we try to avoid empty space to the right of the rightmost
-        // table.
-        caseTablesInAdapterOrder[ix].set('isRightmost', true);
-      }
-      contentView.appendChild(caseTablesInAdapterOrder[ix]);
-      if (lastChildTableView) {
-        lastChildTableView.set('childTable', caseTablesInAdapterOrder[ix]);
-        caseTablesInAdapterOrder[ix].set('parentTable', lastChildTableView);
-      } else {
-        caseTablesInAdapterOrder[ix].set('parentTable', null);
-      }
-      lastChildTableView = caseTablesInAdapterOrder[ix];
-      lastChildTableView.set('childTable', null);
-    }.bind(this));
-    this.updateSelectedRows();
-    contentView.scheduleTiling();
-    if (!contentView.hasObserverFor('frameSize', this, 'contentWidthDidChange')) {
-      contentView.addObserver('frameSize', this, 'contentWidthDidChange');
-    }
-  },
-
-  /**
-    Refreshes the column header information for each subtable view.
-   */
-  updateColumnInfo: function() {
-    var childTableViews = this.get('childTableViews') || [];
-    childTableViews.forEach( function( iTableView) {
-                                iTableView.updateColumnInfo();
-                            });
-  },
-
-  /**
-    Refreshes the row data for each subtable view.
-   */
-  updateRowData: function() {
-    this.refresh();
-    this.refreshDividers();
-  },
-
-  /**
-    Updates the row count for each subtable view.
-
-    @param forceRedraw {Boolean} Whether to force a re-indexing of the rows
-   */
-  updateRowCount: function( forceRedraw) {
-    var childTableViews = this.get('childTableViews') || [];
-    childTableViews.forEach( function( iTableView) {
-                                iTableView.updateRowCount( forceRedraw);
-                            });
-  },
-
-  /**
-    Updates the set of selected rows for each subtable view.
-   */
-  updateSelectedRows: function() {
-    var childTableViews = this.get('childTableViews') || [];
-    childTableViews.forEach( function( iTableView) {
-                                iTableView.updateSelectedRows();
-                            });
-  },
-
-  scrollSelectionToView: function () {
-    var childTableViews = this.get('childTableViews') || [];
-    childTableViews.forEach( function( iTableView) {
-      iTableView.scrollSelectionToView();
-    });
-  },
-
-  scrollToCaseByID: function (collectionClient, caseID) {
-    if (SC.none(collectionClient)) {
-      return;
-    }
-    DG.assert(collectionClient.constructor === DG.CollectionClient, 'Correct type');
-    var view = this.findViewForCollection(collectionClient);
-    view.scrollToCase(caseID);
-  },
-
-  findViewForCollection: function (iCollection) {
-    var childTableViews = this.get('childTableViews') || [];
-    return childTableViews.find(function (childTableView) {
-      var viewCollection = childTableView.getPath('gridAdapter.collection');
-      return viewCollection === iCollection;
-    });
-  }
-}; // end return from closure
+  }; // end return from closure
 
 }()));
 
