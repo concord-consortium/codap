@@ -131,9 +131,21 @@ DG.DocumentController = SC.Object.extend(
       componentControllersMap: null,
 
       /** @private
-       Maintain links to singleton component views
+       * Maintain links to singleton component views
+       *
+       * @property {Object} Maps component type to DG.ComponentView
        */
       _singletonViews: null,
+
+      /**
+       * caseTable/Card views
+       *
+       * Handled like singleton views. We do not destroy them. We make them
+       * invisible.
+       *
+       * @property {Object} Maps data context id to DG.ComponentView.
+       */
+      _caseTableViews: null,
 
       /**
        * The state of the document. The document is not ready during document load.
@@ -291,6 +303,7 @@ DG.DocumentController = SC.Object.extend(
         sc_super();
 
         this._singletonViews = {};
+        this._caseTableViews = {};
         this.contexts = [];
 
         this.dataInteractiveLogMonitor = SC.Object.create({
@@ -952,23 +965,16 @@ DG.DocumentController = SC.Object.extend(
           if (!context) {
             return null;
           }
-          return caseTables.find(function (caseTable) {
-            return caseTable.dataContext === context;
-          });
+          return caseTables[context.get('id')];
         }
 
         if (SC.none(iProperties)) {
           iProperties = {};
         }
         var context = iProperties.dataContext || resolveContextLink(iComponent);
-        var caseTableController = getCaseTableForContext(this.findComponentsByType(DG.CaseTableController), context),
-/*
-            dataCardExists = DG.mainPage.getComponentsOfType(DG.CaseCardView).some(function (iCaseCardView) {
-              return iCaseCardView.get('context') === context;
-            }),
-*/
-            caseTableView;
-        if (!caseTableController/* && !dataCardExists*/) {
+        var caseTableView = getCaseTableForContext(this._caseTableViews, context);
+
+        if (!caseTableView) {
           var component = this.getCaseTableComponent(iComponent, context, iProperties);
           var model = component.get('content') || DG.CaseTableModel.create({context: context});
           var controller = DG.CaseTableController.create(iProperties);
@@ -983,9 +989,9 @@ DG.DocumentController = SC.Object.extend(
             isResizable: true
           };
           caseTableView = this.createComponentView(component, props);
-        } else {
-          caseTableView = caseTableController.get('view');
+          this._caseTableViews[context.get('id')] = caseTableView;
         }
+        caseTableView.set('isVisible', true);
         return caseTableView;
       },
 
@@ -1567,6 +1573,7 @@ DG.DocumentController = SC.Object.extend(
 
       toggleTableToCard: function (iTableComponentView) {
         var kDefaultCardWidth = 200,
+            kDefaultCardHeight = 400,
             tContext = iTableComponentView.getPath('controller.dataContext'),
             tTableLayout = iTableComponentView.get('layout'),
             tCardInitialLayout = {
@@ -1574,7 +1581,7 @@ DG.DocumentController = SC.Object.extend(
               width: kDefaultCardWidth, height: DG.ViewUtilities.kTitleBarHeight
             },
             tCardFinalLayout = {
-              height: tTableLayout.height
+              height: kDefaultCardHeight
             },
             tCardComponentView;
         iTableComponentView.set('savedLayout', tTableLayout);
@@ -1587,10 +1594,12 @@ DG.DocumentController = SC.Object.extend(
                     tCardComponentView = iTableComponentView.get('cardView') ||
                         this.addCaseCard(iTableComponentView.get('parentView'),
                             tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
+                    tCardComponentView.set('layout', tCardInitialLayout);
                     var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
+                    if (!tCardComponentView.get('savedLayout')) { tCardComponentView.set('savedLayout', tCardLayout);}
                     tCardComponentView.set('isVisible', true);
+
                     tCardComponentView.select();
-                    tCardComponentView.animate(tCardLayout, {duration: 0.3, timing: 'ease-in-out'});
                     tCardComponentView.set('tableView', iTableComponentView);
                     iTableComponentView.set('cardView', tCardComponentView);
                   }.bind(this));
@@ -1723,6 +1732,7 @@ DG.DocumentController = SC.Object.extend(
 
       closeAllComponents: function () {
         this._singletonViews = {};
+        this._caseTableViews = {};
 
         // Reset the guide
         if (this._guideController)
@@ -1732,7 +1742,7 @@ DG.DocumentController = SC.Object.extend(
       findComponentsByType: function (iType) {
         var tResults = [];
         DG.ObjectMap.forEach(this.componentControllersMap, function (key, componentController) {
-          if (componentController.constructor === iType) {
+          if (componentController.constructor === iType && componentController.getPath('view.isVisible')) {
             tResults.push(componentController);
           }
         });

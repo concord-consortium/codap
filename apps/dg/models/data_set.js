@@ -152,7 +152,6 @@ DG.DataSet = SC.Object.extend((function() // closure
       if (data.constructor === DG.DataItem) {
         dataItem = data;
         if (!dataItem.id) {
-          DG.logWarn("DG.DataSet.addDataItem: Received DataItem without ID!");
           dataItem.id = DG.DataUtilities.createUniqueID();
         }
       } else if (typeof data === 'object') {

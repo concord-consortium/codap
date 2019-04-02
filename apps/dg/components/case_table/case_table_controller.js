@@ -500,6 +500,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.willSaveComponent();
         tContainerView.removeComponentView( tComponentView);
       },
+
       /**
         Called when the data context notifies that case values have changed.
         @param iChange {Object}  An object describing the nature of the change
@@ -634,6 +635,34 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       modelDidChange: function() {
       }.observes('model'),
+
+      /**
+       * We do not close case tables and case cards. We hide and show them.
+       */
+      toggleViewVisibility: function() {
+        var tCaseTableView = this.get('view'),
+            tOperation = tCaseTableView.get('isVisible') ? 'delete' : 'add',
+            tViewName = 'caseTableView';
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'component.toggle.delete',
+          undoString: 'DG.Undo.toggleComponent.' + tOperation + '.' + tViewName,
+          redoString: 'DG.Redo.toggleComponent.' + tOperation + '.' + tViewName,
+          log: 'Toggle component: %@'.fmt('caseCard'),
+          execute: function () {
+            var isVisible = tCaseTableView.toggleProperty('isVisible');
+            var layout = tCaseTableView.get('layout');
+            tCaseTableView.set('savedLayout', layout);
+            if( !isVisible && tCaseTableView.parentView && tCaseTableView.parentView.select)
+              tCaseTableView.parentView.select(null);
+          },
+          undo: function () {
+            this.execute();
+          },
+          redo: function () {
+            this.execute();
+          }
+        }));
+      },
 
       viewDidChange: function() {
         var tComponentView = this.get('view'),
