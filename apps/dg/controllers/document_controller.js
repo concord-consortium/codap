@@ -1573,6 +1573,7 @@ DG.DocumentController = SC.Object.extend(
 
       toggleTableToCard: function (iTableComponentView) {
         var kDefaultCardWidth = 200,
+            kDefaultCardHeight = 400,
             tContext = iTableComponentView.getPath('controller.dataContext'),
             tTableLayout = iTableComponentView.get('layout'),
             tCardInitialLayout = {
@@ -1580,7 +1581,7 @@ DG.DocumentController = SC.Object.extend(
               width: kDefaultCardWidth, height: DG.ViewUtilities.kTitleBarHeight
             },
             tCardFinalLayout = {
-              height: tTableLayout.height
+              height: kDefaultCardHeight
             },
             tCardComponentView;
         iTableComponentView.set('savedLayout', tTableLayout);
@@ -1593,10 +1594,12 @@ DG.DocumentController = SC.Object.extend(
                     tCardComponentView = iTableComponentView.get('cardView') ||
                         this.addCaseCard(iTableComponentView.get('parentView'),
                             tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
+                    tCardComponentView.set('layout', tCardInitialLayout);
                     var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
+                    if (!tCardComponentView.get('savedLayout')) { tCardComponentView.set('savedLayout', tCardLayout);}
                     tCardComponentView.set('isVisible', true);
+
                     tCardComponentView.select();
-                    tCardComponentView.animate(tCardLayout, {duration: 0.3, timing: 'ease-in-out'});
                     tCardComponentView.set('tableView', iTableComponentView);
                     iTableComponentView.set('cardView', tCardComponentView);
                   }.bind(this));

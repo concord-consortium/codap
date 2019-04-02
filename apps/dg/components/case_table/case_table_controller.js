@@ -650,6 +650,8 @@ DG.CaseTableController = DG.ComponentController.extend(
           log: 'Toggle component: %@'.fmt('caseCard'),
           execute: function () {
             var isVisible = tCaseTableView.toggleProperty('isVisible');
+            var layout = tCaseTableView.get('layout');
+            tCaseTableView.set('savedLayout', layout);
             if( !isVisible && tCaseTableView.parentView && tCaseTableView.parentView.select)
               tCaseTableView.parentView.select(null);
           },

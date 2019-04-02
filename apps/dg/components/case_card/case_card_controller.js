@@ -113,6 +113,8 @@ DG.CaseCardController = DG.ComponentController.extend(
           redoString: 'DG.Redo.toggleComponent.' + tOperation + '.' + tViewName,
           log: 'Toggle component: %@'.fmt('caseCard'),
           execute: function () {
+            var layout = tCaseCardView.get('layout');
+            tCaseCardView.set('savedLayout', layout);
             tCaseCardView.toggleProperty('isVisible');
           },
           undo: function () {
