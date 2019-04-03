@@ -16,20 +16,18 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('controllers/component_controller');
+sc_require('components/case_display_common/case_display_controller');
 
 /** @class
 
     Coordinating controller for data card singleton.
 
- @extends DG.ComponentController
+ @extends DG.CaseDisplayController
  */
-DG.CaseCardController = DG.ComponentController.extend(
+DG.CaseCardController = DG.CaseDisplayController.extend(
     /** @scope DG.CaseCardController.prototype */ {
 
       reactDiv: null,
-
-      dataContext: null,
 
       init: function() {
         sc_super();
@@ -90,19 +88,6 @@ DG.CaseCardController = DG.ComponentController.extend(
         }
       },
 
-      /**
-       * Reacts to a notification that this component's data context was deleted.
-       * We need to remove ourself, too.
-       *
-       */
-      dataContextWasDeleted: function () {
-        var tComponentView = this.get('view'),
-            tContainerView = tComponentView.get('parentView');
-        this.willCloseComponent();
-        this.willSaveComponent();
-        tContainerView.removeComponentView( tComponentView);
-      },
-
       toggleViewVisibility: function() {
         var tCaseCardView = this.get('view'),
             tOperation = tCaseCardView.get('isVisible') ? 'delete' : 'add',
@@ -124,6 +109,32 @@ DG.CaseCardController = DG.ComponentController.extend(
             this.execute();
           }
         }));
+      },
+
+      /**
+       * @returns {[DG.IconButton]}
+       */
+      createInspectorButtons:  function () {
+        var tButtons = sc_super();
+
+        tButtons.push(this.createTrashButton());
+        tButtons.push(this.createHideShowButton());
+        tButtons.push(this.createRulerButton());
+
+        return tButtons;
+      },
+
+      showAttributesPopup: function() {
+        var tItems = [];
+
+        tItems.push(this.createRandomizeButton());
+        tItems.push(this.createExportCaseButton());
+
+        DG.MenuPane.create({
+          classNames: 'dg-attributes-popup'.w(),
+          layout: {width: 200, height: 150},
+          items: tItems
+        }).popup(this.get('inspectorButtons')[1]);
       },
 
       createComponentStorage: function() {
