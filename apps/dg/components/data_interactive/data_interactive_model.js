@@ -55,6 +55,11 @@ DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.pr
   /**
    * @type {boolean}
    */
+  preventTopLevelReorg: false,
+
+  /**
+   * @type {boolean}
+   */
   externalUndoAvailable: false,
 
   /**

@@ -574,6 +574,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (SC.none(this.leftDropTarget)) {
         this.leftDropTarget = DG.CaseTableDropTarget.create({
           name:'leftTarget',
+          isTopLevel: true,
           dataContext: this.model.get('context')
         });
       }
