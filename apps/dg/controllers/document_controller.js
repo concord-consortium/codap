@@ -990,8 +990,9 @@ DG.DocumentController = SC.Object.extend(
           };
           caseTableView = this.createComponentView(component, props);
           this._caseTableViews[context.get('id')] = caseTableView;
+        } else {
+          caseTableView.set('isVisible', true);
         }
-        caseTableView.set('isVisible', true);
         return caseTableView;
       },
 
