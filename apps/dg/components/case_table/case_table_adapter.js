@@ -864,7 +864,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var dataContext = this.get('dataContext');
       var isTopLevelDrop = !this.get('hasParentCollection');
       return DG.DataContextUtilities
-                .canAcceptAttributeDrop(dataContext, attr, isTopLevelDrop);
+                .canAcceptAttributeDrop(dataContext, attr, isTopLevelDrop, true);
     }
 
   }; // end return from closure
