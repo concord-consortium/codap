@@ -83,6 +83,12 @@ DG.GameController = DG.ComponentController.extend(
       },
 
       /**
+       * List of properties stored to/restored from component storage.
+       */
+      storedProperties: ['preventBringToFront', 'preventDataContextReorg', 'preventTopLevelReorg',
+                          'preventAttributeDeletion', 'allowEmptyAttributeDeletion'],
+
+      /**
        * If false, permit the data interactive to participate in normal component
        * selection, including coming to the front.
        * As of build ~0428 we allow data interactives to come to the front like any other component
@@ -90,9 +96,7 @@ DG.GameController = DG.ComponentController.extend(
        */
       preventBringToFront: function(key, value) {
         var path = 'model.content.preventBringToFront';
-        if (value != null) {
-          this.setPath(path, value);
-        }
+        if (value != null) this.setPath(path, value);
         return this.getPath(path);
       }.property(),
 
@@ -103,9 +107,7 @@ DG.GameController = DG.ComponentController.extend(
        */
       preventDataContextReorg: function(key, value) {
         var path = 'model.content.preventDataContextReorg';
-        if (value != null) {
-          this.setPath(path, value);
-        }
+        if (value != null) this.setPath(path, value);
         return this.getPath(path);
       }.property(),
 
@@ -116,9 +118,28 @@ DG.GameController = DG.ComponentController.extend(
        */
       preventTopLevelReorg: function(key, value) {
         var path = 'model.content.preventTopLevelReorg';
-        if (value != null) {
-          this.setPath(path, value);
-        }
+        if (value != null) this.setPath(path, value);
+        return this.getPath(path);
+      }.property(),
+
+      /**
+       * If true, prevent user deletion of attributes.
+       * @type {boolean}
+       */
+      preventAttributeDeletion: function(key, value) {
+        var path = 'model.content.preventAttributeDeletion';
+        if (value != null) this.setPath(path, value);
+        return this.getPath(path);
+      }.property(),
+
+      /**
+       * If true, allow user deletion of attributes empty attributes
+       * event when 'preventAttributeDeletion' property is set.
+       * @type {boolean}
+       */
+      allowEmptyAttributeDeletion: function(key, value) {
+        var path = 'model.content.allowEmptyAttributeDeletion';
+        if (value != null) this.setPath(path, value);
         return this.getPath(path);
       }.property(),
 
@@ -160,7 +181,7 @@ DG.GameController = DG.ComponentController.extend(
 
       /**
        * The Parent Endpoint for the iFramePhone connection to the data interactive.
-       * @property {i
+       * @property {ParentEndpoint}
        */
       iframePhoneEndpoint: null,
 
@@ -324,9 +345,8 @@ DG.GameController = DG.ComponentController.extend(
               this.getPath('context.gameName') || this.getPath('context.name');
           tStorage.title = this.getPath('model.title');
           tStorage.currentGameUrl = tStorage.currentGameUrl || this.getPath('context.gameUrl');
-          tStorage.preventBringToFront = this.get('preventBringToFront');
-          tStorage.preventDataContextReorg = this.get('preventDataContextReorg');
-          tStorage.preventTopLevelReorg = this.get('preventTopLevelReorg');
+          var storedProps = this.get('storedProperties');
+          storedProps.forEach(function(prop) { tStorage[prop] = this.get(prop); }.bind(this));
         }
 
         var dataContext = this.get('context');
@@ -387,9 +407,8 @@ DG.GameController = DG.ComponentController.extend(
           this.set('context', dataContext);
           this.setPath('context.gameName', gameName);
           this.setPath('context.gameUrl', gameUrl);
-          this.set('preventBringToFront', iComponentStorage.preventBringToFront);
-          this.set('preventDataContextReorg', iComponentStorage.preventDataContextReorg);
-          this.set('preventTopLevelReorg', iComponentStorage.preventTopLevelReorg);
+          var storedProps = this.get('storedProperties');
+          storedProps.forEach(function(prop) { this.set(prop, iComponentStorage[prop]); }.bind(this));
         }
 
         // If there are user-created formulas to restore, set them in the
