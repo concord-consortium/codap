@@ -22,6 +22,11 @@
 
 DG.DataContextUtilities = {
 
+  isTopLevelReorgPrevented: function(iDataContext) {
+    var pluginController = iDataContext.get('owningDataInteractive');
+    return !!pluginController && pluginController.get('preventTopLevelReorg');
+  },
+
   /**
    * Drop is disabled if any of the following are true
    *   (a) the dataContext prevents the drop

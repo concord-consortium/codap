@@ -339,6 +339,11 @@ DG.React.ready(function () {
                   DG.DataContextUtilities.randomizeAttribute(iContext, iAttr.get('id'));
                 },
 
+                isNewAttributeEnabled = function () {
+                  var isTopLevel = !iCollection.get('parent');
+                  return !(isTopLevel && DG.DataContextUtilities.isTopLevelReorgPrevented(iContext));
+                },
+
                 makeNewAttribute = function() {
                   var position = 1; // Just after the first attribute
                   DG.DataContextUtilities.newAttribute(iContext,
@@ -451,7 +456,7 @@ DG.React.ready(function () {
                   attributeIsEditableCallback: formulaIsEditable,
                   attributeCanBeRandomizedCallback: attributeCanBeRandomized,
                   rerandomizeCallback: rerandomizeAttribute,
-                  newAttributeCallback: makeNewAttribute,
+                  newAttributeCallback: isNewAttributeEnabled() ? makeNewAttribute : null,
                   cellLeaveCallback: handleCellLeave
                 }),
                 tValueField = iShouldSummarize ?

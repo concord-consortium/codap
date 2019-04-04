@@ -75,7 +75,8 @@ DG.React.ready(function () {
             }
 
             function newAttributeClickHandler() {
-              this_.props.newAttributeCallback();
+              if (this_.props.newAttributeCallback)
+                this_.props.newAttributeCallback();
             }
 
             handleDropIfAny();
@@ -109,10 +110,11 @@ DG.React.ready(function () {
                       },
                       iItem.label);
                 }),
+                tNewAttrDisabledClass = this.props.newAttributeCallback ? '' : ' disabled',
                 tNewAttrButton = (this.props.index === 0) ?
                     img({
                       src: static_url('images/add_circle_grey_72x72.png'),
-                      className: 'dg-floating-plus',
+                      className: 'dg-floating-plus' + tNewAttrDisabledClass,
                       width: 19,
                       height: 19,
                       title: 'DG.TableController.newAttributeTooltip'.loc(),

@@ -363,10 +363,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     newAttrButtonView: DG.ImageView.extend({
       classNames: ['dg-floating-plus'],
+      classNameBindings: ['disabled'],
       layout: { top: 0, right: 0, width: 22, height: 22 },
       // https://www.materialui.co/icon/add-circle
       value: static_url('images/add_circle_grey_72x72.png'),
       tooltip: 'DG.TableController.newAttributeTooltip'.loc(),
+      disabled: function() {
+        var context = this.getPath('parentView.gridAdapter.dataContext');
+        var isTopLevel = !this.getPath('parentView.gridAdapter.hasParentCollection');
+        return isTopLevel && DG.DataContextUtilities.isTopLevelReorgPrevented(context);
+      }.property(),
       didAppendToDocument: function() {
         sc_super();
 
