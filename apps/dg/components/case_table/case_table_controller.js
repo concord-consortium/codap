@@ -398,10 +398,12 @@ DG.CaseTableController = DG.ComponentController.extend(
             this.dataContextWasDeleted();
             break;
           case 'createItems':
-            // Nothing to do here because we'll come back around to do createCases
+          case 'updateItems':
+          case 'deleteItems':
+            // Nothing to do here because we'll receive corresponding case notifications
             break;
           default:
-            DG.logWarn('Unhandled operation: ' + iChange.operation);
+            DG.logWarn("DG.CaseTableController -- Unhandled operation: " + iChange.operation);
           }
         }.bind( this);
 
