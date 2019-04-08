@@ -670,14 +670,16 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }
       DG.assert(collectionClient.constructor === DG.CollectionClient, 'Correct type');
       var view = this.findViewForCollection(collectionClient);
-      view.scrollToCase(caseID);
+      if (view)
+        view.scrollToCase(caseID);
     },
 
     findViewForCollection: function (iCollection) {
+      var collectionID = iCollection.get('id');
       var childTableViews = this.get('childTableViews') || [];
       return childTableViews.find(function (childTableView) {
         var viewCollection = childTableView.getPath('gridAdapter.collection');
-        return viewCollection === iCollection;
+        return viewCollection.get('id') === collectionID;
       });
     }
   }; // end return from closure
