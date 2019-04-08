@@ -555,7 +555,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       // we disable the menu item if not deleteable or the
                       // context is owned by a data interactive that speaks the Game API
-                      ioMenuItem.disabled = !iColumn.attribute.get('deleteable') || iColumn.hasDependentInteractive();
+                      ioMenuItem.disabled = !iColumn.attribute.get('deleteable') ||
+                                              iColumn.hasDependentInteractive() ||
+                                              !DG.DataContextUtilities.isAttributeDeletable(context, iAttribute);
                     }
                   }
                 ]

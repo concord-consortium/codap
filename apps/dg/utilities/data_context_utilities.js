@@ -27,6 +27,39 @@ DG.DataContextUtilities = {
     return !!pluginController && pluginController.get('preventTopLevelReorg');
   },
 
+  getNonTopLevelAttributeCount: function(iDataContext) {
+    var attrCount = 0;
+    var collections = iDataContext.get('collections');
+    collections.forEach(function(collection, index) {
+      if (index > 0) {
+        attrCount += collection.getPath('attrs.length');
+      }
+    });
+    return attrCount;
+  },
+
+  isAttributeDeletable: function(iDataContext, iAttribute) {
+    if (!iAttribute.get('deleteable')) return false;
+
+    var pluginController = iDataContext.get('owningDataInteractive');
+    var pluginPreventsTopLevelReorg = !!pluginController &&
+                                            pluginController.get('preventTopLevelReorg');
+    var isTopLevelAttribute = !iAttribute.getPath('collection.parent');
+    var nonTopLevelAttributeCount = DG.DataContextUtilities.getNonTopLevelAttributeCount(iDataContext);
+    var isLastNonTopLevelAttribute = !isTopLevelAttribute && (nonTopLevelAttributeCount === 1);
+    if (pluginPreventsTopLevelReorg && isLastNonTopLevelAttribute) return false;
+
+    var pluginPreventsAttributeDeletion = !!pluginController &&
+                                            pluginController.get('preventAttributeDeletion');
+    var pluginAllowsEmptyAttributeDeletion = !!pluginController &&
+                                              pluginController.get('allowEmptyAttributeDeletion');
+    var hasAttributeFormula = iAttribute.get('hasFormula');
+    var hasAttributeValues = iAttribute.get('hasValues');
+    var isEmptyAttribute = !hasAttributeFormula && !hasAttributeValues;
+    return !pluginPreventsAttributeDeletion ||
+            (pluginAllowsEmptyAttributeDeletion && isEmptyAttribute);
+  },
+
   /**
    * Drop is disabled if any of the following are true
    *   (a) the dataContext prevents the drop

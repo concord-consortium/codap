@@ -512,6 +512,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (iValues.preventTopLevelReorg != null) {
               diModel.set('preventTopLevelReorg', iValues.preventTopLevelReorg);
             }
+            if (iValues.preventAttributeDeletion != null) {
+              diModel.set('preventAttributeDeletion', iValues.preventAttributeDeletion);
+            }
+            if (iValues.allowEmptyAttributeDeletion != null) {
+              diModel.set('allowEmptyAttributeDeletion', iValues.allowEmptyAttributeDeletion);
+            }
           }
 
           return {
@@ -533,6 +539,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           tReturnValues.preventBringToFront = diModel.get('preventBringToFront');
           tReturnValues.preventDataContextReorg = diModel.get('preventDataContextReorg');
           tReturnValues.preventTopLevelReorg = diModel.get('preventTopLevelReorg');
+          tReturnValues.preventAttributeDeletion = diModel.get('preventAttributeDeletion');
+          tReturnValues.allowEmptyAttributeDeletion = diModel.get('allowEmptyAttributeDeletion');
           // if embedded mode, set externalUndoAvailable, if standalone mode,
           // set standaloneUndoModeAvailable.
           tReturnValues.externalUndoAvailable = !DG.STANDALONE_MODE;

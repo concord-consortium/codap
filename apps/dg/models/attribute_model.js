@@ -433,6 +433,22 @@ DG.Attribute = DG.BaseModel.extend(
         this.notifyPropertyChange(iKey);
       },
 
+      hasValues: function() {
+        var hasValues = false;
+        var tCollection = this.get('collection');
+        if( tCollection) {
+          var tAttrID = this.get('id'),
+              tCases = tCollection.get('cases');
+          tCases && tCases.forEach( function( iCase) {
+            var tValue = iCase.getValue(tAttrID);
+            if ((tValue == null) || (tValue === "")) return;
+            if ((typeof tValue === "number") && !isFinite(tValue)) return;
+            hasValues = true;
+          }.bind( this));
+        }
+        return hasValues;
+      }.property(),
+
       /**
        * Gets called when attribute is used categorically in a graph and something has changed.
        */

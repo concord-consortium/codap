@@ -60,6 +60,16 @@ DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.pr
   /**
    * @type {boolean}
    */
+  preventAttributeDeletion: false,
+
+  /**
+   * @type {boolean}
+   */
+  allowEmptyAttributeDeletion: false,
+
+  /**
+   * @type {boolean}
+   */
   externalUndoAvailable: false,
 
   /**
