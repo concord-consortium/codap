@@ -62,10 +62,10 @@ DG.CaseTableDataManager = SC.Object.extend({
   _rowCaseMap: null,
 
   /**
-   * Map from collection ID to proto-case. Map is shared among all instances.
+   * Map from collection ID to proto-case.
    * @type {Object}
    */
-  _protoCases: {},
+  _protoCases: null,
 
   /**
    *
@@ -78,6 +78,7 @@ DG.CaseTableDataManager = SC.Object.extend({
 
   init: function () {
     this._rowCaseMap = [];
+    this._protoCases = {};
     this.onRowCountChanged = new Slick.Event();
     this.onRowsChanged = new Slick.Event();
   },
