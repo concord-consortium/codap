@@ -22,6 +22,55 @@
 
 DG.DataContextUtilities = {
 
+  isTopLevelReorgPrevented: function(iDataContext) {
+    var pluginController = iDataContext.get('owningDataInteractive');
+    return !!pluginController && pluginController.get('preventTopLevelReorg');
+  },
+
+  /**
+   * Drop is disabled if any of the following are true
+   *   (a) the dataContext prevents the drop
+   *   (b) the dragged attribute is from another dataContext,
+   *   (c) the plugin prevents the drop
+   *
+   * @param iDataContext    {DG.DataContext} The DataContext receiving the drop
+   * @param iAttribute      {DG.Attribute} The attribute being dragged
+   * @param isTopLevelDrop  {Boolean} Whether the proposed drop target is top-level
+   * @param allowTopLevelAttrs {Boolean} Whether to allow drops of top-level attrs,
+   *                        which could indicate a desire to rearrange top-level attrs
+   *                        without changing the collection hierarchy.
+   * @returns {Boolean}   Whether the drop should be accepted
+   */
+  canAcceptAttributeDrop: function(iDataContext, iAttribute, isTopLevelDrop, allowTopLevelAttrs) {
+    // check whether DataContext prevents reorganization
+    if (iDataContext.get('hasGameInteractive') || iDataContext.get('preventReorg'))
+      return false;
+
+    // we can't reorganize drops of attributes from another DataContext
+    var ownsThisAttribute = iAttribute &&
+                              !SC.none(iDataContext.getCollectionByID(iAttribute.collection.id));
+    if (!ownsThisAttribute) return false;
+
+    // check whether plugin prevents all reorganization
+    var pluginController = iDataContext.get('owningDataInteractive');
+    if (pluginController && pluginController.get('preventDataContextReorg'))
+      return false;
+
+    // check whether plugin prevents top-level reorganization
+    var pluginPreventsTopLevelReorg = pluginController &&
+                                        pluginController.get('preventTopLevelReorg');
+    var isTopLevelDragAttr = iAttribute && !iAttribute.getPath('collection.parent');
+    if (pluginPreventsTopLevelReorg) {
+      if (isTopLevelDragAttr && isTopLevelDrop && allowTopLevelAttrs)
+        return true;
+      if (isTopLevelDragAttr || isTopLevelDrop)
+        return false;
+    }
+
+    // otherwise, we accept the drop
+    return true;
+  },
+
   updateAttribute: function (iContext, iCollection, iAttribute, iChangedAttrProps) {
     var tOldAttrProps = {
       id: iAttribute.get('id'),

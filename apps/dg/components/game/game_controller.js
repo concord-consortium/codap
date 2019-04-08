@@ -88,14 +88,39 @@ DG.GameController = DG.ComponentController.extend(
        * As of build ~0428 we allow data interactives to come to the front like any other component
        * @type {boolean}
        */
-      preventBringToFront: false,
+      preventBringToFront: function(key, value) {
+        var path = 'model.content.preventBringToFront';
+        if (value != null) {
+          this.setPath(path, value);
+        }
+        return this.getPath(path);
+      }.property(),
 
       /**
        * If true, prevent collection reorganization for this data interactive's
        * data context.
-       *
+       * @type {boolean}
        */
-      preventDataContextReorg: true,
+      preventDataContextReorg: function(key, value) {
+        var path = 'model.content.preventDataContextReorg';
+        if (value != null) {
+          this.setPath(path, value);
+        }
+        return this.getPath(path);
+      }.property(),
+
+      /**
+       * If true, prevent collection reorganization for the top level of this
+       * data interactive's data context.
+       * @type {boolean}
+       */
+      preventTopLevelReorg: function(key, value) {
+        var path = 'model.content.preventTopLevelReorg';
+        if (value != null) {
+          this.setPath(path, value);
+        }
+        return this.getPath(path);
+      }.property(),
 
       init: function () {
         sc_super();
@@ -301,6 +326,7 @@ DG.GameController = DG.ComponentController.extend(
           tStorage.currentGameUrl = tStorage.currentGameUrl || this.getPath('context.gameUrl');
           tStorage.preventBringToFront = this.get('preventBringToFront');
           tStorage.preventDataContextReorg = this.get('preventDataContextReorg');
+          tStorage.preventTopLevelReorg = this.get('preventTopLevelReorg');
         }
 
         var dataContext = this.get('context');
@@ -363,6 +389,7 @@ DG.GameController = DG.ComponentController.extend(
           this.setPath('context.gameUrl', gameUrl);
           this.set('preventBringToFront', iComponentStorage.preventBringToFront);
           this.set('preventDataContextReorg', iComponentStorage.preventDataContextReorg);
+          this.set('preventTopLevelReorg', iComponentStorage.preventTopLevelReorg);
         }
 
         // If there are user-created formulas to restore, set them in the

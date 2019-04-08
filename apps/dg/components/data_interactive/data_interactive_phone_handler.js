@@ -503,17 +503,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               diModel.set('dimensions', iValues.dimensions);
             if (!SC.none(iValues.cannotClose))
               diComponent.set('cannotClose', iValues.cannotClose);
-            if (!SC.none(iValues.preventBringToFront)) {
-              // Todo 7/2016: we should be managing this value in the model only,
-              // and deriving the value in the controller.
-              this.controller.set('preventBringToFront', iValues.preventBringToFront);
+            if (iValues.preventBringToFront != null) {
               diModel.set('preventBringToFront', iValues.preventBringToFront);
             }
-            if (!SC.none(iValues.preventDataContextReorg)) {
-              // Todo 7/2016: we should be managing this value in the model only,
-              // and deriving the value in the controller.
-              this.controller.set('preventDataContextReorg', iValues.preventDataContextReorg);
+            if (iValues.preventDataContextReorg != null) {
               diModel.set('preventDataContextReorg', iValues.preventDataContextReorg);
+            }
+            if (iValues.preventTopLevelReorg != null) {
+              diModel.set('preventTopLevelReorg', iValues.preventTopLevelReorg);
             }
           }
 
@@ -535,6 +532,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           tReturnValues.dimensions = diModel.get('dimensions');
           tReturnValues.preventBringToFront = diModel.get('preventBringToFront');
           tReturnValues.preventDataContextReorg = diModel.get('preventDataContextReorg');
+          tReturnValues.preventTopLevelReorg = diModel.get('preventTopLevelReorg');
           // if embedded mode, set externalUndoAvailable, if standalone mode,
           // set standaloneUndoModeAvailable.
           tReturnValues.externalUndoAvailable = !DG.STANDALONE_MODE;

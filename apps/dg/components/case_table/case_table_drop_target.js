@@ -45,6 +45,12 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         layout: { width: 50 },
 
         /**
+         * Is the top-level drop target
+         * @type {Boolean}
+         */
+        isTopLevel: false,
+
+        /**
          * This is a drop target.
          * @type {boolean}
          */
@@ -53,23 +59,17 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         }.property(),
 
         /**
-         * Drop is _not_ active if any of the following are true
-         *   (a) the dateContext 'preventReorg' flag is set,
-         *   (b) the dragged attribute is for another dataContext,
-         *   (c) the dataContext has is owned by a plugin using the game API,
-         *   (d) or is owned by a modern plugin that sets preventDataContextReorg.
+         * Drop is disabled if any of the following are true
+         *   (a) the dataContext prevents the drop
+         *   (b) the dragged attribute is from another dataContext,
+         *   (c) the plugin prevents the drop
+         * see DG.DataContextUtilities.canAcceptDrop() for details
          */
         isDropEnabled: function () {
-          var dataInteractiveController = this.dataContext.get('owningDataInteractive');
-          var hasGameInteractive = this.dataContext.get('hasGameInteractive');
-          var preventReorgFlag = this.dataContext.get('preventReorg');
           var dragAttribute = this.get('dragAttribute');
-          var ownsThisAttribute = dragAttribute && !SC.none(this.dataContext.getCollectionByID(dragAttribute.collection.id));
-          var preventReorg = preventReorgFlag ||
-              !ownsThisAttribute ||
-              hasGameInteractive ||
-              (dataInteractiveController && dataInteractiveController.get('preventDataContextReorg'));
-          return !preventReorg;
+          var isTopLevelDrop = this.get('isTopLevel');
+          return DG.DataContextUtilities
+                    .canAcceptAttributeDrop(this.dataContext, dragAttribute, isTopLevelDrop);
         }.property('dragAttribute'),
 
         isDropEnabledDidChange: function () {

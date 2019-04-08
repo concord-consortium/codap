@@ -296,7 +296,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         firstCollection = context && context.getCollectionAtIndex( 0),
         firstCollectionID = firstCollection && firstCollection.get('id');
     return collectionID !== firstCollectionID;
-  },
+  }.property(),
 
   /**
     The number of visible rows in the table, that is the number of rows adjusted
@@ -851,46 +851,20 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      * Returns whether the attribute can be dropped in the case table associated
      * with this adapter.
      *
-     * If the attribute is a part of this collection, then the it may be dropped
-     * if the context is not owned by a game-based interactive
-     *
-     * If the attribute is a part of a collection in this context, but not this
-     * collection it may be dropped if it is not owned by any data interactive.
-     *
-     * If the attribute is a part of another context, then it may not be dropped.
+     * Drop is disabled if any of the following are true
+     *   (a) the dataContext prevents the drop
+     *   (b) the dragged attribute is from another dataContext,
+     *   (c) the plugin prevents the drop
+     * see DG.DataContextUtilities.canAcceptDrop() for details
      *
      * @param attr
      * @returns {boolean}
      */
     canAcceptDrop: function (attr) {
-      var canAcceptDrop = false;
-      var tContext = this.get('dataContext');
-      var ownedByGame = tContext.get('hasGameInteractive');
-      var attrCollection = attr.collection;
-      var attributeInOtherDataSet = SC.none(tContext.getCollectionByID(attrCollection.id));
-      var attributeInThisCollection = !SC.none(this.collection.getAttributeByID(attr.get('id')));
-      var preventReorgFlag = tContext.get('preventReorg');
-      var dataInteractiveController
-          = tContext.get('owningDataInteractive');
-      // Figure out if we can accept an attribute drop. Assume false.
-      // (a) We can never accept drop if data context is owned by a game-api-plugin
-      // (b) We can never accept drop if the attribute is owned by another data context.
-      // (c) We can always accept a drop if the attribute is owned by the context and
-      //     the context is not owned by a plugin
-      // (d) Otherwise, if the attribute is owned by the context and the context is owned
-      //     by a modern plugin then we can accept the drop if the attribute is owned
-      //     by our collection or 'preventDataContextReorg' is false for the owning plugin
-      // (e) We can never accept drop if data context has preventReorg flag
-      if (!preventReorgFlag && !attributeInOtherDataSet && !ownedByGame) {
-        if (attributeInThisCollection) {
-          canAcceptDrop = true;
-        } else {
-          canAcceptDrop = SC.none(dataInteractiveController) ||
-              !dataInteractiveController.get('preventDataContextReorg');
-        }
-      }
-
-      return canAcceptDrop;
+      var dataContext = this.get('dataContext');
+      var isTopLevelDrop = !this.get('hasParentCollection');
+      return DG.DataContextUtilities
+                .canAcceptAttributeDrop(dataContext, attr, isTopLevelDrop, true);
     }
 
   }; // end return from closure
