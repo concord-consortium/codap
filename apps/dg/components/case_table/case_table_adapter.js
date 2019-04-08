@@ -285,6 +285,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       this.dataContextDidChange();
   },
 
+  destroy: function() {
+    if (this.gridDataView) {
+      this.gridDataView.destroy();
+      this.gridDataView = null;
+    }
+    sc_super();
+  },
+
   /**
     Returns true if this adapter's collection has a parent collection,
     false if it is the most senior collection, i.e. has no parent.
