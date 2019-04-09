@@ -1191,7 +1191,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       Destroys the SlickGrid object, its DataView object, and the CaseTableAdapter.
      */
     _destroy: function() {
-      this.scrollAnimator.destroy();
+      if (this.scrollAnimator) {
+        this.scrollAnimator.destroy();
+        this.scrollAnimator = null;
+      }
       this.destroySlickGrid();
 
       if( this.gridAdapter)
@@ -2202,10 +2205,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var viewportHeight = viewport.bottom - viewport.top - 1;
       var dataView = this.getPath('gridAdapter.gridDataView');
       var rightTable = this.get('childTable');
-      var rightViewport = rightTable.get('gridViewport');
-      var rightDataView = rightTable.getPath('gridAdapter.gridDataView');
+      var rightViewport = rightTable && rightTable.get('gridViewport');
+      var rightDataView = rightTable && rightTable.getPath('gridAdapter.gridDataView');
       var didScroll = false;
-      if (dataView.getLength() === 0 || rightDataView.getLength() === 0) {
+      if (!dataView || (dataView.getLength() === 0) ||
+          !rightDataView || (rightDataView.getLength() === 0)) {
         // nothing to do
         return false;
       }

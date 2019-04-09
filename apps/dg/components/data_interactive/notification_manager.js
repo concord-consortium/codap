@@ -147,9 +147,11 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
             switch (k) {
               case 'success':
               case 'properties':
-              case 'caseIDs':
-              case 'caseID':
               case 'attrIDs':
+              case 'caseID':
+              case 'caseIDs':
+              case 'itemID':
+              case 'itemIDs':
                 result[k] = v;
                 break;
               case 'collection':

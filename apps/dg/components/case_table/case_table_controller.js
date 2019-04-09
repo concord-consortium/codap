@@ -104,12 +104,11 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
       updateTableAdapters: function() {
         var dataContext = this.get('dataContext'),
             collectionRecords = dataContext && dataContext.get('collections') || [],
-            newAdapters = [],
             // The controller model is a component object. We want the model for the
             // component's content.
-            caseTableModel = this.model && this.model.get('content');
-
-        this.caseTableAdapters = newAdapters;
+            caseTableModel = this.model && this.model.get('content'),
+            // new array to capture adapter order
+            newAdapters = [];
 
         // Utility function for finding or creating (if necessary) an appropriate
         // adapter for the specified collection.
@@ -125,13 +124,12 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
               collection: collection,
               model: caseTableModel
             });
-
           }
-          // add the new/found adapter to the adapter array
-          newAdapters.push( adapter);
+          newAdapters.push(adapter);
         }.bind(this);
 
         collectionRecords.forEach( guaranteeAdapterForCollectionRecord);
+        this.set('caseTableAdapters', newAdapters);
       },
 
       /**
@@ -379,6 +377,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           case 'deleteDataContext':
             this.dataContextWasDeleted();
             break;
+          case 'updateDataContext':
           case 'createItems':
           case 'updateItems':
           case 'deleteItems':
