@@ -275,15 +275,17 @@ DG.appController = SC.Object.create((function () // closure
       }
     }),
     caseTableMenuItems: function () {
-      var dataContexts = DG.currDocumentController().get('contexts');
+      var documentController = DG.currDocumentController();
+      var dataContexts = documentController.get('contexts');
       var menuItems = dataContexts.map(function (dataContext) {
+        var viewType = documentController.tableCardRegistry.getActiveViewTypeForContext(dataContext.get('id'));//'DG.CaseTable' || 'DG.CaseCard'
         return {
           localize: false,
           title: dataContext.get('title'),
           toolTip: 'DG.AppController.caseTableMenu.openCaseTableToolTip',
           target: DG.appController,
           dgAction: 'openOrSelectCaseTable',
-          icon: 'tile-icon-table',
+          icon: viewType==='DG.CaseCard'? 'tile-icon-card': 'tile-icon-table',
           dataContext: dataContext,
           rightIcon: 'dg-trash-icon',
           rightTarget: this.dataSetDeleteAgent.create({dataContext: dataContext}),

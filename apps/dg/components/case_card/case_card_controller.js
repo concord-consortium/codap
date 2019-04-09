@@ -100,7 +100,10 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
           execute: function () {
             var layout = tCaseCardView.get('layout');
             tCaseCardView.set('savedLayout', layout);
-            tCaseCardView.toggleProperty('isVisible');
+            var isVisible = tCaseCardView.toggleProperty('isVisible');
+            if( !isVisible && tCaseCardView.parentView && tCaseCardView.parentView.select)
+              tCaseCardView.parentView.select(null);
+
           },
           undo: function () {
             this.execute();

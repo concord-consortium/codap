@@ -146,6 +146,7 @@ DG.DocumentController = SC.Object.extend(
        * @property {Object} Maps data context id to DG.ComponentView.
        */
       _caseTableViews: null,
+      tableCardRegistry: DG.TableCardRegistry.create(),
 
       /**
        * The state of the document. The document is not ready during document load.
@@ -303,7 +304,9 @@ DG.DocumentController = SC.Object.extend(
         sc_super();
 
         this._singletonViews = {};
-        this._caseTableViews = {};
+        // this._caseTableViews = {};
+        this.tableCardRegistry = DG.TableCardRegistry.create();
+
         this.contexts = [];
 
         this.dataInteractiveLogMonitor = SC.Object.create({
@@ -961,18 +964,11 @@ DG.DocumentController = SC.Object.extend(
           }
         }
 
-        function getCaseTableForContext(caseTables, context) {
-          if (!context) {
-            return null;
-          }
-          return caseTables[context.get('id')];
-        }
-
         if (SC.none(iProperties)) {
           iProperties = {};
         }
         var context = iProperties.dataContext || resolveContextLink(iComponent);
-        var caseTableView = getCaseTableForContext(this._caseTableViews, context);
+        var caseTableView = this.tableCardRegistry.getViewForContext(context);
 
         if (!caseTableView) {
           var component = this.getCaseTableComponent(iComponent, context, iProperties);
@@ -989,10 +985,11 @@ DG.DocumentController = SC.Object.extend(
             isResizable: true
           };
           caseTableView = this.createComponentView(component, props);
-          this._caseTableViews[context.get('id')] = caseTableView;
         } else {
           caseTableView.set('isVisible', true);
         }
+        caseTableView.set('isActive', true);
+        this.tableCardRegistry.registerView(context, caseTableView);
         return caseTableView;
       },
 
@@ -1316,6 +1313,8 @@ DG.DocumentController = SC.Object.extend(
         tController.set('view', tComponentView);
         this.registerComponent(tModel);
         tContentView.initCardLayer();
+        tComponentView.set('isActive', true);
+        this.tableCardRegistry.registerView(iContext, tComponentView);
 
         return tComponentView;
       },
@@ -1592,7 +1591,7 @@ DG.DocumentController = SC.Object.extend(
                   {duration: 0.3, timing: 'ease-in-out'},
                   function () {
                     iTableComponentView.set('isVisible', false);
-                    tCardComponentView = iTableComponentView.get('cardView') ||
+                    tCardComponentView = this.tableCardRegistry.getCardView(tContext) ||
                         this.addCaseCard(iTableComponentView.get('parentView'),
                             tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
                     tCardComponentView.set('layout', tCardInitialLayout);
@@ -1601,22 +1600,24 @@ DG.DocumentController = SC.Object.extend(
                     tCardComponentView.set('isVisible', true);
 
                     tCardComponentView.select();
-                    tCardComponentView.set('tableView', iTableComponentView);
-                    iTableComponentView.set('cardView', tCardComponentView);
+                    iTableComponentView.set('isActive', false);
+                    tCardComponentView.set('isActive', true);
+                    this.tableCardRegistry.registerView(tContext, tCardComponentView);
                   }.bind(this));
             }.bind(this));
       },
 
       toggleCardToTable: function (iCardComponentView) {
         var kDefaultCardWidth = 200,
-            tCardLayout = iCardComponentView.get('layout');
+            tCardLayout = iCardComponentView.get('layout'),
+            tContext = iCardComponentView.getPath('controller.dataContext');
         iCardComponentView.set('savedLayout', tCardLayout);
         iCardComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'},
             function () {
               iCardComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
                   {duration: 0.3, timing: 'ease-in-out'},
                   function () {
-                    var tTableComponentView = iCardComponentView.get('tableView') ||
+                    var tTableComponentView = this.tableCardRegistry.getTableView(tContext) ||
                         this.addCaseTable(iCardComponentView.get('parentView'), null, {
                           dataContext: iCardComponentView.getPath('controller.dataContext')
                         }),
@@ -1637,8 +1638,9 @@ DG.DocumentController = SC.Object.extend(
                             }.bind(this));
                           }.bind(this));
                         });
-                    tTableComponentView.set('cardView', iCardComponentView);
-                    iCardComponentView.set('tableView', tTableComponentView);
+                    iCardComponentView.set('isActive', false);
+                    tTableComponentView.set('isActive', true);
+                    this.tableCardRegistry.registerView(tContext, tTableComponentView);
                   }.bind(this));
             }.bind(this));
       },
@@ -1733,7 +1735,8 @@ DG.DocumentController = SC.Object.extend(
 
       closeAllComponents: function () {
         this._singletonViews = {};
-        this._caseTableViews = {};
+        // this._caseTableViews = {};
+        this.tableCardRegistry.reset();
 
         // Reset the guide
         if (this._guideController)
