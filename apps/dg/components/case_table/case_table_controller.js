@@ -106,7 +106,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             collectionRecords = dataContext && dataContext.get('collections') || [],
             // The controller model is a component object. We want the model for the
             // component's content.
-            caseTableModel = this.model && this.model.get('content');
+            caseTableModel = this.model && this.model.get('content'),
+            // new array to capture adapter order
+            newAdapters = [];
 
         // Utility function for finding or creating (if necessary) an appropriate
         // adapter for the specified collection.
@@ -122,12 +124,12 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
               collection: collection,
               model: caseTableModel
             });
-            // add the new adapter to the adapter array
-            this.caseTableAdapters.push( adapter);
           }
+          newAdapters.push(adapter);
         }.bind(this);
 
         collectionRecords.forEach( guaranteeAdapterForCollectionRecord);
+        this.set('caseTableAdapters', newAdapters);
       },
 
       /**
