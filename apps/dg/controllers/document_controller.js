@@ -145,7 +145,6 @@ DG.DocumentController = SC.Object.extend(
        *
        * @property {Object} Maps data context id to DG.ComponentView.
        */
-      _caseTableViews: null,
       tableCardRegistry: DG.TableCardRegistry.create(),
 
       /**
@@ -304,7 +303,6 @@ DG.DocumentController = SC.Object.extend(
         sc_super();
 
         this._singletonViews = {};
-        // this._caseTableViews = {};
         this.tableCardRegistry = DG.TableCardRegistry.create();
 
         this.contexts = [];
@@ -1735,7 +1733,6 @@ DG.DocumentController = SC.Object.extend(
 
       closeAllComponents: function () {
         this._singletonViews = {};
-        // this._caseTableViews = {};
         this.tableCardRegistry.reset();
 
         // Reset the guide

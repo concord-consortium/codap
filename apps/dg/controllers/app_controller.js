@@ -52,19 +52,18 @@ DG.appController = SC.Object.create((function () // closure
 
     documentArchiver: DG.DocumentArchiver.create({}),
 
-    showCaseTableFor: function(iDataContext) {
-      function removeCaseTable(caseTableID) {
-        var controller = documentController.componentControllersMap[caseTableID];
+    /**
+     * Show the case table or case card for a data context.
+     * @param iDataContext
+     */
+    showCaseDisplayFor: function(iDataContext) {
+      function removeCaseDisplay(componentID) {
+        var controller = documentController.componentControllersMap[componentID];
         var view = controller.get('view');
         var containerView = view.parentView;
         containerView.removeComponentView(view);
       }
-      function selectCaseTable (caseTable) {
-        // find its view and make it selected
-        var contentView = DG.mainPage.mainPane.scrollView.contentView;
-        var componentView = contentView.get('componentViews').find(function (componentView) {
-          return (componentView.controller === caseTable);
-        });
+      function selectView (componentView) {
         if (componentView) {
           componentView.invokeLater(function () { componentView.maximizeAndSelect(); });
         }
@@ -73,12 +72,11 @@ DG.appController = SC.Object.create((function () // closure
       // select it. If not create it. If there is no data context, create a
       // new one.
       var documentController = DG.currDocumentController();
-      var caseTables = documentController.findComponentsByType(DG.CaseTableController);
-      var foundCaseTable;
       var dataContext = iDataContext;
+      var foundView;
       var caseTable;
       // If no data context, we create a new one.
-      if (SC.none(iDataContext)) {
+      if (SC.none(dataContext)) {
         DG.UndoHistory.execute(DG.Command.create({
           name: 'dataContext.create',
           undoString: 'DG.Undo.dataContext.create',
@@ -104,28 +102,26 @@ DG.appController = SC.Object.create((function () // closure
           }
         }));
       } else {
-        foundCaseTable = caseTables.find(function (caseTable) {
-          return (caseTable.get('dataContext') === iDataContext);
-        });
-        if (foundCaseTable) {
+        foundView = documentController.tableCardRegistry.getViewForContext(dataContext);
+        if (foundView) {
           // find its view and make it selected
-          selectCaseTable(foundCaseTable);
+          selectView(foundView);
         } else {
           DG.UndoHistory.execute(DG.Command.create({
             name: 'caseTable.open',
             undoString: 'DG.Undo.caseTable.open',
             redoString: 'DG.Redo.caseTable.open',
-            log: 'openCaseTable: {name: "%@"}'.fmt(iDataContext.get('name')),
+            log: 'openCaseTable: {name: "%@"}'.fmt(dataContext.get('name')),
             executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'table'),
             undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'table'),
             execute: function () {
               caseTable = documentController.addCaseTable(
                   DG.mainPage.get('docView'), null,
-                  {position: 'top', dataContext: iDataContext});
-              selectCaseTable(caseTable.get('controller'));
+                  {position: 'top', dataContext: dataContext});
+              selectView(caseTable.get('controller'));
             },
             undo: function () {
-              removeCaseTable(caseTable.getPath('model.id'));
+              removeCaseDisplay(caseTable.getPath('model.id'));
             },
             redo: function () {
               this.execute();
@@ -178,7 +174,7 @@ DG.appController = SC.Object.create((function () // closure
             this.popup(iAnchor);
           },
           selectedItemDidChange: function () {
-            DG.appController.showCaseTableFor(this.get('selectedItem').dataContext);
+            DG.appController.showCaseDisplayFor(this.get('selectedItem').dataContext);
           }.observes('selectedItem'),
           itemLayerIdKey: 'id',
           layout: {width: 150}
@@ -284,7 +280,6 @@ DG.appController = SC.Object.create((function () // closure
           title: dataContext.get('title'),
           toolTip: 'DG.AppController.caseTableMenu.openCaseTableToolTip',
           target: DG.appController,
-          dgAction: 'openOrSelectCaseTable',
           icon: viewType==='DG.CaseCard'? 'tile-icon-card': 'tile-icon-table',
           dataContext: dataContext,
           rightIcon: 'dg-trash-icon',
