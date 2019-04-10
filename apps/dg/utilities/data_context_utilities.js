@@ -23,7 +23,7 @@
 DG.DataContextUtilities = {
 
   isTopLevelReorgPrevented: function(iDataContext) {
-    var pluginController = iDataContext.get('owningDataInteractive');
+    var pluginController = iDataContext.get('managingController');
     return !!pluginController && pluginController.get('preventTopLevelReorg');
   },
 
@@ -41,7 +41,7 @@ DG.DataContextUtilities = {
   isAttributeDeletable: function(iDataContext, iAttribute) {
     if (!iAttribute.get('deleteable')) return false;
 
-    var pluginController = iDataContext.get('owningDataInteractive');
+    var pluginController = iDataContext.get('managingController');
     var pluginPreventsTopLevelReorg = !!pluginController &&
                                             pluginController.get('preventTopLevelReorg');
     var isTopLevelAttribute = !iAttribute.getPath('collection.parent');
@@ -69,7 +69,7 @@ DG.DataContextUtilities = {
     // we don't disable rows that don't correspond to cases, e.g. proto-case rows
     if (!iCase) return true;
     // is the plugin controlling editability?
-    var pluginController = iDataContext.get('owningDataInteractive');
+    var pluginController = iDataContext.get('managingController');
     var pluginRespectsEditableAttribute = pluginController && pluginController.get('respectEditableItemAttribute');
     if (!pluginRespectsEditableAttribute) return true;
     // do we have an __editable__ attribute?
@@ -118,7 +118,7 @@ DG.DataContextUtilities = {
     if (!ownsThisAttribute) return false;
 
     // check whether plugin prevents all reorganization
-    var pluginController = iDataContext.get('owningDataInteractive');
+    var pluginController = iDataContext.get('managingController');
     if (pluginController && pluginController.get('preventDataContextReorg'))
       return false;
 

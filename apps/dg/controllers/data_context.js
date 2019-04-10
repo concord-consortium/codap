@@ -33,7 +33,7 @@
 DG.DataContext = SC.Object.extend((function() // closure
 /** @scope DG.DataContext.prototype */ {
   /**
-   * Returns an integer constrained within the specified limits including the max.
+ * Returns an integer constrained within the specified limits including the max.
    * If undefined, returns the max value.
    * @param {number|undefined} num
    * @param {number} min // assumed an integer
@@ -53,6 +53,12 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {String}
    */
   type: 'DG.DataContext',
+
+  /**
+   *  The id of the DG.GameController | DG.ComponentController that manages this context.
+   *  @property {string}
+   */
+  _managingControllerID: null,
 
   /**
    *  The DG.DataContextRecord for which this is the controller.
@@ -250,7 +256,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   _collectionClients: null,
 
   /**
-   * Whether there are Data Interactives for which are affiliated with this
+   * Whether there are Data Interactives which are affiliated with this
    * data context.
    * @type {boolean}
    */
@@ -272,6 +278,30 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind(this));
     DG.assert(SC.none(found) || found.constructor === DG.GameController, "Found Game Controller");
     return found;
+  }.property(),
+
+  /**
+   * Returns the Data Interactive which manages this data context.
+   * May be generalized to support affiliation with other components at some point.
+   * @type {DG.GameController}
+   */
+  managingController: function (key, value) {
+    if (value != null) {
+      this._managingControllerID = value;
+    }
+
+    // if no manager specified, default to owner
+    if (this._managingControllerID == null)
+      return this.get('owningDataInteractive');
+
+    // search for manager
+    var dataInteractives = DG.currDocumentController().get('dataInteractives');
+    return dataInteractives &&
+            DG.ObjectMap.values(dataInteractives)
+              .find(function (dataInteractive) {
+                var id = (dataInteractive.getPath('model.id'));
+                return ((id != null) && (id === this._managingControllerID));
+              }.bind(this));
   }.property(),
 
   /**
