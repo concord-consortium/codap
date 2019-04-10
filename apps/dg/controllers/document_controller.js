@@ -487,6 +487,7 @@ DG.DocumentController = SC.Object.extend(
             dataContext.applyChange({operation: 'deleteDataContext'});
             this.contexts.splice(dataContextIndex, 1);
             this.propertyDidChange('contextsLength');
+            this.tableCardRegistry.deregisterViews(dataContextID);
           } else {
             DG.logWarn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
           }

@@ -54,6 +54,12 @@ DG.TableCardRegistry = SC.Object.extend({
     }
   },
 
+  deregisterViews: function (dataContext) {
+    var contextID = (typeof dataContext === 'object')? dataContext.get('id'): dataContext;
+    delete this.contextCardMap[contextID];
+    delete this.contextTableMap[contextID];
+  },
+
   /**
    *
    * @param dataContext {DG.DataContext || string} dataContext or id of one.
