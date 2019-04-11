@@ -124,6 +124,14 @@ DG.DataContext = SC.Object.extend((function() // closure
   selectionChangeCount: 0,
 
   /**
+   * The number of metadata changes that have occurred.
+   * Clients can observe this to be notified of metadata changes.
+   * Initially triggered only by the 'managingController' property.
+   * @property  {Number}
+   */
+  metadataChangeCount: 0,
+
+  /**
     Array of change objects that have been applied to/by this data context.
     Newly-applied changes are appended to the array, so the most recent changes
     are at the end.
@@ -288,6 +296,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   managingController: function (key, value) {
     if (value != null) {
       this._managingControllerID = value;
+      this.incrementProperty('metadataChangeCount');
     }
 
     // if no manager specified, default to owner
