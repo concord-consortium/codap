@@ -1086,6 +1086,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   doUpdateCasesFromHashOfNameValues: function (iChange) {
     var cases = iChange.cases;
     var success = true;
+    var attrs = {};
     var caseIDs = [];
     cases.forEach(function (iCase, iCaseIx) {
       var values = iChange.values[iCaseIx];
@@ -1096,6 +1097,7 @@ DG.DataContext = SC.Object.extend((function() // closure
           var attr = this.getAttributeByName(key)
               || this.getAttributeByName(this.canonicalizeName(key));
           if (attr) {
+            attrs[attr.id] = attr;
             iCase.setValue(attr.id, value);
           } else {
             DG.logWarn('DataContext.doUpdateCasesFromHashOfNameValues: Cannot resolve attribute: ' + key);
@@ -1105,6 +1107,13 @@ DG.DataContext = SC.Object.extend((function() // closure
         iCase.endCaseValueChanges();
       }
     }.bind(this));
+
+    var attrNodes = [];
+    DG.ObjectMap.forEach(attrs, function(id, attr) {
+      attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.id, name: attr.get('name') });
+    });
+    this.invalidateDependentsAndNotify(attrNodes, iChange);
+
     return { success: success, caseIDs: caseIDs};
   },
 
