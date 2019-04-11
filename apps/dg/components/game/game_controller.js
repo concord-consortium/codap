@@ -86,7 +86,8 @@ DG.GameController = DG.ComponentController.extend(
        * List of properties stored to/restored from component storage.
        */
       storedProperties: ['preventBringToFront', 'preventDataContextReorg', 'preventTopLevelReorg',
-                          'preventAttributeDeletion', 'allowEmptyAttributeDeletion'],
+                          'preventAttributeDeletion', 'allowEmptyAttributeDeletion',
+                          'respectEditableItemAttribute'],
 
       /**
        * If false, permit the data interactive to participate in normal component
@@ -139,6 +140,17 @@ DG.GameController = DG.ComponentController.extend(
        */
       allowEmptyAttributeDeletion: function(key, value) {
         var path = 'model.content.allowEmptyAttributeDeletion';
+        if (value != null) this.setPath(path, value);
+        return this.getPath(path);
+      }.property(),
+
+      /**
+       * If true, the case table should respect the item/case editable
+       * indicated by the hidden '__editable__' attribute
+       * @type {boolean}
+       */
+      respectEditableItemAttribute: function(key, value) {
+        var path = 'model.content.respectEditableItemAttribute';
         if (value != null) this.setPath(path, value);
         return this.getPath(path);
       }.property(),

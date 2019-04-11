@@ -33,7 +33,7 @@
 DG.DataContext = SC.Object.extend((function() // closure
 /** @scope DG.DataContext.prototype */ {
   /**
-   * Returns an integer constrained within the specified limits including the max.
+ * Returns an integer constrained within the specified limits including the max.
    * If undefined, returns the max value.
    * @param {number|undefined} num
    * @param {number} min // assumed an integer
@@ -53,6 +53,12 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {String}
    */
   type: 'DG.DataContext',
+
+  /**
+   *  The id of the DG.GameController | DG.ComponentController that manages this context.
+   *  @property {string}
+   */
+  _managingControllerID: null,
 
   /**
    *  The DG.DataContextRecord for which this is the controller.
@@ -116,6 +122,14 @@ DG.DataContext = SC.Object.extend((function() // closure
     @property   {Number}
    */
   selectionChangeCount: 0,
+
+  /**
+   * The number of metadata changes that have occurred.
+   * Clients can observe this to be notified of metadata changes.
+   * Initially triggered only by the 'managingController' property.
+   * @property  {Number}
+   */
+  metadataChangeCount: 0,
 
   /**
     Array of change objects that have been applied to/by this data context.
@@ -250,7 +264,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   _collectionClients: null,
 
   /**
-   * Whether there are Data Interactives for which are affiliated with this
+   * Whether there are Data Interactives which are affiliated with this
    * data context.
    * @type {boolean}
    */
@@ -272,6 +286,31 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind(this));
     DG.assert(SC.none(found) || found.constructor === DG.GameController, "Found Game Controller");
     return found;
+  }.property(),
+
+  /**
+   * Returns the Data Interactive which manages this data context.
+   * May be generalized to support affiliation with other components at some point.
+   * @type {DG.GameController}
+   */
+  managingController: function (key, value) {
+    if (value != null) {
+      this._managingControllerID = value;
+      this.incrementProperty('metadataChangeCount');
+    }
+
+    // if no manager specified, default to owner
+    if (this._managingControllerID == null)
+      return this.get('owningDataInteractive');
+
+    // search for manager
+    var dataInteractives = DG.currDocumentController().get('dataInteractives');
+    return dataInteractives &&
+            DG.ObjectMap.values(dataInteractives)
+              .find(function (dataInteractive) {
+                var id = (dataInteractive.getPath('model.id'));
+                return ((id != null) && (id === this._managingControllerID));
+              }.bind(this));
   }.property(),
 
   /**
@@ -1056,6 +1095,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   doUpdateCasesFromHashOfNameValues: function (iChange) {
     var cases = iChange.cases;
     var success = true;
+    var attrs = {};
     var caseIDs = [];
     cases.forEach(function (iCase, iCaseIx) {
       var values = iChange.values[iCaseIx];
@@ -1066,6 +1106,7 @@ DG.DataContext = SC.Object.extend((function() // closure
           var attr = this.getAttributeByName(key)
               || this.getAttributeByName(this.canonicalizeName(key));
           if (attr) {
+            attrs[attr.id] = attr;
             iCase.setValue(attr.id, value);
           } else {
             DG.logWarn('DataContext.doUpdateCasesFromHashOfNameValues: Cannot resolve attribute: ' + key);
@@ -1075,6 +1116,13 @@ DG.DataContext = SC.Object.extend((function() // closure
         iCase.endCaseValueChanges();
       }
     }.bind(this));
+
+    var attrNodes = [];
+    DG.ObjectMap.forEach(attrs, function(id, attr) {
+      attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.id, name: attr.get('name') });
+    });
+    this.invalidateDependentsAndNotify(attrNodes, iChange);
+
     return { success: success, caseIDs: caseIDs};
   },
 
@@ -1453,8 +1501,6 @@ DG.DataContext = SC.Object.extend((function() // closure
     });
     results = this.regenerateCollectionCases();
 
-    // We should never be deleting cases while creating items.
-    DG.assert(results && (!results.deletedCases || results.deletedCases.length === 0), 'Unexpected deleted cases');
     results.createdCases.forEach(function (iCase) {
       var collectionID = iCase.collection.get('id');
       var collectionCases = collectionIDCaseMap[collectionID];

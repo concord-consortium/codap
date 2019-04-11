@@ -372,7 +372,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         var context = this.getPath('parentView.gridAdapter.dataContext');
         var isTopLevel = !this.getPath('parentView.gridAdapter.hasParentCollection');
         return isTopLevel && DG.DataContextUtilities.isTopLevelReorgPrevented(context);
-      }.property(),
+      }.property('_dataContextDidChange'),
+      dataContextDidChange: function() {
+        this.notifyPropertyChange('_dataContextDidChange');
+      }.observes('parentView.gridAdapter.dataContext.metadataChangeCount'),
       didAppendToDocument: function() {
         sc_super();
 
