@@ -439,12 +439,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   },
 
   isCellEditable: function(row, column) {
-    var //dataView = this.get('gridDataView'),
-        //dataItem = dataView.getItem(row),
+    var dataView = this.get('gridDataView'),
+        dataContext = this.get('dataContext'),
+        aCase = dataView.getItem(row),
         colInfo = this.gridColumns[column],
         attr = colInfo && colInfo.attribute,
-        attrIsEditable = attr && attr.get('editable') && !attr.get('hasFormula');
-    return attrIsEditable;
+        attrIsEditable = attr && attr.get('editable') && !attr.get('hasFormula'),
+        caseIsEditable = DG.DataContextUtilities.isCaseEditable(dataContext, aCase);
+    return attrIsEditable && caseIsEditable;
   },
 
   isCellRowSelectable: function(row, column) {

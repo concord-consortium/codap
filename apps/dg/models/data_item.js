@@ -72,7 +72,7 @@ DG.DataItem = SC.Object.extend({
     var tCase;
     if (attr.hasFormula()) {
       tCase = DG.Case.findCase(attr.collection.id, this.id);
-      return (tCase.getRawValue(attributeID));
+      return (tCase && tCase.getRawValue(attributeID));
     } else {
       return this.values[attributeID];
     }

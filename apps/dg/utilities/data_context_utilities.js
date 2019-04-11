@@ -61,6 +61,39 @@ DG.DataContextUtilities = {
   },
 
   /**
+   * Returns false if the owning plugin disables editing of the case, true otherwise.
+   * @param {DG.DataContext} iDataContext 
+   * @param {string} itemID 
+   */
+  isCaseEditable: function(iDataContext, iCase) {
+    // we don't disable rows that don't correspond to cases, e.g. proto-case rows
+    if (!iCase) return true;
+    // is the plugin controlling editability?
+    var pluginController = iDataContext.get('owningDataInteractive');
+    var pluginRespectsEditableAttribute = pluginController && pluginController.get('respectEditableItemAttribute');
+    if (!pluginRespectsEditableAttribute) return true;
+    // do we have an __editable__ attribute?
+    var editableAttrRef = iDataContext.getAttrRefByName('__editable__');
+    var editableAttr = editableAttrRef && editableAttrRef.attribute;
+    if (!editableAttr) return true;
+    // does it have a formula?
+    if (!editableAttr.get('hasFormula')) {
+      // no formula -- look up its item value
+      var dataSet = iDataContext.getPath('model.dataSet');
+      var itemIndex = dataSet && dataSet.getDataItemClientIndexByID(iCase.item.id);
+      return !!(dataSet && (itemIndex != null) && dataSet.value(itemIndex, editableAttr.id));
+    }
+    // evaluate formula in context of appropriate case
+    for (var aCase = iCase; aCase; aCase = aCase.get('parent')) {
+      if (aCase.getPath('collection.id') === editableAttrRef.collection.get('id')) {
+        var isEditable = editableAttr.evalFormula(aCase);
+        return !!isEditable;
+      }
+    }
+    return true;
+  },
+
+  /**
    * Drop is disabled if any of the following are true
    *   (a) the dataContext prevents the drop
    *   (b) the dragged attribute is from another dataContext,

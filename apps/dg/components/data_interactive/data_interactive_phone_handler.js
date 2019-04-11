@@ -31,6 +31,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       controller: null,
 
+      modelProps: ['version', 'dimensions',
+                  'preventBringToFront', 'preventDataContextReorg', 'preventTopLevelReorg',
+                  'preventAttributeDeletion', 'allowEmptyAttributeDeletion',
+                  'respectEditableItemAttribute'],
+
       /**
        * We need to be able to set title.
        */
@@ -496,28 +501,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (!SC.none(title) && !userSetTitle) {
               diModel.set('title', title);
             }
-
-            if (iValues.version != null)
-              diModel.set('version', iValues.version);
-            if (iValues.dimensions)
-              diModel.set('dimensions', iValues.dimensions);
-            if (!SC.none(iValues.cannotClose))
+            if (iValues.cannotClose != null) {
               diComponent.set('cannotClose', iValues.cannotClose);
-            if (iValues.preventBringToFront != null) {
-              diModel.set('preventBringToFront', iValues.preventBringToFront);
             }
-            if (iValues.preventDataContextReorg != null) {
-              diModel.set('preventDataContextReorg', iValues.preventDataContextReorg);
-            }
-            if (iValues.preventTopLevelReorg != null) {
-              diModel.set('preventTopLevelReorg', iValues.preventTopLevelReorg);
-            }
-            if (iValues.preventAttributeDeletion != null) {
-              diModel.set('preventAttributeDeletion', iValues.preventAttributeDeletion);
-            }
-            if (iValues.allowEmptyAttributeDeletion != null) {
-              diModel.set('allowEmptyAttributeDeletion', iValues.allowEmptyAttributeDeletion);
-            }
+
+            var props = this.get('modelProps');
+            props.forEach(function(prop) {
+              if (iValues[prop] != null) {
+                diModel.set(prop, iValues[prop]);
+              }
+            });
           }
 
           return {
@@ -534,13 +527,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var tReturnValues = {};
           tReturnValues.id = this.get('id');
           tReturnValues.title = diModel.get('title');
-          tReturnValues.version = diModel.get('version');
-          tReturnValues.dimensions = diModel.get('dimensions');
-          tReturnValues.preventBringToFront = diModel.get('preventBringToFront');
-          tReturnValues.preventDataContextReorg = diModel.get('preventDataContextReorg');
-          tReturnValues.preventTopLevelReorg = diModel.get('preventTopLevelReorg');
-          tReturnValues.preventAttributeDeletion = diModel.get('preventAttributeDeletion');
-          tReturnValues.allowEmptyAttributeDeletion = diModel.get('allowEmptyAttributeDeletion');
+
+          var props = this.get('modelProps');
+          props.forEach(function(prop) {
+            tReturnValues[prop] = diModel.get(prop);
+          });
+
           // if embedded mode, set externalUndoAvailable, if standalone mode,
           // set standaloneUndoModeAvailable.
           tReturnValues.externalUndoAvailable = !DG.STANDALONE_MODE;
