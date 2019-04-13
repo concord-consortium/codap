@@ -175,12 +175,22 @@ DG.CaseDisplayController = DG.ComponentController.extend(
        * The menu is instantiated from the Inspector.
        */
       showDeletePopup: function() {
+        function deletableCounts(dataContext, cases) {
+          var count = cases ? cases.length : 0,
+              deletable = cases && cases.map(function(aCase) {
+                return DG.DataContextUtilities.isCaseEditable(dataContext, aCase);
+              }),
+              deletableCount = deletable
+                                ? deletable.reduce(function(total, isDeletable) {
+                                    return isDeletable ? ++total : total;
+                                  }, 0)
+                                : 0;
+          return { count: count, deletable: deletableCount };
+        }
         var tDataContext = this.get('dataContext'),
-            tSelection = tDataContext && tDataContext.getSelectedCases(),
-            tDeleteIsEnabled = tSelection && tSelection.get('length') > 0,
-            tCaseCount = tDataContext.get('totalCaseCount'),
-            tDeleteUnselectedIsEnabled = (tCaseCount > 0) &&
-                (!tSelection || tSelection.get('length') < tCaseCount),
+            tCases = tDataContext && tDataContext.getSelectedCases(true),
+            tSelectedCounts = deletableCounts(tDataContext, tCases.selected),
+            tUnselectedCounts = deletableCounts(tDataContext, tCases.unselected),
             tItems = [
               {
                 title: 'DG.Inspector.selection.selectAll',
@@ -193,21 +203,21 @@ DG.CaseDisplayController = DG.ComponentController.extend(
                 localize: true,
                 target: this,
                 action: 'deleteSelectedCases',
-                isEnabled: tDeleteIsEnabled
+                isEnabled: tSelectedCounts.deletable > 0
               },
               {
                 title: 'DG.Inspector.selection.deleteUnselectedCases',
                 localize: true,
                 target: this,
                 action: 'deleteUnselectedCases',
-                isEnabled: tDeleteUnselectedIsEnabled
+                isEnabled: tUnselectedCounts.deletable > 0
               },
               {
                 title: 'DG.Inspector.deleteAll',
                 localize: true,
                 target: this,
                 action: 'deleteAllCases',
-                isEnabled: tCaseCount > 0
+                isEnabled: tSelectedCounts.deletable + tUnselectedCounts.deletable > 0
               }
             ],
             tMenu = DG.MenuPane.create({
@@ -297,21 +307,24 @@ DG.CaseDisplayController = DG.ComponentController.extend(
       _deleteOrSetAsideSelectedCases: function(iSetAside) {
         var tContext = this.get('dataContext'),
             tCases = tContext.getSelectedCases(),
+            tDeletable = tCases.filter(function(aCase) {
+                          return DG.DataContextUtilities.isCaseEditable(tContext, aCase);
+                        }),
             tChange;
-        if (tContext) {
+        if (tContext && tDeletable.length) {
           // We deselect the cases before deleting them for performance
           // reasons. Deleting selected cases is much less efficient because
           // of list reconstruction.
           tChange = {
             operation: 'selectCases',
             select: false,
-            cases: tCases
+            cases: tDeletable
           };
           tContext.applyChange( tChange);
           tChange = {
             operation: 'deleteCases',
             setAside: iSetAside,
-            cases: tCases
+            cases: tDeletable
           };
           tContext.applyChange( tChange);
         }
@@ -331,46 +344,20 @@ DG.CaseDisplayController = DG.ComponentController.extend(
         this._deleteOrSetAsideUnselectedCases(true);
       },
 
-      _deleteOrSetAsideUnselectedCases: function(iSetAside){
-        /**
-         * Adds iValue to iArray if iKey is not already seen
-         * @return {boolean} whether entry was added
-         */
-        function addIfNew(iKey, iValue, iSeenHash, iArray) {
-          if (iSeenHash[iKey]) {
-            return false;
-          }
-          iSeenHash[iKey] = true;
-          iArray.push(iValue);
-          return true;
-        }
+      _deleteOrSetAsideUnselectedCases: function(iSetAside) {
         var tContext = this.get('dataContext'),
-            tSelectedCases = tContext.getSelectedCases(),
-            tHash = {},
-            tSelectedCasesAndParents = [],
-            tAllCases = tContext.get('allCases'),
-            tUnselected;
-
-        // we extend the list of selected cases to include their parents (ie partially selected cases)
-        tSelectedCases.forEach(function (iCase) {
-          var parentCase = iCase.get('parent');
-          if (addIfNew(iCase.get('id'), iCase, tHash, tSelectedCasesAndParents)) {
-            while (parentCase && addIfNew(parentCase.get('id'), parentCase, tHash, tSelectedCasesAndParents)) {
-              parentCase = parentCase.get('parent');
-            }
-          }
-        });
-
-        // we compute unselected
-        tUnselected = DG.ArrayUtils.subtract( tAllCases, tSelectedCasesAndParents,
-            function( iCase) {
-              return iCase.get('id');
-            });
-        tContext.applyChange( {
-          operation: 'deleteCases',
-          setAside: iSetAside,
-          cases: tUnselected
-        });
+            tCases = tContext.getSelectedCases(true),
+            tDeletable = tCases.unselected
+                          .filter(function(aCase) {
+                            return DG.DataContextUtilities.isCaseEditable(tContext, aCase);
+                          });
+        if (tCases.unselected.length) {
+          tContext.applyChange({
+            operation: 'deleteCases',
+            setAside: iSetAside,
+            cases: tDeletable
+          });
+        }
       },
 
       /**
@@ -379,12 +366,17 @@ DG.CaseDisplayController = DG.ComponentController.extend(
        */
       deleteAllCases: function(){
         var tContext = this.get('dataContext'),
-            tAllCases = tContext.get('allCases');
-        var tChange = {
-          operation: 'deleteCases',
-          cases: tAllCases
-        };
-        tContext.applyChange( tChange);
+            tAllCases = tContext.get('allCases'),
+            tDeletable = tAllCases.filter(function(aCase) {
+                          return DG.DataContextUtilities.isCaseEditable(tContext, aCase);
+                        });
+        if (tDeletable.length) {
+          var tChange = {
+            operation: 'deleteCases',
+            cases: tDeletable
+          };
+          tContext.applyChange( tChange);
+        }
       },
 
       restoreSetAsideCases: function () {
