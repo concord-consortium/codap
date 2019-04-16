@@ -258,9 +258,9 @@ DG.BarChartView = DG.ChartView.extend(
       drawSubBars: function () {
 
         var makeRect = function (iPrimaryCoord, iStartCoord, iCount, iCaseIndices,
-                                 iNumCasesInContainingCell, iCategoryName, iPrimaryName) {
+                                 iNumCasesInContainingCell, iCategoryName, iPrimaryName, iTotalNumCases) {
           var this_ = this,
-              tTemplate, tToolTip,
+              tTemplate, tToolTipText, tToolTip,
               tCurrCoord = tRC.secondaryAxisView.dataToCoordinate(getSecondaryValue( iCount, iNumCasesInContainingCell)),
               tX, tY, tWidth, tHeight;
           if( tRC.isVerticalOrientation) {
@@ -282,26 +282,37 @@ DG.BarChartView = DG.ChartView.extend(
                         this.animate({
                           'fill-opacity': 0.4
                         }, DG.PlotUtilities.kDataTipShowTime);
+                        tToolTip = this_.get('categoryCellToolTip');
                         if( !SC.none( tLegendVarID)) {
                           tTemplate = this.caseIndices.length > 1 ? "DG.BarChartModel.cellTipPlural" :
                               "DG.BarChartModel.cellTipSingular";
-                          tToolTip = this_.get('categoryCellToolTip');
                           if (this.numCasesInContainingCell > 1) {
                             iPrimaryName = pluralize(iPrimaryName);
                             if (iPrimaryName.endsWith("S")) {
                               iPrimaryName = iPrimaryName.replace(/S$/, 's');
                             }
                           }
-                          tToolTip.set('text', tTemplate.loc(
+                          tToolTipText = tTemplate.loc(
                               this.caseIndices.length,
                               this.numCasesInContainingCell,
                               iPrimaryName,
                               Math.round(1000 * this.caseIndices.length / this.numCasesInContainingCell) / 10,
                               iCategoryName
-                          ));
-                          tToolTip.set('tipOrigin', {x: iEvent.layerX, y: iEvent.layerY});
-                          tToolTip.show();
+                          );
                         }
+                        else {
+                          tTemplate = this.caseIndices.length > 1 ? "DG.BarChartModel.cellTipNoLegendPlural" :
+                              "DG.BarChartModel.cellTipNoLegendSingular";
+                          tToolTipText = tTemplate.loc(
+                              this.caseIndices.length,
+                              iTotalNumCases,
+                              Math.round(1000 * this.caseIndices.length / iTotalNumCases) / 10,
+                              iPrimaryName
+                          );
+                        }
+                        tToolTip.set('text', tToolTipText);
+                        tToolTip.set('tipOrigin', {x: iEvent.layerX, y: iEvent.layerY});
+                        tToolTip.show();
                       },
                       function (event) { // out
                         this.stop();
@@ -334,7 +345,8 @@ DG.BarChartView = DG.ChartView.extend(
             tBreakdownType = this.getPath('model.breakdownType'),
             tRC = this.createRenderContext(),
             tPrimaryVarID = this.getPath('model.primaryVarID'),
-            tLegendVarID = this.getPath('model.legendVarID');
+            tLegendVarID = this.getPath('model.legendVarID'),
+            tTotalNumCases = this.getPath('model.cases').length();
         tCoverRectsLayer.clear();
         tCellArray.forEach(function (iPrimary, iPrimaryIndex) {
           // This is the primary division. It has an array for each category on the secondary axis
@@ -360,7 +372,7 @@ DG.BarChartView = DG.ChartView.extend(
               tPreviousValue = tValue;
             });
             makeRect(tPrimaryCoord, tPreviousCoord, tCount,
-                tCaseIndices, tTotalNumCasesInPrimary, tValue, tPrimaryName);
+                tCaseIndices, tTotalNumCasesInPrimary, tValue, tPrimaryName, tTotalNumCases);
           });
         });
       },

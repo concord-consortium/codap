@@ -651,6 +651,8 @@ SC.stringsFor("en", {
     // DG.BarChartModel
     "DG.BarChartModel.cellTipPlural": "%@ of %@ %@ (%@%) are %@",  // "<n> of <m> <X>s (<p>%) are <Y>"
     "DG.BarChartModel.cellTipSingular": "%@ of %@ %@ (%@%) is %@",
+    "DG.BarChartModel.cellTipNoLegendSingular": "%@ of %@ (%@%) is %@", // "<n=1> of <total> (<p>%) is <X>"
+    "DG.BarChartModel.cellTipNoLegendPlural": "%@ of %@ (%@%) are %@", // "<n> of <total> (<p>%) are <X>"
 
     // DG.LegendView
     "DG.LegendView.attributeTooltip": "Click to change legend attribute",
