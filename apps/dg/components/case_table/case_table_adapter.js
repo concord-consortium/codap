@@ -709,8 +709,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var gridDataView = this.get('gridDataView');
       if( gridDataView) {
         gridDataView.refresh();
+        this.notifyPropertyChange('tableDidRefresh');
       }
-    });
+    }.bind(this));
   },
 
   /**

@@ -230,13 +230,17 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
     
     rightTable: null,
 
+    tableRefreshObserver: function() {
+      this.notifyPropertyChange('tableDidRefresh');
+    }.observes('*leftTable.gridAdapter.tableDidRefresh','*rightTable.gridAdapter.tableDidRefresh'),
+
     /**
      * This hash map maps parent case id to child group information.
      * @type {object}
      */
     _parentChildRelationsMap: null,
     
-    displayProperties: ['leftTable','rightTable'],
+    displayProperties: ['tableDidRefresh'],
 
     doDraw: function() {
       var leftTable = this.get('leftTable'),
@@ -423,7 +427,7 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
        * The corresponding entry in the parentGroups map, which
        * should contain firstChildID and lastChildID properties.
        */
-      function updateParentChildRelations(iRelation, iParentRow, iParentID, iChildIDRange) {
+      function updateParentChildRelations(ix, iParentRow, iParentID, iChildIDRange) {
         var isRightCollapsed = iChildIDRange.isCollapsed || iChildIDRange.isContained;
         var topRightRow = rightAdapter.get('gridDataView').getRowById(
               isRightCollapsed ? iParentID : iChildIDRange.firstChildID);
@@ -450,54 +454,56 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
               rowBounds.leftBottom - leftScrollTop + 1,
               rowBounds.rightBottom - rightScrollTop + 1) : '';
 
-        if (!iRelation) {
-          iRelation = {};
-          iRelation.top = this_._paper.path(topPathStr).attr(
+        var relation = this_._parentChildRelationsMap[ix];
+        if (!relation) {
+          relation = this_._parentChildRelationsMap[ix] = {};
+          relation.top = this_._paper.path(topPathStr).attr(
               {stroke: RDV_RELATION_STROKE_COLOR});
-          iRelation.bottom = this_._paper.path(bottomPathStr).attr(
+          relation.bottom = this_._paper.path(bottomPathStr).attr(
               {stroke: RDV_RELATION_STROKE_COLOR});
           if (!isBottomRequired) {
-            iRelation.bottom.hide();
+            relation.bottom.hide();
           }
-          iRelation.area = this_._paper.path(fillPathStr).attr(
+          relation.area = this_._paper.path(fillPathStr).attr(
                 {fill: RDV_RELATION_FILL_COLOR, stroke: 'transparent'});
-          if (!isFillRequired) iRelation.area.hide();
+          if (!isFillRequired) relation.area.hide();
           // The touch object is a transparent rectangle which is larger than the
           // expand/collapse icon which responds to touch. This makes it easier to
           // hit the expand/collapse icon on touch platforms.
           if ((SC.browser.os === SC.OS.ios) || (SC.browser.os === SC.OS.android)) {
-            iRelation.touch = this_._paper.path(touchPathStr)
+            relation.touch = this_._paper.path(touchPathStr)
                 .attr({fill: 'transparent', stroke: 'transparent'})
                 .touchstart(function (iEvent) {
-                  SC.run(expandCollapseClickHandler.call(iRelation.icon,
+                  SC.run(expandCollapseClickHandler.call(relation.icon,
                       iEvent));
                 });
           }
-          iRelation.icon = this_._paper
+          relation.icon = this_._paper
               .image(imageUrl, imagePos.x, imagePos.y, imageSize.width,
                   imageSize.height)
               .click(function (iEvent) {
                 SC.run(expandCollapseClickHandler.call(this, iEvent));
               });
         } else {
-          updatePathOrHide(iRelation.top, true, topPathStr);
-          updatePathOrHide(iRelation.bottom, isBottomRequired, bottomPathStr);
-          updatePathOrHide(iRelation.area, isFillRequired, fillPathStr);
-          updatePathOrHide(iRelation.touch, true, touchPathStr);
-          iRelation.icon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y}).show();
+          updatePathOrHide(relation.top, true, topPathStr);
+          updatePathOrHide(relation.bottom, isBottomRequired, bottomPathStr);
+          updatePathOrHide(relation.area, isFillRequired, fillPathStr);
+          updatePathOrHide(relation.touch, true, touchPathStr);
+          relation.icon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y}).show();
         }
-        iRelation.icon.dgParentID = iParentID;
-        iRelation.icon.dgChildIDRange = iChildIDRange;
-        return iRelation;
+        relation.icon.dgParentID = iParentID;
+        relation.icon.dgChildIDRange = iChildIDRange;
+        return relation;
       }
 
-      function hideRelationshipElements(iRelationship) {
-        if (iRelationship) {
-          updatePathOrHide(iRelationship.icon, false, '');
-          updatePathOrHide(iRelationship.top, false, '');
-          updatePathOrHide(iRelationship.bottom, false, '');
-          updatePathOrHide(iRelationship.area, false, '');
-          updatePathOrHide(iRelationship.touch, false, '');
+      function hideRelationshipElements(ix) {
+        var relation = this_._parentChildRelationsMap[ix];
+        if (relation) {
+          updatePathOrHide(relation.icon, false, '');
+          updatePathOrHide(relation.top, false, '');
+          updatePathOrHide(relation.bottom, false, '');
+          updatePathOrHide(relation.area, false, '');
+          updatePathOrHide(relation.touch, false, '');
         }
       }
 
@@ -541,17 +547,15 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
                   'collection').get('id')),
               isLast: (rowIx === lastRow)
             };
-            this_._parentChildRelationsMap[ix] = updateParentChildRelations(
-                this_._parentChildRelationsMap[ix], rowIx, parentID,
-                childIDRange);
+            updateParentChildRelations(ix, rowIx, parentID, childIDRange);
           } else {
-            hideRelationshipElements(this_._parentChildRelationsMap[ix]);
+            hideRelationshipElements(ix);
           }
         }
         // if the viewport has shrunk, hide additional lines
         for (ix = viewportCount; ix < this_._parentChildRelationsMap.length;
              ix += 1) {
-          hideRelationshipElements(this_._parentChildRelationsMap[ix]);
+          hideRelationshipElements(ix);
         }
       }
 
