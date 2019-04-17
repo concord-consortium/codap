@@ -1594,12 +1594,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         var hierTableView = this.get('parentView');
         hierTableView.hideHeaderMenus();
 
-        var dataItem = this._slickGrid.getDataItem(iCell.row),
+        var dataContext = this.get('dataContext'),
+            dataItem = this._slickGrid.getDataItem(iCell.row),
             isProtoCase = dataItem && dataItem._isProtoCase;
         if (iCell.cell === 0) {
           if (isProtoCase)
             this.get('gridAdapter').deselectAllCases();
-          this.showCaseIndexPopup(iEvent, iCell);
+          if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem))
+            this.showCaseIndexPopup(iEvent, iCell);
         }
       }.bind(this));
     },

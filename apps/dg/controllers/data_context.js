@@ -361,26 +361,49 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   /**
     Returns an array of DG.Case objects corresponding to the selected cases.
+    Optionally returns another array of DG.Case objects for the unselected cases.
     Note that the cases may come from multiple collections within the data context.
     @returns    {Array of DG.Case}    The currently selected cases
+            or
+                {
+                  selected: {Array of DG.Case}    The currently selected cases,
+                  unselected: {Array of DG.Case}  The currently unselected cases
+                }
    */
-  getSelectedCases: function() {
+  getSelectedCases: function(iReturnUnselectedAlso) {
     var i, collectionCount = this.get('collectionCount'),
-        selection = [];
+        selectedIds = {},
+        selectedCases = [],
+        unselectedCases = [];
 
     // utility function for adding individual cases to the selection object to return
-    function addCaseToSelection( iCase) {
-      selection.push( iCase);
+    function addSelectedCase(iCase) {
+      selectedCases.push(iCase);
+      // parents of selected cases are considered selected when determining unselected
+      for ( ; iCase; iCase = iCase.get('parent')) {
+        selectedIds[iCase.get('id')] = true;
+      }
+    }
+
+    function addCaseIfUnselected(selection, iCase) {
+      if (!selection.contains(iCase) && !selectedIds[iCase.get('id')]) {
+        unselectedCases.push(iCase);
+      }
     }
 
     // add each selected case from all collections to the selection object to return
-    for( i=0; i<collectionCount; ++i) {
+    for( i=collectionCount - 1; i >= 0; --i) {
       var collection = this.getCollectionAtIndex( i),
+          collCases = iReturnUnselectedAlso && collection && collection.get('casesController'),
           collSelection = collection && collection.getPath('casesController.selection');
       if( collSelection)
-        collSelection.forEach( addCaseToSelection);
+        collSelection.forEach(addSelectedCase);
+      if( collCases)
+        collCases.forEach(addCaseIfUnselected.bind(null, collSelection));
     }
-    return selection;
+    return iReturnUnselectedAlso
+            ? { selected: selectedCases, unselected: unselectedCases }
+            : selectedCases;
   },
 
     /**
