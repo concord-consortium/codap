@@ -118,7 +118,7 @@ DG.appController = SC.Object.create((function () // closure
               caseTable = documentController.addCaseTable(
                   DG.mainPage.get('docView'), null,
                   {position: 'top', dataContext: dataContext});
-              selectView(caseTable.get('controller'));
+              selectView(caseTable);
             },
             undo: function () {
               removeCaseDisplay(caseTable.getPath('model.id'));
