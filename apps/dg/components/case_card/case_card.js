@@ -633,8 +633,12 @@ DG.React.ready(function () {
                       tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
 
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
-                    tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases,
-                        iAttr, iAttrIndex, tShouldSummarize, tChildmostSelection));
+                    if (!iAttr.get('hidden')) {
+                      tAttrEntries.push(
+                          this.renderAttribute(tContext, iCollection, tCases,
+                              iAttr, iAttrIndex, tShouldSummarize,
+                              tChildmostSelection));
+                    }
                   }.bind(this));
                   tCollEntries.push(table({
                         key: 'table-' + iCollIndex
