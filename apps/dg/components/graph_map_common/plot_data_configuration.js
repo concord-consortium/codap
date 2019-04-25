@@ -135,6 +135,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
           DG.assert(iValue instanceof DG.AttributePlacementDescription);
           this.attributesByPlace[iPlace][0] = iValue;
           iValue.addObserver('collection', this, 'collectionDidChange');
+          iValue.addObserver('categoryMap', this, 'categoryMapDidChange');
         }
 
         return !SC.none(this.attributesByPlace) ?
@@ -151,6 +152,14 @@ DG.PlotDataConfiguration = SC.Object.extend(
         var tID = iAttrDescription.getPath('attribute.collection.id'),
             tClient = this.get('dataContext').getCollectionByID(tID);
         iAttrDescription.set('collectionClient', tClient);
+      },
+
+      /**
+       * One of my attribute description's attribute's category map changed; e.g. by user dragging
+       * categories displayed on cell axis.
+       */
+      categoryMapDidChange: function () {
+        this.propertyDidChange('categoryMap');
       },
 
       /**
@@ -387,6 +396,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
         if (this.get('attributesByPlace'))
           this.get('attributesByPlace').forEach(function (iAttrDesc) {
             iAttrDesc.removeObserver('collection', this, 'collectionDidChange');
+            iAttrDesc.removeObserver('categoryMap', this, 'categoryMapDidChange');
           }.bind(this));
 
         this._hiddenCases = [];  // For good measure

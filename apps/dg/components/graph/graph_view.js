@@ -488,9 +488,15 @@ DG.GraphView = SC.View.extend(
       }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
           'model.transparency', 'model.strokeTransparency'),
 
-      categoriesDidChange: function (iObject, iProperty) {
+      categoriesDidChange: function (iAxisView, iProperty) {
         if (this.getPath('model.aboutToChangeConfiguration') || !this.get('plotViews'))
           return; // So we don't attempt to draw during init or in the midst of a configuration change
+
+/*
+        var tOrientation = iAxisView.get('orientation');
+        if( tOrientation === 'top' || tOrientation === 'right')
+          this.get('model').splitCategoriesDidChange();
+*/
 
         this.get('plotViews').forEach(function (iPlotView, iIndex) {
           iPlotView.categoriesDidChange();
@@ -501,7 +507,8 @@ DG.GraphView = SC.View.extend(
         if (tLegendView)
           tLegendView.displayDidChange();
         // Note: Asterisks below are necessary in case axis view gets swapped out
-      }.observes('*xAxisView.categoriesDragged', '*yAxisView.categoriesDragged'),
+      }.observes('*xAxisView.categoriesDragged', '*yAxisView.categoriesDragged',
+          '*topAxisView.categoriesDragged', '*rightAxisView.categoriesDragged'),
 
       prepareToSelectPoints: function () {
         this.forEachPlotViewDo(function (iPlotView) {
@@ -1090,7 +1097,7 @@ DG.GraphView = SC.View.extend(
         configurePlotViewArrays();
         this._isConfigurationInProgress = false;
 
-      }.observes('.model.splitAttributeChange'),
+      }.observes('.model.splitPlotChange'),
 
       allModelSplitsWereRemoved: function () {
         var this_ = this,

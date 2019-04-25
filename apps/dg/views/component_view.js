@@ -986,8 +986,10 @@ DG.ComponentView._createComponent = function (iParams) {
   iParams.contentProperties.controller = iParams.controller;
   tComponentView.addContent(tComponentClass.create(iParams.contentProperties));
 
-  if (iParams.controller)
+  if (iParams.controller) {
     tComponentView.set('controller', iParams.controller);
+    iParams.controller.set('contentView', tComponentView.getPath('containerView.contentView'));
+  }
   if (tIsStandaloneInteractive)
     tIsResizable = false;
   if (!SC.none(tIsResizable))

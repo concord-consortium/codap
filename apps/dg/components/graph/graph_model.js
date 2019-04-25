@@ -527,7 +527,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
       var this_ = this,
-          tIsChangeToSplitAxis = false,
           tTargetDescKey, tTargetAxisKey, tOtherDim;
 
       function switchAxes() {
@@ -599,7 +598,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
         case 'right':
           tTargetDescKey = iOrientation + 'AttributeDescription';
           tTargetAxisKey = iOrientation + 'Axis';
-          tIsChangeToSplitAxis = true;
           break;
       }
 
@@ -610,15 +608,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
           tCurrentAttribute = tDataConfiguration.getPath(tTargetDescKey + '.attribute'),
           tOtherAttribute = tDataConfiguration.getPath(tOtherDim + 'AttributeDescription.attribute'),
           tNewAttribute = iAttrRefs.attributes[0],
-          tCurrentIsNumeric = tDataConfiguration.getPath(tTargetDescKey + '.isNumeric'),
-          tNewIsNumeric = !tNewAttribute.isNominal(),
-          tIsPlotTypeChange = tCurrentIsNumeric !== tNewIsNumeric,
           tIsAxisSwitch = tNewAttribute === tOtherAttribute;
 
       tDataConfiguration.beginPropertyChanges();
-      if( tIsPlotTypeChange || tIsChangeToSplitAxis) {
-        this.removeAllSplitPlotsAndAxes();
-      }
+      this.removeAllSplitPlotsAndAxes();
 
       if (tIsAxisSwitch) {
         switchAxes();
@@ -639,11 +632,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
       tDataConfiguration.endPropertyChanges();
       this.set('aboutToChangeConfiguration', false); // reset for next time
       this.endPropertyChanges();
-      if( tIsPlotTypeChange || tIsChangeToSplitAxis) {
-        this.updateAxisArrays();
-        this.updateSplitPlotArray();
-        this.notifyPropertyChange('splitAttributeChange');
-      }
+      this.updateAxisArrays();
+      this.updateSplitPlotArray();
+      this.notifyPropertyChange('splitPlotChange');
     },
 
     /**
@@ -691,7 +682,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.updateAxisArrays();
       this.updateSplitPlotArray();
-      this.notifyPropertyChange('splitAttributeChange');
+      this.notifyPropertyChange('splitPlotChange');
     },
 
     /**
@@ -800,8 +791,20 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.set('aboutToChangeConfiguration', false); // reset for next time
 
-      this.notifyPropertyChange('splitAttributeChange');
+      this.notifyPropertyChange('splitPlotChange');
     },
+
+    /**
+     * A category map for an attribute on either the top or right axis has changed.
+     * By invalidating all split plots the correct points will be drawn on the next redraw.
+     */
+    splitCategoriesDidChange: function() {
+      this.forEachSplitPlotElementDo( function( iPlotArray) {
+        iPlotArray.forEach( function( iPlot) {
+          iPlot.invalidateCaches();
+        });
+      });
+    }.observes('dataConfiguration.categoryMap'),
 
     /**
      * Useful for knowing whether we can rescale.
@@ -966,7 +969,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         if( tIsSplit) {
           this.updateAxisArrays();
           this.updateSplitPlotArray();
-          this.notifyPropertyChange('splitAttributeChange');
+          this.notifyPropertyChange('splitPlotChange');
         }
       }.bind( this);
 
@@ -1256,7 +1259,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
 
       var this_ = this,
-          tSplitPlotArray = this.get('splitPlotArray');
+          tSplitPlotArray = this.get('splitPlotArray'),
+          tRootPlot = tSplitPlotArray[0][0][0];
       this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iColumn) {
         if( iRow !== 0 || iColumn !== 0) {
           iPlotArray.forEach(function (iPlot) {
@@ -1267,6 +1271,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       });
       tSplitPlotArray.length = 1;
       tSplitPlotArray[0].length = 1;
+      tRootPlot.set('siblingPlots', [])
 
       wipeOutAxisArray( this.get('xAxisArray'));
       wipeOutAxisArray( this.get('yAxisArray'));

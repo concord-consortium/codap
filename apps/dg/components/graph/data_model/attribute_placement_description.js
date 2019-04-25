@@ -282,6 +282,7 @@ DG.AttributePlacementDescription = SC.Object.extend(
        */
       colorMapDidChange: function () {
         this.invalidateCaches();
+        this.propertyDidChange('categoryMap');
       }.observes('attribute.categoryMap'),
 
       casesForCategory: function (iCellName) {

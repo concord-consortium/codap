@@ -154,12 +154,12 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     
     // Actually, during this coding transition, we're going to stash the previously
     // initialized attribute descriptions in attributesByPlace.
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eX][0] = attributeDescriptions.x;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eY2][0] = attributeDescriptions.y2;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eTopSplit][0] = attributeDescriptions.top;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eRightSplit][0] = attributeDescriptions.right;
+    this.attributeDescriptionForPlace('x', attributeDescriptions.x, DG.GraphTypes.EPlace.eX);
+    this.attributeDescriptionForPlace('y', attributeDescriptions.y, DG.GraphTypes.EPlace.eY);
+    this.attributeDescriptionForPlace('y2', attributeDescriptions.y2, DG.GraphTypes.EPlace.eY2);
+    this.attributeDescriptionForPlace('legend', attributeDescriptions.legend, DG.GraphTypes.EPlace.eLegend);
+    this.attributeDescriptionForPlace('topSplit', attributeDescriptions.top, DG.GraphTypes.EPlace.eTopSplit);
+    this.attributeDescriptionForPlace('right', attributeDescriptions.right, DG.GraphTypes.EPlace.eRightSplit);
   },
 
   destroy: function () {
