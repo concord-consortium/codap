@@ -529,7 +529,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           if (tAdorn)
             tSpecs.push({
               key: iKey,
-              class: tAdorn.constructor,
+              "class": tAdorn.constructor,
               useAdornmentModelsArray: false,
               storage: tAdorn.createStorage()
             });
@@ -537,7 +537,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         DG.ObjectMap.forEach( this._adornmentModels, function( iKey, iAdorn) {
           tSpecs.push( {
             key: iKey,
-            class: iAdorn.constructor,
+            "class": iAdorn.constructor,
             useAdornmentModelsArray: true,
             storage: iAdorn.createStorage()
           });

@@ -1146,7 +1146,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         if( tPlottedCount)
           tSpecs.push( {
             key: 'plottedCount',
-            class: tPlottedCount.constructor,
+            "class": tPlottedCount.constructor,
             storage: tPlottedCount.createStorage()
           });
         return tSpecs;
@@ -1160,7 +1160,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         var this_ = this,
             tAdornmentSpecs = iSourcePlot.getAdornmentSpecs();
         tAdornmentSpecs.forEach( function( iSpec) {
-          var tAdornmentModel = iSpec.class.create({ plotModel: this_ });
+          var tAdornmentModel = iSpec["class"].create({ plotModel: this_ });
           tAdornmentModel.restoreStorage( iSpec.storage);
           if( iSpec.useAdornmentModelsArray)
             this_.setAdornmentModel( iSpec.key, tAdornmentModel);

@@ -1271,7 +1271,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       });
       tSplitPlotArray.length = 1;
       tSplitPlotArray[0].length = 1;
-      tRootPlot.set('siblingPlots', [])
+      tRootPlot.set('siblingPlots', []);
 
       wipeOutAxisArray( this.get('xAxisArray'));
       wipeOutAxisArray( this.get('yAxisArray'));

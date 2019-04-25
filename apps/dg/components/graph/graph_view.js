@@ -662,7 +662,7 @@ DG.GraphView = SC.View.extend(
           }
         }
 
-        function layoutSplitPlots() {
+        function layoutSplitPlots( iTopHeight, iRightSpace) {
           var tXAxisViewArray = this_.get('xAxisViewArray'),
               tYAxisViewArray = this_.get('yAxisViewArray'),
               tY2AxisViewArray = this_.get('y2AxisViewArray'),
@@ -672,36 +672,36 @@ DG.GraphView = SC.View.extend(
               tFrame = this_.get('frame'),
               tSpaceAboveTopAxis = tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
               tRowHeight = (tFrame.height - tXHeight - tLegendHeight - tFunctionViewHeight -
-                  tPlottedValueViewHeight - tNumberToggleHeight - tTopHeight) / tNumRows,
-              tColWidth = (tFrame.width - tYWidth - tSpaceForY2 - tRightSpace) / tNumColumns,
+                  tPlottedValueViewHeight - tNumberToggleHeight - iTopHeight) / tNumRows,
+              tColWidth = (tFrame.width - tYWidth - tSpaceForY2 - iRightSpace) / tNumColumns,
               tRowIndex, tColIndex;
           if (firstTime) {
             tTopAxisView.set('layout', {
               left: tYWidth, top: tSpaceAboveTopAxis,
-              right: tRightSpace, height: tTopHeight
+              right: iRightSpace, height: iTopHeight
             });
             tRightAxisView.set('layout', {
-              width: tRightSpace, top: tSpaceAboveTopAxis + tTopHeight,
+              width: iRightSpace, top: tSpaceAboveTopAxis + iTopHeight,
               right: 0, bottom: tLegendHeight + tXHeight
             });
           }
           else {
-            tTopAxisView.adjust({top: tSpaceAboveTopAxis, left: tYWidth, right: tRightSpace, height: tTopHeight});
+            tTopAxisView.adjust({top: tSpaceAboveTopAxis, left: tYWidth, right: iRightSpace, height: iTopHeight});
             tRightAxisView.adjust({
-              width: tRightSpace, top: tSpaceAboveTopAxis + tTopHeight,
+              width: iRightSpace, top: tSpaceAboveTopAxis + iTopHeight,
               bottom: tLegendHeight + tXHeight
             });
           }
           for (tRowIndex = 0; tRowIndex < tNumRows; tRowIndex++) {
             var tThisYAxisView = tYAxisViewArray[tRowIndex],
-                tTop = tSpaceAboveTopAxis + tTopHeight + (tNumRows - tRowIndex - 1) * tRowHeight;
+                tTop = tSpaceAboveTopAxis + iTopHeight + (tNumRows - tRowIndex - 1) * tRowHeight;
             if (tThisYAxisView) {
               if (firstTime) {
                 tThisYAxisView.set('layout', {
                   left: tWidthForLeftLabel, top: tTop, height: tRowHeight, width: tYAxisWidth
                 });
                 tY2AxisViewArray[tRowIndex].set('layout', {
-                  right: tRightSpace, top: tTop, height: tRowHeight, width: tY2DesiredWidth
+                  right: iRightSpace, top: tTop, height: tRowHeight, width: tY2DesiredWidth
                 });
                 if (!tHasY2Attribute) {
                   tY2AxisViewArray[tRowIndex].set('isVisible', false);
@@ -714,7 +714,7 @@ DG.GraphView = SC.View.extend(
                 if (tCurrYWidth !== tYAxisWidth && tRowIndex === 0)
                   tThisYAxisView.notifyPropertyChange('drawWidth');
                 tY2AxisViewArray[tRowIndex].adjust({
-                  right: tRightSpace, top: tTop,
+                  right: iRightSpace, top: tTop,
                   height: tRowHeight, width: tY2DesiredWidth
                 });
               }
@@ -813,7 +813,7 @@ DG.GraphView = SC.View.extend(
             bottom: tHeightForBottomLabel + tLegendHeight, left: 0, width: tWidthForLeftLabel
           });
           if (this.getPath('model.isSplit'))
-            layoutSplitPlots();
+            layoutSplitPlots( tTopHeight, tRightSpace);
           else
             layoutUnsplitPlot();
           if (tFunctionView)
