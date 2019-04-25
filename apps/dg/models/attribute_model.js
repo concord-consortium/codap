@@ -239,8 +239,11 @@ DG.Attribute = DG.BaseModel.extend(
        */
       isNominal: function() {
         var tResult = false,
+            tType = this.get('type'),
             tCollection = this.get('collection');
-        if( tCollection) {
+        if( tType === 'nominal')
+          tResult = true;
+        else if( tCollection) {
           var tAttrID = this.get('id'),
               tCases = tCollection.get('cases');
           tResult = tCases && tCases.some(function (iCase) {
