@@ -138,7 +138,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tInterceptString = tIntNumFormat(tIntercept) + getInterceptUnit(),
           tSlopeNumFormat = DG.Format.number().group('').fractionDigits(0, tDigits.slopeDigits),
           tSlopeUnit = getSlopeUnit(),
-          tSlopeString = (SC.empty(tSlopeUnit) ? "" : "(") + tSlopeNumFormat(tSlope) + tSlopeUnit + " ",
+          tSlopeAsString = tSlopeNumFormat( tSlope),
+          tSlopeString = (SC.empty(tSlopeUnit) ? "" : "(") + tSlopeAsString + tSlopeUnit + " ",
           tSign = (tIntercept < 0) ? " " : " + ",
           tXIsDateTime = this_.getPath('xAxisView.isDateTime'),
           tYVar = this_.getPath('yAxisView.model.firstAttributeName'),
@@ -150,10 +151,9 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       // When the intercept string is zero, don't display it (even if the numeric value is not zero).
       if (tIntNumFormat(tIntercept) === "0")
         tInterceptString = tSign = "";
-      // Note that a space has been added to the number part of the slope.
-      if (tSlopeString === "1 ")
+      if (tSlopeAsString === "1" && SC.empty( tSlopeUnit))
         tSlopeString = "";
-      if (tSlopeString === "0 ") {
+      if (tSlopeAsString === "0") {
         tSlopeString = '';
         tXVar = '';
         tSign = '';
@@ -164,9 +164,11 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     function equationForInfiniteSlopeLine() {
       var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this_.get('xAxisView')),
           tXIntercept = this_.getPath( 'model.xIntercept'),
-          tXVar = this_.getPath('xAxisView.model.firstAttributeName');
+          tXVar = this_.getPath('xAxisView.model.firstAttributeName'),
+          tXUnit = this_.getPath('xAxisView.model.firstAttributeUnit');
       return 'DG.ScatterPlotModel.infiniteSlope'.loc( tXVar,
-          DG.Format.number().group('').fractionDigits( 0, tDigits)( tXIntercept));
+          DG.Format.number().group('').fractionDigits( 0, tDigits)( tXIntercept),
+          tXUnit);
     }
 
     if( this.getPath( 'model.isVertical'))
@@ -296,10 +298,12 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     tModel.recomputeSlopeAndInterceptIfNeeded();
     var tSlope = tModel.get('slope'),
         tIntercept = tModel.get('intercept');
+/*
     if( SC.none( tSlope) || SC.none( tIntercept) || !isFinite( tSlope) || !isFinite( tIntercept)) {
       this.hideElements();
       return;
     }
+*/
     this.showElements();
     if( this.myElements === null)
       this.createElements();
