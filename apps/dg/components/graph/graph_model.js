@@ -1202,35 +1202,39 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     dataDidChange: function( iSource, iKey, iChange ) {
 
-      var caseLiesOutsideBounds = function( iCase) {
-        return ['x', 'y', 'y2'].some( function( iDim) {
-          var tFound = false,
-              tAxis = this.get( iDim + 'Axis');
-          if( tAxis && tAxis.get('isNumeric')) {
-            var tLower = tAxis.get('lowerBound'),
-                tUpper = tAxis.get('upperBound');
-            tFound = this.getPath('dataConfiguration.' + iDim + 'AttributeDescription.attributes').some(function( iAttr) {
-              var tValue = iCase.getNumValue( iAttr.get('id'));
-              return isFinite( tValue) && (tValue < tLower || tValue > tUpper);
-            });
-          }
-          return tFound;
-        }.bind( this));
-      }.bind( this);
+      var aCaseLiesOutsideBounds = function (iCollectionClient, iCaseIDs) {
+        return iCaseIDs.some(function (iCaseID) {
+          var tCase = iCollectionClient.getCaseByID( iCaseID);
+          return ['x', 'y', 'y2'].some(function (iDim) {
+            var tFound = false,
+                tAxis = this.get(iDim + 'Axis');
+            if (tAxis && tAxis.get('isNumeric')) {
+              var tLower = tAxis.get('lowerBound'),
+                  tUpper = tAxis.get('upperBound');
+              tFound = this.getPath('dataConfiguration.' + iDim + 'AttributeDescription.attributes').some(function (iAttr) {
+                var tValue = tCase.getNumValue(iAttr.get('id'));
+                return isFinite(tValue) && (tValue < tLower || tValue > tUpper);
+              });
+            }
+            return tFound;
+          }.bind(this));
+        }.bind(this));
+      }.bind(this);
 
       var tPlot = this.get('plot');
       if( tPlot && tPlot.isAffectedByChange( iChange)) {
         this.invalidate( iChange);  // So that when we ask for cases we get the right ones
         var dataConfig = this.get('dataConfiguration'),
-            cases = dataConfig && dataConfig.get('cases'),
-            tDataLength = cases ? cases.length() : 0;
+            tAllCases = dataConfig && dataConfig.get('cases'),
+            tNewCaseIDs = iChange.result.caseIDs,
+            tDataLength = tAllCases ? tAllCases.length() : 0;
         if( tDataLength !== this._oldNumberOfCases ) {
           var isAddingCases = (tDataLength > this._oldNumberOfCases);
           if( tPlot && isAddingCases) {
-            var newCase = cases.at( tDataLength-1);
+            var newCase = tAllCases.at( tDataLength-1);
             if( this.isParentCase( newCase))
               tPlot.set('openParentCaseID', newCase.get('id'));
-            if( caseLiesOutsideBounds( newCase)) {
+            if( aCaseLiesOutsideBounds( iChange.collection, tNewCaseIDs)) {
               // We always rescale the axes on new data. Previously, we rescaled
               // for child cases but skipped rescale on parent cases because in
               // most cases the parent case values aren't filled in until the end
