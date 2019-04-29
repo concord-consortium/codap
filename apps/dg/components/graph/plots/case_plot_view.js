@@ -173,8 +173,6 @@ DG.CasePlotView = DG.PlotView.extend(
           return;
         }
 
-        this.setPath('model.isAnimating', true);
-
         function dataCoordinate(iValue, iMin, iMax) {
           return iMin + kMargin + iValue * (iMax - iMin - 2 * kMargin);
         }
