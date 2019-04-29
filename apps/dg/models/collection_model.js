@@ -367,7 +367,9 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var _this = this;
       var dataSet = this.get('dataSet');
       var values = DG.DataUtilities.canonicalizeAttributeValues(this.attrs, iProperties.values);
-      var parent = iProperties.parent;
+      var parentID = iProperties.parent;
+      var parent;
+      var parentItemID;
       var itemID = iProperties.itemID;
 
       // Relate it to its parent collection
@@ -376,20 +378,22 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       delete iProperties.values;
 
       if (!item) {
-        // if no parent then create item
-        // if parent and parent has children create item with parent's values and new values
-        // if parent and parent has no children add new values to parent item
-        if (SC.none(parent)) {
+        if (SC.none(parentID)) {
+          // if no parent then create item
           item = dataSet.addDataItem(DG.DataItem.create({id: itemID, values: values}));
         } else {
-          parent = DG.store.resolve(parent);
-          if (parent.get('children').length > 0) {
-            if (!SC.none(itemID)) {
-              item = dataSet.addDataItem(DG.DataItem.create({id: itemID, values: joinValues(values, parent.item)}));
-            } else {
-              item = dataSet.addDataItem(joinValues(values, parent.item));
-            }
+          parent = DG.store.resolve(parentID);
+          parentItemID = parent.item.id;
+          if (SC.none(itemID)){
+            // if new child case has no item id, create new item by merging new
+            // values with parent values.
+            item = dataSet.addDataItem(joinValues(values, parent.item));
+          } else if (itemID !== parentItemID) {
+            // if new child has item id and it differs from parent's item id,
+            // create a new item by merging new values with parent values
+            item = dataSet.addDataItem(DG.DataItem.create({id: itemID, values: joinValues(values, parent.item)}));
           } else {
+            // if item id matches parent item, update the parent's item
             item = parent.get('item');
             item.updateData(values);
           }

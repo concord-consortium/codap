@@ -1524,6 +1524,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     });
     results = this.regenerateCollectionCases();
 
+    // We should never be deleting cases while creating items.
+    DG.assert(results && (!results.deletedCases || results.deletedCases.length === 0), 'Unexpected deleted cases');
     results.createdCases.forEach(function (iCase) {
       var collectionID = iCase.collection.get('id');
       var collectionCases = collectionIDCaseMap[collectionID];
