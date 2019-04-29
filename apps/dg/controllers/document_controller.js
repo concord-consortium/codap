@@ -1574,6 +1574,7 @@ DG.DocumentController = SC.Object.extend(
         var kDefaultCardWidth = 200,
             kDefaultCardHeight = 400,
             tContext = iTableComponentView.getPath('controller.dataContext'),
+            tCannotClose = iTableComponentView.getPath('model.cannotClose'),
             tTableLayout = iTableComponentView.get('layout'),
             tCardInitialLayout = {
               top: tTableLayout.top, left: tTableLayout.left,
@@ -1593,6 +1594,7 @@ DG.DocumentController = SC.Object.extend(
                     tCardComponentView = this.tableCardRegistry.getCardView(tContext) ||
                         this.addCaseCard(iTableComponentView.get('parentView'),
                             tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
+                    tCardComponentView.setPath('model.cannotClose', tCannotClose);
                     tCardComponentView.set('layout', tCardInitialLayout);
                     var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
                     if (!tCardComponentView.get('savedLayout')) { tCardComponentView.set('savedLayout', tCardLayout);}
@@ -1609,6 +1611,7 @@ DG.DocumentController = SC.Object.extend(
       toggleCardToTable: function (iCardComponentView) {
         var kDefaultCardWidth = 200,
             tCardLayout = iCardComponentView.get('layout'),
+            tCannotClose = iCardComponentView.getPath('model.cannotClose'),
             tContext = iCardComponentView.getPath('controller.dataContext');
         iCardComponentView.set('savedLayout', tCardLayout);
         iCardComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'},
@@ -1621,6 +1624,7 @@ DG.DocumentController = SC.Object.extend(
                           dataContext: iCardComponentView.getPath('controller.dataContext')
                         }),
                         tTableLayout = tTableComponentView.get('savedLayout') || {width: 500, height: 200};
+                    tTableComponentView.setPath('model.cannotClose', tCannotClose);
                     tTableComponentView.set('isVisible', true);
                     iCardComponentView.set('isVisible', false);
                     tTableLayout.height++;
