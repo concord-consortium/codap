@@ -89,6 +89,8 @@ DG.functionRegistry.registerAggregates({
           var parentCollectionID = parentCase.getPath('collection.id');
           tmpEvalContext._caseMap_[parentCollectionID] = parentCase;
         }
+        tmpEvalContext._id_ = firstCase && firstCase.get('id');
+        tmpEvalContext._case_ = firstCase;
         return tmpEvalContext;
       }
       
@@ -158,6 +160,8 @@ DG.functionRegistry.registerAggregates({
           var parentCollectionID = parentCase.getPath('collection.id');
           tmpEvalContext._caseMap_[parentCollectionID] = parentCase;
         }
+        tmpEvalContext._id_ = lastCase && lastCase.get('id');
+        tmpEvalContext._case_ = lastCase;
         return tmpEvalContext;
       }
       

@@ -121,12 +121,20 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
 
   /**
     Returns the case index for the give case ID.
-    @param    {Number}    iCaseID -- The ID of the case being evaluated
+    @param    {Number}    iCase -- The case being evaluated or its ID
     @returns  {Number}    The index of the case with the specified ID
    */
-  getCaseIndex: function( iCaseID) {
-    var map = this.collection && this.collection.caseIDToGroupedIndexMap;
-    return map && (map[ iCaseID] + 1); // 1-based index
+  getCaseIndex: function( iCase) {
+    var caseID, collection;
+    if (typeof iCase === 'object') {
+      caseID = iCase.id;
+      collection = iCase.collection;
+    } else {
+      caseID = iCase;
+      collection = this.collection;
+    }
+    var map = collection && collection.caseIDToGroupedIndexMap;
+    return map && (map[ caseID] + 1); // 1-based index
   },
 
   /**
@@ -315,7 +323,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
                                 },
                                 aggFnIndices: iAggFnIndices
                               });
-      return 'c.getCaseIndex(e._id_)';
+      return 'c.getCaseIndex(e._case_)';
     }
 
     var attribute = this.getAttributeByName(iName),
