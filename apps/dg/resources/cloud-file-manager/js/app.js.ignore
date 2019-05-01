@@ -34,22 +34,22 @@ function placeHoldersCount (b64) {
 
 function byteLength (b64) {
   // base64 is 4/3 + up to two characters of the original data
-  return (b64.length * 3 / 4) - placeHoldersCount(b64)
+  return b64.length * 3 / 4 - placeHoldersCount(b64)
 }
 
 function toByteArray (b64) {
-  var i, l, tmp, placeHolders, arr
+  var i, j, l, tmp, placeHolders, arr
   var len = b64.length
   placeHolders = placeHoldersCount(b64)
 
-  arr = new Arr((len * 3 / 4) - placeHolders)
+  arr = new Arr(len * 3 / 4 - placeHolders)
 
   // if there are placeholders, only get up to the last complete 4 chars
   l = placeHolders > 0 ? len - 4 : len
 
   var L = 0
 
-  for (i = 0; i < l; i += 4) {
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
     tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
     arr[L++] = (tmp >> 16) & 0xFF
     arr[L++] = (tmp >> 8) & 0xFF
@@ -11907,14 +11907,25 @@ CloudFileManager = (function() {
   };
 
   CloudFileManager.prototype.clientConnect = function(eventCallback) {
-    if (this.appOptions.appOrMenuElemId != null) {
-      this._renderApp(document.getElementById(this.appOptions.appOrMenuElemId));
-    } else {
-      this._createHiddenApp();
+    var e;
+    try {
+      if (this.appOptions.appOrMenuElemId != null) {
+        this._renderApp(document.getElementById(this.appOptions.appOrMenuElemId));
+      } else {
+        this._createHiddenApp();
+      }
+    } catch (error) {
+      e = error;
+      console.error("Unable render app: " + e);
     }
     this.client.listen(eventCallback);
     this.client.connect();
-    return this.client.processUrlParams();
+    this.client.processUrlParams();
+    if (window.parent) {
+      return window.parent.postMessage({
+        type: "cfm::iframedClientConnected"
+      }, "*");
+    }
   };
 
   CloudFileManager.prototype._createHiddenApp = function() {
@@ -11926,7 +11937,9 @@ CloudFileManager = (function() {
 
   CloudFileManager.prototype._renderApp = function(anchor) {
     this.appOptions.client = this.client;
-    return ReactDOM.render(AppView(this.appOptions), anchor);
+    ReactDOM.render(AppView(this.appOptions), anchor);
+    this.client.iframe = anchor.getElementsByTagName('iframe')[0];
+    return this.client.rendered();
   };
 
   return CloudFileManager;
@@ -11978,12 +11991,34 @@ CloudContent = (require('./providers/provider-interface')).CloudContent;
 CloudMetadata = (require('./providers/provider-interface')).CloudMetadata;
 
 CloudFileManagerClientEvent = (function() {
+  CloudFileManagerClientEvent.id = 0;
+
+  CloudFileManagerClientEvent.events = {};
+
   function CloudFileManagerClientEvent(type1, data1, callback1, state1) {
     this.type = type1;
     this.data = data1 != null ? data1 : {};
     this.callback = callback1 != null ? callback1 : null;
     this.state = state1 != null ? state1 : {};
+    CloudFileManagerClientEvent.id++;
+    this.id = CloudFileManagerClientEvent.id;
   }
+
+  CloudFileManagerClientEvent.prototype.postMessage = function(iframe) {
+    var eventData, message;
+    if (this.callback) {
+      CloudFileManagerClientEvent.events[this.id] = this;
+    }
+    eventData = _.clone(this.data);
+    delete eventData.client;
+    message = {
+      type: "cfm::event",
+      eventId: this.id,
+      eventType: this.type,
+      eventData: eventData
+    };
+    return iframe.postMessage(message, "*");
+  };
 
   return CloudFileManagerClientEvent;
 
@@ -12003,7 +12038,7 @@ CloudFileManagerClient = (function() {
   }
 
   CloudFileManagerClient.prototype.setAppOptions = function(appOptions1) {
-    var Provider, allProviders, availableProviders, base, base1, i, j, len, len1, provider, providerList, providerName, providerOptions, providerSpec, readableMimetypes, ref, ref1, requestedProviders, shareProvider;
+    var Provider, allProviders, availableProviders, base, base1, i, j, len, len1, provider, providerList, providerName, providerOptions, providerSpec, readableMimetypes, ref, ref1, ref2, requestedProviders, shareProvider;
     this.appOptions = appOptions1 != null ? appOptions1 : {};
     if ((base = this.appOptions).wrapFileContent == null) {
       base.wrapFileContent = true;
@@ -12082,6 +12117,7 @@ CloudFileManagerClient = (function() {
       appBuildNum: this.appOptions.appBuildNum || ""
     });
     this.newFileOpensInNewTab = ((ref1 = this.appOptions.ui) != null ? ref1.hasOwnProperty('newFileOpensInNewTab') : void 0) ? this.appOptions.ui.newFileOpensInNewTab : true;
+    this.newFileAddsNewToQuery = (ref2 = this.appOptions.ui) != null ? ref2.newFileAddsNewToQuery : void 0;
     return this._startPostMessageListener();
   };
 
@@ -12143,6 +12179,12 @@ CloudFileManagerClient = (function() {
 
   CloudFileManagerClient.prototype.ready = function() {
     return this._event('ready');
+  };
+
+  CloudFileManagerClient.prototype.rendered = function() {
+    return this._event('rendered', {
+      client: this
+    });
   };
 
   CloudFileManagerClient.prototype.listen = function(listener) {
@@ -12214,7 +12256,7 @@ CloudFileManagerClient = (function() {
       callback = null;
     }
     if (this.newFileOpensInNewTab) {
-      return window.open(this.getCurrentUrl(), '_blank');
+      return window.open(this.getCurrentUrl(this.newFileAddsNewToQuery ? "#new" : null), '_blank');
     } else if (this.state.dirty) {
       if (this._autoSaveInterval && this.state.metadata) {
         this.save();
@@ -13053,10 +13095,16 @@ CloudFileManagerClient = (function() {
     if (isDirty == null) {
       isDirty = true;
     }
-    return this._setState({
+    this._setState({
       dirty: isDirty,
       saved: this.state.saved && !isDirty
     });
+    if (window.self !== window.top) {
+      return window.parent.postMessage({
+        type: "cfm::setDirty",
+        isDirty: isDirty
+      }, "*");
+    }
   };
 
   CloudFileManagerClient.prototype.shouldAutoSave = function() {
@@ -13084,6 +13132,18 @@ CloudFileManagerClient = (function() {
 
   CloudFileManagerClient.prototype.isAutoSaving = function() {
     return this._autoSaveInterval != null;
+  };
+
+  CloudFileManagerClient.prototype.changeLanguage = function(newLangCode, callback) {
+    if (callback) {
+      if (!this.state.dirty) {
+        return callback(newLangCode);
+      } else {
+        return this.confirm(tr('~CONFIRM.CHANGE_LANGUAGE'), function() {
+          return callback(newLangCode);
+        });
+      }
+    }
   };
 
   CloudFileManagerClient.prototype.showBlockingModal = function(modalProps) {
@@ -13175,16 +13235,24 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype._fileOpened = function(content, metadata, additionalState, hashParams) {
+    var contentType, eventData;
     if (additionalState == null) {
       additionalState = {};
     }
     if (hashParams == null) {
       hashParams = null;
     }
-    return this._event('openedFile', {
-      content: content != null ? content.getClientContent() : void 0,
-      metadata: metadata
-    }, (function(_this) {
+    eventData = {
+      content: content != null ? content.getClientContent() : void 0
+    };
+    this._updateState(content, metadata, additionalState, hashParams);
+    contentType = metadata.mimeType || metadata.contentType;
+    if (contentType) {
+      eventData.metadata = {
+        contentType: contentType
+      };
+    }
+    return this._event('openedFile', eventData, (function(_this) {
       return function(iError, iSharedMetadata) {
         if (iError) {
           return _this.alert(iError, function() {
@@ -13232,7 +13300,7 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype._event = function(type, data, eventCallback) {
-    var event, i, len, listener, ref, results;
+    var event, i, len, listener, ref, ref1, skipPostMessage;
     if (data == null) {
       data = {};
     }
@@ -13241,12 +13309,14 @@ CloudFileManagerClient = (function() {
     }
     event = new CloudFileManagerClientEvent(type, data, eventCallback, this.state);
     ref = this._listeners;
-    results = [];
     for (i = 0, len = ref.length; i < len; i++) {
       listener = ref[i];
-      results.push(listener(event));
+      listener(event);
     }
-    return results;
+    skipPostMessage = type === "renamedFile";
+    if (((ref1 = this.appOptions) != null ? ref1.sendPostMessageClientEvents : void 0) && this.iframe && !skipPostMessage) {
+      return event.postMessage(this.iframe.contentWindow);
+    }
   };
 
   CloudFileManagerClient.prototype._setState = function(options) {
@@ -13311,8 +13381,9 @@ CloudFileManagerClient = (function() {
   CloudFileManagerClient.prototype._startPostMessageListener = function() {
     return $(window).on('message', (function(_this) {
       return function(e) {
-        var oe, ref, reply;
+        var data, event, oe, ref, ref1, reply;
         oe = e.originalEvent;
+        data = oe.data || {};
         reply = function(type, params) {
           var message;
           if (params == null) {
@@ -13326,7 +13397,7 @@ CloudFileManagerClient = (function() {
         switch ((ref = oe.data) != null ? ref.type : void 0) {
           case 'cfm::getCommands':
             return reply('cfm::commands', {
-              commands: ['cfm::autosave']
+              commands: ['cfm::autosave', 'cfm::event', 'cfm::event:reply', 'cfm::setDirty', 'cfm::iframedClientConnected']
             });
           case 'cfm::autosave':
             if (_this.shouldAutoSave()) {
@@ -13340,6 +13411,23 @@ CloudFileManagerClient = (function() {
                 saved: false
               });
             }
+            break;
+          case 'cfm::event':
+            return _this._event(data.eventType, data.eventData, function() {
+              var callbackArgs;
+              callbackArgs = JSON.stringify(Array.prototype.slice.call(arguments));
+              return reply('cfm::event:reply', {
+                eventId: data.eventId,
+                callbackArgs: callbackArgs
+              });
+            });
+          case 'cfm::event:reply':
+            event = CloudFileManagerClientEvent.events[data.eventId];
+            return event != null ? (ref1 = event.callback) != null ? ref1.apply(_this, JSON.parse(data.callbackArgs)) : void 0 : void 0;
+          case 'cfm::setDirty':
+            return _this.dirty(data.isDirty);
+          case 'cfm::iframedClientConnected':
+            return _this.processUrlParams();
         }
       };
     })(this));
@@ -14455,6 +14543,7 @@ GoogleDriveProvider = (function(superClass) {
     if (!this.clientId) {
       throw new Error(tr("~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID"));
     }
+    this.scopes = this.options.scopes || ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.install', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.profile'];
     this.mimeType = this.options.mimeType || "text/plain";
     this.readableMimetypes = this.options.readableMimetypes;
     this.useRealTimeAPI = this.options.useRealTimeAPI || false;
@@ -14491,7 +14580,7 @@ GoogleDriveProvider = (function(superClass) {
         var args;
         args = {
           client_id: _this.clientId,
-          scope: ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.install', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.profile'],
+          scope: _this.scopes,
           immediate: immediate
         };
         return gapi.auth.authorize(args, function(authToken) {
@@ -14739,6 +14828,7 @@ GoogleDriveProvider = (function(superClass) {
           metadata.providerData = {
             id: file.id
           };
+          metadata.mimeType = file.mimeType;
           if ((metadata.parent == null) && ((ref1 = file.parents) != null ? ref1.length : void 0) > 0) {
             metadata.parent = new CloudMetadata({
               type: CloudMetadata.Folder,
@@ -15526,7 +15616,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":80,"../views/local-file-tab-list-view":91,"../views/local-file-tab-save-view":92,"./provider-interface":65}],62:[function(require,module,exports){
+},{"../utils/translate":80,"../views/local-file-tab-list-view":92,"../views/local-file-tab-save-view":93,"./provider-interface":65}],62:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -16401,6 +16491,7 @@ ReadOnlyProvider = (function(superClass) {
           name: item.name,
           type: type,
           description: item.description,
+          mimeType: item.mimeType,
           content: item.content != null ? cloudContentFactory.createEnvelopedCloudContent(item.content) : void 0,
           url: url,
           parent: parent,
@@ -17261,6 +17352,7 @@ module.exports={
   "~CONFIRM.CLOSE_FILE": "You have unsaved changes. Are you sure you want to close the document?",
   "~CONFIRM.REVERT_TO_LAST_OPENED": "Are you sure you want to revert the document to its most recently opened state?",
   "~CONFIRM.REVERT_TO_SHARED_VIEW": "Are you sure you want to revert the document to its most recently shared state?",
+  "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?",
 
   "~CONFIRM_DIALOG.TITLE": "Are you sure?",
   "~CONFIRM_DIALOG.YES": "Yes",
@@ -17824,24 +17916,38 @@ var defaultLang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
 
-languageFiles = {
-  'de': require('./lang/de'),
-  'el': require('./lang/el'),
-  'en-US': require('./lang/en-US'),
-  'es': require('./lang/es'),
-  'he': require('./lang/he'),
-  'tr': require('./lang/tr'),
-  'zh-TW': require('./lang/zh-TW')
-};
+languageFiles = [
+  {
+    key: 'de',
+    contents: require('./lang/de')
+  }, {
+    key: 'el',
+    contents: require('./lang/el')
+  }, {
+    key: 'en-US',
+    contents: require('./lang/en-US')
+  }, {
+    key: 'es',
+    contents: require('./lang/es')
+  }, {
+    key: 'he',
+    contents: require('./lang/he')
+  }, {
+    key: 'tr',
+    contents: require('./lang/tr')
+  }, {
+    key: 'zh-TW',
+    contents: require('./lang/zh-TW')
+  }
+];
 
 translations = {};
 
-_.each(languageFiles, function(langContents, langKey) {
-  var dashLoc, lang;
-  translations[langKey] = langContents;
-  if ((dashLoc = langKey.indexOf('-')) > 0) {
-    lang = langKey.substring(0, dashLoc);
-    translations[lang] = langContents;
+languageFiles.forEach(function(lang) {
+  var dashLoc;
+  translations[lang.key] = lang.contents;
+  if ((dashLoc = lang.key.indexOf('-')) > 0) {
+    return translations[lang.key.substring(0, dashLoc)] = lang.contents;
   }
 });
 
@@ -17942,7 +18048,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./modal-dialog-view":94}],83:[function(require,module,exports){
+},{"../utils/translate":80,"./modal-dialog-view":95}],83:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = React.createFactory(require('./menu-bar-view'));
@@ -18175,6 +18281,7 @@ App = React.createClass({
     });
   },
   renderDialogs: function() {
+    var ref1;
     return div({}, this.state.blockingModalProps ? BlockingModal(this.state.blockingModalProps) : this.state.providerDialog ? ProviderTabbedDialog({
       client: this.props.client,
       dialog: this.state.providerDialog,
@@ -18196,7 +18303,8 @@ App = React.createClass({
     }) : this.state.shareDialog ? ShareDialog({
       client: this.props.client,
       enableLaraSharing: this.props.enableLaraSharing,
-      close: this.closeDialogs
+      close: this.closeDialogs,
+      settings: ((ref1 = this.props.ui) != null ? ref1.shareDialog : void 0) || {}
     }) : void 0, this.state.alertDialog ? AlertDialog({
       title: this.state.alertDialog.title,
       message: this.state.alertDialog.message,
@@ -18235,7 +18343,7 @@ App = React.createClass({
 module.exports = App;
 
 
-},{"../utils/is-string":72,"../utils/translate":80,"./alert-dialog-view":82,"./blocking-modal-view":85,"./confirm-dialog-view":86,"./download-dialog-view":87,"./import-tabbed-dialog-view":90,"./menu-bar-view":93,"./provider-tabbed-dialog-view":97,"./rename-dialog-view":98,"./share-dialog-view":100}],84:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":80,"./alert-dialog-view":82,"./blocking-modal-view":85,"./confirm-dialog-view":86,"./download-dialog-view":87,"./import-tabbed-dialog-view":91,"./menu-bar-view":94,"./provider-tabbed-dialog-view":98,"./rename-dialog-view":99,"./share-dialog-view":101}],84:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -18316,7 +18424,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":96}],86:[function(require,module,exports){
+},{"./modal-view":97}],86:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -18364,7 +18472,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./modal-dialog-view":94}],87:[function(require,module,exports){
+},{"../utils/translate":80,"./modal-dialog-view":95}],87:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -18465,10 +18573,60 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80,"./modal-dialog-view":94}],88:[function(require,module,exports){
-var DropDown, DropdownItem, cfmMenuClass, div, g, i, li, rect, ref, span, svg, ul;
+},{"../providers/provider-interface":65,"../utils/translate":80,"./modal-dialog-view":95}],88:[function(require,module,exports){
+var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, ref, svg;
 
-ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li, svg = ref.svg, g = ref.g, rect = ref.rect;
+ref = React.DOM, svg = ref.svg, g = ref.g, rect = ref.rect, polygon = ref.polygon;
+
+DefaultAnchor = svg({
+  className: 'default-anchor',
+  version: '1.1',
+  width: 33,
+  height: 18,
+  viewBox: '0 0 33 18',
+  enableBackground: 'new 0 0 33 18'
+}, g({}, rect({
+  x: 2,
+  y: 3,
+  width: 16,
+  height: 2
+}), rect({
+  x: 2,
+  y: 8,
+  width: 16,
+  height: 2
+}), rect({
+  x: 2,
+  y: 13,
+  width: 16,
+  height: 2
+}), polygon({
+  points: "21,7 25,13 29,7"
+})));
+
+TriangleOnlyAnchor = svg({
+  className: 'triangle-only-anchor',
+  version: '1.1',
+  width: 8,
+  height: 18,
+  viewBox: '0 0 8 18',
+  enableBackground: 'new 0 0 33 18'
+}, polygon({
+  points: "0,7 4,13 8,7"
+}));
+
+module.exports = {
+  DefaultAnchor: DefaultAnchor,
+  TriangleOnlyAnchor: TriangleOnlyAnchor
+};
+
+
+},{}],89:[function(require,module,exports){
+var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, div, i, li, ref, span, ul;
+
+ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li;
+
+DefaultAnchor = require("./dropdown-anchors").DefaultAnchor;
 
 DropdownItem = React.createFactory(React.createClass({
   displayName: 'DropdownItem',
@@ -18500,7 +18658,7 @@ DropdownItem = React.createFactory(React.createClass({
     }
   },
   render: function() {
-    var classes, enabled, name;
+    var classes, content, enabled;
     enabled = this.props.item.hasOwnProperty('enabled') ? typeof this.props.item.enabled === 'function' ? this.props.item.enabled() : this.props.item.enabled : true;
     classes = ['menuItem'];
     if (this.props.item.separator) {
@@ -18512,7 +18670,7 @@ DropdownItem = React.createFactory(React.createClass({
       if (!enabled || !(this.props.item.action || this.props.item.items)) {
         classes.push('disabled');
       }
-      name = this.props.item.name || this.props.item;
+      content = this.props.item.name || this.props.item.content || this.props.item;
       return li({
         ref: 'item',
         className: classes.join(' '),
@@ -18520,7 +18678,7 @@ DropdownItem = React.createFactory(React.createClass({
         onMouseEnter: this.mouseEnter
       }, this.props.item.items ? i({
         className: 'icon-inspectorArrow-collapse'
-      }) : void 0, name);
+      }) : void 0, content);
     }
   }
 }));
@@ -18584,43 +18742,20 @@ DropDown = React.createClass({
     return typeof item.action === "function" ? item.action() : void 0;
   },
   render: function() {
-    var index, item, menuClass, ref1, select;
+    var dropdownClass, index, item, menuAnchorClass, menuClass, ref1;
     menuClass = cfmMenuClass + " " + (this.state.showingMenu ? 'menu-showing' : 'menu-hidden');
-    select = (function(_this) {
-      return function(item) {
-        return function() {
-          return _this.select(item);
-        };
-      };
-    })(this);
+    dropdownClass = "menu " + (this.props.className ? this.props.className : '');
+    menuAnchorClass = "menu-anchor " + (this.props.menuAnchorClassName ? this.props.menuAnchorClassName : '');
     return div({
-      className: 'menu'
+      className: dropdownClass
     }, ((ref1 = this.props.items) != null ? ref1.length : void 0) > 0 ? div({}, div({
-      className: cfmMenuClass + " menu-anchor",
+      className: cfmMenuClass + " " + menuAnchorClass,
       onClick: (function(_this) {
         return function() {
           return _this.select(null);
         };
       })(this)
-    }, svg({
-      version: '1.1',
-      width: 16,
-      height: 16,
-      viewBox: '0 0 16 16',
-      enableBackground: 'new 0 0 16 16'
-    }, g({}, rect({
-      y: 2,
-      width: 16,
-      height: 2
-    }), rect({
-      y: 7,
-      width: 16,
-      height: 2
-    }), rect({
-      y: 12,
-      width: 16,
-      height: 2
-    })))), div({
+    }, this.props.menuAnchor ? this.props.menuAnchor : DefaultAnchor), div({
       className: menuClass
     }, ul({}, (function() {
       var j, len, ref2, results;
@@ -18659,7 +18794,7 @@ DropDown = React.createClass({
 module.exports = DropDown;
 
 
-},{}],89:[function(require,module,exports){
+},{"./dropdown-anchors":88}],90:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -18970,7 +19105,7 @@ FileDialogTab = React.createClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80,"./authorize-mixin":84}],90:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":80,"./authorize-mixin":84}],91:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -19052,7 +19187,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./local-file-tab-list-view":91,"./modal-tabbed-dialog-view":95,"./tabbed-panel-view":101,"./url-tab-view":102}],91:[function(require,module,exports){
+},{"../utils/translate":80,"./local-file-tab-list-view":92,"./modal-tabbed-dialog-view":96,"./tabbed-panel-view":102,"./url-tab-view":103}],92:[function(require,module,exports){
 var CloudMetadata, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -19147,7 +19282,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80}],92:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":80}],93:[function(require,module,exports){
 var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button, a = ref.a;
@@ -19318,12 +19453,14 @@ module.exports = React.createClass({
 });
 
 
-},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":80}],93:[function(require,module,exports){
-var Dropdown, div, i, input, ref, span, tr;
+},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":80}],94:[function(require,module,exports){
+var Dropdown, TriangleOnlyAnchor, div, i, input, ref, span, tr;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, input = ref.input;
 
 Dropdown = React.createFactory(require('./dropdown-view'));
+
+TriangleOnlyAnchor = require("./dropdown-anchors").TriangleOnlyAnchor;
 
 tr = require('../utils/translate');
 
@@ -19453,10 +19590,72 @@ module.exports = React.createClass({
   help: function() {
     return window.open(this.props.options.help, '_blank');
   },
+  infoClicked: function() {
+    var base;
+    return typeof (base = this.props.options).onInfoClicked === "function" ? base.onInfoClicked(this.props.client) : void 0;
+  },
   checkBlur: function(e) {
     if (this.state.editingFilename && e.target !== this.filename()) {
       return this.filenameBlurred();
     }
+  },
+  langChanged: function(langCode) {
+    var client, onLangChanged, options, ref1;
+    ref1 = this.props, client = ref1.client, options = ref1.options;
+    onLangChanged = options.languageMenu.onLangChanged;
+    if (onLangChanged != null) {
+      return client.changeLanguage(langCode, onLangChanged);
+    }
+  },
+  renderLanguageMenu: function() {
+    var currentOption, defaultOption, flag, hasFlags, items, label, langMenu, menuAnchor, ref1;
+    langMenu = this.props.options.languageMenu;
+    items = langMenu.options.filter(function(option) {
+      return option.langCode !== langMenu.currentLang;
+    }).map((function(_this) {
+      return function(option) {
+        var className, label;
+        label = option.label || option.langCode.toUpperCase();
+        if (option.flag) {
+          className = "flag flag-" + option.flag;
+        }
+        return {
+          content: span({
+            className: 'lang-option'
+          }, div({
+            className: className
+          }), label),
+          action: function() {
+            return _this.langChanged(option.langCode);
+          }
+        };
+      };
+    })(this));
+    hasFlags = langMenu.options.filter(function(option) {
+      return option.flag != null;
+    }).length > 0;
+    currentOption = langMenu.options.filter(function(option) {
+      return option.langCode === langMenu.currentLang;
+    })[0];
+    defaultOption = hasFlags ? {
+      flag: "us"
+    } : {
+      label: "English"
+    };
+    ref1 = currentOption || defaultOption, flag = ref1.flag, label = ref1.label;
+    menuAnchor = flag ? div({
+      className: "flag flag-" + flag
+    }) : div({
+      className: "lang-menu with-border"
+    }, span({
+      className: "lang-label"
+    }, label || defaultOption.label), TriangleOnlyAnchor);
+    return Dropdown({
+      className: "lang-menu",
+      menuAnchorClassName: "menu-anchor-right",
+      items: items,
+      menuAnchor: menuAnchor
+    });
   },
   render: function() {
     var ref1;
@@ -19481,19 +19680,20 @@ module.exports = React.createClass({
     }, this.props.fileStatus.message) : void 0), div({
       className: 'menu-bar-right'
     }, this.props.options.info ? span({
-      className: 'menu-bar-info'
+      className: 'menu-bar-info',
+      onClick: this.infoClicked
     }, this.props.options.info) : void 0, ((ref1 = this.props.provider) != null ? ref1.authorized() : void 0) ? this.props.provider.renderUser() : void 0, this.props.options.help ? i({
       style: {
         fontSize: "13px"
       },
       className: 'clickable icon-help',
       onClick: this.help
-    }) : void 0));
+    }) : void 0, this.props.options.languageMenu ? this.renderLanguageMenu() : void 0));
   }
 });
 
 
-},{"../utils/translate":80,"./dropdown-view":88}],94:[function(require,module,exports){
+},{"../utils/translate":80,"./dropdown-anchors":88,"./dropdown-view":89}],95:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -19526,7 +19726,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":96}],95:[function(require,module,exports){
+},{"./modal-view":97}],96:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
@@ -19547,7 +19747,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-dialog-view":94,"./tabbed-panel-view":101}],96:[function(require,module,exports){
+},{"./modal-dialog-view":95,"./tabbed-panel-view":102}],97:[function(require,module,exports){
 var div;
 
 div = React.DOM.div;
@@ -19562,8 +19762,8 @@ module.exports = React.createClass({
   },
   getDimensions: function() {
     return {
-      width: $(window).width() + 'px',
-      height: $(window).height() + 'px'
+      width: '100vw',
+      height: '100vh'
     };
   },
   getInitialState: function() {
@@ -19626,7 +19826,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],97:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -19698,7 +19898,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80,"./file-dialog-tab-view":89,"./modal-tabbed-dialog-view":95,"./select-provider-dialog-tab-view":99,"./tabbed-panel-view":101}],98:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":80,"./file-dialog-tab-view":90,"./modal-tabbed-dialog-view":96,"./select-provider-dialog-tab-view":100,"./tabbed-panel-view":102}],99:[function(require,module,exports){
 var ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -19767,7 +19967,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./modal-dialog-view":94}],99:[function(require,module,exports){
+},{"../utils/translate":80,"./modal-dialog-view":95}],100:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = React.DOM.div;
@@ -19782,7 +19982,7 @@ SelectProviderDialogTab = React.createFactory(React.createClass({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],100:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, translate, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
@@ -19845,7 +20045,8 @@ module.exports = React.createClass({
       link: this.getShareLink(),
       embed: this.getEmbed(),
       pageType: "autolaunch",
-      codapServerUrl: "https://codap.concord.org/releases/latest/",
+      serverUrl: this.props.settings.serverUrl || "https://codap.concord.org/releases/latest/",
+      serverUrlLabel: this.props.settings.serverUrlLabel || translate("~SHARE_DIALOG.LARA_CODAP_URL"),
       launchButtonText: "Launch",
       fullscreenScaling: true,
       graphVisToggles: false,
@@ -19885,7 +20086,7 @@ module.exports = React.createClass({
         documentServer = documentServer.slice(0, -1);
       }
       graphVisToggles = this.state.graphVisToggles ? '?app=is' : '';
-      server = encodeURIComponent(this.state.codapServerUrl + graphVisToggles);
+      server = encodeURIComponent(this.state.serverUrl + graphVisToggles);
       buttonText = this.state.pageType === 'launch' ? "&buttonText=" + (encodeURIComponent(this.state.launchButtonText)) : '';
       fullscreenScaling = this.state.pageType === 'autolaunch' && this.state.fullscreenScaling ? '&scaling' : '';
       return documentServer + "/v2/documents/" + sharedDocumentId + "/" + this.state.pageType + "?server=" + server + buttonText + fullscreenScaling;
@@ -19976,9 +20177,9 @@ module.exports = React.createClass({
       tabSelected: 'lara'
     });
   },
-  changedCodapServerUrl: function(event) {
+  changedServerUrl: function(event) {
     return this.setState({
-      codapServerUrl: event.target.value
+      serverUrl: event.target.value
     });
   },
   changedLaunchButtonText: function(event) {
@@ -20072,9 +20273,9 @@ module.exports = React.createClass({
             className: 'lara-settings'
           }, div({
             className: 'codap-server-url'
-          }, translate("~SHARE_DIALOG.LARA_CODAP_URL"), div({}, input({
-            value: this.state.codapServerUrl,
-            onChange: this.changedCodapServerUrl
+          }, this.state.serverUrlLabel, div({}, input({
+            value: this.state.serverUrl,
+            onChange: this.changedServerUrl
           }))), div({
             className: 'autolaunch'
           }, input({
@@ -20126,7 +20327,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/get-query-param":70,"../utils/translate":80,"./modal-dialog-view":94,"svg-social-icons/lib/icons.json":51}],101:[function(require,module,exports){
+},{"../utils/get-query-param":70,"../utils/translate":80,"./modal-dialog-view":95,"svg-social-icons/lib/icons.json":51}],102:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ref, ul;
 
 ref = React.DOM, div = ref.div, ul = ref.ul, li = ref.li, a = ref.a;
@@ -20238,7 +20439,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],102:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 var button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
