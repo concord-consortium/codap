@@ -233,6 +233,28 @@ DG.Attribute = DG.BaseModel.extend(
       },
 
       /**
+       * Determine based on type or, if not set, iterate through case values, returning true if
+       * at least one non-numeric value is encountered.
+       * @return {boolean}
+       */
+      isNominal: function() {
+        var tResult = false,
+            tType = this.get('type'),
+            tCollection = this.get('collection');
+        if( tType === 'nominal')
+          tResult = true;
+        else if( tCollection) {
+          var tAttrID = this.get('id'),
+              tCases = tCollection.get('cases');
+          tResult = tCases && tCases.some(function (iCase) {
+            var tValue = iCase.getValue(tAttrID);
+            return !SC.empty( tValue) && !DG.MathUtilities.isNumeric( tValue);
+          });
+        }
+        return tResult;
+      },
+
+      /**
        * Iterate through the categories in the order maintained in the categoryMap
        *
        * @param iFunc has signature String, Color, Integer

@@ -28,17 +28,65 @@ sc_require('components/graph_map_common/plot_data_configuration');
 DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
 /** @scope DG.GraphDataConfiguration.prototype */ 
 {
+  topCollectionClient: function () {
+    return this.getPath('topAttributeDescription.collectionClient');
+  }.property(),
+
+  rightCollectionClient: function () {
+    return this.getPath('rightAttributeDescription.collectionClient');
+  }.property(),
+
+  topCollectionDidChange: function () {
+    this.notifyPropertyChange('topCollectionClient');
+  }.observes('*topAttributeDescription.collectionClient'),
+
+  rightCollectionDidChange: function () {
+    this.notifyPropertyChange('rightCollectionClient');
+  }.observes('*rightAttributeDescription.collectionClient'),
+
+  /**
+   @property { DG.AttributePlacementDescription }
+   */
+  topAttributeDescription: function (iKey, iValue) {
+    return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eTopSplit);
+  }.property(),
+
+  /**
+   @property { DG.AttributePlacementDescription }
+   */
+  rightAttributeDescription: function (iKey, iValue) {
+    return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eRightSplit);
+  }.property(),
+
+  topAttributeID: function () {
+    return this.getPath('topAttributeDescription.attributeID');
+  }.property(),
+
+  rightAttributeID: function () {
+    return this.getPath('rightAttributeDescription.attributeID');
+  }.property(),
+
+  topAttributeIDDidChange: function () {
+    this.notifyPropertyChange('topAttributeID');
+  }.observes('*topAttributeDescription.attributeID'),
+
+  rightAttributeIDDidChange: function () {
+    this.notifyPropertyChange('rightAttributeID');
+  }.observes('*rightAttributeDescription.attributeID'),
+
   /**
    * It is in initialization that we specialize from base class
    */
   init: function() {
 
     var attributeDescriptions = {
-                                  x: DG.AttributePlacementDescription.create(),
-                                  y: DG.AttributePlacementDescription.create(),
-                                  y2: DG.AttributePlacementDescription.create(),
-                                  legend: DG.AttributePlacementDescription.create()
-                                },
+          x: DG.AttributePlacementDescription.create(),
+          y: DG.AttributePlacementDescription.create(),
+          y2: DG.AttributePlacementDescription.create(),
+          legend: DG.AttributePlacementDescription.create(),
+          top: DG.AttributePlacementDescription.create(),
+          right: DG.AttributePlacementDescription.create()
+        },
         tPlace,
         tDefaults = DG.currDocumentController().collectionDefaults();
 
@@ -106,14 +154,90 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     
     // Actually, during this coding transition, we're going to stash the previously
     // initialized attribute descriptions in attributesByPlace.
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eX][0] = attributeDescriptions.x;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eY2][0] = attributeDescriptions.y2;
-    this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
+    this.attributeDescriptionForPlace('x', attributeDescriptions.x, DG.GraphTypes.EPlace.eX);
+    this.attributeDescriptionForPlace('y', attributeDescriptions.y, DG.GraphTypes.EPlace.eY);
+    this.attributeDescriptionForPlace('y2', attributeDescriptions.y2, DG.GraphTypes.EPlace.eY2);
+    this.attributeDescriptionForPlace('legend', attributeDescriptions.legend, DG.GraphTypes.EPlace.eLegend);
+    this.attributeDescriptionForPlace('topSplit', attributeDescriptions.top, DG.GraphTypes.EPlace.eTopSplit);
+    this.attributeDescriptionForPlace('right', attributeDescriptions.right, DG.GraphTypes.EPlace.eRightSplit);
+  },
+
+  destroy: function () {
+    var topDesc = this.get('topAttributeDescription'),
+        rightDesc = this.get('rightAttributeDescription');
+
+    if (topDesc)
+      topDesc.removeObserver('collectionClient', this, 'topCollectionDidChange');
+    if (rightDesc)
+      rightDesc.removeObserver('collectionClient', this, 'rightCollectionDidChange');
+
+    sc_super();
   },
 
   legendColorMapDidChange: function() {
     this._casesCache = null;
+  },
+
+  /**
+   Returns true if this graph references attributes in collections with aggregate
+   functions, which is useful when determining whether a graph needs to be redrawn.
+   @property   {Boolean}
+   */
+  hasAggregates: function () {
+    var tResult = sc_super();
+    if( !tResult) {
+      var collectionIDs = {},
+          foundID,
+
+          considerCollection = function (iDescriptor) {
+            var collection = this.getPath(iDescriptor + 'AttributeDescription.collectionClient'),
+                collectionID = collection && collection.get('id');
+            if (!SC.none(collectionID))
+              collectionIDs[collectionID] = collection;
+          }.bind(this);
+
+      // Consider each of our split collections in turn
+      considerCollection('top');
+      considerCollection('right');
+
+      // Search through our set of collections, stopping on the first one that has aggregates.
+      foundID = DG.ObjectMap.findKey(collectionIDs,
+          function (iCollectionID, iCollection) {
+            return iCollection && iCollection.get('hasAggregates');
+          });
+      tResult = !SC.none(foundID);
+    }
+    return tResult;
+  }.property(),
+
+  /**
+   * @property {Boolean}
+   */
+  hasSplitAttribute: function() {
+    return !!this.get('rightAttributeID') || !!this.get('topAttributeID');
+  }.property( 'rightAttributeID', 'topAttributeID'),
+
+  /**
+   * Utility method
+   */
+  invalidateAttributeDescriptionCaches: function (iCases, iChange) {
+    sc_super();
+    if (this.get('topAttributeDescription'))
+      this.get('topAttributeDescription').invalidateCaches(iCases, iChange);
+    if (this.get('rightAttributeDescription'))
+      this.get('rightAttributeDescription').invalidateCaches(iCases, iChange);
+  },
+
+  /**
+   *
+   * @returns {Boolean}
+   */
+  atLeastOneFormula: function () {
+    var tProperties = ['topAttributeDescription', 'rightAttributeDescription'];
+    return (sc_super() ||
+        tProperties.some(function (iProperty) {
+          return this.getPath(iProperty + '.hasFormula');
+        }.bind(this)));
   }
 
 });

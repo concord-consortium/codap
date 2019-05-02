@@ -135,6 +135,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
           DG.assert(iValue instanceof DG.AttributePlacementDescription);
           this.attributesByPlace[iPlace][0] = iValue;
           iValue.addObserver('collection', this, 'collectionDidChange');
+          iValue.addObserver('categoryMap', this, 'categoryMapDidChange');
         }
 
         return !SC.none(this.attributesByPlace) ?
@@ -151,6 +152,14 @@ DG.PlotDataConfiguration = SC.Object.extend(
         var tID = iAttrDescription.getPath('attribute.collection.id'),
             tClient = this.get('dataContext').getCollectionByID(tID);
         iAttrDescription.set('collectionClient', tClient);
+      },
+
+      /**
+       * One of my attribute description's attribute's category map changed; e.g. by user dragging
+       * categories displayed on cell axis.
+       */
+      categoryMapDidChange: function () {
+        this.propertyDidChange('categoryMap');
       },
 
       /**
@@ -292,6 +301,16 @@ DG.PlotDataConfiguration = SC.Object.extend(
       },
 
       /**
+       *
+       * @param iPrefixes {[String]}
+       */
+      noAttributesFor: function( iPrefixes) {
+        return iPrefixes.every( function( iPrefix) {
+          return this.getPath( iPrefix + 'AttributeDescription.noAttributes');
+        }.bind( this));
+      },
+
+      /**
        Returns true if this graph references attributes in collections with aggregate
        functions, which is useful when determining whether a graph needs to be redrawn.
        @property   {Boolean}
@@ -377,6 +396,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
         if (this.get('attributesByPlace'))
           this.get('attributesByPlace').forEach(function (iAttrDesc) {
             iAttrDesc.removeObserver('collection', this, 'collectionDidChange');
+            iAttrDesc.removeObserver('categoryMap', this, 'categoryMapDidChange');
           }.bind(this));
 
         this._hiddenCases = [];  // For good measure
@@ -401,7 +421,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
       setAttributeAndCollectionClient: function (iDescription, iAttrRefs, iRole, iType) {
         this._casesCache = null;  // because setting a new attribute and collection client can require recomputation of cases
         var tDescription = this.get(iDescription);
-        if( tDescription) {
+        if (tDescription) {
           //tDescription.invalidateCaches();  // So that notification order won't be important
           tDescription.removeAllAttributes();
           tDescription.beginPropertyChanges();
@@ -647,7 +667,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
       attributeAssignmentDidChange: function () {
         this.notifyPropertyChange('attributeAssignment');
       }.observes('.xAttributeDescription.attribute', '.yAttributeDescription.attribute', '.y2AttributeDescription.attribute',
-          '.legendAttributeDescription.attribute'),
+          '.legendAttributeDescription.attribute', '.topAttributeDescription.attribute',
+          '.rightAttributeDescription.attribute'),
 
       /**
        Iteration through all attribute descriptions.
@@ -698,7 +719,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
       /**
        * Utility method
        */
-      invalidateAxisDescriptionCaches: function (iCases, iChange) {
+      invalidateAttributeDescriptionCaches: function (iCases, iChange) {
         if (this.get('xAttributeDescription'))
           this.get('xAttributeDescription').invalidateCaches(iCases, iChange);
         if (this.get('yAttributeDescription'))
@@ -742,12 +763,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
           this._casesCache = null;
           tCases = iCases || this.get('cases');
         }
-        this.invalidateAxisDescriptionCaches(tCases, iChange);
+        this.invalidateAttributeDescriptionCaches(tCases, iChange);
       },
 
       hiddenCasesDidChange: function () {
         this._casesCache = null;
-        this.invalidateAxisDescriptionCaches();
+        this.invalidateAttributeDescriptionCaches();
       }.observes('hiddenCases'),
 
       /**
@@ -823,7 +844,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
        * @returns {Boolean}
        */
       atLeastOneFormula: function () {
-        var tProperties = ['xAttributeDescription', 'yAttributeDescription', 'legendAttributeDescription'];
+        var tProperties = ['xAttributeDescription', 'yAttributeDescription', 'legendAttributeDescription',
+        'y2AttributeDescription'];
         return tProperties.some(function (iProperty) {
           return this.getPath(iProperty + '.hasFormula');
         }.bind(this));
@@ -878,7 +900,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
        * @param ioStorage {Object}
        * @param iDim {String}
        */
-      addToStorageForDimension: function( ioStorage, iDim) {
+      addToStorageForDimension: function (ioStorage, iDim) {
         var tCollection = this.get(iDim + 'CollectionClient'),
             tAttrDesc = this.get(iDim + 'AttributeDescription'),
             tAttrs = (tAttrDesc && tAttrDesc.get('attributes')) || [];
@@ -889,7 +911,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
             DG.ArchiveUtils.addLink(ioStorage, tKey, iAttr);
           });
         }
-        if( tAttrDesc) {
+        if (tAttrDesc) {
           ioStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
           ioStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
         }

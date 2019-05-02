@@ -36,7 +36,7 @@ DG.Analysis = {
   },
 
   /**
-   * Enumeration of possible types for attributes.
+   * Enumeration of possible roles for attributes.
    */
   EAnalysisRole: {
         eInvalid: -1,
@@ -46,7 +46,9 @@ DG.Analysis = {
         ePrimaryCategorical: 3,
         eSecondaryCategorical: 4,
         eLegendNumeric: 5,
-        eLegendCategorical: 6
+        eLegendCategorical: 6,
+        eVerticalSplit: 7,      // for attribute in place DG.GraphTypes.EPlace.eTopSplit
+        eHorizontalSplit: 8     // for attribute in place DG.GraphTypes.EPlace.eRightSplit
   },
 
   EPercentKind: {

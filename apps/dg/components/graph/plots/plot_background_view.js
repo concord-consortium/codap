@@ -54,6 +54,18 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   yAxisView: null,
 
   /**
+   * Which of the split plots do I correspond to?
+   * @property (Number}
+   */
+  rowIndex: 0,
+
+  /**
+   * Which of the split plots do I correspond to?
+   * @property (Number}
+   */
+  colIndex: 0,
+
+  /**
    * Dynamically set to true/false during episodes such as marquee select
    * @property {Boolean}
    */
@@ -64,12 +76,20 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
   _backgroundImage: null,
 
+  /**
+   * If true, darken the background slightly (useful for grid of plots)
+   * @property {Boolean}
+   */
+  darkenBackground: false,
+
   colorDidChange: function() {
     var tStoredColor = this.getPath('graphModel.plotBackgroundColor') || 'white',
         tStoredOpacity = this.getPath('graphModel.plotBackgroundOpacity'),
         tNewColor = tStoredColor ? SC.Color.from( tStoredColor) : null;
     if( !tNewColor)
         return;
+    if( this.get('darkenBackground'))
+      tNewColor = tNewColor.sub( SC.Color.from('#101010'));
     if( !SC.none(tStoredOpacity))
         tNewColor.set('a', tStoredOpacity);
     this.set('backgroundColor', tNewColor.get('cssText'));
@@ -90,7 +110,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   didCreateLayer:function () {
     var tGraphView = this.get( 'parentView' );
     sc_super();
-    tGraphView.get( 'plotViews' ).forEach( function ( iPlotView ) {
+    tGraphView.getPlotViewArray( this.get('rowIndex'), this.get('colIndex')).forEach( function ( iPlotView ) {
       iPlotView.didCreateLayer();
     } );
     tGraphView.drawPlots();
@@ -265,7 +285,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         });
       }
       SC.run(function(){
-        this_.get('parentView').selectPointsInRect( tRect, tBaseSelection, tLastRect);
+        this_.get('parentView').selectPointsInRect( tRect, tBaseSelection, tLastRect,
+            this_.get('rowIndex'), this_.get('colIndex'));
       });
       tLastRect = tRect;
     }

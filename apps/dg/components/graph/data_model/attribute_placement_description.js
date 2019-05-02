@@ -76,12 +76,14 @@ DG.AttributePlacementDescription = SC.Object.extend(
        * @param iAttribute
        */
       addAttribute: function (iAttribute) {
-        if (!this._attributes.contains(iAttribute))
-          this._attributes.push(iAttribute);
-        this.setupStats();
-        this.invalidateCaches();
-        this.notifyPropertyChange('attribute');
-        iAttribute.addObserver('collection', this, 'collectionDidChange');
+        if( iAttribute) {
+          if (!this._attributes.contains(iAttribute))
+            this._attributes.push(iAttribute);
+          this.setupStats();
+          this.invalidateCaches();
+          this.notifyPropertyChange('attribute');
+          iAttribute.addObserver('collection', this, 'collectionDidChange');
+        }
       },
 
       removeAttributeAtIndex: function (iIndex) {
@@ -219,6 +221,14 @@ DG.AttributePlacementDescription = SC.Object.extend(
       /**
        @property {Boolean}
        */
+      noAttributes: function () {
+        var tAttributes = this.get('attributes');
+        return !tAttributes || !SC.isArray(tAttributes) || (tAttributes.length === 0);
+      }.property('attributes'),
+
+      /**
+       @property {Boolean}
+       */
       hasFormula: function () {
         var tFormula = this.getPath('attribute.formula');
         return !SC.empty(tFormula);
@@ -272,6 +282,7 @@ DG.AttributePlacementDescription = SC.Object.extend(
        */
       colorMapDidChange: function () {
         this.invalidateCaches();
+        this.propertyDidChange('categoryMap');
       }.observes('attribute.categoryMap'),
 
       casesForCategory: function (iCellName) {

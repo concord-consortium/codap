@@ -142,13 +142,14 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
               oldLowerBound = this_._lowerBoundAtDragStart,
               oldUpperBound = this_._upperBoundAtDragStart,
               wasDilate = (newLowerBound === oldLowerBound || newUpperBound === oldUpperBound),
-              tAxisKey = null, tGraphModelId = null;
+              tGraphView = this_.get('parentView'),
+              tAxisKey, tGraphModelId;
           if      (tOrientation === 'horizontal') { tAxisKey = 'xAxisView'; }
           else if (tOrientation === 'vertical')   { tAxisKey = 'yAxisView'; }
           else                                    { tAxisKey = 'y2AxisView'; }
 
           DG.ObjectMap.forEach(DG.currDocumentController().componentControllersMap, function(id, controller) {
-            if (controller.get(tAxisKey) === this_) {
+            if (controller.get('graphView') === tGraphView) {
               tGraphModelId = id;
             }
           });
@@ -184,15 +185,17 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         }
 
         function doTranslate( idX, idY) {
-          if( !tClickHandling && this_._isDragging) {
-            //DG.SoundUtilities.drag();
-            var tDelta = this_.get('isVertical') ? idY : idX,
-                tLowerBound = this_.getPath('model.lowerBound'),
-                tCurrentDelta = tHelper.coordinateToDataGivenCell( 0, 0) -
-                    tHelper.coordinateToDataGivenCell( 0, tDelta),
-                tIncDelta = tCurrentDelta - (tLowerBound - this_._lowerBoundAtDragStart);
-            this_.get('model').translate( tIncDelta);
-          }
+          SC.run(function () {
+            if (!tClickHandling && this_._isDragging) {
+              //DG.SoundUtilities.drag();
+              var tDelta = this_.get('isVertical') ? idY : idX,
+                  tLowerBound = this_.getPath('model.lowerBound'),
+                  tCurrentDelta = tHelper.coordinateToDataGivenCell(0, 0) -
+                      tHelper.coordinateToDataGivenCell(0, tDelta),
+                  tIncDelta = tCurrentDelta - (tLowerBound - this_._lowerBoundAtDragStart);
+              this_.get('model').translate(tIncDelta);
+            }
+          });
         }
 
         // We are dragging in the lower portion of the axis. The upper bound will remain fixed
@@ -294,7 +297,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
 
         // ============body of setupEventHandling===========
         if( SC.none( this_._midPanel)) {
-          this_._midPanel = this_._paper.rect(0, 0, 0, 0)
+          this_._midPanel = this_.get('paper').rect(0, 0, 0, 0)
                     .attr({ stroke: DG.RenderingUtilities.kTransparent,
                             fill: DG.RenderingUtilities.kSeeThrough });
           this_._lowerPanel = this_._midPanel.clone();

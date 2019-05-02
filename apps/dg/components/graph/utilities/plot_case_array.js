@@ -39,8 +39,8 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
   },
 
   length: function() {
-    return this._cases.length;
-  }.property( '_cases'),
+    return this._map.length;
+  }.property( '_map'),
 
   at: function( iIndex) {
     return this._cases[this._map[iIndex]];
@@ -84,7 +84,7 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
    */
   forEachWithInvokeLater: function( iDoF, iEndF) {
     var tLoopIndex = 0,
-        tNumCases = this._cases.length,
+        tNumCases = this.length(),
         // Get a bit happening early with two iterations.
         tFirstIncrement = Math.min(200, tNumCases / 20),
         tCountdown = (tNumCases > 1000) ? 5 : 0,
@@ -125,8 +125,9 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
     var tResult = DG.PlotUtilities.PlotCaseArray.create();
     this.forEach( function( iCase, iMapIndex) {
       if( iBoolF( iCase, iMapIndex)) {
-        tResult._cases[ iMapIndex] = iCase;
-        tResult._map.push( iMapIndex);
+        var tCaseIndex = tResult._cases.length;
+        tResult._cases.push( iCase);
+        tResult._map.push( tCaseIndex);
       }
     }.bind( this));
     return tResult;

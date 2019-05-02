@@ -688,6 +688,8 @@ SC.stringsFor("en", {
     "DG.DataDisplayMenu.removeAttribute_y": "Remove Y: %@", // %@ = attribute name
     "DG.DataDisplayMenu.removeAttribute_y2": "Remove Y: %@", // %@ = attribute name
     "DG.DataDisplayMenu.removeAttribute_legend": "Remove Legend: %@", // %@ = attribute name
+    "DG.DataDisplayMenu.removeAttribute_top": "Remove Side-by-side Layout by %@", // %@ = attribute name
+    "DG.DataDisplayMenu.removeAttribute_right": "Remove Vertical Layout by %@", // %@ = attribute name
     "DG.DataDisplayMenu.treatAsCategorical": "Treat as Categorical",
     "DG.DataDisplayMenu.treatAsNumeric": "Treat as Numeric",
     "DG.DataDisplayMenu.hide": "Hide and Show",
@@ -712,6 +714,8 @@ SC.stringsFor("en", {
     // DG.GraphView
     "DG.GraphView.replaceAttribute": "Replace %@ with %@",
     "DG.GraphView.addAttribute": "Add attribute %@",
+    "DG.GraphView.layoutPlotsSideBySide": "Layout side-by-side by %@",
+    "DG.GraphView.layoutPlotsVertically": "Layout vertically by %@",
     "DG.GraphView.addToEmptyPlace": "Create axis with %@",
     "DG.GraphView.addToEmptyX": "Create x-axis with %@",
     "DG.GraphView.dropInPlot": "Color points by values of %@",
