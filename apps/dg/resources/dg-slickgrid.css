@@ -39,6 +39,12 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   color: #555555;
   text-decoration: none;
   background: #e6e6e6;
+  cursor: pointer;
+}
+
+.slick-header-column.ui-state-default:hover {
+  text-decoration: underline;
+  color: #1b5798;
 }
 
 .slick-column-name {
