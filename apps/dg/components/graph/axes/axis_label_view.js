@@ -1,5 +1,5 @@
 // ==========================================================================
-//                            DG.GraphTypes
+//                              DG.AxisLabelView
 //
 //  Author:   William Finzer
 //
@@ -18,25 +18,29 @@
 //  limitations under the License.
 // ==========================================================================
 
-DG.GraphTypes = {
+sc_require('components/graph/utilities/graph_drop_target');
+sc_require('views/raphael_base');
+sc_require('utilities/rendering_utilities');
 
-  /**
-   * Enumeration of places.
-   */
-  EPlace: {
-        eUndefined: -1,
-        eFirstPlace: 0,
-        eX: 0,
-        eY: 1,
-        eLegend: 2,
-        eY2: 3,
-        ePolygon: 4,
-        eCaption: 5,
-        eTopSplit: 6,
-        eRightSplit: 7,
-        eLastPlace: 7,
-        eNumPlaces: 8
-  }
+/** @class  DG.AxisLabelView - Displays attribute name(s) on left or bottom of graph.
+ *          Particularly important when a plot has been split so there are multiple independent axes there.
 
-};
+
+ @extends DG.RaphaelBaseView
+ */
+DG.AxisLabelView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
+    /** @scope DG.AxisLabelView.prototype */
+    (function () {
+      return {
+
+        classNames: 'dg-axis-view'.w(),
+
+        orientation: null,
+
+        blankDropHint: 'DG.GraphView.addToEmptyPlace',
+
+        desiredExtent: DG.RenderingUtilities.kCaptionFontHeight
+
+      };
+    }()));
 

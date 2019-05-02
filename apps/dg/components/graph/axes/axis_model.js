@@ -145,8 +145,7 @@ DG.AxisModel = SC.Object.extend(
   isNumeric: null,
 
   noAttributes: function() {
-    var tAttributes = this.getPath('attributeDescription.attributes');
-    return !tAttributes || !SC.isArray(tAttributes) || (tAttributes.length === 0);
+    return this.getPath('attributeDescription.noAttributes');
   }.property(),
 
   /**

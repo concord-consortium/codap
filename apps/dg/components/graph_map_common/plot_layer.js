@@ -407,6 +407,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       },
 
       callCreateElement: function (iCase, iIndex, iAnimate, iIsVisible) {
+        // console.log('create element at index ' + iIndex);
         var tPlottedElements = this.get('plottedElements'),
             tElement;
         if (tPlottedElements[iIndex]) {
@@ -576,7 +577,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
    */
   removeExtraElements: function() {
 
-    var tCasesLength = this.getPath('model.cases.length'),
+    var tCasesLength = this.getPath('model.cases').length(),
 
         tPlottedElements = this.get('plottedElements'),
         tPlotElementLength = tPlottedElements.length,

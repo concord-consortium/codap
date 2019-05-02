@@ -122,14 +122,22 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           return;
         }
 
-        var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
-            toggle = function () {
-              var tCurrentValue = tMultipleMovableValues.get('isShowing' + iWhat);
-              tMultipleMovableValues.setComputingNeeded();
-              tMultipleMovableValues.set('isShowing' + iWhat, !tCurrentValue);
-            }.bind(this),
+        var this_ = this;
 
-            tInitialValue = tMultipleMovableValues.get('isShowing' + iWhat),
+        function toggle() {
+
+          function doToggle( iPlot) {
+            var tMultipleMovableValues = iPlot.get('multipleMovableValuesModel'),
+                tCurrentValue = tMultipleMovableValues.get('isShowing' + iWhat);
+            tMultipleMovableValues.setComputingNeeded();
+            tMultipleMovableValues.set('isShowing' + iWhat, !tCurrentValue);
+          }
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
+        }
+
+        var tInitialValue = this.getPath('multipleMovableValuesModel.isShowing' + iWhat),
             tUndo = tInitialValue ? ('DG.Undo.graph.hide' + iWhat) : ('DG.Undo.graph.show' + iWhat),
             tRedo = tInitialValue ? ('DG.Redo.graph.hide' + iWhat) : ('DG.Redo.graph.show' + iWhat);
         DG.UndoHistory.execute(DG.Command.create({
@@ -162,30 +170,49 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        * If it's the first one, we may have to deal with counts showing via the base class adornment.
        */
       addMovableValue: function () {
-        var tAddedValue,
+        var this_ = this,
+            tAddedValues = [];
 
-            doAddMovableValue = function () {
-              var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
-                  tNumAlreadyShowing = tMultipleMovableValues.get('values').length,
-                  tPlottedCount = this.get('plottedCount'), // from base class
-                  tBaseClassCountIsShowing = (tNumAlreadyShowing === 0) && tPlottedCount &&
-                      tPlottedCount.get('isShowingCount');
-              if (tAddedValue) {
-                tMultipleMovableValues.addThisValue(tAddedValue);
-                tAddedValue = null;
-              }
-              else
-                tAddedValue = tMultipleMovableValues.addValue();
-              if( tBaseClassCountIsShowing) {
-                tPlottedCount.set('isShowingCount', false);
-                tMultipleMovableValues.set('isShowingCount', true);
-              }
-              this.notifyPropertyChange('movableValueChange');
-            }.bind(this),
+            function doAddMovableValue() {
 
-            doUndoAddMovableValue = function () {
-              this.getAdornmentModel('multipleMovableValues').removeThisValue(tAddedValue);
-            }.bind(this);
+              function addMovableValueToPlot( iPlot, iIndexMinusOne) {
+                var tIndex = iIndexMinusOne + 1,
+                    tMultipleMovableValues = iPlot.get('multipleMovableValuesModel'),
+                    tNumAlreadyShowing = tMultipleMovableValues.get('values').length,
+                    tPlottedCount = iPlot.get('plottedCount'), // from base class
+                    tBaseClassCountIsShowing = (tNumAlreadyShowing === 0) && tPlottedCount &&
+                        tPlottedCount.get('isShowingCount'),
+                    tAddedValue = tAddedValues[ tIndex];
+                if (tAddedValue) {
+                  tMultipleMovableValues.addThisValue(tAddedValue);
+                  tAddedValues[ tIndex] = null;
+                }
+                else {
+                  tAddedValue = tMultipleMovableValues.addValue();
+                  tAddedValues[ tIndex] = tAddedValue;
+                }
+                if (tBaseClassCountIsShowing) {
+                  tPlottedCount.set('isShowingCount', false);
+                  tMultipleMovableValues.set('isShowingCount', true);
+                }
+                iPlot.notifyPropertyChange('movableValueChange');
+              }
+
+              addMovableValueToPlot( this_, -1);
+              this_.get('siblingPlots').forEach( addMovableValueToPlot);
+            }
+
+            function doUndoAddMovableValue() {
+
+              function undoAddMovableValueFromPlot( iPlot, iIndexMinusOne) {
+                var tIndex = iIndexMinusOne + 1,
+                    tAddedValue = tAddedValues[ tIndex];
+                iPlot.getAdornmentModel('multipleMovableValues').removeThisValue(tAddedValue);
+              }
+
+              undoAddMovableValueFromPlot( this_, -1);
+              this_.get('siblingPlots').forEach( undoAddMovableValueFromPlot);
+            }
 
         DG.UndoHistory.execute(DG.Command.create({
           name: "graph.addMovableValue",
@@ -261,15 +288,22 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          var avg = this_.toggleAdornmentVisibility(iAdornmentKey, iToggleLogString);
-          if (avg) {
-            if (avg.get('isVisible')) {
-              avg.recomputeValue();     // initialize
-            } else {
-              avg.setComputingNeeded(); // make sure we recompute when made visible again
+
+          function doToggle( iPlot) {
+            var avg = iPlot.toggleAdornmentVisibility(iAdornmentKey, iToggleLogString);
+            if (avg) {
+              if (avg.get('isVisible')) {
+                avg.recomputeValue();     // initialize
+              } else {
+                avg.setComputingNeeded(); // make sure we recompute when made visible again
+              }
             }
           }
-          return !avg || avg.get('isVisible');
+
+          doToggle( this_);
+          this_.get('siblingPlots').forEach( doToggle);
+
+          return this_.getAdornmentModel( iAdornmentKey).get('isVisible');
         }
 
         DG.UndoHistory.execute(DG.Command.create({
@@ -326,13 +360,8 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         this.toggleAverage('plottedBoxPlot', 'togglePlottedBoxPlot');
       },
 
-      handleDataConfigurationChange: function ( iKey) {
-        if (!DG.assert(!this.get('isDestroyed'), "DG.DotPlotModel.handleDataConfiguration() shouldn't be triggered after destroy()!"))
-          return;
+      updateAdornmentsModels: function() {
         sc_super();
-        var kAnimate = true, kDontLog = false;
-        this.rescaleAxesFromData( iKey !== 'hiddenCases', kAnimate, kDontLog);
-
         ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
           var adornmentModel = this.getAdornmentModel(iAdornmentKey);
           if (adornmentModel) {
@@ -346,6 +375,15 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             }
           }
         }.bind(this));
+      },
+
+      handleDataConfigurationChange: function ( iKey) {
+        if (!DG.assert(!this.get('isDestroyed'), "DG.DotPlotModel.handleDataConfiguration() shouldn't be triggered after destroy()!"))
+          return;
+        sc_super();
+        var kAnimate = true, kDontLog = false;
+        this.rescaleAxesFromData( iKey !== 'hiddenCases', kAnimate, kDontLog);
+        this.updateAdornmentModels();
       },
 
       /**
@@ -419,6 +457,35 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       restoreStorage: function (iStorage) {
+        sc_super();
+        var tMultipleMovable = this.getAdornmentModel('multipleMovableValues');
+        if (tMultipleMovable)
+          tMultipleMovable.set('axisModel', this.get('primaryAxisModel'));
+      },
+
+      /**
+       * Return a list of objects { key, class, useAdornmentModelsArray, storage }
+       * Subclasses should override calling sc_super first.
+       * @return {[Object]}
+       */
+      getAdornmentSpecs: function() {
+        var tSpecs = sc_super();
+        DG.ObjectMap.forEach( this._adornmentModels, function( iKey, iAdorn) {
+          tSpecs.push( {
+            key: iKey,
+            "class": iAdorn.constructor,
+            useAdornmentModelsArray: true,
+            storage: iAdorn.createStorage()
+          });
+        });
+        return tSpecs;
+      },
+
+      /**
+       * Base class will do most of the work. We just have to finish up the multipleMovableValues model.
+       * @param {DG.PlotModel} iSourcePlot
+       */
+      installAdornmentModelsFrom: function( iSourcePlot) {
         sc_super();
         var tMultipleMovable = this.getAdornmentModel('multipleMovableValues');
         if (tMultipleMovable)

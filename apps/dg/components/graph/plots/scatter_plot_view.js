@@ -176,18 +176,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
        Method name is legacy artifact of SproutCore range observer implementation.
        */
       dataRangeDidChange: function (iSource, iQuestion, iKey, iChanges) {
-        var this_ = this,
-            tPlotElementLength = this.get('plottedElements').length,
-            tCases = this.getPath('model.cases'),
-            tRC = this.createRenderContext(),
-            // iChanges can be a single index or an array of indices
-            tChanges = (SC.typeOf(iChanges) === SC.T_NUMBER ? [iChanges] : iChanges);
-        tChanges = tChanges || [];
-        tChanges.forEach(function (iIndex) {
-          if (iIndex >= tPlotElementLength)
-            this_.callCreateElement(tCases.at(iIndex), iIndex, this_._createAnimationOn);
-          this_.setCircleCoordinate(tRC, tCases.at(iIndex), iIndex);
-        });
+        var tCases = this.getPath('model.cases');
+
+        this.notifyPropertyChange('plotDisplayDidChange');
 
         // If we are displaying squares then we invalidate the display so squares will be updated
         if (this.getPath('model.areSquaresVisible'))
@@ -201,7 +192,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
 
         this.updateAdornments();
 
-        this.rescaleOnParentCaseCompletion(tCases);
+        this.rescaleOnParentCaseCompletion( tCases);
 
         sc_super();
       },

@@ -670,7 +670,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   this_.addAxisHandler(tView);
                 });
           }
-        }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView'),
+        }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView', 'topAxisView', 'rightAxisView'),
 
         setupAttributeMenu: function (event, iAxisView, iAttrIndex) {
           var tDataDisplayModel = this.get('dataDisplayModel'),
@@ -708,6 +708,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
               case 'vertical2':
                 tAxisKey = 'y2';
                 break;
+              default:
+                tAxisKey = tOrientation;
             }
           }
 

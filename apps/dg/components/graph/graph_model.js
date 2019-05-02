@@ -52,19 +52,58 @@ DG.GraphModel = DG.DataLayerModel.extend(
     /**
      @property { DG.AxisModel }
      */
-    xAxis: null,
+    xAxis: function( iKey, iValue) {
+      if( iValue) {
+        this.get('axisCoordinator').setAxis('x', 0, iValue);
+      }
+      return this.get('xAxisArray')[0];
+    }.property(),
 
     /**
      @property { DG.AxisModel }
      */
-    yAxis: null,
+    yAxis: function( iKey, iValue) {
+      if( iValue) {
+        this.get('axisCoordinator').setAxis('y', 0, iValue);
+      }
+      return this.get('yAxisArray')[0];
+    }.property(),
 
     /**
      * This second axis is only instantiated when the user has indicated a desire to plot an attribute on an axis
      * to the right of the plot.
      * @property { DG.AxisModel }
      */
-    y2Axis: null,
+    y2Axis: function( iKey, iValue) {
+      if( iValue) {
+        this.get('axisCoordinator').setAxis('y2', 0, iValue);
+      }
+      return this.get('y2AxisArray')[0];
+    }.property(),
+
+    /**
+     * For numeric axes in each dimension, receives notification of bounds change and synchs the other
+     * axes' bounds with the bounds belonging to the notifying axis.
+     * @property {DG.AxisCoordinator}
+     */
+    axisCoordinator: null,
+
+    /*
+     * With the possibility of splitting plots, we have arrays of each of the axes
+     */
+    xAxisArray: function() {
+      return this.getPath('axisCoordinator.xAxisArray');
+    }.property('axisCoordinator.xAxisArray'),
+    yAxisArray: function() {
+      return this.getPath('axisCoordinator.yAxisArray');
+    }.property('axisCoordinator.yAxisArray'),
+    y2AxisArray: function() {
+      return this.getPath('axisCoordinator.y2AxisArray');
+    }.property('axisCoordinator.y2AxisArray'),
+
+    // When plots are split, we have top and right axis
+    topAxis: null,
+    rightAxis: null,
 
     /**
      * Returns the first plot in _plots, if any. When used to set,
@@ -84,7 +123,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
           this.removePlotObserver( iPlot);
           iPlot.destroy();
         }.bind( this));
-        this._plots = [ iPlot];
+        this._plots[0] = iPlot;
+        this._plots.length = 1;
         // TODO: Figure out a more elegant way to observe this property
         iPlot.addObserver('connectingLine', this, this.connectingLineChanged);
         iPlot.addObserver('canSupportConfigurations', this, this.canSupportConfigurationsChanged);
@@ -165,6 +205,31 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     /**
+     * This is a 3-dim array of PlotModels. The innermost dimension allows for multiple overlaid scatterplots.
+     * [row][column][overlay]
+     * @property {[[DG.PlotModel]]}
+     */
+    splitPlotArray: null,
+
+    /**
+     * @property {Boolean}
+     */
+    isSplit: function() {
+      return this.getPath('dataConfiguration.hasSplitAttribute');
+    }.property(),
+    isSplitDidChange: function() {
+      this.propertyDidChange('isSplit');
+    }.observes('dataConfiguration.hasSplitAttribute'),
+
+    numSplitRows: function() {
+      return this.getPath('dataConfiguration.rightAttributeDescription.attributeStats.numberOfCells') || 1;
+    }.property(),
+
+    numSplitColumns: function() {
+      return this.getPath('dataConfiguration.topAttributeDescription.attributeStats.numberOfCells') || 1;
+    }.property(),
+
+    /**
      Observers can use this property to know when to get ready for a change; e.g. to set up a cache of current
      point positions for an animation.
      @property {Boolean}
@@ -243,6 +308,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
           }
         }
       }.bind(this);
+
       function getExtraYAttributes (model) {
         var yAttrName =  model.get('yAttributeName');
         if (Array.isArray(yAttrName)) {
@@ -277,10 +343,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
 
       this._plots = [];
+      this.splitPlotArray = [[this._plots]];
 
-      ['x', 'y', 'y2', 'legend'].forEach(function (iKey) {
+      this.axisCoordinator = DG.AxisCoordinator.create();
+
+      ['x', 'y', 'y2', 'legend', 'right', 'top'].forEach(function (iKey) {
         configureAttributeDescription(iKey);
-        if( iKey !== 'legend') {
+        if( ['x', 'y', 'y2'].indexOf( iKey) >= 0) {
           var tDescription = this.getPath(
               'dataConfiguration.' + (iKey + 'AttributeDescription'));
           this.set(iKey + 'Axis',
@@ -319,7 +388,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
         });
       }
 
-      // GraphModel calls init() on itself (cf. reset()) so we need to handle init() and re-init()
+      // The top and right axes are always DG.CellAxis, so we might as well create them here
+      this.set('topAxis', DG.CellAxisModel.create( {
+        dataConfiguration: tConfiguration, attributeDescription: tConfiguration.get('topAttributeDescription')
+      }));
+      this.set('rightAxis', DG.CellAxisModel.create( {
+        dataConfiguration: tConfiguration, attributeDescription: tConfiguration.get('rightAttributeDescription')
+      }));
+
       var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
           numberToggle = this.get('numberToggle'),
           numberToggleLastMode = this.get('numberToggleLastMode'),
@@ -349,6 +425,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
     destroy: function() {
       this.removeObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
+      this.axisCoordinator.destroy();
 
       sc_super();
     },
@@ -438,6 +515,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
     /**
       Sets the attribute for the specified axis.
+     Note that prior to the "split at top or right" feature we only had to worry about the "zeroth" plot.
+     But with splitting, we have to take into account that all the plots may need to be swapped out for new
+     ones. We accomplish that by detecting that the new attribute is not of the same nominal/numeric type and,
+     if so, wiping out all the sibling plots so we can start over.
       @param  {DG.DataContext}      iDataContext -- The data context for this graph
       @param  {Object}              iAttrRefs --
               {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
@@ -513,14 +594,25 @@ DG.GraphModel = DG.DataLayerModel.extend(
           tTargetAxisKey = 'y2Axis';
           tOtherDim = 'x';
           break;
+        case 'top':
+        case 'right':
+          tTargetDescKey = iOrientation + 'AttributeDescription';
+          tTargetAxisKey = iOrientation + 'Axis';
+          break;
       }
 
+      this.beginPropertyChanges();
       this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 
       var tDataConfiguration = this.get('dataConfiguration'),
           tCurrentAttribute = tDataConfiguration.getPath(tTargetDescKey + '.attribute'),
           tOtherAttribute = tDataConfiguration.getPath(tOtherDim + 'AttributeDescription.attribute'),
-          tIsAxisSwitch = iAttrRefs.attributes[0] === tOtherAttribute;
+          tNewAttribute = iAttrRefs.attributes[0],
+          tIsAxisSwitch = tNewAttribute === tOtherAttribute;
+
+      tDataConfiguration.beginPropertyChanges();
+      this.removeAllSplitPlotsAndAxes();
+
       if (tIsAxisSwitch) {
         switchAxes();
       }
@@ -532,10 +624,17 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
         // Make sure correct kind of axis is installed
         this.privSyncAxisWithAttribute(tTargetDescKey, tTargetAxisKey);
-        this.privSyncOtherAxisWithAttribute(tOtherDim);
+        if( tOtherDim)
+          this.privSyncOtherAxisWithAttribute(tOtherDim);
         this.invalidate();
       }
+
+      tDataConfiguration.endPropertyChanges();
       this.set('aboutToChangeConfiguration', false); // reset for next time
+      this.endPropertyChanges();
+      this.updateAxisArrays();
+      this.updateSplitPlotArray();
+      this.notifyPropertyChange('splitPlotChange');
     },
 
     /**
@@ -544,7 +643,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
       @param  {Object}              iAttrRefs -- The attribute to set for the axis
              {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
              {DG.Attribute}        iAttrRefs.attributes -- The array of attributes to set for the axis
-      @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
      */
     addAttributeToAxis: function( iDataContext, iAttrRefs) {
       DG.logUser("addAxisAttribute: { attribute: %@ }", iAttrRefs.attributes[0].get('name'));
@@ -572,6 +670,19 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.addPlot( tPlot);
 
       this.notifyPropertyChange('attributeAdded');
+    },
+
+    /**
+     * Subclasses will override
+     */
+    removeSplitAttribute: function( iDescKey, iAxisKey, iIndex) {
+      this.removeAllSplitPlotsAndAxes();
+      this.get('dataConfiguration').setAttributeAndCollectionClient(iDescKey, null,
+          DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
+
+      this.updateAxisArrays();
+      this.updateSplitPlotArray();
+      this.notifyPropertyChange('splitPlotChange');
     },
 
     /**
@@ -640,6 +751,62 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     /**
+     * The top or right "axis view" has accepted the drop of a nominal attribute
+     * @param iDataContext {DG.DataContext}
+     * @param iAttrRefs { {attributes: [{DG.Attribute}], collection: {DG.Collection}}}
+     * @param iSplitPosition { 'top' | 'right' }
+     */
+    splitByAttribute: function( iDataContext, iAttrRefs, iSplitPosition) {
+
+      function replaceOtherWithCurrent() {
+        this_.removeAllSplitPlotsAndAxes();
+        var tCurrentAttribute = tDataConfiguration.getPath( tTargetDescKey + '.attribute'),
+            tCurrentCollection = tDataConfiguration.getPath( tTargetDescKey + '.collection');
+        tDataConfiguration.setAttributeAndCollectionClient( tOtherDescKey, {
+          attributes: [ tCurrentAttribute ], collection: tCurrentCollection
+        });
+        this_.notifyPropertyChange('removedAllSplitPlotsAndAxes');
+      }
+
+      this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
+
+      var this_ = this,
+          tDataConfiguration = this.get('dataConfiguration'),
+          tOtherSplitPosition = iSplitPosition === 'top' ? 'right' : 'top',
+          tTargetDescKey = iSplitPosition + 'AttributeDescription',
+          tOtherDescKey = tOtherSplitPosition + 'AttributeDescription',
+          tDroppedAttribute = iAttrRefs.attributes[0],
+          tOtherAttribute = tDataConfiguration.getPath( tOtherDescKey + '.attribute');
+      if( tDroppedAttribute === tOtherAttribute) {
+        replaceOtherWithCurrent();
+      }
+      tDataConfiguration.set('dataContext', iDataContext);
+      tDataConfiguration.setAttributeAndCollectionClient(tTargetDescKey, iAttrRefs);
+
+      this.invalidate();
+
+      this.updateAxisArrays();
+
+      this.updateSplitPlotArray();
+
+      this.set('aboutToChangeConfiguration', false); // reset for next time
+
+      this.notifyPropertyChange('splitPlotChange');
+    },
+
+    /**
+     * A category map for an attribute on either the top or right axis has changed.
+     * By invalidating all split plots the correct points will be drawn on the next redraw.
+     */
+    splitCategoriesDidChange: function() {
+      this.forEachSplitPlotElementDo( function( iPlotArray) {
+        iPlotArray.forEach( function( iPlot) {
+          iPlot.invalidateCaches();
+        });
+      });
+    }.observes('dataConfiguration.categoryMap'),
+
+    /**
      * Useful for knowing whether we can rescale.
      * @return {Boolean}
      */
@@ -674,9 +841,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     rescaleAxesFromData: function( iShrink, iAnimate) {
-      var tPlot = this.get('plot');
-      if( tPlot)
-        tPlot.rescaleAxesFromData( iShrink, iAnimate);
+      this.forEachSplitPlotElementDo( function( iPlotArray) {
+        iPlotArray[0].rescaleAxesFromData( iShrink, iAnimate);
+      });
     },
 
     /**
@@ -747,6 +914,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * @param iPlot {DG.PlotModel}
      */
     removePlotObserver: function( iPlot) {
+      iPlot.removeObserver('connectingLine', this, this.connectingLineChanged);
       switch( iPlot.constructor) {
         case DG.DotChartModel:
         case DG.BarChartModel:
@@ -769,7 +937,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
             tConfig = this.get('dataConfiguration'),
             tNewPlotClass = tOldPlot.constructor === DG.DotChartModel ?
                 DG.BarChartModel : DG.DotChartModel,
+            tIsSplit = this.get('isSplit'),
             tNewPlot, tAdornmentModels;
+        if( tIsSplit) {
+          this.removeAllSplitPlotsAndAxes();
+        }
         this.set('aboutToChangeConfiguration', true); // signal to prepare
         tNewPlotClass.configureRoles(tConfig);
         tNewPlot = tNewPlotClass.create(this.getModelPointStyleAccessors());
@@ -794,6 +966,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
         this.removePlotObserver(tOldPlot);
         tOldPlot.destroy();
         this.set('aboutToChangeConfiguration', false);  // all done
+        if( tIsSplit) {
+          this.updateAxisArrays();
+          this.updateSplitPlotArray();
+          this.notifyPropertyChange('splitPlotChange');
+        }
       }.bind( this);
 
       var tInitialValue = iChartPlot.get('displayAsBarChart'),
@@ -869,12 +1046,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       tOperativePlot.setIfChanged( 'dataConfiguration', tConfig );
       tOperativePlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
       tOperativePlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
-      for( var tProperty in tAdornmentModels ) {
-        if( tAdornmentModels.hasOwnProperty( tProperty )) {
-          var tModel = tAdornmentModels[tProperty];
-          tOperativePlot.setIfChanged( tProperty, tModel);
-        }
-      }
+      tOperativePlot.installAdornmentModels( tAdornmentModels);
       tOperativePlot.endPropertyChanges();
 
       this.setIfChanged('plot', tOperativePlot);
@@ -988,6 +1160,171 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     /**
+     *
+     */
+    updateAxisArrays: function() {
+      var this_ = this;
+
+      function configureAxisSlot( iKey, iIndex, iClass, iAttrDesc) {
+        var tArray = this_.get(iKey + 'AxisArray'),
+            tRootAxis = tArray[0],
+            tCurrentAxis = tArray[iIndex],
+            tNewAxis;
+        if (!tCurrentAxis || tCurrentAxis.constructor !== iClass) {
+          tNewAxis = iClass.create({
+            dataConfiguration: tDataConfig,
+            attributeDescription: tDataConfig.get(iAttrDesc)
+          });
+          if( tRootAxis.get('isNumeric')) {
+            tNewAxis.setLowerAndUpperBounds(tRootAxis.get( 'lowerBound'), tRootAxis.get( 'upperBound'));
+          }
+          this_.get('axisCoordinator').setAxis( iKey, iIndex, tNewAxis);
+        }
+      }
+
+      var tDataConfig = this.get('dataConfiguration'),
+          tXAxisClass = this.get('xAxis').constructor,
+          tYAxisClass = this.get('yAxis').constructor,
+          tY2AxisClass = this.get('y2Axis').constructor;
+      this.forEachRowDo( function( iRow) {
+        configureAxisSlot( 'y', iRow, tYAxisClass, 'yAttributeDescription');
+        configureAxisSlot( 'y2', iRow, tY2AxisClass, 'y2AttributeDescription');
+      });
+      this.forEachColumnDo( function( iColumn) {
+        configureAxisSlot( 'x', iColumn, tXAxisClass, 'xAttributeDescription');
+      });
+    },
+
+    /**
+     * Make sure there are the right number of plot elements in the array and that
+     * they are configured properly
+     */
+    updateSplitPlotArray: function() {
+      var this_ = this,
+          tRootPlot = this.get('plot'),
+          tNumPlotsPerCell = this.get('splitPlotArray')[0][0].length,
+          tPlotClass = tRootPlot.constructor;  // All plots will be of this class
+
+      this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
+        for( var tAttrIndex = 0; tAttrIndex < tNumPlotsPerCell; tAttrIndex++) {
+          var tCurrentPlot = iPlotArray[tAttrIndex],
+              tNewPlot;
+          if( !tCurrentPlot || tCurrentPlot.constructor !== tPlotClass) {
+            var tProperties = $.extend(this_.getModelPointStyleAccessors(),
+                tRootPlot.getPropsForCopy(),
+                {
+                  dataConfiguration: this_.get('dataConfiguration'),
+                  splitPlotRowIndex: iRow,
+                  splitPlotColIndex: iCol,
+                  xAxis: this_.get('xAxisArray')[iCol],
+                  yAxis: this_.get('yAxisArray')[iRow],
+                  y2Axis: this_.get('y2AxisArray')[0],
+                  yAttributeIndex: tAttrIndex
+                });
+            tNewPlot = tPlotClass.create(tProperties);
+            if( tAttrIndex === 0) {
+              tNewPlot.installAdornmentModelsFrom(tRootPlot);
+              this_.addPlotObserver(tNewPlot);
+              tRootPlot.addSibling(tNewPlot);
+            }
+            iPlotArray[tAttrIndex] = tNewPlot;
+            if (tCurrentPlot) {
+              this_.removePlotObserver(tCurrentPlot);
+            }
+          }
+          else {
+            tCurrentPlot.set('splitPlotRowIndex', iRow);
+            tCurrentPlot.set('splitPlotColIndex', iCol);
+            tCurrentPlot.set('yAttributeIndex', tAttrIndex);
+            tCurrentPlot.invalidateCaches();
+            tCurrentPlot.updateAdornmentModels();
+          }
+        }
+      });
+      this.rescaleAxesFromData( false, false);
+    },
+
+    /**
+     * Called when an x or y attribute has changed type so that we can update the splitting from scratch
+     * once the new attribute is installed.
+     */
+    removeAllSplitPlotsAndAxes: function() {
+
+      function wipeOutAxisArray( iAxisArray) {
+        iAxisArray.forEach( function( iAxis, iIndex) {
+          if( iIndex !== 0)
+            iAxis.destroy();
+        });
+        iAxisArray.length = 1;
+      }
+
+      var this_ = this,
+          tSplitPlotArray = this.get('splitPlotArray'),
+          tRootPlot = tSplitPlotArray[0][0][0];
+      this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iColumn) {
+        if( iRow !== 0 || iColumn !== 0) {
+          iPlotArray.forEach(function (iPlot) {
+            this_.removePlotObserver(iPlot);
+            iPlot.destroy();
+          });
+        }
+      });
+      tSplitPlotArray.length = 1;
+      tSplitPlotArray[0].length = 1;
+      tRootPlot.set('siblingPlots', []);
+
+      wipeOutAxisArray( this.get('xAxisArray'));
+      wipeOutAxisArray( this.get('yAxisArray'));
+      wipeOutAxisArray( this.get('y2AxisArray'));
+
+      this.notifyPropertyChange('removedAllSplitPlotsAndAxes');
+    },
+
+    forEachRowDo: function( iFunc) {
+      var tRowAttrDescription = this.getPath('dataConfiguration.rightAttributeDescription'),
+          tRowLength = tRowAttrDescription.getPath('attributeStats.numberOfCells') || 1,
+          tRowIndex;
+      for( tRowIndex = 0; tRowIndex < tRowLength; tRowIndex++) {
+        iFunc( tRowIndex);
+      }
+    },
+
+    forEachColumnDo: function( iFunc) {
+      var tColAttrDescription = this.getPath('dataConfiguration.topAttributeDescription'),
+          tColLength = tColAttrDescription.getPath('attributeStats.numberOfCells') || 1,
+          tColIndex;
+      for( tColIndex = 0; tColIndex < tColLength; tColIndex++) {
+        iFunc( tColIndex);
+      }
+    },
+
+    /**
+     * Cause the given functor to operate on each of the split plot elements using
+     * the template iFunc(<[DG.PlotModel]>, iRow, iColumn)
+     * @param iFunc {Function}
+     */
+    forEachSplitPlotElementDo: function( iFunc) {
+      var tSplitPlotArray = this.get('splitPlotArray'),
+          tRowAttrDescription = this.getPath('dataConfiguration.rightAttributeDescription'),
+          tRowLength = tRowAttrDescription.getPath('attributeStats.numberOfCells') || 1,
+          tColAttrDescription = this.getPath('dataConfiguration.topAttributeDescription'),
+          tColLength = tColAttrDescription.getPath('attributeStats.numberOfCells') || 1,
+          tRowIndex, tColIndex;
+      for( tRowIndex = 0; tRowIndex < tRowLength; tRowIndex++) {
+        if( !tSplitPlotArray[ tRowIndex]) {
+          tSplitPlotArray[ tRowIndex] = [];
+        }
+        for( tColIndex = 0; tColIndex < tColLength; tColIndex++) {
+          if( !tSplitPlotArray[tRowIndex][tColIndex]) {
+            tSplitPlotArray[tRowIndex][tColIndex] = [];
+          }
+          iFunc( tSplitPlotArray[tRowIndex][tColIndex], tRowIndex, tColIndex);
+        }
+      }
+
+    },
+
+    /**
      * Use the properties of the given object to restore my plot, axes, and legend.
      * @param iStorage {Object}
      */
@@ -1049,7 +1386,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
-      ['x', 'y', 'y2', 'legend'].forEach( function( iKey) {
+      ['x', 'y', 'y2', 'legend', 'top', 'right'].forEach( function( iKey) {
         var tAttrRef = this.instantiateAttributeRefFromStorage(iStorage, iKey + 'Coll', iKey + 'Attr');
         tDataConfig.setAttributeAndCollectionClient(iKey + 'AttributeDescription', tAttrRef,
             iStorage[iKey + 'Role'], iStorage[iKey + 'AttributeType']);
@@ -1057,7 +1394,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.set('aboutToChangeConfiguration', false ); // We're done
 
-      ['x', 'y', 'y2'].forEach( function( iKey) {
+      ['x', 'y', 'y2', 'top', 'right'].forEach( function( iKey) {
         var tAxisClassName = iStorage[iKey + 'AxisClass'],
             tAxisClass = tAxisClassName && DG[tAxisClassName.substring(3)], // convert string to axis class
             tPrevAxis = this.get( iKey + 'Axis'),
