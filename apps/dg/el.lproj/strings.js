@@ -735,5 +735,9 @@ SC.stringsFor("el", {
     "DG.AppController.showHelpForumTitle": "Χώρος Συζητήσεων Βοήθειας",
     "DG.Locale.name.el": "Greek",
     "DG.BarChartModel.cellTipNoLegendSingular": "%@ of %@ (%@%) is %@",
-    "DG.BarChartModel.cellTipNoLegendPlural": "%@ of %@ (%@%) are %@"
+    "DG.BarChartModel.cellTipNoLegendPlural": "%@ of %@ (%@%) are %@",
+    "DG.DataDisplayMenu.removeAttribute_top": "Remove Side-by-side Layout by %@",
+    "DG.DataDisplayMenu.removeAttribute_right": "Remove Vertical Layout by %@",
+    "DG.GraphView.layoutPlotsSideBySide": "Layout side-by-side by %@",
+    "DG.GraphView.layoutPlotsVertically": "Layout vertically by %@"
 });
