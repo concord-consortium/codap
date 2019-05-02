@@ -54,10 +54,15 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
         nextChar = cm.getRange(rangeEnd, nextCharEnd),
         isInsertingFunction = endsWithParentheses(completion.text),
         replaceWithoutParens = isInsertingFunction && (nextChar === '('),
-        // if we're inserting a function reference, don't insert redundant parentheses
-        newText = replaceWithoutParens
-                    ? completion.text.slice(0, completion.text.length - 2)
-                    : completion.text;
+        canonicalString = isInsertingFunction ? completion.text :
+            DG.Attribute.canonicalizeName(completion.text, true),
+        newText;
+    if( completion.text !== canonicalString)
+      canonicalString = '`' + completion.text + '`';
+    // if we're inserting a function reference, don't insert redundant parentheses
+    newText = replaceWithoutParens
+                ? canonicalString.slice(0, canonicalString.length - 2)
+                : canonicalString;
 
     // insert the new text
     cm.replaceRange(newText, rangeStart, rangeEnd, "complete");

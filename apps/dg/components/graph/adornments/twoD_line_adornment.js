@@ -298,12 +298,6 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     tModel.recomputeSlopeAndInterceptIfNeeded();
     var tSlope = tModel.get('slope'),
         tIntercept = tModel.get('intercept');
-/*
-    if( SC.none( tSlope) || SC.none( tIntercept) || !isFinite( tSlope) || !isFinite( tIntercept)) {
-      this.hideElements();
-      return;
-    }
-*/
     this.showElements();
     if( this.myElements === null)
       this.createElements();
