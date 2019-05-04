@@ -980,11 +980,13 @@ DG.ComponentView._createComponent = function (iParams) {
         isVisible: tMakeItVisible,
         showTitleBar: !tIsStandaloneInteractive,
         isResizable: !tIsStandaloneInteractive
-      });
+      }),
+      tContentView;
+  iParams.contentProperties.controller = iParams.controller;
+  tContentView = tComponentClass.create(iParams.contentProperties);
+  tComponentView.addContent(tContentView);
   if( iParams.controller)
     iParams.controller.set('view', tComponentView);
-  iParams.contentProperties.controller = iParams.controller;
-  tComponentView.addContent(tComponentClass.create(iParams.contentProperties));
 
   if (iParams.controller) {
     tComponentView.set('controller', iParams.controller);
