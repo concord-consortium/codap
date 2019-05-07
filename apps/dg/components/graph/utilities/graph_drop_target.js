@@ -95,34 +95,6 @@ DG.GraphDropTarget =
     return tValidForPlotSplit;
   },
 
-  isValidAttributeForScatterplot: function( iDrag) {
-    var tDragAttr = iDrag.data.attribute,
-        tDragAttrIsNominal = tDragAttr.isNominal(),
-        tCurrAttr = this.get('plottedAttribute'),
-        tXDescription = this.getPath('dataConfiguration.xAttributeDescription'),
-        tCurrXAttr = tXDescription ? tXDescription.get('attribute') : DG.Analysis.kNullAttribute,
-        tY1Description = this.getPath('dataConfiguration.yAttributeDescription'),
-        tY1Attr = tY1Description ? tY1Description.get('attribute') : DG.Analysis.kNullAttribute,
-        tValidForScatterplot = (tCurrXAttr !== DG.Analysis.kNullAttribute) &&
-            (tY1Attr !== DG.Analysis.kNullAttribute) &&
-            (tY1Attr !== tDragAttr) &&
-            (tCurrAttr !== tDragAttr) &&
-            tXDescription.get('isNumeric') &&
-            tY1Description.get('isNumeric') &&
-            !tDragAttrIsNominal;
-
-/*
-        tOtherAttr = this.get('otherPlottedAttribute'),
-        tOtherDescr = this.get('otherAttributeDescription'),
-        tValidForScatterplot = (tOtherAttr !== DG.Analysis.kNullAttribute) &&
-            (tCurrAttr !== DG.Analysis.kNullAttribute) &&
-            (tCurrAttr !== tDragAttr) &&
-            !tDragAttrIsNominal &&
-            tOtherDescr && tOtherDescr.get('isNumeric');
-*/
-    return tValidForScatterplot;
-  },
-
   isValidAttribute: function( iDrag) {
     var tDragAttr = iDrag.data.attribute,
         tCurrAttr = this.get('plottedAttribute');
