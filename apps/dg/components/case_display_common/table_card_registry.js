@@ -42,9 +42,10 @@ DG.TableCardRegistry = SC.Object.extend({
   registerView: function (dataContext, view) {
     var contextID = (typeof dataContext === 'object')? dataContext.get('id'): dataContext;
     if (contextID != null) {
-      if (view && view.contentView instanceof DG.HierTableView) {
+      var tContentView = view.get('contentView');
+      if (view && tContentView instanceof DG.HierTableView) {
         this.contextTableMap[contextID] = view;
-      } else if (view && view.contentView instanceof DG.CaseCardView) {
+      } else if (view && tContentView instanceof DG.CaseCardView) {
         this.contextCardMap[contextID] = view;
       } else {
         DG.log("TableCardRegistry: unrecognized view");
