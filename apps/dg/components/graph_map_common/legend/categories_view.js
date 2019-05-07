@@ -194,6 +194,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                 this.keyText.attr(tTextAttrs);
               }
               this.keyText.attr('text', this.cellName);
+              DG.RenderingUtilities.elideToFit( this.keyText, this.spaceForText);
             }
           });
 

@@ -83,6 +83,30 @@ DG.RenderingUtilities = {
   },
 
   /**
+   * Fit the given text element within the given space and, if the whole string does not fit, append ellipsis
+   * @param iTextElement {Raphael Element}
+   * @param iDesiredExtent {Number} space in pixels
+   */
+  elideToFit: function( iTextElement, iDesiredExtent) {
+    var tStringToFit = iTextElement.attr('text'),
+        tNumChars = tStringToFit.length,
+        tExtra = 0,
+        tWidth;
+    do {
+      tWidth = this.getExtentForTextElement(iTextElement, DG.RenderingUtilities.kDefaultFontHeight, true).width;
+      if (tWidth > iDesiredExtent) {
+        var tNewNumChars = Math.floor((iDesiredExtent / tWidth) * tNumChars) - tExtra;
+        tStringToFit = iTextElement.attr('text').substring(0, tNewNumChars) + '…';
+        tNumChars = tStringToFit.length;
+        tExtra++;
+      }
+      iTextElement.attr('text', tStringToFit);
+      tCounter++; // Prevent unexpected failure to exit
+    }
+    while ( tWidth > iDesiredExtent);
+  },
+
+  /**
     @param {element} a Raphael line
     @param {Point} start
     @param {Point} stop
