@@ -320,8 +320,12 @@ DG.GraphView = SC.View.extend(
             tYAxis = this.getPath('model.yAxis'),
             tYAxisAttributeType = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.type'),
             tY2Axis = this.getPath('model.y2Axis'),
-            tBottomAxisLabelView = DG.AxisLabelView.create({orientation: 'horizontal'}),
-            tLeftAxisLabelView = DG.AxisLabelView.create({orientation: 'vertical'}),
+            tBottomAxisLabelView = DG.AxisLabelView.create({
+              orientation: 'horizontal',
+              plottedAttribute: tXAxis.get('firstAttribute')
+            }),
+            tLeftAxisLabelView = DG.AxisLabelView.create({orientation: 'vertical',
+              plottedAttribute: tYAxis.get('firstAttribute')}),
             tXAxisView = getAxisViewClass(tXAxis, tXAxisAttributeType).create({
               orientation: 'horizontal', paperSourceForLabel: tBottomAxisLabelView
             }),

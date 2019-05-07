@@ -103,6 +103,11 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       return this.isValidAttributeForScatterplot( iDrag) || this.isValidAttributeForPlotSplit( iDrag);
     },
 
+    isValidAttributeForPlotSplit: function( iDrag) {
+      return (iDrag.data.attribute !== this.getPath('dataConfiguration.topAttributeDescription.attribute')) &&
+          DG.GraphDropTarget.isValidAttributeForPlotSplit.call(this, iDrag);
+    },
+
     // Draw an orange frame to show we're a drop target.
     dragStarted:function ( iDrag ) {
       var kPadding = 3,

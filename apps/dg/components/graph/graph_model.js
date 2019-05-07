@@ -1080,10 +1080,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
             this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 
-            tNewAxis.set('attributeDescription', tConfig.get(iDescKey));
-            this.set(iAxisKey, tNewAxis);
-            tAxisToDestroy.destroy();
-
             tConfig.setAttributeAndCollectionClient(iDescKey, null,
                 DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
             // The role of the attribute placement description on the axis whose attribute is removed must be secondary
@@ -1103,6 +1099,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
             }
             tConfig.get(iDescKey).set('role', tSecondaryRole);
             tConfig.get(tOtherDesc).set('role', tPrimaryRole);
+
+            tNewAxis.set('attributeDescription', tConfig.get(iDescKey));
+            this.set(iAxisKey, tNewAxis);
+            tAxisToDestroy.destroy();
 
             if (iAxisKey === 'y2Axis') {
               if (tY2Plot) {

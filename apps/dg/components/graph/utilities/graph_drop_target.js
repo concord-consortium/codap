@@ -85,11 +85,13 @@ DG.GraphDropTarget =
 
   isValidAttributeForPlotSplit: function( iDrag) {
     var tDragAttr = iDrag.data.attribute,
+        tCurrAtt = this.get('plottedAttribute'),
         tDragAttrIsNominal = tDragAttr.isNominal(),
         tDataConfiguration = this.getDataConfiguration(),
         tConfigurationHasAtLeastOneAttribute = tDataConfiguration &&
             tDataConfiguration.hasAtLeastOneAttributeAssigned(),
-        tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute;
+        tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute &&
+            tDragAttr !== tCurrAtt;
     return tValidForPlotSplit;
   },
 
