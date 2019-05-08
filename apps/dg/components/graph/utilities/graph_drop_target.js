@@ -114,6 +114,7 @@ DG.GraphDropTarget =
         tFrame,
         tDraggedName = iDrag.data.attribute.get('name'),
         tAttrName = this.getPath('plottedAttribute.name'),
+        tOrientation = this.get('orientation'),
         tDropHint;
 
     function isEmpty( iString) {
@@ -121,15 +122,21 @@ DG.GraphDropTarget =
     }
 
     if( this.isValidAttribute( iDrag)) {
-      if (this.get('orientation') === 'vertical2') {
+      if (tOrientation === 'vertical2') {
         this.set('isVisible', true);
         var tParentView = this.get('parentView');
         if (tParentView)
           tParentView.makeSubviewFrontmost(this);
       }
-      tDropHint = iDrag.data.attribute.isNominal() ? 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName) :
-          (isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
-              'DG.GraphView.replaceAttribute'.loc(tAttrName, tDraggedName));
+      if(iDrag.data.attribute.isNominal()) {
+        if(tOrientation === 'vertical' || tOrientation === 'vertical2')
+          tDropHint = 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName);
+        else tDropHint = 'DG.GraphView.layoutPlotsSideBySide'.loc(tDraggedName)
+      }
+      else {
+        tDropHint = (isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
+            'DG.GraphView.replaceAttribute'.loc(tAttrName, tDraggedName));
+      }
 
       tFrame = {
         x: kWidth, y: kWidth,
