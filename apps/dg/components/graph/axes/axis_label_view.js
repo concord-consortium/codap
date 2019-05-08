@@ -39,7 +39,27 @@ DG.AxisLabelView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
         blankDropHint: 'DG.GraphView.addToEmptyPlace',
 
-        desiredExtent: DG.RenderingUtilities.kCaptionFontHeight
+        desiredExtent: DG.RenderingUtilities.kCaptionFontHeight,
+
+        init: function() {
+          sc_super();
+
+          // Add a classname for use in QA automation
+          var tClassName;
+          switch( this.get('orientation')) {
+            case 'horizontal':
+              tClassName = 'dg-h-axis';
+              break;
+            case 'vertical':
+              tClassName = 'dg-v-axis';
+              break;
+            case 'vertical2':
+              tClassName = 'dg-v2-axis';
+              break;
+          }
+          this.get('classNames').push( tClassName);
+
+        }
 
       };
     }()));
