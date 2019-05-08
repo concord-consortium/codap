@@ -1571,7 +1571,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
             var newCase = tAllCases.at( tDataLength-1);
             if( this.isParentCase( newCase))
               tPlot.set('openParentCaseID', newCase.get('id'));
-            if( aCaseLiesOutsideBounds( iChange.collection, tNewCaseIDs)) {
+            if( tNewCaseIDs && aCaseLiesOutsideBounds( iChange.collection, tNewCaseIDs)) {
               // We always rescale the axes on new data. Previously, we rescaled
               // for child cases but skipped rescale on parent cases because in
               // most cases the parent case values aren't filled in until the end
