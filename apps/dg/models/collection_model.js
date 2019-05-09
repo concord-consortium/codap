@@ -370,6 +370,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var parentID = iProperties.parent;
       var parent;
       var parentItemID;
+      var parentHasChildren;
       var itemID = iProperties.itemID;
 
       // Relate it to its parent collection
@@ -384,11 +385,12 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         } else {
           parent = DG.store.resolve(parentID);
           parentItemID = parent.item.id;
-          if (SC.none(itemID)){
+          parentHasChildren = parent.get('children') && parent.get('children').length > 0;
+          if (parentHasChildren && SC.none(itemID)){
             // if new child case has no item id, create new item by merging new
             // values with parent values.
             item = dataSet.addDataItem(joinValues(values, parent.item));
-          } else if (itemID !== parentItemID) {
+          } else if (itemID && itemID !== parentItemID) {
             // if new child has item id and it differs from parent's item id,
             // create a new item by merging new values with parent values
             item = dataSet.addDataItem(DG.DataItem.create({id: itemID, values: joinValues(values, parent.item)}));
