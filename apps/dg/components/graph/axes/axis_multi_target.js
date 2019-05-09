@@ -108,6 +108,11 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           DG.GraphDropTarget.isValidAttributeForPlotSplit.call(this, iDrag);
     },
 
+    /**
+     * @override
+     * @param iDrag
+     * @return {boolean|*}
+     */
     isValidAttributeForScatterplot: function( iDrag) {
       var tDragAttr = iDrag.data.attribute,
           tDragAttrIsNominal = tDragAttr.isNominal(),
