@@ -158,6 +158,9 @@ DG.DataSet = SC.Object.extend((function() // closure
         // the object may be just values or an object with id and values
         if (data.values && typeof data.values === 'object') {
           data.dataSet = this;
+          if (!data.id) {
+            data.id = DG.DataUtilities.createUniqueID();
+          }
           data.values = DG.DataUtilities.canonicalizeAttributeValues(this.attrs, data.values);
           dataItem = DG.DataItem.create(data);
         } else {
