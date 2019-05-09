@@ -381,6 +381,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           case 'createItems':
           case 'updateItems':
           case 'deleteItems':
+          case 'moveItems':
             // Nothing to do here because we'll receive corresponding case notifications
             break;
           default:

@@ -1310,7 +1310,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               operation: 'moveCases',
               collection: collection,
               cases: [theCase],
-              caseOrder: [iValues.caseOrder],
+              caseOrder: iValues.caseOrder,
               requester: this.get('id')
             });
             success = (changeResult && changeResult.success);
@@ -1488,9 +1488,22 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (deletedItems) {
               return {success: true, values: deletedItems && deletedItems.map(function (item) {return item.id;})};
             }
-          } else {
-            return {success: false};
           }
+          return {success: false};
+        },
+        notify: function (iResources, iValues) {
+          var items = iResources.itemSearch;
+          var context = iResources.dataContext;
+          if (context && (items != null) && iValues.itemOrder) {
+            context.applyChange({
+              operation: 'moveItems',
+              items: items,
+              itemOrder: iValues.itemOrder,
+              requester: this.get('id')
+            });
+            return {success: true};
+          }
+          return {success: false};
         }
       },
 
