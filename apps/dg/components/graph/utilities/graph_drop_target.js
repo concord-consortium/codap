@@ -131,7 +131,7 @@ DG.GraphDropTarget =
       if(iDrag.data.attribute.isNominal()) {
         if(tOrientation === 'vertical' || tOrientation === 'vertical2')
           tDropHint = 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName);
-        else tDropHint = 'DG.GraphView.layoutPlotsSideBySide'.loc(tDraggedName)
+        else tDropHint = 'DG.GraphView.layoutPlotsSideBySide'.loc(tDraggedName);
       }
       else {
         tDropHint = (isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
