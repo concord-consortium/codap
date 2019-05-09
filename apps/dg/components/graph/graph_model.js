@@ -842,7 +842,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
     rescaleAxesFromData: function( iShrink, iAnimate) {
       this.forEachSplitPlotElementDo( function( iPlotArray) {
-        iPlotArray[0].rescaleAxesFromData( iShrink, iAnimate);
+        if( iPlotArray[0])  // During some transitions, we may temporarily not have any plots in this cell
+          iPlotArray[0].rescaleAxesFromData( iShrink, iAnimate);
       });
     },
 
@@ -1080,10 +1081,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
             this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 
-            tNewAxis.set('attributeDescription', tConfig.get(iDescKey));
-            this.set(iAxisKey, tNewAxis);
-            tAxisToDestroy.destroy();
-
             tConfig.setAttributeAndCollectionClient(iDescKey, null,
                 DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
             // The role of the attribute placement description on the axis whose attribute is removed must be secondary
@@ -1103,6 +1100,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
             }
             tConfig.get(iDescKey).set('role', tSecondaryRole);
             tConfig.get(tOtherDesc).set('role', tPrimaryRole);
+
+            tNewAxis.set('attributeDescription', tConfig.get(iDescKey));
+            this.set(iAxisKey, tNewAxis);
+            tAxisToDestroy.destroy();
 
             if (iAxisKey === 'y2Axis') {
               if (tY2Plot) {
@@ -1571,7 +1572,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
             var newCase = tAllCases.at( tDataLength-1);
             if( this.isParentCase( newCase))
               tPlot.set('openParentCaseID', newCase.get('id'));
-            if( aCaseLiesOutsideBounds( iChange.collection, tNewCaseIDs)) {
+            if( tNewCaseIDs && aCaseLiesOutsideBounds( iChange.collection, tNewCaseIDs)) {
               // We always rescale the axes on new data. Previously, we rescaled
               // for child cases but skipped rescale on parent cases because in
               // most cases the parent case values aren't filled in until the end

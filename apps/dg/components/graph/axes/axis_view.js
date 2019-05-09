@@ -275,12 +275,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           // Add a classname for use in QA automation
           var tClassName;
           switch( this.get('orientation')) {
-            case 'horizontal':
-              tClassName = 'dg-h-axis';
-              break;
-            case 'vertical':
-              tClassName = 'dg-v-axis';
-              break;
             case 'vertical2':
               tClassName = 'dg-v2-axis';
               break;
@@ -516,14 +510,32 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         isValidAttribute: function (iDrag) {
           switch (this.get('orientation')) {
             case 'vertical2':
-            case 'top':
               return this.isValidAttributeForScatterplot( iDrag) ||
                   this.isValidAttributeForPlotSplit( iDrag);
+            case 'top':
             case 'right':
               return this.isValidAttributeForPlotSplit( iDrag);
             default:
               return DG.GraphDropTarget.isValidAttribute.call(this, iDrag);
           }
+        },
+
+        /**
+         * Only called for a y2 axis view
+         * @param iDrag
+         * @return {boolean|*}
+         */
+        isValidAttributeForScatterplot: function( iDrag) {
+          var tDragAttr = iDrag.data.attribute,
+              tDragAttrIsNominal = tDragAttr.isNominal(),
+              tCurrAttr = this.getPath('model.attributeDescription.attribute'),
+              tXAttr = this.getPath('xAttributeDescription.attribute'),
+              tOtherYAttr = this.getPath('otherYAttributeDescription.attribute'),
+              tValidForScatterplot = (tXAttr !== DG.Analysis.kNullAttribute) &&
+                  (tCurrAttr !== tDragAttr) &&
+                  !tDragAttrIsNominal &&
+                  tOtherYAttr && !tOtherYAttr.isNominal();
+          return tValidForScatterplot;
         }
       };
     }()));

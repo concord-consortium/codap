@@ -1941,14 +1941,18 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               // copy those properties that can be handled by simple remap
               remapProperties(tValues, props.componentStorage, type);
 
+              var tableDataContext;
               if (tValues.type === 'caseTable') {
                 mapTableLinkPropertiesFromDI(tValues, props.componentStorage);
+                if (tValues.dataContext)
+                  tableDataContext = DG.currDocumentController().getContextByName(tValues.dataContext);
               }
-              if (!(tValues.type === 'slider' && tValues.globalValueName)) {
-                component = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
-                errorMessage = !component && 'Component creation failed';
+              // tables with data contexts
+              if ((tValues.type === 'caseTable') && tableDataContext) {
+                DG.appController.showCaseDisplayFor(tableDataContext);
               }
-              else {
+              // sliders with global values
+              else if ((tValues.type === 'slider') && tValues.globalValueName) {
                 global = DG.globalsController.getGlobalValueByName(tValues.globalValueName);
                 if (global) {
                   DG.ArchiveUtils.addLink(props.componentStorage, "model", global);
@@ -1957,6 +1961,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 } else {
                   errorMessage = "Global not found: '%@'".loc(tValues.globalValueName);
                 }
+              }
+              // all other components
+              else {
+                component = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
+                errorMessage = !component && 'Component creation failed';
               }
             }
 

@@ -103,6 +103,34 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       return this.isValidAttributeForScatterplot( iDrag) || this.isValidAttributeForPlotSplit( iDrag);
     },
 
+    isValidAttributeForPlotSplit: function( iDrag) {
+      return (iDrag.data.attribute !== this.getPath('dataConfiguration.topAttributeDescription.attribute')) &&
+          DG.GraphDropTarget.isValidAttributeForPlotSplit.call(this, iDrag);
+    },
+
+    /**
+     * @override
+     * @param iDrag
+     * @return {boolean|*}
+     */
+    isValidAttributeForScatterplot: function( iDrag) {
+      var tDragAttr = iDrag.data.attribute,
+          tDragAttrIsNominal = tDragAttr.isNominal(),
+          tCurrAttr = this.get('plottedAttribute'),
+          tXDescription = this.getPath('dataConfiguration.xAttributeDescription'),
+          tCurrXAttr = tXDescription ? tXDescription.get('attribute') : DG.Analysis.kNullAttribute,
+          tY1Description = this.getPath('dataConfiguration.yAttributeDescription'),
+          tY1Attr = tY1Description ? tY1Description.get('attribute') : DG.Analysis.kNullAttribute,
+          tValidForScatterplot = (tCurrXAttr !== DG.Analysis.kNullAttribute) &&
+              (tY1Attr !== DG.Analysis.kNullAttribute) &&
+              (tY1Attr !== tDragAttr) &&
+              (tCurrAttr !== tDragAttr) &&
+              tXDescription.get('isNumeric') &&
+              tY1Description.get('isNumeric') &&
+              !tDragAttrIsNominal;
+      return tValidForScatterplot;
+    },
+
     // Draw an orange frame to show we're a drop target.
     dragStarted:function ( iDrag ) {
       var kPadding = 3,

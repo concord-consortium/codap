@@ -85,40 +85,14 @@ DG.GraphDropTarget =
 
   isValidAttributeForPlotSplit: function( iDrag) {
     var tDragAttr = iDrag.data.attribute,
+        tCurrAtt = this.get('plottedAttribute'),
         tDragAttrIsNominal = tDragAttr.isNominal(),
         tDataConfiguration = this.getDataConfiguration(),
         tConfigurationHasAtLeastOneAttribute = tDataConfiguration &&
             tDataConfiguration.hasAtLeastOneAttributeAssigned(),
-        tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute;
+        tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute &&
+            tDragAttr !== tCurrAtt;
     return tValidForPlotSplit;
-  },
-
-  isValidAttributeForScatterplot: function( iDrag) {
-    var tDragAttr = iDrag.data.attribute,
-        tDragAttrIsNominal = tDragAttr.isNominal(),
-        tCurrAttr = this.get('plottedAttribute'),
-        tXDescription = this.getPath('dataConfiguration.xAttributeDescription'),
-        tCurrXAttr = tXDescription ? tXDescription.get('attribute') : DG.Analysis.kNullAttribute,
-        tY1Description = this.getPath('dataConfiguration.yAttributeDescription'),
-        tY1Attr = tY1Description ? tY1Description.get('attribute') : DG.Analysis.kNullAttribute,
-        tValidForScatterplot = (tCurrXAttr !== DG.Analysis.kNullAttribute) &&
-            (tY1Attr !== DG.Analysis.kNullAttribute) &&
-            (tY1Attr !== tDragAttr) &&
-            (tCurrAttr !== tDragAttr) &&
-            tXDescription.get('isNumeric') &&
-            tY1Description.get('isNumeric') &&
-            !tDragAttrIsNominal;
-
-/*
-        tOtherAttr = this.get('otherPlottedAttribute'),
-        tOtherDescr = this.get('otherAttributeDescription'),
-        tValidForScatterplot = (tOtherAttr !== DG.Analysis.kNullAttribute) &&
-            (tCurrAttr !== DG.Analysis.kNullAttribute) &&
-            (tCurrAttr !== tDragAttr) &&
-            !tDragAttrIsNominal &&
-            tOtherDescr && tOtherDescr.get('isNumeric');
-*/
-    return tValidForScatterplot;
   },
 
   isValidAttribute: function( iDrag) {
@@ -140,6 +114,7 @@ DG.GraphDropTarget =
         tFrame,
         tDraggedName = iDrag.data.attribute.get('name'),
         tAttrName = this.getPath('plottedAttribute.name'),
+        tOrientation = this.get('orientation'),
         tDropHint;
 
     function isEmpty( iString) {
@@ -147,15 +122,21 @@ DG.GraphDropTarget =
     }
 
     if( this.isValidAttribute( iDrag)) {
-      if (this.get('orientation') === 'vertical2') {
+      if (tOrientation === 'vertical2') {
         this.set('isVisible', true);
         var tParentView = this.get('parentView');
         if (tParentView)
           tParentView.makeSubviewFrontmost(this);
       }
-      tDropHint = iDrag.data.attribute.isNominal() ? 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName) :
-          (isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
-              'DG.GraphView.replaceAttribute'.loc(tAttrName, tDraggedName));
+      if(iDrag.data.attribute.isNominal()) {
+        if(tOrientation === 'vertical' || tOrientation === 'vertical2')
+          tDropHint = 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName);
+        else tDropHint = 'DG.GraphView.layoutPlotsSideBySide'.loc(tDraggedName)
+      }
+      else {
+        tDropHint = (isEmpty(tAttrName) ? this.get('blankDropHint').loc(tDraggedName) :
+            'DG.GraphView.replaceAttribute'.loc(tAttrName, tDraggedName));
+      }
 
       tFrame = {
         x: kWidth, y: kWidth,
