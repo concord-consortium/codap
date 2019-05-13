@@ -984,6 +984,8 @@ DG.DocumentController = SC.Object.extend(
             isResizable: true
           };
           caseTableView = this.createComponentView(component, props);
+          caseTableView.savedLayout = component.layout;
+
         } else {
           caseTableView.set('isVisible', true);
         }
