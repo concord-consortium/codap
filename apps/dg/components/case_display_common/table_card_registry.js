@@ -69,8 +69,8 @@ DG.TableCardRegistry = SC.Object.extend({
     var contextID = (typeof dataContext === 'object')? dataContext.get('id'): dataContext;
     var cardView = this.contextCardMap[contextID];
     var tableView = this.contextTableMap[contextID];
-    var view = (cardView && cardView.get('isActive'))? cardView:
-        (tableView && tableView.get('isActive'))? tableView: null;
+    var view = (cardView && cardView.getPath('model.content.isActive'))? cardView:
+        (tableView && tableView.getPath('model.content.isActive'))? tableView: null;
     return view;
   },
 

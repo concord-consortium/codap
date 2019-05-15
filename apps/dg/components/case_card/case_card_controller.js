@@ -143,7 +143,10 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
       createComponentStorage: function() {
         var caseCardModel = this.getPath('model.content'),
             dataContext = caseCardModel.get('context'),
-            storage = {};
+            isActive = caseCardModel.get('isActive'),
+            storage = {
+              isActive: isActive
+            };
         if( dataContext) {
           this.addLink(storage, 'context', dataContext);
         }
@@ -161,6 +164,7 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
             caseCardModel.set('context', dataContext);
             this.set('dataContext', dataContext);
           }
+          caseCardModel.set('isActive', iStorage.isActive);
         }
       }
 

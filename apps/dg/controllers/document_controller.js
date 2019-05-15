@@ -968,10 +968,10 @@ DG.DocumentController = SC.Object.extend(
         }
         var context = iProperties.dataContext || resolveContextLink(iComponent);
         var caseTableView = this.tableCardRegistry.getViewForContext(context);
+        var component = this.getCaseTableComponent(iComponent, context, iProperties);
+        var model = component.get('content') || DG.CaseTableModel.create({context: context});
 
         if (!caseTableView) {
-          var component = this.getCaseTableComponent(iComponent, context, iProperties);
-          var model = component.get('content') || DG.CaseTableModel.create({context: context});
           var controller = DG.CaseTableController.create(iProperties);
           var componentClassDef = {type: 'DG.TableView', constructor: DG.HierTableView};
           var props = {
@@ -984,12 +984,17 @@ DG.DocumentController = SC.Object.extend(
             isResizable: true
           };
           caseTableView = this.createComponentView(component, props);
-          caseTableView.savedLayout = component.layout;
+          if (iComponent && iComponent.layout) {
+            caseTableView.savedLayout = iComponent.layout;
+          }
 
         } else {
           caseTableView.set('isVisible', true);
         }
-        caseTableView.set('isActive', true);
+
+        if (caseTableView.get('isVisible')) {
+          model.set('isActive', true);
+        }
         this.tableCardRegistry.registerView(context, caseTableView);
         return caseTableView;
       },
@@ -1314,7 +1319,9 @@ DG.DocumentController = SC.Object.extend(
         tController.set('view', tComponentView);
         this.registerComponent(tModel);
         tContentView.initCardLayer();
-        tComponentView.set('isActive', true);
+        if (tComponentView.get('isVisible')) {
+          tModel.setPath('content.isActive', true);
+        }
         this.tableCardRegistry.registerView(iContext, tComponentView);
 
         return tComponentView;
@@ -1587,12 +1594,18 @@ DG.DocumentController = SC.Object.extend(
             },
             tCardComponentView;
         iTableComponentView.set('savedLayout', tTableLayout);
+        // animate case table to default card width, then animate to closed height,
+        // then toggle to case card and animate to final position
         iTableComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'},
             function () {
               iTableComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
                   {duration: 0.3, timing: 'ease-in-out'},
                   function () {
                     iTableComponentView.set('isVisible', false);
+                    tTableLayout.isVisible = false;
+                    // restore position of invisible component, so it will come back to the right place.
+                    iTableComponentView.set('layout', tTableLayout);
+                    iTableComponentView.setPath('model.content.isActive', false);
                     tCardComponentView = this.tableCardRegistry.getCardView(tContext) ||
                         this.addCaseCard(iTableComponentView.get('parentView'),
                             tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
@@ -1603,8 +1616,7 @@ DG.DocumentController = SC.Object.extend(
                     tCardComponentView.set('isVisible', true);
 
                     tCardComponentView.select();
-                    iTableComponentView.set('isActive', false);
-                    tCardComponentView.set('isActive', true);
+                    tCardComponentView.setPath('model.content.isActive', true);
                     this.tableCardRegistry.registerView(tContext, tCardComponentView);
                   }.bind(this));
             }.bind(this));
@@ -1614,21 +1626,31 @@ DG.DocumentController = SC.Object.extend(
         var kDefaultCardWidth = 200,
             tCardLayout = iCardComponentView.get('layout'),
             tCannotClose = iCardComponentView.getPath('model.cannotClose'),
+            tTableInitialLayout = {
+              top: tCardLayout.top, left: tCardLayout.left,
+              width: kDefaultCardWidth, height: DG.ViewUtilities.kTitleBarHeight
+            },
             tContext = iCardComponentView.getPath('controller.dataContext');
         iCardComponentView.set('savedLayout', tCardLayout);
+        // animate case card to default card width, then animate to closed height,
+        // then toggle to case table and animate to final position
         iCardComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'},
             function () {
               iCardComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
                   {duration: 0.3, timing: 'ease-in-out'},
                   function () {
+                    iCardComponentView.set('isVisible', false);
+                    tCardLayout.isVisible = false;
+                    iCardComponentView.set('layout', tCardLayout);
+                    iCardComponentView.setPath('model.content.isActive', false);
                     var tTableComponentView = this.tableCardRegistry.getTableView(tContext) ||
                         this.addCaseTable(iCardComponentView.get('parentView'), null, {
                           dataContext: iCardComponentView.getPath('controller.dataContext')
                         }),
                         tTableLayout = tTableComponentView.get('savedLayout') || {width: 500, height: 200};
                     tTableComponentView.setPath('model.cannotClose', tCannotClose);
+                    tTableComponentView.set('layout', tTableInitialLayout);
                     tTableComponentView.set('isVisible', true);
-                    iCardComponentView.set('isVisible', false);
                     tTableLayout.height++;
                     tTableComponentView.animate(tTableLayout, {duration: 0.3, timing: 'ease-in-out'},
                         function () {
@@ -1643,8 +1665,7 @@ DG.DocumentController = SC.Object.extend(
                             }.bind(this));
                           }.bind(this));
                         });
-                    iCardComponentView.set('isActive', false);
-                    tTableComponentView.set('isActive', true);
+                    tTableComponentView.setPath('model.content.isActive', true);
                     this.tableCardRegistry.registerView(tContext, tTableComponentView);
                   }.bind(this));
             }.bind(this));
