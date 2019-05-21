@@ -1,7 +1,11 @@
+dist: trusty
 sudo: false
 language: node_js
-node_js: node
+node_js: lts/*
+before_install:
+- pyenv local 3.6
 install:
+- travis_retry gem install bundler
 - travis_retry bundle install
 - travis_retry gem install s3_website
 - travis_retry pip install awscli --upgrade --user
@@ -10,8 +14,9 @@ script: npm run build:travis
 after_script: "./bin/s3_deploy.sh"
 cache:
   bundler: true
-  directories:
-  - node_modules
+  npm: true
+  pip: true
+  yarn: true
 notifications:
   slack:
     on_pull_requests: false
