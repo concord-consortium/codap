@@ -265,11 +265,13 @@ DG.CasePlotView = DG.PlotView.extend(
             tColor = tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
             tStrokeParams = this.getStrokeParams();
         if (!tPlottedElements || tPlottedElements.length === 0) {
-          var tStart = 0,
-              tInc = 200,
+          var tInc = 200,
               i,
               loop = function () {
-                var tDescriptions = [];
+                if( tPlottedElements.length >= tNumCases)
+                  return;
+                var tStart = tPlottedElements.length,
+                    tDescriptions = [];
                 tXPixelMax = this.getPath('xAxisView.pixelMax');
                 tYPixelMax = this.getPath('yAxisView.pixelMin');
                 if( tXPixelMax < 30 || tYPixelMax < 30) {
@@ -282,7 +284,7 @@ DG.CasePlotView = DG.PlotView.extend(
                 tPointSet = this.get('paper').add(tDescriptions).forEach(function (iElement, iIndex) {
                   tPlottedElements.push(iElement);
                   iElement.addClass(DG.PlotUtilities.kDotClassName);
-                  iElement.index = iIndex;
+                  iElement.index = tStart + iIndex;
                   iElement.node.setAttribute('shape-rendering', 'geometric-precision');
                   return true;
                 });
