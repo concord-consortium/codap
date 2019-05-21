@@ -11921,7 +11921,7 @@ CloudFileManager = (function() {
     this.client.listen(eventCallback);
     this.client.connect();
     this.client.processUrlParams();
-    if (window.parent) {
+    if (window.parent !== window) {
       return window.parent.postMessage({
         type: "cfm::iframedClientConnected"
       }, "*");

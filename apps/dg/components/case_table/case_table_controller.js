@@ -189,7 +189,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           //childCollection.casesController.addObserver('[]', this, 'caseCountDidChange');
           dataContext.forEachCollection( function( iCollection) {
                                           iCollection.attrsController.
-                                            addObserver('[]', this_, 'attributeCountDidChange');
+                                            addObserver('[]', this_, 'attributesDidChange');
                                          });
         }
         this.doResetCollections();
@@ -441,13 +441,13 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         }
       },
       doCreateAttributes: function (iChange) {
-        this.attributeCountDidChange( iChange);
+        this.attributesDidChange( iChange);
       },
       doDeleteAttributes: function (iChange) {
-        this.attributeCountDidChange( iChange);
+        this.attributesDidChange( iChange);
       },
       doMoveAttributes: function (iChange) {
-        this.attributeCountDidChange( iChange);
+        this.attributesDidChange( iChange);
       },
       doResetCollections: function (iChange) {
         function processAdapter(iAdapter) {
@@ -558,7 +558,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
       /**
         Called when the array observer indicates that the number of attributes has changed.
        */
-      attributeCountDidChange: function() {
+      attributesDidChange: function() {
         var hierTableView = this.getPath('view.contentView');
         if( hierTableView) {
           hierTableView.updateColumnInfo();
@@ -1044,7 +1044,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             adapters.forEach( function (adapter) {
               adapter.autoResizeAllColumns();
             });
-            this.dataContextDidChange();
+            this.attributesDidChange();
           }.bind(this),
           undo: function () {
             columnWidths.forEach(function (oldWidth) {
@@ -1052,7 +1052,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
                 caseTableModel.setPreferredAttributeWidth(oldWidth.id, oldWidth.width);
               }
             }.bind(this));
-            this.dataContextDidChange();
+            this.attributesDidChange();
           }.bind(this)
         }));
       },

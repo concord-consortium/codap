@@ -1849,6 +1849,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     updateColumnInfo: function() {
       if( this._slickGrid) {
         this.setColumns( this.get('gridAdapter').updateColumnInfo());
+        this._slickGrid.invalidate();
       }
     },
 
