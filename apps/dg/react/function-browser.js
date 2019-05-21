@@ -111,7 +111,7 @@ DG.React.ready(function () {
     },
 
     renderHeader: function (parentName, itemName, onClick) {
-      return div({className: 'react-function-browser-header', onClick: onClick},
+      return div({className: 'react-function-browser-header clickable', onClick: onClick},
         span({dangerouslySetInnerHTML: {__html:kLeftAngleBracketChar + ' ' + parentName}}),
         itemName
       );
@@ -123,7 +123,7 @@ DG.React.ready(function () {
             var clicked = function () {
               self.setState({category: category});
             };
-            return li({key: category.name, onClick: clicked},
+            return li({className: 'clickable', key: category.name, onClick: clicked},
               span({}, category.name),
               div({dangerouslySetInnerHTML: {__html:kRightAngleBracketChar}})
             );
@@ -143,11 +143,11 @@ DG.React.ready(function () {
                 hasInfo = !!fn.definition.description || !!fn.definition.examples;
 
             return li({key: fn.name},
-              span({onClick: fnClicked, title: fn.definition.description},
+              span({className: 'clickable', onClick: fnClicked, title: fn.definition.description},
                 fn.name,
                 italic({}, '(' + fn.argList + ')')
               ),
-              hasInfo ? div({onClick: infoClicked, dangerouslySetInnerHTML: {__html:kInfoIconChar}}) : null
+              hasInfo ? div({className: 'clickable', onClick: infoClicked, dangerouslySetInnerHTML: {__html:kInfoIconChar}}) : null
             );
           });
 
@@ -164,10 +164,10 @@ DG.React.ready(function () {
           argItems = fn.definition.args.map(function (arg, index) {
             return li({key: 'arg-' + index},
               italic({}, arg.name + (arg.description ? ': ' : '')),
-              arg.description || '',
+              span({}, arg.description || '',
               ' (',
               italic({}, arg.required ? 'required' : 'optional'),
-              ')');
+              ')'));
           }),
           examples = (fn.definition.examples || []).map(function (example, index) {
             return li({key: 'example-' + index}, example);
@@ -181,7 +181,7 @@ DG.React.ready(function () {
           this.setState({fn: null});
         }.bind(this)),
         div({className: 'react-function-browser-function-info'},
-          h1({onClick: fnClicked }, fn.name, italic({}, '(' + fn.argList + ')')),
+          h1({className: 'clickable', onClick: fnClicked }, fn.name, italic({}, '(' + fn.argList + ')')),
           fn.definition.description ? div({}, fn.definition.description) : null,
           argItems ? div({},
             h2({}, 'Parameters'),
