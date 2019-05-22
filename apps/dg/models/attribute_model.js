@@ -615,20 +615,36 @@ DG.Attribute.createAttribute = function (iProperties) {
 };
 
 /**
+ * Returns unit part of a name string.
+ * By convention, a parenthesized substring at the end of a name string is
+ * interpreted as a unit by CODAP.
+ *
+ * @param iName
+ * @return unit string, if present. otherwise null.
+ */
+DG.Attribute.extractUnitFromNameString = function (iName) {
+  if (!iName) {
+    return null;
+  }
+
+  var match = /\(([^)]*)\)$/.exec(iName.trim());
+  if (match) {
+    return match[1];
+  } else {
+    return null;
+  }
+};
+
+/**
  * Convert a string to a "legal" attribute name.
  */
 DG.Attribute.canonicalizeName = function (iName, iCanonicalize) {
   var tName = String(SC.none(iName) ? '' : iName),
-      tReg = /\((.*)\)/,  // Identifies first parenthesized substring
-      tMatch = tReg.exec(tName),
+      tReg = /\([^)]*\)$/,  // Identifies parenthesized substring at end
       tNewName = tName;
 
-  // If there is a parenthesized substring, stash it as the unit and remove it from the name
-  if (tMatch && tMatch.length > 1) {
-    tNewName = tName.replace(tReg, '');  // Get rid of parenthesized units
-  }
-  // TODO: We are eliminating all but Latin characters here. We should be more general and allow
-  // non-Latin alphanumeric characters.
+  tNewName = tName.replace(tReg, '');  // Get rid of parenthesized units
+
   tNewName = tNewName.trim(); // Get rid of trailing white space
   if (iCanonicalize || ((iCanonicalize == null) && DG.canonicalizeNames))
     tNewName = tNewName.replace(/\W/g, '_');  // Replace non-word characters with underscore
