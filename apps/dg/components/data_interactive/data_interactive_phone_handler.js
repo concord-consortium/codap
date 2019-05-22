@@ -898,12 +898,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {
             success: success,
           };
+        },
+        'delete': function (iResources) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+
+          if (!collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+
+          return context.applyChange({
+            operation: 'deleteCollection',
+            collection: collection,
+            requester: this.get('id')
+          });
         }
-        //delete: function (iResources) {
-        //  return {
-        //    success: true,
-        //  }
-        //}
       },
 
       /**
