@@ -218,9 +218,12 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
       createComponentStorage: function() {
         var caseTableModel = this.getPath('model.content'),
             dataContext = caseTableModel.get('context'),
+            isActive = caseTableModel.get('isActive'),
             collapsedNodes = caseTableModel.get('collapsedNodes'),
             attributeWidths = [],
-            storage = {};
+            storage = {
+              isActive: isActive
+            };
         if( dataContext) {
           this.addLink(storage, 'context', dataContext);
         }
@@ -255,6 +258,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
               dataContext = contextID
                   && DG.currDocumentController().getContextByID(contextID),
               attributeWidths = {},
+              isActive = iStorage.isActive,
               ix = 0;
           if (iStorage.attributeWidths) {
             iStorage.attributeWidths.forEach(function (obj) {
@@ -267,6 +271,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             caseTableModel.set('context', dataContext);
             this.set('dataContext', dataContext);
           }
+          caseTableModel.set('isActive', isActive);
           if (collapsedNodesCount > 0) {
             while(ix < collapsedNodesCount) {
               caseTableModel.collapseNode(DG.store.find('DG.Case',

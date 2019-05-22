@@ -39,10 +39,9 @@
 .react-function-browser-function-info h1 i {
   color: #555;
 }
-.react-function-browser li span:hover,
-.react-function-browser-header span:hover,
-.react-function-browser li div:hover,
-.react-function-browser-function-info h1:hover {
+.react-function-browser .clickable:hover,
+.react-function-browser span.clickable:hover i,
+.react-function-browser h1.clickable:hover i{
   text-decoration: underline;
   color: #72bfca;
 }

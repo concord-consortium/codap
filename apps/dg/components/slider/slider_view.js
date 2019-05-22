@@ -159,6 +159,7 @@ DG.SliderView = SC.View.extend(
           DG.IconButton.create( {
             layout: {top: kGap + 2, left: 2, width: kButtonWidth + 2, height: kButtonHeight + 2},
             iconExtent: { width: kButtonWidth, height: kButtonHeight },
+            iconClass: 'dg-play-icon',
             classNames: 'dg-display-styles'.w(),
             target: this,
             action: 'toggleAnimation',
