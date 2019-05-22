@@ -601,8 +601,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
           break;
       }
 
-      this.beginPropertyChanges();
       this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
+      this.beginPropertyChanges();
 
       var tDataConfiguration = this.get('dataConfiguration'),
           tCurrentAttribute = tDataConfiguration.getPath(tTargetDescKey + '.attribute'),
