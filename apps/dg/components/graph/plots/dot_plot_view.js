@@ -283,7 +283,8 @@ DG.DotPlotView = DG.PlotView.extend(
             operation: 'updateCases',
             cases: [],
             attributeIDs: [ tPrimaryVarID ],
-            values: [ [] ]
+            values: [ [] ],
+            dirtyDocument: false
           },
           tDataContext = this_.get('dataContext');
       if( !tDataContext) return;
@@ -335,23 +336,25 @@ DG.DotPlotView = DG.PlotView.extend(
           });
         })
         .drag(function (dx, dy) { // continue
-              var tNewCoord = (tNumericPlace === DG.GraphTypes.EPlace.eX) ?
-                  this.ox + dx : this.oy + dy,
-                  tNewWorld = this_.get('primaryAxisView').coordinateToData(tNewCoord),
-                  tOldWorld = this_.getPath('model.cases').unorderedAt(this.index).getNumValue(this_.getPath('model.primaryVarID')),
-                  tCurrTransform = this.transform();
-              if (isFinite(tNewWorld)) {
-                // Put the element into the initial transformed state so that changing case values
-                // will not be affected by the scaling in the current transform.
-                SC.run(function () {
-                  this.transform(tInitialTransform);
-                  changeCaseValues(tNewWorld - tOldWorld);
-                  this.transform(tCurrTransform);
-                }.bind(this));
+              if (dx !== 0 || dy !== 0) {
+                var tNewCoord = (tNumericPlace === DG.GraphTypes.EPlace.eX) ?
+                    this.ox + dx : this.oy + dy,
+                    tNewWorld = this_.get('primaryAxisView').coordinateToData(tNewCoord),
+                    tOldWorld = this_.getPath('model.cases').unorderedAt(this.index).getNumValue(this_.getPath('model.primaryVarID')),
+                    tCurrTransform = this.transform();
+                tIsDragging = true;
+                if (isFinite(tNewWorld)) {
+                  // Put the element into the initial transformed state so that changing case values
+                  // will not be affected by the scaling in the current transform.
+                  SC.run(function () {
+                    this.transform(tInitialTransform);
+                    changeCaseValues(tNewWorld - tOldWorld);
+                    this.transform(tCurrTransform);
+                  }.bind(this));
+                }
               }
             },
             function (x, y) { // begin
-              tIsDragging = true;
               // Save the initial screen coordinates
               this.ox = this.attr("cx");
               this.oy = this.attr("cy");
@@ -360,9 +363,11 @@ DG.DotPlotView = DG.PlotView.extend(
               this.attr({opacity: kOpaque});
             },
             function () {  // end
-              this.animate({transform: tInitialTransform}, DG.PlotUtilities.kHighlightHideTime);
-              returnCaseValuesToStart(this.index, this.w);
-              tIsDragging = false;
+              if (tIsDragging) {
+                this.animate({transform: tInitialTransform}, DG.PlotUtilities.kHighlightHideTime);
+                returnCaseValuesToStart(this.index, this.w);
+                tIsDragging = false;
+              }
               this.ox = this.oy = this.w = undefined;
             });
     return iElement;
