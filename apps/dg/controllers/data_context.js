@@ -1881,8 +1881,18 @@ DG.DataContext = SC.Object.extend((function() // closure
     return result;
   },
 
+    /**
+     * Handle change request to delete a collection. If the collection is the
+     * last remaining collection, do nothing.
+     * @param iChange
+     * @return {{success: boolean}}
+     */
   doDeleteCollection: function (iChange) {
     var collection = iChange.collection;
+    var collectionCount = this.get('collections').length;
+    if (collectionCount === 1) {
+      return ({success: false, values: {error: 'cannot delete last collection'}});
+    }
     this.destroyCollection(collection);
     this.regenerateCollectionCases([collection]);
     return { success: true};
