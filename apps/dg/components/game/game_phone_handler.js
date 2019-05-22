@@ -868,6 +868,12 @@ DG.GamePhoneHandler = SC.Object.extend(
           tCollectionProperties.parent = tGameCollections[tGameCollections.length - 1].get('id');
         }
 
+        iCollectionArgs.attrs && iCollectionArgs.attrs.forEach(function (attr) {
+          if (SC.none(attr.editable)) {
+            attr.editable = false;
+          }
+        });
+
         tResult = tGameContext &&
             tGameContext.applyChange({
               operation: 'createCollection',

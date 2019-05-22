@@ -141,7 +141,7 @@ DG.Attribute = DG.BaseModel.extend(
        * any game-created attributes marked as such.
        * @property {Boolean}
        */
-      editable: false,
+      editable: true,
 
       /**
        * True if the attribute is hidden from the user, false otherwise.
