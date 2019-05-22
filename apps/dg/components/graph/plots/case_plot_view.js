@@ -64,11 +64,14 @@ DG.CasePlotView = DG.PlotView.extend(
           // position icons in view, with margin to prevent circle edge from being clipped.
           // compare to DG.AxisView.dataToCoordinate().
           var tPixelMin = iAxisView.get('pixelMin'),
-              tPixelMax = iAxisView.get('pixelMax');
-          if (tPixelMin < tPixelMax)
-            return tPixelMin + iMargin + iData * (tPixelMax - tPixelMin - 2 * iMargin);
-          else
-            return tPixelMin - iMargin + iData * (tPixelMax - tPixelMin + 2 * iMargin);
+              tPixelMax = iAxisView.get('pixelMax'),
+              temp;
+          if( tPixelMax < tPixelMin) {
+            temp = tPixelMax;
+            tPixelMax = tPixelMin;
+            tPixelMin = temp;
+          }
+          return tPixelMin + iMargin + iData * (tPixelMax - tPixelMin - 2 * iMargin);
         }
 
         var tCircle = this.get('plottedElements')[iIndex],
@@ -174,6 +177,12 @@ DG.CasePlotView = DG.PlotView.extend(
         }
 
         function dataCoordinate(iValue, iMin, iMax) {
+          var temp;
+          if( iMax < iMin) {
+            temp = iMax;
+            iMax = iMin;
+            iMin = temp;
+          }
           return iMin + kMargin + iValue * (iMax - iMin - 2 * kMargin);
         }
 
@@ -260,8 +269,8 @@ DG.CasePlotView = DG.PlotView.extend(
             tPlottedElements = this.get('plottedElements'),
             tModel = this.get('model'),
             tNumCases = tModel.get('cases').length(),
-            kMargin = 10,
             tR = this.calcPointRadius(),
+            kMargin = tR,
             tColor = tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
             tStrokeParams = this.getStrokeParams();
         if (!tPlottedElements || tPlottedElements.length === 0) {
