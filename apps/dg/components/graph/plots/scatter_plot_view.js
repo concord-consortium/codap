@@ -307,7 +307,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
                 operation: 'updateCases',
                 cases: [],
                 attributeIDs: [tVarIDs.x, tVarIDs.y],
-                values: [[], []]
+                values: [[], []],
+                dirtyDocument: false
               },
               tDataContext = this_.get('dataContext');
           if (!tDataContext) return;

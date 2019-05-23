@@ -108,7 +108,8 @@ DG.CaseValueAnimator = SC.Object.extend(
             operation: 'updateCases',
             attributeIDs: tAttributeIDs,
             cases: tCases,
-            values: []
+            values: [],
+            dirtyDocument: false
           };
 
       this.cases.forEach( function( iCase, iValueIndex) {
