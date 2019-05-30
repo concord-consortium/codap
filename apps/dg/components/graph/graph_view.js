@@ -968,9 +968,12 @@ DG.GraphView = SC.View.extend(
       handlePlotModelChange: function () {
         var tPlot = this.getPath('model.plot'),
             tCurrentView = this.get('plotView'),
-            tViewClass = tCurrentView.constructor,
+            tViewClass = tCurrentView && tCurrentView.constructor,
             tCurrentPoints, tNewViewClass, tNewView,
             tInitLayout = false;
+
+        if( !tCurrentView)  // Sometimes we get here without a current plotview
+          return;
 
         tNewViewClass = this.mapPlotModelToPlotView(tPlot);
         if (tNewViewClass && (tViewClass !== tNewViewClass)) {
