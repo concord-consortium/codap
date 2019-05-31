@@ -91,6 +91,7 @@ DG.RenderingUtilities = {
     var tStringToFit = iTextElement.attr('text'),
         tNumChars = tStringToFit.length,
         tExtra = 0,
+        tCounter = 0,
         tWidth;
     do {
       tWidth = this.getExtentForTextElement(iTextElement, DG.RenderingUtilities.kDefaultFontHeight, true).width;
@@ -103,7 +104,7 @@ DG.RenderingUtilities = {
       iTextElement.attr('text', tStringToFit);
       tCounter++; // Prevent unexpected failure to exit
     }
-    while ( tWidth > iDesiredExtent);
+    while ( tWidth > iDesiredExtent && tCounter < 10);
   },
 
   /**
