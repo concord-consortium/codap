@@ -331,6 +331,14 @@ DG.ComponentView = SC.View.extend(
           if (DG.KEEP_IN_BOUNDS_PREF && !this.originalLayout) {
             this.originalLayout = {};
           }
+          if (this.get('isStandaloneComponent')) {
+            // DG.log('isStandalone: ' + this.getPath('model.content.name'));
+            this.get('borderRight').set('isVisible', false);
+            this.get('borderBottom').set('isVisible', false);
+            this.get('borderLeft').set('isVisible', false);
+            this.get('borderTop').set('isVisible', false);
+            this.get('borderCorner').set('isVisible', false);
+          }
         },
         setFocusToComponentTitle: function () {
           var titleView = this.getPath('containerView.titlebar.titleView');
@@ -970,16 +978,14 @@ DG.ComponentView._createComponent = function (iParams) {
   var tComponentClass = iParams.componentClass.constructor;
   SC.Benchmark.start('createComponent: ' + tComponentClass);
 
-  var tName = iParams.name || iParams.title,
-      tIsStandaloneInteractive = DG.isStandaloneComponent(tName, tComponentClass === DG.GameView?'DG.GameView': ''),
-      tMakeItVisible = (iParams.layout.isVisible === undefined) || iParams.layout.isVisible,
+  var tMakeItVisible = (iParams.layout.isVisible === undefined) || iParams.layout.isVisible,
       tIsResizable = iParams.isResizable,
       tComponentView = DG.ComponentView.create({
         layout: iParams.layout,
         originalLayout: iParams.layout,
         isVisible: tMakeItVisible,
-        showTitleBar: !tIsStandaloneInteractive,
-        isResizable: !tIsStandaloneInteractive
+        showTitleBar: !iParams.isStandaloneComponent,
+        isStandaloneComponent: iParams.isStandaloneComponent
       }),
       tContentView;
   iParams.contentProperties.controller = iParams.controller;
@@ -992,7 +998,7 @@ DG.ComponentView._createComponent = function (iParams) {
     tComponentView.set('controller', iParams.controller);
     iParams.controller.set('contentView', tComponentView.getPath('containerView.contentView'));
   }
-  if (tIsStandaloneInteractive)
+  if (iParams.isStandaloneComponent)
     tIsResizable = false;
   if (!SC.none(tIsResizable))
     tComponentView.set('isResizable', tIsResizable);
