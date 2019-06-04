@@ -2475,11 +2475,11 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   /*
     Observer function which invalidates formulas that depend on 'caseIndex'
-    when case indices change.
+    when case indices change. Case index change happens when cases are added
+    or removed, so all references to attributes are invalidated.
    */
   caseIndicesDidChange: function() {
-    var nodes = this.get('dependencyMgr').findNodesWithNames(['caseIndex']);
-    this.invalidateDependentsAndNotify(nodes);
+    this.invalidateAttrsOfCollections(this.collections);
   },
 
   /**
