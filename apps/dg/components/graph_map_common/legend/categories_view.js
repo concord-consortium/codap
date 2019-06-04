@@ -54,6 +54,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             left: 0,
             top: 0,
             rectSize: 0,
+            spaceForText: 0,
 
             containingView: null,
 
@@ -194,6 +195,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                 this.keyText.attr(tTextAttrs);
               }
               this.keyText.attr('text', this.cellName);
+              DG.RenderingUtilities.elideToFit( this.keyText, this.spaceForText);
             }
           });
 
@@ -304,6 +306,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                   tCategoryKey.set('top', tRow * tRowHeight + 2);
                 }
                 tCategoryKey.set('rectSize', tRowHeight - 5);
+                tCategoryKey.set('spaceForText', tWidth / tNumColumns - (tRowHeight - 5) - 8);
                 tCategoryKey.set('color', tColor);
                 tCategoryKey.set('cellName', tName);
                 tCategoryKey.set('inUse', true);

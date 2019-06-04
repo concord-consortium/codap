@@ -28,7 +28,7 @@ sc_require('components/graph/utilities/plot_utilities');
 DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
   /** @scope DG.DataLayerModel.prototype */
   {
-    autoDestroyProperties: [ 'dataConfiguration', 'legend' ],
+    autoDestroyProperties: [ 'legend' ],
 
     /**
      @property { DG.LegendModel }
@@ -164,6 +164,9 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       if( this.get('dataContext'))
          this.get('dataContext').removeObserver('changeCount', this, 'handleDataContextNotification');
       sc_super();
+      // Special case in which we have to destroy a property _after_ rest of destroy has happened in order to
+      // allow all observers of dataConfiguration to get removed.
+      this.destroyProperty('dataConfiguration');
     },
 
     /**

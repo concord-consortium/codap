@@ -84,7 +84,7 @@ DG.React.ready(function () {
           }
           optionalArgs = definition.args.slice(definition.minArgs).map(function (arg) { return arg.name; }).join(', ');
           if (optionalArgs) {
-            argList.push("[" + optionalArgs + "]");
+            argList.push(optionalArgs);
           }
 
           functions.push({

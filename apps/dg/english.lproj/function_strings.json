@@ -17,7 +17,7 @@
       }
     ],
     "examples": [
-      "abs(3–5) is 2",
+      "abs(–5) is 5",
       "abs(3-7) is 4"
     ]
   },
@@ -39,7 +39,7 @@
   },
   "exp": {
     "displayName": "exp",
-    "description": "Returns the result of computing the constant e to the power of its numeric argument.",
+    "description": "Returns the exponential e raised to the given argument.",
     "args": [
       {
         "name": "number",
@@ -48,7 +48,8 @@
       }
     ],
     "examples": [
-      "exp(2) is 7.39, the same as e squared"
+      "exp(2) is 7.39, the same as e squared",
+      "exp(-1) is 0.368, the same as 1 / e"
     ]
   },
   "floor": {
@@ -122,7 +123,7 @@
       {
         "name": "power",
         "type": "number",
-        "description": "The power of the exponent."
+        "description": "The exponent."
       }
     ],
     "examples": [
@@ -132,17 +133,17 @@
   },
   "round": {
     "displayName": "round",
-    "description": "Returns the value of its argument rounded to the specified number of decimal places (default 0). This function has an optional, second argument that specifies how many decimals to round to.",
+    "description": "Returns the argument rounded to the specified number of digits after the decimal point. If no digits are provided, it rounds the number to the nearest integer.",
     "args": [
       {
         "name": "number",
         "type": "number",
-        "description": "The number for which you want to round to the nearest integer."
+        "description": "The number to be rounded."
       },
       {
         "name": "digits",
         "type": "number",
-        "description": "The number of digits to which you want to round the numeric argument. The argument can be negative to round off digits left to the decimal point."
+        "description": "The number of digits to which you want to round the argument. The argument can be negative to round off digits left to the decimal point."
       }
     ],
     "examples": [
@@ -187,7 +188,7 @@
    */
   "date": {
     "displayName": "date",
-    "description": "Returns a new date created from its arguments. May be a string (in quotes) or a computed date. If any argument is omitted it is defaulted to 0 (or 1 for the day or month). If a single large argument is specified, it is assumed to be seconds since January 1, 1970 and is converted accordingly.",
+    "description": "Returns a new date created from its arguments. May be a string or a computed date. If any argument is omitted it is defaulted to 0 (or 1 for the day or month). If a single large argument is specified, it is assumed to be seconds since January 1, 1970 and is converted accordingly.",
     "args": [
       {
         "name": "year",
@@ -427,17 +428,17 @@
   },
   "lookupByIndex": {
     "displayName": "lookupByIndex",
-    "description": "Returns the value of the specified attribute for the case at the specified (1-based) index in the other data set. Note that otherDataSet and attrName must be strings (or expressions that evaluate to strings), while index should evaluate to an integer.",
+    "description": "Returns the value of the specified attribute for the case at the specified (1-based) index in the other data set. Note that other DataSet and attrName must be strings, while index must evaluate to an integer.",
     "args": [
       {
         "name": "\"otherDataSet\"",
         "type": "string",
-        "description": "The name of the data set (in quotes) in which you want to look up the value."
+        "description": "The name of the data set in which you want to look up the value."
       },
       {
         "name": "\"attrName\"",
         "type": "string",
-        "description": "The name of the attribute (in quotes) in the other data set with the desired value."
+        "description": "The name of the attribute in the other data set with the desired value."
       },
       {
         "name": "index",
@@ -452,7 +453,7 @@
   },
   "lookupByKey": {
     "displayName": "lookupByKey",
-    "description": "Looks up the case in an other data set for which the value of a \"key\" attribute matches a given key value from the originating data set. The value in that case for a \"returned\" attribute is returned. Note that otherDataSet, returnedAttrName, and keyAttrName should be strings, or evaluate to a string.",
+    "description": "Looks up the case in another data set for which the value of a \"key\" attribute matches a given key value from the original data set. The value in that case for a \"returned\" attribute is returned. Note that otherDataSet, returnedAttrName, and keyAttrName should be strings, or evaluate to a string.",
     "args": [
       {
         "name": "\"otherDataSet\"",
@@ -492,7 +493,7 @@
       {
         "name": "boundary_key",
         "type": "string",
-        "description": "The key to the particular boundary to look up. (Case is ignored.) For countries use names in English or 2 or 3 letter country codes. For US states use full state name or USPS abbreviation. For US counties use a geo id as in 'usssccc'. (For example us01017 is Chambers county in Alabama where 01 is the state code and 017 is the county code.) Counties keys may also be the county name followed by comma and state name or abbreviation. (For example 'Chambers, Alabama' or 'chambers, al'.) US congressional districts are specified by 'usssdd'. (For example us0801 is Colorado's 1st district where 08 is the ID for Colorado and 01 signifies the first district.) Districts may also be specified as state name followed by district number as in 'Colorado 08' or the state abbreviation followed by district number as in CO01. Finally, CODAP will recognize the LASD (Legal/Statistical Area Description Code) of the district as a key. PUMA (Public Use Microdata Areas) are geographic areas defined by the census bureau specified by an ID such as G0100200 for the PUMA that contains Huntsville Alabama."
+        "description": "The key to the particular boundary to look up. For countries use 2 or 3 letter country codes. For US states use full state name or USPS abbreviation. For US counties use a geo id as in 'usssccc'. US congressional districts are specified by 'usssdd'. Districts may be specified as the state abbreviation followed by district number as in CO01. CODAP will recognize the LASD (Legal/Statistical Area Description Code) of the district as a key, PUMA (Public Use Microdata Areas) geographic areas defined by the census bureau specified by an ID as in G2300100."
       }
     ],
     "examples": [
@@ -513,9 +514,9 @@
         "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
-        "name": "deliminator",
+        "name": "default",
         "type": "value",
-        "description": "An argument that allows you to specify the value that next should take if there is no next case."
+        "description": "Specifies the value that \"next\" should take if there is no next case."
       },
       {
         "name": "filter",
@@ -539,9 +540,9 @@
         "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
-        "name": "deliminator",
+        "name": "default",
         "type": "value",
-        "description": "An argument that allows you to specify the value that prev should take if there is no previous case."
+        "description": "Specifies the value that \"prev\" should take if there is no previous case."
       },
       {
         "name": "filter",
@@ -561,7 +562,7 @@
    */
   "boolean": {
     "displayName": "boolean",
-    "description": "Returns false if the given expression evaluates to false or 0, true otherwise.",
+    "description": "Returns false if the expression evaluates to false or 0, returns true otherwise.",
     "args": [
       {
         "name": "expression",
@@ -606,7 +607,7 @@
   },
   "if": {
     "displayName": "if",
-    "description": "Returns one of two values depending on whether the result of evaluating a logical expression is true or false.",
+    "description": "Returns one of two values depending on whether the result of the first argument is true or false.",
     "args": [
       {
         "name": "expression",
@@ -631,7 +632,7 @@
   },
   "isFinite": {
     "displayName": "isFinite",
-    "description": "Checks whether a number is a finite number.",
+    "description": "Checks whether the expression is finite.",
     "args": [
       {
         "name": "expression",
@@ -648,7 +649,7 @@
   },
   "number": {
     "displayName": "number",
-    "description": "Converts the input value to a numeric value.",
+    "description": "Converts the expression to a numeric value.",
     "args": [
       {
         "name": "expression",
@@ -663,17 +664,17 @@
   },
   "random": {
     "displayName": "random",
-    "description": "Returns a random number, by default between 0 and 1, drawn from a uniform distribution. The order of the maximum and minimum value to be inputted does not matter.",
+    "description": "Returns a random number, by default between 0 and 1, drawn from a uniform distribution.",
     "args": [
       {
         "name": "max",
         "type": "number",
-        "description": "The largest number to be returned."
+        "description": "The upper boundary."
       },
       {
         "name": "min",
         "type": "number",
-        "description": "The smallest number to be returned."
+        "description": "The lower boundary."
       }
     ],
     "examples": [
@@ -685,17 +686,17 @@
   },
   "randomNormal": {
     "displayName": "randomNormal",
-    "description": "Returns a random number drawn from a normal distribution which, by default, has a mean of 0 and a standard deviation of 1. The first argument determines the mean of the population and the second determines its standard deviation, which, if missing, defaults to 1.",
+    "description": "Returns a random number drawn from a normal distribution which, by default, has a mean of 0 and a standard deviation of 1.",
     "args": [
       {
         "name": "mean",
         "type": "number",
-        "description": "The mean of the population from which the random numbers are drawn."
+        "description": "Population mean."
       },
       {
         "name": "sd",
         "type": "number",
-        "description": "The standard deviation of the population from which the random numbers are drawn."
+        "description": "Population standard deviation."
       }
     ],
     "examples": [
@@ -706,7 +707,7 @@
   },
   "string": {
     "displayName": "string",
-    "description": "Converts the input value to a string.",
+    "description": "Converts the argument to a string.",
     "args": [
       {
         "name": "value",
@@ -723,7 +724,7 @@
    */
   "combine": {
     "displayName": "combine",
-    "description": "Returns the aggregated concatenation of its evaluated argument values.",
+    "description": "Returns the aggregated concatenation of its evaluated expression values.",
     "args": [
       {
         "name": "expression",
@@ -753,13 +754,13 @@
     ],
     "examples": [
       "count() returns the number of child cases",
-      "count(Height) returns the number of cases for the attribute Height",
+      "count(Height) returns the number of cases that have a value for the attribute Height",
       "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
     ]
   },
   "max": {
     "displayName": "max",
-    "description": "Returns the largest value in a collection.",
+    "description": "Returns the largest value of the expression as evaluated for every case in a collection.",
     "args": [
       {
         "name": "expression",
@@ -774,12 +775,13 @@
     ],
     "examples": [
       "max(Age) returns the maximum age over all the cases",
-      "max(Age, Sex=\"Female\") returns maximum age among females"
+      "max(Age, Sex=\"Female\") returns maximum age among females",
+      "max(mass/volume) returns the maximum density for all the cases"
     ]
   },
   "mean": {
     "displayName": "mean",
-    "description": "Returns the arithmetic mean (sum divided by count) of its argument evaluated for every case.",
+    "description": "Returns the arithmetic mean (sum divided by count) of its expression evaluated for every case.",
     "args": [
       {
         "name": "expression",
@@ -809,7 +811,7 @@
       {
         "name": "filter",
         "type": "boolean",
-        "description": "A true-false expression that limits the cases considered."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -819,7 +821,7 @@
   },
   "min": {
     "displayName": "min",
-    "description": "Returns the smallest value in a collection.",
+    "description": "Returns the smallest value of the expression as evaluated for every case in a collection.",
     "args": [
       {
         "name": "expression",
@@ -829,12 +831,13 @@
       {
         "name": "filter",
         "type": "boolean",
-        "description": "A true-false expression that limits the cases considered."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
       "min(Age) returns the minimum Age",
-      "min(Age, Sex=\"Male\") returns minimum Age among males"
+      "min(Age, Sex=\"Male\") returns minimum Age among males",
+      "min(mass/volume) returns the minimum density for all the cases"
     ]
   },
   "percentile": {
@@ -843,56 +846,58 @@
     "args": [
       {
         "name": "expression",
-        "type": "attribute",
-        "description": "The attribute of the percentile that will be calculated."
+        "type": "expression",
+        "description": "The expression whose percentile value will be calculated."
       },
       {
         "name": "constant",
         "type": "value",
-        "description": "The percentile value in the range 0 to 1, inclusive."
+        "description": "The percentile (in the range 0 to 1, inclusive)."
       }
     ],
     "examples": [
       "percentile(Speed, .5) is another way to compute the median for the attribute Speed",
-      "percentile(Score, 0.95) will return the Score corresponding to the 95th percentile"
+      "percentile(Score, 0.95) will return the Score corresponding to the 95th percentile",
+      "percentile(Mass/Volume, 0.1) will return the density corresponding to the 10th percentile"
     ]
   },
   "stdDev": {
     "displayName": "stdDev",
-    "description": "Computes the sample standard deviation.",
+    "description": "Computes the sample standard deviation the given expression.",
     "args": [
       {
-        "name": "value",
-        "type": "attribute",
-        "description": "The attribute for which you want to find the standard deviation."
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression for which you want to find the standard deviation."
       }
     ],
     "examples": [
-      "stdDev(Pressure) computes the sample standard deviation of the attribute Pressure"
+      "stdDev(Pressure) computes the sample standard deviation of the attribute Pressure",
+      "stdDev(Weight/Height^2) could be used to compute the sample standard deviation of BMI provided that Weight is in kg and Height is in m"
     ]
   },
   "stdErr": {
     "displayName": "stdErr",
-    "description": "Computes the standard error.",
+    "description": "Computes the standard error by dividing the sample standard deviation by the square root of the sample size.",
     "args": [
       {
-        "name": "value",
-        "type": "attribute",
-        "description": "The attribute for which you want to find the standard error."
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression for which you want to find the standard error."
       }
     ],
     "examples": [
-      "stdError(Score) computes the sample standard error of the attribute Score"
+      "stdError(Score) computes the sample standard error for the values of the attribute Score"
     ]
   },
   "sum": {
     "displayName": "sum",
-    "description": "Returns the sum of the arguments over all the cases.",
+    "description": "Returns the sum of the expression evaluated over all the cases.",
     "args": [
       {
         "name": "expression",
         "type": "any",
-        "description": "The attribute for which you want to find the sum."
+        "description": "The expression for which you want to find the sum."
       },
       {
         "name": "filter",
@@ -908,7 +913,7 @@
   },
   "variance": {
     "displayName": "variance",
-    "description": "Computes the variance of an attribute, that is, the square of the standard deviation.",
+    "description": "Computes the variance of an attribute.",
     "args": [
       {
         "name": "expression",
@@ -926,7 +931,7 @@
   */
   "correlation": {
     "displayName": "correlation",
-    "description": "Computes Pearson's correlation coefficient for two attributes. The result does not depend on order.",
+    "description": "Computes Pearson's correlation coefficient for two attributes.",
     "args": [
       {
         "name": "xExpr",
@@ -941,7 +946,7 @@
       {
         "name": "filter",
         "type": "expression",
-        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -952,7 +957,7 @@
 
   "rSquared": {
     "displayName": "rSquared",
-    "description": "Computes square of the correlation coefficient for two attributes. The result does not depend on order.",
+    "description": "Computes coefficient of determination for two attributes.",
     "args": [
       {
         "name": "xExpr",
@@ -967,7 +972,7 @@
       {
         "name": "filter",
         "type": "expression",
-        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -993,7 +998,7 @@
       {
         "name": "filter",
         "type": "expression",
-        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -1019,7 +1024,7 @@
       {
         "name": "filter",
         "type": "expression",
-        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -1045,7 +1050,7 @@
       {
         "name": "filter",
         "type": "expression",
-        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -1070,7 +1075,7 @@
       {
         "name": "filter",
         "type": "expression",
-        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+        "description": "A boolean expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -1161,7 +1166,7 @@
       {
         "name": "stringToFind",
         "type": "string",
-        "description": "A string (in quotes) or an expression to search for."
+        "description": "A string or an expression to search for."
       }
     ],
     "examples": [
@@ -1202,12 +1207,12 @@
       {
         "name": "stringToLookIn",
         "type": "string",
-        "description": "A string (in quotes) or an expression you want to find."
+        "description": "A string or an expression you want to find."
       },
       {
         "name": "stringToFind",
         "type": "string",
-        "description": "A string (in quotes) or an expression to search for."
+        "description": "A string or an expression to search for."
       }
     ],
     "examples": [
@@ -1218,12 +1223,12 @@
   },
   "join": {
     "displayName": "join",
-    "description": "Combines multiple elements into a single string, separated with a delimiter.",
+    "description": "Combines multiple strings into a single string, separated with a delimiter.",
     "args": [
       {
         "name": "delimiter",
         "type": "string",
-        "description": "A string (in quotes) or an expression used to separate the other strings."
+        "description": "A string or an expression used to separate the other strings."
       },
       {
         "name": "string1",
@@ -1233,7 +1238,7 @@
       {
         "name": "string2",
         "type": "string",
-        "description": "The next string."
+        "description": "The second string."
       },
       {
         "name": "...",
@@ -1249,7 +1254,7 @@
   },
   "repeatString": {
     "displayName": "repeatString",
-    "description": "Takes two arguments, the first a string (in quotes) and the second a nonnegative integer. Returns the result of concatenating aString numRepetitions times",
+    "description": "Returns the result of repeating a string a specified number of times",
     "args": [
       {
         "name": "aString",
@@ -1259,7 +1264,7 @@
       {
         "name": "index",
         "type": "number",
-        "description": "The 1-based index number of times to repeat the string."
+        "description": "The number of times to repeat the string."
       }
     ],
     "examples": [
@@ -1348,12 +1353,12 @@
   },
   "split": {
     "displayName": "split",
-    "description": "Returns the string formed by splitting a string by the specified separator and then returning the element at the specified index.",
+    "description": "Splits a string into a list. You can specify the separator. Returns the string beginning at a specified index",
     "args": [
       {
         "name": "aString",
         "type": "string",
-        "description": "The original string (in quotes) that contains characters you want to split."
+        "description": "The original string that contains characters you want to split."
       },
       {
         "name": "separator",
@@ -1363,12 +1368,12 @@
       {
         "name": "index",
         "type": "number",
-        "description": "The 1-based index that specifies the placement of the splits."
+        "description": "The index of the desired substring, 1 by default."
       }
     ],
     "examples": [
-      "split(\"09/01/2016\", \"/\", 1) returns 9",
       "split(\"Hi, what's new?\", \"a\") returns \"Hi, wh\"",
+      "split(\"09/01/2016\", \"/\", 1) returns 9 (\"09\" is automatically converted to 9)",
       "Given an attribute \"d\" that contains strings of the form \"mm\/dd\/yyyy\", split(d,\"\/\",1) returns the month, split(d,\"\/\",2) returns the day, and split(d,\"\/\",3) returns the year."
     ]
   },
@@ -1425,7 +1430,7 @@
     ],
     "examples": [
       "toLower(\"String\") returns string.",
-      "toLower(Name) returns the name \"john\""
+      "toLower(Name) returns the name \"john\" when the value of Name is \"JOHN.\""
     ]
   },
   "toUpper": {
@@ -1440,12 +1445,12 @@
     ],
     "examples": [
       "toUpper(\"String\") returns STRING.",
-      "toUpper(Name) returns the name \"JOHN\""
+      "toUpper(Name) returns the name \"JOHN\" when the value of Name is \"john.\""
     ]
   },
   "trim": {
     "displayName": "trim",
-    "description": "Removes leading, trailing, and redundant white space characters from its argument. (e.g. double spaces are converted to single spaces).",
+    "description": "Removes whitespace from both ends of a string and any redundant whitespace in the string.",
     "args": [
       {
         "name": "string",
@@ -1456,7 +1461,7 @@
     "examples": [
       "trim(\" Fall Semester \") removes the unwanted first and last characters in the string and returns \"Fall Semester\"",
       "trim(\"First sentence.  Second sentence\") removes the extra space between the two sentences and returns \"First sentence. Second sentence.\"",
-      "trim(Greetings) removes the extra space between two sentences in the Greetings attribute"
+      "trim(Greetings) applies trim to each of the values of the attribute Greetings"
     ]
   },
   /*

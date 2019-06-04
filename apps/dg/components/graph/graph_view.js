@@ -787,9 +787,9 @@ DG.GraphView = SC.View.extend(
             tFunctionView = this.get('functionEditorView'),
             tPlottedValueView = this.get('plottedValueEditorView'),
             tShowNumberToggle = tNumberToggleView && tNumberToggleView.shouldShow(),
-            tXAxisHeight = !tXAxisView ? 0 : tXAxisView.get('desiredExtent'),
+            tXAxisHeight = !tXAxisView ? 0 : Math.min( tXAxisView.get('desiredExtent'), this.get('frame').height / 3),
             tXHeight = tXAxisHeight + tHeightForBottomLabel,
-            tYAxisWidth = !tYAxisView ? 0 : tYAxisView.get('desiredExtent'),
+            tYAxisWidth = !tYAxisView ? 0 : Math.min( tYAxisView.get('desiredExtent'), this.get('frame').width / 3),
             tYWidth = tYAxisWidth + tWidthForLeftLabel,
             tSpaceForY2 = (!tY2AxisView || !tHasY2Attribute) ? 0 : tY2AxisView.get('desiredExtent'),
             tY2DesiredWidth = !tY2AxisView ? 0 : tY2AxisView.get('desiredExtent'),
@@ -803,8 +803,8 @@ DG.GraphView = SC.View.extend(
             !SC.none(tPlotViews) && (tPlotViews.length > 0)) {
           tTopAxisView.set('isVisible', this_.getPath('model.numSplitColumns') > 1);
           tRightAxisView.set('isVisible', this_.getPath('model.numSplitRows') > 1);
-          var tTopHeight = tTopAxisView.get('isVisible') ? tTopAxisView.get('desiredExtent') : 0,
-              tRightSpace = tRightAxisView.get('isVisible') ? tRightAxisView.get('desiredExtent') : 0;
+          var tTopHeight = tTopAxisView.get('isVisible') ? Math.min( tTopAxisView.get('desiredExtent'), this.get('frame').height / 3) : 0,
+              tRightSpace = tRightAxisView.get('isVisible') ? Math.min( tRightAxisView.get('desiredExtent'), this.get('frame').width / 3) : 0;
           tLeftEdgeBackgroundView.set('layout', {left: 0, bottom: 0, top: 0, width: tYWidth});
           tRightEdgeBackgroundView.set('layout', {right: 0, bottom: 0, top: 0, width: tRightSpace + tSpaceForY2});
 
@@ -968,9 +968,12 @@ DG.GraphView = SC.View.extend(
       handlePlotModelChange: function () {
         var tPlot = this.getPath('model.plot'),
             tCurrentView = this.get('plotView'),
-            tViewClass = tCurrentView.constructor,
+            tViewClass = tCurrentView && tCurrentView.constructor,
             tCurrentPoints, tNewViewClass, tNewView,
             tInitLayout = false;
+
+        if( !tCurrentView)  // Sometimes we get here without a current plotview
+          return;
 
         tNewViewClass = this.mapPlotModelToPlotView(tPlot);
         if (tNewViewClass && (tViewClass !== tNewViewClass)) {

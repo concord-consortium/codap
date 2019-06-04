@@ -328,6 +328,9 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tLabelY = tCoord + tTickOffset - ((iIndex === 0 && !tCentering) ? iLabelSpec.height / 2 : 0);
             if( tRotation === 0) {
               tAnchor = 'end';
+              if( iLabelSpec.width > tLabelX && tLabelX > 10) {
+                DG.RenderingUtilities.elideToFit( iLabelSpec.element, tLabelX);
+              }
             }
             break;
 
@@ -341,6 +344,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
               tAnchor = 'end';
               if( iIndex === 0)
                 tLabelX += iLabelSpec.height / 3;
+              if( iLabelSpec.width > tFrame.height - tLabelY && tFrame.height - tLabelY > 10)
+                DG.RenderingUtilities.elideToFit( iLabelSpec.element, tFrame.height - tLabelY);
             }
             break;
           case 'top':
@@ -350,9 +355,12 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tLabelX = tCoord - tTickOffset + 1;
             tLabelY = tBaseline - kTickLength - kAxisGap - iLabelSpec.height / 3;
             if( tRotation === -90) {
+              var tAxisLabelHeight = this_.get('labelExtent').y;
               tAnchor = 'start';
               if( iIndex === 0)
                 tLabelX += iLabelSpec.height / 3;
+              if( iLabelSpec.width > tLabelY - tAxisLabelHeight && tLabelY - tAxisLabelHeight > 10)
+                DG.RenderingUtilities.elideToFit( iLabelSpec.element, tLabelY - tAxisLabelHeight);
             }
             break;
           case 'right':
@@ -362,7 +370,11 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tLabelX = tBaseline + kTickLength + kAxisGap + iLabelSpec.height / 3;
             tLabelY = tCoord + tTickOffset;
             if( tRotation === 0) {
+              var tAxisLabelWidth = this_.get('labelExtent').x;
               tAnchor = 'start';
+              if( iLabelSpec.width > tFrame.width - tLabelX - tAxisLabelWidth) {
+                DG.RenderingUtilities.elideToFit(iLabelSpec.element, tFrame.width - tLabelX- tAxisLabelWidth);
+              }
             }
             break;
         }

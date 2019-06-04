@@ -81,7 +81,7 @@ DG.DateUtilities.isDateString = function(iValue) {
     // assemble the regular expression from localized strings
     //
     this._isDateRegex = new RegExp('^(?:(?:'
-        + 'DG.Utilities.date.localDatePattern'.loc() + '(?: '
+        + 'DG.Utilities.date.localDatePattern'.loc() + '(?:(?:, |,| )'
         + 'DG.Utilities.date.timePattern'.loc() + ')?)|'
         + 'DG.Utilities.date.iso8601Pattern'.loc() + ')$', 'i');
   }
