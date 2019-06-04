@@ -835,10 +835,14 @@ DG.DocumentController = SC.Object.extend(
           if (DG.isStandaloneComponent(iComponent.get('name') || iComponent.get('title'), iComponent.get('type'))) {
             tParams.useLayout = true;
             tParams.layout = {};
+            tParams.isStandaloneComponent = true;
           }
           tComponentView = DG.ComponentView.restoreComponent(tParams);
         } else {
           DG.sounds.playCreate();
+          if (DG.isStandaloneComponent(iParams.name, iParams.componentClass.type)) {
+            tParams.isStandaloneComponent = true;
+          }
           tComponentView = DG.ComponentView.addComponent(tParams);
           var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
           tComponent.set('title', iParams.title || iParams.name);
