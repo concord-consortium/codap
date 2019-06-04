@@ -1539,6 +1539,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
     dataDidChange: function( iSource, iKey, iChange ) {
 
       var aCaseLiesOutsideBounds = function (iCollectionClient, iCaseIDs) {
+        // ensure we have a collectionClient and not a Collection
+        iCollectionClient = this.get('dataContext').getCollectionByID(iCollectionClient.id);
         return iCaseIDs.some(function (iCaseID) {
           var tCase = iCollectionClient.getCaseByID( iCaseID);
           return ['x', 'y', 'y2'].some(function (iDim) {
@@ -1563,14 +1565,17 @@ DG.GraphModel = DG.DataLayerModel.extend(
         var dataConfig = this.get('dataConfiguration'),
             tAllCases = dataConfig && dataConfig.get('cases'),
             tNewCaseIDs = iChange.result.caseIDs,
-            tDataLength = tAllCases ? tAllCases.length() : 0;
+            tDataLength = tAllCases ? tAllCases.length() : 0,
+            tCollections = iChange.collection?[iChange.collection]:iChange.collections?iChange.collections:[];
         if( tDataLength !== this._oldNumberOfCases ) {
           var isAddingCases = (tDataLength > this._oldNumberOfCases);
           if( tPlot && isAddingCases) {
             var newCase = tAllCases.at( tDataLength-1);
             if( this.isParentCase( newCase))
               tPlot.set('openParentCaseID', newCase.get('id'));
-            if( tNewCaseIDs && aCaseLiesOutsideBounds( iChange.collection, tNewCaseIDs)) {
+            if( tNewCaseIDs && tCollections.some(function (collection) {
+                return aCaseLiesOutsideBounds(collection, tNewCaseIDs);
+              })) {
               // We always rescale the axes on new data. Previously, we rescaled
               // for child cases but skipped rescale on parent cases because in
               // most cases the parent case values aren't filled in until the end
