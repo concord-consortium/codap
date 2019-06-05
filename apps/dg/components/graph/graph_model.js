@@ -1540,7 +1540,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       var aCaseLiesOutsideBounds = function (iCollectionClient, iCaseIDs) {
         // ensure we have a collectionClient and not a Collection
-        iCollectionClient = this.get('dataContext').getCollectionByID(iCollectionClient.id);
+        iCollectionClient = this.get('dataContext').getCollectionByID(iCollectionClient.get('id'));
         return iCaseIDs.some(function (iCaseID) {
           var tCase = iCollectionClient.getCaseByID( iCaseID);
           return ['x', 'y', 'y2'].some(function (iDim) {
