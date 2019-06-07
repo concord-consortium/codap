@@ -1350,6 +1350,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
       var tDataConfig = this.get('dataConfiguration'),
           tYAttrIndex = 0,
           tY2AttrIndex = 0;
+      if( this.get('isSplit'))
+        this.removeAllSplitPlotsAndAxes();
 
       this._isBeingRestored = true;
 
@@ -1429,6 +1431,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
                                   iStorage.plotModels ||
                                   []);
       this._isBeingRestored = false;
+      if( this.get('isSplit')) {
+        this.updateAxisArrays();
+        this.updateSplitPlotArray();
+        this.notifyPropertyChange('splitPlotChange');
+      }
+
     },
 
     checkboxDescriptions: function() {
