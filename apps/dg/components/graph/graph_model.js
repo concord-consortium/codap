@@ -845,6 +845,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
       });
     },
 
+    mixUp: function() {
+      this.forEachSplitPlotElementDo( function( iPlotArray) {
+        var tZeroPlot = iPlotArray[0];
+        if( tZeroPlot && tZeroPlot.mixUp)  // During some transitions, we may temporarily not have any plots in this cell
+          tZeroPlot.mixUp();
+      });
+    },
+
     /**
      * Sychronize the axis model to a new attribute or attribute description, to sure correct kind of axis is installed.
      * @param{String} iDescKey - key to the desired attribute description (x...|yAttributeDescription)
@@ -1130,7 +1138,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       iAttrIndex = iAttrIndex || 0;
       var tConfig = this.get('dataConfiguration'),
-          tAttributes = tConfig.getPath(iDescKey + '.attributes');
+          tAttributes = tConfig.getPath(iDescKey + '.attributes'),
+          tIsSplit = this.get('isSplit');
+
+      if( tIsSplit) {
+        this.removeAllSplitPlotsAndAxes();
+      }
 
       if( tAttributes.length === 0)
         return;
@@ -1146,6 +1159,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
       else
         removeIndexedAttribute();
+
+      if(tIsSplit) {
+        this.updateAxisArrays();
+        this.updateSplitPlotArray();
+        this.notifyPropertyChange('splitPlotChange');
+      }
     },
 
     hiddenCasesDidChange: function() {

@@ -421,11 +421,12 @@ DG.GraphController = DG.DataDisplayController.extend(
          * A case plot can't be rescaled, but it can do a mixUp.
          */
         rescaleFunction: function () {
-          var tPlot = this.getPath('graphModel.plot');
+          var tGraphModel = this.get('graphModel'),
+              tPlot = tGraphModel.get('plot');
           if (tPlot && tPlot.mixUp)
-            tPlot.mixUp();
-          else if (this.getPath('graphModel.hasNumericAxis') && tPlot && tPlot.rescaleAxesFromData)
-            tPlot.rescaleAxesFromData(true /* allowAxisRescale */, true /* Animate action */,
+            tGraphModel.mixUp();
+          else if (tGraphModel.get('hasNumericAxis'))
+            tGraphModel.rescaleAxesFromData(true /* allowAxisRescale */, true /* Animate action */,
                 true /* log it */, true /* user action */);
         },
 
