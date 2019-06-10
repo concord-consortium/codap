@@ -315,6 +315,10 @@ SC.stringsFor("en", {
     "DG.Redo.graph.lockBackgroundImage": "Redo locking background image to axes",
     "DG.Undo.graph.unlockBackgroundImage": "Undo unlocking background image from axes",
     "DG.Redo.graph.unlockBackgroundImage": "Redo unlocking background image from axes",
+    "DG.Undo.graph.makeStrokeSameAsFill": "Undo making stroke same as fill",
+    "DG.Redo.graph.makeStrokeSameAsFill": "Redo making stroke same as fill",
+    "DG.Undo.graph.makeStrokeIndependent": "Undo making stroke independent of fill",
+    "DG.Redo.graph.makeStrokeIndependent": "Redo making stroke independent of fill",
     "DG.Undo.graph.toggleTransparent": "Undo toggling plot transparency",
     "DG.Redo.graph.toggleTransparent": "Redo toggling plot transparency",
     "DG.Undo.graph.swapCategories": "Undo reordering categories",
@@ -792,6 +796,7 @@ SC.stringsFor("en", {
     "DG.Inspector.colorPicker.less": "less",
 
     // Graph Inspector
+    "DG.Inspector.strokeSameAsFill": "Stroke same color as fill",
     "DG.Inspector.graphTransparency": "Transparent",
     "DG.Inspector.graphCount": "Count",
     "DG.Inspector.graphPercent": "Percent",

@@ -592,6 +592,29 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 })
               })
           );
+          tResult.push(SC.CheckboxView.create({
+            layout: {height: 25},
+            title: 'DG.Inspector.strokeSameAsFill',
+            value: this.getPath('dataDisplayModel.strokeSameAsFill'),
+            classNames: 'dg-graph-strokeSameAsFill-check'.w(),
+            localize: true,
+            valueDidChange: function () {
+              var becomingSameAsFill = !this.getPath('dataDisplayModel.strokeSameAsFill'),
+                  logMessage = "Made stroke color " + (becomingSameAsFill ? "same as fill" : "independent of fill");
+              DG.UndoHistory.execute(DG.Command.create({
+                name: 'plot.strokeSameAsFillChange',
+                undoString: becomingSameAsFill ? 'DG.Undo.graph.makeStrokeSameAsFill' : 'DG.Undo.graph.makeStrokeIndependent',
+                redoString: becomingSameAsFill ? 'DG.Redo.graph.makeStrokeSameAsFill' : 'DG.Redo.graph.makeStrokeIndependent',
+                log: logMessage,
+                execute: function () {
+                  this.get('dataDisplayModel').toggleProperty('strokeSameAsFill');
+                }.bind(this),
+                undo: function () {
+                  this.get('dataDisplayModel').toggleProperty('strokeSameAsFill');
+                }.bind(this)
+              }));
+            }.bind(this).observes('value')
+          }));
           if (tLegendAttrDesc.get('isCategorical')) {
             var tContentView = SC.View.create(SC.FlowedLayout,
                 {

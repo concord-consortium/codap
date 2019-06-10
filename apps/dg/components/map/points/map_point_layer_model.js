@@ -271,11 +271,12 @@ DG.MapPointLayerModel = DG.MapLayerModel.extend(
             tGridModel = this.get('gridModel'),
             tConnectingLinesModel = this.get('connectingLinesModel');
         tDataConfiguration.addToStorageForDimension(tStorage, 'legend');
-        tStorage.pointColor = this.getPath('pointColor');
-        tStorage.strokeColor = this.getPath('strokeColor');
-        tStorage.pointSizeMultiplier = this.getPath('pointSizeMultiplier');
-        tStorage.transparency = this.getPath('transparency');
-        tStorage.strokeTransparency = this.getPath('strokeTransparency');
+        tStorage.pointColor = this.get('pointColor');
+        tStorage.strokeColor = this.get('strokeColor');
+        tStorage.pointSizeMultiplier = this.get('pointSizeMultiplier');
+        tStorage.transparency = this.get('transparency');
+        tStorage.strokeTransparency = this.get('strokeTransparency');
+        tStorage.strokeSameAsFill = this.get('strokeSameAsFill');
 
         if (tPointsVisible !== null)
           tStorage.pointsShouldBeVisible = tPointsVisible;

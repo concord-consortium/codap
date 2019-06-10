@@ -165,7 +165,7 @@ DG.DotChartView = DG.ChartView.extend(
 
         var tAttrs = {
           cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(iElement),
-          fill: iRC.calcCaseColorString(iCase), stroke: iRC.strokeColor,
+          fill: iRC.calcCaseColorString(iCase), stroke: iRC.calcStrokeColorString( iCase),
           'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
         };
 

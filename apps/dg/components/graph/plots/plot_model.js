@@ -282,6 +282,16 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        * This function is set by the graph that owns me.
        * @property{Function}
        */
+      getStrokeSameAsFill: null,
+
+      strokeSameAsFill: function () {
+        return this.getStrokeSameAsFill();
+      }.property(),
+
+      /**
+       * This function is set by the graph that owns me.
+       * @property{Function}
+       */
       getPointSizeMultiplier: null,
 
       /**

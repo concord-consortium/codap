@@ -78,6 +78,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
     var tConfig = tModel.get('dataConfiguration'),
         tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
         tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor,
+        tStrokeSameAsFill = tModel.get('strokeSameAsFill'),
         tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
             DG.MathUtilities.nQuantileValues(
                 tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
@@ -91,7 +92,9 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
       areaTransparency: tModel.get('areaTransparency'),
       areaStrokeColor: tModel.get('areaStrokeColor'),
       areaStrokeColorIsDefault: tStrokeColorIsDefault,
-      areaStrokeTransparency: tModel.get('areaStrokeTransparency'),
+      areaStrokeTransparency: tStrokeSameAsFill ?
+          tModel.get('areaTransparency') :
+          tModel.get('areaStrokeTransparency'),
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)
           return tModel.get('areaColor');
@@ -100,6 +103,11 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
         var tColorValue = iCase.getValue( this.legendVarID),
             tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, null, tQuantileValues);
         return tCaseColor.colorString || tCaseColor;
+      },
+      calcStrokeColorString: function( iCase ) {
+        if( tStrokeSameAsFill)
+          return this.calcCaseColorString( iCase);
+        else return this.areaStrokeColor;
       }
     };
   },
@@ -146,15 +154,19 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
     }
     tCases.forEach( function( iCase, iIndex) {
       var tColorString = tRC.calcCaseColorString( iCase),
+          tStrokeColorString = tRC.calcStrokeColorString( iCase),
           tFeature = this.features[ iIndex];
       if( tFeature) {
         tFeature.setStyle({
-          fillColor: tColorString
+          fillColor: tColorString,
+          color: tStrokeColorString,
+          opacity: tRC.areaStrokeTransparency,
         });
       }
     }.bind( this));
     this.updateSelection();
-  }.observes('model.areaColor', 'model.areaTransparency', 'model.areaStrokeColor', 'model.areaStrokeTransparency' ),
+  }.observes('model.areaColor', 'model.areaTransparency', 'model.areaStrokeColor', 'model.areaStrokeTransparency',
+      'model.strokeSameAsFill', 'model.pointColor'),
 
   /**
    * Remove all features.
@@ -247,9 +259,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
       }
       else {
         tFeature.setStyle( {
-          color: (tHasLegend && tRC.areaStrokeColorIsDefault) ?
-              DG.PlotUtilities.kMapAreaWithLegendUnselectedBorderColor :
-              tRC.areaStrokeColor,
+          color: tRC.calcStrokeColorString( iCase),
           opacity: tRC.areaStrokeTransparency,
           fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedOpacity :
               tRC.areaTransparency,

@@ -77,6 +77,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           storage.pointSizeMultiplier = this.getPath('dataDisplayModel.pointSizeMultiplier');
           storage.transparency = this.getPath('dataDisplayModel.transparency');
           storage.strokeTransparency = this.getPath('dataDisplayModel.strokeTransparency');
+          storage.strokeSameAsFill = this.getPath('dataDisplayModel.strokeSameAsFill');
 
           var plotModels = this.getPath('graphModel.plots');
 

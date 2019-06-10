@@ -128,6 +128,12 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
               DG.PlotUtilities.kDefaultStrokeOpacity);
     }.property(),
 
+    /**
+     * If true, then the stroke color/transparency will be the same as that used to fill the element
+     * @property {Boolean}
+     */
+    strokeSameAsFill: false,
+
     hasLegendVar: function() {
       return !SC.none( this.getPath('dataConfiguration.legendAttributeDescription.attributeID'));
     },
@@ -358,6 +364,8 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
         this.set('transparency', iStorage.transparency);
       if( !SC.none( iStorage.strokeTransparency))
         this.set('strokeTransparency', iStorage.strokeTransparency);
+      if( !SC.none( iStorage.strokeSameAsFill))
+        this.set('strokeSameAsFill', iStorage.strokeSameAsFill);
     },
 
     handleOneDataContextChange: function( iNotifier, iChange) {
@@ -482,7 +490,7 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           return this_.get('pointColor');
         },
         getStrokeColor: function() {
-          return this_.get('strokeColor');
+          return this_.get('strokeSameAsFill') ?  this_.get('pointColor') : this_.get('strokeColor');
         },
         getPointSizeMultiplier: function() {
           return this_.get('pointSizeMultiplier');
@@ -491,7 +499,10 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           return this_.get('transparency');
         },
         getStrokeTransparency: function() {
-          return this_.get('strokeTransparency');
+          return this_.get('strokeSameAsFill') ?  this_.get('transparency') : this_.get('strokeTransparency');
+        },
+        getStrokeSameAsFill: function() {
+          return this_.get('strokeSameAsFill');
         }
       };
     },

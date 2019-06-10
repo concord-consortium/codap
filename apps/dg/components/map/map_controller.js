@@ -560,14 +560,37 @@ DG.MapController = DG.DataDisplayController.extend(
                     controlView: DG.PickerColorControl.create({
                       layout: {width: 120},
                       classNames: 'dg-graph-stroke-color'.w(),
-                      initialColor: tinycolor(iMapLayerModel.getPath('strokeColor'))
-                          .setAlpha(iMapLayerModel.getPath('strokeTransparency')),
+                      initialColor: tinycolor(iMapLayerModel.get('strokeColor'))
+                          .setAlpha(iMapLayerModel.get('strokeTransparency')),
                       setColorFunc: setStroke,
                       closedFunc: setStrokeFinalized,
                       appendToLayerFunc: getStylesLayer
                     })
                   })
               );
+              tResult.push(SC.CheckboxView.create({
+                layout: {height: 25},
+                title: 'DG.Inspector.strokeSameAsFill',
+                value: iMapLayerModel.get('strokeSameAsFill'),
+                classNames: 'dg-graph-strokeSameAsFill-check'.w(),
+                localize: true,
+                valueDidChange: function () {
+                  var becomingSameAsFill = !iMapLayerModel.get('strokeSameAsFill'),
+                      logMessage = "Made stroke color " + (becomingSameAsFill ? "same as fill" : "independent of fill");
+                  DG.UndoHistory.execute(DG.Command.create({
+                    name: 'map.strokeSameAsFillChange',
+                    undoString: becomingSameAsFill ? 'DG.Undo.graph.makeStrokeSameAsFill' : 'DG.Undo.graph.makeStrokeIndependent',
+                    redoString: becomingSameAsFill ? 'DG.Redo.graph.makeStrokeSameAsFill' : 'DG.Redo.graph.makeStrokeIndependent',
+                    log: logMessage,
+                    execute: function () {
+                      iMapLayerModel.toggleProperty('strokeSameAsFill');
+                    }.bind(this),
+                    undo: function () {
+                      iMapLayerModel.toggleProperty('strokeSameAsFill');
+                    }.bind(this)
+                  }));
+                }.bind(this).observes('value')
+              }));
               if (tLegendAttrDesc.get('isCategorical')) {
                 tContentView = SC.View.create(SC.FlowedLayout,
                     {
@@ -731,6 +754,30 @@ DG.MapController = DG.DataDisplayController.extend(
                   setColorFunc: setAreaStroke,
                   appendToLayerFunc: getStylesLayer
                 })
+              }));
+
+              tPickerArray.push(SC.CheckboxView.create({
+                layout: {height: 25},
+                title: 'DG.Inspector.strokeSameAsFill',
+                value: iMapLayerModel.get('strokeSameAsFill'),
+                classNames: 'dg-graph-strokeSameAsFill-check'.w(),
+                localize: true,
+                valueDidChange: function () {
+                  var becomingSameAsFill = !iMapLayerModel.get('strokeSameAsFill'),
+                      logMessage = "Made stroke color " + (becomingSameAsFill ? "same as fill" : "independent of fill");
+                  DG.UndoHistory.execute(DG.Command.create({
+                    name: 'map.strokeSameAsFillChange',
+                    undoString: becomingSameAsFill ? 'DG.Undo.graph.makeStrokeSameAsFill' : 'DG.Undo.graph.makeStrokeIndependent',
+                    redoString: becomingSameAsFill ? 'DG.Redo.graph.makeStrokeSameAsFill' : 'DG.Redo.graph.makeStrokeIndependent',
+                    log: logMessage,
+                    execute: function () {
+                      iMapLayerModel.toggleProperty('strokeSameAsFill');
+                    }.bind(this),
+                    undo: function () {
+                      iMapLayerModel.toggleProperty('strokeSameAsFill');
+                    }.bind(this)
+                  }));
+                }.bind(this).observes('value')
               }));
 
               // Instead of returning tPickerArray...

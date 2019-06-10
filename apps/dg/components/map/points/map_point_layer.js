@@ -113,9 +113,10 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           isVisible: this.getPath( 'model.isVisible') && this.getPath('model.pointsShouldBeVisible'),
 
           pointColor: tModel.get('pointColor') || DG.PlotUtilities.kDefaultPointColor,
-          strokeColor: tStrokeParams.strokeColor,
           transparency: tModel.get('transparency') || DG.PlotUtilities.kDefaultPointOpacity,
-          strokeTransparency: tStrokeParams.strokeTransparency,
+          strokeTransparency: tStrokeParams.strokeSameAsFill ?
+              (tModel.get('transparency') || DG.PlotUtilities.kDefaultPointOpacity) :
+              tStrokeParams.strokeTransparency,
 
           calcCaseColorString: function (iCase) {
             if (!this.legendVarID)
@@ -126,6 +127,12 @@ DG.MapPointLayer = DG.PlotLayer.extend(
                 tCaseColor = DG.ColorUtilities.calcCaseColor(tColorValue, this.legendDesc,
                     this.pointColor, tQuantileValues);
             return tCaseColor.colorString || tCaseColor;
+          },
+
+          calcStrokeColorString: function (iCase) {
+            if( tStrokeParams.strokeSameAsFill)
+              return this.calcCaseColorString( iCase);
+            else return tStrokeParams.strokeColor;
           }
         };
       },
@@ -196,7 +203,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           var tAttrs = {
             cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
             fill: iRC.calcCaseColorString(iCase),
-            stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
+            stroke: iRC.calcStrokeColorString( iCase), 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
           };
           this.updatePlottedElement(tCircle, tAttrs, iAnimate, iCallback);
           if( iRC.isVisible && tCircle.attr('opacity') === 0) {
@@ -357,7 +364,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           this.updateConnectingLine();
         }
       }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
-          'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible'),
+          'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible', 'model.strokeSameAsFill'),
 
       /**
        * Override so we just remove the plottedElements in our portion of the array.

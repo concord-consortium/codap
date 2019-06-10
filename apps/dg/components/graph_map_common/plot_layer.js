@@ -432,7 +432,8 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         DG.assert(tModel);
         return {
           strokeColor: tModel.get('strokeColor'),
-          strokeTransparency: tModel.get('strokeTransparency')
+          strokeTransparency: tModel.get('strokeTransparency'),
+          strokeSameAsFill: tModel.get('strokeSameAsFill')
         };
       },
 

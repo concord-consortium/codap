@@ -474,7 +474,6 @@ DG.PlotView = DG.PlotLayer.extend(
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       pointColor: tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
-      strokeColor: tStrokeParams.strokeColor,
       transparency: tModel.getTransparency ? tModel.getTransparency() : DG.PlotUtilities.kDefaultPointOpacity,
       strokeTransparency: tStrokeParams.strokeTransparency,
       attrColor: SC.none( tPlotIndex) || (tPlotIndex === 0) ? null :
@@ -491,6 +490,11 @@ DG.PlotView = DG.PlotLayer.extend(
             tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc,
                 this.attrColor || this.pointColor, tQuantileValues );
         return tCaseColor.colorString || tCaseColor;
+      },
+      calcStrokeColorString: function( iCase) {
+        if( tStrokeParams.strokeSameAsFill)
+          return this.calcCaseColorString( iCase);
+        else return tStrokeParams.strokeColor;
       }
     };
   },

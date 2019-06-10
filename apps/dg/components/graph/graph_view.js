@@ -490,7 +490,7 @@ DG.GraphView = SC.View.extend(
         this.drawPlots(iProperty);
         this.get('legendView').displayDidChange();
       }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
-          'model.transparency', 'model.strokeTransparency'),
+          'model.transparency', 'model.strokeTransparency', 'model.strokeSameAsFill'),
 
       categoriesDidChange: function (iAxisView, iProperty) {
         if (this.getPath('model.aboutToChangeConfiguration') || !this.get('plotViews'))

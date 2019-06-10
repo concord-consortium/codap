@@ -74,6 +74,7 @@ DG.MapPolygonLayerModel = DG.MapLayerModel.extend(
         tStorage.areaTransparency = this.get('areaTransparency');
         tStorage.areaStrokeColor = this.get('areaStrokeColor');
         tStorage.areaStrokeTransparency = this.get('areaStrokeTransparency');
+        tStorage.strokeSameAsFill = this.get('strokeSameAsFill');
 
         return tStorage;
       },
@@ -91,5 +92,7 @@ DG.MapPolygonLayerModel = DG.MapLayerModel.extend(
           this.set('areaStrokeColor', tStorage.areaStrokeColor);
         if (tStorage.areaStrokeTransparency)
           this.set('areaStrokeTransparency', tStorage.areaStrokeTransparency);
+        if (tStorage.strokeSameAsFill)
+          this.set('strokeSameAsFill', tStorage.strokeSameAsFill);
       }
     });

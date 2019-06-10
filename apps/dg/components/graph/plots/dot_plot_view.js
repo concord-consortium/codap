@@ -261,7 +261,7 @@ DG.DotPlotView = DG.PlotView.extend(
 
       var tAttrs = {cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
                     fill: iRC.calcCaseColorString( iCase ),
-                    stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
+                    stroke: iRC.calcStrokeColorString( iCase), 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
       this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
       return { cx: tCoordX, cy: tCoordY, r: tRadius };
     }
