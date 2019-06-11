@@ -239,7 +239,14 @@ DG.DocumentArchiver = SC.Object.extend(
                     "id": 4
                   }
                 }
+              },
+              "layout": {
+                "width": 500,
+                "height": 200,
+                "top": 0,
+                "left": 0
               }
+
             },
             {
               "type": "DG.TextView",

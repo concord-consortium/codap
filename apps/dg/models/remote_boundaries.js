@@ -134,7 +134,7 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
   }
 
   // first time - create internal array of boundaries
-  if (!DG.activeDocument.remoteBoundaries) {
+  if (DG.activeDocument && !DG.activeDocument.remoteBoundaries) {
     $.ajax({
       url: DG.get('boundarySpecsUrl'),
       context: this,

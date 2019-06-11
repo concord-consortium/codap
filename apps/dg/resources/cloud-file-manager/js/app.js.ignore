@@ -13247,11 +13247,11 @@ CloudFileManagerClient = (function() {
     };
     this._updateState(content, metadata, additionalState, hashParams);
     contentType = metadata.mimeType || metadata.contentType;
-    if (contentType) {
-      eventData.metadata = {
-        contentType: contentType
-      };
-    }
+    eventData.metadata = {
+      contentType: contentType,
+      url: metadata.url,
+      filename: metadata.filename
+    };
     return this._event('openedFile', eventData, (function(_this) {
       return function(iError, iSharedMetadata) {
         if (iError) {
