@@ -739,5 +739,10 @@ SC.stringsFor("es", {
     "DG.DataDisplayMenu.removeAttribute_top": "Remove Side-by-side Layout by %@",
     "DG.DataDisplayMenu.removeAttribute_right": "Remove Vertical Layout by %@",
     "DG.GraphView.layoutPlotsSideBySide": "Layout side-by-side by %@",
-    "DG.GraphView.layoutPlotsVertically": "Layout vertically by %@"
+    "DG.GraphView.layoutPlotsVertically": "Layout vertically by %@",
+    "DG.Undo.graph.makeStrokeSameAsFill": "Undo making stroke same as fill",
+    "DG.Redo.graph.makeStrokeSameAsFill": "Redo making stroke same as fill",
+    "DG.Undo.graph.makeStrokeIndependent": "Undo making stroke independent of fill",
+    "DG.Redo.graph.makeStrokeIndependent": "Redo making stroke independent of fill",
+    "DG.Inspector.strokeSameAsFill": "Stroke same color as fill"
 });
