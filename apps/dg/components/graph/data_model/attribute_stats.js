@@ -295,7 +295,7 @@ DG.AttributeStats = SC.Object.extend(
           // We have to determine whether iCaseValue is a date.
           // If it is numeric, it is not a date
           var tValue = Number(iCaseValue);
-          tDataIsDateTime = tDataIsDateTime && (DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
+          tDataIsDateTime = tDataIsDateTime && (SC.empty(iCaseValue) || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
           if (!SC.empty(iCaseValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
             tNumericCaseCount++;
             if (tValue < tMin) tMin = tValue;
@@ -308,7 +308,7 @@ DG.AttributeStats = SC.Object.extend(
               tPositiveMax = Math.max(tValue, tPositiveMax);
             }
           }
-          else if (tDataIsDateTime) {
+          else if (tDataIsDateTime && (!SC.empty(iCaseValue))) {
             var tDate = DG.isDate( iCaseValue) ? iCaseValue : DG.createDate( iCaseValue);
             tNumericCaseCount++;
             if (tDate.valueOf() < tMin) tMin = tDate.valueOf();
