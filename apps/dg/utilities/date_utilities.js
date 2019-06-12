@@ -54,8 +54,14 @@ DG.DateUtilities.createDate = function(/* iArgs */) {
   /* jshint -W058 */
   date = new (Function.bind.apply(Date, args))();
 
+  if (isNaN(date)) {
+    date = null;
+  }
+
   // replace default numeric conversion (milliseconds) with our own (seconds)
-  date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000; };
+  if (date) {
+    date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000; };
+  }
 
   return date;
 };

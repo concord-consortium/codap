@@ -67,7 +67,7 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
       return iValue;
 
   var value = iValue.trim();
-  return DG.isDateString(value) ? DG.createDate(value) : value;
+  return /*DG.isDateString(value) ? DG.createDate(value) :*/ value;
 };
 
 /**
