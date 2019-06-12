@@ -470,6 +470,25 @@ DG.DataSet = SC.Object.extend((function() // closure
                                                   }.bind(this));
     },
 
+    moveDataItemByID: function (itemID, order) {
+      var clientIndex = this.getDataItemClientIndexByID(itemID);
+      var itemIndex = this._clientToItemIndexMap[clientIndex];
+      if ((clientIndex != null) && order) {
+        var newIndexMap = this._clientToItemIndexMap.slice();
+        newIndexMap.splice(clientIndex, 1);
+        switch (order) {
+          case 'first':
+            newIndexMap.unshift(itemIndex);
+            this.setClientIndexMap(newIndexMap);
+            break;
+          case 'last':
+            newIndexMap.push(itemIndex);
+            this.setClientIndexMap(newIndexMap);
+            break;
+        }
+      }
+    },
+
     compareItemsByClientIndex: function(item1, item2) {
       return item1._clientIndex - item2._clientIndex;
     },

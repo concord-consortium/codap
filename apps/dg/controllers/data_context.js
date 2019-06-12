@@ -533,6 +533,10 @@ DG.DataContext = SC.Object.extend((function() // closure
         result = this.doUpdateItem(iChange);
         shouldDirtyDoc = false;
         break;
+      case 'moveItems':
+        result = this.doMoveItems(iChange);
+        shouldDirtyDoc = false;
+        break;
       case 'deleteItems':
         result = this.doDeleteItems(iChange);
         shouldDirtyDoc = false;
@@ -863,6 +867,30 @@ DG.DataContext = SC.Object.extend((function() // closure
       }.bind(this));
     }
   },
+
+  doMoveItems: function (iChange) {
+    var dataSet = this.get('dataSet');
+    if (dataSet && iChange.items && iChange.itemOrder) {
+      var oldIndexMap = dataSet.getClientIndexMapCopy();
+      iChange.items.forEach(function(item, index) {
+        var itemOrder = Array.isArray(iChange.itemOrder)
+                          ? iChange.itemOrder[index]
+                          : iChange.itemOrder;
+        if (item.id) {
+          dataSet.moveDataItemByID(item.id, itemOrder);
+        }
+      });
+      var newIndexMap = dataSet.getClientIndexMapCopy();
+      var isChanged = !newIndexMap
+                        .every(function(itemIndex, arrayIndex) {
+                          return oldIndexMap[arrayIndex] === itemIndex;
+                        });
+      if (isChanged) {
+        this.regenerateCollectionCases(null, 'moveCases');
+      }
+    }
+  },
+
   /**
      Deletes items in this context.
 
@@ -1173,7 +1201,9 @@ DG.DataContext = SC.Object.extend((function() // closure
     var caseIDs = [];
     cases.forEach(function (iCase, iIndex) {
       var collection = iCase.get('collection');
-      var caseOrder = iChange.caseOrder[iIndex];
+      var caseOrder = Array.isArray(iChange.caseOrder)
+                        ? iChange.caseOrder[iIndex]
+                        : iChange.caseOrder;
       // only update the ID map after the last case
       var skipIDMapUpdate = iIndex < changeCount - 1;
       if (caseOrder === 'first') {
