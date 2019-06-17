@@ -493,6 +493,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         update: function (iResources, iValues) {
           var diModel = iResources.interactiveFrame.getPath('model.content');
           var diComponent = DG.currDocumentController().getComponentByID(this.get('id'));
+          var diView = this.get('view');
           var title = iValues.title || iValues.name;
           var userSetTitle = iResources.interactiveFrame.getPath('model.userSetTitle');
           DG.assert(diModel, 'DataInteractiveModel  exists' );
@@ -511,6 +512,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 diModel.set(prop, iValues[prop]);
               }
             });
+          }
+          if (DG.STANDALONE_MODE && title && DG.isStandaloneComponent(title, diComponent.get('type'))) {
+            DG.log('isStandalone component: ' + title);
+            diView.makeStandalone();
           }
 
           return {
