@@ -218,9 +218,10 @@ DG.React.ready(function () {
             }
 
             // Prevents page scroll when scrolling in the case card
-            function handleWheel(iEvent) {
-              iEvent.preventDefault();
-            }
+            // function handleWheel(iEvent) {
+              // iEvent.preventDefault();
+              // iEvent.stopPropagation();
+            // }
 
             function handleMouseLeave(iEvent) {
               if (tMouseIsDown) {
@@ -441,7 +442,8 @@ DG.React.ready(function () {
             var tDiv = div({
                   className: 'react-data-card-attribute',
                   title: tTitle,
-                  onWheel: handleWheel,
+                  // onWheel: handleWheel,
+                  // onScroll: handleWheel,
                   onMouseDown: handleMouseDown,
                   onMouseUp: handleMouseUp,
                   onMouseLeave: handleMouseLeave,
