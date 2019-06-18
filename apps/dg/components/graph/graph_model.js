@@ -1570,6 +1570,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         iCollectionClient = this.get('dataContext').getCollectionByID(iCollectionClient.get('id'));
         return iCaseIDs.some(function (iCaseID) {
           var tCase = iCollectionClient.getCaseByID( iCaseID);
+          if (!tCase) { return false; }
           return ['x', 'y', 'y2'].some(function (iDim) {
             var tFound = false,
                 tAxis = this.get(iDim + 'Axis');
