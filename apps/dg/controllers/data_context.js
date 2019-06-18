@@ -1492,7 +1492,19 @@ DG.DataContext = SC.Object.extend((function() // closure
     this.forEachCollection(function (collection) { collection.markCasesForDeletion(); });
 
     // starting with top collection, recreate cases
-    createdCases = topCollection.get('collection').recreateCases();
+      // we pause property observers on the collection cases controllers to
+      // avoid performance issues with selected cases.
+      this.forEachCollection(function (collectionClient) {
+        collectionClient.casesController.beginPropertyChanges();
+      });
+      try {
+        createdCases = topCollection.get('collection').recreateCases();
+      }
+      finally {
+        this.forEachCollection(function (collectionClient) {
+          collectionClient.casesController.endPropertyChanges();
+        });
+      }
 
     // track affected collections
     if (createdCases) {
