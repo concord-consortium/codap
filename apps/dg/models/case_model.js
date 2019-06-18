@@ -39,6 +39,7 @@ DG.Case = DG.BaseModel.extend((function() {
     all other values alone.
    */
   function convertValue(x) {
+    if (DG.isDate(x)) DG.log('convertValue: Found date: ' + x);
     return DG.isDate(x) ? DG.formatDate(x) : x;
   }
 
@@ -77,6 +78,8 @@ DG.Case = DG.BaseModel.extend((function() {
        */
     item: null,
 
+    _cachedDate: null,
+
     /**
      * Associative array of {AttrID:value} pairs for quicker lookups.
      */
@@ -90,6 +93,7 @@ DG.Case = DG.BaseModel.extend((function() {
     init: function() {
       sc_super();
 
+      this._cachedDate = {};
       DG.Case._addCaseToItemMap(this);
 
       this.children = [];
@@ -207,6 +211,14 @@ DG.Case = DG.BaseModel.extend((function() {
         // treat dates numerically
         value = Number(value);
         valType = "number";
+      } else if (this._cachedDate[iAttrID]) {
+        value = Number(this._cachedDate[iAttrID]);
+        valType = "number";
+      } else if (DG.isDateString(value)) {
+        DG.log('Caching date: ' + value);
+        this._cachedDate[iAttrID] = DG.createDate(value);
+        value = Number(this._cachedDate[iAttrID]);
+        valType = "number";
       }
       if( oOptInfo) {
         oOptInfo.type = valType;
@@ -270,6 +282,7 @@ DG.Case = DG.BaseModel.extend((function() {
       var children = this.get('children');
       if( !this.get('_valuesMap')) return; // Looks like case has been destroyed
 
+      this._cachedDate[iAttrID] = null;
       if (children.length === 0) {
         this.item.setValue(iAttrID, iValue);
       } else {

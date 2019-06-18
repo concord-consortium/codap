@@ -332,13 +332,30 @@ DG.ComponentView = SC.View.extend(
             this.originalLayout = {};
           }
           if (this.get('isStandaloneComponent')) {
-            // DG.log('isStandalone: ' + this.getPath('model.content.name'));
-            this.get('borderRight').set('isVisible', false);
-            this.get('borderBottom').set('isVisible', false);
-            this.get('borderLeft').set('isVisible', false);
-            this.get('borderTop').set('isVisible', false);
-            this.get('borderCorner').set('isVisible', false);
+            this.hideBorders();
           }
+        },
+        hideBorders: function () {
+          this.get('borderRight').set('isVisible', false);
+          this.get('borderBottom').set('isVisible', false);
+          this.get('borderLeft').set('isVisible', false);
+          this.get('borderTop').set('isVisible', false);
+          this.get('borderCorner').set('isVisible', false);
+        },
+        /**
+         * Makes a component view standalone. This means:
+         *  * Hiding borders
+         *  * Hiding title bar
+         *  * Binding component dimensions to the parent container
+         *  * Making component lowest in view hierarchy (sendToBack)
+         */
+        makeStandalone: function () {
+          this.set('isStandaloneComponent', true);
+          this.hideBorders();
+          this.getPath('containerView.titlebar').adjust('height', 0);
+          this.getPath('containerView.contentView').adjust('top', 0);
+          this.parentView.sendToBack(this);
+          this.layout = {};
         },
         setFocusToComponentTitle: function () {
           var titleView = this.getPath('containerView.titlebar.titleView');

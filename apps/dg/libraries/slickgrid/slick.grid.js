@@ -2017,7 +2017,7 @@ if (typeof Slick === "undefined") {
         rowsCache[rows[i]].rowNode = parentNode.appendChild(x.firstChild);
         // Safari 6.0.5 doesn't always render the new row immediately.
         // "Touching" the node's offsetWidth is sufficient to force redraw.
-        rowsCache[rows[i]].rowNode.offsetWidth;
+        // rowsCache[rows[i]].rowNode.offsetWidth;
       }
 
       if (needToReselectCell) {

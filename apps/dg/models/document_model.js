@@ -106,38 +106,8 @@ DG.Document = DG.BaseModel.extend(
 
 DG.Document.createDocument = function( iProperties) {
 
-  /**
-   * We make a pass through all the values because there may be some strings that represent date-times.
-   * @param iContexts {Object}
-   */
-  function changeDateStringValuesToDates( iContexts) {
-    iContexts.forEach( function( iContext) {
-      if (iContext.collections) {
-        iContext.collections.forEach(function (iCollection) {
-          if (iCollection.cases) {
-            iCollection.cases.forEach(function (iCase) {
-              if (iCase.values) {
-                DG.ObjectMap.forEach(iCase.values, function (iKey, iValue) {
-                  if (DG.isDateString(iValue))
-                    iCase.values[iKey] = DG.createDate(iValue);
-                });
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-
   var tDocument,
     tProperties = iProperties || {};
-
-  //if(DG.activeDocument) {
-  //  DG.logError("Can't create another document without closing the first.");
-  //  DG.Document.destroyDocument(DG.activeDocument);
-  //  DG.activeDocument = null;
-  //  DG.store = null;
-  //}
 
   /* A store must exist to create a document */
   DG.store = DG.ModelStore.create();
@@ -158,7 +128,6 @@ DG.Document.createDocument = function( iProperties) {
     });
   }
   if (tProperties.contexts) {
-    changeDateStringValuesToDates( tProperties.contexts);
     tProperties.contexts.forEach(function (context) {
       context.document = tDocument;
       DG.DataContextRecord.createContext(context);

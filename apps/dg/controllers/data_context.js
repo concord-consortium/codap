@@ -1280,6 +1280,9 @@ DG.DataContext = SC.Object.extend((function() // closure
         // Delete each case
         deletedCases = this_.deleteCasesAndChildren(iChange);
 
+        // invalidate dependents; aggregate functions may need to recalculate
+        this_.invalidateAttrsOfCollections(this_.collections, iChange);
+
         // Store the set of deleted cases, along with their values
         this._beforeStorage.deletedCases = deletedCases;
         this.log = "Deleted %@ case%@"
@@ -1332,7 +1335,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         };
 
         // invalidate dependents; aggregate functions may need to recalculate
-        this_.invalidateAttrsOfCollections(DG.ObjectMap.values(iChange.collectionIDs), iChange);
+        this_.invalidateAttrsOfCollections(this_.collections, iChange);
       },
       redo: function() {
         this.execute();
@@ -2509,7 +2512,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     or removed, so all references to attributes are invalidated.
    */
   caseIndicesDidChange: function() {
-    this.invalidateAttrsOfCollections(this.collections);
+    var nodes = this.get('dependencyMgr').findNodesWithNames(['caseIndex']);
+    this.invalidateDependentsAndNotify(nodes);
   },
 
   /**
@@ -2779,6 +2783,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       var items = this.get('dataSet').restoreSetAsideItems();
       var count = items.length;
       var results = this.regenerateCollectionCases(null, 'createCases');
+      this.invalidateAttrsOfCollections(this.collections, {operation: 'createCases', cases: results.createdCases});
       DG.log("Restored " + count + " items in context \"" + this.get('name') + "\"");
       DG.log("Restored %@ cases".loc(results.createdCases && results.createdCases.length));
       var tChange = {
