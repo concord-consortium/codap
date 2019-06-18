@@ -2783,6 +2783,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       var items = this.get('dataSet').restoreSetAsideItems();
       var count = items.length;
       var results = this.regenerateCollectionCases(null, 'createCases');
+      this.invalidateAttrsOfCollections(this.collections, {operation: 'createCases', cases: results.createdCases});
       DG.log("Restored " + count + " items in context \"" + this.get('name') + "\"");
       DG.log("Restored %@ cases".loc(results.createdCases && results.createdCases.length));
       var tChange = {
