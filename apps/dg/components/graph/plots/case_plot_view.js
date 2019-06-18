@@ -82,7 +82,7 @@ DG.CasePlotView = DG.PlotView.extend(
             tIsMissingCase = SC.none(tCoordX) || SC.none(tCoordY);
 
         // show or hide if needed, then update if shown.
-        if (this.showHidePlottedElement(tCircle, tIsMissingCase)) {
+        if (this.showHidePlottedElement(tCircle, tIsMissingCase, iIndex)) {
           var tAttrs = {
             cx: tCoordX, cy: tCoordY, r: tRadius, fill: iRC.calcCaseColorString(iCase),
             stroke: iRC.calcStrokeColorString( iCase), 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency

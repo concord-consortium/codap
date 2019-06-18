@@ -186,7 +186,7 @@ DG.DotChartView = DG.ChartView.extend(
             tIsMissingCase = SC.none(iCellIndices);
 
         // show or hide if needed, then update if shown.
-        if (this.showHidePlottedElement(tElement, tIsMissingCase)) {
+        if (this.showHidePlottedElement(tElement, tIsMissingCase, iIndex)) {
           var tAttrs = this.privGetElementCoordAttrs({_selected: false}, iRC, iCase, iIndex, iCellIndices);
           this.updatePlottedElement(tElement, tAttrs, iAnimate, iCallback);
         }

@@ -269,7 +269,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
         // show or hide if needed, then update if shown.
-        if (this.showHidePlottedElement(tCircle, tIsMissingCase)) {
+        if (this.showHidePlottedElement(tCircle, tIsMissingCase, iIndex)) {
           var tAttrs = {
             cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
             fill: iRC.calcCaseColorString(iCase),

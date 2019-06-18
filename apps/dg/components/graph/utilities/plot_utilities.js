@@ -387,24 +387,24 @@ DG.PlotUtilities = {
   /**
    * Called when we wish to animate the removal of an element, especially one stashed in a layer.
    * Note that the animation depends on there being fill and/or stroke.
+   * todo: Find a way to reinstate animation
    * @param iElement
    * @param iLayerManager
    */
   doHideRemoveAnimation: function( iElement, iLayerManager) {
-    if( iElement)
-      iElement.animate({'fill-opacity': 0, opacity: 0}, this.kDefaultAnimationTime, '<>',
-          function () {
-            // Remove event handlers
-            if (iElement.events) {
-              iElement.events.forEach(function (iHandler) {
-                iHandler.unbind();
-              });
-              iElement.events.length = 0;
-            }
-            iElement.hide();
-            if (iLayerManager)
-              iLayerManager.removeElement(this);
-          });
+    if( iElement) {
+      iElement.attr({'fill-opacity': 0, opacity: 0});
+      iElement.hide();
+      // Remove event handlers
+      if (iElement.events) {
+        iElement.events.forEach(function (iHandler) {
+          iHandler.unbind();
+        });
+        iElement.events.length = 0;
+      }
+      if (iLayerManager)
+        iLayerManager.removeElement(this);
+    }
   },
 
   /**

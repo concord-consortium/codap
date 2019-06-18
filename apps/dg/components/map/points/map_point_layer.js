@@ -101,6 +101,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           casesRemoved: true,
           updatedColors: true,
 
+          layer: this.getPath('layerManager.' + DG.LayerNames.kPoints),
           map: this.get('map'),
           westBound: this.get('map').getBounds().getWest(),
           eastBound: this.get('map').getBounds().getEast(),
@@ -173,6 +174,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 
       /**
        * Set the coordinates and other attributes of the case circle (a Raphael element in this.get('plottedElements')).
+       * Todo: Reinstate animation if possible
        * @param iRC {} case-invariant Render Context
        * @param iCase {DG.Case} the case data
        * @param iIndex {number} index of case in collection
@@ -207,13 +209,13 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           };
           this.updatePlottedElement(tCircle, tAttrs, iAnimate, iCallback);
           if( iRC.isVisible && tCircle.attr('opacity') === 0) {
+            this.assignElementAttributes( tCircle, iIndex, false, true);
+            iRC.layer.push( tCircle);
             tCircle.show();
-            tCircle.animate({opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+            tCircle.attr({opacity: 1});
           }
           else if( !iRC.isVisible && tCircle.attr('opacity') === 1) {
-            tCircle.animate( { opacity: 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>', function() {
-              tCircle.hide();
-            });
+            tCircle.hide( );
           }
         }
         tCircle['case'] = iCase;  // Because sorting the cases messes up any correspondence between index and case
@@ -365,25 +367,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         }
       }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
           'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible', 'model.strokeSameAsFill'),
-
-      /**
-       * Override so we just remove the plottedElements in our portion of the array.
-       */
-      removeExtraElements: function() {
-/*
-        var tCasesLength = this.getPath('model.cases.length'),
-            tPlottedElements = this.get('plottedElements'),
-            tPlotElementLength = tPlottedElements.length,
-            tLayerManager = this.get('layerManager');
-        for( var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
-          DG.PlotUtilities.doHideRemoveAnimation( tPlottedElements[ tIndex], tLayerManager);
-        }
-        if( tCasesLength < tPlotElementLength ) { // remove from array
-          tPlottedElements.length = tCasesLength;
-          this._elementOrderIsValid = false;
-        }
-*/
-      },
 
       updateSelection: function () {
         if (SC.none(this.get('map')))
