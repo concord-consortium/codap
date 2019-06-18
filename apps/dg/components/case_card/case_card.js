@@ -656,7 +656,7 @@ DG.React.ready(function () {
                           tCollectionHeader, tAttrEntries)));
                 }.bind(this)
             );
-            return div({className: 'react-data-card'}, tCollEntries);
+            return div({className: 'react-data-card dg-wants-mouse'}, tCollEntries);
           }
         };
       }()), []);
