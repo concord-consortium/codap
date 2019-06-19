@@ -1004,11 +1004,12 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
 
       /**
        * Show or hide the given plot element to match it's desired status.
+       * Todo: Find a way to reinstate animation
        * @param {Element} iPlottedElement, a Rafael element
        * @param {Boolean} iWantHidden, true if we want the element to be hidden
        * @return {Boolean} true if element is now shown.
        */
-      showHidePlottedElement: function (iPlottedElement, iWantHidden /*, iAnimate*/) {
+      showHidePlottedElement: function (iPlottedElement, iWantHidden, iIndex /*, iAnimate*/) {
         var tIsHidden = iPlottedElement.isHidden();
         if (iWantHidden) {
           if (!tIsHidden) {
@@ -1020,12 +1021,11 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
             iPlottedElement.attr({cx: 0, cy: 0, r: 1, fill: DG.ColorUtilities.kMissingValueCaseColor.colorString});
           }
         } else if (tIsHidden) {
-          // if want shown but it is hidden: show (then let caller animate or jump to the new position).
+          var tAttrs = {'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'opacity': 1};
+          this.assignElementAttributes( iPlottedElement, iIndex);
+          iPlottedElement.stop();
+          iPlottedElement.attr( tAttrs);
           iPlottedElement.show();
-          // Note that there is a possible problem in that if someone stops this animation, the element will
-          // likely be invisible or only partially visible
-          iPlottedElement.animate({'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'opacity': 1},
-              DG.PlotUtilities.kDefaultAnimationTime, '<>');
         }
         return !iWantHidden;
       },
