@@ -161,6 +161,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
        Observation function called when data values added/removed.
        */
       dataDidChange: function () {
+        if( !this.getPath('model.dataConfiguration'))
+          return; // happens during destroy of plot
         sc_super();
 
         // update connecting lines
