@@ -42,10 +42,13 @@ DG.MapController = DG.DataDisplayController.extend(
         mapModel: function () {
           return this.get('dataDisplayModel');
         }.property('dataDisplayModel'),
-        mapView: null,
+        mapView: function() {
+          return this.get('contentView');
+        }.property('contentView'),
 
         mapViewDidChange: function () {
           this.setPath('mapView.legendViewCreationCallback', this.setUpLegendView.bind(this));
+          this.setPath('mapView.controller', this);
         }.observes('mapView'),
 
         init: function() {
@@ -124,16 +127,6 @@ DG.MapController = DG.DataDisplayController.extend(
 
           this.get('dataDisplayModel').restoreStorage(iStorage);
         },
-
-        viewDidChange: function () {
-          var componentView = this.get('view'),
-              mapView = componentView && componentView.get('contentView');
-          if (mapView) {
-            this.set('mapView', mapView);
-            this.set('legendView', mapView.get('legendView'));
-            mapView.set('controller', this);
-          }
-        }.observes('view'),
 
         /**
          * We override here just so we can be observing things that make sense.

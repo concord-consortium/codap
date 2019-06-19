@@ -63,13 +63,6 @@ DG.SliderController = DG.ComponentController.extend(
           this.set('axisModel', sliderModel.get('axis'));
       }.observes('model'),
 
-      viewDidChange: function () {
-        var sliderView = this.getPath('view.contentView');
-        this.set('sliderView', sliderView);
-        this.set('axisView', sliderView.get('axisView'));
-        sliderView.set('controller', this);
-      }.observes('view', 'view.contentView'),
-
       /**
        * Called as action of startButton
        */

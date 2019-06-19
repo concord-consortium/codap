@@ -313,29 +313,21 @@ DG.SliderView = SC.View.extend(
             redoString: 'DG.Redo.slider.change',
             log: "sliderThumbDrag: { \"name\": \"%@\", \"newValue\": %@ }".fmt(this_.getPath('model.name'), this_.getPath('model.value')),
             _componentId: this_.getPath('controller.model.id'),
-            _controller: function() {
-              return DG.currDocumentController().componentControllersMap[this._componentId];
-            },
-            _view: function() {
-              return this._controller().get('sliderView');
-            },
             _newValue: this_.getPath('model.value'),
             _prevValue: this_._previousValue,
             execute: function() {
-              this._view().get('model').encompassValue();
+              this_.get('model').encompassValue();
               if (this._newValue === this._prevValue) {
                 this.causedChange = false;
               }
             },
             undo: function() {
-              var view = this._view();
-              view.setPath('model.value', this._prevValue);
-              view.get('model').encompassValue();
+              this_.setPath('model.value', this._prevValue);
+              this_.get('model').encompassValue();
             },
             redo: function() {
-              var view = this._view();
-              view.setPath('model.value', this._newValue);
-              view.get('model').encompassValue();
+              this_.setPath('model.value', this._newValue);
+              this_.get('model').encompassValue();
             }
           }));
         }
