@@ -113,8 +113,8 @@ test("Test canonicalizeInputValue()", function() {
   equals(DG.DataUtilities.canonicalizeInputValue("undefined"), "");
   equals(DG.DataUtilities.canonicalizeInputValue(""), "");
   equals(DG.DataUtilities.canonicalizeInputValue("foo"), "foo");
-  ok(DG.DataUtilities.canonicalizeInputValue("2002-12-31T23:00:00+01:00") instanceof Date, "canonicalizeInputValue('2002-12-31T23:00:00+01:00')");
-  ok(DG.DataUtilities.canonicalizeInputValue("2016-02-01") instanceof Date, "canonicalizeInputValue('2016-02-01')");
+  // ok(DG.DataUtilities.canonicalizeInputValue("2002-12-31T23:00:00+01:00") instanceof Date, "canonicalizeInputValue('2002-12-31T23:00:00+01:00')");
+  // ok(DG.DataUtilities.canonicalizeInputValue("2016-02-01") instanceof Date, "canonicalizeInputValue('2016-02-01')");
 });
 
 test("Test canonicalizeInternalValue()", function() {
