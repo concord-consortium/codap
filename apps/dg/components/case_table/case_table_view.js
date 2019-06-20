@@ -954,8 +954,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       dataView.onRowCountChanged.subscribe(function (e, args) {
         SC.run( function() {
           if( this._slickGrid) {
+            var editState = this.saveEditState();
             this._slickGrid.invalidate();
             this.set('rowCount', args.current);
+            if (editState) {
+              this.restoreEditStateWhenReady(editState);
+            }
           }
         }.bind( this));
       }.bind( this));
@@ -1284,9 +1288,18 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       Refreshes the Slick.DataView and re-renders the Slick.Grid.
      */
     refresh: function() {
+      this.setPath('gridAdapter.lastRefresh', null);
+
+      var editState = this.saveEditState();
       var gridAdapter = this.get('gridAdapter');
       if( gridAdapter) gridAdapter.refresh();
-      if( this._slickGrid) this._slickGrid.invalidate();
+      if( this._slickGrid) {
+        this._slickGrid.invalidate();
+        if (editState) {
+          this.restoreEditStateWhenReady(editState);
+        }
+      }
+      this.setPath('gridAdapter.lastRefresh', new Date());
     },
 
     /**
@@ -1863,6 +1876,69 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         this._slickGrid.setColumns( iColumnsInfo);
         this._slickGrid.render();
         this.adjustHeaderForOverflow();
+      }
+    },
+
+    /**
+      Returns the currently active edit state (if any).
+     */
+    saveEditState: function() {
+      var editor = this._slickGrid && this._slickGrid.getCellEditor(),
+          editState = editor && editor.saveEditState(),
+          editController = editState && this._slickGrid.getEditController();
+      // cancel current edit so it doesn't get committed before restoration
+      if (editController) editController.cancelCurrentEdit();
+      return editState;
+    },
+
+    /**
+      Restores a previously active edit state.
+     */
+    restoreEditState: function(state) {
+      var editCase = state && state.item,
+          isProtoCase = editCase && editCase._isProtoCase,
+          caseId = editCase && editCase.id,
+          editColumn = state && state.column,
+          editAttr = editColumn && editColumn.attribute,
+
+          gridAdapter = this.get('gridAdapter'),
+          gridDataView = gridAdapter && gridAdapter.get('gridDataView'),
+          editRow = isProtoCase
+                      ? gridDataView.get('caseTableLength') - 1
+                      : gridDataView.getRowById(caseId),
+          editCell = editAttr && gridAdapter.getColumnIndexFromAttribute(editAttr);
+      if ((editRow != null) && (editRow >= 0) && (editCell != null) && (editCell >= 0)) {
+        this._slickGrid.setActiveCell(editRow, editCell);
+        this._slickGrid.editActiveCell();
+        var activeEditor = this._slickGrid.getCellEditor();
+        activeEditor && activeEditor.restoreEditState(state);
+      }
+    },
+
+    /**
+      Waits to update a previously active edit state until sufficient time
+      has elapsed since the last table refresh. This allows us to wait until
+      the dust settles so that we don't try to restore a previous edit state
+      in the middle of a sequence of operations that will just wipe out the
+      active edit again.
+     */
+    restoreEditStateWhenReady: function(state) {
+      var restoreWhenReady = function() {
+        if (state) {
+          var lastRefresh = this.getPath('gridAdapter.lastRefresh'),
+              elapsed = lastRefresh ? new Date() - lastRefresh : 0,
+              kThreshold = 50;
+          if (elapsed >= kThreshold) {
+            this.restoreEditState(state);
+          }
+          else {
+            setTimeout(restoreWhenReady, kThreshold - elapsed);
+          }
+        }
+      }.bind(this);
+
+      if (state) {
+        restoreWhenReady();
       }
     },
 
