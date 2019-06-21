@@ -33,7 +33,9 @@ DG.SliderController = DG.ComponentController.extend(
 
       sliderView: null,
 
-      axisView: null,
+      axisView: function() {
+        return this.getPath('view.contentView.axisView');
+      }.property(),
 
       /**
        Used to animate the mode's value.
