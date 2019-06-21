@@ -233,7 +233,7 @@ DG.DotPlotView = DG.PlotView.extend(
         tIsMissingCase =(!DG.isFinite( tScreenCoord) || iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);
 
     // show or hide if needed, then update if shown.
-    if( this.showHidePlottedElement(tCircle, tIsMissingCase) && iRC.categoryAxisModel, iIndex) {
+    if( this.showHidePlottedElement(tCircle, tIsMissingCase, iIndex) && iRC.categoryAxisModel) {
 
       var tCellNumber = iRC.categoryAxisModel.cellNameToCellNumber( iCase.getStrValue( iRC.categoryVarID )),
           tCellCoord = SC.none(tCellNumber) ? 0 : iRC.categoryAxisView.cellToCoordinate( tCellNumber),
