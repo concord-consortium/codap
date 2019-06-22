@@ -124,7 +124,7 @@ DG.TextComponentController = DG.ComponentController.extend(
     var textFieldView = this.getPath('view.containerView.contentView.editView');
     if( textFieldView)
       textFieldView.bind('value', this, 'theText');
-  }.observes('view')
+  }.observes('*view.containerView.contentView')
   
 });
 
