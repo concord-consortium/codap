@@ -122,6 +122,8 @@ DG.DotPlotView = DG.PlotView.extend(
    * Update the plot when cases have been added or removed.
    */
   dataDidChange: function() {
+    if( !this.getPath('model.dataConfiguration'))
+      return; // happens during destroy of plot
     sc_super(); // base class handles almost everything
     if( SC.none( this.get('paper')))
       return;   // not ready to create elements yet
