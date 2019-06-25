@@ -115,7 +115,7 @@ DG.WebViewController = DG.ComponentController.extend(
       tWebView.bind('value', this, 'theURL');
       tWebView.set('controller', this);
     }
-  }.observes('view')
+  }.observes('view.containerView.contentView')
 
 });
 
