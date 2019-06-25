@@ -1123,11 +1123,15 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
 
     // invalidate dependents
-    var attrNodes = attrSpecs.map(function(iSpec) {
+    var hasGroupingAttr = false,
+        attrNodes = attrSpecs.map(function(iSpec) {
                       var attr = DG.Attribute.getAttributeByID(iSpec.attributeID);
+                      if (!hasGroupingAttr && attr.getPath('collection.children'))
+                        hasGroupingAttr = true;
                       return { type: DG.DEP_TYPE_ATTRIBUTE, id: iSpec.attributeID,
                                 name: attr.get('name') };
                     });
+    if (hasGroupingAttr) this.regenerateCollectionCases(null, 'updateCases');
     this.invalidateDependentsAndNotify(attrNodes, iChange);
 
     return { success: true, caseIDs: iChange.caseIDs };
@@ -1168,10 +1172,14 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     }.bind(this));
 
-    var attrNodes = [];
+    var attrNodes = [],
+        hasGroupingAttr = false;
     DG.ObjectMap.forEach(attrs, function(id, attr) {
+      if (!hasGroupingAttr && attr.getPath('collection.children'))
+        hasGroupingAttr = true;
       attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.id, name: attr.get('name') });
     });
+    if (hasGroupingAttr) this.regenerateCollectionCases(null, 'updateCases');
     this.invalidateDependentsAndNotify(attrNodes, iChange);
 
     return { success: success, caseIDs: caseIDs};
