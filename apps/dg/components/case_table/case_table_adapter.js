@@ -353,6 +353,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     return columnWidth;
   },
 
+  getColumnIndexFromAttribute: function (attr) {
+    return this.gridColumns.findIndex(function (columnInfo) {
+      return columnInfo.attribute && (attr.id === columnInfo.attribute.id);
+    });
+  },
+
   getColumnFromAttribute: function (attr) {
     return this.gridColumns.find(function (columnInfo) {
       return columnInfo.attribute && (attr.id === columnInfo.attribute.id);
@@ -705,13 +711,17 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     Refreshes the contents of the table.
    */
   refresh: function() {
+    this.set('lastRefresh', null);
     this.invokeOnce(function() {
+      this.set('lastRefresh', null);
       var gridDataView = this.get('gridDataView');
       if( gridDataView) {
         gridDataView.refresh();
         this.notifyPropertyChange('tableDidRefresh');
       }
+      this.set('lastRefresh', new Date());
     }.bind(this));
+    this.set('lastRefresh', new Date());
   },
 
   /**
@@ -957,6 +967,22 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
 
   this.serializeValue = function () {
     return $input.val();
+  };
+
+  this.saveEditState = function () {
+    return {
+      item: args.item,
+      column: args.column,
+      value: $input.val(),
+      selectionStart: $input[0].selectionStart,
+      selectionEnd: $input[0].selectionEnd,
+      selectionDirection: $input[0].selectionDirection
+    };
+  };
+
+  this.restoreEditState = function (state) {
+    $input.val(state.value);
+    $input[0].setSelectionRange(state.selectionStart, state.selectionEnd, state.selectionDirection);
   };
 
   /**
