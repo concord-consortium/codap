@@ -66,15 +66,15 @@ DG.main = function main() {
   /* begin CFM load/configuration */
   /* global Promise */
 
-  function openDataInteractive(iURL) {
-    if (iURL) {
+  function openDataInteractives(iURLs) {
+    if (iURLs) {
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}), newDocument;
 
       DG.currDocumentController().closeDocument();
 
       // Make a data interactive iFrame using the given URL
-      newDocument = archiver.createNewDocumentWithDataInteractiveURL(iURL);
+      newDocument = archiver.createNewDocumentWithDataInteractives(iURLs);
 
       DG.currDocumentController().setDocument(newDocument);
     }
@@ -161,13 +161,25 @@ DG.main = function main() {
   }
   function translateQueryParameters() {
     var startingDataInteractive = DG.get('startingDataInteractive');
+    var diURLs = [];
+    if (startingDataInteractive) {
+      var diLen = startingDataInteractive.length;
+      if ((diLen > 2) && (startingDataInteractive[0] === '[') &&
+          (startingDataInteractive[diLen - 1] === ']')) {
+        var diStrings = startingDataInteractive.substr(1, diLen - 2);
+        diURLs = diStrings.split(',');
+      }
+      else {
+        diURLs.push(startingDataInteractive);
+      }
+    }
 
     if (DG.get('runKey'))
       DG.set('showUserEntryView', false);
 
-    if (startingDataInteractive) {
+    if (diURLs.length) {
       DG.set('showUserEntryView', false);
-      openDataInteractive(startingDataInteractive);
+      openDataInteractives(diURLs);
     }
   }
 
