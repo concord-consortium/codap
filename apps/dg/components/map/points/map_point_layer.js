@@ -208,13 +208,13 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             stroke: iRC.calcStrokeColorString( iCase), 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
           };
           this.updatePlottedElement(tCircle, tAttrs, iAnimate, iCallback);
-          if( iRC.isVisible && tCircle.attr('opacity') === 0) {
+          if( iRC.isVisible) {
             this.assignElementAttributes( tCircle, iIndex, false, true);
             iRC.layer.push( tCircle);
             tCircle.show();
             tCircle.attr({opacity: 1});
           }
-          else if( !iRC.isVisible && tCircle.attr('opacity') === 1) {
+          else {
             tCircle.hide( );
           }
         }

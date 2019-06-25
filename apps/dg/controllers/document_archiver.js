@@ -379,19 +379,21 @@ DG.DocumentArchiver = SC.Object.extend(
      * @param iURL - URL of data interactive
      * @returns {DG.Document}
      */
-    createNewDocumentWithDataInteractiveURL: function (iURL) {
+    createNewDocumentWithDataInteractives: function (iURLs) {
+      var tComponents = (iURLs || [])
+            .map(function(url) {
+              return {
+                "type": "DG.GameView",
+                "componentStorage": {
+                  "currentGameName": "",
+                  "currentGameUrl": url
+                }
+              };
+            });
       var tDoc = {
         name: 'DG.Document.defaultDocumentName'.loc(),
         guid: 1,
-        components: [
-          {
-            "type": "DG.GameView",
-            "componentStorage": {
-              "currentGameName": "",
-              "currentGameUrl": iURL
-            }
-          }
-        ],
+        components: tComponents,
         appName: DG.APPNAME,
         appVersion: DG.VERSION,
         appBuildNum: DG.BUILD_NUM,
