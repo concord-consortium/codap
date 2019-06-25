@@ -102,10 +102,10 @@ DG.isDateString = DG.DateUtilities.isDateString;
  */
 DG.DateUtilities.formatDate = function(x, precision) {
   if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
-  // use moment.js for formatting to avoid browser bugs
-  /* global moment */
-  var mom = DG.isDate(x) ? moment(x) : moment(Number(x) * 1000),
-      formatString = 'l';
+  // use dayjs.js for formatting to avoid browser bugs
+  /* global dayjs */
+  var dt = DG.isDate(x) ? dayjs(x) : dayjs(Number(x) * 1000),
+      formatString = "DG.AttributeFormat.DatePrecision.millisecond".loc();
   if(precision) {
     switch (precision) {
       case DG.Attribute.DATE_PRECISION_YEAR:
@@ -129,10 +129,10 @@ DG.DateUtilities.formatDate = function(x, precision) {
     }
   }
   else {
-    var h = mom.hours(),
-        m = mom.minutes(),
-        s = mom.seconds(),
-        ms = mom.milliseconds(),
+    var h = dt.hour(),
+        m = dt.minute(),
+        s = dt.second(),
+        ms = dt.millisecond(),
         hasTime = (h + m + s + ms) > 0,
         hasSeconds = (s + ms) > 0,
         hasMilliseconds = ms > 0;
@@ -144,7 +144,7 @@ DG.DateUtilities.formatDate = function(x, precision) {
         formatString += ' LT';
     }
   }
-  return mom.format( formatString);
+  return dt.format( formatString);
 };
 DG.formatDate = DG.DateUtilities.formatDate;
 
