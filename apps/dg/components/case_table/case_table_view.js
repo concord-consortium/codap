@@ -1437,15 +1437,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         if (!activeRowItem._isProtoCase && hasProtoCase)
           this.commitProtoCase(lastRowItem);
 
-        // editing the proto-case deselects other rows
-        if (activeRowItem._isProtoCase) {
-          this.get('gridAdapter').deselectAllCases();
-        }
-        // if attribute not editable and not the proto-case row, then can't edit
-        else if (!this.get('gridAdapter').isCellEditable(iArgs.row, iArgs.cell)) {
+        var gridAdapter = this.get('gridAdapter');
+        if (!gridAdapter.isCellEditable(iArgs.row, iArgs.cell)) {
           retval = false;
         } else {
-          this.get('gridAdapter').deselectAllCases();
+          gridAdapter.deselectAllCases();
         }
       }.bind(this));
       return retval;
