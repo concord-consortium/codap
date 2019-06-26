@@ -26,7 +26,7 @@ sc_require('views/inspector/picker_control_view');
  @extends SC.View
  */
 DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
-    /** @scope DG.AttribueEditorView.prototype */ {
+    /** @scope DG.AttributeEditorView.prototype */ {
     var kRowHeight = 20;
     var kControlHeight = kRowHeight - 2;
     var kTitleHeight = 26;
@@ -262,6 +262,12 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
         if (attrRef) {
           DG.ObjectMap.forEach(attr, function(key, val) {
             var ctlName = key + 'Ctl';
+            // Don't allow non-renameable attributes to be renamed
+            if (key === 'name') {
+              var isEditable = attr.get('renameable');
+              contentView.setPath('nameCtl.controlView.enabledState',
+                                  isEditable ? SC.CoreView.ENABLED : SC.CoreView.DISABLED);
+            }
             // Convert attribute type nominal to categorical
             if (key === 'type' && val === DG.Attribute.TYPE_NOMINAL) {
               val = DG.Attribute.TYPE_CATEGORICAL;
