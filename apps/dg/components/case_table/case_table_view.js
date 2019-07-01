@@ -967,7 +967,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       dataView.onRowsChanged.subscribe(function (e, args) {
         SC.run( function() {
           if( this._slickGrid) {
+            var editState = this.saveEditState();
             this._slickGrid.invalidate();
+            if (editState) {
+              this.restoreEditStateWhenReady(editState);
+            }
           }
         }.bind( this));
       }.bind( this));
