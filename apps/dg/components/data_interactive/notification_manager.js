@@ -57,13 +57,15 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
     init: function () {
       sc_super();
       this.invokeLater(function () {
-        var contexts = DG.currDocumentController().get('contexts');
+        if (!this.isDestroyed) {
+          // Because we're in an invokeLater, we might already have been destroyed
+          var contexts = DG.currDocumentController().get('contexts');
 
-        contexts.forEach(function (context) {
-          this.guaranteeDataContextObserver(context);
-        }.bind(this));
-
-        DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
+          contexts.forEach(function (context) {
+            this.guaranteeDataContextObserver(context);
+          }.bind(this));
+          DG.currDocumentController().addObserver('contextsLength', this, this.contextCountDidChange);
+        }
 
       }, 200);
     },
@@ -72,8 +74,8 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
       contexts.forEach(function (context) {
         this.removeDataContextObserver(context);
       }.bind(this));
-      DG.currDocumentController().removeObserver('contexts.length', this, this.contextCountDidChange);
-
+      DG.currDocumentController().removeObserver('contextsLength', this, this.contextCountDidChange);
+      sc_super();
     },
 
     /**
@@ -251,6 +253,28 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
           });
         }
       }.bind(this));
+    },
+
+    sendDocumentToSubscribers: function() {
+      var activeChannels = findActiveChannels(DG.currDocumentController()),
+          documentSubscribers;
+      documentSubscribers = activeChannels.filter( function( iChannel) {
+        return iChannel.getPath('controller.contentView.model.subscribeToDocuments');
+      });
+      if (documentSubscribers.length > 0) {
+        DG.currDocumentController().captureCurrentDocumentState(true /* fullData */).then(function (value) {
+          documentSubscribers.forEach( function( iSubscriber) {
+            iSubscriber.sendMessage({
+              action: 'notify',
+              resource: 'document',
+              values: {
+                operation: 'newDocumentState',
+                state: value
+              }
+            });
+          });
+        });
+      }
     }
   };
 

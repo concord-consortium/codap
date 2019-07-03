@@ -34,7 +34,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       modelProps: ['version', 'dimensions',
                   'preventBringToFront', 'preventDataContextReorg', 'preventTopLevelReorg',
                   'preventAttributeDeletion', 'allowEmptyAttributeDeletion',
-                  'respectEditableItemAttribute'],
+                  'respectEditableItemAttribute', 'subscribeToDocuments'],
 
       /**
        * We need to be able to set title.
@@ -100,6 +100,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           dataContext: this.handleDataContext,
           dataContextFromURL: this.handleDataContextFromURL,
           dataContextList: this.handleDataContextList,
+          document: this.handleDocument,
           global: this.handleGlobal,
           globalList: this.handleGlobalList,
           item: this.handleItems,
@@ -240,6 +241,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'undoableActionPerformed',
               'component',
               'componentList',
+              'document',
               'global',
               'globalList'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
@@ -2219,6 +2221,32 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
+/*
+      handleDocument: {
+        get: function (iResources, resourceMap) {
+          var tDocController = DG.currDocumentController();
+
+          // todo: captureCurrentDocumentState returns a promise which, when resolved returns the state.
+          // How do we get that state back to the caller? Seems like we have to notify that it's ready, right?
+          var result = tDocController.captureCurrentDocumentState(true /!* fullData *!/).then(function (value) {
+            DG.currDocumentController().notificationManager.sendNotification({
+              action: 'notify',
+              resource: 'document',
+              values: {
+                operation: 'getDocumentState',
+                id: resourceMap.stateID,
+                state: value }
+            });
+          });
+
+          return {
+            success: true,
+            values: result
+          };
+        }
+      },
+
+*/
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.Debug.logUserWithTopic.apply(DG.Debug, [iValues.topic, iValues.formatStr].concat(iValues.replaceArgs));

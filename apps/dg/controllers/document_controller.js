@@ -2049,4 +2049,7 @@ DG.dirtyCurrentDocument = function (changedObject, retainUndo) {
   } else {
     update();
   }
+
+  if (DG.currDocumentController().notificationManager)
+    DG.currDocumentController().notificationManager.sendDocumentToSubscribers();
 };
