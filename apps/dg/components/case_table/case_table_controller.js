@@ -592,11 +592,22 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           redoString: 'DG.Redo.toggleComponent.' + tOperation + '.' + tViewName,
           log: 'Toggle component: %@'.fmt('caseTable'),
           execute: function () {
-            var isVisible = tCaseTableView.toggleProperty('isVisible');
-            var layout = tCaseTableView.get('layout');
+            var isVisible = tCaseTableView.toggleProperty('isVisible'),
+                layout = tCaseTableView.get('layout'),
+                operation = isVisible ? 'create' : 'delete';
             tCaseTableView.set('savedLayout', layout);
             if( !isVisible && tCaseTableView.parentView && tCaseTableView.parentView.select)
               tCaseTableView.parentView.select(null);
+            DG.currDocumentController().notificationManager.sendNotification({
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: operation,
+                type: tCaseTableView.getPath('model.type'),
+                id: tCaseTableView.getPath('model.id'),
+                title: tCaseTableView.getPath('model.title')
+              }
+            });
           },
           undo: function () {
             this.execute();
