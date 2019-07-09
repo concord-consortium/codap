@@ -76,6 +76,8 @@ DG.MapModel = SC.Object.extend(
                   attributeDescription: tDataConfiguration.get('legendAttributeDescription')
                 });
                 tLegend.addObserver('attributeDescription.attribute', this, this.legendAttributeDidChange);
+                tLegend.addObserver('attributeDescription.attributeStats.attributeType',
+                    this, this.legendAttributeDidChange);
                 tMapLayerModel = iLayerModelClass.create({
                   dataConfiguration: tDataConfiguration,
                   legend: tLegend
@@ -196,6 +198,8 @@ DG.MapModel = SC.Object.extend(
           var tLegend = iLayerModel.get('legend');
           tLegend && tLegend.removeObserver('attributeDescription.attribute',
               this, this.legendAttributeDidChange);
+          tLegend && tLegend.removeObserver('attributeDescription.attributeStats.attributeType',
+              this, this.legendAttributeDidChange);
           iLayerModel.destroy();
         },
 
@@ -276,7 +280,7 @@ DG.MapModel = SC.Object.extend(
         },
 
         createChangeAttributeTypeMenuItem: function (iLegendView) {
-          var tDescription = this.getPath('model.attributeDescription'),
+          var tDescription = iLegendView.getPath('model.attributeDescription'),
               tAttribute = tDescription && tDescription.get('attribute'),
               tAttributeName = tAttribute && (tAttribute !== -1) ? tAttribute.get('name') : '',
               tIsNumeric = tDescription && tDescription.get('isNumeric'),
