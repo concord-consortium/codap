@@ -1047,6 +1047,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     showCaseIndexPopup: function(iEvent, iCell) {
       var tDataContext = this.get('dataContext'),
+          tIsEnabled = this.getPath('gridAdapter.isCollectionReorgAllowed'),
           tSelection = tDataContext && tDataContext.getSelectedCases(),
           tSelectionCount = tSelection && tSelection.get('length'),
           tDeleteIsEnabled = tSelectionCount > 0,
@@ -1079,8 +1080,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             layout: {width: 200, height: 150},
             items: tItems
           });
-      this._caseIndexMenuCell = SC.copy(iCell);
-      tMenu.popup(iEvent.target);
+      if (tIsEnabled) {
+        this._caseIndexMenuCell = SC.copy(iCell);
+        tMenu.popup(iEvent.target);
+      }
     },
 
     /**

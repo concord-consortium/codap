@@ -1010,12 +1010,15 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             tNewAttrMenuItemStringKey = 'DG.Inspector.newAttribute',
             tItems = [];
         collectionRecords.forEach(function (collection) {
+          var adapter = this.findAdapterForCollection(collection.id),
+              isEnabled = adapter && adapter.get('isCollectionReorgAllowed');
           tItems.push({
             title: tNewAttrMenuItemStringKey.loc( collection.name),
             target: this,
             args: [{collection: tDataContext.getCollectionByName(collection.name),
               autoEditName: true }],
-            dgAction: 'newAttribute'
+            dgAction: 'newAttribute',
+            isEnabled: isEnabled
           });
         }.bind(this));
         return tItems;
