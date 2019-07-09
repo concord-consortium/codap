@@ -45,6 +45,9 @@ DG.DateUtilities.createDate = function(/* iArgs */) {
   var args = [Date].concat(Array.prototype.slice.call(arguments)),
       date;
 
+  if (args.length === 2 && typeof args[1] === 'string') {
+    return DG.DateUtilities.dateParser.parseDate(args[1], true);
+  }
   // convert from seconds to milliseconds
   if ((args.length === 2) && DG.DateUtilities.defaultToEpochSecs(args[1]))
     args[1] = Number(args[1]) * 1000;
@@ -83,15 +86,7 @@ DG._isDateRegex = null;
  it could be converted to a date.
  */
 DG.DateUtilities.isDateString = function(iValue) {
-  if (!this._isDateRegex) {
-    // assemble the regular expression from localized strings
-    //
-    this._isDateRegex = new RegExp('^(?:(?:'
-        + 'DG.Utilities.date.localDatePattern'.loc() + '(?:(?:, |,| )'
-        + 'DG.Utilities.date.timePattern'.loc() + ')?)|'
-        + 'DG.Utilities.date.iso8601Pattern'.loc() + ')$', 'i');
-  }
-  return (typeof iValue === 'string' && this._isDateRegex.test(iValue.toLowerCase()));
+  return DG.DateUtilities.dateParser.isDateString(iValue, true);
 };
 DG.isDateString = DG.DateUtilities.isDateString;
 
@@ -179,3 +174,170 @@ DG.DateUtilities.monthName = function(x) {
 };
 DG.monthName = DG.DateUtilities.monthName;
 
+/**
+ * parseDate - Parses dates in a uniform manner across browser
+ *
+ * Has two modes: strict (default) and loose
+ *
+ * In strict mode recognizes year, month or year, month, day iso calendar date
+ * or date/time strings (not just year) and local dates and date/time strings.
+ * In loose mode recognizes all iso calendar dates and iso date-time strings and
+ * a variety of date and date/time formats.
+ *
+ * Recognized in strict mode or loose mode, en/US locale:
+ *   * 2019-05
+ *   * 2019-05-25
+ *   * 2019-05-25 10:04Z
+ *   * 2019-05-25T10:04Z
+ *   * 2019-05-25T10:04:03+01:00
+ *   * 2019-05-25T10:04:03.123+01:00
+ *   * 5/25/2019
+ *   * 5/25/2019 10:04
+ *   * 5/25/2019 10:04am
+ *   * 5/25/2019 10:04:32.123 AM
+ *
+ * Recognized in loose mode
+ *   * 2019
+ *   * 2019.05.25
+ *   * 25 Oct 2019
+ *   * Oct 25, 2019
+ *   * Oct. 25, 2019
+ *   * October 25, 2019
+ * Not recognized as dates
+ *   * relative dates (e.g. today, tomorrow, next week)
+ *   * anniversary dates (e.g. June 5)
+ *   * out of range dates (e.g. June 32, 2019)
+ */
+DG.DateUtilities.dateParser = (function () {
+  var timePart = '(\\d\\d?)(?::(\\d\\d?)(?::(\\d\\d)(?:\\.(\\d+))?)?)?';
+  var monthsFull = 'january,february,march,april,may,june,july,august,september,' +
+      'october,november,december';
+  var monthsAbbr = 'jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec';
+  var monthsProperAbbrRE = monthsAbbr.split(',').map(function (str) {return str + '\\.';}).join();
+  var monthsProperAbbr = monthsAbbr.split(',').map(function (str) {return str + '.';}).join();
+  // var ordinals='0th,1st,2nd,3rd,4th,5th,6th,7th,8th,9th';
+  var monthsArray = [monthsAbbr, monthsProperAbbr, monthsFull].join().split(',');
+  var monthsArrayRE = [monthsAbbr, monthsProperAbbrRE, monthsFull].join().split(',');
+
+  // yyyy-MM-dd hh:mm:ss.SSSZ
+  var isoDateTimeRE = /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|[+-]\d\d:\d\d)?)?)?$/;
+  var isoDateTimeGroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, timezone: 8};
+
+  // MM/dd/yyyy hh:mm:ss.SSS PM
+  var localDateTimeRE = /^([01]?\d)\/([0-3]?\d)\/(\d{4}|\d{2})(?:,? (\d\d?)(?::(\d\d?)(?::(\d\d)(?:\.(\d+))?)?)?(?: ?(am|pm|AM|PM))?)?$/;
+  var localDateTimeGroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8, timezone: 9};
+
+  // dd MMM yyyy or MMM yyyy
+  var  dateVar1 = new RegExp('^(\\d\\d?) (' + monthsArrayRE.join('|') + '),? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
+  var dateVar1GroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
+  // yyyy-mm-dd, yyyy.mm.dd, yyyy/mm/dd
+  var dateVar2 = new RegExp('^(\\d{4})(?:[./-](\\d\\d?)(?:[./-](\\d\\d?)(?: ' + timePart + '(?: (am|pm|AM|PM))?)?)?)?$');
+  var dateVar2GroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
+  // MMM dd, yyyy or MMM yyyy
+  var dateVar3 = new RegExp('^(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
+  var dateVar3GroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
+  // yyyy
+  var dateVar4 = /^\d{4}$/;
+  var dateVar4GroupMap = {year:1};
+
+
+
+// MMMM dd, yyyy hh:mm:ss.SSS PM
+
+  var formatSpecs = [
+    { strict: true, regex: localDateTimeRE, groupMap: localDateTimeGroupMap },
+    { strict: true, regex: isoDateTimeRE, groupMap: isoDateTimeGroupMap },
+    { strict: false, regex: dateVar2, groupMap: dateVar2GroupMap },
+    { strict: false, regex: dateVar1, groupMap: dateVar1GroupMap },
+    { strict: false, regex: dateVar3, groupMap: dateVar3GroupMap },
+    { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap },
+  ];
+
+  function extractDateProps(match, map) {
+    function fixHour(hr, amPm) {
+      if (isNaN(hr)) {
+        return null;
+      }
+      var newHr = Number(hr);
+      if (amPm && amPm.toLowerCase() === 'pm') {
+        newHr += 12;
+      }
+      return newHr;
+    }
+    function fixMonth(m) {
+      if (!isNaN(m)) {
+        return Number(m);
+      }
+      var lcMonth = m.toLowerCase();
+      var monthIx = monthsArray.findIndex(function (monthName) { return monthName === lcMonth; });
+      return (monthIx % 12) + 1;
+    }
+    return {
+      year: Number(match[map.year]),
+      month: fixMonth(match[map.month] || 1),
+      day: Number(match[map.day] || 1),
+      hour: fixHour(match[map.hour] || 0,match[map.ampm]) ,
+      min: Number(match[map.min] || 0) ,
+      sec: Number(match[map.sec] || 0),
+      subsec: Number(match[map.subsec] || 0),
+    };
+  }
+  function isValidDateSpec(dateSpec) {
+    var isValid =
+        !isNaN(dateSpec.year) &&
+        (!isNaN(dateSpec.month) && (1<=dateSpec.month<=12)) &&
+        (!isNaN(dateSpec.day) && (1<=dateSpec.day<=31)) &&
+        (!isNaN(dateSpec.hour) && (0<=dateSpec.hour<=23)) &&
+        (!isNaN(dateSpec.min) && (0<=dateSpec.min<=59)) &&
+        (!isNaN(dateSpec.sec) && (0<=dateSpec.sec<=59)) &&
+        !isNaN(dateSpec.subsec);
+    if (isValid) { return dateSpec; }
+  }
+
+
+  function parseDate(iValue, iLoose) {
+    var match;
+    var dateSpec;
+    var groupMap;
+    var date;
+    var spec = formatSpecs.some(function (spec) {
+      var m;
+      var parsed = false;
+      if (spec.strict || iLoose) {
+        m = iValue.match(spec.regex);
+        if (m) {
+          match = m;
+          groupMap = spec.groupMap;
+          parsed = true;
+        }
+      }
+      return parsed;
+    });
+
+    if (spec && match) {
+      dateSpec = isValidDateSpec(extractDateProps(match, groupMap));
+      if (dateSpec) {
+        date = new Date(dateSpec.year, (-1 + dateSpec.month), dateSpec.day,
+            dateSpec.hour, dateSpec.min, dateSpec.sec, dateSpec.subsec);
+        if (date) date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000; };
+        return date;
+      }
+    }
+  }
+  function isDateString(iValue, iLoose) {
+    return (typeof iValue === 'string') && !!formatSpecs.find(function (spec) {
+      if (!(spec.strict || iLoose)) {
+        return false;
+      }
+      return spec.regex.test(iValue);
+    });
+  }
+
+  return {
+    parseDate: parseDate,
+    isDateString: isDateString
+  };
+
+}());
+
+DG.parseDate = DG.DateUtilities.dateParser.parseDate;
