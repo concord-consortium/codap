@@ -536,6 +536,8 @@ DG.Attribute = DG.BaseModel.extend(
           blockDisplayOfEmptyCategories: this.blockDisplayOfEmptyCategories || undefined,
           editable: this.editable,
           hidden: this.hidden,
+          renameable: this.renameable,
+          deleteable: this.deleteable,
           formula: this.hasFormula() ? this.formula : undefined,
           deletedFormula: this.hasDeletedFormula() ? this.deletedFormula : undefined,
           guid: this.id,
