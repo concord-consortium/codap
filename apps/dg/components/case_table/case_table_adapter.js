@@ -306,6 +306,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     return collectionID !== firstCollectionID;
   }.property(),
 
+  isCollectionReorgAllowed: function () {
+    var dataContext = this.get('dataContext'),
+        isTopLevel = !this.get('hasParentCollection');
+      return !isTopLevel || !DG.DataContextUtilities.isTopLevelReorgPrevented(dataContext);
+  }.property(),
+
   /**
     The number of visible rows in the table, that is the number of rows adjusted
     for the effect of collapsed rows. This is _not_ the number of rows that can be
