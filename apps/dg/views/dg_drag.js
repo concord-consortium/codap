@@ -102,22 +102,33 @@ DG.Drag = SC.Drag.extend({
     }
   },
 
+  /**
+   * We special-case AxisMultiTarget and the right vertical axis view because they
+   * must be frontmost
+   * @param iEvent
+   * @return {SC.View}
+   * @private
+   */
   _findDropTarget: function( iEvent) {
     var tTargets = this._dropTargets(),
-        tLoc = { x: iEvent.clientX, y: iEvent.clientY },
-        tResult = null;
-    tTargets.forEach( function( iTarget) {
-      if( (iTarget.constructor === DG.AxisMultiTarget) || (iTarget.get('orientation') === 'vertical2')) {
-        var tFrame = iTarget.convertFrameToView( iTarget.get('frame'), null);
-        if( SC.pointInRect( tLoc, tFrame)) {
-          tResult = iTarget;
-        }
-      }
-    });
-    if( !SC.none( tResult))
-      return tResult;
+        tLoc = {x: iEvent.clientX, y: iEvent.clientY},
+        tSuperResult = sc_super(),
+        tSpecialTarget = tTargets.find(function (iTarget) {
+          if ((iTarget.constructor === DG.AxisMultiTarget) || (iTarget.get('orientation') === 'vertical2')) {
+            var tFrame = iTarget.convertFrameToView(iTarget.get('frame'), null);
+            return SC.pointInRect(tLoc, tFrame);
+          }
+          else return false;
+        });
+    if( !SC.none( tSpecialTarget)) {
+      var tCompView = DG.ComponentView.findComponentViewParent( tSpecialTarget),
+          tZIndex = tCompView ? tCompView.get('layout').zIndex : 0,
+          tSuperCompView = DG.ComponentView.findComponentViewParent( tSuperResult),
+          tSuperZIndex  = tSuperCompView ? tSuperCompView.get('layout').zIndex : 0;
+      return tZIndex >= tSuperZIndex ? tSpecialTarget : tSuperResult;
+    }
     else
-      return sc_super();
+      return tSuperResult;
   },
 
   /** @private Called instead of _destroyGhostView if slideBack is YES.
