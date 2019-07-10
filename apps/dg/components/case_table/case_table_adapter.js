@@ -98,13 +98,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = boundaryFormatter(cellValue);
           } else if (typeof cellValue === 'boolean') {
             result = String(cellValue);
+          } else if (DG.isDate(cellValue) || type === 'date') {
+            result = DG.formatDate(DG.parseDate(cellValue, true), precision);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
             result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
                 rowItem);
-          } else if (DG.isDate(cellValue) || type === 'date') {
-            result = DG.formatDate(DG.createDate(cellValue), precision);
           } else if (typeof cellValue === 'string') {
             result = stringFormatter(cellValue);
           }
