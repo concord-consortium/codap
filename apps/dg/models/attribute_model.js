@@ -241,7 +241,7 @@ DG.Attribute = DG.BaseModel.extend(
         var tResult = false,
             tType = this.get('type'),
             tCollection = this.get('collection');
-        if( tType === 'nominal')
+        if( tType === 'categorical')
           tResult = true;
         else if( tCollection) {
           var tAttrID = this.get('id'),
