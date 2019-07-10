@@ -206,7 +206,9 @@ DG.Case = DG.BaseModel.extend((function() {
      */
     getNumValue: function( iAttrID, oOptInfo) {
       var value = this.getRawValue( iAttrID),
-          valType = typeof value;
+          valType = typeof value,
+          tAttr = DG.Attribute.getAttributeByID( iAttrID),
+          attrType = tAttr && tAttr.type;
       if (DG.isDate(value)) {
         // treat dates numerically
         value = Number(value);
@@ -214,9 +216,12 @@ DG.Case = DG.BaseModel.extend((function() {
       } else if (this._cachedDate[iAttrID]) {
         value = Number(this._cachedDate[iAttrID]);
         valType = "number";
+      } else if (attrType === 'date') {
+        this._cachedDate[iAttrID] = DG.parseDate(value, true);
+        value = Number(this._cachedDate[iAttrID]);
+        valType = "number";
       } else if (DG.isDateString(value)) {
-        DG.log('Caching date: ' + value);
-        this._cachedDate[iAttrID] = DG.createDate(value);
+        this._cachedDate[iAttrID] = DG.parseDate(value);
         value = Number(this._cachedDate[iAttrID]);
         valType = "number";
       }
