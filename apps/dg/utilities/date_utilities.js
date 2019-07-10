@@ -154,7 +154,7 @@ DG.formatDate = DG.DateUtilities.formatDate;
   Optionally uses toLocaleTimeString() for default time formatting.
  */
 DG.DateUtilities.monthName = function(x) {
-  if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
+  if (!(x && (DG.isDate(x) || DG.isDateString(x) || DG.MathUtilities.isNumeric(x)))) return "";
   var date;
   if (DG.isDate(x))
     date = x;
