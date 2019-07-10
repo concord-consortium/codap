@@ -224,6 +224,7 @@ DG.DateUtilities.dateParser = (function () {
     'DG.Formula.DateLongMonthNovember',
     'DG.Formula.DateLongMonthDecember'
   ].map(function (m) {return m.loc().toLowerCase(); });
+
   var monthsAbbr = [
     'DG.Formula.DateShortMonthJanuary',
     'DG.Formula.DateShortMonthFebruary',
@@ -238,6 +239,17 @@ DG.DateUtilities.dateParser = (function () {
     'DG.Formula.DateShortMonthNovember',
     'DG.Formula.DateShortMonthDecember'
   ].map(function(m) {return m.loc().toLowerCase();});
+
+  var daysOfWeekAbbr = [
+    "DG.Formula.DateShortDaySunday",
+    "DG.Formula.DateShortDayMonday",
+    "DG.Formula.DateShortDayTuesday",
+    "DG.Formula.DateShortDayWednesday",
+    "DG.Formula.DateShortDayThursday",
+    "DG.Formula.DateShortDayFriday",
+    "DG.Formula.DateShortDaySaturday",
+  ].map( function (dow) {return dow.loc().toLowerCase();});
+
   var monthsProperAbbrRE = monthsAbbr.map(function (str) {return str + '\\.';});
   var monthsProperAbbr = monthsAbbr.map(function (str) {return str + '.';});
   // var ordinals='0th,1st,2nd,3rd,4th,5th,6th,7th,8th,9th';
@@ -245,7 +257,7 @@ DG.DateUtilities.dateParser = (function () {
   var monthsArrayRE = monthsAbbr.concat(monthsProperAbbrRE, monthsFull);
 
   // yyyy-MM-dd hh:mm:ss.SSSZ
-  var isoDateTimeRE = /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|(?:[+-]\d\d:\d\d?)| ?[a-zA-Z]{1,4}T)?)?)?$/;
+  var isoDateTimeRE = /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|(?:[+-]\d\d:?\d\d?)| ?[a-zA-Z]{1,4}T)?)?)?$/;
   var isoDateTimeGroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, timezone: 8};
 
   // MM/dd/yyyy hh:mm:ss.SSS PM
@@ -255,12 +267,26 @@ DG.DateUtilities.dateParser = (function () {
   // dd MMM yyyy or MMM yyyy
   var  dateVar1 = new RegExp('^(\\d\\d?) (' + monthsArrayRE.join('|') + '),? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
   var dateVar1GroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
+
   // yyyy-mm-dd, yyyy.mm.dd, yyyy/mm/dd
   var dateVar2 = new RegExp('^(\\d{4})(?:[./-](\\d\\d?)(?:[./-](\\d\\d?)(?: ' + timePart + '(?: (am|pm|AM|PM))?)?)?)?$');
   var dateVar2GroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
+
   // MMM dd, yyyy or MMM yyyy
-  var dateVar3 = new RegExp('^(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
+  var dateVar3 = new RegExp('^(?:(?:' + daysOfWeekAbbr.join('|') + ') )?(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
   var dateVar3GroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
+
+  // unix dates: Tue Jul  9 18:16:04 PDT 2019
+  var unixDate = new RegExp('^(?:(?:' + daysOfWeekAbbr.join('|') + ') )?(' + monthsAbbr.join('|') + ') ([ \\d]\\d) ([ \\d]\\d):(\\d\\d):(\\d\\d) ([A-Z]{3}) (\\d{4})$', 'i');
+  var unixDateGroupMap = {year: 7, month: 1, day: 2, hour: 3, min: 4, sec:5, timezone: 6};
+
+  // new Date().toString(), most browsers
+  var browserDate = new RegExp('^(?:' + daysOfWeekAbbr.join('|') + ') (' + monthsAbbr.join('|') + ') (\\d\\d?),? (\\d{4})(?: ' + timePart + ' (GMT(?:[+-]\\d{4})?(?: \\([\\w ]+\\))?))', 'i');
+  var browserDateGroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, timezone: 8};
+
+  var utcDate = new RegExp('^(?:' + daysOfWeekAbbr.join('|') + '),? (\\d\\d?) (' + monthsAbbr.join('|') + ') (\\d{4}) ' + timePart + ' GMT$', 'i');
+  var utcDateGroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, timezone: 8};
+
   // yyyy
   var dateVar4 = /^\d{4}$/;
   var dateVar4GroupMap = {year:1};
@@ -272,10 +298,13 @@ DG.DateUtilities.dateParser = (function () {
   var formatSpecs = [
     { strict: true, regex: localDateTimeRE, groupMap: localDateTimeGroupMap },
     { strict: true, regex: isoDateTimeRE, groupMap: isoDateTimeGroupMap },
+    { strict: true, regex: unixDate, groupMap: unixDateGroupMap },
+    { strict: true, regex: browserDate, groupMap: browserDateGroupMap},
+    { strict: true, regex: utcDate, groupMap: utcDateGroupMap},
     { strict: false, regex: dateVar2, groupMap: dateVar2GroupMap },
     { strict: false, regex: dateVar1, groupMap: dateVar1GroupMap },
     { strict: false, regex: dateVar3, groupMap: dateVar3GroupMap },
-    { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap },
+    { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap }
   ];
 
   function extractDateProps(match, map) {
