@@ -210,17 +210,42 @@ DG.monthName = DG.DateUtilities.monthName;
  */
 DG.DateUtilities.dateParser = (function () {
   var timePart = '(\\d\\d?)(?::(\\d\\d?)(?::(\\d\\d)(?:\\.(\\d+))?)?)?';
-  var monthsFull = 'january,february,march,april,may,june,july,august,september,' +
-      'october,november,december';
-  var monthsAbbr = 'jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec';
-  var monthsProperAbbrRE = monthsAbbr.split(',').map(function (str) {return str + '\\.';}).join();
-  var monthsProperAbbr = monthsAbbr.split(',').map(function (str) {return str + '.';}).join();
+  var monthsFull = [
+    'DG.Formula.DateLongMonthJanuary',
+    'DG.Formula.DateLongMonthFebruary',
+    'DG.Formula.DateLongMonthMarch',
+    'DG.Formula.DateLongMonthApril',
+    'DG.Formula.DateLongMonthMay',
+    'DG.Formula.DateLongMonthJune',
+    'DG.Formula.DateLongMonthJuly',
+    'DG.Formula.DateLongMonthAugust',
+    'DG.Formula.DateLongMonthSeptember',
+    'DG.Formula.DateLongMonthOctober',
+    'DG.Formula.DateLongMonthNovember',
+    'DG.Formula.DateLongMonthDecember'
+  ].map(function (m) {return m.loc().toLowerCase(); });
+  var monthsAbbr = [
+    'DG.Formula.DateShortMonthJanuary',
+    'DG.Formula.DateShortMonthFebruary',
+    'DG.Formula.DateShortMonthMarch',
+    'DG.Formula.DateShortMonthApril',
+    'DG.Formula.DateShortMonthMay',
+    'DG.Formula.DateShortMonthJune',
+    'DG.Formula.DateShortMonthJuly',
+    'DG.Formula.DateShortMonthAugust',
+    'DG.Formula.DateShortMonthSeptember',
+    'DG.Formula.DateShortMonthOctober',
+    'DG.Formula.DateShortMonthNovember',
+    'DG.Formula.DateShortMonthDecember'
+  ].map(function(m) {return m.loc().toLowerCase();});
+  var monthsProperAbbrRE = monthsAbbr.map(function (str) {return str + '\\.';});
+  var monthsProperAbbr = monthsAbbr.map(function (str) {return str + '.';});
   // var ordinals='0th,1st,2nd,3rd,4th,5th,6th,7th,8th,9th';
-  var monthsArray = [monthsAbbr, monthsProperAbbr, monthsFull].join().split(',');
-  var monthsArrayRE = [monthsAbbr, monthsProperAbbrRE, monthsFull].join().split(',');
+  var monthsArray = monthsAbbr.concat(monthsProperAbbr, monthsFull);
+  var monthsArrayRE = monthsAbbr.concat(monthsProperAbbrRE, monthsFull);
 
   // yyyy-MM-dd hh:mm:ss.SSSZ
-  var isoDateTimeRE = /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|[+-]\d\d:\d\d)?)?)?$/;
+  var isoDateTimeRE = /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|(?:[+-]\d\d:\d\d?)| ?[a-zA-Z]{1,4}T)?)?)?$/;
   var isoDateTimeGroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, timezone: 8};
 
   // MM/dd/yyyy hh:mm:ss.SSS PM
@@ -296,6 +321,10 @@ DG.DateUtilities.dateParser = (function () {
 
 
   function parseDate(iValue, iLoose) {
+    if (iValue == null) {
+      return iValue;
+    }
+    iValue = String(iValue);
     var match;
     var dateSpec;
     var groupMap;
