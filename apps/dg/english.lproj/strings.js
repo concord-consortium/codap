@@ -599,12 +599,12 @@ SC.stringsFor("en", {
     // DG.AttributeFormat
     // See docs at https://momentjs.com/docs/#/displaying/format/
     "DG.AttributeFormat.DatePrecision.year": "YYYY",
-    "DG.AttributeFormat.DatePrecision.month": "YYYY-MM",
-    "DG.AttributeFormat.DatePrecision.day": "YYYY-MM-DD",
-    "DG.AttributeFormat.DatePrecision.hour": "YYYY-MM-DD HH:00",
-    "DG.AttributeFormat.DatePrecision.minute": "YYYY-MM-DD HH:mm",
-    "DG.AttributeFormat.DatePrecision.second": "YYYY-MM-DD HH:mm:ss",
-    "DG.AttributeFormat.DatePrecision.millisecond": "YYYY-MM-DD HH:mm:ss.SSS",
+    "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
+    "DG.AttributeFormat.DatePrecision.day": "MMM D, YYYY",
+    "DG.AttributeFormat.DatePrecision.hour": "MMM D, YYYY HH:00",
+    "DG.AttributeFormat.DatePrecision.minute": "MMM D, YYYY HH:mm",
+    "DG.AttributeFormat.DatePrecision.second": "MMM D, YYYY HH:mm:ss",
+    "DG.AttributeFormat.DatePrecision.millisecond": "MMM D, YYYY HH:mm:ss.SSS",
 
     // DG.AttributeFormulaView
     "DG.AttrFormView.attrNamePrompt": "Attribute Name:",
