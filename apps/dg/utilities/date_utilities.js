@@ -240,6 +240,16 @@ DG.DateUtilities.dateParser = (function () {
     'DG.Formula.DateShortMonthDecember'
   ].map(function(m) {return m.loc().toLowerCase();});
 
+  var daysOfWeek = [
+    "DG.Formula.DateLongDaySunday",
+    "DG.Formula.DateLongDayMonday",
+    "DG.Formula.DateLongDayTuesday",
+    "DG.Formula.DateLongDayWednesday",
+    "DG.Formula.DateLongDayThursday",
+    "DG.Formula.DateLongDayFriday",
+    "DG.Formula.DateLongDaySaturday",
+  ].map( function (dow) {return dow.loc().toLowerCase();});
+
   var daysOfWeekAbbr = [
     "DG.Formula.DateShortDaySunday",
     "DG.Formula.DateShortDayMonday",
@@ -255,6 +265,7 @@ DG.DateUtilities.dateParser = (function () {
   // var ordinals='0th,1st,2nd,3rd,4th,5th,6th,7th,8th,9th';
   var monthsArray = monthsAbbr.concat(monthsProperAbbr, monthsFull);
   var monthsArrayRE = monthsAbbr.concat(monthsProperAbbrRE, monthsFull);
+  var daysOfWeekArray = daysOfWeek.concat(daysOfWeekAbbr);
 
   // yyyy-MM-dd hh:mm:ss.SSSZ
   var isoDateTimeRE = /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|(?:[+-]\d\d:?\d\d?)| ?[a-zA-Z]{1,4}T)?)?)?$/;
@@ -273,7 +284,7 @@ DG.DateUtilities.dateParser = (function () {
   var dateVar2GroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
   // MMM dd, yyyy or MMM yyyy
-  var dateVar3 = new RegExp('^(?:(?:' + daysOfWeekAbbr.join('|') + ') )?(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
+  var dateVar3 = new RegExp('^(?:(?:' + daysOfWeekArray.join('|') + '),? )?(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
   var dateVar3GroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
   // unix dates: Tue Jul  9 18:16:04 PDT 2019
@@ -326,8 +337,21 @@ DG.DateUtilities.dateParser = (function () {
       var monthIx = monthsArray.findIndex(function (monthName) { return monthName === lcMonth; });
       return (monthIx % 12) + 1;
     }
+    function fixYear(y) {
+      if (y.length === 2) {
+        y = Number(y);
+        if (y<49) {
+          return 2000 + y;
+        } else {
+          return 1900 + y;
+        }
+      }
+      else {
+        return y;
+      }
+    }
     return {
-      year: Number(match[map.year]),
+      year: Number(fixYear(match[map.year])),
       month: fixMonth(match[map.month] || 1),
       day: Number(match[map.day] || 1),
       hour: fixHour(match[map.hour] || 0,match[map.ampm]) ,
