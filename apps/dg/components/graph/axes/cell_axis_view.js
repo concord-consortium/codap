@@ -342,7 +342,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tLabelY = tBaseline + kTickLength + kAxisGap + iLabelSpec.height / 3;
             if( tRotation === -90) {
               tAnchor = 'end';
-              if( iIndex === 0)
+              if( iIndex === 0 && !tCentering)
                 tLabelX += iLabelSpec.height / 3;
               if( iLabelSpec.width > tFrame.height - tLabelY && tFrame.height - tLabelY > 10)
                 DG.RenderingUtilities.elideToFit( iLabelSpec.element, tFrame.height - tLabelY);
