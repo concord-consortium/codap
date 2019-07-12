@@ -313,6 +313,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   }.property(),
 
   /**
+   * Refresh the table when the dataContext metadata changes, e.g. when the context gets
+   * a new managingController, which can determine whether to show the input row.
+   */
+  dataContextMetadataDidChange: function () {
+    this.refresh();
+  }.observes('*dataContext.metadataChangeCount'),
+
+  /**
     The number of visible rows in the table, that is the number of rows adjusted
     for the effect of collapsed rows. This is _not_ the number of rows that can be
     seen in the current viewport.
