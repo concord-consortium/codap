@@ -331,7 +331,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       defaultFlowSpacing: {left: kMargin, bottom: kLeading},
                       canWrap: false,
                       align: SC.ALIGN_TOP,
-                      layout: {right: 22},
                       childViews: 'title'.w(),
                       title: DG.PickerTitleView.extend({
                         layout: {height: kTitleHeight},

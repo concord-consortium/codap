@@ -42,7 +42,7 @@ DG.PickerTitleView = SC.View.extend(
        */
       title: null,
 
-      layout: {height: 26},
+      layout: {height: 26, right: 0},
 
       childViews: 'iconView titleView'.w(),
 

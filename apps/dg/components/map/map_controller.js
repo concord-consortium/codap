@@ -220,10 +220,9 @@ DG.MapController = DG.DataDisplayController.extend(
           // This result is iterated and placed in a vertical flowed layout.
           var tResultArray = [],
               createBaseLayer = function () {
-                // Using left/right 2-pane layout for each vertical layer.
                 var tBaseLayer = SC.View.create(SC.FlowedLayout, {
                   layoutDirection: SC.LAYOUT_HORIZONTAL,
-                  layout: {width: 100},
+                  layout: {right: 0},
                   isResizable: false,
                   isClosable: false,
                   canWrap: false,
@@ -390,17 +389,17 @@ DG.MapController = DG.DataDisplayController.extend(
 
             // E.g., Points and grid layers associated to a data collection.
             var tDataCollectionLayer = SC.View.create(SC.FlowedLayout, {
-              layoutDirection: SC.LAYOUT_HORIZONTAL,
-              layout: {width: 200, height: 100},
+              layoutDirection: SC.LAYOUT_VERTICAL,
+              // layout: {height: 110},
               isResizable: false,
               isClosable: false,
               canWrap: false,
               align: SC.ALIGN_CENTER
             });
 
-            // Left-side layer toggle
+            // layer toggle
             tDataCollectionLayer.appendChild(SC.CheckboxView.create({
-              layout: {width: 80},
+              layout: {right: 0, height: 20},
               title: tDataConfig.getPath('collectionClient.name'),
               value: iMapLayerModel.get('isVisible'),
               localize: false,
@@ -411,10 +410,11 @@ DG.MapController = DG.DataDisplayController.extend(
 
             tResultArray.push(tDataCollectionLayer);
 
-            // Right-side controls for a map layer
+            // Below the toggle we have controls for points or polygons
             var tDataCollectionLayerControls = SC.View.create(SC.FlowedLayout, {
+              classNames: 'dg-inspector-map-color-controls'.w(),
               layoutDirection: SC.LAYOUT_VERTICAL,
-              layout: {width: 200},
+              // layout: {top: 16, left: 16, right: 0},
               isResizable: false,
               isClosable: false,
               canWrap: false,
@@ -448,8 +448,8 @@ DG.MapController = DG.DataDisplayController.extend(
                       layout: {height: kRowHeight},
                       label: 'DG.Inspector.pointSize',
                       controlView: SC.SliderView.create({
-                        layout: {width: 120},
-                        classNames: 'dg-graph-pointSize-slider'.w(),
+                        layout: {right: 25},
+                        classNames: 'dg-map-pointSize-slider'.w(),
                         controlSize: SC.SMALL_CONTROL_SIZE,
                         value: iMapLayerModel.getPath('pointSizeMultiplier'),
                         minimum: 0, maximum: 3, step: 0,
@@ -487,7 +487,7 @@ DG.MapController = DG.DataDisplayController.extend(
                       layout: {height: 2 * kRowHeight},
                       label: 'DG.Inspector.color',
                       controlView: DG.PickerColorControl.create({
-                        layout: {width: 120},
+                        layout: {left: 80, right: 0},
                         classNames: 'dg-graph-point-color'.w(),
                         initialColor: tInitialColor,
                         setColorFunc: setColor,
@@ -507,7 +507,7 @@ DG.MapController = DG.DataDisplayController.extend(
                 tControlView = SC.View.create(SC.FlowedLayout,
                     {
                       layoutDirection: SC.LAYOUT_HORIZONTAL,
-                      layout: {width: 120},
+                      layout: {width: 120, right: 20},
                       isResizable: false,
                       isClosable: false,
                       //defaultFlowSpacing: {right: 5},
@@ -551,7 +551,7 @@ DG.MapController = DG.DataDisplayController.extend(
                     layout: {height: 2 * kRowHeight},
                     label: 'DG.Inspector.stroke',
                     controlView: DG.PickerColorControl.create({
-                      layout: {width: 120},
+                      layout: {left: 80, right: 0},
                       classNames: 'dg-graph-stroke-color'.w(),
                       initialColor: tinycolor(iMapLayerModel.get('strokeColor'))
                           .setAlpha(iMapLayerModel.get('strokeTransparency')),
@@ -610,7 +610,7 @@ DG.MapController = DG.DataDisplayController.extend(
                     layout: {height: 2 * kRowHeight},
                     label: iCategory,
                     controlView: DG.PickerColorControl.create({
-                      layout: {width: 120},
+                      layout: {width: 80, right: 0},
                       classNames: 'dg-graph-point-color'.w(),
                       initialColor: tInitialColor,
                       colorKey: iCategory,
@@ -645,7 +645,7 @@ DG.MapController = DG.DataDisplayController.extend(
                       layout: {height: 2 * kRowHeight},
                       label: 'DG.Inspector.color',
                       controlView: DG.PickerColorControl.create({
-                        layout: {width: 120},
+                        layout: {left: 80, right: 0},
                         classNames: 'dg-map-fill-color'.w(),
                         initialColor: tinycolor(iMapLayerModel.getPath('areaColor'))
                             .setAlpha(iMapLayerModel.getPath('areaTransparency')),
@@ -659,7 +659,7 @@ DG.MapController = DG.DataDisplayController.extend(
                 tControlView = SC.View.create(SC.FlowedLayout,
                     {
                       layoutDirection: SC.LAYOUT_HORIZONTAL,
-                      layout: {width: 120},
+                      layout: {right: 0},
                       isResizable: false,
                       isClosable: false,
                       //defaultFlowSpacing: {right: 5},
@@ -724,7 +724,7 @@ DG.MapController = DG.DataDisplayController.extend(
                     layout: {height: 2 * kRowHeight},
                     label: iCategory,
                     controlView: DG.PickerColorControl.create({
-                      layout: {width: 120},
+                      layout: {width: 80, right: 0},
                       classNames: 'dg-graph-point-color'.w(),
                       initialColor: tInitialColor,
                       colorKey: iCategory,
@@ -740,7 +740,7 @@ DG.MapController = DG.DataDisplayController.extend(
                 layout: {height: 2 * kRowHeight},
                 label: 'DG.Inspector.stroke',
                 controlView: DG.PickerColorControl.create({
-                  layout: {width: 120},
+                  layout: {left: 80, right: 0},
                   classNames: 'map-areaStroke-color'.w(),
                   initialColor: tinycolor(iMapLayerModel.getPath('areaStrokeColor'))
                       .setAlpha(iMapLayerModel.getPath('areaStrokeTransparency')),

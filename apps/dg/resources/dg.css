@@ -257,6 +257,19 @@ html, body {
     background-color: rgba(231, 231, 231, 0.70);
 }
 
+.dg-inspector-map-color-controls {
+    left: 20px !important;
+}
+
+.dg-graph-pointSize-slider {
+    /*right: 25px !important;*/
+}
+
+.dg-map-pointSize-slider {
+    right: 25px !important;
+    left: 70px !important;
+}
+
 .dg-inspector-picker-title {
     border-bottom: solid #C1C5C7 1px !important;
     padding-left: 3px;
