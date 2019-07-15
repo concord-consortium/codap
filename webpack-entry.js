@@ -1,6 +1,6 @@
 /*global require:true, CodeMirror: true, React:true, ReactDOM:true, Popper:true, Tooltip:true, Papa:true */
-/*global iframePhone:true, L:true, deepEqual:true, Promise:true, pluralize:true, moment:true, nanoid:true */
-/* exported CodeMirror, React, ReactDOM, Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, moment, nanoid */
+/*global iframePhone:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
+/* exported CodeMirror, React, ReactDOM, Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, dayjs, nanoid */
 CodeMirror = require('codemirror/lib/codemirror.js');
 require('codemirror/lib/codemirror.css');
 require('codemirror/addon/display/placeholder.js');
@@ -18,5 +18,5 @@ L.esri = require('esri-leaflet');
 deepEqual = require('deep-equal');
 Promise = require('es6-promise').Promise;
 pluralize = require('pluralize');
-moment = require('moment');
+dayjs  = require('dayjs');
 nanoid = require('nanoid');
