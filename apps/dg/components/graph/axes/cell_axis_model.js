@@ -50,6 +50,10 @@ DG.CellAxisModel = DG.AxisModel.extend(
     this.notifyPropertyChange('numberOfCells');
   }.observes('*attributeDescription.attributeStats.numberOfCells'),
 
+  numberOfCategoriesLimitDidChange: function() {
+    this.notifyPropertyChange('numberOfCategoriesLimit');
+  }.observes('*attributeDescription.attributeStats.number_of_categories_limit'),
+
   /**
     Iterates through cells to find name with maximum length
     @property{Number}
@@ -140,15 +144,18 @@ DG.CellAxisModel = DG.AxisModel.extend(
         tCellIndex = 0;
     if( DG.ObjectMap.length(tCellMap) === 0)
       iCellFunc( 0, '', 0, 0);  // There is always at least one cell
-    else
-      tAttribute.forEachCategory( function( iName, iColor, iIndex) {
-        var tValues = tCellMap[ iName],
-            tNumUses = tValues? tValues.cases.length: 0,
+    else {
+      tAttribute.forEachCategory(function (iName, iColor, iIndex) {
+        var tValues = tCellMap[iName],
+            tNumUses = tValues ? tValues.cases.length : 0,
             tNumSelected = 0;
-        if( tNumUses > 0) {
+        if (tNumUses > 0) {
           iCellFunc(tCellIndex++, iName, tNumUses, tNumSelected);
         }
       });
+      if( tCellMap[DG.PlotUtilities.kOther])
+        iCellFunc(tCellIndex++, "DG.CellAxis.other".loc(), tCellMap[DG.PlotUtilities.kOther].cases.length);
+    }
   }
   
 });

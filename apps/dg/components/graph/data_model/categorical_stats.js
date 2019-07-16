@@ -68,6 +68,7 @@ DG.CategoricalStats = SC.Object.extend(
        */
       cellNameToCellNumber: function (iCellName) {
         var tCell = SC.empty(iCellName) ? null : this.cellMap[iCellName.toString()];
+        tCell = tCell || this.cellMap[DG.PlotUtilities.kOther];
         return tCell && tCell.cellNumber;
       },
 

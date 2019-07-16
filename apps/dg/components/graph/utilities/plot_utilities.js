@@ -73,6 +73,7 @@ DG.PlotUtilities = {
   kDataCreateTransform: 's2',   // scale 2 times on create
   kBoxplotMaxWidth: 20,
   kMovableRegionOpacity: 0.3,
+  kOther: '_other_', // Used as key to category map entry that stashes overflow of what doesn't fit on cell axis. Not likely to be an attribute value
 
   // Constants for maps
   kDefaultMapFillOpacity: '0.5',
@@ -517,17 +518,7 @@ DG.PlotUtilities = {
     var tCategoryMap = iAttributeDescription.getPath('attribute.categoryMap'),
         tOrder = tCategoryMap.__order || [],
         tAttribute = iAttributeDescription.get('attribute');
-    if( DG.ObjectMap.length( tCategoryMap) === 0) {
-      var tAttrStats = iAttributeDescription.get('attributeStats'),
-          tAttrColor = DG.ColorUtilities.calcAttributeColor( iAttributeDescription);
-      tOrder = [];
-      this.forEachCellDo( function( iIndex, iName) {
-        var tColor = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
-        tCategoryMap[iName] = tColor.colorString || tColor;
-        tOrder.push( iName);
-      });
-      tCategoryMap.__order = tOrder;
-    }
+    DG.assert(DG.ObjectMap.length( tCategoryMap) !== 0);
     var tSaved = tOrder[ iIndex1];
     tOrder[iIndex1] = tOrder[iIndex2];
     tOrder[iIndex2] = tSaved;

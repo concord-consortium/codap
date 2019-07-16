@@ -129,6 +129,13 @@ DG.AttributePlacementDescription = SC.Object.extend(
        */
       attributeStats: null,
 
+      number_of_categories_limit: function( iKey, iValue) {
+        if( iValue) {
+          this.setPath('attributeStats.number_of_categories_limit', iValue);
+        }
+        return this.getPath('attributeStats.number_of_categories_limit');
+      }.property(),
+
       /**
        * @property {[{String}]}
        */

@@ -633,6 +633,9 @@
     // DG.AxisView
     "DG.AxisView.emptyGraphCue": "Click here, or drag an attribute here.",
 
+    // DG.CellAxis
+    "DG.CellAxis.other": "OTHER",
+
     // DG.CellLinearAxisView
     "DG.CellLinearAxisView.midPanelTooltip": "Drag to translate axis scale",
     "DG.CellLinearAxisView.lowerPanelTooltip": "Drag to change axis lower bound",

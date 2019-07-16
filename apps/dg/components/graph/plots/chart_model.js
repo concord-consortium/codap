@@ -105,6 +105,10 @@ DG.ChartModel = DG.PlotModel.extend(
     this.invalidateCaches();
   },
 
+  numberOfCategoriesLimitDidChange: function() {
+    this.invalidateCaches();
+  }.observes('*xAxis.numberOfCategoriesLimit', '*yAxis.numberOfCategoriesLimit'),
+
   /**
     @property{Number} The maximum number of cases in any cell
   */

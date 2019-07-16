@@ -274,6 +274,12 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             return iCat2;
           };
 
+      function setLimitToNumCellsToDraw() {
+        var tDrawingSpace = Math.abs(this_.get('pixelMax') - this_.get('pixelMin')),
+            tLimit = Math.floor(tDrawingSpace / DG.RenderingUtilities.kDefaultFontHeight);
+        this_.setPathIfChanged('model.attributeDescription.number_of_categories_limit', tLimit);
+      }
+
       function measureOneCell( iCellNum, iCellName) {
         var tCoord = this_.cellToCoordinate(iCellNum);
         if( !isFinite( tCoord)) {
@@ -383,6 +389,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
       } // drawOneCell
 
       //==========Main body of doDraw==================
+      setLimitToNumCellsToDraw();
+
       // Special case for short labels
       if( this.getPath('model.maxCellNameLength') <= 3)
         tRotation = 0;
