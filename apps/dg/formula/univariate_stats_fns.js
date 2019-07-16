@@ -265,6 +265,9 @@ return {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
+      if (iInstance.results[ iCacheID] == null) {
+        iInstance.results[ iCacheID] = 0;
+      }
       if( value != null) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
