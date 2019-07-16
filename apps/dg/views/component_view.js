@@ -915,6 +915,21 @@ DG.ComponentView = SC.View.extend(
           return this.mouseDown(evt);
         },
 
+        /**
+         *
+         */
+        showAndSelect: function () {
+          if (this.get('isMinimized')) {
+            this.set('savedLayout', null);
+            this.toggleMinimization();
+          }
+          this.set('isVisible', true);
+          this.select();
+        },
+
+        /**
+         * Selects a component. If it is minimized, first make it normal sized.
+         */
         maximizeAndSelect: function () {
           if (this.get('isMinimized')) {
             this.toggleMinimization();
@@ -923,6 +938,7 @@ DG.ComponentView = SC.View.extend(
         },
 
         toggleMinimization: function () {
+          DG.log('toggleMinimization');
 
           var setBorderVisibility = function (iVisibility) {
             ['Bottom', 'Corner', 'Left', 'Right'].forEach(function (iLoc) {
@@ -938,9 +954,9 @@ DG.ComponentView = SC.View.extend(
                 // the correct portion of the map actually showing.
                 function () {
                   this.adjust('height', tSavedHeight);
+                  this.setPath('model.savedHeight', null);
                 }.bind(this));
             setBorderVisibility(true);
-            this.setPath('model.savedHeight', null);
           }
           else {
             var tHeightToBeSaved = this.get('layout').height;

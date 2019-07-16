@@ -65,7 +65,7 @@ DG.appController = SC.Object.create((function () // closure
       }
       function selectView (componentView) {
         if (componentView) {
-          componentView.invokeLater(function () { componentView.maximizeAndSelect(); });
+          componentView.invokeLater(function () { componentView.showAndSelect(); });
         }
       }
       // is there a data context? if so, is there a case table for it? If so,
