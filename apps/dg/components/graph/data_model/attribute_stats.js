@@ -310,9 +310,11 @@ DG.AttributeStats = SC.Object.extend(
           }
           else if (tDataIsDateTime && (!SC.empty(iCaseValue))) {
             var tDate = DG.isDate( iCaseValue) ? iCaseValue : DG.createDate( iCaseValue);
-            tNumericCaseCount++;
-            if (tDate.valueOf() < tMin) tMin = tDate.valueOf();
-            if (tDate.valueOf() > tMax) tMax = tDate.valueOf();
+            if (tDate) {
+              tNumericCaseCount++;
+              if (tDate.valueOf() < tMin) tMin = tDate.valueOf();
+              if (tDate.valueOf() > tMax) tMax = tDate.valueOf();
+            }
           }
           // Let infinity and NaN through as numbers. And don't let null be treated as categorical
           else if ((typeof iCaseValue !== 'number') && !SC.empty(iCaseValue)) {

@@ -98,13 +98,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = boundaryFormatter(cellValue);
           } else if (typeof cellValue === 'boolean') {
             result = String(cellValue);
+          } else if (DG.isDate(cellValue) || type === 'date') {
+            result = DG.formatDate(DG.parseDate(cellValue, true), precision);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
             result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
                 rowItem);
-          } else if (DG.isDate(cellValue) || type === 'date') {
-            result = DG.formatDate(DG.createDate(cellValue), precision);
           } else if (typeof cellValue === 'string') {
             result = stringFormatter(cellValue);
           }
@@ -311,6 +311,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         isTopLevel = !this.get('hasParentCollection');
       return !isTopLevel || !DG.DataContextUtilities.isTopLevelReorgPrevented(dataContext);
   }.property(),
+
+  /**
+   * Refresh the table when the dataContext metadata changes, e.g. when the context gets
+   * a new managingController, which can determine whether to show the input row.
+   */
+  dataContextMetadataDidChange: function () {
+    this.refresh();
+  }.observes('*dataContext.metadataChangeCount'),
 
   /**
     The number of visible rows in the table, that is the number of rows adjusted
