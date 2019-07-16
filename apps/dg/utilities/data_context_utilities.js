@@ -54,7 +54,7 @@ DG.DataContextUtilities = {
     var pluginAllowsEmptyAttributeDeletion = !!pluginController &&
                                               pluginController.get('allowEmptyAttributeDeletion');
     var hasAttributeFormula = iAttribute.get('hasFormula');
-    var hasAttributeValues = iAttribute.get('hasValues');
+    var hasAttributeValues = !hasAttributeFormula && iAttribute.get('hasValues');
     var isEmptyAttribute = !hasAttributeFormula && !hasAttributeValues;
     return !pluginPreventsAttributeDeletion ||
             (pluginAllowsEmptyAttributeDeletion && isEmptyAttribute);
