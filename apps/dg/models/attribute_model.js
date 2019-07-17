@@ -476,12 +476,12 @@ DG.Attribute = DG.BaseModel.extend(
        */
       updateCategoryMap: function() {
 
-        function validateCategoryMap() {
+        function validateCategoryMap(iCategoryMap, iColorIndex) {
           // A plugin can produce a category map without colors assigned. This messes up assignment to __order.
-          DG.ObjectMap.forEach( tCategoryMap, function( iCategory, iValue) {
+          DG.ObjectMap.forEach( iCategoryMap, function( iCategory, iValue) {
             if( SC.none( iValue)) {
-              tCategoryMap[iCategory] = DG.ColorUtilities.kKellyColors[tColorIndex];
-              tColorIndex = (tColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;
+              iCategoryMap[iCategory] = DG.ColorUtilities.kKellyColors[iColorIndex];
+              iColorIndex = (iColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;
             }
           });
         }
@@ -493,7 +493,7 @@ DG.Attribute = DG.BaseModel.extend(
               tCategoryMap = this._categoryMap || { __order: []},
               tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
               tCatRecord = {};
-          validateCategoryMap();
+          validateCategoryMap(tCategoryMap, tColorIndex);
           tCases && tCases.forEach( function( iCase) {
             var tValue = iCase.getStrValue( tAttrID);
             tCatRecord[ tValue] = true;
