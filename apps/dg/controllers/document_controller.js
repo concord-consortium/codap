@@ -924,7 +924,7 @@ DG.DocumentController = SC.Object.extend(
               position: iComponent && iComponent.position,
               title: tGameName,
               isResizable: true,
-              useLayout: false,
+              useLayout: !SC.none(iComponent),
               positionOnCreate: true
             });
             tView.select();
