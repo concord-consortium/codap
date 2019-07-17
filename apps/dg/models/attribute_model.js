@@ -475,6 +475,17 @@ DG.Attribute = DG.BaseModel.extend(
        * Gets called when attribute is used categorically in a graph and something has changed.
        */
       updateCategoryMap: function() {
+
+        function validateCategoryMap() {
+          // A plugin can produce a category map without colors assigned. This messes up assignment to __order.
+          DG.ObjectMap.forEach( tCategoryMap, function( iCategory, iValue) {
+            if( SC.none( iValue)) {
+              tCategoryMap[iCategory] = DG.ColorUtilities.kKellyColors[tColorIndex];
+              tColorIndex = (tColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;
+            }
+          });
+        }
+
         var tCollection = this.get('collection');
         if( tCollection) {
           var tAttrID = this.get('id'),
@@ -482,6 +493,7 @@ DG.Attribute = DG.BaseModel.extend(
               tCategoryMap = this._categoryMap || { __order: []},
               tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
               tCatRecord = {};
+          validateCategoryMap();
           tCases && tCases.forEach( function( iCase) {
             var tValue = iCase.getStrValue( tAttrID);
             tCatRecord[ tValue] = true;
