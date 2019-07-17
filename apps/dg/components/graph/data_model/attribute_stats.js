@@ -488,6 +488,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           tAttributes = this.get('attributes'),
           tCaseCount = 0,
           tCellMap = {},
+          tArrayOfKeysAndNumber = [],
           tNumCells,
           tNumberOfCategoriesLimit = this.get('number_of_categories_limit');
 
@@ -525,34 +526,25 @@ DG.AttributeStats = SC.Object.extend((function () // closure
             }
           });
           tNumCells = tCellNumber;
-          // todo: This seems redundant!
-          if (tBlockIfEmpty) {
-            DG.ObjectMap.forEach(tCellMap, function (iKey, iValue) {
-              if (iValue.cases.length === 0) {
-                delete tCellMap[iKey];
-                tNumCells--;
-              }
-            });
-          }
-          // todo: Make this efficient by having an array to use to pick off cells
           // If we have more categories than the limit, combine extra categories into kOther
           if(!SC.none(tNumberOfCategoriesLimit) && tNumCells > tNumberOfCategoriesLimit) {
+            // Make a sorted array for efficient identification of categories beyond limit
+            DG.ObjectMap.forEach(tCellMap, function( iKey, iValue) {
+              tArrayOfKeysAndNumber.push({ key: iKey, cellNumber: iValue.cellNumber});
+            });
+            tArrayOfKeysAndNumber.sort( function( iPair1, iPair2) {
+              return iPair1.cellNumber - iPair2.cellNumber;
+            });
+
             var tOtherEntry = { cases: [], cellNumber: null },
-                tKeyForLastEntry,
-                tCellNumForLastEntry;
+                tKeyNumberPairForLastEntry;
             while( tNumCells > tNumberOfCategoriesLimit) {
-              tCellNumForLastEntry = -1;
-              tKeyForLastEntry = null;
-              DG.ObjectMap.forEach( tCellMap, function( iKey, iValue) {
-                if( iValue.cellNumber > tCellNumForLastEntry) {
-                  tCellNumForLastEntry = iValue.cellNumber;
-                  tKeyForLastEntry = iKey;
-                }
+              tKeyNumberPairForLastEntry = tArrayOfKeysAndNumber.pop();
+              tCellMap[tKeyNumberPairForLastEntry.key].cases.forEach( function( iCase) {
+                tOtherEntry.cases.push( iCase);
               });
-              // todo: consider pushing in the additional cases rather than using concat
-              tOtherEntry.cases = tOtherEntry.cases.concat( tCellMap[tKeyForLastEntry].cases);
-              tOtherEntry.cellNumber = tCellNumForLastEntry;
-              delete tCellMap[tKeyForLastEntry];
+              tOtherEntry.cellNumber = tKeyNumberPairForLastEntry.cellNumber;
+              delete tCellMap[tKeyNumberPairForLastEntry.key];
               tNumCells--;
             }
             tCellMap[DG.PlotUtilities.kOther] = tOtherEntry;
