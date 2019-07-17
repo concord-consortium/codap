@@ -587,7 +587,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           name: 'component.toggle.delete',
           undoString: 'DG.Undo.toggleComponent.' + tOperation + '.' + tViewName,
           redoString: 'DG.Redo.toggleComponent.' + tOperation + '.' + tViewName,
-          log: 'Toggle component: %@'.fmt('caseCard'),
+          log: 'Toggle component: %@'.fmt('caseTable'),
           execute: function () {
             var isVisible = tCaseTableView.toggleProperty('isVisible');
             var layout = tCaseTableView.get('layout');
