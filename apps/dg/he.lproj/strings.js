@@ -744,5 +744,14 @@ SC.stringsFor("he", {
     "DG.Redo.graph.makeStrokeSameAsFill": "Redo making stroke same as fill",
     "DG.Undo.graph.makeStrokeIndependent": "Undo making stroke independent of fill",
     "DG.Redo.graph.makeStrokeIndependent": "Redo making stroke independent of fill",
-    "DG.Inspector.strokeSameAsFill": "Stroke same color as fill"
+    "DG.Inspector.strokeSameAsFill": "Stroke same color as fill",
+    "DG.Formula.DateShortDaySunday": "Sun",
+    "DG.Formula.DateShortDayMonday": "Mon",
+    "DG.Formula.DateShortDayTuesday": "Tue",
+    "DG.Formula.DateShortDayWednesday": "Wed",
+    "DG.Formula.DateShortDayThursday": "Thu",
+    "DG.Formula.DateShortDayFriday": "Fri",
+    "DG.Formula.DateShortDaySaturday": "Sat",
+    "DG.AttributeFormat.DatePrecision.millisecond": "MMM D, YYYY HH:mm:ss.SSS",
+    "DG.CellAxis.other": "OTHER"
 });
