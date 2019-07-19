@@ -111,21 +111,40 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
     _strokeTransparency: null,
 
     strokeColor: function( iKey, iValue) {
-      if( iValue !== undefined)
+      var tLegendAttribute = this.hasLegendVar() &&
+            this.getPath('dataConfiguration.legendAttributeDescription.attribute'),
+          tLegendColorMap = tLegendAttribute && tLegendAttribute.get('categoryMap');
+      if( iValue !== undefined) {
         this._strokeColor = iValue;
-      return this._strokeColor ||
-          ( this.hasLegendVar() ?
-              DG.PlotUtilities.kDefaultStrokeColorWithLegend :
-              DG.PlotUtilities.kDefaultStrokeColor);
+        if(tLegendColorMap)
+            tLegendColorMap['stroke-color'] = iValue;
+      }
+      var tLegendStrokeColor = DG.ColorUtilities.getStrokeColorFromColorMap( tLegendColorMap),
+          tResult = tLegendStrokeColor || this._strokeColor ||
+              (tLegendAttribute ? DG.PlotUtilities.kDefaultStrokeColorWithLegend :
+                  DG.PlotUtilities.kDefaultStrokeColor);
+      return tResult;
     }.property(),
 
     strokeTransparency: function( iKey, iValue) {
-      if( iValue !== undefined)
+      var tLegendAttribute = this.hasLegendVar() &&
+            this.getPath('dataConfiguration.legendAttributeDescription.attribute'),
+          tLegendColorMap = tLegendAttribute && tLegendAttribute.get('categoryMap');
+      if( iValue !== undefined) {
         this._strokeTransparency = iValue;
-      return !SC.none( this._strokeTransparency) ? this._strokeTransparency :
-          ( this.hasLegendVar() ?
-              DG.PlotUtilities.kDefaultStrokeOpacityWithLegend :
-              DG.PlotUtilities.kDefaultStrokeOpacity);
+        if(tLegendColorMap)
+          tLegendColorMap['stroke-transparency'] = iValue;
+      }
+      var tLegendStrokeTransparency = tLegendColorMap ? tLegendColorMap['stroke-transparency'] : null,
+          tResult;
+      if (!SC.none(tLegendStrokeTransparency))
+        tResult = tLegendStrokeTransparency;
+      else if (!SC.none(this._strokeTransparency))
+        tResult = this._strokeTransparency;
+      else
+        tResult = tLegendAttribute ? DG.PlotUtilities.kDefaultStrokeOpacityWithLegend :
+            DG.PlotUtilities.kDefaultStrokeOpacity;
+      return tResult;
     }.property(),
 
     /**
@@ -742,8 +761,7 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
         return isDescendantOf(tNewCollection, tChildMost);
       }
 
-      var dataConfiguration = this.get('dataConfiguration'),
-          tStartingLegendAttrID = dataConfiguration.getPath('legendAttributeDescription.attributeID');
+      var dataConfiguration = this.get('dataConfiguration');
 
       if( newAttributeCollectionIsDescendant())
         return; // Because legend attribute has to be at same level as or higher than existing data attributes
@@ -753,13 +771,6 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       if( iDataContext)
         dataConfiguration.set('dataContext', iDataContext);
       dataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', iAttrRefs);
-      var tNewLegendAttrID = dataConfiguration.getPath('legendAttributeDescription.attributeID');
-      // If we're going from having a legend to no legend or vice versa, reset the stroke color and transparency
-      if( (SC.none( tStartingLegendAttrID) && !SC.none( tNewLegendAttrID)) ||
-          (!SC.none( tStartingLegendAttrID) && SC.none( tNewLegendAttrID))) {
-        this.set('strokeColor', null);
-        this.set('strokeTransparency', null);
-      }
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
     },

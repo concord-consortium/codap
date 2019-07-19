@@ -273,6 +273,14 @@ DG.ColorUtilities = {
   },
 
   /**
+   * @param iColorMap  {} object with 'stroke-color' as the color key (see below).
+   * @returns {DG.ColorUtilities.Color}
+   */
+  getStrokeColorFromColorMap: function (iColorMap) {
+    return iColorMap ? iColorMap['stroke-color'] : null;
+  },
+
+  /**
    * @param iColorMap  {} object with 'attribute-color' as the color key (see below).
    * @returns {DG.ColorUtilities.Color}
    */

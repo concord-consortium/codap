@@ -68,6 +68,7 @@ DG.Attribute = DG.BaseModel.extend(
        * The map of attribute and category color values, for the attribute.
        * For special color keys and values, see:
        *   DG.ColorUtilities.getAttributeColorFromColorMap(),
+       *   DG.ColorUtilities.getStrokeColorFromColorMap(),
        *   DG.ColorUtilities.getCategoryColorFromColorMap(),
        *   DG.ColorUtilities.simpleColorNames()
        * Maintains an array that specifies the order of iteration through the categories
