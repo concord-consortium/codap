@@ -275,7 +275,7 @@ DG.DateUtilities.dateParser = (function () {
   var localDateTimeRE = /^([01]?\d)\/([0-3]?\d)\/(\d{4}|\d{2})(?:,? (\d\d?)(?::(\d\d?)(?::(\d\d)(?:\.(\d+))?)?)?(?: ?(am|pm|AM|PM))?)?$/;
   var localDateTimeGroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8, timezone: 9};
 
-  // dd MMM yyyy or MMM yyyy
+  // dd MMM, yyyy or MMM, yyyy
   var  dateVar1 = new RegExp('^(\\d\\d?) (' + monthsArrayRE.join('|') + '),? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
   var dateVar1GroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
@@ -312,9 +312,9 @@ DG.DateUtilities.dateParser = (function () {
     { strict: true, regex: unixDate, groupMap: unixDateGroupMap },
     { strict: true, regex: browserDate, groupMap: browserDateGroupMap},
     { strict: true, regex: utcDate, groupMap: utcDateGroupMap},
-    { strict: false, regex: dateVar2, groupMap: dateVar2GroupMap },
-    { strict: false, regex: dateVar1, groupMap: dateVar1GroupMap },
-    { strict: false, regex: dateVar3, groupMap: dateVar3GroupMap },
+    { strict: true, regex: dateVar2, groupMap: dateVar2GroupMap },
+    { strict: true, regex: dateVar1, groupMap: dateVar1GroupMap },
+    { strict: true, regex: dateVar3, groupMap: dateVar3GroupMap },
     { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap }
   ];
 
