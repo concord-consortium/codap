@@ -67,6 +67,9 @@ DG.MathUtilities = {
       tNewValue = tNewValue / 10;
       tCounter++;
     }
+    if( tAdjustedPlaces < 0)
+      tNewValue = tNewValue.toFixed(-tAdjustedPlaces);
+
     while( tCounter > 0) {
       tNewValue = tNewValue * 10;
       tCounter--;
