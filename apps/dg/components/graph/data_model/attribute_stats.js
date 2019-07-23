@@ -129,7 +129,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         return SC.none(n2) || (n1 > n2);
       }
 
-      var
+      var tLastValue, tCaseIDs,
           processOneNumeric = function (iCase, iVarID) {
             var tInfo = {}, tValue = iCase.getNumValue(iVarID, tInfo);
             if (isFinite(tValue)) {
@@ -160,7 +160,6 @@ DG.AttributeStats = SC.Object.extend((function () // closure
 
           processOneCategorical = function (iCase, iVarID) {
             var tValue = iCase.getStrValue(iVarID),
-                tLastValue,
                 tCellMapEntry;
             if (!SC.empty(tValue)) {
               var tCellMap = this.getPath('categoricalStats.cellMap'),
@@ -174,8 +173,10 @@ DG.AttributeStats = SC.Object.extend((function () // closure
                 }
                 else if(!SC.none(tNumberOfCategoriesLimit)) {
                   if( tCellMapLength === tNumberOfCategoriesLimit) {
-                    tCellMap[DG.PlotUtilities.kOther] = tCellMap[tLastValue];
-                    delete tCellMap[tLastValue];
+                    if (tLastValue && !tCellMap[DG.PlotUtilities.kOther]) {
+                      tCellMap[DG.PlotUtilities.kOther] = tCellMap[tLastValue];
+                      delete tCellMap[tLastValue];
+                    }
                     tCellMapEntry = tCellMap[DG.PlotUtilities.kOther];
                   }
                 }
@@ -187,26 +188,59 @@ DG.AttributeStats = SC.Object.extend((function () // closure
               this.categoricalStats.incrementProperty('count');
               this.setPath('categoricalStats.cellMap', tCellMap); // Replace with notifyPropertyChange?
             }
-          }.bind(this);
+          }.bind(this),
+          tVarID = this.getPath('attribute.id'),
+          tType = this.get('attributeType'),
+          tAttributes = this.get('attributes'),
+          shouldProcessNumeric = this._numericCacheIsValid,
+          shouldProcessCategorical = this._categoricalCacheIsValid &&
+              (tType === DG.Analysis.EAttributeType.eCategorical);
 
       this._cases = iCases || this._cases; // Do this first so subsequently computed stats will use the right cases
       if (iChange &&
-          ((iChange.operation === 'createCase') || (iChange.operation === 'createCases'))) {
+          ((iChange.operation === 'createCase') ||
+              (iChange.operation === 'createCases'))) {
 
-        var tCaseIDs = iChange.result.caseIDs || [iChange.result.caseID],
-            tVarID = this.getPath('attribute.id'),
-            tType = this.get('attributeType'),
-            tAttributes = this.get('attributes'),
-            shouldProcessNumeric = this._numericCacheIsValid,
-            shouldProcessCategorical = this._categoricalCacheIsValid &&
-                (tType === DG.Analysis.EAttributeType.eCategorical);
+        tCaseIDs = iChange.result.caseIDs || [iChange.result.caseID];
 
         if (shouldProcessNumeric)
           this.numericStats.beginPropertyChanges();
-        if (shouldProcessCategorical)
+        if (shouldProcessCategorical) {
           this.categoricalStats.beginPropertyChanges();
+        }
         tCaseIDs.forEach(function (iCaseID) {
           var tCase = DG.store.find(DG.Case, iCaseID);
+          if (tCase) {
+            tAttributes.forEach(function (iAttribute) {
+              tVarID = iAttribute.get('id');
+              if (shouldProcessNumeric) {
+                processOneNumeric(tCase, tVarID);
+              }
+              if (shouldProcessCategorical)
+                processOneCategorical(tCase, tVarID);
+              else
+                this.setIfChanged('_categoricalCacheIsValid', false);
+            }.bind(this));
+          }
+        }.bind(this));
+        if (shouldProcessNumeric)
+          this.numericStats.endPropertyChanges();
+        if (shouldProcessCategorical) {
+          tAttributes.forEach(function (iAttribute) {
+            iAttribute.updateCategoryMap();
+          });
+          this.categoricalStats.endPropertyChanges();
+        }
+        return;
+      } else if (iChange && iChange.operation === 'deleteCases') {
+        if (shouldProcessNumeric)
+          this.numericStats.beginPropertyChanges();
+          this.numericStats.reset();
+        if (shouldProcessCategorical) {
+          this.categoricalStats.beginPropertyChanges();
+          this.categoricalStats.reset();
+        }
+        this._cases.forEach(function (tCase) {
           if (tCase) {
             tAttributes.forEach(function (iAttribute) {
               tVarID = iAttribute.get('id');

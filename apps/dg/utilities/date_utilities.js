@@ -275,7 +275,7 @@ DG.DateUtilities.dateParser = (function () {
   var localDateTimeRE = /^([01]?\d)\/([0-3]?\d)\/(\d{4}|\d{2})(?:,? (\d\d?)(?::(\d\d?)(?::(\d\d)(?:\.(\d+))?)?)?(?: ?(am|pm|AM|PM))?)?$/;
   var localDateTimeGroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8, timezone: 9};
 
-  // dd MMM yyyy or MMM yyyy
+  // dd MMM, yyyy or MMM, yyyy
   var  dateVar1 = new RegExp('^(\\d\\d?) (' + monthsArrayRE.join('|') + '),? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
   var dateVar1GroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
@@ -286,6 +286,10 @@ DG.DateUtilities.dateParser = (function () {
   // MMM dd, yyyy or MMM yyyy
   var dateVar3 = new RegExp('^(?:(?:' + daysOfWeekArray.join('|') + '),? )?(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
   var dateVar3GroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
+
+  // 'hh:mm:ss AM/PM on dd/MM/yyyy'
+  var dateVar4 = /(\d\d?):(\d\d)(?::(\d\d))? (AM|PM) on (\d\d?)\/(\d\d?)\/(\d{4})/;
+  var dateVar4GroupMap = {year:5, month: 6, day: 7, hour: 1, min: 2, sec: 3, ampm: 4};
 
   // unix dates: Tue Jul  9 18:16:04 PDT 2019
   var unixDate = new RegExp('^(?:(?:' + daysOfWeekAbbr.join('|') + ') )?(' + monthsAbbr.join('|') + ') ([ \\d]\\d) ([ \\d]\\d):(\\d\\d):(\\d\\d) ([A-Z]{3}) (\\d{4})$', 'i');
@@ -299,8 +303,8 @@ DG.DateUtilities.dateParser = (function () {
   var utcDateGroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, timezone: 8};
 
   // yyyy
-  var dateVar4 = /^\d{4}$/;
-  var dateVar4GroupMap = {year:1};
+  var dateVarYearOnly = /^\d{4}$/;
+  var dateVarYearOnlyGroupMap = {year:1};
 
 
 
@@ -312,9 +316,10 @@ DG.DateUtilities.dateParser = (function () {
     { strict: true, regex: unixDate, groupMap: unixDateGroupMap },
     { strict: true, regex: browserDate, groupMap: browserDateGroupMap},
     { strict: true, regex: utcDate, groupMap: utcDateGroupMap},
-    { strict: false, regex: dateVar2, groupMap: dateVar2GroupMap },
-    { strict: false, regex: dateVar1, groupMap: dateVar1GroupMap },
-    { strict: false, regex: dateVar3, groupMap: dateVar3GroupMap },
+    { strict: true, regex: dateVar2, groupMap: dateVar2GroupMap },
+    { strict: true, regex: dateVar1, groupMap: dateVar1GroupMap },
+    { strict: true, regex: dateVar3, groupMap: dateVar3GroupMap },
+    { strict: false, regex: dateVarYearOnly, groupMap: dateVarYearOnlyGroupMap },
     { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap }
   ];
 

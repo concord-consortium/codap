@@ -99,7 +99,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           } else if (typeof cellValue === 'boolean') {
             result = String(cellValue);
           } else if (DG.isDate(cellValue) || type === 'date') {
-            result = DG.formatDate(DG.parseDate(cellValue, true), precision);
+            result = dateFormatter(cellValue, precision);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
@@ -119,6 +119,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           result = 'error';
         }
         return result;
+      },
+
+      dateFormatter = function (cellValue, precision) {
+        var date = DG.isDate(cellValue)?cellValue:DG.parseDate(cellValue, true);
+        return date?DG.formatDate(date, precision): '"' + cellValue + '"';
       },
 
       numberFormatter = function (cellValue, type, precision) {
