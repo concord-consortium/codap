@@ -287,6 +287,10 @@ DG.DateUtilities.dateParser = (function () {
   var dateVar3 = new RegExp('^(?:(?:' + daysOfWeekArray.join('|') + '),? )?(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i');
   var dateVar3GroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
+  // 'hh:mm:ss AM/PM on dd/MM/yyyy'
+  var dateVar4 = /(\d\d?):(\d\d)(?::(\d\d))? (AM|PM) on (\d\d?)\/(\d\d?)\/(\d{4})/;
+  var dateVar4GroupMap = {year:5, month: 6, day: 7, hour: 1, min: 2, sec: 3, ampm: 4};
+
   // unix dates: Tue Jul  9 18:16:04 PDT 2019
   var unixDate = new RegExp('^(?:(?:' + daysOfWeekAbbr.join('|') + ') )?(' + monthsAbbr.join('|') + ') ([ \\d]\\d) ([ \\d]\\d):(\\d\\d):(\\d\\d) ([A-Z]{3}) (\\d{4})$', 'i');
   var unixDateGroupMap = {year: 7, month: 1, day: 2, hour: 3, min: 4, sec:5, timezone: 6};
@@ -299,8 +303,8 @@ DG.DateUtilities.dateParser = (function () {
   var utcDateGroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, timezone: 8};
 
   // yyyy
-  var dateVar4 = /^\d{4}$/;
-  var dateVar4GroupMap = {year:1};
+  var dateVarYearOnly = /^\d{4}$/;
+  var dateVarYearOnlyGroupMap = {year:1};
 
 
 
@@ -315,6 +319,7 @@ DG.DateUtilities.dateParser = (function () {
     { strict: true, regex: dateVar2, groupMap: dateVar2GroupMap },
     { strict: true, regex: dateVar1, groupMap: dateVar1GroupMap },
     { strict: true, regex: dateVar3, groupMap: dateVar3GroupMap },
+    { strict: false, regex: dateVarYearOnly, groupMap: dateVarYearOnlyGroupMap },
     { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap }
   ];
 
