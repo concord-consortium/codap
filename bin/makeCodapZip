@@ -75,6 +75,9 @@ mkdir -p ${WORK_DIR}
 sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
 
 LANG_ARRAY=\[`/bin/ls -m ${WORK_DIR}/static/dg|sed "s/[a-z][a-z]*/'&'/g"`\]
+
+${DIRNAME}/makeExtn "${WORK_DIR}"
+
 #
 # Generate top level index.html redirector
 cat > ${INDEX_HTML} << END_DOC
@@ -138,7 +141,13 @@ done
 
 #
 # Add an empty config file.
-touch ${WORK_DIR}/codap-config.js
+cat > ${WORK_DIR}/codap-config.js << END_DOC
+DG = {
+  pluginURL: '../../../../extn/plugins',
+  exampleListBaseURL: '../../../../extn/example-documents/',
+  boundarySpecsUrl: '../../../../extn/boundaries/default_boundary_specs.json'
+};
+END_DOC
 
 #
 # Zip up

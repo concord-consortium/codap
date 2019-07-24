@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# Assembles a directory containing endorsed CODAP extensions.
+# These include: plugins, example files, and boundary files.
+# Each filetype above must also be accompanied by an index file 
+# that lists and provides access to the resources.
+#
+# Will create a directory within the directory provided on the command line
+# named 'extn'. Will populate this directory with three subdirectories,
+# 'plugins', 'example_documents', and 'boundaries' copied from their
+# referenced source.
+#
+# Configured or overridden in $HOME/.codap-build.rc: CODAP_HOME, CODAP_SERVER,
+# CODAP_PLUGIN_REFDIR, CODAP_EXAMPLES_REFDIR, CODAP_BOUNDARIES_REFDIR.
+#
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+ROOTDIR=`dirname ${DIRNAME}`
+APPNAME=dg
+
+CODAP_PLUGIN_REFDIR=../codap-data-interactives/target
+CODAP_EXAMPLES_REFDIR=../codap-data/example-documents/target/example-documents
+CODAP_BOUNDARIES_REFDIR=../codap-data/boundaries
+
+#
+# Set up configuration
+. ${HOME}/.codap-build.rc
+
+function usage() {
+  echo usage: $PROGNAME target_dir 1>&2
+  exit 1
+}
+
+function error() {
+  echo error: $1 1>&2
+  exit 2
+}
+
+#
+# Plugins are currently zipped and placed in a directory.
+# This function finds the newest zip in the directory, unzips and
+# corrects the directory name.
+function copyPlugins() {
+  PLUGIN_ZIP=`ls -t "$CODAP_PLUGIN_REFDIR" | head -1`
+  PLUGIN_DIR=`echo $PLUGIN_ZIP | sed 's/codap-data-interactives-/build_/;s/.zip//'`
+  unzip -d "$TARGET_DIR" $CODAP_PLUGIN_REFDIR/$PLUGIN_ZIP
+  mv $TARGET_DIR/$PLUGIN_DIR $TARGET_DIR/plugins
+}
+
+#
+# verify target directory
+[ "$1" = "" ] && usage
+[ -d "$1" ] || error "Directory, '$1', not found"
+
+TARGET_DIR="$1"/extn
+
+mkdir "$TARGET_DIR"
+
+copyPlugins
+cp -r $CODAP_EXAMPLES_REFDIR $TARGET_DIR/example-documents
+cp -r $CODAP_BOUNDARIES_REFDIR $TARGET_DIR/boundaries
