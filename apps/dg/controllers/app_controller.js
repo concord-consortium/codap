@@ -348,21 +348,47 @@ DG.appController = SC.Object.create((function () // closure
      * @return {Deferred|undefined}
      */
     importTextFromUrl: function (iURL, iShowCaseTable) {
-      if (iURL) {
-        $.ajax(iURL, {
-          type: 'GET',
-          contentType: 'text/plain'
-        }).then(function (data) {
-            SC.run(function() {
-                var doc = (typeof data === 'string')? data: JSON.stringify(data);
-                return this.importText(doc, iURL, iShowCaseTable);
-              }.bind(this)
-            );
-          }.bind(this), function (msg) {
-            DG.logWarn(msg);
-          }
-        );
+      function parseURL(url) {
+        var a = document.createElement('a');
+        a.href = url;
+        return a;
       }
+
+      var fullPathname = parseURL(iURL).pathname;
+      var path = fullPathname?fullPathname
+          .replace(/\/$/, '')
+          .replace(/.*\//, '')
+          .replace(/\.[^.]*$/, '')||iURL:iURL;
+      this.openCSVImporter({
+        url: iURL,
+        datasetName: path,
+        showCaseTable: iShowCaseTable
+      });
+    },
+
+    /**
+     * Opens the CSV Importer plugin, preconfigured with the information
+     * it needs to perform the import.
+     * @param iConfig {Object} Configuration, as follows (iConfig must have
+     *                         one of url or data, but not both)
+     *
+     *                           url: url refering to a CSV or tab delimited file
+     *                           data: an array of arrays
+     *                           datasetName: the name of the dataset
+     *                           showCaseTable: whether to display the case
+     *                                  table for the new context
+     */
+    openCSVImporter: function (iConfig) {
+      var tComponent = DG.Component.createComponent({
+        type: "DG.GameView",
+        componentStorage: {
+          currentGameName: "Import CSV",
+          currentGameUrl: "http://localhost/~jsandoe/codap-data-interactives/ImportCSV/",
+          savedGameState: iConfig,
+          title: "Import CSV",
+          }
+        });
+      DG.currDocumentController().createComponentAndView(tComponent);
     },
 
     /**
@@ -449,17 +475,13 @@ DG.appController = SC.Object.create((function () // closure
      * @param { Boolean } iShowCaseTable Defaults to true
      * @returns {Boolean}
      */
-    importText: function( iText, iName, iShowCaseTable) {
-      var context = this.createDataContextFromCSV(iText, iName);
-
-      iShowCaseTable = SC.none( iShowCaseTable) || iShowCaseTable;
-      if( iShowCaseTable) {
-        var documentController = DG.currDocumentController(),
-            caseTable = documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
-
-        DG.dirtyCurrentDocument(caseTable);
-      }
-
+    importText: function( iText, iName, iFilename, iShowCaseTable) {
+      this.openCSVImporter({
+        text: iText,
+        datasetName: iName,
+        filename: iFilename,
+        showCaseTable: iShowCaseTable
+      });
       return true;
     },
 
@@ -760,7 +782,8 @@ DG.appController = SC.Object.create((function () // closure
                 DG.log('Opened: ' + iFile.name);
               }
               else if (iType === 'TEXT') {
-                that.importText(this.result, iFile.name);
+                that.importText(this.result,
+                    iFile.name.replace(/\.[^.]*$/, ''), iFile.name);
               }
               else if (iType === 'BINARY') {
                 that.importWebView(this.result, iFile.name);

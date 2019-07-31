@@ -690,7 +690,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           return {
             success: status,
-            values: resultValues
+            values: {
+              name: context.get('name'),
+              id: context.get('id'),
+              title: context.get('title')
+            }
           };
         },
 
