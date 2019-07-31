@@ -606,6 +606,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             result = handleRequest(iValues.request);
           }
           return result;
+        },
+        'delete': function (/*iResource*/) {
+          DG.closeComponent(this.get('id'));
+          return {success: true};
         }
       },
 
