@@ -143,9 +143,6 @@ done
 # Add an empty config file.
 cat > ${WORK_DIR}/codap-config.js << END_DOC
 DG = {
-  pluginURL: '../../../../extn/plugins',
-  exampleListBaseURL: '../../../../extn/example-documents/',
-  boundarySpecsUrl: '../../../../extn/boundaries/default_boundary_specs.json'
 };
 END_DOC
 

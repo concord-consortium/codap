@@ -380,12 +380,12 @@ DG.appController = SC.Object.create((function () // closure
      */
     openCSVImporter: function (iConfig) {
       var tComponent = DG.Component.createComponent({
-        type: "DG.GameView",
+        type: 'DG.GameView',
         componentStorage: {
-          currentGameName: "Import CSV",
-          currentGameUrl: "http://localhost/~jsandoe/codap-data-interactives/ImportCSV/",
+          currentGameName: 'Import CSV',
+          currentGameUrl: DG.get('pluginURL') + '/ImportCSV/',
           savedGameState: iConfig,
-          title: "Import CSV",
+          title: 'Import CSV',
           }
         });
       DG.currDocumentController().createComponentAndView(tComponent);

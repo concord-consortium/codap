@@ -268,7 +268,7 @@ DG = SC.Application.create((function () // closure
      * Semantic version number
      */
     VERSION: '2.0',
-    CODAP_SERVER: SC.buildMode==='debug'?'//codap-server.concord.org':'//codap.concord.org',
+    CODAP_SERVER: SC.buildMode==='debug'?'/extn':'../../../../extn',
 
     /*
      * Build number
@@ -283,7 +283,7 @@ DG = SC.Application.create((function () // closure
 
     exampleListBaseURL: function () {
 
-      return getUrlParameter('exampleURL') || this.get('CODAP_SERVER') + '/resources/latest/example-documents';
+      return getUrlParameter('exampleURL') || this.get('CODAP_SERVER') + '/example-documents';
     }.property(),
 
     exampleListURL: function () {
@@ -307,7 +307,7 @@ DG = SC.Application.create((function () // closure
      */
     pluginURL: function () {
       return getUrlParameter('pluginURL') ||
-          this.get('CODAP_SERVER') + '/plugins/releases/latest';
+          this.get('CODAP_SERVER') + '/plugins';
     }.property(),
 
     /**
@@ -503,7 +503,7 @@ DG = SC.Application.create((function () // closure
      */
     boundarySpecsUrl: function() {
       return getUrlParameter('boundarySpec')
-          || this.get('CODAP_SERVER') + '/codap-data/boundaries/default_boundary_specs.json';
+          || this.get('CODAP_SERVER') + '/boundaries/default_boundary_specs.json';
     }.property(),
 
     /**

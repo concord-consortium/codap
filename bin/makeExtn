@@ -18,7 +18,7 @@ DIRNAME=`dirname $0`
 ROOTDIR=`dirname ${DIRNAME}`
 APPNAME=dg
 
-CODAP_PLUGIN_REFDIR=../codap-data-interactives/target
+CODAP_PLUGIN_REFDIR=../codap-data-interactives/target/build/plugins
 CODAP_EXAMPLES_REFDIR=../codap-data/example-documents/target/example-documents
 CODAP_BOUNDARIES_REFDIR=../codap-data/boundaries
 
@@ -57,6 +57,6 @@ PARENT_DIR=`dirname $TARGET_DIR`
 
 mkdir -p "$TARGET_DIR"
 
-copyPlugins
 cp -r $CODAP_EXAMPLES_REFDIR $TARGET_DIR/example-documents
 cp -r $CODAP_BOUNDARIES_REFDIR $TARGET_DIR/boundaries
+cp -r $CODAP_PLUGIN_REFDIR $TARGET_DIR/plugins

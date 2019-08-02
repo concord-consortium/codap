@@ -37,3 +37,4 @@ end
 # Dev version of sage defaults to localhost, port 8080
 #proxy '/sage', :to => '127.0.0.1:8080', :url => '/'
 #proxy '/codap-data-interactives', :to => 'localhost:80', :url => '/~jsandoe/codap-data-interactives'
+proxy '/extn', :to => 'localhost:80', :url => '/~jsandoe/extn'
