@@ -329,8 +329,11 @@ DG.DateUtilities.dateParser = (function () {
         return null;
       }
       var newHr = Number(hr);
-      if (amPm && amPm.toLowerCase() === 'pm') {
-        newHr += 12;
+      if (amPm != null && (0<newHr<=12)) {
+        newHr = newHr % 12;
+        if (amPm && amPm.toLowerCase() === 'pm') {
+          newHr += 12;
+        }
       }
       return newHr;
     }
