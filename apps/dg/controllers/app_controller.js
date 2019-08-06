@@ -381,13 +381,16 @@ DG.appController = SC.Object.create((function () // closure
     openCSVImporter: function (iConfig) {
       var tComponent = DG.Component.createComponent({
         type: 'DG.GameView',
+        layout: {
+          isVisible: false
+        },
         componentStorage: {
           currentGameName: 'Import CSV',
           currentGameUrl: DG.get('pluginURL') + '/ImportCSV/',
           savedGameState: iConfig,
           title: 'Import CSV',
-          }
-        });
+        }
+      });
       DG.currDocumentController().createComponentAndView(tComponent);
     },
 
