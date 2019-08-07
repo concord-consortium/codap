@@ -213,10 +213,10 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
 
         function isValueOfGivenType() {
           var result = false;
-          if( iType === 'numeric')
-            result = tNumericPrecisions.indexOf( iPrecisionValue) >= 0;
-          else if( iType === 'date')
+          if( iType === 'date')
             result = tDatePrecisions.indexOf( iPrecisionValue) >= 0;
+          else
+            result = tNumericPrecisions.indexOf( String(iPrecisionValue)) >= 0;
           return result;
         }
 
@@ -224,7 +224,7 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
             precisionList;
         control.set('isEnabled', true);
         if( isValueOfGivenType())
-          control.set('value', iPrecisionValue);
+          control.set('value', String(iPrecisionValue));
         else control.set('value', '');
         this.setPath('contentView.precisionCtl.toolTip', 'DG.TableController.attrEditor.precisionNumericHint'.loc());
         switch (iType) {
@@ -260,7 +260,7 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
         var attr = attrRef.attribute;
         var contentView = this.get('contentView');
         if (attrRef) {
-          DG.ObjectMap.forEach(attr, function(key, val) {
+          DG.ObjectMap.forEach(attr.toArchive(), function(key, val) {
             var ctlName = key + 'Ctl';
             // Don't allow non-renameable attributes to be renamed
             if (key === 'name') {
