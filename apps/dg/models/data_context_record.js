@@ -61,6 +61,11 @@ DG.DataContextRecord = DG.BaseModel.extend(/** @scope DG.DataContextRecord.proto
   description: "",
 
   /**
+   * Data about the source of the data context.
+   */
+  metadata: null,
+
+  /**
    * If true, indicates the user should be prevented from moving attributes
    * or creating new collections or attributes. Defaults to false.
    */
@@ -182,6 +187,7 @@ DG.DataContextRecord = DG.BaseModel.extend(/** @scope DG.DataContextRecord.proto
         title: this.get('title'),
         collections: [],
         description: this.description,
+        metadata: this.metadata,
         preventReorg: this.preventReorg,
         setAsideItems: this.get('dataSet').archiveSetAsideItems(),
         contextStorage: this.contextStorage

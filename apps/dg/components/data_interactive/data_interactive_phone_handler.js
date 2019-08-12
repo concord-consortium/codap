@@ -1824,7 +1824,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             URL: function (key, value) {
               return {key: 'currentGameUrl', value: value};
             },
-            cannotClose: directMapping
+            cannotClose: directMapping,
+            isVisible: directMapping
           },
           graph: {
             name: directMapping,
@@ -2072,6 +2073,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               dimensions = iValues.dimensions;
               component.setPath('content.dimensions', dimensions);
               delete iValues.dimensions;
+            }
+            if (iValues.isVisible) {
+              var view = DG.currDocumentController().componentControllersMap[component.get('id')].get('view');
+              view.set('isVisible', iValues.isVisible);
+              delete iValues.isVisible;
             }
 
             remapProperties(iValues, remapped, codapType);

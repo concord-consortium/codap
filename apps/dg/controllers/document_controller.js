@@ -883,7 +883,8 @@ DG.DocumentController = SC.Object.extend(
         var tGameParams = {
               width: 300, height: 200
             },
-            tIsVisible = iComponent && !SC.none(iComponent.layout.isVisible)?iComponent.layout.isVisible:true,
+            tLayout = iComponent && iComponent.layout,
+            tIsVisible = tLayout && !SC.none(tLayout.isVisible)?tLayout.isVisible:true,
             // 'di' URL param can override stored URL
             storedGameUrl = iComponent && iComponent.getPath('componentStorage.currentGameUrl'),
             tGameUrl = DG.finalGameUrl(storedGameUrl),
@@ -929,6 +930,7 @@ DG.DocumentController = SC.Object.extend(
               positionOnCreate: true
             });
             if (!tIsVisible) {
+              DG.log('Setting visibility to false');
               tView.set('isVisible', false);
             } else {
               tView.select();
