@@ -76,7 +76,7 @@ sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
 
 LANG_ARRAY=\[`/bin/ls -m ${WORK_DIR}/static/dg|sed "s/[a-z][a-z]*/'&'/g"`\]
 
-${DIRNAME}/makeExtn "${WORK_DIR}"
+${DIRNAME}/makeExtn "${WORK_DIR}/extn"
 
 #
 # Generate top level index.html redirector

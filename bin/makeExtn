@@ -50,11 +50,12 @@ function copyPlugins() {
 #
 # verify target directory
 [ "$1" = "" ] && usage
-[ -d "$1" ] || error "Directory, '$1', not found"
 
-TARGET_DIR="$1"/extn
+TARGET_DIR="$1"
+PARENT_DIR=`dirname $TARGET_DIR`
+[ -d "$PARENT_DIR" ] || error "Parent directory, '$1', not found"
 
-mkdir "$TARGET_DIR"
+mkdir -p "$TARGET_DIR"
 
 copyPlugins
 cp -r $CODAP_EXAMPLES_REFDIR $TARGET_DIR/example-documents
