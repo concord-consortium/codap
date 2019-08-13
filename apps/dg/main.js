@@ -508,6 +508,34 @@ DG.main = function main() {
 
   function resolveDocument(iDocContents, iMetadata) {
     return new Promise(function (resolve, reject) {
+      function makeCSVDocument(urlString, datasetName) {
+        return {
+          name: "Untitled Document",
+          components: [
+            {
+              type: 'DG.GameView',
+              componentStorage: {
+                currentGameName: 'Import CSV',
+                currentGameUrl: DG.get('pluginURL') +'/ImportCSV/',
+                savedGameState: {
+                  url: urlString,
+                  datasetName: datasetName,
+                  showCaseTable: true
+                },
+                layout: {
+                  isVisible: false
+                }
+              }
+            }
+          ],
+          contexts: [],
+          globals: [],
+          appName: DG.APPNAME,
+          appVersion: DG.VERSION,
+          appBuildNum: DG.BUILD_NUM,
+          lang: SC.Locale.currentLanguage
+        };
+      }
       var metadata = iMetadata || {};
       var urlString = metadata.url || ('file:' + metadata.filename);
       var expectedContentType = getExpectedContentType(metadata.contentType,
@@ -517,9 +545,8 @@ DG.main = function main() {
       var datasetName = urlPath?
           urlPath.replace(/.*\//g, '').replace(/\..*/, ''): 'data';
       if (expectedContentType === 'application/csv') {
-        resolve(DG.DocumentArchiver.create({})
-            .convertCSVDataToCODAPDocument(iDocContents, datasetName,
-                datasetName, urlString));
+        DG.log('resolving CSV Document');
+        resolve(makeCSVDocument(urlString, datasetName));
       }
       else if (expectedContentType === 'application/json' || typeof iDocContents === 'object') {
         docContentsPromise(iDocContents).then(
@@ -703,6 +730,7 @@ DG.main = function main() {
                   .then(
                     function(iDocContents) {
                       SC.run(function () {
+                        DG.log('Doc contents: '  + iDocContents);
                         var metadata = event.data.content.metadata,
                             sharedMetadata = metadata && metadata.shared,
                             cfmSharedMetadata = sharedMetadata ? $.extend(true,
