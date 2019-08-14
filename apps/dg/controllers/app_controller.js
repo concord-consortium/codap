@@ -340,14 +340,7 @@ DG.appController = SC.Object.create((function () // closure
       ];
     }.property(),
 
-    /**
-     * Imports text (e.g. from a CSV file) to the document from a URL.
-     *
-     * @param {string} iURL The url of a text (e.g. CSV) file
-     * @param {Boolean} iShowCaseTable
-     * @return {Deferred|undefined}
-     */
-    importTextFromUrl: function (iURL, iShowCaseTable) {
+    extractNameFromURLPath: function (iURL) {
       function parseURL(url) {
         var a = document.createElement('a');
         a.href = url;
@@ -359,13 +352,43 @@ DG.appController = SC.Object.create((function () // closure
           .replace(/\/$/, '')
           .replace(/.*\//, '')
           .replace(/\.[^.]*$/, '')||iURL:iURL;
+      return path;
+    },
+    /**
+     * Imports text (e.g. from a CSV file) to the document from a URL.
+     *
+     * @param {string} iURL The url of a text (e.g. CSV) file
+     * @param {Boolean} iShowCaseTable
+     * @return {Deferred|undefined}
+     */
+    importTextFromUrl: function (iURL, iShowCaseTable) {
+      var name = this.extractNameFromURLPath(iURL);
       this.openCSVImporter({
         url: iURL,
-        datasetName: path,
+        datasetName: name,
         showCaseTable: iShowCaseTable
       });
     },
+    importGeoJSONFromURL: function (iURL) {
+      var name = this.extractNameFromURLPath(iURL);
+      this.openGeoJSONImporter({url: iURL, datasetName: name, showCaseTable: false});
+    },
 
+    openImporterPlugin: function(iName, iPath, iGameState) {
+      var tComponent = DG.Component.createComponent({
+        type: 'DG.GameView',
+        layout: {
+          isVisible: false
+        },
+        componentStorage: {
+          currentGameName: iName,
+          currentGameUrl: DG.get('pluginURL') + iPath,
+          savedGameState: iGameState,
+          title: iName,
+        }
+      });
+      DG.currDocumentController().createComponentAndView(tComponent);
+    },
     /**
      * Opens the CSV Importer plugin, preconfigured with the information
      * it needs to perform the import.
@@ -379,20 +402,11 @@ DG.appController = SC.Object.create((function () // closure
      *                                  table for the new context
      */
     openCSVImporter: function (iConfig) {
-      var tComponent = DG.Component.createComponent({
-        type: 'DG.GameView',
-        document: DG.currDocumentController().content,
-        layout: {
-          isVisible: false
-        },
-        componentStorage: {
-          currentGameName: 'Import CSV',
-          currentGameUrl: DG.get('pluginURL') + '/ImportCSV/',
-          savedGameState: iConfig,
-          title: 'Import CSV',
-        }
-      });
-      DG.currDocumentController().createComponentAndView(tComponent);
+      this.openImporterPlugin('Import CSV', '/ImportCSV/', iConfig);
+    },
+
+    openGeoJSONImporter: function (iConfig) {
+      this.openImporterPlugin('Import GeoJSON', '/ImportGeoJSON/', iConfig);
     },
 
     /**
@@ -550,9 +564,11 @@ DG.appController = SC.Object.create((function () // closure
 
       if (pathname.match(/.*\.(json|codap)$/)) {
         DG.cfmClient.openUrlFile(iURL);
-      } else if (pathname.match(/.*\.csv$/)){
+      } else if (pathname.match(/.*\.(csv|txt)$/)) {
         // CFM should be importing this document
         this.importTextFromUrl(iURL);
+      } else if (pathname.match(/.*\.geojson$/)) {
+        this.importGeoJSONFromURL(iURL);
       } else if (iURL.match(/^data:text\/csv/)){
         this.importCSVFromDataUri(iURL);
       } else {
@@ -696,6 +712,16 @@ DG.appController = SC.Object.create((function () // closure
         extensions: ['json', 'codap']
       },
       {
+        group: 'GEOJSON',
+        mime: 'application/geo+json',
+        extensions: ['geojson']
+      },
+      {
+        group: 'GEOJSON',
+        mime: 'application/vnd.geo+json',
+        extensions: ['geojson']
+      },
+      {
         group: 'BINARY',
         mime: 'image/gif',
         extensions: ['gif']
@@ -784,6 +810,14 @@ DG.appController = SC.Object.create((function () // closure
                 DG.cfmClient.openLocalFile(iFile);
                 window.location.hash = '';
                 DG.log('Opened: ' + iFile.name);
+              }
+              else if (iType === 'GEOJSON') {
+                that.openGeoJSONImporter({
+                  text: this.result,
+                  datasetName: iFile.name.replace(/\.[^.]*$/, ''),
+                  filename: iFile.name,
+                  showCaseTable: true
+                });
               }
               else if (iType === 'TEXT') {
                 that.importText(this.result,

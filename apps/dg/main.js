@@ -491,8 +491,9 @@ DG.main = function main() {
    */
   function getExpectedContentType(mimeType, url) {
     var extensionMap = {
-      codap: 'application/json',
+      codap: 'application/vnd.codap+json',
       json: 'application/json',
+      geojson: 'application/vnd.geo+json',
       csv: 'application/csv',
       txt: 'application/csv'
     };
@@ -508,7 +509,7 @@ DG.main = function main() {
 
   function resolveDocument(iDocContents, iMetadata) {
     return new Promise(function (resolve, reject) {
-      function makeCSVDocument(urlString, datasetName) {
+      function makePluginDocument(gameState, pluginName, pluginPath) {
         return {
           name: "Untitled Document",
           components: [
@@ -516,13 +517,9 @@ DG.main = function main() {
               type: 'DG.GameView',
               document: DG.currDocumentController().content,
               componentStorage: {
-                currentGameName: 'Import CSV',
-                currentGameUrl: DG.get('pluginURL') +'/ImportCSV/',
-                savedGameState: {
-                  url: urlString,
-                  datasetName: datasetName,
-                  showCaseTable: true
-                },
+                currentGameName: pluginName,
+                currentGameUrl: DG.get('pluginURL') + pluginPath,
+                savedGameState: gameState,
                 layout: {
                   isVisible: false
                 }
@@ -537,6 +534,21 @@ DG.main = function main() {
           lang: SC.Locale.currentLanguage
         };
       }
+      function makeCSVDocument(urlString, datasetName) {
+        var gameState = {
+          url: urlString,
+          datasetName: datasetName,
+          showCaseTable: true
+        };
+        return makePluginDocument(gameState, 'Import CSV', '/ImportCSV/');
+      }
+      function makeGeoJSONDocument(contents, datasetName) {
+        var gameState = {
+          text: contents,
+          datasetName: datasetName
+        };
+        return makePluginDocument(gameState, 'Import GeoJSON', '/ImportGeoJSON/');
+      }
       var metadata = iMetadata || {};
       var urlString = metadata.url || ('file:' + metadata.filename);
       var expectedContentType = getExpectedContentType(metadata.contentType,
@@ -545,11 +557,37 @@ DG.main = function main() {
       var urlPath = url && url.pathname;
       var datasetName = urlPath?
           urlPath.replace(/.*\//g, '').replace(/\..*/, ''): 'data';
-      if (expectedContentType === 'application/csv') {
+      var contentType;
+
+      if (expectedContentType === 'application/json' || typeof iDocContents === 'object') {
+        if (typeof iDocContents === 'string') {
+          try {
+            iDocContents = JSON.parse(iDocContents);
+          }
+          catch (ex) {
+            reject('JSON parse error in "%@"'.fmt(urlString));
+            return;
+          }
+        }
+        if (iDocContents.appName) {
+          contentType = 'application/vnd.codap+json';
+        } else if (iDocContents.type &&
+            (iDocContents.type === 'FeatureCollection' ||
+                iDocContents.type === 'Topology')) {
+          contentType = 'application/vnd.geo+json';
+        }
+      } else {
+        contentType = expectedContentType;
+      }
+
+      if (contentType === 'application/csv') {
         DG.log('resolving CSV Document');
         resolve(makeCSVDocument(urlString, datasetName));
       }
-      else if (expectedContentType === 'application/json' || typeof iDocContents === 'object') {
+      else if (contentType === 'application/vnd.geo+json') {
+        resolve(makeGeoJSONDocument(iDocContents, datasetName));
+      }
+      else if (contentType === 'application/vnd.codap+json') {
         docContentsPromise(iDocContents).then(
           function (contents) {
             // check if this is a valid CODAP document

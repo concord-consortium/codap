@@ -39,7 +39,7 @@ DG.GeojsonUtils = {
       catch (er) {
         console.log( er);
       }
-      return tObject;
+      return {jsonBoundaryObject: tObject};
     }
     else
       return null;
