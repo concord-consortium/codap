@@ -38,6 +38,20 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
       model: null,
 
       /**
+       A map view is neither horizontal or vertical. Distinguish it from axes
+       @property { String }
+       */
+      orientation: 'none',
+
+      /**
+       * @property {DG.Attribute}
+       */
+      plottedAttribute: function() {
+        var tLegendViews = this.get('legendViews');
+        return tLegendViews.length === 1 ? tLegendViews[0].get('plottedAttribute') : null;
+      }.property(),
+
+      /**
        * @property {DG.BaseMapView}
        */
       mapLayer: null,

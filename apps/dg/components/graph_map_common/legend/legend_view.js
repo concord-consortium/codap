@@ -45,10 +45,10 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       model: null,
 
       /**
-        A legend view is always horizontal
+        A legend view is neither horizontal or vertical. Distinguish it from axes
         @property { String }
       */
-      orientation: 'horizontal',
+      orientation: 'none',
 
       /**
        * @property {DG.CategoriesView}

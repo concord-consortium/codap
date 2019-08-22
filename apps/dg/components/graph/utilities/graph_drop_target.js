@@ -128,7 +128,7 @@ DG.GraphDropTarget =
         if (tParentView)
           tParentView.makeSubviewFrontmost(this);
       }
-      if(iDrag.data.attribute.isNominal()) {
+      if(iDrag.data.attribute.isNominal() && tOrientation !== 'none') {
         if(tOrientation === 'vertical' || tOrientation === 'vertical2')
           tDropHint = 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName);
         else tDropHint = 'DG.GraphView.layoutPlotsSideBySide'.loc(tDraggedName);
