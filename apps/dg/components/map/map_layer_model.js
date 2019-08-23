@@ -184,6 +184,11 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
               }
             }
             return false;
+          case 'updateAttributes':
+            attrs = iChange.attrPropsArray.map( function( iProp) {
+              return iProp.id;
+            });
+            return containsMappedAttrs(attrs);
         }
 
         // For now, we'll assume all other changes affect us

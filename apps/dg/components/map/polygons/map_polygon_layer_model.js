@@ -63,9 +63,10 @@ DG.MapPolygonLayerModel = DG.MapLayerModel.extend(
        */
       hasValidMapAttributes: function() {
         var tMapAttribute = this.getPath( 'dataConfiguration.polygonAttributeDescription.attribute'),
-            tAttrName = tMapAttribute && tMapAttribute.get('name');
-        return tAttrName && (DG.MapConstants.kPolygonNames.indexOf( tAttrName.toLowerCase()) ||
-            tMapAttribute.get('type') === DG.Analysis.EAttributeType.eBoundary);
+            tAttrName = tMapAttribute && tMapAttribute.get('name'),
+            tAttrType = tMapAttribute && tMapAttribute.get('type');
+        return tAttrName && (DG.MapConstants.kPolygonNames.indexOf( tAttrName.toLowerCase()) >= 0 ||
+            tAttrType === DG.Analysis.EAttributeType.eBoundary || tAttrType === 'boundary');
       },
 
       createStorage: function() {
