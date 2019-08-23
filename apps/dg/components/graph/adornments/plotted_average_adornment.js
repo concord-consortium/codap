@@ -420,22 +420,9 @@ DG.PlottedMedianAdornment = DG.PlottedAverageAdornment.extend(
  * @class  Plots a computed value.
  * @extends DG.PlottedAverageAdornment
  */
-DG.PlottedStDevAdornment = DG.PlottedAverageAdornment.extend(
-/** @scope DG.PlottedStDevAdornment.prototype */
+DG.PlottedDevAdornment = DG.PlottedAverageAdornment.extend(
+/** @scope DG.PlottedDevAdornment.prototype */
 {
-  bgFill: '#9980FF',
-  bgStroke: '#9980FF',
-  bgStrokeWidth:  0.5,
-  symStrokeWidth: 1,
-  symStroke: '#30F',
-  statisticKey: 'stdev', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
-  centerKey:    'stDevMinus1',  /** {String} key to relevant center point in this.model.values[i][centerKey] */
-  spreadKey:    'stdev', /** {String} key to relevant spread value in this.model.values[i][width] */
-  titleResource: 'DG.PlottedAverageAdornment.stDevValueTitle', /** {String} resource string for this.titleString() */
-  //titleFraction: 0.4,   /** {Number} fraction-from-top for placement of average=123 text */
-  symHeight: 0.6,  /** {Number} fractional distance from axis for symbol line  */
-  hoverColor: "rgba(48, 0, 255, 0.3)", /** color of line when mouse over cover line */
-
   /**
    * Create the path string for the rectangular area covering the Standard Deviation.
    * @param p {x,y,cellHeight,width} of reference point in view coordinates
@@ -498,6 +485,49 @@ DG.PlottedStDevAdornment = DG.PlottedAverageAdornment.extend(
 
 });
 
+/**
+ * @class  Plots a computed deviation.
+ * @extends DG.PlottedDevAdornment
+ */
+DG.PlottedStDevAdornment = DG.PlottedDevAdornment.extend(
+/** @scope DG.PlottedStDevAdornment.prototype */
+{
+  bgFill: '#9980FF',
+  bgStroke: '#9980FF',
+  bgStrokeWidth:  0.5,
+  symStrokeWidth: 1,
+  symStroke: '#30F',
+  statisticKey: 'stdev', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
+  centerKey:    'centerMinus1Dev',  /** {String} key to relevant center point in this.model.values[i][centerKey] */
+  spreadKey:    'stdev', /** {String} key to relevant spread value in this.model.values[i][width] */
+  titleResource: 'DG.PlottedAverageAdornment.stDevValueTitle', /** {String} resource string for this.titleString() */
+  //titleFraction: 0.4,   /** {Number} fraction-from-top for placement of average=123 text */
+  symHeight: 0.6,  /** {Number} fractional distance from axis for symbol line  */
+  hoverColor: "rgba(48, 0, 255, 0.3)", /** color of line when mouse over cover line */
+
+});
+
+/**
+ * @class  Plots a computed deviation.
+ * @extends DG.PlottedDevAdornment
+ */
+DG.PlottedMeanAbsDevAdornment = DG.PlottedDevAdornment.extend(
+/** @scope DG.PlottedMeanAbsDevAdornment.prototype */
+{
+  bgFill: '#9ac6ff',
+  bgStroke: '#5bbaff',
+  bgStrokeWidth:  0.5,
+  symStrokeWidth: 1,
+  symStroke: '#00adff',
+  statisticKey: 'mad', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
+  centerKey:    'centerMinus1Dev',  /** {String} key to relevant center point in this.model.values[i][centerKey] */
+  spreadKey:    'mad', /** {String} key to relevant spread value in this.model.values[i][width] */
+  titleResource: 'DG.PlottedAverageAdornment.madValueTitle', /** {String} resource string for this.titleString() */
+  //titleFraction: 0.4,   /** {Number} fraction-from-top for placement of average=123 text */
+  symHeight: 0.6,  /** {Number} fractional distance from axis for symbol line  */
+  hoverColor: "rgba(0, 173, 255, 0.3)", /** color of line when mouse over cover line */
+
+});
 
 /**
  * @class  Plots a computed Inter-Quartile Range (IQR), between the first and third quartiles (Q1 and Q3).

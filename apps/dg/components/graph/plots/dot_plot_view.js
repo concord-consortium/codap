@@ -31,7 +31,8 @@ DG.DotPlotView = DG.PlotView.extend(
                       'secondaryAxisView.model.numberOfCells', 'overlap'],
 
   autoDestroyProperties: ['multipleMovableValuesAdorn', 'plottedValueAdorn',
-                          'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedBoxPlotAdorn'],
+                          'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn',
+                          'plottedMadAdorn', 'plottedBoxPlotAdorn'],
 
   /**
   @property{DG.CellLinearAxisView}
@@ -90,6 +91,9 @@ DG.DotPlotView = DG.PlotView.extend(
   /** @property {DG.plottedStDevAdorn} */
   plottedStDevAdorn: null,
   
+  /** @property {DG.plottedMadAdorn} */
+  plottedMadAdorn: null,
+
   /** @property {DG.plottedBoxPlotAdorn} */
   plottedBoxPlotAdorn: null,
 
@@ -144,7 +148,7 @@ DG.DotPlotView = DG.PlotView.extend(
   },
 
   numberOfCellsDidChange: function() {
-    ['plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedBoxPlotAdorn'].
+    ['plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedMadAdorn', 'plottedBoxPlotAdorn'].
         forEach( function( iKey) {
             if( this.getPath( iKey + '.model')) {
               this.getPath( iKey + '.model').setComputingNeeded();
@@ -182,6 +186,7 @@ DG.DotPlotView = DG.PlotView.extend(
     updateOneAdorn( this.plottedMeanAdorn );
     updateOneAdorn( this.plottedMedianAdorn );
     updateOneAdorn( this.plottedStDevAdorn );
+    updateOneAdorn( this.plottedMadAdorn );
     updateOneAdorn( this.plottedBoxPlotAdorn );
     updateOneAdorn( this.multipleMovableValuesAdorn );
 
@@ -418,6 +423,7 @@ DG.DotPlotView = DG.PlotView.extend(
     updateAverageAdorn( this.plottedMeanAdorn );
     updateAverageAdorn( this.plottedMedianAdorn );
     updateAverageAdorn( this.plottedStDevAdorn );
+    updateAverageAdorn( this.plottedMadAdorn );
     updateAverageAdorn( this.plottedBoxPlotAdorn );
 
     if( !SC.none( this.plottedValueAdorn))
@@ -540,6 +546,13 @@ DG.DotPlotView = DG.PlotView.extend(
     this.adornmentDidChange('plottedStDev', 'plottedStDevAdorn', DG.PlottedStDevAdornment);
   }.observes('.model.plottedStDev'),
   
+  /**
+   Presumably our model has created a plotted St.Dev. We need to create our adornment.
+   */
+  plottedMadChanged: function() {
+    this.adornmentDidChange('plottedMad', 'plottedMadAdorn', DG.PlottedMeanAbsDevAdornment);
+  }.observes('.model.plottedMad'),
+
   /**
    Presumably our model has created a plotted IQR. We need to create our adornment.
    */

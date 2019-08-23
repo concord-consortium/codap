@@ -689,7 +689,8 @@ SC.stringsFor("en", {
     // DG.PlottedAverageAdornment
     "DG.PlottedAverageAdornment.meanValueTitle": "mean=%@", // "mean=123.456"
     "DG.PlottedAverageAdornment.medianValueTitle": "median=%@", // "median=123.456"
-    "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@", // "st.dev=123.456"
+    "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@", // "±1 SD, 123.456"
+    "DG.PlottedAverageAdornment.madValueTitle": "±1 MAD, %@", // "±1 MAD, 123.456"
     "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@", // "iqr=123.456"
     "DG.PlottedAverageAdornment.boxPlotTitle": "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
     "DG.PlottedCountAdornment.title": "%@ %@, %@%", // "12 cases, 50%"
@@ -828,6 +829,7 @@ SC.stringsFor("en", {
     "DG.Inspector.graphPlottedMean": "Mean",
     "DG.Inspector.graphPlottedMedian": "Median",
     "DG.Inspector.graphPlottedStDev": "Standard Deviation",
+    "DG.Inspector.graphPlottedMeanAbsDev": "Mean Absolute Deviation",
     "DG.Inspector.graphPlottedIQR": "Interquartile Range",
     "DG.Inspector.graphPlottedBoxPlot": "Box Plot",
     "DG.Inspector.graphPlottedValue": "Plotted Value",

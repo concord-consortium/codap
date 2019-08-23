@@ -347,6 +347,13 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       /**
+       Toggle the visibility of the Standard Deviation.
+       */
+      togglePlottedMad: function () {
+        this.toggleAverage('plottedMad', 'togglePlottedMad');
+      },
+
+      /**
        Toggle the visibility of the IQR.
        */
       togglePlottedIQR: function () {
@@ -517,6 +524,14 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             classNames: 'dg-graph-plottedStDev-check'.w(),
             valueDidChange: function () {
               this_.togglePlottedStDev();
+            }.observes('value')
+          },
+          {
+            title: 'DG.Inspector.graphPlottedMeanAbsDev',
+            value: this_.isAdornmentVisible('plottedMad'),
+            classNames: 'dg-graph-plottedMad-check'.w(),
+            valueDidChange: function () {
+              this_.togglePlottedMad();
             }.observes('value')
           },
           {

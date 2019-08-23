@@ -94,7 +94,7 @@ DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
    * Compute or re-compute the sums, counts, and means of each cell.
    * returns null or an array of values, one for each cell
    */
-  computeSumCountMean: function() {
+  computeSumCountMean: function( includeMAD) {
 
     var tCases = this.getPath('plotModel.cases'),
         tNumericVarID = this.getPath( 'plotModel.primaryVarID'),
@@ -111,7 +111,7 @@ DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
 
     // initialize the values
     for( i=0, j=tNumCells; i<j; ++i ) {
-      tValues.push({ sum:0, sumOfSquares:0, count:0, mean:undefined, stdev:undefined });
+      tValues.push({ sum:0, sumOfSquares:0, count:0, mean:undefined, stdev:undefined, numericValues: [] });
     }
 
     // compute count and sum of cases in each cell, excluding missing values
@@ -126,6 +126,9 @@ DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
           iValue.sum += tNumericValue;
           iValue.sumOfSquares +=( tNumericValue * tNumericValue );
           iValue.count += 1;
+          if( includeMAD) {
+            iValue.numericValues.push( tNumericValue);
+          }
           //iValue.cellValue = tCellValue;
         }
       }
@@ -135,6 +138,12 @@ DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
     tValues.forEach( function( iValue ) { // TO-DO remove this.
       if( iValue.count > 0 ) {
         iValue.mean = iValue.sum / iValue.count;
+        if( includeMAD) {
+          iValue.mad = iValue.numericValues.reduce( function( iMad, iNumValue) {
+            return iMad + Math.abs( iValue.mean - iNumValue);
+          }, 0) / iValue.count;
+          delete iValue.numericValues;
+        }
       }
     });
 
@@ -162,7 +171,7 @@ DG.PlottedMeanModel = DG.PlottedMeanStDevModel.extend(
 DG.PlotAdornmentModel.registry.plottedMean = DG.PlottedMeanModel;
 
 DG.PlottedStDevModel = DG.PlottedMeanStDevModel.extend(
-/** @scope DG.PlottedMeanModel.prototype */
+/** @scope DG.PlottedStDevModel.prototype */
 {
   /**
    * Compute or re-compute the standard deviation(s).
@@ -178,18 +187,38 @@ DG.PlottedStDevModel = DG.PlottedMeanStDevModel.extend(
         iValue.stdev = Math.sqrt(( iValue.sumOfSquares -
                                   ( iValue.mean * iValue.mean ) * iValue.count) /
                                     (iValue.count - 1));
-        iValue.stDevMinus1 = iValue.mean - iValue.stdev;
+        iValue.centerMinus1Dev = iValue.mean - iValue.stdev;
       }
     });
-    if( tValues ) {
-      var tNumericAxisModel = this.getPath('plotModel.primaryAxisModel');
-      this.set( 'precision', tNumericAxisModel.getPath('attributeDescription.attribute.precision'));
-      this.set( 'values', tValues ); // we expect view to observe this change
-      this._needsComputing = false;
-    }
+    var tNumericAxisModel = this.getPath('plotModel.primaryAxisModel');
+    this.set( 'precision', tNumericAxisModel.getPath('attributeDescription.attribute.precision'));
+    this.set( 'values', tValues ); // we expect view to observe this change
+    this._needsComputing = false;
   }
 });
 DG.PlotAdornmentModel.registry.plottedStDev = DG.PlottedStDevModel;
+
+DG.PlottedMadModel = DG.PlottedMeanStDevModel.extend(
+    /** @scope DG.PlottedMadModel.prototype */
+    {
+      /**
+       * Compute or re-compute the mean(s).
+       */
+      recomputeValue: function() {
+        var tValues = this.computeSumCountMean( true /* include MAD */);
+        if( !tValues)
+          return;
+
+        tValues.forEach( function( iValue ) {
+          iValue.centerMinus1Dev = iValue.mean - iValue.mad;
+        });
+        var tNumericAxisModel = this.getPath('plotModel.primaryAxisModel');
+        this.set( 'precision', tNumericAxisModel.getPath('attributeDescription.attribute.precision'));
+        this.set( 'values', tValues ); // we expect view to observe this change
+        this._needsComputing = false;
+      }
+    });
+DG.PlotAdornmentModel.registry.plottedMad = DG.PlottedMadModel;
 
 DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
 /** @scope DG.PlottedMedianModel.prototype */
