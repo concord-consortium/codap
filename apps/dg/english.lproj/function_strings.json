@@ -758,6 +758,21 @@
       "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
     ]
   },
+  "mad": {
+    "displayName": "mad",
+    "description": "Computes the mean absolute deviation the given expression.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression for which you want to find the MAD."
+      }
+    ],
+    "examples": [
+      "mad(Pressure) computes the mean absolute deviation of the attribute Pressure",
+      "mad(Weight/Height^2) could be used to compute the mean absolute deviation of BMI provided that Weight is in kg and Height is in meters"
+    ]
+  },
   "max": {
     "displayName": "max",
     "description": "Returns the largest value of the expression as evaluated for every case in a collection.",

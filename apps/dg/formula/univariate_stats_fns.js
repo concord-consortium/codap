@@ -228,6 +228,23 @@ return {
   }),
 
   /**
+    mad(expr)
+    Returns the mean absolute deviation of its evaluated argument values.
+   */
+  mad: DG.CachedValuesParentCaseAggregate.create({
+
+    requiredArgs: { min: 1, max: 1 },
+
+    computeResultFromCache: function(iCache) {
+      var count = iCache.values && iCache.values.length,
+          tMean = iCache.sum / count;
+      return iCache.values && iCache.values.reduce( function( iSum, iValue) {
+            return iSum + Math.abs( tMean - iValue);
+          }, 0) / count;
+    }
+  }),
+
+  /**
     percentile(expr)
     Returns the aggregated percentile of its evaluated argument values.
    */

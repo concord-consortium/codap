@@ -367,7 +367,7 @@ DG.CachedValuesParentCaseAggregate = DG.ParentCaseAggregate.extend({
     from the values cached during the first pass.
    */
   computeVarianceFromCache: function(iCache) {
-    // must have at least two values to compute stdDev
+    // must have at least two values to compute variance
     if (iCache.values && (iCache.values.length > 1)) {
       var count = iCache.values.length,
           mean = iCache.sum / count,
