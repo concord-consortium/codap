@@ -127,8 +127,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       numberFormatter = function (cellValue, type, precision) {
-        var roundDigits = !SC.none(precision)? precision : 2,
-            multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
+        var roundDigits = !SC.empty(precision)? precision : 2,
+            multiplier = !SC.empty(roundDigits) ? Math.pow(10,roundDigits) : 1;
         return '<span class="dg-numeric">' + (Math.round( multiplier * cellValue) / multiplier) + '</span>';
       },
 

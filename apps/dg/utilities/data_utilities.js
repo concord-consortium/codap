@@ -193,7 +193,7 @@ DG.DataUtilities.sortableValue = function(value) {
   function typeCode(value) {
     if (value == null) return kTypeNull;
     if (value instanceof Error) return kTypeError;
-    if (value instanceof Date) return kTypeDate;
+    if (DG.isDate(value) || DG.isDateString(value)) return kTypeDate;
     if (value instanceof DG.SimpleMap) return kTypeSimpleMap;
     switch (typeof value) {
       case 'number': return isNaN(value) ? kTypeNaN : kTypeNumber;
@@ -216,7 +216,7 @@ DG.DataUtilities.sortableValue = function(value) {
     return { type: kTypeString, value: value };
   // dates are treated numerically
   else if (type === kTypeDate)
-    return { type: kTypeNumber, value: Number(value) };
+    return { type: kTypeNumber, value: Number(DG.createDate(value)) };
   // other values are treated according to their type
   return { type: type, value: value };
 };
