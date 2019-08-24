@@ -130,6 +130,46 @@ DG.SliderView = SC.View.extend(
         sc_super();
         DG.assert( !SC.none( this.get( 'model' ) ) );
 
+        this.set('valueView',
+            SC.LabelView.create(DG.MouseAndTouchView, {
+              layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + 16 },
+              classNames: 'dg-slider-label'.w(),
+              isEditable: true,
+              isTextSelectable: YES,
+              exampleNode: null,
+              inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
+                sc_super();
+                var tFrame = this.get('frame'),
+                    kXGap = 4, kYGap = 5,
+                    tOrigin = DG.ViewUtilities.viewToWindowCoordinates( { x: kXGap - 2, y: kYGap - 7 }, this);
+
+                this.parentView.set('userEdit', true);
+
+                // SC 1.10 introduced a new inline editor model in which
+                // an 'exampleNode' is used to adjust inline editor style.
+                var exampleNode = this.get('exampleNode');
+                if(!exampleNode) {
+                  var parentNode = this.getPath('parentView.layer');
+                  exampleNode = this.get('layer').cloneNode(false);
+                  exampleNode.id = exampleNode.id + "-clone";
+                  exampleNode.style.visibility = 'hidden';
+                  parentNode.appendChild(exampleNode);
+                  this.set('exampleNode', exampleNode);
+                }
+                exampleNode.style.left = 0 + 'px';
+                exampleNode.style.top = 9 + 'px';
+
+                iEditor.set({ exampleElement: exampleNode,
+                  exampleFrame: { x: tOrigin.x, y: tOrigin.y,
+                    width: tFrame.width - 2 * kXGap,
+                    height: tFrame.height - 2 * kYGap }});
+              },
+              doIt: function() {
+                this.beginEditing();
+              }
+            }));
+        this.appendChild( this.valueView );
+
         this.set( 'axisView', DG.CellLinearAxisView.create(
           { layout: { left: kWidth / 2, right: kWidth / 2, height: kAxisHeight, bottom: 0 },
             orientation: 'horizontal', isDropTarget: false } ) );
@@ -168,46 +208,6 @@ DG.SliderView = SC.View.extend(
           }));
 
         this.appendChild( this.startButton );
-
-        this.set('valueView',
-          SC.LabelView.create(DG.MouseAndTouchView, {
-            layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + 16 },
-            classNames: 'dg-slider-label'.w(),
-            isEditable: true,
-            isTextSelectable: YES,
-            exampleNode: null,
-            inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
-              sc_super();
-              var tFrame = this.get('frame'),
-                  kXGap = 4, kYGap = 5,
-                  tOrigin = DG.ViewUtilities.viewToWindowCoordinates( { x: kXGap - 2, y: kYGap - 7 }, this);
-
-              this.parentView.set('userEdit', true);
-
-              // SC 1.10 introduced a new inline editor model in which
-              // an 'exampleNode' is used to adjust inline editor style.
-              var exampleNode = this.get('exampleNode');
-              if(!exampleNode) {
-                var parentNode = this.getPath('parentView.layer');
-                exampleNode = this.get('layer').cloneNode(false);
-                exampleNode.id = exampleNode.id + "-clone";
-                exampleNode.style.visibility = 'hidden';
-                parentNode.appendChild(exampleNode);
-                this.set('exampleNode', exampleNode);
-              }
-              exampleNode.style.left = 0 + 'px';
-              exampleNode.style.top = 9 + 'px';
-
-              iEditor.set({ exampleElement: exampleNode,
-                            exampleFrame: { x: tOrigin.x, y: tOrigin.y,
-                                            width: tFrame.width - 2 * kXGap,
-                                            height: tFrame.height - 2 * kYGap }});
-            },
-            doIt: function() {
-              this.beginEditing();
-            }
-        }));
-        this.appendChild( this.valueView );
 
         this.set('leftMarker',
             SC.View.create({
@@ -259,7 +259,7 @@ DG.SliderView = SC.View.extend(
       }.observes('thumbCoord'),
 
       /**
-       * Use the value to position the thumbView.
+       * Update the text that displays the value
        */
       updateValueView: function() {
         var tAxis = this.get('axisView'),
