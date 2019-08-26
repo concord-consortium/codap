@@ -238,7 +238,7 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 
         if (DG.isFinite(tPlottedValue)) {
           tCoord = tValueAxisView.dataToCoordinate(tPlottedValue);
-          if (tValueAxisView.get('orientation') === 'horizontal') {
+          if (tValueAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) {
             tPt1 = {x: tCoord, y: tPaper.height - tIndex * tCellWidth};
             tPt2 = {x: tCoord, y: tPaper.height - (tIndex + 1) * tCellWidth};
           }

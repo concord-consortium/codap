@@ -144,8 +144,8 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
               wasDilate = (newLowerBound === oldLowerBound || newUpperBound === oldUpperBound),
               tGraphView = this_.get('parentView'),
               tAxisKey, tGraphModelId;
-          if      (tOrientation === 'horizontal') { tAxisKey = 'xAxisView'; }
-          else if (tOrientation === 'vertical')   { tAxisKey = 'yAxisView'; }
+          if      (tOrientation === DG.GraphTypes.EOrientation.kHorizontal) { tAxisKey = 'xAxisView'; }
+          else if (tOrientation === DG.GraphTypes.EOrientation.kVertical)   { tAxisKey = 'yAxisView'; }
           else                                    { tAxisKey = 'y2AxisView'; }
 
           DG.ObjectMap.forEach(DG.currDocumentController().componentControllersMap, function(id, controller) {
@@ -332,8 +332,8 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
           this_._dragPanel.attr( { cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8) });
         }
         switch( this_.get('orientation')) {
-          case 'vertical':
-          case 'vertical2':
+          case DG.GraphTypes.EOrientation.kVertical:
+          case DG.GraphTypes.EOrientation.kVertical2:
             setRect(this_._lowerPanel, 0, (5 / 8) * tFrame.height, tFrame.width, (3 / 8) * tFrame.height);
             this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/DownDilate.cur'), 8, 8);
             this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });
@@ -345,7 +345,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             this_._upperPanel.attr({ cursor: this_._upperPanel.defaultCursor });
             setRect(this_._dragPanel, 0, 0, tFrame.width, tFrame.height);
             break;
-          case 'horizontal':
+          case DG.GraphTypes.EOrientation.kHorizontal:
             setRect(this_._lowerPanel, 0, 0, (3 / 8) * tFrame.width, tFrame.height);
             this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/LeftDilate.cur'), 8, 8);
             this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });

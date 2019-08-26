@@ -41,7 +41,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
        A map view is neither horizontal or vertical. Distinguish it from axes
        @property { String }
        */
-      orientation: 'none',
+      orientation: DG.GraphTypes.EOrientation.kNone,
 
       /**
        * @property {DG.Attribute}

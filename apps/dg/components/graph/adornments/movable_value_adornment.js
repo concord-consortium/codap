@@ -145,13 +145,13 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
       tOriginalValue = this_.getPath('model.value');
       var tDragPoint = DG.ViewUtilities.windowToViewCoordinates( 
                     { x: iWindowX, y: iWindowY }, this_.parentView);
-      tDragCoord = (this_.get('orientation') === 'horizontal') ?
+      tDragCoord = (this_.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) ?
                         tDragPoint.x : tDragPoint.y;
     }
     
     function continueTranslate( idX, idY) {
       var tAxisView = this_.get('valueAxisView'),
-          tDelta = (tAxisView.get('orientation') === 'horizontal') ? idX : idY,
+          tDelta = (tAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) ? idX : idY,
           tValue = tAxisView.coordinateToData( tDragCoord + tDelta);
       this_.setPath('model.value', tValue);
     }
@@ -195,7 +195,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
       return; // already created
     var tCapSize = DG.PlotUtilities.kMovableValueCapSize,
         tPaper = this.get('paper'),
-        tCur = (this.get('orientation') === 'horizontal') ?
+        tCur = (this.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) ?
                   this.kLineSlideHCur : this.kLineSlideVCur;
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
               .attr({ 'stroke-opacity': 0 })
@@ -245,7 +245,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
         tTextYOffset = 0;
 
     if( this.getPath('model.isVisible')) {
-      if( tAxisView.get('orientation') === 'horizontal') {
+      if( tAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) {
         tPt1 = { x: tValueCoord, y: tPaper.height};
         tPt2 = { x: tValueCoord, y: this.kLabelSpace /2 };
         tTextAnchor = 'middle';

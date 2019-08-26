@@ -63,7 +63,8 @@ DG.ChartModel = DG.PlotModel.extend(
     @property{String}
     */
     orientation: function() {
-      return (this.get('primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ? 'vertical' : 'horizontal';
+      return (this.get('primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ? DG.GraphTypes.EOrientation.kVertical :
+          DG.GraphTypes.EOrientation.kHorizontal;
     }.property(),
 
   /**

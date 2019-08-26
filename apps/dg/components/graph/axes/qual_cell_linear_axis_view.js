@@ -78,14 +78,14 @@ DG.QualCellLinearAxisView = DG.CellLinearAxisView.extend(
                           tCoord = this.dataToCoordinate(iLabel.value),
                           tHeight = tLabelExtent.height;
                       switch (tOrientation) {
-                        case 'horizontal':
+                        case DG.GraphTypes.EOrientation.kHorizontal:
                           tLabelElement.attr({
                             x: tCoord + 1,
                             y: tBaseline + kAxisGap + tHeight / 3
                           });
                           tMaxNumberExtent = Math.max(tMaxNumberExtent, tHeight);
                           break;
-                        case 'vertical':
+                        case DG.GraphTypes.EOrientation.kVertical:
                           tLabelElement.attr({
                             x: tBaseline - kAxisGap,
                             y: tCoord,

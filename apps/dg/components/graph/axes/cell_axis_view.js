@@ -75,15 +75,15 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
     axisLineCoordinate: function() {
       var tCoord;
       switch( this.get('orientation')) {
-        case 'vertical':
+        case DG.GraphTypes.EOrientation.kVertical:
           tCoord = this.get('drawWidth');
           break;
-        case 'vertical2':
-        case 'horizontal':
-        case 'right':
+        case DG.GraphTypes.EOrientation.kVertical2:
+        case DG.GraphTypes.EOrientation.kHorizontal:
+        case DG.GraphTypes.EOrientation.kRight:
           tCoord = 0;
           break;
-        case 'top':
+        case DG.GraphTypes.EOrientation.kTop:
           tCoord = this.get('drawHeight');
           break;
       }
@@ -107,20 +107,20 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tPixelMax = this.get('pixelMax'),
           tStart, tStop;
       switch( this.get('orientation')) {
-        case 'vertical':
+        case DG.GraphTypes.EOrientation.kVertical:
           tStart = { x: tCoord - 1, y: tPixelMin };
           tStop = { x: tCoord - 1, y: tPixelMax };
           break;
-        case 'horizontal':
+        case DG.GraphTypes.EOrientation.kHorizontal:
           tStart = { x: tPixelMin, y: tCoord + 1 };
           tStop = { x: tPixelMax, y: tCoord + 1 };
           break;
-        case 'vertical2':
-        case 'right':
+        case DG.GraphTypes.EOrientation.kVertical2:
+        case DG.GraphTypes.EOrientation.kRight:
           tStart = { x: tCoord + 1, y: tPixelMin };
           tStop = { x: tCoord + 1, y: tPixelMax };
           break;
-        case 'top':
+        case DG.GraphTypes.EOrientation.kTop:
           tStart = { x: tPixelMin, y: tCoord - 1 };
           tStop = { x: tPixelMax, y: tCoord - 1 };
           break;
@@ -183,7 +183,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         return;
 
       var this_ = this,
-          kHorizontalOrientations = ['horizontal', 'top'],
+          kHorizontalOrientations = [DG.GraphTypes.EOrientation.kHorizontal, DG.GraphTypes.EOrientation.kTop],
           tModel = this.get('model'),
           tNumCells = tModel.get('numberOfCells'),
           tBaseline = this_.get('axisLineCoordinate'),
@@ -325,8 +325,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             // tTextHeight = iLabelSpec.height,
             tLabelX, tLabelY;
         switch( this_.get('orientation')) {
-          case 'vertical':
-          case 'vertical2':
+          case DG.GraphTypes.EOrientation.kVertical:
+          case DG.GraphTypes.EOrientation.kVertical2:
             this_._elementsToClear.push(
               this_.get('paper').line( tBaseline, tCoord + tTickOffset, tBaseline - kTickLength, tCoord + tTickOffset)
                 .attr( { stroke: DG.PlotUtilities.kAxisColor }));
@@ -340,7 +340,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             }
             break;
 
-          case 'horizontal':
+          case DG.GraphTypes.EOrientation.kHorizontal:
             this_._elementsToClear.push(
               this_.get('paper').line( tCoord - tTickOffset, tBaseline, tCoord - tTickOffset, tBaseline + kTickLength)
                 .attr( { stroke: DG.PlotUtilities.kAxisColor }));
@@ -354,7 +354,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 DG.RenderingUtilities.elideToFit( iLabelSpec.element, tFrame.height - tLabelY);
             }
             break;
-          case 'top':
+          case DG.GraphTypes.EOrientation.kTop:
             this_._elementsToClear.push(
                 this_.get('paper').line( tCoord - tTickOffset, tBaseline, tCoord - tTickOffset, tBaseline - kTickLength)
                     .attr( { stroke: DG.PlotUtilities.kAxisColor }));
@@ -369,7 +369,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 DG.RenderingUtilities.elideToFit( iLabelSpec.element, tLabelY - tAxisLabelHeight);
             }
             break;
-          case 'right':
+          case DG.GraphTypes.EOrientation.kRight:
             this_._elementsToClear.push(
                 this_.get('paper').line( tBaseline, tCoord + tTickOffset, tBaseline + kTickLength, tCoord + tTickOffset)
                     .attr( { stroke: DG.PlotUtilities.kAxisColor }));
@@ -413,13 +413,13 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
       // axes and plot if needed.
       var tNewExtent;
       switch (tOrientation) {
-        case 'horizontal':
-        case 'top':
+        case DG.GraphTypes.EOrientation.kHorizontal:
+        case DG.GraphTypes.EOrientation.kTop:
           tNewExtent = (tRotation === 0) ? tMaxHeight : tMaxWidth;
           break;
-        case 'vertical':
-        case 'vertical2':
-        case 'right':
+        case DG.GraphTypes.EOrientation.kVertical:
+        case DG.GraphTypes.EOrientation.kVertical2:
+        case DG.GraphTypes.EOrientation.kRight:
           tNewExtent = (tRotation === 0) ? tMaxWidth : tMaxHeight;
           break;
       }

@@ -24,7 +24,7 @@ sc_require('views/raphael_base');
 /** @class  DG.AxisView - The base class view for a graph axis.
 
  On creation, pass in the orientation, as in
- DG.AxisView.create( { orientation: 'vertical' })
+ DG.AxisView.create( { orientation: DG.GraphTypes.EOrientation.kVertical })
 
  @extends DG.RaphaelBaseView
  */
@@ -94,13 +94,13 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           var tLabelExtent = this.get('labelExtent'),
               tDimension;
           switch (this.get('orientation')) {
-            case 'horizontal':
-            case 'top':
+            case DG.GraphTypes.EOrientation.kHorizontal:
+            case DG.GraphTypes.EOrientation.kTop:
               tDimension = 'y';
               break;
-            case 'vertical':
-            case 'vertical2':
-            case 'right':
+            case DG.GraphTypes.EOrientation.kVertical:
+            case DG.GraphTypes.EOrientation.kVertical2:
+            case DG.GraphTypes.EOrientation.kRight:
               tDimension = 'x';
               break;
           }
@@ -182,7 +182,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tRotation = this.get('isVertical') ? -90 : 0,
               tOtherYAttributes = this.getPath('otherYAttributeDescription.attributes'),
               tOtherYCount = SC.isArray(tOtherYAttributes) ? tOtherYAttributes.length : 0,
-              tBaseLabelIndex = (this.get('orientation') === 'vertical2') ? tOtherYCount : 0,
+              tBaseLabelIndex = (this.get('orientation') === DG.GraphTypes.EOrientation.kVertical2) ? tOtherYCount : 0,
               tNoAttributesOnThisAxis = this.getPath('model.noAttributes'),
               tNoAttributesOnEitherAxis = this.noAttributesOnEitherAxis(),
               tLabels, tNumAttributes, tNode, tAttributes, tAttribute;
@@ -197,7 +197,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           else {
             tLabels = this.getPath('model.labels');
             tNumAttributes = tBaseLabelIndex + tLabels.length +
-                ((this.get('orientation') === 'vertical') ? tOtherYCount : 0);
+                ((this.get('orientation') === DG.GraphTypes.EOrientation.kVertical) ? tOtherYCount : 0);
           }
           tLabels.forEach(function (iLabel, iIndex) {
             if (tLabelCount >= this_._labelNodes.length) {
@@ -275,7 +275,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           // Add a classname for use in QA automation
           var tClassName;
           switch( this.get('orientation')) {
-            case 'vertical2':
+            case DG.GraphTypes.EOrientation.kVertical2:
               tClassName = 'dg-v2-axis';
               break;
           }
@@ -335,21 +335,22 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 tLoc = { }; // The center of the node
 
             switch( tOrientation) {
-              case 'vertical':
-              case 'vertical2':
-              case 'right':
+              case DG.GraphTypes.EOrientation.kVertical:
+              case DG.GraphTypes.EOrientation.kVertical2:
+              case DG.GraphTypes.EOrientation.kRight:
                 tLoc.x = tLabelExtent.x / 4 + 2;
                 tLoc.y = tPosition - tLabelExtent.y / 2;
                 tPosition -= tLabelExtent.y + 4;
-                if (tOrientation === 'vertical2' || tOrientation === 'right')
+                if (tOrientation === DG.GraphTypes.EOrientation.kVertical2 ||
+                    tOrientation === DG.GraphTypes.EOrientation.kRight)
                   tLoc.x = tDrawWidth - tLabelExtent.x / 2 - 2;
                 break;
-              case 'horizontal':
-              case 'top':
+              case DG.GraphTypes.EOrientation.kHorizontal:
+              case DG.GraphTypes.EOrientation.kTop:
                 tLoc.x = tPosition + tLabelExtent.x / 2;
                 tLoc.y = tDrawHeight - tLabelExtent.y / 2 - 2;
                 tPosition += tLabelExtent.x + 4;
-                if( tOrientation === 'top')
+                if( tOrientation === DG.GraphTypes.EOrientation.kTop)
                   tLoc.y = tLabelExtent.y / 3;
                 break;
             }
@@ -398,7 +399,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          * Override so that y2 can hide if it has no attribute
          */
         dragEnded: function() {
-          if( (this.get('orientation') === 'vertical2') && (this.constructor === DG.AxisView)) {
+          if( (this.get('orientation') === DG.GraphTypes.EOrientation.kVertical2) && (this.constructor === DG.AxisView)) {
             this.set('isVisible', false);
           }
           DG.GraphDropTarget.dragEnded.apply(this, arguments);
@@ -451,13 +452,13 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tDistanceToCell = (iCellNum + 0.5) / tNumCells * tPixelWidth,
               tCoordinate;
           switch (this.get('orientation')) {
-            case 'horizontal':
-            case 'top':
+            case DG.GraphTypes.EOrientation.kHorizontal:
+            case DG.GraphTypes.EOrientation.kTop:
               tCoordinate = this.get('pixelMin') + tDistanceToCell;
               break;
-            case 'vertical':
-            case 'vertical2':
-            case 'right':
+            case DG.GraphTypes.EOrientation.kVertical:
+            case DG.GraphTypes.EOrientation.kVertical2:
+            case DG.GraphTypes.EOrientation.kRight:
               tCoordinate = this.get('pixelMin') - tDistanceToCell;
               break;
           }
@@ -509,11 +510,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
         isValidAttribute: function (iDrag) {
           switch (this.get('orientation')) {
-            case 'vertical2':
+            case DG.GraphTypes.EOrientation.kVertical2:
               return this.isValidAttributeForScatterplot( iDrag) ||
                   this.isValidAttributeForPlotSplit( iDrag);
-            case 'top':
-            case 'right':
+            case DG.GraphTypes.EOrientation.kTop:
+            case DG.GraphTypes.EOrientation.kRight:
               return this.isValidAttributeForPlotSplit( iDrag);
             default:
               return DG.GraphDropTarget.isValidAttribute.call(this, iDrag);

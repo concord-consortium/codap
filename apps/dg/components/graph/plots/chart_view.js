@@ -51,14 +51,14 @@ DG.ChartView = DG.PlotView.extend(
        @property { DG.CellAxisView }
        */
       primaryAxisView: function () {
-        return (this.getPath('model.orientation') === 'vertical') ? this.get('xAxisView') : this.get('yAxisView');
+        return (this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical) ? this.get('xAxisView') : this.get('yAxisView');
       }.property('orientation', 'yAxisView', 'xAxisView'),
 
       /**
        @property { DG.CellAxisView }
        */
       secondaryAxisView: function () {
-        return (this.getPath('model.orientation') === 'vertical') ? this.get('yAxisView') : this.get('xAxisView');
+        return (this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical) ? this.get('yAxisView') : this.get('xAxisView');
       }.property('orientation', 'yAxisView', 'xAxisView'),
 
       dataDidChange: function (iNotifier, iChangeKey, iOperation) {
@@ -82,7 +82,7 @@ DG.ChartView = DG.PlotView.extend(
         // cache some more render parameters common to all cases, but unique to ChartView.
         tRC.primaryAxisView = this.get('primaryAxisView');
         tRC.secondaryAxisView = this.get('secondaryAxisView');
-        tRC.isVerticalOrientation = this.getPath('model.orientation') === 'vertical';
+        tRC.isVerticalOrientation = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical;
         tRC.cellHalfWidth = tRC.secondaryAxisView.get('fullCellWidth') / 2;
 
         return tRC;

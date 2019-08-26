@@ -198,7 +198,7 @@ DG.DotChartView = DG.ChartView.extend(
       configureAxes: function () {
         var tRet = sc_super();
         tRet = tRet || {};
-        tRet.axisKey = this.getPath('model.orientation') === 'vertical' ? 'y' : 'x';
+        tRet.axisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x';
         tRet.axisClass = (this.getPath('model.dataConfiguration.' + tRet.axisKey + 'AttributeDescription.isNull')) ?
             DG.AxisView : DG.CellAxisView;
         return tRet;

@@ -95,7 +95,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
             tNumValues = this.getPath('model.values').length,
             tNumRegions = (tNumValues === 1) ? 0 : Math.ceil(tNumValues / 2),
             tNumCounts = this.get('isShowingCountElements') ? (tNumValues === 0 ? 0 : tNumValues + 1) : 0,
-            tAnchor = this.getPath('valueAxisView.orientation') === 'horizontal' ?
+            tAnchor = this.getPath('valueAxisView.orientation') === DG.GraphTypes.EOrientation.kHorizontal ?
                 'middle' : 'end',
             tElement;
         while (tShadingElements.length < tNumRegions) {
@@ -183,7 +183,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
                     var tLabelSpace = iAdornment.get('kLabelSpace'),
                         tRegion = this.shadingElements[iIndex / 2],
                         tScreenCoord = iAdornment.get('screenCoord');
-                    if (iAdornment.get('orientation') === 'horizontal') {
+                    if (iAdornment.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) {
                       var tRight = iIndex === tAdornments.length - 1 ? tPaper.width :
                           tAdornments[iIndex + 1].get('screenCoord');
                       tX = tScreenCoord;
@@ -234,9 +234,9 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
               tCountPercents.forEach(function (iObj, iIndex) {
                 var tLowerCoord = tAxisView.dataToCoordinate(iObj.lower),
                     tUpperCoord = tAxisView.dataToCoordinate(iObj.upper),
-                    tY = tOrientation === 'horizontal' ? tLabelSpace / 2 + 12 :
+                    tY = tOrientation === DG.GraphTypes.EOrientation.kHorizontal ? tLabelSpace / 2 + 12 :
                         (tLowerCoord + tUpperCoord) / 2,
-                    tX = tOrientation === 'horizontal' ? (tLowerCoord + tUpperCoord) / 2 : tPaper.width - 5;
+                    tX = tOrientation === DG.GraphTypes.EOrientation.kHorizontal ? (tLowerCoord + tUpperCoord) / 2 : tPaper.width - 5;
                 tCountElements[iIndex].attr({x: tX, y: tY, text: formatValueString(iObj)});
               }.bind(this));
 

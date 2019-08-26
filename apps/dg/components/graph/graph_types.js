@@ -36,6 +36,15 @@ DG.GraphTypes = {
         eRightSplit: 7,
         eLastPlace: 7,
         eNumPlaces: 8
+  },
+
+  EOrientation: {
+    kNone: 'none',
+    kHorizontal: 'horizontal',
+    kVertical: 'vertical',
+    kVertical2: 'vertical2',
+    kTop: 'top',
+    kRight: 'right'
   }
 
 };

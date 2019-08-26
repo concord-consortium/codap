@@ -424,11 +424,11 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           var drawOneOuterLabel = function (iCoord, iRefPoint, iLabelString, iRotation, iTextAnchor) {
             var tElement;
             switch (tOrientation) {
-              case 'horizontal':
+              case DG.GraphTypes.EOrientation.kHorizontal:
                 iCoord += tPixelMin;	// offset by left start of axis
                 iRefPoint.x = iCoord;
                 break;
-              case 'vertical':
+              case DG.GraphTypes.EOrientation.kVertical:
                 iCoord += tPixelMax;	// offset by top start of axis
                 iRefPoint.y = iCoord;
                 break;
@@ -439,7 +439,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
             tElementsToClear.push(tElement);
           }.bind(this);
 
-          if (tOrientation === 'horizontal') {
+          if (tOrientation === DG.GraphTypes.EOrientation.kHorizontal) {
             tRefPoint.y = 1.5 * DG.RenderingUtilities.kDefaultFontHeight + this.kTickLength + this.kAxisGap;
           }
           else {	// 'vertical'
@@ -498,12 +498,12 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
                     var tPixel = this.dataToCoordinate(tDate / 1000),
                         tTextExtent = DG.RenderingUtilities.textExtentOnCanvas(tPaper, tLabel),
                         tHalfWidth = 5 * tTextExtent.x / 8,	// Overestimation creates gap between labels
-                        tOverlapped = (tOrientation === 'horizontal') ?
+                        tOverlapped = (tOrientation === DG.GraphTypes.EOrientation.kHorizontal) ?
                                         tPixel - tHalfWidth < tLastPixelUsed :
                                         tPixel + tHalfWidth > tLastPixelUsed;
                     if (tFirstTime || !tOverlapped) {
                       tFirstTime = false;
-                      tLastPixelUsed = tPixel + ((tOrientation === 'horizontal') ? tHalfWidth : -tHalfWidth);
+                      tLastPixelUsed = tPixel + ((tOrientation === DG.GraphTypes.EOrientation.kHorizontal) ? tHalfWidth : -tHalfWidth);
                       tCurrentDateLabel = getLabelForIncrementedDateAtLevel(iInnerLevel,
                           tDate, tInterval * iIncrement);
                       tDate = tCurrentDateLabel.labelDate;
@@ -525,7 +525,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
                     tRefPoint = {x: 0, y: 0},
                     tTickStart = 0,
                     tPixel = this.dataToCoordinate(iDateLabel.labelDate / 1000);
-                if (tOrientation === 'horizontal') {
+                if (tOrientation === DG.GraphTypes.EOrientation.kHorizontal) {
                   tRefPoint.y = this.kTickLength + this.kAxisGap + DG.RenderingUtilities.kDefaultFontHeight / 2;
                   tTickStart = 0;	// y-value
                   tPixel += tPixelMin;

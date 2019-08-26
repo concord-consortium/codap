@@ -122,14 +122,14 @@ DG.GraphDropTarget =
     }
 
     if( this.isValidAttribute( iDrag)) {
-      if (tOrientation === 'vertical2') {
+      if (tOrientation === DG.GraphTypes.EOrientation.kVertical2) {
         this.set('isVisible', true);
         var tParentView = this.get('parentView');
         if (tParentView)
           tParentView.makeSubviewFrontmost(this);
       }
-      if(iDrag.data.attribute.isNominal() && tOrientation !== 'none') {
-        if(tOrientation === 'vertical' || tOrientation === 'vertical2')
+      if(iDrag.data.attribute.isNominal() && tOrientation !== DG.GraphTypes.EOrientation.kNone) {
+        if(tOrientation === DG.GraphTypes.EOrientation.kVertical || tOrientation === DG.GraphTypes.EOrientation.kVertical2)
           tDropHint = 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName);
         else tDropHint = 'DG.GraphView.layoutPlotsSideBySide'.loc(tDraggedName);
       }
@@ -183,7 +183,8 @@ DG.GraphDropTarget =
 
   isVertical: function() {
     var tOrientation = this.get('orientation');
-    return tOrientation && ['vertical', 'vertical2', 'right'].indexOf( tOrientation) >= 0;
+    return tOrientation &&
+        [DG.GraphTypes.EOrientation.kVertical, DG.GraphTypes.EOrientation.kVertical2, DG.GraphTypes.EOrientation.kRight].indexOf( tOrientation) >= 0;
   }.property(),
 
   showDropHint: function() {

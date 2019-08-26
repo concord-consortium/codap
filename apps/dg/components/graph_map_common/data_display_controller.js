@@ -706,7 +706,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           // The following parameter is supposed to specify the preferred position of the menu
           // relative to the anchor. But it doesn't seem to have any effect.
           // SC.POINTER_LAYOUT = ["perfectRight", "perfectLeft", "perfectTop", "perfectBottom"];
-              tPreferMatrix = (tOrientation === 'horizontal') ?
+              tPreferMatrix = (tOrientation === DG.GraphTypes.EOrientation.kHorizontal) ?
                   [0, 2, 1, 3, 0] :
                   [0, 1, 3, 2, 0],
               tAxisKey = '',
@@ -721,13 +721,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
             tAxisKey = 'legend';
           else {
             switch (tOrientation) {
-              case 'horizontal':
+              case DG.GraphTypes.EOrientation.kHorizontal:
                 tAxisKey = 'x';
                 break;
-              case 'vertical':
+              case DG.GraphTypes.EOrientation.kVertical:
                 tAxisKey = 'y';
                 break;
-              case 'vertical2':
+              case DG.GraphTypes.EOrientation.kVertical2:
                 tAxisKey = 'y2';
                 break;
               default:

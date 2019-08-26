@@ -172,12 +172,12 @@ DG.AxisViewHelper = SC.Object.extend(
           var tCoordinate = SC.none( iData) ? null : (iData - iCache.lowerBound) * iCache.cellWidth / iCache.range;
           if(!SC.none(tCoordinate))
             switch( this.get('orientation')) {
-              case 'vertical':
-              case 'vertical2':
+              case DG.GraphTypes.EOrientation.kVertical:
+              case DG.GraphTypes.EOrientation.kVertical2:
                 tCoordinate = iCache.pixelMax + (iCell + 1) * iCache.cellWidth - tCoordinate;
                 break;
 
-              case 'horizontal':
+              case DG.GraphTypes.EOrientation.kHorizontal:
                 tCoordinate = iCell * iCache.cellWidth + tCoordinate;
                 break;
             }

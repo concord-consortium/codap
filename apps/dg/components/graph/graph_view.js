@@ -321,22 +321,22 @@ DG.GraphView = SC.View.extend(
             tYAxisAttributeType = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.type'),
             tY2Axis = this.getPath('model.y2Axis'),
             tBottomAxisLabelView = DG.AxisLabelView.create({
-              orientation: 'horizontal',
+              orientation: DG.GraphTypes.EOrientation.kHorizontal,
               plottedAttribute: tXAxis.get('firstAttribute')
             }),
-            tLeftAxisLabelView = DG.AxisLabelView.create({orientation: 'vertical',
+            tLeftAxisLabelView = DG.AxisLabelView.create({orientation: DG.GraphTypes.EOrientation.kVertical,
               plottedAttribute: tYAxis.get('firstAttribute')}),
             tXAxisView = getAxisViewClass(tXAxis, tXAxisAttributeType).create({
-              orientation: 'horizontal', paperSourceForLabel: tBottomAxisLabelView
+              orientation: DG.GraphTypes.EOrientation.kHorizontal, paperSourceForLabel: tBottomAxisLabelView
             }),
             tYAxisView = getAxisViewClass(tYAxis, tYAxisAttributeType).create({
-              orientation: 'vertical', paperSourceForLabel: tLeftAxisLabelView
+              orientation: DG.GraphTypes.EOrientation.kVertical, paperSourceForLabel: tLeftAxisLabelView
             }),
-            tY2AxisView = getAxisViewClass(tY2Axis).create({orientation: 'vertical2'}),
+            tY2AxisView = getAxisViewClass(tY2Axis).create({orientation: DG.GraphTypes.EOrientation.kVertical2}),
             tTopAxis = this.getPath('model.topAxis'),
-            tTopAxisView = getAxisViewClass(tTopAxis).create({orientation: 'top', centering: 'true'}),
+            tTopAxisView = getAxisViewClass(tTopAxis).create({orientation: DG.GraphTypes.EOrientation.kTop, centering: 'true'}),
             tRightAxis = this.getPath('model.rightAxis'),
-            tRightAxisView = getAxisViewClass(tRightAxis).create({orientation: 'right', centering: 'true'}),
+            tRightAxisView = getAxisViewClass(tRightAxis).create({orientation: DG.GraphTypes.EOrientation.kRight, centering: 'true'}),
             tBackgroundView = DG.PlotBackgroundView.create({
               xAxisView: tXAxisView, yAxisView: tYAxisView,
               graphModel: this.get('model'),
@@ -890,16 +890,16 @@ DG.GraphView = SC.View.extend(
           switch (iAxisViewKey) {
             case 'xAxisView':
               tLabelView = this_.get('bottomAxisLabelView');
-              tSetup = {orientation: 'horizontal', paperSourceForLabel: tLabelView};
+              tSetup = {orientation: DG.GraphTypes.EOrientation.kHorizontal, paperSourceForLabel: tLabelView};
               tPlace = DG.GraphTypes.EPlace.eX;
               break;
             case 'yAxisView':
               tLabelView = this_.get('leftAxisLabelView');
-              tSetup = {orientation: 'vertical', paperSourceForLabel: tLabelView};
+              tSetup = {orientation: DG.GraphTypes.EOrientation.kVertical, paperSourceForLabel: tLabelView};
               tPlace = DG.GraphTypes.EPlace.eY;
               break;
             case 'y2AxisView':
-              tSetup = {orientation: 'vertical2'};
+              tSetup = {orientation: DG.GraphTypes.EOrientation.kVertical2};
               tPlace = DG.GraphTypes.EPlace.eY2;
               break;
           }

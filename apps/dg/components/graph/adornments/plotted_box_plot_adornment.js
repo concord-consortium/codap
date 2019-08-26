@@ -140,7 +140,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
               tLayer = this.get('layer'),
               tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
               tSecondaryAxisView = this.getPath('parentView.secondaryAxisView'),
-              tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === 'horizontal'),
+              tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal),
               tValuesArray = this.getPath('model.values'),
               tNumValues = tValuesArray && tValuesArray.length;
           if (!tSecondaryAxisView || !tNumValues)

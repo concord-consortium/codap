@@ -172,7 +172,7 @@ DG.SliderView = SC.View.extend(
 
         this.set( 'axisView', DG.CellLinearAxisView.create(
           { layout: { left: kWidth / 2, right: kWidth / 2, height: kAxisHeight, bottom: 0 },
-            orientation: 'horizontal', isDropTarget: false } ) );
+            orientation: DG.GraphTypes.EOrientation.kHorizontal, isDropTarget: false } ) );
         this.appendChild( this.axisView );
         this.setPath( 'axisView.model', this.getPath( 'model.axis' ) );
 

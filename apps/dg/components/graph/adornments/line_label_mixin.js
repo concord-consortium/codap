@@ -73,7 +73,7 @@ DG.LineLabelMixin =
         tTextElement.attr( { text: tValueString } );
         tTextBox = tTextElement.getBBox();
 
-        if( tAxisView.get('orientation') === 'horizontal') {
+        if( tAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) {
           tAlign = tTextElement.attr('text-anchor');
           tTextAnchor.y = iFractionFromTop * tPaper.height;
           tBackgrndAnchor.y = tTextAnchor.y - tTextBox.height / 2;

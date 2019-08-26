@@ -114,7 +114,8 @@ DG.Drag = SC.Drag.extend({
         tLoc = {x: iEvent.clientX, y: iEvent.clientY},
         tSuperResult = sc_super(),
         tSpecialTarget = tTargets.find(function (iTarget) {
-          if ((iTarget.constructor === DG.AxisMultiTarget) || (iTarget.get('orientation') === 'vertical2')) {
+          if ((iTarget.constructor === DG.AxisMultiTarget) ||
+              (iTarget.get('orientation') === DG.GraphTypes.EOrientation.kVertical2)) {
             var tFrame = iTarget.convertFrameToView(iTarget.get('frame'), null);
             return SC.pointInRect(tLoc, tFrame);
           }

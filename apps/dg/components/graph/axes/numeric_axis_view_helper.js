@@ -76,8 +76,8 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
                 tTextExtent = DG.RenderingUtilities.textExtentOnCanvas( tPaper, tLabelString);
 
                 switch( tOrientation) {
-                  case 'vertical':
-                  case 'vertical2':
+                  case DG.GraphTypes.EOrientation.kVertical:
+                  case DG.GraphTypes.EOrientation.kVertical2:
                     tHalfHeight = tTextExtent.y / 2;
 
                     if (firstTime || (Math.abs( lastPixelUsed - tickPixel) > tHalfHeight)) {
@@ -90,7 +90,7 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
                       tModulus++;
                     }
                     break;
-                  case 'horizontal':
+                  case DG.GraphTypes.EOrientation.kHorizontal:
                     // By pretending half the width is a bit greater than it is, we leave
                     // room between
                     tHalfWidth = 5 * tTextExtent.x / 8;
@@ -130,9 +130,9 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
 //                          tNumSubIntervals,
               tPixelMax = this.get('pixelMax'),
               tTickIndex = 0,
-              tTickLength = (tOrientation === 'vertical2') ? -this.kTickLength : this.kTickLength,
-              tAxisGap = (tOrientation === 'vertical2') ? -this.kAxisGap : this.kAxisGap,
-              tAnchor = (tOrientation === 'vertical2') ? 'start' : 'end';
+              tTickLength = (tOrientation === DG.GraphTypes.EOrientation.kVertical2) ? -this.kTickLength : this.kTickLength,
+              tAxisGap = (tOrientation === DG.GraphTypes.EOrientation.kVertical2) ? -this.kAxisGap : this.kAxisGap,
+              tAnchor = (tOrientation === DG.GraphTypes.EOrientation.kVertical2) ? 'start' : 'end';
 
           this.forEachTickDo( function( iSpot, iTickPixel) {
             var tNum, tLabelExtent, tWidth, tHeight;
@@ -146,8 +146,8 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
             tHeight = tLabelExtent.height;
 
             switch( tOrientation) {
-              case 'vertical':
-              case 'vertical2':
+              case DG.GraphTypes.EOrientation.kVertical:
+              case DG.GraphTypes.EOrientation.kVertical2:
                 iTickPixel += tPixelMax;  // offset by top of axis
                 if( (iTickPixel < this.get('pixelMin')) && (tTickIndex >= 0))
                   tElementsToClear.push(
@@ -170,7 +170,7 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
                   tNum.hide();
                 break;
 
-              case 'horizontal':
+              case DG.GraphTypes.EOrientation.kHorizontal:
                 iTickPixel += this.get('pixelMin');  // offset by left start of axis
                 if( (iTickPixel >= this.get('pixelMin')) && (tTickIndex >= 0))
                   tElementsToClear.push(

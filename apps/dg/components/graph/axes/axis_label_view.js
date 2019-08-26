@@ -47,13 +47,13 @@ DG.AxisLabelView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           // Add a classname for use in QA automation
           var tClassName;
           switch( this.get('orientation')) {
-            case 'horizontal':
+            case DG.GraphTypes.EOrientation.kHorizontal:
               tClassName = 'dg-h-axis';
               break;
-            case 'vertical':
+            case DG.GraphTypes.EOrientation.kVertical:
               tClassName = 'dg-v-axis';
               break;
-            case 'vertical2':
+            case DG.GraphTypes.EOrientation.kVertical2:
               tClassName = 'dg-v2-axis';
               break;
           }

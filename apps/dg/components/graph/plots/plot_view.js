@@ -53,7 +53,7 @@ DG.PlotView = DG.PlotLayer.extend(
    * We can check the orientation of the yAxis.
    */
   isUsingY2: function() {
-    return this.getPath('yAxisView.orientation') === 'vertical2';
+    return this.getPath('yAxisView.orientation') === DG.GraphTypes.EOrientation.kVertical2;
   }.property(),
   isUsingY2DidChange: function() {
     this.notifyPropertyChange('isUsingY2');
@@ -452,7 +452,8 @@ DG.PlotView = DG.PlotLayer.extend(
         tConfig = tModel.get('dataConfiguration'),
         tLegendDesc = tConfig.get('legendAttributeDescription' ),
         tPlotIndex = this.get('plotIndex'),
-        tYVarIDKey = (this.getPath('yAxisView.orientation') === 'vertical2') ? 'y2VarID' : 'yVarID',
+        tYVarIDKey = (this.getPath('yAxisView.orientation') === DG.GraphTypes.EOrientation.kVertical2) ?
+            'y2VarID' : 'yVarID',
         tStrokeParams = this.getStrokeParams(),
         tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
                             DG.MathUtilities.nQuantileValues(

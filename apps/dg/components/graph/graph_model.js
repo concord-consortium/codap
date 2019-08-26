@@ -499,13 +499,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
     getAttributeForAxis: function(iOrientation) {
       var tDescKey;
       switch( iOrientation) {
-        case 'horizontal':
+        case DG.GraphTypes.EOrientation.kHorizontal:
           tDescKey = 'xAttributeDescription';
           break;
-        case 'vertical':
+        case DG.GraphTypes.EOrientation.kVertical:
           tDescKey = 'yAttributeDescription';
           break;
-        case 'vertical2':
+        case DG.GraphTypes.EOrientation.kVertical2:
           tDescKey = 'y2AttributeDescription';
           break;
       }
@@ -579,23 +579,23 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
 
       switch (iOrientation) {
-        case 'horizontal':
+        case DG.GraphTypes.EOrientation.kHorizontal:
           tTargetDescKey = 'xAttributeDescription';
           tTargetAxisKey = 'xAxis';
           tOtherDim = 'y';
           break;
-        case 'vertical':
+        case DG.GraphTypes.EOrientation.kVertical:
           tTargetDescKey = 'yAttributeDescription';
           tTargetAxisKey = 'yAxis';
           tOtherDim = 'x';
           break;
-        case 'vertical2':
+        case DG.GraphTypes.EOrientation.kVertical2:
           tTargetDescKey = 'y2AttributeDescription';
           tTargetAxisKey = 'y2Axis';
           tOtherDim = 'x';
           break;
-        case 'top':
-        case 'right':
+        case DG.GraphTypes.EOrientation.kTop:
+        case DG.GraphTypes.EOrientation.kRight:
           tTargetDescKey = iOrientation + 'AttributeDescription';
           tTargetAxisKey = iOrientation + 'Axis';
           break;
@@ -650,7 +650,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       if( tAttrIndex === 0) {
         // We aren't adding after all. Happens when foreign context is brought to multi-attribute place
-        this.changeAttributeForAxis( iDataContext, iAttrRefs, 'vertical');
+        this.changeAttributeForAxis( iDataContext, iAttrRefs, DG.GraphTypes.EOrientation.kVertical);
         return;
       }
 
@@ -709,7 +709,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       if( this.getPath('dataConfiguration.yAttributeDescription.attributes').length === 0) {
         // We aren't adding after all. Happens when foreign context is brought to multi-attribute place
-        this.changeAttributeForAxis( iDataContext, iAttrRefs, 'vertical');
+        this.changeAttributeForAxis( iDataContext, iAttrRefs, DG.GraphTypes.EOrientation.kVertical);
         return;
       }
 

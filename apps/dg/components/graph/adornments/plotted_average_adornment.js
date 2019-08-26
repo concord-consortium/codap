@@ -150,7 +150,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
         tShadingLayer = this.get('shadingLayer' ),
         tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
         tSecondaryAxisView = this.getPath('parentView.secondaryAxisView'),
-        tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === 'horizontal'),
+        tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal),
         tValuesArray = this.getPath('model.values'),
         tNumValues = tValuesArray && tValuesArray.length,
         tNumElements = this.myElements.length;

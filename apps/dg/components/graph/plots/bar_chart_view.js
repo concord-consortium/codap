@@ -157,7 +157,7 @@ DG.BarChartView = DG.ChartView.extend(
        */
       configureAxes: function () {
         var tRet = sc_super(),
-            tCountKey = this.getPath('model.orientation') === 'vertical' ? 'y' : 'x';
+            tCountKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x';
         tRet = tRet || {};
         tRet.axisKey = tCountKey;
         tRet.axisClass = DG.CountAxisView;
