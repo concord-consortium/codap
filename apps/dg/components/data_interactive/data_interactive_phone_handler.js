@@ -581,6 +581,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (request === 'openGuideConfiguration') {
               DG.currDocumentController().configureGuide();
             }
+            else if (request === 'indicateBusy') {
+              DG.splash.showSplash();
+            }
+            else if (request === 'indicateIdle') {
+              DG.splash.hideSplash();
+            }
             return {success: true};
           }
           var result = {success: true};
@@ -2074,7 +2080,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               component.setPath('content.dimensions', dimensions);
               delete iValues.dimensions;
             }
-            if (iValues.isVisible) {
+            if (iValues.isVisible != null) {
               var view = DG.currDocumentController().componentControllersMap[component.get('id')].get('view');
               view.set('isVisible', iValues.isVisible);
               delete iValues.isVisible;
