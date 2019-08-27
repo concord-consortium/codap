@@ -838,10 +838,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.notifyPropertyChange('canSupportConfigurations');
     },
 
-    rescaleAxesFromData: function( iShrink, iAnimate) {
+    rescaleAxesFromData: function( iShrink, iAnimate, iLogIt, iUserAction) {
       this.forEachSplitPlotElementDo( function( iPlotArray) {
         if( iPlotArray[0])  // During some transitions, we may temporarily not have any plots in this cell
-          iPlotArray[0].rescaleAxesFromData( iShrink, iAnimate);
+          iPlotArray[0].rescaleAxesFromData( iShrink, iAnimate, iLogIt, iUserAction);
       });
     },
 
