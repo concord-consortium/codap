@@ -293,10 +293,6 @@ DG.Formula.add = function(iOperand1, iOperand2) {
       // booleans and strings (if possible) converted, not null values
       isNumeric1 = !empty1 && (num1 === num1),
       isNumeric2 = !empty2 && (num2 === num2);
-  // values interpretable as numeric are added numerically
-  if (isNumeric1 && isNumeric2)
-    return isDate1 !== isDate2 ? DG.createDate((num1 + num2)) : num1 + num2;
-
   // errors propagate
   if (iOperand1 instanceof Error) return iOperand1;
   if (iOperand2 instanceof Error) return iOperand2;
@@ -304,6 +300,10 @@ DG.Formula.add = function(iOperand1, iOperand2) {
   // NaNs propagate
   if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
     return NaN;
+
+  // values interpretable as numeric are added numerically
+  if (isNumeric1 && isNumeric2)
+    return isDate1 !== isDate2 ? DG.createDate((num1 + num2)) : num1 + num2;
 
   // null values propagate
   if (empty1 && empty2)
@@ -336,13 +336,6 @@ DG.Formula.subtract = function(iOperand1, iOperand2) {
       // booleans and strings (if possible) converted, not null values
       isNumeric1 = !empty1 && (num1 === num1),
       isNumeric2 = !empty2 && (num2 === num2);
-  // values interpretable as numeric are subtracted numerically
-  if (isNumeric1 && isNumeric2) {
-    // date minus number results in date
-    // all other combinations result in a number
-    return (isDate1 && !isDate2) ? DG.createDate((num1 - num2)) : num1 - num2;
-  }
-
   // errors propagate
   if (iOperand1 instanceof Error) return iOperand1;
   if (iOperand2 instanceof Error) return iOperand2;
@@ -350,6 +343,13 @@ DG.Formula.subtract = function(iOperand1, iOperand2) {
   // NaNs propagate
   if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
     return NaN;
+
+  // values interpretable as numeric are subtracted numerically
+  if (isNumeric1 && isNumeric2) {
+    // date minus number results in date
+    // all other combinations result in a number
+    return (isDate1 && !isDate2) ? DG.createDate((num1 - num2)) : num1 - num2;
+  }
 
   // null values propagate
   if (empty1 && empty2)
