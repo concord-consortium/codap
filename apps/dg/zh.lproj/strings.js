@@ -753,5 +753,7 @@ SC.stringsFor("zh", {
     "DG.Formula.DateShortDayFriday": "Fri",
     "DG.Formula.DateShortDaySaturday": "Sat",
     "DG.AttributeFormat.DatePrecision.millisecond": "MMM D, YYYY HH:mm:ss.SSS",
-    "DG.CellAxis.other": "OTHER"
+    "DG.CellAxis.other": "OTHER",
+    "DG.PlottedAverageAdornment.madValueTitle": "±1 MAD, %@",
+    "DG.Inspector.graphPlottedMeanAbsDev": "Mean Absolute Deviation"
 });
