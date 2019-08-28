@@ -930,7 +930,6 @@ DG.DocumentController = SC.Object.extend(
               positionOnCreate: true
             });
             if (!tIsVisible) {
-              DG.log('Setting visibility to false');
               tView.set('isVisible', false);
             } else {
               tView.select();

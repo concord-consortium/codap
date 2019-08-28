@@ -37,17 +37,6 @@ function error() {
 }
 
 #
-# Plugins are currently zipped and placed in a directory.
-# This function finds the newest zip in the directory, unzips and
-# corrects the directory name.
-function copyPlugins() {
-  PLUGIN_ZIP=`ls -t "$CODAP_PLUGIN_REFDIR" | head -1`
-  PLUGIN_DIR=`echo $PLUGIN_ZIP | sed 's/codap-data-interactives-/build_/;s/.zip//'`
-  unzip -d "$TARGET_DIR" $CODAP_PLUGIN_REFDIR/$PLUGIN_ZIP
-  mv $TARGET_DIR/$PLUGIN_DIR $TARGET_DIR/plugins
-}
-
-#
 # verify target directory
 [ "$1" = "" ] && usage
 

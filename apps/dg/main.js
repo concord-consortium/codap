@@ -730,7 +730,6 @@ DG.main = function main() {
                   .then(
                     function(iDocContents) {
                       SC.run(function () {
-                        DG.log('Doc contents: '  + iDocContents);
                         var metadata = event.data.content.metadata,
                             sharedMetadata = metadata && metadata.shared,
                             cfmSharedMetadata = sharedMetadata ? $.extend(true,
