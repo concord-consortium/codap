@@ -256,9 +256,14 @@ DG.GraphController = DG.DataDisplayController.extend(
                       init: function () {
                         sc_super();
                         this_.getPath('dataDisplayModel.checkboxDescriptions').forEach(function (iDesc) {
-                          iDesc.layout = {height: kRowHeight};
-                          iDesc.localize = true;
-                          this.appendChild(SC.CheckboxView.create(iDesc));
+                          if( iDesc.control) {
+                            this.appendChild( iDesc.control);
+                          }
+                          else {
+                            iDesc.layout = {height: kRowHeight};
+                            iDesc.localize = true;
+                            this.appendChild(SC.CheckboxView.create(iDesc));
+                          }
                         }.bind(this));
                         this_.getPath('dataDisplayModel.lastValueControls').forEach(function (iControl) {
                           this.appendChild(iControl);
