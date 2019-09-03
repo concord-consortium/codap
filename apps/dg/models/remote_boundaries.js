@@ -122,7 +122,7 @@ DG.RemoteBoundaries.addBoundaries = function(boundaries) {
 
 DG.RemoteBoundaries.registerDefaultBoundaries = function() {
   var specsURL = DG.get('boundarySpecsUrl');
-  var baseURL = specsURL && specsURL.replace('\/[^/]*$', '/');
+  var baseURL = specsURL && specsURL.replace(/\/[^\/]*$/, '/');
   if (!DG.currDocumentController().get('ready')) return;
 
   function addBoundaries() {
