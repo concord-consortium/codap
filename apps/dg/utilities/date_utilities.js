@@ -81,12 +81,13 @@ DG.isDate = DG.DateUtilities.isDate;
 DG._isDateRegex = null;
 
 /**
-  Returns true if the specified value is a string that can be converted to a valid date.
- Note that a string that can be coerced to a number is not a valid date string even though
- it could be converted to a date.
+ * Returns true if the specified value is a string that can be converted to a
+ * valid date.
+ * If iLoose is true, applies a looser definition of date. For example, a four
+ * digit number is interpreted as a year.
  */
-DG.DateUtilities.isDateString = function(iValue) {
-  return DG.DateUtilities.dateParser.isDateString(iValue, true);
+DG.DateUtilities.isDateString = function(iValue, iLoose) {
+  return DG.DateUtilities.dateParser.isDateString(iValue, iLoose);
 };
 DG.isDateString = DG.DateUtilities.isDateString;
 
@@ -280,7 +281,7 @@ DG.DateUtilities.dateParser = (function () {
   var dateVar1GroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
   // yyyy-mm-dd, yyyy.mm.dd, yyyy/mm/dd
-  var dateVar2 = new RegExp('^(\\d{4})(?:[./-](\\d\\d?)(?:[./-](\\d\\d?)(?: ' + timePart + '(?: (am|pm|AM|PM))?)?)?)?$');
+  var dateVar2 = new RegExp('^(\\d{4})[./-](\\d\\d?)(?:[./-](\\d\\d?)(?: ' + timePart + '(?: (am|pm|AM|PM))?)?)?$');
   var dateVar2GroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
   // MMM dd, yyyy or MMM yyyy
@@ -304,7 +305,7 @@ DG.DateUtilities.dateParser = (function () {
 
   // yyyy
   var dateVarYearOnly = /^\d{4}$/;
-  var dateVarYearOnlyGroupMap = {year:1};
+  var dateVarYearOnlyGroupMap = {year:0};
 
 
 
@@ -383,6 +384,9 @@ DG.DateUtilities.dateParser = (function () {
 
   function parseDate(iValue, iLoose) {
     if (iValue == null) {
+      return iValue;
+    }
+    if (iValue instanceof Date) {
       return iValue;
     }
     iValue = String(iValue);
