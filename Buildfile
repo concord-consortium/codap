@@ -37,4 +37,8 @@ end
 # Dev version of sage defaults to localhost, port 8080
 #proxy '/sage', :to => '127.0.0.1:8080', :url => '/'
 #proxy '/codap-data-interactives', :to => 'localhost:80', :url => '/~jsandoe/codap-data-interactives'
-proxy '/extn', :to => 'localhost:80', :url => '/~jsandoe/extn'
+#
+# Uncomment the following line and replace the values for ':to' and ':url'
+# with the web location of your developer instance of the codap extensions directory
+# see developer notes: https://github.com/concord-consortium/codap/wiki/Developer-Guide
+#proxy '/extn', :to => 'localhost:80', :url => '/some/path'
