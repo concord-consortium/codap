@@ -120,7 +120,7 @@ DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
       var tNumericValue = iCase.getNumValue( tNumericVarID),
           tCellValue = iCase.getStrValue( tCategoricalVarID),
           tCellNumber = tCategoricalAxisModel.cellNameToCellNumber( tCellValue);
-      if( tCellNumber!==null && DG.MathUtilities.isInIntegerRange( tCellNumber, 0, tValues.length )) { // if Cell Number not missing
+      if( tCellNumber!=null && DG.MathUtilities.isInIntegerRange( tCellNumber, 0, tValues.length )) { // if Cell Number not missing
         var iValue = tValues[tCellNumber];
         if( isFinite( tNumericValue )) { // if numeric value not missing
           iValue.sum += tNumericValue;
@@ -253,7 +253,7 @@ DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
       var tNumericValue = iCase.getNumValue( tNumericVarID),
           tCellValue = iCase.getStrValue( tCategoricalVarID),
           tCellNumber = tCategoricalAxisModel.cellNameToCellNumber( tCellValue);
-      if( tCellNumber!==null && DG.MathUtilities.isInIntegerRange( tCellNumber, 0, tValues.length )) { // if Cell Number not missing
+      if( tCellNumber!= null && DG.MathUtilities.isInIntegerRange( tCellNumber, 0, tValues.length )) { // if Cell Number not missing
         var iValue = tValues[tCellNumber];
         if( isFinite( tNumericValue )) { // if numeric value not missing
           iValue.vals.push( tNumericValue );
@@ -320,6 +320,8 @@ DG.PlotAdornmentModel.registry.plottedIQR = DG.PlottedIQRModel;
 DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
 /** @scope DG.PlottedBoxPlotModel.prototype */
 {
+  showOutliers: false,  // If true, then we draw a "modified" boxplot
+
   /**
    * Compute or re-compute the Median, Q1, Q3, lowerWhisker, upperWhisker for each cell.
    * My base class will have computed everything except the lower and upper whisker.
@@ -331,36 +333,61 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
 
     sc_super();
 
-    var tValues = this.get('values');
+    var tValues = this.get('values'),
+        tShowOutliers = this.get('showOutliers');
     if( tValues) {
 
-      // also compute IQR
       tValues.forEach(function (iValue) {
         iValue.upperOutliers = [];
         iValue.lowerOutliers = [];
         if (iValue.vals.length > 0) {
-          var tMaxWhiskerLength = 1.5 * iValue.IQR,
-              tWhiskerCandidate, tIndex;
-          tWhiskerCandidate = iValue.Q1 - tMaxWhiskerLength;
-          tIndex = 0;
-          while (iValue.vals[tIndex] < tWhiskerCandidate) {
-            iValue.lowerOutliers.push( iValue.vals[tIndex]);
-            tIndex++;
-          }
-          iValue.lowerWhisker = iValue.vals[tIndex];
+          if( tShowOutliers) {
+            var tMaxWhiskerLength = 1.5 * iValue.IQR,
+                tWhiskerCandidate, tIndex;
+            tWhiskerCandidate = iValue.Q1 - tMaxWhiskerLength;
+            tIndex = 0;
+            while (iValue.vals[tIndex] < tWhiskerCandidate) {
+              iValue.lowerOutliers.push(iValue.vals[tIndex]);
+              tIndex++;
+            }
+            iValue.lowerWhisker = iValue.vals[tIndex];
 
-          tWhiskerCandidate = iValue.Q3 + tMaxWhiskerLength;
-          tIndex = iValue.vals.length - 1;
-          while (iValue.vals[tIndex] > tWhiskerCandidate) {
-            iValue.upperOutliers.push( iValue.vals[tIndex]);
-            tIndex--;
+            tWhiskerCandidate = iValue.Q3 + tMaxWhiskerLength;
+            tIndex = iValue.vals.length - 1;
+            while (iValue.vals[tIndex] > tWhiskerCandidate) {
+              iValue.upperOutliers.push(iValue.vals[tIndex]);
+              tIndex--;
+            }
+            iValue.upperWhisker = iValue.vals[tIndex];
           }
-          iValue.upperWhisker = iValue.vals[tIndex];
+          else {
+            iValue.lowerWhisker = iValue.vals[0];
+            iValue.upperWhisker = iValue.vals[iValue.vals.length - 1];
+          }
         }
       });
     }
 
     this.endPropertyChanges();
+  },
+  /**
+   Returns an object which contains properties that should be written
+   out with the document for archiving purposes.
+   */
+  createStorage: function() {
+    var tStorage = sc_super();
+    tStorage.showOutliers = this.get('showOutliers') || false;
+    return tStorage;
+  },
+
+  /**
+   Set the contents of the adornment model from the restored storage.
+   */
+  restoreStorage: function( iStorage) {
+    sc_super();
+    if( iStorage)
+      this.set('showOutliers', iStorage.showOutliers || false);
   }
+
 });
 DG.PlotAdornmentModel.registry.plottedBoxPlot = DG.PlottedBoxPlotModel;

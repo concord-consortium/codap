@@ -368,6 +368,40 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         this.toggleAverage('plottedBoxPlot', 'togglePlottedBoxPlot');
       },
 
+      /**
+       Toggle whether boxplot outliers are showing.
+       */
+      toggleShowOutliers: function () {
+        var this_ = this;
+
+        function toggle() {
+          var tBoxPlotModel = this_.getAdornmentModel('plottedBoxPlot');
+          if (tBoxPlotModel) {
+            tBoxPlotModel.setComputingNeeded();
+            tBoxPlotModel.toggleProperty('showOutliers');
+          }
+          return tBoxPlotModel.get('showOutliers');
+        }
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "graph.boxPlot.showOutliers",
+          undoString: null,
+          log: "graph.boxPlot.showOutliers",
+          execute: function () {
+            var wasShown = toggle(),
+
+                verb = wasShown ? "show" : "hide",
+                action = "toggleOutliers".replace("toggle", verb);
+
+            this.set('undoString', 'DG.Undo.graph.' + action); // e.g. DG.Undo.graph.showPlottedMean
+            this.set('redoString', 'DG.Redo.graph.' + action);
+          },
+          undo: function () {
+            toggle();
+          },
+        }));
+      },
+
       updateAdornmentsModels: function() {
         sc_super();
         ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
@@ -502,6 +536,61 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
       checkboxDescriptions: function () {
         var this_ = this;
+
+        function createBoxPlotToggle() {
+          var kMargin = 20,
+              kLeading = 5,
+              kRowHeight = 20,
+              tShowOutliersCheckbox = SC.CheckboxView.create( {
+                layout: { height: kRowHeight },
+                localize: true,
+                flowSpacing: { left: kMargin },
+                title: 'DG.Inspector.graphBoxPlotShowOutliers',
+                value: this_.getAdornmentModel('plottedBoxPlot') ?
+                    this_.getAdornmentModel('plottedBoxPlot').get('showOutliers') : false,
+                classNames: 'dg-graph-boxPlotShowOutliers-check'.w(),
+                valueDidChange: function () {
+                  this_.toggleShowOutliers();
+                }.observes('value')
+              }),
+              tBoxPlotCheckbox = SC.CheckboxView.create( {
+                layout: { height: kRowHeight },
+                localize: true,
+                title: 'DG.Inspector.graphPlottedBoxPlot',
+                value: this_.isAdornmentVisible('plottedBoxPlot'),
+                classNames: 'dg-graph-plottedBoxPlot-check'.w(),
+                valueDidChange: function () {
+                  this_.togglePlottedBoxPlot();
+                  tShowOutliersCheckbox.set('isEnabled', isBoxPlotVisible());
+                }.observes('value')
+              });
+
+          function isBoxPlotVisible() {
+            return this_.isAdornmentVisible('plottedBoxPlot');
+          }
+
+          var tComposite =  SC.View.create( SC.FlowedLayout,
+              {
+                layoutDirection: SC.LAYOUT_VERTICAL,
+                isResizable: false,
+                isClosable: false,
+                layout: {height: 2 * (kRowHeight + kLeading)},
+                defaultFlowSpacing: {bottom: kLeading},
+                canWrap: false,
+                align: SC.ALIGN_TOP,
+                // layout: {right: 22},
+                boxplot: null,
+                showOutliers: null,
+                init: function() {
+                  sc_super();
+                  tShowOutliersCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
+                  this.appendChild( tBoxPlotCheckbox);
+                  this.appendChild(tShowOutliersCheckbox);
+                }
+              });
+          return tComposite;
+        }
+
         return sc_super().concat([
           {
             title: 'DG.Inspector.graphPlottedMean',
@@ -536,12 +625,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             }.observes('value')
           },
           {
-            title: 'DG.Inspector.graphPlottedBoxPlot',
-            value: this_.isAdornmentVisible('plottedBoxPlot'),
-            classNames: 'dg-graph-plottedBoxPlot-check'.w(),
-            valueDidChange: function () {
-              this_.togglePlottedBoxPlot();
-            }.observes('value')
+            control: createBoxPlotToggle()
           },
           {
             title: 'DG.Inspector.graphPlottedValue',

@@ -27,7 +27,7 @@ sc_require('components/graph/adornments/plotted_average_adornment');
  * @extends DG.PlottedAverageAdornment
  */
 DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
-    /** @scope DG.PlottedIQRAdornment.prototype */
+    /** @scope DG.PlottedBoxPlotAdornment.prototype */
     (function () {
 
       var BoxPlotSymbol = SC.Object.extend({
@@ -94,6 +94,8 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
         bgFill: '#FFb280',
         symStroke: '#F30',
         symStrokeWidth: 1,
+
+        modelPropertiesToObserve: [ ['showOutliers', 'updateVisibility'] ],
 
         /**
          * @property {[BoxPlotSymbol]}
