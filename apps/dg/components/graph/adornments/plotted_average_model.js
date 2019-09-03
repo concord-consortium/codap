@@ -120,7 +120,7 @@ DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
       var tNumericValue = iCase.getNumValue( tNumericVarID),
           tCellValue = iCase.getStrValue( tCategoricalVarID),
           tCellNumber = tCategoricalAxisModel.cellNameToCellNumber( tCellValue);
-      if( tCellNumber!==null && DG.MathUtilities.isInIntegerRange( tCellNumber, 0, tValues.length )) { // if Cell Number not missing
+      if( tCellNumber!=null && DG.MathUtilities.isInIntegerRange( tCellNumber, 0, tValues.length )) { // if Cell Number not missing
         var iValue = tValues[tCellNumber];
         if( isFinite( tNumericValue )) { // if numeric value not missing
           iValue.sum += tNumericValue;
