@@ -41,4 +41,4 @@ end
 # Uncomment the following line and replace the values for ':to' and ':url'
 # with the web location of your developer instance of the codap extensions directory
 # see developer notes: https://github.com/concord-consortium/codap/wiki/Developer-Guide
-proxy '/extn', :to => 'localhost:80', :url => '/~jsandoe/extn'
+#proxy '/extn', :to => 'localhost:80', :url => '/some/path'
