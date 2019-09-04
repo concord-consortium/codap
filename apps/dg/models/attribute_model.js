@@ -249,7 +249,7 @@ DG.Attribute = DG.BaseModel.extend(
               tCases = tCollection.get('cases');
           tResult = tCases && tCases.some(function (iCase) {
             var tValue = iCase.getValue(tAttrID);
-            return !SC.empty( tValue) && !DG.MathUtilities.isNumeric( tValue);
+            return !SC.empty( tValue) && !isNaN( tValue) && !DG.MathUtilities.isNumeric( tValue);
           });
         }
         return tResult;
