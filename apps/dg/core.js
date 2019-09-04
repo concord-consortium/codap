@@ -339,7 +339,7 @@ DG = SC.Application.create((function () // closure
     pluginMetadata: null,
 
     drawToolPluginURL: function() {
-      return this.get('pluginURL') + '/DrawTool';
+      return this.get('pluginURL') + '/DrawTool/index.html';
     }.property(),
 
     /*

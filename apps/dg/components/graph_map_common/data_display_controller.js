@@ -911,7 +911,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           }));
         },
 
-        convertToImage: function (rootEl, width, height) {
+        convertToImage: function (rootEl, width, height, title) {
 
           function saveImage(pngObject) {
             var reader = new FileReader();
@@ -922,7 +922,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             reader.readAsDataURL(pngObject);
           }
 
-          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height)
+          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height, title)
             .then(function (blob) {
               saveImage(blob);
             }, function (msg) {
@@ -932,11 +932,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
         openDrawToolWithImage: function (rootEl, width, height, title) {
 
-          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height, true)
+          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height, title, true)
             .then(function (dataURL) {
               SC.run(function () {
                 DG.appController.importDrawToolWithDataURL(dataURL, title);
               });
+            }, function (msg) {
+              DG.log(msg);
             });
         },
 
@@ -945,7 +947,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var graphView = componentView && componentView.get('contentView');
           var width = graphView.getPath('frame.width');
           var height = graphView.getPath('frame.height');
-          this.convertToImage(graphView.get('layer'), width, height);
+          var title = componentView.get('title');
+          this.convertToImage(graphView.get('layer'), width, height, title);
         },
 
         copyAsImage: function () {

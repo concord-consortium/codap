@@ -32,7 +32,7 @@ DG.ImageUtilities = (function () {
      * @param asDataURL {boolean} true - image returned as data URI, otherwise as blob
      * @return {Promise} The promise of an image.
      */
-    captureSVGElementsToImage: function (rootEl, width, height, asDataURL) {
+    captureSVGElementsToImage: function (rootEl, width, height, title, asDataURL) {
 
       function getCSSText() {
         var text = [], ix, jx;
@@ -141,18 +141,36 @@ DG.ImageUtilities = (function () {
         );
       }
 
+      function appendTitle(canvas, bgColor, fgColor, title) {
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, height, width, 20);
+        ctx.fillStyle = fgColor;
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+        ctx.lineTo(width, height);
+        ctx.stroke();
+        ctx.font='10pt MuseoSans-500';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(title,width/2, height + 14, width);
+      }
+
       //
       // ######## convertImage begin ########
       //
       // find all svg elements that are not children of hidden divs
       var elements = $(rootEl).find('div.dg-plot-view,img,div:not(.sc-hidden)>svg');
-      var canvas = makeCanvasEl(width, height);
+      var canvas = makeCanvasEl(width, height + (title?20:0));
       var jobList = [];
       var jobIx = 0;
 
       function perform(job) {
         var elType = job && job.el && job.el.nodeName.toLowerCase();
         if (!job) {
+          if (title) {
+            appendTitle(canvas, 'white', 'black', title);
+          }
           // we have drawn all the elements resolve the promise with a data URL or blob
           try {
             return Promise.resolve(asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas));
