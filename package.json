@@ -18,6 +18,8 @@
     "build:embedded:comment": "echo Usage: `npm run build:embedded` builds a CODAP embedded mode package named embeddedCODAP",
     "build:embedded": "bin/makeCodapZip --root=embeddedCODAP embeddedCODAP",
     "build:embedded-dev": "bin/makeCodapZip --root=embeddedCODAP --languages=en --minify=no embeddedCODAP",
+    "build:extensions:comment": "echo Usage: npm run build:extensions target-dir",
+    "build:extensions": "bin/makeExtn",
     "build:local:comment": "echo Usage: `npm run build:local` performs a local sproutcore build",
     "build:local": "sproutcore build -vv dg",
     "build:parser:comment": "echo Usage: `npm run build:parser` uses PEG.js to build the formula parser from the grammar",

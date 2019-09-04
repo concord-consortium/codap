@@ -18,8 +18,10 @@ DIRNAME=`dirname $0`
 ROOTDIR=`dirname ${DIRNAME}`
 APPNAME=dg
 
-CODAP_PLUGIN_REFDIR=../codap-data-interactives/target/build/plugins
-CODAP_EXAMPLES_REFDIR=../codap-data/example-documents/target/example-documents
+CODAP_PLUGIN_BUILD_DIR=../codap-data-interactives
+CODAP_PLUGIN_REFDIR=${CODAP_PLUGIN_BUILD_DIR}/target/build/plugins
+CODAP_EXAMPLES_BUILD_DIR=../codap-data/example-documents
+CODAP_EXAMPLES_REFDIR=${CODAP_EXAMPLES_BUILD_DIR}/target/example-documents
 CODAP_BOUNDARIES_REFDIR=../codap-data/boundaries
 
 #
@@ -46,6 +48,9 @@ PARENT_DIR=`dirname $TARGET_DIR`
 
 mkdir -p "$TARGET_DIR"
 
-cp -r $CODAP_EXAMPLES_REFDIR $TARGET_DIR/example-documents
-cp -r $CODAP_BOUNDARIES_REFDIR $TARGET_DIR/boundaries
-cp -r $CODAP_PLUGIN_REFDIR $TARGET_DIR/plugins
+( cd $CODAP_PLUGIN_BUILD_DIR && npm run build )
+( cd $CODAP_EXAMPLES_BUILD_DIR && npm run build )
+
+rsync -av --delete $CODAP_EXAMPLES_REFDIR $TARGET_DIR/
+rsync -av --delete $CODAP_BOUNDARIES_REFDIR $TARGET_DIR/
+rsync -av --delete $CODAP_PLUGIN_REFDIR $TARGET_DIR/
