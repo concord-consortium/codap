@@ -479,9 +479,23 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         this.setPath('mapLayer.lastEventType', null);
       }.observes('mapLayer.displayChangeCount'),
 
+      /**
+       * Clicks have to be handled carefully because we don't want a click on the map background to deselect
+       * everything if the click is the click that first selects the map component.
+       * So didBecomeSelected sets a temporary flag that remains set for a brief time so we can use it to
+       * decide whether we should deselect everything.
+       */
       handleClick: function () {
-        this.get('model').selectAll(false);
+        if (!this.justSelected)
+          this.get('model').selectAll(false);
       }.observes('mapLayer.clickCount'),
+
+      didBecomeSelected: function() {
+        this.justSelected = true;
+        this.invokeLater( function() {
+          this.justSelected = false;
+        }, 500);
+      }.observes('parentView.parentView.isSelected'),
 
       handleIdle: function () {
         var tModel = this.get('model'),
