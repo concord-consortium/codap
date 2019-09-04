@@ -118,7 +118,7 @@ DG.functionRegistry.registerFunctions((function() {
               'DG.Formula.DateLongDayFriday',
               'DG.Formula.DateLongDaySaturday'
             ],
-            dayName = dayNames[date.getDay()];
+            dayName = date && dayNames[date.getDay()];
         return dayName && dayName.loc();
       }
     },
