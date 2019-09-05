@@ -755,5 +755,14 @@ SC.stringsFor("he", {
     "DG.AttributeFormat.DatePrecision.millisecond": "MMM D, YYYY HH:mm:ss.SSS",
     "DG.CellAxis.other": "OTHER",
     "DG.PlottedAverageAdornment.madValueTitle": "±1 MAD, %@",
-    "DG.Inspector.graphPlottedMeanAbsDev": "Mean Absolute Deviation"
+    "DG.Inspector.graphPlottedMeanAbsDev": "Mean Absolute Deviation",
+    "DG.Undo.graph.showPlottedBoxPlot": "Undo showing box plot",
+    "DG.Redo.graph.hidePlottedBoxPlot": "Redo hiding box plot",
+    "DG.Undo.graph.hidePlottedBoxPlot": "Undo hiding box plot",
+    "DG.Redo.graph.showPlottedBoxPlot": "Redo showing box plot",
+    "DG.Undo.graph.showOutliers": "Undo showing outliers",
+    "DG.Redo.graph.hideOutliers": "Redo hiding outliers",
+    "DG.Undo.graph.hideOutliers": "Undo hiding outliers",
+    "DG.Redo.graph.showOutliers": "Redo showing outliers",
+    "DG.Inspector.graphBoxPlotShowOutliers": "Show Outliers"
 });

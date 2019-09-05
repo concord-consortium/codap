@@ -273,7 +273,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0498',
+    BUILD_NUM: '0499',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -339,7 +339,7 @@ DG = SC.Application.create((function () // closure
     pluginMetadata: null,
 
     drawToolPluginURL: function() {
-      return this.get('pluginURL') + '/DrawTool';
+      return this.get('pluginURL') + '/DrawTool/index.html';
     }.property(),
 
     /*
