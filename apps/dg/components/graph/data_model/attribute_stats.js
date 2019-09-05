@@ -184,7 +184,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
               else {
                 tCellMapEntry = tCellMap[ tValue];
               }
-              tCellMapEntry.cases.push(iCase);
+              if (tCellMapEntry) tCellMapEntry.cases.push(iCase);
               this.categoricalStats.incrementProperty('count');
               this.setPath('categoricalStats.cellMap', tCellMap); // Replace with notifyPropertyChange?
             }
