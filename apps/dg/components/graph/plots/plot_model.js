@@ -1047,7 +1047,9 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        * @return {{}}
        */
       getPropsForCopy: function() {
-        return {};
+        return {
+          verticalAxisIsY2: this.get('verticalAxisIsY2')
+        };
       },
 
       /**
