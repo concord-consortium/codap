@@ -291,7 +291,7 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
                 }
               }));
             }.observes('selectedItem')
-          }).popup(this);
+          }).popup(this, [0, -20, SC.POSITION_BOTTOM]);
 
         }
       };
@@ -337,7 +337,7 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
                 }
               }));
             }.observes('selectedItem')
-          }).popup(this);
+          }).popup(this, [0, -20, SC.POSITION_BOTTOM]);
 
         }
       };
