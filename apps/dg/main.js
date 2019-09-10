@@ -514,6 +514,7 @@ DG.main = function main() {
           components: [
             {
               type: 'DG.GameView',
+              document: DG.currDocumentController().content,
               componentStorage: {
                 currentGameName: 'Import CSV',
                 currentGameUrl: DG.get('pluginURL') +'/ImportCSV/',
