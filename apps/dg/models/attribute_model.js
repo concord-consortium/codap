@@ -242,14 +242,15 @@ DG.Attribute = DG.BaseModel.extend(
         var tResult = false,
             tType = this.get('type'),
             tCollection = this.get('collection');
-        if( tType === 'categorical')
+        if( tType === DG.Attribute.TYPE_NOMINAL || tType === DG.Attribute.TYPE_CATEGORICAL)
           tResult = true;
         else if( tCollection) {
           var tAttrID = this.get('id'),
               tCases = tCollection.get('cases');
+          // Result is true if there are some values that are not empty, not NaN, and not numeric
           tResult = tCases && tCases.some(function (iCase) {
             var tValue = iCase.getValue(tAttrID);
-            return !SC.empty( tValue) && !isNaN( tValue) && !DG.MathUtilities.isNumeric( tValue);
+            return !SC.empty( tValue) && tValue !== NaN && !DG.MathUtilities.isNumeric( tValue);
           });
         }
         return tResult;
