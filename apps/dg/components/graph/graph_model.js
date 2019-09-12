@@ -1219,20 +1219,20 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     updateSplitPlotArray: function() {
       var this_ = this,
-          tRootPlot = this.get('plot'),
-          tNumPlotsPerCell = this.get('splitPlotArray')[0][0].length,
+          tRootPlotArray = this.get('splitPlotArray')[0][0],
+          tNumPlotsPerCell = tRootPlotArray.length,
           tAttrIndex = 0,
-          tPlotClass = tRootPlot.constructor;  // All plots will be of this class
+          tPlotClass = tRootPlotArray[0].constructor;  // All plots will be of this class
 
       this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
         for( var tPlotIndex = 0; tPlotIndex < tNumPlotsPerCell; tPlotIndex++) {
-          var tCurrentPlot = iPlotArray[tPlotIndex],
+          var tRootPlot = tRootPlotArray[ tPlotIndex],
+              tCurrentPlot = iPlotArray[tPlotIndex],
               tNewPlot;
           if( !tCurrentPlot || tCurrentPlot.constructor !== tPlotClass) {
             var tProperties = $.extend(this_.getModelPointStyleAccessors(),
                 tRootPlot.getPropsForCopy(),
                 {
-                  dataConfiguration: this_.get('dataConfiguration'),
                   splitPlotRowIndex: iRow,
                   splitPlotColIndex: iCol,
                   xAxis: this_.get('xAxisArray')[iCol],
