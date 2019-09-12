@@ -43,7 +43,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         return this.getPath('controller.view');
       }.property(),
 
-      idBinding: SC.Binding.oneWay('*controller.model.id'),
+      // Not working in at least one circumstance having to do with interactiveFrame:update
+      // idBinding: SC.Binding.oneWay('*controller.model.id'),
+      id: function() {
+        return this.getPath('controller.model.id');
+      }.property(),
 
       /**
        * Handles communication over PostMessage interface.
@@ -516,6 +520,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (DG.STANDALONE_MODE && title && DG.isStandaloneComponent(title, diComponent.get('type'))) {
             DG.log('isStandalone component: ' + title);
             diView.makeStandalone();
+            if( DG.KEEP_IN_BOUNDS_PREF) {
+
+            }
           }
 
           return {
