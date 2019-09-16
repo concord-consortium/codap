@@ -1221,10 +1221,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
       var this_ = this,
           tRootPlotArray = this.get('splitPlotArray')[0][0],
           tNumPlotsPerCell = tRootPlotArray.length,
-          tAttrIndex = 0,
           tPlotClass = tRootPlotArray[0].constructor;  // All plots will be of this class
 
       this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
+        var tAttrIndex = 0;
         for( var tPlotIndex = 0; tPlotIndex < tNumPlotsPerCell; tPlotIndex++) {
           var tRootPlot = tRootPlotArray[ tPlotIndex],
               tCurrentPlot = iPlotArray[tPlotIndex],
