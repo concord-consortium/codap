@@ -92,7 +92,7 @@ html, body {
     font-size: 8pt !important;
 }
 
-.dg-case-table-title {
+.dg-case-table-title-bar-container {
     font-style: italic;
     font-size: 15px;
     color: rgba(15,38,51,1);
@@ -341,9 +341,11 @@ html, body {
 }
 
 /* hidden in selected components when explicitly disabled */
+/*
 .dg-component-view-selected .dg-floating-plus.disabled {
     visibility: hidden;
 }
+*/
 
 /* hidden in unselected components */
 .dg-floating-plus {

@@ -60,93 +60,159 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     classNames: 'dg-case-table-view',
 
-    childViews: 'titleView tableView newAttrButtonView _hiddenDragView'.w(),
+    childViews: 'titleBarContainer tableView _hiddenDragView'.w(),
 
     dataContext: function () {
       return this.getPath('gridAdapter.dataContext');
     }.property(),
 
-    titleView: SC.LabelView.extend(DG.MouseAndTouchView, {
-      classNames: 'dg-case-table-title'.w(),
+    titleBarContainer: SC.View.extend({
+      childViews: 'titleBar'.w(),
+      classNames: ['dg-case-table-title-bar-container'],
       layout: { left: 0, right: 0, top: 0, height: 22 },
-      isEditable: function () {
-        return !this.parentView.getPath('dataContext.hasDataInteractive');
-      }.property(),
-
-      /**
-       * Assembles the value from collection name and count.
-       */
-      value: function () {
-        var collectionName = this.parentView.get('collectionName');
-        var caseCount = this.parentView.get('caseCount');
-        var hasChildTable = !!this.parentView.get('childTable');
-        var setAsideCount = hasChildTable? 0: this.getPath('parentView.dataContext.setAsideCount');
-        if (hasChildTable || (setAsideCount === 0)) {
-          return 'DG.TableController.collectionTitleText'.loc(collectionName,
-              caseCount);
-        } else {
-          return 'DG.TableController.collectionTitleTextWithSetAside'.loc(
-              collectionName, caseCount, setAsideCount);
+      mouseDown: function(ev) {
+        // if not in a current edit, background clicks should complete any edit
+        if (ev.target.tagName !== 'INPUT') {
+          DG.globalEditorLock.commitCurrentEdit();
         }
-      }.property(),
-
-      valueDidChange: function() {
-        this.notifyPropertyChange('value');
-      }.observes('*parentView.collectionName', '*parentView.caseCount'),
-
-      /**
-       * We are displaying the collection name and count. We only want to
-       * edit the name.
-       * @override SC.InlineEditorDelegate
-       * @param editor
-       * @param value
-       * @param editable
-       */
-      inlineEditorWillBeginEditing: function (editor, value, editable) {
-        sc_super();
-        editor.set('value', this.parentView.get('collectionName'));
+        return NO;
       },
-      /**
-       * Capture the edit result.
-       * @override SC.InlineEditorDelegate
-       * @param editor
-       * @param value
-       * @param editable
-       * @returns {*}
-       */
-      inlineEditorDidCommitEditing: function (editor, value, editable) {
-        var tTableView = this.parentView,
-            this_ = this;
-        DG.UndoHistory.execute(DG.Command.create({
-          name: 'caseTable.collectionNameChange',
-          undoString: 'DG.Undo.caseTable.collectionNameChange',
-          redoString: 'DG.Redo.caseTable.collectionNameChange',
-          execute: function () {
-            this._beforeStorage = tTableView.get('collectionName');
-            tTableView.set('collectionName', value);
-            this.log = "Change collection name from '%@' to '%@'".fmt(this._beforeStorage, value);
+      titleBar: SC.View.extend({
+        childViews: 'titleView newAttrButtonView'.w(),
+        classNames: 'dg-case-table-title-bar newAttrButtonView'.w(),
+        refView: function () {
+          var parentView = this.parentView;
+          return parentView && parentView.parentView;
+        }.property(),
+        titleView: SC.LabelView.extend(DG.MouseAndTouchView, SC.AutoResize, {
+          refView: function () {
+            var parentView = this.parentView;
+            return parentView && parentView.get('refView');
+          }.property(),
+          layout: { centerX: 0, height: 22 },
+          classNames: 'dg-case-table-title'.w(),
+          // layout: { left: 0, right: 0, top: 0, height: 22 },
+          isEditable: function () {
+            return !this.getPath('refView.dataContext.hasDataInteractive');
+          }.property(),
+
+          /**
+           * Assembles the value from collection name and count.
+           */
+          value: function () {
+            var collectionName = this.getPath('refView.collectionName');
+            var caseCount = this.getPath('refView.caseCount');
+            var hasChildTable = !!this.getPath('refView.childTable');
+            var setAsideCount = hasChildTable? 0: this.getPath('refView.dataContext.setAsideCount');
+            if (hasChildTable || (setAsideCount === 0)) {
+              return 'DG.TableController.collectionTitleText'.loc(collectionName,
+                  caseCount);
+            } else {
+              return 'DG.TableController.collectionTitleTextWithSetAside'.loc(
+                  collectionName, caseCount, setAsideCount);
+            }
+          }.property(),
+
+          valueDidChange: function() {
+            this.notifyPropertyChange('value');
+          }.observes('*refView.collectionName', '*refView.caseCount'),
+
+          /**
+           * We are displaying the collection name and count. We only want to
+           * edit the name.
+           * @override SC.InlineEditorDelegate
+           * @param editor
+           * @param value
+           * @param editable
+           */
+          inlineEditorWillBeginEditing: function (editor, value, editable) {
+            sc_super();
+            editor.set('value', this.getPath('refView.collectionName'));
           },
-          undo: function () {
-            var prev = this._beforeStorage;
-            tTableView.set('collectionName', prev);
-            // we have to set this as well, as 'value' is not tightly bound
-            this_._value = prev;
-            this_.propertyDidChange('value');
+          /**
+           * Capture the edit result.
+           * @override SC.InlineEditorDelegate
+           * @param editor
+           * @param value
+           * @param editable
+           * @returns {*}
+           */
+          inlineEditorDidCommitEditing: function (editor, value, editable) {
+            var tTableView = this.get('refView'),
+                this_ = this;
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'caseTable.collectionNameChange',
+              undoString: 'DG.Undo.caseTable.collectionNameChange',
+              redoString: 'DG.Redo.caseTable.collectionNameChange',
+              execute: function () {
+                this._beforeStorage = tTableView.get('collectionName');
+                tTableView.set('collectionName', value);
+                this.log = "Change collection name from '%@' to '%@'".fmt(this._beforeStorage, value);
+              },
+              undo: function () {
+                var prev = this._beforeStorage;
+                tTableView.set('collectionName', prev);
+                // we have to set this as well, as 'value' is not tightly bound
+                this_._value = prev;
+                this_.propertyDidChange('value');
+              },
+              redo: function() {
+                tTableView.set('collectionName', value);
+                // we have to set this as well, as 'value' is not tightly bound
+                this_._value = value;
+                this_.propertyDidChange('value');
+              }
+            }));
+            return sc_super();
           },
-          redo: function() {
-            tTableView.set('collectionName', value);
-            // we have to set this as well, as 'value' is not tightly bound
-            this_._value = value;
-            this_.propertyDidChange('value');
+
+          localize: true,
+          doIt: function() {
+            this.beginEditing();
+          },
+        }),
+        newAttrButtonView: DG.ImageView.extend({
+          refView: function () {
+            return this.parentView && this.parentView.get('refView');
+          }.property(),
+          classNames: ['dg-floating-plus'],
+          classNameBindings: ['disabled'],
+          layout: { top: 0, right: 0, width: 22, height: 22 },
+          // https://www.materialui.co/icon/add-circle
+          value: static_url('images/add_circle_grey_72x72.png'),
+          tooltip: 'DG.TableController.newAttributeTooltip'.loc(),
+          disabled: function() {
+            var context = this.getPath('refView.gridAdapter.dataContext');
+            var isTopLevel = !this.getPath('refView.gridAdapter.hasParentCollection');
+            return context && isTopLevel && DG.DataContextUtilities.isTopLevelReorgPrevented(context);
+          }.property('_dataContextDidChange'),
+          dataContextDidChange: function() {
+            this.notifyPropertyChange('_dataContextDidChange');
+          }.observes('refView.gridAdapter.dataContext.metadataChangeCount'),
+          didAppendToDocument: function() {
+            sc_super();
+
+            var tooltip = this.get('tooltip');
+            if (tooltip)
+              this.$().attr('title', tooltip);
+          },
+          mouseDown: function(evt) {
+            var tableController = getController(this),
+                collection = this.getPath('refView.gridAdapter.collection');
+            // only respond to left-button clicks; see SC.Event for constant
+            if (tableController && collection && (evt.which === 1)) {
+              SC.RootResponder.responder
+                  .sendAction('newAttributeAction', tableController, this, this.get('pane'),
+                      { collection: collection, autoEditName: true });
+            }
+          },
+          touchStart: function( evt) {
+            evt.which = 1;  // Simulate left-button
+            this.mouseDown( evt);
           }
-        }));
-        return sc_super();
-      },
+        }),
 
-      localize: true,
-      doIt: function() {
-        this.beginEditing();
-      }
+      }),
     }),
 
     tableView: SC.View.extend({
@@ -361,43 +427,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     }),
 
-    newAttrButtonView: DG.ImageView.extend({
-      classNames: ['dg-floating-plus'],
-      classNameBindings: ['disabled'],
-      layout: { top: 0, right: 0, width: 22, height: 22 },
-      // https://www.materialui.co/icon/add-circle
-      value: static_url('images/add_circle_grey_72x72.png'),
-      tooltip: 'DG.TableController.newAttributeTooltip'.loc(),
-      disabled: function() {
-        var context = this.getPath('parentView.gridAdapter.dataContext');
-        var isTopLevel = !this.getPath('parentView.gridAdapter.hasParentCollection');
-        return isTopLevel && DG.DataContextUtilities.isTopLevelReorgPrevented(context);
-      }.property('_dataContextDidChange'),
-      dataContextDidChange: function() {
-        this.notifyPropertyChange('_dataContextDidChange');
-      }.observes('parentView.gridAdapter.dataContext.metadataChangeCount'),
-      didAppendToDocument: function() {
-        sc_super();
-
-        var tooltip = this.get('tooltip');
-        if (tooltip)
-          this.$().attr('title', tooltip);
-      },
-      mouseDown: function(evt) {
-        var tableController = getController(this),
-            collection = this.getPath('parentView.gridAdapter.collection');
-        // only respond to left-button clicks; see SC.Event for constant
-        if (tableController && collection && (evt.which === 1)) {
-          SC.RootResponder.responder
-            .sendAction('newAttributeAction', tableController, this, this.get('pane'),
-                        { collection: collection, autoEditName: true });
-        }
-      },
-      touchStart: function( evt) {
-        evt.which = 1;  // Simulate left-button
-        this.mouseDown( evt);
-      }
-    }),
 
     parentTable: null,
 
@@ -413,20 +442,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     ancestorViewDidResizeOrScroll: function() {
       this.invokeLater(function() {
         var visibleFrameBounds = this.get('visibleFrameBounds');
+        var titleBar = this.getPath('titleBarContainer.titleBar');
         if (visibleFrameBounds) {
-          var newAttrButtonView = this.get('newAttrButtonView'),
-              frameBounds = this.get('frameBounds'),
-              frameRight = frameBounds.x + frameBounds.width,
-              visibleFrameRight = visibleFrameBounds.x + visibleFrameBounds.width,
-              offset = frameRight - visibleFrameRight,
-              titleView = this.get('titleView'),
-              visibleViewBounds = this.convertFrameFromView(visibleFrameBounds, null);
-          titleView.adjust({
-            left: visibleViewBounds.x,
-            width: visibleViewBounds.width,
+          titleBar.adjust({
+            left: visibleFrameBounds.x,
+            width: visibleFrameBounds.width,
             right: null
           });
-          newAttrButtonView.adjust('right', offset);
         }
       }.bind(this));
     },
@@ -441,27 +463,26 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var view = this,
           pv = this.get('parentView'),
           frame = this.get('frame'),
-          visibleBounds = pv ? pv.convertFrameToView(frame, null) : frame,
-          bounds, right, bottom;
+          baseFrame = pv ? pv.convertFrameToView(frame, null) : frame,
+          visibleBounds = {},
+          right, bottom;
       // find boundary of the hierarchical table view
-      while (pv && !(pv instanceof DG.HierTableView)) {
+      while (view && !(view instanceof DG.HierTableView)) {
         view = pv;
         pv = view.get('parentView');
-        frame = view.get('frame');
-        bounds = pv ? pv.convertFrameToView(frame, null) : frame;
-        right = Math.min(visibleBounds.x + visibleBounds.width,
-                          bounds.x + bounds.width);
-        bottom = Math.min(visibleBounds.y + visibleBounds.height,
-                          bounds.y + bounds.height);
-        visibleBounds.x = Math.max(visibleBounds.x, bounds.x);
-        visibleBounds.y = Math.max(visibleBounds.y, bounds.y);
-        visibleBounds.width = right - visibleBounds.x;
-        visibleBounds.height = bottom - visibleBounds.y;
-        if ((visibleBounds.width <= 0) || (visibleBounds.height <= 0)) {
-          return null;
-        }
       }
-      return visibleBounds;
+      if (!pv) {
+        return;
+      }
+      var boundingFrame = pv.convertFrameToView(view.get('frame'), null);
+      visibleBounds.x = Math.max(boundingFrame.x, baseFrame.x);
+      visibleBounds.y = Math.max(boundingFrame.y, baseFrame.y);
+      right = Math.min(boundingFrame.x + boundingFrame.width, baseFrame.x + baseFrame.width);
+      bottom = Math.min(boundingFrame.y + boundingFrame.height, baseFrame.y + baseFrame.height);
+      visibleBounds.width = Math.max(right - visibleBounds.x, 0);
+      visibleBounds.height = Math.max(bottom - visibleBounds.y, 0);
+
+      return this.convertFrameFromView(visibleBounds, null);
     }.property(),
 
     layout: { left: 0, right: 0, top: 0, bottom: 0 },
@@ -809,8 +830,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     displayProperties: ['gridAdapter','gridDataView','_slickGrid'],
 
     init: function () {
+      this.beginPropertyChanges();
       sc_super();
-      this.scrollAnimator = DG.ScrollAnimationUtility.create({});
+      this.scrollAnimator = DG.ScrollAnimationUtility.create();
+      this.endPropertyChanges();
+      this.invokeLater(function () {
+        this.ancestorViewDidResizeOrScroll();
+      });
     },
 
     /**
@@ -1206,7 +1232,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     _destroy: function() {
       if (this.scrollAnimator) {
-        this.scrollAnimator.destroy();
+        if (this.scrollAnimator.destroy) this.scrollAnimator.destroy();
         this.scrollAnimator = null;
       }
       this.destroySlickGrid();
@@ -1411,17 +1437,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       @param  {*} iArgs {{scrollTop: number, scrollLeft: number}}
      */
     handleScroll: function( iEvent, iArgs) {
-      //DG.log('%@:handleScroll(%@,%@)'.loc(this.get('collectionName'), iArgs.scrollTop, iArgs.scrollLeft));
-      var scrollPos = this.get('scrollPos');
-      // set scroll only if _values_ changed
-      if (SC.none(scrollPos)
-          || scrollPos.scrollTop !== iArgs.scrollTop
-          || scrollPos.scrollLeft !== iArgs.scrollLeft) {
-        this.set('scrollPos', {
-          scrollTop: iArgs.scrollTop,
-          scrollLeft: iArgs.scrollLeft
-        });
-      }
+      this.set('scrollPos', iArgs);
     },
 
     handleBeforeAutoEditCell: function(iEvent, iArgs) {
@@ -1527,11 +1543,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           columnIndex = column && column.columnIndex,
           headerColumns = this.$('.slick-header-column'),
           $el = column && $(headerColumns[columnIndex]),
-          $nameEl = $el && $el.find('.slick-column-name'),
-          $plusEl = this.$('.dg-floating-plus');
+          $nameEl = $el && $el.find('.slick-column-name');
 
       var finishNameEdit = function() {
-            $plusEl.removeClass('disabled');
+            // $plusEl.removeClass('disabled');
           },
 
           completeNameEdit = function(elt) {
@@ -1562,6 +1577,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       if ($nameEl) {
         $nameEl.empty().append($('<input>').addClass('dg-attr-name-edit-input').val(attrName));
+        this.getPath('parentView.parentView.parentView').scrollDOMElementHorizontallyToView($nameEl[0]);
         var $input = $nameEl.find('input');
         $input.attr({ type: 'text', autocapitalize: 'none', autocomplete: 'off',
                        autocorrect: 'off', inputmode: 'latin-name', spellcheck: false })
@@ -1592,9 +1608,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                                   break;
                               }
                             })
-              .focus()
+              .focus({preventScroll:true})
               .select();
-        $plusEl.addClass('disabled');
+        // $plusEl.addClass('disabled');
       }
     },
 

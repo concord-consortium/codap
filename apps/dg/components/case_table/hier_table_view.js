@@ -178,12 +178,12 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       },
 
       frameSize: function () {
-        this.get('_frameSize');
+        return this.get('frame').width;
       }.property(),
 
       frameSizeDidChange: function() {
         this.notifyPropertyChange('frameSize');
-      }.observes('_frameSize'),
+      }.observes('frame'),
 
       /**
        * Returns a view instance to be used as a divider between two other views,
@@ -256,11 +256,14 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        @param    {DG.CaseTableView}    iNotifier -- the table view whose width changed
        */
       gridWidthDidChange: function( iNotifier) {
+
         var newMaxWidth = iNotifier.get('gridWidth');
+
 
         // Set the 'size' of the child table to its desired size
         iNotifier.set('size', newMaxWidth);
         this.scheduleTiling();
+
       },
 
       /**
@@ -681,6 +684,46 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         var viewCollection = childTableView.getPath('gridAdapter.collection');
         return viewCollection.get('id') === collectionID;
       });
+    },
+
+    isFrameVisible: function (iFrame) {
+      var thisFrame = this.get('frame');
+      return ((thisFrame.x <= iFrame.x) && (thisFrame.y <= iFrame.y) &&
+          (thisFrame.x + thisFrame.width >= iFrame.x + iFrame.width) &&
+          (thisFrame.y + thisFrame.height >= iFrame.y + iFrame.height));
+    },
+
+    scrollHorizontallyToMakeVisible: function (iFrame) {
+      var thisFrame = this.get('frame');
+      var dLeft = thisFrame.x - iFrame.x;
+      var dRight = iFrame.x + iFrame.width - (thisFrame.x + thisFrame.width);
+      if (dLeft>=dRight) {
+        this.scrollBy(dLeft+2, 0);
+      } else {
+        this.scrollBy(dRight+2, 0);
+      }
+    },
+
+    /**
+     * Scrolls a this view to place the given DOM Element in view.
+     * @param iElement
+     */
+    scrollDOMElementHorizontallyToView: function(iElement) {
+      var thisElement = this.layer();
+      var left = 0, top = 0, width = iElement.offsetWidth,
+          height = iElement.offsetHeight, frame;
+      var el = iElement;
+      while (el !== thisElement) {
+        left += el.offsetLeft;
+        top += el.offsetTop;
+        el = el.parentElement;
+      }
+      frame = {x:left,y:top,width:width, height:height};
+      if (!this.isFrameVisible(frame)) {
+        this.scrollHorizontallyToMakeVisible(frame);
+      } else {
+        this.scrollBy(1,0);
+      }
     }
   }; // end return from closure
 
