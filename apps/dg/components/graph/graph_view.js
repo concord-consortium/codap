@@ -1080,13 +1080,13 @@ DG.GraphView = SC.View.extend(
                 tBackgroundView.set('rowIndex', iRow);
                 tBackgroundView.set('colIndex', iColumn);
                 if (!tCurrentPlotView || tCurrentPlotView.constructor !== tPlotViewClass) {
+                  var tYAxisViewArrayKey = iPlotModel.get('verticalAxisIsY2') ? 'y2AxisViewArray' : 'yAxisViewArray';
                   tNewPlotView = tPlotViewClass.create({
                     paperSource: tPlotBackgroundViewArray[iRow][iColumn],
                     model: iPlotModel,
                     parentView: this_,
                     xAxisView: this_.get('xAxisViewArray')[iColumn],
-                    yAxisView: this_.get('yAxisViewArray')[iRow],
-                    y2AxisView: this_.get('y2AxisViewArray')[iRow]
+                    yAxisView: this_.get(tYAxisViewArrayKey)[iRow]
                   });
                   tPlotViewArray[iRow][iColumn][iIndex] = tNewPlotView;
                   this_.addPlotViewObserver(tNewPlotView);
