@@ -833,7 +833,8 @@ DG.ComponentView = SC.View.extend(
           if (tNewTop + tNewHeight > tContainerHeight) {
             tNewTop = Math.max(0, tContainerHeight - tNewHeight);
           }
-          this.adjust({width: tNewWidth, height: tNewHeight, left: tNewLeft, top: tNewTop});
+          if(!(isNaN(tNewWidth) || isNaN(tNewHeight) || isNaN(tNewLeft) || isNaN(tNewTop) ))
+            this.adjust({width: tNewWidth, height: tNewHeight, left: tNewLeft, top: tNewTop});
           var controller = this.get('controller');
           if (controller && controller.view)
             controller.updateModelLayout();
