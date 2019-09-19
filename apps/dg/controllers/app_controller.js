@@ -381,6 +381,7 @@ DG.appController = SC.Object.create((function () // closure
     openCSVImporter: function (iConfig) {
       var tComponent = DG.Component.createComponent({
         type: 'DG.GameView',
+        document: DG.currDocumentController().content,
         layout: {
           isVisible: false
         },
