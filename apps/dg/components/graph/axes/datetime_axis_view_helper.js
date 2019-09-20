@@ -246,9 +246,9 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           switch (iLevel) {
             case EDateTimeLevel.eYear:
               tYear = Math.ceil( tYear / iGap) * iGap;
-              tResultDate = new Date(tYear, 1, 1);
+              tResultDate = new Date(tYear, 0, 1);
               if (tResultDate.valueOf() < iDate.valueOf())
-                tResultDate = new Date(++tYear, 1, 1);
+                tResultDate = new Date(++tYear, 0, 1);
               tLabelString = String(tYear);
               break;
             case EDateTimeLevel.eMonth:
@@ -326,7 +326,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           switch (iLevel) {
             case EDateTimeLevel.eYear:
               tYear += iIncrementBy;
-              tResultDate = new Date(tYear, 1, 1);
+              tResultDate = new Date(tYear, 0, 1);
               tLabelString = String(tYear);
               break;
             case EDateTimeLevel.eMonth:
