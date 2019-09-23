@@ -355,8 +355,7 @@ DG.ComponentView = SC.View.extend(
           this.getPath('containerView.titlebar').adjust('height', 0);
           this.getPath('containerView.contentView').adjust('top', 0);
           this.parentView.sendToBack(this);
-          // this.layout = {};
-          this.adjust({top: 0, right: 0, bottom: 0, left: 0});
+          this.layout = {};
         },
         setFocusToComponentTitle: function () {
           var titleView = this.getPath('containerView.titlebar.titleView');
@@ -835,6 +834,10 @@ DG.ComponentView = SC.View.extend(
           }
           if(!(isNaN(tNewWidth) || isNaN(tNewHeight) || isNaN(tNewLeft) || isNaN(tNewTop) ))
             this.adjust({width: tNewWidth, height: tNewHeight, left: tNewLeft, top: tNewTop});
+          else {
+            var tMeasures = [tNewWidth, tNewHeight, tNewLeft, tNewTop];
+            console.log('Got NaN for adjust layout: tNewWidth, tNewHeight, tNewLeft, tNewTop: ' + tMeasures.join());
+          }
           var controller = this.get('controller');
           if (controller && controller.view)
             controller.updateModelLayout();
