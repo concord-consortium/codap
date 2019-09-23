@@ -625,7 +625,7 @@ DG.DocumentController = SC.Object.extend(
             function (iComponentID, iController) {
               if (iController) {
                 var view = iController.get('view');
-                if (view && view.get('isVisible')) {
+                if (view && view.get('isVisible') && !view.get('isStandaloneComponent')) {
                   view.enforceViewBounds();
                 }
               }
