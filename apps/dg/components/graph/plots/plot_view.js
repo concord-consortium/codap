@@ -452,8 +452,7 @@ DG.PlotView = DG.PlotLayer.extend(
         tConfig = tModel.get('dataConfiguration'),
         tLegendDesc = tConfig.get('legendAttributeDescription' ),
         tPlotIndex = this.get('plotIndex'),
-        tYVarIDKey = (this.getPath('yAxisView.orientation') === DG.GraphTypes.EOrientation.kVertical2) ?
-            'y2VarID' : 'yVarID',
+        tYVarIDKey = tModel.getPath('verticalAxisIsY2') ? 'y2VarID' : 'yVarID',
         tStrokeParams = this.getStrokeParams(),
         tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
                             DG.MathUtilities.nQuantileValues(

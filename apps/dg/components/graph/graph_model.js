@@ -1219,33 +1219,34 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     updateSplitPlotArray: function() {
       var this_ = this,
-          tRootPlot = this.get('plot'),
-          tNumPlotsPerCell = this.get('splitPlotArray')[0][0].length,
-          tPlotClass = tRootPlot.constructor;  // All plots will be of this class
+          tRootPlotArray = this.get('splitPlotArray')[0][0],
+          tNumPlotsPerCell = tRootPlotArray.length,
+          tPlotClass = tRootPlotArray[0].constructor;  // All plots will be of this class
 
       this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
-        for( var tAttrIndex = 0; tAttrIndex < tNumPlotsPerCell; tAttrIndex++) {
-          var tCurrentPlot = iPlotArray[tAttrIndex],
+        var tAttrIndex = 0;
+        for( var tPlotIndex = 0; tPlotIndex < tNumPlotsPerCell; tPlotIndex++) {
+          var tRootPlot = tRootPlotArray[ tPlotIndex],
+              tCurrentPlot = iPlotArray[tPlotIndex],
               tNewPlot;
           if( !tCurrentPlot || tCurrentPlot.constructor !== tPlotClass) {
             var tProperties = $.extend(this_.getModelPointStyleAccessors(),
                 tRootPlot.getPropsForCopy(),
                 {
-                  dataConfiguration: this_.get('dataConfiguration'),
                   splitPlotRowIndex: iRow,
                   splitPlotColIndex: iCol,
                   xAxis: this_.get('xAxisArray')[iCol],
                   yAxis: this_.get('yAxisArray')[iRow],
                   y2Axis: this_.get('y2AxisArray')[0],
-                  yAttributeIndex: tAttrIndex
+                  yAttributeIndex: tRootPlot.get('verticalAxisIsY2') ? 0 : tAttrIndex++
                 });
             tNewPlot = tPlotClass.create(tProperties);
-            if( tAttrIndex === 0) {
+            if( tPlotIndex === 0) {
               tNewPlot.installAdornmentModelsFrom(tRootPlot);
               this_.addPlotObserver(tNewPlot);
               tRootPlot.addSibling(tNewPlot);
             }
-            iPlotArray[tAttrIndex] = tNewPlot;
+            iPlotArray[tPlotIndex] = tNewPlot;
             if (tCurrentPlot) {
               this_.removePlotObserver(tCurrentPlot);
             }
@@ -1253,7 +1254,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
           else {
             tCurrentPlot.set('splitPlotRowIndex', iRow);
             tCurrentPlot.set('splitPlotColIndex', iCol);
-            tCurrentPlot.set('yAttributeIndex', tAttrIndex);
+            if( !tCurrentPlot.get('verticalAxisIsY2')) {
+              tCurrentPlot.set('yAttributeIndex', tAttrIndex++);
+            }
             tCurrentPlot.invalidateCaches();
             tCurrentPlot.updateAdornmentModels();
           }

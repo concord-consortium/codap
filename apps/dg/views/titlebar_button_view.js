@@ -266,20 +266,33 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
         toolTip: 'DG.DocumentController.toggleToCaseCard',
         isVisible: true, // to start with
         doIt: function() {
-          var tComponentView = this.parentView.viewToDrag();
-          DG.UndoHistory.execute(DG.Command.create({
-            name: 'toggle.toCaseCard',
-            undoString: 'DG.Undo.component.toggleTableToCard',
-            redoString: 'DG.Redo.component.toggleTableToCard',
-            log: 'Toggle case table to case card',
-            execute: function() {
-              DG.currDocumentController().toggleTableToCard(tComponentView);
-            },
-            undo: function() {
-              var tCardComponentView = tComponentView.get('cardView');
-              DG.currDocumentController().toggleCardToTable(tCardComponentView);
-            }
-          }));
+          var tComponentView = this.parentView.viewToDrag(),
+              tItems = [
+                { title: 'DG.DocumentController.toggleToCaseCard'.loc(),
+                }
+              ];
+
+          DG.MenuPane.create({
+            classNames: 'dg-attributes-popup'.w(),
+            layout: {width: 200, height: 150},
+            items: tItems,
+            selectedItemDidChange: function() {
+              DG.UndoHistory.execute(DG.Command.create({
+                name: 'toggle.toCaseCard',
+                undoString: 'DG.Undo.component.toggleTableToCard',
+                redoString: 'DG.Redo.component.toggleTableToCard',
+                log: 'Toggle case card to case table',
+                execute: function() {
+                  DG.currDocumentController().toggleTableToCard(tComponentView);
+                },
+                undo: function() {
+                  var tCardComponentView = tComponentView.get('cardView');
+                  DG.currDocumentController().toggleCardToTable(tCardComponentView);
+                }
+              }));
+            }.observes('selectedItem')
+          }).popup(this, [0, -20, SC.POSITION_BOTTOM]);
+
         }
       };
     }()) // function closure
@@ -299,20 +312,33 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
         toolTip: 'DG.DocumentController.toggleToCaseTable',
         isVisible: true, // to start with
         doIt: function() {
-          var tComponentView = this.parentView.viewToDrag();
-          DG.UndoHistory.execute(DG.Command.create({
-            name: 'toggle.toCaseTable',
-            undoString: 'DG.Undo.component.toggleCardToTable',
-            redoString: 'DG.Redo.component.toggleCardToTable',
-            log: 'Toggle case card to case table',
-            execute: function() {
-              DG.currDocumentController().toggleCardToTable(tComponentView);
-            },
-            undo: function() {
-              var tTableComponentView = tComponentView.get('tableView');
-              DG.currDocumentController().toggleTableToCard(tTableComponentView);
-            }
-          }));
+          var tComponentView = this.parentView.viewToDrag(),
+              tItems = [
+                { title: 'DG.DocumentController.toggleToCaseTable'.loc(),
+                }
+              ];
+
+          DG.MenuPane.create({
+            classNames: 'dg-attributes-popup'.w(),
+            layout: {width: 200, height: 150},
+            items: tItems,
+            selectedItemDidChange: function() {
+              DG.UndoHistory.execute(DG.Command.create({
+                name: 'toggle.toCaseTable',
+                undoString: 'DG.Undo.component.toggleCardToTable',
+                redoString: 'DG.Redo.component.toggleCardToTable',
+                log: 'Toggle case card to case table',
+                execute: function() {
+                  DG.currDocumentController().toggleCardToTable(tComponentView);
+                },
+                undo: function() {
+                  var tTableComponentView = tComponentView.get('tableView');
+                  DG.currDocumentController().toggleTableToCard(tTableComponentView);
+                }
+              }));
+            }.observes('selectedItem')
+          }).popup(this, [0, -20, SC.POSITION_BOTTOM]);
+
         }
       };
     }()) // function closure

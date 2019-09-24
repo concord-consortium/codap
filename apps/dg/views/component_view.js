@@ -832,7 +832,12 @@ DG.ComponentView = SC.View.extend(
           if (tNewTop + tNewHeight > tContainerHeight) {
             tNewTop = Math.max(0, tContainerHeight - tNewHeight);
           }
-          this.adjust({width: tNewWidth, height: tNewHeight, left: tNewLeft, top: tNewTop});
+          if(!(isNaN(tNewWidth) || isNaN(tNewHeight) || isNaN(tNewLeft) || isNaN(tNewTop) ))
+            this.adjust({width: tNewWidth, height: tNewHeight, left: tNewLeft, top: tNewTop});
+          else {
+            var tMeasures = [tNewWidth, tNewHeight, tNewLeft, tNewTop];
+            console.log('Got NaN for adjust layout: tNewWidth, tNewHeight, tNewLeft, tNewTop: ' + tMeasures.join());
+          }
           var controller = this.get('controller');
           if (controller && controller.view)
             controller.updateModelLayout();
@@ -1062,7 +1067,7 @@ DG.ComponentView.restoreComponent = function (iParams) {
   }
   tSuperView.appendChild(tComponentView);
   tSuperView.updateFrame();
-  if (DG.KEEP_IN_BOUNDS_PREF) {
+  if (DG.KEEP_IN_BOUNDS_PREF && !tComponentView.get('isStandaloneComponent')) {
     if (!tUseLayoutForPosition) {
       tComponentView.configureViewBoundsLayout(tNewPos);
     }

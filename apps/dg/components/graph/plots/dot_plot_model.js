@@ -488,7 +488,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           var tNumericValue = iCase.getNumValue(tNumericVarID),
               tCellValue = iCase.getStrValue(tCategoricalVarID),
               tCellNumber = tCategoricalAxisModel.cellNameToCellNumber(tCellValue);
-          if (tCellNumber !== null &&
+          if (tCellNumber != null &&
               DG.MathUtilities.isInIntegerRange(tCellNumber, 0, tValueArray.length) && // if Cell Number not missing
               isFinite(tNumericValue)) { // if numeric value not missing
             tValueArray[tCellNumber].count += 1;
