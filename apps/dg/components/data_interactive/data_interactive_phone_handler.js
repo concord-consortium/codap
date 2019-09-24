@@ -520,9 +520,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (DG.STANDALONE_MODE && title && DG.isStandaloneComponent(title, diComponent.get('type'))) {
             DG.log('isStandalone component: ' + title);
             diView.makeStandalone();
-            if( DG.KEEP_IN_BOUNDS_PREF) {
-
-            }
+            // if( DG.KEEP_IN_BOUNDS_PREF) {
+            //
+            // }
           }
 
           return {

@@ -250,7 +250,8 @@ DG.Attribute = DG.BaseModel.extend(
           // Result is true if there are some values that are not empty, not NaN, and not numeric
           tResult = tCases && tCases.some(function (iCase) {
             var tValue = iCase.getValue(tAttrID);
-            return !SC.empty( tValue) && tValue !== NaN && !DG.MathUtilities.isNumeric( tValue);
+            // eslint-disable-next-line use-isnan
+            return !SC.empty( tValue) && tValue !== NaN && !DG.MathUtilities.isNumeric( tValue);// jshint ignore:line
           });
         }
         return tResult;
