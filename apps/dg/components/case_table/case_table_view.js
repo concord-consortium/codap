@@ -1608,7 +1608,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                                   break;
                               }
                             })
-              .focus({preventScroll:true})
+              .focus()
               .select();
         // $plusEl.addClass('disabled');
       }
