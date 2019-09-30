@@ -160,12 +160,8 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
       /**
        * @overload
-       * Normally, split-views would schedule a re-tile. We allow vertical changes
-       * in the parent to be seen, but pin horizontal ones.
        */
       parentViewDidResize: function (frame) {
-        frame.width = this.get('frameSize') || frame.width;
-
         this.parentViewDidResizeOrScroll();
         return sc_super();
       },
@@ -176,14 +172,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
           tableView.ancestorViewDidResizeOrScroll();
         });
       },
-
-      frameSize: function () {
-        return this.get('frame').width;
-      }.property(),
-
-      frameSizeDidChange: function() {
-        this.notifyPropertyChange('frameSize');
-      }.observes('frame'),
 
       /**
        * Returns a view instance to be used as a divider between two other views,
@@ -464,7 +452,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
                             if( iView && iView.willDestroy)
                               iView.willDestroy();
                           });
-      this.contentView.removeObserver('frameSize', this, 'contentWidthDidChange');
     },
 
     /**
@@ -615,9 +602,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }.bind(this));
       this.updateSelectedRows();
       contentView.scheduleTiling();
-      if (!contentView.hasObserverFor('frameSize', this, 'contentWidthDidChange')) {
-        contentView.addObserver('frameSize', this, 'contentWidthDidChange');
-      }
     },
 
     /**
