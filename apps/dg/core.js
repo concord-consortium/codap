@@ -409,9 +409,11 @@ DG = SC.Application.create((function () // closure
     STANDALONE_MODE: useStandaloneMode(),
     STANDALONE_PLUGIN: getUrlParameter('standalone'),
     isStandaloneComponent: function (iComponentName, iComponentType) {
+      var standalonePlugin = (DG.STANDALONE_PLUGIN || '').toLowerCase();
+      var componentName = (iComponentName || '').toLowerCase();
       return (DG.STANDALONE_MODE
           && (iComponentType === 'DG.GameView')
-          && (DG.STANDALONE_PLUGIN === 'true' || (iComponentName === DG.STANDALONE_PLUGIN))
+          && (DG.STANDALONE_PLUGIN === 'true' || (componentName === standalonePlugin))
       );
     },
 
