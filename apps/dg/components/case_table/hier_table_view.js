@@ -173,6 +173,14 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         });
       },
 
+      frameSize: function () {
+        return this.get('frame').width;
+      }.property(),
+
+      frameSizeDidChange: function() {
+        this.notifyPropertyChange('frameSize');
+      }.observes('frame'),
+
       /**
        * Returns a view instance to be used as a divider between two other views,
        * or null if no divider should be used.
@@ -452,6 +460,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
                             if( iView && iView.willDestroy)
                               iView.willDestroy();
                           });
+      this.contentView.removeObserver('frameSize', this, 'contentWidthDidChange');
     },
 
     /**
@@ -602,6 +611,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }.bind(this));
       this.updateSelectedRows();
       contentView.scheduleTiling();
+      if (!contentView.hasObserverFor('frameSize', this, 'contentWidthDidChange')) {
+        contentView.addObserver('frameSize', this, 'contentWidthDidChange');
+      }
+
     },
 
     /**
