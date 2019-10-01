@@ -1840,6 +1840,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
 
       $(this.get('layer')).find('.slick-header-column').each(function (ix, cell) {
+        // if we are mid-edit of a header field, ignore this attr.
+        if ($(cell).find('input').length) { return; }
         var $nameElement = $(cell).find('.slick-column-name');
         var $line1 = $nameElement.find('.two-line-header-line-1');
         if (!$line1.length) {
