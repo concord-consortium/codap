@@ -44,6 +44,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
   return {
 
+    isVisibleChanged: function() {
+      console.log('isVisibleChanged');
+    }.observes('isVisible'),
+
     /**
      * We scroll horizontally. Vertical scrolling is within case tables.
      */
@@ -81,6 +85,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         // DG.log('Hiding Header Menus');
         this.contentView.hideHeaderMenus();
       }
+      this.setPath('horizontalScrollerView.isVisible', false);
+      this.invokeLater( function() {
+        this.setPath('horizontalScrollerView.isVisible', true);
+      }, 10);
     }.observes('parentView.parentView.isSelected'),
 
     /**
