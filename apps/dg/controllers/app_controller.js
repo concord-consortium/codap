@@ -560,20 +560,31 @@ DG.appController = SC.Object.create((function () // closure
       // from: http://www.abeautifulsite.net/parsing-urls-in-javascript/
       var urlParser = document.createElement('a');
       urlParser.href = iURL;
-      var pathname = urlParser.pathname.toLocaleLowerCase();
+      var baseURL = urlParser.protocol + urlParser.host + urlParser.pathname;
 
-      if (pathname.match(/.*\.(json|codap)$/)) {
-        DG.cfmClient.openUrlFile(iURL);
-      } else if (pathname.match(/.*\.(csv|txt)$/)) {
-        // CFM should be importing this document
-        this.importTextFromUrl(iURL);
-      } else if (pathname.match(/.*\.geojson$/)) {
-        this.importGeoJSONFromURL(iURL);
-      } else if (iURL.match(/^data:text\/csv/)){
-        this.importCSVFromDataUri(iURL);
-      } else {
-        addInteractive();
+      var mimeSpec = this.matchMimeSpec(baseURL, iComponentType);
+
+      if (!mimeSpec) { mimeSpec = {group:'UNKOWN',mime: ['unkown']}; }
+      DG.log('Opening url "%@" of type %@'.loc(iURL, mimeSpec.mime[0]));
+      if (mimeSpec) {
+        switch (mimeSpec.group) {
+          case 'TEXT':
+            this.importTextFromUrl(iURL);
+            break;
+          case 'GEOJSON':
+            this.importGeoJSONFromURL(iURL);
+            break;
+          case 'JSON':
+            DG.cfmClient.openUrlFile(iURL);
+            break;
+          case 'IMAGE':
+            this.importWebView(iURL);
+            break;
+          default:
+            addInteractive();
+        }
       }
+
       return true;
     },
 
@@ -678,87 +689,87 @@ DG.appController = SC.Object.create((function () // closure
     mimeTypesAndExtensions: [
       {
         group: 'TEXT',
-        mime: 'text/csv',
+        mime: ['text/csv', 'application/csv'],
         extensions: ['csv']
       },
       {
         group: 'TEXT',
-        mime: 'application/csv',
-        extensions: ['csv']
-      },
-      {
-        group: 'TEXT',
-        mime: 'text/plain',
+        mime: ['text/plain'],
         extensions: ['txt']
       },
       {
         group: 'TEXT',
-        mime: 'text/tab-separated-values',
-        extensions: ['tsv']
+        mime: ['text/tab-separated-values'],
+        extensions: ['tsv', 'tab']
       },
       {
         group: 'JSON',
-        mime: 'application/json',
-        extensions: ['json', 'codap']
-      },
-      {
-        group: 'JSON',
-        mime: 'application/x-javascript',
-        extensions: ['json', 'codap']
-      },
-      {
-        group: 'JSON',
-        mime: 'text/x-json',
+        mime: ['application/json', 'application/x-javascript', 'text/x-json'],
         extensions: ['json', 'codap']
       },
       {
         group: 'GEOJSON',
-        mime: 'application/geo+json',
+        mime: ['application/geo+json','application/vnd.geo+json'],
         extensions: ['geojson']
       },
       {
-        group: 'GEOJSON',
-        mime: 'application/vnd.geo+json',
-        extensions: ['geojson']
-      },
-      {
-        group: 'BINARY',
-        mime: 'image/gif',
+        group: 'IMAGE',
+        mime: ['image/gif'],
         extensions: ['gif']
       },
       {
-        group: 'BINARY',
-        mime: 'image/jpeg',
+        group: 'IMAGE',
+        mime: ['image/jpeg'],
         extensions: ['jpeg','jpg']
       },
       {
-        group: 'BINARY',
-        mime: 'image/png',
+        group: 'IMAGE',
+        mime: ['image/png'],
         extensions: ['png']
       },
       {
-        group: 'BINARY',
-        mime: 'image/svg+xml',
+        group: 'IMAGE',
+        mime: ['image/svg+xml'],
         extensions: ['svg', 'svgz']
       }/*,
       {
-        group: 'BINARY',
+        group: 'IMAGE',
         mime: 'application/pdf',
         xtensions: 'pdf'
       },*/
     ],
     /**
+     * Attempts to match a filename or URL or a type to an entry in the above
+     * spec list.
+     * @param name: a filename or URL
+     * @param type: a type string. May be missing.
+     */
+    matchMimeSpec: function (name, type) {
+      var isDataURIMatch = /^data:([^;]+);.+$/.exec(name);
+      var match = name && name.match(/\.([^.\/]+)$/);
+      var mySuffix = match && match[1].toLowerCase();
+      var typeDesc;
+      // if we haven't a type and its a data URI, use its mime type
+      if (type == null && isDataURIMatch) {
+        type = isDataURIMatch[1];
+      }
+      typeDesc = type && this.mimeTypesAndExtensions.find(function (mimeDef) {
+        return (type != null) && mimeDef.mime.find(function (str) {
+          return str === type;
+        });
+      });
+      typeDesc = typeDesc || this.mimeTypesAndExtensions.find(function (mimeDef) {
+        return mySuffix && mimeDef.extensions.find(function (ext) {
+          return mySuffix === ext;
+        });
+      });
+      return typeDesc;
+    },
+    /**
       Imports a dragged or selected file
       */
     importFile: function ( iFile) {
-      var typeDesc = this.mimeTypesAndExtensions.find(function (mimeDef) {
-        var foundMime = (mimeDef.mime === iFile.type);
-        var match = iFile.name.match(/\.([^.\/]+)$/);
-        var mySuffix = match && match[1].toLowerCase();
-        var foundSuffix = mySuffix && mimeDef.extensions.find(function (ext) { return mySuffix === ext; } );
-        return foundMime || foundSuffix;
-      });
-
+      var typeDesc = this.matchMimeSpec(iFile.name, iFile.type);
       var handlingGroup = typeDesc? typeDesc.group: 'JSON';
 
       var tAlertDialog = {
@@ -778,7 +789,7 @@ DG.appController = SC.Object.create((function () // closure
         }
       };
 
-      DG.log('Opening file "%@" of type %@'.loc(iFile && iFile.name, typeDesc? typeDesc.mime: 'unknown'));
+      DG.log('Opening file "%@" of type %@'.loc(iFile && iFile.name, typeDesc? typeDesc.mime[0]: 'unknown'));
       this.importFileWithConfirmation(iFile, handlingGroup, tAlertDialog);
     },
 
@@ -823,7 +834,7 @@ DG.appController = SC.Object.create((function () // closure
                 that.importText(this.result,
                     iFile.name.replace(/\.[^.]*$/, ''), iFile.name);
               }
-              else if (iType === 'BINARY') {
+              else if (iType === 'IMAGE') {
                 that.importWebView(this.result, iFile.name);
               }
               if (iDialog)
@@ -845,7 +856,7 @@ DG.appController = SC.Object.create((function () // closure
             reader.onabort = handleAbnormal;
             reader.onerror = handleAbnormal;
             reader.onload = handleRead;
-            if (iType === 'BINARY') {
+            if (iType === 'IMAGE') {
               reader.readAsDataURL(iFile);
             } else {
               reader.readAsText(iFile);
