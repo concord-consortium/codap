@@ -91,7 +91,6 @@
     "dayjs": "^1.8.14",
     "deep-equal": "^1.0.1",
     "esri-leaflet": "^2.2.1",
-    "iframe-phone": "^1.2.0",
     "leaflet": "1.0.0",
     "nanoid": "^2.0.1",
     "papaparse": "^4.5.0",
