@@ -364,6 +364,7 @@ DG.appController = SC.Object.create((function () // closure
     importTextFromUrl: function (iURL, iShowCaseTable) {
       var name = this.extractNameFromURLPath(iURL);
       this.openCSVImporter({
+        contentType: 'text/csv',
         url: iURL,
         datasetName: name,
         showCaseTable: iShowCaseTable
@@ -371,7 +372,11 @@ DG.appController = SC.Object.create((function () // closure
     },
     importGeoJSONFromURL: function (iURL) {
       var name = this.extractNameFromURLPath(iURL);
-      this.openGeoJSONImporter({url: iURL, datasetName: name, showCaseTable: false});
+      this.openGeoJSONImporter({
+        contentType: 'application/geo+json',
+        url: iURL, datasetName: name,
+        showCaseTable: false
+      });
     },
 
     openImporterPlugin: function(iName, iPath, iGameState) {
@@ -407,6 +412,10 @@ DG.appController = SC.Object.create((function () // closure
 
     openGeoJSONImporter: function (iConfig) {
       this.openImporterPlugin('Import GeoJSON', '/ImportGeoJSON/', iConfig);
+    },
+
+    openHTMLImporter: function (iConfig) {
+      this.openImporterPlugin('Import HTML', '/ImportHTML/', iConfig);
     },
 
     /**
@@ -495,10 +504,19 @@ DG.appController = SC.Object.create((function () // closure
      */
     importText: function( iText, iName, iFilename, iShowCaseTable) {
       this.openCSVImporter({
+        contentType: 'text/csv',
         text: iText,
         datasetName: iName,
         filename: iFilename,
         showCaseTable: iShowCaseTable
+      });
+      return true;
+    },
+
+    importHTMLTable: function (iText) {
+      this.openHTMLImporter({
+        contentType: 'text/html',
+        text: iText
       });
       return true;
     },
@@ -824,6 +842,7 @@ DG.appController = SC.Object.create((function () // closure
               }
               else if (iType === 'GEOJSON') {
                 that.openGeoJSONImporter({
+                  contentType: 'application/geo+json',
                   text: this.result,
                   datasetName: iFile.name.replace(/\.[^.]*$/, ''),
                   filename: iFile.name,
