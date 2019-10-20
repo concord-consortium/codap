@@ -374,7 +374,8 @@ DG.appController = SC.Object.create((function () // closure
       var name = this.extractNameFromURLPath(iURL);
       this.openGeoJSONImporter({
         contentType: 'application/geo+json',
-        url: iURL, datasetName: name,
+        url: iURL,
+        datasetName: name,
         showCaseTable: false
       });
     },
@@ -407,15 +408,15 @@ DG.appController = SC.Object.create((function () // closure
      *                                  table for the new context
      */
     openCSVImporter: function (iConfig) {
-      this.openImporterPlugin('Import CSV', '/ImportCSV/', iConfig);
+      this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
     openGeoJSONImporter: function (iConfig) {
-      this.openImporterPlugin('Import GeoJSON', '/ImportGeoJSON/', iConfig);
+      this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
     openHTMLImporter: function (iConfig) {
-      this.openImporterPlugin('Import HTML', '/ImportHTML/', iConfig);
+      this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
     /**

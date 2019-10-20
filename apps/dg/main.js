@@ -536,18 +536,21 @@ DG.main = function main() {
       }
       function makeCSVDocument(urlString, datasetName) {
         var gameState = {
+          contentType: 'text/csv',
           url: urlString,
           datasetName: datasetName,
           showCaseTable: true
         };
-        return makePluginDocument(gameState, 'Import CSV', '/ImportCSV/');
+        return makePluginDocument(gameState, 'Import CSV', '/Importer/');
       }
-      function makeGeoJSONDocument(contents, datasetName) {
+      function makeGeoJSONDocument(contents, urlString, datasetName) {
         var gameState = {
+          contentType: 'application/geo+json',
           text: contents,
+          name: urlString,
           datasetName: datasetName
         };
-        return makePluginDocument(gameState, 'Import GeoJSON', '/ImportGeoJSON/');
+        return makePluginDocument(gameState, 'Import GeoJSON', '/Importer/');
       }
       var metadata = iMetadata || {};
       var urlString = metadata.url || ('file:' + metadata.filename);
@@ -585,7 +588,7 @@ DG.main = function main() {
         resolve(makeCSVDocument(urlString, datasetName));
       }
       else if (contentType === 'application/vnd.geo+json') {
-        resolve(makeGeoJSONDocument(iDocContents, datasetName));
+        resolve(makeGeoJSONDocument(iDocContents, urlString, datasetName));
       }
       else if (contentType === 'application/vnd.codap+json') {
         docContentsPromise(iDocContents).then(
