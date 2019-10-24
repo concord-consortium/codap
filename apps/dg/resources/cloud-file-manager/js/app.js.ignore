@@ -11949,7 +11949,7 @@ CloudFileManager = (function() {
 module.exports = new CloudFileManager();
 
 
-},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":83}],54:[function(require,module,exports){
+},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":85}],54:[function(require,module,exports){
 var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, PostMessageProvider, ProviderInterface, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, getQueryParam, isString, tr,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   hasProp = {}.hasOwnProperty;
@@ -13443,7 +13443,7 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":80,"base64-js":1}],55:[function(require,module,exports){
+},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":82,"base64-js":1}],55:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.3.2
@@ -14233,7 +14233,7 @@ DocumentStoreProvider = (function(superClass) {
 module.exports = DocumentStoreProvider;
 
 
-},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":80,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
+},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":82,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
 var CloudMetadata, DocumentStoreShareProvider, DocumentStoreUrl, pako;
 
 CloudMetadata = (require('./provider-interface')).CloudMetadata;
@@ -15031,7 +15031,7 @@ GoogleDriveProvider = (function(superClass) {
 module.exports = GoogleDriveProvider;
 
 
-},{"../utils/is-string":72,"../utils/translate":80,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":82,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
 var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -15616,7 +15616,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":80,"../views/local-file-tab-list-view":92,"../views/local-file-tab-save-view":93,"./provider-interface":65}],62:[function(require,module,exports){
+},{"../utils/translate":82,"../views/local-file-tab-list-view":94,"../views/local-file-tab-save-view":95,"./provider-interface":65}],62:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -15772,7 +15772,7 @@ LocalStorageProvider = (function(superClass) {
 module.exports = LocalStorageProvider;
 
 
-},{"../utils/translate":80,"./provider-interface":65}],63:[function(require,module,exports){
+},{"../utils/translate":82,"./provider-interface":65}],63:[function(require,module,exports){
 var PatchableContent, jiff;
 
 jiff = require('jiff');
@@ -16603,7 +16603,7 @@ ReadOnlyProvider = (function(superClass) {
 module.exports = ReadOnlyProvider;
 
 
-},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":80,"./provider-interface":65}],67:[function(require,module,exports){
+},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":82,"./provider-interface":65}],67:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, URLProvider, cloudContentFactory,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -16948,7 +16948,7 @@ module.exports = {
 };
 
 
-},{"./utils/is-string":72,"./utils/translate":80}],69:[function(require,module,exports){
+},{"./utils/is-string":72,"./utils/translate":82}],69:[function(require,module,exports){
 module.exports = function(param) {
   var ret;
   ret = null;
@@ -17659,6 +17659,260 @@ module.exports={
 
 },{}],78:[function(require,module,exports){
 module.exports={
+    "~MENUBAR.UNTITLED_DOCUMENT": "Dokument uten navn",
+    "~MENU.NEW": "Ny",
+    "~MENU.OPEN": "Åpne ...",
+    "~MENU.CLOSE": "Lukk",
+    "~MENU.IMPORT_DATA": "Importér data",
+    "~MENU.SAVE": "Lagre",
+    "~MENU.SAVE_AS": "Lagre som ...",
+    "~MENU.EXPORT_AS": "Eksportér fil som ...",
+    "~MENU.CREATE_COPY": "Lag kopi",
+    "~MENU.SHARE": "Del ...",
+    "~MENU.SHARE_GET_LINK": "Få lenke til delt visning",
+    "~MENU.SHARE_UPDATE": "Oppdatér delt visning",
+    "~MENU.DOWNLOAD": "Last ned",
+    "~MENU.RENAME": "Gi nytt navn",
+    "~MENU.REVERT_TO": "Tilbakestill til ...",
+    "~MENU.REVERT_TO_LAST_OPENED": "Siste åpnede versjon",
+    "~MENU.REVERT_TO_SHARED_VIEW": "Delt visning",
+    "~DIALOG.SAVE": "Lagre",
+    "~DIALOG.SAVE_AS": "Lagre som ...",
+    "~DIALOG.EXPORT_AS": "Eksportér fil som ...",
+    "~DIALOG.CREATE_COPY": "Lag en kopi ...",
+    "~DIALOG.OPEN": "Åpne",
+    "~DIALOG.DOWNLOAD": "Last ned",
+    "~DIALOG.RENAME": "Gi nytt navn",
+    "~DIALOG.SHARED": "Del",
+    "~DIALOG.IMPORT_DATA": "Importér data",
+    "~PROVIDER.LOCAL_STORAGE": "På denne enheten",
+    "~PROVIDER.READ_ONLY": "Kun leseversjon",
+    "~PROVIDER.GOOGLE_DRIVE": "Google Drive",
+    "~PROVIDER.DOCUMENT_STORE": "Concord Cloud",
+    "~PROVIDER.LOCAL_FILE": "Lokal fil",
+    "~FILE_STATUS.SAVING": "Lagrer...",
+    "~FILE_STATUS.SAVED": "Alle endringer lagret",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "Alle endringer lagret til",
+    "~FILE_STATUS.UNSAVED": "Ikke lagret",
+    "~FILE_DIALOG.FILENAME": "Filnavn",
+    "~FILE_DIALOG.OPEN": "Åpne",
+    "~FILE_DIALOG.SAVE": "Lagre",
+    "~FILE_DIALOG.CANCEL": "Avbryt",
+    "~FILE_DIALOG.REMOVE": "Slett",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "Er du sikker på at du vil slette %{filename}?",
+    "~FILE_DIALOG.REMOVED_TITLE": "Slettet fil",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename} ble slettet",
+    "~FILE_DIALOG.LOADING": "Laster...",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "***Feil ved lasting av innholdet i mappa***",
+    "~FILE_DIALOG.DOWNLOAD": "Last ned",
+    "~FILE_DIALOG.DOWNLOAD_NOTE": "MERK: Hvis fila er \"Uknown\" i Safari, angi .codap som fil-endelse.",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "Last ned",
+    "~DOWNLOAD_DIALOG.CANCEL": "Avbryt",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Inkludér delingsinformasjon i den nedlastede fila",
+    "~RENAME_DIALOG.RENAME": "Gi nytt navn",
+    "~RENAME_DIALOG.CANCEL": "Avbryt",
+    "~SHARE_DIALOG.COPY": "Kopier",
+    "~SHARE_DIALOG.VIEW": "Se",
+    "~SHARE_DIALOG.CLOSE": "Lukk",
+    "~SHARE_DIALOG.COPY_SUCCESS": "Informasjonen har blitt kopiert til utklippstavla",
+    "~SHARE_DIALOG.COPY_ERROR": "Det var dessverre ikke mulig å kopiere innholdet til utklippstavla.",
+    "~SHARE_DIALOG.COPY_TITLE": "Kopiér",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "Den delte kopien av dette dokumentet beholdes helt til kopien ikke har vært i bruk på over ett år.",
+    "~SHARE_UPDATE.TITLE": "Delt visning oppdatert",
+    "~SHARE_UPDATE.MESSAGE": "Oppdatering av den delte visningen var vellykket.",
+    "~CONFIRM.OPEN_FILE": "Du har endringer som ikke er lagret. Er du sikker på at du vil åpne et nytt dokument?",
+    "~CONFIRM.NEW_FILE": "Du har endringer som ikke er lagret. Er du sikker på at du opprette et nytt dokument?",
+    "~CONFIRM.AUTHORIZE_OPEN": "Autorisering er nødvendig for å åpne dokumentet. Vil du gå videre med autorisering?",
+    "~CONFIRM.AUTHORIZE_SAVE": "Autorisering er nødvendig for å lagre dokumentet. Vil du gå videre med autorisering?",
+    "~CONFIRM.CLOSE_FILE": "Du har endringer som ikke er lagret. Er du sikker på at du vil lukke dokumentet?",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "Er du sikker på at du vil tilbakestille dokumentet til siste åpnede versjon?",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "Er du sikker på at du til tilbakestille dokumentet til siste delte versjon?",
+    "~CONFIRM_DIALOG.TITLE": "Er du sikker?",
+    "~CONFIRM_DIALOG.YES": "Ja",
+    "~CONFIRM_DIALOG.NO": "Nei",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Slipp filen her eller klikk for å velge fil",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Du kan bare åpne én fil.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Du kan ikke slippe mer enn én fil.",
+    "~IMPORT.LOCAL_FILE": "Lokal fil",
+    "~IMPORT.URL": "URL",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Du kan bare åpne en URL.",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "Skriv inn URLen du vil importere.",
+    "~URL_TAB.DROP_URL_HERE": "Slipp URL her eller skriv inn URL under",
+    "~URL_TAB.IMPORT": "Importér",
+    "~CLIENT_ERROR.TITLE": "Feil",
+    "~ALERT_DIALOG.TITLE": "Advarsel",
+    "~ALERT_DIALOG.CLOSE": "Lukk",
+    "~ALERT.NO_PROVIDER": "Kunne ikke åpne dokumentet fordi en passende tilbyder ikke er tilgjengelig.",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Logg på Google",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Kobler til Google...",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Mangler nødvendig klientId i Google Drive",
+    "~DOCSTORE.LOAD_403_ERROR": "Du har ikke tillatelse til å laste %{filename}.<br><br>Hvis du bruker et dokument som noen andre har delt, så kan delingen ha blitt slått av.",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "Klarte ikke å laste det delte dokumentet. <br><br>Sjekk om dokumentet virkelig er delt.",
+    "~DOCSTORE.LOAD_404_ERROR": "Kunne ikke laste %{filename}",
+    "~DOCSTORE.SAVE_403_ERROR": "Du har ikke tillatelse til å lagre '%{filename}'.<br><br>Du må kanskje logge inn på nytt.",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "Kunne ikke opprette %{filename}. Filen finnes allerede.",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Kunne ikke lagre %{filename}:[%{message}]",
+    "~DOCSTORE.SAVE_ERROR": "Kunne ikke lagre %{filename}",
+    "~DOCSTORE.REMOVE_403_ERROR": "Du har ikke tillatelse til å fjerne %{filename}.<br><br>Du må kanskje logge inn på nytt.",
+    "~DOCSTORE.REMOVE_ERROR": "Kunne ikke fjerne %{filename}",
+    "~DOCSTORE.RENAME_403_ERROR": "Du har ikke tillatelse til å endre navnet på %{filename}.<br><br>Du må kanskje logge inn på nytt.",
+    "~DOCSTORE.RENAME_ERROR": "Kunne ikke endre navn på %{filename}",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud Advarsel",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Advarsel",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Lagre et annet sted",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "Jeg gjør det en annen gang",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concourd Clouden er avsluttet!",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Velg annen plassering for å lagre dokumentene.",
+    "~SHARE_DIALOG.SHARE_STATE": "Delt visning: ",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "aktivert",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "deaktivert",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Aktiver deling",
+    "~SHARE_DIALOG.STOP_SHARING": "Avslutt deling",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Oppdater delt visning",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Forhåndsvisning av delt visning",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "Når deling er aktivert vil en kopi av den nåværende visningen bli opprettet. Kopien kan deles.",
+    "~SHARE_DIALOG.LINK_TAB": "Lenke",
+    "~SHARE_DIALOG.LINK_MESSAGE": "Lim inn dette i en e-post eller tekstmelding",
+    "~SHARE_DIALOG.EMBED_TAB": "Embed",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Embedkode for å sette inn på nettsteder eller annet nett-basert innhold",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Bruk denne lenken når du lager en oppgave i LARA",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP-server URL",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Last side automatisk",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullskjermknapp og skalering",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Tekst på \"Last\"-knapp:",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Vis knapp for synlighet av data i grafer",
+    "~CONFIRM.CHANGE_LANGUAGE": "Du har endringer som ikke er lagret. Er du sikker på at du vil endre språk?"
+}
+
+},{}],79:[function(require,module,exports){
+module.exports={
+    "~MENUBAR.UNTITLED_DOCUMENT": "Dokument utan namn",
+    "~MENU.NEW": "Ny",
+    "~MENU.OPEN": "Opne...",
+    "~MENU.CLOSE": "Lukk",
+    "~MENU.IMPORT_DATA": "Importér data...",
+    "~MENU.SAVE": "Lagre",
+    "~MENU.SAVE_AS": "Lagres som...",
+    "~MENU.EXPORT_AS": "Eksporter fil som...",
+    "~MENU.CREATE_COPY": "Lag ein kopi",
+    "~MENU.SHARE": "Del...",
+    "~MENU.SHARE_GET_LINK": "Få lenkje til delt visning",
+    "~MENU.SHARE_UPDATE": "Oppdatér delt visning",
+    "~MENU.DOWNLOAD": "Last ned",
+    "~MENU.RENAME": "Gi nytt namn",
+    "~MENU.REVERT_TO": "Tilbakestill til...",
+    "~MENU.REVERT_TO_LAST_OPENED": "Sist opna versjon",
+    "~MENU.REVERT_TO_SHARED_VIEW": "Delt visning",
+    "~DIALOG.SAVE": "Lagre",
+    "~DIALOG.SAVE_AS": "Lagre som...",
+    "~DIALOG.EXPORT_AS": "Eksporter fil som...",
+    "~DIALOG.CREATE_COPY": "Lag ein kopi...",
+    "~DIALOG.OPEN": "Opne",
+    "~DIALOG.DOWNLOAD": "Last ned",
+    "~DIALOG.RENAME": "Gi nytt namn",
+    "~DIALOG.SHARED": "Del",
+    "~DIALOG.IMPORT_DATA": "Importér data",
+    "~PROVIDER.LOCAL_STORAGE": "Lokal lagring",
+    "~PROVIDER.READ_ONLY": "Leseversjon",
+    "~PROVIDER.GOOGLE_DRIVE": "Google Drive",
+    "~PROVIDER.DOCUMENT_STORE": "Concord Cloud",
+    "~PROVIDER.LOCAL_FILE": "Lokal fil",
+    "~FILE_STATUS.SAVING": "Lagrer...",
+    "~FILE_STATUS.SAVED": "Alle endringer er lagra",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "Alle endringer er lagra i %{providerName}",
+    "~FILE_STATUS.UNSAVED": "Ikkje lagra",
+    "~FILE_DIALOG.FILENAME": "Filnamn",
+    "~FILE_DIALOG.OPEN": "Opne",
+    "~FILE_DIALOG.SAVE": "Lagre",
+    "~FILE_DIALOG.CANCEL": "Avbryt",
+    "~FILE_DIALOG.REMOVE": "Slett",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "Er du sikker på at du vil slette %{filename}?",
+    "~FILE_DIALOG.REMOVED_TITLE": "Sletta fil",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename} vart sletta",
+    "~FILE_DIALOG.LOADING": "Lastar...",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Feil ved lasting av innholdet i mappa ***",
+    "~FILE_DIALOG.DOWNLOAD": "Last ned",
+    "~FILE_DIALOG.DOWNLOAD_NOTE": "MERK: I Safari kan fila være \"Ukjent\", og den må få nytt namn med endinga .codap",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "Last ned",
+    "~DOWNLOAD_DIALOG.CANCEL": "Avbryt",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Inkluder detaljer om deling i den nedlasta fila",
+    "~RENAME_DIALOG.RENAME": "Gi nytt namn",
+    "~RENAME_DIALOG.CANCEL": "Avbryt",
+    "~SHARE_DIALOG.COPY": "Kopier",
+    "~SHARE_DIALOG.VIEW": "Vis",
+    "~SHARE_DIALOG.CLOSE": "Lukk",
+    "~SHARE_DIALOG.COPY_SUCCESS": "Informasjonen har vorte kopiert til utklippstavla.",
+    "~SHARE_DIALOG.COPY_ERROR": "Orsak, informasjonen kunne ikkje bli kopiert til utklippstavla.",
+    "~SHARE_DIALOG.COPY_TITLE": "Kopier resultat",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "Den delte kopien til dette dokumentet blir behalde heilt til han ikkje har vore i bruk på over eitt år.",
+    "~SHARE_UPDATE.TITLE": "Delt visning oppdatert",
+    "~SHARE_UPDATE.MESSAGE": "Oppdateringa av den delte visninga var vellykka",
+    "~CONFIRM.OPEN_FILE": "Du har endringar som ikkje er lagra. Er du sikker på at du vil opne eit nytt dokument?",
+    "~CONFIRM.NEW_FILE": "Du har endringar som ikkje er lagra. Er du sikker på at du vil opprett eit nytt dokument?",
+    "~CONFIRM.AUTHORIZE_OPEN": "Autorisering er nødvendig for å opne dokumentet. Vil du gå vidare med autorisering?",
+    "~CONFIRM.AUTHORIZE_SAVE": "Autorisering er nødvendig for å lagre dokumentet. Vil du gå vidare med autorisering?",
+    "~CONFIRM.CLOSE_FILE": "Du har endringaer som ikkje er lagra? Er du sikker på at vil lukke dokumentet?",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "Er du sikker på at du vil stille dokumentet tilbake til siste opna versjon?",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "Er du sikker på at du vil stille dokumentet tilbake til siste delte versjon?",
+    "~CONFIRM_DIALOG.TITLE": "Er du sikker?",
+    "~CONFIRM_DIALOG.YES": "Ja",
+    "~CONFIRM_DIALOG.NO": "Nei",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Slepp fil her eller klikk her for å velja fil",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Orsak, du kan berre velje ei fil som du vil opne.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Orsak, du kan ikkje sleppe meir enn ei fil.",
+    "~IMPORT.LOCAL_FILE": "Lokal fil",
+    "~IMPORT.URL": "URL",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Orska, du kan berre velge ein URL som du vil opne.",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "Ver snill, skriv inn ein URL som du vil importere.",
+    "~URL_TAB.DROP_URL_HERE": "Slepp URL her eller skriv inn URL under",
+    "~URL_TAB.IMPORT": "Importér",
+    "~CLIENT_ERROR.TITLE": "Feil",
+    "~ALERT_DIALOG.TITLE": "Åtvaring",
+    "~ALERT_DIALOG.CLOSE": "Lukk",
+    "~ALERT.NO_PROVIDER": "Kunne ikkje opna dokumentet fordi ein passande tilbyder ikkje er tilgjengeleg.",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Logg på Google",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Koplar til Google...",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Saknar naudsyn clientID i tilbyder alternativene i googleDrive",
+    "~DOCSTORE.LOAD_403_ERROR": "Du har ikkje løyve til å laste %{filename}.<br><br> . Om du bruker eit dokument nokon andre har delt så kan det hende dokumentet ikke er delt lenger.",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "Kunne ikkje laste det forespurte dokumentet. <br><br>Kanskje fila ikkje er delt?",
+    "~DOCSTORE.LOAD_404_ERROR": "Kunne ikkje laste %{filename}",
+    "~DOCSTORE.SAVE_403_ERROR": "Du har ikkje løyve til å lagre '%{filename}'.<br><br>Du må kanskje logge inn att på nytt.",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "Kunne ikkje opprette %{filename}.  Fila finst allereie.",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Kunne ikkje lagre %{filename}: [%{message}]",
+    "~DOCSTORE.SAVE_ERROR": "Kunne ikkje lagre %{filename}",
+    "~DOCSTORE.REMOVE_403_ERROR": "Du har ikke løyve til å fjerne %{filename}.<br><br>Du må kanskje logge inn att på nytt.",
+    "~DOCSTORE.REMOVE_ERROR": "Kunne ikkje fjerne %{filename}",
+    "~DOCSTORE.RENAME_403_ERROR": "Du har ikkje løyve til å gi nytt namn til %{filename}.<br><br>Du må kanskje logge inn att på nytt.",
+    "~DOCSTORE.RENAME_ERROR": "Kunne ikkje gi nytt namn til %{filename}",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud-åtvaring",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud-åtvaring",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Lagre ein annan stad",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "Eg gjer det seinare",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concourd Cloud har vorte",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Ver snill og lagre dokumenta dine ein annan stad",
+    "~SHARE_DIALOG.SHARE_STATE": "Delt visning",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "aktivert",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "deaktivert",
+    "~SHARE_DIALOG.ENABLE_SHARING": "Aktivér deling",
+    "~SHARE_DIALOG.STOP_SHARING": "Avslutt deling",
+    "~SHARE_DIALOG.UPDATE_SHARING": "Oppdater delt visning",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "Forhåndsvis delt visning",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "Når deling er aktivert, vil det bli laga ein kopi av den noverande visninga. Denne kopien kan deles.",
+    "~SHARE_DIALOG.LINK_TAB": "Lenke",
+    "~SHARE_DIALOG.LINK_MESSAGE": "Lim inn dette i ein e-post eller tekstmelding ",
+    "~SHARE_DIALOG.EMBED_TAB": "Bygg inn",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "Bygg-inn-kode for å setja inn på nettsider eller anna nettbasert innhald.",
+    "~SHARE_DIALOG.LARA_MESSAGE": "Bruk denne linken når du lager ein aktivitet i LARA",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "URL til CODAP-serveren:",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "Last side automatisk",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullskjerm-knapp og skalering",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Tekst på \"Last\"-knapp:",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Vis knapp for synlegheit av data i grafar",
+    "~CONFIRM.CHANGE_LANGUAGE": "Du har endringer som ikkje er lagra. Er du sikker på at vil byte språk?"
+}
+
+},{}],80:[function(require,module,exports){
+module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "İsimsiz Dosya",
     "~MENU.NEW": "Yeni",
     "~MENU.OPEN": "Aç",
@@ -17784,7 +18038,7 @@ module.exports={
     "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
 }
 
-},{}],79:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
     "~MENU.NEW": "新增",
@@ -17911,7 +18165,7 @@ module.exports={
     "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
 }
 
-},{}],80:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 var defaultLang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
@@ -17932,6 +18186,12 @@ languageFiles = [
   }, {
     key: 'he',
     contents: require('./lang/he')
+  }, {
+    key: 'nb',
+    contents: require('./lang/nb')
+  }, {
+    key: 'nn',
+    contents: require('./lang/nn')
   }, {
     key: 'tr',
     contents: require('./lang/tr')
@@ -17991,7 +18251,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/tr":78,"./lang/zh-TW":79,"./url-params":81}],81:[function(require,module,exports){
+},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/nb":78,"./lang/nn":79,"./lang/tr":80,"./lang/zh-TW":81,"./url-params":83}],83:[function(require,module,exports){
 // http://stackoverflow.com/a/2880929
 var urlParams = {};
 if (window && window.location && window.location.search) {
@@ -18009,7 +18269,7 @@ if (window && window.location && window.location.search) {
 
 module.exports = urlParams;
 
-},{}],82:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -18048,7 +18308,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./modal-dialog-view":95}],83:[function(require,module,exports){
+},{"../utils/translate":82,"./modal-dialog-view":97}],85:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = React.createFactory(require('./menu-bar-view'));
@@ -18343,7 +18603,7 @@ App = React.createClass({
 module.exports = App;
 
 
-},{"../utils/is-string":72,"../utils/translate":80,"./alert-dialog-view":82,"./blocking-modal-view":85,"./confirm-dialog-view":86,"./download-dialog-view":87,"./import-tabbed-dialog-view":91,"./menu-bar-view":94,"./provider-tabbed-dialog-view":98,"./rename-dialog-view":99,"./share-dialog-view":101}],84:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":82,"./alert-dialog-view":84,"./blocking-modal-view":87,"./confirm-dialog-view":88,"./download-dialog-view":89,"./import-tabbed-dialog-view":93,"./menu-bar-view":96,"./provider-tabbed-dialog-view":100,"./rename-dialog-view":101,"./share-dialog-view":103}],86:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -18388,7 +18648,7 @@ AuthorizeMixin = {
 module.exports = AuthorizeMixin;
 
 
-},{}],85:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -18424,7 +18684,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":97}],86:[function(require,module,exports){
+},{"./modal-view":99}],88:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -18472,7 +18732,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./modal-dialog-view":95}],87:[function(require,module,exports){
+},{"../utils/translate":82,"./modal-dialog-view":97}],89:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -18573,7 +18833,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80,"./modal-dialog-view":95}],88:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":82,"./modal-dialog-view":97}],90:[function(require,module,exports){
 var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, ref, svg;
 
 ref = React.DOM, svg = ref.svg, g = ref.g, rect = ref.rect, polygon = ref.polygon;
@@ -18621,7 +18881,7 @@ module.exports = {
 };
 
 
-},{}],89:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, div, i, li, ref, span, ul;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li;
@@ -18794,7 +19054,7 @@ DropDown = React.createClass({
 module.exports = DropDown;
 
 
-},{"./dropdown-anchors":88}],90:[function(require,module,exports){
+},{"./dropdown-anchors":90}],92:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -19105,7 +19365,7 @@ FileDialogTab = React.createClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80,"./authorize-mixin":84}],91:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":82,"./authorize-mixin":86}],93:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -19187,7 +19447,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./local-file-tab-list-view":92,"./modal-tabbed-dialog-view":96,"./tabbed-panel-view":102,"./url-tab-view":103}],92:[function(require,module,exports){
+},{"../utils/translate":82,"./local-file-tab-list-view":94,"./modal-tabbed-dialog-view":98,"./tabbed-panel-view":104,"./url-tab-view":105}],94:[function(require,module,exports){
 var CloudMetadata, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -19282,7 +19542,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80}],93:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":82}],95:[function(require,module,exports){
 var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button, a = ref.a;
@@ -19453,7 +19713,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":80}],94:[function(require,module,exports){
+},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":82}],96:[function(require,module,exports){
 var Dropdown, TriangleOnlyAnchor, div, i, input, ref, span, tr;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, input = ref.input;
@@ -19693,7 +19953,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./dropdown-anchors":88,"./dropdown-view":89}],95:[function(require,module,exports){
+},{"../utils/translate":82,"./dropdown-anchors":90,"./dropdown-view":91}],97:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -19726,7 +19986,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":97}],96:[function(require,module,exports){
+},{"./modal-view":99}],98:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
@@ -19747,7 +20007,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-dialog-view":95,"./tabbed-panel-view":102}],97:[function(require,module,exports){
+},{"./modal-dialog-view":97,"./tabbed-panel-view":104}],99:[function(require,module,exports){
 var div;
 
 div = React.DOM.div;
@@ -19826,7 +20086,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],98:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -19898,7 +20158,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":80,"./file-dialog-tab-view":90,"./modal-tabbed-dialog-view":96,"./select-provider-dialog-tab-view":100,"./tabbed-panel-view":102}],99:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":82,"./file-dialog-tab-view":92,"./modal-tabbed-dialog-view":98,"./select-provider-dialog-tab-view":102,"./tabbed-panel-view":104}],101:[function(require,module,exports){
 var ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -19967,7 +20227,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80,"./modal-dialog-view":95}],100:[function(require,module,exports){
+},{"../utils/translate":82,"./modal-dialog-view":97}],102:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = React.DOM.div;
@@ -19982,7 +20242,7 @@ SelectProviderDialogTab = React.createFactory(React.createClass({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],101:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, translate, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
@@ -20327,7 +20587,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/get-query-param":70,"../utils/translate":80,"./modal-dialog-view":95,"svg-social-icons/lib/icons.json":51}],102:[function(require,module,exports){
+},{"../utils/get-query-param":70,"../utils/translate":82,"./modal-dialog-view":97,"svg-social-icons/lib/icons.json":51}],104:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ref, ul;
 
 ref = React.DOM, div = ref.div, ul = ref.ul, li = ref.li, a = ref.a;
@@ -20439,7 +20699,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],103:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 var button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -20520,6 +20780,6 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":80}]},{},[52,53])(53)
+},{"../utils/translate":82}]},{},[52,53])(53)
 });
 //# sourceURL=cfm/app.js.ignore

@@ -673,6 +673,18 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-il'
       },
       {
+        langName: 'DG.Locale.name.nb',
+        langDigraph: 'nb',
+        countryDigraph: 'NO',
+        icon: 'flag flag-no'
+      },
+      {
+        langName: 'DG.Locale.name.nn',
+        langDigraph: 'nn',
+        countryDigraph: 'NO',
+        icon: 'flag flag-no'
+      },
+      {
         langName: 'DG.Locale.name.tr',
         langDigraph: 'tr',
         countryDigraph: 'TR',
