@@ -177,8 +177,9 @@ DG.Component = DG.BaseModel.extend(
       },
 
       destroy: function () {
-        if (this.document) {
-          delete this.document.get('components')[this.id];
+        var document = DG.currDocumentController().content;
+        if (document) {
+          delete document.get('components')[this.id];
         }
         sc_super();
       },
