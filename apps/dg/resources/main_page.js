@@ -109,13 +109,13 @@ DG.mainPage = SC.Page.design((function() {
     navBar: SC.View.design({
       classNames: 'navBar'.w(),
       layout: { height: kInfobarHeight },
-      childViews: 'leftSide rightSide'.w(),
+      childViews: 'leftSide'.w(),
       anchorLocation: SC.ANCHOR_TOP,
       isVisible: !(kIsComponentMode || kIsEmbeddedMode),
 
       // CFM wrapper view
       leftSide: SC.View.design({
-        layout: {left: 0, right: 30},
+        layout: {left: 0, right: 0},
         // The following overrides cause sproutcore to pass on touch events
         // to React. Overriding captureTouch keeps higher level elements from
         // capturing the touch. Calling allowDefault in the touch events
@@ -142,63 +142,6 @@ DG.mainPage = SC.Page.design((function() {
                             });
         }
       }),
-
-      rightSide: SC.View.design({
-        classNames: 'rightSide'.w(),
-        layout: { width: 30, height: 24, right: 0 },
-        childViews: 'localeButton'.w(),
-        // locales menu button
-        localeButton: SC.PopupButtonView.extend({
-          classNames: 'dg-icon-button'.w(),
-          layout: { left:0, width: 30, height: 24 },
-          menu: SC.MenuPane.extend({
-            classNames: 'dg-locales-menu',
-            itemToolTipKey: 'name',
-            itemIconKey: 'icon',
-            itemTitleKey: 'title',
-            itemHeight: 24,
-            itemWidth: 48,
-            menuHeightPadding: 0,
-            layout: { width: 90},
-            items: function () {
-              this.items = DG.locales.map(function (locale) {
-                return {
-                  name: locale.langName.loc(),
-                  icon: locale.icon,
-                  digraph: locale.langDigraph,
-                  title: locale.langDigraph.toUpperCase()
-                }
-              });
-            }.property().cacheable(true),
-          }),
-          currLocale: DG.locales.find(function (locale) {
-            // DG.log('currentLanguage: ' + this.SC.Locale.currentLanguage)
-            return locale.langDigraph === SC.Locale.currentLanguage;
-          }),
-          icon: function () {
-            // DG.log('currLocale: ' + JSON.stringify(this.currLocale))
-            return this.currLocale? this.currLocale.icon: null;
-          }.property('currLocale'),
-          // When a user selects a new locale we redirect relatively to
-          // the site for the locale, taking with use query and hash parameters
-          selectedItemDidChange: function () {
-            function makeUrl(digraph, location) {
-              var baseURL = 'https://codap.concord.org/releases/latest/static/dg/%@/cert/'.loc(digraph);
-              var hash = location.hash;
-              if (location.pathname.indexOf('static/dg')>0) {
-                baseURL = '../../%@/cert'.loc(digraph);
-              }
-              if (hash.startsWith('#file=examples:')) {
-                hash = '';
-              }
-              return baseURL + location.search+hash;
-            }
-            var item = this.menu.get('selectedItem');
-            DG.assert(item, 'Check if locale item exists');
-            window.location = makeUrl(item.digraph, window.location)
-          }.observes('menu.selectedItem')
-        }),
-      })
     }),
 
     topView: SC.View.design({

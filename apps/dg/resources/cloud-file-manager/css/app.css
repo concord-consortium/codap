@@ -1407,6 +1407,11 @@
 .menu-bar .lang-menu .lang-label {
   padding-right: 0.25em;
   margin-top: -11px;
+  background-image: static_url("cloud-file-manager/img/earth.svg");
+  background-repeat: no-repeat;
+  padding-left: 21px;
+  background-position: 4px 0;
+  background-size: 13px;
 }
 .modal {
   z-index: 200;

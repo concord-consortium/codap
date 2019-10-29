@@ -302,6 +302,22 @@ DG.main = function main() {
     });
   }
 
+  function makeNewLocaleUrl(digraph, location) {
+    var locMatch = location.pathname.match(/(^.*\/static\/dg\/)[^\/]+(\/cert\/.*$)/);
+    var baseURL = 'https://codap.concord.org/releases/latest/static/dg/%@/cert/'.loc(digraph);
+    if (locMatch) {
+      baseURL = location.schema + location.host + locMatch[1] + digraph + locMatch[2];
+    }
+    var hash = location.hash;
+    if (location.pathname.indexOf('static/dg')>0) {
+      baseURL = '../../%@/cert'.loc(digraph);
+    }
+    if (hash.startsWith('#file=examples:')) {
+      hash = '';
+    }
+    return baseURL + location.search+hash;
+  }
+
   function cfmInit(iCloudFileManager, iViewConfig) {
     var options = {
           autoSaveInterval: 5,
@@ -311,6 +327,22 @@ DG.main = function main() {
           appOrMenuElemId: iViewConfig.navBarId,
           hideMenuBar: DG.get('hideCFMMenu'),
           ui: {
+            menuBar: {
+              info: "Language menu",
+              languageMenu: {
+                currentLang: SC.Locale.currentLanguage,
+                options: DG.locales.map(function (locale) {
+                  return {
+                    label: locale.langName.loc(),
+                    langCode: locale.langDigraph,
+                  };
+                }),
+                onLangChanged: function (langCode) {
+                  DG.log('Changed language: ' + langCode);
+                  window.location = makeNewLocaleUrl(langCode, window.location);
+                }
+              }
+            },
             menu: [
               { name: 'DG.fileMenu.menuItem.newDocument'.loc(), action: 'newFileDialog' },
               { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
