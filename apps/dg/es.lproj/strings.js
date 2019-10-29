@@ -764,5 +764,7 @@ SC.stringsFor("es", {
     "DG.Redo.graph.hideOutliers": "Redo hiding outliers",
     "DG.Undo.graph.hideOutliers": "Undo hiding outliers",
     "DG.Redo.graph.showOutliers": "Redo showing outliers",
-    "DG.Inspector.graphBoxPlotShowOutliers": "Show Outliers"
+    "DG.Inspector.graphBoxPlotShowOutliers": "Show Outliers",
+    "DG.Locale.name.nb": "Bokmål",
+    "DG.Locale.name.nn": "Nynorsk"
 });
