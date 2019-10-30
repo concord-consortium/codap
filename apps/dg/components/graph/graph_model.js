@@ -656,16 +656,21 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       tYAttrDescription.addAttribute( iAttrRefs.attributes[0]);
 
+      var tRootPlot = this.get('plot'),
+          tProperties = $.extend(this.getModelPointStyleAccessors(),
+              tRootPlot.getPropsForCopy(),
+              {
+                xAxis: this.get('xAxis'),
+                yAxis: this.get('yAxis'),
+                y2Axis: this.get('y2Axis'),
+                yAttributeIndex: tAttrIndex
+              }),
       // The only plot we can currently make with multiple attributes is a scatterplot
-      var tPlot = DG.ScatterPlotModel.create(this.getModelPointStyleAccessors());
-      tPlot.beginPropertyChanges();
-      tPlot.setIfChanged( 'dataConfiguration', this.get('dataConfiguration') );
-      tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
-      tPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
-      tPlot.set('yAttributeIndex', tAttrIndex);
-      tPlot.endPropertyChanges();
+          tPlot = DG.ScatterPlotModel.create(tProperties);
 
       this.addPlot( tPlot);
+      tPlot.installAdornmentModelsFrom(tRootPlot);
+      tPlot.setAdornmentVisibility('connectingLine', tRootPlot.getAdornmentModel('connectingLine').get('isVisible'));
 
       this.notifyPropertyChange('attributeAdded');
     },
