@@ -472,8 +472,11 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         if (tDataLength > tPlotElementLength) {
           // create plot elements for added cases
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-            this.callCreateElement(tCases.at(tIndex), tIndex, this.animationIsAllowable());
-            this.setCircleCoordinate(tRC, tCases.at(tIndex), tIndex);
+            var tCase = tCases.at(tIndex);
+            if (tCase) {
+              this.callCreateElement(tCase, tIndex, this.animationIsAllowable());
+              this.setCircleCoordinate(tRC, tCase, tIndex);
+            }
           }
         }
         // Get rid of plot elements for removed cases and update all coordinates
