@@ -446,15 +446,10 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
           return;   // not ready to create elements yet
         var tCases = this.getPath('model.cases'),
             tRC = this.createRenderContext(),
-            tDataLength = tCases && tCases.get('length'),
-            tPlottedElements = this.get('plottedElements'),
-            tPlotElementLength = tPlottedElements.length,
-            tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius()),
-            tLayerManager = this.get('layerManager'),
-            tIndex;
+            tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius());
         // We don't redraw if tCases is undefined or tRC is null. This can happen during the
         // deletion of the plot model
-        if ((tCases === undefined) || !tRC)
+        if (!tCases || !tRC)
           return;
 
         this._elementOrderIsValid = false;
@@ -467,6 +462,12 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         // update adornments when cases added or removed
         // note: don't rely on tDataLength != tPlotElementLength test for this
         this.updateAdornments();
+
+        var tDataLength = tCases && tCases.get('length'),
+            tPlottedElements = this.get('plottedElements'),
+            tPlotElementLength = tPlottedElements.length,
+            tLayerManager = this.get('layerManager'),
+            tIndex;
 
         // for any new cases
         if (tDataLength > tPlotElementLength) {
