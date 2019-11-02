@@ -340,14 +340,7 @@ DG.appController = SC.Object.create((function () // closure
       ];
     }.property(),
 
-    /**
-     * Imports text (e.g. from a CSV file) to the document from a URL.
-     *
-     * @param {string} iURL The url of a text (e.g. CSV) file
-     * @param {Boolean} iShowCaseTable
-     * @return {Deferred|undefined}
-     */
-    importTextFromUrl: function (iURL, iShowCaseTable) {
+    extractNameFromURLPath: function (iURL) {
       function parseURL(url) {
         var a = document.createElement('a');
         a.href = url;
@@ -359,13 +352,49 @@ DG.appController = SC.Object.create((function () // closure
           .replace(/\/$/, '')
           .replace(/.*\//, '')
           .replace(/\.[^.]*$/, '')||iURL:iURL;
+      return path;
+    },
+    /**
+     * Imports text (e.g. from a CSV file) to the document from a URL.
+     *
+     * @param {string} iURL The url of a text (e.g. CSV) file
+     * @param {Boolean} iShowCaseTable
+     * @return {Deferred|undefined}
+     */
+    importTextFromUrl: function (iURL, iShowCaseTable) {
+      var name = this.extractNameFromURLPath(iURL);
       this.openCSVImporter({
+        contentType: 'text/csv',
         url: iURL,
-        datasetName: path,
+        datasetName: name,
         showCaseTable: iShowCaseTable
       });
     },
+    importGeoJSONFromURL: function (iURL) {
+      var name = this.extractNameFromURLPath(iURL);
+      this.openGeoJSONImporter({
+        contentType: 'application/geo+json',
+        url: iURL,
+        datasetName: name,
+        showCaseTable: false
+      });
+    },
 
+    openImporterPlugin: function(iName, iPath, iGameState) {
+      var tComponent = DG.Component.createComponent({
+        type: 'DG.GameView',
+        layout: {
+          isVisible: false
+        },
+        componentStorage: {
+          currentGameName: iName,
+          currentGameUrl: DG.get('pluginURL') + iPath,
+          savedGameState: iGameState,
+          title: iName,
+        }
+      });
+      DG.currDocumentController().createComponentAndView(tComponent);
+    },
     /**
      * Opens the CSV Importer plugin, preconfigured with the information
      * it needs to perform the import.
@@ -379,20 +408,15 @@ DG.appController = SC.Object.create((function () // closure
      *                                  table for the new context
      */
     openCSVImporter: function (iConfig) {
-      var tComponent = DG.Component.createComponent({
-        type: 'DG.GameView',
-        document: DG.currDocumentController().content,
-        layout: {
-          isVisible: false
-        },
-        componentStorage: {
-          currentGameName: 'Import CSV',
-          currentGameUrl: DG.get('pluginURL') + '/ImportCSV/',
-          savedGameState: iConfig,
-          title: 'Import CSV',
-        }
-      });
-      DG.currDocumentController().createComponentAndView(tComponent);
+      this.openImporterPlugin('Importer', '/Importer/', iConfig);
+    },
+
+    openGeoJSONImporter: function (iConfig) {
+      this.openImporterPlugin('Importer', '/Importer/', iConfig);
+    },
+
+    openHTMLImporter: function (iConfig) {
+      this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
     /**
@@ -481,10 +505,19 @@ DG.appController = SC.Object.create((function () // closure
      */
     importText: function( iText, iName, iFilename, iShowCaseTable) {
       this.openCSVImporter({
+        contentType: 'text/csv',
         text: iText,
         datasetName: iName,
         filename: iFilename,
         showCaseTable: iShowCaseTable
+      });
+      return true;
+    },
+
+    importHTMLTable: function (iText) {
+      this.openHTMLImporter({
+        contentType: 'text/html',
+        text: iText
       });
       return true;
     },
@@ -546,18 +579,31 @@ DG.appController = SC.Object.create((function () // closure
       // from: http://www.abeautifulsite.net/parsing-urls-in-javascript/
       var urlParser = document.createElement('a');
       urlParser.href = iURL;
-      var pathname = urlParser.pathname.toLocaleLowerCase();
+      var baseURL = urlParser.protocol + urlParser.host + urlParser.pathname;
 
-      if (pathname.match(/.*\.(json|codap)$/)) {
-        DG.cfmClient.openUrlFile(iURL);
-      } else if (pathname.match(/.*\.csv$/)){
-        // CFM should be importing this document
-        this.importTextFromUrl(iURL);
-      } else if (iURL.match(/^data:text\/csv/)){
-        this.importCSVFromDataUri(iURL);
-      } else {
-        addInteractive();
+      var mimeSpec = this.matchMimeSpec(baseURL, iComponentType);
+
+      if (!mimeSpec) { mimeSpec = {group:'UNKOWN',mime: ['unkown']}; }
+      DG.log('Opening url "%@" of type %@'.loc(iURL, mimeSpec.mime[0]));
+      if (mimeSpec) {
+        switch (mimeSpec.group) {
+          case 'TEXT':
+            this.importTextFromUrl(iURL);
+            break;
+          case 'GEOJSON':
+            this.importGeoJSONFromURL(iURL);
+            break;
+          case 'JSON':
+            DG.cfmClient.openUrlFile(iURL);
+            break;
+          case 'IMAGE':
+            this.importWebView(iURL);
+            break;
+          default:
+            addInteractive();
+        }
       }
+
       return true;
     },
 
@@ -662,77 +708,87 @@ DG.appController = SC.Object.create((function () // closure
     mimeTypesAndExtensions: [
       {
         group: 'TEXT',
-        mime: 'text/csv',
+        mime: ['text/csv', 'application/csv'],
         extensions: ['csv']
       },
       {
         group: 'TEXT',
-        mime: 'application/csv',
-        extensions: ['csv']
-      },
-      {
-        group: 'TEXT',
-        mime: 'text/plain',
+        mime: ['text/plain'],
         extensions: ['txt']
       },
       {
         group: 'TEXT',
-        mime: 'text/tab-separated-values',
-        extensions: ['tsv']
+        mime: ['text/tab-separated-values'],
+        extensions: ['tsv', 'tab']
       },
       {
         group: 'JSON',
-        mime: 'application/json',
+        mime: ['application/json', 'application/x-javascript', 'text/x-json'],
         extensions: ['json', 'codap']
       },
       {
-        group: 'JSON',
-        mime: 'application/x-javascript',
-        extensions: ['json', 'codap']
+        group: 'GEOJSON',
+        mime: ['application/geo+json','application/vnd.geo+json'],
+        extensions: ['geojson']
       },
       {
-        group: 'JSON',
-        mime: 'text/x-json',
-        extensions: ['json', 'codap']
-      },
-      {
-        group: 'BINARY',
-        mime: 'image/gif',
+        group: 'IMAGE',
+        mime: ['image/gif'],
         extensions: ['gif']
       },
       {
-        group: 'BINARY',
-        mime: 'image/jpeg',
+        group: 'IMAGE',
+        mime: ['image/jpeg'],
         extensions: ['jpeg','jpg']
       },
       {
-        group: 'BINARY',
-        mime: 'image/png',
+        group: 'IMAGE',
+        mime: ['image/png'],
         extensions: ['png']
       },
       {
-        group: 'BINARY',
-        mime: 'image/svg+xml',
+        group: 'IMAGE',
+        mime: ['image/svg+xml'],
         extensions: ['svg', 'svgz']
       }/*,
       {
-        group: 'BINARY',
+        group: 'IMAGE',
         mime: 'application/pdf',
         xtensions: 'pdf'
       },*/
     ],
     /**
+     * Attempts to match a filename or URL or a type to an entry in the above
+     * spec list.
+     * @param name: a filename or URL
+     * @param type: a type string. May be missing.
+     */
+    matchMimeSpec: function (name, type) {
+      var isDataURIMatch = /^data:([^;]+);.+$/.exec(name);
+      var match = name && name.match(/\.([^.\/]+)$/);
+      var mySuffix = match && match[1].toLowerCase();
+      var typeDesc;
+      // if we haven't a type and its a data URI, use its mime type
+      if (type == null && isDataURIMatch) {
+        type = isDataURIMatch[1];
+      }
+      typeDesc = type && this.mimeTypesAndExtensions.find(function (mimeDef) {
+        return (type != null) && mimeDef.mime.find(function (str) {
+          return str === type;
+        });
+      });
+      typeDesc = typeDesc || this.mimeTypesAndExtensions.find(function (mimeDef) {
+        return mySuffix && mimeDef.extensions.find(function (ext) {
+          return mySuffix === ext;
+        });
+      });
+      return typeDesc;
+    },
+    /**
       Imports a dragged or selected file
       */
     importFile: function ( iFile) {
-      var typeDesc = this.mimeTypesAndExtensions.find(function (mimeDef) {
-        var foundMime = (mimeDef.mime === iFile.type);
-        var match = iFile.name.match(/\.([^.\/]+)$/);
-        var mySuffix = match && match[1].toLowerCase();
-        var foundSuffix = mySuffix && mimeDef.extensions.find(function (ext) { return mySuffix === ext; } );
-        return foundMime || foundSuffix;
-      });
-
+      var typeDesc = this.matchMimeSpec(iFile.name, iFile.type);
       var handlingGroup = typeDesc? typeDesc.group: 'JSON';
 
       var tAlertDialog = {
@@ -752,7 +808,7 @@ DG.appController = SC.Object.create((function () // closure
         }
       };
 
-      DG.log('Opening file "%@" of type %@'.loc(iFile && iFile.name, typeDesc? typeDesc.mime: 'unknown'));
+      DG.log('Opening file "%@" of type %@'.loc(iFile && iFile.name, typeDesc? typeDesc.mime[0]: 'unknown'));
       this.importFileWithConfirmation(iFile, handlingGroup, tAlertDialog);
     },
 
@@ -785,11 +841,20 @@ DG.appController = SC.Object.create((function () // closure
                 window.location.hash = '';
                 DG.log('Opened: ' + iFile.name);
               }
+              else if (iType === 'GEOJSON') {
+                that.openGeoJSONImporter({
+                  contentType: 'application/geo+json',
+                  text: this.result,
+                  datasetName: iFile.name.replace(/\.[^.]*$/, ''),
+                  filename: iFile.name,
+                  showCaseTable: true
+                });
+              }
               else if (iType === 'TEXT') {
                 that.importText(this.result,
                     iFile.name.replace(/\.[^.]*$/, ''), iFile.name);
               }
-              else if (iType === 'BINARY') {
+              else if (iType === 'IMAGE') {
                 that.importWebView(this.result, iFile.name);
               }
               if (iDialog)
@@ -811,7 +876,7 @@ DG.appController = SC.Object.create((function () // closure
             reader.onabort = handleAbnormal;
             reader.onerror = handleAbnormal;
             reader.onload = handleRead;
-            if (iType === 'BINARY') {
+            if (iType === 'IMAGE') {
               reader.readAsDataURL(iFile);
             } else {
               reader.readAsText(iFile);

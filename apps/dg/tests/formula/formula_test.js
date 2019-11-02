@@ -155,6 +155,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("1+'2'"), 3, "strings converted to numbers if possible");
   equals( buildAndEval("'1'+2"), 3, "strings converted to numbers if possible");
   equals( buildAndEval("'1'+'2'"), 3, "strings converted to numbers if possible");
+  equals( buildAndEval("'1'+'0'"), 1, "strings converted to numbers if possible");
   equals( buildAndEval("true+'2'"), 3, "booleans converted to numbers");
   equals( buildAndEval("'1'+false"), 1, "booleans converted to numbers");
   equals( buildAndEval("true+false"), 1, "booleans converted to numbers");
@@ -174,6 +175,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("1+2*3"), 7, "addition/multiplication precedence");
   equals( buildAndEval("(1+2)*3"), 9, "parentheses precedence");
   equals( buildAndEval("2-1"), 1, "simple numeric subtraction");
+  equals( buildAndEval("'1'-'0'"), 1, "numeric string subtraction");
   equals( buildAndEval("2*3"), 6, "simple numeric multiplication");
   equals( buildAndEval("6/2"), 3, "simple numeric division");
   equals( buildAndEval("3%2"), 1, "modulo division");

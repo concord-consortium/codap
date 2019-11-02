@@ -361,16 +361,28 @@ DG.mainPage = SC.Page.design((function() {
       } else {
         this.set('_isDraggingFileOrURL', true);
       }
+      if( iEvent.preventDefault)
+        iEvent.preventDefault();
     },
 
     dataDragHovered: function (iEvent) {
       if (this.get('_isDraggingFileOrURL')) {
         iEvent.dataTransfer.dropEffect = 'copy';
       }
+      if( iEvent.preventDefault)
+        iEvent.preventDefault();
       return YES;
     },
 
     dataDragDropped: function(iEvent) {
+      // Returns whether a string is a URI we care about.
+      function isURI(str) {
+        var schemes = ['http:', 'https:', 'data:'];
+        var s1 = str.toLowerCase();
+        return schemes.find(function (scheme) {
+          return s1.startsWith(scheme);
+        });
+      }
       var tElement = this.get('layer');
       var tDataTransfer = iEvent.dataTransfer;
       var isIE = (SC.browser.engine === SC.ENGINE.trident);
@@ -380,14 +392,20 @@ DG.mainPage = SC.Page.design((function() {
       if( tFiles && (tFiles.length > 0)) {
         DG.appController.importFile(tFiles[0]);  // We only deal with the first file
       }
-      else if( !SC.empty(tURI)) {
+      else if( !SC.empty(tURI) && isURI(tURI)) {
         SC.run(function () {
           DG.appController.importURL( tURI);
         });
       }
+      else if (tDataTransfer.types.includes('text/html')) {
+        SC.run(function () {
+          DG.appController.importHTMLTable(tDataTransfer.getData('text/html'));
+        });
+      }
       $(tElement).removeClass('dg-receive-outside-drop');
 
-      iEvent.preventDefault();
+      if( iEvent.preventDefault)
+        iEvent.preventDefault();
       return false;
 
     },

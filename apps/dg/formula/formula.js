@@ -288,8 +288,8 @@ DG.Formula.add = function(iOperand1, iOperand2) {
       empty2 = SC.empty(iOperand2),
       isDate1 = DG.isDate(iOperand1) || DG.isDateString(iOperand1),
       isDate2 = DG.isDate(iOperand2) || DG.isDateString(iOperand2),
-      num1 = Number(iOperand1) || Number(DG.createDate(iOperand1)),
-      num2 = Number(iOperand2) || Number(DG.createDate(iOperand2)),
+      num1 = isNaN(iOperand1)? Number(DG.createDate(iOperand1)): Number(iOperand1),
+      num2 = isNaN(iOperand2)? Number(DG.createDate(iOperand2)): Number(iOperand2),
       // booleans and strings (if possible) converted, not null values
       isNumeric1 = !empty1 && (num1 === num1),
       isNumeric2 = !empty2 && (num2 === num2);
@@ -331,8 +331,8 @@ DG.Formula.subtract = function(iOperand1, iOperand2) {
       empty2 = SC.empty(iOperand2),
       isDate1 = DG.isDate(iOperand1) || DG.isDateString(iOperand1),
       isDate2 = DG.isDate(iOperand2) || DG.isDateString(iOperand2),
-      num1 = Number(iOperand1) || Number(DG.createDate(iOperand1)),
-      num2 = Number(iOperand2) || Number(DG.createDate(iOperand2)),
+      num1 = isNaN(iOperand1)? Number(DG.createDate(iOperand1)): Number(iOperand1),
+      num2 = isNaN(iOperand2)? Number(DG.createDate(iOperand2)): Number(iOperand2),
       // booleans and strings (if possible) converted, not null values
       isNumeric1 = !empty1 && (num1 === num1),
       isNumeric2 = !empty2 && (num2 === num2);

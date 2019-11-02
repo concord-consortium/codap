@@ -64,10 +64,13 @@ DG.GameView = DG.WebView.extend(
           var parsedUrl = parseUrl(url);
           var qp = parseUrl(url).search;
           var lang = SC.Locale.currentLanguage;
-          if (!qp || qp.length === 0) {
-            qp = '?lang=' + lang;
-          } else {
-            qp += '&lang=' + lang;
+          var isBinaryDataURL = parsedUrl.protocol === 'data:';
+          if (!isBinaryDataURL) {
+            if (!qp || qp.length === 0) {
+              qp = '?lang=' + lang;
+            } else {
+              qp += '&lang=' + lang;
+            }
           }
           parsedUrl.search = qp;
           return parsedUrl.href;
