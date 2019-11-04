@@ -604,7 +604,8 @@ DG.main = function main() {
             return;
           }
         }
-        if (iDocContents.appName) {
+        if (iDocContents.appName != null &&
+            iDocContents.appVersion != null) {
           contentType = 'application/vnd.codap+json';
         } else if (iDocContents.type &&
             (iDocContents.type === 'FeatureCollection' ||
@@ -640,7 +641,7 @@ DG.main = function main() {
       }
       else {
         reject ('Error opening document: %@ -- unknown mime type: %@'
-            .loc(urlString, expectedContentType));
+            .loc(urlString, contentType));
       }
     });
   }
