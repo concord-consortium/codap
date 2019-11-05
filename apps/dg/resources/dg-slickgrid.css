@@ -32,7 +32,7 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
 
 .slick-header-column.ui-state-default {
   text-align: center;
-  font-weight: bold;
+  font-weight: 400;
   height: 30px;
   float: none;
   vertical-align: top;
