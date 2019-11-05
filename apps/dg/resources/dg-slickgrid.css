@@ -78,8 +78,6 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   display:none;
   direction: rtl; /* The second line, when visible, will present the end of the
                      string. RTL does this. */
-  -webkit-unicode-bidi: plaintext;
-  unicode-bidi: plaintext; /* Prevents browser repositioning punctuation. */
 }
 
 .slick-column-name.two-line-header-truncating .two-line-header-line-1 {
