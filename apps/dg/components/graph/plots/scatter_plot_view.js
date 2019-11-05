@@ -114,6 +114,13 @@ DG.ScatterPlotView = DG.PlotView.extend(
           tAdorn.updateToModel();
       },
 
+      init: function() {
+        sc_super();
+        var tModel = this.get('model');
+        if( tModel && tModel.getAdornmentModel('connectingLine'))
+          this.connectingLineChanged();
+      },
+
       /**
        Destruction method
        */

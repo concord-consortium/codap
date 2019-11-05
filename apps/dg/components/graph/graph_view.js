@@ -1165,7 +1165,10 @@ DG.GraphView = SC.View.extend(
         var tPlotModel = this.plotWithoutView(),
             tPlotView;
         if (!SC.none(tPlotModel)) {
-          tPlotView = DG.ScatterPlotView.create({model: tPlotModel});
+          tPlotView = DG.ScatterPlotView.create({
+            model: tPlotModel,
+            paperSource: this.get('plotBackgroundView')  // required during initialization
+          });
           this.addPlotView(tPlotView);
           this.renderLayout(this.renderContext(this.get('tagName')), false);
           this.setPlotViewProperties(tPlotView, tPlotModel, 'yAxisView');
@@ -1184,7 +1187,10 @@ DG.GraphView = SC.View.extend(
             tPlotView;
         if (!SC.none(tPlotModel)) {
           this.handleAxisModelChange();
-          tPlotView = DG.ScatterPlotView.create({model: tPlotModel});
+          tPlotView = DG.ScatterPlotView.create({
+            model: tPlotModel,
+            paperSource: this.get('plotBackgroundView')  // required during initialization
+          });
           this.addPlotView(tPlotView);
           this.renderLayout(this.renderContext(this.get('tagName')), false);
           this.setPlotViewProperties(tPlotView, tPlotModel, 'y2AxisView');

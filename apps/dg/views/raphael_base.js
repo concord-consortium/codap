@@ -67,10 +67,11 @@ DG.RaphaelBaseView = SC.View.extend(DG.Destroyable,
       _plottedElementsMap: null,
 
       getPlottedElements: function( iIndex) {
-        var tElements = this._plottedElementsMap[iIndex];
+        var tElements = this._plottedElementsMap && this._plottedElementsMap[iIndex];
         if( !tElements) {
           tElements = [];
-          this._plottedElementsMap[ iIndex] = tElements;
+          if( this._plottedElementsMap)
+            this._plottedElementsMap[ iIndex] = tElements;
         }
         return tElements;
       },
