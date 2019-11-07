@@ -670,7 +670,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.addPlot( tPlot);
       tPlot.installAdornmentModelsFrom(tRootPlot);
-      tPlot.setAdornmentVisibility('connectingLine', tRootPlot.getAdornmentModel('connectingLine').get('isVisible'));
+      var tConnectingLineModel = tRootPlot.getAdornmentModel('connectingLine');
+      if( tConnectingLineModel)
+        tPlot.setAdornmentVisibility('connectingLine', tConnectingLineModel.get('isVisible'));
 
       this.notifyPropertyChange('attributeAdded');
     },
