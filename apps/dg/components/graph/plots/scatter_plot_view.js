@@ -39,6 +39,14 @@ DG.ScatterPlotView = DG.PlotView.extend(
       /** @property {DG.ConnectingLineAdornment} */
       connectingLineAdorn: null,
 
+      numPlotsOrIndexChanged: function() {
+        // update connecting lines
+        if (this.connectingLineAdorn) {
+          this.connectingLineAdorn.invalidateModel();
+          this.connectingLineAdorn.updateToModel();
+        }
+      }.observes('numPlots', 'plotIndex'),
+
       /**
        Required for some adornments like DG.PlottedCountAdornment.
        @property{DG.CellLinearAxisView}
@@ -652,6 +660,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             paperSource: this.get('paperSource'),
             layerName: DG.LayerNames.kConnectingLines
           });
+          tAdorn.setPath('model.getAttrColorFunc', this.getAttributeColor.bind( this));
           this.set('connectingLineAdorn', tAdorn);
         }
 

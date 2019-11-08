@@ -443,6 +443,16 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   /**
+   * This value depends only on plotIndex and numPlots
+   */
+  getAttributeColor: function() {
+    var tPlotIndex = this.get('plotIndex'),
+        tNumPlots = this.get('numPlots');
+    return SC.none( tPlotIndex) || (tPlotIndex === 0) ? null :
+        DG.ColorUtilities.calcAttributeColorFromIndex( tPlotIndex, tNumPlots);
+  },
+
+  /**
    * Construct and return a new render context
    * used for setCircleCoordinate()
    * @return {*}
@@ -451,7 +461,6 @@ DG.PlotView = DG.PlotLayer.extend(
     var tModel = this.get('model'),
         tConfig = tModel.get('dataConfiguration'),
         tLegendDesc = tConfig.get('legendAttributeDescription' ),
-        tPlotIndex = this.get('plotIndex'),
         tYVarIDKey = tModel.getPath('verticalAxisIsY2') ? 'y2VarID' : 'yVarID',
         tStrokeParams = this.getStrokeParams(),
         tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
@@ -476,8 +485,7 @@ DG.PlotView = DG.PlotLayer.extend(
       pointColor: tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
       transparency: tModel.getTransparency ? tModel.getTransparency() : DG.PlotUtilities.kDefaultPointOpacity,
       strokeTransparency: tStrokeParams.strokeTransparency,
-      attrColor: SC.none( tPlotIndex) || (tPlotIndex === 0) ? null :
-                 DG.ColorUtilities.calcAttributeColorFromIndex( this.get('plotIndex'), this.get('numPlots')),
+      attrColor: this.getAttributeColor(),
 
       /**
        * Calculate the case color string

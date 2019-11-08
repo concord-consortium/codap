@@ -145,8 +145,8 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
         y: tYAxisView.dataToCoordinate( iY)
       };
     }
-
-    this.doUpdateLine( iAnimate, getCoords);
+    if( tXAxisView && tYAxisView)
+      this.doUpdateLine( iAnimate, getCoords);
   },
 
   /**
