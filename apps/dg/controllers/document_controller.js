@@ -1564,6 +1564,8 @@ DG.DocumentController = SC.Object.extend(
             undoString: 'DG.Undo.toggleComponent.delete.' + iComponentName,
             redoString: 'DG.Redo.toggleComponent.delete.' + iComponentName,
             log: 'Remove toggle component: %@'.fmt(iComponentName),
+            executeNotification: DG.UndoHistory.makeComponentNotification('delete', iComponentName),
+            undoNotification: DG.UndoHistory.makeComponentNotification('create', iComponentName),
             execute: function () {
               componentArchive = this._archiveComponent(iComponentName);
               this._deleteComponent(iComponentName);
@@ -1583,6 +1585,8 @@ DG.DocumentController = SC.Object.extend(
             undoString: 'DG.Undo.toggleComponent.add.' + iComponentName,
             redoString: 'DG.Redo.toggleComponent.add.' + iComponentName,
             log: 'Add toggle component: %@'.fmt(iComponentName),
+            executeNotification: DG.UndoHistory.makeComponentNotification('create', iComponentName),
+            undoNotification: DG.UndoHistory.makeComponentNotification('delete', iComponentName),
             execute: function () {
               this._addComponent(iComponentName, iDocView);
             }.bind(this),
