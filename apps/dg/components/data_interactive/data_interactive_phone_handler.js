@@ -2257,6 +2257,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true,
             values: result
           };
+        },
+        get: function() {
+          if (DG.currDocumentController().notificationManager)
+            DG.currDocumentController().notificationManager.sendDocumentToSubscribers();
         }
       },
 
