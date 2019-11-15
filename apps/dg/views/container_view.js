@@ -43,13 +43,22 @@ DG.ContainerView = SC.View.extend(
        * @property{Number}
        */
       nextZIndex: function() {
-        var tMaxZIndex = 1;
+        var tMaxZIndex = 100;
         this.get('componentViews').forEach( function( iView) {
           var tZIndex = iView.get('layout').zIndex;
           if( tZIndex)
               tMaxZIndex = Math.max( tMaxZIndex, tZIndex);
         });
         return tMaxZIndex + 1;
+      }.property(),
+      lowerZIndex: function() {
+        var tMinZIndex = 100;
+        this.get('componentViews').forEach( function( iView) {
+          var tZIndex = iView.get('layout').zIndex;
+          if( tZIndex)
+              tMinZIndex = Math.min( tMinZIndex, tZIndex);
+        });
+        return tMinZIndex - 1;
       }.property(),
 
       /**
@@ -247,7 +256,6 @@ DG.ContainerView = SC.View.extend(
       bringToFront: function( iChildView) {
         if( iChildView.assignZ) {
           iChildView.assignZ(this.get('nextZIndex'));
-          this.incrementProperty('nextZIndex');
         }
       },
 
@@ -255,28 +263,8 @@ DG.ContainerView = SC.View.extend(
         rendered first and appearing behind all others.
       */
       sendToBack: function( iChildView) {
-        var domThisElement = this.get('layer'),
-            domChildElement = iChildView.get('layer'),
-            scChildViews = this.get('childViews'),
-            scChildViewCount = scChildViews.get('length'),
-            i;
-
-        // move the specified SC child view to the beginning of the child views
-        // no need to check the first child, since it wouldn't need to be moved
-        for( i = 1; i < scChildViewCount; ++i) {
-          if(scChildViews[i] === iChildView) {
-            // remove it from its current location
-            scChildViews.splice(i, 1);
-            // add it to the beginning of the array
-            scChildViews.unshift(iChildView);
-            break;
-          }
-        }
-
-        // move the specified child DOM element before the first DOM child
-        if(domThisElement.firstChild !== domChildElement) {
-          // will automatically remove it from its current location, if necessary
-          domThisElement.insertBefore(domChildElement, domThisElement.firstChild);
+        if (iChildView.assignZ) {
+          iChildView.assignZ(this.get('lowerZIndex'));
         }
       },
 
