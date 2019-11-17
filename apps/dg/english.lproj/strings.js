@@ -131,6 +131,7 @@ SC.stringsFor("en", {
     "DG.CaseCard.attrHintUnitsOnly": "%@ in %@",
     "DG.CaseCard.attrHintDescription": "%@: %@",
     "DG.CaseCard.attrHintFormula": "%@\n%@",
+    "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
 
     // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",

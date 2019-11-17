@@ -44,6 +44,14 @@ DG.React.ready(function () {
               this.setState({unit: iNewProps.unit});
           },
 
+/*
+          componentDidUpdate: function( iPrevProps) {
+            if( this.props.createInEditMode !== iPrevProps.createInEditMode) {
+              this.setState( { editing: true });
+            }
+          },
+*/
+
           _onWindowClick: function (event) {
             var inputElement = findDOMNode(this);
             if (event.target !== inputElement && !inputElement.contains(event.target) && this.state.editing) {
@@ -60,24 +68,35 @@ DG.React.ready(function () {
                 tUnits = SC.empty(this.state.value) ? '' : ' ' + (this.state.unit || ''),
                 tValueClassName = this.props.isEditable ? 'react-data-card-value ' : '',
                 tValue = SC.empty( this.state.value) ? '____' : this.state.value,
+                kCompletionCodes = [13, 9],
                 tResult = this.state.editing ?
                     input({
                       className: 'dg-wants-mouse',
                       type: 'text',
+                      // ref is called on creation of the input element
+                      ref: function( input) {
+                        input && input.focus();
+                      },
                       value: this.state.value,
                       onChange: this.handleChange,
-                      autoFocus: true,
                       onKeyDown: function (iEvent) {
-                        if (iEvent.keyCode === 13) {
-                          this.props.onToggleEditing(this);
+                        if (kCompletionCodes.indexOf( iEvent.keyCode) >= 0) {
+                          this.props.onToggleEditing(this, true /* move to next */);
                         }
-                      }.bind(this)
+                        else if( iEvent.keyCode === 27) {
+                          this.props.onEscapeEditing( this);
+                        }
+                      }.bind(this),
+                      onFocus: function(iEvent) {
+                        iEvent.target.select();
+                      }
                     }) :
                     span({
                       className: tValueClassName + this.props.className,
-                      onDoubleClick: function () {
-                        if (!this.state.editing && this.props.onToggleEditing && this.props.isEditable)
+                      onClick: function ( iEvent) {
+                        if (!this.state.editing && this.props.onToggleEditing && this.props.isEditable) {
                           this.props.onToggleEditing(this);
+                        }
                       }.bind(this)
                     }, tValue + tUnits);
             return tResult;

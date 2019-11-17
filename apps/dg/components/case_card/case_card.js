@@ -104,7 +104,8 @@ DG.React.ready(function () {
           getInitialState: function () {
             return {
               count: 0,
-              attrIndex: 0
+              attrIndex: 0/*,
+              indexOfEditFieldToMount: null*/
             };
           },
 
@@ -144,6 +145,7 @@ DG.React.ready(function () {
               caseID: iCaseID,
               onNext: this.moveToNextCase,
               onPrevious: this.moveToPreviousCase,
+              onNewCase: this.newCase,
               dragStatus: this.props.dragStatus,
               dropCallback: handleDropInCollectionHeader
             });
@@ -293,20 +295,35 @@ DG.React.ready(function () {
             /**
              * --------------------------Handling editing the value-----------------
              */
-            var toggleEditing = function (iValueField) {
+            var toggleEditing = function (iValueField, iMoveToNext) {
               if (this.currEditField !== iValueField) {
-                iValueField.setState({editing: true});
                 if (this.currEditField) {
-                  DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0], iAttr, this.currEditField.state.value);
                   this.currEditField.setState({editing: false});
                 }
+                iValueField.setState({editing: true});
                 this.currEditField = iValueField;
               }
               else {  // Turn off editing
                 DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0], iAttr, this.currEditField.state.value);
                 iValueField.setState({editing: false});
                 this.currEditField = null;
+/*
+                if( iMoveToNext) {
+                  this.setState( { indexOfEditFieldToMount:iIndex + 1 });
+                }
+                else if( this.indexOfEditFieldToMount !== null) {
+                  this.setState( { indexOfEditFieldToMount: null });
+                }
+*/
               }
+            }.bind(this);
+
+            var escapeEditing = function (iValueField) {
+              iValueField.setState({
+                editing: false,
+                value: tCase.getValue(tAttrID)
+              });
+              this.currEditField = null;
             }.bind(this);
 
             /**
@@ -477,7 +494,9 @@ DG.React.ready(function () {
                       value: tValue,
                       unit: tUnit,
                       isEditable: iAttr.get('editable') && !iAttr.get('formula'),
-                      onToggleEditing: toggleEditing
+                      onToggleEditing: toggleEditing,
+                      onEscapeEditing: escapeEditing/*,
+                      createInEditMode: iIndex === this.state.indexOfEditFieldToMount*/
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
                 if (tColorValueField) {
@@ -565,6 +584,22 @@ DG.React.ready(function () {
               var tNext = SC.none(iCaseIndex) ? 0 : iCaseIndex; // because in zero-based this is the index of the next case
               this.moveToCase(iCollectionClient, tNext);
             }
+          },
+
+          newCase: function( iCollectionClient) {
+            var this_ = this,
+                tCollection = iCollectionClient.get('collection'),
+                tContext = this.props.context,
+                tNumCases = tCollection.get('cases').length,
+                tAttrIDs = tCollection && tCollection.getAttributeIDs();
+            DG.DataContextUtilities.createCaseUndoable( tContext,
+                { collection: tCollection,
+                  attrIDs: tAttrIDs,
+                  values: []
+                });
+            DG.currDocumentController().invokeLast( function() {
+              this_.moveToCase(iCollectionClient, tNumCases);
+            });
           },
 
           render: function () {

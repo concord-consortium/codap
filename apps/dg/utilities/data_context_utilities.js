@@ -484,6 +484,78 @@ DG.DataContextUtilities = {
     });
   },
 
+  /**
+   Creates a new case with the specified values.
+   */
+  createCaseUndoable: function(iContext, props) {
+    var contextName = iContext.get('name');
+    if (!props.collection || !props.attrIDs) return;
+
+    var createResult;
+    function doCreateCase() {
+      return iContext.applyChange({
+        operation: 'createCases',
+        attributeIDs: props.attrIDs,
+        collection: props.collection,
+        properties: { parent: props.parent },
+        values: [ props.values ]
+      });
+    }
+    function doCreateItem() {
+      var attrIDs = props.collection.getAttributeIDs();
+      var valueArray = props.values;
+      var values = {};
+      valueArray.forEach(function (value, ix) {
+        var attrID = attrIDs[ix];
+        var ref = iContext.getAttrRefByID(attrID);
+        var attr = ref && ref.attribute;
+        if( attr)
+          values[attr.name] = value;
+      });
+      var result = iContext.addItems(values);
+      return result && result.caseIDs;
+    }
+
+    function doDeleteCase(caseIDs) {
+      var cases = caseIDs.map(function(id) {
+        return DG.store.find('DG.Case', id);
+      });
+      return iContext.applyChange({
+        operation: 'deleteCases',
+        cases: cases
+      });
+    }
+
+    var cmd = DG.Command.create({
+      name: "caseTable.createNewCase",
+      undoString: 'DG.Undo.caseTable.createNewCase',
+      redoString: 'DG.Redo.caseTable.createNewCase',
+      log: "create new case",
+      execute: function() {
+        var caseIDs;
+        if (props.parent) {
+          createResult = doCreateCase();
+        } else {
+          caseIDs = doCreateItem();
+          createResult = {
+            caseIDs: caseIDs
+          };
+        }
+      },
+      undo: function() {
+        if (createResult && createResult.caseIDs)
+          doDeleteCase(createResult.caseIDs);
+      },
+      redo: function() {
+        iContext = DG.currDocumentController().getContextByName(contextName);
+        if (iContext)
+          createResult = doCreateCase();
+      }
+    });
+
+    DG.UndoHistory.execute(cmd);
+  },
+
   stashAttributeValue: function( iContext, iCase, iAttr, iValue) {
     var tAttrID = iAttr.get('id'),
         originalValue = iCase.getStrValue(tAttrID),

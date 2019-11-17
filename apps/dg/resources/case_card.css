@@ -142,6 +142,14 @@
     cursor: pointer;
 }
 
+.react-data-card .dg-floating-plus-right {
+    position: relative;
+    vertical-align: middle;
+    right: 4px;
+    left: 0px;
+    cursor: pointer;
+}
+
 td.attr-cell {
     background: #ccc;
     text-align: right;

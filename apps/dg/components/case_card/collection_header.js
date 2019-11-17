@@ -81,7 +81,8 @@ DG.React.ready(function () {
                   caseIndex: tCaseIndex,
                   numCases: tNumCases,
                   onPrevious: this.props.onPrevious,
-                  onNext: this.props.onNext
+                  onNext: this.props.onNext,
+                  onNewCase: this.props.onNewCase
                 }),
                 tHeaderComponent = DG.React.Components.TextInput({
                   value: tHeaderString,

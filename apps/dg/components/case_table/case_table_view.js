@@ -631,80 +631,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                           });
       protoCase._values = {};
 
-      this.createCaseUndoable({ collection: collection, attrIDs: attrIDs, values: values, parent: parentCase });
-    },
-
-    /**
-      Creates a new case with the specified values.
-     */
-    createCaseUndoable: function(props) {
-      var context = this.get('dataContext'),
-          contextName = context.get('name');
-      if (!props.collection || !props.attrIDs) return;
-
-      var createResult;
-      function doCreateCase() {
-        return context.applyChange({
-          operation: 'createCases',
-          attributeIDs: props.attrIDs,
-          collection: props.collection,
-          properties: { parent: props.parent },
-          values: [ props.values ]
-        });
-      }
-      function doCreateItem() {
-        var attrIDs = props.collection.getAttributeIDs();
-        var valueArray = props.values;
-        var values = {};
-        valueArray.forEach(function (value, ix) {
-          var attrID = attrIDs[ix];
-          var ref = context.getAttrRefByID(attrID);
-          var attr = ref && ref.attribute;
-          if( attr)
-            values[attr.name] = value;
-        });
-        var result = context.addItems(values);
-        return result && result.caseIDs;
-      }
-
-      function doDeleteCase(caseIDs) {
-        var cases = caseIDs.map(function(id) {
-          return DG.store.find('DG.Case', id);
-        });
-        return context.applyChange({
-                        operation: 'deleteCases',
-                        cases: cases
-                      });
-      }
-
-      var cmd = DG.Command.create({
-        name: "caseTable.createNewCase",
-        undoString: 'DG.Undo.caseTable.createNewCase',
-        redoString: 'DG.Redo.caseTable.createNewCase',
-        log: "create new case",
-        execute: function() {
-          var caseIDs;
-          if (props.parent) {
-            createResult = doCreateCase();
-          } else {
-            caseIDs = doCreateItem();
-            createResult = {
-                caseIDs: caseIDs
-              };
-          }
-        },
-        undo: function() {
-          if (createResult && createResult.caseIDs)
-            doDeleteCase(createResult.caseIDs);
-        },
-        redo: function() {
-          context = DG.currDocumentController().getContextByName(contextName);
-          if (context)
-            createResult = doCreateCase();
-        }
-      });
-
-      DG.UndoHistory.execute(cmd);
+      DG.DataContextUtilities.createCaseUndoable(this.get('dataContext'),
+          { collection: collection, attrIDs: attrIDs, values: values, parent: parentCase });
     },
 
     /**

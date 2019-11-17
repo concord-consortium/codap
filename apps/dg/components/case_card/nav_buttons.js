@@ -3,6 +3,7 @@
 
 DG.React.ready(function () {
   var
+      img = React.DOM.img,
       span = React.DOM.span//,
   ;
 
@@ -19,13 +20,18 @@ DG.React.ready(function () {
             this.props.onNext(this.props.collectionClient, this.props.caseIndex);
           },
 
+          getNewCase: function () {
+            this.props.onNewCase(this.props.collectionClient);
+          },
+
           render: function () {
             var tCaseIndex = this.props.caseIndex,
                 tNumCases = this.props.numCases,
                 tFirstTitle,
                 tFirstButton,
                 tSecondTitle,
-                tSecondButton;
+                tSecondButton,
+                tAddCaseButton;
             if (!(tNumCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex <= 1))) {
               tFirstTitle = !SC.none( tCaseIndex) ? 'DG.CaseCard.navPrevCase' : 'DG.CaseCard.navLastCase';
               tFirstButton = span({
@@ -48,8 +54,18 @@ DG.React.ready(function () {
                 style: { 'color': 'transparent', 'cursor': 'default'}
               });
             }
+            tAddCaseButton =
+                img({
+                  src: static_url('images/add_circle_blue_72x72.png'),
+                  className: 'dg-floating-plus-right',
+                  width: 19,
+                  height: 19,
+                  title: 'DG.CaseCard.newCaseToolTip'.loc(),
+                  onClick: this.getNewCase
+                });
+
             return span({className: 'react-data-card-navbuttons navbuttons-arrow'},
-                tFirstButton, tSecondButton);
+                tFirstButton, tSecondButton, tAddCaseButton);
           }
         };
       }()), []);
