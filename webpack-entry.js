@@ -11,7 +11,9 @@ React = require('react');
 ReactDOM = require('react-dom');
 Popper = require('popper.js');
 Tooltip = require('tooltip.js')['default'];
+/*
 iframePhone = require('iframe-phone');
+*/
 Papa = require('papaparse');
 L = require('leaflet');
 L.esri = require('esri-leaflet');
