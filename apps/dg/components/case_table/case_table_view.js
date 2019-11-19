@@ -1487,7 +1487,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                 var controller = getController(this),
                     attrRef = dataContext && dataContext.getAttrRefByName(attrName);
                 if (attrRef && newName)
-                  controller.updateAttribute(attrRef, { name: newName, unit: unit });
+                  if (unit) {
+                    controller.updateAttribute(attrRef, { name: newName, unit: unit });
+                  }
+                  else {
+                    controller.updateAttribute(attrRef, { name: newName });
+                  }
               }
               else {
                 this.updateColumnInfo();
@@ -1548,6 +1553,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     handleHeaderClick: function(iEvent, iArgs) {
       DG.globalEditorLock.commitCurrentEdit();
+      var attr = iArgs.column && iArgs.column.attribute;
+      var attrName = attr && attr.name;
+      if (attrName) {
+        this.beginEditAttributeName(attrName);
+      }
     },
 
     /**

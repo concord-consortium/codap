@@ -16,7 +16,7 @@
     "build:dev:comment": "echo Usage: `npm run build:dev` performs a local development build",
     "build:dev": "npm run build:bundle-dev && npm run build:local",
     "build:embedded:comment": "echo Usage: `npm run build:embedded` builds a CODAP embedded mode package named embeddedCODAP",
-    "build:embedded": "bin/makeCodapZip --root=embeddedCODAP embeddedCODAP",
+    "build:embedded": "bin/makeCodapZip --root=embeddedCODAP --languages=en embeddedCODAP",
     "build:embedded-dev": "bin/makeCodapZip --root=embeddedCODAP --languages=en --minify=no embeddedCODAP",
     "build:extensions:comment": "echo Usage: npm run build:extensions target-dir",
     "build:extensions": "bin/makeExtn",
@@ -61,7 +61,7 @@
     "test:gui:comment": "echo Usage: `npm run test:gui` opens the default browser to the DG unit tests. Requires that sc-server be running.",
     "test:gui": "opener http://localhost:4020/dg/en/current/tests.html",
     "test:comment": "echo Usage: `npm run test` or `npm test` runs DG unit tests via PhantomJS.",
-    "test": "sc-phantom --include-targets=/dg"
+    "test": "bin/test_runner"
   },
   "repository": {
     "type": "git",

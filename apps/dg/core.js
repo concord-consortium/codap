@@ -273,7 +273,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0505',
+    BUILD_NUM: '0506',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -460,20 +460,22 @@ DG = SC.Application.create((function () // closure
      * enables 'di' URL param to override stored URL that matches
      */
     _dataInteractiveOverride: getUrlParameter('di-override'),
+    _diOverrideURL: getUrlParameter('di-override-url') || getUrlParameter('di'),
 
-    /**
+
+  /**
      * overrides the specified URL with one specified via 'di' URL parameter if
      * and only if the 'di-override' string is found within the specified URL.
      */
     finalGameUrl: function(iGameUrl) {
-      if (!iGameUrl || !DG._startingDataInteractive || !DG._dataInteractiveOverride)
+      if (!iGameUrl || !DG._diOverrideURL || !DG._dataInteractiveOverride)
         return iGameUrl;
       var hashIndex = iGameUrl.indexOf('#'),
           gameUrlNoHash = hashIndex >= 0 ? iGameUrl.substring(0, hashIndex) : iGameUrl,
           gameUrlHash = hashIndex >= 0 ? iGameUrl.substring(hashIndex) : '',
           matchIndex = gameUrlNoHash.indexOf(DG._dataInteractiveOverride);
       return matchIndex >= 0
-              ? DG._startingDataInteractive + gameUrlHash
+              ? DG._diOverrideURL + gameUrlHash
               : iGameUrl;
     },
 
