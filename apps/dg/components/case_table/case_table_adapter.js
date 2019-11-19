@@ -46,10 +46,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             formula = iAttribute.get('formula'),
             description = iAttribute.get('description'),
             toolTip = "";
-        if( formula)
-          toolTip = "%@ = %@".fmt( name, formula);
-        else if( !SC.empty( description))
+        if( !SC.empty( description))
           toolTip = description;
+        else if( formula)
+          toolTip = "%@ = %@".fmt( name, formula);
         else if( !SC.empty( name))
           toolTip = name;
         return toolTip;
