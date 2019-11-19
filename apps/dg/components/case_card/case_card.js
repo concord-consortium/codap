@@ -72,23 +72,40 @@ DG.React.ready(function () {
               }
             }
 
+            function respondToSelectCases() {
+              if( gMoveArrowClickInProgress) {
+                gMoveArrowClickInProgress = false;
+                doIncrement();
+              }
+              else {
+                gTimeOfLastSelectCall = Date.now();
+                if (!gWaitingForSelect) {
+                  gWaitingForSelect = true;
+                  gSelectTimer = SC.Timer.schedule({target: this, action: checkTime, interval: kSelectInterval});
+                }
+              }
+            }
+
+            function selectNewCases(iCaseIDs) {
+              var tCases = iCaseIDs.map( function( iID) {
+                return iDataContext.getCaseByID( iID);
+              });
+              iDataContext.doSelectCases( {
+                operation: 'selectCases',
+                cases: tCases,
+                select: true
+              });
+            }
+
             iDataContext.get('newChanges').forEach(function (iChange) {
               switch (iChange.operation) {
                   case 'selectCases':
-                    if( gMoveArrowClickInProgress) {
-                      gMoveArrowClickInProgress = false;
-                      doIncrement();
-                    }
-                    else {
-                      gTimeOfLastSelectCall = Date.now();
-                      if (!gWaitingForSelect) {
-                        gWaitingForSelect = true;
-                        gSelectTimer = SC.Timer.schedule({target: this, action: checkTime, interval: kSelectInterval});
-                      }
-                    }
+                    respondToSelectCases();
                     break;
-                  // case 'updateCases':
-                  //   break;
+                  case 'createCases':
+                    selectNewCases(iChange.result.caseIDs);
+                    doIncrement();
+                    break;
                 default:
                   doIncrement();
               }
@@ -158,12 +175,6 @@ DG.React.ready(function () {
                 tStartCoordinates,
                 tDragInProgress = false,
                 tDragHandler;
-
-/*
-            function logit(iString) {
-              console.log(++tIndex + ': ' + iString);
-            }
-*/
 
             function isNotEmpty(iString) {
               return iString !== undefined && iString !== null && iString !== '';
@@ -295,9 +306,11 @@ DG.React.ready(function () {
             /**
              * --------------------------Handling editing the value-----------------
              */
-            var toggleEditing = function (iValueField, iMoveToNext) {
+            var toggleEditing = function (iValueField) {
               if (this.currEditField !== iValueField) {
                 if (this.currEditField) {
+                  DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0],
+                      this.currEditField.props.attr, this.currEditField.state.value);
                   this.currEditField.setState({editing: false});
                 }
                 iValueField.setState({editing: true});
@@ -307,14 +320,6 @@ DG.React.ready(function () {
                 DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0], iAttr, this.currEditField.state.value);
                 iValueField.setState({editing: false});
                 this.currEditField = null;
-/*
-                if( iMoveToNext) {
-                  this.setState( { indexOfEditFieldToMount:iIndex + 1 });
-                }
-                else if( this.indexOfEditFieldToMount !== null) {
-                  this.setState( { indexOfEditFieldToMount: null });
-                }
-*/
               }
             }.bind(this);
 
@@ -491,6 +496,7 @@ DG.React.ready(function () {
                       unit: tUnit
                     }) :
                     DG.React.Components.TextInput({
+                      attr: iAttr,
                       value: tValue,
                       unit: tUnit,
                       isEditable: iAttr.get('editable') && !iAttr.get('formula'),
@@ -587,18 +593,23 @@ DG.React.ready(function () {
           },
 
           newCase: function( iCollectionClient) {
-            var this_ = this,
-                tCollection = iCollectionClient.get('collection'),
+            var tCollection = iCollectionClient.get('collection'),
                 tContext = this.props.context,
-                tNumCases = tCollection.get('cases').length,
-                tAttrIDs = tCollection && tCollection.getAttributeIDs();
-            DG.DataContextUtilities.createCaseUndoable( tContext,
-                { collection: tCollection,
-                  attrIDs: tAttrIDs,
-                  values: []
-                });
-            DG.currDocumentController().invokeLast( function() {
-              this_.moveToCase(iCollectionClient, tNumCases);
+                tAttrIDs = tCollection && tCollection.getAttributeIDs(),
+                tParentCollectionClient = this.props.context.getCollectionByID( tCollection.getPath('parent.id')),
+                tSelectedParentCases = tParentCollectionClient ?
+                    tParentCollectionClient.getPath('casesController.selection').toArray() :
+                    null,
+                tNumSelected = tSelectedParentCases ? tSelectedParentCases.length : null,
+                tParentCase = tNumSelected === 1 ? tSelectedParentCases[0] : null;
+            SC.run(function () {
+              DG.DataContextUtilities.createCaseUndoable(tContext,
+                  {
+                    collection: iCollectionClient,
+                    parent: tParentCase,
+                    attrIDs: tAttrIDs,
+                    values: []
+                  });
             });
           },
 

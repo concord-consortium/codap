@@ -29,6 +29,7 @@ DG.React.ready(function () {
           },
 
           componentDidMount: function () {
+            // Note that this depends on SproutCore in the midst of a React component. Not good!
             DG.mainPage.mainPane.addListener({action: 'click', target: this, method: this._onWindowClick});
             DG.mainPage.mainPane.addListener({action: 'touchstart', target: this, method: this._onWindowClick});
           },
@@ -81,7 +82,7 @@ DG.React.ready(function () {
                       onChange: this.handleChange,
                       onKeyDown: function (iEvent) {
                         if (kCompletionCodes.indexOf( iEvent.keyCode) >= 0) {
-                          this.props.onToggleEditing(this, true /* move to next */);
+                          this.props.onToggleEditing(this/*, true  move to next */);
                         }
                         else if( iEvent.keyCode === 27) {
                           this.props.onEscapeEditing( this);
