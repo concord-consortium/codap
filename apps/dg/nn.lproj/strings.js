@@ -766,5 +766,6 @@ SC.stringsFor("nn", {
     "DG.Redo.graph.showOutliers": "Gjenta vis \"uteliggere\"",
     "DG.Inspector.graphBoxPlotShowOutliers": "Vis \"uteliggere\"",
     "DG.Locale.name.nb": "Bokmål",
-    "DG.Locale.name.nn": "Nynorsk"
+    "DG.Locale.name.nn": "Nynorsk",
+    "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection"
 });
