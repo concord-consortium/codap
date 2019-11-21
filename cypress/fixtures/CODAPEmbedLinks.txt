@@ -1,0 +1,12 @@
+https://concord.org/sites/default/files/codap/embed/centers.html
+https://concord.org/sites/default/files/codap/embed/numbers.html
+https://concord.org/sites/default/files/codap/embed/bestfit.html
+https://concord.org/sites/default/files/codap/embed/tournament.html
+https://concord.org/sites/default/files/codap/embed/planets.html
+https://concord.org/sites/default/files/codap/embed/selection.html
+https://concord.org/sites/default/files/codap/embed/mammals.html
+https://concord.org/sites/default/files/codap/embed/elements.html
+https://concord.org/sites/default/files/codap/embed/heatingCooling.html
+https://concord.org/sites/default/files/codap/embed/presidents.html
+https://concord.org/sites/default/files/codap/embed/time_series.html
+http://blog.concord.org/data-science-education-technology-conference-ready-to-welcome-100-thought-leaders
