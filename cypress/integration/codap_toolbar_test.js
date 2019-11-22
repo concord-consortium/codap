@@ -18,12 +18,14 @@ const calculator = new CalculatorTile
 const sampler = new SamplerPlugin
 const drawTool = new DrawToolPlugin
 
-const url = 'https://codap.concord.org/releases/staging/static/dg/en/cert/index.html'
-// const url = 'http://localhost:4020/dg'
+const baseUrl = `${Cypress.config("baseUrl")}`;
+
+before(()=>{
+    cy.visit(baseUrl)
+})
 
 context('codap toolbar', ()=>{
     it('will open CODAP', ()=>{
-        cy.visit(url)
         cy.get('button').contains("Create New Document").click();
     })
     it('will open a new table', ()=>{
@@ -39,7 +41,7 @@ context('codap toolbar', ()=>{
         map.getMapTile().should('be.visible');
     })
     it('will open a slider', ()=>{
-        cy.wait(3000);
+        // cy.wait(3000);
         codap.openTile('slider')
         slider.getSliderTile().should('be.visible');
     })
@@ -53,13 +55,13 @@ context('codap toolbar', ()=>{
     })
     it('will open Sampler', ()=>{
         codap.openTile('plugin','Sampler')
-        cy.wait(5000);
+        cy.wait(2000);
         sampler.getSamplerPlugin().should('be.visible')
         codap.closeTile('plugin','index'); //close the tile because it interferes with later tests
     })
     it('will open a Draw Tool', ()=>{
         codap.openTile('plugin','Draw Tool')
-        cy.wait(5000);
+        cy.wait(2000);
         cy.getPluginIframe().find('#camera-flash').should('be.visible')
         codap.closeTile('plugin', 'index'); //close the tile because it interferes with later tests
     })
@@ -73,7 +75,7 @@ context('codap toolbar', ()=>{
         codap.getSingleDialog().should('exist')
         codap.singleDialogEntry(url);
         //need to verify iframe with webpage
-        cy.wait(7000);
+        // cy.wait(7000);
         cy.getWebviewIframe().find('.concord-logo').should('be.visible')
         codap.closeTile('option', 'Web Page'); //close the tile because it interferes with later tests
     })

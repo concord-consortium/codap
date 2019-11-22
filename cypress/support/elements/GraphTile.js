@@ -1,3 +1,5 @@
+import { gzipSync } from "zlib"
+
 class GraphTile {
     // Graph Plot Area
     getGraphTile(){
@@ -124,6 +126,14 @@ class GraphTile {
     getMovableValueButton(){
         return cy.get('.dg-movable-value-button')
     }
-    
+    getMeanLine(){
+        return cy.get('.dg-graph-view svg path[stroke="#0000ff"]')
+    }
+    hoverMeanLine(){
+        return cy.get('.dg-graph-view svg path[stroke="#ffffff"]').trigger("mouseover")
+    }
+    getGraphAdornmentText(){
+        return cy.get('.dg-graph-adornment tspan').last().text()
+    }
 }
 export default GraphTile

@@ -8,12 +8,12 @@ const codap = new CodapObject;
 
 const codapDoc = '3TableGroups.json'
 
-before(()=> {
-    cy.viewport(1400,1000);
-    cy.visit('https://codap.concord.org/releases/staging/?url=https://codap.concord.org/~eireland/3TableGroups.json')
-    // cy.visit('http://localhost:4020/dg?url=http://codap-server.concord.org/~eireland/3TableGroups.json')
+const baseUrl = `${Cypress.config("baseUrl")}`;
+
+before(()=>{
+    cy.visit(baseUrl+"?url=https://codap.concord.org/~eireland/"+codapDoc)
     cy.wait(5000)
-})                   
+})                
 
 context('will test graph ruler functions', ()=>{
     it('will test num univariate plot', ()=>{
@@ -164,9 +164,40 @@ context('will test graph ruler functions', ()=>{
         }) 
         codap.closeTile('graph','Table C');
     })
-    context('Plot transitions with adornments',()=>{
-        it('test num univariate plot transitions',()=>{
 
+    context.only('Plot transitions with adornments',()=>{
+        var hash = [{attribute: 'ANUM1', axis:'x1', collection:'Table A', length:1},
+                    {attribute: 'BNUM1', axis:'x1', collection:'Table B', length:1},]
+
+        before(()=>{
+            codap.openTile('graph');
+            cy.wait(2000)
+        })
+        it('verify num univariate plot transitions',()=>{
+            cy.log(hash[0].attribute, hash[0].axis)
+            cy.dragAttributeToTarget('table', hash[0].attribute, hash[0].axis)
+            graph.clickRulerTool();
+            graph.turnOnRulerTool('plottedMean')
+            graph.getMeanLine().should('be.visible');
+            graph.hoverMeanLine().then(()=>{
+                graph.getGraphAdornmentText().should('exist').and('contain','mean=66')
+            })
+            // graph.getGraphAdornmentText().should('exist').and('contain','mean=66')
+            cy.matchImageSnapshot('p_'+hash[0].attribute+'_on_'+hash[0].axis+'_adorned');
+            cy.dragAttributeToTarget('table',hash[1].attribute, hash[1].axis)
+            cy.wait(1000)
+            graph.getMeanLine().should('be.visible').and('have.length',2);
+            graph.getMeanLine().last().click()//trigger('mouseover')
+            // graph.hoverMeanLine().last().then(()=>{
+            cy.get('.dg-graph-view svg path[stroke="#0000ff"]').last().trigger('mouseover').then(()=>{    
+                graph.getGraphAdornmentText().should('contain','mean=−0.24')
+            })
+            cy.matchImageSnapshot('p_'+hash[1].attribute+'_on_'+hash[1].axis+'_adorned');
+            graph.clickRulerTool({force:true});
+            graph.turnOffRulerTool('plottedMean')
+            cy.matchImageSnapshot('p_'+hash[1].attribute+'_on_'+hash[1].axis+'_unadorned');
+
+            codap.closeTile('graph','Table C');
         })
         it('test num v num plot transitions',()=>{
 

@@ -62,12 +62,12 @@
     "test:gui": "opener http://localhost:4020/dg/en/current/tests.html",
     "test:comment": "echo Usage: `npm run test` or `npm test` runs DG unit tests via PhantomJS.",
     "test": "bin/test_runner",
-    "test:cypress": "cypress run --config video=false,defaultCommandTimeout=10000 --env testEnv=local",
+    "test:cypress": "cypress run --config video=false,defaultCommandTimeout=10000 --env testEnv=local,failOnSnapshotDiff=false",
     "test:full": "npm-run-all test test:cypress",
-    "test:production": "cypress open --env testEnv=production --config video=false,defaultCommandTimeout=10000",
-    "test:staging": "cypress open --env testEnv=master --config video=false,defaultCommandTimeout=10000",
-    "test:branch": "cypress open --env testEnv=branch --config video=false,defaultCommandTimeout=10000",
-    "test:local": "cypress open --env testEnv=local --config video=false,defaultCommandTimeout=10000"
+    "test:production": "cypress open --env testEnv=production,failOnSnapshotDiff=false",
+    "test:staging": "cypress open --env testEnv=staging,failOnSnapshotDiff=false",
+    "test:branch": "cypress open --env testEnv=branch,failOnSnapshotDiff=false",
+    "test:local": "cypress open --env testEnv=local,failOnSnapshotDiff=false"
   },
   "repository": {
     "type": "git",

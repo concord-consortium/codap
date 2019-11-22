@@ -45,6 +45,8 @@
 //     })
 // })
 import { addMatchImageSnapshotCommand } from 'cypress-image-snapshot/command'
+import 'cypress-commands';
+
 // import fs from 'fs-extra'
 // import path from 'path'
 
