@@ -165,10 +165,7 @@ DG.Case = DG.BaseModel.extend((function() {
         }
 
         // If we have a cached value, simply return it
-
-        if( tAttr && valuesMap && (!SC.none(valuesMap[iAttrID])) &&
-              // we only do the evaluation if it's one of this case's attributes
-            (this.getPath('collection.id') === tAttr.getPath('collection.id'))) {
+        if( tAttr && valuesMap && (!SC.none(valuesMap[iAttrID]))) {
           return valuesMap[iAttrID];
         }
 
