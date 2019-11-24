@@ -43,15 +43,15 @@ DG.React.ready(function () {
               this.setState({value: iNewProps.value});
             if (iNewProps.unit !== this.state.unit)
               this.setState({unit: iNewProps.unit});
+            if(iNewProps.createInEditMode && iNewProps.editModeCallback)
+              iNewProps.editModeCallback( this);
           },
 
-/*
           componentDidUpdate: function( iPrevProps) {
             if( this.props.createInEditMode !== iPrevProps.createInEditMode) {
-              this.setState( { editing: true });
+              this.setState( { editing: this.props.createInEditMode });
             }
           },
-*/
 
           _onWindowClick: function (event) {
             var inputElement = findDOMNode(this);
@@ -82,7 +82,8 @@ DG.React.ready(function () {
                       onChange: this.handleChange,
                       onKeyDown: function (iEvent) {
                         if (kCompletionCodes.indexOf( iEvent.keyCode) >= 0) {
-                          this.props.onToggleEditing(this/*, true  move to next */);
+                          this.props.onToggleEditing(this, iEvent.shiftKey ? 'up' : 'down' );
+                          iEvent.preventDefault();
                         }
                         else if( iEvent.keyCode === 27) {
                           this.props.onEscapeEditing( this);

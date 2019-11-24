@@ -121,8 +121,8 @@ DG.React.ready(function () {
           getInitialState: function () {
             return {
               count: 0,
-              attrIndex: 0/*,
-              indexOfEditFieldToMount: null*/
+              attrIndex: 0,
+              indexOfEditFieldToMount: null
             };
           },
 
@@ -140,6 +140,15 @@ DG.React.ready(function () {
 
           incrementStateCount: function () {
             this.setState({count: this.state.count + 1});
+          },
+
+          stashEditValueInCaseAttributeValue: function() {
+            if (this.currEditField) {
+              DG.DataContextUtilities.stashAttributeValue( this.props.context, this.currEditField.props.case,
+                  this.currEditField.props.attr, this.currEditField.state.value);
+              this.currEditField = null;
+              this.setState( { indexOfEditFieldToMount: null });
+            }
           },
 
           /**
@@ -169,7 +178,7 @@ DG.React.ready(function () {
           },
 
           renderAttribute: function (iContext, iCollection, iCases,
-                                     iAttr, iIndex, iShouldSummarize, iChildmostSelected) {
+                                     iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
             var kThresholdDistance2 = 0, // pixels^2
                 tMouseIsDown = false,
                 tStartCoordinates,
@@ -283,7 +292,7 @@ DG.React.ready(function () {
              */
             var handleDrop = function (iMoveDirection) {
               var tDroppedAttr = this.props.dragStatus.dragObject.data.attribute,
-                  tPosition = iIndex + (iMoveDirection === 'up' ? 0 : 1),
+                  tPosition = iAttrIndex + (iMoveDirection === 'up' ? 0 : 1),
                   tFromCollection = tDroppedAttr.get('collection');
               // If we're not actually moving the attribute, bail now
               if (iCollection === tFromCollection &&
@@ -306,29 +315,33 @@ DG.React.ready(function () {
             /**
              * --------------------------Handling editing the value-----------------
              */
-            var toggleEditing = function (iValueField) {
+            var toggleEditing = function (iValueField, iMoveDirection ) {
+              this.stashEditValueInCaseAttributeValue();
               if (this.currEditField !== iValueField) {
-                if (this.currEditField) {
-                  DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0],
-                      this.currEditField.props.attr, this.currEditField.state.value);
-                  this.currEditField.setState({editing: false});
-                }
-                iValueField.setState({editing: true});
                 this.currEditField = iValueField;
+                this.setState( { indexOfEditFieldToMount: iAttrIndex });
               }
-              else {  // Turn off editing
-                DG.DataContextUtilities.stashAttributeValue( iContext, iCases[0], iAttr, this.currEditField.state.value);
-                iValueField.setState({editing: false});
-                this.currEditField = null;
+              else if( iMoveDirection) {  // Turn off editing
+                var tIncrement;
+                switch (iMoveDirection) {
+                  case 'up':
+                    tIncrement = -1;
+                    break;
+                  case 'down':
+                    tIncrement = 1;
+                    break;
+                }
+                this.setState({indexOfEditFieldToMount: iAttrIndex + tIncrement});
               }
             }.bind(this);
 
             var escapeEditing = function (iValueField) {
-              iValueField.setState({
-                editing: false,
-                value: tCase.getValue(tAttrID)
-              });
               this.currEditField = null;
+              this.setState( { indexOfEditFieldToMount: null });
+            }.bind(this);
+
+            var editModeCallback = function( iValueField) {
+              this.currEditField = iValueField;
             }.bind(this);
 
             /**
@@ -477,7 +490,7 @@ DG.React.ready(function () {
                 }, iAttr.get('name')),
                 tCell = DG.React.Components.AttributeNameCell({
                   content: tDiv,
-                  index: iIndex,
+                  index: iAttrIndex,
                   dragStatus: this.props.dragStatus,
                   dropCallback: handleDrop,
                   editAttributeCallback: editAttribute,
@@ -497,12 +510,14 @@ DG.React.ready(function () {
                     }) :
                     DG.React.Components.TextInput({
                       attr: iAttr,
+                      case: iCases[0],
                       value: tValue,
                       unit: tUnit,
                       isEditable: iAttr.get('editable') && !iAttr.get('formula'),
                       onToggleEditing: toggleEditing,
-                      onEscapeEditing: escapeEditing/*,
-                      createInEditMode: iIndex === this.state.indexOfEditFieldToMount*/
+                      onEscapeEditing: escapeEditing,
+                      createInEditMode: iAttrIndex === this.state.indexOfEditFieldToMount,
+                      editModeCallback: editModeCallback
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
                 if (tColorValueField) {
@@ -515,7 +530,7 @@ DG.React.ready(function () {
                   tValueField = tQualitativeValueField;
                 }
             return tr({
-              key: 'attr-' + iIndex,
+              key: 'attr-' + iAttrIndex,
               className: 'react-data-card-row'
             }, tCell, td({className: tValueClassName}, tValueField));
           },
@@ -559,6 +574,8 @@ DG.React.ready(function () {
            * @param iCaseIndex  {
            */
           moveToPreviousCase: function (iCollectionClient, iCaseIndex) {
+            this.stashEditValueInCaseAttributeValue();
+
             var tPrevIndex = null;
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
             if (SC.none(iCaseIndex) && iCollectionClient.getPath('collection.parent')) {
@@ -579,6 +596,7 @@ DG.React.ready(function () {
           },
 
           moveToNextCase: function (iCollectionClient, iCaseIndex) {
+            this.stashEditValueInCaseAttributeValue();
             if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
               var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
               if (tSelectedParentFirstCaseID) {
