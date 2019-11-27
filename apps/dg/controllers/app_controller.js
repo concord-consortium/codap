@@ -361,8 +361,8 @@ DG.appController = SC.Object.create((function () // closure
      * @param {Boolean} iShowCaseTable
      * @return {Deferred|undefined}
      */
-    importTextFromUrl: function (iURL, iShowCaseTable) {
-      var name = this.extractNameFromURLPath(iURL);
+    importTextFromUrl: function (iURL, iShowCaseTable, iName) {
+      var name = iName || this.extractNameFromURLPath(iURL);
       this.openCSVImporter({
         contentType: 'text/csv',
         url: iURL,
@@ -551,7 +551,7 @@ DG.appController = SC.Object.create((function () // closure
      * @param iComponentType - (optional) the type of the component, defaults to DG.GameView
      * @returns {Boolean}
      */
-    importURL: function (iURL, iComponentType) {
+    importURL: function (iURL, iComponentType, iName) {
 
       var addInteractive = function () {
         var tDoc = DG.currDocumentController(),
@@ -588,7 +588,7 @@ DG.appController = SC.Object.create((function () // closure
       if (mimeSpec) {
         switch (mimeSpec.group) {
           case 'TEXT':
-            this.importTextFromUrl(iURL);
+            this.importTextFromUrl(iURL, false, iName);
             break;
           case 'GEOJSON':
             this.importGeoJSONFromURL(iURL);
