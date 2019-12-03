@@ -795,7 +795,6 @@ DG.ComponentView = SC.View.extend(
               tInspectorDims = this.getInspectorDimensions(),
               tLayout = this.get('layout'),
               tOriginalLayout = this.get('originalLayout'),
-              tIsVisible = this.get('isVisible'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
               tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
@@ -804,13 +803,11 @@ DG.ComponentView = SC.View.extend(
               tScaleBoundsY = tInBoundsScaling.scaleBoundsY,
               tMinWidth = this.get('contentMinWidth') || kMinSize,
               tMinHeight = this.get('contentMinWidth') || kMinSize;
-              if (tIsVisible &&
-                  tScaleBoundsX < (tLayout.left + tLayout.width + tInspectorDims.width)) {
+              if (tScaleBoundsX < (tLayout.left + tLayout.width + tInspectorDims.width)) {
                 var tNewBoundsX = tLayout.left + tLayout.width + tInspectorDims.width;
                 DG.currDocumentController().setInBoundsScaleBounds(tNewBoundsX, tScaleBoundsY);
               }
-              if (tIsVisible &&
-                  (tScaleBoundsY < (tLayout.top + tLayout.height) ||
+              if ((tScaleBoundsY < (tLayout.top + tLayout.height) ||
                   tScaleBoundsY < (tLayout.top + tInspectorDims.height))) {
                 var tHeight = (tLayout.height > tInspectorDims.height) ? tLayout.height : tInspectorDims.height;
                 var tNewBoundsY = tLayout.top + tHeight;
@@ -1066,13 +1063,14 @@ DG.ComponentView.restoreComponent = function (iParams) {
     tNewPos = tSuperView.positionNewComponent(tComponentView, iParams.position, iParams.positionOnCreate);
   }
   tSuperView.appendChild(tComponentView);
-  tSuperView.updateFrame();
   if (DG.KEEP_IN_BOUNDS_PREF && !tComponentView.get('isStandaloneComponent')) {
     if (!tUseLayoutForPosition) {
       tComponentView.configureViewBoundsLayout(tNewPos);
     }
     tComponentView.enforceViewBounds();
   }
+  // Do the following _after_ the above so we are using the possibly updated coordinates
+  tSuperView.updateFrame();
 
   return tComponentView;
 };

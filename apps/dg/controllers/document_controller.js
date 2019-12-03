@@ -625,7 +625,7 @@ DG.DocumentController = SC.Object.extend(
             function (iComponentID, iController) {
               if (iController) {
                 var view = iController.get('view');
-                if (view && view.get('isVisible') && !view.get('isStandaloneComponent')) {
+                if (view && !view.get('isStandaloneComponent')) {
                   view.enforceViewBounds();
                 }
               }
@@ -661,7 +661,7 @@ DG.DocumentController = SC.Object.extend(
               // If we have a valid, visible component, determine if its position and
               // size are determining factors in the computing the scaleBounds
               if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
-                if (iComponent.layout && iComponent.layout.isVisible &&
+                if (iComponent.layout &&
                     (iComponent.layout.left && iComponent.layout.width &&
                     iComponent.layout.top && iComponent.layout.height)) {
 
