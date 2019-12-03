@@ -523,7 +523,6 @@ DG.DataContext = SC.Object.extend((function() // closure
         break;
       case 'selectCases':
         result = this.doSelectCases( iChange);
-        shouldDirtyDoc = false;
         break;
       case 'createItems':
         result = this.doCreateItems(iChange);
@@ -2783,7 +2782,14 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @returns  {Object}
    */
   createStorage: function() {
-    return {};
+    var selectedCases = this.getSelectedCases(false);
+    var storage = {_links_: {}};
+
+    storage._links_.selectedCases = selectedCases.map(function(iCase) {
+      return iCase.toLink();
+    });
+
+    return storage;
   },
 
   /**
@@ -2792,11 +2798,24 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   restoreFromStorage: function( iContextStorage) {
     var collections = this.get('collections');
+    var links = iContextStorage._links_;
+    var selectedCaseLinks = links && links.selectedCases;
+    var selectedCases = [];
     if( !SC.none( collections)) {
       collections.forEach(function( collection) {
         this.addCollection( collection);
       }.bind(this));
     }
+    if (selectedCaseLinks) {
+      selectedCases = selectedCaseLinks.map(function (iLink) {
+        return this.getCaseByID(iLink.id);
+      }.bind(this));
+    }
+    this.doSelectCases({
+      operation: 'selectCases',
+      select: true,
+      cases: selectedCases
+    });
   },
 
     restoreSetAsideCases: function () {
