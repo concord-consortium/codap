@@ -144,7 +144,7 @@ DG.React.ready(function () {
 
           stashEditValueInCaseAttributeValue: function() {
             if (this.currEditField) {
-              DG.DataContextUtilities.stashAttributeValue( this.props.context, this.currEditField.props.case,
+              DG.DataContextUtilities.stashAttributeValue( this.props.context, this.currEditField.props['case'],
                   this.currEditField.props.attr, this.currEditField.state.value);
               this.currEditField = null;
               this.setState( { indexOfEditFieldToMount: null });
@@ -510,7 +510,7 @@ DG.React.ready(function () {
                     }) :
                     DG.React.Components.TextInput({
                       attr: iAttr,
-                      case: iCases[0],
+                      'case': iCases[0],
                       value: tValue,
                       unit: tUnit,
                       isEditable: iAttr.get('editable') && !iAttr.get('formula'),
