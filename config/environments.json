@@ -1,0 +1,17 @@
+{
+  "production": {
+    "baseUrl": "https://codap.concord.org/releases/latest/"
+    },
+  "staging": {
+    "baseUrl": "https://codap.concord.org/releases/staging/"
+    },
+  "branch": {
+    "baseUrl": "https://codap.concord.org/~jsandoe/build/"
+    },
+  "dev": {
+    "baseUrl": "dev baseUrl needs to be set in config/user-config.json (see config/user-config.sample.json)"
+  },
+  "local":{
+    "baseUrl": "http://localhost:4020/dg/"
+    }
+}

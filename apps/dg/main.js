@@ -934,7 +934,7 @@ DG.main = function main() {
                 DG.appController.importFile(event.data.file.object);
               }
               else if (event.data.url && (event.data.via === "select")) {
-                DG.appController.importURL(event.data.url, event.data.componentType);
+                DG.appController.importURL(event.data.url, event.data.componentType, event.data.name);
               }
               else if (event.data.text && event.data.name) {
                 DG.appController.importText(event.data.text, event.data.name);
