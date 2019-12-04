@@ -632,7 +632,7 @@ SC.stringsFor("nn", {
     "DG.WebView.defaultTitle": "Nettside",
     "DG.mainPage.exceptionMessage": "Det har oppstått ein feil som kan påverke korleis dette programmet oppfører seg. Du kan lagre arbeidet ditt, og prøva å laste sida på nytt.",
     "DG.fileMenu.provider.examples.displayName": "Eksempeldokument",
-    "DG.ToolButtonData.pluginMenu.title": "Programvareutvidinger",
+    "DG.ToolButtonData.pluginMenu.title": "Plugins",
     "DG.ToolButtonData.pluginMenu.toolTip": "Opne ein progamvaretilleggkomponent",
     "DG.Undo.graph.showMovablePoint": "Angre vis flyttbart punkt",
     "DG.Redo.graph.showMovablePoint": "Gjenta vis flyttbart punkt",
@@ -765,7 +765,7 @@ SC.stringsFor("nn", {
     "DG.Undo.graph.hideOutliers": "Angre skjul \"uteliggere\"",
     "DG.Redo.graph.showOutliers": "Gjenta vis \"uteliggere\"",
     "DG.Inspector.graphBoxPlotShowOutliers": "Vis \"uteliggere\"",
-    "DG.Locale.name.nb": "Bokmål",
-    "DG.Locale.name.nn": "Nynorsk",
-    "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection"
+    "DG.Locale.name.nb": "Norsk (bokmål)",
+    "DG.Locale.name.nn": "Norsk (nynorsk)",
+    "DG.CaseCard.newCaseToolTip": "Legg til tom observasjon til denne samlinga"
 });
