@@ -14546,10 +14546,6 @@ GoogleDriveProvider = (function(superClass) {
     this.scopes = this.options.scopes || ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.install', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.profile'];
     this.mimeType = this.options.mimeType || "text/plain";
     this.readableMimetypes = this.options.readableMimetypes;
-    this.useRealTimeAPI = this.options.useRealTimeAPI || false;
-    if (this.useRealTimeAPI) {
-      this.mimeType += '+cfm_realtime';
-    }
     this._loadGAPI();
   }
 
@@ -14619,7 +14615,9 @@ GoogleDriveProvider = (function(superClass) {
 
   GoogleDriveProvider.prototype.renderUser = function() {
     if (this.user) {
-      return span({}, span({
+      return span({
+        className: 'gdrive-user'
+      }, span({
         className: 'gdrive-icon'
       }), this.user.name);
     } else {
@@ -14630,11 +14628,7 @@ GoogleDriveProvider = (function(superClass) {
   GoogleDriveProvider.prototype.save = function(content, metadata, callback) {
     return this._loadedGAPI((function(_this) {
       return function() {
-        if (_this.useRealTimeAPI) {
-          return _this._saveRealTimeFile(content, metadata, callback);
-        } else {
-          return _this._saveFile(content, metadata, callback);
-        }
+        return _this._saveFile(content, metadata, callback);
       };
     })(this));
   };
@@ -14642,11 +14636,7 @@ GoogleDriveProvider = (function(superClass) {
   GoogleDriveProvider.prototype.load = function(metadata, callback) {
     return this._loadedGAPI((function(_this) {
       return function() {
-        if (_this.useRealTimeAPI) {
-          return _this._loadOrCreateRealTimeFile(metadata, callback);
-        } else {
-          return _this._loadFile(metadata, callback);
-        }
+        return _this._loadFile(metadata, callback);
       };
     })(this));
   };
@@ -14741,12 +14731,7 @@ GoogleDriveProvider = (function(superClass) {
     });
   };
 
-  GoogleDriveProvider.prototype.close = function(metadata, callback) {
-    var ref1, ref2;
-    if (((ref1 = metadata.providerData) != null ? (ref2 = ref1.realTime) != null ? ref2.doc : void 0 : void 0) != null) {
-      return metadata.providerData.realTime.doc.close();
-    }
-  };
+  GoogleDriveProvider.prototype.close = function(metadata, callback) {};
 
   GoogleDriveProvider.prototype.canOpenSaved = function() {
     return true;
@@ -14800,10 +14785,8 @@ GoogleDriveProvider = (function(superClass) {
         if (window._LoadedGAPI) {
           return gapi.client.load('drive', 'v2', function() {
             return gapi.client.load('oauth2', 'v2', function() {
-              return gapi.load('drive-realtime', function() {
-                window._LoadedGAPIClients = true;
-                return callback.call(self);
-              });
+              window._LoadedGAPIClients = true;
+              return callback.call(self);
             });
           });
         } else {
@@ -14902,118 +14885,6 @@ GoogleDriveProvider = (function(superClass) {
         }
       };
     })(this));
-  };
-
-  GoogleDriveProvider.prototype._loadOrCreateRealTimeFile = function(metadata, callback) {
-    var error, fileLoaded, init, ref1, ref2, ref3, request, self;
-    self = this;
-    fileLoaded = function(doc) {
-      var collaborator, content, i, len, ref1, sessionId, throwError;
-      content = doc.getModel().getRoot().get('content');
-      if (metadata.overwritable) {
-        throwError = function(e) {
-          if (!e.isLocal && e.sessionId !== metadata.providerData.realTime.sessionId) {
-            return self.client.showBlockingModal({
-              title: 'Concurrent Edit Lock',
-              message: 'An edit was made to this file from another browser window. This app is now locked for input.'
-            });
-          }
-        };
-        content.addEventListener(gapi.drive.realtime.EventType.TEXT_INSERTED, throwError);
-        content.addEventListener(gapi.drive.realtime.EventType.TEXT_DELETED, throwError);
-      }
-      ref1 = doc.getCollaborators();
-      for (i = 0, len = ref1.length; i < len; i++) {
-        collaborator = ref1[i];
-        if (collaborator.isMe) {
-          sessionId = collaborator.sessionId;
-        }
-      }
-      metadata.providerData.realTime = {
-        doc: doc,
-        content: content,
-        sessionId: sessionId
-      };
-      return callback(null, cloudContentFactory.createEnvelopedCloudContent(content.getText()));
-    };
-    init = function(model) {
-      var content;
-      content = model.createString('');
-      return model.getRoot().set('content', content);
-    };
-    error = (function(_this) {
-      return function(err) {
-        if (err.type === 'TOKEN_REFRESH_REQUIRED') {
-          return _this.authorize(GoogleDriveProvider.IMMEDIATE);
-        } else {
-          return _this.client.alert(err.message);
-        }
-      };
-    })(this);
-    if ((ref1 = metadata.providerData) != null ? ref1.id : void 0) {
-      request = gapi.client.drive.files.get({
-        fileId: metadata.providerData.id
-      });
-    } else {
-      request = gapi.client.drive.files.insert({
-        title: metadata.filename,
-        mimeType: this.mimeType,
-        parents: [
-          {
-            id: ((ref2 = metadata.parent) != null ? (ref3 = ref2.providerData) != null ? ref3.id : void 0 : void 0) != null ? metadata.parent.providerData.id : 'root'
-          }
-        ]
-      });
-    }
-    return request.execute((function(_this) {
-      return function(file) {
-        if (file != null ? file.id : void 0) {
-          metadata.rename(file.title);
-          metadata.overwritable = file.editable;
-          metadata.providerData = {
-            id: file.id
-          };
-          return gapi.drive.realtime.load(file.id, fileLoaded, init, error);
-        } else {
-          return callback(_this._apiError(file, 'Unable to load file'));
-        }
-      };
-    })(this));
-  };
-
-  GoogleDriveProvider.prototype._saveRealTimeFile = function(content, metadata, callback) {
-    var ref1;
-    if ((ref1 = metadata.providerData) != null ? ref1.model : void 0) {
-      return this._diffAndUpdateRealTimeModel(content, metadata, callback);
-    } else {
-      return this._loadOrCreateRealTimeFile(metadata, (function(_this) {
-        return function(err) {
-          if (err) {
-            return callback(err);
-          }
-          return _this._diffAndUpdateRealTimeModel(content, metadata, callback);
-        };
-      })(this));
-    }
-  };
-
-  GoogleDriveProvider.prototype._diffAndUpdateRealTimeModel = function(content, metadata, callback) {
-    var diff, diffs, i, index, len, realTimeContent;
-    index = 0;
-    realTimeContent = metadata.providerData.realTime.content;
-    diffs = jsdiff.diffChars(realTimeContent.getText(), content.getContentAsJSON());
-    for (i = 0, len = diffs.length; i < len; i++) {
-      diff = diffs[i];
-      if (diff.removed) {
-        realTimeContent.removeRange(index, index + diff.value.length);
-      } else {
-        if (diff.added) {
-          realTimeContent.insertString(index, diff.value);
-        }
-        index += diff.count;
-      }
-    }
-    return callback(null);
   };
 
   GoogleDriveProvider.prototype._apiError = function(result, prefix) {
@@ -15953,14 +15824,18 @@ CloudMetadata = (function() {
   };
 
   CloudMetadata.prototype._updateFilename = function() {
-    var extLen, ref;
+    var extLen, hasCurrentExtension, ref;
     this.filename = this.name;
     if ((((ref = this.name) != null ? ref.substr : void 0) != null) && (CloudMetadata.Extension != null) && this.type === CloudMetadata.File) {
       extLen = CloudMetadata.Extension.length;
-      if (this.name.substr(-extLen + 1) === ("." + CloudMetadata.Extension)) {
-        this.name = this.name.substr(0, this.name.length - (extLen + 1));
+      if (extLen > 0) {
+        hasCurrentExtension = this.name.substr(-extLen - 1) === ("." + CloudMetadata.Extension);
+        if (hasCurrentExtension) {
+          return this.name = this.name.substr(0, this.name.length - (extLen + 1));
+        } else {
+          return this.filename += "." + CloudMetadata.Extension;
+        }
       }
-      return this.filename = CloudMetadata.withExtension(this.name, null, true);
     }
   };
 
@@ -17045,7 +16920,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "Laden...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Fehler beim Laden der Ordnerinhalte ***",
     "~FILE_DIALOG.DOWNLOAD": "Download",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "Achtung: Bei Safari könnte diese Datei \"unbekannt\" heißen und sollte manuell mit der .codap Erweiterung versehen werden.",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
     "~DOWNLOAD_DIALOG.CANCEL": "Abbrechen",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Information über Teilen im Dokument ",
@@ -17172,7 +17046,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "Φόρτωση...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Σφάλμα φόρτωσης περιεχομένων φακέλου ***",
     "~FILE_DIALOG.DOWNLOAD": "Λήψη",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "ΣΗΜΕΙΩΣΗ: Στο Safari το αρχείο μπορεί να είναι \"Άγνωστο\" και πρέπει να το μετονομάσετε εσείς, προσθέτοντας την κατάληξη .codap",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "Λήψη",
     "~DOWNLOAD_DIALOG.CANCEL": "Ακύρωση",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Να συμπεριληφθούν πληροφορίες κοινοποίησης στο αρχείο λήψης",
@@ -17305,8 +17178,6 @@ module.exports={
   "~FILE_DIALOG.LOADING": "Loading...",
   "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Error loading folder contents ***",
   "~FILE_DIALOG.DOWNLOAD": "Download",
-  "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTE: On Safari file may be \"Unknown\" and should be manually renamed with a .codap extension.",
-
 
   "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
   "~DOWNLOAD_DIALOG.CANCEL": "Cancel",
@@ -17451,7 +17322,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "Cargando...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Error al cargar contenido de la carpeta ***",
     "~FILE_DIALOG.DOWNLOAD": "Bajar",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTA: En Safari el archivo puede ser \"Desconocido\" y deben ser renombrado de manera manual con extensión .codap",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "Bajar",
     "~DOWNLOAD_DIALOG.CANCEL": "Cancelar",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Incluir información para compartir en archivo bajado",
@@ -17578,7 +17448,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "טוען...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** טעות בעת טעינת תוכן הקובץ ***",
     "~FILE_DIALOG.DOWNLOAD": "הורד",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "שים לב: הקובץ נשמר כ'לא ידוע' וצריך לשנות את השם ידנית עם תוספת .CODAP",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "הורד",
     "~DOWNLOAD_DIALOG.CANCEL": "בטל",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "צרף נתוני שיתוף בקובץ שהורד",
@@ -17705,7 +17574,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "Laster...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "***Feil ved lasting av innholdet i mappa***",
     "~FILE_DIALOG.DOWNLOAD": "Last ned",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "MERK: Hvis fila er \"Uknown\" i Safari, angi .codap som fil-endelse.",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "Last ned",
     "~DOWNLOAD_DIALOG.CANCEL": "Avbryt",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Inkludér delingsinformasjon i den nedlastede fila",
@@ -17832,7 +17700,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "Lastar...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Feil ved lasting av innholdet i mappa ***",
     "~FILE_DIALOG.DOWNLOAD": "Last ned",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "MERK: I Safari kan fila være \"Ukjent\", og den må få nytt namn med endinga .codap",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "Last ned",
     "~DOWNLOAD_DIALOG.CANCEL": "Avbryt",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Inkluder detaljer om deling i den nedlasta fila",
@@ -17959,7 +17826,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "Yükleniyor...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "İçerik yüklenirken hata oluştu.",
     "~FILE_DIALOG.DOWNLOAD": "İndir",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "NOT: Safari ile çalışırken dosya \"Bilinmeyen\" olarak görülebilir ve .codap uzantısı olarak el ile yeniden adlandırılması gerekebilir.",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "İndir",
     "~DOWNLOAD_DIALOG.CANCEL": "İptal",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Paylaşılan bilgileri indirilen dosyaya dahil et.",
@@ -18086,7 +17952,6 @@ module.exports={
     "~FILE_DIALOG.LOADING": "讀取中...",
     "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** 載入文件時發生錯誤 ***",
     "~FILE_DIALOG.DOWNLOAD": "下載",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTE: 使用Safari 檔案可能變為 \"Unknown\" 您需要在手動更改副檔名為 .codap",
     "~DOWNLOAD_DIALOG.DOWNLOAD": "下載",
     "~DOWNLOAD_DIALOG.CANCEL": "取消",
     "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "下載的檔案中包含分享的檔案",
@@ -19701,10 +19566,6 @@ module.exports = React.createClass({
       value: this.state.includeShareInfo,
       onChange: this.includeShareInfoChanged
     }), tr('~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO')) : void 0), div({
-      className: 'note'
-    }, tr('~FILE_DIALOG.DOWNLOAD_NOTE', {
-      download: tr('~FILE_DIALOG.DOWNLOAD')
-    })), div({
       className: 'buttons'
     }, this.state.supportsDownloadAttribute ? downloadAnchor : downloadButton, button({
       onClick: this.cancel

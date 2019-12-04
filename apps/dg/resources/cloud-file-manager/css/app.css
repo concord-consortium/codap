@@ -1364,6 +1364,9 @@
 .menu-bar .menu-bar-right .menu-showing {
   right: 10px;
 }
+.menu-bar span.gdrive-user {
+  height: 14px;
+}
 .menu-bar span.gdrive-icon {
   background: static_url("cloud-file-manager/img/google-drive-16.png") no-repeat top left;
   display: inline-block;
@@ -1371,7 +1374,8 @@
   height: 16px;
   padding: 0;
   position: relative;
-  top: 3px;
+  top: -1px;
+  margin-right: 3px;
 }
 .menu-bar span.document-store-icon {
   background: static_url("cloud-file-manager/img/document-store-16.png") no-repeat top left;
