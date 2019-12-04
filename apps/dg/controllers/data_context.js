@@ -2811,11 +2811,14 @@ DG.DataContext = SC.Object.extend((function() // closure
         return this.getCaseByID(iLink.id);
       }.bind(this));
     }
-    this.doSelectCases({
-      operation: 'selectCases',
-      select: true,
-      cases: selectedCases
-    });
+    // allow for a render cycle
+    this.invokeOnceLater(function () {
+      this.applyChange({
+        operation: 'selectCases',
+        select: true,
+        cases: selectedCases
+      });
+    },200);
   },
 
     restoreSetAsideCases: function () {
