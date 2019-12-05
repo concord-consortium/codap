@@ -2250,6 +2250,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 tView.adjust( iCompStorage.layout);
             }
             else {
+              iCompStorage.allowMoreThanOne = true; // defaults to false and not stored
               DG.mainPage.get('mainPane').createComponentAndView(null, iCompStorage);
             }
           });
