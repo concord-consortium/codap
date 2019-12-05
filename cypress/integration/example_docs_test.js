@@ -24,7 +24,11 @@ context('Load all Sample documents in the CODAP example tab', ()=>{
         for (i=0; i<listingArray.length;i++) {
             if(i>0){
                 cfm.openDocFromFileMenu();
-                if (listingArray[i-1]=='Markov Game') {
+                // cfm.closeConfirmDialogMessage();
+                // if ((listingArray[i-1]=='Markov Game') || (listingArray[i-1]=='Four Seals')) {
+                //     cfm.closeConfirmDialogMessage();
+                // }
+                if (listingArray[i-1]!=='Getting started with CODAP')  {
                     cfm.closeConfirmDialogMessage();
                 }
             }

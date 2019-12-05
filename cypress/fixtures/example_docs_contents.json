@@ -1,0 +1,12 @@
+{
+    "document":"Four Seals",
+    "tiles":[
+        { 
+            "table": 1,
+            "graph": 1,
+            "map": 1,
+            "guide": 1,
+            "webview":1
+        }
+    ]
+}

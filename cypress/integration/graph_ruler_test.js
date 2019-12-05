@@ -165,7 +165,7 @@ context('will test graph ruler functions', ()=>{
         codap.closeTile('graph','Table C');
     })
 
-    context.only('Plot transitions with adornments',()=>{
+    context('Plot transitions with adornments',()=>{
         var hash = [{attribute: 'ANUM1', axis:'x1', collection:'Table A', length:1},
                     {attribute: 'BNUM1', axis:'x1', collection:'Table B', length:1},]
 

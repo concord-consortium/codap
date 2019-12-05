@@ -1,5 +1,3 @@
-import { gzipSync } from "zlib"
-
 class GraphTile {
     // Graph Plot Area
     getGraphTile(){
