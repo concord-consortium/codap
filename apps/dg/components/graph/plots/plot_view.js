@@ -452,6 +452,11 @@ DG.PlotView = DG.PlotLayer.extend(
         DG.ColorUtilities.calcAttributeColorFromIndex( tPlotIndex, tNumPlots);
   },
 
+  getPointColor: function() {
+    var tModel = this.get('model');
+    return tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor;
+  },
+
   /**
    * Construct and return a new render context
    * used for setCircleCoordinate()
@@ -482,7 +487,7 @@ DG.PlotView = DG.PlotLayer.extend(
       yVarID: tModel.get(tYVarIDKey),
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
-      pointColor: tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
+      pointColor: this.getPointColor(),
       transparency: tModel.getTransparency ? tModel.getTransparency() : DG.PlotUtilities.kDefaultPointOpacity,
       strokeTransparency: tStrokeParams.strokeTransparency,
       attrColor: this.getAttributeColor(),
