@@ -19,6 +19,7 @@
 // ==========================================================================
 
 sc_require('components/graph/utilities/plot_utilities');
+sc_require('components/graph_map_common/layer_names');
 
 /** @class  Draws a movable point.
 
@@ -37,6 +38,11 @@ DG.MovablePointAdornment = DG.PlotAdornment.extend(
        @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
        */
       modelPropertiesToObserve: [['coordinates', 'updateToModel']],
+
+      layerName: DG.LayerNames.kDataTip,
+
+      opacity: 0.6,
+      strokeOpacity: 0.8,
 
       /**
        The point itself is a single point element
@@ -177,7 +183,8 @@ DG.MovablePointAdornment = DG.PlotAdornment.extend(
             tCoords = tModel.get('coordinates'),
             tScreenCoords = worldToScreen( tCoords),
             tPoint = this.get('point'),
-            tShadow = this.get('shadow');
+            tShadow = this.get('shadow'),
+            tLayer = this.get('layer');
 
         function worldToScreen(iWorld) {
           return {
@@ -194,9 +201,11 @@ DG.MovablePointAdornment = DG.PlotAdornment.extend(
               DG.PlotUtilities.kDefaultAnimationTime, '<>');
         }
         if( tPoint.attr('opacity') === 0) {
-          tPoint.animate({opacity: 1, 'stroke-opacity': 0.8}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+          tPoint.animate({opacity: this.opacity, 'stroke-opacity': this.strokeOpacity}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
           tShadow.animate({ 'stroke-opacity': 0.8}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
         }
+        tLayer.bringToFront(tShadow);
+        tLayer.bringToFront(tPoint);
       }
 
     });

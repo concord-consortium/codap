@@ -581,8 +581,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         if (tMovablePoint) {
           if (!this.movablePointAdorn) {
             var tAdorn = DG.MovablePointAdornment.create({
-              parentView: this, model: tMovablePoint, paperSource: this.get('paperSource'),
-              layerName: DG.LayerNames.kAdornments
+              parentView: this, model: tMovablePoint, paperSource: this.get('paperSource')
             });
             tAdorn.createElements();
             this.movablePointAdorn = tAdorn;
