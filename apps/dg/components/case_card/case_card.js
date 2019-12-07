@@ -316,8 +316,9 @@ DG.React.ready(function () {
              * --------------------------Handling editing the value-----------------
              */
             var toggleEditing = function (iValueField, iMoveDirection ) {
+              var tEditFieldOnEntry = this.currEditField;
               this.stashEditValueInCaseAttributeValue();
-              if (this.currEditField !== iValueField) {
+              if (tEditFieldOnEntry !== iValueField) {
                 this.currEditField = iValueField;
                 this.setState( { indexOfEditFieldToMount: iAttrIndex });
               }
