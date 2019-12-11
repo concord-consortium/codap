@@ -656,12 +656,16 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   tYCollection = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.collection');
               return !SC.none( tLegendCollection) && tLegendCollection.get('id') !== tXCollection.get('id') &&
                   tLegendCollection.get('id') !== tYCollection.get('id');
+            }.bind(this),
+
+            isOneOfMany = function () {
+              return this.get('numPlots') > 1;
             }.bind(this);
 
         var tPlotModel = this.get('model'),
             tAdornModel = tPlotModel && tPlotModel.getAdornmentModel('connectingLine'),
             tAdorn = this.get('connectingLineAdorn'),
-            tLineColorFunc = hasGrouping() ? this.getPointColor : this.getAttributeColor;
+            tLineColorFunc = hasGrouping() || !isOneOfMany() ? this.getPointColor : this.getAttributeColor;
         if (tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
           tAdorn = DG.ConnectingLineAdornment.create({
             parentView: this, model: tAdornModel,
