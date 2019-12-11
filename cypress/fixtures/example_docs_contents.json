@@ -1,12 +1,95 @@
 {
-    "document":"Four Seals",
-    "tiles":[
-        { 
-            "table": 1,
-            "graph": 1,
-            "map": 1,
-            "guide": 1,
-            "webview":1
+    "examples":[
+        {
+            "document":"Four Seals",
+            "tiles":[
+                { 
+                    "table": 1,
+                    "graph": 1,
+                    "map": 1,
+                    "guide": 1,
+                    "webview":1,
+                    "plugin":0
+                }
+            ]
+        },
+        {
+            "document":"Getting started with CODAP",
+            "tiles":[
+                { 
+                    "table": 0,
+                    "graph": 0,
+                    "map": 0,
+                    "guide": 0,
+                    "webview":0,
+                    "plugin":1
+                }
+            ]
+        },
+        {
+            "document":"Mammals",
+            "tiles":[
+                { 
+                    "table": 1,
+                    "graph": 3,
+                    "map": 0,
+                    "guide": 1,
+                    "webview":0,
+                    "plugin":0
+                }
+            ]
+        },
+        {
+            "document":"Map Data",
+            "tiles":[
+                { 
+                    "table": 1,
+                    "graph": 0,
+                    "map": 1,
+                    "guide": 1,
+                    "webview":0,
+                    "plugin":0
+                }
+            ]
+        },
+        {
+            "document":"Markov Game",
+            "tiles":[
+                { 
+                    "table": 0,
+                    "graph": 0,
+                    "map": 0,
+                    "guide": 2,
+                    "webview":0,
+                    "plugin":1
+                }
+            ]
+        },
+        {
+            "document":"Parachute Model",
+            "tiles":[
+                { 
+                    "table": 1,
+                    "graph": 0,
+                    "map": 0,
+                    "guide": 1,
+                    "webview":0,
+                    "plugin":1
+                }
+            ]
+        },
+        {
+            "document":"Roller Coasters",
+            "tiles":[
+                { 
+                    "table": 1,
+                    "graph": 1,
+                    "map": 0,
+                    "guide": 1,
+                    "webview":0,
+                    "plugin":0
+                }
+            ]
         }
-    ]
+    ]    
 }
