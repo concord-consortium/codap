@@ -523,6 +523,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         break;
       case 'selectCases':
         result = this.doSelectCases( iChange);
+        // The selectionChangeCount will be incremented once upon document restore.
+        // We do not want this to dirty the document.
+        if (this.selectionChangeCount <= 1) {
+          shouldDirtyDoc = false;
+        }
         break;
       case 'createItems':
         result = this.doCreateItems(iChange);
