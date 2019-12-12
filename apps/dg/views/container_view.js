@@ -373,7 +373,27 @@ DG.ContainerView = SC.View.extend(
 
       touchStart: function(iEvent) {
         return this.mouseDown( iEvent);
-      }
+      },
+
+      containingScrollView: function () {
+        var v = this;
+        while (v.parentView != null && !(v.parentView instanceof SC.ScrollView)) {
+          v = v.parentView;
+        }
+        return v && v.parentView;
+      }.property(),
+
+      visibleLeft: function() {
+        var scrollView = this.get('containingScrollView');
+        var visibleLeft = scrollView.get('horizontalScrollOffset');
+        return visibleLeft;
+      }.property(),
+
+      visibleTop: function() {
+        var scrollView = this.get('containingScrollView');
+        var visibleTop = scrollView.get('verticalScrollOffset');
+        return visibleTop;
+      }.property()
 
     };  // object returned closure
   }()) // function closure

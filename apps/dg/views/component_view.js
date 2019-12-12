@@ -538,14 +538,19 @@ DG.ComponentView = SC.View.extend(
             },
             dragAdjust: function (evt, info) {
               var tOuterView = this.viewToDrag(),
-                  tX = DG.ViewUtilities.roundToGrid(info.left + (evt.pageX - info.pageX)),
-                  tY = DG.ViewUtilities.roundToGrid(info.top + (evt.pageY - info.pageY)),
-                  tContainerWidth = this.getContainerWidth(),
-                  tContainerHeight = this.getContainerHeight(),
+                  tX = DG.ViewUtilities.roundToGrid(info.left + (evt.pageX - info.pageX)), // delta
+                  tY = DG.ViewUtilities.roundToGrid(info.top + (evt.pageY - info.pageY)), // delta
+                  tContainerWidth = this.getContainerWidth(), // viewport coordinate system
+                  tContainerHeight = this.getContainerHeight(), // viewport coordinate system
+                  tScrollView = tOuterView.parentView.get('containingScrollView'),
+                  tScrollBarThickness = tScrollView?tScrollView.getPath('horizontalScrollerView.scrollbarThickness'):0,
+                  tScrollHeight = (tScrollView && tScrollView.get('canScrollHorizontal'))?tScrollBarThickness:0,
+                  tViewframeTop = tOuterView.parentView.get('visibleTop'),
+                  tViewframeLeft = tOuterView.parentView.get('visibleLeft'),
                   tMinX = -info.width + kMinSize,
-                  tMaxX = tContainerWidth - kMinSize,
+                  tMaxX = tViewframeLeft + tContainerWidth - kMinSize,
                   tMinY = -kTitleBarHeight / 2,
-                  tMaxY = tContainerHeight - kTitleBarHeight / 2;
+                  tMaxY = tViewframeTop + tContainerHeight - tScrollHeight - kTitleBarHeight / 2;
               if (DG.KEEP_IN_BOUNDS_PREF) {
                 var tInspectorDimensions = tOuterView.getInspectorDimensions();
                 tMinX = 0;
