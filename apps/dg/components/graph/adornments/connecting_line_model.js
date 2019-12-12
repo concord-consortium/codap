@@ -82,7 +82,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
    * Will be set by ScatterPlotView on creation of ConnectingLineAdornment
    * @property {Function}
    */
-  getAttrColorFunc: null,
+  getLineColorFunc: null,
 
   /**
     * Compute or re-compute the lines. Creates an array of objects, each having a color and
@@ -121,7 +121,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     // create an array of points to connect for each parent collection
     var tValues = {},
         tCategoryMap = getCategoryMap(),
-        tGetAttrColorFunc = this.get('getAttrColorFunc');
+        tGetLineColorFunc = this.get('getLineColorFunc');
     tCases.forEach( function( iCase, iIndex ) {
       var tXVal = iCase.getNumValue( tXVarID),
           tYVal = iCase.getNumValue( tYVarID ),
@@ -131,7 +131,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
         if (!tValues[tParentID]) {
           tValues[tParentID] = {
             color: (tCategoryMap ? (tCategoryMap[iCase.getValue(tLegendDesc.getPath('attribute.id'))]) :
-                (tGetAttrColorFunc ? tGetAttrColorFunc() : null)),
+                (tGetLineColorFunc ? tGetLineColorFunc() : null)),
             coordinates: []
           };
         }

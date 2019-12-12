@@ -230,6 +230,7 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
       this.createElements();
     var tXAxisView = this.get( 'xAxisView'),
         tYAxisView = this.get( 'yAxisView'),
+        tLayer = this.get('layer'),
         tModel = this.get('model'),
         tSlope = tModel.get('slope'),
         tLocked = tModel.get('isInterceptLocked'),
@@ -299,10 +300,10 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
     DG.RenderingUtilities.updateLine( this.lineSeg, pts[0], pts[3]);
 
     this.hitHandles.forEach(function(handle, i) {
-      var xCenter = (pts[i].x + pts[i+1].x) / 2,
-          yCenter = (pts[i].y + pts[i+1].y) / 2;
-      handle.toFront()
-            .attr({ x: xCenter - this.kHandleSize / 2, y: yCenter - this.kHandleSize / 2 });
+      var xCenter = (pts[i].x + pts[i + 1].x) / 2,
+          yCenter = (pts[i].y + pts[i + 1].y) / 2;
+      tLayer.bringToFront(handle);
+      handle.attr({x: xCenter - this.kHandleSize / 2, y: yCenter - this.kHandleSize / 2});
     }.bind(this));
 
     this.hitSegments.forEach(function(segment, i) {
@@ -313,7 +314,8 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
                     ? [this.kLineBotLeft, this.kLineSlideCur, this.kLineTopRight]
                     : [this.kLineTopLeft, this.kLineSlideCur, this.kLineBotRight];
     this.hitSegments.forEach(function(segment, i) {
-      segment.toFront().attr({ cursor: cursors[i] });
+      tLayer.bringToFront( segment);
+      segment.attr({ cursor: cursors[i] });
     });
 
     this.positionEquationAndBackground();

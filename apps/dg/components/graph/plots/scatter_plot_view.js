@@ -581,8 +581,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         if (tMovablePoint) {
           if (!this.movablePointAdorn) {
             var tAdorn = DG.MovablePointAdornment.create({
-              parentView: this, model: tMovablePoint, paperSource: this.get('paperSource'),
-              layerName: DG.LayerNames.kAdornments
+              parentView: this, model: tMovablePoint, paperSource: this.get('paperSource')
             });
             tAdorn.createElements();
             this.movablePointAdorn = tAdorn;
@@ -642,25 +641,38 @@ DG.ScatterPlotView = DG.PlotView.extend(
       connectingLineChanged: function () {
 
         var updateConnectingLine = function () {
-          if (tAdorn) {
-            tAdorn.updateToModel(true /*animate*/);
-            //    this.adornmentDidChange('connectingLine', 'connectingLineAdorn', DG.ConnectingLineAdornment);
-            this.updatePointSize();
-            this._elementOrderIsValid = false;
-            this.updateSelection();
-          }
-        }.bind(this);
+              if (tAdorn) {
+                tAdorn.updateToModel(true /*animate*/);
+                //    this.adornmentDidChange('connectingLine', 'connectingLineAdorn', DG.ConnectingLineAdornment);
+                this.updatePointSize();
+                this._elementOrderIsValid = false;
+                this.updateSelection();
+              }
+            }.bind(this),
+
+            hasGrouping = function () {
+              var tLegendCollection = this.getPath('model.dataConfiguration.legendAttributeDescription.attribute.collection'),
+                  tXCollection = this.getPath('model.dataConfiguration.xAttributeDescription.attribute.collection'),
+                  tYCollection = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.collection');
+              return !SC.none( tLegendCollection) && tLegendCollection.get('id') !== tXCollection.get('id') &&
+                  tLegendCollection.get('id') !== tYCollection.get('id');
+            }.bind(this),
+
+            isOneOfMany = function () {
+              return this.get('numPlots') > 1;
+            }.bind(this);
 
         var tPlotModel = this.get('model'),
             tAdornModel = tPlotModel && tPlotModel.getAdornmentModel('connectingLine'),
-            tAdorn = this.get('connectingLineAdorn');
+            tAdorn = this.get('connectingLineAdorn'),
+            tLineColorFunc = hasGrouping() || !isOneOfMany() ? this.getPointColor : this.getAttributeColor;
         if (tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
           tAdorn = DG.ConnectingLineAdornment.create({
             parentView: this, model: tAdornModel,
             paperSource: this.get('paperSource'),
             layerName: DG.LayerNames.kConnectingLines
           });
-          tAdorn.setPath('model.getAttrColorFunc', this.getAttributeColor.bind( this));
+          tAdorn.setPath('model.getLineColorFunc', tLineColorFunc.bind( this));
           this.set('connectingLineAdorn', tAdorn);
         }
 

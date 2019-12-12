@@ -186,10 +186,13 @@ DG.PlotAdornment = SC.Object.extend(
   },
 
   showElements: function() {
+    var tOpacity = this.get('opacity') || 1,
+        tStrokeOpacity = this.get('strokeOpacity') || 1;
     this.myElements.forEach(function (iElement) {
       iElement.show();
       if (iElement.animatable) {
-        iElement.animate({'stroke-opacity': 1, opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+        iElement.animate({'stroke-opacity': tStrokeOpacity, opacity: tOpacity},
+            DG.PlotUtilities.kDefaultAnimationTime, '<>');
       }
     });
     this.set('isHidden', false);

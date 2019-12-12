@@ -230,40 +230,59 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        * Add another movable value
        */
       removeMovableValue: function () {
-        var tMultipleMovableValues = this.getAdornmentModel('multipleMovableValues'),
-            tRemovedValue, tPlottedCount;
+        var this_ = this,
+            tRootMMVs = this.getAdornmentModel('multipleMovableValues'),
+            tShowing = { count: tRootMMVs.get('isShowingCount'),
+              percent: tRootMMVs.get('isShowingPercent')},
+            tNumShowing = tRootMMVs.get('values').length,
+            tRemovedValues = [];
 
-        if( !tMultipleMovableValues)
-          return;
+            function doRemoveMovableValue() {
 
-        var tShowing = { count: tMultipleMovableValues.get('isShowingCount'),
-                          percent: tMultipleMovableValues.get('isShowingPercent')},
-            tNumShowing = tMultipleMovableValues.get('values').length,
+              function removeMovableValueFromPlot( iPlot, iIndexMinusOne) {
+                var tIndex = iIndexMinusOne + 1,
+                    tMultipleMovableValues = iPlot.getAdornmentModel('multipleMovableValues'),
+                    tPlottedCount,
+                    tRemovedValue = tRemovedValues[ tIndex];
+                if( !tMultipleMovableValues)
+                  return;
 
-            doRemoveMovableValue = function () {
-              if( tNumShowing === 1 && (tShowing.count || tShowing.percents) ) {
-                tPlottedCount = this.get('plottedCount');
-                tPlottedCount.set('isShowingCount', tShowing.count);
-                tPlottedCount.set('isShowingPercent', tShowing.percent);
+                if( tNumShowing === 1 && (tShowing.count || tShowing.percents) ) {
+                  tPlottedCount = iPlot.get('plottedCount');
+                  tPlottedCount.set('isShowingCount', tShowing.count);
+                  tPlottedCount.set('isShowingPercent', tShowing.percent);
+                }
+                if( tRemovedValue)
+                  tMultipleMovableValues.removeThisValue( tRemovedValue);
+                else
+                  tRemovedValues[ tIndex] = tMultipleMovableValues.removeValue();
+                iPlot.notifyPropertyChange('movableValueChange');
               }
-              if( tRemovedValue)
-                tMultipleMovableValues.removeThisValue( tRemovedValue);
-              else
-                tRemovedValue = tMultipleMovableValues.removeValue();
-              this.notifyPropertyChange('movableValueChange');
-            }.bind(this),
 
-            doUndoRemoveMovableValue = function () {
-              tMultipleMovableValues.addThisValue(tRemovedValue);
-              tRemovedValue = null;
-              if( tNumShowing === 1 && (tShowing.count || tShowing.percents) ) {
-                tMultipleMovableValues.set('isShowingCount', tShowing.count);
-                tMultipleMovableValues.set('isShowingPercent', tShowing.percent);
-                this.setPath('plottedCount.isShowingCount', false);
-                this.setPath('plottedCount.isShowingPercent', false);
+              removeMovableValueFromPlot( this_, -1);
+              this_.get('siblingPlots').forEach( removeMovableValueFromPlot);
+            }
+
+            function doUndoRemoveMovableValue() {
+
+              function undoRemoveMovableValueFromPlot( iPlot, iIndexMinusOne) {
+                var tIndex = iIndexMinusOne + 1,
+                    tMultipleMovableValues = iPlot.getAdornmentModel('multipleMovableValues'),
+                    tRemovedValue = tRemovedValues[ tIndex];
+                if( tNumShowing === 1 && (tShowing.count || tShowing.percents) ) {
+                  tMultipleMovableValues.set('isShowingCount', tShowing.count);
+                  tMultipleMovableValues.set('isShowingPercent', tShowing.percent);
+                  iPlot.setPath('plottedCount.isShowingCount', false);
+                  iPlot.setPath('plottedCount.isShowingPercent', false);
+                }
+                tMultipleMovableValues.addThisValue(tRemovedValue);
+                tRemovedValues[ tIndex] = null;
+                iPlot.notifyPropertyChange('movableValueChange');
               }
-              this.notifyPropertyChange('movableValueChange');
-            }.bind(this);
+
+              undoRemoveMovableValueFromPlot( this_, -1);
+              this_.get('siblingPlots').forEach( undoRemoveMovableValueFromPlot);
+            }
 
         DG.UndoHistory.execute(DG.Command.create({
           name: "graph.removeMovableValue",

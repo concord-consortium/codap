@@ -113,7 +113,12 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
       dataConfigurationDidChange: function() {
         sc_super();
-        this.setPath('dataConfiguration.sortCasesByLegendCategories', false);
+        var tDataConfiguration = this.get('dataConfiguration');
+        if( tDataConfiguration) {
+          tDataConfiguration.set('sortCasesByLegendCategories', false);
+          // This is a cheat. The above line _should_ bring this about, but I couldn't make it work properly
+          tDataConfiguration.invalidateCaches();
+        }
       }.observes('dataConfiguration'),
 
       /**

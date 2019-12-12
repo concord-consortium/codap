@@ -241,8 +241,11 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
         tValue = this.getPath('model.value'),
         tValueCoord = tAxisView && tAxisView.dataToCoordinate( tValue),
         tPaper = this.get('paper'),
-        tPt1, tPt2, tTextAnchor, tTextXOffset = 0,
-        tTextYOffset = 0;
+        tPt1, tPt2, tTextAnchor, tTextBox, tTextXOffset = 0,
+        tTextYOffset = 0,
+        tBackgrndAnchor;
+    this.textElement.attr( { text: this.get('valueString')});
+    tTextBox = this.textElement.getBBox();
 
     if( this.getPath('model.isVisible')) {
       if( tAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) {
@@ -250,18 +253,21 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
         tPt2 = { x: tValueCoord, y: this.kLabelSpace /2 };
         tTextAnchor = 'middle';
         tTextYOffset = -4 * tCapOffset;
+        tBackgrndAnchor = { x: tValueCoord - tTextBox.width / 2, y: tPt2.y + tTextYOffset - tTextBox.height / 2 };
       }
       else {
         tPt1 = { x: 0, y: tValueCoord };
         tPt2 = { x: tPaper.width - this.kLabelSpace, y: tValueCoord };
         tTextAnchor = 'start';
         tTextXOffset = 2 * tCapOffset;
+        tBackgrndAnchor = { x: tPt2.x + tTextXOffset, y: tPt2.y - tTextBox.height / 2 };
       }
 
-      this.textElement.attr( { text: this.get('valueString'),
+      this.textElement.attr( {
         x: tPt2.x + tTextXOffset, y: tPt2.y + tTextYOffset,
         'text-anchor': tTextAnchor });
-      
+      this.backgrndRect.attr( { x: tBackgrndAnchor.x, y: tBackgrndAnchor.y, width: tTextBox.width, height: tTextBox.height });
+
       DG.RenderingUtilities.updateLine( this.lineSeg, tPt1, tPt2);
       DG.RenderingUtilities.updateLine( this.coverSeg, tPt1, tPt2);
       this.cap.attr( { x: tPt2.x - tCapOffset, y: tPt2.y - tCapOffset });
