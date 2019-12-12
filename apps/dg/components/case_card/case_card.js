@@ -323,7 +323,9 @@ DG.React.ready(function () {
                 this.setState( { indexOfEditFieldToMount: iAttrIndex });
               }
               else if( iMoveDirection) {  // Turn off editing
-                var tIncrement;
+                var tIncrement,
+                    tIndexToMount = iAttrIndex,
+                    tAttrs = iCollection.get('attrs');
                 switch (iMoveDirection) {
                   case 'up':
                     tIncrement = -1;
@@ -332,7 +334,12 @@ DG.React.ready(function () {
                     tIncrement = 1;
                     break;
                 }
-                this.setState({indexOfEditFieldToMount: iAttrIndex + tIncrement});
+                tIndexToMount += tIncrement;
+                while( !tAttrs[tIndexToMount].get('editable') || tAttrs[tIndexToMount].hasFormula() &&
+                    tIndexToMount < tAttrs.length && tIndexToMount > 0) {
+                  tIndexToMount += tIncrement;
+                }
+                this.setState({indexOfEditFieldToMount: tIndexToMount});
               }
             }.bind(this);
 
