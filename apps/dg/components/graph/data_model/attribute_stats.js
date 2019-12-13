@@ -394,7 +394,8 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         tAttributes.forEach(function (iAttribute) {
           var tVarID = iAttribute.get('id');
           tCases.forEach(function (iCase) {
-            addCaseValueToStats(iCase.getValue(tVarID));
+            // We use the raw value here because Date objects will remain such
+            addCaseValueToStats(iCase.getRawValue(tVarID));
           });
         });
       }
