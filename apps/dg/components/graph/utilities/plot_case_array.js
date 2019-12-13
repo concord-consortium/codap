@@ -1,5 +1,5 @@
 // ==========================================================================
-//                            DG.PlotUtilities
+//                            DG.PlotCaseArray
 //
 //  DG.PlotUtilities is comprised of functions generally useful in plots.
 //

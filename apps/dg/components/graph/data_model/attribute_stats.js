@@ -203,8 +203,9 @@ DG.AttributeStats = SC.Object.extend((function () // closure
 
         tCaseIDs = iChange.result.caseIDs || [iChange.result.caseID];
 
-        if (shouldProcessNumeric)
+        if (shouldProcessNumeric) {
           this.numericStats.beginPropertyChanges();
+        }
         if (shouldProcessCategorical) {
           this.categoricalStats.beginPropertyChanges();
         }
@@ -233,12 +234,14 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         }
         return;
       } else if (iChange && iChange.operation === 'deleteCases') {
-        if (shouldProcessNumeric)
+        if (shouldProcessNumeric) {
           this.numericStats.beginPropertyChanges();
           this.numericStats.reset();
+        }
         if (shouldProcessCategorical) {
           this.categoricalStats.beginPropertyChanges();
           this.categoricalStats.reset();
+          this._computeCategoricalStats();
         }
         this._cases.forEach(function (tCase) {
           if (tCase) {
@@ -257,9 +260,6 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         if (shouldProcessNumeric)
           this.numericStats.endPropertyChanges();
         if (shouldProcessCategorical) {
-          tAttributes.forEach(function (iAttribute) {
-            iAttribute.updateCategoryMap();
-          });
           this.categoricalStats.endPropertyChanges();
         }
         return;
