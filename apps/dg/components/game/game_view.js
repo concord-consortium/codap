@@ -63,7 +63,7 @@ DG.GameView = DG.WebView.extend(
           var url = this.getPath('parentView._url');
           var parsedUrl = parseUrl(url);
           var qp = parseUrl(url).search;
-          var lang = SC.Locale.currentLanguage;
+          var lang = DG.get('currentLanguage');
           var isBinaryDataURL = parsedUrl.protocol === 'data:';
           if (!isBinaryDataURL) {
             if (!qp || qp.length === 0) {
