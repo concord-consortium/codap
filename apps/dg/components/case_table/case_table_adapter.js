@@ -123,8 +123,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       dateFormatter = function (cellValue, precision, type) {
         var date = DG.isDate(cellValue)? cellValue: DG.parseDate(cellValue, type === 'date');
-        var formatted_date = date?DG.formatDate(date, precision): '"' + cellValue + '"';
-        return formatted_date.replace(/( 00:00)?(:00)?\.000$/, '');
+        return date?DG.formatDate(date, precision): '"' + cellValue + '"';
       },
 
       numberFormatter = function (cellValue, type, precision) {

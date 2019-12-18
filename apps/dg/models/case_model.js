@@ -38,9 +38,13 @@ DG.Case = DG.BaseModel.extend((function() {
     Utility function to convert dates to strings while leaving
     all other values alone.
    */
-  function convertValue(x) {
-    if (DG.isDate(x)) DG.log('convertValue: Found date: ' + x);
-    return DG.isDate(x) ? DG.formatDate(x) : x;
+  function convertValue(x, iAttr) {
+    if (iAttr && (iAttr.type === 'date' && (DG.isDate(x) || DG.isDateString(x)))) {
+      return DG.formatDate(x, iAttr.precision);
+    }
+    else {
+      return (DG.isDate(x)) ? DG.formatDate(x) : x;
+    }
   }
 
   return {
@@ -188,7 +192,8 @@ DG.Case = DG.BaseModel.extend((function() {
      */
     getValue: function( iAttrID) {
       var rawValue = this.getRawValue(iAttrID);
-      return rawValue != null ? convertValue(rawValue) : rawValue;
+      var attr = DG.Attribute.getAttributeByID( iAttrID);
+      return rawValue != null ? convertValue(rawValue, attr) : rawValue;
     },
 
     /**
@@ -248,7 +253,7 @@ DG.Case = DG.BaseModel.extend((function() {
      * @returns {String}
      */
     getStrValue: function( iAttrID, oOptInfo) {
-      var value = this.getValue( iAttrID),
+      var value = this.getRawValue( iAttrID),
           valType = typeof value;
       if( oOptInfo) {
         oOptInfo.type = valType;

@@ -45,7 +45,7 @@ DG.DateUtilities.createDate = function(/* iArgs */) {
   var args = [Date].concat(Array.prototype.slice.call(arguments)),
       date;
 
-  if (args.length === 2 && typeof args[1] === 'string') {
+  if (args.length === 2 && typeof args[1] === 'string' && isNaN(args[1])) {
     return DG.DateUtilities.dateParser.parseDate(args[1], true);
   }
   // convert from seconds to milliseconds
@@ -93,54 +93,42 @@ DG.isDateString = DG.DateUtilities.isDateString;
 
 /**
   Default formatting for Date objects.
-  Uses toLocaleDateString() for default date formatting.
-  Optionally uses toLocaleTimeString() for default time formatting.
  */
 DG.DateUtilities.formatDate = function(x, precision) {
-  if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
+  if (!(x && (DG.isDate(x) || DG.isDateString(x) || DG.MathUtilities.isNumeric(x)))) return;
   // use dayjs.js for formatting to avoid browser bugs
   /* global dayjs */
-  var dt = DG.isDate(x) ? dayjs(x) : dayjs(Number(x) * 1000),
+  var dt = (DG.isDate(x) || DG.isDateString(x)) ? dayjs(DG.parseDate(x)) : dayjs(Number(x) * 1000),
       formatString = "DG.AttributeFormat.DatePrecision.millisecond".loc();
-  if(precision) {
-    switch (precision) {
-      case DG.Attribute.DATE_PRECISION_YEAR:
-        formatString = "DG.AttributeFormat.DatePrecision.year".loc();
-        break;
-      case DG.Attribute.DATE_PRECISION_MONTH:
-        formatString = "DG.AttributeFormat.DatePrecision.month".loc();
-        break;
-      case DG.Attribute.DATE_PRECISION_DAY:
-        formatString = "DG.AttributeFormat.DatePrecision.day".loc();
-        break;
-      case DG.Attribute.DATE_PRECISION_HOUR:
-        formatString = "DG.AttributeFormat.DatePrecision.hour".loc();
-        break;
-      case DG.Attribute.DATE_PRECISION_MINUTE:
-        formatString = "DG.AttributeFormat.DatePrecision.minute".loc();
-        break;
-      case DG.Attribute.DATE_PRECISION_SECOND:
-        formatString = "DG.AttributeFormat.DatePrecision.second".loc();
-        break;
-    }
+  if(precision == null) {
+    precision = DG.Attribute.DATE_PRECISION_MILLISECOND;
   }
-  else {
-    var h = dt.hour(),
-        m = dt.minute(),
-        s = dt.second(),
-        ms = dt.millisecond(),
-        hasTime = (h + m + s + ms) > 0,
-        hasSeconds = (s + ms) > 0,
-        hasMilliseconds = ms > 0;
-    if (hasTime) {
-      if (hasSeconds) {
-        formatString += ' h:mm:ss' + (hasMilliseconds ? '.SSS A' : ' A');
-      }
-      else
-        formatString += ' LT';
-    }
+  switch (precision) {
+    case DG.Attribute.DATE_PRECISION_YEAR:
+      formatString = "DG.AttributeFormat.DatePrecision.year".loc();
+      break;
+    case DG.Attribute.DATE_PRECISION_MONTH:
+      formatString = "DG.AttributeFormat.DatePrecision.month".loc();
+      break;
+    case DG.Attribute.DATE_PRECISION_DAY:
+      formatString = "DG.AttributeFormat.DatePrecision.day".loc();
+      break;
+    case DG.Attribute.DATE_PRECISION_HOUR:
+      formatString = "DG.AttributeFormat.DatePrecision.hour".loc();
+      break;
+    case DG.Attribute.DATE_PRECISION_MINUTE:
+      formatString = "DG.AttributeFormat.DatePrecision.minute".loc();
+      break;
+    case DG.Attribute.DATE_PRECISION_SECOND:
+      formatString = "DG.AttributeFormat.DatePrecision.second".loc();
+      break;
+    case DG.Attribute.DATE_PRECISION_MILLISECOND:
+      formatString = "DG.AttributeFormat.DatePrecision.millisecond".loc();
+      break;
   }
-  return dt.format( formatString);
+  var formatted_date = dt.format( formatString);
+  formatted_date = formatted_date.replace(/( 00:00)?(:00)?\.000$/, '');
+  return formatted_date;
 };
 DG.formatDate = DG.DateUtilities.formatDate;
 
