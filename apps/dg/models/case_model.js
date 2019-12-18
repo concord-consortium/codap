@@ -39,7 +39,7 @@ DG.Case = DG.BaseModel.extend((function() {
     all other values alone.
    */
   function convertValue(x, iAttr) {
-    if (iAttr && (iAttr.type === 'date' && (DG.isDate(x) || DG.isDateString(x)))) {
+    if (iAttr && (iAttr.type === 'date' && (DG.isDate(x)))) {
       return DG.formatDate(x, iAttr.precision);
     }
     else {
@@ -124,13 +124,6 @@ DG.Case = DG.BaseModel.extend((function() {
      * Destruction function for the case.
      */
     destroy: function() {
-      //DG.log('removing case(%@) from collection(%@) with item(%@/%@)'.loc(this.get('id'), this.collection.get('name'), this.item.id, this.item.itemIndex));
-      // if (this.parent) {
-      //   this.parent.children.removeObject(this);
-      // }
-      // if (this.collection) {
-      //   this.collection.cases.removeObject(this);
-      // }
 
       DG.Case._removeCaseFromItemMap(this);
 
@@ -178,7 +171,7 @@ DG.Case = DG.BaseModel.extend((function() {
         // one last chance if we've got a parent and it has 'getValue'
         // Need for this seems to have been brought about by a particular import of boundary file data. Can't hurt.
         var tParent = this.get('parent');
-        if( tParent /*&& tParent.getValue*/)
+        if( tParent )
           return tParent.getRawValue( iAttrID);
       }
       // if we get here, return value is undefined
@@ -253,7 +246,7 @@ DG.Case = DG.BaseModel.extend((function() {
      * @returns {String}
      */
     getStrValue: function( iAttrID, oOptInfo) {
-      var value = this.getRawValue( iAttrID),
+      var value = this.getValue( iAttrID),
           valType = typeof value;
       if( oOptInfo) {
         oOptInfo.type = valType;
@@ -376,8 +369,6 @@ DG.Case._removeCaseFromItemMap = function(iCase) {
       itemCaseMap = collectionID && DG.Case._itemCaseMaps[collectionID];
   if (!SC.none(itemID) && itemCaseMap) {
     delete itemCaseMap[itemID];
-    // if (!DG.ObjectMap.length(itemCaseMap))
-    //   delete DG.Case._itemCaseMaps[collectionID];
   }
 };
 

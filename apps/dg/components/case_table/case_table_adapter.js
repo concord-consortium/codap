@@ -98,7 +98,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = boundaryFormatter(cellValue);
           } else if (typeof cellValue === 'boolean') {
             result = String(cellValue);
-          } else if (DG.isDate(cellValue) || DG.isDateString(cellValue) || type === 'date') {
+          } else if (DG.isDate(cellValue) || type === 'date') {
             result = dateFormatter(cellValue, precision, type);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
