@@ -715,6 +715,7 @@ DG.Attribute.DATE_PRECISION_DAY = 'day';
 DG.Attribute.DATE_PRECISION_HOUR = 'hour';
 DG.Attribute.DATE_PRECISION_MINUTE = 'minute';
 DG.Attribute.DATE_PRECISION_SECOND = 'second';
+DG.Attribute.DATE_PRECISION_MILLISECOND = 'millisecond';
 
 DG.Attribute.datePrecisionOptions = [
   DG.Attribute.DATE_PRECISION_NONE,
@@ -723,5 +724,6 @@ DG.Attribute.datePrecisionOptions = [
   DG.Attribute.DATE_PRECISION_DAY,
   DG.Attribute.DATE_PRECISION_HOUR,
   DG.Attribute.DATE_PRECISION_MINUTE,
-  DG.Attribute.DATE_PRECISION_SECOND
+  DG.Attribute.DATE_PRECISION_SECOND,
+  DG.Attribute.DATE_PRECISION_MILLISECOND
 ];

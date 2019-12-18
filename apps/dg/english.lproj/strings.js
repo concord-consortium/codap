@@ -592,7 +592,7 @@ SC.stringsFor("en", {
     "DG.CaseTable.attributeEditor.type": "type",
     "DG.CaseTable.attributeEditor.unit": "unit",
     "DG.CaseTable.attributeEditor.precision": "precision",
-    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second",
+    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second millisecond",
     "DG.CaseTable.attributeEditor.editable": "editable",
     "DG.CaseTable.insertCasesDialog.title": "Insert Cases",
     "DG.CaseTable.insertCasesDialog.numCasesPrompt": "# cases to insert:",
