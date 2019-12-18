@@ -39,7 +39,7 @@ DG.Case = DG.BaseModel.extend((function() {
     all other values alone.
    */
   function convertValue(x) {
-    if (DG.isDate(x)) DG.log('convertValue: Found date: ' + x);
+    // if (DG.isDate(x)) DG.log('convertValue: Found date: ' + x);
     return DG.isDate(x) ? DG.formatDate(x) : x;
   }
 
