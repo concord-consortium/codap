@@ -1222,6 +1222,8 @@ DG.GraphView = SC.View.extend(
             iPlotView.destroy();
           }
         });
+        // Our plot background view needs to move the array of plotted elements to the end
+        this.get('plotBackgroundView').shiftPlottedElementsToEndOfMap( tIndexOfPlotViewToRemove);
         tPlotViews.splice(tIndexOfPlotViewToRemove, 1);
         tPlotViews.forEach(function (iPlotView, iIndex) {
           iPlotView.set('isFirstPlot', iIndex === 0);

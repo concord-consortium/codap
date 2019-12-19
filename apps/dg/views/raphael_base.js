@@ -76,6 +76,16 @@ DG.RaphaelBaseView = SC.View.extend(DG.Destroyable,
         return tElements;
       },
 
+      shiftPlottedElementsToEndOfMap: function( iIndex) {
+        DG.assert(this._plottedElementsMap && this._plottedElementsMap[iIndex]);
+        var tMapLength = this._plottedElementsMap.length,
+            tElements = this._plottedElementsMap[iIndex];
+        if( iIndex < tMapLength - 1) {
+          this._plottedElementsMap.splice( iIndex, 1);
+          this._plottedElementsMap.push( tElements);
+        }
+      },
+
       /**
        During createVisualization, stash elements in here that should be removed and regenerated
        each time drawing happens.
