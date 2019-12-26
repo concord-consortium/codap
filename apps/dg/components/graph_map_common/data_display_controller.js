@@ -287,9 +287,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       init: function () {
                         sc_super();
                         this_.getPath('dataDisplayModel.configurationDescriptions').forEach(function (iDesc) {
-                          iDesc.layout = {height: kRowHeight};
-                          iDesc.localize = true;
-                          this.appendChild(SC.CheckboxView.create(iDesc));
+                          iDesc.properties.layout = {height: kRowHeight};
+                          iDesc.properties.localize = true;
+                          this.appendChild(iDesc.constructorClass.create(iDesc.properties));
                         }.bind(this));
                         this_.getPath('dataDisplayModel.lastConfigurationControls').forEach(function (iControl) {
                           this.appendChild(iControl);

@@ -38,6 +38,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
   numCellsOnX: 1,
   numCellsOnY: 1,
   numCellsOnSecondary: 1,
+  numCellsOnPrimary: 1,
   xIsPrimaryAxis: true,
 
   /**
@@ -133,7 +134,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
         tExtent = DG.RenderingUtilities.getExtentForTextElement( tTempElement, 11),
         tYOffset = tExtent.height,
 
-        tValue, tAttrs, tTextElem, tIsNewElement, i;
+        tAttrs, tTextElem, tIsNewElement, i;
     while( tExtent.width > tCellWidth) {
       tFontSize--;
       tTempElement.attr( {'font-size': tFontSize });
@@ -143,14 +144,13 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
 
     // for each count value (one per cell of plot), add/update a text element
     for( i=0; i<tNumValues; ++i ) {
-      var tIndexPrimary = Math.floor(i/this.numCellsOnSecondary),
-          tIndexSecondary = i%this.numCellsOnSecondary,
+      var tValue = tValuesArray[i],
+          tIndexPrimary = tValue.primaryCell,
+          tIndexSecondary = tValue.secondaryCell,
           tIndexX=( this.xIsPrimaryAxis ? tIndexPrimary : tIndexSecondary ),
           tIndexY=( this.xIsPrimaryAxis ? tIndexSecondary : tIndexPrimary ),
           tCountFromTop = this.numCellsOnY - tIndexY - 1;
       tIsNewElement = ( i >= tNumElements );
-      tValue = tValuesArray[i];
-      DG.assert( tValue.primaryCell === tIndexPrimary && tValue.secondaryCell === tIndexSecondary, "unexpected cell arrangement");
       tAttrs = { // position in upper-right of cell, with margin
           x: ((tIndexX+1)*tCellWidth) - this.marginX,
           y: this.marginY + tYOffset/3 + (tCountFromTop*tCellHeight ),
@@ -218,12 +218,14 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
     var tPlot = this.getPath('model.plotModel'),
         tXAxis = tPlot.get('xAxis'),
         tYAxis = tPlot.get('yAxis'),
-        tSecondaryAxis = tPlot.get('secondaryAxisModel');
+        tSecondaryAxis = tPlot.get('secondaryAxisModel'),
+        tPrimaryAxis = tPlot.get('primaryAxisModel');
 
     this.xIsPrimaryAxis = tSecondaryAxis === tYAxis;
     this.numCellsOnX = tXAxis.get('numberOfCells') || 1;
     this.numCellsOnY = tYAxis.get('numberOfCells') || 1;
     this.numCellsOnSecondary = tSecondaryAxis ? tSecondaryAxis.get('numberOfCells') : 1;
+    this.numCellsOnPrimary = tPrimaryAxis ? tPrimaryAxis.get('numberOfCells') : 1;
   }
 
 });

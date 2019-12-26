@@ -42,6 +42,14 @@ DG.AxisModel = SC.Object.extend(
   scaleCanAnimate: true,
 
   /**
+   * Override if desired
+   * @param iPlotModel {DG.PlotModel}
+   */
+  setLinkToPlotIfDesired: function( iPlotModel) {
+
+  },
+
+  /**
     The array of strings that will be used to label the axis.
     @property { Array of String }
     Note: This should be cacheable, but I couldn't make it work.
@@ -124,6 +132,10 @@ DG.AxisModel = SC.Object.extend(
   numberOfCells: function() {
     return 1;
   }.property().cacheable(),
+
+  valueToCellNumber: function() {
+    return 1; // The default
+  },
 
   /**
       @protected

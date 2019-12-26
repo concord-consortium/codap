@@ -296,6 +296,18 @@ SC.stringsFor("en", {
     "DG.Redo.graph.showAsBarChart": "Redo fusing dots into bars",
     "DG.Undo.graph.showAsDotChart": "Undo dispersing bars into dots",
     "DG.Redo.graph.showAsDotChart": "Redo dispersing bars into dots",
+    "DG.Undo.graph.changeBreakdownType": "Undo changing scale type",
+    "DG.Redo.graph.changeBreakdownType": "Undo changing scale type",
+    "DG.Undo.graph.showAsBinnedPlot": "Undo grouping dots into bins",
+    "DG.Redo.graph.showAsBinnedPlot": "Redo grouping dots into bins",
+    "DG.Undo.graph.showAsDotPlot": "Undo ungrouping dots from bins",
+    "DG.Redo.graph.showAsDotPlot": "Redo ungrouping dots from bins",
+    "DG.Undo.graph.dragBinBoundary": "Undo dragging bin boundary",
+    "DG.Redo.graph.dragBinBoundary": "Redo dragging bin boundary",
+    "DG.Undo.graph.changeBinWidth": "Undo changing bin width",
+    "DG.Redo.graph.changeBinWidth": "Redo changing bin width",
+    "DG.Undo.graph.changeBinAlignment": "Undo changing bin alignment",
+    "DG.Redo.graph.changeBinAlignment": "Redo changing bin alignment",
     "DG.Undo.graph.addMovableValue": "Undo adding movable value",
     "DG.Redo.graph.addMovableValue": "Redo adding movable value",
     "DG.Undo.graph.removeMovableValue": "Undo removing movable value",
@@ -680,6 +692,9 @@ SC.stringsFor("en", {
     "DG.BarChartModel.cellTipNoLegendSingular": "%@ of %@ (%@%) is %@", // "<n=1> of <total> (<p>%) is <X>"
     "DG.BarChartModel.cellTipNoLegendPlural": "%@ of %@ (%@%) are %@", // "<n> of <total> (<p>%) are <X>"
 
+    // DG.BinnedPlotModel
+    "DG.BinnedPlotModel.dragBinTip": "Drag to change bin width",  // "Drag to change bin width"
+
     // DG.LegendView
     "DG.LegendView.attributeTooltip": "Click to change legend attribute",
 
@@ -845,6 +860,9 @@ SC.stringsFor("en", {
     "DG.Inspector.graphBoxPlotShowOutliers": "Show Outliers",
     "DG.Inspector.graphPlottedValue": "Plotted Value",
     "DG.Inspector.graphBarChart": "Fuse Dots into Bars",
+    "DG.Inspector.graphGroupIntoBins": "Group into Bins",
+    "DG.Inspector.graphBinWidth": "Bin width",
+    "DG.Inspector.graphAlignment": "Alignment",
 
     // Table Inspector
     "DG.Inspector.attributes.toolTip": "Make new attributes. Export case data.",

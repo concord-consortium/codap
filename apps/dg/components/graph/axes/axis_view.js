@@ -117,6 +117,27 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         }.property('paperSourceForLabel'),
 
         /**
+         @property{Number}
+         */
+        axisLineCoordinate: function() {
+          var tCoord;
+          switch( this.get('orientation')) {
+            case DG.GraphTypes.EOrientation.kVertical:
+              tCoord = this.get('drawWidth');
+              break;
+            case DG.GraphTypes.EOrientation.kVertical2:
+            case DG.GraphTypes.EOrientation.kHorizontal:
+            case DG.GraphTypes.EOrientation.kRight:
+              tCoord = 0;
+              break;
+            case DG.GraphTypes.EOrientation.kTop:
+              tCoord = this.get('drawHeight');
+              break;
+          }
+          return tCoord;
+        }.property('drawWidth', 'drawHeight'),
+
+        /**
          * Return whether both my model and my otherAxisView's model have no attributes assigned
          * @return{Boolean}
          */
@@ -372,6 +393,39 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           if( !tSuppress)
             this.renderLabel();
         }.observes('suppressLabel'),
+
+        /**
+         This is the main backbone of the axis.
+         @return {Raphael element}
+         */
+        renderAxisLine: function() {
+          var tCoord = this.get('axisLineCoordinate'),
+              tPixelMin = this.get('pixelMin'),
+              tPixelMax = this.get('pixelMax'),
+              tStart, tStop;
+          switch( this.get('orientation')) {
+            case DG.GraphTypes.EOrientation.kVertical:
+              tStart = { x: tCoord - 1, y: tPixelMin };
+              tStop = { x: tCoord - 1, y: tPixelMax };
+              break;
+            case DG.GraphTypes.EOrientation.kHorizontal:
+              tStart = { x: tPixelMin, y: tCoord + 1 };
+              tStop = { x: tPixelMax, y: tCoord + 1 };
+              break;
+            case DG.GraphTypes.EOrientation.kVertical2:
+            case DG.GraphTypes.EOrientation.kRight:
+              tStart = { x: tCoord + 1, y: tPixelMin };
+              tStop = { x: tCoord + 1, y: tPixelMax };
+              break;
+            case DG.GraphTypes.EOrientation.kTop:
+              tStart = { x: tPixelMin, y: tCoord - 1 };
+              tStop = { x: tPixelMax, y: tCoord - 1 };
+              break;
+          }
+          return this.get('paper').line( tStart.x, tStart.y, tStop.x, tStop.y)
+              .attr( { stroke: DG.PlotUtilities.kAxisColor,
+                strokeWidth: 2 });
+        },
 
         /**
          Graph controller observes this property to detect that a drag has taken place.

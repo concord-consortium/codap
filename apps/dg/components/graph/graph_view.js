@@ -251,7 +251,7 @@ DG.GraphView = SC.View.extend(
                 tPaperSource = iAxisViewDescription.axisKey === 'x' ?
                     this.get('bottomAxisLabelView') : this.get('leftAxisLabelView'),
                 tNewAxisModel = (tExistingAxisModelClass === tNewModelClass) ? tExistingAxisModel :
-                    tNewModelClass.create(),
+                    tNewModelClass.create( iAxisViewDescription.axisModelProperties || {}),
                 tNewView = tNewViewClass.create({
                   orientation: tOrientation,
                   model: tNewAxisModel,
@@ -268,6 +268,7 @@ DG.GraphView = SC.View.extend(
               tNewAxisModel.set('attributeDescription',
                   this.getPath('model.dataConfiguration.' + tPrefix + 'AttributeDescription'));
               this.setPath('model.' + tPrefix + 'Axis', tNewAxisModel);
+              this.setPath('model.plot.' + tPrefix + 'Axis', tNewAxisModel);
             }
           }
         }.bind(this);
@@ -284,6 +285,9 @@ DG.GraphView = SC.View.extend(
         tAxisViewDescription = iPlotView.configureAxes();
         if (!SC.none(tAxisViewDescription)) {
           installAxisView(tAxisViewDescription);
+          if( iPlotModel.rescaleAxesFromData)
+            iPlotModel.rescaleAxesFromData( true /* allow scale shrinkage */,
+                true /* animate points */ );
         }
         iPlotView.setupAxes();
         if (!SC.none(iCurrentPoints))
@@ -308,6 +312,8 @@ DG.GraphView = SC.View.extend(
               return DG.CellAxisView;
             case DG.CountAxisModel:
               return DG.CountAxisView;
+            case DG.BinnedAxisModel:
+              return DG.BinnedAxisView;
           }
           return null;
         }
@@ -1283,6 +1289,9 @@ DG.GraphView = SC.View.extend(
           else if (tCurrentAxisModelClass === DG.CountAxisModel) {
             tNewViewClass = DG.CountAxisView;
           }
+          else if (tCurrentAxisModelClass === DG.BinnedAxisModel) {
+            tNewViewClass = DG.BinnedAxisView;
+          }
           if (!SC.none(tNewViewClass) && tNewViewClass !== tCurrentViewClass) {
             tOldView = this.get(iPrefix + 'AxisView');
             tNewView = tNewViewClass.create({
@@ -1339,8 +1348,10 @@ DG.GraphView = SC.View.extend(
             tNewViewClass = DG.CasePlotView;
             break;
           case DG.DotPlotModel:
-            //tNewViewClass = DG.StripPlotView;
             tNewViewClass = DG.DotPlotView;
+            break;
+          case DG.BinnedPlotModel:
+            tNewViewClass = DG.BinnedPlotView;
             break;
           case DG.ScatterPlotModel:
             tNewViewClass = DG.ScatterPlotView;

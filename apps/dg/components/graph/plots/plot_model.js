@@ -648,7 +648,6 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         this.notifyPropertyChange('plotConfiguration');
       },
 
-
       /**
        Subclasses may override
        @param { DG.GraphTypes.EPlace }

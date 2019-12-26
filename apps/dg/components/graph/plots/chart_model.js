@@ -330,15 +330,19 @@ DG.ChartModel = DG.PlotModel.extend(
     var this_ = this,
         tDescriptions = sc_super();
     tDescriptions.push(
-          {
+        {
+          constructorClass: SC.CheckboxView,
+          properties: {
             title: 'DG.Inspector.graphBarChart',
             value: this_.get('displayAsBarChart'),
             classNames: 'dg-graph-barchart-check'.w(),
+
             valueDidChange: function () {
               this_.toggleDisplayAsBarChart();
               DG.mainPage.mainPane.hideInspectorPicker();
             }.observes('value')
           }
+        }
     );
     return tDescriptions;
   }.property(),

@@ -18,66 +18,20 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph/plots/plot_view');
+sc_require('components/graph/plots/univariate_plot_view');
 
 /** @class  DG.DotPlotView - A plot of dots piled up along a numeric axis
 
-  @extends DG.PlotView
+  @extends DG.UnivariatePlotView
 */
-DG.DotPlotView = DG.PlotView.extend(
+DG.DotPlotView = DG.UnivariatePlotView.extend(
 /** @scope DG.DotPlotView.prototype */ 
 {
-  displayProperties: ['primaryAxisView.model.lowerBound', 'primaryAxisView.model.upperBound',
-                      'secondaryAxisView.model.numberOfCells', 'overlap'],
+  displayProperties: ['primaryAxisView.model.lowerBound', 'primaryAxisView.model.upperBound'],
 
   autoDestroyProperties: ['multipleMovableValuesAdorn', 'plottedValueAdorn',
                           'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn',
                           'plottedMadAdorn', 'plottedBoxPlotAdorn'],
-
-  /**
-  @property{DG.CellLinearAxisView}
-  */
-  primaryAxisView: function() {
-    switch( this.getPath('model.primaryAxisPlace')) {
-      case DG.GraphTypes.EPlace.eX:
-        return this.get('xAxisView');
-      case DG.GraphTypes.EPlace.eY:
-        return this.get('yAxisView');
-      default:
-        return null;
-    }
-  }.property()/*.cacheable()*/,
-  primaryAxisViewDidChange: function() {
-    this.notifyPropertyChange('primaryAxisView');
-  }.observes('*model.primaryAxisPlace', 'xAxisView', 'yAxisView'),
-
-  /**
-  @property{DG.CellLinearAxisView}
-  */
-  secondaryAxisView: function() {
-    switch( this.getPath('model.primaryAxisPlace')) {
-      case DG.GraphTypes.EPlace.eX:
-        return this.get('yAxisView');
-      case DG.GraphTypes.EPlace.eY:
-        return this.get('xAxisView');
-      default:
-        return null;
-    }
-  }.property()/*.cacheable()*/,
-  secondaryAxisViewDidChange: function() {
-    this.notifyPropertyChange('secondaryAxisView');
-  }.observes('*model.secondaryAxisPlace', 'xAxisView', 'yAxisView'),
-
-  /**
-   * The secondaryAxisView needs to be told that its tick marks and labels are not to be centered in each cell.
-   * Though this is the default, if the prior plot was a dot chart, the axis will be stuck in centering mode.
-   */
-  setupAxes: function() {
-    var tCellAxis = this.get('secondaryAxisView');
-    if( tCellAxis) {
-      tCellAxis.set('centering', false);
-    }
-  },
 
   /** @property {DG.MultipleMovableValuesAdornment} */
   multipleMovableValuesAdorn: null,
@@ -108,12 +62,16 @@ DG.DotPlotView = DG.PlotView.extend(
   binArrays: null,
 
   /**
-  When there is room for each stack, the overlap is 0. As soon as one of the stacks reaches
-  the plot boundary, the overlap must increase. The amount that must be subtracted from
-  each stack coordinate is the overlap times the index of the point in the stack.
-  @property {Number}
-  */
-  overlap: 0,
+   * Return the class of the count axis with the x or y to put it on.
+   */
+  configureAxes: function () {
+    var tRet = sc_super(),
+        tAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
+    tRet = tRet || {};
+    tRet.axisKey = tAxisKey;
+    tRet.axisClass = DG.CellLinearAxisView;
+    return tRet;
+  },
 
   /**
     Before we recompute coordinates, we need to zero out the bin array.
@@ -193,29 +151,6 @@ DG.DotPlotView = DG.PlotView.extend(
     if (this.plottedValueAdorn) {
       this.plottedValueAdorn.updateToModel();
     }
-  },
-
-  /**
-   * Construct and return a new render context
-   * used for setCircleCoordinate()
-   * @return {*}
-   */
-  createRenderContext: function() {
-    var tRC = sc_super(),
-        tModel = this.get('model');
-
-    // cache some more render parameters common to all cases, but unique to DotPlotView.
-    tRC.categoryAxisView = this.get('secondaryAxisView');
-    tRC.categoryAxisModel = tRC.categoryAxisView && tRC.categoryAxisView.get('model');
-    tRC.categoryVarID = tModel && tModel.get('secondaryVarID');
-    tRC.primaryVarID = tModel && tModel.get('primaryVarID');
-    tRC.primaryAxisPlace = tModel && tModel.get('primaryAxisPlace');
-    tRC.primaryAxisView = this.get('primaryAxisView');
-
-    if( !tRC.primaryAxisView)
-      return null;
-
-    return tRC;
   },
 
   /**
@@ -378,30 +313,6 @@ DG.DotPlotView = DG.PlotView.extend(
               this.ox = this.oy = this.w = undefined;
             });
     return iElement;
-  },
-
-    createElement: function( iCase, iIndex, iAnimate) {
-      var tCircle = this.get('paper').circle(-100, -100, this._pointRadius);
-
-      tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
-
-      return this.assignElementAttributes( tCircle, iIndex, iAnimate);
-  },
-
-  /**
-  We may clear and draw everything from scratch if required.
-  */
-  drawData: function drawData() {
-
-    if( this.getPath('model.isAnimating'))
-      return; // Points are animating to new position
-
-    if( !SC.none( this.get('transferredElementCoordinates'))) {
-      this.animateFromTransferredElements();
-      return;
-    }
-
-    sc_super();
   },
 
   /**
@@ -580,14 +491,6 @@ DG.DotPlotView = DG.PlotView.extend(
       }
       tAdornment.updateToModel();
     }
-  },
-
-  /**
-   * This function gets called by a scheduled timer. We force a recomputation of overlap and a redisplay.
-   */
-  cleanupFunc: function() {
-    this.prepareToResetCoordinates();
-    this.displayDidChange();
   },
 
   /**

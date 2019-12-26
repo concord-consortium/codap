@@ -1,0 +1,381 @@
+// ==========================================================================
+//                          DG.BinnedPlotView
+//
+//  Author:   William Finzer
+//
+//  Copyright (c) 2019 by The Concord Consortium, Inc. All rights reserved.
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+// ==========================================================================
+
+sc_require('components/graph/plots/univariate_plot_view');
+
+/** @class  DG.BinnedPlotView, a plot of dots each placed according to numeric value bins
+
+ @extends DG.UnivariatePlotView
+ */
+DG.BinnedPlotView = DG.UnivariatePlotView.extend(
+    /** @scope DG.BinnedPlotView.prototype */
+    {
+      kLineSlideHCur: DG.Browser.customCursorStr(static_url('cursors/LineSlideH.cur'), 8, 8),
+      kLineSlideVCur: DG.Browser.customCursorStr(static_url('cursors/LineSlide.cur'), 8, 8),
+
+      /**
+       * @property { Boolean }
+       */
+      dragInProgress: false,
+
+      numPointsInRow: 0,
+      /**
+       * @property {[{boundary: Element, cover: Element, worldValue: Number, lowerEdgeScreenCoord: Number }]}
+       */
+      binBoundaries: null,
+
+      init: function () {
+        sc_super();
+        this.binBoundaries = [];
+      },
+
+      destroy: function () {
+        var tLayerManager = this.getPath('paperSource.layerManager');
+        this.binBoundaries.forEach(function (iSpec) {
+          tLayerManager.removeElement(iSpec.boundary);
+          iSpec.boundary.remove();
+          tLayerManager.removeElement(iSpec.cover);
+          iSpec.cover.remove();
+        });
+        this.binBoundaries = null;
+        sc_super();
+      },
+
+      /**
+       * Return the class of the count axis with the x or y to put it on.
+       */
+      configureAxes: function () {
+        var tRet = sc_super(),
+            tAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
+        tRet = tRet || {};
+        tRet.axisKey = tAxisKey;
+        tRet.axisClass = DG.BinnedAxisView;
+        tRet.axisModelProperties = {binnedPlotModel: this.get('model')};
+        return tRet;
+      },
+
+      /**
+       * Construct and return a new render context
+       * used for setCircleCoordinate()
+       * @return {*}
+       */
+      createRenderContext: function () {
+        var tRC = sc_super();
+
+        if (tRC) {
+          tRC.model = this.get('model');
+          tRC.cellHalfWidth = tRC.categoryAxisView.get('fullCellWidth') / 2;
+        }
+
+        return tRC;
+      },
+
+      /**
+       * Set the coordinates and other attributes of the case circle (a Rafael element in this.get('plottedElements')).
+       * @param {{}} iRC case-invariant Render Context
+       * @param {DG.Case} iCase the case data
+       * @param {number} iIndex index of case in collection
+       * @param {Boolean} iAnimate (optional) want changes to be animated into place?
+       * @param {function} iCallback
+       * @returns {{cx:{Number},cy:{Number}}} final coordinates or null if not defined (hidden plot element)
+       */
+      setCircleCoordinate: function (iRC, iCase, iIndex, iAnimate, iCallback) {
+        iAnimate = iAnimate || this.dragInProgress;
+        var tPlottedElements = this.get('plottedElements');
+        DG.assert(iCase, 'There must be a case');
+        DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, tPlottedElements.length),
+            'index %@ out of bounds for plottedElements of length %@'.loc(iIndex, tPlottedElements.length));
+        var tCircle = tPlottedElements[iIndex],
+            tInfo = iRC.model.infoForCase(iCase),
+            tBinCoord = iRC.primaryAxisView.binToCoordinate(tInfo.bin),
+            tIsMissingCase = (!tInfo || !DG.isFinite(tBinCoord) ||
+                iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);
+
+        // show or hide if needed, then update if shown.
+        if (this.showHidePlottedElement(tCircle, tIsMissingCase, iIndex) && iRC.categoryAxisModel) {
+
+          var tCellNumber = tInfo.cell,
+              tCellCoord = SC.none(tCellNumber) ? 0 : iRC.categoryAxisView.cellToCoordinate(tCellNumber),
+              tCellHalfWidth = iRC.cellHalfWidth,
+              tRadius = this._pointRadius,
+              tNumInRow = this.get('numPointsInRow'),
+              tRow = Math.floor(tInfo.indexInBin / tNumInRow),
+              tCol = tInfo.indexInBin - tRow * tNumInRow,
+              tPrimaryCoord = tBinCoord - (tNumInRow - 1) * tRadius + tCol * 2 * tRadius,
+              tOverlap = this.get('overlap'),
+              tStackCoord = tRadius + (2 * tRadius - tOverlap) * tRow + 1,
+              tCoordX, tCoordY;
+
+          // Express coordinates in terms of x and y
+          switch (iRC.primaryAxisPlace) {
+            case DG.GraphTypes.EPlace.eX:
+              tCoordX = tPrimaryCoord;
+              tCoordY = tCellCoord - tStackCoord + tCellHalfWidth;
+              break;
+            case DG.GraphTypes.EPlace.eY:
+              tCoordX = tCellCoord + tStackCoord - tCellHalfWidth;
+              tCoordY = tPrimaryCoord;
+              break;
+          }
+
+          var tAttrs = {
+            cx: tCoordX,
+            cy: tCoordY,
+            r: this.radiusForCircleElement(tCircle),
+            fill: iRC.calcCaseColorString(iCase),
+            stroke: iRC.calcStrokeColorString(iCase),
+            'fill-opacity': iRC.transparency,
+            'stroke-opacity': iRC.strokeTransparency
+          };
+          this.updatePlottedElement(tCircle, tAttrs, iAnimate, iCallback);
+          return {cx: tCoordX, cy: tCoordY, r: tRadius};
+        }
+        return null;
+      },
+
+      assignElementAttributes: function (iElement, iIndex, iAnimate) {
+        sc_super();
+
+        var this_ = this,
+            kOpaque = 1,
+            tInitialTransform = null;
+
+        iElement.hover(function (event) {  // over
+              if (!this_.dragInProgress) {
+                // Note that Firefox can come through here repeatedly so we have to check for existence
+                if (SC.none(tInitialTransform)) {
+                  tInitialTransform = '';
+                  this.animate({
+                    opacity: kOpaque,
+                    transform: DG.PlotUtilities.kDataHoverTransform
+                  }, DG.PlotUtilities.kDataTipShowTime);
+                  this_.showDataTip(this, iIndex);
+                }
+              }
+            },
+            function (event) { // out
+              if( !this_.dragInProgress) {
+                this.stop();
+                this.animate({
+                  opacity: DG.PlotUtilities.kDefaultPointOpacity,
+                  transform: tInitialTransform
+                }, DG.PlotUtilities.kHighlightHideTime);
+                tInitialTransform = null;
+                this_.hideDataTip();
+              }
+            })
+            .mousedown(function (iEvent) {
+              SC.run(function () {
+                this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
+              });
+            });
+        return iElement;
+      },
+
+      modelWidthOrAlignmentDidChange: function() {
+        this.displayDidChange();
+      }.observes('model.changed'),
+
+      markBinParamsChange: function( iInitialAlignment, iInitialBinWidth) {
+        var this_ = this,
+            tNewAlignment = this.getPath('model.alignment'),
+            tNewBinWidth = this.getPath('model.width');
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'graph.drag.binBoundary',
+          undoString: 'DG.Undo.graph.dragBinBoundary',
+          redoString: 'DG.Redo.graph.dragBinBoundary',
+          log: "dragBinBoundary from { alignment: %@, width: %@ } to { alignment: %@, width: %@ }".
+                  fmt(iInitialAlignment, iInitialBinWidth, tNewAlignment, tNewBinWidth),
+          execute: function() { },
+          undo: function() {
+            this_.setPath('model.alignment', iInitialAlignment);
+            this_.setPath('model.width', iInitialBinWidth);
+          },
+          redo: function() {
+            this_.setPath('model.alignment', tNewAlignment);
+            this_.setPath('model.width', tNewBinWidth);
+          }
+        }));
+      },
+
+      /**
+       Generate the svg needed to display the plot
+       */
+      doDraw: function doDraw() {
+        var this_ = this;
+
+        function drawBinBoundaries() {
+          var kMinBinWidth = 25,
+              tInitialAlignment, tInitialBinWidth, tNewBinAlignment, tBinWidthAtStartOfDrag,
+              tModel = this_.get('model'),
+              tLeastBinEdgeWorld = tModel.get('leastBinEdge'),
+              tWidth = tModel.get('width'),
+              tWidthIncrement = tModel.get('widthIncrement'),
+              tPaper = this_.get('paper'),
+              tOrientation = this_.getPath('primaryAxisView.orientation'),
+              tAdornmentLayer = this_.getPath('layerManager.' + DG.LayerNames.kAdornments),
+              tPlace = this_.getPath('primaryAxisView.pixelMin'),
+              tLineStart = this_.getPath('secondaryAxisView.pixelMin'),
+              tBinWidth = this_.getPath('primaryAxisView.binWidth'),
+              tWorldPerScreen = tWidth / tBinWidth,
+              tBinHeight = Math.abs(this_.getPath('secondaryAxisView.pixelMax') -
+                  this_.getPath('secondaryAxisView.pixelMin')) - 5,
+              tNumBins = this_.getPath('model.totalNumberOfBins'),
+              tBoundaries = this_.get('binBoundaries'),
+              tCursor = (tOrientation === DG.GraphTypes.EOrientation.kVertical) ?
+                  this_.kLineSlideVCur : this_.kLineSlideHCur,
+              tTitle = 'DG.BinnedPlotModel.dragBinTip'.loc();
+
+          function beginTranslate(iWindowX, iWindowY) {
+            this_.dragInProgress = true;
+            tInitialAlignment = tModel.get('alignment');
+            tInitialBinWidth = tModel.get('width');
+            tBinWidthAtStartOfDrag = this_.getPath('primaryAxisView.binWidth');
+            this_.set('binNumBeingDragged', this.binNum);
+            this_.set('fixedScreenCoord', tBoundaries[this.binNum].lowerEdgeScreenCoord);
+            tNewBinAlignment = tBoundaries[this.binNum].worldValue;
+          }
+
+          function continueTranslate(idX, idY) {
+            var tDelta = (tOrientation === DG.GraphTypes.EOrientation.kVertical) ? -idY : idX,
+                tNewWorldWidth = (tBinWidthAtStartOfDrag + tDelta) * tWorldPerScreen;
+            tNewWorldWidth = Math.round(tNewWorldWidth / tWidthIncrement) * tWidthIncrement;
+            if( tBinWidthAtStartOfDrag + tDelta >= kMinBinWidth) {
+              SC.run( function() {
+                tModel.beginPropertyChanges();
+                tModel.set('alignment', tNewBinAlignment);
+                tModel.set('width', tNewWorldWidth);
+                tModel.endPropertyChanges();
+              });
+            }
+          }
+
+          function endTranslate(idX, idY) {
+            var tNewWidth = tModel.get('width');
+            if( tNewBinAlignment !== tInitialAlignment || tInitialBinWidth !== tNewWidth) {
+              this_.markBinParamsChange( tInitialAlignment, tInitialBinWidth);
+            }
+            this_.set('binNumBeingDragged', null);
+            this_.set('fixedScreenCoord', null);
+            this_.dragInProgress = false;
+            this_.displayDidChange();
+          }
+
+          if(!tPaper)
+            return; // Not ready to draw
+
+          for (var tBinNum = 0; tBinNum < tNumBins; tBinNum++) {
+            var tWorldValue = tLeastBinEdgeWorld + tBinNum * tWidth,
+                tLeft, tTop, tRight, tBottom, tLowerEdgeScreenCoord,
+                tLine, tCover;
+            if (tOrientation === DG.GraphTypes.EOrientation.kVertical) {
+              tLeft = tLineStart;
+              tTop = tPlace - (tBinNum + 1) * tBinWidth;
+              tRight = tLeft + tBinHeight;
+              tBottom = tTop;
+              tLowerEdgeScreenCoord = tTop + tBinWidth;
+            }
+            else {
+              tLeft = tPlace + (tBinNum + 1) * tBinWidth;
+              tTop = tLineStart - tBinHeight;
+              tRight = tLeft;
+              tBottom = tLineStart;
+              tLowerEdgeScreenCoord = tLeft - tBinWidth;
+            }
+            if (!tBoundaries[tBinNum]) {
+              tLine = tPaper.line(tLeft, tTop, tRight, tBottom);
+              tCover = tPaper.line(tLeft, tTop, tRight, tBottom)
+                  .drag(continueTranslate, beginTranslate, endTranslate);
+              tCover.binNum = tBinNum;
+              tAdornmentLayer.push(
+                  tLine.attr({
+                    stroke: DG.PlotUtilities.kBinBorderLineColor,
+                    'stroke-width': DG.PlotUtilities.kBinBorderWidth
+                  }));
+              tAdornmentLayer.push(
+                  tCover.attr({
+                    'stroke-width': 6, stroke: DG.RenderingUtilities.kSeeThrough,
+                    cursor: tCursor, title: tTitle
+                  }));
+              tBoundaries[tBinNum] = {boundary: tLine, cover: tCover };
+            }
+            else {
+              tLine = tBoundaries[tBinNum].boundary;
+              tCover = tBoundaries[tBinNum].cover;
+              DG.RenderingUtilities.updateLine(tLine, {x: tLeft, y: tTop}, {x: tRight, y: tBottom});
+              DG.RenderingUtilities.updateLine(tCover, {x: tLeft, y: tTop}, {x: tRight, y: tBottom});
+            }
+            tBoundaries[tBinNum].worldValue = tWorldValue;
+            tBoundaries[tBinNum].lowerEdgeScreenCoord = tLowerEdgeScreenCoord;
+          }
+          while (tBoundaries.length > tNumBins) {
+            var tSpec = tBoundaries.pop();
+            tAdornmentLayer.prepareToMoveOrRemove(tSpec.boundary);
+            tSpec.boundary.remove();
+            tAdornmentLayer.prepareToMoveOrRemove(tSpec.cover);
+            tSpec.cover.remove();
+          }
+        }
+
+        sc_super();
+
+        this.computeBinParams();
+
+        drawBinBoundaries();
+
+        this.drawData();
+
+        this.updateSelection();
+      },
+
+      /**
+       We need to decide on the number of points in a row. To do so, we find the
+       maximum number of points in a bin and choose so that this max number will
+       fit within the length of a bin rect. If there are so many points that they don't fit
+       even by using the full length of a bin rect, then we compute an overlap.
+       */
+      computeBinParams: function () {
+        var tBinWidth = this.getPath('primaryAxisView.binWidth'),
+            tBinHeight = this.getPath('secondaryAxisView.fullCellWidth') - 5,
+            tMaxBinCount = this.getPath('model.maxBinCount'),
+            tPointSize = 2 * this._pointRadius,
+            tAllowedPointsPerColumn = Math.max(1, Math.floor(tBinHeight / tPointSize)),
+            tAllowedPointsPerRow = Math.max(1, Math.floor(tBinWidth / tPointSize)),
+            tNumPointsInRow = Math.max(1,
+                Math.min(tAllowedPointsPerRow,
+                    Math.ceil(tMaxBinCount / tAllowedPointsPerColumn))),
+            tActualPointsPerColumn = Math.ceil(tMaxBinCount / tNumPointsInRow),
+            tOverlap = Math.max(0, ((tActualPointsPerColumn + 1) * tPointSize - tBinHeight) /
+                tActualPointsPerColumn);
+        tOverlap = Math.min(tOverlap, tPointSize); // Otherwise points can stack downward
+
+        if (!isFinite(tNumPointsInRow))
+          tNumPointsInRow = 0;
+        if (!isFinite(tOverlap))
+          tOverlap = 0;
+
+        this.beginPropertyChanges();
+        this.setIfChanged('numPointsInRow', tNumPointsInRow);
+        this.setIfChanged('overlap', tOverlap);
+        this.endPropertyChanges();
+      }
+
+    });
+

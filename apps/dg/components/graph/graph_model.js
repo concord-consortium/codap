@@ -868,12 +868,15 @@ DG.GraphModel = DG.DataLayerModel.extend(
     privSyncAxisWithAttribute: function( iDescKey, iAxisKey ) {
       var tDataConfiguration = this.get('dataConfiguration'),
           tVarIsNumeric = tDataConfiguration.getPath( iDescKey + '.isNumeric'),
+          tPossibleNumericClasses = [DG.CellLinearAxisModel, DG.BinnedAxisModel],
           tDesiredAxisClass = tVarIsNumeric ? DG.CellLinearAxisModel : DG.CellAxisModel,
           tCurrentAxisClass = this.get( iAxisKey).constructor,
           tAxisModelParams = { dataConfiguration: tDataConfiguration };
 
       // If the variable and axis are incompatible, we'll have to change the axis
-      if( tDesiredAxisClass !== tCurrentAxisClass ) {
+      // Note that there are two possible numeric axes
+      if( tDesiredAxisClass !== tCurrentAxisClass &&
+          !(tVarIsNumeric && tPossibleNumericClasses.indexOf( tCurrentAxisClass) >= 0)) {
         var tAxisToDestroy = this.get( iAxisKey ),
             tNewAxis = tDesiredAxisClass.create(tAxisModelParams);
         tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
@@ -925,6 +928,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
         case DG.DotChartModel:
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
           break;
+        case DG.DotPlotModel:
+        case DG.BinnedPlotModel:
+          iPlot.addObserver('displayAsBinned', this, this.swapBinningType);
+          break;
       }
     },
 
@@ -940,6 +947,49 @@ DG.GraphModel = DG.DataLayerModel.extend(
           iPlot.removeObserver('displayAsBarChart', this, this.swapChartType);
           iPlot.removeObserver('breakdownType', this, this.propagateBreakdownType);
           break;
+        case DG.DotPlotModel:
+        case DG.BinnedPlotModel:
+          iPlot.removeObserver('displayAsBinned', this, this.swapBinningType);
+          break;
+      }
+    },
+
+    swapPlotForNewPlot: function( iNewPlotClass)       {
+      var tOldPlot = this.get('plot'),
+          tConfig = this.get('dataConfiguration'),
+          tIsSplit = this.get('isSplit'),
+          tNewPlot, tAdornmentModels;
+      if( tIsSplit) {
+        this.removeAllSplitPlotsAndAxes();
+      }
+      this.set('aboutToChangeConfiguration', true); // signal to prepare
+      iNewPlotClass.configureRoles(tConfig);
+      tNewPlot = iNewPlotClass.create(this.getModelPointStyleAccessors());
+      this.addPlotObserver(tNewPlot);
+
+      tAdornmentModels = tOldPlot.copyAdornmentModels(tNewPlot);
+
+      tNewPlot.beginPropertyChanges();
+      tNewPlot.setIfChanged('dataConfiguration', tConfig);
+      tNewPlot.setIfChanged('xAxis', this.get('xAxis'));
+      tNewPlot.setIfChanged('yAxis', this.get('yAxis'));
+      for (var tProperty in tAdornmentModels) {
+        if (tAdornmentModels.hasOwnProperty(tProperty)) {
+          var tModel = tAdornmentModels[tProperty];
+          tNewPlot.setIfChanged(tProperty, tModel);
+        }
+      }
+      tNewPlot.endPropertyChanges();
+
+      this.setIfChanged('plot', tNewPlot);
+
+      this.removePlotObserver(tOldPlot);
+      tOldPlot.destroy();
+      this.set('aboutToChangeConfiguration', false);  // all done
+      if( tIsSplit) {
+        this.updateAxisArrays();
+        this.updateSplitPlotArray();
+        this.notifyPropertyChange('splitPlotChange');
       }
     },
 
@@ -951,49 +1001,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * @param iValue {Boolean}
      */
     swapChartType: function( iChartPlot, iKey, iValue) {
-      var doSwap = function ()
-      {
-        var tOldPlot = this.get('plot'),
-            tConfig = this.get('dataConfiguration'),
-            tNewPlotClass = tOldPlot.constructor === DG.DotChartModel ?
-                DG.BarChartModel : DG.DotChartModel,
-            tIsSplit = this.get('isSplit'),
-            tNewPlot, tAdornmentModels;
-        if( tIsSplit) {
-          this.removeAllSplitPlotsAndAxes();
-        }
-        this.set('aboutToChangeConfiguration', true); // signal to prepare
-        tNewPlotClass.configureRoles(tConfig);
-        tNewPlot = tNewPlotClass.create(this.getModelPointStyleAccessors());
-        this.addPlotObserver(tNewPlot);
-
-        tAdornmentModels = tOldPlot.copyAdornmentModels(tNewPlot);
-
-        tNewPlot.beginPropertyChanges();
-        tNewPlot.setIfChanged('dataConfiguration', tConfig);
-        tNewPlot.setIfChanged('xAxis', this.get('xAxis'));
-        tNewPlot.setIfChanged('yAxis', this.get('yAxis'));
-        for (var tProperty in tAdornmentModels) {
-          if (tAdornmentModels.hasOwnProperty(tProperty)) {
-            var tModel = tAdornmentModels[tProperty];
-            tNewPlot.setIfChanged(tProperty, tModel);
-          }
-        }
-        tNewPlot.endPropertyChanges();
-
-        this.setIfChanged('plot', tNewPlot);
-
-        this.removePlotObserver(tOldPlot);
-        tOldPlot.destroy();
-        this.set('aboutToChangeConfiguration', false);  // all done
-        if( tIsSplit) {
-          this.updateAxisArrays();
-          this.updateSplitPlotArray();
-          this.notifyPropertyChange('splitPlotChange');
-        }
-      }.bind( this);
-
       var tInitialValue = iChartPlot.get('displayAsBarChart'),
+          tOldPlotClass = iChartPlot.constructor,
+          tNewPlotClass = tOldPlotClass === DG.DotChartModel ?
+              DG.BarChartModel : DG.DotChartModel,
           tUndo = tInitialValue ? ('DG.Undo.graph.showAsBarChart') : ('DG.Undo.graph.showAsDotChart'),
           tRedo = tInitialValue ? ('DG.Redo.graph.showAsBarChart') : ('DG.Redo.graph.showAsDotChart');
       DG.UndoHistory.execute(DG.Command.create({
@@ -1002,10 +1013,38 @@ DG.GraphModel = DG.DataLayerModel.extend(
         redoString: tRedo,
         log: ("toggleShowAs: %@").fmt(tInitialValue ? "DotChart" : "BarChart"),
         execute: function() {
-          doSwap();
+          this.swapPlotForNewPlot(tNewPlotClass);
         }.bind(this),
         undo: function() {
-          doSwap();
+          this.swapPlotForNewPlot( tOldPlotClass);
+        }.bind(this)
+      }));
+    },
+
+    /**
+     * We swap out the given plot model for its alternate. Note that the primary axis of a binned plot is a
+     * binned numeric axis while that for a normal dot plot is a cell linear axis.
+     * @param iDotPlot {DG.DotPlotModel | DG.BinnedPlotModel }
+     * @param iKey {String} Should be 'displayAsBinned'
+     * @param iValue {Boolean}
+     */
+    swapBinningType: function( iDotPlot, iKey, iValue) {
+      var tInitialValue = iDotPlot.get('displayAsBinned'),
+          tOldPlotClass = iDotPlot.constructor,
+          tNewPlotClass = tOldPlotClass === DG.DotPlotModel ?
+              DG.BinnedPlotModel : DG.DotPlotModel,
+          tUndo = tInitialValue ? ('DG.Undo.graph.showAsBinnedPlot') : ('DG.Undo.graph.showAsDotPlot'),
+          tRedo = tInitialValue ? ('DG.Redo.graph.showAsBinnedPlot') : ('DG.Redo.graph.showAsDotPlot');
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "graph.toggleBinningType",
+        undoString: tUndo,
+        redoString: tRedo,
+        log: ("toggleShowAs: %@").fmt(tInitialValue ? "BinnedPlot" : "DotPlot"),
+        execute: function() {
+          this.swapPlotForNewPlot(tNewPlotClass);
+        }.bind(this),
+        undo: function() {
+          this.swapPlotForNewPlot( tOldPlotClass);
         }.bind(this)
       }));
     },
@@ -1061,6 +1100,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
       tNewPlotClass = tPlotTable[ tXType][ tYType];
       if( SC.none( tNewPlotClass ) )
         tNewPlotClass = DG.PlotModel;
+
+      // If the current plot is a BinnedPlotModel, it is compatible with needing a DotPlotModel
+      if( tNewPlotClass === DG.DotPlotModel &&
+          tCurrentPlot.constructor === DG.BinnedPlotModel)
+        tNewPlotClass = DG.BinnedPlotModel;
 
       tNewPlotClass.configureRoles( tConfig );
       if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) ) {
@@ -1254,6 +1298,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
         for( var tPlotIndex = 0; tPlotIndex < tNumPlotsPerCell; tPlotIndex++) {
           var tRootPlot = tRootPlotArray[ tPlotIndex],
               tCurrentPlot = iPlotArray[tPlotIndex],
+              tXAxis = this_.get('xAxisArray')[iCol],
+              tYAxis = this_.get('yAxisArray')[iRow],
               tNewPlot;
           if( !tCurrentPlot || tCurrentPlot.constructor !== tPlotClass) {
             var tProperties = $.extend(this_.getModelPointStyleAccessors(),
@@ -1261,12 +1307,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
                 {
                   splitPlotRowIndex: iRow,
                   splitPlotColIndex: iCol,
-                  xAxis: this_.get('xAxisArray')[iCol],
-                  yAxis: this_.get('yAxisArray')[iRow],
+                  xAxis: tXAxis,
+                  yAxis: tYAxis,
                   y2Axis: this_.get('y2AxisArray')[0],
                   yAttributeIndex: tRootPlot.get('verticalAxisIsY2') ? 0 : tAttrIndex++
                 });
             tNewPlot = tPlotClass.create(tProperties);
+            tXAxis.setLinkToPlotIfDesired( tNewPlot);
+            tYAxis.setLinkToPlotIfDesired( tNewPlot);
             if( tPlotIndex === 0) {
               tNewPlot.installAdornmentModelsFrom(tRootPlot);
               this_.addPlotObserver(tNewPlot);
@@ -1393,9 +1441,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
           tPlot.beginPropertyChanges();
           tPlot.set('enableMeasuresForSelection', this.get('enableMeasuresForSelection'));
           tPlot.setIfChanged( 'dataConfiguration', tDataConfig);
-          tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
-          tPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
-          tPlot.setIfChanged( 'y2Axis', this.get( 'y2Axis' ) );
+          ['xAxis', 'yAxis', 'y2Axis'].forEach( function( iAxisKey) {
+            var tAxis = this.get(iAxisKey);
+            tPlot.setIfChanged( iAxisKey, tAxis);
+            tAxis.setLinkToPlotIfDesired( tPlot);
+          }.bind( this));
           tPlot.setIfChanged( 'yAttributeIndex', tActualYAttrIndex);
           tPlot.restoreStorage(iModelDesc.plotModelStorage);
           tPlot.endPropertyChanges();

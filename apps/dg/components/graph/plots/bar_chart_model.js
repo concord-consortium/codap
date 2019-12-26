@@ -77,6 +77,27 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
         return tResult;
       },
 
+      /**
+       * Change the value corresponding to the given key
+       * @param iKey {String} Should be 'displayAsBinned'
+       * @param iValue {Boolean}
+       */
+      changeBreakdownType: function( iKey, iValue) {
+        var tInitialValue = this.get(iKey);
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "graph.changeBreakdownType",
+          undoString: 'DG.Undo.graph.changeBreakdownType',
+          redoString: 'DG.Redo.graph.changeBreakdownType',
+          log: ("change %@ from %@ to %@").fmt(iKey, tInitialValue, iValue),
+          execute: function() {
+            this.set(iKey, iValue);
+          }.bind(this),
+          undo: function() {
+            this.set(iKey, tInitialValue);
+          }.bind(this)
+        }));
+      },
+
       lastConfigurationControls: function () {
         var tControls = sc_super(),
             this_ = this,
@@ -128,7 +149,7 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
               layout: {height: 3 * kRowHeight},
               classNames: 'dg-inspector-radio'.w(),
               valueDidChange: function () {
-                this_.set('breakdownType', mapValueToBreakdownType(this.value));
+                this_.changeBreakdownType( 'breakdownType', mapValueToBreakdownType(this.value));
               }.observes('value')
             })
         );

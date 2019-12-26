@@ -27,6 +27,8 @@ DG.PlotUtilities = {
   kRuleWidth: 1,
   kZeroLineColor: '#555',
   kZeroLineWidth: 1,
+  kBinBorderLineColor: "rgba(0, 0, 0, 0.5)",
+  kBinBorderWidth: 1,
   kDefaultMovablePointColor: "yellow",
   kDefaultMovablePointRadius: 8,
   kDefaultMovableLineColor: "steelblue",
@@ -506,6 +508,9 @@ DG.PlotUtilities = {
         break;
       case DG.CountAxisView:
         tModelClass = DG.CountAxisModel;
+        break;
+      case DG.BinnedAxisView:
+        tModelClass = DG.BinnedAxisModel;
     }
     return tModelClass;
   },

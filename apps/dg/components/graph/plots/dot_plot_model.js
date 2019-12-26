@@ -18,62 +18,17 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph/plots/plot_model');
+sc_require('components/graph/plots/univariate_plot_model');
 sc_require('components/graph/plots/numeric_plot_model_mixin');
 
 /** @class  DG.DotPlotModel The model for a dot plot.
 
  @extends SC.PlotModel
  */
-DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
+DG.DotPlotModel = DG.UnivariatePlotModel.extend(
     /** @scope DG.DotPlotModel.prototype */
     {
-      /**
-       @property{Number}
-       */
-      primaryVarID: function () {
-        return (this.get('primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ?
-            this.get('xVarID') : this.get('yVarID');
-      }.property('primaryAxisPlace', 'xVarID', 'yVarID')/*.cacheable()*/,
-
-      /**
-       @property{DG.GraphTypes.EPlace}
-       */
-      primaryAxisPlace: function () {
-        var dataConfiguration = this.get('dataConfiguration');
-        return dataConfiguration && dataConfiguration.getPlaceForRole(DG.Analysis.EAnalysisRole.ePrimaryNumeric);
-      }.property('xVarID', 'yVarID')/*.cacheable()*/,
-
-      /**
-       @property{DG.GraphTypes.EPlace}
-       */
-      secondaryAxisPlace: function () {
-        var dataConfiguration = this.get('dataConfiguration');
-        return dataConfiguration && dataConfiguration.getPlaceForRole(DG.Analysis.EAnalysisRole.eSecondaryCategorical);
-      }.property('xVarID', 'yVarID')/*.cacheable()*/,
-
-      /**
-       @property{DG.CellLinearAxisModel}
-       */
-      primaryAxisModel: function () {
-        return this.getAxisForPlace(this.get('primaryAxisPlace'));
-      }.property('primaryAxisPlace', 'xAxis', 'yAxis')/*.cacheable()*/,
-
-      /**
-       @property{DG.CellLinearAxisModel}
-       */
-      secondaryAxisModel: function () {
-        return this.getAxisForPlace(this.get('secondaryAxisPlace'));
-      }.property('secondaryAxisPlace', 'xAxis', 'yAxis')/*.cacheable()*/,
-
-      /**
-       'vertical' means the stacks of dots are vertical, while 'horizontal' means they are horizontal
-       @property{String}
-       */
-      orientation: function () {
-        return (this.get('primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ? DG.GraphTypes.EOrientation.kVertical :
-            DG.GraphTypes.EOrientation.kHorizontal;
-      }.property('primaryAxisPlace'),
+      displayAsBinned: false,
 
       multipleMovableValuesModel: function () {
         var tMultipleMovableValues = this.getAdornmentModel('multipleMovableValues');
@@ -477,47 +432,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         this.doDilation([this.get('primaryAxisPlace')], iFixedPoint, iFactor);
       },
 
-      /**
-       * Get an array of non-missing case counts in each axis cell.
-       * Also cell index on primary and secondary axis, with primary axis as major axis.
-       * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).
-       */
-      getCellCaseCounts: function () {
-        var tCases = this.get('cases'),
-            tNumericVarID = this.get('primaryVarID'),
-            tNumericAxisModel = this.get('primaryAxisModel'),
-            tCategoricalVarID = this.get('secondaryVarID'),
-            tCategoricalAxisModel = this.get('secondaryAxisModel'),
-            tValueArray = [];
-
-        if (!( tCategoricalAxisModel && tNumericAxisModel )) {
-          return tValueArray; // too early to recompute, caller must try again later.
-        }
-
-        var tNumCells = tCategoricalAxisModel.get('numberOfCells');
-
-        // initialize the values
-        for (var i = 0; i < tNumCells; ++i) {
-          tValueArray.push({count: 0, primaryCell: 0, secondaryCell: i});
-        }
-
-        // compute count of cases in each cell, excluding missing values
-        // take care to handle null VarIDs and null case values correctly
-        tCases.forEach(function (iCase, iIndex) {
-          var tNumericValue = iCase.getNumValue(tNumericVarID),
-              tCellValue = iCase.getStrValue(tCategoricalVarID),
-              tCellNumber = tCategoricalAxisModel.cellNameToCellNumber(tCellValue);
-          if (tCellNumber != null &&
-              DG.MathUtilities.isInIntegerRange(tCellNumber, 0, tValueArray.length) && // if Cell Number not missing
-              isFinite(tNumericValue)) { // if numeric value not missing
-            tValueArray[tCellNumber].count += 1;
-          }
-        });
-
-        return tValueArray;
-      },
-
-      restoreStorage: function (iStorage) {
+       restoreStorage: function (iStorage) {
         sc_super();
         var tMultipleMovable = this.getAdornmentModel('multipleMovableValues');
         if (tMultipleMovable)
@@ -699,14 +614,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
  @param {DG.GraphDataConfiguration}
  */
 DG.DotPlotModel.configureRoles = function (iConfig) {
-  var tXType = iConfig.get('xType'),
-      tXIsNumeric = tXType === DG.Analysis.EAttributeType.eNumeric ||
-          tXType === DG.Analysis.EAttributeType.eDateTime,
-      tAxisKey = tXIsNumeric ? 'x' : 'y',
-      tOtherAxisKey = (tAxisKey === 'x') ? 'y' : 'x';
-  iConfig.setPath(tAxisKey + 'AttributeDescription.role',
-      DG.Analysis.EAnalysisRole.ePrimaryNumeric);
-  iConfig.setPath(tOtherAxisKey + 'AttributeDescription.role',
-      DG.Analysis.EAnalysisRole.eSecondaryCategorical);
+  // Base class has method for this
+  DG.UnivariatePlotModel.configureRoles( iConfig);
 };
 

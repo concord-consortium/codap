@@ -303,6 +303,16 @@ html, body {
     padding-left: 24px;
 }
 
+.dg-inspector-textentry {
+    background: white;
+}
+
+.dg-inspector-textentry input{
+    background: white;
+    border: thin solid gray;
+    padding: 2px;
+}
+
 .dg-insert-cases-dialog .sc-view.inspector-input {
     background-color: white;
 }

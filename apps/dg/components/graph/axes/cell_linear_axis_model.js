@@ -33,6 +33,10 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   */
   tickGap: null,
 
+  init: function() {
+    sc_super();
+  },
+
   /**
     The lower bound of the axis in world coordinates.
     @property { Number }
