@@ -561,6 +561,15 @@ DG.AttributeStats = SC.Object.extend((function () // closure
             }
           });
           tNumCells = tCellNumber;
+          // Delete cells that don't have cases
+          if (tBlockIfEmpty) {
+            DG.ObjectMap.forEach(tCellMap, function (iKey, iValue) {
+              if (iValue.cases.length === 0) {
+                delete tCellMap[iKey];
+                tNumCells--;
+              }
+            });
+          }
           // If we have more categories than the limit, combine extra categories into kOther
           if(!SC.none(tNumberOfCategoriesLimit) && tNumCells > tNumberOfCategoriesLimit) {
             // Make a sorted array for efficient identification of categories beyond limit
