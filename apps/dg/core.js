@@ -643,6 +643,17 @@ DG = SC.Application.create((function () // closure
 
     enableUndoHistory: true, //getUrlParameter('undo') === 'true'
 
+    langOverride: function () {
+      return DG.getQueryParam('lang-override');
+    }.property(),
+
+    /**
+     * The current language in effect for this instance of CODAP.
+     */
+    currentLanguage: function () {
+      return this.get('langOverride') || SC.Locale.currentLanguage;
+    }.property(),
+
     locales: [
       {
         langName: 'DG.Locale.name.de',
