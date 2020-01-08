@@ -870,14 +870,19 @@ DG.DocumentController = SC.Object.extend(
       },
 
       addGame: function (iParentView, iComponent, isInitialization) {
+        // It should return a document name, e.g.:
+        // /sage/sagemodeler.html => sagemodeler
+        // /sage/sagemodeler.html?param=abc.123 => sagemodeler
+        // /sage/sagemodeler?param=abc.123 => sagemodeler
         function getNameFromURL(iUrl) {
           if (!iUrl) {
             return;
           }
-          var match = /.*\/([^\/]*)\.[^\/.]*$/.exec(iUrl);
-          if (match) {
-            return match[1];
-          }
+          var a = document.createElement("a");
+          a.href = iUrl;
+          var doc = a.pathname.split("/").slice(-1)[0].split(".");
+          // At this point doc is equal to ["sagemodeler", "html"] or ["sagemodeler"] if .html was not present.
+          return doc[0];
         }
 
         var tGameParams = {
