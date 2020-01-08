@@ -767,5 +767,6 @@ SC.stringsFor("nn", {
     "DG.Inspector.graphBoxPlotShowOutliers": "Vis \"uteliggere\"",
     "DG.Locale.name.nb": "Norsk (bokmål)",
     "DG.Locale.name.nn": "Norsk (nynorsk)",
-    "DG.CaseCard.newCaseToolTip": "Legg til tom observasjon til denne samlinga"
+    "DG.CaseCard.newCaseToolTip": "Legg til tom observasjon til denne samlinga",
+    "DG.TableController.headerMenuItems.renameAttribute": "Rename"
 });

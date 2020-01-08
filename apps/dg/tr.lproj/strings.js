@@ -720,7 +720,7 @@ SC.stringsFor("tr", {
     "DG.TableController.attrEditor.typeHint": "Set to force the attribute to be treated as a certain type",
     "DG.TableController.attrEditor.nameHint": "The attribute name appears in the case table, case card, and on graph axes",
     "DG.TableController.attrEditor.editableHint": "If the attribute is not editable, its values and/or formula cannot be changed",
-    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second",
+    "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second millisecond",
     "DG.AttributeFormat.DatePrecision.year": "YYYY",
     "DG.AttributeFormat.DatePrecision.month": "MMM YYYY",
     "DG.AttributeFormat.DatePrecision.day": "MMM D, YYYY",
@@ -767,5 +767,6 @@ SC.stringsFor("tr", {
     "DG.Inspector.graphBoxPlotShowOutliers": "Show Outliers",
     "DG.Locale.name.nb": "Bokmål",
     "DG.Locale.name.nn": "Nynorsk",
-    "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection"
+    "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
+    "DG.TableController.headerMenuItems.renameAttribute": "Rename"
 });

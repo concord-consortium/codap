@@ -767,5 +767,6 @@ SC.stringsFor("el", {
     "DG.Inspector.graphBoxPlotShowOutliers": "Show Outliers",
     "DG.Locale.name.nb": "Bokmål",
     "DG.Locale.name.nn": "Nynorsk",
-    "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection"
+    "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
+    "DG.TableController.headerMenuItems.renameAttribute": "Rename"
 });
