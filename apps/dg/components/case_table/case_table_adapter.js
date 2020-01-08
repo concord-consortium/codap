@@ -549,6 +549,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             header: {
               menu : {
                 items: [
+                  {
+                    title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
+                    command: 'cmdEditName',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = false;
+                    }
+                  },
                   { title: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
                     command: 'cmdEditAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {

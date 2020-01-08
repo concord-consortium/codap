@@ -301,6 +301,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         case 'cmdRecoverDeletedFormula':
           this.recoverDeletedFormula( columnID);
           break;
+        case 'cmdEditName':
+          this.editName( columnID, iArgs.grid.getHeaderRowColumn(columnID));
+          break;
         case 'cmdEditAttribute':
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
           break;
@@ -762,6 +765,21 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         sc_super();
       },
 
+      editName: function(iAttrID, iMenuItem) {
+        var tDataContext = this.get('dataContext'),
+            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
+            tAttr = tAttrRef && tAttrRef.attribute,
+            collection = tAttrRef && tAttrRef.collection,
+            collectionID = collection && collection.get('id'),
+            hierTableView = this.getPath('view.contentView'),
+            caseTableView = hierTableView && hierTableView.getChildTableViewForCollection(collectionID);
+
+
+        if( !DG.assert( tAttr, "editName() is missing the attribute reference"))
+          return;
+
+        caseTableView.beginEditAttributeName(tAttr.get('name'));
+      },
       /**
        * Edit an attribute's properties. Brings up the Edit Attribute dialog.
        *
