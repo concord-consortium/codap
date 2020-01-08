@@ -532,6 +532,7 @@ SC.stringsFor("en", {
     "DG.TableController.headerMenuItems.sortAscending": "Sort Ascending (A→Z, 0→9)",
     "DG.TableController.headerMenuItems.sortDescending": "Sort Descending (9→0, Z→A)",
     "DG.TableController.headerMenuItems.deleteAttribute": "Delete Attribute",
+    "DG.TableController.headerMenuItems.renameAttribute": "Rename",
     "DG.TableController.newAttrDlg.defaultAttrName": "new_attr",
     "DG.TableController.newAttrDlg.attrNameHint": "Enter a name for the new attribute",
     "DG.TableController.newAttrDlg.formulaHint": "If desired, type a formula for computing values of this attribute",
