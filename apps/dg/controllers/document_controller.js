@@ -870,14 +870,19 @@ DG.DocumentController = SC.Object.extend(
       },
 
       addGame: function (iParentView, iComponent, isInitialization) {
+        // It should return a document name, e.g.:
+        // /datagame/game.html => game
+        // /datagame/game.html?param=abc.123 => game
+        // /datagame/game?param=abc.123 => game
         function getNameFromURL(iUrl) {
           if (!iUrl) {
             return;
           }
-          var match = /.*\/([^\/]*)\.[^\/.]*$/.exec(iUrl);
-          if (match) {
-            return match[1];
-          }
+          var a = document.createElement("a");
+          a.href = iUrl;
+          var doc = a.pathname.split("/").slice(-1)[0].split(".");
+          // At this point doc could be equal to ["game", "html"] or ["game"] if .html was not present.
+          return doc[0];
         }
 
         var tGameParams = {
