@@ -1461,6 +1461,35 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       });
     },
 
+    inProgressAttributeEditElementName: null,
+    completeEditAttributeName: function() {
+      var attrName = this.inProgressAttributeEditElementName;
+      var elt = this.$('#attribute-name-editor');
+      if (attrName) {
+        SC.run(function() {
+          var $input = elt,
+              dataContext = this.get('dataContext'),
+              unit = DG.Attribute.extractUnitFromNameString($input.val()),
+              newName = dataContext.getUniqueAttributeName($input.val(), [attrName]);
+          if ((newName !== attrName) || unit) {
+            var controller = getController(this),
+                attrRef = dataContext && dataContext.getAttrRefByName(attrName);
+            if (attrRef && newName)
+              controller.updateAttribute(attrRef, { name: newName, unit: unit });
+          }
+          else {
+            this.updateColumnInfo();
+          }
+          this.inProgressAttributeEditElementName = null;
+        }.bind(this));
+      }
+    },
+    cancelEditAttributeElement: function () {
+      SC.run(function() {
+        this.updateColumnInfo();
+        this.inProgressAttributeEditElementName = null;
+      }.bind(this));
+    },
     /**
       Makes the attribute name editable in the appropriate column header.
       Since SlickGrid doesn't support editable column headers natively, we use
@@ -1468,49 +1497,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       @param  {string}  attrName -- the name of the attribute to be edited
      */
     beginEditAttributeName: function(attrName) {
-      var gridAdapter = this.get('gridAdapter'),
+      var _this = this,
+          gridAdapter = this.get('gridAdapter'),
           column = gridAdapter && gridAdapter.getAttributeColumn(attrName),
           columnIndex = column && column.columnIndex,
           headerColumns = this.$('.slick-header-column'),
           $el = column && $(headerColumns[columnIndex]),
           $nameEl = $el && $el.find('.slick-column-name');
 
-      var finishNameEdit = function() {
-            // $plusEl.removeClass('disabled');
-          },
-
-          completeNameEdit = function(elt) {
-            SC.run(function() {
-              var $input = $(elt),
-                  dataContext = this.get('dataContext'),
-                  unit = DG.Attribute.extractUnitFromNameString($input.val()),
-                  newName = dataContext.getUniqueAttributeName($input.val(), [attrName]);
-              if ((newName !== attrName) || unit) {
-                var controller = getController(this),
-                    attrRef = dataContext && dataContext.getAttrRefByName(attrName);
-                if (attrRef && newName)
-                  controller.updateAttribute(attrRef, { name: newName, unit: unit });
-              }
-              else {
-                this.updateColumnInfo();
-              }
-              finishNameEdit();
-            }.bind(this));
-          }.bind(this),
-
-          cancelNameEdit = function(elt) {
-            SC.run(function() {
-              this.updateColumnInfo();
-              finishNameEdit();
-            }.bind(this));
-          }.bind(this);
-
+      this.inProgressAttributeEditElementName = attrName;
       if ($nameEl) {
         $nameEl.empty().append($('<input>').addClass('dg-attr-name-edit-input').val(attrName));
         this.getPath('parentView.parentView.parentView').scrollDOMElementHorizontallyToView($nameEl[0]);
         var $input = $nameEl.find('input');
         $input.attr({ type: 'text', autocapitalize: 'none', autocomplete: 'off',
-                       autocorrect: 'off', inputmode: 'latin-name', spellcheck: false })
+                       autocorrect: 'off', inputmode: 'latin-name', spellcheck: false, id: 'attribute-name-editor' })
               .on('mousedown', function(evt) {
                 evt.stopImmediatePropagation();
               })
@@ -1526,15 +1527,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                             evt.preventDefault();
                             evt.stopImmediatePropagation();
                           })
-              .on('change', function() { completeNameEdit(this); })
-              .on('blur', function() { completeNameEdit(this); })
+              .on('change', function() { _this.completeEditAttributeName(this); })
+              .on('blur', function() { _this.completeEditAttributeName(this); })
               .on('keydown', function(evt) {
                               switch(evt.keyCode) {
                                 case 13:
-                                  completeNameEdit(this);
+                                  _this.completeEditAttributeName(this);
                                   break;
                                 case 27:
-                                  cancelNameEdit(this);
+                                  _this.cancelEditAttributeName(this);
                                   break;
                               }
                             })
