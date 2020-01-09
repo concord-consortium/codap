@@ -2,7 +2,7 @@ class WebviewTile {
     getWebviewTile(){
         return cy.get('.dg-web-view');
     }
-    getGuideViewTile(){
+    getGuideTile(){
         return cy.get('.sc-web-view')
     }
 }

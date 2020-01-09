@@ -17,7 +17,34 @@ const webviewTile = new WebviewTile;
 
 const CODAP_URL = "https://codap.concord.org/releases/staging/";
 const queryParam = "#file=examples:";
-const max_attempts = 10;
+
+function verifyComponentExists(tiles) {
+    let tableNum = tiles.table;
+    let graphNum = tiles.graph;
+    let mapNum = tiles.map;
+    let guideNum = tiles.guide;
+    let webviewNum = tiles.webview;
+    let pluginNum = tiles.plugin;
+
+    if (tableNum>0){
+        tableTile.getCaseTableTile().should('be.visible').and('have.length', tableNum)
+    }
+    if (graphNum>0){
+        graphTile.getGraphTile().should('be.visible').and('have.length', graphNum)
+    }
+    if (mapNum>0){
+        mapTile.getMapTile().should('be.visible').and('have.length', mapNum)
+    }
+    if (guideNum>0){
+        webviewTile.getGuideTile().should('be.visible').and('have.length', guideNum)
+    }
+    if (webviewNum>0){
+        webviewTile.getWebviewTile().should('be.visible').and('have.length', webviewNum)
+    }
+    if (pluginNum>0){
+        pluginTile.getPlugin().should('be.visible').and('have.length', pluginNum)
+    }
+}
 
 before(()=> {
     cy.viewport(1400,1000);
@@ -36,22 +63,23 @@ context('Load all Sample documents in the CODAP example tab', ()=>{
         var i=0;
         
         cy.get("@exampleDocsData").then((exampleDocsData)=>{
-            let examples = exampleDocsData.examples
-            for (i=0; i<examples.length;i++) {
+            // let examples = exampleDocsData;
+            let i=0;
+            for (i=0; i<exampleDocsData.examples.length;i++) {
                 if(i>0){
                     cfm.openDocFromFileMenu();
                     // cfm.closeConfirmDialogMessage();
-                    // if ((listingArray[i-1]=='Markov Game') || (listingArray[i-1]=='Four Seals')) {
-                    //     cfm.closeConfirmDialogMessage();
-                    // }
-                    if (examples[i-1].document!=='Getting started with CODAP')  {
+                    if ((exampleDocsData.examples[i-1].document=='Markov Game')) {
                         cfm.closeConfirmDialogMessage();
                     }
+                    // if (examples[i-1].document!=='Getting started with CODAP')  {
+                    //     cfm.closeConfirmDialogMessage();
+                    // }
                 }
-                cfm.openExampleDoc(examples[i].document);
+                cfm.openExampleDoc(exampleDocsData.examples[i].document);
                 cy.wait(5000);
-                
-                cy.matchImageSnapshot(examples[i].document)
+                verifyComponentExists(exampleDocsData.examples[i].tiles)
+                // cy.matchImageSnapshot(examples[i].document)
             }
         })
     })
