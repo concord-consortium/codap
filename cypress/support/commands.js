@@ -47,6 +47,20 @@
 import { addMatchImageSnapshotCommand } from 'cypress-image-snapshot/command'
 import 'cypress-commands';
 
+import TableTileObject from "./elements/TableTile";
+import GraphTile from "./elements/GraphTile";
+import MapTile from "./elements/MapTile";
+import Plugin from "./elements/PluginObject";
+import WebviewTile from "./elements/WebViewObject";
+
+//This will open the example documents from the CFM menu
+
+const tableTile = new TableTileObject;
+const graphTile = new GraphTile;
+const mapTile = new MapTile;
+const pluginTile = new Plugin;
+const webviewTile = new WebviewTile;
+
 // import fs from 'fs-extra'
 // import path from 'path'
 
@@ -253,4 +267,31 @@ Cypress.Commands.add("uploadFile",(selector, filename, type="")=>{
             return subject;
         })
     })
+})
+Cypress.Commands.add("verifyComponentExists",(tiles)=>{
+    let tableNum = tiles.table;
+    let graphNum = tiles.graph;
+    let mapNum = tiles.map;
+    let guideNum = tiles.guide;
+    let webviewNum = tiles.webview;
+    let pluginNum = tiles.plugin;
+
+    if (tableNum>0){
+        tableTile.getCaseTableTile().should('be.visible').and('have.length', tableNum)
+    }
+    if (graphNum>0){
+        graphTile.getGraphTile().should('be.visible').and('have.length', graphNum)
+    }
+    if (mapNum>0){
+        mapTile.getMapTile().should('be.visible').and('have.length', mapNum)
+    }
+    if (guideNum>0){
+        webviewTile.getGuideTile().should('be.visible').and('have.length', guideNum)
+    }
+    if (webviewNum>0){
+        webviewTile.getWebviewTile().should('be.visible').and('have.length', webviewNum)
+    }
+    if (pluginNum>0){
+        pluginTile.getPlugin().should('be.visible').and('have.length', pluginNum)
+    }
 })

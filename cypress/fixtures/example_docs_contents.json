@@ -28,7 +28,7 @@
         },
         {
             "document":"Mammals",
-            "tiles":[
+            "tiles":
                 { 
                     "table": 1,
                     "graph": 3,
@@ -37,11 +37,10 @@
                     "webview":0,
                     "plugin":0
                 }
-            ]
         },
         {
             "document":"Map Data",
-            "tiles":[
+            "tiles":
                 { 
                     "table": 1,
                     "graph": 0,
@@ -50,11 +49,10 @@
                     "webview":0,
                     "plugin":0
                 }
-            ]
         },
         {
             "document":"Markov Game",
-            "tiles":[
+            "tiles":
                 { 
                     "table": 0,
                     "graph": 0,
@@ -63,11 +61,10 @@
                     "webview":0,
                     "plugin":1
                 }
-            ]
         },
         {
             "document":"Parachute Model",
-            "tiles":[
+            "tiles":
                 { 
                     "table": 1,
                     "graph": 0,
@@ -76,11 +73,10 @@
                     "webview":0,
                     "plugin":1
                 }
-            ]
         },
         {
             "document":"Roller Coasters",
-            "tiles":[
+            "tiles":
                 { 
                     "table": 1,
                     "graph": 1,
@@ -89,7 +85,6 @@
                     "webview":0,
                     "plugin":0
                 }
-            ]
         }
     ]    
 }

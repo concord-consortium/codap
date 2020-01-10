@@ -18,34 +18,6 @@ const webviewTile = new WebviewTile;
 const CODAP_URL = "https://codap.concord.org/releases/staging/";
 const queryParam = "#file=examples:";
 
-function verifyComponentExists(tiles) {
-    let tableNum = tiles.table;
-    let graphNum = tiles.graph;
-    let mapNum = tiles.map;
-    let guideNum = tiles.guide;
-    let webviewNum = tiles.webview;
-    let pluginNum = tiles.plugin;
-
-    if (tableNum>0){
-        tableTile.getCaseTableTile().should('be.visible').and('have.length', tableNum)
-    }
-    if (graphNum>0){
-        graphTile.getGraphTile().should('be.visible').and('have.length', graphNum)
-    }
-    if (mapNum>0){
-        mapTile.getMapTile().should('be.visible').and('have.length', mapNum)
-    }
-    if (guideNum>0){
-        webviewTile.getGuideTile().should('be.visible').and('have.length', guideNum)
-    }
-    if (webviewNum>0){
-        webviewTile.getWebviewTile().should('be.visible').and('have.length', webviewNum)
-    }
-    if (pluginNum>0){
-        pluginTile.getPlugin().should('be.visible').and('have.length', pluginNum)
-    }
-}
-
 before(()=> {
     cy.viewport(1400,1000);
     cy.visit(CODAP_URL)
@@ -78,7 +50,7 @@ context('Load all Sample documents in the CODAP example tab', ()=>{
                 }
                 cfm.openExampleDoc(exampleDocsData.examples[i].document);
                 cy.wait(5000);
-                verifyComponentExists(exampleDocsData.examples[i].tiles)
+                cy.verifyComponentExists(exampleDocsData.examples[i].tiles)
                 // cy.matchImageSnapshot(examples[i].document)
             }
         })
