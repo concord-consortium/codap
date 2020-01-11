@@ -40,6 +40,7 @@ context('CFM functionalities with table', ()=>{
         table.getCaseTableTile().should('be.visible')
         cfm.openCFMMenu();
         cfm.selectCFMMenuItem('Close');
+        // cfm.closeConfirmDialogMessage();
     })
     it('verify save and restore of closed blank table', ()=>{ //bug found by Dan
         var filename='closed_table';
@@ -60,6 +61,7 @@ context('CFM functionalities with table', ()=>{
         table.getCaseTableTile().should('be.visible')
         cfm.openCFMMenu();
         cfm.selectCFMMenuItem('Close');
+        // cfm.closeConfirmDialogMessage();
     })
     it('verify save and restore of non-blank table', ()=>{
         var filename='nonblank_table';
@@ -82,6 +84,7 @@ context('CFM functionalities with table', ()=>{
         //TODO: verify cell contents are there
         cfm.openCFMMenu();
         cfm.selectCFMMenuItem('Close');
+        // cfm.closeConfirmDialogMessage();
     })
     it('verify save and restore of minimized table', ()=>{
         var filename='min_table';
@@ -101,7 +104,8 @@ context('CFM functionalities with table', ()=>{
         codap.openTile('table','New Dataset')
         table.getCaseTableTile().should('be.visible')  
         cfm.openCFMMenu();
-        cfm.selectCFMMenuItem('Close');      
+        cfm.selectCFMMenuItem('Close');
+        // cfm.closeConfirmDialogMessage();      
     })
     it('verify save and restore of closed non-blank table', ()=>{ 
         var filename='closed nonblank table';
@@ -124,6 +128,7 @@ context('CFM functionalities with table', ()=>{
         table.getCaseTableTile().should('be.visible')
         // TODO: need to verify cell contents  
         cfm.openCFMMenu();
-        cfm.selectCFMMenuItem('Close');   
+        cfm.selectCFMMenuItem('Close');
+        // cfm.closeConfirmDialogMessage();   
     })
 })

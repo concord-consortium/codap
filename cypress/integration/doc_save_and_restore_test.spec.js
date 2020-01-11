@@ -6,7 +6,7 @@ import MapTile from '../support/elements/MapTile';
 import SliderTile from '../support/elements/SliderObject';
 import TextTile from '../support/elements/TextObject';
 import CalculatorTile from '../support/elements/CalculatorObject';
-import SamplerPlugin from '../support/elements/SamplerPluginObject';
+import Plugin from '../support/elements/PluginObject';
 import DrawToolPlugin from '../support/elements/DrawToolObject';
 import GraphTile from '../support/elements/GraphTile'
 
@@ -19,7 +19,7 @@ const map = new MapTile;
 const slider = new SliderTile
 const textTile = new TextTile
 const calculator = new CalculatorTile
-const sampler = new SamplerPlugin
+const sampler = new Plugin
 const drawTool = new DrawToolPlugin
 
 const ext = '.codap';

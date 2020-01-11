@@ -165,11 +165,11 @@ context('will test graph ruler functions', ()=>{
         codap.closeTile('graph','Table C');
     })
 
-    context.only('Plot transitions with adornments',()=>{
+    context('Plot transitions with adornments',()=>{
         var hash = [{attribute: 'ANUM1', axis:'x1', collection:'Table A', length:1},
                     {attribute: 'BNUM1', axis:'x1', collection:'Table B', length:1},]
 
-        before(()=>{
+        beforeEach(()=>{
             codap.openTile('graph');
             cy.wait(2000)
         })
@@ -197,7 +197,7 @@ context('will test graph ruler functions', ()=>{
             graph.turnOffRulerTool('plottedMean')
             cy.matchImageSnapshot('p_'+hash[1].attribute+'_on_'+hash[1].axis+'_unadorned');
 
-            codap.closeTile('graph','Table C');
+            codap.closeTile('graph','Table B');
         })
         it('test num v num plot transitions',()=>{
 
