@@ -2044,12 +2044,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               return {success: false, values: {error: 'Component not found'}};
             }
             var component = iResources.component;
-            if (iValues.request && iValues.request === 'select') {
-              var view = DG.currDocumentController().componentControllersMap[component.get('id')].get('view');
-              if (!view) {
-                return {success: false, values: {error: 'Cannot find component view'}};
+            var componentController = DG.currDocumentController().componentControllersMap[component.get('id')];
+            var view = componentController && componentController.get('view');
+            if (!view) {
+              return {success: false, values: {error: 'Cannot find component view'}};
+            }
+            if (iValues.request) {
+              if (iValues.request === 'select') {
+                view.select();
+              } else if (iValues.request === 'autoScale') {
+                if (componentController && componentController.rescaleFunction) {
+                  componentController.rescaleFunction();
+                }
+                else if (componentController && componentController.resizeColumns) {
+                  componentController.resizeColumns();
+                }
+                else {
+                  return {success: false, values: {error: 'Component does not support rescale'}};
+                }
               }
-              view.select();
             }
 
             return {
