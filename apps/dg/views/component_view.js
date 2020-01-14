@@ -578,7 +578,13 @@ DG.ComponentView = SC.View.extend(
           }),
           coverSheet: SC.View.design({
             backgroundColor: DG.RenderingUtilities.kSeeThrough,
-            isVisible: false
+            isVisible: false,
+            mouseDown: function( iEvent) {
+              // It can happen that we get left as visible when the mouseUp of a component drag slips
+              // through the cracks. That's the only situation in which we should get a mouseDown as the
+              // user tries to make things work.
+              DG.mainPage.mainPane.getPath('scrollView.contentView').coverUpComponentViews('uncover');
+            }
           }),
           classNames: ['dg-component-border'],
           setContentView: function (iContentView) {
