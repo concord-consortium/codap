@@ -890,6 +890,9 @@ DG.DocumentController = SC.Object.extend(
             },
             tLayout = iComponent && iComponent.layout,
             tIsVisible = tLayout && !SC.none(tLayout.isVisible)?tLayout.isVisible:true,
+            // if we are restoring a component from a document then it will have
+            // a position in the hierarchy
+            tIsRestoredComponent = tLayout && tLayout.zIndex,
             // 'di' URL param can override stored URL
             storedGameUrl = iComponent && iComponent.getPath('componentStorage.currentGameUrl'),
             tGameUrl = DG.finalGameUrl(storedGameUrl),
@@ -931,12 +934,12 @@ DG.DocumentController = SC.Object.extend(
               position: iComponent && iComponent.position,
               title: tGameName,
               isResizable: true,
-              useLayout: !SC.none(iComponent),
+              useLayout: !!tLayout,
               positionOnCreate: true
             });
             if (!tIsVisible) {
               tView.set('isVisible', false);
-            } else {
+            } else if (!tIsRestoredComponent){
               tView.select();
             }
             this._component = tController.get('model');
