@@ -18158,6 +18158,132 @@ module.exports={
 },{}],82:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
+    "~MENU.NEW": "新建",
+    "~MENU.OPEN": "打开",
+    "~MENU.CLOSE": "关闭",
+    "~MENU.IMPORT_DATA": "导入数据",
+    "~MENU.SAVE": "保存",
+    "~MENU.SAVE_AS": "另存为",
+    "~MENU.EXPORT_AS": "导出文件格式为",
+    "~MENU.CREATE_COPY": "创建副本",
+    "~MENU.SHARE": "共享",
+    "~MENU.SHARE_GET_LINK": "共享视图链接",
+    "~MENU.SHARE_UPDATE": "更新共享视图",
+    "~MENU.DOWNLOAD": "下载",
+    "~MENU.RENAME": "重命名",
+    "~MENU.REVERT_TO": "恢复",
+    "~MENU.REVERT_TO_LAST_OPENED": "最近打开状态",
+    "~MENU.REVERT_TO_SHARED_VIEW": "共享视图",
+    "~DIALOG.SAVE": "保存",
+    "~DIALOG.SAVE_AS": "另存为",
+    "~DIALOG.EXPORT_AS": "导出文件格式为",
+    "~DIALOG.CREATE_COPY": "创建副本",
+    "~DIALOG.OPEN": "打开",
+    "~DIALOG.DOWNLOAD": "下载",
+    "~DIALOG.RENAME": "重命名",
+    "~DIALOG.SHARED": "共享",
+    "~DIALOG.IMPORT_DATA": "导入数据",
+    "~PROVIDER.LOCAL_STORAGE": "本地存储",
+    "~PROVIDER.READ_ONLY": "只读",
+    "~PROVIDER.GOOGLE_DRIVE": "谷歌硬盘",
+    "~PROVIDER.DOCUMENT_STORE": "Concord云盘",
+    "~PROVIDER.LOCAL_FILE": "本地文件",
+    "~FILE_STATUS.SAVING": "正在保存",
+    "~FILE_STATUS.SAVED": "已保存所有更改",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "所有更改保存到%{提供名称}",
+    "~FILE_STATUS.UNSAVED": "未保存",
+    "~FILE_DIALOG.FILENAME": "文件名",
+    "~FILE_DIALOG.OPEN": "打开",
+    "~FILE_DIALOG.SAVE": "保存",
+    "~FILE_DIALOG.CANCEL": "取消",
+    "~FILE_DIALOG.REMOVE": "删除",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "确定要删除%{filename}？",
+    "~FILE_DIALOG.REMOVED_TITLE": "已删除文件",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename}已删除",
+    "~FILE_DIALOG.LOADING": "下载中...",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "***加载文件夹内容时出错***",
+    "~FILE_DIALOG.DOWNLOAD": "下载",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "下载",
+    "~DOWNLOAD_DIALOG.CANCEL": "取消",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "下载文件包含共享信息",
+    "~RENAME_DIALOG.RENAME": "重命名",
+    "~RENAME_DIALOG.CANCEL": "取消",
+    "~SHARE_DIALOG.COPY": "复制",
+    "~SHARE_DIALOG.VIEW": "视图",
+    "~SHARE_DIALOG.CLOSE": "关闭",
+    "~SHARE_DIALOG.COPY_SUCCESS": "该信息已复制到粘贴板",
+    "~SHARE_DIALOG.COPY_ERROR": "抱歉，该信息不能复制到粘贴板",
+    "~SHARE_DIALOG.COPY_TITLE": "复制结果",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "共享文件将会一直保存，直到文件超过一年未访问。",
+    "~SHARE_UPDATE.TITLE": "更新共享视图",
+    "~SHARE_UPDATE.MESSAGE": "共享视图已成功更新",
+    "~CONFIRM.OPEN_FILE": "有未保存更改，确定打开一个新文件吗？",
+    "~CONFIRM.NEW_FILE": "有未保存更改，确定创建一个新文件吗？",
+    "~CONFIRM.AUTHORIZE_OPEN": "此文件需要授权打开，需要申请授权吗？",
+    "~CONFIRM.AUTHORIZE_SAVE": "此文件需要授权保存，需要申请授权吗？",
+    "~CONFIRM.CLOSE_FILE": "有未保存更改，确定关闭该文件吗？",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "确定恢复该文件至最近打开状态吗？",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "您确定想要恢复该文件至最近分享状态吗？",
+    "~CONFIRM_DIALOG.TITLE": "确定吗？",
+    "~CONFIRM_DIALOG.YES": "确定",
+    "~CONFIRM_DIALOG.NO": "不确定",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "此处放置文件或点击此处选择文件。",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "抱歉，只能打开一个文件。",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "抱歉，不能放置多个文件。",
+    "~IMPORT.LOCAL_FILE": "当地文件",
+    "~IMPORT.URL": "网址",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "抱歉，只能打开一个网址。",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "请输入网址导入",
+    "~URL_TAB.DROP_URL_HERE": "在此处放置网址或在下面输入网址",
+    "~URL_TAB.IMPORT": "导入",
+    "~CLIENT_ERROR.TITLE": "错误",
+    "~ALERT_DIALOG.TITLE": "提醒",
+    "~ALERT_DIALOG.CLOSE": "关闭",
+    "~ALERT.NO_PROVIDER": "由于缺少合适程序，无法打开指定文档。",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "登陆谷歌",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "链接到谷歌",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "谷歌硬盘提供选项中缺少必需的用户ID",
+    "~DOCSTORE.LOAD_403_ERROR": "没有权限加载%{filename}<br><br>若在使用其他人的共享文件，此文件将取消共享。",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "不能加载所请求共享文件。<br><br>此文件可能未被共享？",
+    "~DOCSTORE.LOAD_404_ERROR": "不能加载%{filename}。",
+    "~DOCSTORE.SAVE_403_ERROR": "没有权限保存‘%{filename}’。<br><br>可能需要重新登陆。",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "不能创建%{filename}。文件已经存在。",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "不能保存%{filename}：[%{message}]",
+    "~DOCSTORE.SAVE_ERROR": "不能保存%{filename}",
+    "~DOCSTORE.REMOVE_403_ERROR": "没有权限移动%{filename}。<br><br>可能需要重新登陆。",
+    "~DOCSTORE.REMOVE_ERROR": "不能移动%{文件名}",
+    "~DOCSTORE.RENAME_403_ERROR": "没有权限重新命名%{文件名}。<br><br>可能需要重新登陆。",
+    "~DOCSTORE.RENAME_ERROR": "不能重新命名%{文件名}",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord云盘提醒",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord云盘提醒",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "另存为",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "一会再做。",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concord云盘已关闭",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "请保存此文件到其他位置",
+    "~SHARE_DIALOG.SHARE_STATE": "共享视图",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "已启用",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "未启用",
+    "~SHARE_DIALOG.ENABLE_SHARING": "启动共享",
+    "~SHARE_DIALOG.STOP_SHARING": "停止共享",
+    "~SHARE_DIALOG.UPDATE_SHARING": "更新共享视图",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "预览共享视图",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "当共享已启动，当前视图复制本已生成。此复制本可以共享。",
+    "~SHARE_DIALOG.LINK_TAB": "链接",
+    "~SHARE_DIALOG.LINK_MESSAGE": "粘贴到邮件或者短信",
+    "~SHARE_DIALOG.EMBED_TAB": "嵌入",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "在网页或者网页内容里嵌入代码",
+    "~SHARE_DIALOG.LARA_MESSAGE": "在LARA里使用链接创建活动",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP服务器网址",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "自动启动界面",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "全屏按钮和缩放",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "启动按钮文本",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "图表数据可视化显示切换",
+    "~CONFIRM.CHANGE_LANGUAGE": "有未保存更改，确定更改语言吗？"
+}
+
+},{}],82:[function(require,module,exports){
+module.exports={
+    "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
     "~MENU.NEW": "新增",
     "~MENU.OPEN": "開啟 ...",
     "~MENU.CLOSE": "關閉",
@@ -18316,8 +18442,11 @@ languageFiles = [
     key: 'tr',
     contents: require('./lang/tr')
   }, {
-    key: 'zh-TW',
+    key: 'zh-tw',
     contents: require('./lang/zh-TW')
+  }, {
+    key: 'zh-hans',
+    contents: require('./lang/zh-Hans')
   }
 ];
 
@@ -18395,7 +18524,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/ja":78,"./lang/nb.json":79,"./lang/nn.json":80,"./lang/tr":81,"./lang/zh-TW":82,"./url-params":84}],84:[function(require,module,exports){
+},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/nb":78,"./lang/nn":79,"./lang/tr":80,"./lang/zh-Hans":81,"./lang/zh-TW":82,"./url-params":84}],84:[function(require,module,exports){
 // http://stackoverflow.com/a/2880929
 var urlParams = {};
 if (window && window.location && window.location.search) {
@@ -18414,7 +18543,7 @@ if (window && window.location && window.location.search) {
 module.exports = urlParams;
 
 },{}],85:[function(require,module,exports){
-var ModalDialog, button, div, tr;
+var ModalDialog, button, div, ref, tr;
 
 div = ReactDOMFactories.div, button = ReactDOMFactories.button;
 
@@ -18453,7 +18582,7 @@ module.exports = createReactClass({
 
 
 },{"../utils/translate":83,"./modal-dialog-view":98}],86:[function(require,module,exports){
-var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, tr;
+var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = createReactFactory(require('./menu-bar-view'));
 
@@ -18793,7 +18922,7 @@ module.exports = AuthorizeMixin;
 
 
 },{}],88:[function(require,module,exports){
-var Modal, div;
+var Modal, div, i, ref;
 
 div = ReactDOMFactories.div;
 
@@ -18829,7 +18958,7 @@ module.exports = createReactClass({
 
 
 },{"./modal-view":100}],89:[function(require,module,exports){
-var ModalDialog, button, div, tr;
+var ModalDialog, button, div, ref, tr;
 
 div = ReactDOMFactories.div, button = ReactDOMFactories.button;
 
@@ -18877,7 +19006,7 @@ module.exports = createReactClass({
 
 
 },{"../utils/translate":83,"./modal-dialog-view":98}],90:[function(require,module,exports){
-var CloudMetadata, ModalDialog, a, button, div, input, tr;
+var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button;
 
@@ -18990,7 +19119,7 @@ module.exports = createReactClass({
 
 
 },{"../providers/provider-interface":65,"../utils/translate":83,"./modal-dialog-view":98}],91:[function(require,module,exports){
-var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, svg;
+var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, ref, svg;
 
 svg = ReactDOMFactories.svg, g = ReactDOMFactories.g, rect = ReactDOMFactories.rect, polygon = ReactDOMFactories.polygon;
 
@@ -19038,7 +19167,7 @@ module.exports = {
 
 
 },{}],92:[function(require,module,exports){
-var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, div, i, li, span, ul;
+var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, div, i, li, ref, span, ul;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i, span = ReactDOMFactories.span, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li;
 
@@ -19215,7 +19344,7 @@ module.exports = DropDown;
 
 
 },{"./dropdown-anchors":91}],93:[function(require,module,exports){
-var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, italic, span, tr;
+var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
 
@@ -19610,7 +19739,7 @@ module.exports = createReactClass({
 
 
 },{"../utils/translate":83,"./local-file-tab-list-view":95,"./modal-tabbed-dialog-view":99,"./tabbed-panel-view":105,"./url-tab-view":106}],95:[function(require,module,exports){
-var CloudMetadata, button, div, input, tr;
+var CloudMetadata, button, div, input, ref, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button;
 
@@ -19709,7 +19838,7 @@ module.exports = createReactClass({
 
 
 },{"../providers/provider-interface":65,"../utils/translate":83}],96:[function(require,module,exports){
-var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, tr;
+var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, ref, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button, a = ReactDOMFactories.a;
 
@@ -19892,7 +20021,7 @@ module.exports = createReactClass({
 
 
 },{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":83}],97:[function(require,module,exports){
-var Dropdown, TriangleOnlyAnchor, div, i, input, span, tr;
+var Dropdown, TriangleOnlyAnchor, div, i, input, ref, span, tr;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i, span = ReactDOMFactories.span, input = ReactDOMFactories.input;
 
@@ -20136,7 +20265,7 @@ module.exports = createReactClass({
 
 
 },{"../utils/translate":83,"./dropdown-anchors":91,"./dropdown-view":92}],98:[function(require,module,exports){
-var Modal, div, i;
+var Modal, div, i, ref;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i;
 
@@ -20341,7 +20470,7 @@ module.exports = createReactClass({
 
 
 },{"../providers/provider-interface":65,"../utils/translate":83,"./file-dialog-tab-view":93,"./modal-tabbed-dialog-view":99,"./select-provider-dialog-tab-view":103,"./tabbed-panel-view":105}],102:[function(require,module,exports){
-var ModalDialog, a, button, div, input, tr;
+var ModalDialog, a, button, div, input, ref, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button;
 
@@ -20429,7 +20558,7 @@ module.exports = SelectProviderDialogTab;
 
 
 },{}],104:[function(require,module,exports){
-var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, socialIcons, span, strong, svg, textarea, translate, ul;
+var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, translate, ul;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button, strong = ReactDOMFactories.strong, textarea = ReactDOMFactories.textarea, svg = ReactDOMFactories.svg, g = ReactDOMFactories.g, path = ReactDOMFactories.path, span = ReactDOMFactories.span, circle = ReactDOMFactories.circle, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li;
 
@@ -20774,7 +20903,7 @@ module.exports = createReactClass({
 
 
 },{"../utils/get-query-param":70,"../utils/translate":83,"./modal-dialog-view":98,"svg-social-icons/lib/icons.json":51}],105:[function(require,module,exports){
-var Tab, TabInfo, a, div, li, ul;
+var Tab, TabInfo, a, div, li, ref, ul;
 
 div = ReactDOMFactories.div, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li, a = ReactDOMFactories.a;
 
@@ -20886,7 +21015,7 @@ module.exports = createReactClass({
 
 
 },{}],106:[function(require,module,exports){
-var button, div, input, tr;
+var button, div, input, ref, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button;
 

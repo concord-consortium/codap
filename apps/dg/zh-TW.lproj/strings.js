@@ -1,4 +1,4 @@
-SC.stringsFor("zh", {
+SC.stringsFor("zh-TW", {
     "DG.fileMenu.menuItem.newDocument": "新增",
     "DG.fileMenu.menuItem.openDocument": "開啟...",
     "DG.fileMenu.menuItem.closeDocument": "關閉",

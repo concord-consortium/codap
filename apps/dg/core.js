@@ -538,12 +538,15 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-il'
       },
       {
+<<<<<<< HEAD
         langName: '日本語',
         langDigraph: 'ja',
         countryDigraph: 'JP',
         icon: 'flag flag-jp'
       },
       {
+=======
+>>>>>>> Simplified Chinese
         langName: 'Bokmål',
         langDigraph: 'nb',
         countryDigraph: 'NO',
@@ -563,16 +566,16 @@ DG = SC.Application.create((function () // closure
       },
       {
         langName: '繁体中文',
-        langDigraph: 'zh',
+        langDigraph: 'zh-TW',
         countryDigraph: 'TW',
         icon: 'flag flag-tw'
-      }/*,
+      },
       {
         langName: '简体中文',
         langDigraph: 'zh-Hans',
         countryDigraph: 'Hans',
         icon: 'flag flag-cn'
-      }*/
+      }
     ]
 
   }, window.DG); // end return from closure

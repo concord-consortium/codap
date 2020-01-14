@@ -1,7 +1,7 @@
 #!/bin/bash
 PROJECT_ID=125447
 OUTPUT_DIR=lang/strings
-LANGUAGES=("de" "el" "es" "he" "ja" "nb" "nn" "tr" "zh-TW")
+LANGUAGES=("de" "el" "es" "he" "ja" "nb" "nn" "tr" "zh-TW" "zh-Hans")
 LANG_COUNT=${#LANGUAGES[@]}
 
 # argument processing from https://stackoverflow.com/a/14203146
@@ -31,9 +31,10 @@ do
     ./bin/strings-pull.sh $PULLARGS
 
     # extract language code (the part before the hyphen)
-    LANG_CODE=$(echo $LANGUAGE | cut -d '-' -f 1)
+    LANG_CODE=$LANGUAGE #$(echo $LANGUAGE | cut -d '-' -f 1)
 
     # convert to JavaScript and copy into appropriate location
+    mkdir -p apps/dg/$LANG_CODE.lproj
     sed "s/^{/SC.stringsFor(\"$LANG_CODE\", {/; s/^}$/});/" \
         <"$OUTPUT_DIR/$LANGUAGE.json" >"apps/dg/$LANG_CODE.lproj/strings.js"
     # we don't need the intermediate file any more
