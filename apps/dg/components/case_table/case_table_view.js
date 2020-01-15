@@ -1575,10 +1575,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         var dataContext = this.get('dataContext'),
             dataItem = this._slickGrid.getDataItem(iCell.row),
             isProtoCase = dataItem && dataItem._isProtoCase;
-        if (iCell.cell === 0) {
+        var model =  this.getPath('parentView.model');
+        if (iCell.cell === 0 ) {
           if (isProtoCase)
             this.get('gridAdapter').deselectAllCases();
-          if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem))
+          if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem)
+              && !model.isCollapsedNode(dataItem))
             this.showCaseIndexPopup(iEvent, iCell);
         }
       }.bind(this));
