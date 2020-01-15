@@ -607,7 +607,7 @@ DG.DataContextUtilities = {
 
   newAttribute: function( iDataContext, iCollection, iPosition, iEditorView, iAutoEdit) {
     if (iEditorView) {
-      iEditorView.completeEditAttributeName();
+      DG.globalEditorLock.commitCurrentEdit();
     }
     var tAttrName = iDataContext.getNewAttributeName(),
         tAttrRef;
