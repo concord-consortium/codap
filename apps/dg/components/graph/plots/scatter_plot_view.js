@@ -431,7 +431,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
         var tCircle = this.get('paper').circle(-100, -100, this._pointRadius);
         tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
 
-        return this.assignElementAttributes( tCircle, iIndex);
+        //return this.assignElementAttributes( tCircle, iIndex);  // Redundant I hope
+        return tCircle;
       },
 
       /**

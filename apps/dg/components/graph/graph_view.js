@@ -202,11 +202,11 @@ DG.GraphView = SC.View.extend(
           });
           this._plotViews.splice(tIndexOfNewPlot, 0, iPlotView);
           iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
-          iPlotView.set('isFirstPlot', tIndexOfNewPlot === 0);
           this._plotViews.forEach( function( _plotView, iIndex) {
             _plotView.set('plotIndex', iIndex);
             _plotView.set('numPlots', tPlots.length);
           });
+          iPlotView.set('isFirstPlot', tIndexOfNewPlot === 0);  // Important to do this _after_ plotIndex is set
         }
       },
 
