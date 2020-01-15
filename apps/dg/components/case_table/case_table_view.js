@@ -1490,6 +1490,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         this.inProgressAttributeEditElementName = null;
       }.bind(this));
     },
+    commitCurrentEdit: function () {
+      this.completeEditAttributeName();
+      DG.globalEditorLock.deactivate(this);
+    },
+    cancelCurrentEdit: function () {
+      this.cancelEditAttributeElement();
+      DG.globalEditorLock.deactivate(this);
+    },
     /**
       Makes the attribute name editable in the appropriate column header.
       Since SlickGrid doesn't support editable column headers natively, we use
@@ -1505,6 +1513,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           $el = column && $(headerColumns[columnIndex]),
           $nameEl = $el && $el.find('.slick-column-name');
 
+      DG.globalEditorLock.commitCurrentEdit();
+      DG.globalEditorLock.activate(this);
       this.inProgressAttributeEditElementName = attrName;
       if ($nameEl) {
         $nameEl.empty().append($('<input>').addClass('dg-attr-name-edit-input').val(attrName));
@@ -1791,7 +1801,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var selectedRows = iArgs.rows,
           selectedRowCount = selectedRows && selectedRows.length,
           editorLock = this._slickGrid.getEditorLock(),
-          editorIsActive = editorLock && editorLock.isActive(),
           rowCount = this._slickGrid.getDataLength(),
           lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
           hasProtoCase = lastRowItem && lastRowItem._isProtoCase,
@@ -1800,8 +1809,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
         // if non-proto-case rows are selected, commit the proto-case
         if (selectedRowCount) {
-          if (editorIsActive)
-            editorLock.commitCurrentEdit();
+          editorLock.commitCurrentEdit();
           if (isActiveProtoCase && DG.ObjectMap.length(lastRowItem._values)) {
             this.invokeLater(function() {
               SC.run(function() {
@@ -2086,7 +2094,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     isComponentDetached: function () {
       var controller = getController(this);
-      return !controller.getPath('view.isVisible');
+      return controller && !controller.getPath('view.isVisible');
     },
 
     scrollSelectionToView: function () {
