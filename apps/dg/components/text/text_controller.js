@@ -108,18 +108,6 @@ DG.TextComponentController = DG.ComponentController.extend(
   }.observes('theText'),
 
   commitEditing: function() {
-    if( this._session) {
-      DG.currDocumentController().notificationManager.sendNotification({
-        action: 'notify',
-        resource: 'component',
-        values: {
-          operation: 'edit',
-          type: 'DG.TextView',
-          title: this.getPath('model.title')
-        }
-      });
-      DG.dirtyCurrentDocument(null, true);
-    }
     this._session = null;
   },
 

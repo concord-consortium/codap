@@ -219,9 +219,13 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     destroy: function() {
       var context, ix;
-      this.cases.forEach( function( iCase) { DG.Case.destroyCase( iCase); });
+      this.cases.forEach( function( iCase) {
+        DG.Case.destroyCase( iCase);
+      });
 
-      this.attrs.forEach( function( iAttr) { DG.Attribute.destroyAttribute( iAttr); });
+      while( this.attrs.length > 0) {
+        DG.Attribute.destroyAttribute( this.attrs.pop());
+      }
 
       // remove link from parent
       if (this.parent) {

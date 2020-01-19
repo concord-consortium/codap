@@ -112,14 +112,7 @@ DG.UndoHistory = SC.Object.create((function() {
 
       this._logAction(command, this.EXECUTE);
       this._notify(command, this.EXECUTE);
-      /**
-       * We invokeLater because dirtyDocument will send current state to plugin subscribers who care.
-       * (e.g. data-stories). Some commands (e.g. create component commands) involve an animation that
-       * won't complete for a certain time.
-       */
-      this.invokeLater( function() {
-        this._dirtyDocument(command.changedObject);
-      }.bind( this), 500 /* This is the number of ms the animation takes */);
+      this._dirtyDocument(command.changedObject);
     },
 
     /**

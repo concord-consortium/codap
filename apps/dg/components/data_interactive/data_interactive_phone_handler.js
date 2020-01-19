@@ -2221,42 +2221,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
-/*
       handleDocument: {
         update: function (iResources, iDocObject) {
-          var tDocController = DG.currDocumentController(),
-              tComponentControllers = tDocController.get('componentControllersMap'),
-              tComponentsStorage = iDocObject.components,
-              tIDsOfStoredComponents = tComponentsStorage.map(
-                  function( iCompStorage) {
-                    return Number( iCompStorage.guid);
-                  });
-          // If there are component controllers with no analogous storage element, delete them
-          DG.ObjectMap.forEach(tComponentControllers, function (iGuid, iController) {
-            var tFoundStorage = tIDsOfStoredComponents.indexOf( Number(iGuid)) >= 0;
-            if (!tFoundStorage) {
-              DG.closeComponent(iGuid);
-            }
-          });
 
-          tComponentsStorage.forEach(function (iCompStorage) {
-            var tComponentController = tComponentControllers[iCompStorage.guid],
-                tModel = tComponentController && tComponentController.get('model'),
-                tView = tComponentController && tComponentController.get('view');
-            if (tComponentController) {
-              if (tModel && tModel.restoreStorage)
-                tModel.restoreStorage(iCompStorage);
-              if( tView)
-                tView.adjust( iCompStorage.layout);
-            }
-            else {
-              iCompStorage.allowMoreThanOne = true; // defaults to false and not stored
-              DG.mainPage.get('mainPane').createComponentAndView(null, iCompStorage);
-            }
-          });
           return {
-            success: true,
-            values: result
+            success:DG.currDocumentController().updateDocument( iDocObject)
           };
         },
         get: function() {
@@ -2265,7 +2234,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
-*/
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.Debug.logUserWithTopic.apply(DG.Debug, [iValues.topic, iValues.formatStr].concat(iValues.replaceArgs));

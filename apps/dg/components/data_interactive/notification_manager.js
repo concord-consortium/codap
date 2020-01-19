@@ -255,6 +255,10 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
       }.bind(this));
     },
 
+    /**
+     * Used when a plugin requests document state. We can't send it synchronously as a reply, so we call
+     * this method to send it to all subscribers.
+     */
     sendDocumentToSubscribers: function() {
       var activeChannels = findActiveChannels(DG.currDocumentController()),
           documentSubscribers;

@@ -336,7 +336,7 @@ DG.DocumentController = SC.Object.extend(
        * @param    {String}  iName -- [Optional] The name of the newly created document
        * @returns  {DG.Document} --   The newly-created document
        *
-       * TODO: Move to DocumentArchiver. This seems like a suspect path for creating
+       * TODO: Move to DocumentHelper. This seems like a suspect path for creating
        * TODO: a new document.
        */
       createDocument: function (iName) {
@@ -565,7 +565,7 @@ DG.DocumentController = SC.Object.extend(
               break;
             case 'DG.GraphView':
               // ToDo: pass iArgs along to other 'add' methods in addition to addGraph
-              tView = this.addGraph(docView, iComponent, isInitialization);
+              tView = this.addGraph(docView, iComponent, isInitialization, iArgs);
               break;
             case 'DG.SliderView':
               tView = this.addSlider(docView, iComponent, isInitialization);
@@ -1057,9 +1057,13 @@ DG.DocumentController = SC.Object.extend(
         return Object.values(newViews);
       },
 
-      addGraph: function (iParentView, iComponent, isInitialization) {
-        var tStorage = iComponent && iComponent.componentStorage,
-            tView, docController = this;
+      addGraph: function (iParentView, iComponent, isInitialization, iStorage) {
+        var tView,
+            this_ = this,
+            tLayout = iStorage && iStorage.layout,
+            tDefaultLayout = iComponent && iComponent.size ? iComponent.size :
+                (tLayout ? tLayout : {width: 300, height: 300});
+        iStorage = (iStorage && iStorage.componentStorage) || (iComponent && iComponent.componentStorage);
 
         DG.UndoHistory.execute(DG.Command.create({
           name: "graphComponent.create",
@@ -1075,31 +1079,31 @@ DG.DocumentController = SC.Object.extend(
             var tContextIds = DG.DataContext.contextIDs(null),
                 tController = DG.GraphController.create();
 
-            if ((SC.none(iComponent) && SC.none(this._component) || !(tStorage && tStorage.dataContext)) &&
+            if ((SC.none(iComponent) && SC.none(this._component) || !(iStorage && iStorage.dataContext)) &&
                 DG.ObjectMap.length(tContextIds) === 1) {
               tController.set('dataContext',
-                  docController.getContextByID(tContextIds[0]));
+                  this_.getContextByID(tContextIds[0]));
             }
-            else if (tStorage && tStorage.dataContext) {
-              tController.set('dataContext', tStorage.dataContext);
+            else if (iStorage && iStorage.dataContext) {
+              tController.set('dataContext', iStorage.dataContext);
             }
-            tView = docController.createComponentView(iComponent, {
+            tView = this_.createComponentView(iComponent, {
                   parentView: iParentView,
                   controller: tController,
                   componentClass: {type: 'DG.GraphView', constructor: DG.GraphView},
                   contentProperties: {
                     model: DG.GraphModel.create({
-                      initialDataContext: tStorage && tStorage.dataContext,
-                      xAttributeName: tStorage && tStorage.xAttributeName,
-                      yAttributeName: tStorage && tStorage.yAttributeName,
-                      y2AttributeName: tStorage && tStorage.y2AttributeName,
-                      legendAttributeName: tStorage && tStorage.legendAttributeName,
-                      enableNumberToggle: tStorage && tStorage.enableNumberToggle,
-                      numberToggleLastMode: tStorage && tStorage.numberToggleLastMode,
-                      enableMeasuresForSelection: tStorage && tStorage.enableMeasuresForSelection
+                      initialDataContext: iStorage && iStorage.dataContext,
+                      xAttributeName: iStorage && iStorage.xAttributeName,
+                      yAttributeName: iStorage && iStorage.yAttributeName,
+                      y2AttributeName: iStorage && iStorage.y2AttributeName,
+                      legendAttributeName: iStorage && iStorage.legendAttributeName,
+                      enableNumberToggle: iStorage && iStorage.enableNumberToggle,
+                      numberToggleLastMode: iStorage && iStorage.numberToggleLastMode,
+                      enableMeasuresForSelection: iStorage && iStorage.enableMeasuresForSelection
                     })
                   },
-                  defaultLayout: (iComponent && iComponent.size ? iComponent.size : {width: 300, height: 300}),
+                  defaultLayout: tDefaultLayout,
                   position: iComponent && iComponent.position,
                   isResizable: true
                 }
@@ -1213,14 +1217,9 @@ DG.DocumentController = SC.Object.extend(
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'slider'),
           execute: function () {
             var globalName = iComponent && (iComponent.componentStorage.name || iComponent.componentStorage.title);
-            if (!iComponent || !globalName) {
-              if (SC.none(this._global)) {
-                this._global = docController.createGlobalValue();
-              } else {
-                DG.globalsController.registerGlobalValue(this._global);
-              }
-            } else {
-              this._global = globalName;
+            this._global = this._global || docController.createGlobalValue({ name: globalName });
+            if( !DG.globalsController.getGlobalValueByID(Number(this._global.get('id')))) {
+              DG.globalsController.registerGlobalValue(this._global);
             }
 
             var tSliderModel = DG.SliderModel.create({content: this._global});
@@ -1554,6 +1553,11 @@ DG.DocumentController = SC.Object.extend(
         }
       }.observes('guideButton', 'guideMenuPane'),
 
+      /**
+       * There is currently only one component that comes through here, 'CalcView'
+       * @param iDocView
+       * @param iComponentName
+       */
       toggleComponent: function (iDocView, iComponentName) {
         var componentView = this._singletonViews[iComponentName],
             componentArchive;
@@ -1564,8 +1568,8 @@ DG.DocumentController = SC.Object.extend(
             undoString: 'DG.Undo.toggleComponent.delete.' + iComponentName,
             redoString: 'DG.Redo.toggleComponent.delete.' + iComponentName,
             log: 'Remove toggle component: %@'.fmt(iComponentName),
-            executeNotification: DG.UndoHistory.makeComponentNotification('delete', iComponentName),
-            undoNotification: DG.UndoHistory.makeComponentNotification('create', iComponentName),
+            executeNotification: DG.UndoHistory.makeComponentNotification('hide', iComponentName),
+            undoNotification: DG.UndoHistory.makeComponentNotification('show', iComponentName),
             execute: function () {
               componentArchive = this._archiveComponent(iComponentName);
               this._deleteComponent(iComponentName);
@@ -1585,8 +1589,8 @@ DG.DocumentController = SC.Object.extend(
             undoString: 'DG.Undo.toggleComponent.add.' + iComponentName,
             redoString: 'DG.Redo.toggleComponent.add.' + iComponentName,
             log: 'Add toggle component: %@'.fmt(iComponentName),
-            executeNotification: DG.UndoHistory.makeComponentNotification('create', iComponentName),
-            undoNotification: DG.UndoHistory.makeComponentNotification('delete', iComponentName),
+            executeNotification: DG.UndoHistory.makeComponentNotification('show', iComponentName),
+            undoNotification: DG.UndoHistory.makeComponentNotification('hide', iComponentName),
             execute: function () {
               this._addComponent(iComponentName, iDocView);
             }.bind(this),
@@ -2054,6 +2058,9 @@ DG.dirtyCurrentDocument = function (changedObject, retainUndo) {
     update();
   }
 
+/* For a while in building the StoryBuilder/MomentBar plugin, we were sending our document to subscribers every
+    time the document was dirtied. We may again encounter this need, so we leave this code commented out.
   if (DG.currDocumentController().notificationManager)
     DG.currDocumentController().notificationManager.sendDocumentToSubscribers();
+*/
 };

@@ -69,7 +69,7 @@ DG.main = function main() {
   function openDataInteractives(iURLs) {
     if (iURLs) {
       // Create document-specific store.
-      var archiver = DG.DocumentArchiver.create({}), newDocument;
+      var archiver = DG.DocumentHelper.create({}), newDocument;
 
       DG.currDocumentController().closeDocument();
 

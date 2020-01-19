@@ -16,7 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('controllers/document_archiver');
+sc_require('controllers/document_helper');
 sc_require('controllers/document_controller');
 sc_require('utilities/menu_pane');
 
@@ -50,7 +50,7 @@ DG.appController = SC.Object.create((function () // closure
      */
     helpMenuPane: null,
 
-    documentArchiver: DG.DocumentArchiver.create({}),
+    documentArchiver: DG.DocumentHelper.create({}),
 
     /**
      * Show the case table or case card for a data context.

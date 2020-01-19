@@ -1481,7 +1481,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * @param iStorage {Object}
      */
     restoreStorage: function( iStorage) {
-      var tDataConfig = this.get('dataConfiguration'),
+      var this_ = this,
+          tDataConfig = this.get('dataConfiguration'),
           tYAttrIndex = 0,
           tY2AttrIndex = 0;
       if( this.get('isSplit'))
@@ -1523,22 +1524,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tPlot.destroy();
       }
 
-      if( !SC.none( iStorage.isTransparent))
-        this.set('isTransparent', iStorage.isTransparent);
-      if( !SC.none( iStorage.plotBackgroundColor))
-        this.set('plotBackgroundColor', iStorage.plotBackgroundColor);
-      if( !SC.none( iStorage.plotBackgroundOpacity))
-        this.set('plotBackgroundOpacity', iStorage.plotBackgroundOpacity);
-      if( !SC.none( iStorage.plotBackgroundImage))
-        this.set('plotBackgroundImage', iStorage.plotBackgroundImage);
-      if( !SC.none( iStorage.plotBackgroundImageLockInfo))
-        this.set('plotBackgroundImageLockInfo', iStorage.plotBackgroundImageLockInfo);
-      if( !SC.none( iStorage.enableNumberToggle))
-        this.set('enableNumberToggle', iStorage.enableNumberToggle);
+      ['isTransparent', 'plotBackgroundColor', 'plotBackgroundOpacity', 'plotBackgroundImage',
+      'plotBackgroundImageLockInfo', 'enableMeasuresForSelection'].forEach( function( iKey) {
+        if( !SC.none( iStorage[iKey]))
+          this_.set(iKey, iStorage[iKey]);
+      });
+      // Special case
       if( iStorage.enableNumberToggle && !SC.none( iStorage.numberToggleLastMode))
         this.setPath('numberToggle.lastMode', iStorage.numberToggleLastMode);
-      if( !SC.none( iStorage.enableMeasuresForSelection))
-        this.set('enableMeasuresForSelection', iStorage.enableMeasuresForSelection);
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
