@@ -74,7 +74,7 @@ mkdir -p ${WORK_DIR}
 # Build to a temp directory
 sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
 
-LANG_ARRAY=\[`/bin/ls -m ${WORK_DIR}/static/dg|sed "s/[a-z][a-z]*/'&'/g"`\]
+LANG_ARRAY=\[`/bin/ls -m ${WORK_DIR}/static/dg|sed "s/[^, ][^, ]*/'&'/g"`\]
 
 ${DIRNAME}/makeExtn "${WORK_DIR}/extn"
 
