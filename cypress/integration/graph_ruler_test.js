@@ -197,7 +197,7 @@ context('will test graph ruler functions', ()=>{
             graph.turnOffRulerTool('plottedMean')
             cy.matchImageSnapshot('p_'+hash[1].attribute+'_on_'+hash[1].axis+'_unadorned');
 
-            codap.closeTile('graph','Table B');
+            codap.closeTile('graph','Table C');
         })
         it('test num v num plot transitions',()=>{
 

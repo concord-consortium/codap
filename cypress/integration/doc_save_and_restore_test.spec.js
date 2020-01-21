@@ -29,9 +29,11 @@ const ext = '.codap';
 //Graph = example_docs_test.js
 //Map = example_docs_test.js
 
+const baseUrl = `${Cypress.config("baseUrl")}`;
+
 before(()=> {
     cy.viewport(1400,1000);
-    cy.visit('https://codap.concord.org/releases/staging/')
+    cy.visit(baseUrl)
     cy.wait(5000)
 }) 
 
