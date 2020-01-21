@@ -538,15 +538,12 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-il'
       },
       {
-<<<<<<< HEAD
         langName: '日本語',
         langDigraph: 'ja',
         countryDigraph: 'JP',
         icon: 'flag flag-jp'
       },
       {
-=======
->>>>>>> Simplified Chinese
         langName: 'Bokmål',
         langDigraph: 'nb',
         countryDigraph: 'NO',
