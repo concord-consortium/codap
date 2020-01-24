@@ -1302,6 +1302,8 @@ DG.GraphView = SC.View.extend(
 
         synchOneAxis('x');
         synchOneAxis('y');
+        // The yAxisMultiTarget can get out of synch if the document has more than one data context
+        this.setPath('yAxisMultiTarget.dataConfiguration', this.getPath('model.dataConfiguration'));
         if (tInitLayout) {
           this.renderLayout(this.renderContext(this.get('tagName')), tInitLayout);
           this.invokeLater(function () {
