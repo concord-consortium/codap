@@ -167,7 +167,11 @@ context('will test graph ruler functions', ()=>{
 
     context('Plot transitions with adornments',()=>{
         var hash = [{attribute: 'ANUM1', axis:'x1', collection:'Table A', length:1},
-                    {attribute: 'BNUM1', axis:'x1', collection:'Table B', length:1},]
+                    {attribute: 'BNUM1', axis:'x1', collection:'Table B', length:1},
+                    {attribute: 'CNUM1', axis:'y1', collection:'Table C', length:1},
+                    {attribute: 'BCAT1', axis:'x1', collection:'Table B', length:1},
+                    {attribute: 'ACAT1', axis:'x1', collection:'Table A', length:1},
+                    {attribute: 'CCAT1', axis:'y1', collection:'Table C', length:4},]
 
         beforeEach(()=>{
             codap.openTile('graph');
@@ -182,13 +186,11 @@ context('will test graph ruler functions', ()=>{
             graph.hoverMeanLine().then(()=>{
                 graph.getGraphAdornmentText().should('exist').and('contain','mean=66')
             })
-            // graph.getGraphAdornmentText().should('exist').and('contain','mean=66')
             cy.matchImageSnapshot('p_'+hash[0].attribute+'_on_'+hash[0].axis+'_adorned');
             cy.dragAttributeToTarget('table',hash[1].attribute, hash[1].axis)
             cy.wait(1000)
             graph.getMeanLine().should('be.visible').and('have.length',2);
-            graph.getMeanLine().last().click()//trigger('mouseover')
-            // graph.hoverMeanLine().last().then(()=>{
+            graph.getMeanLine().last().click()
             cy.get('.dg-graph-view svg path[stroke="#0000ff"]').last().trigger('mouseover').then(()=>{    
                 graph.getGraphAdornmentText().should('contain','mean=−0.24')
             })
@@ -196,24 +198,87 @@ context('will test graph ruler functions', ()=>{
             graph.clickRulerTool({force:true});
             graph.turnOffRulerTool('plottedMean')
             cy.matchImageSnapshot('p_'+hash[1].attribute+'_on_'+hash[1].axis+'_unadorned');
-
-            codap.closeTile('graph','Table B');
         })
         it('test num v num plot transitions',()=>{
-
+            cy.dragAttributeToTarget('table', hash[1].attribute, hash[1].axis);
+            cy.dragAttributeToTarget('table', hash[2].attribute, hash[2].axis);
+            graph.clickRulerTool();
+            graph.turnOnRulerTool('lsrl')
+            graph.getLSLine().should('be.visible');
+            graph.getGraphAdornmentText().should('exist').and('contain','r^2 = 0.004')
+            cy.matchImageSnapshot('p_'+hash[1].attribute+'_n_'+hash[2].attribute+'_adorned');
+            cy.dragAttributeToTarget('table',hash[0].attribute, hash[0].axis)
+            cy.wait(1000)
+            graph.getLSLine().should('be.visible').and('have.length',2);
+            graph.getGraphAdornmentText().should('exist').and('contain','r^2 = 0')
+            cy.matchImageSnapshot('p_'+hash[0].attribute+'_n_'+hash[2].axis+'_adorned');
+            graph.clickRulerTool({force:true});
+            graph.turnOffRulerTool('lsrl')
+            cy.matchImageSnapshot('p_'+hash[0].attribute+'_n_'+hash[2].axis+'_unadorned');
         })
         it('test cat v num plot transitions',()=>{
-
+            cy.dragAttributeToTarget('table', hash[3].attribute, hash[3].axis);
+            cy.dragAttributeToTarget('table', hash[2].attribute, hash[2].axis);
+            graph.clickRulerTool();
+            graph.turnOnRulerTool('plottedMean')
+            cy.wait(1000)
+            graph.getMeanLine().should('be.visible').and('have.length', 7);
+            graph.hoverMeanLine().then(()=>{
+                graph.getGraphAdornmentText().should('exist').and('contain','mean=11.1')
+            })
+            cy.matchImageSnapshot('p_'+hash[3].attribute+'_n_'+hash[2].attribute+'_adorned');
+            cy.dragAttributeToTarget('table',hash[4].attribute, hash[4].axis)
+            cy.wait(1000)
+            graph.getMeanLine().should('be.visible').and('have.length', 4);
+            graph.hoverMeanLine().first().then(()=>{
+                graph.getGraphAdornmentText().should('exist').and('contain','mean=12')
+            })
+            cy.matchImageSnapshot('p_'+hash[4].attribute+'_n_'+hash[2].axis+'_adorned');
+            graph.clickRulerTool({force:true});
+            graph.turnOffRulerTool('plottedMean')
+            cy.matchImageSnapshot('p_'+hash[4].attribute+'_n_'+hash[2].axis+'_unadorned');
         })
         it('test cat v cat plot transitions',()=>{
-
+            cy.dragAttributeToTarget('table', hash[5].attribute, hash[5].axis);
+            cy.dragAttributeToTarget('table', hash[3].attribute, hash[3].axis);
+            graph.clickRulerTool();
+            graph.turnOnRulerTool('count')
+            graph.getCountAdorn().should('have.length',28)
+            cy.matchImageSnapshot('p_'+hash[5].attribute+'_n_'+hash[3].attribute+'_adorned');
+            cy.dragAttributeToTarget('table',hash[4].attribute, hash[4].axis)
+            cy.wait(1000)
+            graph.getCountAdorn().should('have.length',12)
+            cy.matchImageSnapshot('p_'+hash[5].attribute+'_n_'+hash[4].axis+'_adorned');
+            graph.clickRulerTool({force:true});
+            graph.turnOffRulerTool('count')
+            cy.matchImageSnapshot('p_'+hash[5].attribute+'_n_'+hash[4].axis+'_unadorned');
         })
         it('test plot transition from num to cat',()=>{
-
+            cy.dragAttributeToTarget('table', hash[1].attribute, hash[1].axis);
+            graph.clickRulerTool();
+            graph.turnOnRulerTool('plottedMean')
+            graph.getMeanLine().should('be.visible');
+            graph.hoverMeanLine().then(()=>{
+                graph.getGraphAdornmentText().should('exist').and('contain','mean=−0.24')
+            })
+            cy.matchImageSnapshot('p_'+hash[2].attribute+'_on_'+hash[2].axis+'plot_adorned');
+            cy.dragAttributeToTarget('table',hash[5].attribute, hash[1].axis)
+            cy.wait(1000)
+            graph.getMeanLine().should('not.exist');
         })
         it('test plot transition from cat to num',()=>{
-            
+            cy.dragAttributeToTarget('table', hash[5].attribute, hash[1].axis);
+            graph.clickRulerTool();
+            graph.turnOnRulerTool('count')
+            graph.getCountAdorn().should('have.length',hash[5].length)
+            cy.matchImageSnapshot('p_'+hash[2].attribute+'_on_'+hash[2].axis+'plot_adorned');
+            cy.dragAttributeToTarget('table',hash[1].attribute, hash[1].axis)
+            cy.wait(1000)
+            graph.getCountAdorn().should('have.length',hash[1].length)
         })
+    afterEach(()=>{
+        codap.closeTile('graph','Table C');
+    })    
     })
 })
 

@@ -128,10 +128,13 @@ class GraphTile {
         return cy.get('.dg-graph-view svg path[stroke="#0000ff"]')
     }
     hoverMeanLine(){
-        return cy.get('.dg-graph-view svg path[stroke="#ffffff"]').trigger("mouseover")
+        return cy.get('.dg-graph-view svg path[stroke="#ffffff"]').first().trigger("mouseover")
     }
     getGraphAdornmentText(){
         return cy.get('.dg-graph-adornment tspan').last().text()
+    }
+    getLSLine(){
+        return cy.get('.dg-graph-view svg path[stroke="#008000"]')
     }
 }
 export default GraphTile

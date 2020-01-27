@@ -6,10 +6,11 @@ const table = new TableTile;
 const codap = new CodapObject;
 const casecard = new CaseCardObject;
 
+const baseUrl = `${Cypress.config("baseUrl")}`;
+
 before(()=> {
     cy.viewport(1400,1000);
-    cy.visit('https://codap.concord.org/releases/staging/?url=https://codap.concord.org/~eireland/3TableGroups.json')
-    // cy.visit('http://localhost:4020/dg?url=http://codap-server.concord.org/~eireland/3TableGroups.json')
+    cy.visit(baseUrl+'?url=https://codap.concord.org/~eireland/3TableGroups.json')
     cy.wait(5000)
     codap.getTableTileTitle().click() //bring the table into focus
 }) 

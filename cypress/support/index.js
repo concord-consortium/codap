@@ -19,11 +19,11 @@ import './commands'
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
-before(function(){
-  const baseUrl = `${Cypress.config("baseUrl")}`;
-  cy.visit(baseUrl)
+// before(function(){
+//   const baseUrl = `${Cypress.config("baseUrl")}`;
+//   cy.visit(baseUrl)
 
-});
+// });
 
 Cypress.on('uncaught:exception', (err, runnable) => {
     // returning false here prevents Cypress from

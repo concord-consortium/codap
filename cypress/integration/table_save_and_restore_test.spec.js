@@ -11,15 +11,12 @@ const casecard = new CaseCardObject;
 const dir = '../../../../Downloads/';
 const ext = '.codap';
 Cypress.config('fixturesFolder',dir)
+const baseUrl = `${Cypress.config("baseUrl")}`;
 
 before(()=> {
-
     cy.viewport(1400,1000);
-    cy.visit('https://codap.concord.org/releases/staging/')
-    // cy.visit('https://codap.concord.org/releases/staging/?url=https://codap.concord.org/~eireland/3TableGroups.json')
-    // cy.visit('http://localhost:4020/dg?url=http://codap-server.concord.org/~eireland/3TableGroups.json')
+    cy.visit(baseUrl)
     cy.wait(5000)
-    // cfm.createNewDocument();
 }) 
 
 context('CFM functionalities with table', ()=>{

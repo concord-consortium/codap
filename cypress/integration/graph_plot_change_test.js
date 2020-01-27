@@ -30,10 +30,12 @@ const arrayOfPlots = [  {attribute:'ACAT1', axis:'x1', collection:'Table A'},
                         {attribute:'BCAT1', axis:'x', collection:'Table B'},
                         {attribute:'CCAT2', axis:'y', collection:'Table C'},]
 
+const baseUrl = `${Cypress.config("baseUrl")}`;
+
 context('Test Graph Plot Transitions', ()=>{
     before(function(){
         cy.viewport(1400,1000);
-        cy.visit('https://codap.concord.org/releases/staging/?url=https://codap.concord.org/~eireland/3TableGroups.json')
+        cy.visit(baseUrl+'?url=https://codap.concord.org/~eireland/3TableGroups.json')
         // cy.visit('http://localhost:4020/dg?url=http://codap-server.concord.org/~eireland/3TableGroups.json')
         // cy.visit('https://codap.concord.org/releases/staging/')
         // cy.wait(3000)
