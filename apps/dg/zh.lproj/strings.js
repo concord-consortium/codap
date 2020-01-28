@@ -768,5 +768,5 @@ SC.stringsFor("zh", {
     "DG.Locale.name.nb": "Bokmål",
     "DG.Locale.name.nn": "Nynorsk",
     "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
-    "DG.TableController.headerMenuItems.renameAttribute": "Rename"
+    "DG.TableController.headerMenuItems.renameAttribute": "重新變項"
 });
