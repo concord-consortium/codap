@@ -75,15 +75,28 @@ DG.BinnedAxisModel = DG.AxisModel.extend(
       }.property(),
 
       binLabels: function () {
-        var tLabels = [];
+        var tLabels = [],
+            tUseIntervalNotation = this.getPath('binnedPlotModel.labelFormat'),
+            tLabelTemplate = tUseIntervalNotation ? '[%@, %@)' : '%@–%@',
+            tWidth = this.getPath('binnedPlotModel.width'),
+            tPower = Math.floor(Math.log10(tWidth / 100)),
+            tIncrement = Math.min(1, Math.pow(10, tPower)),
+            tMultiplier = tIncrement === 1 ? 1 : Math.pow(10, -tPower);
         this.get('binnedPlotModel').forEachBinDo(function (iBinNum, iLeft, iRight) {
-          tLabels.push('[%@, %@)'.fmt(iLeft, iRight));
+          if( !tUseIntervalNotation) {
+            iRight -= tIncrement;
+            if( tIncrement < 1)
+              // Prevent rounding errors
+              iRight = Math.round(iRight * tMultiplier) / tMultiplier;
+          }
+          tLabels.push(tLabelTemplate.fmt(iLeft, iRight));
         });
         return tLabels;
       }.property(),
       binLabelsDidChange: function() {
         this.notifyPropertyChange('binLabels');
-      }.observes('binnedPlotModel.totalNumberOfBins', 'binnedPlotModel.alignment', 'binnedPlotModel.width'),
+      }.observes('binnedPlotModel.totalNumberOfBins', 'binnedPlotModel.alignment', 'binnedPlotModel.width',
+          'binnedPlotModel.labelFormat'),
 
       /**
        Iterates through cells to find name with maximum length

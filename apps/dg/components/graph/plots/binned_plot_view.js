@@ -223,18 +223,18 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
         function drawBinBoundaries() {
           var kMinBinWidth = 25,
-              tInitialAlignment, tInitialBinWidth, tNewBinAlignment, tBinWidthAtStartOfDrag,
+              tInitialAlignment, tInitialWorldWidth, tNewBinAlignment, tBinWidthAtStartOfDrag,
               tModel = this_.get('model'),
               tLeastBinEdgeWorld = tModel.get('leastBinEdge'),
-              tWidth = tModel.get('width'),
-              tWidthIncrement = tModel.get('widthIncrement'),
+              tWorldWidth = tModel.get('width'),
+              tWidthIncrement,
               tPaper = this_.get('paper'),
               tOrientation = this_.getPath('primaryAxisView.orientation'),
               tAdornmentLayer = this_.getPath('layerManager.' + DG.LayerNames.kAdornments),
               tPlace = this_.getPath('primaryAxisView.pixelMin'),
               tLineStart = this_.getPath('secondaryAxisView.pixelMin'),
-              tBinWidth = this_.getPath('primaryAxisView.binWidth'),
-              tWorldPerScreen = tWidth / tBinWidth,
+              tBinWidthPixels = this_.getPath('primaryAxisView.binWidth'),
+              tWorldPerPixel,
               tBinHeight = Math.abs(this_.getPath('secondaryAxisView.pixelMax') -
                   this_.getPath('secondaryAxisView.pixelMin')) - 5,
               tNumBins = this_.getPath('model.totalNumberOfBins'),
@@ -245,8 +245,12 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
           function beginTranslate(iWindowX, iWindowY) {
             this_.dragInProgress = true;
+            tBinWidthPixels = this_.getPath('primaryAxisView.binWidth');
             tInitialAlignment = tModel.get('alignment');
-            tInitialBinWidth = tModel.get('width');
+            tWorldWidth = tModel.get('width');
+            tInitialWorldWidth = tModel.get('width');
+            tWidthIncrement = tModel.get('widthIncrement');
+            tWorldPerPixel = tWorldWidth / tBinWidthPixels;
             tBinWidthAtStartOfDrag = this_.getPath('primaryAxisView.binWidth');
             this_.set('binNumBeingDragged', this.binNum);
             this_.set('fixedScreenCoord', tBoundaries[this.binNum].lowerEdgeScreenCoord);
@@ -255,7 +259,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
           function continueTranslate(idX, idY) {
             var tDelta = (tOrientation === DG.GraphTypes.EOrientation.kVertical) ? -idY : idX,
-                tNewWorldWidth = (tBinWidthAtStartOfDrag + tDelta) * tWorldPerScreen;
+                tNewWorldWidth = (tBinWidthAtStartOfDrag + tDelta) * tWorldPerPixel;
             tNewWorldWidth = Math.round(tNewWorldWidth / tWidthIncrement) * tWidthIncrement;
             if( tBinWidthAtStartOfDrag + tDelta >= kMinBinWidth) {
               SC.run( function() {
@@ -269,8 +273,8 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
           function endTranslate(idX, idY) {
             var tNewWidth = tModel.get('width');
-            if( tNewBinAlignment !== tInitialAlignment || tInitialBinWidth !== tNewWidth) {
-              this_.markBinParamsChange( tInitialAlignment, tInitialBinWidth);
+            if( tNewBinAlignment !== tInitialAlignment || tInitialWorldWidth !== tNewWidth) {
+              this_.markBinParamsChange( tInitialAlignment, tInitialWorldWidth);
             }
             this_.set('binNumBeingDragged', null);
             this_.set('fixedScreenCoord', null);
@@ -282,22 +286,22 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
             return; // Not ready to draw
 
           for (var tBinNum = 0; tBinNum < tNumBins; tBinNum++) {
-            var tWorldValue = tLeastBinEdgeWorld + tBinNum * tWidth,
+            var tWorldValue = tLeastBinEdgeWorld + tBinNum * tWorldWidth,
                 tLeft, tTop, tRight, tBottom, tLowerEdgeScreenCoord,
                 tLine, tCover;
             if (tOrientation === DG.GraphTypes.EOrientation.kVertical) {
               tLeft = tLineStart;
-              tTop = tPlace - (tBinNum + 1) * tBinWidth;
+              tTop = tPlace - (tBinNum + 1) * tBinWidthPixels;
               tRight = tLeft + tBinHeight;
               tBottom = tTop;
-              tLowerEdgeScreenCoord = tTop + tBinWidth;
+              tLowerEdgeScreenCoord = tTop + tBinWidthPixels;
             }
             else {
-              tLeft = tPlace + (tBinNum + 1) * tBinWidth;
+              tLeft = tPlace + (tBinNum + 1) * tBinWidthPixels;
               tTop = tLineStart - tBinHeight;
               tRight = tLeft;
               tBottom = tLineStart;
-              tLowerEdgeScreenCoord = tLeft - tBinWidth;
+              tLowerEdgeScreenCoord = tLeft - tBinWidthPixels;
             }
             if (!tBoundaries[tBinNum]) {
               tLine = tPaper.line(tLeft, tTop, tRight, tBottom);

@@ -89,7 +89,23 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         /**
          * @property {Number}
          */
-        widthIncrement: null,
+        _widthIncrement: null,
+        widthIncrement: function( iKey, iValue) {
+          if( iValue !== undefined) {
+            this._widthIncrement = iValue;
+          }
+          else if(!this._casesMap) {
+            this.updateCasesMap();
+          }
+          return this._widthIncrement;
+        }.property(),
+
+        /**
+         * true ==> interval notation
+         * false ==> dash notation
+         * @property {Boolean}
+         */
+        labelFormat: false,
 
         /**
          * @property {{ key: DG.CaseModel, info: { value: {Number}, cell: {Number}, bin: { Number}, indexInBin: {Number} }}}
@@ -166,6 +182,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           if( !this.restoreInProgress) {
             this.set('width', null);
             this.set('alignment', null);
+            this.set('widthIncrement', null);
           }
           this.invalidateCasesMap();
         },
@@ -213,7 +230,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           if( SC.none( tWidth)) {
             tWidth = DG.MathUtilities.goodTickValue((tMax - tMin) / kDefaultNumberOfBins);
           }
-          this.set('widthIncrement', tWidth / 20);
+          this._widthIncrement = tWidth / 20;
           tAlignment = this.get('alignment') || Math.floor(tMin / tWidth) * tWidth;
           tLeastBinEdge = tAlignment - Math.ceil((tAlignment - tMin) / tWidth) * tWidth;
           tMaxBinCount = 0;
@@ -351,6 +368,25 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
                 })
             );
           });
+          tControls.push( SC.CheckboxView.create({
+            layout: {height: kRowHeight},
+            title: 'Label format [ … )',
+            value: this_.get('labelFormat'),
+            valueDidChange: function (iThisView) {
+              this_.set('labelFormat', iThisView.get('value'));
+            }.bind(this).observes('value')
+          }));
+          tControls.push( SC.CheckboxView.create({
+            layout: {height: kRowHeight},
+            title: 'DG.Inspector.graphBarChart',
+            classNames: 'dg-graph-fuse-check'.w(),
+            value: false,
+            valueDidChange: function () {
+              this_.propertyDidChange('binned_plot_model.js');
+              DG.mainPage.mainPane.hideInspectorPicker();
+            }.observes('value'),
+            localize: true
+          }));
 
           return tControls;
         }.property('plot'),
@@ -365,6 +401,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
 
           tStorage.width = this.get('width');
           tStorage.alignment = this.get('alignment');
+          tStorage.labelFormat = this.get('labelFormat');
           return tStorage;
         },
 
@@ -379,6 +416,9 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           }
           if (!SC.none(iStorage.alignment)) {
             this.set( 'alignment', iStorage.alignment);
+          }
+          if (!SC.none(iStorage.labelFormat)) {
+            this.set( 'labelFormat', iStorage.labelFormat);
           }
         }
 

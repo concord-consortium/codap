@@ -348,7 +348,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     var drawCellBands = function() {
       var tPaper = this.get('paper'),
           tXView = this.get('xAxisView'),
+          tAllowVertical = tXView.get('allowBinLines'),
           tYView = this.get('yAxisView'),
+          tAllowHorizontal = tYView.get('allowBinLines'),
           tNumXCells = tXView.getPath('model.numberOfCells'),
           tNumYCells = tYView.getPath('model.numberOfCells'),
           tXCellWidth = tXView.get('fullCellWidth'),
@@ -386,9 +388,10 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                   tLine.attr({stroke: DG.PlotUtilities.kRuleColor, 'stroke-width': 1}));
             }
           }.bind(this);
-
-      drawVerticalLines();
-      drawHorizontalLines();
+      if( tAllowVertical)
+        drawVerticalLines();
+      if( tAllowHorizontal)
+        drawHorizontalLines();
 
     }.bind( this); // drawCellBands
 

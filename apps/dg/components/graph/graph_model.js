@@ -928,8 +928,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
         case DG.DotChartModel:
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
           break;
-        case DG.DotPlotModel:
         case DG.BinnedPlotModel:
+        // case DG.HistogramModel:
+          iPlot.addObserver('dotsAreFused', this, this.swapBinningType);  //jshint -W086
+        case DG.DotPlotModel:   // eslint-disable-line no-fallthrough
           iPlot.addObserver('displayAsBinned', this, this.swapBinningType);
           break;
       }
