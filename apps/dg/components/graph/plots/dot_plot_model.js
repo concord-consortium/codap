@@ -393,15 +393,6 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
         }.bind(this));
       },
 
-      handleDataConfigurationChange: function ( iKey) {
-        if (!DG.assert(!this.get('isDestroyed'), "DG.DotPlotModel.handleDataConfiguration() shouldn't be triggered after destroy()!"))
-          return;
-        sc_super();
-        var kAnimate = true, kDontLog = false;
-        this.rescaleAxesFromData( iKey !== 'hiddenCases', kAnimate, kDontLog);
-        this.updateAdornmentModels();
-      },
-
       /**
        * Pass to my multipleMovableValues. We do this only after axis bounds have changed
        */

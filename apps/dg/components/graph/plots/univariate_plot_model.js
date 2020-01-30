@@ -80,6 +80,15 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             DG.GraphTypes.EOrientation.kHorizontal;
       }.property('primaryAxisPlace'),
 
+      handleDataConfigurationChange: function ( iKey) {
+        if (!DG.assert(!this.get('isDestroyed'), "DG.DotPlotModel.handleDataConfiguration() shouldn't be triggered after destroy()!"))
+          return;
+        sc_super();
+        var kAnimate = true, kDontLog = false;
+        this.rescaleAxesFromData( iKey !== 'hiddenCases', kAnimate, kDontLog);
+        this.updateAdornmentModels();
+      },
+
       /**
        * Get an array of non-missing case counts in each axis cell.
        * Also cell index on primary and secondary axis, with primary axis as major axis.

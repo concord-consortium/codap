@@ -929,8 +929,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
           break;
         case DG.BinnedPlotModel:
-        // case DG.HistogramModel:
-          iPlot.addObserver('dotsAreFused', this, this.swapBinningType);  //jshint -W086
+          iPlot.addObserver('dotsAreFused', this, this.dotsAreFusedDidChange);  //jshint -W086
         case DG.DotPlotModel:   // eslint-disable-line no-fallthrough
           iPlot.addObserver('displayAsBinned', this, this.swapBinningType);
           break;
@@ -949,8 +948,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
           iPlot.removeObserver('displayAsBarChart', this, this.swapChartType);
           iPlot.removeObserver('breakdownType', this, this.propagateBreakdownType);
           break;
-        case DG.DotPlotModel:
         case DG.BinnedPlotModel:
+          iPlot.removeObserver('dotsAreFused', this, this.dotsAreFusedDidChange);  //jshint -W086
+        case DG.DotPlotModel:   // eslint-disable-line no-fallthrough
           iPlot.removeObserver('displayAsBinned', this, this.swapBinningType);
           break;
       }
@@ -1049,6 +1049,51 @@ DG.GraphModel = DG.DataLayerModel.extend(
           this.swapPlotForNewPlot( tOldPlotClass);
         }.bind(this)
       }));
+    },
+
+    /**
+     * We need to adjust the axes since we're flipping between a histogram with CellLinearAxisModel plus CountAxisModel,
+     * and a binned plot with BinnedAxisModel plus AxisModel.
+     * Note that undo/redo is taken care of before we get here.
+     * @param iBinnedPlot {DG.BinnedPlotModel }
+     * @param iKey {String} Should be 'dotsAreFused'
+     * @param iValue {Boolean}
+     */
+    dotsAreFusedDidChange: function( iBinnedPlot) {
+      var tDataConfiguration = this.get('dataConfiguration'),
+          tPrimaryAxisPlace = iBinnedPlot.get('primaryAxisPlace'),
+          tPrimaryKey = tPrimaryAxisPlace === DG.GraphTypes.EPlace.eX ? 'x' : 'y',
+          tSecondaryAxisPlace = iBinnedPlot.get('secondaryAxisPlace'),
+          tSecondaryKey = tSecondaryAxisPlace === DG.GraphTypes.EPlace.eX ? 'x' : 'y';
+      this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
+      this.get('xAxis').destroy();
+      this.get('yAxis').destroy();
+      // this.beginPropertyChanges();
+      if( iBinnedPlot.get('dotsAreFused')) {
+        // Transitioning to Histogram
+        this.set(tPrimaryKey + 'Axis', DG.CellLinearAxisModel.create({
+          dataConfiguration: tDataConfiguration,
+          attributeDescription: this.getPath('dataConfiguration.' + tPrimaryKey + 'AttributeDescription')
+        }));
+        this.set(tSecondaryKey + 'Axis', DG.CountAxisModel.create({
+          dataConfiguration: tDataConfiguration
+        }));
+      }
+      else {
+        // Transitioning to binned dot plot
+        this.set(tPrimaryKey + 'Axis', DG.BinnedAxisModel.create({
+          dataConfiguration: tDataConfiguration,
+          attributeDescription: this.getPath('dataConfiguration.' + tPrimaryKey + 'AttributeDescription'),
+          binnedPlotModel: iBinnedPlot
+        }));
+        this.set(tSecondaryKey + 'Axis', DG.AxisModel.create({
+          dataConfiguration: tDataConfiguration,
+          attributeDescription: iBinnedPlot.get(tSecondaryKey + 'AxisDescription')
+        }));
+      }
+      this.propertyDidChange('plot'); // Let view know plot has changed (even though class has not)
+      // this.endPropertyChanges();
+      this.set('aboutToChangeConfiguration', false); // reset for next time
     },
 
     /**

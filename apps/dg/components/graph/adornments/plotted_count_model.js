@@ -45,10 +45,6 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
 
         _isShowingCount: false,
 
-        init: function() {
-          sc_super();
-        },
-
         /**
          * @property {Boolean}
          */

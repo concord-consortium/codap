@@ -35,6 +35,11 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
        */
       dragInProgress: false,
 
+      /**
+       * @property {Element}
+       */
+      elementBeingDragged: null,
+
       numPointsInRow: 0,
       /**
        * @property {[{boundary: Element, cover: Element, worldValue: Number, lowerEdgeScreenCoord: Number }]}
@@ -103,7 +108,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
         DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, tPlottedElements.length),
             'index %@ out of bounds for plottedElements of length %@'.loc(iIndex, tPlottedElements.length));
         var tCircle = tPlottedElements[iIndex],
-            tInfo = iRC.model.infoForCase(iCase),
+            tInfo = iRC.model.infoForCase(iIndex),
             tBinCoord = iRC.primaryAxisView.binToCoordinate(tInfo.bin),
             tIsMissingCase = (!tInfo || !DG.isFinite(tBinCoord) ||
                 iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);
@@ -245,6 +250,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
           function beginTranslate(iWindowX, iWindowY) {
             this_.dragInProgress = true;
+            this_.elementBeingDragged = this;
             tBinWidthPixels = this_.getPath('primaryAxisView.binWidth');
             tInitialAlignment = tModel.get('alignment');
             tWorldWidth = tModel.get('width');
@@ -253,7 +259,6 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
             tWorldPerPixel = tWorldWidth / tBinWidthPixels;
             tBinWidthAtStartOfDrag = this_.getPath('primaryAxisView.binWidth');
             this_.set('binNumBeingDragged', this.binNum);
-            this_.set('fixedScreenCoord', tBoundaries[this.binNum].lowerEdgeScreenCoord);
             tNewBinAlignment = tBoundaries[this.binNum].worldValue;
           }
 
@@ -277,8 +282,12 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
               this_.markBinParamsChange( tInitialAlignment, tInitialWorldWidth);
             }
             this_.set('binNumBeingDragged', null);
-            this_.set('fixedScreenCoord', null);
             this_.dragInProgress = false;
+            if( this_.elementBeingDragged.shouldGoAway) {
+              tAdornmentLayer.prepareToMoveOrRemove(this_.elementBeingDragged);
+              this_.elementBeingDragged.remove();
+              this_.elementBeingDragged = null;
+            }
             this_.displayDidChange();
           }
 
@@ -333,8 +342,13 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
             var tSpec = tBoundaries.pop();
             tAdornmentLayer.prepareToMoveOrRemove(tSpec.boundary);
             tSpec.boundary.remove();
-            tAdornmentLayer.prepareToMoveOrRemove(tSpec.cover);
-            tSpec.cover.remove();
+            if( tSpec.cover !== this_.elementBeingDragged) {
+              tAdornmentLayer.prepareToMoveOrRemove(tSpec.cover);
+              tSpec.cover.remove();
+            }
+            else
+              this_.elementBeingDragged.shouldGoAway = true;  // So that it can be removed later in drag code
+
           }
         }
 

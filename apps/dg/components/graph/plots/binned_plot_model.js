@@ -39,7 +39,13 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         /** @scope DG.BinnedPlotModel.prototype */
         displayAsBinned: true,
 
+        dotsAreFused: false,
+
         restoreInProgress: false,
+
+        wantsOtherAxis: function() {
+          return this.get('dotsAreFused');
+        }.property('dotsAreFused'),
 
         /**
          * The left edge of the zeroth bin has this value
@@ -55,6 +61,10 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           }
           return this._leastBinEdge;
         }.property(),
+
+        maxBinEdge: function() {
+          return this.get('leastBinEdge') + this.get('totalNumberOfBins') * this.get('width');
+        }.property('leastBinEdge', 'width', 'totalNumberOfBins'),
 
         /**
          * One of the bins is constrained to this value
@@ -108,7 +118,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         labelFormat: false,
 
         /**
-         * @property {{ key: DG.CaseModel, info: { value: {Number}, cell: {Number}, bin: { Number}, indexInBin: {Number} }}}
+         * @property {[{  value: {Number}, cell: {Number}, bin: { Number}, indexInBin: {Number} }]}
          */
         _casesMap: null,
         casesMap: function( iKey, iValue) {
@@ -120,6 +130,34 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           }
           return this._casesMap;
         }.property(),
+
+        /**
+         * @property { [{ lowerEdgeWorld: {Number}, count: {Number}, indices: [{Number}] }] }
+         */
+        bars: function() {
+          var tTotalNumberOfBins = this.get('totalNumberOfBins'),
+              tCasesMap = this.get('casesMap'),
+              tBars = new Array( tTotalNumberOfBins),
+              tWidth = this.get('width'),
+              tLowerEdge = this.get('leastBinEdge');
+          for(var i = 0; i < tTotalNumberOfBins; i++) {
+            tBars[i] = { count: 0, indices: [],
+                        lowerEdgeWorld: tLowerEdge + i * tWidth};
+          }
+          tCasesMap.forEach( function( iObject, iIndex) {
+            tBars[iObject.bin].count++;
+            tBars[iObject.bin].indices.push( iIndex);
+            tLowerEdge += tWidth;
+          });
+
+          return tBars;
+        }.property(),
+
+        totalCount: function() {
+          return this.get('bars').reduce( function( iSum, iBar) {
+            return iSum + iBar.count;
+          }, 0);
+        }.property('bars'),
 
         /**
          * What is the most number of case values in a given bin?
@@ -155,24 +193,25 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
          */
         recomputing: false,
 
-        init: function () {
-          sc_super();
-        },
-
         /**
          *
-         * @param iCase {DG.CaseModel}
-         * @return { value: {Number}, cell: {Number}, bin: { Number}, indexInBin: {Number} }
+         * @param iIndex {Number}
+         * @return { {value: {Number}, cell: {Number}, bin: { Number}, indexInBin: {Number}} }
          */
-        infoForCase: function( iCase) {
+        infoForCase: function( iIndex) {
           var tCasesMap = this.get('casesMap');
-          return tCasesMap && tCasesMap[ iCase.get('id')];
+          return tCasesMap && tCasesMap[ iIndex];
         },
 
         valueToBinNumber: function( iValue) {
           var tLeastBinEdge = this.get('leastBinEdge'),
               tWidth = this.get('width');
           return Math.floor( (iValue - tLeastBinEdge) / tWidth);
+        },
+
+        handleDataContextNotification: function (iNotifier, iChange) {
+          this.invalidateCaches();
+          sc_super();
         },
 
         /**
@@ -211,44 +250,53 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             return; // too early to recompute, caller must try again later.
 
           var tNumCells = tCategoricalAxisModel.get('numberOfCells');
-          this._casesMap = {};
+          this._casesMap = [];
 
-          tCases.forEach(function (iCase, iIndex) {
-            var tNumericValue = iCase.getNumValue(tNumericVarID),
-                tCellValue = iCase.getStrValue(tCategoricalVarID),
-                tCellNumber = tCategoricalAxisModel.cellNameToCellNumber(tCellValue);
-            if (tCellNumber != null &&
-                DG.MathUtilities.isInIntegerRange(tCellNumber, 0, tNumCells) && // if Cell Number not missing
-                isFinite(tNumericValue)) { // if numeric value not missing
-              tMin = Math.min(tMin, tNumericValue);
-              tMax = Math.max(tMax, tNumericValue);
-              this._casesMap[iCase.get('id')] = { value: tNumericValue, cell: tCellNumber };
-            }
-          }.bind( this));
-
-          tWidth = this.get('width');
-          if( SC.none( tWidth)) {
-            tWidth = DG.MathUtilities.goodTickValue((tMax - tMin) / kDefaultNumberOfBins);
+          if( tCases.length() === 0) {
+            tWidth = 1;
+            tAlignment = 0;
+            tLeastBinEdge = 0;
+            tMaxBinCount = 0;
+            tTotalNumberOfBins = 0;
           }
-          this._widthIncrement = tWidth / 20;
-          tAlignment = this.get('alignment') || Math.floor(tMin / tWidth) * tWidth;
-          tLeastBinEdge = tAlignment - Math.ceil((tAlignment - tMin) / tWidth) * tWidth;
-          tMaxBinCount = 0;
-          // Note that we add a small number so that we get enough bins to accommodate a number
-          // that lies exactly on the top edge
-          tTotalNumberOfBins = Math.ceil((tMax - tLeastBinEdge) / tWidth + 0.000001);
+          else {
+            tCases.forEach(function (iCase, iIndex) {
+              var tNumericValue = iCase.getNumValue(tNumericVarID),
+                  tCellValue = iCase.getStrValue(tCategoricalVarID),
+                  tCellNumber = tCategoricalAxisModel.cellNameToCellNumber(tCellValue);
+              if (tCellNumber != null &&
+                  DG.MathUtilities.isInIntegerRange(tCellNumber, 0, tNumCells) && // if Cell Number not missing
+                  isFinite(tNumericValue)) { // if numeric value not missing
+                tMin = Math.min(tMin, tNumericValue);
+                tMax = Math.max(tMax, tNumericValue);
+                this._casesMap.push({value: tNumericValue, cell: tCellNumber});
+              }
+            }.bind(this));
 
-          // Put each case in a bin
-          DG.ObjectMap.forEach( this._casesMap, function( iKey, iObject) {
-            iObject.bin = Math.floor( (iObject.value - tLeastBinEdge) / tWidth);
-            if( !tBinCounts[ iObject.cell])
-              tBinCounts[iObject.cell] = [];
-            if( !tBinCounts[ iObject.cell][iObject.bin])
-              tBinCounts[iObject.cell][iObject.bin] = 0;
-            iObject.indexInBin = tBinCounts[iObject.cell][iObject.bin];
-            tBinCounts[iObject.cell][iObject.bin]++;
-            tMaxBinCount = Math.max( tMaxBinCount, tBinCounts[iObject.cell][iObject.bin]);
-          }.bind( this));
+            tWidth = this.get('width');
+            if (SC.none(tWidth)) {
+              tWidth = DG.MathUtilities.goodTickValue((tMax - tMin) / kDefaultNumberOfBins);
+            }
+            tAlignment = this.get('alignment') || Math.floor(tMin / tWidth) * tWidth;
+            tLeastBinEdge = tAlignment - Math.ceil((tAlignment - tMin) / tWidth) * tWidth;
+            tMaxBinCount = 0;
+            // Note that we add a small number so that we get enough bins to accommodate a number
+            // that lies exactly on the top edge
+            tTotalNumberOfBins = Math.ceil((tMax - tLeastBinEdge) / tWidth + 0.000001);
+            this._widthIncrement = DG.MathUtilities.goodTickValue((tMax - tMin) / tTotalNumberOfBins) / 20;
+
+            // Put each case in a bin
+            this._casesMap.forEach(function (iObject) {
+              iObject.bin = Math.floor((iObject.value - tLeastBinEdge) / tWidth);
+              if (!tBinCounts[iObject.cell])
+                tBinCounts[iObject.cell] = [];
+              if (!tBinCounts[iObject.cell][iObject.bin])
+                tBinCounts[iObject.cell][iObject.bin] = 0;
+              iObject.indexInBin = tBinCounts[iObject.cell][iObject.bin];
+              tBinCounts[iObject.cell][iObject.bin]++;
+              tMaxBinCount = Math.max(tMaxBinCount, tBinCounts[iObject.cell][iObject.bin]);
+            }.bind(this));
+          }
 
           this.beginPropertyChanges();
           this.set('width', tWidth);
@@ -309,6 +357,43 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         },
 
         /**
+         Each axis should rescale based on the values to be plotted with it.
+         @param{Boolean} Default is false
+         @param{Boolean} Default is true
+         @param{Boolean} Default is false
+         @param{Boolean} Default is false
+         */
+        rescaleAxesFromData: function (iAllowScaleShrinkage, iAnimatePoints, iLogIt, iUserAction) {
+          if (iAnimatePoints === undefined)
+            iAnimatePoints = true;
+          this.doRescaleAxesFromData([DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY],
+              iAllowScaleShrinkage, iAnimatePoints, iUserAction);
+          if (iLogIt)
+            DG.logUser("rescaleBinnedPlot");
+        },
+
+        /**
+         @override
+         @param iPlace { DG.GraphTypes.EPlace }
+         @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
+         */
+        getDataMinAndMaxForDimension: function (iPlace) {
+          if( iPlace === this.get('secondaryAxisPlace')) {
+            return {
+              min: 0,
+              max: this.get('maxBinCount'),
+              isDataInteger: true
+            };
+          }
+          else if( iPlace === this.get('primaryAxisPlace')) {
+            return {
+              min: this.get('leastBinEdge'),
+              max: this.get('maxBinEdge')
+            };
+          }
+        },
+
+        /**
          * Change the value corresponding to the given key
          * @param iKey {String} Should be 'displayAsBinned'
          * @param iValue {Boolean}
@@ -326,6 +411,23 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             }.bind(this),
             undo: function() {
               this.set(iKey, tInitialValue);
+            }.bind(this)
+          }));
+        },
+
+        toggleDotsAreFused: function() {
+          var tDotsStartOutFused = this.get('dotsAreFused'),
+              tUndo = tDotsStartOutFused ? 'DG.Undo.graph.dissolveRectanglesToDots' :
+                  'DG.Undo.graph.fuseDotsToRectangles',
+              tRedo = tDotsStartOutFused ? 'DG.Redo.graph.dissolveRectanglesToDots' :
+                  'DG.Redo.graph.fuseDotsToRectangles';
+          DG.UndoHistory.execute(DG.Command.create({
+            name: "graph.toggleBinningType",
+            undoString: tUndo,
+            redoString: tRedo,
+            log: ("toggleShowAs: %@").fmt(tDotsStartOutFused ? "Histogram" : "BinnedDotPlot"),
+            execute: function() {
+              this.toggleProperty('dotsAreFused');
             }.bind(this)
           }));
         },
@@ -380,9 +482,9 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             layout: {height: kRowHeight},
             title: 'DG.Inspector.graphBarChart',
             classNames: 'dg-graph-fuse-check'.w(),
-            value: false,
+            value: this_.get('dotsAreFused'),
             valueDidChange: function () {
-              this_.propertyDidChange('binned_plot_model.js');
+              this_.toggleDotsAreFused();
               DG.mainPage.mainPane.hideInspectorPicker();
             }.observes('value'),
             localize: true
@@ -399,9 +501,10 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         createStorage: function () {
           var tStorage = sc_super();
 
-          tStorage.width = this.get('width');
-          tStorage.alignment = this.get('alignment');
-          tStorage.labelFormat = this.get('labelFormat');
+          ['width', 'alignment', 'dotsAreFused', 'labelFormat'].forEach( function( iProp) {
+            tStorage[iProp] = this.get(iProp);
+          }.bind( this));
+
           return tStorage;
         },
 
@@ -411,15 +514,11 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         restoreStorage: function (iStorage) {
           sc_super();
           this.restoreInProgress = true;
-          if (!SC.none(iStorage.width)) {
-            this.set( 'width', iStorage.width);
-          }
-          if (!SC.none(iStorage.alignment)) {
-            this.set( 'alignment', iStorage.alignment);
-          }
-          if (!SC.none(iStorage.labelFormat)) {
-            this.set( 'labelFormat', iStorage.labelFormat);
-          }
+          ['width', 'alignment', 'dotsAreFused', 'labelFormat'].forEach( function( iProp) {
+            if (!SC.none(iStorage[iProp])) {
+              this.set( iProp, iStorage[iProp]);
+            }
+          }.bind( this));
         }
 
       };
@@ -428,7 +527,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
 
 /**
  class method called before plot creation to make sure roles are correct
- @param {DG.GraphDataConfiguration}
+ @param iConfig {DG.GraphDataConfiguration}
  */
 DG.BinnedPlotModel.configureRoles = function (iConfig) {
   // Base class has method for this

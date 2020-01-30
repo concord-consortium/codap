@@ -935,6 +935,9 @@ DG.GraphView = SC.View.extend(
               tNewViewClass = (tAttrType === 'qualitative') ?
                   DG.QualCellLinearAxisView : DG.CellLinearAxisView;
               break;
+            case DG.CountAxisModel:
+              tNewViewClass = DG.CountAxisView;
+              break;
             default:
               tNewViewClass = null;
           }
@@ -1351,7 +1354,7 @@ DG.GraphView = SC.View.extend(
             tNewViewClass = DG.DotPlotView;
             break;
           case DG.BinnedPlotModel:
-            tNewViewClass = DG.BinnedPlotView;
+            tNewViewClass = iPlotModel.get('dotsAreFused') ? DG.HistogramView : DG.BinnedPlotView;
             break;
           case DG.ScatterPlotModel:
             tNewViewClass = DG.ScatterPlotView;

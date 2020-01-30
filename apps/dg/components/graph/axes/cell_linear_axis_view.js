@@ -124,7 +124,8 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
 
       function setupEventHandling() {
         var tFrame = this_.get('frame'),
-          tClickHandling = false;
+            tClickHandling = false,
+            tLockZero = this_.getPath('model.lockZero');
 
         // Event handlers
         function beginDrag() {
@@ -305,20 +306,21 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
           this_._dragPanel = this_._midPanel.clone();
           // It doesn't work to assign mousedown, mouseup, and mousemove to _midPanel
           // and then clone. The handlers don't get cloned. :-(
+          if( !tLockZero) {
+            this_._midPanel.defaultTitle = 'DG.CellLinearAxisView.midPanelTooltip'.loc(); // "Drag to translate axis scale"
+            this_._midPanel.attr({title: this_._midPanel.defaultTitle});
+            this_._midPanel.mousedown(handleMouseDown);
+            this_._midPanel.mouseup(handleMouseUp);
+            this_._midPanel.drag(doTranslate, beginTranslate, endDrag);
+            this_._midPanel.mousemove(handleMouseMove);
 
-          this_._midPanel.defaultTitle = 'DG.CellLinearAxisView.midPanelTooltip'.loc(); // "Drag to translate axis scale"
-          this_._midPanel.attr( { title: this_._midPanel.defaultTitle });
-          this_._midPanel.mousedown( handleMouseDown);
-          this_._midPanel.mouseup( handleMouseUp);
-          this_._midPanel.drag( doTranslate, beginTranslate, endDrag);
-          this_._midPanel.mousemove( handleMouseMove);
-
-          this_._lowerPanel.defaultTitle = 'DG.CellLinearAxisView.lowerPanelTooltip'.loc(); // "Drag to change axis lower bound"
-          this_._lowerPanel.attr( { title: this_._lowerPanel.defaultTitle });
-          this_._lowerPanel.mousedown( handleMouseDown);
-          this_._lowerPanel.mouseup( handleMouseUp);
-          this_._lowerPanel.drag( doLowerDilate, beginLowerDilate, endDrag);
-          this_._lowerPanel.mousemove( handleMouseMove);
+            this_._lowerPanel.defaultTitle = 'DG.CellLinearAxisView.lowerPanelTooltip'.loc(); // "Drag to change axis lower bound"
+            this_._lowerPanel.attr({title: this_._lowerPanel.defaultTitle});
+            this_._lowerPanel.mousedown(handleMouseDown);
+            this_._lowerPanel.mouseup(handleMouseUp);
+            this_._lowerPanel.drag(doLowerDilate, beginLowerDilate, endDrag);
+            this_._lowerPanel.mousemove(handleMouseMove);
+          }
 
           this_._upperPanel.defaultTitle = 'DG.CellLinearAxisView.upperPanelTooltip'.loc(); // "Drag to change axis upper bound";
           this_._upperPanel.attr( { title: this_._upperPanel.defaultTitle });
@@ -334,25 +336,30 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         switch( this_.get('orientation')) {
           case DG.GraphTypes.EOrientation.kVertical:
           case DG.GraphTypes.EOrientation.kVertical2:
-            setRect(this_._lowerPanel, 0, (5 / 8) * tFrame.height, tFrame.width, (3 / 8) * tFrame.height);
-            this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/DownDilate.cur'), 8, 8);
-            this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });
-            setRect(this_._midPanel, 0, (3 / 8) * tFrame.height, tFrame.width, (3 / 8) * tFrame.height);
-            this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateY.cur'), 8, 8);
-            this_._midPanel.attr({ cursor: this_._midPanel.defaultCursor });
-            setRect(this_._upperPanel, 0, 0, tFrame.width, (3 / 8) * tFrame.height);
+            if( !tLockZero) {
+              setRect(this_._lowerPanel, 0, (5 / 8) * tFrame.height, tFrame.width, (3 / 8) * tFrame.height);
+              this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/DownDilate.cur'), 8, 8);
+              this_._lowerPanel.attr({cursor: this_._lowerPanel.defaultCursor});
+              setRect(this_._midPanel, 0, (3 / 8) * tFrame.height, tFrame.width, (3 / 8) * tFrame.height);
+              this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateY.cur'), 8, 8);
+              this_._midPanel.attr({cursor: this_._midPanel.defaultCursor});
+            }
+            setRect(this_._upperPanel, 0, 0, tFrame.width, (tLockZero ? 1 : (3 / 8)) * tFrame.height);
             this_._upperPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/UpDilate.cur'), 8, 8);
             this_._upperPanel.attr({ cursor: this_._upperPanel.defaultCursor });
             setRect(this_._dragPanel, 0, 0, tFrame.width, tFrame.height);
             break;
           case DG.GraphTypes.EOrientation.kHorizontal:
-            setRect(this_._lowerPanel, 0, 0, (3 / 8) * tFrame.width, tFrame.height);
-            this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/LeftDilate.cur'), 8, 8);
-            this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });
-            setRect(this_._midPanel, (3 / 8) * tFrame.width, 0, (3 / 8) * tFrame.width, tFrame.height);
-            this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateX.cur'), 8, 8);
-            this_._midPanel.attr({ cursor: this_._midPanel.defaultCursor });
-            setRect(this_._upperPanel, (5 / 8) * tFrame.width, 0, (3 / 8) * tFrame.width, tFrame.height);
+            if( !tLockZero) {
+              setRect(this_._lowerPanel, 0, 0, (3 / 8) * tFrame.width, tFrame.height);
+              this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/LeftDilate.cur'), 8, 8);
+              this_._lowerPanel.attr({cursor: this_._lowerPanel.defaultCursor});
+              setRect(this_._midPanel, (3 / 8) * tFrame.width, 0, (3 / 8) * tFrame.width, tFrame.height);
+              this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateX.cur'), 8, 8);
+              this_._midPanel.attr({cursor: this_._midPanel.defaultCursor});
+            }
+            setRect(this_._upperPanel, (tLockZero ? 0 : (5 / 8) * tFrame.width), 0,
+                (tLockZero ? 1 : (3 / 8)) * tFrame.width, tFrame.height);
             this_._upperPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/RightDilate.cur'), 8, 8);
             this_._upperPanel.attr({ cursor: this_._upperPanel.defaultCursor });
             setRect(this_._dragPanel, 0, 0,

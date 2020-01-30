@@ -62,7 +62,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   binArrays: null,
 
   /**
-   * Return the class of the count axis with the x or y to put it on.
+   * Return the class of the desired axis and the x or y to put it on.
    */
   configureAxes: function () {
     var tRet = sc_super(),

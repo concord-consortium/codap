@@ -54,13 +54,21 @@ DG.BinnedAxisModel = DG.AxisModel.extend(
         sc_super();
       },
 
+      lowerBound: function() {
+        return this.getPath('binnedPlotModel.leastBinEdge');
+      }.property(),
+
+      upperBound: function() {
+        return this.getPath('binnedPlotModel.maxBinEdge');
+      }.property(),
+
       /**
        Determined by asking my plot model
        Note: Unlike a CellLinearAxis we always accommodate _all_ the valid numeric values.
        @property{Number} >= 1
        */
       numberOfBins: function () {
-        return Math.max(1, this.getPath('binnedPlotModel.totalNumberOfBins'));
+        return this.getPath('binnedPlotModel.totalNumberOfBins');
       }.property(),
 
       valueToCellNumber: function( iValue) {
@@ -82,7 +90,7 @@ DG.BinnedAxisModel = DG.AxisModel.extend(
             tPower = Math.floor(Math.log10(tWidth / 100)),
             tIncrement = Math.min(1, Math.pow(10, tPower)),
             tMultiplier = tIncrement === 1 ? 1 : Math.pow(10, -tPower);
-        this.get('binnedPlotModel').forEachBinDo(function (iBinNum, iLeft, iRight) {
+        this.forEachBinDo(function (iBinNum, iLeft, iRight) {
           if( !tUseIntervalNotation) {
             iRight -= tIncrement;
             if( tIncrement < 1)
@@ -97,18 +105,6 @@ DG.BinnedAxisModel = DG.AxisModel.extend(
         this.notifyPropertyChange('binLabels');
       }.observes('binnedPlotModel.totalNumberOfBins', 'binnedPlotModel.alignment', 'binnedPlotModel.width',
           'binnedPlotModel.labelFormat'),
-
-      /**
-       Iterates through cells to find name with maximum length
-       @property{Number}
-       */
-      maxBinLabelLength: function () {
-        var tMaxLength = 0;
-        this.get('binLabels').forEach(function (iIndex, iName) {
-          tMaxLength = Math.max(tMaxLength, iName.length);
-        });
-        return tMaxLength;
-      }.property('binLabels'),
 
       /**
        * Pass responsibility to binnedPlotModel.

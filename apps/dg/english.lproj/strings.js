@@ -296,6 +296,10 @@ SC.stringsFor("en", {
     "DG.Redo.graph.showAsBarChart": "Redo fusing dots into bars",
     "DG.Undo.graph.showAsDotChart": "Undo dispersing bars into dots",
     "DG.Redo.graph.showAsDotChart": "Redo dispersing bars into dots",
+    "DG.Undo.graph.fuseDotsToRectangles": "Undo fusing dots into rectangles",
+    "DG.Redo.graph.fuseDotsToRectangles": "Redo fusing dots into rectangles",
+    "DG.Undo.graph.dissolveRectanglesToDots": "Undo dissolving rectangles into dots",
+    "DG.Redo.graph.dissolveRectanglesToDots": "Redo dissolving rectangles into dots",
     "DG.Undo.graph.changeBreakdownType": "Undo changing scale type",
     "DG.Redo.graph.changeBreakdownType": "Undo changing scale type",
     "DG.Undo.graph.showAsBinnedPlot": "Undo grouping dots into bins",
@@ -694,6 +698,12 @@ SC.stringsFor("en", {
 
     // DG.BinnedPlotModel
     "DG.BinnedPlotModel.dragBinTip": "Drag to change bin width",  // "Drag to change bin width"
+
+    // DG.HistogramView
+    "DG.HistogramView.barTipPlural": "%@ of %@ %@ (%@%) are ≥ %@ and < %@",  // "<n> of <m> <X>s (<p>%) are ≥ L and < U"
+    "DG.HistogramView.barTipSingular": "%@ of %@ %@ (%@%) is ≥ %@ and < %@",
+    "DG.HistogramView.barTipNoLegendSingular": "%@ of %@ (%@%) is ≥ %@ and < %@", // "<n=1> of <total> (<p>%) is ≥ L and < U"
+    "DG.HistogramView.barTipNoLegendPlural": "%@ of %@ (%@%) are ≥ %@ and < %@", // "<n> of <total> (<p>%) are ≥ L and < U"
 
     // DG.LegendView
     "DG.LegendView.attributeTooltip": "Click to change legend attribute",
