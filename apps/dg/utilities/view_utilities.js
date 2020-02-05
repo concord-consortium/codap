@@ -171,6 +171,12 @@ DG.ViewUtilities = {
           });
     }
 
+    // If there are no other views or reserved areas, simply return the initial
+    // candidate.
+    if (iViewRects.length === 0) {
+      return tLoc;
+    }
+
     // Work our way through the visible portion of the document
     while (!tSuccess && tLoc.y + iItemRect.height < iOffset.y + iContainerRect.height &&
               tLoc.y >= iOffset.y + kGap) {
