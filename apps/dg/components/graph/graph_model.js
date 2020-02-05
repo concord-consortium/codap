@@ -916,8 +916,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     addPlotObserver: function( iPlot) {
       switch( iPlot.constructor) {
-        case DG.DotChartModel:
         case DG.BarChartModel:
+          iPlot.addObserver('breakdownType', this, this.propagateBreakdownType);
+          // fallthrough intentional
+        case DG.DotChartModel:
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
           break;
       }
@@ -933,6 +935,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         case DG.DotChartModel:
         case DG.BarChartModel:
           iPlot.removeObserver('displayAsBarChart', this, this.swapChartType);
+          iPlot.removeObserver('breakdownType', this, this.propagateBreakdownType);
           break;
       }
     },
@@ -1002,6 +1005,19 @@ DG.GraphModel = DG.DataLayerModel.extend(
           doSwap();
         }.bind(this)
       }));
+    },
+
+    /**
+     * The root plot's breakdown type (count or percent) has changed. Propagate this change to split plots if any.
+     */
+    propagateBreakdownType: function() {
+      if( this.get('isSplit')) {
+        var tType = this.getPath('plot.breakdownType');
+        this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
+          if( iRow !== 0 || iCol !== 0)
+            iPlotArray[0].set('breakdownType', tType);
+        });
+      }
     },
 
         /**
