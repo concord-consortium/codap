@@ -768,5 +768,5 @@ SC.stringsFor("nn", {
     "DG.Locale.name.nb": "Norsk (bokmål)",
     "DG.Locale.name.nn": "Norsk (nynorsk)",
     "DG.CaseCard.newCaseToolTip": "Legg til tom observasjon til denne samlinga",
-    "DG.TableController.headerMenuItems.renameAttribute": "Rename"
+    "DG.TableController.headerMenuItems.renameAttribute": "Gi nytt namn"
 });
