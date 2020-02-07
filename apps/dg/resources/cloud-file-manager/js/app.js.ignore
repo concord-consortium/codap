@@ -14822,9 +14822,9 @@ GoogleDriveProvider = (function(superClass) {
             });
           }
           url = file.downloadUrl;
-          url += (url.indexOf("?") === -1 ? "?" : "&") + "access_token=" + (encodeURIComponent(_this.authToken.access_token));
           xhr = new XMLHttpRequest();
           xhr.open('GET', url);
+          xhr.setRequestHeader("Authorization", "Bearer " + _this.authToken.access_token);
           xhr.onload = function() {
             return callback(null, cloudContentFactory.createEnvelopedCloudContent(xhr.responseText));
           };
