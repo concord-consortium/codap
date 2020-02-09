@@ -101,6 +101,14 @@ DG.ContainerView = SC.View.extend(
         this.appendChild( this.get('inspectorView'));
       },
 
+      parentViewDidResize: function( iParentFrame) {
+        sc_super();
+        if( DG.STANDALONE_MODE) {
+          // Needed for SageModeler so that inspector pane doesn't disappear off right edge.
+          this.adjust({width: iParentFrame.width});
+        }
+      },
+
       /**
        * There may be child views other than DG.ComponentView. E.g. in one prototype of showing
        * the map in the background, the map view was a child but not a ComponentView.
@@ -176,6 +184,7 @@ DG.ContainerView = SC.View.extend(
         Computes/returns the bounding rectangle for the view.
        */
       updateFrame: function() {
+        // DG.STANDALONE_MODE
         // Note that we're not providing scroll bars to scroll to left or above document
         var tWidth = 0, tHeight = 0;
 
