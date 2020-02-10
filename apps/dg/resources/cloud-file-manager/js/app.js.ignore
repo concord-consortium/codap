@@ -14822,9 +14822,9 @@ GoogleDriveProvider = (function(superClass) {
             });
           }
           url = file.downloadUrl;
-          url += (url.indexOf("?") === -1 ? "?" : "&") + "access_token=" + (encodeURIComponent(_this.authToken.access_token));
           xhr = new XMLHttpRequest();
           xhr.open('GET', url);
+          xhr.setRequestHeader("Authorization", "Bearer " + _this.authToken.access_token);
           xhr.onload = function() {
             return callback(null, cloudContentFactory.createEnvelopedCloudContent(xhr.responseText));
           };
@@ -16995,7 +16995,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Vollbild und Skalieren",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Textbutton",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Datensichtbarkeit in Graphen anzeigen",
-    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
+    "~CONFIRM.CHANGE_LANGUAGE": "Einige Änderungen wurden nicht gespeichert. Sind Sie sicher, dass Sie die Sprache wechseln wollen?"
 }
 
 },{}],74:[function(require,module,exports){
@@ -17523,7 +17523,7 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "כפתור מסך מלא ומירכוז",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "הפעלת כפתור טקסט:",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "הצגת מידע ויזואלי בגרפים",
-    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
+    "~CONFIRM.CHANGE_LANGUAGE": "יש לכם שינויים לא שמורים. אתם בטוחים שתרצו להחליף שפה?"
 }
 
 },{}],78:[function(require,module,exports){

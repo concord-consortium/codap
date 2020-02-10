@@ -917,8 +917,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
     addPlotObserver: function( iPlot) {
       switch( iPlot.constructor) {
         case DG.BarChartModel:
+          /* jshint ignore:start */
           iPlot.addObserver('breakdownType', this, this.propagateBreakdownType);
           // fallthrough intentional
+          /* jshint ignore:end */
+          // eslint disable-next-line no-fallthrough
         case DG.DotChartModel:
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
           break;
