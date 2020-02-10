@@ -184,7 +184,8 @@ DG.ContainerView = SC.View.extend(
         Computes/returns the bounding rectangle for the view.
        */
       updateFrame: function() {
-        // DG.STANDALONE_MODE
+        if( DG.STANDALONE_MODE) // Our frame is independent of our child views, so just bail.
+          return;
         // Note that we're not providing scroll bars to scroll to left or above document
         var tWidth = 0, tHeight = 0;
 
