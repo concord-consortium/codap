@@ -1,11 +1,11 @@
 /* global process, __dirname */
 var path = require('path'),
-    ExtractTextPlugin = require("extract-text-webpack-plugin"),
+    MiniCssExtractPlugin = require("mini-css-extract-plugin"),
     webpack = require('webpack');
 var production = (process.env.NODE_ENV === 'production'),
     bundlePath = path.resolve(__dirname, 'apps/dg/resources/build'),
     plugins = [
-      new ExtractTextPlugin('codap-lib-bundle.css')
+      new MiniCssExtractPlugin({filename:'codap-lib-bundle.css'})
     ];
 
 /*
@@ -18,13 +18,6 @@ if (production) {
                   }
                 }));
 
-  plugins.push(new webpack.optimize.UglifyJsPlugin({
-                  test: /\.js(.ignore)?$/i,
-                  compress: {
-                    // ignore warnings from uglify
-                    warnings: false
-                  }
-                }));
 }
 
 var dstBundleName = 'codap-lib-bundle.js.ignore';
@@ -38,16 +31,17 @@ var config = {
     path: bundlePath,
     filename: dstBundleName
   },
+  mode: production? 'production': 'development',
   module: {
     rules: [
       {
-        test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: "style-loader",
-          use: "css-loader"
-        })
+        test: /\.css$/i,
+        use: [MiniCssExtractPlugin.loader, 'css-loader']
       }
     ]
+  },
+  optimization: {
+    minimize: production
   },
   plugins: plugins,
   performance: {
