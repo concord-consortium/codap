@@ -250,8 +250,9 @@ DG.Attribute = DG.BaseModel.extend(
           // Result is true if there are some values that are not empty, not NaN, and not numeric
           tResult = tCases && tCases.some(function (iCase) {
             var tValue = iCase.getValue(tAttrID);
-            // eslint-disable-next-line use-isnan
-            return !SC.empty( tValue) && tValue !== NaN && !DG.MathUtilities.isNumeric( tValue);// jshint ignore:line
+            // In 65eabc119a136501bf5ea668c65b7d192ee8121b we substituted tValue!==NaN for !isNan(tValue)
+            // That resulted in the bug: #171159639
+            return !SC.empty( tValue) && !isNaN(tValue) && !DG.MathUtilities.isNumeric( tValue);
           });
         }
         return tResult;
