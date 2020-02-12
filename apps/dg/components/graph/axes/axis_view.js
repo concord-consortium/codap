@@ -72,7 +72,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          * Most axis views allow bin lines. But a BinnedAxisView does not.
          * @property {Boolean}
          */
-        allowBinLines: true,
+        allowCellBoundaries: true,
 
         /**
          * @property {DG.Attribute}

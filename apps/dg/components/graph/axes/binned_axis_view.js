@@ -67,7 +67,7 @@ DG.BinnedAxisView = DG.AxisView.extend( (function() {
      */
     maxLabelExtent: 0,
 
-    allowBinLines: false,
+    allowCellBoundaries: false,
 
     numberOfBins: function() {
       return this.getPath('model.binnedPlotModel.totalNumberOfBins');
