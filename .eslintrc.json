@@ -65,6 +65,8 @@
     "no-whitespace-before-property": "warn",
     "quote-props": ["error", "as-needed", { "keywords": true, "unnecessary": false }],
     "quotes": "off",
-    "semi": ["error", "always"]
+    "semi": ["error", "always"],
+
+    "no-redeclare": "off"
   }
 }

@@ -1,4 +1,4 @@
-/*global require:true, CodeMirror: true, React:true, ReactDOM:true, Popper:true, Tooltip:true, Papa:true */
+/*global CodeMirror: true, React:true, ReactDOM:true, Popper:true, Tooltip:true, Papa:true */
 /*global iframePhone:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
 /* exported CodeMirror, React, ReactDOM, Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, dayjs, nanoid */
 CodeMirror = require('codemirror/lib/codemirror.js');
