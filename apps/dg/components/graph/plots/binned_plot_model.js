@@ -269,7 +269,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
                   isFinite(tNumericValue)) { // if numeric value not missing
                 tMin = Math.min(tMin, tNumericValue);
                 tMax = Math.max(tMax, tNumericValue);
-                this._casesMap.push({value: tNumericValue, cell: tCellNumber});
+                this._casesMap[iIndex] = {value: tNumericValue, cell: tCellNumber};
               }
             }.bind(this));
 
@@ -286,15 +286,17 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             this._widthIncrement = DG.MathUtilities.goodTickValue((tMax - tMin) / tTotalNumberOfBins) / 20;
 
             // Put each case in a bin
-            this._casesMap.forEach(function (iObject) {
-              iObject.bin = Math.floor((iObject.value - tLeastBinEdge) / tWidth);
-              if (!tBinCounts[iObject.cell])
-                tBinCounts[iObject.cell] = [];
-              if (!tBinCounts[iObject.cell][iObject.bin])
-                tBinCounts[iObject.cell][iObject.bin] = 0;
-              iObject.indexInBin = tBinCounts[iObject.cell][iObject.bin];
-              tBinCounts[iObject.cell][iObject.bin]++;
-              tMaxBinCount = Math.max(tMaxBinCount, tBinCounts[iObject.cell][iObject.bin]);
+            // this._casesMap.forEach(function (iObject) {
+            tCases.forEach( function( iCase, iIndex) {
+              var tObject = this._casesMap[iIndex];
+              tObject.bin = Math.floor((tObject.value - tLeastBinEdge) / tWidth);
+              if (!tBinCounts[tObject.cell])
+                tBinCounts[tObject.cell] = [];
+              if (!tBinCounts[tObject.cell][tObject.bin])
+                tBinCounts[tObject.cell][tObject.bin] = 0;
+              tObject.indexInBin = tBinCounts[tObject.cell][tObject.bin];
+              tBinCounts[tObject.cell][tObject.bin]++;
+              tMaxBinCount = Math.max(tMaxBinCount, tBinCounts[tObject.cell][tObject.bin]);
             }.bind(this));
           }
 
