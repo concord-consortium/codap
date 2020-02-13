@@ -556,6 +556,7 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
 
         while (tBarElements.length > tNumBars) {
           var tElement = tBarElements.pop();
+          // eslint-disable-next-line no-loop-func
           ['coverRect', 'draggableEdge'].forEach( function( iProp) {
             if( tElement[iProp] !== this_.elementBeingDragged) {
               tCoverLayer.prepareToMoveOrRemove(tElement[iProp]);
