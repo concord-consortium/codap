@@ -540,8 +540,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
             var tAxisToDestroy = this_.get( iAxisKey ),
                 tNewAxis = iAxisClass.create(tAxisModelParams);
             tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
+            tNewAxis.setLinkToPlotIfDesired( this_.get('plot'));
             this_.set( iAxisKey, tNewAxis );
             tAxisToDestroy.destroy();
+            this_.setPath('plot.' + iAxisKey, tNewAxis);
           }
         }
 
@@ -565,8 +567,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
             tTargetRole, tTargetType);
         tDataConfiguration.setAttributeAndCollectionClient(tSourceDescKey, tAttrRefsForSource,
             tSourceRole, tSourceType);
+        this_.beginPropertyChanges();
         synchAxis(tTargetDescKey, tTargetAxisKey, tTargetAxisClass);
         synchAxis(tSourceDescKey, tSourceAxisKey, tSourceAxisClass);
+        this_.endPropertyChanges();
         this_.invalidate();
         this_.rescaleAxesFromData(true, true);
       }
