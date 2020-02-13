@@ -26,7 +26,8 @@ sc_require('formula/function_registry');
 DG.functionRegistry.registerFunctions((function() {
 
   function trunc(x) {
-    return x < 0 ? Math.ceil(x) : Math.floor(x);
+    return SC.empty(x) ? '' :
+        (x < 0 ? Math.ceil(x) : Math.floor(x));
   }
 
   var savedRandomGaussian = 0;  // The routine for generating random numbers drawn from a gaussian
@@ -36,7 +37,9 @@ DG.functionRegistry.registerFunctions((function() {
     // JavaScript standard Math library functions
     'abs': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: Math.abs
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.abs(x);
+      }
     },
     'acos': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
