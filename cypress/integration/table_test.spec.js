@@ -126,19 +126,40 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
 
         })
         it('verify delete formula and keep value',()=>{//also verify that formula is not visible on hover
-
+            table.openAttributeMenu(name)
+            table.selectMenuItemFromAttributeMenu('Delete Formula (Keeping Values)')
+            cy.get('.dg-numeric').eq(2).should('contain',406);
         })
         it('verify sort ascending', ()=>{
-
+            table.openAttributeMenu(name)
+            table.selectMenuItemFromAttributeMenu('Sort Ascending (A→Z, 0→9)')
+            cy.get('.dg-numeric').eq(2).should('contain',51);
         })
         it('verify sort descending', ()=>{
-
+            table.openAttributeMenu(name)
+            table.selectMenuItemFromAttributeMenu('Sort Descending (9→0, Z→A)')
+            cy.get('.dg-numeric').eq(2).should('contain',1425);
         })
         it('create random() formula, and rerandomize', ()=>{
-
+            var formula="random()", name='newAttr'
+            table.addNewAttribute('cases');
+            table.getAttribute('CNUM1').click();
+            table.editFormula(name, formula);
+            cy.get('.dg-formula-column .dg-numeric').eq(0).should('be.visible');
+            cy.get('.dg-formula-column .dg-numeric').eq(0).then(($span)=>{
+                let num=($span.text())
+                console.log($span)
+                table.openAttributeMenu(name);
+                table.getAttributeMenuItem('Rerandomize').should('exist');
+                table.selectMenuItemFromAttributeMenu('Rerandomize');
+                cy.get('.dg-formula-column .dg-numeric').eq(0).text().should('not.eq', num)
+            })
         })
         it('verify delete attribute',()=>{
-
+            table.openAttributeMenu('newAttr')
+            table.selectMenuItemFromAttributeMenu('Delete Attribute')
+            table.getAttribute('CNUM1').click();
+            table.getColumnHeader().should('have.length',6);
         })
     })
     describe('reorder attribute',()=>{

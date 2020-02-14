@@ -89,6 +89,9 @@ class TableTileObject{
         this.getAttribute(attr).click();
                 //click on attr
     }
+    getAttributeMenuItem(item){
+        return cy.get('.slick-header-menucontent').contains(item)
+    }
     selectMenuItemFromAttributeMenu(item){
         cy.get('.slick-header-menucontent').contains(item).click();
     }
