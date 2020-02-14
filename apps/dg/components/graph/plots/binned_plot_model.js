@@ -465,17 +465,19 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
                 })
             );
           });
-          tControls.push( SC.CheckboxView.create({
-            layout: {height: kRowHeight},
-            title: 'DG.Inspector.graphBarChart',
-            classNames: 'dg-graph-fuse-check'.w(),
-            value: this_.get('dotsAreFused'),
-            valueDidChange: function () {
-              this_.toggleDotsAreFused();
-              DG.mainPage.mainPane.hideInspectorPicker();
-            }.observes('value'),
-            localize: true
-          }));
+          if( this.get('secondaryVarID') === DG.Analysis.kNullAttribute) {
+            tControls.push(SC.CheckboxView.create({
+              layout: {height: kRowHeight},
+              title: 'DG.Inspector.graphBarChart',
+              classNames: 'dg-graph-fuse-check'.w(),
+              value: this_.get('dotsAreFused'),
+              valueDidChange: function () {
+                this_.toggleDotsAreFused();
+                DG.mainPage.mainPane.hideInspectorPicker();
+              }.observes('value'),
+              localize: true
+            }));
+          }
 
           return tControls;
         }.property('plot'),
