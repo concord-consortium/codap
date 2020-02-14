@@ -111,13 +111,6 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         }.property(),
 
         /**
-         * true ==> interval notation
-         * false ==> dash notation
-         * @property {Boolean}
-         */
-        labelFormat: false,
-
-        /**
          * @property {[{  value: {Number}, cell: {Number}, bin: { Number}, indexInBin: {Number} }]}
          */
         _casesMap: null,
@@ -474,14 +467,6 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           });
           tControls.push( SC.CheckboxView.create({
             layout: {height: kRowHeight},
-            title: 'Label format [ … )',
-            value: this_.get('labelFormat'),
-            valueDidChange: function (iThisView) {
-              this_.set('labelFormat', iThisView.get('value'));
-            }.bind(this).observes('value')
-          }));
-          tControls.push( SC.CheckboxView.create({
-            layout: {height: kRowHeight},
             title: 'DG.Inspector.graphBarChart',
             classNames: 'dg-graph-fuse-check'.w(),
             value: this_.get('dotsAreFused'),
@@ -503,7 +488,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         createStorage: function () {
           var tStorage = sc_super();
 
-          ['width', 'alignment', 'dotsAreFused', 'labelFormat'].forEach( function( iProp) {
+          ['width', 'alignment', 'dotsAreFused'].forEach( function( iProp) {
             tStorage[iProp] = this.get(iProp);
           }.bind( this));
 
@@ -516,7 +501,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         restoreStorage: function (iStorage) {
           sc_super();
           this.restoreInProgress = true;
-          ['width', 'alignment', 'dotsAreFused', 'labelFormat'].forEach( function( iProp) {
+          ['width', 'alignment', 'dotsAreFused'].forEach( function( iProp) {
             if (!SC.none(iStorage[iProp])) {
               this.set( iProp, iStorage[iProp]);
             }

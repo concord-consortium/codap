@@ -506,6 +506,10 @@ html, body {
     font-family: Montserrat-Regular !important;
 }
 
+.dg-binned-axis-label {
+    cursor: pointer;
+}
+
 .dg-axis-cell-label-y {
     cursor: static_url('cursors/TranslateY.cur') 8 8, auto;
 }
