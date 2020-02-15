@@ -458,7 +458,13 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
                       applyImmediately: false,
                       value: this_.get(iInfo.key),
                       valueDidChange: function () {
-                        this_.changeBinParam(iInfo.key, Number(this.get('value')), iInfo.paramString);
+                        var tNewValue = Number(this.get('value')),
+                            tCurrentValue = this_.get(iInfo.key);
+                        if(isNaN(tNewValue) || (tNewValue <= 0 && iInfo.key === 'width')) {
+                          this.set('value', tCurrentValue);
+                        }
+                        else if( tNewValue !== tCurrentValue)
+                          this_.changeBinParam(iInfo.key, tNewValue, iInfo.paramString);
                       }.observes('value')
                     }));
                   }
