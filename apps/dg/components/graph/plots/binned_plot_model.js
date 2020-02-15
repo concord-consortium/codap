@@ -203,7 +203,8 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         },
 
         handleDataContextNotification: function (iNotifier, iChange) {
-          this.invalidateCaches();
+          if( iChange.operation !== 'selectCases')
+            this.invalidateCasesMap();
           sc_super();
         },
 
