@@ -986,6 +986,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         }
       }
       tNewPlot.endPropertyChanges();
+      tNewPlot.set('isAnimating', false); // Gets set by rescaleAxesFromData, but it's too early to set it
 
       this.setIfChanged('plot', tNewPlot);
 
@@ -1154,8 +1155,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       // If the current plot is a BinnedPlotModel, it is compatible with needing a DotPlotModel
       if( tNewPlotClass === DG.DotPlotModel &&
-          tCurrentPlot.constructor === DG.BinnedPlotModel)
+          tCurrentPlot.constructor === DG.BinnedPlotModel) {
         tNewPlotClass = DG.BinnedPlotModel;
+        // In the presence of a categorical attribute, a binned plot model cannot have fused dots
+        // because we can't yet combine count axis with categorical axis.
+        if( tXType === DG.Analysis.EAttributeType.eCategorical || tYType === DG.Analysis.EAttributeType.eCategorical)
+          tCurrentPlot.set('dotsAreFused', false);
+      }
 
       tNewPlotClass.configureRoles( tConfig );
       if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) ) {
