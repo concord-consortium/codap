@@ -162,24 +162,41 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
             table.getColumnHeader().should('have.length',6);
         })
     })
-    describe('reorder attribute',()=>{
+    describe('reorder attribute',()=>{ //TODO: need to figure out how to verify order of columns
         it('verify attribute reorder within a collection',()=>{
-
+            cy.dragAttributeToTarget('table','CNUM1', 'table',2)
+            table.getAttributeHeader().eq(2).should('contain','CNUM1')
         })
         it('verify attribute create new leftmost collection',()=>{
-
+            var collectionName='CCAT1S'
+            cy.dragAttributeToTarget('table','CCAT1', 'newCollection')
+            table.getCollectionTitle().should('have.length', 2);
+            table.getCollectionByName(collectionName).should('be.visible')
         })
         it('verify create new collection between collections',()=>{
-
+            var collectionName="CCAT2S"
+            cy.dragAttributeToTarget('table','CCAT2', 'newCollection', 1)
+            table.getCollectionTitle().should('have.length', 3);
+            table.getCollectionByName(collectionName).should('be.visible')
         })
         it('verify remove of middle collection',()=>{
-
+            var collectionName="CCAT2S"
+            cy.dragAttributeToTarget('table','CCAT2', 'table',6)
+            table.getCollectionTitle().should('have.length', 2);
+            table.getCollectionByName(collectionName).should('not.exist')
         })
         it('verify remove of leftmost collection',()=>{
-
+            var collectionName="CCAT1S"
+            cy.dragAttributeToTarget('table','CCAT1', 'table',6)
+            table.getCollectionTitle().should('have.length', 1);
+            table.getCollectionByName(collectionName).should('not.exist')
         })
     })
     describe('expand and collapse collection',()=>{ //need to create a three level table
+        before(()=>{
+            cy.dragAttributeToTarget('table','CCAT1', 'newCollection')
+            cy.dragAttributeToTarget('table','CCAT2', 'newCollection', 1)
+        })
         it('verify collapse child collection',()=>{
 
         })

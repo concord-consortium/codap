@@ -97,7 +97,7 @@ Cypress.Commands.add('clickMenuItem', text => {
     .trigger('mouseup', {which:1});
 });
 
-Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target)=>{
+Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=>{
   const dt = new DataTransfer;
   const el={  tableHeader: '.slick-header-column .two-line-header-line-1',
               caseCardHeader: '.react-data-card-attribute',
@@ -106,7 +106,8 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target)=>{
               x_axis_label: '.dg-axis-view.dg-h-axis .dg-axis-label',
               y_axis: '.dg-axis-view.dg-v-axis',
               y_axis_label: '.dg-axis-view.dg-v-axis .dg-axis-label',
-              mapTile: '.dg.leaflet-container'
+              mapTile: '.dg.leaflet-container',
+              newCollection: '.dg-table-drop-target'
             }
 
   var source_el='', target_el='';
@@ -153,12 +154,15 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target)=>{
         break      
     case ('y') :
         target_el=el.y_axis_label;
-        break    
+        break
+    case('newCollection'):
+        target_el=el.newCollection;
+        break        
   }
   cy.get(source_el).contains(attribute)
       .trigger('mousedown', {which:1},{dt})
-      .trigger('dragstart', {dt});
-  cy.get(target_el)
+      .trigger('dragstart', {dt})
+  cy.get(target_el).eq(num)
       .trigger('mousemove',{force:true}, {which:1},{dt})
       .trigger('mousemove', {force:true},{which:1},{dt})
       .trigger('mouseup', {force:true}, {which:1}, {dt})
