@@ -1297,6 +1297,11 @@ input.dg-editor-text {
     background: transparent;
     border: 0;
 }
+
+.dg.ace.dg-table-drop-target svg image:hover {
+    cursor: pointer;
+}
+
 @keyframes pulse {
     from {
         opacity: 1;
