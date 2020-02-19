@@ -137,6 +137,7 @@ DG.CaseTableDataManager = SC.Object.extend({
         };
       });
       return {
+        cssClasses: 'dg-proto-row',
         columns: metadata
       };
     }
@@ -144,6 +145,7 @@ DG.CaseTableDataManager = SC.Object.extend({
     if (myCase && (myCase instanceof DG.Case)) {
       if (myCase.collection.get('id') !== this.collection.get('id')) {
         return {
+          cssClasses: 'dg-collapsed-row',
           columns: {
             0: {
               colspan: "*"
