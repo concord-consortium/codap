@@ -618,6 +618,10 @@ SC.stringsFor("en", {
     "DG.CaseTable.insertCasesDialog.beforeAfter.after": "after",
     "DG.CaseTable.insertCasesDialog.applyBtnTitle": "Insert Cases",
     "DG.CaseTable.insertCasesDialog.applyBtnTooltip": "Insert the specified number of cases",
+    "DG.CaseTable.dividerView.expandAllTooltip": "expand all groups",
+    "DG.CaseTable.dividerView.expandGroupTooltip": "expand group",
+    "DG.CaseTable.dividerView.collapseAllTooltip": "collapse all groups",
+    "DG.CaseTable.dividerView.collapseGroupTooltip": "collapse group",
 
     // DG.CaseTableController
     "DG.CaseTableController.allTables": "All tables",

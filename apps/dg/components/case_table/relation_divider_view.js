@@ -135,8 +135,8 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
     expandCollapseIcon: null,
 
     expandCollapseMap: {
-      'collapseAll': RDV_COLLAPSE_ICON_URL,
-      'expandAll': RDV_EXPAND_ICON_URL,
+      'collapse': RDV_COLLAPSE_ICON_URL,
+      'expand': RDV_EXPAND_ICON_URL,
       'noAction': RDV_NO_ACTION_ICON_URL
     },
 
@@ -162,7 +162,7 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
           if ((myCase.get('collection').get('id') === tableCollection.get('id')) &&
               (myCase.children.length > 0)) {
             if (!isCollapsed) {
-              action = 'collapseAll';
+              action = 'collapse';
               return action;
             } else {
               hasCollapsed = true;
@@ -170,7 +170,7 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
           }
         }
         if (hasCollapsed) {
-          action = 'expandAll';
+          action = 'expand';
         }
         return action;
       }
@@ -179,10 +179,10 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
         SC.run(function () {
           var action = computeAction();
           switch (action) {
-            case 'collapseAll':
+            case 'collapse':
               table.expandCollapseAll( false);
               break;
-            case 'expandAll':
+            case 'expand':
               table.expandCollapseAll( true);
               break;
           }
@@ -194,6 +194,8 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
           gridDataView = leftAdapter && leftAdapter.get('gridDataView'),
           action = computeAction(),
           imageUrl = this.expandCollapseMap[action],
+          imageTitle = (action === 'collapse')? "DG.CaseTable.dividerView.collapseAllTooltip".loc():
+              (action === 'expand')? "DG.CaseTable.dividerView.expandAllTooltip".loc(): '',
           imagePos = { x: 3, y: 38 },
           imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE;
 
@@ -213,9 +215,13 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
             imageSize.width, imageSize.height)
             .click( function( iEvent) {
               SC.run( expandCollapseAll( iEvent));
-            });
+            })
+            .attr('title', imageTitle)
+            .setClass(action);
       } else {
-        this.expandCollapseIcon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y});
+        this.expandCollapseIcon
+            .attr({src: imageUrl, title: imageTitle, x: imagePos.x, y: imagePos.y})
+            .setClass(action);
       }
     }
   }),
@@ -443,6 +449,9 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
         var imageUrl = determineImageURL(iChildIDRange);
         var imagePos = {x: 3, y: rowBounds.leftTop - leftScrollTop + 5};
         var imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE;
+        var action = iChildIDRange.isContained? 'none': iChildIDRange.isCollapsed? 'expand': 'collapse';
+        var imageTitle = (action === 'collapse')? "DG.CaseTable.dividerView.collapseGroupTooltip".loc():
+            (action === 'expand')? "DG.CaseTable.dividerView.expandGroupTooltip".loc(): '';
         var touchPathStr = getImageTouchZonePath(imagePos, imageSize);
         var topPathStr = buildPathStr(rowBounds.leftTop - leftScrollTop,
               rowBounds.rightTop - rightScrollTop);
@@ -481,15 +490,18 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
           relation.icon = this_._paper
               .image(imageUrl, imagePos.x, imagePos.y, imageSize.width,
                   imageSize.height)
+              .setClass(action)
               .click(function (iEvent) {
                 SC.run(expandCollapseClickHandler.call(this, iEvent));
-              });
+              }).attr('title', imageTitle);
         } else {
           updatePathOrHide(relation.top, true, topPathStr);
           updatePathOrHide(relation.bottom, isBottomRequired, bottomPathStr);
           updatePathOrHide(relation.area, isFillRequired, fillPathStr);
           updatePathOrHide(relation.touch, true, touchPathStr);
-          relation.icon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y}).show();
+          relation.icon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y, title: imageTitle})
+              .setClass(action)
+              .show();
         }
         relation.icon.dgParentID = iParentID;
         relation.icon.dgChildIDRange = iChildIDRange;
