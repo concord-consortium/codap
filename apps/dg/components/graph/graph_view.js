@@ -938,6 +938,9 @@ DG.GraphView = SC.View.extend(
             case DG.CountAxisModel:
               tNewViewClass = DG.CountAxisView;
               break;
+            case DG.BinnedAxisModel:
+              tNewViewClass = DG.BinnedAxisView;
+              break;
             default:
               tNewViewClass = null;
           }

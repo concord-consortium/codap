@@ -702,6 +702,7 @@ SC.stringsFor("en", {
 
     // DG.BinnedPlotModel
     "DG.BinnedPlotModel.dragBinTip": "Drag to change bin width",  // "Drag to change bin width"
+    "DG.BinnedPlotModel.binLabelTip": "Values in this bin are ≥ %@ and < %@",  // "Values in this bin are ≥ <lower> and < <upper>"
 
     // DG.HistogramView
     "DG.HistogramView.barTipPlural": "%@ of %@ %@ (%@%) are ≥ %@ and < %@",  // "<n> of <m> <X>s (<p>%) are ≥ L and < U"

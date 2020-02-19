@@ -111,13 +111,6 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         }.property(),
 
         /**
-         * true ==> interval notation
-         * false ==> dash notation
-         * @property {Boolean}
-         */
-        labelFormat: false,
-
-        /**
          * @property {[{  value: {Number}, cell: {Number}, bin: { Number}, indexInBin: {Number} }]}
          */
         _casesMap: null,
@@ -210,7 +203,8 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         },
 
         handleDataContextNotification: function (iNotifier, iChange) {
-          this.invalidateCaches();
+          if( iChange.operation !== 'selectCases')
+            this.invalidateCasesMap();
           sc_super();
         },
 
@@ -269,7 +263,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
                   isFinite(tNumericValue)) { // if numeric value not missing
                 tMin = Math.min(tMin, tNumericValue);
                 tMax = Math.max(tMax, tNumericValue);
-                this._casesMap.push({value: tNumericValue, cell: tCellNumber});
+                this._casesMap[iIndex] = {value: tNumericValue, cell: tCellNumber};
               }
             }.bind(this));
 
@@ -286,15 +280,17 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             this._widthIncrement = DG.MathUtilities.goodTickValue((tMax - tMin) / tTotalNumberOfBins) / 20;
 
             // Put each case in a bin
-            this._casesMap.forEach(function (iObject) {
-              iObject.bin = Math.floor((iObject.value - tLeastBinEdge) / tWidth);
-              if (!tBinCounts[iObject.cell])
-                tBinCounts[iObject.cell] = [];
-              if (!tBinCounts[iObject.cell][iObject.bin])
-                tBinCounts[iObject.cell][iObject.bin] = 0;
-              iObject.indexInBin = tBinCounts[iObject.cell][iObject.bin];
-              tBinCounts[iObject.cell][iObject.bin]++;
-              tMaxBinCount = Math.max(tMaxBinCount, tBinCounts[iObject.cell][iObject.bin]);
+            // this._casesMap.forEach(function (iObject) {
+            tCases.forEach( function( iCase, iIndex) {
+              var tObject = this._casesMap[iIndex];
+              tObject.bin = Math.floor((tObject.value - tLeastBinEdge) / tWidth);
+              if (!tBinCounts[tObject.cell])
+                tBinCounts[tObject.cell] = [];
+              if (!tBinCounts[tObject.cell][tObject.bin])
+                tBinCounts[tObject.cell][tObject.bin] = 0;
+              tObject.indexInBin = tBinCounts[tObject.cell][tObject.bin];
+              tBinCounts[tObject.cell][tObject.bin]++;
+              tMaxBinCount = Math.max(tMaxBinCount, tBinCounts[tObject.cell][tObject.bin]);
             }.bind(this));
           }
 
@@ -463,32 +459,32 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
                       applyImmediately: false,
                       value: this_.get(iInfo.key),
                       valueDidChange: function () {
-                        this_.changeBinParam(iInfo.key, Number(this.get('value')), iInfo.paramString);
+                        var tNewValue = Number(this.get('value')),
+                            tCurrentValue = this_.get(iInfo.key);
+                        if(isNaN(tNewValue) || (tNewValue <= 0 && iInfo.key === 'width')) {
+                          this.set('value', tCurrentValue);
+                        }
+                        else if( tNewValue !== tCurrentValue)
+                          this_.changeBinParam(iInfo.key, tNewValue, iInfo.paramString);
                       }.observes('value')
                     }));
                   }
                 })
             );
           });
-          tControls.push( SC.CheckboxView.create({
-            layout: {height: kRowHeight},
-            title: 'Label format [ … )',
-            value: this_.get('labelFormat'),
-            valueDidChange: function (iThisView) {
-              this_.set('labelFormat', iThisView.get('value'));
-            }.bind(this).observes('value')
-          }));
-          tControls.push( SC.CheckboxView.create({
-            layout: {height: kRowHeight},
-            title: 'DG.Inspector.graphBarChart',
-            classNames: 'dg-graph-fuse-check'.w(),
-            value: this_.get('dotsAreFused'),
-            valueDidChange: function () {
-              this_.toggleDotsAreFused();
-              DG.mainPage.mainPane.hideInspectorPicker();
-            }.observes('value'),
-            localize: true
-          }));
+          if( this.get('secondaryVarID') === DG.Analysis.kNullAttribute) {
+            tControls.push(SC.CheckboxView.create({
+              layout: {height: kRowHeight},
+              title: 'DG.Inspector.graphBarChart',
+              classNames: 'dg-graph-fuse-check'.w(),
+              value: this_.get('dotsAreFused'),
+              valueDidChange: function () {
+                this_.toggleDotsAreFused();
+                DG.mainPage.mainPane.hideInspectorPicker();
+              }.observes('value'),
+              localize: true
+            }));
+          }
 
           return tControls;
         }.property('plot'),
@@ -501,7 +497,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         createStorage: function () {
           var tStorage = sc_super();
 
-          ['width', 'alignment', 'dotsAreFused', 'labelFormat'].forEach( function( iProp) {
+          ['width', 'alignment', 'dotsAreFused'].forEach( function( iProp) {
             tStorage[iProp] = this.get(iProp);
           }.bind( this));
 
@@ -514,7 +510,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         restoreStorage: function (iStorage) {
           sc_super();
           this.restoreInProgress = true;
-          ['width', 'alignment', 'dotsAreFused', 'labelFormat'].forEach( function( iProp) {
+          ['width', 'alignment', 'dotsAreFused'].forEach( function( iProp) {
             if (!SC.none(iStorage[iProp])) {
               this.set( iProp, iStorage[iProp]);
             }

@@ -82,29 +82,24 @@ DG.BinnedAxisModel = DG.AxisModel.extend(
         return this.get('numberOfBins');
       }.property(),
 
+      /**
+       * @return {[{ label: {String}, title: {String} }]}
+       */
       binLabels: function () {
         var tLabels = [],
-            tUseIntervalNotation = this.getPath('binnedPlotModel.labelFormat'),
-            tLabelTemplate = tUseIntervalNotation ? '[%@, %@)' : '%@–%@',
-            tWidth = this.getPath('binnedPlotModel.width'),
-            tPower = Math.floor(Math.log10(tWidth / 100)),
-            tIncrement = Math.min(1, Math.pow(10, tPower)),
-            tMultiplier = tIncrement === 1 ? 1 : Math.pow(10, -tPower);
+            tLabelTemplate = '[%@, %@)',
+            tTitleTemplate = "DG.BinnedPlotModel.binLabelTip";
         this.forEachBinDo(function (iBinNum, iLeft, iRight) {
-          if( !tUseIntervalNotation) {
-            iRight -= tIncrement;
-            if( tIncrement < 1)
-              // Prevent rounding errors
-              iRight = Math.round(iRight * tMultiplier) / tMultiplier;
-          }
-          tLabels.push(tLabelTemplate.fmt(iLeft, iRight));
+          tLabels.push({
+            label: tLabelTemplate.fmt(iLeft, iRight),
+            title: tTitleTemplate.loc(iLeft, iRight)
+          });
         });
         return tLabels;
       }.property(),
       binLabelsDidChange: function() {
         this.notifyPropertyChange('binLabels');
-      }.observes('binnedPlotModel.totalNumberOfBins', 'binnedPlotModel.alignment', 'binnedPlotModel.width',
-          'binnedPlotModel.labelFormat'),
+      }.observes('binnedPlotModel.totalNumberOfBins', 'binnedPlotModel.alignment', 'binnedPlotModel.width'),
 
       /**
        * Pass responsibility to binnedPlotModel.

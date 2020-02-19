@@ -67,7 +67,7 @@ DG.BinnedAxisView = DG.AxisView.extend( (function() {
      */
     maxLabelExtent: 0,
 
-    allowBinLines: false,
+    allowCellBoundaries: false,
 
     numberOfBins: function() {
       return this.getPath('model.binnedPlotModel.totalNumberOfBins');
@@ -86,10 +86,6 @@ DG.BinnedAxisView = DG.AxisView.extend( (function() {
     }.property('numberOfBins'),
 
     labelSpecs: null,
-
-    labelFormatDidChange: function() {
-      this.displayDidChange();
-    }.observes('model.binnedPlotModel.labelFormat'),
 
     /**
      *
@@ -146,20 +142,22 @@ DG.BinnedAxisView = DG.AxisView.extend( (function() {
           kCollisionPadding = 5,
           tPrevLabelEnd;
 
-      function measureOneBin( iBinLabel, iBinNum) {
+      function measureOneBin( iBinLabelAndTitle, iBinNum) {
         var tCoord = this_.binToCoordinate(iBinNum);
         if( !isFinite( tCoord)) {
           return;
         }
         var tTextElement;
         if( !tLabelSpecs[iBinNum]) {
-          tTextElement = this_.get('paper').text(0, 0, iBinLabel)
-              .addClass('dg-axis-tick-label');
+          tTextElement = this_.get('paper').text(0, 0, iBinLabelAndTitle.label)
+              .addClass('dg-axis-tick-label')
+              .addClass('dg-binned-axis-label');
         }
         else {
           tTextElement = tLabelSpecs[ iBinNum].element;
-          tTextElement.attr('text', iBinLabel);
+          tTextElement.attr('text', iBinLabelAndTitle.label);
         }
+        tTextElement.attr('title', iBinLabelAndTitle.title);
         var tTextExtent = DG.RenderingUtilities.getExtentForTextElement(
                           tTextElement, DG.RenderingUtilities.kDefaultFontHeight, true /* compute with no transform */);
 
@@ -186,7 +184,6 @@ DG.BinnedAxisView = DG.AxisView.extend( (function() {
       // iLabelSpec has form { element: {Raphael element}, coord: {Number}, height: {Number}, width: {Number} }
       function drawOneCell( iLabelSpec, iIndex) {
         var tCoord = iLabelSpec.coord,
-            // tTextHeight = iLabelSpec.height,
             tLabelX, tLabelY;
         switch( this_.get('orientation')) {
           case DG.GraphTypes.EOrientation.kVertical:

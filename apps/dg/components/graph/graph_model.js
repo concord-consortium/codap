@@ -540,8 +540,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
             var tAxisToDestroy = this_.get( iAxisKey ),
                 tNewAxis = iAxisClass.create(tAxisModelParams);
             tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
+            tNewAxis.setLinkToPlotIfDesired( this_.get('plot'));
             this_.set( iAxisKey, tNewAxis );
             tAxisToDestroy.destroy();
+            this_.setPath('plot.' + iAxisKey, tNewAxis);
           }
         }
 
@@ -565,8 +567,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
             tTargetRole, tTargetType);
         tDataConfiguration.setAttributeAndCollectionClient(tSourceDescKey, tAttrRefsForSource,
             tSourceRole, tSourceType);
+        this_.beginPropertyChanges();
         synchAxis(tTargetDescKey, tTargetAxisKey, tTargetAxisClass);
         synchAxis(tSourceDescKey, tSourceAxisKey, tSourceAxisClass);
+        this_.endPropertyChanges();
         this_.invalidate();
         this_.rescaleAxesFromData(true, true);
       }
@@ -982,6 +986,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         }
       }
       tNewPlot.endPropertyChanges();
+      tNewPlot.set('isAnimating', false); // Gets set by rescaleAxesFromData, but it's too early to set it
 
       this.setIfChanged('plot', tNewPlot);
 
@@ -1150,8 +1155,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       // If the current plot is a BinnedPlotModel, it is compatible with needing a DotPlotModel
       if( tNewPlotClass === DG.DotPlotModel &&
-          tCurrentPlot.constructor === DG.BinnedPlotModel)
+          tCurrentPlot.constructor === DG.BinnedPlotModel) {
         tNewPlotClass = DG.BinnedPlotModel;
+        // In the presence of a categorical attribute, a binned plot model cannot have fused dots
+        // because we can't yet combine count axis with categorical axis.
+        if( tXType === DG.Analysis.EAttributeType.eCategorical || tYType === DG.Analysis.EAttributeType.eCategorical)
+          tCurrentPlot.set('dotsAreFused', false);
+      }
 
       tNewPlotClass.configureRoles( tConfig );
       if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) ) {

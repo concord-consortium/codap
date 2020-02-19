@@ -134,7 +134,7 @@ DG.AxisModel = SC.Object.extend(
   }.property().cacheable(),
 
   valueToCellNumber: function() {
-    return 1; // The default
+    return 0; // The default
   },
 
   /**
