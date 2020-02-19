@@ -1298,7 +1298,8 @@ input.dg-editor-text {
     border: 0;
 }
 
-.dg.ace.dg-table-drop-target svg image:hover {
+.dg.ace.dg-table-drop-target svg image.expand:hover,
+.dg.ace.dg-table-drop-target svg image.collapse:hover {
     cursor: pointer;
 }
 
