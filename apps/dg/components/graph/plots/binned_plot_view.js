@@ -227,7 +227,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
         var this_ = this;
 
         function drawBinBoundaries() {
-          var kMinBinWidth = 25,
+          var kMinBinWidth = 20,
               tInitialAlignment, tInitialWorldWidth, tNewBinAlignment, tBinWidthAtStartOfDrag,
               tModel = this_.get('model'),
               tLeastBinEdgeWorld = tModel.get('leastBinEdge'),
@@ -249,6 +249,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
               tTitle = 'DG.BinnedPlotModel.dragBinTip'.loc();
 
           function beginTranslate(iWindowX, iWindowY) {
+            console.log('dragging: %@'.fmt( this.id));
             this_.dragInProgress = true;
             this_.elementBeingDragged = this;
             tBinWidthPixels = this_.getPath('primaryAxisView.binWidth');
@@ -264,16 +265,15 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
           function continueTranslate(idX, idY) {
             var tDelta = (tOrientation === DG.GraphTypes.EOrientation.kVertical) ? -idY : idX,
-                tNewWorldWidth = (tBinWidthAtStartOfDrag + tDelta) * tWorldPerPixel;
+                tNewBinWidthPixels = Math.max(kMinBinWidth, tBinWidthAtStartOfDrag + tDelta),
+                tNewWorldWidth = tNewBinWidthPixels * tWorldPerPixel;
             tNewWorldWidth = Math.round(tNewWorldWidth / tWidthIncrement) * tWidthIncrement;
-            if( tBinWidthAtStartOfDrag + tDelta >= kMinBinWidth) {
-              SC.run( function() {
-                tModel.beginPropertyChanges();
-                tModel.set('alignment', tNewBinAlignment);
-                tModel.set('width', tNewWorldWidth);
-                tModel.endPropertyChanges();
-              });
-            }
+            SC.run(function () {
+              tModel.beginPropertyChanges();
+              tModel.set('alignment', tNewBinAlignment);
+              tModel.set('width', tNewWorldWidth);
+              tModel.endPropertyChanges();
+            });
           }
 
           function endTranslate(idX, idY) {
@@ -316,6 +316,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
               tLine = tPaper.line(tLeft, tTop, tRight, tBottom);
               tCover = tPaper.line(tLeft, tTop, tRight, tBottom)
                   .drag(continueTranslate, beginTranslate, endTranslate);
+              console.log('bin: %@, line: %@, cover: %@'.fmt( tBinNum, tLine.id, tCover.id));
               tCover.binNum = tBinNum;
               tAdornmentLayer.push(
                   tLine.attr({
@@ -340,9 +341,11 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
           }
           while (tBoundaries.length > tNumBins) {
             var tSpec = tBoundaries.pop();
+            console.log('Removing: %@'.fmt( tSpec.boundary.id));
             tAdornmentLayer.prepareToMoveOrRemove(tSpec.boundary);
             tSpec.boundary.remove();
             if( tSpec.cover !== this_.elementBeingDragged) {
+              console.log('Removing: %@'.fmt( tSpec.cover.id));
               tAdornmentLayer.prepareToMoveOrRemove(tSpec.cover);
               tSpec.cover.remove();
             }
