@@ -82,6 +82,13 @@ if (!Raphael.el.addClass) {
         return this;
     }
 }
+if (!Raphael.el.setClass) {
+    Raphael.el.setClass = function (newClass) {
+        var classNameEl = this.node.className;
+        classNameEl.baseVal = newClass;
+        return this;
+    }
+}
 
 if (!Raphael.el.hasClass) {
   Raphael.el.hasClass = function (myClass) {
