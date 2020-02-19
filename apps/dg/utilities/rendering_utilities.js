@@ -149,35 +149,52 @@ DG.RenderingUtilities = {
   },
 
   testPaperValidity: function( iPaper) {
-/*
     this.printPaper( iPaper);
     var map = {},
         bot = iPaper.bottom;
     while (bot) {
       if( map[bot.id]) {
+        console.log('Paper is not valid. Element %@ appears twice'.fmt( bot.id));
+        return false;
+      }
+      if( bot.prev && bot.prev.next !== bot) {
+        console.log('Paper is not valid. Prev of %@ not pointing to %@'.fmt( bot.id, bot.id));
+        return false;
+      }
+      if( bot.next && bot.next.prev !== bot) {
+        console.log('Paper is not valid. Next of %@ not pointing to %@'.fmt( bot.id, bot.id));
         return false;
       }
       map[bot.id] = true;
       bot = bot.next;
     }
-*/
     return true;
   },
 
   svgElementClass: function( iElement) {
     var tClass;
-    switch (iElement[0].constructor) {
-      case SVGImageElement: tClass = 'I'; break;
-      case SVGRectElement: tClass = 'R'; break;
-      case SVGPathElement: tClass = 'P'; break;
-      case SVGCircleElement: tClass = 'C'; break;
-      default: tClass = '?';
+    if( iElement[0]) {
+      switch (iElement[0].constructor) {
+        case SVGImageElement:
+          tClass = 'I';
+          break;
+        case SVGRectElement:
+          tClass = 'R';
+          break;
+        case SVGPathElement:
+          tClass = 'P';
+          break;
+        case SVGCircleElement:
+          tClass = 'C';
+          break;
+        default:
+          tClass = '?';
+      }
     }
     return tClass;
   },
 
   printPaper: function( iPaper) {
-/*
     var tPrintout = 'Paper-> ',
         tElement = iPaper.bottom,
         tMap = {},
@@ -193,8 +210,7 @@ DG.RenderingUtilities = {
         tPrintout += 'FAILED - repetition of ' + tElement.id;
       }
     }
-*/
-    // console.log( tPrintout);
+    console.log( tPrintout);
   }
 
 };

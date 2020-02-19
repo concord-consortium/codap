@@ -107,12 +107,14 @@ DG.RaphaelLayer = SC.Object.extend(
           }
           if (tLayer) {
             iElement.insertAfter(tLayer._lastElement);
+            // DG.RenderingUtilities.testPaperValidity( this._paper);
           }
           else
             iElement.toBack();
         }
         else {
           iElement.insertAfter(this._lastElement);
+          // DG.RenderingUtilities.testPaperValidity( this._paper);
         }
         this._lastElement = iElement;
         if (!this._firstElement) {

@@ -117,6 +117,10 @@ DG.LayerManager = function( iPaper) {
       });
       if( iCallRemove)
         iElement.remove();
+      else {
+        iElement.next = null;
+        iElement.prev = null;
+      }
       // this.testValidity();
     },
 
