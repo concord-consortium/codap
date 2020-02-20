@@ -14804,7 +14804,7 @@ GoogleDriveProvider = (function(superClass) {
     });
     return request.execute((function(_this) {
       return function(file) {
-        var ref1, url, xhr;
+        var download, ref1;
         if (file != null ? file.downloadUrl : void 0) {
           metadata.rename(file.title);
           metadata.overwritable = file.editable;
@@ -14821,17 +14821,24 @@ GoogleDriveProvider = (function(superClass) {
               }
             });
           }
-          url = file.downloadUrl;
-          xhr = new XMLHttpRequest();
-          xhr.open('GET', url);
-          xhr.setRequestHeader("Authorization", "Bearer " + _this.authToken.access_token);
-          xhr.onload = function() {
-            return callback(null, cloudContentFactory.createEnvelopedCloudContent(xhr.responseText));
+          download = function(url, fallback) {
+            var xhr;
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.setRequestHeader("Authorization", "Bearer " + _this.authToken.access_token);
+            xhr.onload = function() {
+              return callback(null, cloudContentFactory.createEnvelopedCloudContent(xhr.responseText));
+            };
+            xhr.onerror = function() {
+              if (fallback) {
+                return download(url.replace(/^https:\/\/content\.googleapis\.com/, "https://www.googleapis.com"), false);
+              } else {
+                return callback("Unable to download file content");
+              }
+            };
+            return xhr.send();
           };
-          xhr.onerror = function() {
-            return callback("Unable to download file content");
-          };
-          return xhr.send();
+          return download(file.downloadUrl, true);
         } else {
           return callback(_this._apiError(file, 'Unable to get download url'));
         }
