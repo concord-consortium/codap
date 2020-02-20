@@ -792,5 +792,10 @@ SC.stringsFor("el", {
     "DG.HistogramView.barTipNoLegendPlural": "%@ of %@ (%@%) are ≥ %@ and < %@",
     "DG.Inspector.graphGroupIntoBins": "Group into Bins",
     "DG.Inspector.graphBinWidth": "Bin width",
-    "DG.Inspector.graphAlignment": "Alignment"
+    "DG.Inspector.graphAlignment": "Alignment",
+    "DG.CaseTable.dividerView.expandAllTooltip": "expand all groups",
+    "DG.CaseTable.dividerView.expandGroupTooltip": "expand group",
+    "DG.CaseTable.dividerView.collapseAllTooltip": "collapse all groups",
+    "DG.CaseTable.dividerView.collapseGroupTooltip": "collapse group",
+    "DG.BinnedPlotModel.binLabelTip": "Values in this bin are ≥ %@ and < %@"
 });
