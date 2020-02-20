@@ -17,8 +17,11 @@ class TableTileObject{
     getAddNewAttributePlusIcon(collection){
         return cy.get('.dg-case-table-title').contains(collection).siblings('.dg-floating-plus')
     }
+    getColumnHeader(){
+        return cy.get('.slick-header-column')
+    }
     getAttribute(name){
-        return cy.get('.two-line-header-line-1*=').contains(name);
+        return cy.get('.two-line-header-line-1').contains(name);
     }
     changeToCaseCard(){
         cy.get('.dg-card-icon').click();
@@ -83,46 +86,80 @@ class TableTileObject{
     
     //Attribute menu
     openAttributeMenu(attr){
-        //get collectionname
-        //get attr
-        //click on attr
+        this.getAttribute(attr).click();
+                //click on attr
+    }
+    getAttributeMenuItem(item){
+        return cy.get('.slick-header-menucontent').contains(item)
     }
     selectMenuItemFromAttributeMenu(item){
         cy.get('.slick-header-menucontent').contains(item).click();
     }
-    editAttributeProperty(name, description, type, unit, precision, editable){
+    getApplyButton(){
+        return cy.get('.button label').contains('Apply');
+    }
+    editAttributeProperty(attr, name, description, type, unit, precision, editable){
         this.openAttributeMenu(attr);
-        this.selectMenuItemFromAttributeMenu('editAttributeProp');
+        this.selectMenuItemFromAttributeMenu('Edit Attribute Properties...');
         if (!name==null) {
-            this.enterName(name);
+            cy.log(name)
+            debugger
+            this.enterAttributeName(name);
         }
         if (!description==null) {
-            this.enterDescription(description);
+            this.enterAttributeDescription(description);
         }
         if (!type==null) {
-            this.enterType(type);
+            this.selectAttributeType(type);
         }
         if (!unit==null) {
-            this.enterUnit(unit);
+            this.enterAttributeUnit(unit);
         }
         if (!precision==null) {
-            this.enterPrecision(precision);
+            this.enterAttributePrecision(precision);
         }
         if (!editable==null) {
-            this.enterEditable(editable);
+            this.selectAttributeEditableState(editable);
         }
-        this.applyAttrProperty();
+        this.getApplyButton().click();
     }
-    editFormula(formula){
-
+    editFormula(attr, formula){
+        this.openAttributeMenu(attr);
+        this.selectMenuItemFromAttributeMenu('Edit Formula...');
+        this.enterFormula(formula);
+        this.getApplyButton().click();
     }
-
+    getApplyButton(){
+        return cy.get('.button label').contains('Apply');
+    }
+    getCancelButton(){
+        return cy.get('.button label').contains('Cancel');
+    }
     //Edit Attribute Property Dialog
-
-
-
+    enterAttributeName(name){
+        cy.get('.dg.panel input').eq(0).type(name);
+    }
+    enterAttributeDescription(text){
+        cy.get('.dg.panel textarea').type(text);
+    }
+    selectAttributeType(type){
+        cy.get('.dg.popup.button').eq(0);
+        cy.clickMenuItem(type);
+    }
+    enterAttributeUnit(unit){
+        cy.get('.dg.panel input').eq(1).type(name);
+    }
+    selectAttributePrecision(number){
+        cy.get('.dg.popup.button').eq(1);
+        cy.clickMenuItem(number);
+    }
+    selectAttributeEditableState(state){
+        cy.get('.radiogroup span').contains(state);
+    }
     //Edit Formula Dialog
-
+    enterFormula(formula){
+        cy.get('.dg-formula-dialog-input-field textarea').eq(1).type(formula, {force:true});
+    }
 
     //Table tool palette
     getTableToolPalette(){
