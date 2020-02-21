@@ -273,7 +273,6 @@ DG.GraphView = SC.View.extend(
           }
         }.bind(this);
 
-        var tAxisViewDescription; // { x|y: AxisView }
         iYAxisKey = iYAxisKey || 'yAxisView';
         iPlotView.beginPropertyChanges();
         iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
@@ -282,13 +281,10 @@ DG.GraphView = SC.View.extend(
         iPlotView.setIfChanged('xAxisView', this.get('xAxisView'));
         iPlotView.setIfChanged('yAxisView', this.get(iYAxisKey));
         // special requirements set up here, with possible return of description of an axis to be added
-        tAxisViewDescription = iPlotView.configureAxes();
-        if (!SC.none(tAxisViewDescription)) {
-          installAxisView(tAxisViewDescription);
+        iPlotView.provideAxisViewDescriptions().forEach(installAxisView);
           if( iPlotModel.rescaleAxesFromData)
             iPlotModel.rescaleAxesFromData( true /* allow scale shrinkage */,
                 true /* animate points */ );
-        }
         iPlotView.setupAxes();
         if (!SC.none(iCurrentPoints))
           iPlotView.set('transferredElementCoordinates', iCurrentPoints);

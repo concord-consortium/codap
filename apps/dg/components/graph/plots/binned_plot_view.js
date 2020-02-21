@@ -65,15 +65,17 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
       /**
        * Return the class of the count axis with the x or y to put it on.
+       * @return {[{}]}
        */
-      configureAxes: function () {
-        var tRet = sc_super(),
-            tAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
-        tRet = tRet || {};
-        tRet.axisKey = tAxisKey;
-        tRet.axisClass = DG.BinnedAxisView;
-        tRet.axisModelProperties = {binnedPlotModel: this.get('model')};
-        return tRet;
+      provideAxisViewDescriptions: function () {
+        var tDescriptions = sc_super(),
+            tBinnedAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
+        tDescriptions.push( {
+          axisKey: tBinnedAxisKey,
+          axisClass: DG.BinnedAxisView,
+          axisModelProperties: {binnedPlotModel: this.get('model')}
+        });
+        return tDescriptions;
       },
 
       /**
