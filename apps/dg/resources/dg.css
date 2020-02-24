@@ -634,6 +634,14 @@ html, body {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
     border-radius:6px;
 }
+.dg-component-view .dg-titlebar .dg-version-view {
+    cursor: grab;
+}
+
+.dg-component-view .dg-titlebar .dg-minimize-view,
+.dg-component-view .dg-titlebar .dg-close-view  {
+    cursor: pointer;
+}
 
 .dg-component-view-selected {
     box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.25);

@@ -29,11 +29,12 @@ sc_require('views/tooltip_enabler');
 
  @extends SC.View
  */
-DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
+DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
     return {
         classNames: 'dg-close-icon'.w(),
+        toolTip: 'DG.Component.closeComponent.toolTip',
         isSelected: false,
         classNameBindings: ['isSelected:dg-close-icon-selected'],
         isVisible: false, // to start with
@@ -158,7 +159,7 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
 
  @extends SC.View
  */
-DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
+DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
     return {
@@ -166,6 +167,7 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
         isVisible: false, // to start with
         isSelected: false,
         classNameBindings: ['isSelected:dg-min-icon-selected'],
+        toolTip: 'DG.Component.minimizeComponent.toolTip',
         doIt: function() {
           var tComponentView = this.parentView.viewToDrag();
           DG.UndoHistory.execute(DG.Command.create({
