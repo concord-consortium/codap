@@ -236,6 +236,7 @@ DG.Attribute = DG.BaseModel.extend(
       /**
        * Determine based on type or, if not set, iterate through case values, returning true if
        * at least one non-numeric value is encountered.
+       * This turns out to be very tricky. See comments below.
        * @return {boolean}
        */
       isNominal: function() {
@@ -252,7 +253,9 @@ DG.Attribute = DG.BaseModel.extend(
             var tValue = iCase.getValue(tAttrID);
             // In 65eabc119a136501bf5ea668c65b7d192ee8121b we substituted tValue!==NaN for !isNan(tValue)
             // That resulted in the bug: #171159639
-            return !SC.empty( tValue) && !isNaN(tValue) && !DG.MathUtilities.isNumeric( tValue);
+            // But putting !isNan(tValue) back resulted in #171429312. So replace with (typeof tValue !== 'number')
+            // return !SC.empty( tValue) && !isNaN(tValue) && !DG.MathUtilities.isNumeric( tValue);
+            return !SC.empty( tValue) && (typeof tValue !== 'number') && !DG.MathUtilities.isNumeric( tValue);
           });
         }
         return tResult;
