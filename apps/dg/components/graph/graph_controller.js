@@ -546,7 +546,8 @@ DG.GraphController = DG.DataDisplayController.extend(
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
             execute: function () {
-              var controller = this._controller();
+              var controller = this._controller(),
+                  tDataConfiguration = controller.getPath('graphModel.dataConfiguration');
               this._beforeStorage = controller.createComponentStorage();
 
               controller.handlePossibleForeignDataContext(iDragData.context);
@@ -561,7 +562,7 @@ DG.GraphController = DG.DataDisplayController.extend(
 
               iAxisMultiTarget.dragData = null;
 
-              if (iDragData.attribute.isNominal()) {
+              if (tDataConfiguration.attributeIsNominal(iDragData.attribute)) {
                 tGraphModel.splitByAttribute(tDataContext, tAttrRefs, 'top');
 
                 this.log = 'Graph split vertically attribute %@'.fmt(iDragData.attribute.get('name'));
@@ -606,7 +607,8 @@ DG.GraphController = DG.DataDisplayController.extend(
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
             execute: function () {
-              var controller = this._controller();
+              var controller = this._controller(),
+                  tDataConfiguration = controller.getPath('graphModel.dataConfiguration');
               this._beforeStorage = controller.createComponentStorage();
 
               var tDataContext = controller.get('dataContext'),
@@ -619,7 +621,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   };
 
               iY2Axis.dragData = null;
-              if (iDragData.attribute.isNominal()) {
+              if (tDataConfiguration.attributeIsNominal(iDragData.attribute)) {
                 tModel.splitByAttribute(tDataContext, tAttrRefs, 'right');
               }
               else {
