@@ -439,6 +439,13 @@ DG.MapModel = SC.Object.extend(
 
         _observedDataConfiguration: null,
 
+        firstDataConfiguration: function() {
+          var tMapLayerModels = this.get('mapLayerModels');
+          if( tMapLayerModels.length > 0)
+            return tMapLayerModels[0].get('dataConfiguration');
+          else return null;
+        }.property(),
+
         lastValueControls: function () {
           var tControls = [];
           this.get('mapLayerModels').forEach(function (iMapLayerModel) {
