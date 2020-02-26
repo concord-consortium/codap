@@ -65,15 +65,17 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
 
       /**
        * Return the class of the count axis with the x or y to put it on.
+       * @return {[{}]}
        */
-      configureAxes: function () {
-        var tRet = sc_super(),
-            tAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
-        tRet = tRet || {};
-        tRet.axisKey = tAxisKey;
-        tRet.axisClass = DG.BinnedAxisView;
-        tRet.axisModelProperties = {binnedPlotModel: this.get('model')};
-        return tRet;
+      provideAxisViewDescriptions: function () {
+        var tDescriptions = sc_super(),
+            tBinnedAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
+        tDescriptions.push( {
+          axisKey: tBinnedAxisKey,
+          axisClass: DG.BinnedAxisView,
+          axisModelProperties: {binnedPlotModel: this.get('model')}
+        });
+        return tDescriptions;
       },
 
       /**
@@ -249,7 +251,6 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
               tTitle = 'DG.BinnedPlotModel.dragBinTip'.loc();
 
           function beginTranslate(iWindowX, iWindowY) {
-            console.log('dragging: %@'.fmt( this.id));
             this_.dragInProgress = true;
             this_.elementBeingDragged = this;
             tBinWidthPixels = this_.getPath('primaryAxisView.binWidth');
@@ -316,7 +317,6 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
               tLine = tPaper.line(tLeft, tTop, tRight, tBottom);
               tCover = tPaper.line(tLeft, tTop, tRight, tBottom)
                   .drag(continueTranslate, beginTranslate, endTranslate);
-              console.log('bin: %@, line: %@, cover: %@'.fmt( tBinNum, tLine.id, tCover.id));
               tCover.binNum = tBinNum;
               tAdornmentLayer.push(
                   tLine.attr({
@@ -341,11 +341,9 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
           }
           while (tBoundaries.length > tNumBins) {
             var tSpec = tBoundaries.pop();
-            console.log('Removing: %@'.fmt( tSpec.boundary.id));
             tAdornmentLayer.prepareToMoveOrRemove(tSpec.boundary);
             tSpec.boundary.remove();
             if( tSpec.cover !== this_.elementBeingDragged) {
-              console.log('Removing: %@'.fmt( tSpec.cover.id));
               tAdornmentLayer.prepareToMoveOrRemove(tSpec.cover);
               tSpec.cover.remove();
             }

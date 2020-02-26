@@ -30,6 +30,20 @@ DG.UnivariatePlotView = DG.PlotView.extend(
       displayProperties: ['secondaryAxisView.model.numberOfCells', 'overlap'],
 
       /**
+       * Return the class of the count axis with the x or y to put it on.
+       * @return {[{}]}
+       */
+      provideAxisViewDescriptions: function () {
+        var tDescriptions = sc_super(),
+            tCatAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x',
+            tCatAttributeID = this.getPath('model.' + tCatAxisKey + 'VarID'),
+            tCatAxisClass = tCatAttributeID === DG.Analysis.kNullAttribute ? DG.AxisView : DG.CellAxisView;
+        tDescriptions.push( {
+          axisKey: tCatAxisKey,
+          axisClass: tCatAxisClass
+        });
+        return tDescriptions;
+      },     /**
        @property{ DG.CellLinearAxisView | DG.BinnedAxisView}
        */
       primaryAxisView: function () {

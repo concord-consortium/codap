@@ -118,10 +118,11 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   /**
-   * Gives plot a chance to create its own axis. Default is to do nothing.
+   * Gives plot a chance to return descriptions of axis views
+   * @return {[{}]}
    */
-  configureAxes: function() {
-
+  provideAxisViewDescriptions: function() {
+    return [];
   },
 
   /**

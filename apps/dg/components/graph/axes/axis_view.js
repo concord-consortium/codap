@@ -588,14 +588,15 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          */
         isValidAttributeForScatterplot: function( iDrag) {
           var tDragAttr = iDrag.data.attribute,
-              tDragAttrIsNominal = tDragAttr.isNominal(),
+              tDataConfiguration = this.getDataConfiguration(),
+              tDragAttrIsNominal = tDataConfiguration.attributeIsNominal(tDragAttr),
               tCurrAttr = this.getPath('model.attributeDescription.attribute'),
               tXAttr = this.getPath('xAttributeDescription.attribute'),
               tOtherYAttr = this.getPath('otherYAttributeDescription.attribute'),
               tValidForScatterplot = (tXAttr !== DG.Analysis.kNullAttribute) &&
                   (tCurrAttr !== tDragAttr) &&
                   !tDragAttrIsNominal &&
-                  tOtherYAttr && !tOtherYAttr.isNominal();
+                  tOtherYAttr && !tDataConfiguration.attributeIsNominal( tOtherYAttr);
           return tValidForScatterplot;
         }
       };

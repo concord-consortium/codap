@@ -43,7 +43,8 @@ DG.GraphDropTarget =
   dragData:null,
 
   getDataConfiguration: function() {
-    return this.get('dataConfiguration') || this.getPath('model.dataConfiguration');
+    return this.get('dataConfiguration') || this.getPath('model.dataConfiguration') ||
+        this.getPath('graphModel.dataConfiguration');
   },
 
   /**
@@ -86,8 +87,8 @@ DG.GraphDropTarget =
   isValidAttributeForPlotSplit: function( iDrag) {
     var tDragAttr = iDrag.data.attribute,
         tCurrAtt = this.get('plottedAttribute'),
-        tDragAttrIsNominal = tDragAttr.isNominal(),
         tDataConfiguration = this.getDataConfiguration(),
+        tDragAttrIsNominal = tDataConfiguration.attributeIsNominal(tDragAttr),
         tConfigurationHasAtLeastOneAttribute = tDataConfiguration &&
             tDataConfiguration.hasAtLeastOneAttributeAssigned(),
         tValidForPlotSplit = tDragAttrIsNominal && tConfigurationHasAtLeastOneAttribute &&
@@ -115,6 +116,7 @@ DG.GraphDropTarget =
         tDraggedName = iDrag.data.attribute.get('name'),
         tAttrName = this.getPath('plottedAttribute.name'),
         tOrientation = this.get('orientation'),
+        tDataConfiguration = this.getDataConfiguration(),
         tDropHint;
 
     function isEmpty( iString) {
@@ -128,7 +130,7 @@ DG.GraphDropTarget =
         if (tParentView)
           tParentView.makeSubviewFrontmost(this);
       }
-      if(iDrag.data.attribute.isNominal() && tOrientation !== DG.GraphTypes.EOrientation.kNone) {
+      if(tDataConfiguration.attributeIsNominal(iDrag.data.attribute) && tOrientation !== DG.GraphTypes.EOrientation.kNone) {
         if(tOrientation === DG.GraphTypes.EOrientation.kVertical || tOrientation === DG.GraphTypes.EOrientation.kVertical2)
           tDropHint = 'DG.GraphView.layoutPlotsVertically'.loc(tDraggedName);
         else tDropHint = 'DG.GraphView.layoutPlotsSideBySide'.loc(tDraggedName);

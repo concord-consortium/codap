@@ -115,7 +115,7 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
      */
     isValidAttributeForScatterplot: function( iDrag) {
       var tDragAttr = iDrag.data.attribute,
-          tDragAttrIsNominal = tDragAttr.isNominal(),
+          tDragAttrIsNominal = this.getDataConfiguration().attributeIsNominal(tDragAttr),
           tCurrAttr = this.get('plottedAttribute'),
           tXDescription = this.getPath('dataConfiguration.xAttributeDescription'),
           tCurrXAttr = tXDescription ? tXDescription.get('attribute') : DG.Analysis.kNullAttribute,
