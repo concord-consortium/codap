@@ -56,8 +56,10 @@ DG.PointDataTip = DG.DataTip.extend(
             };
 
           var tAttrDesc = tPlot.getPath('dataConfiguration.' + iKey + 'AttributeDescription'),
-              tAttributes = tAttrDesc.get('attributes'),
+              tAttributes = tAttrDesc && tAttrDesc.get('attributes'),
               tPlotIndex = this_.getPath('plotLayer.plotIndex');
+          if(!tAttrDesc)
+            return null;
           // If there are more than 1 attribute, we'll end up using the plot index to pull out the right one
           // This only works because we only allow multiple attributes on the y-place.
           tPlotIndex = (tPlotIndex < tAttributes.length) ? tPlotIndex : 0;
@@ -74,28 +76,30 @@ DG.PointDataTip = DG.DataTip.extend(
           return null;
         }
 
+        function appendPair( iPair) {
+          if (!SC.none(iPair)) {
+            if (tTipText.length > 0)
+              tTipText += '\n';
+            tTipText += iPair;
+          }
+        }
+
         if (SC.none(tCase))
           return '';
 
         var tLegendPair = getNameValuePair('legend'),
+            tCaptionPair = getNameValuePair('caption'),
             tTipText = '';
 
         if( !this.get('showOnlyLegendData')) {
           var tXPair = getNameValuePair('x'),
               tYKey = this.getPath('plotLayer.isUsingY2') ? 'y2' : 'y',
               tYPair = getNameValuePair(tYKey);
-          tTipText = SC.none(tXPair) ? '' : tXPair;
-          if (!SC.none(tYPair)) {
-            if (tTipText.length > 0)
-              tTipText += '\n';
-            tTipText += tYPair;
-          }
+          appendPair( tXPair);
+          appendPair( tYPair);
         }
-        if (!SC.none(tLegendPair)) {
-          if (tTipText.length > 0)
-            tTipText += '\n';
-          tTipText += tLegendPair;
-        }
+        appendPair( tCaptionPair);
+        appendPair( tLegendPair);
         return tTipText;
       },
 
