@@ -251,7 +251,9 @@ DG.GraphView = SC.View.extend(
                 tPaperSource = iAxisViewDescription.axisKey === 'x' ?
                     this.get('bottomAxisLabelView') : this.get('leftAxisLabelView'),
                 tNewAxisModel = (tExistingAxisModelClass === tNewModelClass) ? tExistingAxisModel :
-                    tNewModelClass.create( iAxisViewDescription.axisModelProperties || {}),
+                    tNewModelClass.create(iAxisViewDescription.axisModelProperties || {}, {
+                      dataConfiguration: this.getPath('model.dataConfiguration')
+                    }),
                 tNewView = tNewViewClass.create({
                   orientation: tOrientation,
                   model: tNewAxisModel,
