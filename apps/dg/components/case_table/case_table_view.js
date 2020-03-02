@@ -2309,6 +2309,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
     mouseDown: function () {
       return YES;
+    },
+    touchStart: function () {
+      // claim the event so we get the touchEnd
+      return YES;
+    },
+    touchEnd: function (evt) {
+      // allows the browser to generate mouse events
+      // cf. DG.mainPage.scrollView.touchStart() for details
+      evt.allowDefault();
+      return YES;
     }
   }; // end return from closure
 
