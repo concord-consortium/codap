@@ -33,8 +33,9 @@ DG.DotChartModel = DG.ChartModel.extend(
    */
   displayAsBarChart: false,
 
-  lastValueControls: function() {
-    var tControls = sc_super(),
+   lastValueControls: function() {
+
+     var tControls = sc_super(),
         this_ = this,
         kControlValues = {
           row: 'DG.Inspector.graphRow'.loc(),
@@ -44,7 +45,17 @@ DG.DotChartModel = DG.ChartModel.extend(
         tNumOnX = this.getPath('xAxis.numberOfCells'),
         tNumOnY = this.getPath('yAxis.numberOfCells');
 
-    function mapValueToPercentKind( iValue) {
+     function changePercentKind( iKind) {
+
+       function doChangePercentKind( iPlot) {
+         iPlot.setPath('plottedCount.percentKind', iKind);
+       }
+
+       doChangePercentKind( this_);
+       this_.get('siblingPlots').forEach( doChangePercentKind);
+     }
+
+     function mapValueToPercentKind( iValue) {
       var tKind = -1;
       switch( iValue) {
         case kControlValues.row:
@@ -84,7 +95,7 @@ DG.DotChartModel = DG.ChartModel.extend(
             layout: { height: 65 },
             classNames: 'dg-inspector-radio'.w(),
             valueDidChange: function () {
-              this_.setPath('plottedCount.percentKind', mapValueToPercentKind( this.value));
+              changePercentKind( mapValueToPercentKind( this.value));
             }.observes('value'),
             init: function() {
               sc_super();
