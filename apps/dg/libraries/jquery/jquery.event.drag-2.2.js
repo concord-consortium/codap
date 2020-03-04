@@ -37,6 +37,7 @@ drag = $special.drag = {
 		not: ':input', // selector to suppress dragging on target elements
 		handle: null, // selector to match handle target elements
 		relative: false, // true to use "position", false to use "offset"
+		touch: true, // [CC] false to suppress touch dragging, true to allow
 		drop: true, // false to suppress drop events, true or selector to allow
 		click: false // false to suppress click events after dragend (no proxy)
 	},
@@ -108,6 +109,8 @@ drag = $special.drag = {
 			return;
 		// the drag/drop interaction data
 		var dd = event.data, results;
+		// [CC] allow disabling of touch-dragging
+		if ( !dd.touch && event.type == 'touchstart') return;
 		// check the which directive
 		if ( event.which != 0 && dd.which > 0 && event.which != dd.which ) 
 			return; 

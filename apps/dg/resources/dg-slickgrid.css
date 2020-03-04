@@ -161,6 +161,8 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
 }
 
 .slick-viewport {
+  /* enable momentum scrolling in case table body */
+  -webkit-overflow-scrolling: touch;
   /*
    * The following is address webkit bug where scroller thumb did not respect z-axis.
    * See: http://stackoverflow.com/questions/16874546/strange-z-index-behavior-with-scrollbars-under-chrome
