@@ -43,8 +43,18 @@
     cursor: pointer;
 }
 
-.navbuttons-arrow [class*="moonicon-"]:hover {
-    color: #72bfca;
+/* only show hover effect on mouse devices that support hover */
+/* avoids bugs related to iOS Safari's simulated hover effects */
+@media(hover: hover) and (pointer: fine) {
+    .navbuttons-arrow [class*="moonicon-"]:hover {
+        color: #72bfca;
+    }
+}
+/* otherwise, highlight on touch/click instead of hover */
+@media(hover: none), (pointer: coarse) {
+    .navbuttons-arrow [class*="moonicon-"]:active {
+        color: #72bfca;
+    }
 }
 
 .react-data-card-collection-header {
