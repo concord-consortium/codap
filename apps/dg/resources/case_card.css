@@ -22,8 +22,9 @@
     white-space: nowrap;
 }
 
-.react-data-card input {
+.react-data-card .react-data-card-value-input {
     font-size: 11px;
+    width: calc(100% - 1px);
 }
 
 .react-data-card-navbuttons {
