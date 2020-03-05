@@ -37,13 +37,13 @@ DG.React.ready(function () {
           },
 
           componentDidMount: function () {
-            DG.mainPage.mainPane.addListener({action: 'click', target: this, method: this._onWindowClick});
-            DG.mainPage.mainPane.addListener({action: 'touchstart', target: this, method: this._onWindowClick});
+            window.addEventListener("touchstart", this._onWindowClick, true);
+            window.addEventListener("mousedown", this._onWindowClick, true);
           },
 
           componentWillUnmount: function () {
-            DG.mainPage.mainPane.removeListener({action: 'click', target: this, method: this._onWindowClick});
-            DG.mainPage.mainPane.removeListener({action: 'touchstart', target: this, method: this._onWindowClick});
+            window.removeEventListener("touchstart", this._onWindowClick, true);
+            window.removeEventListener("mousedown", this._onWindowClick, true);
           },
 
           hide: function () {
@@ -61,8 +61,9 @@ DG.React.ready(function () {
           },
 
           _onWindowClick: function( event) {
-            var dropdownElement = findDOMNode(this);
-            if (event.target !== dropdownElement && !dropdownElement.contains(event.target) && this.state.active) {
+            if (this.state.active &&
+                !event.target.classList.contains("react-data-card-attribute-menu-item") &&
+                !event.target.classList.contains("dropdown__content")) {
               this.hide();
             }
           },
