@@ -47,7 +47,18 @@ DG.main = function main() {
         wantsSCTouch = $(evt.target).closest('.dg-wants-sc-touch').length;
     return wantsSCTouch
               ? NO
-              : (dgWantsTouch ? YES : orgIgnoreTouchHandle(evt));
+              : (dgWantsTouch ? YES : orgIgnoreTouchHandle.call(this, evt));
+  };
+
+  // Fix to prevent assignment of touches that have already ended.
+  var orgAssignTouch = SC.RootResponder.prototype.assignTouch;
+  SC.RootResponder.prototype.assignTouch = function(touch, view) {
+    if (touch.hasEnded) {
+      console.warn("Attempt to assign a touch that is already finished.");
+    }
+    else {
+      orgAssignTouch.call(this, touch, view);
+    }
   };
 
   var orgIgnoreMouseHandle = SC.RootResponder.prototype.ignoreMouseHandle;
