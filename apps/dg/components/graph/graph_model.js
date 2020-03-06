@@ -887,6 +887,19 @@ DG.GraphModel = DG.DataLayerModel.extend(
         this.set( iAxisKey, tNewAxis );
         tAxisToDestroy.destroy();
 
+        // The opposite axis may need syncing, e.g. when we drop a numeric attribute on the secondary axis of a binned plot
+        var tOppDescKey = iDescKey === 'xAttributeDescription' ? 'yAttributeDescription' : 'xAttributeDescription',
+            tOppAxisKey = iAxisKey === 'xAxis' ? 'yAxis' : 'xAxis',
+            tOppAxis = this.get( tOppAxisKey);
+        if( tDataConfiguration.getPath(tOppDescKey + '.isNumeric') && tOppAxis.constructor !== DG.CellLinearAxisModel) {
+          var tNewOppAxis = DG.CellLinearAxisModel.create({
+                dataConfiguration: tDataConfiguration,
+                attributeDescription: tDataConfiguration.get(tOppDescKey)
+              });
+          this.set( tOppAxisKey, tNewOppAxis);
+          tOppAxis.destroy();
+        }
+
         this.synchPlotWithAttributes();
       }
     },
