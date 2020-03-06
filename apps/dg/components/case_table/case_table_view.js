@@ -205,10 +205,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                   .sendAction('newAttributeAction', tableController, this, this.get('pane'),
                       { collection: collection, autoEditName: true });
             }
+            return YES;
           },
           touchStart: function( evt) {
-            evt.which = 1;  // Simulate left-button
-            this.mouseDown( evt);
+            return YES;
+          },
+          touchEnd: function( evt) {
+            evt.allowDefault();
+            return YES;
           }
         }),
 
