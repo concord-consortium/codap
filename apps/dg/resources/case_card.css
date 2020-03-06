@@ -17,6 +17,7 @@
     background-color: white;
     overflow-x: hidden;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     font-family: 'Montserrat', sans-serif;
     table-layout: fixed;
     white-space: nowrap;

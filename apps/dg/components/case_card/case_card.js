@@ -537,7 +537,7 @@ DG.React.ready(function () {
             return tr({
               key: 'attr-' + iAttrIndex,
               className: 'react-data-card-row'
-            }, tCell, td({className: tValueClassName}, tValueField));
+            }, tCell, td({className: 'dg-wants-touch ' + tValueClassName}, tValueField));
           },
 
           /**
