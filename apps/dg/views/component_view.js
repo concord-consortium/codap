@@ -21,6 +21,10 @@
 
 sc_require('views/titlebar_button_view');
 
+var kResizeHandleSize = 24,
+    kResizeHandleHalfSize = kResizeHandleSize / 2,
+    kResizeHandleInset = 2;
+
 /** @class
 
     DragBorderView is typically a thin view configured to lie on the border of a component
@@ -238,7 +242,8 @@ DG.ComponentView = SC.View.extend(
           kRightBorderCursor = SC.Cursor.create({cursorStyle: SC.E_RESIZE_CURSOR}),
           kBottomBorderCursor = SC.Cursor.create({cursorStyle: SC.S_RESIZE_CURSOR}),
           kLeftBorderCursor = SC.Cursor.create({cursorStyle: SC.W_RESIZE_CURSOR}),
-          kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR}),
+          kBottomLeftBorderCursor = SC.Cursor.create({cursorStyle: SC.SW_RESIZE_CURSOR}),
+          kBottomRightBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR}),
           kViewInComponentMode = DG.get('componentMode') === 'yes',
           kViewInEmbeddedMode = DG.get('embeddedMode') === 'yes',
           kHideUndoRedoInComponent = DG.get('hideUndoRedoInComponent') === 'yes',
@@ -340,8 +345,13 @@ DG.ComponentView = SC.View.extend(
           this.get('borderRight').set('isVisible', false);
           this.get('borderBottom').set('isVisible', false);
           this.get('borderLeft').set('isVisible', false);
-          this.get('borderTop').set('isVisible', false);
-          this.get('borderCorner').set('isVisible', false);
+          this.get('borderBottomLeft').set('isVisible', false);
+          this.get('borderBottomRight').set('isVisible', false);
+          this.get('resizeRight').set('isVisible', false);
+          this.get('resizeBottom').set('isVisible', false);
+          this.get('resizeLeft').set('isVisible', false);
+          this.get('resizeBottomLeft').set('isVisible', false);
+          this.get('resizeBottomRight').set('isVisible', false);
         },
         /**
          * Makes a component view standalone. This means:
@@ -370,9 +380,13 @@ DG.ComponentView = SC.View.extend(
           }
           return this.getPath('containerView.contentView');
         }.property(),
-        childViews: ('containerView' + (DG.get('componentMode') === 'no' ?
-            ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),
+        childViews: ('containerView' +
+                      (DG.get('componentMode') === 'no'
+                        ? ' borderRight borderBottom borderLeft borderBottomLeft borderBottomRight' +
+                          ' resizeRight resizeBottom resizeLeft resizeBottomLeft resizeBottomRight'
+                        : '')).w(),
         containerView: SC.View.design({
+          classNames: ['dg-component-container'],
           layout: {left: 0, bottom: 0, right: 0},
           childViews: 'titlebar coverSheet'.w(),
           titlebar: DG.DragBorderView.design({
@@ -587,7 +601,6 @@ DG.ComponentView = SC.View.extend(
               DG.mainPage.mainPane.getPath('scrollView.contentView').coverUpComponentViews('uncover');
             }
           }),
-          classNames: ['dg-component-border'],
           setContentView: function (iContentView) {
             this.set('contentView', iContentView);
           }
@@ -595,6 +608,7 @@ DG.ComponentView = SC.View.extend(
         }), // containerView
         borderRight: DG.DragBorderView.design(
             {
+              classNames: ['dg-component-border'],
               layout: {top: kTitleBarHeight, right: 0, width: kDragWidth},
               dragCursor: kRightBorderCursor,
               dragAdjust: function (evt, info) {
@@ -623,6 +637,7 @@ DG.ComponentView = SC.View.extend(
             }),
         borderBottom: DG.DragBorderView.design(
             {
+              classNames: ['dg-component-border'],
               layout: {bottom: 0, height: kDragWidth},
               dragCursor: kBottomBorderCursor,
               dragAdjust: function (evt, info) {
@@ -648,6 +663,7 @@ DG.ComponentView = SC.View.extend(
             }),
         borderLeft: DG.DragBorderView.design(
             {
+              classNames: ['dg-component-border'],
               layout: {left: 0, width: kDragWidth},
               dragCursor: kLeftBorderCursor,
               dragAdjust: function (evt, info) {
@@ -676,17 +692,264 @@ DG.ComponentView = SC.View.extend(
                 return this.parentView.get('isResizable');
               }
             }),
-        borderTop: DG.DragBorderView.design(
+        borderBottomLeft: DG.DragBorderView.design(
             {
-              layout: {top: 0, height: 0},
+              layout: {left: 0, width: 2 * kDragWidth, bottom: 0, height: 2 * kDragWidth},
+              dragCursor: kBottomLeftBorderCursor,
+              dragAdjust: function (evt, info) {
+                // Don't let user drag right edge off left of window
+                var tMinHeight = this.get('contentMinHeight') || kMinSize,
+                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize,
+                    tMinWidth = this.get('contentMinWidth') || kMinSize,
+                    tLoc = Math.max(evt.pageX, tMinWidth),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
+                    tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY)),
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tContainerWidth = this.getContainerWidth(),
+                    tContainerHeight = this.getContainerHeight();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tMaxHeight = tContainerHeight - info.top;
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
+                }
+                // Don't let width or height of component become too small
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
+                tLoc = info.left + info.width - tNewWidth;
+                if (tLoc < tContainerWidth - tMinWidth) {
+                  this.parentView.adjust('width', tNewWidth);
+                  this.parentView.adjust('left', tLoc);
+                }
+                tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
+                this.parentView.adjust('height', tNewHeight);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                }
+              },
               canBeDragged: function () {
-                return false;
+                return this.parentView.get('isResizable');
               }
             }),
-        borderCorner: DG.DragBorderView.design(
+        borderBottomRight: DG.DragBorderView.design(
             {
               layout: {right: 0, width: 2 * kDragWidth, bottom: 0, height: 2 * kDragWidth},
-              dragCursor: kCornerBorderCursor,
+              dragCursor: kBottomRightBorderCursor,
+              dragAdjust: function (evt, info) {
+                // Don't let user drag right edge off left of window
+                var tMinHeight = this.get('contentMinHeight') || kMinSize,
+                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize,
+                    tMinWidth = this.get('contentMinWidth') || kMinSize,
+                    tLoc = Math.max(evt.pageX, tMinWidth),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
+                    tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY)),
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tContainerWidth = this.getContainerWidth(),
+                    tContainerHeight = this.getContainerHeight();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tMaxHeight = tContainerHeight - info.top;
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
+                }
+                // Don't let width or height of component become too small
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
+                this.parentView.adjust('width', tNewWidth);
+                tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
+                this.parentView.adjust('height', tNewHeight);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                }
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        resizeRight: DG.DragBorderView.design(
+            {
+              classNames: ['dg-component-resize-handle'],
+              layout: {centerY: 0, right: -kResizeHandleHalfSize,
+                        width: kResizeHandleSize, height: kResizeHandleSize},
+              didCreateLayer: function() {
+                this.set('isVisible', this.canBeDragged());
+              },
+              childViews: ['interior'],
+              interior: SC.View.design({
+                classNames: ['dg-component-resize-handle-interior'],
+                layout: {left: kResizeHandleInset, top: kResizeHandleInset,
+                        right: kResizeHandleInset, bottom: kResizeHandleInset}
+              }),
+              dragCursor: kRightBorderCursor,
+              dragAdjust: function (evt, info) {
+                // Don't let user drag right edge off left of window
+                var tMinWidth = this.get('contentMinWidth') || kMinSize,
+                    tLoc = Math.max(evt.pageX, tMinWidth),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tContainerWidth = this.getContainerWidth();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
+                }
+                // Don't let width of component become too small
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
+                this.parentView.adjust('width', tNewWidth);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                }
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        resizeBottom: DG.DragBorderView.design(
+            {
+              classNames: ['dg-component-resize-handle'],
+              layout: {centerX: 0, bottom: -kResizeHandleHalfSize,
+                        width: kResizeHandleSize, height: kResizeHandleSize},
+              didCreateLayer: function() {
+                this.set('isVisible', this.canBeDragged());
+              },
+              childViews: ['interior'],
+              interior: SC.View.design({
+                classNames: ['dg-component-resize-handle-interior'],
+                layout: {left: kResizeHandleInset, top: kResizeHandleInset,
+                        right: kResizeHandleInset, bottom: kResizeHandleInset}
+              }),
+              dragCursor: kBottomBorderCursor,
+              dragAdjust: function (evt, info) {
+                var tMinHeight = this.get('contentMinHeight') || kMinSize,
+                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize,
+                    tNewHeight = info.height + (evt.pageY - info.pageY),
+                    tContainerHeight = this.getContainerHeight();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tMaxHeight = Math.min(tMaxHeight, tContainerHeight - info.top);
+                }
+                tNewHeight = DG.ViewUtilities.roundToGrid(Math.min(
+                    Math.max(tNewHeight, tMinHeight), tMaxHeight));
+                this.parentView.adjust('height', tNewHeight);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
+                }
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        resizeLeft: DG.DragBorderView.design(
+            {
+              classNames: ['dg-component-resize-handle'],
+              layout: {left: -kResizeHandleHalfSize, centerY: 0,
+                        width: kResizeHandleSize, height: kResizeHandleSize},
+              didCreateLayer: function() {
+                this.set('isVisible', this.canBeDragged());
+              },
+              childViews: ['interior'],
+              interior: SC.View.design({
+                classNames: ['dg-component-resize-handle-interior'],
+                layout: {left: kResizeHandleInset, top: kResizeHandleInset,
+                        right: kResizeHandleInset, bottom: kResizeHandleInset}
+              }),
+              dragCursor: kLeftBorderCursor,
+              dragAdjust: function (evt, info) {
+                var tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tMinWidth = this.get('contentMinWidth') || kMinSize,
+                    tContainerWidth = this.getContainerWidth();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  evt.pageX = Math.max(0, evt.pageX);
+                }
+                var tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
+                    tLoc;
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
+                tLoc = info.left + info.width - tNewWidth;
+                if (tLoc < tContainerWidth - tMinWidth) {
+                  this.parentView.adjust('width', tNewWidth);
+                  this.parentView.adjust('left', tLoc);
+                }
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                  this.parentView.originalLayout.left = tLoc / tScaleFactor;
+                }
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        resizeBottomLeft: DG.DragBorderView.design(
+            {
+              classNames: ['dg-component-resize-handle'],
+              layout: {left: -kResizeHandleHalfSize, bottom: -kResizeHandleHalfSize,
+                      width: kResizeHandleSize, height: kResizeHandleSize},
+              didCreateLayer: function() {
+                this.set('isVisible', this.canBeDragged());
+              },
+              childViews: ['interior'],
+              interior: SC.View.design({
+                classNames: ['dg-component-resize-handle-interior'],
+                layout: {left: kResizeHandleInset, top: kResizeHandleInset,
+                        right: kResizeHandleInset, bottom: kResizeHandleInset}
+              }),
+              dragCursor: kBottomLeftBorderCursor,
+              dragAdjust: function (evt, info) {
+                // Don't let user drag right edge off left of window
+                var tMinHeight = this.get('contentMinHeight') || kMinSize,
+                    tMaxHeight = this.get('contentMaxHeight') || kMaxSize,
+                    tMinWidth = this.get('contentMinWidth') || kMinSize,
+                    tLoc = Math.max(evt.pageX, tMinWidth),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
+                    tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY)),
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize,
+                    tContainerWidth = this.getContainerWidth(),
+                    tContainerHeight = this.getContainerHeight();
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  tMaxHeight = tContainerHeight - info.top;
+                  var tInspectorDimensions = this.parentView.getInspectorDimensions();
+                  tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
+                }
+                // Don't let width or height of component become too small
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
+                tLoc = info.left + info.width - tNewWidth;
+                if (tLoc < tContainerWidth - tMinWidth) {
+                  this.parentView.adjust('width', tNewWidth);
+                  this.parentView.adjust('left', tLoc);
+                }
+                tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
+                this.parentView.adjust('height', tNewHeight);
+                if (DG.KEEP_IN_BOUNDS_PREF) {
+                  var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                      tScaleFactor = tInBoundsScaling.scaleFactor;
+                  this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
+                  this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
+                }
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        resizeBottomRight: DG.DragBorderView.design(
+            {
+              classNames: ['dg-component-resize-handle'],
+              layout: {right: -kResizeHandleHalfSize, bottom: -kResizeHandleHalfSize,
+                        width: kResizeHandleSize, height: kResizeHandleSize},
+              didCreateLayer: function() {
+                this.set('isVisible', this.canBeDragged());
+              },
+              childViews: ['interior'],
+              interior: SC.View.design({
+                classNames: ['dg-component-resize-handle-interior'],
+                layout: {left: kResizeHandleInset, top: kResizeHandleInset,
+                        right: kResizeHandleInset, bottom: kResizeHandleInset}
+              }),
+              dragCursor: kBottomRightBorderCursor,
               dragAdjust: function (evt, info) {
                 // Don't let user drag right edge off left of window
                 var tMinHeight = this.get('contentMinHeight') || kMinSize,
