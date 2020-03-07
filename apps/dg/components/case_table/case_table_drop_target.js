@@ -247,8 +247,14 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
           };
           dataContext.applyChange(tChange);
         },
+        touchStart: function() {
+          return YES;
+        },
+        touchEnd: function(evt) {
+          evt.allowDefault();
+          return YES;
+        },
         mouseDown: function () {
-          // DG.log('Drop Target mouseDown!');
           return YES;
         }
       };
