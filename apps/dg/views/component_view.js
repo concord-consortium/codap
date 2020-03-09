@@ -939,6 +939,9 @@ DG.ComponentView = SC.View.extend(
           }
           this.set('isVisible', true);
           this.select();
+          if (DG.KEEP_IN_BOUNDS_PREF && !this.get('isStandaloneComponent')) {
+            DG.currDocumentController().enforceViewBounds();
+          }
         },
 
         /**
