@@ -105,12 +105,14 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
        */
       setCircleCoordinate: function (iRC, iCase, iIndex, iAnimate, iCallback) {
         iAnimate = iAnimate || this.dragInProgress;
-        var tPlottedElements = this.get('plottedElements');
+        var tPlottedElements = this.get('plottedElements'),
+            tInfo = iRC.model.infoForCase(iIndex);
+        if(!tInfo)
+          return; // Happens during transition from one plot to another
         DG.assert(iCase, 'There must be a case');
         DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, tPlottedElements.length),
             'index %@ out of bounds for plottedElements of length %@'.loc(iIndex, tPlottedElements.length));
         var tCircle = tPlottedElements[iIndex],
-            tInfo = iRC.model.infoForCase(iIndex),
             tBinCoord = iRC.primaryAxisView.binToCoordinate(tInfo.bin),
             tIsMissingCase = (!tInfo || !DG.isFinite(tBinCoord) ||
                 iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);
