@@ -269,7 +269,8 @@ DG.DateUtilities.dateParser = (function () {
   var dateVar1GroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
   // yyyy-mm-dd, yyyy.mm.dd, yyyy/mm/dd
-  var dateVar2 = new RegExp('^(\\d{4})[./-](\\d\\d?)(?:[./-](\\d\\d?)(?: ' + timePart + '(?: (am|pm|AM|PM))?)?)?$');
+  // Require all three parts
+  var dateVar2 = new RegExp('^(\\d{4})[./-](\\d\\d?)[./-](\\d\\d?)(?: ' + timePart + '(?: (am|pm|AM|PM))?)?$');
   var dateVar2GroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, ampm: 8};
 
   // MMM dd, yyyy or MMM yyyy
@@ -305,7 +306,7 @@ DG.DateUtilities.dateParser = (function () {
     { strict: true, regex: unixDate, groupMap: unixDateGroupMap },
     { strict: true, regex: browserDate, groupMap: browserDateGroupMap},
     { strict: true, regex: utcDate, groupMap: utcDateGroupMap},
-    { strict: true, regex: dateVar2, groupMap: dateVar2GroupMap },
+    { strict: false, regex: dateVar2, groupMap: dateVar2GroupMap },
     { strict: true, regex: dateVar1, groupMap: dateVar1GroupMap },
     { strict: true, regex: dateVar3, groupMap: dateVar3GroupMap },
     { strict: false, regex: dateVarYearOnly, groupMap: dateVarYearOnlyGroupMap },
