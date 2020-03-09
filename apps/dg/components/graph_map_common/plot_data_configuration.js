@@ -39,7 +39,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
 
       /**
        The outer array is indexed by DG.GraphTypes.EPlace
-       @property { Array of {Array of {DG.AttributeDescription}}}
+       @property { [ [ {DG.AttributePlacementDescription}] ] }
        */
       attributesByPlace: null,
 
@@ -141,6 +141,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
         return !SC.none(this.attributesByPlace) ?
             this.attributesByPlace[iPlace][0] : null;
       }.property(),
+
+      /**
+       * Used in attributeIsNominal for testing attributes that are not necessarily assigned to this data configuration.
+       * @property { DG.AttributePlacementDescription }
+       */
+      _tempAttrDescription: null,
 
       /**
        * One of my attributeDescription's attribute's collections has changed.
@@ -914,6 +920,39 @@ DG.PlotDataConfiguration = SC.Object.extend(
           ioStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
           ioStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
         }
+      },
+
+      /**
+       * The given attribute is typically not assigned to us but we need to know whether it should be treated as
+       * nominal or not. We cannot use Attribute:isNominal because that will not use the same set of cases we will.
+       *
+       * @param iAttribute {DG.Attribute }
+       * @return {boolean}
+       */
+      attributeIsNominal: function( iAttribute) {
+
+        function getCollectionClient(iContext, iCollection) {
+          var collectionID = iCollection && iCollection.get('id');
+          return iContext && !SC.none(collectionID) && iContext.getCollectionByID(collectionID);
+        }
+
+        if(!this._tempAttrDescription) {
+          this._tempAttrDescription = DG.AttributePlacementDescription.create();
+        }
+        var tDescription = this._tempAttrDescription;
+
+        if( tDescription.get('attribute') !== iAttribute) {
+          var tCollectionClient = getCollectionClient( this.get('dataContext'), iAttribute.get('collection'));
+          tDescription.removeAllAttributes();
+          tDescription.beginPropertyChanges();
+            tDescription.set('collectionClient', (tCollectionClient) || null);
+            this._casesCache = null;  // because setting a new attribute and collection client can require recomputation of cases
+            tDescription.setCases(this.get('cases'));
+            tDescription.addAttribute(iAttribute);
+            tDescription.invalidateCaches(this.get('cases'));  // So that notification order won't be important
+          tDescription.endPropertyChanges();
+        }
+        return tDescription.get('isCategorical');
       }
 
     });

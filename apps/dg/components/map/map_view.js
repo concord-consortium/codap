@@ -109,6 +109,10 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         return this.getPath('mapPointView.layerManager');
       }.property(),
 
+      dataConfiguration: function() {
+        return this.getPath('model.firstDataConfiguration');
+      }.property(),
+
       init: function () {
         sc_super();
         var tMapLayer = DG.BaseMapView.create({model: this.get('model')});

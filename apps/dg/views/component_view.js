@@ -106,7 +106,8 @@ DG.DragBorderView = SC.View.extend(
                 values: {
                   operation: isResize ? 'resize' : 'move',
                   type: tViewToDrag.getPath('controller.model.type'),
-                  id: tViewToDrag.getPath('controller.model.id')
+                  id: tViewToDrag.getPath('controller.model.id'),
+                  title: tViewToDrag.getPath('controller.model.title')
                 }
               },
               log: '%@ component "%@"'.fmt((isResize ? 'Resized' : 'Moved'), tViewToDrag.get('title')),
@@ -938,6 +939,9 @@ DG.ComponentView = SC.View.extend(
           }
           this.set('isVisible', true);
           this.select();
+          if (DG.KEEP_IN_BOUNDS_PREF && !this.get('isStandaloneComponent')) {
+            DG.currDocumentController().enforceViewBounds();
+          }
         },
 
         /**

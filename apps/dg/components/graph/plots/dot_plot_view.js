@@ -62,15 +62,17 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   binArrays: null,
 
   /**
-   * Return the class of the desired axis and the x or y to put it on.
+   * Return the classes of the desired axis views and the x or y to put them on.
+   * @return {[{}]}
    */
-  configureAxes: function () {
-    var tRet = sc_super(),
+  provideAxisViewDescriptions: function () {
+    var tDescriptions = sc_super(),
         tAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
-    tRet = tRet || {};
-    tRet.axisKey = tAxisKey;
-    tRet.axisClass = DG.CellLinearAxisView;
-    return tRet;
+    tDescriptions.push( {
+      axisKey: tAxisKey,
+      axisClass: DG.CellLinearAxisView
+    });
+    return tDescriptions;
   },
 
   /**

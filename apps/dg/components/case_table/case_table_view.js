@@ -205,10 +205,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                   .sendAction('newAttributeAction', tableController, this, this.get('pane'),
                       { collection: collection, autoEditName: true });
             }
+            return YES;
           },
           touchStart: function( evt) {
-            evt.which = 1;  // Simulate left-button
-            this.mouseDown( evt);
+            return YES;
+          },
+          touchEnd: function( evt) {
+            evt.allowDefault();
+            return YES;
           }
         }),
 
@@ -822,6 +826,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                                                   buttonImage: static_url("images/down.gif")
                                                 });
         this._slickGrid.registerPlugin(this.headerMenu);
+        this.$('.slick-viewport').addClass('dg-wants-touch');
 
         this.headerMenu.onBeforeMenuShow.subscribe(function(e, args) {
           hierTableView.hideHeaderMenus();
@@ -2308,6 +2313,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return NO;
     },
     mouseDown: function () {
+      return YES;
+    },
+    touchStart: function () {
+      // claim the event so we get the touchEnd
+      return YES;
+    },
+    touchEnd: function (evt) {
+      // allows the browser to generate mouse events
+      // cf. DG.mainPage.scrollView.touchStart() for details
+      evt.allowDefault();
       return YES;
     }
   }; // end return from closure

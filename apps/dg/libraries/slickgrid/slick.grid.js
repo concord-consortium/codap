@@ -401,7 +401,7 @@ if (typeof Slick === "undefined") {
             .bind("click", handleClick)
             .bind("dblclick", handleDblClick)
             .bind("contextmenu", handleContextMenu)
-            .bind("draginit", handleDragInit)
+            .bind("draginit", {touch: false}, handleDragInit)
             .bind("dragstart", {distance: 3}, handleDragStart)
             .bind("drag", handleDrag)
             .bind("dragend", handleDragEnd)

@@ -797,5 +797,7 @@ SC.stringsFor("tr", {
     "DG.CaseTable.dividerView.expandGroupTooltip": "expand group",
     "DG.CaseTable.dividerView.collapseAllTooltip": "collapse all groups",
     "DG.CaseTable.dividerView.collapseGroupTooltip": "collapse group",
-    "DG.BinnedPlotModel.binLabelTip": "Values in this bin are ≥ %@ and < %@"
+    "DG.BinnedPlotModel.binLabelTip": "Values in this bin are ≥ %@ and < %@",
+    "DG.Component.closeComponent.toolTip": "Close this Component",
+    "DG.Component.minimizeComponent.toolTip": "Minimize or expand this Component"
 });

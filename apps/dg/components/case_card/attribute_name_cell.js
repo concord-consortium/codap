@@ -114,7 +114,7 @@ DG.React.ready(function () {
                 tNewAttrButton = (this.props.index === 0) ?
                     img({
                       src: static_url('images/add_circle_grey_72x72.png'),
-                      className: 'dg-floating-plus' + tNewAttrDisabledClass,
+                      className: 'dg-floating-plus dg-wants-touch' + tNewAttrDisabledClass,
                       width: 19,
                       height: 19,
                       title: 'DG.TableController.newAttributeTooltip'.loc(),

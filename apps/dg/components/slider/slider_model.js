@@ -126,7 +126,7 @@ DG.SliderModel = SC.Object.extend(
     },
 
     destroy: function() {
-      //DG.globalsController.destroyGlobalValue( this.get('content'));
+      DG.globalsController.destroyGlobalValue( this.get('content'));
       sc_super();
     },
 

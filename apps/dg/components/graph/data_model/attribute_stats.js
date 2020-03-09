@@ -344,6 +344,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           tAttributeType,
           tDataIsNumeric = true,  // True both for numbers and dates
           tDataIsDateTime = tCases.get('length') > 0,
+          tFoundADateDuringDataIsDateTime = false,
           tColorValuesExist = false,
           tMin = Number.POSITIVE_INFINITY,
           tMax = Number.NEGATIVE_INFINITY,
@@ -360,6 +361,8 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           // We have to determine whether iCaseValue is a date.
           // If it is numeric, it is not a date
           var tValue = Number(iCaseValue);
+          tFoundADateDuringDataIsDateTime = tDataIsDateTime &&
+              (tFoundADateDuringDataIsDateTime || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
           tDataIsDateTime = tDataIsDateTime && (SC.empty(iCaseValue) || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
           if (!SC.empty(iCaseValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
             tNumericCaseCount++;
@@ -399,6 +402,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           });
         });
       }
+      tDataIsDateTime = tDataIsDateTime && tFoundADateDuringDataIsDateTime;
 
       if (tNumericCaseCount > 0) {
         this.numericStats.set('count', tNumericCaseCount);

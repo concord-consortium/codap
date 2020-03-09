@@ -906,6 +906,8 @@ SC.stringsFor("en", {
     "DG.Component.closeComponent.confirmCloseDescription": "",
     "DG.Component.closeComponent.okButtonTitle": "Yes, close it",
     "DG.Component.closeComponent.cancelButtonTitle": "Cancel",
+    "DG.Component.closeComponent.toolTip": "Close this Component",
+    "DG.Component.minimizeComponent.toolTip": "Minimize or expand this Component",
     "DG.GameController.confirmCloseDescription": "If you close this, you may not be able to add more data.",
 
     // Web View

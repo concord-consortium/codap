@@ -251,7 +251,9 @@ DG.GraphView = SC.View.extend(
                 tPaperSource = iAxisViewDescription.axisKey === 'x' ?
                     this.get('bottomAxisLabelView') : this.get('leftAxisLabelView'),
                 tNewAxisModel = (tExistingAxisModelClass === tNewModelClass) ? tExistingAxisModel :
-                    tNewModelClass.create( iAxisViewDescription.axisModelProperties || {}),
+                    tNewModelClass.create(iAxisViewDescription.axisModelProperties || {}, {
+                      dataConfiguration: this.getPath('model.dataConfiguration')
+                    }),
                 tNewView = tNewViewClass.create({
                   orientation: tOrientation,
                   model: tNewAxisModel,
@@ -273,7 +275,6 @@ DG.GraphView = SC.View.extend(
           }
         }.bind(this);
 
-        var tAxisViewDescription; // { x|y: AxisView }
         iYAxisKey = iYAxisKey || 'yAxisView';
         iPlotView.beginPropertyChanges();
         iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
@@ -282,13 +283,10 @@ DG.GraphView = SC.View.extend(
         iPlotView.setIfChanged('xAxisView', this.get('xAxisView'));
         iPlotView.setIfChanged('yAxisView', this.get(iYAxisKey));
         // special requirements set up here, with possible return of description of an axis to be added
-        tAxisViewDescription = iPlotView.configureAxes();
-        if (!SC.none(tAxisViewDescription)) {
-          installAxisView(tAxisViewDescription);
+        iPlotView.provideAxisViewDescriptions().forEach(installAxisView);
           if( iPlotModel.rescaleAxesFromData)
             iPlotModel.rescaleAxesFromData( true /* allow scale shrinkage */,
                 true /* animate points */ );
-        }
         iPlotView.setupAxes();
         if (!SC.none(iCurrentPoints))
           iPlotView.set('transferredElementCoordinates', iCurrentPoints);
@@ -329,12 +327,15 @@ DG.GraphView = SC.View.extend(
             tYAxis = this.getPath('model.yAxis'),
             tYAxisAttributeType = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.type'),
             tY2Axis = this.getPath('model.y2Axis'),
+            tDataConfiguration = this.getPath('model.dataConfiguration'),
             tBottomAxisLabelView = DG.AxisLabelView.create({
               orientation: DG.GraphTypes.EOrientation.kHorizontal,
-              plottedAttribute: tXAxis.get('firstAttribute')
+              plottedAttribute: tXAxis.get('firstAttribute'),
+              dataConfiguration: tDataConfiguration
             }),
             tLeftAxisLabelView = DG.AxisLabelView.create({orientation: DG.GraphTypes.EOrientation.kVertical,
-              plottedAttribute: tYAxis.get('firstAttribute')}),
+              plottedAttribute: tYAxis.get('firstAttribute'),
+              dataConfiguration: tDataConfiguration}),
             tXAxisView = getAxisViewClass(tXAxis, tXAxisAttributeType).create({
               orientation: DG.GraphTypes.EOrientation.kHorizontal, paperSourceForLabel: tBottomAxisLabelView
             }),

@@ -17,13 +17,15 @@
     background-color: white;
     overflow-x: hidden;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     font-family: 'Montserrat', sans-serif;
     table-layout: fixed;
     white-space: nowrap;
 }
 
-.react-data-card input {
+.react-data-card .react-data-card-value-input {
     font-size: 11px;
+    width: calc(100% - 1px);
 }
 
 .react-data-card-navbuttons {
@@ -42,8 +44,18 @@
     cursor: pointer;
 }
 
-.navbuttons-arrow [class*="moonicon-"]:hover {
-    color: #72bfca;
+/* only show hover effect on mouse devices that support hover */
+/* avoids bugs related to iOS Safari's simulated hover effects */
+@media(hover: hover) and (pointer: fine) {
+    .navbuttons-arrow [class*="moonicon-"]:hover {
+        color: #72bfca;
+    }
+}
+/* otherwise, highlight on touch/click instead of hover */
+@media(hover: none), (pointer: coarse) {
+    .navbuttons-arrow [class*="moonicon-"]:active {
+        color: #72bfca;
+    }
 }
 
 .react-data-card-collection-header {

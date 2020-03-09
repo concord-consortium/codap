@@ -34,7 +34,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       modelProps: ['version', 'dimensions',
                   'preventBringToFront', 'preventDataContextReorg', 'preventTopLevelReorg',
                   'preventAttributeDeletion', 'allowEmptyAttributeDeletion',
-                  'respectEditableItemAttribute'],
+                  'respectEditableItemAttribute', 'subscribeToDocuments'],
 
       /**
        * We need to be able to set title.
@@ -100,6 +100,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           dataContext: this.handleDataContext,
           dataContextFromURL: this.handleDataContextFromURL,
           dataContextList: this.handleDataContextList,
+          document: this.handleDocument,
           global: this.handleGlobal,
           globalList: this.handleGlobalList,
           item: this.handleItems,
@@ -240,6 +241,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'undoableActionPerformed',
               'component',
               'componentList',
+              'document',
               'global',
               'globalList'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
@@ -2216,6 +2218,19 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true,
             values: result
           };
+        }
+      },
+
+      handleDocument: {
+        update: function (iResources, iDocObject) {
+
+          return {
+            success:DG.currDocumentController().updateDocument( iDocObject)
+          };
+        },
+        get: function() {
+          if (DG.currDocumentController().notificationManager)
+            DG.currDocumentController().notificationManager.sendDocumentToSubscribers();
         }
       },
 

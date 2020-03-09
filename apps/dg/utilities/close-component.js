@@ -48,6 +48,16 @@ DG.closeComponent = function (iComponentID) {
         } else {
           tContainerView.removeComponentView( tComponentView);
         }
+        DG.currDocumentController().notificationManager.sendNotification({
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'delete',
+            type: tController.getPath('model.type'),
+            id: tController.getPath('model.id'),
+            title: tController.getPath('model.title')
+          }
+        });
       },
       undo: function() {
         DG.currDocumentController().createComponentAndView(this._model);

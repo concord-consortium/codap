@@ -78,6 +78,11 @@ DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.pr
   standaloneUndoModeAvalable: false,
 
   /**
+   * @type {boolean}
+   */
+  subscribeToDocuments: false,
+
+  /**
    * @type {Object}
    */
   savedState: null,

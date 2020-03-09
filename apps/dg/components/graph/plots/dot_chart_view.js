@@ -194,14 +194,17 @@ DG.DotChartView = DG.ChartView.extend(
 
       /**
        * Return the class of the count axis with the x or y to put it on.
+       * @return {[{}]}
        */
-      configureAxes: function () {
-        var tRet = sc_super();
-        tRet = tRet || {};
-        tRet.axisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x';
-        tRet.axisClass = (this.getPath('model.dataConfiguration.' + tRet.axisKey + 'AttributeDescription.isNull')) ?
-            DG.AxisView : DG.CellAxisView;
-        return tRet;
+      provideAxisViewDescriptions: function () {
+        var tDescriptions = sc_super(),
+            tAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x';
+        tDescriptions.push({
+          axisKey: tAxisKey,
+          axisClass: (this.getPath('model.dataConfiguration.' + tAxisKey + 'AttributeDescription.isNull')) ?
+              DG.AxisView : DG.CellAxisView
+        });
+        return tDescriptions;
       },
 
       assignElementAttributes: function (iElement, iIndex, iAnimate) {
