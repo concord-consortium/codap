@@ -220,6 +220,7 @@ DG.mainPage = SC.Page.design((function() {
       contentView: DG.ContainerView.design( {
       }),
       touchStart: function(evt) {
+        DG.TouchTooltips.hideAllTouchTooltips();
         // By default, this SC.ScrollView captures the touchstart event so that it can decide
         // whether it should use it to scroll the page. To do so, it sets a timer to wait for
         // 150ms and if the touch has moved in that time it triggers a scroll event, while if it

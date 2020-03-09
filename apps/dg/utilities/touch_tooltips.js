@@ -37,7 +37,9 @@ DG.TouchTooltips = (function() {
   return {
     showTouchTooltip: function(touch, triggerView, title, placement) {
       var touchID = touch.identifier,
-          layer = triggerView.get('layer'),
+          layer = triggerView instanceof SC.View
+                    ? triggerView.get('layer')
+                    : triggerView,
           container = DG.mainPage.getPath('mainPane.layer'),
           _placement = placement || 'bottom-start',
           tooltip = new Tooltip(layer, {
