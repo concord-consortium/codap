@@ -83,6 +83,16 @@ DG.CaseCardView = SC.View.extend(
           ReactDOM.render( DG.React.Components.CaseCard( currProps), this.reactDiv);
         },
 
+        touchStart: function (evt) {
+          evt.allowDefault();
+          return YES;
+        },
+
+        touchEnd: function (evt) {
+          evt.allowDefault();
+          return YES;
+        },
+
         isValidAttribute: function (iDrag) {
           var tDragAttr = iDrag.data.attribute,
               tAttrs = this.get('context').getAttributes();

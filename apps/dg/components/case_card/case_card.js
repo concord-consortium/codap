@@ -199,7 +199,6 @@ DG.React.ready(function () {
             }
 
             function handleTouchStart(iEvent) {
-              iEvent.preventDefault();
               handleMouseDown(iEvent.touches[0]);
             }
 
@@ -217,7 +216,6 @@ DG.React.ready(function () {
             }
 
             function handleTouchMove(iEvent) {
-              iEvent.preventDefault();
               handleMouseMove(iEvent.touches[0]);
             }
 
@@ -231,7 +229,6 @@ DG.React.ready(function () {
             }
 
             function handleTouchEnd(iEvent) {
-              iEvent.preventDefault();
               handleMouseUp();
             }
 
@@ -540,7 +537,7 @@ DG.React.ready(function () {
             return tr({
               key: 'attr-' + iAttrIndex,
               className: 'react-data-card-row'
-            }, tCell, td({className: tValueClassName}, tValueField));
+            }, tCell, td({className: 'dg-wants-touch ' + tValueClassName}, tValueField));
           },
 
           /**

@@ -29,13 +29,12 @@ DG.React.ready(function () {
           },
 
           componentDidMount: function () {
-            // Note that this depends on SproutCore in the midst of a React component. Not good!
-            DG.mainPage.mainPane.addListener({action: 'click', target: this, method: this._onWindowClick});
-            DG.mainPage.mainPane.addListener({action: 'touchstart', target: this, method: this._onWindowClick});
+            window.addEventListener("touchstart", this._onWindowClick, true);
+            window.addEventListener("mousedown", this._onWindowClick, true);
           },
           componentWillUnmount: function () {
-            DG.mainPage.mainPane.removeListener({action: 'click', target: this, method: this._onWindowClick});
-            DG.mainPage.mainPane.removeListener({action: 'touchstart', target: this, method: this._onWindowClick});
+            window.removeEventListener("touchstart", this._onWindowClick, true);
+            window.removeEventListener("mousedown", this._onWindowClick, true);
           },
 
           componentWillReceiveProps: function (iNewProps) {
@@ -72,7 +71,7 @@ DG.React.ready(function () {
                 kCompletionCodes = [13, 9],
                 tResult = this.state.editing ?
                     input({
-                      className: 'dg-wants-mouse',
+                      className: 'react-data-card-value-input dg-wants-mouse dg-wants-touch',
                       type: 'text',
                       // ref is called on creation of the input element
                       ref: function( input) {
@@ -94,7 +93,7 @@ DG.React.ready(function () {
                       }
                     }) :
                     span({
-                      className: tValueClassName + this.props.className,
+                      className: tValueClassName + (this.props.className || ''),
                       onClick: function ( iEvent) {
                         if (!this.state.editing && this.props.onToggleEditing && this.props.isEditable) {
                           this.props.onToggleEditing(this);
