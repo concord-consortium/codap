@@ -23,7 +23,7 @@ For views that require access to browser-generated mouse events and/or `click` e
 1. calling `allowDefault()` on the event in `touchEnd()`.
     - instructs SproutCore _not_ to call `preventDefault()` on the corresponding `touchend` event.
 
-Both `DG.CaseCardView` and `DG.CaseTableView` use this technique to enable browser-generated events to be dispatched for the benefit of non-SproutCore libraries.
+Both `DG.CaseCardView` and `DG.CaseTableView` use this technique to enable browser-generated events to be dispatched for the benefit of non-SproutCore libraries. It is worth noting that calling `allowDefault()` on a synthetic event causes SproutCore to not call either `preventDefault()` (which would prevent standard browser behaviors like generating mouse events from touch events) or `stopPropagation()` (which would prevent bubbling of the event to parent DOM elements). If CODAP ever encountered the need to control one or the other of these individually, one would probably need to resort to accessing the `originalEvent` to do so.
 
 ## SproutCore touch gesture recognition
 
