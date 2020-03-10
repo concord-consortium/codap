@@ -1413,6 +1413,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       @param  {Object}        iDragData -- additional information about the drag
      */
     handleHeaderDragStart: function( iEvent, iDragData) {
+      DG.TouchTooltips.hideAllTouchTooltips();
+      // don't show a touch-tooltip after starting a drag
+      this.cancelAttrTapHold();
+
       var column = iDragData.column;
       var hierTableView = this.get('parentView');
 
@@ -2313,13 +2317,32 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return NO;
     },
     mouseDown: function () {
+      DG.TouchTooltips.hideAllTouchTooltips();
       return YES;
     },
-    touchStart: function () {
+    cancelAttrTapHold: function (evt) {
+      if (this._attrTapHoldTimer) {
+        clearTimeout(this._attrTapHoldTimer);
+        this._attrTapHoldTimer = null;
+      }
+    },
+    touchStart: function (evt) {
+      DG.TouchTooltips.hideAllTouchTooltips();
+      var elt = document.elementFromPoint(evt.clientX, evt.clientY);
+      while (elt && !elt.classList.contains('slick-header-column')) {
+        elt = elt.parentElement;
+      }
+      if (elt) {
+        this._attrTapHoldTimer = setTimeout(function() {
+                                    DG.TouchTooltips.showTouchTooltip(evt, elt, elt.title);
+                                    this._attrTapHold = null;
+                                  }.bind(this), 500);
+      }
       // claim the event so we get the touchEnd
       return YES;
     },
     touchEnd: function (evt) {
+      this.cancelAttrTapHold();
       // allows the browser to generate mouse events
       // cf. DG.mainPage.scrollView.touchStart() for details
       evt.allowDefault();
