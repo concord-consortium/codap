@@ -353,10 +353,29 @@ html, body {
 }
 
 /* visible in selected components */
-.dg-component-view-selected .dg-floating-plus {
-    visibility: visible;
-    opacity: 0.5;
-    cursor: pointer;
+.dg-component-view.dg-component-view-selected {
+    overflow: visible;
+
+    .dg-component-container {
+        overflow: visible;
+
+        .sc-split-view {
+            overflow: visible;
+        }
+    }
+
+    .dg-component-resize-handle-interior {
+        background-color: gray;
+        opacity: 0.2;
+        border: 1px solid black;
+        z-index: 9999;
+    }
+
+    .dg-floating-plus {
+        visibility: visible;
+        opacity: 0.5;
+        cursor: pointer;
+    }
 }
 
 /* hidden in selected components when explicitly disabled */
