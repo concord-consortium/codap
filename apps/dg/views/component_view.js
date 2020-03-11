@@ -148,10 +148,12 @@ DG.ComponentView = SC.View.extend(
           this.get('borderLeft').set('isVisible', false);
           this.get('borderBottomLeft').set('isVisible', false);
           this.get('borderBottomRight').set('isVisible', false);
+/*
           this.get('resizeRight').set('isVisible', false);
           this.get('resizeBottom').set('isVisible', false);
           this.get('resizeLeft').set('isVisible', false);
           this.get('resizeBottomLeft').set('isVisible', false);
+*/
           this.get('resizeBottomRight').set('isVisible', false);
         },
         /**
@@ -184,7 +186,7 @@ DG.ComponentView = SC.View.extend(
         childViews: ('containerView' +
                       (DG.get('componentMode') === 'no'
                         ? ' borderRight borderBottom borderLeft borderBottomLeft borderBottomRight' +
-                          ' resizeRight resizeBottom resizeLeft resizeBottomLeft resizeBottomRight'
+                          /*'resizeRight resizeBottom resizeLeft resizeBottomLeft'*/ ' resizeBottomRight'
                         : '')).w(),
         containerView: SC.View.design({
           classNames: ['dg-component-container'],
@@ -430,6 +432,7 @@ DG.ComponentView = SC.View.extend(
             {
               layout: {right: 0, width: 2 * kDragWidth, bottom: 0, height: 2 * kDragWidth}
             }),
+/*
         resizeRight: DG.DragRightBorderView.design(
             {
               classNames: ['dg-component-resize-handle'],
@@ -490,6 +493,7 @@ DG.ComponentView = SC.View.extend(
                         right: kResizeHandleInset, bottom: kResizeHandleInset}
               })
             }),
+*/
         resizeBottomRight: DG.DragBottomRightBorderView.design(
             {
               classNames: ['dg-component-resize-handle'],
