@@ -52,6 +52,19 @@ DG.InspectorView = DG.DraggableView.extend(
           this.selectedComponentDidChange();
         },
 
+        adjustLayout: function () {
+          var tChildren = this.get('childViews'),
+              tCurrTop = kPadding;
+          tChildren.forEach(function (iChild, iIndex) {
+            if (iChild.get('isVisible')) {
+              iChild.adjust({top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2});
+              tCurrTop += iChild.iconExtent.height + 2 * kPadding;
+            }
+          });
+          this.animate('height', Math.max(kCellHeight, tCurrTop - kPadding), kAnimationTime,
+                        function() { this.invokeLater(this.scrollToVisible); }.bind(this));
+        },
+
         targetComponentDidChange: function () {
 
           var removeChildren = function () {
@@ -62,24 +75,7 @@ DG.InspectorView = DG.DraggableView.extend(
                 while (tChild = tChildren[0]) {   // jshint ignore:line
                   this.removeChild(tChild);
                 }
-              }.bind(this),
-
-              adjustLayout = function () {
-                var tChildren = this.get('childViews'),
-                    tCurrTop = kPadding;
-                tChildren.forEach(function (iChild, iIndex) {
-                  if( iChild.get('isVisible')) {
-                    iChild.adjust({top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2});
-                    tCurrTop += iChild.iconExtent.height + 2 * kPadding;
-                  }
-                });
-                this.animate('height', Math.max(kCellHeight, tCurrTop - kPadding), kAnimationTime,
-                              finishUp);
-              }.bind(this),
-
-              finishUp = function() {
-                this.invokeLater( this.scrollToVisible);
-              }.bind( this);
+              }.bind(this);
 
           var tTarget = this.get('targetComponent');
           if (tTarget) {
@@ -87,22 +83,10 @@ DG.InspectorView = DG.DraggableView.extend(
           }
           this.targetLayoutDidChange();
           this.get('childViews').forEach( function( iChild) {
-            iChild.removeObserver( 'isVisible', this, adjustLayout);
-          });
+            iChild.removeObserver( 'isVisible', this, 'adjustLayout');
+          }.bind(this));
           removeChildren();
-          var tWidth,
-              tButtons = this.getPath('targetComponent.inspectorButtons');
-          if (tButtons && tButtons.length > 0) {
-            tButtons.forEach(function (iButton) {
-              this.appendChild(iButton);
-              iButton.addObserver( 'isVisible', this, adjustLayout);
-            }.bind(this));
-            tWidth = kExpandedWidth;
-          }
-          else {
-            tWidth = kCollapsedWidth;
-          }
-          this.animate('width', tWidth, kAnimationTime, adjustLayout);
+          this.inspectorButtonsDidChange();
         }.observes('targetComponent'),
 
         selectedComponentDidChange: function () {
@@ -117,9 +101,25 @@ DG.InspectorView = DG.DraggableView.extend(
           var tTargetFrame = this.getPath('targetComponent.frame');
           if (tTargetFrame) {
             this.adjust('top', tTargetFrame.y);
-              this.adjust('left', tTargetFrame.x + tTargetFrame.width);
+            this.adjust('left', tTargetFrame.x + tTargetFrame.width);
           }
         },
+
+        inspectorButtonsDidChange: function () {
+          var tWidth,
+              tButtons = this.getPath('targetComponent.inspectorButtons');
+          if (tButtons && tButtons.length > 0) {
+            tButtons.forEach(function (iButton) {
+              this.appendChild(iButton);
+              iButton.addObserver('isVisible', this, 'adjustLayout');
+            }.bind(this));
+            tWidth = kExpandedWidth;
+          }
+          else {
+            tWidth = kCollapsedWidth;
+          }
+          this.animate('width', tWidth, kAnimationTime, this, 'adjustLayout');
+        }.observes('*targetComponent.inspectorButtons'),
 
         /**
          * Called during drag
