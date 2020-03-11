@@ -988,7 +988,7 @@ DG.GraphView = SC.View.extend(
             tCurrentPoints, tNewViewClass, tNewView,
             tInitLayout = false;
 
-        if( !tCurrentView)  // Sometimes we get here without a current plotview
+        if( !tCurrentView || tPlot.get('isDestroyed'))  // We get here without a current plotview or plot during close
           return;
 
         tNewViewClass = this.mapPlotModelToPlotView(tPlot);
