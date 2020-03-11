@@ -573,6 +573,22 @@ DG.React.ready(function () {
               return tSelectedCaseFirstChildCaseID;
           },
 
+          getSelectedCaseIndices: function (iCollectionClient) {
+            var tSelectedCases = iCollectionClient.getPath('casesController.selection').toArray(),
+                tSortedSelection = tSelectedCases.map(function(iCase) {
+                  return {
+                    id: iCase.id,
+                    index: iCollectionClient.getCaseIndexByID(iCase.id)
+                  };
+                });
+            tSortedSelection.sort(function(a, b) {
+              return a.index - b.index;
+            });
+            return tSortedSelection.map(function(iEntry) {
+              return iEntry.index;
+            });
+          },
+
           /**
            *
            * @param iCollectionClient
@@ -582,14 +598,23 @@ DG.React.ready(function () {
             this.stashEditValueInCaseAttributeValue();
 
             var tPrevIndex = null;
+            var tParentCollection = iCollectionClient.getPath('collection.parent');
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
-            if (SC.none(iCaseIndex) && iCollectionClient.getPath('collection.parent')) {
-              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
-              if (tSelectedParentFirstCaseID) {
+            if (SC.none(iCaseIndex)) {
+              if (tParentCollection) {
+                var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(tParentCollection);
+                if (tSelectedParentFirstCaseID) {
                   tPrevIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID) - 1;
                   if (tPrevIndex < 0) {
                     tPrevIndex = tNumCases - 1;
                   }
+                }
+              }
+              else {
+                // get index of last selected case
+                var tSelectedIndices = this.getSelectedCaseIndices(iCollectionClient);
+                if (tSelectedIndices.length)
+                  tPrevIndex = tSelectedIndices[tSelectedIndices.length - 1];
               }
             }
             if (SC.none(iCaseIndex) || iCaseIndex > 1) {
@@ -602,10 +627,20 @@ DG.React.ready(function () {
 
           moveToNextCase: function (iCollectionClient, iCaseIndex) {
             this.stashEditValueInCaseAttributeValue();
-            if (SC.none(iCaseIndex) && iCollectionClient.collection.parent) {
-              var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(iCollectionClient.collection.parent);
-              if (tSelectedParentFirstCaseID) {
+
+            var tParentCollection = iCollectionClient.getPath('collection.parent');
+            if (SC.none(iCaseIndex)) {
+              if (tParentCollection) {
+                var tSelectedParentFirstCaseID = this.getSelectedCaseFirstChildCaseID(tParentCollection);
+                if (tSelectedParentFirstCaseID) {
                   iCaseIndex = iCollectionClient.getCaseIndexByID(tSelectedParentFirstCaseID);
+                }
+              }
+              else {
+                // get index of first selected case
+                var tSelectedIndices = this.getSelectedCaseIndices(iCollectionClient);
+                if (tSelectedIndices.length)
+                  iCaseIndex = tSelectedIndices[0];
               }
             }
             var tNumCases = iCollectionClient.getPath('collection.cases').length;
