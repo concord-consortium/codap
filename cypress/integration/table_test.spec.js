@@ -192,36 +192,7 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
             table.getCollectionByName(collectionName).should('not.exist')
         })
     })
-    describe('expand and collapse collection',()=>{ //need to create a three level table
-        before(()=>{
-            cy.dragAttributeToTarget('table','CCAT1', 'newCollection')
-            cy.dragAttributeToTarget('table','CCAT2', 'newCollection', 1)
-        })
-        it('verify collapse child collection',()=>{
-
-        })
-        it('verify collapse middle collection',()=>{
-
-        })
-        it('verify expand middle collection',()=>{
-
-        })
-        it('verify expand child collection',()=>{
-
-        })
-        it('verify collapse middle collection',()=>{
-
-        })
-        it('verify reorder attributes while collection is collapsed',()=>{
-
-        })
-        it('verify create new collection while collecction is collapsed',()=>{
-
-        })
-        it('expand all collections',()=>{
-
-        })
-    })
+    
     describe('index menu',()=>{
        it('verify index column cannot be reordered',()=>{
 
@@ -313,6 +284,42 @@ context('Multiple collections',function(){
             // table.getExpandIcon().should('have.attr','href').and('include', 'expand.gif') //child should be collapsed
             table.getExpandAllIcon().last().click({force:true}); //expand child again
         }) 
+    })
+    describe('expand and collapse collection',()=>{ //need to create a three level table
+        it('verify collapse child collection',()=>{
+            table.getCollapseAllIcon().last().click()
+            cy.get('.dg-collapsed-row').should('have.length',44)
+        })
+        it('verify collapse middle collection',()=>{
+            table.getCollapseAllIcon().first().click()
+            cy.get('.dg-collapsed-row').should('have.length',38)
+        })
+        it('verify expand middle collection',()=>{
+            table.getExpandAllIcon().first().click()
+            cy.get('.dg-collapsed-row').should('have.length',44)
+        })
+        it('verify expand child collection',()=>{
+            table.getExpandAllIcon().last().click()
+            cy.get('.dg-collapsed-row').should('have.length',0)
+        })
+        it('verify collapse middle collection collapses child collection automatically',()=>{
+            table.getCollapseAllIcon().first().click()
+            cy.get('.dg-collapsed-row').should('have.length',38)
+        })
+        it('verify reorder attributes while collection is collapsed',()=>{
+            cy.dragAttributeToTarget('table','CCAT1', 'table',2)
+            table.getAttributeHeader().eq(2).should('contain','CCAT1')
+        })
+        it('verify create new collection while collecction is collapsed',()=>{
+            var collectionName="CCAT1S"
+            cy.dragAttributeToTarget('table','CCAT1', 'newCollection', 2)
+            table.getCollectionTitle().should('have.length', 4);
+            table.getCollectionByName(collectionName).should('be.visible')
+        })
+        it('verify expand middle collection expands child collection automatically',()=>{
+            table.getExpandAllIcon().first().click()
+            cy.get('.dg-collapsed-row').should('have.length',0)
+        })
     }) 
     
 })
