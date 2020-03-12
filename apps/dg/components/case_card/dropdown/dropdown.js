@@ -17,12 +17,11 @@
 // ==========================================================================
 
 /* global React */
-/* global ReactDOM */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      findDOMNode = ReactDOM.findDOMNode,
+      //findDOMNode = ReactDOM.findDOMNode,
       div = React.DOM.div;
 
   DG.React.Components.Dropdown = DG.React.createComponent(
