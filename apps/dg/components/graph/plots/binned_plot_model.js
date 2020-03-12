@@ -266,6 +266,9 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
                 this._casesMap[iIndex] = {value: tNumericValue, cell: tCellNumber};
               }
             }.bind(this));
+            // We can get in here during a transition without a valid casesMap
+            if( this._casesMap.length === 0)
+              return;
 
             tWidth = this.get('width');
             if (SC.none(tWidth)) {

@@ -330,8 +330,8 @@ DG.DotChartView = DG.ChartView.extend(
                   width: 2 * tCircleAttrs.r,
                   height: 2 * tCircleAttrs.r,
                   r: tCircleAttrs.r,
-                  fill: tCurrAttrs.fill,
-                  stroke: tCurrAttrs.stroke
+                  fill: (tCurrAttrs && tCurrAttrs.fill) || DG.PlotUtilities.kDefaultPointColor,
+                  stroke: (tCurrAttrs && tCurrAttrs.stroke) || DG.PlotUtilities.kDefaultStrokeColor
                 };
                 tNewElement.animate(tTransAttrs, DG.PlotUtilities.kDefaultAnimationTime);
                 tRects.push(tNewElement);
