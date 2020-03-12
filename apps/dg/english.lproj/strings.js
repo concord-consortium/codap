@@ -128,9 +128,10 @@ SC.stringsFor("en", {
     "DG.CaseCard.navFirstCase": "Select and show first case",
     "DG.CaseCard.navLastCase": "Select and show last case",
     "DG.CaseCard.attrHintPlain": "%@",
-    "DG.CaseCard.attrHintUnitsOnly": "%@ in %@",
-    "DG.CaseCard.attrHintDescription": "%@: %@",
-    "DG.CaseCard.attrHintFormula": "%@\n%@",
+    "DG.CaseCard.attrHintUnitsOnly": "%@1 in %@2",
+    "DG.CaseCard.attrHintDescription": "%@1: %@2",
+    "DG.CaseCard.attrHintFormula": "%@1 = %@2",
+    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3",
     "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
 
     // DG.ToolButtonData
