@@ -734,6 +734,17 @@
       "categories": [
         "Partners"
       ]
+    },
+    {
+      "title": "Moments Recorder",
+      "description": "This plugin tracks user actions in CODAP through notification. Each action represents the state of the document at completion of that action. User clicks on an item to bring the CODAP document back to that state",
+      "width": 400,
+      "height": 600,
+      "path": "https://codap.concord.org/~bfinzer/moment_bar/",
+      "visible": "false",
+      "categories": [
+        "Partners"
+      ]
     }
   ]
 }
