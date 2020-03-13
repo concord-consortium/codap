@@ -93,6 +93,10 @@ DG.CaseCardView = SC.View.extend(
           return YES;
         },
 
+        mouseDown: function (evt) {
+          DG.globalEditorLock.commitCurrentEdit();
+        },
+
         isValidAttribute: function (iDrag) {
           var tDragAttr = iDrag.data.attribute,
               tAttrs = this.get('context').getAttributes();

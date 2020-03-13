@@ -237,7 +237,8 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
           }
         },
         click: function () {
-          // DG.log('Drop Target click!');
+          DG.globalEditorLock.commitCurrentEdit();
+
           var dataContext = this.get('dataContext');
           var tChange = {
             operation: 'selectCases',
