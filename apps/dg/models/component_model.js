@@ -55,10 +55,11 @@ DG.Component = DG.BaseModel.extend(
       userSetTitle: false,
 
       titleChanged: function () {
+        // clear local cache when content title changes
         this._title = null;
         this.notifyPropertyChange('title');
       }.observes('*content.title', '*content.defaultTitle'),
-      
+
       /*
        * The width and height of this component in pixels to be used in layout.
        * @property {Object}

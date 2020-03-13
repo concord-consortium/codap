@@ -16,57 +16,14 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
+
+sc_require('components/case_table/data_context_base_model');
+
 /** @class  DG.CaseTableModel - The model for a case table.
 
- @extends SC.Object
+ @extends DG.DataContextBaseModel
  */
-DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
-  /**
-   @property { DG.DataContext }
-   */
-  context: null,
-
-  id: null,
-  idBinding: '*context.id',
-
-  /**
-   * Name of the case table, always the data context name.
-   * @property {string}
-   */
-  name: function (k, v) {
-    this.context.applyChange({
-      operation: 'updateDataContext',
-      properties: {name: v}
-    });
-    return this.getPath('context.name');
-  }.property(),
-
-  /**
-   * Title of the case table: always the data context title.
-   * @property {string}
-   */
-  title: function(k, v) {
-    if (!SC.none(v)) {
-      this.context.applyChange({
-        operation: 'updateDataContext',
-        properties: {title: v}
-      });
-    }
-    return this.getPath('context.title');
-  }.property(),
-
-  titleDidChange: function () {
-    return this.notifyPropertyChange('title');
-  }.observes('*context.title'),
-
-  defaultTitle: function() {
-    return this.getPath('context.defaultTitle');
-  }.property(),
-
-  defaultTitleDidChange: function () {
-    return this.notifyPropertyChange('defaultTitle');
-  }.observes('*context.defaultTitle'),
-
+DG.CaseTableModel = DG.DataContextBaseModel.extend(/** @scope DG.CaseTableModel.prototype */ {
   /**
    * Attribute widths as requested by the user, keyed by attribute id.
    *
