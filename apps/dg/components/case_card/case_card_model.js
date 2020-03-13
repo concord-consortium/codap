@@ -16,19 +16,13 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('components/case_table/data_context_base_model');
 
 /** @class
 
     A for a case card.
 
- @extends SC.Object
+ @extends DG.DataContextBaseModel
  */
 
-DG.CaseCardModel = SC.Object.extend( {
-  /**
-   @property { DG.DataContext }
-   */
-  context: null,
-
-  title: null
-});
+DG.CaseCardModel = DG.DataContextBaseModel.extend();
