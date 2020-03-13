@@ -283,7 +283,7 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
                 name: 'toggle.toCaseCard',
                 undoString: 'DG.Undo.component.toggleTableToCard',
                 redoString: 'DG.Redo.component.toggleTableToCard',
-                log: 'Toggle case card to case table',
+                log: 'Toggle case table to case card',
                 execute: function() {
                   DG.currDocumentController().toggleTableToCard(tComponentView);
                 },
