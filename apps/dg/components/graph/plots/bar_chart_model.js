@@ -42,6 +42,20 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
        */
       wantsOtherAxis: true,
 
+      /**
+       *
+       * @param iPlace {DG.GraphTypes.EPlace}
+       * @return { class }
+       */
+      getDesiredAxisClassFor: function( iPlace) {
+        if( iPlace === this.get('primaryAxisPlace'))
+          return DG.CellAxisModel;
+        else if(iPlace === this.get('secondaryAxisPlace')) {
+          return DG.CountAxisModel;
+        }
+        else return sc_super();
+      },
+
       naturalUpperBound: function () {
         var tNaturalUpperBound;
         switch (this.get('breakdownType')) {

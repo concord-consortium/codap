@@ -156,7 +156,7 @@ DG.BarChartView = DG.ChartView.extend(
        * Return the class of the count axis with the x or y to put it on.
        * @return {[{}]}
        */
-      provideAxisViewDescriptions: function () {
+      getAxisViewDescriptions: function () {
         var tDescriptions = sc_super(),
             tCountKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x';
         tDescriptions.push( {

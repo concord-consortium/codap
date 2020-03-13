@@ -121,7 +121,7 @@ DG.PlotView = DG.PlotLayer.extend(
    * Gives plot a chance to return descriptions of axis views
    * @return {[{}]}
    */
-  provideAxisViewDescriptions: function() {
+  getAxisViewDescriptions: function() {
     return [];
   },
 
@@ -424,7 +424,9 @@ DG.PlotView = DG.PlotLayer.extend(
    * See also prepareForConfigurationChange.
    */
   handleConfigurationChange: function() {
-    if( this.get('allowTransferAnimation')) {  // the configuration has changed
+    // In certain circumstances we have already moved point coordinates to transferredElementCoordinates.
+    // Protect against wiping these out.
+    if( this.get('allowTransferAnimation') && !this.get('transferredElementCoordinates')) {  // the configuration has changed
       this.set('transferredElementCoordinates', this.get('cachedPointCoordinates'));
     }
   },

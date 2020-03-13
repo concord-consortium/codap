@@ -29,12 +29,26 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
     /** @scope DG.ScatterPlotModel.prototype */
     {
       /**
+       *
+       * @param iPlace {DG.GraphTypes.EPlace}
+       * @return { class }
+       */
+      getDesiredAxisClassFor: function( iPlace) {
+        if( iPlace === DG.GraphTypes.EPlace.eX || iPlace === DG.GraphTypes.EPlace.eY)
+          return DG.CellLinearAxisModel;
+        else if(iPlace === DG.GraphTypes.EPlace.eY2) {
+          return (this.getPath('dataConfiguration.y2AttributeID') === DG.Analysis.kNullAttribute) ?
+              DG.AxisModel : DG.CellLinearAxisModel;
+        }
+      },
+
+      /**
        @property { DG.MovablePointModel }
        */
       movablePoint: null,
 
       /**
-       @property { Boolean, read only }
+       @property { Boolean }
        */
       isMovablePointVisible: function () {
         return !SC.none(this.movablePoint) && this.movablePoint.get('isVisible');

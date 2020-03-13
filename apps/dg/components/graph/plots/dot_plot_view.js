@@ -65,7 +65,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
    * Return the classes of the desired axis views and the x or y to put them on.
    * @return {[{}]}
    */
-  provideAxisViewDescriptions: function () {
+  getAxisViewDescriptions: function () {
     var tDescriptions = sc_super(),
         tAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
     tDescriptions.push( {

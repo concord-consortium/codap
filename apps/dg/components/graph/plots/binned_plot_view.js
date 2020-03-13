@@ -67,7 +67,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
        * Return the class of the count axis with the x or y to put it on.
        * @return {[{}]}
        */
-      provideAxisViewDescriptions: function () {
+      getAxisViewDescriptions: function () {
         var tDescriptions = sc_super(),
             tBinnedAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'x' : 'y';
         tDescriptions.push( {

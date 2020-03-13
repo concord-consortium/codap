@@ -283,7 +283,7 @@ DG.GraphView = SC.View.extend(
         iPlotView.setIfChanged('xAxisView', this.get('xAxisView'));
         iPlotView.setIfChanged('yAxisView', this.get(iYAxisKey));
         // special requirements set up here, with possible return of description of an axis to be added
-        iPlotView.provideAxisViewDescriptions().forEach(installAxisView);
+        iPlotView.getAxisViewDescriptions().forEach(installAxisView);
           if( iPlotModel.rescaleAxesFromData)
             iPlotModel.rescaleAxesFromData( true /* allow scale shrinkage */,
                 true /* animate points */ );
@@ -1006,9 +1006,6 @@ DG.GraphView = SC.View.extend(
         else {
           this.set('plotView', tNewView); // Destroys tCurrentView
           this.setPlotViewProperties(tNewView, tPlot, 'yAxisView', tCurrentPoints);
-          // If we don't call doDraw immediately, we don't get the between-plot animation.
-          if (tNewView.readyToDraw())
-            tNewView.doDraw();
           if (tInitLayout) {
             this.renderLayout(this.renderContext(this.get('tagName')), tInitLayout);
           }

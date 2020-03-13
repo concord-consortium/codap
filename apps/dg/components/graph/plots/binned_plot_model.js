@@ -48,6 +48,25 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         }.property('dotsAreFused'),
 
         /**
+         * Histograms (dots are fused) get one set of axis models and binned plots another.
+         * @param iPlace {DG.GraphTypes.EPlace}
+         * @return { class }
+         */
+        getDesiredAxisClassFor: function( iPlace) {
+          var tDotsAreFused = this.get('dotsAreFused');
+          if( iPlace === this.get('primaryAxisPlace'))
+            return tDotsAreFused ? DG.CellLinearAxisModel : DG.BinnedAxisModel;
+          else if(iPlace === this.get('secondaryAxisPlace')) {
+            if( tDotsAreFused)
+              return DG.CountAxisModel;
+            else {
+              return SC.none( this.get('secondaryVarID')) ? DG.AxisModel : DG.CellAxisModel;
+            }
+          }
+          else return sc_super();
+        },
+
+        /**
          * The left edge of the zeroth bin has this value
          * @property {Number}
          */

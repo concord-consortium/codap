@@ -328,7 +328,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             this._plottedCountModel = DG.PlottedCountModel.create({plotModel: this});
           }
           this.setAdornmentModel('plottedCount', this._plottedCountModel); // Add to list of adornments
-          this._plottedCountModel.recomputeValue(); // initialize
+          this._plottedCountModel.setComputingNeeded(); // initialize
         }
         return this._plottedCountModel;
       }.property(),
@@ -636,6 +636,15 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
           default:
             return null;
         }
+      },
+
+      /**
+       *
+       * @param iPlace {DG.GraphTypes.EPlace}
+       * @return { class }
+       */
+      getDesiredAxisClassFor: function( iPlace) {
+        return DG.AxisModel;
       },
 
       /**

@@ -33,7 +33,7 @@ DG.UnivariatePlotView = DG.PlotView.extend(
        * Return the class of the count axis with the x or y to put it on.
        * @return {[{}]}
        */
-      provideAxisViewDescriptions: function () {
+      getAxisViewDescriptions: function () {
         var tDescriptions = sc_super(),
             tCatAxisKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x',
             tCatAttributeID = this.getPath('model.' + tCatAxisKey + 'VarID'),

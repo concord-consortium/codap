@@ -625,10 +625,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tDataConfiguration.set('dataContext', iDataContext);
         tDataConfiguration.setAttributeAndCollectionClient(tTargetDescKey, iAttrRefs);
 
-        // Make sure correct kind of axis is installed
-        this.privSyncAxisWithAttribute(tTargetDescKey, tTargetAxisKey);
-        if( tOtherDim)
-          this.privSyncOtherAxisWithAttribute(tOtherDim);
+        this.synchPlotWithAttributes();
+        this.synchAxes();
+
         this.invalidate();
       }
 
@@ -865,6 +864,31 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     /**
+     * Attribute and plot assignment together determine what class of axis should appear on each dimension.
+     * We query the plot for each dimension and, if the axis class is not currently present, we construct
+     * the desired axis and destroy the old one, being careful to let everyone know of the change.
+     */
+    synchAxes: function() {
+      var this_ = this,
+          tDataConfiguration = this.get('dataConfiguration'),
+          tPlot = this.get('plot');
+      [{place: DG.GraphTypes.EPlace.eX, dim: 'x'}, {place: DG.GraphTypes.EPlace.eY, dim: 'y'},
+        {place: DG.GraphTypes.EPlace.eY2, dim: 'y2'}].forEach( function( iObj) {
+        var tDesiredAxisClass = tPlot.getDesiredAxisClassFor( iObj.place),
+            tCurrentAxis = this_.get( iObj.dim + 'Axis');
+        if( tDesiredAxisClass && tCurrentAxis.constructor !== tDesiredAxisClass) {
+          var tNewAxis = tDesiredAxisClass.create( {
+                dataConfiguration: tDataConfiguration,
+                attributeDescription: tDataConfiguration.get( iObj.dim + 'AttributeDescription')
+              });
+          this_.set( iObj.dim + 'Axis', tNewAxis);
+          tPlot.set( iObj.dim + 'Axis', tNewAxis);
+          tCurrentAxis.destroy();
+        }
+      });
+    },
+
+    /**
      * Sychronize the axis model to a new attribute or attribute description, to sure correct kind of axis is installed.
      * @param{String} iDescKey - key to the desired attribute description (x...|yAttributeDescription)
      * @param{String} iAxisKey - key to the axis to be changed (x...|yAxis)
@@ -886,46 +910,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
         this.set( iAxisKey, tNewAxis );
         tAxisToDestroy.destroy();
-
-        // The opposite axis may need syncing, e.g. when we drop a numeric attribute on the secondary axis of a binned plot
-        var tOppDescKey = iDescKey === 'xAttributeDescription' ? 'yAttributeDescription' : 'xAttributeDescription',
-            tOppAxisKey = iAxisKey === 'xAxis' ? 'yAxis' : 'xAxis',
-            tOppAxis = this.get( tOppAxisKey);
-        if( tDataConfiguration.getPath(tOppDescKey + '.isNumeric') && tOppAxis.constructor !== DG.CellLinearAxisModel) {
-          var tNewOppAxis = DG.CellLinearAxisModel.create({
-                dataConfiguration: tDataConfiguration,
-                attributeDescription: tDataConfiguration.get(tOppDescKey)
-              });
-          this.set( tOppAxisKey, tNewOppAxis);
-          tOppAxis.destroy();
-        }
-
-        this.synchPlotWithAttributes();
-      }
-    },
-
-    /**
-     * Usually we don't have to worry about the other axis, but if there is no attribute on that axis, and if
-     * that dimension does not have an attribute, we have to make sure the axis is DG.AxisModel. A bar chart
-     * may have previously installed a DG.CountAxisModel that we get rid of.
-     * @param{String} iDim - 'x' or 'y'
-     */
-    privSyncOtherAxisWithAttribute: function( iDim ) {
-      var tDataConfiguration = this.get('dataConfiguration'),
-          tHasNoAttribute = tDataConfiguration.getPath(iDim + 'AttributeDescription.isNull'),
-          tAxisClass = this.getPath(iDim + 'Axis').constructor,
-          tWantsOtherAxis = this.getPath('plot.wantsOtherAxis');
-
-      if( tHasNoAttribute && !tWantsOtherAxis && tAxisClass !== DG.AxisModel) {
-        var tAxisToDestroy = this.get(iDim + 'Axis'),
-            tNewAxis = DG.AxisModel.create( { dataConfiguration: tDataConfiguration});
-        tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDim + 'AttributeDescription' ) );
-        this.set( iDim + 'Axis', tNewAxis );
-        tAxisToDestroy.destroy();
-      }
-      else if( tWantsOtherAxis) {
-        // We've changed the attribute on the primary axis. Give the 'other' axis a chance to rescale
-        this.rescaleAxesFromData( true /* allow shrinkage */, true /* allow animation */);
       }
     },
 
@@ -1189,12 +1173,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tAdornmentModels = tCurrentPlot.copyAdornmentModels( tOperativePlot );
       }
 
-      tOperativePlot.beginPropertyChanges();
       tOperativePlot.setIfChanged( 'dataConfiguration', tConfig );
       tOperativePlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
       tOperativePlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
       tOperativePlot.installAdornmentModels( tAdornmentModels);
-      tOperativePlot.endPropertyChanges();
 
       this.setIfChanged('plot', tOperativePlot);
 
