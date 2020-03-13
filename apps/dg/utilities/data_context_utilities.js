@@ -605,8 +605,8 @@ DG.DataContextUtilities = {
     DG.UndoHistory.execute(cmd);
   },
 
-  newAttribute: function( iDataContext, iCollection, iPosition, iEditorView, iAutoEdit) {
-    if (iEditorView) {
+  newAttribute: function( iDataContext, iCollection, iPosition, iEditorViewOrCallback, iAutoEdit) {
+    if (iEditorViewOrCallback) {
       DG.globalEditorLock.commitCurrentEdit();
     }
     var tAttrName = iDataContext.getNewAttributeName(),
@@ -629,9 +629,13 @@ DG.DataContextUtilities = {
           if(!isRedo && result.success) {
             this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
                 'attributeCreate', tAttrName, iCollection.get('name'));
-            if (iAutoEdit && iEditorView) {
-              iEditorView.invokeLater(function() {
-                iEditorView.beginEditAttributeName(tAttrName);
+            // simple callback function
+            if (typeof iEditorViewOrCallback === "function") {
+              iEditorViewOrCallback(tAttrName);
+            }
+            else if (iAutoEdit && iEditorViewOrCallback) {
+              iEditorViewOrCallback.invokeLater(function() {
+                iEditorViewOrCallback.beginEditAttributeName(tAttrName);
               });
             }
           } else {

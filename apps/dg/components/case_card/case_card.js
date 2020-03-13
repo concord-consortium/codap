@@ -121,8 +121,8 @@ DG.React.ready(function () {
           getInitialState: function () {
             return {
               count: 0,
-              indexOfAttrNameToEdit: null,
-              indexOfEditFieldToMount: null
+              attrIdOfNameToEdit: null,
+              attrIdOfValueToEdit: null
             };
           },
 
@@ -147,7 +147,7 @@ DG.React.ready(function () {
               DG.DataContextUtilities.stashAttributeValue( this.props.context, this.currEditField.props['case'],
                   this.currEditField.props.attr, this.currEditField.state.value);
               this.currEditField = null;
-              this.setState( { indexOfEditFieldToMount: null });
+              this.setState({ attrIdOfValueToEdit: null });
             }
           },
 
@@ -313,16 +313,24 @@ DG.React.ready(function () {
              * --------------------------Handling editing the value-----------------
              */
             var toggleEditing = function (iValueField, iMoveDirection ) {
-              var tEditFieldOnEntry = this.currEditField;
+              var tAttrs = iCollection.get('attrs'),
+                  tEditFieldOnEntry = this.currEditField;
+
+              function isEditableIndex(index) {
+                var attr;
+                return (index >= 0) && (index < tAttrs.length) &&
+                        (attr = tAttrs[index]) && attr.get('editable') && !attr.hasFormula();
+              }
+
               this.stashEditValueInCaseAttributeValue();
               if (tEditFieldOnEntry !== iValueField) {
                 this.currEditField = iValueField;
-                this.setState( { indexOfEditFieldToMount: iAttrIndex });
+                this.setState({ attrIdOfValueToEdit: iAttr.get('id') });
               }
               else if( iMoveDirection) {  // Turn off editing
                 var tIncrement,
-                    tIndexToMount = iAttrIndex,
-                    tAttrs = iCollection.get('attrs');
+                    tIndexToMount = iAttrIndex;
+
                 switch (iMoveDirection) {
                   case 'up':
                     tIncrement = -1;
@@ -332,17 +340,17 @@ DG.React.ready(function () {
                     break;
                 }
                 tIndexToMount += tIncrement;
-                while( !tAttrs[tIndexToMount].get('editable') || tAttrs[tIndexToMount].hasFormula() &&
-                    tIndexToMount < tAttrs.length && tIndexToMount > 0) {
+                while ((tIndexToMount >= 0) && (tIndexToMount < tAttrs.length) && !isEditableIndex(tIndexToMount)) {
                   tIndexToMount += tIncrement;
                 }
-                this.setState({indexOfEditFieldToMount: tIndexToMount});
+                if (isEditableIndex(tIndexToMount))
+                  this.setState({ attrIdOfValueToEdit: tAttrs[tIndexToMount].get('id') });
               }
             }.bind(this);
 
             var escapeEditing = function (iValueField) {
               this.currEditField = null;
-              this.setState( { indexOfEditFieldToMount: null });
+              this.setState({ attrIdOfValueToEdit: null });
             }.bind(this);
 
             var editModeCallback = function( iValueField) {
@@ -400,12 +408,14 @@ DG.React.ready(function () {
                 },
 
                 makeNewAttribute = function() {
-                  var position = 1; // Just after the first attribute
-                  DG.DataContextUtilities.newAttribute(iContext,
-                      iContext.getCollectionByID(iCollection.get('id')), position);
-                  setTimeout(function() {
-                    this.setState({ indexOfAttrNameToEdit: position });
-                  }.bind(this), 10);
+                  var collection = iContext.getCollectionByID(iCollection.get('id')),
+                      position = 1, // Just after the first attribute
+                      onComplete = function(attrName) {
+                                    var attrRef = iContext.getAttrRefByName(attrName),
+                                        attrID = attrRef && attrRef.attribute.get('id');
+                                    attrID && this.setState({ attrIdOfNameToEdit: attrID });
+                                  }.bind(this);
+                  DG.DataContextUtilities.newAttribute(iContext, collection, position, onComplete);
                 }.bind(this);
 
             /**
@@ -507,16 +517,16 @@ DG.React.ready(function () {
                 tCell = DG.React.Components.AttributeNameCell({
                   content: tDiv,
                   attribute: iAttr,
-                  showNewAttrButton: (iAttrIndex === 0) && (this.state.indexOfAttrNameToEdit !== 0),
-                  isEditing: iAttrIndex === this.state.indexOfAttrNameToEdit,
+                  showNewAttrButton: (iAttrIndex === 0) && (tAttrID !== this.state.attrIdOfNameToEdit),
+                  isEditing: tAttrID === this.state.attrIdOfNameToEdit,
                   dragStatus: this.props.dragStatus,
                   dropCallback: handleDrop,
                   onBeginRenameAttribute: function() {
-                    this.setState({ indexOfAttrNameToEdit: iAttrIndex });
+                    this.setState({ attrIdOfNameToEdit: tAttrID });
                   }.bind(this),
                   onEndRenameAttribute: function(iNewName) {
                     iNewName && renameAttribute(iNewName);
-                    this.setState({ indexOfAttrNameToEdit: null });
+                    this.setState({ attrIdOfNameToEdit: null });
                   }.bind(this),
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
@@ -541,7 +551,7 @@ DG.React.ready(function () {
                       isEditable: iAttr.get('editable') && !iAttr.get('formula'),
                       onToggleEditing: toggleEditing,
                       onEscapeEditing: escapeEditing,
-                      createInEditMode: iAttrIndex === this.state.indexOfEditFieldToMount,
+                      createInEditMode: tAttrID === this.state.attrIdOfValueToEdit,
                       editModeCallback: editModeCallback
                     }),
                 tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
