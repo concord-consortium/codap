@@ -58,6 +58,10 @@ DG.React.ready(function () {
               });
             }
 
+            function renameAttributeClickHandler() {
+              clickHandler(this_.props.onBeginRenameAttribute);
+            }
+
             function editAttributeClickHandler() {
               clickHandler(this_.props.editAttributeCallback);
             }
@@ -79,39 +83,57 @@ DG.React.ready(function () {
                 this_.props.newAttributeCallback();
             }
 
+            var renderStaticContents = function() {
+              var tMenuItems = [
+                    {
+                      label: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
+                      clickHandler: renameAttributeClickHandler
+                    },
+                    {
+                      label: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
+                      clickHandler: editAttributeClickHandler
+                    },
+                    {
+                      label: 'DG.TableController.headerMenuItems.editFormula'.loc(),
+                      disabled: !this.props.attributeIsEditableCallback(),
+                      clickHandler: editFormulaClickHandler
+                    },
+                    {
+                      label: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
+                      disabled: !this.props.attributeCanBeRandomizedCallback(),
+                      clickHandler: rerandomizeClickHandler
+                    },
+                    {
+                      label: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
+                      disabled: false,
+                      clickHandler: deleteAttributeClickHandler
+                    }
+                  ].map(function (iItem, iIndex) {
+                    return DG.React.Components.DropdownItem({
+                              disabled: iItem.disabled,
+                              key: 'item-' + iIndex,
+                              clickHandler: iItem.clickHandler
+                            },
+                            iItem.label);
+                  }),
+                  tNameDiv = div({
+                    className: 'react-name-cell'
+                  }, this.props.content);
+              return DG.React.Components.Dropdown({
+                        trigger: tNameDiv,
+                        menuItems: tMenuItems,
+                        ref: function (iDropdown) {
+                          this.dropdown = iDropdown;
+                        }.bind(this),
+                        onRefCallback: assignCellRef
+                      });
+            }.bind(this);
+
             handleDropIfAny();
 
             var tClassName = 'attr-cell ' + dragLocation(),
-                tMenuItems = [
-                  {
-                    label: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
-                    clickHandler: editAttributeClickHandler
-                  },
-                  {
-                    label: 'DG.TableController.headerMenuItems.editFormula'.loc(),
-                    disabled: !this.props.attributeIsEditableCallback(),
-                    clickHandler: editFormulaClickHandler
-                  },
-                  {
-                    label: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
-                    disabled: !this.props.attributeCanBeRandomizedCallback(),
-                    clickHandler: rerandomizeClickHandler
-                  },
-                  {
-                    label: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
-                    disabled: false,
-                    clickHandler: deleteAttributeClickHandler
-                  }
-                ].map(function (iItem, iIndex) {
-                  return DG.React.Components.DropdownItem({
-                        disabled: iItem.disabled,
-                        key: 'item-' + iIndex,
-                        clickHandler: iItem.clickHandler
-                      },
-                      iItem.label);
-                }),
                 tNewAttrDisabledClass = this.props.newAttributeCallback ? '' : ' disabled',
-                tNewAttrButton = (this.props.index === 0) ?
+                tNewAttrButton = this.props.showNewAttrButton &&
                     img({
                       src: static_url('images/add_circle_grey_72x72.png'),
                       className: 'dg-floating-plus dg-wants-touch' + tNewAttrDisabledClass,
@@ -119,25 +141,18 @@ DG.React.ready(function () {
                       height: 19,
                       title: 'DG.TableController.newAttributeTooltip'.loc(),
                       onClick: newAttributeClickHandler
-                    }) :
-                    '',
-                tNameDiv = div({
-                  className: 'react-name-cell'
-                }, this.props.content),
-                tCellWithDropdown = DG.React.Components.Dropdown({
-                  trigger: tNameDiv,
-                  menuItems: tMenuItems,
-                  ref: function (iDropdown) {
-                    this.dropdown = iDropdown;
-                  }.bind(this),
-                  onRefCallback: assignCellRef
-                }),
-                tNameCell = td({
-                  className: tClassName,
-                  ref: assignCellRef
-                }, tNewAttrButton, tCellWithDropdown);
-
-            return tNameCell;
+                    }),
+                tContents = this.props.isEditing
+                              ? DG.React.Components.SimpleEdit({
+                                  className: 'react-data-card-attr-name-input',
+                                  value: this.props.attribute.get('name'),
+                                  onCompleteEdit: this.props.onEndRenameAttribute
+                                })
+                              : renderStaticContents();
+            return td({
+                      className: tClassName,
+                      ref: assignCellRef
+                    }, tNewAttrButton, tContents);
           }
         };
       }()), []);

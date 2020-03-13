@@ -121,7 +121,7 @@ DG.React.ready(function () {
           getInitialState: function () {
             return {
               count: 0,
-              attrIndex: 0,
+              indexOfAttrNameToEdit: null,
               indexOfEditFieldToMount: null
             };
           },
@@ -353,13 +353,22 @@ DG.React.ready(function () {
              * ---------------------------Handlers for dropdown menu------------
              */
 
-            var editAttribute = function () {
-
-                  this.updateAttribute = function (iAttrRef, iChangedAttrProps) {
-                    DG.DataContextUtilities.updateAttribute(iContext, iCollection,
-                        iAttrRef.attribute, iChangedAttrProps);
+            var updateAttribute = function(iChangedAttrProps) {
+                  DG.DataContextUtilities.updateAttribute(iContext, iCollection, iAttr, iChangedAttrProps);
+                },
+                renameAttribute = function(iNewName) {
+                  var currName = iAttr.get('name'),
+                      currUnit = iAttr.get('unit'),
+                      newName = iContext.getUniqueAttributeName(iNewName, [currName]),
+                      newUnit = DG.Attribute.extractUnitFromNameString(iNewName);
+                  if ((newName !== currName) || (newUnit !== currUnit)) {
+                    updateAttribute({ name: newName, unit: newUnit });
+                  }
+                }.bind(this),
+                editAttribute = function () {
+                  this.updateAttribute = function(iAttrRef, iChangedAttrProps) {
+                    updateAttribute(iChangedAttrProps);
                   };
-
                   var attributePane = DG.AttributeEditorView.create({attrRef: {attribute: iAttr}, attrUpdater: this});
                   attributePane.append();
                 }.bind(this),
@@ -394,7 +403,10 @@ DG.React.ready(function () {
                   var position = 1; // Just after the first attribute
                   DG.DataContextUtilities.newAttribute(iContext,
                       iContext.getCollectionByID(iCollection.get('id')), position);
-                };
+                  setTimeout(function() {
+                    this.setState({ indexOfAttrNameToEdit: position });
+                  }.bind(this), 10);
+                }.bind(this);
 
             /**
              * --------------------------Body of renderAttribute-----------------
@@ -410,8 +422,7 @@ DG.React.ready(function () {
                 tType = iAttr.get('type'),
                 tTitle = '';
             if( tValue && tValue.jsonBoundaryObject)
-              tType = 'boundary';								
-            this.state.attrIndex++;
+              tType = 'boundary';
 
             var tColorValueField,
                 tQualitativeValueField,
@@ -495,9 +506,18 @@ DG.React.ready(function () {
                 }, iAttr.get('name')),
                 tCell = DG.React.Components.AttributeNameCell({
                   content: tDiv,
-                  index: iAttrIndex,
+                  attribute: iAttr,
+                  showNewAttrButton: (iAttrIndex === 0) && (this.state.indexOfAttrNameToEdit !== 0),
+                  isEditing: iAttrIndex === this.state.indexOfAttrNameToEdit,
                   dragStatus: this.props.dragStatus,
                   dropCallback: handleDrop,
+                  onBeginRenameAttribute: function() {
+                    this.setState({ indexOfAttrNameToEdit: iAttrIndex });
+                  }.bind(this),
+                  onEndRenameAttribute: function(iNewName) {
+                    iNewName && renameAttribute(iNewName);
+                    this.setState({ indexOfAttrNameToEdit: null });
+                  }.bind(this),
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
                   deleteAttributeCallback: deleteAttribute,

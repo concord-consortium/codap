@@ -23,6 +23,11 @@
     white-space: nowrap;
 }
 
+.react-data-card .react-data-card-attr-name-input {
+    font-size: 11px;
+    width: calc(100% - 2px);
+}
+
 .react-data-card .react-data-card-value-input {
     font-size: 11px;
     width: calc(100% - 1px);
