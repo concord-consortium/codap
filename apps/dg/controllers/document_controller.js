@@ -1263,28 +1263,12 @@ DG.DocumentController = SC.Object.extend(
       },
 
       addCaseCard: function (iParentView, iLayout, iContext, iComponent, iTitle) {
-/*
-        var this_ = this;
-
-        function getCaseTableForContext(caseTables, context) {
-          if (!context) {
-            return null;
-          }
-          return caseTables.find(function (caseTable) {
-            return caseTable.dataContext === context;
-          });
-        }
-*/
 
         function findPreexistingCaseCardComponentView() {
           return DG.mainPage.getPath('docView.childViews').find( function( iChildView) {
             return iChildView.contentIsInstanceOf && iChildView.contentIsInstanceOf( DG.CaseCardView) &&
                 iChildView.getPath('contentView.context') === iContext;
           });
-/*
-          tExists = tExists ||
-              !SC.none( getCaseTableForContext(this_.findComponentsByType(DG.CaseTableController), iContext));
-*/
         }
 
         var tPreexistingCaseCard = findPreexistingCaseCardComponentView();
@@ -1295,26 +1279,27 @@ DG.DocumentController = SC.Object.extend(
               dataContext: iContext
             }),
             tTitle = iTitle || (iContext ? iContext.get('name') : 'DG.DocumentController.caseCardTitle'.loc()),
-            tModel, tRestoredLayout = iLayout;
-        if (!iComponent) {
-          tModel = this.configureComponent(iComponent, {
+            tComponent = iComponent, tRestoredLayout = iLayout;
+        if (!tComponent) {
+          // creating component
+          tComponent = this.configureComponent(iComponent, {
             controller: tController,
             componentClass: {type: 'DG.CaseCard'},
             contentProperties: {}
           });
-          tModel.set('content', DG.CaseCardModel.create({context: iContext}));
-          tModel.set('title', tTitle);
+          tComponent.set('content', DG.CaseCardModel.create({context: iContext}));
+          tComponent.set('title', tTitle);
         }
         else {
-          var tRestoredTitle = iComponent.getPath('componentStorage.title'),
-              tRestoredName = iComponent.getPath('componentStorage.name');
-          tRestoredLayout = iComponent.get('layout');
-          iComponent.set('content', DG.CaseCardModel.create({context: iContext}));
-          iComponent.set('title', tRestoredTitle || tRestoredName);
-          iComponent.set('name', tRestoredName || tRestoredTitle);
-          tModel = iComponent;
-          tController.set('model', tModel);
-          this.componentControllersMap[iComponent.get('id')] = tController;
+          // restoring component
+          var tRestoredTitle = tComponent.getPath('componentStorage.title'),
+              tRestoredName = tComponent.getPath('componentStorage.name');
+          tRestoredLayout = tComponent.get('layout');
+          tComponent.set('content', DG.CaseCardModel.create({context: iContext}));
+          tComponent.set('title', tRestoredTitle || tRestoredName);
+          tComponent.set('name', tRestoredName || tRestoredTitle);
+          tController.set('model', tComponent);
+          this.componentControllersMap[tComponent.get('id')] = tController;
           tController.didRestoreComponent(this.get('documentID'));
           iContext = tController.get('dataContext');
         }
@@ -1326,18 +1311,18 @@ DG.DocumentController = SC.Object.extend(
             }),
             tContentView = DG.CaseCardView.create({
               classNames: 'dg-opaque'.w() /*dg-scrollable'.w()*/,
-              context: iContext
+              context: iContext,
+              model: tComponent.get('content')
             });
-        tComponentView.set('model', tModel);
+        tComponentView.set('model', tComponent);
         iParentView.appendChild(tComponentView);
         tComponentView.addContent(tContentView);
         tComponentView.set('contentView', tContentView);
         tComponentView.set('controller', tController);
         tController.set('view', tComponentView);
-        this.registerComponent(tModel);
-        tContentView.initCardLayer();
+        this.registerComponent(tComponent);
         if (tComponentView.get('isVisible')) {
-          tModel.setPath('content.isActive', true);
+          tComponent.setPath('content.isActive', true);
         }
         this.tableCardRegistry.registerView(iContext, tComponentView);
 

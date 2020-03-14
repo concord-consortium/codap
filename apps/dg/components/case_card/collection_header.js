@@ -15,6 +15,7 @@ DG.React.ready(function () {
          *    index {Number}
          *    collClient {DG.CollectionClient}
          *    caseID {Number}
+         *    columnWidthPct {Number} - percentage width of attribute column
          *    dragStatus {Object}
          */
 
@@ -76,6 +77,9 @@ DG.React.ready(function () {
                 tHeaderString = tNumSelected > 0 ?
                     'DG.CaseCard.namePlusSelectionCount'.loc(tNumSelected, tNumCases, tName) :
                     'DG.CaseCard.namePlusCaseCount'.loc(tNumCases, tName),
+                tHeaderWidth = this.props.columnWidthPct != null
+                                ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
+                                : undefined,
                 tNavButtons = DG.React.Components.NavButtons({
                   collectionClient: tCollClient,
                   caseIndex: tCaseIndex,
@@ -94,8 +98,9 @@ DG.React.ready(function () {
                   ref: assignCellRef
                 },
                 th({
-                  style: {'paddingLeft': (tIndex * 10 + 5) + 'px'},
-                  className: 'react-data-card-coll-header-cell'
+                  style: { paddingLeft: (tIndex * 10 + 5) + 'px', width: tHeaderWidth },
+                  className: 'react-data-card-coll-header-cell',
+                  ref: function(elt) { this.props.onHeaderCellRef && this.props.onHeaderCellRef (elt); }.bind(this)
                 }, tHeaderComponent),
                 td({
                   className: 'react-data-card-nav-header-cell'

@@ -60,15 +60,10 @@ DG.CaseCardView = SC.View.extend(
          */
         _scrollTimer: null,
 
-        initCardLayer: function () {
-          var tLayer = this.get('layer'),
-              tReactCard = DG.React.Components.CaseCard({
-                container: tLayer,
-                context: this.get('context')
-              });
+        didAppendToDocument: function () {
           this.reactDiv = document.createElement('div');
-          tLayer.appendChild(this.reactDiv);
-          DG.React.toggleRender(this.reactDiv, tReactCard);
+          this.get('layer').appendChild(this.reactDiv);
+          this.renderCard();
         },
 
         destroy: function () {
@@ -77,10 +72,29 @@ DG.CaseCardView = SC.View.extend(
           sc_super();
         },
 
+        viewDidResize: function () {
+          // failing to call sc_super() here breaks attr drop-target highlighting
+          sc_super();
+          // update layout, e.g. column resize handle
+          this.reactDiv && this.renderCard();
+        },
+
+        columnWidthDidChange: function() {
+          this.renderCard();
+        }.observes('*model.columnWidthPct'),
+
         renderCard: function (iExtraProps) {
-          var currProps = Object.assign({container: this.get('layer'), context: this.get('context')},
-              iExtraProps || {});
-          ReactDOM.render( DG.React.Components.CaseCard( currProps), this.reactDiv);
+          var props = Object.assign({
+                        container: this.get('layer'),
+                        context: this.get('context'),
+                        columnWidthPct: this.getPath('model.columnWidthPct'),
+                        onResizeColumn: function(widthPct) {
+                          SC.run(function() {
+                            this.setPath('model.columnWidthPct', widthPct);
+                          }.bind(this));
+                        }.bind(this)
+                      }, iExtraProps || {});
+          ReactDOM.render( DG.React.Components.CaseCard(props), this.reactDiv);
         },
 
         touchStart: function (evt) {

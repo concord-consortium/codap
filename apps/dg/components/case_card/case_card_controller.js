@@ -144,13 +144,17 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
         var caseCardModel = this.getPath('model.content'),
             dataContext = caseCardModel.get('context'),
             isActive = caseCardModel.get('isActive'),
+            columnWidthPct = caseCardModel.get('columnWidthPct'),
             storage = {
               isActive: isActive
             };
         if( dataContext) {
           this.addLink(storage, 'context', dataContext);
         }
-
+        if (columnWidthPct != null) {
+          // round to three decimal places for saving
+          storage.columnWidthPct = JSON.stringify(Math.round(columnWidthPct * 1000) / 1000);
+        }
         return storage;
       },
 
@@ -159,12 +163,17 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
         if (caseCardModel) {
           var contextID = this.getLinkID( iStorage, 'context'),
               dataContext = contextID
-                  && DG.currDocumentController().getContextByID(contextID);
+                  && DG.currDocumentController().getContextByID(contextID),
+              columnWidthPct = iStorage.columnWidthPct != null
+                                ? parseFloat(iStorage.columnWidthPct)
+                                : null;
           if( dataContext) {
             caseCardModel.set('context', dataContext);
             this.set('dataContext', dataContext);
           }
           caseCardModel.set('isActive', iStorage.isActive);
+          if (iStorage.columnWidthPct != null)
+            caseCardModel.set('columnWidthPct', columnWidthPct);
         }
       }
 
