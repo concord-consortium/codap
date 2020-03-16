@@ -80,8 +80,10 @@ DG.React.ready(function () {
           newWidth = Math.min(newWidth, maxWidth);
           deltaStart = e.pageX - newWidth;
           if (newWidth !== this.state.resizeWidth) {
-            this.props.onResize && this.props.onResize(newWidth);
-            this.setState({ resizeWidth: newWidth });
+            if (this.props.onResize)
+              this.props.onResize(newWidth);
+            else
+              this.setState({ resizeWidth: newWidth });
           }
         },
 

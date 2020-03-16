@@ -126,7 +126,6 @@ DG.React.ready(function () {
         return {
           changeListener: null,
           caseCardElt: null,
-          firstCollectionHeader: null,
           currEditField: null,
 
           getInitialState: function () {
@@ -158,11 +157,9 @@ DG.React.ready(function () {
 
           componentDidRender: function() {
             var containerBounds = this.caseCardElt && this.caseCardElt.getBoundingClientRect(),
-                containerWidth = containerBounds && containerBounds.width,
-                columnBounds = this.firstCollectionHeader && this.firstCollectionHeader.getBoundingClientRect(),
-                columnWidth = columnBounds && columnBounds.width;
-            if ((containerWidth !== this.state.containerWidth) || (columnWidth !== this.state.columnWidth)) {
-              this.setState({ containerWidth: containerWidth, columnWidth: columnWidth });
+                containerWidth = containerBounds && containerBounds.width;
+            if (containerWidth !== this.state.containerWidth) {
+              this.setState({ containerWidth: containerWidth });
             }
           },
 
@@ -198,7 +195,8 @@ DG.React.ready(function () {
               collClient: iCollClient,
               caseID: iCaseID,
               columnWidthPct: this.props.columnWidthPct,
-              onHeaderCellRef: (iIndex === 0) && function(elt) { this.firstCollectionHeader = elt; }.bind(this),
+              onHeaderWidthChange: (iIndex === 0) &&
+                                    function(width) { this.setState({ columnWidth: width }); }.bind(this),
               onNext: this.moveToNextCase,
               onPrevious: this.moveToPreviousCase,
               onNewCase: this.newCase,
