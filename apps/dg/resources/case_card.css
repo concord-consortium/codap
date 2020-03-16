@@ -253,3 +253,23 @@ tr:nth-child(even) td.attr-cell {
     color: #333333;
 }
 
+$column-resize-handle-interaction-width: 10px;
+.column-resize-handle {
+    position: absolute;
+    margin-left: -$column-resize-handle-interaction-width / 2;
+    width: $column-resize-handle-interaction-width;
+    top: 0;
+    height: 100%;
+    cursor: col-resize;
+
+    .column-resize-handle-render {
+        position: absolute;
+        left: 0;
+        width: 50%;
+        height: 100%;
+
+        &.is-resizing {
+            border-right: 1px dotted black;
+        }
+    }
+}

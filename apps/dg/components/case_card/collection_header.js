@@ -15,25 +15,45 @@ DG.React.ready(function () {
          *    index {Number}
          *    collClient {DG.CollectionClient}
          *    caseID {Number}
+         *    columnWidthPct {Number} - percentage width of attribute column
+         *    onHeaderWidthChange(width: number) {function} - called with pixel width of column
          *    dragStatus {Object}
          */
 
+        var domRow = null,
+            domHeader = null,
+            headerWidth = null;
+
         return {
+
+          componentDidMount: function () {
+            this.componentDidRender();
+          },
+
+          componentDidUpdate: function () {
+            this.componentDidRender();
+          },
+
+          componentDidRender: function () {
+            if (domHeader) {
+              var bounds = domHeader.getBoundingClientRect();
+              if (headerWidth !== bounds.width) {
+                headerWidth = bounds.width;
+                this.props.onHeaderWidthChange && this.props.onHeaderWidthChange(headerWidth);
+              }
+            }
+          },
 
           render: function () {
             var this_ = this;
 
-            function assignCellRef(iElement) {
-              this_.cellRef = iElement;
-            }
-
             function dragIsInMe() {
               var tResult;
-              if (this_.props.dragStatus && this_.props.dragStatus.event && this_.cellRef) {
+              if (this_.props.dragStatus && this_.props.dragStatus.event && domRow) {
                 var tEvent = this_.props.dragStatus.event,
                     tX = tEvent.clientX,
                     tY = tEvent.clientY,
-                    tRect = this_.cellRef.getBoundingClientRect();
+                    tRect = domRow.getBoundingClientRect();
                 tResult = tX >= tRect.x && tX <= tRect.x + tRect.width &&
                     tY >= tRect.y && tY <= tRect.y + tRect.height;
               }
@@ -76,6 +96,9 @@ DG.React.ready(function () {
                 tHeaderString = tNumSelected > 0 ?
                     'DG.CaseCard.namePlusSelectionCount'.loc(tNumSelected, tNumCases, tName) :
                     'DG.CaseCard.namePlusCaseCount'.loc(tNumCases, tName),
+                tHeaderWidth = this.props.columnWidthPct != null
+                                ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
+                                : undefined,
                 tNavButtons = DG.React.Components.NavButtons({
                   collectionClient: tCollClient,
                   caseIndex: tCaseIndex,
@@ -91,11 +114,12 @@ DG.React.ready(function () {
             return tr({
                   key: 'coll-' + tIndex,
                   className: tRowClass,
-                  ref: assignCellRef
+                  ref: function(elt) { domRow = elt; }
                 },
                 th({
-                  style: {'paddingLeft': (tIndex * 10 + 5) + 'px'},
-                  className: 'react-data-card-coll-header-cell'
+                  style: { paddingLeft: (tIndex * 10 + 5) + 'px', width: tHeaderWidth },
+                  className: 'react-data-card-coll-header-cell',
+                  ref: function(elt) { domHeader = elt; }
                 }, tHeaderComponent),
                 td({
                   className: 'react-data-card-nav-header-cell'

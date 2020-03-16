@@ -1,5 +1,6 @@
 /* global React, tinycolor */
 // sc_require('react/dg-react');
+sc_require('components/case_card/column_resize_handle');
 sc_require('components/case_card/text_input');
 
 DG.React.ready(function () {
@@ -16,6 +17,14 @@ DG.React.ready(function () {
   DG.React.Components.CaseCard = DG.React.createComponent(
       (function () {
 
+      /**
+       * props are
+       *  container: {DOM element} - DOM element for case card
+       *  context: {DG.DataContext} - data context for case card
+       *  columnWidthPct: {number} - percentage width of attribute column
+       *  onResizeColumn(widthPct: number): {function} - Called with updated value of width property
+       *  dragStatus: {object} - drag/drop support
+       */
         var kSelectDelay = 1000,  // ms
             kSelectInterval = 100,  // ms
             gWaitingForSelect = false,
@@ -116,13 +125,16 @@ DG.React.ready(function () {
 
         return {
           changeListener: null,
+          caseCardElt: null,
           currEditField: null,
 
           getInitialState: function () {
             return {
               count: 0,
               attrIdOfNameToEdit: null,
-              attrIdOfValueToEdit: null
+              attrIdOfValueToEdit: null,
+              containerWidth: null,
+              columnWidth: null
             };
           },
 
@@ -131,11 +143,24 @@ DG.React.ready(function () {
               dependent: this,
               context: this.props.context
             });
+            this.componentDidRender();
           },
 
           componentWillUnmount: function () {
             this.changeListener.destroy();
             this.changeListener = null;
+          },
+
+          componentDidUpdate: function() {
+            this.componentDidRender();
+          },
+
+          componentDidRender: function() {
+            var containerBounds = this.caseCardElt && this.caseCardElt.getBoundingClientRect(),
+                containerWidth = containerBounds && containerBounds.width;
+            if (containerWidth !== this.state.containerWidth) {
+              this.setState({ containerWidth: containerWidth });
+            }
           },
 
           incrementStateCount: function () {
@@ -169,6 +194,9 @@ DG.React.ready(function () {
               index: iIndex,
               collClient: iCollClient,
               caseID: iCaseID,
+              columnWidthPct: this.props.columnWidthPct,
+              onHeaderWidthChange: (iIndex === 0) &&
+                                    function(width) { this.setState({ columnWidth: width }); }.bind(this),
               onNext: this.moveToNextCase,
               onPrevious: this.moveToPreviousCase,
               onNewCase: this.newCase,
@@ -256,7 +284,6 @@ DG.React.ready(function () {
             }
 
             function doDragStart(iEvent) {
-              // logit('In doDragStart with tDragInProgress = ' + tDragInProgress);
               if (!tDragInProgress) {
                 tDragHandler = DG.DragCaseCardItemHandler.create({
                   viewToAddTo: DG.mainPage.docView,
@@ -790,7 +817,26 @@ DG.React.ready(function () {
                           tCollectionHeader, tAttrEntries)));
                 }.bind(this)
             );
-            return div({className: 'react-data-card dg-wants-mouse'}, tCollEntries);
+
+            var kResizeHandleClass = "case-card-column-resize-handle",
+                // leave some room for collection name (left) and navigation buttons (right)
+                kMinColumnWidth = 82;
+            tCollEntries.push(DG.React.Components.ColumnResizeHandle({
+                                className: kResizeHandleClass,
+                                key: kResizeHandleClass,
+                                enabled: true,
+                                containerWidth: this.state.containerWidth,
+                                columnWidth: this.state.columnWidth,
+                                minWidth: kMinColumnWidth,
+                                onResize: function(width) {
+                                  var widthPct = width / this.state.containerWidth;
+                                  this.props.onResizeColumn && this.props.onResizeColumn(widthPct);
+                                }.bind(this)
+                              }));
+            return div({
+              className: 'react-data-card dg-wants-mouse',
+              ref: function(elt) { this.caseCardElt = elt; }.bind(this)
+            }, tCollEntries);
           }
         };
       }()), []);

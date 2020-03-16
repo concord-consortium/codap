@@ -25,4 +25,11 @@ sc_require('components/case_table/data_context_base_model');
  @extends DG.DataContextBaseModel
  */
 
-DG.CaseCardModel = DG.DataContextBaseModel.extend();
+DG.CaseCardModel = DG.DataContextBaseModel.extend({
+    /**
+     * Percentage width of attribute name column
+     * 
+     * @property {number}
+     */
+    columnWidthPct: null
+});
