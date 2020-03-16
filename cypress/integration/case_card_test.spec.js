@@ -93,14 +93,33 @@ context('case card version', ()=>{
         })
 
     })
-    describe('attribute menu functionality',()=>{
+    describe.only('attribute menu functionality',()=>{
+        before(()=> {
+            var filename='3TableGroups',
+                dir='../fixtures/';
+        
+            cy.viewport(1400,1000);
+            cy.visit(baseUrl)
+            cy.wait(5000)
+        
+            cfm.openDocFromModal();
+            cy.wait(500)
+            cfm.openLocalDoc(dir+filename+ext)
+            codap.getTableTileTitle().click() //bring the table into focus
+            table.changeToCaseCard();
+        }) 
         it('verify add attribute in child collection',()=>{
-
+            let attr='newAttr';
+            table.getCaseCardAddAttributePlusIcon().eq(2).click();
+            table.getCaseCardCollectionHeader(2).siblings('.react-data-card-row').find(table.caseCardAttributeEl()).contains(attr).should('be.visible');
         })
         it('verify add attribute in parent collection',()=>{
+            let attr='newAttr2';
+            table.getCaseCardAddAttributePlusIcon().eq(0).click();
+            table.getCaseCardCollectionHeader(0).siblings('.react-data-card-row').find(table.caseCardAttributeEl()).contains(attr).should('be.visible');
 
         })
-        it.skip('verify edit attribute properties', ()=>{ //also verify that attribute description appears on hover
+        it('verify edit attribute properties', ()=>{ //also verify that attribute description appears on hover
             let attr='newAttr', new_attr="CCAT3";
             table.editAttributeProperty("case card", attr, new_attr) //function not working
         })

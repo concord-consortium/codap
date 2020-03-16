@@ -94,7 +94,7 @@ class TableTileObject{
         cy.clickMenuItem('Switch to case table view of the data')
     }
     getCaseCardCollectionHeader(position=0){
-        return cy.get('.react-data-card-coll-header-cell').eq(position)
+        return cy.get('.react-data-card-collection-header').eq(position)
     }
     getCaseCardNavBackIcon(){
         return cy.get('.react-data-card-navbuttons .moonicon-icon-reverse-play')
@@ -108,8 +108,11 @@ class TableTileObject{
     getCaseCardAddAttributePlusIcon(){
         return cy.get('.react-data-card-row .dg-floating-plus')
     }
+    caseCardAttributeEl(){
+        return ('.react-data-card-attribute')
+    }
     getCaseCardAttribute(){
-        return cy.get('.react-data-card-attribute')
+        return cy.get(this.caseCardAttributeEl())
     }
     getCaseCardAttributeSummary(){
         return cy.get('.react-data-card-attribute-summary')
@@ -143,40 +146,7 @@ class TableTileObject{
     getApplyButton(){
         return cy.get('.button label').contains('Apply');
     }
-    editAttributeProperty(state,attr, name, description, type, unit, precision, editable){
-        switch (state) {
-            case ("table") :
-                this.openAttributeMenu(attr);
-                this.selectMenuItemFromAttributeMenu('Edit Attribute Properties...');
-                break;
-            case ("case card") :
-                this.openCaseCardAttributeMenu(attr);
-                this.selectMenuItemFromCaseCardAttributeMenu('Edit Attribute Properties...');
-                break;    
-        }
-        cy.log("name: "+name)
-        if (!name==null) {
-            cy.log(name)
-            debugger
-            this.enterAttributeName(name);
-        }
-        if (!description==null) {
-            this.enterAttributeDescription(description);
-        }
-        if (!type==null) {
-            this.selectAttributeType(type);
-        }
-        if (!unit==null) {
-            this.enterAttributeUnit(unit);
-        }
-        if (!precision==null) {
-            this.enterAttributePrecision(precision);
-        }
-        if (!editable==null) {
-            this.selectAttributeEditableState(editable);
-        }
-        this.getApplyButton().click();
-    }
+
     editFormula(attr, formula){
         this.openAttributeMenu(attr);
         this.selectMenuItemFromAttributeMenu('Edit Formula...');
@@ -191,6 +161,7 @@ class TableTileObject{
     }
     //Edit Attribute Property Dialog
     enterAttributeName(name){
+        cy.log('in enterAttributeName')
         cy.get('.dg.panel input').eq(0).type(name);
     }
     enterAttributeDescription(text){
@@ -248,6 +219,36 @@ class TableTileObject{
     addNewAttributeInRuler(collection){
         cy.clickMenuItem('New Attribute in '+ collection);
     }
-
+    editAttributeProperty(state,attr, name, description, type, unit, precision, editable){
+        switch (state) {
+            case ("table") :
+                this.openAttributeMenu(attr);
+                this.selectMenuItemFromAttributeMenu('Edit Attribute Properties...');
+            case ("case card") :
+                this.openCaseCardAttributeMenu(attr);
+                this.selectMenuItemFromCaseCardAttributeMenu('Edit Attribute Properties...');
+        }
+        if (!name=="") {
+            cy.log("name: "+name)
+            // this.enterAttributeName(name);
+            cy.get('.dg.panel input').eq(0).type("{selectall} {backspace}"+name);
+            this.getApplyButton().click();
+        }
+        if (!description==null) {
+            this.enterAttributeDescription(description);
+        }
+        if (!type==null) {
+            this.selectAttributeType(type);
+        }
+        if (!unit==null) {
+            this.enterAttributeUnit(unit);
+        }
+        if (!precision==null) {
+            this.enterAttributePrecision(precision);
+        }
+        if (!editable==null) {
+            this.selectAttributeEditableState(editable);
+        }
+    }
 }
 export default TableTileObject
