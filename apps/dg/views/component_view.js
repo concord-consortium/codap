@@ -22,7 +22,7 @@
 sc_require('views/drag_border_view');
 sc_require('views/titlebar_button_view');
 
-var kResizeHandleSize = 24,
+var kResizeHandleSize = 16,
     kResizeHandleHalfSize = kResizeHandleSize / 2,
     kResizeHandleInset = 2;
 
