@@ -1642,6 +1642,7 @@ DG.DocumentController = SC.Object.extend(
               width: kDefaultCardWidth, height: DG.ViewUtilities.kTitleBarHeight
             },
             tContext = iCardComponentView.getPath('controller.dataContext');
+        iCardComponentView.set('isAnimating', true);
         iCardComponentView.set('savedLayout', tCardLayout);
         // animate case card to default card width, then animate to closed height,
         // then toggle to case table and animate to final position
@@ -1651,6 +1652,7 @@ DG.DocumentController = SC.Object.extend(
                   {duration: 0.3, timing: 'ease-in-out'},
                   function () {
                     iCardComponentView.set('isVisible', false);
+                    iCardComponentView.set('isAnimating', false);
                     tCardLayout.isVisible = false;
                     iCardComponentView.set('layout', tCardLayout);
                     iCardComponentView.setPath('model.content.isActive', false);
