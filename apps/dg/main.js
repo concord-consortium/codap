@@ -15,7 +15,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/*globals React, ReactDOMFactories, iframePhone */
+/*globals createReactClassFactory, ReactDOMFactories, iframePhone */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
 sc_require('utilities/iframe-phone-emulator');
@@ -666,7 +666,7 @@ DG.main = function main() {
 
   function cfmShowUserEntryView() {
 
-    var DialogContents = React.createFactory(React.createClass({
+    var DialogContents = createReactClassFactory({
       close: function () {
         DG.cfmClient.hideBlockingModal();
       },
@@ -702,7 +702,7 @@ DG.main = function main() {
                             'DG.main.userEntryView.newDocument'.loc()))
         ]);
       }
-    }));
+    });
     if (DG.get('showUserEntryView')) {
       DG.cfmClient.showBlockingModal({
         title: 'DG.main.userEntryView.title'.loc(),

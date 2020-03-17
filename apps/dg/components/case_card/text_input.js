@@ -36,7 +36,7 @@ DG.React.ready(function () {
             window.removeEventListener("mousedown", this._onWindowClick, true);
           },
 
-          componentWillReceiveProps: function (iNewProps) {
+          UNSAFE_componentWillReceiveProps: function (iNewProps) {
             if (iNewProps.value !== this.state.value)
               this.setState({value: iNewProps.value});
             if (iNewProps.unit !== this.state.unit)

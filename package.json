@@ -99,6 +99,7 @@
   },
   "dependencies": {
     "codemirror": "^5.39.2",
+    "create-react-class": "^15.6.3",
     "dayjs": "^1.8.14",
     "deep-equal": "^1.0.1",
     "esri-leaflet": "^2.2.1",

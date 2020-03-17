@@ -1,9 +1,9 @@
-/* global React, ReactDOM */
+/* global createReactClass, createReactFactory, ReactDOM */
 
 // this would be defined once in CODAP
 DG.React = {
   createClass: function (def, highOrderComponentList) {
-    var finalClass = React.createClass(def);
+    var finalClass = createReactClass(def);
     if (highOrderComponentList) {
       highOrderComponentList.forEach(function (highOrderComponent) {
         finalClass = highOrderComponent(finalClass);
@@ -13,7 +13,7 @@ DG.React = {
   },
 
   createComponent: function (def, highOrderComponentList) {
-    return React.createFactory(DG.React.createClass(def, highOrderComponentList));
+    return createReactFactory(DG.React.createClass(def, highOrderComponentList));
   },
 
   // toggles the component to render in the container node
@@ -41,11 +41,11 @@ DG.React = {
 DG.React.HighOrderComponents = {
   _render: function (componentInstance, childComponentClass, highOrderProps) {
     var props = Object.assign({}, componentInstance.props, componentInstance.state, (highOrderProps || {}));
-    return React.createFactory(childComponentClass)(props);
+    return createReactFactory(childComponentClass)(props);
   },
 
   UnmountOnOutsideClick: function (childComponentClass) {
-    return React.createClass({
+    return createReactClass({
       componentDidMount: function () {
         window.addEventListener('mousedown', this.checkForToggle, true);
       },
@@ -82,7 +82,7 @@ DG.React.HighOrderComponents = {
   },
 
   UnmountOnEscapeKey: function (childComponentClass) {
-    return React.createClass({
+    return createReactClass({
       componentDidMount: function () {
         window.addEventListener('keydown', this.checkForEscape, true);
       },
