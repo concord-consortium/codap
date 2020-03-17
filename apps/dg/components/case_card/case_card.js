@@ -30,7 +30,9 @@ DG.React.ready(function () {
             gWaitingForSelect = false,
             gTimeOfLastSelectCall,  // time
             gSelectTimer, // SC.Timer
-            gMoveArrowClickInProgress = false;
+            gMoveArrowClickInProgress = false,
+            // leave some room for collection name (left) and navigation buttons (right)
+            kMinColumnWidth = 82;
 
         var ChangeListener = SC.Object.extend({
           dependent: null,
@@ -196,7 +198,24 @@ DG.React.ready(function () {
               caseID: iCaseID,
               columnWidthPct: this.props.columnWidthPct,
               onHeaderWidthChange: (iIndex === 0) &&
-                                    function(width) { this.setState({ columnWidth: width }); }.bind(this),
+                                    function(width) {
+                                      // attempt to maintain minimum column width
+                                      var adjustedWidth = null;
+                                      if ((width < kMinColumnWidth) && (this.state.containerWidth >= 2 * kMinColumnWidth)) {
+                                        adjustedWidth = kMinColumnWidth;
+                                      }
+                                      if ((this.state.containerWidth - width < kMinColumnWidth) &&
+                                          (this.state.containerWidth > kMinColumnWidth + 20)) {
+                                        adjustedWidth = this.state.containerWidth - kMinColumnWidth;
+                                      }
+
+                                      width = adjustedWidth || width;
+                                      if (width !== this.state.columnWidth) {
+                                        if (adjustedWidth && this.props.onResizeColumn)
+                                          this.props.onResizeColumn(adjustedWidth / this.state.containerWidth);
+                                        this.setState({ columnWidth: width });
+                                      }
+                                    }.bind(this),
               onNext: this.moveToNextCase,
               onPrevious: this.moveToPreviousCase,
               onNewCase: this.newCase,
@@ -818,9 +837,7 @@ DG.React.ready(function () {
                 }.bind(this)
             );
 
-            var kResizeHandleClass = "case-card-column-resize-handle",
-                // leave some room for collection name (left) and navigation buttons (right)
-                kMinColumnWidth = 82;
+            var kResizeHandleClass = "case-card-column-resize-handle";
             tCollEntries.push(DG.React.Components.ColumnResizeHandle({
                                 className: kResizeHandleClass,
                                 key: kResizeHandleClass,

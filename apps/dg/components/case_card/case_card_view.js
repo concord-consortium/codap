@@ -90,7 +90,11 @@ DG.CaseCardView = SC.View.extend(
                         columnWidthPct: this.getPath('model.columnWidthPct'),
                         onResizeColumn: function(widthPct) {
                           SC.run(function() {
-                            this.setPath('model.columnWidthPct', widthPct);
+                            if (this.get('isVisible') && !this.get('isAnimating') &&
+                                (widthPct > 0) &&
+                                (widthPct !== this.getPath('model.columnWidthPct'))) {
+                              this.setPath('model.columnWidthPct', widthPct);
+                            }
                           }.bind(this));
                         }.bind(this)
                       }, iExtraProps || {});
