@@ -16,12 +16,12 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global React */
+/* global ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      div = React.DOM.div;
+      div = ReactDOMFactories.div;
 
   /**
    * props

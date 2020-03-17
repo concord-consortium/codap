@@ -16,11 +16,11 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global React */
+/* global ReactDOMFactories */
 
 DG.React.ready(function () {
   var
-      div = React.DOM.div;
+      div = ReactDOMFactories.div;
 
   DG.React.Components.Dropdown = DG.React.createComponent(
       (function () {

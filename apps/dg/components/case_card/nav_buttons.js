@@ -1,11 +1,10 @@
-/* global React */
+/* global ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      img = React.DOM.img,
-      span = React.DOM.span//,
-  ;
+      img = ReactDOMFactories.img,
+      span = ReactDOMFactories.span;
 
   DG.React.Components.NavButtons = DG.React.createComponent(
       (function () {

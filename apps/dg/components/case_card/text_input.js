@@ -1,12 +1,11 @@
-/* global React */
-/* global ReactDOM */
+/* global ReactDOM, ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
       findDOMNode = ReactDOM.findDOMNode,
-      span = React.DOM.span,
-      input = React.DOM.input;
+      span = ReactDOMFactories.span,
+      input = ReactDOMFactories.input;
 
   DG.React.Components.TextInput = DG.React.createComponent(
       (function () {

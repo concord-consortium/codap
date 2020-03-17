@@ -1,11 +1,11 @@
-/* global React */
+/* global ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      tr = React.DOM.tr,
-      th = React.DOM.th,
-      div = React.DOM.div;
+      tr = ReactDOMFactories.tr,
+      th = ReactDOMFactories.th,
+      div = ReactDOMFactories.div;
 
   DG.React.Components.CollectionHeader = DG.React.createComponent(
       (function () {

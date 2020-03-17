@@ -16,12 +16,12 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global React */
+/* global ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      a = React.DOM.a;
+      a = ReactDOMFactories.a;
 
   DG.React.Components.DropdownTrigger = DG.React.createComponent(
       (function () {

@@ -1,18 +1,16 @@
-/* global React, tinycolor */
+/* global ReactDOMFactories, tinycolor */
 // sc_require('react/dg-react');
 sc_require('components/case_card/column_resize_handle');
 sc_require('components/case_card/text_input');
 
 DG.React.ready(function () {
-  var div = React.DOM.div,
-      span = React.DOM.span, //,
-      table = React.DOM.table,
-      tbody = React.DOM.tbody,
-      tr = React.DOM.tr,
-      td = React.DOM.td,
-      img = React.DOM.img//,
-      // input = React.DOM.input
-  ;
+  var div = ReactDOMFactories.div,
+      span = ReactDOMFactories.span,
+      table = ReactDOMFactories.table,
+      tbody = ReactDOMFactories.tbody,
+      tr = ReactDOMFactories.tr,
+      td = ReactDOMFactories.td,
+      img = ReactDOMFactories.img;
 
   DG.React.Components.CaseCard = DG.React.createComponent(
       (function () {

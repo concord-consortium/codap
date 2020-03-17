@@ -1,11 +1,11 @@
 // sc_require('react/dg-react');
-/* global React */
+/* global ReactDOMFactories */
 
 DG.React.ready(function () {
   var
-      img = React.DOM.img,
-      div = React.DOM.div,
-      td = React.DOM.td;
+      img = ReactDOMFactories.img,
+      div = ReactDOMFactories.div,
+      td = ReactDOMFactories.td;
 
   DG.React.Components.AttributeNameCell = DG.React.createComponent(
       (function () {

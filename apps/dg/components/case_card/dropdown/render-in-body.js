@@ -16,13 +16,12 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global React */
-/* global ReactDOM */
+/* global ReactDOM, ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      div = React.DOM.div;
+      div = ReactDOMFactories.div;
   DG.React.Components.RenderInBody = DG.React.createComponent(
       (function () {
         return {
