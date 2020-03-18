@@ -165,7 +165,7 @@ DG.React.ready(function () {
                                 ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
                                 : undefined,
                 tContents = this.props.isEditing
-                              ? DG.React.Components.SimpleEdit({
+                              ? DG.React.SimpleEdit({
                                   className: 'react-data-card-attr-name-input',
                                   value: this.props.attribute.get('name'),
                                   onCompleteEdit: this.props.onEndRenameAttribute
