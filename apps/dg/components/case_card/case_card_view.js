@@ -115,6 +115,11 @@ DG.CaseCardView = SC.View.extend(
           DG.globalEditorLock.commitCurrentEdit();
         },
 
+        mouseWheel: function (evt) {
+          // don't propagate to document
+          return YES;
+        },
+
         isValidAttribute: function (iDrag) {
           var tDragAttr = iDrag.data.attribute,
               tAttrs = this.get('context').getAttributes();
