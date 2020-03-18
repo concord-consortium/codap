@@ -283,12 +283,6 @@ DG.React.ready(function () {
               iEvent.preventDefault();
             }
 
-            // Prevents page scroll when scrolling in the case card
-            // function handleWheel(iEvent) {
-              // iEvent.preventDefault();
-              // iEvent.stopPropagation();
-            // }
-
             function handleMouseLeave(iEvent) {
               if (tMouseIsDown) {
                 if (!tDragInProgress) {
@@ -549,8 +543,6 @@ DG.React.ready(function () {
             var tDiv = div({
                   className: 'react-data-card-attribute',
                   title: tTitle,
-                  // onWheel: handleWheel,
-                  // onScroll: handleWheel,
                   onMouseDown: handleMouseDown,
                   onMouseUp: handleMouseUp,
                   onMouseLeave: handleMouseLeave,
@@ -851,7 +843,7 @@ DG.React.ready(function () {
                                 }.bind(this)
                               }));
             return div({
-              className: 'react-data-card dg-wants-mouse',
+              className: 'react-data-card',
               ref: function(elt) { this.caseCardElt = elt; }.bind(this)
             }, tCollEntries);
           }
