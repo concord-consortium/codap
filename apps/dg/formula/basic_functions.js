@@ -43,35 +43,51 @@ DG.functionRegistry.registerFunctions((function() {
     },
     'acos': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
-      evalFn: Math.acos
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.acos(x);
+      }
     },
     'asin': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
-      evalFn: Math.asin
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.asin(x);
+      }
     },
     'atan': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
-      evalFn: Math.atan
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.atan(x);
+      }
     },
     'atan2': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryTrigonometric',
-      evalFn: Math.atan2
+      evalFn: function(y, x) {
+        return SC.empty(x) || SC.empty(y) ? '' : Math.atan2(y, x);
+      }
     },
     'ceil': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: Math.ceil
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.ceil(x);
+      }
     },
     'cos': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
-      evalFn: Math.cos
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.cos(x);
+      }
     },
     'exp': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: Math.exp
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.exp(x);
+      }
     },
     'floor': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: Math.floor
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.floor(x);
+      }
     },
     //'ln': { minArgs:1, maxArgs:1 },     // replaced by DG version
     //'log': { minArgs:1, maxArgs:1 },    // replaced by DG version
@@ -79,21 +95,29 @@ DG.functionRegistry.registerFunctions((function() {
     //'min': { minArgs:1, maxArgs:'n' },  // replaced by DG (aggregate) version
     'pow': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: Math.pow
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.pow(x);
+      }
     },
     //'random': { minArgs:0, maxArgs:0 }, // replaced by DG version
     //'round': { minArgs:1, maxArgs:1 },  // replaced by DG version
     'sin': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
-      evalFn: Math.sin
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.sin(x);
+      }
     },
     'sqrt': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: Math.sqrt
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.sqrt(x);
+      }
     },
     'tan': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
-      evalFn: Math.tan
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.tan(x);
+      }
     },
 
     /**
@@ -103,7 +127,9 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'boolean': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion',
-      evalFn: function(x) { return Boolean(x); }
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Boolean(x);
+      }
     },
 
     /**
@@ -113,12 +139,15 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'frac': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: function(x) { return x - trunc(x); }
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : x - trunc(x);
+      }
     },
 
     'if': {
       minArgs: 2, maxArgs: 3, category: 'DG.Formula.FuncCategoryOther',
       evalFn: function(condition, trueValue, falseValue) {
+        if (SC.empty(condition)) return '';
         return condition
                 ? (trueValue != null ? trueValue : '')
                 : (falseValue != null ? falseValue : '');
@@ -137,7 +166,9 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'ln': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: Math.log
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.log(x);
+      }
     },
 
     /**
@@ -148,7 +179,9 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'log': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: function(x) { return Math.log(x) / Math.LN10; }
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : Math.log(x) / Math.LN10;
+      }
     },
 
     /**
@@ -159,6 +192,7 @@ DG.functionRegistry.registerFunctions((function() {
     'number': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion',
       evalFn: function(x) {
+        if (SC.empty(x)) return '';
         if( typeof x === 'string')
           x = x.replace(/\u2212/g, '-');  // replace Unicode minus with hyphen
         return Number(x);
@@ -179,11 +213,9 @@ DG.functionRegistry.registerFunctions((function() {
       minArgs:0, maxArgs:2, isRandom: true, category: 'DG.Formula.FuncCategoryRandom',
       evalFn: function(x1,x2) {
         // random()
-        if( SC.none(x1))
-          return Math.random();
+        if( SC.empty(x1)) return Math.random();
         // random(max)
-        if( SC.none(x2))
-          return x1 * Math.random();
+        if( SC.empty(x2)) return x1 * Math.random();
         // random(min,max)
         return x1 + (x2 - x1) * Math.random();
       }
@@ -203,7 +235,7 @@ DG.functionRegistry.registerFunctions((function() {
       evalFn: function(mu,sigma) {
         var	fac, rsq, v1, v2;
         mu = mu || 0;
-        sigma = SC.none(sigma) ? 1 : sigma;
+        sigma = SC.empty(sigma) ? 1 : sigma;
 
         if (savedRandomGaussian !== 0) {		// Is there one left?
           v1 = savedRandomGaussian;
@@ -230,8 +262,8 @@ DG.functionRegistry.registerFunctions((function() {
     'round': {
       minArgs:1, maxArgs:2, category: 'DG.Formula.FuncCategoryArithmetic',
       evalFn: function(x,n) {
-        if( SC.none(n))
-          return Math.round(x);
+        if (SC.empty(x)) return '';
+        if (SC.empty(n)) return Math.round(x);
         var npow = Math.pow(10, trunc(n));
         return Math.round(npow * x) / npow;
       }
@@ -244,7 +276,9 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'string': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion',
-      evalFn: function(x) { return String(x); }
+      evalFn: function(x) {
+        return SC.empty(x) ? '' : String(x);
+      }
     },
 
     /**
