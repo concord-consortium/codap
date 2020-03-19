@@ -43,6 +43,18 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
       wantsOtherAxis: true,
 
       /**
+       * When making a copy of a plot (e.g. for use in split) the returned object
+       * holds those properties that should be assigned to the copy.
+       * @return {{}}
+       */
+      getPropsForCopy: function() {
+        var tResult = sc_super();
+        return $.extend( tResult, {
+          breakdownType: this.get('breakdownType')
+        });
+      },
+
+      /**
        *
        * @param iPlace {DG.GraphTypes.EPlace}
        * @return { class }
@@ -70,11 +82,7 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
       }.property('breakdownType'),
 
       breakdownTypeDidChange: function () {
-        var tNewType = this.get('breakdownType'),
-            tNewUpperBound;
-        this.setPath('secondaryAxisModel.scaleType', tNewType);
-        tNewUpperBound = this.get('naturalUpperBound');
-        this.get('secondaryAxisModel').setLowerAndUpperBounds(0, tNewUpperBound, true /* with animation */);
+        this.setPath('secondaryAxisModel.scaleType', this.get('breakdownType'));
       }.observes('breakdownType'),
 
       /**

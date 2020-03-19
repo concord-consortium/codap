@@ -61,22 +61,6 @@ DG.BarChartView = DG.ChartView.extend(
         this.displayDidChange();
       }.observes('*secondaryAxisView.model.upperBound'),
 
-      /**
-       * We want to animate from the current element positions to new ones. The trick is to
-       * compute the new positions with the correct secondary axis bounds.
-       */
-      breakdownTypeDidChange: function () {
-        var tCurrBound = this.getPath('secondaryAxisView.model.upperBound'),
-            tNewBound = this.getPath('model.naturalUpperBound');
-        this.getPath('secondaryAxisView.model').setLowerAndUpperBounds(0, tNewBound);
-        this.getPath('secondaryAxisView.model').notifyPropertyChange('upperBound');  // So updating coordinates will work
-        this.setPath('model.isAnimating', true);
-        this.updateAllCoordinates(true /* animate */, function () {
-          this.setPath('model.isAnimating', false);
-        }.bind(this));
-        this.getPath('secondaryAxisView.model').setLowerAndUpperBounds(0, tCurrBound);
-      }.observes('model.breakdownType'),
-
       init: function () {
         sc_super();
 

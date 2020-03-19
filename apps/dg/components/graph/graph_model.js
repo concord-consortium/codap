@@ -1102,13 +1102,17 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * The root plot's breakdown type (count or percent) has changed. Propagate this change to split plots if any.
      */
     propagateBreakdownType: function() {
+      var tNewBound = this.getPath('plot.naturalUpperBound');
       if( this.get('isSplit')) {
         var tType = this.getPath('plot.breakdownType');
         this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
-          if( iRow !== 0 || iCol !== 0)
+          if( iRow !== 0 || iCol !== 0) {
             iPlotArray[0].set('breakdownType', tType);
+            tNewBound = Math.max( tNewBound, iPlotArray[0].get('naturalUpperBound'));
+          }
         });
       }
+      this.getPath('plot.secondaryAxisModel').setLowerAndUpperBounds(0, tNewBound, true /* with animation */);
     },
 
         /**
@@ -1369,7 +1373,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
             tYAxis.setLinkToPlotIfDesired( tNewPlot);
             if( tPlotIndex === 0) {
               tNewPlot.installAdornmentModelsFrom(tRootPlot);
-              this_.addPlotObserver(tNewPlot);
               tRootPlot.addSibling(tNewPlot);
             }
             iPlotArray[tPlotIndex] = tNewPlot;
