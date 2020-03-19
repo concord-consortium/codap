@@ -56,7 +56,7 @@ class CfmObject{
         this.openCFMMenu();
         this.selectCFMMenuItem('Save');
         this.getLocalFileTab().click();
-        cy.get('.modal-dialog-workspace .dialogTab.localFileSave input').clear().type(filename);
+        cy.get('.modal-dialog-workspace .dialogTab.localFileSave input').click().clear().type(filename);
         cy.get('.buttons a').contains('Download').click();
     }
 }

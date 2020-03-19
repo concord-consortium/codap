@@ -11,9 +11,7 @@ class TableTileObject{
     getCaseCardIcon(){
         return cy.get('.dg-card-icon')
     }
-    getTableIcon(){
-        return cy.get('.dg-table-icon')
-    }
+
     getAddNewAttributePlusIcon(collection){
         return cy.get('.dg-case-table-title').contains(collection).siblings('.dg-floating-plus')
     }
@@ -24,13 +22,10 @@ class TableTileObject{
         return cy.get('.two-line-header-line-1').contains(name);
     }
     changeToCaseCard(){
-        cy.get('.dg-card-icon').click();
+        cy.get('.dg-card-icon').click({force:true});
         cy.clickMenuItem('Switch to case card view of the data')
     }
-    changeToTable(){
-        cy.get('.dg-table-icon').click();
-        cy.clickMenuItem('Switch to case table view of the data')
-    }
+
     addNewAttribute(collection){
         //Have to find the appropriate collection
         this.getAddNewAttributePlusIcon(collection).click();
@@ -74,55 +69,87 @@ class TableTileObject{
             $index_arr[index_num].click();
         })
     }
-    insertCase(index_um){
-        
+    insertCase(index_num){
+        this.openIndexMenu(index_num);
+        cy.clickMenuItem('Insert Case')
     }
-    insertCases(){
+    insertCases(index_num, num_of_cases, location){ //location is before or after insertion point
+        this.openIndexMenu(index_num);
+        cy.clickMenuItem('Insert Cases')
+        cy.get('.dg-insert-cases-dialog .dg .field').type(num_of_cases)
+        cy.get('.dg-insert-cases-dialog .sc-button-label').contains(location).click();
+        cy.get('.dg-insert-cases-dialog .sc-button-label').contains('Insert Cases').click();
+    }
+    deleteCase(index_num, num_of_cases){
+        this.openIndexMenu(index_num);
+        cy.clickMenuItem('Delete Case')
+    }
 
+    //Case card view
+    getTableIcon(){
+        return cy.get('.dg-table-icon')
     }
-    deleteCases(){
+    changeToTable(){
+        cy.get('.dg-table-icon').click();
+        cy.clickMenuItem('Switch to case table view of the data')
+    }
+    getCaseCardCollectionHeader(position=0){
+        return cy.get('.react-data-card-collection-header').eq(position)
+    }
+    getCaseCardNavBackIcon(){
+        return cy.get('.react-data-card-navbuttons .moonicon-icon-reverse-play')
+    }
+    getCaseCardNavForwardIcon(){
+        return cy.get('.react-data-card-navbuttons .moonicon-icon-play')
+    }
+    getCaseCardAddCasePlusIcon(){
+        return cy.get('.react-data-card-nav-header-cell .dg-floating-plus-right')
+    }
+    getCaseCardAddAttributePlusIcon(){
+        return cy.get('.react-data-card-row .dg-floating-plus')
+    }
+    caseCardAttributeEl(){
+        return ('.react-data-card-attribute')
+    }
+    getCaseCardAttribute(){
+        return cy.get(this.caseCardAttributeEl())
+    }
+    getCaseCardAttributeSummary(){
+        return cy.get('.react-data-card-attribute-summary')
+    }
+    getCaseCardAttributeMenuItem(item){
+        return cy.get('.react-data-card-attribute-menu-item').contains(item)
+    }
+    getCaseCardCell(){
+        return cy.get('.react-data-card-value')
+    }
+    editCaseCardCell(text){
+        cy.get('.react-data-card-value-input').type(text)
+    }
+    caseCardAttributeInputEl(){
+        return ('.react-data-card-attr-name-input')
+    }
 
-    }
-    
     //Attribute menu
     openAttributeMenu(attr){
         this.getAttribute(attr).click();
-                //click on attr
+    }
+    openCaseCardAttributeMenu(attr){
+        this.getCaseCardAttribute().contains(attr).click();
     }
     getAttributeMenuItem(item){
         return cy.get('.slick-header-menucontent').contains(item)
     }
     selectMenuItemFromAttributeMenu(item){
-        cy.get('.slick-header-menucontent').contains(item).click();
+        this.getAttributeMenuItem(item).click();
+    }
+    selectMenuItemFromCaseCardAttributeMenu(item){
+        this.getCaseCardAttributeMenuItem(item).click();
     }
     getApplyButton(){
         return cy.get('.button label').contains('Apply');
     }
-    editAttributeProperty(attr, name, description, type, unit, precision, editable){
-        this.openAttributeMenu(attr);
-        this.selectMenuItemFromAttributeMenu('Edit Attribute Properties...');
-        if (!name==null) {
-            cy.log(name)
-            debugger
-            this.enterAttributeName(name);
-        }
-        if (!description==null) {
-            this.enterAttributeDescription(description);
-        }
-        if (!type==null) {
-            this.selectAttributeType(type);
-        }
-        if (!unit==null) {
-            this.enterAttributeUnit(unit);
-        }
-        if (!precision==null) {
-            this.enterAttributePrecision(precision);
-        }
-        if (!editable==null) {
-            this.selectAttributeEditableState(editable);
-        }
-        this.getApplyButton().click();
-    }
+
     editFormula(attr, formula){
         this.openAttributeMenu(attr);
         this.selectMenuItemFromAttributeMenu('Edit Formula...');
@@ -137,6 +164,7 @@ class TableTileObject{
     }
     //Edit Attribute Property Dialog
     enterAttributeName(name){
+        cy.log('in enterAttributeName')
         cy.get('.dg.panel input').eq(0).type(name);
     }
     enterAttributeDescription(text){
@@ -161,7 +189,7 @@ class TableTileObject{
         cy.get('.dg-formula-dialog-input-field textarea').eq(1).type(formula, {force:true});
     }
 
-    //Table tool palette
+    //Tool palette
     getTableToolPalette(){
         return cy.get('.dg-case-table-component-view').siblings('.dg-inspector-palette')
     }
@@ -194,6 +222,36 @@ class TableTileObject{
     addNewAttributeInRuler(collection){
         cy.clickMenuItem('New Attribute in '+ collection);
     }
-
+    editAttributeProperty(state,attr, name, description, type, unit, precision, editable){
+        switch (state) {
+            case ("table") :
+                this.openAttributeMenu(attr);
+                this.selectMenuItemFromAttributeMenu('Edit Attribute Properties...');
+            case ("case card") :
+                this.openCaseCardAttributeMenu(attr);
+                this.selectMenuItemFromCaseCardAttributeMenu('Edit Attribute Properties...');
+        }
+        if (!name=="") {
+            cy.log("name: "+name)
+            // this.enterAttributeName(name);
+            cy.get('.dg.panel input').eq(0).type("{selectall} {backspace}"+name);
+            this.getApplyButton().click();
+        }
+        if (!description==null) {
+            this.enterAttributeDescription(description);
+        }
+        if (!type==null) {
+            this.selectAttributeType(type);
+        }
+        if (!unit==null) {
+            this.enterAttributeUnit(unit);
+        }
+        if (!precision==null) {
+            this.enterAttributePrecision(precision);
+        }
+        if (!editable==null) {
+            this.selectAttributeEditableState(editable);
+        }
+    }
 }
 export default TableTileObject
