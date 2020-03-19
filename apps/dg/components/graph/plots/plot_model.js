@@ -648,10 +648,11 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       },
 
       /**
+       * @param iKey {String} If present, the property that changed to bring about this call
        Subclasses may override
        Called when attribute configuration changes occur, for instance.
        */
-      invalidateCaches: function () {
+      invalidateCaches: function ( iKey) {
         this._casesCache = null;
         this.invalidateAggregateAdornments();
         this.notifyPropertyChange('plotConfiguration');
@@ -951,7 +952,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
 
         var dataConfiguration = this.get('dataConfiguration');
         if (dataConfiguration) {
-          this.invalidateCaches();
+          this.invalidateCaches( iKey);
           this.handleDataConfigurationChange(iKey);
 
           if (iKey === 'dataConfiguration') {

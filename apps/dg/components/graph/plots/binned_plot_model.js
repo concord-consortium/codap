@@ -228,10 +228,11 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         },
 
         /**
+         * @param iKey {String} If present, the property that changed to bring about this call
          */
-        invalidateCaches: function () {
+        invalidateCaches: function ( iKey) {
           sc_super();
-          if( !this.restoreInProgress) {
+          if( !this.restoreInProgress && iKey !== 'hiddenCases') {
             this.set('width', null);
             this.set('alignment', null);
             this.set('widthIncrement', null);

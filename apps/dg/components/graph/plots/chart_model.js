@@ -244,9 +244,10 @@ DG.ChartModel = DG.PlotModel.extend(
   },
   
   /**
+   * @param iKey {String} If present, the property that changed to bring about this call
     My data has changed, so my cache is no longer valid.
   */
-  invalidateCaches: function() {
+  invalidateCaches: function( iKey) {
     sc_super();
     this.set('_cacheIsValid', false);
     this._cachedComputationContext = null;
