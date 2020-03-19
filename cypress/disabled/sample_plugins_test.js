@@ -22,7 +22,7 @@ context('Load all Sample documents in the CODAP sample doc page', ()=>{
                 }
                 cy.visit(url);
                 cy.wait(5000);
-            // cy.matchImageSnapshot(title)
+            cy.matchImageSnapshot(listing[i].title)
             }
         })
     })

@@ -126,6 +126,9 @@ class TableTileObject{
     editCaseCardCell(text){
         cy.get('.react-data-card-value-input').type(text)
     }
+    caseCardAttributeInputEl(){
+        return ('.react-data-card-attr-name-input')
+    }
 
     //Attribute menu
     openAttributeMenu(attr){

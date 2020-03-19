@@ -8,9 +8,6 @@ const codap = new CodapObject;
 const casecard = new CaseCardObject;
 const cfm = new CfmObject;
 
-// const dir = '../../../../Downloads/';
-// const filename='3TableGroups',
-//       ext = '.json';
 const baseUrl = `${Cypress.config("baseUrl")}`;
 const ext = '.codap';
 
@@ -25,7 +22,7 @@ before(()=> {
     cfm.openDocFromModal();
     cy.wait(500)
     cfm.openLocalDoc(dir+filename+ext)
-    codap.getTableTileTitle().click() //bring the table into focus
+    // codap.getTableTile().click() //bring the table into focus
     table.changeToCaseCard();
 }) 
 
@@ -81,6 +78,7 @@ context('case card version', ()=>{
         it('verify add attribute',()=>{
             let attr='newAttr';
             table.getCaseCardAddAttributePlusIcon().click();
+            cy.get(table.caseCardAttributeInputEl()).type('{enter}')
             table.getCaseCardAttribute().contains(attr).should('be.visible');
         })
         it.skip('verify reorder of attribute',()=>{ //drag and drop of attribute not working
@@ -93,7 +91,7 @@ context('case card version', ()=>{
         })
 
     })
-    describe.only('attribute menu functionality',()=>{
+    describe('attribute menu functionality',()=>{
         before(()=> {
             var filename='3TableGroups',
                 dir='../fixtures/';
@@ -111,11 +109,13 @@ context('case card version', ()=>{
         it('verify add attribute in child collection',()=>{
             let attr='newAttr';
             table.getCaseCardAddAttributePlusIcon().eq(2).click();
+            table.getCaseCardCollectionHeader(2).siblings('.react-data-card-row').find(table.caseCardAttributeInputEl()).type('{enter}')
             table.getCaseCardCollectionHeader(2).siblings('.react-data-card-row').find(table.caseCardAttributeEl()).contains(attr).should('be.visible');
         })
         it('verify add attribute in parent collection',()=>{
             let attr='newAttr2';
             table.getCaseCardAddAttributePlusIcon().eq(0).click();
+            table.getCaseCardCollectionHeader(0).siblings('.react-data-card-row').find(table.caseCardAttributeInputEl()).type('{enter}')
             table.getCaseCardCollectionHeader(0).siblings('.react-data-card-row').find(table.caseCardAttributeEl()).contains(attr).should('be.visible');
 
         })
