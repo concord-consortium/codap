@@ -95,8 +95,8 @@ DG.functionRegistry.registerFunctions((function() {
     //'min': { minArgs:1, maxArgs:'n' },  // replaced by DG (aggregate) version
     'pow': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryArithmetic',
-      evalFn: function(x) {
-        return SC.empty(x) ? '' : Math.pow(x);
+      evalFn: function(x, y) {
+        return SC.empty(x) || SC.empty(y) ? '' : Math.pow(x, y);
       }
     },
     //'random': { minArgs:0, maxArgs:0 }, // replaced by DG version
