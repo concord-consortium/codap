@@ -33,6 +33,11 @@ DG.AxisViewHelper = SC.Object.extend(
          */
         axisView: null,
 
+        destroy: function() {
+          this.axisView = null;
+          sc_super();
+        },
+
         paper: function() {
           return this.getPath('axisView.paper');
         }.property(),

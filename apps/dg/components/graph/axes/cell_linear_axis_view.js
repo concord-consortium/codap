@@ -42,10 +42,12 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
      */
     _axisViewHelper: null,
     axisViewHelper: function() {
-      if( !this._axisViewHelper) {
-        var tHelperClass = (this.get('isDateTime')) ?
-                              DG.DateTimeAxisViewHelper : DG.NumericAxisViewHelper;
-        this._axisViewHelper = tHelperClass.create( {
+      var tNewHelperClass = (this.get('isDateTime')) ?
+          DG.DateTimeAxisViewHelper : DG.NumericAxisViewHelper;
+      if( !this._axisViewHelper || tNewHelperClass !== this._axisViewHelper.constructor) {
+        if(this._axisViewHelper)
+          this._axisViewHelper.destroy();
+        this._axisViewHelper = tNewHelperClass.create( {
           axisView: this
         });
       }
