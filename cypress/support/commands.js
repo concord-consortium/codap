@@ -101,6 +101,8 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
   const dt = new DataTransfer;
   const el={  tableHeader: '.slick-header-column .two-line-header-line-1',
               caseCardHeader: '.react-data-card-attribute',
+              caseCardHeaderDropZone: '.react-data-card .data-cell-lower',
+              caseCardCollectionDropZone: '.react-data-card-collection-header',
               graphTile: '.dg-graph-view',
               x_axis:'.dg-axis-view.dg-h-axis',
               x_axis_label: '.dg-axis-view.dg-h-axis .dg-axis-label',
@@ -137,6 +139,12 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
     case ('table') :
         target_el=el.tableHeader;
         break
+    case ('card') :
+        target_el=el.caseCardHeaderDropZone;
+        break
+    case ('card collection') :
+        target_el=el.caseCardCollectionDropZone;
+        break               
     case ('graph_legend1') :
         target_el=el.graphTile;
         break  

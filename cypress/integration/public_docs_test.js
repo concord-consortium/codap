@@ -12,7 +12,7 @@ context('Load all Sample documents in the CODAP sample doc page', ()=>{
                 cy.log(listing[i])
                 cy.visit(listing[i]);
                 cy.wait(5000);
-            // cy.matchImageSnapshot(title)
+                cy.matchImageSnapshot(listing[i])
             }
         })
     })

@@ -799,5 +799,6 @@ SC.stringsFor("tr", {
     "DG.CaseTable.dividerView.collapseGroupTooltip": "collapse group",
     "DG.BinnedPlotModel.binLabelTip": "Values in this bin are ≥ %@ and < %@",
     "DG.Component.closeComponent.toolTip": "Close this Component",
-    "DG.Component.minimizeComponent.toolTip": "Minimize or expand this Component"
+    "DG.Component.minimizeComponent.toolTip": "Minimize or expand this Component",
+    "DG.Locale.name.ja": "Japanese"
 });

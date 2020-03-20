@@ -273,7 +273,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0521',
+    BUILD_NUM: '0522',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -656,58 +656,70 @@ DG = SC.Application.create((function () // closure
 
     locales: [
       {
-        langName: 'DG.Locale.name.de',
+        langName: 'Deutsch',
         langDigraph: 'de',
         countryDigraph: 'DE',
         icon: 'flag flag-de'
       },
       {
-        langName: 'DG.Locale.name.en',
+        langName: 'English',
         langDigraph: 'en',
         countryDigraph: 'US',
         icon: 'flag flag-us'
       },
       {
-        langName: 'DG.Locale.name.es',
+        langName: 'Español',
         langDigraph: 'es',
         countryDigraph: 'ES',
         icon: 'flag flag-es'
       },
       {
-        langName: 'DG.Locale.name.el',
+        langName: 'Ελληνικά',
         langDigraph: 'el',
         countryDigraph: 'GR',
         icon: 'flag flag-gr'
       },
       {
-        langName: 'DG.Locale.name.he',
+        langName: 'עברית',
         langDigraph: 'he',
         countryDigraph: 'IL',
         icon: 'flag flag-il'
       },
       {
-        langName: 'DG.Locale.name.nb',
+        langName: '日本語',
+        langDigraph: 'ja',
+        countryDigraph: 'JP',
+        icon: 'flag flag-jp'
+      },
+      {
+        langName: 'Bokmål',
         langDigraph: 'nb',
         countryDigraph: 'NO',
         icon: 'flag flag-no'
       },
       {
-        langName: 'DG.Locale.name.nn',
+        langName: 'Nynorsk',
         langDigraph: 'nn',
         countryDigraph: 'NO',
         icon: 'flag flag-no'
       },
       {
-        langName: 'DG.Locale.name.tr',
+        langName: 'Türkçe',
         langDigraph: 'tr',
         countryDigraph: 'TR',
         icon: 'flag flag-tr'
       },
       {
-        langName: 'DG.Locale.name.zh',
-        langDigraph: 'zh',
+        langName: '繁体中文',
+        langDigraph: 'zh-TW',
         countryDigraph: 'TW',
         icon: 'flag flag-tw'
+      },
+      {
+        langName: '简体中文',
+        langDigraph: 'zh-Hans',
+        countryDigraph: 'Hans',
+        icon: 'flag flag-cn'
       }
     ]
 

@@ -52,21 +52,42 @@ DG.functionRegistry.registerFunctions((function() {
     'date': {
       minArgs:1, maxArgs:7, category: 'DG.Formula.FuncCategoryDateTime',
       evalFn: function(iYearOrEpochSecs, iMonth, iDay, iHour, iMinute, iSecond, iMillisec) {
+        // check for valid arguments
+        var i, firstEmpty, lastValid, numValid = 0;
+        for (i = 0; i < arguments.length; ++i) {
+          var arg = arguments[i];
+          if (SC.empty(arg)) {
+            if (!firstEmpty && (i > 0)) firstEmpty = i;
+          }
+          else {
+            // can't have non-empty arguments after empty ones (except for empty year)
+            if (firstEmpty) return '';
+            // can't have non-numeric arguments
+            if (!DG.isNumeric(arg)) return '';
+            lastValid = i;
+            ++numValid;
+          }
+        }
+        // date() => now()
+        if (numValid === 0) return DG.createDate();
         // convert epoch seconds
-        if ((arguments.length === 1) && DG.DateUtilities.defaultToEpochSecs(iYearOrEpochSecs))
+        if ((lastValid === 0) && DG.DateUtilities.defaultToEpochSecs(iYearOrEpochSecs))
           return DG.createDate(iYearOrEpochSecs);
         var now = new Date(),
             year = now.getFullYear(),
             // dividing line for two-digit years is 10 yrs from now
             cutoff = (year + 10) % 100,
             month = iMonth > 0 ? iMonth - 1 : 0,
-            day = iDay > 0 ? iDay : 1,
+            day = iDay || 1,
             hour = iHour || 0,
             min = iMinute || 0,
             sec = iSecond || 0,
             ms = iMillisec || 0;
+        // empty year argument => current year
+        if (SC.empty(iYearOrEpochSecs))
+          iYearOrEpochSecs = year;
         // interpret two-digit years; will need to be adjusted before 2090
-        if (iYearOrEpochSecs < cutoff)
+        else if (iYearOrEpochSecs < cutoff)
           iYearOrEpochSecs += 2000;
         else if (iYearOrEpochSecs < 100)
           iYearOrEpochSecs += 1900;
