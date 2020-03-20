@@ -800,5 +800,5 @@ SC.stringsFor("ja", {
     "DG.BinnedPlotModel.binLabelTip": "この階級の値は≥ %@ 、 < %@です",
     "DG.Component.closeComponent.toolTip": "このパーツを閉じます",
     "DG.Component.minimizeComponent.toolTip": "このパーツを最小化、もしくは拡張します",
-    "DG.Locale.name.ja": "Japanese"
+    "DG.Locale.name.ja": "日本語"
 });
