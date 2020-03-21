@@ -63,27 +63,35 @@
     }
 }
 
+$nav-header-width: 75px;
 .react-data-card-collection-header {
+    height: 27px;
     background: #bddfdf !important;
-    margin-left: 0;
-    padding: 5px 0;
-    padding-left: 10px;
-}
 
-.react-data-card-collection-header.drop {
-    border-top: yellow 10px solid ;
-}
+    &.drop {
+        border-top: yellow 10px solid;
+    }
 
-.react-data-card-coll-header-cell {
-    width: 50%;
-    border: none;
-    text-align: left;
-    font-weight: bold;
-    white-space: normal;
-}
+    .react-data-card-coll-header-cell {
+        border: none;
+        font-weight: bold;
 
-.react-data-card-nav-header-cell {
-    text-align: right;
+        .react-data-card-coll-header-contents {
+            display: flex;
+            align-items: center;
+
+            .react-data-card-collection-string {
+                flex: 1 1 auto;
+                white-space: normal; /* wraps text within the cell */
+            }
+
+            .react-data-card-nav-header-cell {
+                padding-right: 5px;
+                flex: 0 0 $nav-header-width;
+                text-align: right;
+            }
+        }
+    }
 }
 
 .react-data-card table {
@@ -117,29 +125,9 @@
     text-overflow: ellipsis;
 }
 
-.react-data-card td.columnA {
-    width: 50%;
-}
-
-.react-data-card td.columnB {
-    width: 50%;
-}
-
 .react-data-card td span {
     margin-right: 0;
     font-size: 11px;
-}
-
-.react-data-card-header {
-    background-color: #f2ffe9 !important;
-    padding-top: 5px;
-    font-style: italic;
-    font-weight: bold;
-    margin-left: 5px;
-}
-
-.react-data-card-row {
-    width: 1px; /* Hack so that width of 100% for attribute name will work */
 }
 
 .react-data-card-attribute {
