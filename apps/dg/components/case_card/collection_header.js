@@ -16,6 +16,7 @@ DG.React.ready(function () {
          *    collClient {DG.CollectionClient}
          *    caseID {Number}
          *    columnWidthPct {Number} - percentage width of attribute column
+         *    onCollectionNameChange(newName: string) {function} - called when name is edited
          *    onHeaderWidthChange(width: number) {function} - called with pixel width of column
          *    dragStatus {Object}
          */
@@ -23,6 +24,12 @@ DG.React.ready(function () {
         var domRow = null;
 
         return {
+
+          getInitialState: function () {
+            return {
+              isEditingLabel: false
+            };
+          },
 
           render: function () {
             var this_ = this;
@@ -57,6 +64,38 @@ DG.React.ready(function () {
               }
             }
 
+            var renderStaticLabel = function(iCollectionClient, iCollectionName, iNumCases) {
+              var numSelected = iCollectionClient
+                      ? iCollectionClient.getPath('casesController.selection').toArray().length
+                      : 0,
+                  headerLabel = numSelected > 0
+                      ? 'DG.CaseCard.namePlusSelectionCount'.loc(numSelected, iNumCases, iCollectionName)
+                      : 'DG.CaseCard.namePlusCaseCount'.loc(iNumCases, iCollectionName);
+              return (
+                div({
+                  className: 'collection-label',
+                  onClick: function() {
+                    this.setState({ isEditingLabel: true });
+                  }.bind(this)
+                }, headerLabel)
+              );
+            }.bind(this);
+
+            var renderEditableLabel = function(iCollectionName) {
+              return (
+                DG.React.Components.SimpleEdit({
+                  className: 'collection-label',
+                  value: iCollectionName,
+                  onCompleteEdit: function(iNewName) {
+                    if (iNewName && (iNewName !== iCollectionName) && this.props.onCollectionNameChange) {
+                      this.props.onCollectionNameChange(iCollectionName, iNewName);
+                    }
+                    this.setState({ isEditingLabel: false });
+                  }.bind(this)
+                })
+              );
+            }.bind(this);
+
             handleDropIfAny();
 
             var tCollClient = this.props.collClient,
@@ -66,12 +105,7 @@ DG.React.ready(function () {
                 tCollection = tCollClient.get('collection'),
                 tName = tCollection.get('name'),
                 tNumCases = tCollection.get('cases').length,
-                tNumSelected = tCollClient ?
-                    tCollClient.getPath('casesController.selection').toArray().length : null,
                 tCaseIndex = SC.none(tCaseID) ? null : tCollection.getCaseIndexByID(tCaseID) + 1,
-                tHeaderString = tNumSelected > 0 ?
-                    'DG.CaseCard.namePlusSelectionCount'.loc(tNumSelected, tNumCases, tName) :
-                    'DG.CaseCard.namePlusCaseCount'.loc(tNumCases, tName),
                 tNavButtons = DG.React.Components.NavButtons({
                   collectionClient: tCollClient,
                   caseIndex: tCaseIndex,
@@ -92,7 +126,9 @@ DG.React.ready(function () {
                     className: 'collection-header-cell',
                   },
                   div({ className: 'collection-header-contents' }, 
-                      div({ className: 'collection-label' }, tHeaderString),
+                      this.state.isEditingLabel
+                        ? renderEditableLabel(tName)
+                        : renderStaticLabel(tCollClient, tName, tNumCases),
                       div({ className: 'nav-header' }, tNavButtons)
                   )
                 )

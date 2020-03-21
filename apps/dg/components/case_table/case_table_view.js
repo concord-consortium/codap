@@ -138,31 +138,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
            * @returns {*}
            */
           inlineEditorDidCommitEditing: function (editor, value, editable) {
-            var tTableView = this.get('refView'),
-                this_ = this;
-            DG.UndoHistory.execute(DG.Command.create({
-              name: 'caseTable.collectionNameChange',
-              undoString: 'DG.Undo.caseTable.collectionNameChange',
-              redoString: 'DG.Redo.caseTable.collectionNameChange',
-              execute: function () {
-                this._beforeStorage = tTableView.get('collectionName');
-                tTableView.set('collectionName', value);
-                this.log = "Change collection name from '%@' to '%@'".fmt(this._beforeStorage, value);
-              },
-              undo: function () {
-                var prev = this._beforeStorage;
-                tTableView.set('collectionName', prev);
-                // we have to set this as well, as 'value' is not tightly bound
-                this_._value = prev;
-                this_.propertyDidChange('value');
-              },
-              redo: function() {
-                tTableView.set('collectionName', value);
-                // we have to set this as well, as 'value' is not tightly bound
-                this_._value = value;
-                this_.propertyDidChange('value');
-              }
-            }));
+            var tController = getController(this),
+                tDataContext = tController && tController.get('dataContext'),
+                tCollectionName = this.getPath('refView.collectionName');
+            if (tDataContext) {
+              DG.CaseDisplayUtils
+                .setCollectionNameWithCommand(tDataContext, tCollectionName, value);
+            }
             return sc_super();
           },
 
