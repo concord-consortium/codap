@@ -5,7 +5,7 @@ DG.React.ready(function () {
   var
       tr = React.DOM.tr,
       th = React.DOM.th,
-      td = React.DOM.td;
+      div = React.DOM.div;
 
   DG.React.Components.CollectionHeader = DG.React.createComponent(
       (function () {
@@ -20,29 +20,9 @@ DG.React.ready(function () {
          *    dragStatus {Object}
          */
 
-        var domRow = null,
-            domHeader = null,
-            headerWidth = null;
+        var domRow = null;
 
         return {
-
-          componentDidMount: function () {
-            this.componentDidRender();
-          },
-
-          componentDidUpdate: function () {
-            this.componentDidRender();
-          },
-
-          componentDidRender: function () {
-            if (domHeader) {
-              var bounds = domHeader.getBoundingClientRect();
-              if (headerWidth !== bounds.width) {
-                headerWidth = bounds.width;
-                this.props.onHeaderWidthChange && this.props.onHeaderWidthChange(headerWidth);
-              }
-            }
-          },
 
           render: function () {
             var this_ = this;
@@ -79,14 +59,10 @@ DG.React.ready(function () {
 
             handleDropIfAny();
 
-            var toggleEditing = function () {
-
-            }.bind(this);
-
             var tCollClient = this.props.collClient,
                 tCaseID = this.props.caseID,
                 tIndex = this.props.index,
-                tRowClass = 'react-data-card-collection-header' + (dragIsInMe() ? ' drop' : ''),
+                tRowClass = 'collection-header-row' + (dragIsInMe() ? ' drop' : ''),
                 tCollection = tCollClient.get('collection'),
                 tName = tCollection.get('name'),
                 tNumCases = tCollection.get('cases').length,
@@ -96,9 +72,6 @@ DG.React.ready(function () {
                 tHeaderString = tNumSelected > 0 ?
                     'DG.CaseCard.namePlusSelectionCount'.loc(tNumSelected, tNumCases, tName) :
                     'DG.CaseCard.namePlusCaseCount'.loc(tNumCases, tName),
-                tHeaderWidth = this.props.columnWidthPct != null
-                                ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
-                                : undefined,
                 tNavButtons = DG.React.Components.NavButtons({
                   collectionClient: tCollClient,
                   caseIndex: tCaseIndex,
@@ -106,24 +79,24 @@ DG.React.ready(function () {
                   onPrevious: this.props.onPrevious,
                   onNext: this.props.onNext,
                   onNewCase: this.props.onNewCase
-                }),
-                tHeaderComponent = DG.React.Components.TextInput({
-                  value: tHeaderString,
-                  onToggleEditing: toggleEditing
                 });
-            return tr({
+            return (
+              tr({
                   key: 'coll-' + tIndex,
                   className: tRowClass,
                   ref: function(elt) { domRow = elt; }
                 },
                 th({
-                  style: { paddingLeft: (tIndex * 10 + 5) + 'px', width: tHeaderWidth },
-                  className: 'react-data-card-coll-header-cell',
-                  ref: function(elt) { domHeader = elt; }
-                }, tHeaderComponent),
-                td({
-                  className: 'react-data-card-nav-header-cell'
-                }, tNavButtons)
+                    colSpan: 2,
+                    style: { paddingLeft: (tIndex * 10 + 5) + 'px' },
+                    className: 'collection-header-cell',
+                  },
+                  div({ className: 'collection-header-contents' }, 
+                      div({ className: 'collection-label' }, tHeaderString),
+                      div({ className: 'nav-header' }, tNavButtons)
+                  )
+                )
+              )
             );
           }
         };

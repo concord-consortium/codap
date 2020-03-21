@@ -153,15 +153,34 @@ DG.React.ready(function () {
             this.changeListener = null;
           },
 
-          componentDidUpdate: function() {
+          componentDidUpdate: function () {
             this.componentDidRender();
           },
 
-          componentDidRender: function() {
+          componentDidRender: function () {
             var containerBounds = this.caseCardElt && this.caseCardElt.getBoundingClientRect(),
                 containerWidth = containerBounds && containerBounds.width;
             if (containerWidth !== this.state.containerWidth) {
               this.setState({ containerWidth: containerWidth });
+            }
+          },
+
+          updateColumnWidth: function (width) {
+            // attempt to maintain minimum column width
+            var adjustedWidth = null;
+            if ((width < kMinColumnWidth) && (this.state.containerWidth >= 2 * kMinColumnWidth)) {
+              adjustedWidth = kMinColumnWidth;
+            }
+            if ((this.state.containerWidth - width < kMinColumnWidth) &&
+                (this.state.containerWidth > kMinColumnWidth + 20)) {
+              adjustedWidth = this.state.containerWidth - kMinColumnWidth;
+            }
+
+            width = adjustedWidth || width;
+            if (width !== this.state.columnWidth) {
+              if (adjustedWidth && this.props.onResizeColumn)
+                this.props.onResizeColumn(adjustedWidth / this.state.containerWidth);
+              this.setState({ columnWidth: width });
             }
           },
 
@@ -196,26 +215,6 @@ DG.React.ready(function () {
               index: iIndex,
               collClient: iCollClient,
               caseID: iCaseID,
-              columnWidthPct: this.props.columnWidthPct,
-              onHeaderWidthChange: (iIndex === 0) &&
-                                    function(width) {
-                                      // attempt to maintain minimum column width
-                                      var adjustedWidth = null;
-                                      if ((width < kMinColumnWidth) && (this.state.containerWidth >= 2 * kMinColumnWidth)) {
-                                        adjustedWidth = kMinColumnWidth;
-                                      }
-                                      if ((this.state.containerWidth - width < kMinColumnWidth) &&
-                                          (this.state.containerWidth > kMinColumnWidth + 20)) {
-                                        adjustedWidth = this.state.containerWidth - kMinColumnWidth;
-                                      }
-
-                                      width = adjustedWidth || width;
-                                      if (width !== this.state.columnWidth) {
-                                        if (adjustedWidth && this.props.onResizeColumn)
-                                          this.props.onResizeColumn(adjustedWidth / this.state.containerWidth);
-                                        this.setState({ columnWidth: width });
-                                      }
-                                    }.bind(this),
               onNext: this.moveToNextCase,
               onPrevious: this.moveToPreviousCase,
               onNewCase: this.newCase,
@@ -224,7 +223,7 @@ DG.React.ready(function () {
             });
           },
 
-          renderAttribute: function (iContext, iCollection, iCases,
+          renderAttribute: function (iContext, iCollection, iCollIndex, iCases,
                                      iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
             var kThresholdDistance2 = 0, // pixels^2
                 tMouseIsDown = false,
@@ -240,6 +239,7 @@ DG.React.ready(function () {
              * -------------------------Dragging this attribute----------------
              */
             function handleMouseDown(iEvent) {
+              if ((iEvent.type === 'mousedown') && (iEvent.button !== 0)) return;
               tMouseIsDown = true;
               tStartCoordinates = {x: iEvent.clientX, y: iEvent.clientY};
               tDragInProgress = false;
@@ -557,6 +557,10 @@ DG.React.ready(function () {
                     iNewName && renameAttribute(iNewName);
                     this.setState({ attrIdOfNameToEdit: null });
                   }.bind(this),
+                  columnWidthPct: (iCollIndex === 0) && (iAttrIndex === 0)
+                                    ? this.props.columnWidthPct : undefined,
+                  onColumnWidthChanged: (iCollIndex === 0) && (iAttrIndex === 0) &&
+                                        function(width) { this.updateColumnWidth(width); }.bind(this),
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
                   deleteAttributeCallback: deleteAttribute,
@@ -806,17 +810,13 @@ DG.React.ready(function () {
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
                     if (!iAttr.get('hidden')) {
                       tAttrEntries.push(
-                          this.renderAttribute(tContext, iCollection, tCases,
+                          this.renderAttribute(tContext, iCollection, iCollIndex, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,
                               tChildmostSelection));
                     }
                   }.bind(this));
-                  tCollEntries.push(table({
-                        key: 'table-' + iCollIndex
-                        // style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
-                      },
-                      tbody({},
-                          tCollectionHeader, tAttrEntries)));
+                  tCollEntries.push(table({ key: 'table-' + iCollIndex },
+                                    tbody({}, tCollectionHeader, tAttrEntries)));
                 }.bind(this)
             );
 

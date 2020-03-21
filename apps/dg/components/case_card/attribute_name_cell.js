@@ -11,8 +11,27 @@ DG.React.ready(function () {
       (function () {
 
         return {
-
+          cellRef: null,
+          cellWidth: null,
           moveDirection: '',
+
+          componentDidMount: function () {
+            this.componentDidRender();
+          },
+
+          componentDidUpdate: function () {
+            this.componentDidRender();
+          },
+
+          componentDidRender: function () {
+            if (this.cellRef && this.props.onColumnWidthChanged) {
+              var bounds = this.cellRef.getBoundingClientRect();
+              if (bounds.width !== this.cellWidth) {
+                this.cellWidth = bounds.width;
+                this.props.onColumnWidthChanged(this.cellWidth);
+              }
+            }
+          },
 
           render: function () {
             var this_ = this;
@@ -142,6 +161,9 @@ DG.React.ready(function () {
                       title: 'DG.TableController.newAttributeTooltip'.loc(),
                       onClick: newAttributeClickHandler
                     }),
+                tColumnWidth = this.props.columnWidthPct != null
+                                ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
+                                : undefined,
                 tContents = this.props.isEditing
                               ? DG.React.Components.SimpleEdit({
                                   className: 'react-data-card-attr-name-input',
@@ -151,7 +173,8 @@ DG.React.ready(function () {
                               : renderStaticContents();
             return td({
                       className: tClassName,
-                      ref: assignCellRef
+                      ref: assignCellRef,
+                      style: { width: tColumnWidth }
                     }, tNewAttrButton, tContents);
           }
         };
