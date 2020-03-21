@@ -64,7 +64,7 @@ DG.React.ready(function () {
                   onClick: this.getNewCase
                 });
 
-            return span({className: 'react-data-card-navbuttons navbuttons-arrow dg-wants-touch'},
+            return span({className: 'nav-buttons dg-wants-touch'},
                 tFirstButton, tSecondButton, tAddCaseButton);
           }
         };

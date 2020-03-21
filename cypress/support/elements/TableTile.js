@@ -94,16 +94,16 @@ class TableTileObject{
         cy.clickMenuItem('Switch to case table view of the data')
     }
     getCaseCardCollectionHeader(position=0){
-        return cy.get('.react-data-card-collection-header').eq(position)
+        return cy.get('.react-data-card .collection-header-row').eq(position)
     }
     getCaseCardNavBackIcon(){
-        return cy.get('.react-data-card-navbuttons .moonicon-icon-reverse-play')
+        return cy.get('.react-data-card .nav-buttons .moonicon-icon-reverse-play')
     }
     getCaseCardNavForwardIcon(){
-        return cy.get('.react-data-card-navbuttons .moonicon-icon-play')
+        return cy.get('.react-data-card .nav-buttons .moonicon-icon-play')
     }
     getCaseCardAddCasePlusIcon(){
-        return cy.get('.react-data-card-nav-header-cell .dg-floating-plus-right')
+        return cy.get('.react-data-card .nav-header .dg-floating-plus-right')
     }
     getCaseCardAddAttributePlusIcon(){
         return cy.get('.react-data-card-row .dg-floating-plus')

@@ -62,7 +62,7 @@ DG.React.ready(function () {
             var tCollClient = this.props.collClient,
                 tCaseID = this.props.caseID,
                 tIndex = this.props.index,
-                tRowClass = 'react-data-card-collection-header' + (dragIsInMe() ? ' drop' : ''),
+                tRowClass = 'collection-header-row' + (dragIsInMe() ? ' drop' : ''),
                 tCollection = tCollClient.get('collection'),
                 tName = tCollection.get('name'),
                 tNumCases = tCollection.get('cases').length,
@@ -89,11 +89,11 @@ DG.React.ready(function () {
                 th({
                     colSpan: 2,
                     style: { paddingLeft: (tIndex * 10 + 5) + 'px' },
-                    className: 'react-data-card-coll-header-cell',
+                    className: 'collection-header-cell',
                   },
-                  div({ className: 'react-data-card-coll-header-contents' }, 
-                      div({ className: 'react-data-card-collection-string' }, tHeaderString),
-                      div({ className: 'react-data-card-nav-header-cell' }, tNavButtons)
+                  div({ className: 'collection-header-contents' }, 
+                      div({ className: 'collection-label' }, tHeaderString),
+                      div({ className: 'nav-header' }, tNavButtons)
                   )
                 )
               )

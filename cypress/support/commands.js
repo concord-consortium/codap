@@ -102,7 +102,7 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
   const el={  tableHeader: '.slick-header-column .two-line-header-line-1',
               caseCardHeader: '.react-data-card-attribute',
               caseCardHeaderDropZone: '.react-data-card .data-cell-lower',
-              caseCardCollectionDropZone: '.react-data-card-collection-header',
+              caseCardCollectionDropZone: '.react-data-card .collection-header-row',
               graphTile: '.dg-graph-view',
               x_axis:'.dg-axis-view.dg-h-axis',
               x_axis_label: '.dg-axis-view.dg-h-axis .dg-axis-label',
