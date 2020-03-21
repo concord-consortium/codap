@@ -40,21 +40,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       kDefaultColorWidth = 20,
       kMaxStringLength = 256,
 
-      // The tooltip string for the column depends on whether it has a formula, description, etc.
-      getToolTipString = function( iAttribute) {
-        var name = iAttribute.get('name'),
-            formula = iAttribute.get('formula'),
-            description = iAttribute.get('description'),
-            toolTip = "";
-        if( !SC.empty( description))
-          toolTip = description;
-        else if( formula)
-          toolTip = "%@ = %@".fmt( name, formula);
-        else if( !SC.empty( name))
-          toolTip = name;
-        return toolTip;
-      },
-
       getColumnHeaderString = function( iAttribute) {
         var tName = iAttribute.get('name' ),
             tUnit = iAttribute.get('unit');
@@ -539,7 +524,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             focusable: !hasFormula,
             cssClass: hasFormula? 'dg-formula-column': undefined,
-            toolTip: getToolTipString( iAttribute),
+            toolTip: DG.CaseDisplayUtils.getTooltipForAttribute( iAttribute),
             formatter: cellFormatter,
             tooltipFormatter: tooltipFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
@@ -653,7 +638,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     if( column) {
       column.name = getColumnHeaderString( iAttribute);
       column.field = iAttribute.get('name');
-      column.toolTip = getToolTipString( iAttribute);
+      column.toolTip = DG.CaseDisplayUtils.getTooltipForAttribute( iAttribute);
       column.formatter = cellFormatter;
       column.cssClass = iAttribute.get('hasFormula')? 'dg-formula-column': undefined;
       if( iAttribute.get('editable') && !iAttribute.get('hasFormula'))

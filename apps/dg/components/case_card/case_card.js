@@ -461,12 +461,9 @@ DG.React.ready(function () {
             /**
              * --------------------------Body of renderAttribute-----------------
              */
-            var tName = iAttr.get('name'),
-                tDescription = iAttr.get('description') || '',
-                tAttrID = iAttr.get('id'),
+            var tAttrID = iAttr.get('id'),
                 tUnit = iAttr.get('unit') || '',
                 tHasFormula = iAttr.get('hasFormula'),
-                tFormula = iAttr.get('formula'),
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
                 tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID),
                 tType = iAttr.get('type'),
@@ -533,13 +530,7 @@ DG.React.ready(function () {
             } else if (SC.none(tValue) || (typeof tValue === 'object')) {
               tValue = '';
             }
-            tTitle = 'DG.CaseCard.attrHintPlain'.loc( tName);
-            if( isNotEmpty( tUnit))
-              tTitle = 'DG.CaseCard.attrHintUnitsOnly'.loc( tTitle, tUnit);
-            if( isNotEmpty( tDescription))
-              tTitle = 'DG.CaseCard.attrHintDescription'.loc( tTitle, tDescription);
-            if( isNotEmpty( tFormula))
-              tTitle = 'DG.CaseCard.attrHintFormula'.loc( tTitle, tFormula);
+            tTitle = DG.CaseDisplayUtils.getTooltipForAttribute(iAttr);
             var tDiv = div({
                   className: 'react-data-card-attribute',
                   title: tTitle,
