@@ -55,6 +55,7 @@ DG.React.HighOrderComponents = {
       },
 
       checkForToggle: function (e) {
+        // eslint-disable-next-line react/no-find-dom-node
         var containerNode = ReactDOM.findDOMNode(this).parentNode,
             clickedNode = e.target;
 
@@ -72,6 +73,7 @@ DG.React.HighOrderComponents = {
       },
 
       unmount: function () {
+        // eslint-disable-next-line react/no-find-dom-node
         DG.React.toggleRender(ReactDOM.findDOMNode(this).parentNode);
       },
 
@@ -100,6 +102,7 @@ DG.React.HighOrderComponents = {
       },
 
       unmount: function () {
+        // eslint-disable-next-line react/no-find-dom-node
         DG.React.toggleRender(ReactDOM.findDOMNode(this).parentNode);
       },
 

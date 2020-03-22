@@ -1,9 +1,8 @@
-/* global ReactDOM, ReactDOMFactories */
+/* global ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      findDOMNode = ReactDOM.findDOMNode,
       span = ReactDOMFactories.span,
       input = ReactDOMFactories.input;
 
@@ -18,6 +17,7 @@ DG.React.ready(function () {
          */
 
         return {
+          inputElement: null,
 
           getInitialState: function () {
             return {
@@ -52,8 +52,8 @@ DG.React.ready(function () {
           },
 
           _onWindowClick: function (event) {
-            var inputElement = findDOMNode(this);
-            if (event.target !== inputElement && !inputElement.contains(event.target) && this.state.editing) {
+            if (this.inputElement && this.state.editing &&
+                (event.target !== this.inputElement) && !this.inputElement.contains(event.target)) {
               this.props.onToggleEditing(this);
             }
           },
@@ -74,6 +74,7 @@ DG.React.ready(function () {
                       type: 'text',
                       // ref is called on creation of the input element
                       ref: function( input) {
+                        this.inputElement = input;
                         input && input.focus();
                       },
                       value: this.state.value,

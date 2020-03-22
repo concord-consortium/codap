@@ -22,8 +22,10 @@ DG.React.ready(function () {
     },
 
     componentDidMount: function () {
+          // eslint-disable-next-line react/no-find-dom-node
       var anchorNode = ReactDOM.findDOMNode(this.props.anchor),
           anchorBounds = anchorNode.getBoundingClientRect(),
+          // eslint-disable-next-line react/no-find-dom-node
           containerNode = ReactDOM.findDOMNode(this.props.container),
           containerBounds = containerNode.getBoundingClientRect(),
           spaceAbove = anchorBounds.top - containerBounds.top,
