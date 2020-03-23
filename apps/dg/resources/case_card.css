@@ -68,6 +68,7 @@ $nav-header-width: 75px;
                 .collection-label {
                     flex: 1 1 auto;
                     white-space: normal; // wraps text within the cell
+                    cursor: text;
                 }
 
                 .nav-header {
