@@ -728,9 +728,9 @@ SC.stringsFor("es", {
     "DG.AttributeFormat.DatePrecision.minute": "MMM D, YYYY HH:mm",
     "DG.AttributeFormat.DatePrecision.second": "MMM D, YYYY HH:mm:ss",
     "DG.CaseCard.attrHintPlain": "%@",
-    "DG.CaseCard.attrHintUnitsOnly": "%@ in %@",
-    "DG.CaseCard.attrHintDescription": "%@: %@",
-    "DG.CaseCard.attrHintFormula": "%@\n%@",
+    "DG.CaseCard.attrHintUnitsOnly": "%@1 in %@2",
+    "DG.CaseCard.attrHintDescription": "%@1: %@2",
+    "DG.CaseCard.attrHintFormula": "%@1 = %@2",
     "DG.AppController.optionMenuItems.help-forum": "Help Forum...",
     "DG.AppController.showHelpForumTitle": "Help Forum",
     "DG.Locale.name.el": "Greek",
@@ -800,5 +800,6 @@ SC.stringsFor("es", {
     "DG.BinnedPlotModel.binLabelTip": "Values in this bin are ≥ %@ and < %@",
     "DG.Component.closeComponent.toolTip": "Close this Component",
     "DG.Component.minimizeComponent.toolTip": "Minimize or expand this Component",
-    "DG.Locale.name.ja": "Japanese"
+    "DG.Locale.name.ja": "Japanese",
+    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3"
 });

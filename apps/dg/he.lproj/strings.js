@@ -800,5 +800,6 @@ SC.stringsFor("he", {
     "DG.BinnedPlotModel.binLabelTip": "Values in this bin are ≥ %@ and < %@",
     "DG.Component.closeComponent.toolTip": "Close this Component",
     "DG.Component.minimizeComponent.toolTip": "Minimize or expand this Component",
-    "DG.Locale.name.ja": "Japanese"
+    "DG.Locale.name.ja": "Japanese",
+    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3"
 });
