@@ -386,6 +386,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             this.dataContextWasDeleted();
             break;
           case 'updateDataContext':
+          case 'updateCollection':
           case 'createItems':
           case 'updateItems':
           case 'deleteItems':

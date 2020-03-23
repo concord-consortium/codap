@@ -215,6 +215,12 @@ DG.React.ready(function () {
               index: iIndex,
               collClient: iCollClient,
               caseID: iCaseID,
+              onCollectionNameChange: function(iOldName, iNewName) {
+                SC.run(function() {
+                  DG.CaseDisplayUtils
+                    .setCollectionNameWithCommand(this.props.context, iOldName, iNewName);
+                }.bind(this));
+              }.bind(this),
               onNext: this.moveToNextCase,
               onPrevious: this.moveToPreviousCase,
               onNewCase: this.newCase,
@@ -230,10 +236,6 @@ DG.React.ready(function () {
                 tStartCoordinates,
                 tDragInProgress = false,
                 tDragHandler;
-
-            function isNotEmpty(iString) {
-              return iString !== undefined && iString !== null && iString !== '';
-            }
 
             /**
              * -------------------------Dragging this attribute----------------
@@ -820,19 +822,21 @@ DG.React.ready(function () {
                 }.bind(this)
             );
 
-            var kResizeHandleClass = "case-card-column-resize-handle";
-            tCollEntries.push(DG.React.Components.ColumnResizeHandle({
-                                className: kResizeHandleClass,
-                                key: kResizeHandleClass,
-                                enabled: true,
-                                containerWidth: this.state.containerWidth,
-                                columnWidth: this.state.columnWidth,
-                                minWidth: kMinColumnWidth,
-                                onResize: function(width) {
-                                  var widthPct = width / this.state.containerWidth;
-                                  this.props.onResizeColumn && this.props.onResizeColumn(widthPct);
-                                }.bind(this)
-                              }));
+            if (this.state.containerWidth && this.state.columnWidth) {
+              var kResizeHandleClass = "case-card-column-resize-handle";
+              tCollEntries.push(DG.React.Components.ColumnResizeHandle({
+                                  className: kResizeHandleClass,
+                                  key: kResizeHandleClass,
+                                  enabled: true,
+                                  containerWidth: this.state.containerWidth,
+                                  columnWidth: this.state.columnWidth,
+                                  minWidth: kMinColumnWidth,
+                                  onResize: function(width) {
+                                    var widthPct = width / this.state.containerWidth;
+                                    this.props.onResizeColumn && this.props.onResizeColumn(widthPct);
+                                  }.bind(this)
+                                }));
+            }
             return div({
               className: 'react-data-card',
               ref: function(elt) { this.caseCardElt = elt; }.bind(this)

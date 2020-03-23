@@ -36,6 +36,36 @@ DG.CaseDisplayUtils = {
     if (!description)
       return 'DG.CaseCard.attrHintFormula'.loc(name, formula);
     return 'DG.CaseCard.attrHintDescriptionAndFormula'.loc(name, description, formula);
+  },
+
+  setCollectionNameWithCommand: function (iDataContext, iOldName, iNewName) {
+
+    function setCollectionName(currName, newName) {
+      var tCollectionClient = iDataContext.getCollectionByName(currName);
+      if (tCollectionClient) {
+        iDataContext.applyChange({
+          operation: 'updateCollection',
+          collection: tCollectionClient,
+          properties: { name: newName }
+        });
+      }
+    }
+
+    DG.UndoHistory.execute(DG.Command.create({
+      name: 'caseTable.collectionNameChange',
+      undoString: 'DG.Undo.caseTable.collectionNameChange',
+      redoString: 'DG.Redo.caseTable.collectionNameChange',
+      execute: function () {
+        setCollectionName(iOldName, iNewName);
+        this.log = "Change collection name from '%@' to '%@'".fmt(iOldName, iNewName);
+      },
+      undo: function () {
+        setCollectionName(iNewName, iOldName);
+      },
+      redo: function() {
+        setCollectionName(iOldName, iNewName);
+      }
+    }));
   }
 
 };
