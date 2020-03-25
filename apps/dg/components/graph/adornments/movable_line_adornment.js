@@ -185,7 +185,7 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
     sc_super(); // Creates lineSeg, backgrndRect, and equation
 
     var tPaper = this.get('paper'),
-        tLayer = this.get('layer');
+        tDataTipLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip];
 
     this.hitHandles = [0, 1, 2].map(function(i) {
       return tPaper.rect(0, 0, this.kHandleSize, this.kHandleSize)
@@ -209,7 +209,7 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
 
     this.hitHandles.concat(this.hitSegments).forEach( function( iElement) {
       this.myElements.push( iElement);
-      tLayer.push( iElement);
+      tDataTipLayer.push( iElement);
     }.bind( this));
     return this.myElements;
   },

@@ -197,7 +197,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     if (this.myElements && (this.myElements.length > 0))
       return; // already created
     var tPaper = this.get('paper'),
-        tLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
+        tDataTipLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
+        tAdornmentLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kAdornments],
         tLineColor = this.get('lineColor'),
         tEquationColor = DG.color(DG.ColorUtilities.colorNameToHexColor(tLineColor)).darker(1).color,
         tOriginalCoordinates, tReturnPoint;
@@ -212,8 +213,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     this.coverSeg.animatable = false;
 
     function highlightElements() {
-      tLayer.bringToFront( this_.backgrndRect);
-      tLayer.bringToFront( this_.equation);
+      tDataTipLayer.bringToFront( this_.backgrndRect);
+      tDataTipLayer.bringToFront( this_.equation);
       this_.backgrndRect.attr('fill-opacity', 1);
       this_.lineSeg.attr('stroke-width', 2);
     }
@@ -285,9 +286,10 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
 
     this.myElements = [this.lineSeg, this.coverSeg, this.backgrndRect, this.equation];
-    this.myElements.forEach(function (iElement) {
-      tLayer.push(iElement);
-    });
+    tDataTipLayer.push(this.backgrndRect);
+    tDataTipLayer.push(this.equation);
+    tDataTipLayer.push( this.coverSeg);
+    tAdornmentLayer.push(this.lineSeg);
   },
 
   positionEquationAndBackground: function() {
