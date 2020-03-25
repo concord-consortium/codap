@@ -31,17 +31,17 @@ test("test DG.globalsController", function() {
   equals(v1.get('name'), "v1", "initial value has default name of v1");
   equals(DG.globalsController.getUniqueName(), "v2", "next unique default value name is v2");
   equals(DG.globalsController.isNameInUse("v1"), true, "'v1' is now in use");
-  equals(DG.globalsController.isNameInUse("v2"), false, "'v2' is now in use");
+  equals(DG.globalsController.isNameInUse("v2"), false, "'v2' is not in use");
   equals(DG.globalsController.getGlobalValueByName("v1"), v1, "getGlobalValueByName('v1') should succeed");
-  equals(DG.globalsController.getGlobalValueByName("v2"), null, "getGlobalValueByName('v2') should fail");
+  equals(DG.globalsController.getGlobalValueByName("v2"), undefined, "getGlobalValueByName('v2') should fail");
   
   var g1 = DG.globalsController.createGlobalValue( {}, "g");
   equals(g1.get('name'), "g1", "name of value created with 'g' prefix is g1");
   equals(DG.globalsController.getUniqueName("g"), "g2", "next unique name with prefix of g is g2");
   equals(DG.globalsController.isNameInUse("g1"), true, "'g1' is now in use");
-  equals(DG.globalsController.isNameInUse("g2"), false, "'g2' is now in use");
+  equals(DG.globalsController.isNameInUse("g2"), false, "'g2' is not in use");
   equals(DG.globalsController.getGlobalValueByName("g1"), g1, "getGlobalValueByName('g1') should succeed");
-  equals(DG.globalsController.getGlobalValueByName("g2"), null, "getGlobalValueByName('g2') should fail");
+  equals(DG.globalsController.getGlobalValueByName("g2"), undefined, "getGlobalValueByName('g2') should fail");
   
   var names = DG.globalsController.getGlobalValueNames();
   ok(names.indexOf("v1") >= 0, "'v1' should be in list of names in use");
@@ -50,9 +50,9 @@ test("test DG.globalsController", function() {
   ok(names.indexOf("g2") < 0, "'g2' should not be in list of names in use");
   
   v1.set('value', 2);
-  equals(DG.globalsController.get('globalValueChanges'), 'v1');
+  same(DG.globalsController.get('globalValueChanges'), ['v1'], "globalValueChanges reflects change to v1");
   g1.set('value', 3);
-  equals(DG.globalsController.get('globalValueChanges'), 'g1');
+  same(DG.globalsController.get('globalValueChanges'), ['g1'], "globalValueChanges reflects change to g1");
   
   var tNamespace = {};
   DG.globalsController.addGlobalValuesToNamespace( tNamespace);
@@ -60,9 +60,9 @@ test("test DG.globalsController", function() {
   equals(tNamespace.g1, 3, "g1 should be in namespace");
   
   DG.globalsController.destroyGlobalValue( v1);
-  equals(DG.globalsController.getGlobalValueByName("v1"), null, "getGlobalValueByName('v1') should fail");
+  equals(DG.globalsController.getGlobalValueByName("v1"), undefined, "getGlobalValueByName('v1') should fail");
   equals(DG.globalsController.isNameInUse("v1"), false, "'v1' is no longer in use");
-  equals(DG.globalsController.getGlobalValueByName("v1"), null, "getGlobalValueByName('v1') should fail");
+  equals(DG.globalsController.getGlobalValueByName("v1"), undefined, "getGlobalValueByName('v1') should fail");
   names = DG.globalsController.getGlobalValueNames();
   ok(names.indexOf("v1") < 0, "'v1' should not be in list of names in use");
   tNamespace = {};

@@ -131,6 +131,10 @@ test("Basic tests with default compile and evaluation contexts", function() {
     return returnedResult;
   }
 
+  function buildAndEvalShouldThrow( iSource, iMessage) {
+    return should_throw(function() { buildAndEval(iSource); }, null, iMessage);
+  }
+
   function floatEquals( iResult, iExpected, iDescription, iTolerance) {
     var diff = Math.abs( iResult - iExpected),
         tolerance = iTolerance || 1e-10;
@@ -162,6 +166,10 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("''+''"), "", "empty/null values propagate");
   equals( buildAndEval("''+1"), "", "empty/null values propagate");
   equals( buildAndEval("1+''"), "", "empty/null values propagate");
+  equals( buildAndEval("' '+1"), " 1", "space string is appended");
+  equals( buildAndEval("1+' '"), "1 ", "space string is appended");
+  buildAndEvalShouldThrow("1-' '", "should throw when subtracting a space string");
+  buildAndEvalShouldThrow("' '-'1'", "should throw when space string is subtracted from");
   equals( isNaN(buildAndEval("0/0+0/0")), true, "NaNs propagate");
   equals( isNaN(buildAndEval("0/0+1")), true, "NaNs propagate");
   equals( isNaN(buildAndEval("1+0/0")), true, "NaNs propagate");
