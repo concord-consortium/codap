@@ -390,13 +390,18 @@ DG.Formula.subtract = function(iOperand1, iOperand2) {
 DG.Formula.binaryOperator = function(iOperator, iOperand1, iOperand2) {
   var empty1 = SC.empty(iOperand1),
       empty2 = SC.empty(iOperand2),
-      isDate1 = DG.isDate(iOperand1) || DG.isDateString(iOperand1),
-      isDate2 = DG.isDate(iOperand2) || DG.isDateString(iOperand2),
-      num1 = Number(iOperand1),
-      num2 = Number(iOperand2),
+      // white-space-only strings default-convert to 0
+      isSpaceStr1 = (typeof iOperand1 === "string") &&
+                      DG.Formula.whiteSpaceRegExp.test(iOperand1),
+      isSpaceStr2 = (typeof iOperand2 === "string") &&
+                      DG.Formula.whiteSpaceRegExp.test(iOperand2),
+      isDate1 = DG.isDate(iOperand1) || (!isSpaceStr1 && DG.isDateString(iOperand1)),
+      isDate2 = DG.isDate(iOperand2) || (!isSpaceStr2 && DG.isDateString(iOperand2)),
+      num1 = !empty1 && !isSpaceStr1 ? Number(iOperand1) : NaN,
+      num2 = !empty2 && !isSpaceStr2 ? Number(iOperand2) : NaN,
       // booleans and strings (if possible) converted, not null values
-      isNumeric1 = !empty1 && (num1 === num1),
-      isNumeric2 = !empty2 && (num2 === num2);
+      isNumeric1 = (num1 === num1),
+      isNumeric2 = (num2 === num2);
 
   // dates can't be handled by this operator
   if (isDate1 || isDate2)
