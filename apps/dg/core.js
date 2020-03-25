@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 /*jslint newcap:true */
-/*global DG:true */
+/*global DG:true */ // eslint-disable-line no-redeclare
 
 /**
  *  Returns an array of all own enumerable properties found upon a given object,

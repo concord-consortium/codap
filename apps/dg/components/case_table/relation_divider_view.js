@@ -23,7 +23,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/*global DG, sc_static */
+/*global sc_static */
 
 sc_require('components/case_table/case_table_drop_target');
 sc_require('views/raphael_base');
