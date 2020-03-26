@@ -1,9 +1,9 @@
-/* global React */
+/* global ReactDOMFactories */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
-      span = React.DOM.span;
+      span = ReactDOMFactories.span;
 
   DG.React.Components.AttributeSummary = DG.React.createComponent(
       (function () {

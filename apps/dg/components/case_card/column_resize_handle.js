@@ -1,7 +1,7 @@
-/* global React */
+/* global ReactDOMFactories */
 
 DG.React.ready(function () {
-  var div = React.DOM.div;
+  var div = ReactDOMFactories.div;
 
   /**
    * Provides a vertical column-resizing control handle.

@@ -1,12 +1,12 @@
-/* global React, ReactDOM */
+/* global ReactDOM, ReactDOMFactories */
 DG.React.ready(function () {
-  var div = React.DOM.div,
-      ul = React.DOM.ul,
-      li = React.DOM.li,
-      span = React.DOM.span,
-      italic = React.DOM.i,
-      h1 = React.DOM.h1,
-      h2 = React.DOM.h2,
+  var div = ReactDOMFactories.div,
+      ul = ReactDOMFactories.ul,
+      li = ReactDOMFactories.li,
+      span = ReactDOMFactories.span,
+      italic = ReactDOMFactories.i,
+      h1 = ReactDOMFactories.h1,
+      h2 = ReactDOMFactories.h2,
       kLeftAngleBracketChar = '&#x2039;',
       kRightAngleBracketChar = '&#x203a;',
       kInfoIconChar = '&#9432;';  // http://stackoverflow.com/a/33878610
@@ -22,8 +22,10 @@ DG.React.ready(function () {
     },
 
     componentDidMount: function () {
+          // eslint-disable-next-line react/no-find-dom-node
       var anchorNode = ReactDOM.findDOMNode(this.props.anchor),
           anchorBounds = anchorNode.getBoundingClientRect(),
+          // eslint-disable-next-line react/no-find-dom-node
           containerNode = ReactDOM.findDOMNode(this.props.container),
           containerBounds = containerNode.getBoundingClientRect(),
           spaceAbove = anchorBounds.top - containerBounds.top,

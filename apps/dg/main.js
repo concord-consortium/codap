@@ -15,7 +15,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/*globals React, iframePhone */
+/*globals createReactClassFactory, ReactDOMFactories, iframePhone */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
 sc_require('utilities/iframe-phone-emulator');
@@ -666,7 +666,7 @@ DG.main = function main() {
 
   function cfmShowUserEntryView() {
 
-    var DialogContents = React.createFactory(React.createClass({
+    var DialogContents = createReactClassFactory({
       close: function () {
         DG.cfmClient.hideBlockingModal();
       },
@@ -685,23 +685,24 @@ DG.main = function main() {
         this.refs.openButton.focus();
       },
       render: function () {
-        return React.DOM.div({onKeyDown: function(evt) {
-                                // escape key
-                                if (evt.keyCode === 27) this.createNewDocument();
-                                // return/enter
-                                else if (evt.keyCode === 13) this.openDocument();
-                              }.bind(this)}, [
-          React.DOM.div({style: {margin: 10}, key: 2},
-                        React.DOM.button({ref: 'openButton',
-                                          onClick: this.openDocument},
-                                          'DG.main.userEntryView.openDocument'.loc())),
-          React.DOM.div({style: {margin: 10}, key: 1},
-                        React.DOM.button({ref: 'newButton',
-                                          onClick: this.createNewDocument},
-                                          'DG.main.userEntryView.newDocument'.loc()))
+        var button = ReactDOMFactories.button,
+            div = ReactDOMFactories.div;
+            
+        return div({onKeyDown: function(evt) {
+                    // escape key
+                    if (evt.keyCode === 27) this.createNewDocument();
+                    // return/enter
+                    else if (evt.keyCode === 13) this.openDocument();
+                  }.bind(this)}, [
+                div({style: {margin: 10}, key: 2},
+                    button({ref: 'openButton', onClick: this.openDocument},
+                            'DG.main.userEntryView.openDocument'.loc())),
+                div({style: {margin: 10}, key: 1},
+                    button({ref: 'newButton', onClick: this.createNewDocument},
+                            'DG.main.userEntryView.newDocument'.loc()))
         ]);
       }
-    }));
+    });
     if (DG.get('showUserEntryView')) {
       DG.cfmClient.showBlockingModal({
         title: 'DG.main.userEntryView.title'.loc(),

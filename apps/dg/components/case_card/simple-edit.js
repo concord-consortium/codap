@@ -1,7 +1,7 @@
-/* global React */
+/* global ReactDOMFactories */
 
 DG.React.ready(function () {
-  var input = React.DOM.input;
+  var input = ReactDOMFactories.input;
 
   /**
    * This uncontrolled component (https://reactjs.org/docs/uncontrolled-components.html)

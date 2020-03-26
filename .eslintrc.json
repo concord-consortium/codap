@@ -5,7 +5,19 @@
   "globals": { "DG": false, "Raphael": false, "$": false, "SC": false, "sc_require": false,
                 "sc_super": false, "static_url": false, "NO": false, "YES": false,
                 "module": false, "require": false },
-  "extends": [ "eslint:recommended" ],
+  "plugins": ["react", "react-hooks"],
+  "extends": [ "eslint:recommended", "plugin:react/recommended" ],
+  "settings": {
+    "react": {
+      "createClass": "createReactClass", // Regex for Component Factory to use,
+                                         // default to "createReactClass"
+      "pragma": "React",  // Pragma to use, default to "React"
+      "version": "detect" // React version. "detect" automatically picks the version you have installed.
+                          // You can also use `16.0`, `16.3`, etc, if you want to override the detected value.
+                          // default to latest and warns if missing
+                          // It will default to "detect" in the future
+    }
+  },
   "rules": {
     // possible errors
     "no-console": "off",    // 19 console statements
@@ -26,7 +38,6 @@
     "no-eval": "error",
     "no-extra-bind": "off", // 18 extra binds
     "no-global-assign": "error",
-    "no-implicit-globals": "off",   // 4 implicit globals
     "no-invalid-this": "error",
     "no-loop-func": "warn",
     "no-new-wrappers": "error",
@@ -67,6 +78,10 @@
     "quotes": "off",
     "semi": ["error", "always"],
 
-    "no-redeclare": "off"
+    "no-redeclare": "off",
+
+    "react/display-name": "off",
+    "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
+    "react-hooks/exhaustive-deps": "warn" // Checks effect dependencies
   }
 }
