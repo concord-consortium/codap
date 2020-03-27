@@ -1245,6 +1245,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
             }
             else {
               this.synchPlotWithAttributes();
+              this.synchAxes();
             }
 
             this.invalidate();

@@ -132,6 +132,8 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
       createRenderContext: function () {
         var tRC = sc_super(),
             tModel = this.get('model');
+        if(!tRC)
+          return null;
         tRC.isVerticalOrientation = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical;
         tRC.countAxisView = this.get('secondaryAxisView');
         tRC.leastBinEdgeWorld = tModel.get('leastBinEdge');
