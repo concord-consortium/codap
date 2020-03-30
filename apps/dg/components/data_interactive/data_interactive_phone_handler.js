@@ -2225,7 +2225,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         update: function (iResources, iDocObject) {
 
           return {
-            success:DG.currDocumentController().updateDocument( iDocObject)
+            success:DG.appController.documentArchiver.updateDocument( iDocObject)
           };
         },
         get: function() {
