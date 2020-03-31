@@ -343,9 +343,9 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     /*
-     * Logging is enabled when server matches this DNS name.
+     * Logging is enabled when origin server within this domain.
      */
-    logFromServer: 'codap.concord.org',
+    logFromServer: 'concord.org',
 
     defaultLogServerLoginURL: 'http://cc-log-manager.herokuapp.com/api/logs',
 
