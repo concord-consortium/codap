@@ -77,7 +77,7 @@ DG.authorizationController = SC.Controller.create( (function() {
         return p;
       }
 
-      var shouldLog = (window.location.hostname.toLowerCase() === DG.logFromServer),
+      var shouldLog = window.location.hostname.toLowerCase().endsWith(DG.get('logFromServer')),
           time = new Date(),
           eventValue,
           parameters = {},
