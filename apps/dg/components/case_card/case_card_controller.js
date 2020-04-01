@@ -144,16 +144,20 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
         var caseCardModel = this.getPath('model.content'),
             dataContext = caseCardModel.get('context'),
             isActive = caseCardModel.get('isActive'),
-            columnWidthPct = caseCardModel.get('columnWidthPct'),
+            columnWidthMap = caseCardModel.get('columnWidthMap'),
             storage = {
               isActive: isActive
             };
         if( dataContext) {
           this.addLink(storage, 'context', dataContext);
         }
-        if (columnWidthPct != null) {
-          // round to three decimal places for saving
-          storage.columnWidthPct = JSON.stringify(Math.round(columnWidthPct * 1000) / 1000);
+        if (columnWidthMap) {
+          var columnWidthMapArchive = {};
+          DG.ObjectMap.forEach(columnWidthMap, function(key, value) {
+            // round to four decimal places for saving
+            columnWidthMapArchive[key] = DG.MathUtilities.roundToDecimalPlaces(value, 4);
+          });
+          storage.columnWidthMap = columnWidthMapArchive;
         }
         return storage;
       },
@@ -163,17 +167,14 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
         if (caseCardModel) {
           var contextID = this.getLinkID( iStorage, 'context'),
               dataContext = contextID
-                  && DG.currDocumentController().getContextByID(contextID),
-              columnWidthPct = iStorage.columnWidthPct != null
-                                ? parseFloat(iStorage.columnWidthPct)
-                                : null;
+                  && DG.currDocumentController().getContextByID(contextID);
           if( dataContext) {
             caseCardModel.set('context', dataContext);
             this.set('dataContext', dataContext);
           }
           caseCardModel.set('isActive', iStorage.isActive);
-          if (iStorage.columnWidthPct != null)
-            caseCardModel.set('columnWidthPct', columnWidthPct);
+          if (iStorage.columnWidthMap)
+            caseCardModel.set('columnWidthMap', SC.clone(iStorage.columnWidthMap));
         }
       }
 

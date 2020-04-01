@@ -1,8 +1,8 @@
-/*global CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, createReactClass:true */
-/*global createReactFactory:true, createReactClassFactory:true, Popper:true, Tooltip:true, Papa:true */
-/*global iframePhone:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
-/* exported CodeMirror, React, ReactDOM, ReactDOMFactories, createReactClass, createReactFactory, createReactClassFactory */
-/* exported Popper, Tooltip, iframePhone, Papa, deepEqual, Promise, pluralize, dayjs, nanoid */
+/* global CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true, createReactClass:true,
+  createReactFactory:true, createReactFC:true, createReactClassFactory:true, Popper:true, Tooltip:true, Papa:true,
+  L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
+/* exported CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactFactory,
+  createReactFC, createReactClassFactory, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid */
 CodeMirror = require('codemirror/lib/codemirror.js');
 require('codemirror/lib/codemirror.css');
 require('codemirror/addon/display/placeholder.js');
@@ -14,9 +14,21 @@ ReactDOM = require('react-dom');
 ReactDOMFactories = require('react-dom-factories');
 // https://reactjs.org/docs/react-without-es6.html
 createReactClass = require('create-react-class');
+// https://reactjs.org/docs/typechecking-with-proptypes.html
+PropTypes = require('prop-types');
 // https://reactjs.org/blog/2020/02/26/react-v16.13.0.html#deprecating-reactcreatefactory
 createReactFactory = function(type) { return React.createElement.bind(null, type); };
 createReactClassFactory = function(classDef) { return createReactFactory(createReactClass(classDef)); };
+// creates a functional component (FC) with optional properties like displayName and propTypes
+createReactFC = function(optsOrFn, maybeFn) {
+  var fn = maybeFn || optsOrFn;
+  if (optsOrFn && (typeof maybeFn === "function")) {
+    for (var p in optsOrFn) {
+      optsOrFn.hasOwnProperty(p) && (fn[p] = optsOrFn[p]);
+    }
+  }
+  return createReactFactory(fn);
+};
 Popper = require('popper.js');
 Tooltip = require('tooltip.js')['default'];
 /*
