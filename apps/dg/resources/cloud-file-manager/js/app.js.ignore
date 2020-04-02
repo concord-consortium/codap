@@ -15640,7 +15640,7 @@ CloudFileManager = (function() {
 module.exports = new CloudFileManager();
 
 
-},{"./client":68,"./ui":82,"./utils/get-hash-param":83,"./utils/react":96,"./views/app-view":100}],68:[function(require,module,exports){
+},{"./client":68,"./ui":82,"./utils/get-hash-param":83,"./utils/react":97,"./views/app-view":101}],68:[function(require,module,exports){
 var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, PostMessageProvider, ProviderInterface, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, getQueryParam, isString, tr,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   hasProp = {}.hasOwnProperty;
@@ -17231,7 +17231,7 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":70,"./providers/document-store-share-provider":71,"./providers/google-drive-provider":73,"./providers/lara-provider":74,"./providers/local-file-provider":75,"./providers/localstorage-provider":76,"./providers/post-message-provider":78,"./providers/provider-interface":79,"./providers/readonly-provider":80,"./providers/url-provider":81,"./ui":82,"./utils/get-query-param":84,"./utils/is-string":86,"./utils/translate":97,"base64-js":1}],69:[function(require,module,exports){
+},{"./providers/document-store-provider":70,"./providers/document-store-share-provider":71,"./providers/google-drive-provider":73,"./providers/lara-provider":74,"./providers/local-file-provider":75,"./providers/localstorage-provider":76,"./providers/post-message-provider":78,"./providers/provider-interface":79,"./providers/readonly-provider":80,"./providers/url-provider":81,"./ui":82,"./utils/get-query-param":84,"./utils/is-string":86,"./utils/translate":98,"base64-js":1}],69:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.3.2
@@ -18023,7 +18023,7 @@ DocumentStoreProvider = (function(superClass) {
 module.exports = DocumentStoreProvider;
 
 
-},{"../utils/get-hash-param":83,"../utils/get-query-param":84,"../utils/is-string":86,"../utils/react":96,"../utils/translate":97,"./document-store-url":72,"./patchable-content":77,"./provider-interface":79,"jiff":26,"pako":42,"react-dom-factories":61}],71:[function(require,module,exports){
+},{"../utils/get-hash-param":83,"../utils/get-query-param":84,"../utils/is-string":86,"../utils/react":97,"../utils/translate":98,"./document-store-url":72,"./patchable-content":77,"./provider-interface":79,"jiff":26,"pako":42,"react-dom-factories":61}],71:[function(require,module,exports){
 var CloudMetadata, DocumentStoreShareProvider, DocumentStoreUrl, pako;
 
 CloudMetadata = (require('./provider-interface')).CloudMetadata;
@@ -18701,7 +18701,7 @@ GoogleDriveProvider = (function(superClass) {
 module.exports = GoogleDriveProvider;
 
 
-},{"../utils/is-string":86,"../utils/react":96,"../utils/translate":97,"./provider-interface":79,"diff":14,"react-dom-factories":61}],74:[function(require,module,exports){
+},{"../utils/is-string":86,"../utils/react":97,"../utils/translate":98,"./provider-interface":79,"diff":14,"react-dom-factories":61}],74:[function(require,module,exports){
 var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -19288,7 +19288,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/react":96,"../utils/translate":97,"../views/local-file-tab-list-view":109,"../views/local-file-tab-save-view":110,"./provider-interface":79,"react-dom-factories":61}],76:[function(require,module,exports){
+},{"../utils/react":97,"../utils/translate":98,"../views/local-file-tab-list-view":110,"../views/local-file-tab-save-view":111,"./provider-interface":79,"react-dom-factories":61}],76:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -19444,7 +19444,7 @@ LocalStorageProvider = (function(superClass) {
 module.exports = LocalStorageProvider;
 
 
-},{"../utils/translate":97,"./provider-interface":79}],77:[function(require,module,exports){
+},{"../utils/translate":98,"./provider-interface":79}],77:[function(require,module,exports){
 var PatchableContent, jiff;
 
 jiff = require('jiff');
@@ -20279,7 +20279,7 @@ ReadOnlyProvider = (function(superClass) {
 module.exports = ReadOnlyProvider;
 
 
-},{"../utils/is-array":85,"../utils/is-string":86,"../utils/translate":97,"./provider-interface":79}],81:[function(require,module,exports){
+},{"../utils/is-array":85,"../utils/is-string":86,"../utils/translate":98,"./provider-interface":79}],81:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, URLProvider, cloudContentFactory,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -20624,7 +20624,7 @@ module.exports = {
 };
 
 
-},{"./utils/is-string":86,"./utils/translate":97}],83:[function(require,module,exports){
+},{"./utils/is-string":86,"./utils/translate":98}],83:[function(require,module,exports){
 module.exports = function(param) {
   var ret;
   ret = null;
@@ -20796,7 +20796,8 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Vollbild und Skalieren",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Textbutton",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Datensichtbarkeit in Graphen anzeigen",
-    "~CONFIRM.CHANGE_LANGUAGE": "Einige Änderungen wurden nicht gespeichert. Sind Sie sicher, dass Sie die Sprache wechseln wollen?"
+    "~CONFIRM.CHANGE_LANGUAGE": "Einige Änderungen wurden nicht gespeichert. Sind Sie sicher, dass Sie die Sprache wechseln wollen?",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],88:[function(require,module,exports){
@@ -20922,7 +20923,8 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Πλήκτρο πλήρους οθόνης και κλιμάκωση",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Κείμενο Πλήκτρου Εκτέλεσης",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Η προβολή δεδομένων ενεργοποιεί τα γραφήματα",
-    "~CONFIRM.CHANGE_LANGUAGE": "Έχετε μη αποθηκευμένες αλλαγές. Είστε σίγουροι ότι θέλετε να αλλάξετε γλώσσα;"
+    "~CONFIRM.CHANGE_LANGUAGE": "Έχετε μη αποθηκευμένες αλλαγές. Είστε σίγουροι ότι θέλετε να αλλάξετε γλώσσα;",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],89:[function(require,module,exports){
@@ -21198,7 +21200,8 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
-    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
+    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],91:[function(require,module,exports){
@@ -21324,10 +21327,138 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "כפתור מסך מלא ומירכוז",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "הפעלת כפתור טקסט:",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "הצגת מידע ויזואלי בגרפים",
-    "~CONFIRM.CHANGE_LANGUAGE": "יש לכם שינויים לא שמורים. אתם בטוחים שתרצו להחליף שפה?"
+    "~CONFIRM.CHANGE_LANGUAGE": "יש לכם שינויים לא שמורים. אתם בטוחים שתרצו להחליף שפה?",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
 },{}],92:[function(require,module,exports){
+module.exports={
+    "~MENUBAR.UNTITLED_DOCUMENT": "未保存のファイル",
+    "~MENU.NEW": "新規",
+    "~MENU.OPEN": "開く",
+    "~MENU.CLOSE": "閉じる",
+    "~MENU.IMPORT_DATA": "データを取り込む",
+    "~MENU.SAVE": "保存する",
+    "~MENU.SAVE_AS": "保存先を選択する",
+    "~MENU.EXPORT_AS": "ファイルを転送する",
+    "~MENU.CREATE_COPY": "コピーを作成する",
+    "~MENU.SHARE": "共有する",
+    "~MENU.SHARE_GET_LINK": "共有可能なリンクを取得する",
+    "~MENU.SHARE_UPDATE": "画面を更新する",
+    "~MENU.DOWNLOAD": "ダウンロードする",
+    "~MENU.RENAME": "名前を変える",
+    "~MENU.REVERT_TO": "戻る",
+    "~MENU.REVERT_TO_LAST_OPENED": "一つ戻る",
+    "~MENU.REVERT_TO_SHARED_VIEW": "画面を初期化する",
+    "~DIALOG.SAVE": "保存する",
+    "~DIALOG.SAVE_AS": "保存先を選択する",
+    "~DIALOG.EXPORT_AS": "ファイルを転送する",
+    "~DIALOG.CREATE_COPY": "コピーを作成する",
+    "~DIALOG.OPEN": "開く",
+    "~DIALOG.DOWNLOAD": "ダウンロード",
+    "~DIALOG.RENAME": "名前の変更",
+    "~DIALOG.SHARED": "共有する",
+    "~DIALOG.IMPORT_DATA": "データを取り込む",
+    "~PROVIDER.LOCAL_STORAGE": "内部ストレージ",
+    "~PROVIDER.READ_ONLY": "読み込みに限る",
+    "~PROVIDER.GOOGLE_DRIVE": "Google Drive",
+    "~PROVIDER.DOCUMENT_STORE": "Concord Cloud",
+    "~PROVIDER.LOCAL_FILE": "名前を付けて保存",
+    "~FILE_STATUS.SAVING": "保存する…",
+    "~FILE_STATUS.SAVED": "すべての変更を保存する",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "全ての変更が%{providerName}に保存されました",
+    "~FILE_STATUS.UNSAVED": "未保存です",
+    "~FILE_DIALOG.FILENAME": "ファイル名",
+    "~FILE_DIALOG.OPEN": "開く",
+    "~FILE_DIALOG.SAVE": "保存",
+    "~FILE_DIALOG.CANCEL": "キャンセル",
+    "~FILE_DIALOG.REMOVE": "削除",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "%{filename}を削除しますか",
+    "~FILE_DIALOG.REMOVED_TITLE": "削除されたファイル",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename}は削除されました",
+    "~FILE_DIALOG.LOADING": "読み込み中です…",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** フォルダー内容のエラーを読み込み中  ***",
+    "~FILE_DIALOG.DOWNLOAD": "ダウンロード",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "ダウンロード",
+    "~DOWNLOAD_DIALOG.CANCEL": "キャンセル",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "ダウンロードファイル内の共有情報を含む",
+    "~RENAME_DIALOG.RENAME": "名前の変更",
+    "~RENAME_DIALOG.CANCEL": "キャンセル",
+    "~SHARE_DIALOG.COPY": "コピー",
+    "~SHARE_DIALOG.VIEW": "画面",
+    "~SHARE_DIALOG.CLOSE": "閉じる",
+    "~SHARE_DIALOG.COPY_SUCCESS": "クリップボードにコピーされました。",
+    "~SHARE_DIALOG.COPY_ERROR": "申し訳ありませんが、クリップボードにコピーできませんでした。",
+    "~SHARE_DIALOG.COPY_TITLE": "コピー結果",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "この文書の共有コピーは1年間保存されました。",
+    "~SHARE_UPDATE.TITLE": "共有画面を上書きする",
+    "~SHARE_UPDATE.MESSAGE": "共有画面の上書きに成功しました。",
+    "~CONFIRM.OPEN_FILE": "変更が保存されていません。新しいファイルを開きますか？",
+    "~CONFIRM.NEW_FILE": "変更が保存されていません。新しいファイルを作成しますか？",
+    "~CONFIRM.AUTHORIZE_OPEN": "ファイルを開くのに承認が必要です。承認を行いますか？",
+    "~CONFIRM.AUTHORIZE_SAVE": "ファイルを保存するのに承認が必要です。承認を行いますか？",
+    "~CONFIRM.CLOSE_FILE": "変更が保存されていません。ファイルを閉じますか？",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "最近開かれた状態へファイルを変換してもよろしいでしょうか？",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "最近共有された状態へファイルを変換してもよろしいでしょうか？",
+    "~CONFIRM_DIALOG.TITLE": "よろしいですか？",
+    "~CONFIRM_DIALOG.YES": "YES",
+    "~CONFIRM_DIALOG.NO": "NO",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "ここへファイルをドロップするか、クリックするとファイルが開けます。",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "申し訳ありませんが、開けるファイルは一つまでです。",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "申し訳ありませんが、ドロップできるファイルは一つまでです。",
+    "~IMPORT.LOCAL_FILE": "自分のファイル",
+    "~IMPORT.URL": "URL",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "申し訳ありませんが、開けるURLは一つまでです。",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "取り込むURLを入力してください。",
+    "~URL_TAB.DROP_URL_HERE": "ここにURLをドロップするか、下にURLを入力してください",
+    "~URL_TAB.IMPORT": "取り込み",
+    "~CLIENT_ERROR.TITLE": "エラー",
+    "~ALERT_DIALOG.TITLE": "警告",
+    "~ALERT_DIALOG.CLOSE": "閉じる",
+    "~ALERT.NO_PROVIDER": "適切なプロバイダーが利用できないため、このファイルを開けません。",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "グーグルにログインします",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "グーグルに接続しています…",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "グーグルドライブとの接続に失敗しました",
+    "~DOCSTORE.LOAD_403_ERROR": "%{filename}をロードするのに承認が必要です。<br><br>もしあなたが他の人の共有されたファイルを使っているならば、それは共有されていない可能性があります。",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "共有ファイルの読み込みに失敗しました。<br><br>文章が共有されていない可能性はありませんか？",
+    "~DOCSTORE.LOAD_404_ERROR": "%{filename}の読み込みに失敗しました",
+    "~DOCSTORE.SAVE_403_ERROR": "'%{filename}'を保存する権限がありません。<br><br>再びログインする必要性があるかもしれません。",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "%{filename}を作成することができません。文章は既に存在しています。",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "%{filename}: [%{message}]を保存することができません",
+    "~DOCSTORE.SAVE_ERROR": "%{filename}を保存することができません",
+    "~DOCSTORE.REMOVE_403_ERROR": "%{filename}を削除するためには承認が必要です。<br><br>再びログインする可能性があります。",
+    "~DOCSTORE.REMOVE_ERROR": "%{filename}を削除することができません",
+    "~DOCSTORE.RENAME_403_ERROR": "%{filename}の名前を変更するには承認が必要です。<br><br>再びログインする可能性があります。",
+    "~DOCSTORE.RENAME_ERROR": "%{filename}の名前を変更することができません。",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud アラート",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud アラート",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "他の場所に保存する",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "後で行います",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concord Cloudはシャットダウンしました。",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "他の場所にファイルを保存してください",
+    "~SHARE_DIALOG.SHARE_STATE": "画面共有：",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "可能です",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "編集が必要です",
+    "~SHARE_DIALOG.ENABLE_SHARING": "共有可能にする",
+    "~SHARE_DIALOG.STOP_SHARING": "共有を停止します",
+    "~SHARE_DIALOG.UPDATE_SHARING": "共有されている画面を上書きします",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "共有画面のプレビュー",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "共有可能になると、現在の画面のコピーが作成されます。\nこのコピーを共有することができます。",
+    "~SHARE_DIALOG.LINK_TAB": "リンク",
+    "~SHARE_DIALOG.LINK_MESSAGE": "メールアドレスかテキストを貼り付けてください。",
+    "~SHARE_DIALOG.EMBED_TAB": "埋め込み",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "ウェブページもしくは他のウェブベースコンテンツに埋め込まれたコード",
+    "~SHARE_DIALOG.LARA_MESSAGE": " LARAで活動を作成するときにこのリンクを用います",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAPサーバーURL:",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "自動開始ページ",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "フルスクリーンボタンおよびスケール",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "ボタンのテキストを始める",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "グラフ上にデータ可視化タグを表示する",
+    "~CONFIRM.CHANGE_LANGUAGE": "変更が保存されていません。言語を変更してもよろしいですか。",
+    "~FILE_STATUS.FAILURE": "再接続しています…"
+}
+
+},{}],93:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "Dokument uten navn",
     "~MENU.NEW": "Ny",
@@ -21450,10 +21581,11 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullskjermknapp og skalering",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Tekst på \"Last\"-knapp:",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Vis knapp for synlighet av data i grafer",
-    "~CONFIRM.CHANGE_LANGUAGE": "Du har endringer som ikke er lagret. Er du sikker på at du vil endre språk?"
+    "~CONFIRM.CHANGE_LANGUAGE": "Du har endringer som ikke er lagret. Er du sikker på at du vil endre språk?",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "Dokument utan namn",
     "~MENU.NEW": "Ny",
@@ -21576,10 +21708,11 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullskjerm-knapp og skalering",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Tekst på \"Last\"-knapp:",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Vis knapp for synlegheit av data i grafar",
-    "~CONFIRM.CHANGE_LANGUAGE": "Du har endringer som ikkje er lagra. Er du sikker på at vil byte språk?"
+    "~CONFIRM.CHANGE_LANGUAGE": "Du har endringer som ikkje er lagra. Er du sikker på at vil byte språk?",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "İsimsiz Dosya",
     "~MENU.NEW": "Yeni",
@@ -21702,10 +21835,11 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
-    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
+    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
-},{}],95:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
     "~MENU.NEW": "新增",
@@ -21828,10 +21962,11 @@ module.exports={
     "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "Fullscreen button and scaling",
     "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "Launch Button Text:",
     "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "Display data visibility toggles on graphs",
-    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?"
+    "~CONFIRM.CHANGE_LANGUAGE": "You have unsaved changes. Are you sure you want to change languages?",
+    "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 var createReactClass, createReactClassFactory, createReactFactory;
 
 createReactClass = require('create-react-class');
@@ -21851,7 +21986,7 @@ module.exports = {
 };
 
 
-},{"create-react-class":4}],97:[function(require,module,exports){
+},{"create-react-class":4}],98:[function(require,module,exports){
 var baseLang, defaultLang, getBaseLanguage, getFirstBrowserLanguage, lang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
@@ -21872,6 +22007,9 @@ languageFiles = [
   }, {
     key: 'he',
     contents: require('./lang/he')
+  }, {
+    key: 'ja',
+    contents: require('./lang/ja')
   }, {
     key: 'nb',
     contents: require('./lang/nb.json')
@@ -21952,7 +22090,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/de":87,"./lang/el":88,"./lang/en-US":89,"./lang/es":90,"./lang/he":91,"./lang/nb.json":92,"./lang/nn.json":93,"./lang/tr":94,"./lang/zh-TW":95,"./url-params":98}],98:[function(require,module,exports){
+},{"./lang/de":87,"./lang/el":88,"./lang/en-US":89,"./lang/es":90,"./lang/he":91,"./lang/ja":92,"./lang/nb.json":93,"./lang/nn.json":94,"./lang/tr":95,"./lang/zh-TW":96,"./url-params":99}],99:[function(require,module,exports){
 // http://stackoverflow.com/a/2880929
 var urlParams = {};
 if (window && window.location && window.location.search) {
@@ -21970,7 +22108,7 @@ if (window && window.location && window.location.search) {
 
 module.exports = urlParams;
 
-},{}],99:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 var ModalDialog, button, createReactClass, createReactFactory, div, ref, ref1, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -22011,7 +22149,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"../utils/translate":97,"./modal-dialog-view":112,"react-dom-factories":61}],100:[function(require,module,exports){
+},{"../utils/react":97,"../utils/translate":98,"./modal-dialog-view":113,"react-dom-factories":61}],101:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, createReactClass, createReactClassFactory, createReactFactory, div, iframe, isString, ref, ref1, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactClassFactory = ref.createReactClassFactory, createReactFactory = ref.createReactFactory;
@@ -22308,7 +22446,7 @@ App = createReactClass({
 module.exports = App;
 
 
-},{"../utils/is-string":86,"../utils/react":96,"../utils/translate":97,"./alert-dialog-view":99,"./blocking-modal-view":102,"./confirm-dialog-view":103,"./download-dialog-view":104,"./import-tabbed-dialog-view":108,"./menu-bar-view":111,"./provider-tabbed-dialog-view":115,"./rename-dialog-view":116,"./share-dialog-view":118,"react-dom-factories":61}],101:[function(require,module,exports){
+},{"../utils/is-string":86,"../utils/react":97,"../utils/translate":98,"./alert-dialog-view":100,"./blocking-modal-view":103,"./confirm-dialog-view":104,"./download-dialog-view":105,"./import-tabbed-dialog-view":109,"./menu-bar-view":112,"./provider-tabbed-dialog-view":116,"./rename-dialog-view":117,"./share-dialog-view":119,"react-dom-factories":61}],102:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -22353,7 +22491,7 @@ AuthorizeMixin = {
 module.exports = AuthorizeMixin;
 
 
-},{}],102:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 var Modal, createReactClass, createReactFactory, div, ref;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -22391,7 +22529,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"./modal-view":114,"react-dom-factories":61}],103:[function(require,module,exports){
+},{"../utils/react":97,"./modal-view":115,"react-dom-factories":61}],104:[function(require,module,exports){
 var ModalDialog, button, createReactClass, createReactFactory, div, ref, ref1, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -22441,7 +22579,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"../utils/translate":97,"./modal-dialog-view":112,"react-dom-factories":61}],104:[function(require,module,exports){
+},{"../utils/react":97,"../utils/translate":98,"./modal-dialog-view":113,"react-dom-factories":61}],105:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, createReactClass, createReactFactory, div, input, ref, ref1, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -22556,7 +22694,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":79,"../utils/react":96,"../utils/translate":97,"./modal-dialog-view":112,"react-dom-factories":61}],105:[function(require,module,exports){
+},{"../providers/provider-interface":79,"../utils/react":97,"../utils/translate":98,"./modal-dialog-view":113,"react-dom-factories":61}],106:[function(require,module,exports){
 var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, ref, svg;
 
 ref = require('react-dom-factories'), svg = ref.svg, g = ref.g, rect = ref.rect, polygon = ref.polygon;
@@ -22604,7 +22742,7 @@ module.exports = {
 };
 
 
-},{"react-dom-factories":61}],106:[function(require,module,exports){
+},{"react-dom-factories":61}],107:[function(require,module,exports){
 var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, createReactClass, createReactClassFactory, div, i, li, ref, ref1, span, ul;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactClassFactory = ref.createReactClassFactory;
@@ -22783,7 +22921,7 @@ DropDown = createReactClass({
 module.exports = DropDown;
 
 
-},{"../utils/react":96,"./dropdown-anchors":105,"react-dom-factories":61}],107:[function(require,module,exports){
+},{"../utils/react":97,"./dropdown-anchors":106,"react-dom-factories":61}],108:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, createReactClass, createReactClassFactory, div, i, img, input, italic, ref, ref1, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -23098,7 +23236,7 @@ FileDialogTab = createReactClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":79,"../utils/react":96,"../utils/translate":97,"./authorize-mixin":101,"react-dom-factories":61}],108:[function(require,module,exports){
+},{"../providers/provider-interface":79,"../utils/react":97,"../utils/translate":98,"./authorize-mixin":102,"react-dom-factories":61}],109:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, createReactClass, createReactClassFactory, createReactFactory, ref, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactClassFactory = ref.createReactClassFactory, createReactFactory = ref.createReactFactory;
@@ -23182,7 +23320,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"../utils/translate":97,"./local-file-tab-list-view":109,"./modal-tabbed-dialog-view":113,"./tabbed-panel-view":119,"./url-tab-view":120}],109:[function(require,module,exports){
+},{"../utils/react":97,"../utils/translate":98,"./local-file-tab-list-view":110,"./modal-tabbed-dialog-view":114,"./tabbed-panel-view":120,"./url-tab-view":121}],110:[function(require,module,exports){
 var CloudMetadata, button, createReactClass, div, input, ref, tr;
 
 createReactClass = require('../utils/react').createReactClass;
@@ -23283,7 +23421,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":79,"../utils/react":96,"../utils/translate":97,"react-dom-factories":61}],110:[function(require,module,exports){
+},{"../providers/provider-interface":79,"../utils/react":97,"../utils/translate":98,"react-dom-factories":61}],111:[function(require,module,exports){
 var CloudMetadata, FileSaver, a, button, cloudContentFactory, createReactClass, div, input, ref, tr;
 
 createReactClass = require('../utils/react').createReactClass;
@@ -23468,7 +23606,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../lib/file-saver":69,"../providers/provider-interface":79,"../utils/react":96,"../utils/translate":97,"react-dom-factories":61}],111:[function(require,module,exports){
+},{"../lib/file-saver":69,"../providers/provider-interface":79,"../utils/react":97,"../utils/translate":98,"react-dom-factories":61}],112:[function(require,module,exports){
 var Dropdown, TriangleOnlyAnchor, createReactClass, createReactFactory, div, i, input, ref, ref1, span, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -23714,7 +23852,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"../utils/translate":97,"./dropdown-anchors":105,"./dropdown-view":106,"react-dom-factories":61}],112:[function(require,module,exports){
+},{"../utils/react":97,"../utils/translate":98,"./dropdown-anchors":106,"./dropdown-view":107,"react-dom-factories":61}],113:[function(require,module,exports){
 var Modal, createReactClass, createReactFactory, div, i, ref, ref1;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -23749,7 +23887,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"./modal-view":114,"react-dom-factories":61}],113:[function(require,module,exports){
+},{"../utils/react":97,"./modal-view":115,"react-dom-factories":61}],114:[function(require,module,exports){
 var ModalDialog, TabbedPanel, createReactClass, createReactFactory, ref;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -23772,7 +23910,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"./modal-dialog-view":112,"./tabbed-panel-view":119}],114:[function(require,module,exports){
+},{"../utils/react":97,"./modal-dialog-view":113,"./tabbed-panel-view":120}],115:[function(require,module,exports){
 var createReactClass, div;
 
 createReactClass = require('../utils/react').createReactClass;
@@ -23853,7 +23991,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"react-dom-factories":61}],115:[function(require,module,exports){
+},{"../utils/react":97,"react-dom-factories":61}],116:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, createReactClass, createReactFactory, ref, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -23927,7 +24065,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":79,"../utils/react":96,"../utils/translate":97,"./file-dialog-tab-view":107,"./modal-tabbed-dialog-view":113,"./select-provider-dialog-tab-view":117,"./tabbed-panel-view":119}],116:[function(require,module,exports){
+},{"../providers/provider-interface":79,"../utils/react":97,"../utils/translate":98,"./file-dialog-tab-view":108,"./modal-tabbed-dialog-view":114,"./select-provider-dialog-tab-view":118,"./tabbed-panel-view":120}],117:[function(require,module,exports){
 var ModalDialog, a, button, createReactClass, createReactFactory, div, input, ref, ref1, tr;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactFactory = ref.createReactFactory;
@@ -24002,7 +24140,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"../utils/translate":97,"./modal-dialog-view":112,"react-dom-factories":61}],117:[function(require,module,exports){
+},{"../utils/react":97,"../utils/translate":98,"./modal-dialog-view":113,"react-dom-factories":61}],118:[function(require,module,exports){
 var SelectProviderDialogTab, createReactClassFactory, div;
 
 createReactClassFactory = require('../utils/react').createReactClassFactory;
@@ -24019,7 +24157,7 @@ SelectProviderDialogTab = createReactClassFactory({
 module.exports = SelectProviderDialogTab;
 
 
-},{"../utils/react":96,"react-dom-factories":61}],118:[function(require,module,exports){
+},{"../utils/react":97,"react-dom-factories":61}],119:[function(require,module,exports){
 var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, createReactClass, createReactClassFactory, createReactFactory, div, g, getQueryParam, input, li, path, ref, ref1, socialIcons, span, strong, svg, textarea, translate, ul;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactClassFactory = ref.createReactClassFactory, createReactFactory = ref.createReactFactory;
@@ -24366,7 +24504,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/get-query-param":84,"../utils/react":96,"../utils/translate":97,"./modal-dialog-view":112,"react-dom-factories":61,"svg-social-icons/lib/icons.json":65}],119:[function(require,module,exports){
+},{"../utils/get-query-param":84,"../utils/react":97,"../utils/translate":98,"./modal-dialog-view":113,"react-dom-factories":61,"svg-social-icons/lib/icons.json":65}],120:[function(require,module,exports){
 var Tab, TabInfo, a, createReactClass, createReactClassFactory, div, li, ref, ref1, ul;
 
 ref = require('../utils/react'), createReactClass = ref.createReactClass, createReactClassFactory = ref.createReactClassFactory;
@@ -24480,7 +24618,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"react-dom-factories":61}],120:[function(require,module,exports){
+},{"../utils/react":97,"react-dom-factories":61}],121:[function(require,module,exports){
 var button, createReactClass, div, input, ref, tr;
 
 createReactClass = require('../utils/react').createReactClass;
@@ -24567,7 +24705,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/react":96,"../utils/translate":97,"react-dom-factories":61}]},{},[66,67])(67)
+},{"../utils/react":97,"../utils/translate":98,"react-dom-factories":61}]},{},[66,67])(67)
 });
 
 //# sourceURL=cfm/app.js.ignore
