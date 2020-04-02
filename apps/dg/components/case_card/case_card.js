@@ -2,16 +2,13 @@ sc_require('components/case_card/case_card_collection');
 sc_require('components/case_card/column_resize_handle');
 sc_require('components/case_card/text_input');
 sc_require('react/dg-react');
-/* global PropTypes, ReactDOMFactories, tinycolor */
+/* global PropTypes, ReactDOMFactories */
 
 DG.React.ready(function () {
   var div = ReactDOMFactories.div,
-      span = ReactDOMFactories.span,
       table = ReactDOMFactories.table,
       tbody = ReactDOMFactories.tbody,
-      tr = ReactDOMFactories.tr,
-      td = ReactDOMFactories.td,
-      img = ReactDOMFactories.img;
+      tr = ReactDOMFactories.tr;
 
   DG.React.Components.CaseCard = DG.React.createComponent(
       (function () {
@@ -171,12 +168,12 @@ DG.React.ready(function () {
             if (width !== this.state.columnWidths[collection]) {
               if (adjustedWidth && this.props.onResizeColumn)
                 this.props.onResizeColumn(collection, adjustedWidth / this.state.containerWidth);
-              var columnWidths = SC.clone(this.state.columnWidths);
-              if (width)
-                columnWidths[collection] = width;
-              else
-                delete columnWidths[collection];
-              this.setState({ columnWidths: columnWidths });
+              this.setState(function(state) {
+                if (width)
+                  state.columnWidths[collection] = width;
+                else
+                  delete state.columnWidths[collection];
+              });
             }
           },
 
@@ -461,78 +458,10 @@ DG.React.ready(function () {
              */
             var tCollectionName = iCollection.get('name'),
                 tAttrID = iAttr.get('id'),
-                tUnit = iAttr.get('unit') || '',
-                tHasFormula = iAttr.get('hasFormula'),
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
-                tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID),
-                tType = iAttr.get('type'),
-                tTitle = '';
-            if( tValue && tValue.jsonBoundaryObject)
-              tType = 'boundary';
-
-            var tColorValueField,
-                tQualitativeValueField,
-                tBoundaryValueField,
-                tColor,
-                spanStyle,
-                tBoundaryInternalImage,
-                tQualitativeInternalSpan;
-            if (tValue instanceof Error) {
-              tValue = tValue.name + tValue.message;
-            } else if (DG.isColorSpecString(tValue)) {
-              tColor = tinycolor( tValue.toLowerCase().replace(/\s/gi,''));
-              spanStyle = {
-                backgroundColor: tColor.toString('rgb')
-              };
-              tColorValueField = span({
-                className: 'react-data-card-color-table-cell',
-                style: spanStyle
-              });
-            } else if (tType === 'qualitative') {
-              if (SC.empty(tValue)) {
-                tValue = "";
-              } else {
-                tColor = DG.PlotUtilities.kDefaultPointColor;
-                spanStyle = {
-                  backgroundColor: tColor,
-                  width: tValue + '%',
-                };
-                tQualitativeInternalSpan = span({
-                  className: 'react-data-card-qualitative-bar',
-                  style: spanStyle
-                });
-                tQualitativeValueField = span({
-                  className: 'react-data-card-qualitative-backing'
-                }, tQualitativeInternalSpan);
-              }
-            } else if (tType === 'boundary') {
-              var tResult = 'a boundary',
-                  tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tValue),
-                  tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
-                      tBoundaryObject.jsonBoundaryObject.properties &&
-                      tBoundaryObject.jsonBoundaryObject.properties.THUMB;
-              if (tThumb !== null && tThumb !== undefined) {
-                    tBoundaryInternalImage = img({
-                      className: 'react-data-card-thumbnail',
-                      src: tThumb
-                    });
-                tBoundaryValueField = span({}, tBoundaryInternalImage);
-              }
-              else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof Error)) {
-                tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
-              }
-              tValue = tResult;
-            } else if (DG.isNumeric(tValue) && typeof tValue !== 'boolean') {
-              var tPrecision = iAttr.get('precision');
-              tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
-              tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
-            } else if (SC.none(tValue) || (typeof tValue === 'object')) {
-              tValue = '';
-            }
-            tTitle = DG.CaseDisplayUtils.getTooltipForAttribute(iAttr);
-            var tDiv = div({
+                tDiv = div({
                   className: 'react-data-card-attribute',
-                  title: tTitle,
+                  title: DG.CaseDisplayUtils.getTooltipForAttribute(iAttr),
                   onMouseDown: handleMouseDown,
                   onMouseUp: handleMouseUp,
                   onMouseLeave: handleMouseLeave,
@@ -542,7 +471,7 @@ DG.React.ready(function () {
                   onTouchEnd: handleTouchEnd,
                   onTouchCancel: handleTouchCancel
                 }, iAttr.get('name')),
-                tCell = DG.React.Components.AttributeNameCell({
+                tNameCell = DG.React.AttributeNameCell({
                   content: tDiv,
                   attribute: iAttr,
                   showNewAttrButton: (iAttrIndex === 0) && (tAttrID !== this.state.attrIdOfNameToEdit),
@@ -572,37 +501,24 @@ DG.React.ready(function () {
                   newAttributeCallback: isNewAttributeEnabled() ? makeNewAttribute : null,
                   cellLeaveCallback: handleCellLeave
                 }),
-                tValueField = iShouldSummarize ?
-                    DG.React.Components.AttributeSummary({
-                      cases: iCases,
-                      attrID: tAttrID,
-                      unit: tUnit
-                    }) :
-                    DG.React.Components.TextInput({
-                      attr: iAttr,
-                      'case': iCases[0],
-                      value: tValue,
-                      unit: tUnit,
-                      isEditable: iAttr.get('editable') && !iAttr.get('formula'),
-                      onToggleEditing: toggleEditing,
-                      onEscapeEditing: escapeEditing,
-                      createInEditMode: tAttrID === this.state.attrIdOfValueToEdit,
-                      editModeCallback: editModeCallback
-                    }),
-                tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
-                if (tColorValueField) {
-                  tValueField = tColorValueField;
-                }
-                else if (tBoundaryValueField) {
-                  tValueField = tBoundaryValueField;
-                }
-                else if (tQualitativeValueField) {
-                  tValueField = tQualitativeValueField;
-                }
-            return tr({
-              key: 'attr-' + iAttrIndex,
-              className: 'react-data-card-row'
-            }, tCell, td({className: 'dg-wants-touch ' + tValueClassName}, tValueField));
+                tValueCell = DG.React.AttributeValueCell({
+                  attribute: iAttr,
+                  displayCase: tCase,
+                  summaryCases: iShouldSummarize ? iCases : null,
+                  editProps: {
+                    isEditing: tAttrID === this.state.attrIdOfValueToEdit,
+                    onToggleEditing: toggleEditing,
+                    onEscapeEditing: escapeEditing,
+                    editModeCallback: editModeCallback
+                  }
+                });
+
+            return (
+              tr({ key: 'attr-' + iAttrIndex, className: 'react-data-card-row' },
+                tNameCell,
+                tValueCell
+              )
+            );
           },
 
           /**

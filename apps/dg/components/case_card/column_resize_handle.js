@@ -8,7 +8,10 @@ DG.React.ready(function () {
     e.stopPropagation();
   }
 
-  DG.React.DragHandle = createReactFC({
+  /**
+   * DragHandle
+   */
+  var dhConfig = {
     displayName: "DragHandle",
     propTypes: {
       className: PropTypes.string,
@@ -16,15 +19,21 @@ DG.React.ready(function () {
       onUpdateDrag: PropTypes.func.isRequired,
       onEndDrag: PropTypes.func.isRequired
     }
-  }, function(props) {
+  };
+  function DragHandle(props) {
     var useDragOnDemand = DG.React.useDragOnDemand;
 
     useDragOnDemand(props.touchId, props.onUpdateDrag, props.onEndDrag);
 
     return div({ className: props.className });
-  });
+  }
+  // two-stage definition required for React-specific eslint rules
+  DG.React.DragHandle = createReactFC(dhConfig, DragHandle);
 
-  DG.React.ColumnResizeHandle = createReactFC({
+  /**
+   * ColumnResizeHandle
+   */
+  var crConfig = {
     displayName: "ColumnResizeHandle",
     propTypes: {
       containerWidth: PropTypes.number,
@@ -32,8 +41,8 @@ DG.React.ready(function () {
       minWidth: PropTypes.number.isRequired,
       onResize: PropTypes.func
     }
-  }, function(props) {
-
+  };
+  function ColumnResizeHandle(props) {
     var isResizingState = React.useState(false),
         isResizing = isResizingState[0],
         setIsResizing = isResizingState[1],
@@ -41,9 +50,7 @@ DG.React.ready(function () {
         resizeWidth = resizeWidthState[0],
         resizeWidthRef = resizeWidthState[1],
         setResizeWidth = resizeWidthState[2],
-        touchIdState = React.useState(null),
-        touchId = touchIdState[0],
-        setTouchId = touchIdState[1],
+        touchId = React.useRef(),
         deltaStartRef = React.useRef();
 
     React.useLayoutEffect(function() {
@@ -85,7 +92,7 @@ DG.React.ready(function () {
       if (!props.enabled || isResizing) return;
 
       var touch = e.changedTouches[0];
-      setTouchId(touch.identifier);
+      touchId.current = touch.identifier;
       beginResize(touch);
 
       stop(e);
@@ -104,11 +111,12 @@ DG.React.ready(function () {
         },
         isResizing && DG.React.DragHandle({
           className: "column-resize-handle-render is-resizing",
-          touchId: touchId,
+          touchId: touchId.current,
           onUpdateDrag: continueResize,
           onEndDrag: endResize
         }))
     );
-
-  });
+  }
+  // two-stage definition required for React-specific eslint rules
+  DG.React.ColumnResizeHandle = createReactFC(crConfig, ColumnResizeHandle);
 });
