@@ -48,10 +48,12 @@ DG.React.HighOrderComponents = {
     return createReactClass({
       componentDidMount: function () {
         window.addEventListener('mousedown', this.checkForToggle, true);
+        window.addEventListener('touchstart', this.checkForToggle, true);
       },
 
       componentWillUnmount: function () {
         window.removeEventListener('mousedown', this.checkForToggle, true);
+        window.removeEventListener('touchstart', this.checkForToggle, true);
       },
 
       checkForToggle: function (e) {
