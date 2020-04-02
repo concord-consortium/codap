@@ -7,7 +7,7 @@ DG.React.ready(function () {
       div = ReactDOMFactories.div,
       td = ReactDOMFactories.td;
 
-  DG.React.Components.AttributeNameCell = DG.React.createComponent(
+  DG.React.AttributeNameCell = DG.React.createComponent(
       (function () {
 
         return {
@@ -165,7 +165,7 @@ DG.React.ready(function () {
                                 ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
                                 : undefined,
                 tContents = this.props.isEditing
-                              ? DG.React.Components.SimpleEdit({
+                              ? DG.React.SimpleEdit({
                                   className: 'react-data-card-attr-name-input',
                                   value: this.props.attribute.get('name'),
                                   onCompleteEdit: this.props.onEndRenameAttribute

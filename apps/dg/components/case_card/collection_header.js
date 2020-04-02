@@ -83,7 +83,7 @@ DG.React.ready(function () {
 
             var renderEditableLabel = function(iCollectionName) {
               return (
-                DG.React.Components.SimpleEdit({
+                DG.React.SimpleEdit({
                   className: 'collection-label',
                   value: iCollectionName,
                   onCompleteEdit: function(iNewName) {

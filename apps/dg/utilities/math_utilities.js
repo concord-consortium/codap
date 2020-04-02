@@ -19,6 +19,18 @@
 // ==========================================================================
 
 DG.MathUtilities = {
+
+  /**
+   Utility function to round a real to a specified number of decimal places.
+   @param{Number}
+   @param{Number} integer
+   @return{Number}
+   */
+  roundToDecimalPlaces: function (iValue, iDecimalPlaces) {
+    var factor = Math.pow(10, iDecimalPlaces);
+    return Math.round(iValue* factor) / factor;
+  },
+
   /**
    Utility function to round a real to a specified number of significant
    digits.

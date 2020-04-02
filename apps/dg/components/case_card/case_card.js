@@ -1,28 +1,18 @@
-/* global ReactDOMFactories, tinycolor */
-// sc_require('react/dg-react');
+sc_require('components/case_card/case_card_collection');
 sc_require('components/case_card/column_resize_handle');
 sc_require('components/case_card/text_input');
+sc_require('react/dg-react');
+/* global PropTypes, ReactDOMFactories */
 
 DG.React.ready(function () {
   var div = ReactDOMFactories.div,
-      span = ReactDOMFactories.span,
       table = ReactDOMFactories.table,
       tbody = ReactDOMFactories.tbody,
-      tr = ReactDOMFactories.tr,
-      td = ReactDOMFactories.td,
-      img = ReactDOMFactories.img;
+      tr = ReactDOMFactories.tr;
 
   DG.React.Components.CaseCard = DG.React.createComponent(
       (function () {
 
-      /**
-       * props are
-       *  container: {DOM element} - DOM element for case card
-       *  context: {DG.DataContext} - data context for case card
-       *  columnWidthPct: {number} - percentage width of attribute column
-       *  onResizeColumn(widthPct: number): {function} - Called with updated value of width property
-       *  dragStatus: {object} - drag/drop support
-       */
         var kSelectDelay = 1000,  // ms
             kSelectInterval = 100,  // ms
             gWaitingForSelect = false,
@@ -134,7 +124,7 @@ DG.React.ready(function () {
               attrIdOfNameToEdit: null,
               attrIdOfValueToEdit: null,
               containerWidth: null,
-              columnWidth: null
+              columnWidths: {}
             };
           },
 
@@ -163,7 +153,7 @@ DG.React.ready(function () {
             }
           },
 
-          updateColumnWidth: function (width) {
+          updateColumnWidth: function (collection, width) {
             // attempt to maintain minimum column width
             var adjustedWidth = null;
             if ((width < kMinColumnWidth) && (this.state.containerWidth >= 2 * kMinColumnWidth)) {
@@ -175,10 +165,15 @@ DG.React.ready(function () {
             }
 
             width = adjustedWidth || width;
-            if (width !== this.state.columnWidth) {
+            if (width !== this.state.columnWidths[collection]) {
               if (adjustedWidth && this.props.onResizeColumn)
-                this.props.onResizeColumn(adjustedWidth / this.state.containerWidth);
-              this.setState({ columnWidth: width });
+                this.props.onResizeColumn(collection, adjustedWidth / this.state.containerWidth);
+              this.setState(function(state) {
+                if (width)
+                  state.columnWidths[collection] = width;
+                else
+                  delete state.columnWidths[collection];
+              });
             }
           },
 
@@ -227,7 +222,7 @@ DG.React.ready(function () {
             });
           },
 
-          renderAttribute: function (iContext, iCollection, iCollIndex, iCases,
+          renderAttribute: function (iContext, iCollection, iCases,
                                      iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
             var kThresholdDistance2 = 0, // pixels^2
                 tMouseIsDown = false,
@@ -461,79 +456,12 @@ DG.React.ready(function () {
             /**
              * --------------------------Body of renderAttribute-----------------
              */
-            var tAttrID = iAttr.get('id'),
-                tUnit = iAttr.get('unit') || '',
-                tHasFormula = iAttr.get('hasFormula'),
+            var tCollectionName = iCollection.get('name'),
+                tAttrID = iAttr.get('id'),
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
-                tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID),
-                tType = iAttr.get('type'),
-                tTitle = '';
-            if( tValue && tValue.jsonBoundaryObject)
-              tType = 'boundary';
-
-            var tColorValueField,
-                tQualitativeValueField,
-                tBoundaryValueField,
-                tColor,
-                spanStyle,
-                tBoundaryInternalImage,
-                tQualitativeInternalSpan;
-            if (tValue instanceof Error) {
-              tValue = tValue.name + tValue.message;
-            } else if (DG.isColorSpecString(tValue)) {
-              tColor = tinycolor( tValue.toLowerCase().replace(/\s/gi,''));
-              spanStyle = {
-                backgroundColor: tColor.toString('rgb')
-              };
-              tColorValueField = span({
-                className: 'react-data-card-color-table-cell',
-                style: spanStyle
-              });
-            } else if (tType === 'qualitative') {
-              if (SC.empty(tValue)) {
-                tValue = "";
-              } else {
-                tColor = DG.PlotUtilities.kDefaultPointColor;
-                spanStyle = {
-                  backgroundColor: tColor,
-                  width: tValue + '%',
-                };
-                tQualitativeInternalSpan = span({
-                  className: 'react-data-card-qualitative-bar',
-                  style: spanStyle
-                });
-                tQualitativeValueField = span({
-                  className: 'react-data-card-qualitative-backing'
-                }, tQualitativeInternalSpan);
-              }
-            } else if (tType === 'boundary') {
-              var tResult = 'a boundary',
-                  tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tValue),
-                  tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
-                      tBoundaryObject.jsonBoundaryObject.properties &&
-                      tBoundaryObject.jsonBoundaryObject.properties.THUMB;
-              if (tThumb !== null && tThumb !== undefined) {
-                    tBoundaryInternalImage = img({
-                      className: 'react-data-card-thumbnail',
-                      src: tThumb
-                    });
-                tBoundaryValueField = span({}, tBoundaryInternalImage);
-              }
-              else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof Error)) {
-                tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
-              }
-              tValue = tResult;
-            } else if (DG.isNumeric(tValue) && typeof tValue !== 'boolean') {
-              var tPrecision = iAttr.get('precision');
-              tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
-              tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
-            } else if (SC.none(tValue) || (typeof tValue === 'object')) {
-              tValue = '';
-            }
-            tTitle = DG.CaseDisplayUtils.getTooltipForAttribute(iAttr);
-            var tDiv = div({
+                tDiv = div({
                   className: 'react-data-card-attribute',
-                  title: tTitle,
+                  title: DG.CaseDisplayUtils.getTooltipForAttribute(iAttr),
                   onMouseDown: handleMouseDown,
                   onMouseUp: handleMouseUp,
                   onMouseLeave: handleMouseLeave,
@@ -543,7 +471,7 @@ DG.React.ready(function () {
                   onTouchEnd: handleTouchEnd,
                   onTouchCancel: handleTouchCancel
                 }, iAttr.get('name')),
-                tCell = DG.React.Components.AttributeNameCell({
+                tNameCell = DG.React.AttributeNameCell({
                   content: tDiv,
                   attribute: iAttr,
                   showNewAttrButton: (iAttrIndex === 0) && (tAttrID !== this.state.attrIdOfNameToEdit),
@@ -557,10 +485,13 @@ DG.React.ready(function () {
                     iNewName && renameAttribute(iNewName);
                     this.setState({ attrIdOfNameToEdit: null });
                   }.bind(this),
-                  columnWidthPct: (iCollIndex === 0) && (iAttrIndex === 0)
-                                    ? this.props.columnWidthPct : undefined,
-                  onColumnWidthChanged: (iCollIndex === 0) && (iAttrIndex === 0) &&
-                                        function(width) { this.updateColumnWidth(width); }.bind(this),
+                  columnWidthPct: (iAttrIndex === 0) && this.props.columnWidthMap
+                                    ? this.props.columnWidthMap[tCollectionName]
+                                    : undefined,
+                  onColumnWidthChanged: (iAttrIndex === 0) &&
+                                        function(width) {
+                                          this.updateColumnWidth(tCollectionName, width);
+                                        }.bind(this),
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
                   deleteAttributeCallback: deleteAttribute,
@@ -570,37 +501,24 @@ DG.React.ready(function () {
                   newAttributeCallback: isNewAttributeEnabled() ? makeNewAttribute : null,
                   cellLeaveCallback: handleCellLeave
                 }),
-                tValueField = iShouldSummarize ?
-                    DG.React.Components.AttributeSummary({
-                      cases: iCases,
-                      attrID: tAttrID,
-                      unit: tUnit
-                    }) :
-                    DG.React.Components.TextInput({
-                      attr: iAttr,
-                      'case': iCases[0],
-                      value: tValue,
-                      unit: tUnit,
-                      isEditable: iAttr.get('editable') && !iAttr.get('formula'),
-                      onToggleEditing: toggleEditing,
-                      onEscapeEditing: escapeEditing,
-                      createInEditMode: tAttrID === this.state.attrIdOfValueToEdit,
-                      editModeCallback: editModeCallback
-                    }),
-                tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
-                if (tColorValueField) {
-                  tValueField = tColorValueField;
-                }
-                else if (tBoundaryValueField) {
-                  tValueField = tBoundaryValueField;
-                }
-                else if (tQualitativeValueField) {
-                  tValueField = tQualitativeValueField;
-                }
-            return tr({
-              key: 'attr-' + iAttrIndex,
-              className: 'react-data-card-row'
-            }, tCell, td({className: 'dg-wants-touch ' + tValueClassName}, tValueField));
+                tValueCell = DG.React.AttributeValueCell({
+                  attribute: iAttr,
+                  displayCase: tCase,
+                  summaryCases: iShouldSummarize ? iCases : null,
+                  editProps: {
+                    isEditing: tAttrID === this.state.attrIdOfValueToEdit,
+                    onToggleEditing: toggleEditing,
+                    onEscapeEditing: escapeEditing,
+                    editModeCallback: editModeCallback
+                  }
+                });
+
+            return (
+              tr({ key: 'attr-' + iAttrIndex, className: 'react-data-card-row' },
+                tNameCell,
+                tValueCell
+              )
+            );
           },
 
           /**
@@ -796,6 +714,7 @@ DG.React.ready(function () {
                   }
 
                   var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
+                      tCollectionName = tCollClient.get('name'),
                       tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
                       tSelLength = tSelectedCases ? tSelectedCases.length : 0,
                       tCases = tSelLength > 0 ? tSelectedCases :
@@ -804,37 +723,50 @@ DG.React.ready(function () {
                       tCase = tSelLength === 1 ? tSelectedCases[0] :
                           (tCasesLength === 1 ? tCases[0] : null),
                       tShouldSummarize = SC.none( tCase),
+                      tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id')),
+                      tColumnWidth = this.state.columnWidths[tCollectionName],
                       tAttrEntries = [],
-                      tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
+                      tResizeHandle;
 
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
                     if (!iAttr.get('hidden')) {
                       tAttrEntries.push(
-                          this.renderAttribute(tContext, iCollection, iCollIndex, tCases,
+                          this.renderAttribute(tContext, iCollection, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,
                               tChildmostSelection));
                     }
                   }.bind(this));
-                  tCollEntries.push(table({ key: 'table-' + iCollIndex },
-                                    tbody({}, tCollectionHeader, tAttrEntries)));
+
+                  if (this.state.containerWidth && tColumnWidth) {
+                    var kResizeHandleClass = "case-card-column-resize-handle";
+                    tResizeHandle = DG.React.ColumnResizeHandle({
+                                      className: kResizeHandleClass,
+                                      key: kResizeHandleClass + iCollIndex + '-' + tCollectionName,
+                                      enabled: true,
+                                      containerWidth: this.state.containerWidth,
+                                      columnWidth: tColumnWidth,
+                                      minWidth: kMinColumnWidth,
+                                      onResize: function(width, isComplete) {
+                                        var widthPct = width / this.state.containerWidth;
+                                        this.props.onResizeColumn &&
+                                          this.props.onResizeColumn(tCollectionName, widthPct, isComplete);
+                                      }.bind(this)
+                                    });
+                  }
+
+                  tCollEntries.push(
+                    div({ className: 'case-card-collection',
+                          key: 'collection-' + iCollIndex + '-' + tCollectionName },
+                      table({},
+                        tbody({},
+                          tCollectionHeader, tAttrEntries)
+                      ),
+                      tResizeHandle
+                    )
+                  );
                 }.bind(this)
             );
 
-            if (this.state.containerWidth && this.state.columnWidth) {
-              var kResizeHandleClass = "case-card-column-resize-handle";
-              tCollEntries.push(DG.React.Components.ColumnResizeHandle({
-                                  className: kResizeHandleClass,
-                                  key: kResizeHandleClass,
-                                  enabled: true,
-                                  containerWidth: this.state.containerWidth,
-                                  columnWidth: this.state.columnWidth,
-                                  minWidth: kMinColumnWidth,
-                                  onResize: function(width) {
-                                    var widthPct = width / this.state.containerWidth;
-                                    this.props.onResizeColumn && this.props.onResizeColumn(widthPct);
-                                  }.bind(this)
-                                }));
-            }
             return div({
               className: 'react-data-card',
               ref: function(elt) { this.caseCardElt = elt; }.bind(this)
@@ -842,5 +774,16 @@ DG.React.ready(function () {
           }
         };
       }()), []);
+
+  DG.React.Components.CaseCard.propTypes = {
+    // the data context
+    context: PropTypes.instanceOf(DG.DataContext).isRequired,
+    // drag/drop support
+    dragStatus: PropTypes.object,
+    // map from collection name => column width percentage (0-1)
+    columnWidthMap: PropTypes.objectOf(PropTypes.number).isRequired,
+    // function(collectionName, columnWidth) - update column width in model
+    onResizeColumn: PropTypes.func.isRequired,
+  };
 
 });
