@@ -210,7 +210,7 @@ DG.React.ready(function () {
           contents = this.renderCategoryList(this.state.categories);
         }
       }
-      return div({className: 'react-function-browser', style: this.state.style}, contents);
+      return div({className: 'react-function-browser dg-wants-touch', style: this.state.style}, contents);
     }
   }, [DG.React.HighOrderComponents.UnmountOnOutsideClick, DG.React.HighOrderComponents.UnmountOnEscapeKey]);
 
