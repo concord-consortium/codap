@@ -22,6 +22,14 @@ DG.React.ready(function () {
             // leave some room for collection name (left) and navigation buttons (right)
             kMinColumnWidth = 82;
 
+        var kThresholdDistance2 = 0, // pixels^2
+            tTouchID,
+            tTouchTimer,
+            tPointerIsDown = false,
+            tStartCoordinates,
+            tDragInProgress = false,
+            tDragHandler;
+
         var ChangeListener = SC.Object.extend({
           dependent: null,
           context: null,
@@ -224,27 +232,29 @@ DG.React.ready(function () {
 
           renderAttribute: function (iContext, iCollection, iCases,
                                      iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
-            var kThresholdDistance2 = 0, // pixels^2
-                tMouseIsDown = false,
-                tStartCoordinates,
-                tDragInProgress = false,
-                tDragHandler;
-
             /**
              * -------------------------Dragging this attribute----------------
              */
-            function handleMouseDown(iEvent) {
-              if ((iEvent.type === 'mousedown') && (iEvent.button !== 0)) return;
-              tMouseIsDown = true;
+            function stop(iEvent) {
+              iEvent.preventDefault();
+              iEvent.stopPropagation();
+            }
+
+            function cancelTouchTooltip(hide) {
+              if (tTouchTimer) {
+                clearTimeout(tTouchTimer);
+                tTouchTimer = null;
+              }
+              hide && DG.TouchTooltips.hideAllTouchTooltips();
+            }
+
+            function handlePointerDown(iEvent) {
+              tPointerIsDown = true;
               tStartCoordinates = {x: iEvent.clientX, y: iEvent.clientY};
               tDragInProgress = false;
             }
 
-            function handleTouchStart(iEvent) {
-              handleMouseDown(iEvent.touches[0]);
-            }
-
-            function handleMouseMove(iEvent) {
+            function handlePointerMove(iEvent) {
               if (!tStartCoordinates)
                 return;
               if (!tDragInProgress) {
@@ -257,29 +267,61 @@ DG.React.ready(function () {
               }
             }
 
-            function handleTouchMove(iEvent) {
-              handleMouseMove(iEvent.touches[0]);
-            }
-
-            function handleMouseUp() {
-              tMouseIsDown = false;
+            function handlePointerUp() {
+              tTouchID = null;
+              tTouchTimer = null;
+              tPointerIsDown = false;
               tStartCoordinates = null;
               tDragInProgress = false;
-              if (tDragHandler)
-                tDragHandler.handleEndDrag();
               tDragHandler = null;
             }
 
-            function handleTouchEnd(iEvent) {
-              handleMouseUp();
+            function handleMouseDown(iEvent) {
+              cancelTouchTooltip(true);
+              if (iEvent.button !== 0) return;
+              handlePointerDown(iEvent);
             }
 
-            function handleTouchCancel(iEvent) {
-              iEvent.preventDefault();
+            function handleTouchStart(iEvent) {
+              cancelTouchTooltip(true);
+              var elt = iEvent.target,
+                  touch = iEvent.changedTouches[0];
+              tTouchID = touch.identifier;
+              if (elt) {
+                tTouchTimer = setTimeout(function() {
+                                DG.TouchTooltips.showTouchTooltip(touch, elt, elt.title);
+                                // prevent drag
+                                handlePointerUp();
+                              }, 500);
+              }
+              handlePointerDown(iEvent.changedTouches[0]);
+            }
+
+            function handleMouseMove(iEvent) {
+              handlePointerMove(iEvent);
+              tDragInProgress && stop(iEvent);
+            }
+
+            function handleTouchEvent(iEvent) {
+              cancelTouchTooltip();
+              for (var i = 0; i < iEvent.touches.length; ++i) {
+                if (iEvent.touches[i].identifier === tTouchID) {
+                  // initial touch is still active
+                  handlePointerMove(iEvent.touches[i]);
+                  tDragInProgress && stop(iEvent);
+                  return;
+                }
+              }
+              // initial touch is no longer active
+              handlePointerUp();
+            }
+
+            function handleMouseUp() {
+              handlePointerUp();
             }
 
             function handleMouseLeave(iEvent) {
-              if (tMouseIsDown) {
+              if (tPointerIsDown) {
                 if (!tDragInProgress) {
                   doDragStart(iEvent);
                 }
@@ -314,7 +356,7 @@ DG.React.ready(function () {
               var tCurrent = {x: iEvent.clientX, y: iEvent.clientY},
                   tDistance = (tCurrent.x - tStartCoordinates.x) * (tCurrent.x - tStartCoordinates.x) +
                       (tCurrent.y - tStartCoordinates.y) * (tCurrent.y - tStartCoordinates.y);
-              if (tMouseIsDown && tDistance > kThresholdDistance2) {
+              if (tPointerIsDown && tDistance > kThresholdDistance2) {
                 doDragStart();
               }
             }
@@ -467,9 +509,9 @@ DG.React.ready(function () {
                   onMouseLeave: handleMouseLeave,
                   onMouseMove: handleMouseMove,
                   onTouchStart: handleTouchStart,
-                  onTouchMove: handleTouchMove,
-                  onTouchEnd: handleTouchEnd,
-                  onTouchCancel: handleTouchCancel
+                  onTouchMove: handleTouchEvent,
+                  onTouchEnd: handleTouchEvent,
+                  onTouchCancel: handleTouchEvent
                 }, iAttr.get('name')),
                 tNameCell = DG.React.AttributeNameCell({
                   content: tDiv,
