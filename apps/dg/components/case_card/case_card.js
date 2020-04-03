@@ -551,7 +551,7 @@ DG.React.ready(function () {
                     isEditing: tAttrID === this.state.attrIdOfValueToEdit,
                     onToggleEditing: toggleEditing,
                     onEscapeEditing: escapeEditing,
-                    editModeCallback: editModeCallback
+                    onEditModeCallback: editModeCallback
                   }
                 });
 
