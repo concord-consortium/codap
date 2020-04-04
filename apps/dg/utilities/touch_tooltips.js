@@ -41,8 +41,9 @@ DG.TouchTooltips = (function() {
                     ? triggerView.get('layer')
                     : triggerView,
           container = DG.mainPage.getPath('mainPane.layer'),
-          _placement = placement || 'bottom-start',
+          _placement = placement || 'top-start',
           tooltip = new Tooltip(layer, {
+                                  boundariesElement: container,
                                   container: container,
                                   placement: _placement,
                                   trigger: 'manual',
