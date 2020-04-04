@@ -9,7 +9,7 @@ install:
 - travis_retry bundle install
 - travis_retry gem install s3_website
 - travis_retry pip install awscli --upgrade --user
-- travis_retry yarn
+- travis_retry npm ci
 script: npm run build:travis
 after_script: "./bin/s3_deploy.sh"
 cache:
