@@ -132,7 +132,10 @@ DG.React.ready(function () {
               attrIdOfNameToEdit: null,
               attrIdOfValueToEdit: null,
               containerWidth: null,
-              columnWidths: {}
+              // map: collection => measured widths of attribute columns
+              columnWidths: {},
+              // map: collection => virtual position of resize handle during active resizing
+              resizeWidths: {}
             };
           },
 
@@ -156,33 +159,55 @@ DG.React.ready(function () {
           componentDidRender: function () {
             var containerBounds = this.caseCardElt && this.caseCardElt.getBoundingClientRect(),
                 containerWidth = containerBounds && containerBounds.width;
-            if (containerWidth !== this.state.containerWidth) {
-              this.setState({ containerWidth: containerWidth });
-            }
+            this.setState(function(state) {
+              if (containerWidth !== state.containerWidth)
+                return { containerWidth: containerWidth };
+            });
           },
 
-          updateColumnWidth: function (collection, width) {
+          columnWidthDidChange: function (collection, width) {
+            this.setState(function(state) {
+              if (width)
+                state.columnWidths[collection] = width;
+              else
+                delete state.columnWidths[collection];
+              return state;
+            });
+          },
+
+          userDidResizeColumn: function (collectionName, iWidth, isComplete) {
             // attempt to maintain minimum column width
-            var adjustedWidth = null;
+            var width = iWidth;
             if ((width < kMinColumnWidth) && (this.state.containerWidth >= 2 * kMinColumnWidth)) {
-              adjustedWidth = kMinColumnWidth;
+              width = kMinColumnWidth;
             }
             if ((this.state.containerWidth - width < kMinColumnWidth) &&
                 (this.state.containerWidth > kMinColumnWidth + 20)) {
-              adjustedWidth = this.state.containerWidth - kMinColumnWidth;
+              width = this.state.containerWidth - kMinColumnWidth;
             }
+            this.setState(function(state) {
+              var newState;
+              if (!isComplete) {
+                // store current width; presence indicates resize-in-progress
+                if (width !== state.resizeWidths[collectionName]) {
+                  state.resizeWidths[collectionName] = width;
+                  newState = state;
+                }
+              }
+              else {
+                // remove width/resize-in-progress indicator once complete
+                if (state.resizeWidths[collectionName] !== undefined) {
+                  delete state.resizeWidths[collectionName];
+                  newState = state;
+                }
 
-            width = adjustedWidth || width;
-            if (width !== this.state.columnWidths[collection]) {
-              if (adjustedWidth && this.props.onResizeColumn)
-                this.props.onResizeColumn(collection, adjustedWidth / this.state.containerWidth);
-              this.setState(function(state) {
-                if (width)
-                  state.columnWidths[collection] = width;
-                else
-                  delete state.columnWidths[collection];
-              });
-            }
+                // only notify parent once resize is complete
+                var widthPct = width / this.state.containerWidth;
+                this.props.onResizeColumn &&
+                  this.props.onResizeColumn(collectionName, widthPct);
+              }
+              return newState;
+            });
           },
 
           incrementStateCount: function () {
@@ -498,6 +523,16 @@ DG.React.ready(function () {
             /**
              * --------------------------Body of renderAttribute-----------------
              */
+            var getColumnWidthPct = function(collectionName, attrIndex) {
+              // only apply column width to first row of table
+              if (attrIndex !== 0) return;
+              // if we're actively resizing, size is determined by current resizeWidth
+              if (this.state.resizeWidths[collectionName])
+                return this.state.resizeWidths[collectionName] / this.state.containerWidth;
+              // otherwise, size is determined by columnWidthMap
+              return this.props.columnWidthMap && this.props.columnWidthMap[collectionName];
+            }.bind(this);
+
             var tCollectionName = iCollection.get('name'),
                 tAttrID = iAttr.get('id'),
                 tCase = iShouldSummarize ? null : (iChildmostSelected && iChildmostSelected[0]) || iCases[0],
@@ -527,12 +562,10 @@ DG.React.ready(function () {
                     iNewName && renameAttribute(iNewName);
                     this.setState({ attrIdOfNameToEdit: null });
                   }.bind(this),
-                  columnWidthPct: (iAttrIndex === 0) && this.props.columnWidthMap
-                                    ? this.props.columnWidthMap[tCollectionName]
-                                    : undefined,
+                  columnWidthPct: getColumnWidthPct(tCollectionName, iAttrIndex),
                   onColumnWidthChanged: (iAttrIndex === 0) &&
                                         function(width) {
-                                          this.updateColumnWidth(tCollectionName, width);
+                                          this.columnWidthDidChange(tCollectionName, width);
                                         }.bind(this),
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
@@ -766,7 +799,7 @@ DG.React.ready(function () {
                           (tCasesLength === 1 ? tCases[0] : null),
                       tShouldSummarize = SC.none( tCase),
                       tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id')),
-                      tColumnWidth = this.state.columnWidths[tCollectionName],
+                      tColumnWidth = this.state.resizeWidths[tCollectionName] || this.state.columnWidths[tCollectionName],
                       tAttrEntries = [],
                       tResizeHandle;
 
@@ -789,9 +822,7 @@ DG.React.ready(function () {
                                       columnWidth: tColumnWidth,
                                       minWidth: kMinColumnWidth,
                                       onResize: function(width, isComplete) {
-                                        var widthPct = width / this.state.containerWidth;
-                                        this.props.onResizeColumn &&
-                                          this.props.onResizeColumn(tCollectionName, widthPct, isComplete);
+                                        this.userDidResizeColumn(tCollectionName, width, isComplete);
                                       }.bind(this)
                                     });
                   }
