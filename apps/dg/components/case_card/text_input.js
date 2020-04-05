@@ -41,8 +41,8 @@ DG.React.ready(function () {
               this.setState({value: iNewProps.value});
             if (iNewProps.unit !== this.state.unit)
               this.setState({unit: iNewProps.unit});
-            if(iNewProps.createInEditMode && iNewProps.editModeCallback)
-              iNewProps.editModeCallback( this);
+            if(iNewProps.createInEditMode && iNewProps.onEditModeCallback)
+              iNewProps.onEditModeCallback( this);
           },
 
           componentDidUpdate: function( iPrevProps) {
