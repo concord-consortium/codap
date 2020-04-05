@@ -83,14 +83,11 @@ DG.CaseCardView = SC.View.extend(
           this.renderCard();
         }.observes('*model.columnWidthMap'),
 
-        resizeColumn: function (iCollectionName, iColumnWidthPct, isComplete) {
+        resizeColumn: function (iCollectionName, iColumnWidthPct) {
           var columnWidthMap = this.getPath('model.columnWidthMap') || {},
-              orgColumnWidthPctMap = this.get('orgColumnWidthPctMap') || {};
-          // store the original width for undo purposes
-          if (!orgColumnWidthPctMap[iCollectionName]) {
-            orgColumnWidthPctMap[iCollectionName] = columnWidthMap[iCollectionName];
-            this.set('orgColumnWidthPctMap', orgColumnWidthPctMap);
-          }
+              orgColumnWidthPct = columnWidthMap[iCollectionName];
+
+          if (iColumnWidthPct === columnWidthMap[iCollectionName]) return;
 
           var setColumnWidth = function(name, width) {
             var columnWidthMap = SC.clone(this.getPath('model.columnWidthMap') || {});
@@ -103,31 +100,22 @@ DG.CaseCardView = SC.View.extend(
             this.setPath('model.columnWidthMap', columnWidthMap);
           }.bind(this);
 
-          if (!isComplete) {
-            setColumnWidth(iCollectionName, iColumnWidthPct);
-            return;
-          }
-
           DG.UndoHistory.execute(DG.Command.create({
             name: 'caseCard.columnWidthChange',
             undoString: 'DG.Undo.caseCard.columnWidthChange',
             redoString: 'DG.Redo.caseCard.columnWidthChange',
-            orgColumnWidthPct: orgColumnWidthPctMap[iCollectionName],
             execute: function () {
               setColumnWidth(iCollectionName, iColumnWidthPct);
               this.log = "Change case card column width for collection '%@' to '%@'%"
                   .fmt(iCollectionName, DG.MathUtilities.roundToDecimalPlaces(100 * iColumnWidthPct, 2));
             },
             undo: function () {
-              setColumnWidth(iCollectionName, this.get('orgColumnWidthPct'));
+              setColumnWidth(iCollectionName, orgColumnWidthPct);
             },
             redo: function() {
               setColumnWidth(iCollectionName, iColumnWidthPct);
             }
           }));
-
-          // clear value so it will be set on the next drag
-          delete orgColumnWidthPctMap[iCollectionName];
         },
 
         renderCard: function (iExtraProps) {
@@ -150,7 +138,7 @@ DG.CaseCardView = SC.View.extend(
                           }.bind(this));
                         }.bind(this)
                       }, iExtraProps || {});
-          ReactDOM.render( DG.React.Components.CaseCard(props), this.reactDiv);
+          ReactDOM.render( DG.React.CaseCard(props), this.reactDiv);
         },
 
         touchStart: function (evt) {

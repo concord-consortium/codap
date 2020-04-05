@@ -58,6 +58,7 @@
     "push:comment": "echo Usage: `npm run push` pushes local commits on the current branch to the remote origin, setting up the tracking branch if necessary.",
     "push": "git push --set-upstream origin HEAD",
     "start": "npm run codap",
+    "start:sync": "npm-run-all sync start",
     "strings:build": "./bin/strings-build.sh",
     "strings:pull:usage": "echo Usage: `npm run strings:pull -- -a <poeditor_api_key>`",
     "strings:pull": "./bin/strings-pull-project.sh",
@@ -94,7 +95,7 @@
   "homepage": "http://codap.concord.org/",
   "devDependencies": {
     "css-loader": "^3.4.2",
-    "cypress": "^4.0.2",
+    "cypress": "^4.3.0",
     "cypress-commands": "^0.3.1",
     "cypress-file-upload": "^3.5.0",
     "cypress-image-snapshot": "^3.1.1",
@@ -110,7 +111,7 @@
     "rimraf": "^3.0.2",
     "strip-json-comments-cli": "^1.0.1",
     "style-loader": "^0.21.0",
-    "webpack": "^4.41.5",
+    "webpack": "^4.42.1",
     "webpack-cli": "^3.3.10",
     "webpack-shell-plugin": "^0.5.0"
   },
@@ -126,9 +127,10 @@
     "pluralize": "^4.0.0",
     "popper.js": "^1.14.3",
     "prop-types": "^15.7.2",
-    "react": "^16.13.0",
-    "react-dom": "^16.13.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "react-dom-factories": "^1.0.2",
+    "react-sizeme": "^2.6.12",
     "tooltip.js": "^1.2.0"
   }
 }
