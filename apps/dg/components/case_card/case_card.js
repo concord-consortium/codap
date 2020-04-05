@@ -39,7 +39,6 @@ DG.React.ready(function () {
             sc_super();
 
             this.guaranteeDataContextObserver(this.context);
-
           },
 
           destroy: function () {
@@ -150,7 +149,7 @@ DG.React.ready(function () {
             this.changeListener = null;
           },
 
-          columnWidthDidChange: function (collection, width) {
+          handleColumnWidthChange: function (collection, width) {
             this.setState(function(state) {
               if (width)
                 state.columnWidths[collection] = width;
@@ -160,7 +159,7 @@ DG.React.ready(function () {
             });
           },
 
-          userDidResizeColumn: function (collectionName, iWidth, isComplete) {
+          handleUserResizeColumn: function (collectionName, iWidth, isComplete) {
             // attempt to maintain minimum column width
             var width = iWidth,
                 containerWidth = this.props.size && this.props.size.width;
@@ -555,7 +554,7 @@ DG.React.ready(function () {
                   columnWidthPct: getColumnWidthPct(tCollectionName, iAttrIndex),
                   onColumnWidthChanged: (iAttrIndex === 0) &&
                                         function(width) {
-                                          this.columnWidthDidChange(tCollectionName, width);
+                                          this.handleColumnWidthChange(tCollectionName, width);
                                         }.bind(this),
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
@@ -813,7 +812,7 @@ DG.React.ready(function () {
                                       columnWidth: tColumnWidth,
                                       minWidth: kMinColumnWidth,
                                       onResize: function(width, isComplete) {
-                                        this.userDidResizeColumn(tCollectionName, width, isComplete);
+                                        this.handleUserResizeColumn(tCollectionName, width, isComplete);
                                       }.bind(this)
                                     });
                   }
@@ -851,6 +850,5 @@ DG.React.ready(function () {
   };
 
   // use ReactSizeMe to inject size prop into CaseCard
-  var CaseCardWithSize = createReactFactory(ReactSizeMe.withSize()(CaseCard));
-  DG.React.CaseCard = CaseCardWithSize;
+  DG.React.CaseCard = createReactFactory(ReactSizeMe.withSize()(CaseCard));
 });
