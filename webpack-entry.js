@@ -1,8 +1,8 @@
 /* global CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true, createReactClass:true,
-  createReactFactory:true, createReactFC:true, createReactClassFactory:true, Popper:true, Tooltip:true, Papa:true,
-  L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
-/* exported CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactFactory,
-  createReactFC, createReactClassFactory, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid */
+  createReactFactory:true, createReactFC:true, createReactClassFactory:true, ReactSizeMe: true, Popper:true, Tooltip:true,
+  Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
+/* exported CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactFactory, createReactFC,
+  createReactClassFactory, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid */
 CodeMirror = require('codemirror/lib/codemirror.js');
 require('codemirror/lib/codemirror.css');
 require('codemirror/addon/display/placeholder.js');
@@ -29,6 +29,7 @@ createReactFC = function(optsOrFn, maybeFn) {
   }
   return createReactFactory(fn);
 };
+ReactSizeMe = require('react-sizeme');
 Popper = require('popper.js');
 Tooltip = require('tooltip.js')['default'];
 /*

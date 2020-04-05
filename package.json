@@ -129,6 +129,7 @@
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-dom-factories": "^1.0.2",
+    "react-sizeme": "^2.6.12",
     "tooltip.js": "^1.2.0"
   }
 }

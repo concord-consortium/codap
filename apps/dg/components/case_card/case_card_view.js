@@ -138,7 +138,7 @@ DG.CaseCardView = SC.View.extend(
                           }.bind(this));
                         }.bind(this)
                       }, iExtraProps || {});
-          ReactDOM.render( DG.React.Components.CaseCard(props), this.reactDiv);
+          ReactDOM.render( DG.React.CaseCard(props), this.reactDiv);
         },
 
         touchStart: function (evt) {

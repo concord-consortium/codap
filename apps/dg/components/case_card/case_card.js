@@ -1,8 +1,9 @@
 sc_require('components/case_card/case_card_collection');
 sc_require('components/case_card/column_resize_handle');
 sc_require('components/case_card/text_input');
+sc_require('controllers/data_context');
 sc_require('react/dg-react');
-/* global PropTypes, ReactDOMFactories */
+/* global createReactClass, createReactFactory, PropTypes, ReactDOMFactories, ReactSizeMe */
 
 DG.React.ready(function () {
   var div = ReactDOMFactories.div,
@@ -10,7 +11,7 @@ DG.React.ready(function () {
       tbody = ReactDOMFactories.tbody,
       tr = ReactDOMFactories.tr;
 
-  DG.React.Components.CaseCard = DG.React.createComponent(
+  var CaseCard = createReactClass(
       (function () {
 
         var kSelectDelay = 1000,  // ms
@@ -123,7 +124,6 @@ DG.React.ready(function () {
 
         return {
           changeListener: null,
-          caseCardElt: null,
           currEditField: null,
 
           getInitialState: function () {
@@ -131,7 +131,6 @@ DG.React.ready(function () {
               count: 0,
               attrIdOfNameToEdit: null,
               attrIdOfValueToEdit: null,
-              containerWidth: null,
               // map: collection => measured widths of attribute columns
               columnWidths: {},
               // map: collection => virtual position of resize handle during active resizing
@@ -144,25 +143,11 @@ DG.React.ready(function () {
               dependent: this,
               context: this.props.context
             });
-            this.componentDidRender();
           },
 
           componentWillUnmount: function () {
             this.changeListener.destroy();
             this.changeListener = null;
-          },
-
-          componentDidUpdate: function () {
-            this.componentDidRender();
-          },
-
-          componentDidRender: function () {
-            var containerBounds = this.caseCardElt && this.caseCardElt.getBoundingClientRect(),
-                containerWidth = containerBounds && containerBounds.width;
-            this.setState(function(state) {
-              if (containerWidth !== state.containerWidth)
-                return { containerWidth: containerWidth };
-            });
           },
 
           columnWidthDidChange: function (collection, width) {
@@ -177,13 +162,16 @@ DG.React.ready(function () {
 
           userDidResizeColumn: function (collectionName, iWidth, isComplete) {
             // attempt to maintain minimum column width
-            var width = iWidth;
-            if ((width < kMinColumnWidth) && (this.state.containerWidth >= 2 * kMinColumnWidth)) {
-              width = kMinColumnWidth;
-            }
-            if ((this.state.containerWidth - width < kMinColumnWidth) &&
-                (this.state.containerWidth > kMinColumnWidth + 20)) {
-              width = this.state.containerWidth - kMinColumnWidth;
+            var width = iWidth,
+                containerWidth = this.props.size && this.props.size.width;
+            if (containerWidth) {
+              if ((width < kMinColumnWidth) && (containerWidth >= 2 * kMinColumnWidth)) {
+                width = kMinColumnWidth;
+              }
+              if ((containerWidth - width < kMinColumnWidth) &&
+                  (containerWidth > kMinColumnWidth + 20)) {
+                width = containerWidth - kMinColumnWidth;
+              }
             }
             this.setState(function(state) {
               var newState;
@@ -202,7 +190,7 @@ DG.React.ready(function () {
                 }
 
                 // only notify parent once resize is complete
-                var widthPct = width / this.state.containerWidth;
+                var widthPct = width / containerWidth;
                 this.props.onResizeColumn &&
                   this.props.onResizeColumn(collectionName, widthPct);
               }
@@ -527,8 +515,10 @@ DG.React.ready(function () {
               // only apply column width to first row of table
               if (attrIndex !== 0) return;
               // if we're actively resizing, size is determined by current resizeWidth
-              if (this.state.resizeWidths[collectionName])
-                return this.state.resizeWidths[collectionName] / this.state.containerWidth;
+              var resizeWidth = this.state.resizeWidths[collectionName],
+                  containerWidth = this.props.size && this.props.size.width;
+              if (resizeWidth && containerWidth)
+                return resizeWidth / containerWidth;
               // otherwise, size is determined by columnWidthMap
               return this.props.columnWidthMap && this.props.columnWidthMap[collectionName];
             }.bind(this);
@@ -800,6 +790,7 @@ DG.React.ready(function () {
                       tShouldSummarize = SC.none( tCase),
                       tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id')),
                       tColumnWidth = this.state.resizeWidths[tCollectionName] || this.state.columnWidths[tCollectionName],
+                      tContainerWidth = this.props.size && this.props.size.width,
                       tAttrEntries = [],
                       tResizeHandle;
 
@@ -812,13 +803,13 @@ DG.React.ready(function () {
                     }
                   }.bind(this));
 
-                  if (this.state.containerWidth && tColumnWidth) {
+                  if (tContainerWidth && tColumnWidth) {
                     var kResizeHandleClass = "case-card-column-resize-handle";
                     tResizeHandle = DG.React.ColumnResizeHandle({
                                       className: kResizeHandleClass,
                                       key: kResizeHandleClass + iCollIndex + '-' + tCollectionName,
                                       enabled: true,
-                                      containerWidth: this.state.containerWidth,
+                                      containerWidth: tContainerWidth,
                                       columnWidth: tColumnWidth,
                                       minWidth: kMinColumnWidth,
                                       onResize: function(width, isComplete) {
@@ -842,13 +833,13 @@ DG.React.ready(function () {
 
             return div({
               className: 'react-data-card',
-              ref: function(elt) { this.caseCardElt = elt; }.bind(this)
             }, tCollEntries);
           }
         };
       }()), []);
-
-  DG.React.Components.CaseCard.propTypes = {
+  CaseCard.displayName = "CaseCard";
+  CaseCard.propTypes = {
+    size: PropTypes.shape({ width: PropTypes.number }),
     // the data context
     context: PropTypes.instanceOf(DG.DataContext).isRequired,
     // drag/drop support
@@ -859,4 +850,7 @@ DG.React.ready(function () {
     onResizeColumn: PropTypes.func.isRequired,
   };
 
+  // use ReactSizeMe to inject size prop into CaseCard
+  var CaseCardWithSize = createReactFactory(ReactSizeMe.withSize()(CaseCard));
+  DG.React.CaseCard = CaseCardWithSize;
 });
