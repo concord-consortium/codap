@@ -1,8 +1,11 @@
-/* global CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true, createReactClass:true,
-  createReactFactory:true, createReactFC:true, createReactClassFactory:true, ReactSizeMe: true, Popper:true, Tooltip:true,
-  Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
-/* exported CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactFactory, createReactFC,
-  createReactClassFactory, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid */
+/* global _:true, CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true,
+  createReactClass:true, createReactClassFactory:true, createReactFactory:true, createReactFC:true, ReactSizeMe: true,
+  Popper:true, Tooltip:true, Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
+/* exported _, CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactClassFactory,
+  createReactFactory, createReactFC, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid */
+require('es5-shim');
+require('es6-shim');
+_ = require('lodash');
 CodeMirror = require('codemirror/lib/codemirror.js');
 require('codemirror/lib/codemirror.css');
 require('codemirror/addon/display/placeholder.js');
@@ -39,7 +42,6 @@ Papa = require('papaparse');
 L = require('leaflet');
 L.esri = require('esri-leaflet');
 deepEqual = require('deep-equal');
-Promise = require('es6-promise').Promise;
 pluralize = require('pluralize');
 dayjs  = require('dayjs');
 nanoid = require('nanoid');
