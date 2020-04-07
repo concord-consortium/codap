@@ -131,7 +131,8 @@ DG.BarChartView = DG.ChartView.extend(
       setupAxes: function () {
         sc_super();
         var tCountAxisView = this.get('secondaryAxisView');
-        if (tCountAxisView) {
+        // Only set the bounds if they aren't already present
+        if (tCountAxisView && SC.none( tCountAxisView.getPath('model.lowerBound'))) {
           tCountAxisView.get('model').setLowerAndUpperBounds(0, this.getPath('model.naturalUpperBound'));
         }
       },

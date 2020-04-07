@@ -141,6 +141,8 @@ DG.GraphController = DG.DataDisplayController.extend(
           // we make below (e.g. to axis bounds) will stick.
           graphModel.stopAnimation();
 
+          graphModel.updateAxisArrays();
+          graphModel.updateSplitPlotArray();
           // Configure the axes
           ['x', 'y', 'y2'].forEach(function (iKey) {
             var tAxis = graphModel.get(iKey + 'Axis');
@@ -149,8 +151,6 @@ DG.GraphController = DG.DataDisplayController.extend(
               tAxis.setLowerAndUpperBounds(iStorage[iKey + 'LowerBound'], iStorage[iKey + 'UpperBound']);
             }
           });
-          graphModel.updateAxisArrays();
-          graphModel.updateSplitPlotArray();
         },
 
         /**

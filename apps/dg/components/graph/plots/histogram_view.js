@@ -115,10 +115,11 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
         var tCountAxisView = this.get('secondaryAxisView'),
             tAttributeAxisView = this.get('primaryAxisView'),
             tWidth = this.getPath('model.width');
-        if (tCountAxisView) {
+        // If the axes already have bounds, don't change them
+        if (tCountAxisView && SC.none(tCountAxisView.getPath('model.lowerBound'))) {
           tCountAxisView.get('model').setLowerAndUpperBounds(0, 1.05 * this.getPath('model.maxBinCount'));
         }
-        if (tAttributeAxisView) {
+        if (tAttributeAxisView && SC.none( tAttributeAxisView.getPath('model.lowerBound'))) {
           tAttributeAxisView.get('model').setLowerAndUpperBounds(this.getPath('model.leastBinEdge') - tWidth,
               this.getPath('model.maxBinEdge') + tWidth);
         }

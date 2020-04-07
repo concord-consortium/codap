@@ -235,6 +235,7 @@ DG.GraphView = SC.View.extend(
        * @param iCurrentPoints
        */
       setPlotViewProperties: function (iPlotView, iPlotModel, iYAxisKey, iCurrentPoints) {
+        var tAxisModelWasChanged = false;
 
         var installAxisView = function (iAxisViewDescription) {
           var tNewViewClass = iAxisViewDescription.axisClass,
@@ -271,6 +272,7 @@ DG.GraphView = SC.View.extend(
                   this.getPath('model.dataConfiguration.' + tPrefix + 'AttributeDescription'));
               this.setPath('model.' + tPrefix + 'Axis', tNewAxisModel);
               this.setPath('model.plot.' + tPrefix + 'Axis', tNewAxisModel);
+              tAxisModelWasChanged = true;
             }
           }
         }.bind(this);
@@ -284,9 +286,9 @@ DG.GraphView = SC.View.extend(
         iPlotView.setIfChanged('yAxisView', this.get(iYAxisKey));
         // special requirements set up here, with possible return of description of an axis to be added
         iPlotView.getAxisViewDescriptions().forEach(installAxisView);
-          if( iPlotModel.rescaleAxesFromData)
-            iPlotModel.rescaleAxesFromData( true /* allow scale shrinkage */,
-                true /* animate points */ );
+        if (tAxisModelWasChanged && iPlotModel.rescaleAxesFromData)
+          iPlotModel.rescaleAxesFromData(true /* allow scale shrinkage */,
+              true /* animate points */);
         iPlotView.setupAxes();
         if (!SC.none(iCurrentPoints))
           iPlotView.set('transferredElementCoordinates', iCurrentPoints);
