@@ -1,0 +1,2929 @@
+{
+    "name": "3TableGroups",
+    "guid": 1,
+    "components": [
+        {
+            "type": "DG.TableView",
+            "guid": 193,
+            "componentStorage": {
+                "isActive": true,
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    }
+                },
+                "attributeWidths": [],
+                "title": "Table C/Table B/Table A",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 730,
+                "height": 480,
+                "left": 5,
+                "top": 5,
+                "isVisible": true
+            },
+            "savedHeight": null
+        }
+    ],
+    "contexts": [
+        {
+            "type": "DG.DataContext",
+            "document": 1,
+            "guid": 2,
+            "flexibleGroupingChangeFlag": true,
+            "name": "Data_Set_1",
+            "title": "Table C/Table B/Table A",
+            "collections": [
+                {
+                    "areParentChildLinksConfigured": false,
+                    "attrs": [
+                        {
+                            "name": "ACAT1",
+                            "type": null,
+                            "title": "ACAT1",
+                            "cid": "id:iIV_Y_sS6g4iIgSi",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 4,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "ACAT2",
+                            "type": null,
+                            "title": "ACAT2",
+                            "cid": "id:FCBCM5QUXpVISEr0",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 5,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "ANUM1",
+                            "type": null,
+                            "title": "ANUM1",
+                            "cid": "id:KVDAjMXLPux5Y5RA",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 6,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "ANUM2",
+                            "type": null,
+                            "title": "ANUM2",
+                            "cid": "id:letpnUJSNEFrtz7j",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 7,
+                            "precision": 2,
+                            "unit": null
+                        }
+                    ],
+                    "cases": [
+                        {
+                            "guid": 245,
+                            "itemID": "id:KEU0m0b23ofCHVKs",
+                            "values": {
+                                "ACAT1": "no",
+                                "ACAT2": "red",
+                                "ANUM1": 61,
+                                "ANUM2": 50
+                            }
+                        },
+                        {
+                            "guid": 247,
+                            "itemID": "id:--Zuas-gIZIcEPsb",
+                            "values": {
+                                "ACAT1": "maybe",
+                                "ACAT2": "yellow",
+                                "ANUM1": 77,
+                                "ANUM2": 42
+                            }
+                        },
+                        {
+                            "guid": 249,
+                            "itemID": "id:wJnr35rcFI6woL-P",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "yellow",
+                                "ANUM1": 91,
+                                "ANUM2": 77
+                            }
+                        },
+                        {
+                            "guid": 262,
+                            "itemID": "id:GaWyUuubX7l_DVS2",
+                            "values": {
+                                "ACAT1": "maybe",
+                                "ACAT2": "yellow",
+                                "ANUM1": 43,
+                                "ANUM2": 58
+                            }
+                        },
+                        {
+                            "guid": 263,
+                            "itemID": "id:kt03baRMD1niulyn",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "yellow",
+                                "ANUM1": 53,
+                                "ANUM2": 83
+                            }
+                        },
+                        {
+                            "guid": 251,
+                            "itemID": "id:lFLHvV3bFqg3fD4x",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "red",
+                                "ANUM1": 86,
+                                "ANUM2": 56
+                            }
+                        },
+                        {
+                            "guid": 252,
+                            "itemID": "id:wl46hUNnB9hYWTPh",
+                            "values": {
+                                "ACAT1": "no",
+                                "ACAT2": "yellow",
+                                "ANUM1": 70,
+                                "ANUM2": 96
+                            }
+                        },
+                        {
+                            "guid": 264,
+                            "itemID": "id:tc99XF5SO4YOHhbc",
+                            "values": {
+                                "ACAT1": "no",
+                                "ACAT2": "yellow",
+                                "ANUM1": 43,
+                                "ANUM2": 27
+                            }
+                        },
+                        {
+                            "guid": 265,
+                            "itemID": "id:VKaouonHpa0mxs_t",
+                            "values": {
+                                "ACAT1": "no",
+                                "ACAT2": "red",
+                                "ANUM1": 62,
+                                "ANUM2": 22
+                            }
+                        },
+                        {
+                            "guid": 254,
+                            "itemID": "id:qLNQFlEqz4KJ9mc5",
+                            "values": {
+                                "ACAT1": "no",
+                                "ACAT2": "green",
+                                "ANUM1": 53,
+                                "ANUM2": 62
+                            }
+                        },
+                        {
+                            "guid": 257,
+                            "itemID": "id:ckHfmcd4QdT-A8Db",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "green",
+                                "ANUM1": 46,
+                                "ANUM2": 7
+                            }
+                        },
+                        {
+                            "guid": 266,
+                            "itemID": "id:IbP2-AtdhtH1xTGN",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "yellow",
+                                "ANUM1": 84,
+                                "ANUM2": 85
+                            }
+                        },
+                        {
+                            "guid": 271,
+                            "itemID": "id:zGyTAk5OBzWojehc",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "yellow",
+                                "ANUM1": 84,
+                                "ANUM2": 93
+                            }
+                        },
+                        {
+                            "guid": 259,
+                            "itemID": "id:ecxBep9_RoEhfK_H",
+                            "values": {
+                                "ACAT1": "maybe",
+                                "ACAT2": "green",
+                                "ANUM1": 24,
+                                "ANUM2": 11
+                            }
+                        },
+                        {
+                            "guid": 267,
+                            "itemID": "id:V6vJYFoeWXqm6ppp",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "green",
+                                "ANUM1": 29,
+                                "ANUM2": 49
+                            }
+                        },
+                        {
+                            "guid": 260,
+                            "itemID": "id:pvhaZVO4FIVfWiMe",
+                            "values": {
+                                "ACAT1": "maybe",
+                                "ACAT2": "red",
+                                "ANUM1": 96,
+                                "ANUM2": 82
+                            }
+                        },
+                        {
+                            "guid": 268,
+                            "itemID": "id:elKgsEfnqVY8888i",
+                            "values": {
+                                "ACAT1": "yes",
+                                "ACAT2": "green",
+                                "ANUM1": 71,
+                                "ANUM2": 8
+                            }
+                        },
+                        {
+                            "guid": 269,
+                            "itemID": "id:xEWE-AJ4-fwLfkP8",
+                            "values": {
+                                "ACAT1": "maybe",
+                                "ACAT2": "yellow",
+                                "ANUM1": 97,
+                                "ANUM2": 26
+                            }
+                        },
+                        {
+                            "guid": 270,
+                            "itemID": "id:g5wYpl9csNBYpGH9",
+                            "values": {
+                                "ACAT1": "maybe",
+                                "ACAT2": "yellow",
+                                "ANUM1": 84,
+                                "ANUM2": 72
+                            }
+                        }
+                    ],
+                    "caseName": null,
+                    "childAttrName": null,
+                    "collapseChildren": null,
+                    "guid": 244,
+                    "name": "Table A",
+                    "title": "Table A",
+                    "type": "DG.Collection"
+                },
+                {
+                    "areParentChildLinksConfigured": false,
+                    "attrs": [
+                        {
+                            "name": "BCAT1",
+                            "type": null,
+                            "title": "BCAT1",
+                            "cid": "id:jxprbq--13MXIYfh",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 8,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "BNUM1",
+                            "type": null,
+                            "title": "BNUM1",
+                            "cid": "id:UQ8WIRU7zrNdVq6a",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 9,
+                            "precision": 2,
+                            "unit": null
+                        }
+                    ],
+                    "cases": [
+                        {
+                            "parent": 245,
+                            "guid": 195,
+                            "itemID": "id:KEU0m0b23ofCHVKs",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-10"
+                            }
+                        },
+                        {
+                            "parent": 245,
+                            "guid": 214,
+                            "itemID": "id:lEVfFiOnq1Z9GgQB",
+                            "values": {
+                                "BCAT1": "Sleepy",
+                                "BNUM1": 8
+                            }
+                        },
+                        {
+                            "parent": 245,
+                            "guid": 229,
+                            "itemID": "id:UqDroVsQfN5P795b",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": 8
+                            }
+                        },
+                        {
+                            "parent": 245,
+                            "guid": 230,
+                            "itemID": "id:146JRiCntfV8EikG",
+                            "values": {
+                                "BCAT1": "Happy",
+                                "BNUM1": "-10"
+                            }
+                        },
+                        {
+                            "parent": 245,
+                            "guid": 243,
+                            "itemID": "id:NeQy8JUaGW6w21Wv",
+                            "values": {
+                                "BCAT1": "Sleepy",
+                                "BNUM1": "-9"
+                            }
+                        },
+                        {
+                            "parent": 247,
+                            "guid": 196,
+                            "itemID": "id:--Zuas-gIZIcEPsb",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": "-8"
+                            }
+                        },
+                        {
+                            "parent": 247,
+                            "guid": 215,
+                            "itemID": "id:RCRbcpPslOzeJSZv",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": "-2"
+                            }
+                        },
+                        {
+                            "parent": 247,
+                            "guid": 261,
+                            "itemID": "id:vzQyr8Iubpg0hESg",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": 6
+                            }
+                        },
+                        {
+                            "parent": 249,
+                            "guid": 197,
+                            "itemID": "id:wJnr35rcFI6woL-P",
+                            "values": {
+                                "BCAT1": "Sleepy",
+                                "BNUM1": "-8"
+                            }
+                        },
+                        {
+                            "parent": 249,
+                            "guid": 216,
+                            "itemID": "id:oCQ6LdnV1zShM40-",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": 9
+                            }
+                        },
+                        {
+                            "parent": 262,
+                            "guid": 198,
+                            "itemID": "id:GaWyUuubX7l_DVS2",
+                            "values": {
+                                "BCAT1": "Happy",
+                                "BNUM1": "-1"
+                            }
+                        },
+                        {
+                            "parent": 262,
+                            "guid": 217,
+                            "itemID": "id:COLeNWyAhvqyCAtK",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": 6
+                            }
+                        },
+                        {
+                            "parent": 262,
+                            "guid": 231,
+                            "itemID": "id:BP9bvFDcPde1iU6-",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": 7
+                            }
+                        },
+                        {
+                            "parent": 263,
+                            "guid": 202,
+                            "itemID": "id:kt03baRMD1niulyn",
+                            "values": {
+                                "BCAT1": "Happy",
+                                "BNUM1": 0
+                            }
+                        },
+                        {
+                            "parent": 263,
+                            "guid": 218,
+                            "itemID": "id:9do2YKSJsrrNQs8L",
+                            "values": {
+                                "BCAT1": "Dopey",
+                                "BNUM1": 9
+                            }
+                        },
+                        {
+                            "parent": 263,
+                            "guid": 232,
+                            "itemID": "id:ntIzQ-LP3y3KkjLZ",
+                            "values": {
+                                "BCAT1": "Dopey",
+                                "BNUM1": "-5"
+                            }
+                        },
+                        {
+                            "parent": 251,
+                            "guid": 199,
+                            "itemID": "id:lFLHvV3bFqg3fD4x",
+                            "values": {
+                                "BCAT1": "Dopey",
+                                "BNUM1": "-4"
+                            }
+                        },
+                        {
+                            "parent": 251,
+                            "guid": 219,
+                            "itemID": "id:tbJ412y_l3i7oa5e",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": "-5"
+                            }
+                        },
+                        {
+                            "parent": 251,
+                            "guid": 233,
+                            "itemID": "id:SmbFnr59oni-CIuD",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": 9
+                            }
+                        },
+                        {
+                            "parent": 252,
+                            "guid": 203,
+                            "itemID": "id:wl46hUNnB9hYWTPh",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": "-10"
+                            }
+                        },
+                        {
+                            "parent": 252,
+                            "guid": 253,
+                            "itemID": "id:eiAqyFI5aThOzuiJ",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-10"
+                            }
+                        },
+                        {
+                            "parent": 252,
+                            "guid": 234,
+                            "itemID": "id:uZSwd_DKI29O9b1d",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": 0
+                            }
+                        },
+                        {
+                            "parent": 264,
+                            "guid": 204,
+                            "itemID": "id:tc99XF5SO4YOHhbc",
+                            "values": {
+                                "BCAT1": "Sleepy",
+                                "BNUM1": 2
+                            }
+                        },
+                        {
+                            "parent": 264,
+                            "guid": 220,
+                            "itemID": "id:MgiCYrOVOiu5o-5s",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": "-6"
+                            }
+                        },
+                        {
+                            "parent": 264,
+                            "guid": 235,
+                            "itemID": "id:Ri5ok4PiGqUmm69D",
+                            "values": {
+                                "BCAT1": "Sleepy",
+                                "BNUM1": 4
+                            }
+                        },
+                        {
+                            "parent": 265,
+                            "guid": 205,
+                            "itemID": "id:VKaouonHpa0mxs_t",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-7"
+                            }
+                        },
+                        {
+                            "parent": 265,
+                            "guid": 221,
+                            "itemID": "id:y54RW6KiC8aJN2hn",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-6"
+                            }
+                        },
+                        {
+                            "parent": 265,
+                            "guid": 246,
+                            "itemID": "id:NHKcly1PeuSqoMmw",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-3"
+                            }
+                        },
+                        {
+                            "parent": 254,
+                            "guid": 206,
+                            "itemID": "id:qLNQFlEqz4KJ9mc5",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": 9
+                            }
+                        },
+                        {
+                            "parent": 254,
+                            "guid": 255,
+                            "itemID": "id:eVFKZMokvdNmsBhx",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-7"
+                            }
+                        },
+                        {
+                            "parent": 254,
+                            "guid": 256,
+                            "itemID": "id:H8X6279YQLtvyuUc",
+                            "values": {
+                                "BCAT1": "Happy",
+                                "BNUM1": "-10"
+                            }
+                        },
+                        {
+                            "parent": 257,
+                            "guid": 207,
+                            "itemID": "id:ckHfmcd4QdT-A8Db",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": 0
+                            }
+                        },
+                        {
+                            "parent": 257,
+                            "guid": 258,
+                            "itemID": "id:VCzhyVLjTwB0c-3d",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": "-5"
+                            }
+                        },
+                        {
+                            "parent": 257,
+                            "guid": 236,
+                            "itemID": "id:k8WzP69x3S9InEEd",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": "-2"
+                            }
+                        },
+                        {
+                            "parent": 266,
+                            "guid": 208,
+                            "itemID": "id:IbP2-AtdhtH1xTGN",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": 10
+                            }
+                        },
+                        {
+                            "parent": 266,
+                            "guid": 250,
+                            "itemID": "id:j7xzVbFrUwnDubp7",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": "-5"
+                            }
+                        },
+                        {
+                            "parent": 266,
+                            "guid": 237,
+                            "itemID": "id:KNUpr4auWt1X0r1A",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": "-3"
+                            }
+                        },
+                        {
+                            "parent": 271,
+                            "guid": 200,
+                            "itemID": "id:zGyTAk5OBzWojehc",
+                            "values": {
+                                "BCAT1": "Sneezy",
+                                "BNUM1": "-10"
+                            }
+                        },
+                        {
+                            "parent": 271,
+                            "guid": 222,
+                            "itemID": "id:zMnHpf2dEK--W3Yh",
+                            "values": {
+                                "BCAT1": "Happy",
+                                "BNUM1": 5
+                            }
+                        },
+                        {
+                            "parent": 271,
+                            "guid": 272,
+                            "itemID": "id:SqEUJkr0nDH7uNDk",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": 10
+                            }
+                        },
+                        {
+                            "parent": 259,
+                            "guid": 201,
+                            "itemID": "id:ecxBep9_RoEhfK_H",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": "-7"
+                            }
+                        },
+                        {
+                            "parent": 259,
+                            "guid": 223,
+                            "itemID": "id:Co_NPmKhBXP58IBk",
+                            "values": {
+                                "BCAT1": "Sneezy",
+                                "BNUM1": 10
+                            }
+                        },
+                        {
+                            "parent": 259,
+                            "guid": 238,
+                            "itemID": "id:9jnJhaUSK5-ogzOV",
+                            "values": {
+                                "BCAT1": "Happy",
+                                "BNUM1": 4
+                            }
+                        },
+                        {
+                            "parent": 267,
+                            "guid": 209,
+                            "itemID": "id:V6vJYFoeWXqm6ppp",
+                            "values": {
+                                "BCAT1": "Sleepy",
+                                "BNUM1": 5
+                            }
+                        },
+                        {
+                            "parent": 267,
+                            "guid": 224,
+                            "itemID": "id:SNLGXhP3j7jJYvPI",
+                            "values": {
+                                "BCAT1": "Sneezy",
+                                "BNUM1": 8
+                            }
+                        },
+                        {
+                            "parent": 267,
+                            "guid": 239,
+                            "itemID": "id:k1GxR3XvwfpptFLC",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": 8
+                            }
+                        },
+                        {
+                            "parent": 260,
+                            "guid": 210,
+                            "itemID": "id:pvhaZVO4FIVfWiMe",
+                            "values": {
+                                "BCAT1": "Dopey",
+                                "BNUM1": 5
+                            }
+                        },
+                        {
+                            "parent": 260,
+                            "guid": 225,
+                            "itemID": "id:XtQUqPFanSB6F3Xv",
+                            "values": {
+                                "BCAT1": "Sneezy",
+                                "BNUM1": 3
+                            }
+                        },
+                        {
+                            "parent": 260,
+                            "guid": 240,
+                            "itemID": "id:R77sPZhTN4G7Qr5e",
+                            "values": {
+                                "BCAT1": "Happy",
+                                "BNUM1": "-8"
+                            }
+                        },
+                        {
+                            "parent": 268,
+                            "guid": 211,
+                            "itemID": "id:elKgsEfnqVY8888i",
+                            "values": {
+                                "BCAT1": "Dopey",
+                                "BNUM1": "-1"
+                            }
+                        },
+                        {
+                            "parent": 268,
+                            "guid": 226,
+                            "itemID": "id:bnPnuk5V24XYj1TI",
+                            "values": {
+                                "BCAT1": "Dopey",
+                                "BNUM1": 6
+                            }
+                        },
+                        {
+                            "parent": 268,
+                            "guid": 241,
+                            "itemID": "id:KoBEh4dC1Y8RGgBg",
+                            "values": {
+                                "BCAT1": "Dopey",
+                                "BNUM1": 4
+                            }
+                        },
+                        {
+                            "parent": 269,
+                            "guid": 212,
+                            "itemID": "id:xEWE-AJ4-fwLfkP8",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-5"
+                            }
+                        },
+                        {
+                            "parent": 269,
+                            "guid": 227,
+                            "itemID": "id:5pUUoW5P9kTWd7gz",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": "-3"
+                            }
+                        },
+                        {
+                            "parent": 269,
+                            "guid": 248,
+                            "itemID": "id:twk0qWfw0Zov-Ebd",
+                            "values": {
+                                "BCAT1": "Doc",
+                                "BNUM1": 0
+                            }
+                        },
+                        {
+                            "parent": 270,
+                            "guid": 213,
+                            "itemID": "id:g5wYpl9csNBYpGH9",
+                            "values": {
+                                "BCAT1": "Bashful",
+                                "BNUM1": 2
+                            }
+                        },
+                        {
+                            "parent": 270,
+                            "guid": 228,
+                            "itemID": "id:PE6QskD-WvY7SLI6",
+                            "values": {
+                                "BCAT1": "Grumpy",
+                                "BNUM1": 1
+                            }
+                        },
+                        {
+                            "parent": 270,
+                            "guid": 242,
+                            "itemID": "id:PsHH8EdHRQk5F8oj",
+                            "values": {
+                                "BCAT1": "Sleepy",
+                                "BNUM1": "-2"
+                            }
+                        }
+                    ],
+                    "caseName": null,
+                    "childAttrName": null,
+                    "collapseChildren": null,
+                    "guid": 194,
+                    "name": "Table B",
+                    "parent": 244,
+                    "title": "Table B",
+                    "type": "DG.Collection"
+                },
+                {
+                    "areParentChildLinksConfigured": false,
+                    "attrs": [
+                        {
+                            "name": "CCAT1",
+                            "type": null,
+                            "title": "CCAT1",
+                            "cid": "id:_1tn8Xy-oskVFlzh",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 10,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "CCAT2",
+                            "type": null,
+                            "title": "CCAT2",
+                            "cid": "id:Km5Zg_Ce3ytTB7KA",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 11,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "CNUM1",
+                            "type": null,
+                            "title": "CNUM1",
+                            "cid": "id:IRiPf4Lh4Jq0eizB",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 12,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "CNUM2",
+                            "type": null,
+                            "title": "CNUM2",
+                            "cid": "id:grIRSrcSia0FjxZg",
+                            "description": "",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 13,
+                            "precision": 2,
+                            "unit": null
+                        }
+                    ],
+                    "cases": [
+                        {
+                            "parent": 195,
+                            "guid": 14,
+                            "itemID": "id:KEU0m0b23ofCHVKs",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 7,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 195,
+                            "guid": 73,
+                            "itemID": "id:h-xXcjoe5i7s2f61",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 16,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 195,
+                            "guid": 132,
+                            "itemID": "id:pYTXnS5LBhokwoIU",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 6,
+                                "CNUM2": 61
+                            }
+                        },
+                        {
+                            "parent": 195,
+                            "guid": 133,
+                            "itemID": "id:64p6zT_fwfJwsPy8",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 20,
+                                "CNUM2": 61
+                            }
+                        },
+                        {
+                            "parent": 195,
+                            "guid": 192,
+                            "itemID": "id:CONkxI46zq_-BsBq",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 1,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 214,
+                            "guid": 33,
+                            "itemID": "id:lEVfFiOnq1Z9GgQB",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 17,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 214,
+                            "guid": 92,
+                            "itemID": "id:lgSDWzyHwGlvcVt3",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 2,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 214,
+                            "guid": 152,
+                            "itemID": "id:OS7gjmXFIZLdp8Lt",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 20,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 229,
+                            "guid": 52,
+                            "itemID": "id:UqDroVsQfN5P795b",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 19,
+                                "CNUM2": 75
+                            }
+                        },
+                        {
+                            "parent": 229,
+                            "guid": 111,
+                            "itemID": "id:EbQVCjZLxvLOgSEe",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 10,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 229,
+                            "guid": 171,
+                            "itemID": "id:Z-wgx5NzoWmjhZFN",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 14,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 230,
+                            "guid": 53,
+                            "itemID": "id:146JRiCntfV8EikG",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 10,
+                                "CNUM2": 75
+                            }
+                        },
+                        {
+                            "parent": 230,
+                            "guid": 112,
+                            "itemID": "id:Iqf8uxy79fHtWKWa",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 230,
+                            "guid": 172,
+                            "itemID": "id:ZHiL_a4s6w-Q1m6p",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 12,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 243,
+                            "guid": 72,
+                            "itemID": "id:NeQy8JUaGW6w21Wv",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 8,
+                                "CNUM2": 73
+                            }
+                        },
+                        {
+                            "parent": 243,
+                            "guid": 131,
+                            "itemID": "id:gCqA8UkaJboYh3Hi",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 20,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 243,
+                            "guid": 191,
+                            "itemID": "id:MZNUYnSpNi73R5oY",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 19,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 196,
+                            "guid": 15,
+                            "itemID": "id:--Zuas-gIZIcEPsb",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 16,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 196,
+                            "guid": 74,
+                            "itemID": "id:MbtLTvmT7PwVt-iX",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 19,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 196,
+                            "guid": 134,
+                            "itemID": "id:A4rJkElbeDQEsChX",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 57
+                            }
+                        },
+                        {
+                            "parent": 215,
+                            "guid": 34,
+                            "itemID": "id:RCRbcpPslOzeJSZv",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 19,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 215,
+                            "guid": 93,
+                            "itemID": "id:-58xF6C_WfModOIc",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 6,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 215,
+                            "guid": 153,
+                            "itemID": "id:f9s7BzFuV31J5Pb-",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 68
+                            }
+                        },
+                        {
+                            "parent": 261,
+                            "guid": 54,
+                            "itemID": "id:vzQyr8Iubpg0hESg",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 4,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 261,
+                            "guid": 113,
+                            "itemID": "id:irNiIeZFiEia54cj",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 18,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 261,
+                            "guid": 173,
+                            "itemID": "id:ijGKFKRARHsIxoOV",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 9,
+                                "CNUM2": 54
+                            }
+                        },
+                        {
+                            "parent": 197,
+                            "guid": 16,
+                            "itemID": "id:wJnr35rcFI6woL-P",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 2,
+                                "CNUM2": 57
+                            }
+                        },
+                        {
+                            "parent": 197,
+                            "guid": 55,
+                            "itemID": "id:z-jied75SWPHpWXW",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 10,
+                                "CNUM2": 66
+                            }
+                        },
+                        {
+                            "parent": 197,
+                            "guid": 75,
+                            "itemID": "id:caSWdvUeLvN8v-Fv",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 4,
+                                "CNUM2": 64
+                            }
+                        },
+                        {
+                            "parent": 197,
+                            "guid": 114,
+                            "itemID": "id:F4wR7uvgbCP5oklD",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 20,
+                                "CNUM2": 63
+                            }
+                        },
+                        {
+                            "parent": 197,
+                            "guid": 135,
+                            "itemID": "id:OELai7aaVB-Jkqlc",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 17,
+                                "CNUM2": 54
+                            }
+                        },
+                        {
+                            "parent": 197,
+                            "guid": 174,
+                            "itemID": "id:vbBK_YCvLP4Nz1jT",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 4,
+                                "CNUM2": 72
+                            }
+                        },
+                        {
+                            "parent": 216,
+                            "guid": 35,
+                            "itemID": "id:oCQ6LdnV1zShM40-",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 2,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 216,
+                            "guid": 94,
+                            "itemID": "id:WnyuJ2SLPt0ckqME",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 10,
+                                "CNUM2": 73
+                            }
+                        },
+                        {
+                            "parent": 216,
+                            "guid": 154,
+                            "itemID": "id:SBDLftSDBtaDs97_",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 20,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 198,
+                            "guid": 17,
+                            "itemID": "id:GaWyUuubX7l_DVS2",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 1,
+                                "CNUM2": 57
+                            }
+                        },
+                        {
+                            "parent": 198,
+                            "guid": 76,
+                            "itemID": "id:nAmHHfXgSJ4cXCtS",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 198,
+                            "guid": 136,
+                            "itemID": "id:HBJ1QQ9tochve4am",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 14,
+                                "CNUM2": 70
+                            }
+                        },
+                        {
+                            "parent": 217,
+                            "guid": 36,
+                            "itemID": "id:COLeNWyAhvqyCAtK",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 217,
+                            "guid": 95,
+                            "itemID": "id:FM4iQVHzsGYky6wS",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 2,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 217,
+                            "guid": 155,
+                            "itemID": "id:P9FsUQOk3dATZeSS",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 6,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 231,
+                            "guid": 56,
+                            "itemID": "id:BP9bvFDcPde1iU6-",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 14,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 231,
+                            "guid": 115,
+                            "itemID": "id:qQdkKTXRpwNCp4rj",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 4,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 231,
+                            "guid": 175,
+                            "itemID": "id:v8lBQMLksXSlipsz",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 6,
+                                "CNUM2": 75
+                            }
+                        },
+                        {
+                            "parent": 202,
+                            "guid": 18,
+                            "itemID": "id:kt03baRMD1niulyn",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 12,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 202,
+                            "guid": 77,
+                            "itemID": "id:IpKV_fYP2S2HaX9c",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 18,
+                                "CNUM2": 54
+                            }
+                        },
+                        {
+                            "parent": 202,
+                            "guid": 137,
+                            "itemID": "id:F8i2hvg3gj7hN2sS",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 1,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 218,
+                            "guid": 37,
+                            "itemID": "id:9do2YKSJsrrNQs8L",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 218,
+                            "guid": 96,
+                            "itemID": "id:KRMKrJ-A2yFiI9dx",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 8,
+                                "CNUM2": 61
+                            }
+                        },
+                        {
+                            "parent": 218,
+                            "guid": 156,
+                            "itemID": "id:F4pB8qf0z8z0MApj",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 19,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 232,
+                            "guid": 57,
+                            "itemID": "id:ntIzQ-LP3y3KkjLZ",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 13,
+                                "CNUM2": 72
+                            }
+                        },
+                        {
+                            "parent": 232,
+                            "guid": 116,
+                            "itemID": "id:BsIkoGd3iLZRJ1_g",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 19,
+                                "CNUM2": 73
+                            }
+                        },
+                        {
+                            "parent": 232,
+                            "guid": 176,
+                            "itemID": "id:by5oaU_dM0___6MI",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 1,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 199,
+                            "guid": 19,
+                            "itemID": "id:lFLHvV3bFqg3fD4x",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 3,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 199,
+                            "guid": 78,
+                            "itemID": "id:J69kaMeeMG_agEgT",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 16,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 199,
+                            "guid": 138,
+                            "itemID": "id:CA8kcHx9nZ9WNbXi",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 11,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 219,
+                            "guid": 38,
+                            "itemID": "id:tbJ412y_l3i7oa5e",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 17,
+                                "CNUM2": 73
+                            }
+                        },
+                        {
+                            "parent": 219,
+                            "guid": 97,
+                            "itemID": "id:jTR5djEIDusigh4d",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 219,
+                            "guid": 157,
+                            "itemID": "id:6-ZnsfDtEt2E8srT",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 19,
+                                "CNUM2": 70
+                            }
+                        },
+                        {
+                            "parent": 233,
+                            "guid": 58,
+                            "itemID": "id:SmbFnr59oni-CIuD",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 20,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 233,
+                            "guid": 117,
+                            "itemID": "id:2mXGXo5ImEJJ5vOq",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 15,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 233,
+                            "guid": 177,
+                            "itemID": "id:apq1PBWvLB9UC0Mv",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 8,
+                                "CNUM2": 64
+                            }
+                        },
+                        {
+                            "parent": 203,
+                            "guid": 20,
+                            "itemID": "id:wl46hUNnB9hYWTPh",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 17,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 203,
+                            "guid": 79,
+                            "itemID": "id:0c3-h6L5QAnR1hlF",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 15,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 203,
+                            "guid": 139,
+                            "itemID": "id:dTxYM8xe-dx9xKGr",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 6,
+                                "CNUM2": 61
+                            }
+                        },
+                        {
+                            "parent": 253,
+                            "guid": 39,
+                            "itemID": "id:eiAqyFI5aThOzuiJ",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 14,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 253,
+                            "guid": 98,
+                            "itemID": "id:YkyV9ICp_ASycL3A",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 10,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 253,
+                            "guid": 158,
+                            "itemID": "id:dx1cpBUMsUVpGH05",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 19,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 234,
+                            "guid": 59,
+                            "itemID": "id:uZSwd_DKI29O9b1d",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 12,
+                                "CNUM2": 62
+                            }
+                        },
+                        {
+                            "parent": 234,
+                            "guid": 118,
+                            "itemID": "id:wSsS4-NY5E4RqYFj",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 20,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 234,
+                            "guid": 178,
+                            "itemID": "id:tlh3wSQOzXoxkVY-",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 11,
+                                "CNUM2": 67
+                            }
+                        },
+                        {
+                            "parent": 204,
+                            "guid": 21,
+                            "itemID": "id:tc99XF5SO4YOHhbc",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 2,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 204,
+                            "guid": 80,
+                            "itemID": "id:QXAFdee7u8GDinkB",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 10,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 204,
+                            "guid": 140,
+                            "itemID": "id:vlXOR0AI6s9ua3ga",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 12,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 220,
+                            "guid": 40,
+                            "itemID": "id:MgiCYrOVOiu5o-5s",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 9,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 220,
+                            "guid": 99,
+                            "itemID": "id:I0mj5rC2R5u_keey",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 16,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 220,
+                            "guid": 159,
+                            "itemID": "id:wy9AudU53hhKt6Nn",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 235,
+                            "guid": 60,
+                            "itemID": "id:Ri5ok4PiGqUmm69D",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 11,
+                                "CNUM2": 56
+                            }
+                        },
+                        {
+                            "parent": 235,
+                            "guid": 119,
+                            "itemID": "id:qxk4gN0TQ6rkoxRj",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 7,
+                                "CNUM2": 67
+                            }
+                        },
+                        {
+                            "parent": 235,
+                            "guid": 179,
+                            "itemID": "id:e6T_rm8G5VWEPq5S",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 14,
+                                "CNUM2": 65
+                            }
+                        },
+                        {
+                            "parent": 205,
+                            "guid": 22,
+                            "itemID": "id:VKaouonHpa0mxs_t",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 14,
+                                "CNUM2": 75
+                            }
+                        },
+                        {
+                            "parent": 205,
+                            "guid": 81,
+                            "itemID": "id:BRsV7NGh0iUo15NQ",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 4,
+                                "CNUM2": 70
+                            }
+                        },
+                        {
+                            "parent": 205,
+                            "guid": 141,
+                            "itemID": "id:MCSfrbieEj1ZGk6Z",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 17,
+                                "CNUM2": 70
+                            }
+                        },
+                        {
+                            "parent": 221,
+                            "guid": 41,
+                            "itemID": "id:y54RW6KiC8aJN2hn",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 10,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 221,
+                            "guid": 100,
+                            "itemID": "id:7_0ogmw_TbaRw4VK",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 1,
+                                "CNUM2": 72
+                            }
+                        },
+                        {
+                            "parent": 221,
+                            "guid": 160,
+                            "itemID": "id:1WpjF6hJTvJfF67w",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 14,
+                                "CNUM2": 62
+                            }
+                        },
+                        {
+                            "parent": 246,
+                            "guid": 61,
+                            "itemID": "id:NHKcly1PeuSqoMmw",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 18,
+                                "CNUM2": 57
+                            }
+                        },
+                        {
+                            "parent": 246,
+                            "guid": 120,
+                            "itemID": "id:bsBu912L103AzWHW",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 7,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 246,
+                            "guid": 180,
+                            "itemID": "id:pNluawfpo2QFLsyr",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 9,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 206,
+                            "guid": 23,
+                            "itemID": "id:qLNQFlEqz4KJ9mc5",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 11,
+                                "CNUM2": 75
+                            }
+                        },
+                        {
+                            "parent": 206,
+                            "guid": 82,
+                            "itemID": "id:tJqqocHub-fu60QX",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 17,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 206,
+                            "guid": 142,
+                            "itemID": "id:M1_cCMsArmLfiSyI",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 13,
+                                "CNUM2": 68
+                            }
+                        },
+                        {
+                            "parent": 255,
+                            "guid": 42,
+                            "itemID": "id:eVFKZMokvdNmsBhx",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 17,
+                                "CNUM2": 63
+                            }
+                        },
+                        {
+                            "parent": 255,
+                            "guid": 101,
+                            "itemID": "id:jdpC0yVK3P1ouXL6",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 11,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 255,
+                            "guid": 161,
+                            "itemID": "id:uiuwYGeZipHb2K7C",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 8,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 256,
+                            "guid": 62,
+                            "itemID": "id:H8X6279YQLtvyuUc",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 12,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 256,
+                            "guid": 121,
+                            "itemID": "id:wtiQH-vc0TzhE2Ag",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 15,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 256,
+                            "guid": 181,
+                            "itemID": "id:pdn2ftLdRrzfBZsx",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 18,
+                                "CNUM2": 68
+                            }
+                        },
+                        {
+                            "parent": 207,
+                            "guid": 24,
+                            "itemID": "id:ckHfmcd4QdT-A8Db",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 19,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 207,
+                            "guid": 83,
+                            "itemID": "id:lv1FpeeMGogM4oHh",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 207,
+                            "guid": 143,
+                            "itemID": "id:B2T7DymsZzO_eW2O",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 57
+                            }
+                        },
+                        {
+                            "parent": 258,
+                            "guid": 43,
+                            "itemID": "id:VCzhyVLjTwB0c-3d",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 17,
+                                "CNUM2": 66
+                            }
+                        },
+                        {
+                            "parent": 258,
+                            "guid": 102,
+                            "itemID": "id:_fxzSnKotn3ZXgAy",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 6,
+                                "CNUM2": 73
+                            }
+                        },
+                        {
+                            "parent": 258,
+                            "guid": 162,
+                            "itemID": "id:RLMocBy1isuuvtUw",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 4,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 236,
+                            "guid": 63,
+                            "itemID": "id:k8WzP69x3S9InEEd",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 8,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 236,
+                            "guid": 122,
+                            "itemID": "id:fxIvFf-V8pKC5oN0",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 19,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 236,
+                            "guid": 182,
+                            "itemID": "id:Fa_9nipn28kGNwXg",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 20,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 208,
+                            "guid": 25,
+                            "itemID": "id:IbP2-AtdhtH1xTGN",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 15,
+                                "CNUM2": 70
+                            }
+                        },
+                        {
+                            "parent": 208,
+                            "guid": 84,
+                            "itemID": "id:9vNIN1Ja9pIZphPE",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 10,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 208,
+                            "guid": 144,
+                            "itemID": "id:DX6hKD7HemxK8GCP",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 16,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 250,
+                            "guid": 44,
+                            "itemID": "id:j7xzVbFrUwnDubp7",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 7,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 250,
+                            "guid": 103,
+                            "itemID": "id:obGkJIWpblKViHwq",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 2,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 250,
+                            "guid": 163,
+                            "itemID": "id:rxIMFAUY7qyALd-P",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 17,
+                                "CNUM2": 56
+                            }
+                        },
+                        {
+                            "parent": 237,
+                            "guid": 64,
+                            "itemID": "id:KNUpr4auWt1X0r1A",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 237,
+                            "guid": 123,
+                            "itemID": "id:7YrIjv79Rux8taJw",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 10,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 237,
+                            "guid": 183,
+                            "itemID": "id:Y4l1CA9uLVNQnMb1",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 200,
+                            "guid": 26,
+                            "itemID": "id:zGyTAk5OBzWojehc",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 200,
+                            "guid": 85,
+                            "itemID": "id:uDBE3aGH-nl1pPEd",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 7,
+                                "CNUM2": 72
+                            }
+                        },
+                        {
+                            "parent": 200,
+                            "guid": 145,
+                            "itemID": "id:oZNoGZav7ZXY-taa",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 12,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 222,
+                            "guid": 45,
+                            "itemID": "id:zMnHpf2dEK--W3Yh",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 3,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 222,
+                            "guid": 104,
+                            "itemID": "id:cgin0Hc8h2ViMDHN",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 7,
+                                "CNUM2": 73
+                            }
+                        },
+                        {
+                            "parent": 222,
+                            "guid": 164,
+                            "itemID": "id:gAtalKmaR2RhRx0P",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 18,
+                                "CNUM2": 64
+                            }
+                        },
+                        {
+                            "parent": 272,
+                            "guid": 65,
+                            "itemID": "id:SqEUJkr0nDH7uNDk",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 20,
+                                "CNUM2": 61
+                            }
+                        },
+                        {
+                            "parent": 272,
+                            "guid": 124,
+                            "itemID": "id:ft5a5dN6O1E7iZOs",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 1,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 272,
+                            "guid": 184,
+                            "itemID": "id:lHRijDsehdxYiT-L",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 72
+                            }
+                        },
+                        {
+                            "parent": 201,
+                            "guid": 27,
+                            "itemID": "id:ecxBep9_RoEhfK_H",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 17,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 201,
+                            "guid": 86,
+                            "itemID": "id:AACW-FGpO5QJr_Bs",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 18,
+                                "CNUM2": 54
+                            }
+                        },
+                        {
+                            "parent": 201,
+                            "guid": 146,
+                            "itemID": "id:a2322FCeIRNNbb5M",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 8,
+                                "CNUM2": 63
+                            }
+                        },
+                        {
+                            "parent": 223,
+                            "guid": 46,
+                            "itemID": "id:Co_NPmKhBXP58IBk",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 16,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 223,
+                            "guid": 105,
+                            "itemID": "id:AKASq1zYU5iN5phr",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 223,
+                            "guid": 165,
+                            "itemID": "id:2vcga1OQSiEqa8tx",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 5,
+                                "CNUM2": 61
+                            }
+                        },
+                        {
+                            "parent": 238,
+                            "guid": 66,
+                            "itemID": "id:9jnJhaUSK5-ogzOV",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 18,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 238,
+                            "guid": 125,
+                            "itemID": "id:e02jEtokX92zgPep",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 20,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 238,
+                            "guid": 185,
+                            "itemID": "id:XoCNh_-dMc8G69XS",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 5,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 209,
+                            "guid": 28,
+                            "itemID": "id:V6vJYFoeWXqm6ppp",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 75
+                            }
+                        },
+                        {
+                            "parent": 209,
+                            "guid": 87,
+                            "itemID": "id:QnDiCfxSdKCD2aom",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Sun",
+                                "CNUM1": 5,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 209,
+                            "guid": 147,
+                            "itemID": "id:WggYrOtpvqMMylNK",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 2,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 224,
+                            "guid": 47,
+                            "itemID": "id:SNLGXhP3j7jJYvPI",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 14,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 224,
+                            "guid": 106,
+                            "itemID": "id:A5iqgn69MI41_ejH",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 2,
+                                "CNUM2": 60
+                            }
+                        },
+                        {
+                            "parent": 224,
+                            "guid": 166,
+                            "itemID": "id:oKavBJcE2X-2TubD",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 11,
+                                "CNUM2": 69
+                            }
+                        },
+                        {
+                            "parent": 239,
+                            "guid": 67,
+                            "itemID": "id:k1GxR3XvwfpptFLC",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 4,
+                                "CNUM2": 57
+                            }
+                        },
+                        {
+                            "parent": 239,
+                            "guid": 126,
+                            "itemID": "id:MK20t6UAn-wYjUCG",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 3,
+                                "CNUM2": 70
+                            }
+                        },
+                        {
+                            "parent": 239,
+                            "guid": 186,
+                            "itemID": "id:8iy25OmxFO-PMJ07",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 5,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 210,
+                            "guid": 29,
+                            "itemID": "id:pvhaZVO4FIVfWiMe",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 9,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 210,
+                            "guid": 88,
+                            "itemID": "id:L_K2vwfuy1cSuIST",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 1,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 210,
+                            "guid": 148,
+                            "itemID": "id:89LGT-mScRjWns2B",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 16,
+                                "CNUM2": 65
+                            }
+                        },
+                        {
+                            "parent": 225,
+                            "guid": 48,
+                            "itemID": "id:XtQUqPFanSB6F3Xv",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 18,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 225,
+                            "guid": 107,
+                            "itemID": "id:DhQqTTh2V-fo9KVd",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 225,
+                            "guid": 167,
+                            "itemID": "id:5eiJMtZpV5cPEaj6",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 2,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 240,
+                            "guid": 68,
+                            "itemID": "id:R77sPZhTN4G7Qr5e",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 7,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 240,
+                            "guid": 127,
+                            "itemID": "id:Y022oWn9Z3rtNTzY",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 16,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 240,
+                            "guid": 187,
+                            "itemID": "id:apHbuBt0q1ZOEXCR",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 9,
+                                "CNUM2": 67
+                            }
+                        },
+                        {
+                            "parent": 211,
+                            "guid": 30,
+                            "itemID": "id:elKgsEfnqVY8888i",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 8,
+                                "CNUM2": 64
+                            }
+                        },
+                        {
+                            "parent": 211,
+                            "guid": 89,
+                            "itemID": "id:xaSncDJ_tCk26yhn",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 1,
+                                "CNUM2": 62
+                            }
+                        },
+                        {
+                            "parent": 211,
+                            "guid": 149,
+                            "itemID": "id:8jZoGd0PJ-7rHhZl",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 15,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 226,
+                            "guid": 49,
+                            "itemID": "id:bnPnuk5V24XYj1TI",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 1,
+                                "CNUM2": 72
+                            }
+                        },
+                        {
+                            "parent": 226,
+                            "guid": 108,
+                            "itemID": "id:zcQiduRMtVxyZX1s",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 9,
+                                "CNUM2": 62
+                            }
+                        },
+                        {
+                            "parent": 226,
+                            "guid": 168,
+                            "itemID": "id:I0SCKCELafqrj9aY",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 8,
+                                "CNUM2": 73
+                            }
+                        },
+                        {
+                            "parent": 241,
+                            "guid": 69,
+                            "itemID": "id:KoBEh4dC1Y8RGgBg",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 18,
+                                "CNUM2": 66
+                            }
+                        },
+                        {
+                            "parent": 241,
+                            "guid": 128,
+                            "itemID": "id:h9Nf9TJSIUumetlA",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 8,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 241,
+                            "guid": 188,
+                            "itemID": "id:TCzE0l0tWX86hgvL",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 17,
+                                "CNUM2": 66
+                            }
+                        },
+                        {
+                            "parent": 212,
+                            "guid": 31,
+                            "itemID": "id:xEWE-AJ4-fwLfkP8",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 2,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 212,
+                            "guid": 90,
+                            "itemID": "id:7RpVuVLFIcKV_av5",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 18,
+                                "CNUM2": 55
+                            }
+                        },
+                        {
+                            "parent": 212,
+                            "guid": 150,
+                            "itemID": "id:jWcjUkTk92bkeWcw",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 6,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 227,
+                            "guid": 50,
+                            "itemID": "id:5pUUoW5P9kTWd7gz",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 74
+                            }
+                        },
+                        {
+                            "parent": 227,
+                            "guid": 109,
+                            "itemID": "id:mCI7F4skSpT3tUvT",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 2,
+                                "CNUM2": 66
+                            }
+                        },
+                        {
+                            "parent": 227,
+                            "guid": 169,
+                            "itemID": "id:09m2-XmGEHu5sTzN",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 20,
+                                "CNUM2": 67
+                            }
+                        },
+                        {
+                            "parent": 248,
+                            "guid": 70,
+                            "itemID": "id:twk0qWfw0Zov-Ebd",
+                            "values": {
+                                "CCAT1": "hamster",
+                                "CCAT2": "Shade",
+                                "CNUM1": 2,
+                                "CNUM2": 50
+                            }
+                        },
+                        {
+                            "parent": 248,
+                            "guid": 129,
+                            "itemID": "id:-WlINAeMp10IVlhh",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 2,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 248,
+                            "guid": 189,
+                            "itemID": "id:d6ENb2iCpIttl9z7",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 5,
+                                "CNUM2": 59
+                            }
+                        },
+                        {
+                            "parent": 213,
+                            "guid": 32,
+                            "itemID": "id:g5wYpl9csNBYpGH9",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Sun",
+                                "CNUM1": 15,
+                                "CNUM2": 71
+                            }
+                        },
+                        {
+                            "parent": 213,
+                            "guid": 91,
+                            "itemID": "id:-mCYA3t4il6vPEno",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Shade",
+                                "CNUM1": 14,
+                                "CNUM2": 51
+                            }
+                        },
+                        {
+                            "parent": 213,
+                            "guid": 151,
+                            "itemID": "id:26p0jYuNIdlVAml6",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 2,
+                                "CNUM2": 66
+                            }
+                        },
+                        {
+                            "parent": 228,
+                            "guid": 51,
+                            "itemID": "id:PE6QskD-WvY7SLI6",
+                            "values": {
+                                "CCAT1": "rabbit",
+                                "CCAT2": "Sun",
+                                "CNUM1": 6,
+                                "CNUM2": 58
+                            }
+                        },
+                        {
+                            "parent": 228,
+                            "guid": 110,
+                            "itemID": "id:Ssgv57avQIeExvxF",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Sun",
+                                "CNUM1": 13,
+                                "CNUM2": 67
+                            }
+                        },
+                        {
+                            "parent": 228,
+                            "guid": 170,
+                            "itemID": "id:sRwCa6B95VCCi5xo",
+                            "values": {
+                                "CCAT1": "cat",
+                                "CCAT2": "Shade",
+                                "CNUM1": 10,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 242,
+                            "guid": 71,
+                            "itemID": "id:PsHH8EdHRQk5F8oj",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 19,
+                                "CNUM2": 52
+                            }
+                        },
+                        {
+                            "parent": 242,
+                            "guid": 130,
+                            "itemID": "id:SnUMs6KTWoNMy8fj",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 15,
+                                "CNUM2": 53
+                            }
+                        },
+                        {
+                            "parent": 242,
+                            "guid": 190,
+                            "itemID": "id:NmAnuFN7_AGP-MV9",
+                            "values": {
+                                "CCAT1": "dog",
+                                "CCAT2": "Shade",
+                                "CNUM1": 11,
+                                "CNUM2": 74
+                            }
+                        }
+                    ],
+                    "caseName": null,
+                    "childAttrName": null,
+                    "collapseChildren": null,
+                    "guid": 3,
+                    "name": "Table C",
+                    "parent": 194,
+                    "title": "Table C",
+                    "type": "DG.Collection"
+                }
+            ],
+            "description": "",
+            "metadata": null,
+            "preventReorg": false,
+            "setAsideItems": [],
+            "contextStorage": {}
+        }
+    ],
+    "globalValues": [],
+    "appName": "DG",
+    "appVersion": "2.0",
+    "appBuildNum": "0501",
+    "lang": "en",
+    "metadata": {}
+}

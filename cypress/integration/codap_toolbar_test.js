@@ -65,6 +65,12 @@ context('codap toolbar', ()=>{
         cy.getPluginIframe().find('#camera-flash').should('be.visible')
         codap.closeTile('plugin', 'index'); //close the tile because it interferes with later tests
     })
+    it('will open WeatherX Plugin', ()=>{
+        codap.openTile('plugin','NOAA Weather')
+        cy.wait(2000);
+        cy.getPluginIframe().find('#wx-get-button').should('be.visible')
+        codap.closeTile('plugin', 'NOAA-weather'); //close the tile because it interferes with later tests
+    })
     it('will focus table tile from Tile list', ()=>{
         codap.openTile('tilelist', 'New Dataset')
         cy.get('.dg-hier-table-view').siblings('.dg-titlebar-selected').should('exist')

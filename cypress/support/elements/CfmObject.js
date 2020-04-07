@@ -43,6 +43,10 @@ class CfmObject{
             .trigger('drop')
         cy.wait(3000)
     }
+    closeDocFromFileMenu(){
+        this.openCFMMenu();
+        this.selectCFMMenuItem('Close')
+    }
     closeConfirmDialogMessage(){
         cy.get('.confirm-dialog button').contains('Yes').click();
     }

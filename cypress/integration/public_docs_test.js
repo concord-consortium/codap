@@ -9,7 +9,6 @@ context('Load all Sample documents in the CODAP sample doc page', ()=>{
             let i=0;
             let listing=file.split(',')
             for (i;i<listing.length;i++){
-                cy.log(listing[i])
                 cy.visit(listing[i]);
                 cy.wait(5000);
                 cy.matchImageSnapshot(listing[i])
