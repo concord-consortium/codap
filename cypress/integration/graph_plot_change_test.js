@@ -8,8 +8,10 @@ const table = new TableTile
 const codap = new CodapObject
 const cfm = new CfmObject;
 
+const baseUrl = `${Cypress.config("baseUrl")}`;
 const filename='3TableGroups',
-      ext = '.json';
+      ext = '.codap',
+      dir='../fixtures/';
 
 const arrayOfPlots = [  {attribute:'ACAT1', axis:'x1', collection:'Table A'},
                         {attribute:'ACAT2', axis:'y1', collection:'Table A'},
@@ -30,19 +32,15 @@ const arrayOfPlots = [  {attribute:'ACAT1', axis:'x1', collection:'Table A'},
                         {attribute:'BCAT1', axis:'x', collection:'Table B'},
                         {attribute:'CCAT2', axis:'y', collection:'Table C'},]
 
-const baseUrl = `${Cypress.config("baseUrl")}`;
-
 context('Test Graph Plot Transitions', ()=>{
     before(function(){
-        cy.viewport(1400,1000);
-        cy.visit(baseUrl+'?url=https://codap.concord.org/~eireland/3TableGroups.json')
-        // cy.visit('http://localhost:4020/dg?url=http://codap-server.concord.org/~eireland/3TableGroups.json')
-        // cy.visit('https://codap.concord.org/releases/staging/')
-        // cy.wait(3000)
-        // cfm.openDocFromModal();
-        // cy.wait(500)
-        // cfm.openLocalDoc(filename+ext);
+
+        cy.visit(baseUrl)
         cy.wait(5000)
+    
+        cfm.openDocFromModal();
+        cy.wait(500)
+        cfm.openLocalDoc(dir+filename+ext)
     }) 
     it('will add attributes to a graph and verify plot transitions are correct', ()=>{
         codap.openTile('graph')

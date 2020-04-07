@@ -81,6 +81,9 @@ context('case card version', ()=>{
             cy.get(table.caseCardAttributeInputEl()).type('{enter}')
             table.getCaseCardAttribute().contains(attr).should('be.visible');
         })
+        it('verify edit collection header',()=>{
+            //TODO
+        })
         it.skip('verify reorder of attribute',()=>{ //drag and drop of attribute not working
             let attr='newAttr';
             cy.dragAttributeToTarget('card',attr,'card',3)
@@ -96,11 +99,9 @@ context('case card version', ()=>{
             var filename='3TableGroups',
                 dir='../fixtures/';
         
-            cy.viewport(1400,1000);
-            cy.visit(baseUrl)
-            cy.wait(5000)
-        
-            cfm.openDocFromModal();
+            cfm.closeDocFromFileMenu();
+            cfm.closeConfirmDialogMessage();
+            cfm.openDocFromFileMenu();
             cy.wait(500)
             cfm.openLocalDoc(dir+filename+ext)
             codap.getTableTileTitle().click() //bring the table into focus
