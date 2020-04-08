@@ -352,6 +352,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tTotalLength = 0,
               tLayout = tNodes.map(function (iNode) {
                 var tExtent = iNode.extent();
+                // We do this next test because of a peculiarity of restoring a graph component that is
+                //  minimized. The label gets a chance to position itself during the initial render while
+                //  the component is minimized but doesn't get another chance during maximization.
+                if( !tIsVertical && tExtent.height === 0)
+                  tExtent.height = tDrawHeight;
                 tTotalLength += tIsVertical ? tExtent.height : tExtent.width;
                 return { node: iNode, extent: tExtent };
               }),
