@@ -51,10 +51,13 @@ class TableTileObject{
     getCollapseAllIcon(){
         return cy.get('.dg-table-drop-target .slick-header image')
     }
-    getCell(){
+    getCell(line, row, instance){
         //get collection name
         //get the .dg-case-table sibling of the .dg-case-table-title
         //get the child .slick-cell of the found .dg-case-table
+
+        //made it simpler for now
+        return cy.get('.slick-cell.l'+line+'.r'+row).eq(instance)
     }
     getIndex(){
         return cy.get('.dg-index')
@@ -94,16 +97,16 @@ class TableTileObject{
         cy.clickMenuItem('Switch to case table view of the data')
     }
     getCaseCardCollectionHeader(position=0){
-        return cy.get('.react-data-card .collection-header-row').eq(position)
+        return cy.get('.collection-header-row').eq(position)
     }
     getCaseCardNavBackIcon(){
-        return cy.get('.react-data-card .nav-buttons .moonicon-icon-reverse-play')
+        return cy.get('.nav-buttons .moonicon-icon-reverse-play')
     }
     getCaseCardNavForwardIcon(){
-        return cy.get('.react-data-card .nav-buttons .moonicon-icon-play')
+        return cy.get('.nav-buttons .moonicon-icon-play')
     }
     getCaseCardAddCasePlusIcon(){
-        return cy.get('.react-data-card .nav-header .dg-floating-plus-right')
+        return cy.get('.nav-header .dg-floating-plus-right')
     }
     getCaseCardAddAttributePlusIcon(){
         return cy.get('.react-data-card-row .dg-floating-plus')

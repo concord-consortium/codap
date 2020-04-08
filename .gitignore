@@ -11,3 +11,4 @@ dist
 .ruby-version
 # Packages
 node_modules/
+cypress/screenshots

@@ -255,11 +255,16 @@ context('table tool palette', ()=>{ //tests for tool palette elements
 })
 context('Multiple collections',function(){
     before(()=> {
-        cy.viewport(1400,1000);
-        cy.visit(baseUrl+'?url=https://codap.concord.org/~eireland/3TableGroups.json')
-        cy.wait(5000)
+        var filename='3TableGroups',
+            dir='../fixtures/';
+    
+        cfm.closeDocFromFileMenu();
+        cfm.closeConfirmDialogMessage();
+        cfm.openDocFromFileMenu();
+        cy.wait(500)
+        cfm.openLocalDoc(dir+filename+ext)
         codap.getTableTileTitle().click() //bring the table into focus
-    })
+    }) 
     describe('table UI', ()=>{
         it('verify collection name is visible', ()=>{
             table.getCollectionTitle().should('have.length', 3);
