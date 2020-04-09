@@ -12208,6 +12208,10 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.log = function(event, eventData) {
+    this._event('log', {
+      logEvent: event,
+      logEventData: eventData
+    });
     if (this.appOptions.log) {
       return this.appOptions.log(event, eventData);
     }
