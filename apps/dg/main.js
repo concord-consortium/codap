@@ -329,6 +329,13 @@ DG.main = function main() {
     return baseURL + location.search+hash;
   }
 
+  function handleLogLaraData(obj) {
+    if (obj.run_remote_endpoint) {
+      DG.set('run_remote_endpoint', obj.run_remote_endpoint);
+    }
+    DG.logUser("laraData: %@".fmt(JSON.stringify(obj)));
+  }
+
   function cfmInit(iCloudFileManager, iViewConfig) {
     var options = {
           autoSaveInterval: 5,
@@ -413,10 +420,7 @@ DG.main = function main() {
                 return obj.guid || JSON.stringify(obj);
               },
               logLaraData: function(obj) {
-                if (obj.run_remote_endpoint) {
-                  DG.set('run_remote_endpoint', obj.run_remote_endpoint);
-                }
-                DG.logUser("laraData: %@".fmt(JSON.stringify(obj)));
+                handleLogLaraData(obj);
               }
             },
             {
@@ -959,6 +963,14 @@ DG.main = function main() {
               var document = DG.currDocumentController();
               var name = event.state.metadata.name;
               document.set('documentName', name);
+            });
+            break;
+
+          case "log":
+            SC.run(function() {
+              if (event.data.logEvent === "logLaraData") {
+                handleLogLaraData(event.data.logEventData);
+              }
             });
             break;
         }
