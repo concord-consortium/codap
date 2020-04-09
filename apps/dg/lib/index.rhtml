@@ -74,7 +74,6 @@
         // otherwise, we delay-load CFM using cfmBaseUrl in main.js
         var loadCfm = window.location.search.indexOf('cfmBaseUrl=') < 0;
         [
-          loadCfm ? "<%= sc_static('cloud-file-manager/js/globals.js.ignore') %>" : null,
           loadCfm ? "<%= sc_static('cloud-file-manager/js/app.js.ignore') %>" : null
         ].forEach(function(src) {
           if (src) {

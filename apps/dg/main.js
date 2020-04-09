@@ -248,10 +248,7 @@ DG.main = function main() {
 
     if (!url) {
       // static_url is run at build time so we have to directly reference the paths
-      if (filename === 'globals.js') {
-        url = static_url('cloud-file-manager/js/globals.js.ignore');
-      }
-      else if (filename === 'app.js') {
+      if (filename === 'app.js') {
         url = static_url('cloud-file-manager/js/app.js.ignore');
       }
     }
