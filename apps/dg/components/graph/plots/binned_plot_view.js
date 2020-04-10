@@ -252,6 +252,32 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
                   this_.kLineSlideVCur : this_.kLineSlideHCur,
               tTitle = 'DG.BinnedPlotModel.dragBinTip'.loc();
 
+          function colorBoundaries() {
+            var kDefaultColor = DG.PlotUtilities.kBinBorderLineColor,
+                kDragColor = 'steelblue';
+
+            function decorateLine( iLine, iColor, iWidth) {
+              iLine.attr( { stroke: iColor, 'stroke-width': iWidth });
+            }
+
+            if( this_.dragInProgress) {
+              this_.binBoundaries.forEach( function( iSpec, iIndex) {
+                if( iSpec.worldValue === tNewBinAlignment) {
+                  decorateLine( iSpec.boundary, kDragColor, 2);
+                  if( iIndex > 0)
+                    decorateLine( this_.binBoundaries[iIndex - 1].boundary, kDefaultColor, 2);
+                }
+                else
+                  decorateLine( iSpec.boundary, kDefaultColor, 1);
+              });
+            }
+            else {
+              this_.binBoundaries.forEach( function( iSpec) {
+                decorateLine( iSpec.boundary, kDefaultColor, 1);
+              });
+            }
+          }
+
           function beginTranslate(iWindowX, iWindowY) {
             this_.dragInProgress = true;
             this_.elementBeingDragged = this;
@@ -264,6 +290,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
             tBinWidthAtStartOfDrag = this_.getPath('primaryAxisView.binWidth');
             this_.set('binNumBeingDragged', this.binNum);
             tNewBinAlignment = tBoundaries[this.binNum].worldValue;
+            colorBoundaries();
           }
 
           function continueTranslate(idX, idY) {
@@ -277,6 +304,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
               tModel.set('width', tNewWorldWidth);
               tModel.endPropertyChanges();
             });
+            colorBoundaries();
           }
 
           function endTranslate(idX, idY) {
@@ -291,6 +319,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
               this_.elementBeingDragged.remove();
               this_.elementBeingDragged = null;
             }
+            colorBoundaries();
             this_.displayDidChange();
           }
 

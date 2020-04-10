@@ -27,7 +27,7 @@ DG.PlotUtilities = {
   kRuleWidth: 1,
   kZeroLineColor: '#555',
   kZeroLineWidth: 1,
-  kBinBorderLineColor: "rgba(0, 0, 0, 0.5)",
+  kBinBorderLineColor: "rgba(115, 191, 202)",
   kBinBorderWidth: 1,
   kDefaultMovablePointColor: "yellow",
   kDefaultMovablePointRadius: 8,
