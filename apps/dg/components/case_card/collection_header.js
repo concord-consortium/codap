@@ -21,9 +21,9 @@ DG.React.ready(function () {
          *    dragStatus {Object}
          */
 
-        var domRow = null;
-
         return {
+
+          domRow: null,
 
           getInitialState: function () {
             return {
@@ -36,13 +36,13 @@ DG.React.ready(function () {
 
             function dragIsInMe() {
               var tResult;
-              if (this_.props.dragStatus && this_.props.dragStatus.event && domRow) {
+              if (this_.props.dragStatus && this_.props.dragStatus.event && this_.domRow) {
                 var tEvent = this_.props.dragStatus.event,
                     tX = tEvent.clientX,
                     tY = tEvent.clientY,
-                    tRect = domRow.getBoundingClientRect();
-                tResult = tX >= tRect.x && tX <= tRect.x + tRect.width &&
-                    tY >= tRect.y && tY <= tRect.y + tRect.height;
+                    tRect = this_.domRow.getBoundingClientRect();
+                tResult = tX >= tRect.left && tX < tRect.right &&
+                          tY >= tRect.top && tY < tRect.bottom;
               }
               this_.dragIsInMe = tResult;
               return tResult;
@@ -118,7 +118,7 @@ DG.React.ready(function () {
               tr({
                   key: 'coll-' + tIndex,
                   className: tRowClass,
-                  ref: function(elt) { domRow = elt; }
+                  ref: function(elt) { this.domRow = elt; }.bind(this)
                 },
                 th({
                     colSpan: 2,
