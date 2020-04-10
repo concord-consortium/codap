@@ -1163,6 +1163,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
         if( tXType === DG.Analysis.EAttributeType.eCategorical || tYType === DG.Analysis.EAttributeType.eCategorical)
           tCurrentPlot.set('dotsAreFused', false);
       }
+      else if( tNewPlotClass === DG.DotChartModel && tCurrentPlot.constructor === DG.BarChartModel) {
+        // We're allowed to keep the bar chart
+        tNewPlotClass = DG.BarChartModel;
+      }
 
       tNewPlotClass.configureRoles( tConfig );
       if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) ) {
