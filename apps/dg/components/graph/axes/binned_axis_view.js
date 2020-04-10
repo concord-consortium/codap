@@ -74,6 +74,7 @@ DG.BinnedAxisView = DG.AxisView.extend( (function() {
     }.property(),
     numberOfBinsDidChange: function() {
       this.notifyPropertyChange( 'numberOfBins');
+      this.displayDidChange();
     }.observes('model.binnedPlotModel.totalNumberOfBins'),
 
     /**
