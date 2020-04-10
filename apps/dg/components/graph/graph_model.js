@@ -1094,7 +1094,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
         }));
       }
       this.propertyDidChange('plot'); // Let view know plot has changed (even though class has not)
-      // this.endPropertyChanges();
       this.set('aboutToChangeConfiguration', false); // reset for next time
     },
 
