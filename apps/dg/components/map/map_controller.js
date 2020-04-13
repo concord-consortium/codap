@@ -448,7 +448,7 @@ DG.MapController = DG.DataDisplayController.extend(
                       layout: {height: kRowHeight},
                       label: 'DG.Inspector.pointSize',
                       controlView: SC.SliderView.create({
-                        layout: {right: 25},
+                        layout: {left: 80, right: 25},
                         classNames: 'dg-map-pointSize-slider'.w(),
                         controlSize: SC.SMALL_CONTROL_SIZE,
                         value: iMapLayerModel.getPath('pointSizeMultiplier'),
