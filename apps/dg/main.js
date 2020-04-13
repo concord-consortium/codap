@@ -248,10 +248,7 @@ DG.main = function main() {
 
     if (!url) {
       // static_url is run at build time so we have to directly reference the paths
-      if (filename === 'globals.js') {
-        url = static_url('cloud-file-manager/js/globals.js.ignore');
-      }
-      else if (filename === 'app.js') {
+      if (filename === 'app.js') {
         url = static_url('cloud-file-manager/js/app.js.ignore');
       }
     }
@@ -327,6 +324,13 @@ DG.main = function main() {
       hash = '';
     }
     return baseURL + location.search+hash;
+  }
+
+  function handleLogLaraData(obj) {
+    if (obj.run_remote_endpoint) {
+      DG.set('run_remote_endpoint', obj.run_remote_endpoint);
+    }
+    DG.logUser("laraData: %@".fmt(JSON.stringify(obj)));
   }
 
   function cfmInit(iCloudFileManager, iViewConfig) {
@@ -413,10 +417,7 @@ DG.main = function main() {
                 return obj.guid || JSON.stringify(obj);
               },
               logLaraData: function(obj) {
-                if (obj.run_remote_endpoint) {
-                  DG.set('run_remote_endpoint', obj.run_remote_endpoint);
-                }
-                DG.logUser("laraData: %@".fmt(JSON.stringify(obj)));
+                handleLogLaraData(obj);
               }
             },
             {
@@ -959,6 +960,14 @@ DG.main = function main() {
               var document = DG.currDocumentController();
               var name = event.state.metadata.name;
               document.set('documentName', name);
+            });
+            break;
+
+          case "log":
+            SC.run(function() {
+              if (event.data.logEvent === "logLaraData") {
+                handleLogLaraData(event.data.logEventData);
+              }
             });
             break;
         }
