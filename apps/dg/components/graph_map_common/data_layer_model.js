@@ -711,8 +711,10 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
 
       tDataConfiguration.setAttributeType( iDescKey, iTreatAsNumeric );
 
-      if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription')
-        this.privSyncAxisWithAttribute( iDescKey, iAxisKey );
+      if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription') {
+        this.synchPlotWithAttributes();
+        this.privSyncAxisWithAttribute(iDescKey, iAxisKey);
+      }
       this.invalidate( null, true /* also invalidate plot caches */);
       this.set('aboutToChangeConfiguration', false ); // reset for next time
     },
