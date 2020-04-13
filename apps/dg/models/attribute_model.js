@@ -470,12 +470,10 @@ DG.Attribute = DG.BaseModel.extend(
           var tAttrID = this.get('id'),
               tCases = tCollection.get('cases'),
               tCategoryMap = this._categoryMap || { __order: []},
-              tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
-              tCatRecord = {};
+              tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length;
           validateCategoryMap(tCategoryMap, tColorIndex);
           tCases && tCases.forEach( function( iCase) {
             var tValue = iCase.getStrValue( tAttrID);
-            tCatRecord[ tValue] = true;
             if( SC.none( tCategoryMap[ String( tValue)])) {
               if( !SC.empty(tValue)) {
                 tCategoryMap[tValue] = DG.ColorUtilities.kKellyColors[tColorIndex];
@@ -484,13 +482,8 @@ DG.Attribute = DG.BaseModel.extend(
               }
             }
           }.bind( this));
-          // Delete unrecorded categories
-          tCategoryMap.__order.forEach( function( iCat, iIndex) {
-            if( !tCatRecord[ iCat]) {
-              delete tCategoryMap[ iCat];
-              tCategoryMap.__order.splice( iIndex, 1);
-            }
-          }.bind( this));
+          // Note that we are not deleting categories that may no longer be present. This is so we don't lose
+          // color assignments for categories whose cases are deleted but then reappear. (Think sampler.)
           if( !this._categoryMap) {
             tCategoryMap.__order.sort( function( item1, item2) {
               if( typeof item1 === 'number' && typeof item2 === 'number')
