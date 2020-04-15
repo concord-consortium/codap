@@ -2026,7 +2026,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 values: {
                   id: component.getPath('model.id'),
                   name: component.getPath('model.name'),
-                  title: component.get('title'),
+                  title: component.getPath('model.title'),
                   type: type
                 }
               };
