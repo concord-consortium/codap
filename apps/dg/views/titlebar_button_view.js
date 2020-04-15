@@ -288,8 +288,10 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
                   DG.currDocumentController().toggleTableToCard(tComponentView);
                 },
                 undo: function() {
-                  var tCardComponentView = tComponentView.get('cardView');
-                  DG.currDocumentController().toggleCardToTable(tCardComponentView);
+                  var tDocController = DG.currDocumentController(),
+                      tContext = tComponentView.getPath('controller.dataContext'),
+                      tCardComponentView = tDocController.tableCardRegistry.getCardView(tContext);
+                  tDocController.toggleCardToTable(tCardComponentView);
                 }
               }));
             }.observes('selectedItem')
@@ -334,8 +336,10 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
                   DG.currDocumentController().toggleCardToTable(tComponentView);
                 },
                 undo: function() {
-                  var tTableComponentView = tComponentView.get('tableView');
-                  DG.currDocumentController().toggleTableToCard(tTableComponentView);
+                  var tDocController = DG.currDocumentController(),
+                      tContext = tComponentView.getPath('controller.dataContext'),
+                      tTableComponentView = tDocController.tableCardRegistry.getTableView(tContext);
+                  tDocController.toggleTableToCard(tTableComponentView);
                 }
               }));
             }.observes('selectedItem')

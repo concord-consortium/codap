@@ -1094,7 +1094,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
         }));
       }
       this.propertyDidChange('plot'); // Let view know plot has changed (even though class has not)
-      // this.endPropertyChanges();
       this.set('aboutToChangeConfiguration', false); // reset for next time
     },
 
@@ -1162,6 +1161,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
         // because we can't yet combine count axis with categorical axis.
         if( tXType === DG.Analysis.EAttributeType.eCategorical || tYType === DG.Analysis.EAttributeType.eCategorical)
           tCurrentPlot.set('dotsAreFused', false);
+      }
+      else if( tNewPlotClass === DG.DotChartModel && tCurrentPlot.constructor === DG.BarChartModel) {
+        // We're allowed to keep the bar chart
+        tNewPlotClass = DG.BarChartModel;
       }
 
       tNewPlotClass.configureRoles( tConfig );

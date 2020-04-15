@@ -520,6 +520,9 @@ DG.PlotView = DG.PlotLayer.extend(
   */
   plottedCountChanged: function() {
     var tCountModel = this.getPath('model.plottedCount');
+    // This adornment may have been passed from a previous plot. Make sure knows it needs to recompute
+    if( tCountModel.get('isVisible'))
+      tCountModel.setComputingNeeded();
     // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
     if( this.plottedCountAdorn) {
       this.plottedCountAdorn.destroy();
