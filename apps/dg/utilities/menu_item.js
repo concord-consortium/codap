@@ -37,9 +37,12 @@ DG.MenuItem = SC.MenuItemView.extend(
    @param className {String} the classname that will show the icon
    @returns {void}
    */
-  renderImage: function(context, className) {
-    // generate the div element...
-    context.begin('div').addClass(className).end() ;
+  renderImage: function(context, image) {
+    if (image && SC.ImageView.valueIsUrl(image)) {
+      context.begin('img').addClass('image').setAttr('src', image).end();
+    } else {
+      context.begin('div').addClass(image).end() ;
+    }
   },
 
   /** @private

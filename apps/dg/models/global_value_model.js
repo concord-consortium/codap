@@ -41,11 +41,12 @@ DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
   value: '',
 
   valueDidChange: function () {
+    var v = this.get('value');
     DG.currDocumentController().notificationManager.sendNotification({
       action: 'notify',
       resource: 'global[%@]'.loc(this.name),
       values: {
-        globalValue: this.value
+        globalValue: (typeof v === 'object' || typeof v === 'function')? v.toString(): v
       }
     });
   }.observes('value'),

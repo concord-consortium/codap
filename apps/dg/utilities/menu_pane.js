@@ -44,7 +44,7 @@ DG.MenuPane = SC.MenuPane.extend(
 
   getDesiredMenuWidth: function() {
     var tMaxCharCount = 0,
-        kAvgCharWidth = 5,  // Use 5 pixels/character for estimation
+        kAvgCharWidth = 6,  // Use 6 pixels/character for estimation
         kWidthMargins = 60;
     this.get('items').forEach( function( iItem) {
       if (!iItem) {

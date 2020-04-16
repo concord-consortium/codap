@@ -20,7 +20,6 @@
 
 sc_require('alpha/destroyable');
 sc_require('components/graph/utilities/plot_utilities');
-sc_require('libraries/RTree');
 /*global RTree:true */
 
 /** @class  DG.PlotLayer - The base class for plotting points using Raphael.

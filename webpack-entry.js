@@ -1,8 +1,8 @@
 /* global _:true, CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true,
   createReactClass:true, createReactClassFactory:true, createReactFactory:true, createReactFC:true, ReactSizeMe: true,
-  Popper:true, Tooltip:true, Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true */
+  Popper:true, Tooltip:true, Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true */
 /* exported _, CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactClassFactory,
-  createReactFactory, createReactFC, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid */
+  createReactFactory, createReactFC, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid, RTree */
 require('es5-shim');
 require('es6-shim');
 _ = require('lodash');
@@ -45,3 +45,4 @@ deepEqual = require('deep-equal');
 pluralize = require('pluralize');
 dayjs  = require('dayjs');
 nanoid = require('nanoid');
+RTree = require('rtree');
