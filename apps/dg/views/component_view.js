@@ -130,7 +130,7 @@ DG.ComponentView = SC.View.extend(
           }
           // If we are in component mode we select the component after it is
           // rendered.
-          if (kViewInComponentMode) {
+          if (kViewInComponentMode && this.get('isVisible')) {
             this.invokeLater(function () {
               this.select();
             }.bind(this));
