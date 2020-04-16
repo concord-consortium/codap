@@ -786,7 +786,7 @@ SC.stringsFor("en", {
     "DG.AxisView.horizontal": "horizontal",
 
     // DG.DataTip
-    "DG.DataTip.connectingLine": "%@: %@\nwith %@ %@",
+    "DG.DataTip.connectingLine": "%@: %@\nwith %@ points (%@) on this line", // <category attribute name> <category> <number of points> <collection name>
 
     // DG.MovableValueAdornment
     "DG.MovableMonthYear": "%@, %@", // <monthname>, <year>
