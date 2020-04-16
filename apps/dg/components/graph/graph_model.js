@@ -1154,7 +1154,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tNewPlotClass = DG.PlotModel;
 
       // If the current plot is a BinnedPlotModel, it is compatible with needing a DotPlotModel
-      if( tNewPlotClass === DG.DotPlotModel &&
+      if( tNewPlotClass === DG.DotPlotModel && tCurrentPlot &&
           tCurrentPlot.constructor === DG.BinnedPlotModel) {
         tNewPlotClass = DG.BinnedPlotModel;
         // In the presence of a categorical attribute, a binned plot model cannot have fused dots
@@ -1162,7 +1162,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         if( tXType === DG.Analysis.EAttributeType.eCategorical || tYType === DG.Analysis.EAttributeType.eCategorical)
           tCurrentPlot.set('dotsAreFused', false);
       }
-      else if( tNewPlotClass === DG.DotChartModel && tCurrentPlot.constructor === DG.BarChartModel) {
+      else if( tNewPlotClass === DG.DotChartModel && tCurrentPlot && tCurrentPlot.constructor === DG.BarChartModel) {
         // We're allowed to keep the bar chart
         tNewPlotClass = DG.BarChartModel;
       }
