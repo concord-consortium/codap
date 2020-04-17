@@ -714,6 +714,7 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription') {
         this.synchPlotWithAttributes();
         this.privSyncAxisWithAttribute(iDescKey, iAxisKey);
+        this.rescaleAxesFromData(true /*allowShrinkage*/, true /*animatePoints*/);
       }
       this.invalidate( null, true /* also invalidate plot caches */);
       this.set('aboutToChangeConfiguration', false ); // reset for next time
