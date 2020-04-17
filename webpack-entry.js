@@ -3,7 +3,13 @@
   Popper:true, Tooltip:true, Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true */
 /* exported _, CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactClassFactory,
   createReactFactory, createReactFC, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid, RTree */
+var NativeDate = Date;
 require('es5-shim');
+// Our monkey-patch of valueOf() (cf. DG.DateUtilities.createDate) conflicts with ES5Shim's assumptions
+// about the behavior of native Dates, so we replace ES5Shim's Date with the browser's original Date
+// and figure we can live with whatever browser foibles we've been living with before now.
+// eslint-disable-next-line no-implicit-globals, no-global-assign
+Date = NativeDate;
 require('es6-shim');
 _ = require('lodash');
 CodeMirror = require('codemirror/lib/codemirror.js');
