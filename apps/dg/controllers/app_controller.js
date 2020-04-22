@@ -1078,7 +1078,8 @@ DG.appController = SC.Object.create((function () // closure
      Open a new tab with the CODAP help pages.
      */
     showHelpSite: function () {
-      var tHelpURL = DG.get('showHelpURL'),
+      var tLang = DG.get('currentLanguage');
+      var tHelpURL = DG.get('showHelpURL_' + tLang) || DG.get('showHelpURL'),
           tWidth = 400, tHeight = 400;
       this.openWebView( tHelpURL, 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
     },

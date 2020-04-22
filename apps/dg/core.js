@@ -142,6 +142,7 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     showHelpURL: 'https://codap.concord.org/help',
+    showHelpURL_ja: 'https://codap.concord.org/resources/latest/help-documents/CODAP解説書.pdf',
 
     showHelpForumURL: 'https://codap.concord.org/forums/forum/test/',
 
