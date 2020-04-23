@@ -54,7 +54,7 @@ context('math formulas',()=>{
             table.getCell("9","9",0).should('contain',"3")
         });
         it('verify duration',()=>{
-            table.getCell("10","10",0).should('contain',"87.33")
+            table.getCell("10","10",0).should('contain',"87.34")
         });
     })
 })
