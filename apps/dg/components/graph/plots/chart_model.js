@@ -164,15 +164,26 @@ DG.ChartModel = DG.PlotModel.extend(
       this.endPropertyChanges();
     }.bind( this);
 
+
+
     if( (iChange.operation === 'createCase') || (iChange.operation === 'createCases')) {
-      var tCaseIDs = iChange.result.caseIDs || [ iChange.result.caseID ],
+      var tCaseDisturbedCellOrder = false,
+          tCaseIDs = iChange.result.caseIDs || [ iChange.result.caseID ],
       tIndexOfCaseInArray = this.getPath('dataConfiguration.cases').length() - tCaseIDs.length,
           tCC = this.get('computationContext' );
       tCaseIDs.forEach( function( iCaseID) {
-                          var tCase = DG.store.find( DG.Case, iCaseID);
-                          if( tCase)
-                        this.doForOneCase( tCase, tIndexOfCaseInArray++, tCC, addToCache);
-                        }.bind( this));
+        var tCase = DG.store.find(DG.Case, iCaseID);
+        if (tCase) {
+          if( tCase._didDisturbCellOrder) {
+            tCaseDisturbedCellOrder = true;
+            delete tCase._didDisturbCellOrder;
+          }
+          if( !tCaseDisturbedCellOrder)
+            this.doForOneCase(tCase, tIndexOfCaseInArray++, tCC, addToCache);
+        }
+      }.bind( this));
+      if( tCaseDisturbedCellOrder)
+        this.invalidateCaches();
     }
     else
       this.invalidateCaches();
