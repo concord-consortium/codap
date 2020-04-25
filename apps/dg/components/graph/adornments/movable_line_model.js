@@ -166,6 +166,7 @@ DG.MovableLineModel = DG.TwoDLineModel.extend(
     this.set('slope', iStorage.slope);
     this.set('isVertical', iStorage.isVertical);
     this.set('xIntercept', iStorage.xIntercept);
+    this._needsComputing = false;
   }
 
 });
