@@ -2000,7 +2000,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               }
               // tables with data contexts
               if ((tValues.type === 'caseTable') && tableDataContext) {
-                DG.appController.showCaseDisplayFor(tableDataContext);
+                component = DG.appController.showCaseDisplayFor(tableDataContext);
               }
               // sliders with global values
               else if ((tValues.type === 'slider') && tValues.globalValueName) {
