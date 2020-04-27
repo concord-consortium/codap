@@ -130,10 +130,11 @@ DG.ArrayUtils = {
   subtract: function( iMinuend, iSubtrahend, iGetIdF) {
     var tDifference = [],
         tHash = {};
-    if(!iMinuend || !iMinuend.length)
+    if(!iMinuend || iMinuend.length === 0)
       return iMinuend;
-    if(!iSubtrahend || !iSubtrahend.length)
-      return iMinuend;
+    if(!iSubtrahend || iSubtrahend.length === 0) {
+      return (!Array.isArray( iMinuend) && iMinuend.toArray) ? iMinuend.toArray() : iMinuend;
+    }
 
     iMinuend.forEach( function( iElement) {
       tHash[ iGetIdF (iElement)] = iElement;
