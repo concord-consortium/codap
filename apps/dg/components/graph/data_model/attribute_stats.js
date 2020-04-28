@@ -158,16 +158,17 @@ DG.AttributeStats = SC.Object.extend((function () // closure
             }
           }.bind(this),
 
-          processOneCategorical = function (iCase, iVarID) {
+          processOneCategorical = function (iCase, iVarID, iCategoryMap) {
             var tValue = iCase.getStrValue(iVarID),
                 tCellMapEntry;
             if (!SC.empty(tValue)) {
-              var tCellMap = this.getPath('categoricalStats.cellMap'),
+              var tIndexOfValueInCatMap = iCategoryMap.__order.indexOf( tValue),
                   tCellMapLength = Object.getOwnPropertyNames(tCellMap).length,
                   tNumberOfCategoriesLimit = this.get('number_of_categories_limit');
               if (SC.none(tCellMap[tValue])) {
-                if(SC.none(tNumberOfCategoriesLimit) || tCellMapLength < tNumberOfCategoriesLimit) {
-                  tCellMap[tValue] = {cases: [], cellNumber: tCellMapLength};
+                var tCellNum = tIndexOfValueInCatMap >= 0 ? tIndexOfValueInCatMap : tCellMapLength;
+                if(SC.none(tNumberOfCategoriesLimit) || tCellNum < tNumberOfCategoriesLimit) {
+                  tCellMap[tValue] = {cases: [], cellNumber: tCellNum};
                   tCellMapEntry = tCellMap[tValue];
                   tLastValue = tValue;
                 }
@@ -180,21 +181,28 @@ DG.AttributeStats = SC.Object.extend((function () // closure
                     tCellMapEntry = tCellMap[DG.PlotUtilities.kOther];
                   }
                 }
+                DG.ObjectMap.forEach( tCellMap, function( iKey, iValue) {
+                  var tIndex = iCategoryMap.__order.indexOf( iKey);
+                  if( tIndex >= 0 && iValue.cellNumber !== tIndex) {
+                    iValue.cellNumber = tIndex;
+                    iCase._didDisturbCellOrder = true;
+                  }
+                });
               }
               else {
                 tCellMapEntry = tCellMap[ tValue];
               }
               if (tCellMapEntry) tCellMapEntry.cases.push(iCase);
               this.categoricalStats.incrementProperty('count');
-              this.setPath('categoricalStats.cellMap', tCellMap); // Replace with notifyPropertyChange?
             }
           }.bind(this),
-          tVarID = this.getPath('attribute.id'),
           tType = this.get('attributeType'),
+          tCellMap = this.getPath('categoricalStats.cellMap'),
           tAttributes = this.get('attributes'),
           shouldProcessNumeric = this._numericCacheIsValid,
           shouldProcessCategorical = this._categoricalCacheIsValid &&
-              (tType === DG.Analysis.EAttributeType.eCategorical);
+              (tType === DG.Analysis.EAttributeType.eCategorical),
+          tVarID, tCategoryMap;
 
       this._cases = iCases || this._cases; // Do this first so subsequently computed stats will use the right cases
       if (iChange &&
@@ -214,11 +222,12 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           if (tCase) {
             tAttributes.forEach(function (iAttribute) {
               tVarID = iAttribute.get('id');
+              tCategoryMap = iAttribute.get('categoryMap');
               if (shouldProcessNumeric) {
                 processOneNumeric(tCase, tVarID);
               }
               if (shouldProcessCategorical)
-                processOneCategorical(tCase, tVarID);
+                processOneCategorical(tCase, tVarID, tCategoryMap);
               else
                 this.setIfChanged('_categoricalCacheIsValid', false);
             }.bind(this));
@@ -535,9 +544,9 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         var tValue = String(iCaseValue);
         // Note that a null iCaseValue becomes "null" under string coercion
         if (!SC.none(iCaseValue) && !SC.empty(tValue)) {
-          // consider a DG.CategoricalStats.addCaseValue() method
-          if (SC.none(tCellMap[tValue]))
+          if (SC.none(tCellMap[tValue])) {
             tCellMap[tValue] = {cases: [], cellNumber: null};
+          }
           tCellMap[tValue].cases.push(iCase);
           tCaseCount++;
         }
@@ -547,11 +556,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
 
       if (SC.isArray(tCases)) {
         tAttributes.forEach(function (iAttribute) {
-          // Todo: This call to updateCategoryMap is Kludgy. Think about responding to notification instead.
           iAttribute.updateCategoryMap();
-          iAttribute.forEachCategory(function (iCategory, iColor, iIndex) {
-            tCellMap[iCategory] = {cases: [], cellNumber: null};
-          });
 
           var tVarID = iAttribute.get('id');
           tCases.forEach(function (iCase) {
@@ -560,20 +565,11 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           var tCellNumber = 0,
               tBlockIfEmpty = iAttribute.get('blockDisplayOfEmptyCategories');
           iAttribute.forEachCategory(function (iName, iColor, iIndex) {
-            if (!tBlockIfEmpty || tCellMap[iName].cases.length > 0) {
+            if (!tBlockIfEmpty || (tCellMap[iName] && tCellMap[iName].cases.length > 0)) {
               tCellMap[iName].cellNumber = tCellNumber++;
             }
           });
           tNumCells = tCellNumber;
-          // Delete cells that don't have cases
-          if (tBlockIfEmpty) {
-            DG.ObjectMap.forEach(tCellMap, function (iKey, iValue) {
-              if (iValue.cases.length === 0) {
-                delete tCellMap[iKey];
-                tNumCells--;
-              }
-            });
-          }
           // If we have more categories than the limit, combine extra categories into kOther
           if(!SC.none(tNumberOfCategoriesLimit) && tNumCells > tNumberOfCategoriesLimit) {
             // Make a sorted array for efficient identification of categories beyond limit

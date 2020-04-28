@@ -10,7 +10,7 @@ context('Load all Sample documents in the CODAP sample doc page', ()=>{
             let listing=file.split(',')
             for (i;i<listing.length;i++){
                 cy.visit(listing[i]);
-                cy.wait(5000);
+                cy.wait(6000);
                 cy.matchImageSnapshot(listing[i])
             }
         })
