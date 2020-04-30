@@ -256,11 +256,12 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           if (tCase) {
             tAttributes.forEach(function (iAttribute) {
               tVarID = iAttribute.get('id');
+              tCategoryMap = iAttribute.get('categoryMap');
               if (shouldProcessNumeric) {
                 processOneNumeric(tCase, tVarID);
               }
               if (shouldProcessCategorical)
-                processOneCategorical(tCase, tVarID);
+                processOneCategorical(tCase, tVarID, tCategoryMap);
               else
                 this.setIfChanged('_categoricalCacheIsValid', false);
             }.bind(this));
