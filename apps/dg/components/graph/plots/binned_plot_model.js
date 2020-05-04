@@ -3,7 +3,7 @@
 //
 //  Author:   William Finzer
 //
-//  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
+//  Copyright (c) 2020 by The Concord Consortium, Inc. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
          * The left edge of the zeroth bin has this value
          * @property {Number}
          */
-        _leastBinEdge: null,
+        _leastBinEdge: 0,
         leastBinEdge: function( iKey, iValue) {
           if( !SC.none( iValue)) {
             this._leastBinEdge = iValue;
@@ -232,7 +232,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
          */
         invalidateCaches: function ( iKey) {
           sc_super();
-          if( !this.restoreInProgress && iKey !== 'hiddenCases') {
+          if( iKey === 'attributeAssignment') {
             this.set('width', null);
             this.set('alignment', null);
             this.set('widthIncrement', null);
@@ -258,7 +258,11 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
               tMin = Number.MAX_VALUE,
               tMax = -Number.MAX_VALUE,
               tBinCounts = [],
-              tWidth, tAlignment, tLeastBinEdge, tMaxBinCount, tTotalNumberOfBins;
+              tWidth = this.get('width'),
+              tAlignment = this.get('alignment'),
+              tLeastBinEdge = this.get('leastBinEdge'),
+              tMaxBinCount = this.get('maxBinCount'),
+              tTotalNumberOfBins = this.get('totalNumberOfBins');
 
           if (!(tCategoricalAxisModel && tNumericAxisModel))
             return; // too early to recompute, caller must try again later.
@@ -266,7 +270,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           var tNumCells = tCategoricalAxisModel.get('numberOfCells');
           this._casesMap = [];
 
-          if( tCases.length() === 0) {
+          if( tCases.length() === 0 && (SC.none( tWidth) || SC.none( tAlignment))) {
             tWidth = 1;
             tAlignment = 0;
             tLeastBinEdge = 0;
@@ -287,34 +291,35 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
               }
             }.bind(this));
             // We can get in here during a transition without a valid casesMap
-            if( this._casesMap.length === 0)
-              return;
+            if( this._casesMap.length !== 0) {
+              tWidth = this.get('width');
+              if (SC.none(tWidth)) {
+                tWidth = DG.MathUtilities.goodTickValue((tMax - tMin) / kDefaultNumberOfBins);
+              }
+              tAlignment = this.get('alignment') || Math.floor(tMin / tWidth) * tWidth;
+              tLeastBinEdge = tAlignment - Math.ceil((tAlignment - tMin) / tWidth) * tWidth;
+              tMaxBinCount = 0;
+              // Note that we add a small number so that we get enough bins to accommodate a number
+              // that lies exactly on the top edge
+              tTotalNumberOfBins = Math.ceil((tMax - tLeastBinEdge) / tWidth + 0.000001);
+              this._widthIncrement = DG.MathUtilities.goodTickValue((tMax - tMin) / tTotalNumberOfBins) / 20;
 
-            tWidth = this.get('width');
-            if (SC.none(tWidth)) {
-              tWidth = DG.MathUtilities.goodTickValue((tMax - tMin) / kDefaultNumberOfBins);
+              // Put each case in a bin
+              // this._casesMap.forEach(function (iObject) {
+              tCases.forEach(function (iCase, iIndex) {
+                var tObject = this._casesMap[iIndex];
+                if( tObject) {
+                  tObject.bin = Math.floor((tObject.value - tLeastBinEdge) / tWidth);
+                  if (!tBinCounts[tObject.cell])
+                    tBinCounts[tObject.cell] = [];
+                  if (!tBinCounts[tObject.cell][tObject.bin])
+                    tBinCounts[tObject.cell][tObject.bin] = 0;
+                  tObject.indexInBin = tBinCounts[tObject.cell][tObject.bin];
+                  tBinCounts[tObject.cell][tObject.bin]++;
+                  tMaxBinCount = Math.max(tMaxBinCount, tBinCounts[tObject.cell][tObject.bin]);
+                }
+              }.bind(this));
             }
-            tAlignment = this.get('alignment') || Math.floor(tMin / tWidth) * tWidth;
-            tLeastBinEdge = tAlignment - Math.ceil((tAlignment - tMin) / tWidth) * tWidth;
-            tMaxBinCount = 0;
-            // Note that we add a small number so that we get enough bins to accommodate a number
-            // that lies exactly on the top edge
-            tTotalNumberOfBins = Math.ceil((tMax - tLeastBinEdge) / tWidth + 0.000001);
-            this._widthIncrement = DG.MathUtilities.goodTickValue((tMax - tMin) / tTotalNumberOfBins) / 20;
-
-            // Put each case in a bin
-            // this._casesMap.forEach(function (iObject) {
-            tCases.forEach( function( iCase, iIndex) {
-              var tObject = this._casesMap[iIndex];
-              tObject.bin = Math.floor((tObject.value - tLeastBinEdge) / tWidth);
-              if (!tBinCounts[tObject.cell])
-                tBinCounts[tObject.cell] = [];
-              if (!tBinCounts[tObject.cell][tObject.bin])
-                tBinCounts[tObject.cell][tObject.bin] = 0;
-              tObject.indexInBin = tBinCounts[tObject.cell][tObject.bin];
-              tBinCounts[tObject.cell][tObject.bin]++;
-              tMaxBinCount = Math.max(tMaxBinCount, tBinCounts[tObject.cell][tObject.bin]);
-            }.bind(this));
           }
 
           this.beginPropertyChanges();
@@ -520,7 +525,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         createStorage: function () {
           var tStorage = sc_super();
 
-          ['width', 'alignment', 'dotsAreFused'].forEach( function( iProp) {
+          ['width', 'alignment', 'dotsAreFused', 'totalNumberOfBins'].forEach( function( iProp) {
             tStorage[iProp] = this.get(iProp);
           }.bind( this));
 
@@ -533,7 +538,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         restoreStorage: function (iStorage) {
           sc_super();
           this.restoreInProgress = true;
-          ['width', 'alignment', 'dotsAreFused'].forEach( function( iProp) {
+          ['width', 'alignment', 'dotsAreFused', 'totalNumberOfBins'].forEach( function( iProp) {
             if (!SC.none(iStorage[iProp])) {
               this.set( iProp, iStorage[iProp]);
             }
