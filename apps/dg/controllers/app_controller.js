@@ -129,6 +129,7 @@ DG.appController = SC.Object.create((function () // closure
           }));
         }
       }
+      return caseTable;
     },
 
     /**

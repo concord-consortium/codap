@@ -124,7 +124,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0532',
+    BUILD_NUM: '0533',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -563,16 +563,16 @@ DG = SC.Application.create((function () // closure
       },
       {
         langName: '繁体中文',
-        langDigraph: 'zh-TW',
+        langDigraph: 'zh',
         countryDigraph: 'TW',
         icon: 'flag flag-tw'
-      },
+      }/*,
       {
         langName: '简体中文',
         langDigraph: 'zh-Hans',
         countryDigraph: 'Hans',
         icon: 'flag flag-cn'
-      }
+      }*/
     ]
 
   }, window.DG); // end return from closure
