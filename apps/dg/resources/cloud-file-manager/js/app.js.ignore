@@ -5435,22 +5435,6 @@ function Inflate(options) {
   this.header = new GZheader();
 
   zlib_inflate.inflateGetHeader(this.strm, this.header);
-
-  // Setup dictionary
-  if (opt.dictionary) {
-    // Convert data if needed
-    if (typeof opt.dictionary === 'string') {
-      opt.dictionary = strings.string2buf(opt.dictionary);
-    } else if (toString.call(opt.dictionary) === '[object ArrayBuffer]') {
-      opt.dictionary = new Uint8Array(opt.dictionary);
-    }
-    if (opt.raw) { //In raw mode we need to set the dictionary early
-      status = zlib_inflate.inflateSetDictionary(this.strm, opt.dictionary);
-      if (status !== c.Z_OK) {
-        throw new Error(msg[status]);
-      }
-    }
-  }
 }
 
 /**
@@ -5487,6 +5471,7 @@ Inflate.prototype.push = function (data, mode) {
   var dictionary = this.options.dictionary;
   var status, _mode;
   var next_out_utf8, tail, utf8str;
+  var dict;
 
   // Flag to properly process Z_BUF_ERROR on testing inflate call
   // when we check that all output data was flushed.
@@ -5518,7 +5503,17 @@ Inflate.prototype.push = function (data, mode) {
     status = zlib_inflate.inflate(strm, c.Z_NO_FLUSH);    /* no bad return value */
 
     if (status === c.Z_NEED_DICT && dictionary) {
-      status = zlib_inflate.inflateSetDictionary(this.strm, dictionary);
+      // Convert data if needed
+      if (typeof dictionary === 'string') {
+        dict = strings.string2buf(dictionary);
+      } else if (toString.call(dictionary) === '[object ArrayBuffer]') {
+        dict = new Uint8Array(dictionary);
+      } else {
+        dict = dictionary;
+      }
+
+      status = zlib_inflate.inflateSetDictionary(this.strm, dict);
+
     }
 
     if (status === c.Z_BUF_ERROR && allowBufError === true) {
@@ -5906,10 +5901,8 @@ exports.string2buf = function (str) {
 
 // Helper (used in 2 places)
 function buf2binstring(buf, len) {
-  // On Chrome, the arguments in a function call that are allowed is `65534`.
-  // If the length of the buffer is smaller than that, we can use this optimization,
-  // otherwise we will take a slower path.
-  if (len < 65534) {
+  // use fallback for big arrays to avoid stack overflow
+  if (len < 65537) {
     if ((buf.subarray && STR_APPLY_UIA_OK) || (!buf.subarray && STR_APPLY_OK)) {
       return String.fromCharCode.apply(null, utils.shrinkBuf(buf, len));
     }
@@ -7650,7 +7643,7 @@ function deflate(strm, flush) {
                     (!s.gzhead.extra ? 0 : 4) +
                     (!s.gzhead.name ? 0 : 8) +
                     (!s.gzhead.comment ? 0 : 16)
-        );
+                );
         put_byte(s, s.gzhead.time & 0xff);
         put_byte(s, (s.gzhead.time >> 8) & 0xff);
         put_byte(s, (s.gzhead.time >> 16) & 0xff);
@@ -10435,8 +10428,6 @@ module.exports = {
 //   misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-/* eslint-disable space-unary-ops */
-
 var utils = require('../utils/common');
 
 /* Public constants ==========================================================*/
@@ -11958,7 +11949,7 @@ CloudFileManager = (function() {
 module.exports = new CloudFileManager();
 
 
-},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":86}],54:[function(require,module,exports){
+},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":87}],54:[function(require,module,exports){
 var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, PostMessageProvider, ProviderInterface, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, getQueryParam, isString, tr,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   hasProp = {}.hasOwnProperty;
@@ -13553,7 +13544,7 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":83,"base64-js":1}],55:[function(require,module,exports){
+},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":84,"base64-js":1}],55:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.3.2
@@ -14343,7 +14334,7 @@ DocumentStoreProvider = (function(superClass) {
 module.exports = DocumentStoreProvider;
 
 
-},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":83,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
+},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":84,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
 var CloudMetadata, DocumentStoreShareProvider, DocumentStoreUrl, pako;
 
 CloudMetadata = (require('./provider-interface')).CloudMetadata;
@@ -15019,7 +15010,7 @@ GoogleDriveProvider = (function(superClass) {
 module.exports = GoogleDriveProvider;
 
 
-},{"../utils/is-string":72,"../utils/translate":83,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":84,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
 var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -15604,7 +15595,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":83,"../views/local-file-tab-list-view":95,"../views/local-file-tab-save-view":96,"./provider-interface":65}],62:[function(require,module,exports){
+},{"../utils/translate":84,"../views/local-file-tab-list-view":96,"../views/local-file-tab-save-view":97,"./provider-interface":65}],62:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -15760,7 +15751,7 @@ LocalStorageProvider = (function(superClass) {
 module.exports = LocalStorageProvider;
 
 
-},{"../utils/translate":83,"./provider-interface":65}],63:[function(require,module,exports){
+},{"../utils/translate":84,"./provider-interface":65}],63:[function(require,module,exports){
 var PatchableContent, jiff;
 
 jiff = require('jiff');
@@ -16595,7 +16586,7 @@ ReadOnlyProvider = (function(superClass) {
 module.exports = ReadOnlyProvider;
 
 
-},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":83,"./provider-interface":65}],67:[function(require,module,exports){
+},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":84,"./provider-interface":65}],67:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, URLProvider, cloudContentFactory,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -16940,7 +16931,7 @@ module.exports = {
 };
 
 
-},{"./utils/is-string":72,"./utils/translate":83}],69:[function(require,module,exports){
+},{"./utils/is-string":72,"./utils/translate":84}],69:[function(require,module,exports){
 module.exports = function(param) {
   var ret;
   ret = null;
@@ -18282,7 +18273,7 @@ module.exports={
     "~FILE_STATUS.FAILURE": "重试..."
 }
 
-},{}],82:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
     "~MENU.NEW": "新增",
@@ -18409,8 +18400,8 @@ module.exports={
     "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
-},{}],83:[function(require,module,exports){
-var baseLang, defaultLang, getBaseLanguage, getFirstBrowserLanguage, getPageLanguage, lang, languageFiles, translate, translations, urlParams, varRegExp;
+},{}],84:[function(require,module,exports){
+var baseLang, defaultLang, getBaseLanguage, getFirstBrowserLanguage, lang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
 
@@ -18460,15 +18451,6 @@ getBaseLanguage = function(langKey) {
   return void 0;
 };
 
-getPageLanguage = function() {
-  var pageLang;
-  pageLang = document.documentElement.lang;
-  if (pageLang && pageLang !== "unknown") {
-    return pageLang;
-  }
-  return void 0;
-};
-
 getFirstBrowserLanguage = function() {
   var i, language, languages, len, nav;
   nav = window.navigator;
@@ -18493,7 +18475,7 @@ languageFiles.forEach(function(lang) {
   }
 });
 
-lang = urlParams.lang || getPageLanguage() || getFirstBrowserLanguage();
+lang = urlParams.lang || getFirstBrowserLanguage();
 
 baseLang = getBaseLanguage(lang || '');
 
@@ -18525,7 +18507,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/nb":78,"./lang/nn":79,"./lang/tr":80,"./lang/zh-Hans":81,"./lang/zh-TW":82,"./url-params":84}],84:[function(require,module,exports){
+},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/ja":78,"./lang/nb.json":79,"./lang/nn.json":80,"./lang/tr":81,"./lang/zh-Hans":82,"./lang/zh-TW":83,"./url-params":85}],85:[function(require,module,exports){
 // http://stackoverflow.com/a/2880929
 var urlParams = {};
 if (window && window.location && window.location.search) {
@@ -18543,8 +18525,8 @@ if (window && window.location && window.location.search) {
 
 module.exports = urlParams;
 
-},{}],85:[function(require,module,exports){
-var ModalDialog, button, div, ref, tr;
+},{}],86:[function(require,module,exports){
+var ModalDialog, button, div, tr;
 
 div = ReactDOMFactories.div, button = ReactDOMFactories.button;
 
@@ -18582,8 +18564,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./modal-dialog-view":98}],86:[function(require,module,exports){
-var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
+},{"../utils/translate":84,"./modal-dialog-view":99}],87:[function(require,module,exports){
+var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, tr;
 
 MenuBar = createReactFactory(require('./menu-bar-view'));
 
@@ -18877,7 +18859,7 @@ App = createReactClass({
 module.exports = App;
 
 
-},{"../utils/is-string":72,"../utils/translate":83,"./alert-dialog-view":85,"./blocking-modal-view":88,"./confirm-dialog-view":89,"./download-dialog-view":90,"./import-tabbed-dialog-view":94,"./menu-bar-view":97,"./provider-tabbed-dialog-view":101,"./rename-dialog-view":102,"./share-dialog-view":104}],87:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":84,"./alert-dialog-view":86,"./blocking-modal-view":89,"./confirm-dialog-view":90,"./download-dialog-view":91,"./import-tabbed-dialog-view":95,"./menu-bar-view":98,"./provider-tabbed-dialog-view":102,"./rename-dialog-view":103,"./share-dialog-view":105}],88:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -18922,8 +18904,8 @@ AuthorizeMixin = {
 module.exports = AuthorizeMixin;
 
 
-},{}],88:[function(require,module,exports){
-var Modal, div, i, ref;
+},{}],89:[function(require,module,exports){
+var Modal, div;
 
 div = ReactDOMFactories.div;
 
@@ -18958,8 +18940,8 @@ module.exports = createReactClass({
 });
 
 
-},{"./modal-view":100}],89:[function(require,module,exports){
-var ModalDialog, button, div, ref, tr;
+},{"./modal-view":101}],90:[function(require,module,exports){
+var ModalDialog, button, div, tr;
 
 div = ReactDOMFactories.div, button = ReactDOMFactories.button;
 
@@ -19006,8 +18988,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./modal-dialog-view":98}],90:[function(require,module,exports){
-var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
+},{"../utils/translate":84,"./modal-dialog-view":99}],91:[function(require,module,exports){
+var CloudMetadata, ModalDialog, a, button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button;
 
@@ -19119,8 +19101,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83,"./modal-dialog-view":98}],91:[function(require,module,exports){
-var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, ref, svg;
+},{"../providers/provider-interface":65,"../utils/translate":84,"./modal-dialog-view":99}],92:[function(require,module,exports){
+var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, svg;
 
 svg = ReactDOMFactories.svg, g = ReactDOMFactories.g, rect = ReactDOMFactories.rect, polygon = ReactDOMFactories.polygon;
 
@@ -19167,8 +19149,8 @@ module.exports = {
 };
 
 
-},{}],92:[function(require,module,exports){
-var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, div, i, li, ref, span, ul;
+},{}],93:[function(require,module,exports){
+var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, div, i, li, span, ul;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i, span = ReactDOMFactories.span, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li;
 
@@ -19344,8 +19326,8 @@ DropDown = createReactClass({
 module.exports = DropDown;
 
 
-},{"./dropdown-anchors":91}],93:[function(require,module,exports){
-var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
+},{"./dropdown-anchors":92}],94:[function(require,module,exports){
+var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, italic, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
 
@@ -19657,7 +19639,7 @@ FileDialogTab = createReactClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83,"./authorize-mixin":87}],94:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":84,"./authorize-mixin":88}],95:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = createReactFactory(require('./modal-tabbed-dialog-view'));
@@ -19739,8 +19721,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./local-file-tab-list-view":95,"./modal-tabbed-dialog-view":99,"./tabbed-panel-view":105,"./url-tab-view":106}],95:[function(require,module,exports){
-var CloudMetadata, button, div, input, ref, tr;
+},{"../utils/translate":84,"./local-file-tab-list-view":96,"./modal-tabbed-dialog-view":100,"./tabbed-panel-view":106,"./url-tab-view":107}],96:[function(require,module,exports){
+var CloudMetadata, button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button;
 
@@ -19838,8 +19820,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83}],96:[function(require,module,exports){
-var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, ref, tr;
+},{"../providers/provider-interface":65,"../utils/translate":84}],97:[function(require,module,exports){
+var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button, a = ReactDOMFactories.a;
 
@@ -20021,8 +20003,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":83}],97:[function(require,module,exports){
-var Dropdown, TriangleOnlyAnchor, div, i, input, ref, span, tr;
+},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":84}],98:[function(require,module,exports){
+var Dropdown, TriangleOnlyAnchor, div, i, input, span, tr;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i, span = ReactDOMFactories.span, input = ReactDOMFactories.input;
 
@@ -20265,8 +20247,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./dropdown-anchors":91,"./dropdown-view":92}],98:[function(require,module,exports){
-var Modal, div, i, ref;
+},{"../utils/translate":84,"./dropdown-anchors":92,"./dropdown-view":93}],99:[function(require,module,exports){
+var Modal, div, i;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i;
 
@@ -20298,7 +20280,7 @@ module.exports = createReactClass({
 });
 
 
-},{"./modal-view":100}],99:[function(require,module,exports){
+},{"./modal-view":101}],100:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = createReactFactory(require('./modal-dialog-view'));
@@ -20319,7 +20301,7 @@ module.exports = createReactClass({
 });
 
 
-},{"./modal-dialog-view":98,"./tabbed-panel-view":105}],100:[function(require,module,exports){
+},{"./modal-dialog-view":99,"./tabbed-panel-view":106}],101:[function(require,module,exports){
 var div;
 
 div = ReactDOMFactories.div;
@@ -20398,7 +20380,7 @@ module.exports = createReactClass({
 });
 
 
-},{}],101:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = createReactFactory(require('./modal-tabbed-dialog-view'));
@@ -20470,8 +20452,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83,"./file-dialog-tab-view":93,"./modal-tabbed-dialog-view":99,"./select-provider-dialog-tab-view":103,"./tabbed-panel-view":105}],102:[function(require,module,exports){
-var ModalDialog, a, button, div, input, ref, tr;
+},{"../providers/provider-interface":65,"../utils/translate":84,"./file-dialog-tab-view":94,"./modal-tabbed-dialog-view":100,"./select-provider-dialog-tab-view":104,"./tabbed-panel-view":106}],103:[function(require,module,exports){
+var ModalDialog, a, button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button;
 
@@ -20543,7 +20525,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./modal-dialog-view":98}],103:[function(require,module,exports){
+},{"../utils/translate":84,"./modal-dialog-view":99}],104:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = ReactDOMFactories.div;
@@ -20558,8 +20540,8 @@ SelectProviderDialogTab = createReactClassFactory({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],104:[function(require,module,exports){
-var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, translate, ul;
+},{}],105:[function(require,module,exports){
+var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, socialIcons, span, strong, svg, textarea, translate, ul;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button, strong = ReactDOMFactories.strong, textarea = ReactDOMFactories.textarea, svg = ReactDOMFactories.svg, g = ReactDOMFactories.g, path = ReactDOMFactories.path, span = ReactDOMFactories.span, circle = ReactDOMFactories.circle, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li;
 
@@ -20903,8 +20885,8 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/get-query-param":70,"../utils/translate":83,"./modal-dialog-view":98,"svg-social-icons/lib/icons.json":51}],105:[function(require,module,exports){
-var Tab, TabInfo, a, div, li, ref, ul;
+},{"../utils/get-query-param":70,"../utils/translate":84,"./modal-dialog-view":99,"svg-social-icons/lib/icons.json":51}],106:[function(require,module,exports){
+var Tab, TabInfo, a, div, li, ul;
 
 div = ReactDOMFactories.div, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li, a = ReactDOMFactories.a;
 
@@ -21015,8 +20997,8 @@ module.exports = createReactClass({
 });
 
 
-},{}],106:[function(require,module,exports){
-var button, div, input, ref, tr;
+},{}],107:[function(require,module,exports){
+var button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button;
 
@@ -21100,7 +21082,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83}]},{},[52,53])(53)
+},{"../utils/translate":84}]},{},[52,53])(53)
 });
 
 //# sourceURL=cfm/app.js.ignore

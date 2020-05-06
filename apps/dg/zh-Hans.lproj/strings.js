@@ -799,5 +799,7 @@ SC.stringsFor("zh-Hans", {
     "DG.CaseTable.dividerView.collapseGroupTooltip": "折叠组",
     "DG.BinnedPlotModel.binLabelTip": "直方图数值是%@ 和%@",
     "DG.Component.closeComponent.toolTip": "关闭该组分",
-    "DG.Component.minimizeComponent.toolTip": "最小化或展开该组分"
+    "DG.Component.minimizeComponent.toolTip": "最小化或展开该组分",
+    "DG.Locale.name.ja": "Japanese",
+    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3"
 });
