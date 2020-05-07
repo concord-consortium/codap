@@ -355,10 +355,15 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       },
 
       /**
+       * The order of cases has changed. Invalidating caches will get the cases in the correct order.
+       * Drawing the data will force the graphic elements to correspond to correct cases. Finally,
+       * signaling that selection changed will highlight the correct elements.
        * subclasses will override as needed
        */
       handleMoveCases: function() {
-
+        this.getPath('model.dataConfiguration').invalidateCaches();
+        this.drawData();
+        this.selectionDidChange();
       },
 
       /**

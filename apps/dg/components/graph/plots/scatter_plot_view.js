@@ -235,7 +235,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
        * Connecting line adornment, if any, will need updating
        */
       handleMoveCases: function() {
-        this.getPath('model.dataConfiguration').invalidateCaches();
+        sc_super();
         this.handleUpdateConnectingLine();
       },
 
