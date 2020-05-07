@@ -892,6 +892,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             break;
           case 'deleteCases':
           case 'selectCases':
+          case 'moveCases':
             // We could do a collection test if that information were reliably
             // available in the change request, but that's not currently so.
             isAffected = true;
