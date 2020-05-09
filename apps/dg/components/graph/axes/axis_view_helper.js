@@ -174,7 +174,7 @@ DG.AxisViewHelper = SC.Object.extend(
           if (!isFinite( iData))
             return null;
 
-          var tCoordinate = SC.none( iData) ? null : (iData - iCache.lowerBound) * iCache.cellWidth / iCache.range;
+          var tCoordinate = SC.empty( iData) ? null : (iData - iCache.lowerBound) * iCache.cellWidth / iCache.range;
           if(!SC.none(tCoordinate))
             switch( this.get('orientation')) {
               case DG.GraphTypes.EOrientation.kVertical:

@@ -279,12 +279,12 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           }
           else {
             tCases.forEach(function (iCase, iIndex) {
-              var tNumericValue = iCase.getNumValue(tNumericVarID),
+              var tNumericValue = iCase.getForcedNumericValue(tNumericVarID),
                   tCellValue = iCase.getStrValue(tCategoricalVarID),
                   tCellNumber = tCategoricalAxisModel.cellNameToCellNumber(tCellValue);
               if (tCellNumber != null &&
                   DG.MathUtilities.isInIntegerRange(tCellNumber, 0, tNumCells) && // if Cell Number not missing
-                  isFinite(tNumericValue)) { // if numeric value not missing
+                  !SC.none(tNumericValue)) { // if numeric value not missing
                 tMin = Math.min(tMin, tNumericValue);
                 tMax = Math.max(tMax, tNumericValue);
                 this._casesMap[iIndex] = {value: tNumericValue, cell: tCellNumber};

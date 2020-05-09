@@ -112,7 +112,7 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
           tTotalCount = 0;
 
       tCases.forEach(function (iCase) {
-        var tNumericValue = iCase.getNumValue(tNumericVarID);
+        var tNumericValue = iCase.getForcedNumericValue(tNumericVarID);
         if (isFinite(tNumericValue)) {
           var tBinIndex = tEdges.findIndex(function (iValue) {
             return tNumericValue > iValue;

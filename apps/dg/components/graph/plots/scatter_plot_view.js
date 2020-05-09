@@ -281,8 +281,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
         DG.assert(iCase);
         DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, this.get('plottedElements').length));
         var tCircle = this.get('plottedElements')[iIndex],
-            tCoordX = iRC.xAxisView.dataToCoordinate(iCase.getNumValue(iRC.xVarID)),
-            tCoordY = iRC.yAxisView.dataToCoordinate(iCase.getNumValue(iRC.yVarID)),
+            tCoordX = iRC.xAxisView.dataToCoordinate(iCase.getForcedNumericValue(iRC.xVarID)),
+            tCoordY = iRC.yAxisView.dataToCoordinate(iCase.getForcedNumericValue(iRC.yVarID)),
             tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
         // show or hide if needed, then update if shown.
@@ -312,7 +312,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         function changeCaseValues(iDeltaValues) {
 
           function getProperValue(iCase, iDelta, iAxisKey) {
-            var tValue = iCase.getNumValue(this_.getPath('model.' + iAxisKey + 'VarID')) + iDelta;
+            var tValue = iCase.getForcedNumericValue(this_.getPath('model.' + iAxisKey + 'VarID')) + iDelta;
             if (this_.getPath(iAxisKey + 'AxisView.isDateTime')) {
               tValue = DG.createDate(tValue);
             }
@@ -342,8 +342,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
         function returnCaseValuesToStart(iCaseIndex, iStartWorldCoords) {
           var tCase = this_.getPath('model.cases').unorderedAt(iCaseIndex),
               tVarIDs = getVarIDs(),
-              tDeltaX = tCase.getNumValue(tVarIDs.x) - iStartWorldCoords.x,
-              tDeltaY = tCase.getNumValue(tVarIDs.y) - iStartWorldCoords.y;
+              tDeltaX = tCase.getForcedNumericValue(tVarIDs.x) - iStartWorldCoords.x,
+              tDeltaY = tCase.getForcedNumericValue(tVarIDs.y) - iStartWorldCoords.y;
           if ((tDeltaX !== 0) || (tDeltaY !== 0))
             this_.get('model').animateSelectionBackToStart([tVarIDs.x, tVarIDs.y], [tDeltaX, tDeltaY]);
         }
@@ -388,8 +388,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
                         tNewY = this_.get('yAxisView').coordinateToData(this.oy + dy),
                         tVarIDs = getVarIDs(),
                         tCase = this_.getPath('model.cases').unorderedAt(this.index),
-                        tOldX = tCase.getNumValue(tVarIDs.x),
-                        tOldY = tCase.getNumValue(tVarIDs.y),
+                        tOldX = tCase.getForcedNumericValue(tVarIDs.x),
+                        tOldY = tCase.getForcedNumericValue(tVarIDs.y),
                         tCurrTransform = this.transform();
                     // Note that we ignore invalid values. Matt managed to convert some dragged values
                     // to NaNs during testing, which then couldn't animate back to their original
@@ -412,8 +412,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   this.ox = this.attr("cx");
                   this.oy = this.attr("cy");
                   // Save the initial world coordinates
-                  this.wx = tCase.getNumValue(tVarIDs.x);
-                  this.wy = tCase.getNumValue(tVarIDs.y);
+                  this.wx = tCase.getForcedNumericValue(tVarIDs.x);
+                  this.wy = tCase.getForcedNumericValue(tVarIDs.y);
                   this.animate({opacity: kOpaque}, DG.PlotUtilities.kDataTipShowTime, "bounce");
                 },
                 function () {  // end
@@ -474,8 +474,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
               });
             }
             tCasesForLine.forEach(function (iCase) {
-              var tWorldX = iCase.getNumValue(tXVarID),
-                  tWorldY = iCase.getNumValue(tYVarID),
+              var tWorldX = iCase.getForcedNumericValue(tXVarID),
+                  tWorldY = iCase.getForcedNumericValue(tYVarID),
                   tPtX = tXAxisView.dataToCoordinate(tWorldX),
                   tPtY = tYAxisView.dataToCoordinate(tWorldY),
                   tLineY = tYAxisView.dataToCoordinate(tSlope * tWorldX + tIntercept),

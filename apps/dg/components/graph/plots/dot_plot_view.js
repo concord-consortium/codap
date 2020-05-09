@@ -170,7 +170,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
     DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, tPlottedElements.length ),
         'index %@ out of bounds for plottedElements of length %@'.loc(iIndex, tPlottedElements.length));
     var tCircle = tPlottedElements[ iIndex],
-        tWorld = iCase.getNumValue( iRC.primaryVarID ),
+        tWorld = iCase.getForcedNumericValue( iRC.primaryVarID ),
         tScreenCoord = iRC.primaryAxisView.dataToCoordinate( tWorld),
         tIsMissingCase =(!DG.isFinite( tScreenCoord) || iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);
 
@@ -235,7 +235,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
       // Note that we have to get the cases dynamically rather than have a variable
       // declared in the closure. The array pointed to by such a closure is not updated!
       this_.getPath('model.casesController.selection').forEach( function( iCase) {
-        var tValue = iCase.getNumValue( tPrimaryVarID) + iDelta;
+        var tValue = iCase.getForcedNumericValue( tPrimaryVarID) + iDelta;
         if( this_.getPath('primaryAxisView.isDateTime')) {
           tValue = DG.createDate( tValue);
         }
@@ -248,7 +248,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
     function returnCaseValuesToStart( iCaseIndex, iStartWorldCoord) {
       var tCase = this_.getPath('model.cases').unorderedAt(iCaseIndex),
           tPrimaryVarID = this_.getPath('model.primaryVarID'),
-          tDelta = tCase.getNumValue( tPrimaryVarID) - iStartWorldCoord;
+          tDelta = tCase.getForcedNumericValue( tPrimaryVarID) - iStartWorldCoord;
       this_.get('model').animateSelectionBackToStart([ tPrimaryVarID], [ tDelta]);
     }
 
@@ -284,7 +284,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
                 var tNewCoord = (tNumericPlace === DG.GraphTypes.EPlace.eX) ?
                     this.ox + dx : this.oy + dy,
                     tNewWorld = this_.get('primaryAxisView').coordinateToData(tNewCoord),
-                    tOldWorld = this_.getPath('model.cases').unorderedAt(this.index).getNumValue(this_.getPath('model.primaryVarID')),
+                    tOldWorld = this_.getPath('model.cases').unorderedAt(this.index).getForcedNumericValue(this_.getPath('model.primaryVarID')),
                     tCurrTransform = this.transform();
                 tIsDragging = true;
                 if (isFinite(tNewWorld)) {
@@ -303,7 +303,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
               this.ox = this.attr("cx");
               this.oy = this.attr("cy");
               // Save the initial world coordinate
-              this.w = this_.getPath('model.cases').unorderedAt(this.index).getNumValue(this_.getPath('model.primaryVarID'));
+              this.w = this_.getPath('model.cases').unorderedAt(this.index).getForcedNumericValue(this_.getPath('model.primaryVarID'));
               this.attr({opacity: kOpaque});
             },
             function () {  // end
@@ -380,7 +380,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
           tColorID = tColorDesc.get('attributeID'),
           tMaxInBin, tPixelsOutside;
       tCases = tCases.filter( function( iCase) {
-        return DG.isFinite( iCase.getNumValue( tNumericVarID));
+        return DG.isFinite( iCase.getForcedNumericValue( tNumericVarID));
       });
 
       if( tMaxThatFit <= 0) // If things are really tight, overlap points directly on top of each other
@@ -388,7 +388,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
           
       tCases.forEach( function( iCase) {
         var tColorValue = !SC.none( tColorID) ? iCase.getValue( tColorID) : null,
-            tNumericCoord = tNumericAxisView.dataToCoordinate( iCase.getNumValue( tNumericVarID)),
+            tNumericCoord = tNumericAxisView.dataToCoordinate( iCase.getForcedNumericValue( tNumericVarID)),
             tBin = Math.round( tNumericCoord / (2 * tRadius)),
             tCellNumber = tCategoricalAxisModel.cellNameToCellNumber( iCase.getStrValue(tCategoricalVarID));
         // Note that we can get a valid cell number for which we have not yet allocated a

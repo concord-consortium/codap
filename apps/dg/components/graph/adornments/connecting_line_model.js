@@ -123,8 +123,8 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
         tCategoryMap = getCategoryMap(),
         tGetLineColorFunc = this.get('getLineColorFunc');
     tCases.forEach( function( iCase, iIndex ) {
-      var tXVal = iCase.getNumValue( tXVarID),
-          tYVal = iCase.getNumValue( tYVarID ),
+      var tXVal = iCase.getForcedNumericValue( tXVarID),
+          tYVal = iCase.getForcedNumericValue( tYVarID ),
           tParent = iCase.get('parent' ),
           tParentID = tParent ? tParent.get('id') : 'top';
       if (isFinite(tXVal) && isFinite(tYVal)) { // if both values exist (else skip missing points)

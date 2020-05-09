@@ -119,7 +119,7 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         // compute count of cases in each cell, excluding missing values
         // take care to handle null VarIDs and null case values correctly
         tCases.forEach(function (iCase, iIndex) {
-          var tNumericValue = iCase.getNumValue(tNumericVarID),
+          var tNumericValue = iCase.getForcedNumericValue(tNumericVarID),
               tCellValue = iCase.getStrValue(tCategoricalVarID),
               tCatCellNumber = tCategoricalAxisModel.cellNameToCellNumber(tCellValue),
               tNumericCellNumber = tNumericAxisModel.valueToCellNumber( tNumericValue);

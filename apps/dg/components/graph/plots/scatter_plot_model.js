@@ -794,8 +794,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
         // compute count and percent cases in each cell, excluding missing values
         tCases.forEach(function (iCase, iIndex) {
-          var tXVal = iCase.getNumValue(tXVarID),
-              tYVal = iCase.getNumValue(tYVarID);
+          var tXVal = iCase.getForcedNumericValue(tXVarID),
+              tYVal = iCase.getForcedNumericValue(tYVarID);
           if (isFinite(tXVal) && isFinite(tYVal)) ++tCount;
         });
 
