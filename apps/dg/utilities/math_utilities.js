@@ -100,6 +100,22 @@ DG.MathUtilities = {
     return tNumFormat(iValue);
   },
 
+  extractNumeric: function( x) {
+    if( SC.empty( x))
+      return '';
+    var num = Number(x);
+    if( !isNaN( num))
+      return num;
+    if( typeof x === 'string') {
+    var noNumberPatt = /[^.\d-]+/gm,
+        firstNumericPatt = /(^-?\.?[\d]+(.?[\d]*)?)/gm,
+        firstPass = x.replace(noNumberPatt, '');
+        x = firstPass.match(firstNumericPatt);
+        x = Array.isArray(x) ? x[0] : null;
+    }
+    return SC.empty( x) ? null : Number( x);
+  },
+
   /** Clip to the integer range which EXCLUDES the upper value.
    *  Assumes that all values are integers.
    *  @returns integer in [iMin - iMax) range.
