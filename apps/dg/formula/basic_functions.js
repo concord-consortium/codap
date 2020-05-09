@@ -190,12 +190,14 @@ DG.functionRegistry.registerFunctions((function() {
       @returns  {Number}  The converted numeric value
      */
     'number': {
-      minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion',
-      evalFn: function(x) {
-        if (SC.empty(x)) return '';
-        if( typeof x === 'string')
-          x = x.replace(/\u2212/g, '-');  // replace Unicode minus with hyphen
-        return Number(x);
+      minArgs: 1, maxArgs: 1, category: 'DG.Formula.FuncCategoryConversion',
+      evalFn: function (x) {
+        if (DG.isDate(x))
+          return Number(x);
+        else if (DG.isDateString(x))
+          return Number(DG.parseDate(x));
+        else
+          return DG.MathUtilities.extractNumeric(x);
       }
     },
 
