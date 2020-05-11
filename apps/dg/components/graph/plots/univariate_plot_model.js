@@ -90,15 +90,75 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       /**
+       * @param iKey {String} If present, the property that changed to bring about this call
+       Subclasses may override
+       Called when attribute configuration changes occur, for instance.
+       */
+      invalidateCaches: function ( iKey) {
+        sc_super();
+        this._cachedComputationContext = null;
+      },
+
+      /**
+       * If SC's property caching worked the way we would like it to, we wouldn't need this private property.
+       * As it is, we store a cached computation context here, nulling it out by hand when caches must be
+       * invalidated.
+       */
+      _cachedComputationContext: null,
+
+      /**
+       * Caching this computation context allows us to save a lot of 'gets'
+       * @property{Object}
+       */
+      computationContext: function() {
+        if( !this._cachedComputationContext) {
+          this._cachedComputationContext = {
+            primaryAxis: this.get('primaryAxisModel'),
+            secondaryAxis: this.get('secondaryAxisModel'),
+            primaryVarID: this.get('primaryVarID'),
+            secondaryVarID: this.get('secondaryVarID'),
+            legendVarID: this.get('legendVarID')
+          };
+        }
+        return this._cachedComputationContext;
+      }.property('primaryAxisModel', 'secondaryAxisModel', 'primaryVarID', 'secondaryVarID', 'legendVarID' ),
+
+      doForOneCase: function( iCase, iIndex, iCC, iDoF) {
+        var tPrimaryVal = iCase.getValue( iCC.primaryVarID),
+            tPrimaryIsValid = SC.none( iCC.primaryVarID) || !SC.none( tPrimaryVal),
+            tSecondaryVal = iCase.getValue( iCC.secondaryVarID),
+            tSecondaryIsValid = SC.none( iCC.secondaryVarID) || !SC.none( tSecondaryVal),
+            tLegendVal = iCase.getValue( iCC.legendVarID),
+            tLegendIsValid = SC.none( iCC.legendVarID) || !SC.none( tLegendVal),
+            tPrimaryCell, tSecondaryCell;
+        if( tPrimaryIsValid && tSecondaryIsValid && tLegendIsValid) {
+          tPrimaryCell = iCC.primaryAxis.valueToCellNumber( tPrimaryVal);
+          tSecondaryCell = iCC.secondaryAxis.cellNameToCellNumber( tSecondaryVal);
+          iDoF( iCase, iIndex, tPrimaryCell, tSecondaryCell);
+        }
+      },
+
+      /**
+       Call the given function once for each case that has a value for each axis.
+       function signature for iDoF is { iCase, iCaseIndex, iPrimaryCellIndex, iSecondaryCellIndex }
+       */
+      forEachBivariateCaseDo: function( iDoF) {
+        var tCases = this.get('cases'),
+            tCC = this.get('computationContext');
+        if( !tCC.primaryAxis || !tCases || !tCC.secondaryAxis)
+          return; // Can happen during transitions. Bail!
+        tCases.forEach( function( iCase, iIndex) {
+          this.doForOneCase( iCase, iIndex, tCC, iDoF);
+        }.bind(this));
+      },
+
+      /**
        * Get an array of non-missing case counts in each axis cell.
        * Also cell index on primary and secondary axis, with primary axis as major axis.
        * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).
        */
       getCellCaseCounts: function () {
-        var tCases = this.get('cases'),
-            tNumericVarID = this.get('primaryVarID'),
-            tNumericAxisModel = this.get('primaryAxisModel'),
-            tCategoricalVarID = this.get('secondaryVarID'),
+       var  tNumericAxisModel = this.get('primaryAxisModel'),
             tCategoricalAxisModel = this.get('secondaryAxisModel'),
             tValueArray = [];
 
@@ -108,26 +168,23 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
         var tNumCatCells = tCategoricalAxisModel.get('numberOfCells'),
             tNumNumericCells = tNumericAxisModel.get('numberOfCells'),
-            tNumCells = tNumCatCells * tNumNumericCells;
+            tNumCells = tNumCatCells * tNumNumericCells,
+            tCellIndex;
 
         // initialize the values
         for (var i = 0; i < tNumCells; ++i) {
-          tValueArray.push({count: 0, primaryCell: i % tNumNumericCells,
-            secondaryCell: Math.floor( i / tNumNumericCells) });
+          tValueArray.push({count: 0, primaryCell: Math.floor( i / tNumCatCells),
+            secondaryCell: i % tNumCatCells });
         }
 
         // compute count of cases in each cell, excluding missing values
-        // take care to handle null VarIDs and null case values correctly
-        tCases.forEach(function (iCase, iIndex) {
-          var tNumericValue = iCase.getNumValue(tNumericVarID),
-              tCellValue = iCase.getStrValue(tCategoricalVarID),
-              tCatCellNumber = tCategoricalAxisModel.cellNameToCellNumber(tCellValue),
-              tNumericCellNumber = tNumericAxisModel.valueToCellNumber( tNumericValue);
-          if (tCatCellNumber != null &&
-              DG.MathUtilities.isInIntegerRange(tCatCellNumber, 0, tNumCatCells) && // if Cell Number not missing
-              isFinite(tNumericValue) &&
-              DG.MathUtilities.isInIntegerRange(tNumericCellNumber, 0, tNumNumericCells)) {
-            tValueArray[tCatCellNumber * tNumNumericCells + tNumericCellNumber].count += 1;
+        this.forEachBivariateCaseDo( function( iCase, iIndex, iPrimaryCell, iSecondaryCell) {
+          tCellIndex = iPrimaryCell*tNumCatCells + iSecondaryCell;
+          if( isFinite( tCellIndex) && DG.MathUtilities.isInIntegerRange( tCellIndex, 0, tNumCells )) {
+            var iValue = tValueArray[ tCellIndex ];
+            iValue.count += 1;
+            DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.ChartModel.getCellCaseCounts()" );
+            DG.assert( iValue.secondaryCell === (iSecondaryCell || 0), "secondary cell index error in DG.ChartModel.getCellCaseCounts()" );
           }
         });
 

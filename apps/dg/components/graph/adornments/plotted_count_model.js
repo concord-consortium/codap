@@ -124,15 +124,15 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
 
           function computeRowPercents() {
             var tRowCounts = [];
-            for( var i = 0; i < tNumOnY; i++) {
+            for( var i = 0; i < tNumOnSecondary; i++) {
               tRowCounts[ i] = 0;
             }
             tValueArray.forEach(function (iCell, iIndex) {
-              var tRow = iIndex % tNumOnY;
+              var tRow = iIndex % tNumOnSecondary;
               tRowCounts[ tRow] += iCell.count;
             });
             tValueArray.forEach(function (iCell, iIndex) {
-              var tRow = iIndex % tNumOnY,
+              var tRow = iIndex % tNumOnSecondary,
                   tRowCount = tRowCounts[ tRow];
               if (tRowCount > 0 && iCell.count > 0) {
                 iCell.percent = 100 * iCell.count / tRowCount;
@@ -144,15 +144,15 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
 
           function computeColumnPercents() {
             var tColumnCounts = [];
-            for( var i = 0; i < tNumOnX; i++) {
+            for( var i = 0; i < tNumOnPrimary; i++) {
               tColumnCounts[ i] = 0;
             }
             tValueArray.forEach(function (iCell, iIndex) {
-              var tColumn = Math.floor( iIndex / tNumOnY);
+              var tColumn = Math.floor( iIndex / tNumOnSecondary);
               tColumnCounts[ tColumn] += iCell.count;
             });
             tValueArray.forEach(function (iCell, iIndex) {
-              var tColumn = Math.floor( iIndex / tNumOnY),
+              var tColumn = Math.floor( iIndex / tNumOnSecondary),
                   tColumnCount = tColumnCounts[ tColumn];
               if (tColumnCount > 0 && iCell.count > 0) {
                 iCell.percent = 100 * iCell.count / tColumnCount;
@@ -162,11 +162,11 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
             });
           }
 
-          var tNumOnX = this.getPath('plotModel.xAxis.numberOfCells'),
-              tNumOnY = this.getPath('plotModel.yAxis.numberOfCells'),
-              tPercentKind = (tNumOnX > 1 && tNumOnY > 1) ? this.get('percentKind') : DG.Analysis.EPercentKind.eCell;
+          var tNumOnPrimary = this.getPath('plotModel.primaryAxisModel.numberOfCells'),
+              tNumOnSecondary = this.getPath('plotModel.secondaryAxisModel.numberOfCells'),
+              tPercentKind = (tNumOnPrimary > 1 && tNumOnSecondary > 1) ? this.get('percentKind') : DG.Analysis.EPercentKind.eCell;
           // Take this opportunity to turn off showing percent if there is only one cell
-          if( this.get('isShowingPercent') && (tNumOnX * tNumOnY === 1)) {
+          if( this.get('isShowingPercent') && (tNumOnPrimary * tNumOnSecondary === 1)) {
             this.set('isShowingPercent', false);
           }
 
