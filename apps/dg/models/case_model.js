@@ -237,6 +237,20 @@ DG.Case = DG.BaseModel.extend((function() {
       return NaN;
     },
 
+   /**
+     * Returns a numeric value of the specified attribute for this case where the raw value has been stripped
+    *   of non-numeric characters and the first valid number.
+     * @param {Number} iAttrID -- ID of the attribute for which the value should be returned.
+   */
+    getForcedNumericValue: function( iAttrID) {
+      var tInfo = {},
+          tValue = this.getNumValue( iAttrID, tInfo);
+      if( tInfo.type === 'number')
+        return tValue;
+      else
+        return DG.MathUtilities.extractNumeric( this.getRawValue( iAttrID));
+    },
+
     /**
      * Returns the string value of the specified attribute for this case.
      * @param {Number} iAttrID ID of the attribute for which the value should be returned.

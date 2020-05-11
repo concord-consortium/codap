@@ -186,7 +186,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                   extend: false
                 };
             tCases.forEach(function (iCase) {
-              var tValue = iCase.getNumValue(tNumericVarID);
+              var tValue = iCase.getForcedNumericValue(tNumericVarID);
               if (tValue >= tLower && tValue <= tUpper)
                 tSelection.push(iCase);
             });

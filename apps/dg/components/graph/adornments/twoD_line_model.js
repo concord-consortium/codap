@@ -155,8 +155,8 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
         tLegendIsNumeric = this.getPath('plotModel.dataConfiguration.legendAttributeDescription.isNumeric');
     if( !SC.none(tCases)) {
       tCases.forEach(function (iCase) {
-        var tXValue = iCase.getNumValue(tXVarID),
-            tYValue = iCase.getNumValue(tYVarID),
+        var tXValue = iCase.getForcedNumericValue(tXVarID),
+            tYValue = iCase.getForcedNumericValue(tYVarID),
             tLegendValue = tLegendIsNumeric ? null : iCase.getValue( tlegendVarID);
         if (isFinite(tXValue) && isFinite(tYValue)) {
           tValues.push({x: tXValue, y: tYValue, legend: tLegendValue});

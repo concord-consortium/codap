@@ -369,7 +369,7 @@ DG.PlotUtilities = {
         tDigits = 2;
       tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
       tNumFormat.group(''); // Don't separate with commas
-      tValue = tNumFormat(iCase.getNumValue(tAttrID));
+      tValue = tNumFormat(iCase.getForcedNumericValue(tAttrID));
     }
     else {
       tValue = iCase.getStrValue(tAttrID);
