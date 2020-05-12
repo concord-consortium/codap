@@ -348,7 +348,7 @@ DG.main = function main() {
                 currentLang: SC.Locale.currentLanguage,
                 options: DG.locales.map(function (locale) {
                   return {
-                    label: locale.langName.loc(),
+                    label: locale.langName,
                     langCode: locale.langDigraph,
                   };
                 }),

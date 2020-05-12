@@ -5435,22 +5435,6 @@ function Inflate(options) {
   this.header = new GZheader();
 
   zlib_inflate.inflateGetHeader(this.strm, this.header);
-
-  // Setup dictionary
-  if (opt.dictionary) {
-    // Convert data if needed
-    if (typeof opt.dictionary === 'string') {
-      opt.dictionary = strings.string2buf(opt.dictionary);
-    } else if (toString.call(opt.dictionary) === '[object ArrayBuffer]') {
-      opt.dictionary = new Uint8Array(opt.dictionary);
-    }
-    if (opt.raw) { //In raw mode we need to set the dictionary early
-      status = zlib_inflate.inflateSetDictionary(this.strm, opt.dictionary);
-      if (status !== c.Z_OK) {
-        throw new Error(msg[status]);
-      }
-    }
-  }
 }
 
 /**
@@ -5487,6 +5471,7 @@ Inflate.prototype.push = function (data, mode) {
   var dictionary = this.options.dictionary;
   var status, _mode;
   var next_out_utf8, tail, utf8str;
+  var dict;
 
   // Flag to properly process Z_BUF_ERROR on testing inflate call
   // when we check that all output data was flushed.
@@ -5518,7 +5503,17 @@ Inflate.prototype.push = function (data, mode) {
     status = zlib_inflate.inflate(strm, c.Z_NO_FLUSH);    /* no bad return value */
 
     if (status === c.Z_NEED_DICT && dictionary) {
-      status = zlib_inflate.inflateSetDictionary(this.strm, dictionary);
+      // Convert data if needed
+      if (typeof dictionary === 'string') {
+        dict = strings.string2buf(dictionary);
+      } else if (toString.call(dictionary) === '[object ArrayBuffer]') {
+        dict = new Uint8Array(dictionary);
+      } else {
+        dict = dictionary;
+      }
+
+      status = zlib_inflate.inflateSetDictionary(this.strm, dict);
+
     }
 
     if (status === c.Z_BUF_ERROR && allowBufError === true) {
@@ -5906,10 +5901,8 @@ exports.string2buf = function (str) {
 
 // Helper (used in 2 places)
 function buf2binstring(buf, len) {
-  // On Chrome, the arguments in a function call that are allowed is `65534`.
-  // If the length of the buffer is smaller than that, we can use this optimization,
-  // otherwise we will take a slower path.
-  if (len < 65534) {
+  // use fallback for big arrays to avoid stack overflow
+  if (len < 65537) {
     if ((buf.subarray && STR_APPLY_UIA_OK) || (!buf.subarray && STR_APPLY_OK)) {
       return String.fromCharCode.apply(null, utils.shrinkBuf(buf, len));
     }
@@ -7650,7 +7643,7 @@ function deflate(strm, flush) {
                     (!s.gzhead.extra ? 0 : 4) +
                     (!s.gzhead.name ? 0 : 8) +
                     (!s.gzhead.comment ? 0 : 16)
-        );
+                );
         put_byte(s, s.gzhead.time & 0xff);
         put_byte(s, (s.gzhead.time >> 8) & 0xff);
         put_byte(s, (s.gzhead.time >> 16) & 0xff);
@@ -10435,8 +10428,6 @@ module.exports = {
 //   misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-/* eslint-disable space-unary-ops */
-
 var utils = require('../utils/common');
 
 /* Public constants ==========================================================*/
@@ -11958,7 +11949,7 @@ CloudFileManager = (function() {
 module.exports = new CloudFileManager();
 
 
-},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":86}],54:[function(require,module,exports){
+},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":87}],54:[function(require,module,exports){
 var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, PostMessageProvider, ProviderInterface, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, getQueryParam, isString, tr,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   hasProp = {}.hasOwnProperty;
@@ -13553,7 +13544,7 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":83,"base64-js":1}],55:[function(require,module,exports){
+},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":84,"base64-js":1}],55:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.3.2
@@ -14343,7 +14334,7 @@ DocumentStoreProvider = (function(superClass) {
 module.exports = DocumentStoreProvider;
 
 
-},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":83,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
+},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":84,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
 var CloudMetadata, DocumentStoreShareProvider, DocumentStoreUrl, pako;
 
 CloudMetadata = (require('./provider-interface')).CloudMetadata;
@@ -15019,7 +15010,7 @@ GoogleDriveProvider = (function(superClass) {
 module.exports = GoogleDriveProvider;
 
 
-},{"../utils/is-string":72,"../utils/translate":83,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":84,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
 var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -15604,7 +15595,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":83,"../views/local-file-tab-list-view":95,"../views/local-file-tab-save-view":96,"./provider-interface":65}],62:[function(require,module,exports){
+},{"../utils/translate":84,"../views/local-file-tab-list-view":96,"../views/local-file-tab-save-view":97,"./provider-interface":65}],62:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -15760,7 +15751,7 @@ LocalStorageProvider = (function(superClass) {
 module.exports = LocalStorageProvider;
 
 
-},{"../utils/translate":83,"./provider-interface":65}],63:[function(require,module,exports){
+},{"../utils/translate":84,"./provider-interface":65}],63:[function(require,module,exports){
 var PatchableContent, jiff;
 
 jiff = require('jiff');
@@ -16595,7 +16586,7 @@ ReadOnlyProvider = (function(superClass) {
 module.exports = ReadOnlyProvider;
 
 
-},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":83,"./provider-interface":65}],67:[function(require,module,exports){
+},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":84,"./provider-interface":65}],67:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, URLProvider, cloudContentFactory,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -16940,7 +16931,7 @@ module.exports = {
 };
 
 
-},{"./utils/is-string":72,"./utils/translate":83}],69:[function(require,module,exports){
+},{"./utils/is-string":72,"./utils/translate":84}],69:[function(require,module,exports){
 module.exports = function(param) {
   var ret;
   ret = null;
@@ -18158,6 +18149,133 @@ module.exports={
 },{}],82:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
+    "~MENU.NEW": "新建",
+    "~MENU.OPEN": "打开",
+    "~MENU.CLOSE": "关闭",
+    "~MENU.IMPORT_DATA": "导入数据",
+    "~MENU.SAVE": "保存",
+    "~MENU.SAVE_AS": "另存为",
+    "~MENU.EXPORT_AS": "导出文件格式为",
+    "~MENU.CREATE_COPY": "创建副本",
+    "~MENU.SHARE": "共享",
+    "~MENU.SHARE_GET_LINK": "共享视图链接",
+    "~MENU.SHARE_UPDATE": "更新共享视图",
+    "~MENU.DOWNLOAD": "下载",
+    "~MENU.RENAME": "重命名",
+    "~MENU.REVERT_TO": "恢复",
+    "~MENU.REVERT_TO_LAST_OPENED": "最近打开状态",
+    "~MENU.REVERT_TO_SHARED_VIEW": "共享视图",
+    "~DIALOG.SAVE": "保存",
+    "~DIALOG.SAVE_AS": "另存为",
+    "~DIALOG.EXPORT_AS": "导出文件格式为",
+    "~DIALOG.CREATE_COPY": "创建副本",
+    "~DIALOG.OPEN": "打开",
+    "~DIALOG.DOWNLOAD": "下载",
+    "~DIALOG.RENAME": "重命名",
+    "~DIALOG.SHARED": "共享",
+    "~DIALOG.IMPORT_DATA": "导入数据",
+    "~PROVIDER.LOCAL_STORAGE": "本地存储",
+    "~PROVIDER.READ_ONLY": "只读",
+    "~PROVIDER.GOOGLE_DRIVE": "谷歌硬盘",
+    "~PROVIDER.DOCUMENT_STORE": "Concord云盘",
+    "~PROVIDER.LOCAL_FILE": "本地文件",
+    "~FILE_STATUS.SAVING": "正在保存",
+    "~FILE_STATUS.SAVED": "已保存所有更改",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "所有更改保存到%{提供名称}",
+    "~FILE_STATUS.UNSAVED": "未保存",
+    "~FILE_DIALOG.FILENAME": "文件名",
+    "~FILE_DIALOG.OPEN": "打开",
+    "~FILE_DIALOG.SAVE": "保存",
+    "~FILE_DIALOG.CANCEL": "取消",
+    "~FILE_DIALOG.REMOVE": "删除",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "确定要删除%{filename}？",
+    "~FILE_DIALOG.REMOVED_TITLE": "已删除文件",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename}已删除",
+    "~FILE_DIALOG.LOADING": "下载中...",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "***加载文件夹内容时出错***",
+    "~FILE_DIALOG.DOWNLOAD": "下载",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "下载",
+    "~DOWNLOAD_DIALOG.CANCEL": "取消",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "下载文件包含共享信息",
+    "~RENAME_DIALOG.RENAME": "重命名",
+    "~RENAME_DIALOG.CANCEL": "取消",
+    "~SHARE_DIALOG.COPY": "复制",
+    "~SHARE_DIALOG.VIEW": "视图",
+    "~SHARE_DIALOG.CLOSE": "关闭",
+    "~SHARE_DIALOG.COPY_SUCCESS": "该信息已复制到粘贴板",
+    "~SHARE_DIALOG.COPY_ERROR": "抱歉，该信息不能复制到粘贴板",
+    "~SHARE_DIALOG.COPY_TITLE": "复制结果",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "共享文件将会一直保存，直到文件超过一年未访问。",
+    "~SHARE_UPDATE.TITLE": "更新共享视图",
+    "~SHARE_UPDATE.MESSAGE": "共享视图已成功更新",
+    "~CONFIRM.OPEN_FILE": "有未保存更改，确定打开一个新文件吗？",
+    "~CONFIRM.NEW_FILE": "有未保存更改，确定创建一个新文件吗？",
+    "~CONFIRM.AUTHORIZE_OPEN": "此文件需要授权打开，需要申请授权吗？",
+    "~CONFIRM.AUTHORIZE_SAVE": "此文件需要授权保存，需要申请授权吗？",
+    "~CONFIRM.CLOSE_FILE": "有未保存更改，确定关闭该文件吗？",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "确定恢复该文件至最近打开状态吗？",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "您确定想要恢复该文件至最近分享状态吗？",
+    "~CONFIRM_DIALOG.TITLE": "确定吗？",
+    "~CONFIRM_DIALOG.YES": "确定",
+    "~CONFIRM_DIALOG.NO": "不确定",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "此处放置文件或点击此处选择文件。",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "抱歉，只能打开一个文件。",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "抱歉，不能放置多个文件。",
+    "~IMPORT.LOCAL_FILE": "当地文件",
+    "~IMPORT.URL": "网址",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "抱歉，只能打开一个网址。",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "请输入网址导入",
+    "~URL_TAB.DROP_URL_HERE": "在此处放置网址或在下面输入网址",
+    "~URL_TAB.IMPORT": "导入",
+    "~CLIENT_ERROR.TITLE": "错误",
+    "~ALERT_DIALOG.TITLE": "提醒",
+    "~ALERT_DIALOG.CLOSE": "关闭",
+    "~ALERT.NO_PROVIDER": "由于缺少合适程序，无法打开指定文档。",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "登陆谷歌",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "链接到谷歌",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "谷歌硬盘提供选项中缺少必需的用户ID",
+    "~DOCSTORE.LOAD_403_ERROR": "没有权限加载%{filename}<br><br>若在使用其他人的共享文件，此文件将取消共享。",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "不能加载所请求共享文件。<br><br>此文件可能未被共享？",
+    "~DOCSTORE.LOAD_404_ERROR": "不能加载%{filename}。",
+    "~DOCSTORE.SAVE_403_ERROR": "没有权限保存‘%{filename}’。<br><br>可能需要重新登陆。",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "不能创建%{filename}。文件已经存在。",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "不能保存%{filename}：[%{message}]",
+    "~DOCSTORE.SAVE_ERROR": "不能保存%{filename}",
+    "~DOCSTORE.REMOVE_403_ERROR": "没有权限移动%{filename}。<br><br>可能需要重新登陆。",
+    "~DOCSTORE.REMOVE_ERROR": "不能移动%{文件名}",
+    "~DOCSTORE.RENAME_403_ERROR": "没有权限重新命名%{文件名}。<br><br>可能需要重新登陆。",
+    "~DOCSTORE.RENAME_ERROR": "不能重新命名%{文件名}",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord云盘提醒",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord云盘提醒",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "另存为",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "稍后再做",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concord云盘已关闭",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "请保存此文件到其他位置",
+    "~SHARE_DIALOG.SHARE_STATE": "共享视图",
+    "~SHARE_DIALOG.SHARE_STATE_ENABLED": "已启用",
+    "~SHARE_DIALOG.SHARE_STATE_DISABLED": "未启用",
+    "~SHARE_DIALOG.ENABLE_SHARING": "启动共享",
+    "~SHARE_DIALOG.STOP_SHARING": "停止共享",
+    "~SHARE_DIALOG.UPDATE_SHARING": "更新共享视图",
+    "~SHARE_DIALOG.PREVIEW_SHARING": "预览共享视图",
+    "~SHARE_DIALOG.ENABLE_SHARING_MESSAGE": "当共享已启动，当前视图复制本已生成。此复制本可以共享。",
+    "~SHARE_DIALOG.LINK_TAB": "链接",
+    "~SHARE_DIALOG.LINK_MESSAGE": "粘贴到邮件或者短信",
+    "~SHARE_DIALOG.EMBED_TAB": "嵌入",
+    "~SHARE_DIALOG.EMBED_MESSAGE": "在网页或者网页内容里嵌入代码",
+    "~SHARE_DIALOG.LARA_MESSAGE": "在LARA里使用链接创建活动",
+    "~SHARE_DIALOG.LARA_CODAP_URL": "CODAP服务器网址",
+    "~SHARE_DIALOG.LARA_AUTOLAUNCH_PAGE": "自动启动界面",
+    "~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING": "全屏按钮和缩放",
+    "~SHARE_DIALOG.LARA_LAUNCH_BUTTON_TEXT": "启动按钮文本",
+    "~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES": "图表数据可视化显示切换",
+    "~CONFIRM.CHANGE_LANGUAGE": "有未保存更改，确定更改语言吗？",
+    "~FILE_STATUS.FAILURE": "重试..."
+}
+
+},{}],83:[function(require,module,exports){
+module.exports={
+    "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
     "~MENU.NEW": "新增",
     "~MENU.OPEN": "開啟 ...",
     "~MENU.CLOSE": "關閉",
@@ -18282,8 +18400,8 @@ module.exports={
     "~FILE_STATUS.FAILURE": "Retrying..."
 }
 
-},{}],83:[function(require,module,exports){
-var baseLang, defaultLang, getBaseLanguage, getFirstBrowserLanguage, getPageLanguage, lang, languageFiles, translate, translations, urlParams, varRegExp;
+},{}],84:[function(require,module,exports){
+var baseLang, defaultLang, getBaseLanguage, getFirstBrowserLanguage, lang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
 
@@ -18316,8 +18434,11 @@ languageFiles = [
     key: 'tr',
     contents: require('./lang/tr')
   }, {
-    key: 'zh-TW',
+    key: 'zh-tw',
     contents: require('./lang/zh-TW')
+  }, {
+    key: 'zh-hans',
+    contents: require('./lang/zh-Hans')
   }
 ];
 
@@ -18326,15 +18447,6 @@ getBaseLanguage = function(langKey) {
   dashLoc = langKey.indexOf('-');
   if (dashLoc !== -1) {
     return langKey.substring(0, dashLoc);
-  }
-  return void 0;
-};
-
-getPageLanguage = function() {
-  var pageLang;
-  pageLang = document.documentElement.lang;
-  if (pageLang && pageLang !== "unknown") {
-    return pageLang;
   }
   return void 0;
 };
@@ -18363,7 +18475,7 @@ languageFiles.forEach(function(lang) {
   }
 });
 
-lang = urlParams.lang || getPageLanguage() || getFirstBrowserLanguage();
+lang = urlParams.lang || getFirstBrowserLanguage();
 
 baseLang = getBaseLanguage(lang || '');
 
@@ -18395,7 +18507,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/ja":78,"./lang/nb.json":79,"./lang/nn.json":80,"./lang/tr":81,"./lang/zh-TW":82,"./url-params":84}],84:[function(require,module,exports){
+},{"./lang/de":73,"./lang/el":74,"./lang/en-US":75,"./lang/es":76,"./lang/he":77,"./lang/ja":78,"./lang/nb.json":79,"./lang/nn.json":80,"./lang/tr":81,"./lang/zh-Hans":82,"./lang/zh-TW":83,"./url-params":85}],85:[function(require,module,exports){
 // http://stackoverflow.com/a/2880929
 var urlParams = {};
 if (window && window.location && window.location.search) {
@@ -18413,7 +18525,7 @@ if (window && window.location && window.location.search) {
 
 module.exports = urlParams;
 
-},{}],85:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 var ModalDialog, button, div, tr;
 
 div = ReactDOMFactories.div, button = ReactDOMFactories.button;
@@ -18452,7 +18564,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./modal-dialog-view":98}],86:[function(require,module,exports){
+},{"../utils/translate":84,"./modal-dialog-view":99}],87:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, tr;
 
 MenuBar = createReactFactory(require('./menu-bar-view'));
@@ -18747,7 +18859,7 @@ App = createReactClass({
 module.exports = App;
 
 
-},{"../utils/is-string":72,"../utils/translate":83,"./alert-dialog-view":85,"./blocking-modal-view":88,"./confirm-dialog-view":89,"./download-dialog-view":90,"./import-tabbed-dialog-view":94,"./menu-bar-view":97,"./provider-tabbed-dialog-view":101,"./rename-dialog-view":102,"./share-dialog-view":104}],87:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":84,"./alert-dialog-view":86,"./blocking-modal-view":89,"./confirm-dialog-view":90,"./download-dialog-view":91,"./import-tabbed-dialog-view":95,"./menu-bar-view":98,"./provider-tabbed-dialog-view":102,"./rename-dialog-view":103,"./share-dialog-view":105}],88:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -18792,7 +18904,7 @@ AuthorizeMixin = {
 module.exports = AuthorizeMixin;
 
 
-},{}],88:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 var Modal, div;
 
 div = ReactDOMFactories.div;
@@ -18828,7 +18940,7 @@ module.exports = createReactClass({
 });
 
 
-},{"./modal-view":100}],89:[function(require,module,exports){
+},{"./modal-view":101}],90:[function(require,module,exports){
 var ModalDialog, button, div, tr;
 
 div = ReactDOMFactories.div, button = ReactDOMFactories.button;
@@ -18876,7 +18988,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./modal-dialog-view":98}],90:[function(require,module,exports){
+},{"../utils/translate":84,"./modal-dialog-view":99}],91:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button;
@@ -18989,7 +19101,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83,"./modal-dialog-view":98}],91:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":84,"./modal-dialog-view":99}],92:[function(require,module,exports){
 var DefaultAnchor, TriangleOnlyAnchor, g, polygon, rect, svg;
 
 svg = ReactDOMFactories.svg, g = ReactDOMFactories.g, rect = ReactDOMFactories.rect, polygon = ReactDOMFactories.polygon;
@@ -19037,7 +19149,7 @@ module.exports = {
 };
 
 
-},{}],92:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 var DefaultAnchor, DropDown, DropdownItem, cfmMenuClass, div, i, li, span, ul;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i, span = ReactDOMFactories.span, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li;
@@ -19214,7 +19326,7 @@ DropDown = createReactClass({
 module.exports = DropDown;
 
 
-},{"./dropdown-anchors":91}],93:[function(require,module,exports){
+},{"./dropdown-anchors":92}],94:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, italic, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -19527,7 +19639,7 @@ FileDialogTab = createReactClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83,"./authorize-mixin":87}],94:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":84,"./authorize-mixin":88}],95:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = createReactFactory(require('./modal-tabbed-dialog-view'));
@@ -19609,7 +19721,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./local-file-tab-list-view":95,"./modal-tabbed-dialog-view":99,"./tabbed-panel-view":105,"./url-tab-view":106}],95:[function(require,module,exports){
+},{"../utils/translate":84,"./local-file-tab-list-view":96,"./modal-tabbed-dialog-view":100,"./tabbed-panel-view":106,"./url-tab-view":107}],96:[function(require,module,exports){
 var CloudMetadata, button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button;
@@ -19708,7 +19820,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83}],96:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":84}],97:[function(require,module,exports){
 var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button, a = ReactDOMFactories.a;
@@ -19891,7 +20003,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":83}],97:[function(require,module,exports){
+},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":84}],98:[function(require,module,exports){
 var Dropdown, TriangleOnlyAnchor, div, i, input, span, tr;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i, span = ReactDOMFactories.span, input = ReactDOMFactories.input;
@@ -20135,7 +20247,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./dropdown-anchors":91,"./dropdown-view":92}],98:[function(require,module,exports){
+},{"../utils/translate":84,"./dropdown-anchors":92,"./dropdown-view":93}],99:[function(require,module,exports){
 var Modal, div, i;
 
 div = ReactDOMFactories.div, i = ReactDOMFactories.i;
@@ -20168,7 +20280,7 @@ module.exports = createReactClass({
 });
 
 
-},{"./modal-view":100}],99:[function(require,module,exports){
+},{"./modal-view":101}],100:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = createReactFactory(require('./modal-dialog-view'));
@@ -20189,7 +20301,7 @@ module.exports = createReactClass({
 });
 
 
-},{"./modal-dialog-view":98,"./tabbed-panel-view":105}],100:[function(require,module,exports){
+},{"./modal-dialog-view":99,"./tabbed-panel-view":106}],101:[function(require,module,exports){
 var div;
 
 div = ReactDOMFactories.div;
@@ -20268,7 +20380,7 @@ module.exports = createReactClass({
 });
 
 
-},{}],101:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = createReactFactory(require('./modal-tabbed-dialog-view'));
@@ -20340,7 +20452,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":83,"./file-dialog-tab-view":93,"./modal-tabbed-dialog-view":99,"./select-provider-dialog-tab-view":103,"./tabbed-panel-view":105}],102:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":84,"./file-dialog-tab-view":94,"./modal-tabbed-dialog-view":100,"./select-provider-dialog-tab-view":104,"./tabbed-panel-view":106}],103:[function(require,module,exports){
 var ModalDialog, a, button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button;
@@ -20413,7 +20525,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83,"./modal-dialog-view":98}],103:[function(require,module,exports){
+},{"../utils/translate":84,"./modal-dialog-view":99}],104:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = ReactDOMFactories.div;
@@ -20428,7 +20540,7 @@ SelectProviderDialogTab = createReactClassFactory({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, socialIcons, span, strong, svg, textarea, translate, ul;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, a = ReactDOMFactories.a, button = ReactDOMFactories.button, strong = ReactDOMFactories.strong, textarea = ReactDOMFactories.textarea, svg = ReactDOMFactories.svg, g = ReactDOMFactories.g, path = ReactDOMFactories.path, span = ReactDOMFactories.span, circle = ReactDOMFactories.circle, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li;
@@ -20773,7 +20885,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/get-query-param":70,"../utils/translate":83,"./modal-dialog-view":98,"svg-social-icons/lib/icons.json":51}],105:[function(require,module,exports){
+},{"../utils/get-query-param":70,"../utils/translate":84,"./modal-dialog-view":99,"svg-social-icons/lib/icons.json":51}],106:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ul;
 
 div = ReactDOMFactories.div, ul = ReactDOMFactories.ul, li = ReactDOMFactories.li, a = ReactDOMFactories.a;
@@ -20885,7 +20997,7 @@ module.exports = createReactClass({
 });
 
 
-},{}],106:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 var button, div, input, tr;
 
 div = ReactDOMFactories.div, input = ReactDOMFactories.input, button = ReactDOMFactories.button;
@@ -20970,7 +21082,7 @@ module.exports = createReactClass({
 });
 
 
-},{"../utils/translate":83}]},{},[52,53])(53)
+},{"../utils/translate":84}]},{},[52,53])(53)
 });
 
 //# sourceURL=cfm/app.js.ignore
