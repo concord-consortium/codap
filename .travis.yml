@@ -4,14 +4,23 @@ language: node_js
 node_js: lts/*
 before_install:
 - pyenv local 3.6
+- sudo apt-get install jq
 install:
 - travis_retry gem install bundler
 - travis_retry bundle install
 - travis_retry gem install s3_website
 - travis_retry pip install awscli --upgrade --user
 - travis_retry npm ci
-script: npm run build:travis
-after_script: "./bin/s3_deploy.sh"
+- travis_retry
+script:
+- git clone https://github.com/concord-consortium/codap-data.git ../codap-data
+- git clone https://github.com/concord-consortium/codap-data-interactives.git ../codap-data-interactives
+# ideally, the `npm install` would be handled by the script, so we wouldn't have to do this here
+- cd ../codap-data-interactives/onboarding
+- npm install
+- cd ../../codap
+- npm run build:travis
+after_success: "./bin/s3_deploy.sh"
 cache:
   bundler: true
   npm: true

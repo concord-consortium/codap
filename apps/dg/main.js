@@ -70,6 +70,18 @@ DG.main = function main() {
               : (dgWantsMouse ? YES : orgIgnoreMouseHandle(evt));
   };
 
+  var orgIgnoreKeyHandle = SC.RootResponder.prototype.ignoreKeyHandle;
+  SC.RootResponder.prototype.ignoreKeyHandle = function(evt) {
+    var dgWantsKeys = $(evt.target).closest('.dg-wants-keys').length;
+    return dgWantsKeys ? YES : orgIgnoreKeyHandle.call(this, evt);
+  };
+
+  var orgIgnoreSelectHandle = SC.RootResponder.prototype.ignoreSelectHandle;
+  SC.RootResponder.prototype.ignoreSelectHandle = function(evt) {
+    var dgWantsSelect = $(evt.target).closest('.dg-wants-select').length;
+    return dgWantsSelect ? YES : orgIgnoreSelectHandle.call(this, evt);
+  };
+
   DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
   DG.showUserEntryView = true;
@@ -348,7 +360,7 @@ DG.main = function main() {
                 currentLang: SC.Locale.currentLanguage,
                 options: DG.locales.map(function (locale) {
                   return {
-                    label: locale.langName.loc(),
+                    label: locale.langName,
                     langCode: locale.langDigraph,
                   };
                 }),

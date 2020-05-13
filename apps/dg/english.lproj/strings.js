@@ -923,5 +923,6 @@ SC.stringsFor("en", {
     "DG.Locale.name.nb": "Bokmål",
     "DG.Locale.name.nn": "Nynorsk",
     "DG.Locale.name.tr": "Turkish",
-    "DG.Locale.name.zh": "Chinese"
+    "DG.Locale.name.zh": "Traditional Chinese",
+    "DG.Locale.name.zh-Hans": "Simplified Chinese"
 });

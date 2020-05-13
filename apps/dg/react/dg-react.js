@@ -1,4 +1,4 @@
-/* global createReactClass, createReactFactory, ReactDOM */
+/* global createReactClass, createReactFactory, ReactDOM, SlateEditor */
 
 // this would be defined once in CODAP
 DG.React = {
@@ -36,6 +36,10 @@ DG.React = {
     }
   }
 };
+
+DG.React.SlateContainer = createReactFactory(SlateEditor.SlateContainer);
+DG.React.SlateEditor = createReactFactory(SlateEditor.SlateEditor);
+DG.React.SlateToolbar = createReactFactory(SlateEditor.SlateToolbar);
 
 // these augment custom components with common behaviors
 DG.React.HighOrderComponents = {

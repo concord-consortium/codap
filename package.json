@@ -41,6 +41,7 @@
     "codap": "sproutcore server --allow-from-ips='*.*.*.*'",
     "deploy:dev:comment": "echo Usage: `npm run deploy:dev -- {deployName}` builds and deploys CODAP to 'https://codap.concord.org/~user/deployName'",
     "deploy:dev": "npm run build:bundle-dev && ./bin/deployDevCodap",
+    "link:slate": "npm link @concord-consortium/slate-editor",
     "lint": "eslint *.js apps && jshint -e .json *.json apps --verbose",
     "lint:fix:comment": "echo Usage: `npm run lint:fix` runs ESLint configured to fix issues that can be fixed automatically, e.g. missing semicolons.",
     "lint:fix": "eslint --fix *.js apps",
@@ -82,7 +83,8 @@
     "test:production": "cypress open --env testEnv=production,failOnSnapshotDiff=false",
     "test:staging": "cypress open --env testEnv=staging,failOnSnapshotDiff=false",
     "test:branch": "cypress open --env testEnv=branch,failOnSnapshotDiff=false",
-    "test:local": "cypress open --env testEnv=local,failOnSnapshotDiff=false"
+    "test:local": "cypress open --env testEnv=local,failOnSnapshotDiff=false",
+    "unlink:slate": "npm uninstall --no-save @concord-consortium/slate-editor && npm install"
   },
   "repository": {
     "type": "git",
@@ -117,6 +119,7 @@
     "webpack-shell-plugin": "^0.5.0"
   },
   "dependencies": {
+    "@concord-consortium/slate-editor": "0.0.8",
     "codemirror": "^5.39.2",
     "create-react-class": "^15.6.3",
     "dayjs": "^1.8.14",

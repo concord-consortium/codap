@@ -31,6 +31,7 @@ var config = {
     path: bundlePath,
     filename: dstBundleName
   },
+  devtool: production ? '' : 'source-map',
   mode: production? 'production': 'development',
   module: {
     rules: [

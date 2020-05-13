@@ -1,0 +1,57 @@
+.dg-text-view-react-root {
+    height: 100%;
+
+    // we have to reset a lot of the styles to overcome the effects of
+    // SproutCore's styles, particularly stemming from the yuireset.
+    .codap-slate-editor {
+        box-sizing: border-box;
+        height: 100%;
+        padding-left: 5px;
+        font-size: 12px;
+        font-family: 'Helvetica', sans-serif;
+        em {
+          font-style: italic !important;
+          font-weight: inherit;
+        }
+        strong {
+          font-weight: bold !important;
+          font-style: inherit;
+        }
+        code {
+          font-family: monospace;
+        }
+        sub {
+          vertical-align: sub;
+        }
+        sup {
+          vertical-align: super;
+        }
+        h1 {
+          font-size: 2.6em;
+        }
+        h2 {
+          font-size: 2em;
+        }
+        h3 {
+          font-size: 1.4em;
+        }
+        ul, ol, blockquote {
+          margin-top: 1em;
+          margin-bottom: 1em;
+          margin-left: 0;
+          margin-right: 0;
+          margin-block-start: 1em;
+          margin-block-end: 1em;
+          margin-inline-start: 0px;
+          margin-inline-end: 0px;
+        }
+        ul, ol {
+          padding-inline-start: 30px;
+        }
+    }
+}
+
+.dg-text-view-react-portal, .dg-text-view-modal-portal {
+  position: absolute;
+  z-index: 100000;  // same as inspector
+}
