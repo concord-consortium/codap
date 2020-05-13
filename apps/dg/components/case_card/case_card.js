@@ -1,4 +1,3 @@
-sc_require('components/case_card/case_card_collection');
 sc_require('components/case_card/column_resize_handle');
 sc_require('components/case_card/text_input');
 sc_require('controllers/data_context');

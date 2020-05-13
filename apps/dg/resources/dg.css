@@ -1209,8 +1209,10 @@ body.dg .sc-view.dg-doc-background {
     margin-bottom: 7px;
 }
 
-#formula_object p, em {
-    font-size: 14px;
+#formula_object {
+    p, em {
+        font-size: 14px;
+    }
 }
 
 #formula_object h2 {
@@ -1229,13 +1231,17 @@ body.dg .sc-view.dg-doc-background {
     border-collapse: collapse;
 }
 
-#formula_object th, td {
-    padding: 5px;
-    font-size: 14px;
+#formula_object {
+    th, td {
+        padding: 5px;
+        font-size: 14px;
+    }
 }
 
-#formula_object table, th, td {
-    border: 1px solid gray;
+#formula_object {
+    table, th, td {
+        border: 1px solid gray;
+    }
 }
 
 #formula_object th {

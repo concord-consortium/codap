@@ -28,12 +28,23 @@ DG.TextComponentController = DG.ComponentController.extend(
 /** @scope DG.TextComponentController.prototype */ {
 
   /**
-   *  The contents of the text object.
-   *  This property is bound to the 'value' property of the textFieldView.
+   *  The "raw" contents of the text editor.
+   *  This property is bound in (viewDidChange) to the 'editorValue' property of the DG.TextView.
+   *  Setting this property to null causes the editor to use 'theText'/'value' property instead.
+   *  This property changes frequently since it includes selection/focus information.
+   *  @property {String}
+   */
+  theValue: null,
+
+  /**
+   *  The serializable contents of the text editor.
+   *  This property is bound in (viewDidChange) to the 'value' property of the DG.TextView.
+   *  This property changes only when the content changes as it does not contain selection.
    *  @property {String}
    */
   theText: function (k, v) {
     if (!SC.none(v)) {
+      // this gets called when the editView changes the value because of the binding
       this.setPath('model.content.text', v);
     }
     return this.getPath('model.content.text');
@@ -43,7 +54,28 @@ DG.TextComponentController = DG.ComponentController.extend(
     this.notifyPropertyChange('theText');
   }.observes('model.content.text'),
 
-  previousValue: "",
+  /**
+   *  Pushes its argument to the editor's content. This is accomplished by
+   *  setting the editor's 'value' property (via binding) to the desired
+   *  value and then setting the editor's 'editorValue' property (also via
+   *  binding) to null so that the editor will use the 'value' property.
+   *  @param {Object} value -- The editor value to push to the editor
+   */
+  setTheText: function(value) {
+    this._isUpdatingText = true;
+    this.beginPropertyChanges();
+    this.set('theText', value);
+    // clearing 'theValue' tells editView to use 'theText'
+    this.set('theValue', null);
+    this.endPropertyChanges();
+    this.invokeLater(function() {
+      SC.run(function() {
+        this._isUpdatingText = false;
+      }.bind(this));
+    });
+  },
+
+  previousValue: null,
   _session: null,
 
   /**
@@ -54,24 +86,48 @@ DG.TextComponentController = DG.ComponentController.extend(
     var theText = this.get('theText'),
         theStorage = {};
     if( !SC.empty( theText))
-      theStorage.text = theText;
+      theStorage.text = JSON.stringify(theText);
     return theStorage;
   },
-  
+
   /**
    *  Copies the contents of iComponentStorage to the model.
    *  @param {Object} iComponentStorage -- Properties restored from document.
    *  @param {String} iDocumentID --       ID of the component's document.
    */
   restoreComponentStorage: function( iComponentStorage, iDocumentID) {
-    var theText = iComponentStorage.text || "";
-    this.set('theText', theText);
-    this.set('previousValue', theText);
+    var theText = iComponentStorage.text || "",
+        parsed;
+    try {
+      parsed = JSON.parse(theText);
+      // if it doesn't look like a Slate value, treat as plain text
+      if (!parsed || !parsed.object || (parsed.object !== "value"))
+        parsed = theText;
+    }
+    catch(e) {
+      // if it's not JSON, treat as plain text
+      parsed = theText;
+    }
+    this.setTheText(parsed);
+    this.set('previousValue', parsed);
   },
 
   onTextUpdate: function() {
-    var value = this.get("theText");
+    if (this._isUpdatingText) return;
+
+    var value = JSON.stringify(this.get("theText") || "");
     this._session = this._session || Math.random();
+
+    function parseValue(v) {
+      var parsed = "";
+      try {
+        parsed = JSON.parse(v);
+      }
+      catch(e) {
+        parsed = "";
+      }
+      return parsed;
+    }
 
     DG.UndoHistory.execute(DG.Command.create({
       name: 'textComponent.edit',
@@ -89,13 +145,13 @@ DG.TextComponentController = DG.ComponentController.extend(
         this._controller().set('previousValue', value);
       },
       undo: function () {
-        // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-        this._controller().set('theText', this._beforeStorage);
+        // can no longer merge once it's been undone
+        this._reduceKey = Math.random();
+        this._controller().setTheText(parseValue(this._beforeStorage));
         this._controller().set('previousValue', this._beforeStorage);
       },
       redo: function () {
-        // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-        this._controller().set('theText', this._afterStorage);
+        this._controller().setTheText(parseValue(this._afterStorage));
         this._controller().set('previousValue', this._afterStorage);
       },
       reduce: function(previous) {
@@ -108,6 +164,7 @@ DG.TextComponentController = DG.ComponentController.extend(
   }.observes('theText'),
 
   commitEditing: function() {
+    // prevents further undo merging
     this._session = null;
   },
 
@@ -115,16 +172,24 @@ DG.TextComponentController = DG.ComponentController.extend(
     sc_super();
     this.commitEditing();
   },
-  
+
+  getEditView: function() {
+    return this.getPath('view.containerView.contentView.editView');
+  },
+
   /**
    *  Called when the view is connected to the controller.
    */
   viewDidChange: function() {
-    // Bind the contents of the textFieldView to our 'theText' property.
-    var textFieldView = this.getPath('view.containerView.contentView.editView');
-    if( textFieldView)
-      textFieldView.bind('value', this, 'theText');
+    var editView = this.getEditView();
+    if (editView) {
+      // set the initial value
+      var theText = this.get('theText');
+      theText && editView.set('value', theText);
+      // bind the raw and serializable properties
+      editView.bind('editorValue', this, 'theValue');
+      editView.bind('value', this, 'theText');
+    }
   }.observes('*view.containerView.contentView')
-  
-});
 
+});

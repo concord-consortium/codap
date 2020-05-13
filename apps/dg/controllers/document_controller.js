@@ -862,6 +862,7 @@ DG.DocumentController = SC.Object.extend(
           if (iParams.controller) {
             iParams.controller.set('view', tComponentView);
           }
+          // Tell the view about its model (the component)
           tComponentView.set('model', tComponent);
           tComponent.set('layout', tComponentView.get('layout'));
         }

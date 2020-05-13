@@ -1,8 +1,9 @@
-/* global _:true, CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true,
-  createReactClass:true, createReactClassFactory:true, createReactFactory:true, createReactFC:true, ReactSizeMe: true,
-  Popper:true, Tooltip:true, Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true */
-/* exported _, CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactClassFactory,
-  createReactFactory, createReactFC, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid, RTree */
+/* global _:true, CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true, createReactClass:true,
+  createReactClassFactory:true, createReactFactory:true, createReactFC:true, ReactSizeMe: true, Popper:true, Tooltip:true,
+  Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true, SlateEditor:true */
+/* exported _, CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactClassFactory, createReactFC,
+  createReactFactory, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid, RTree, SlateEditor */
+
 var NativeDate = Date;
 require('es5-shim');
 // Our monkey-patch of valueOf() (cf. DG.DateUtilities.createDate) conflicts with ES5Shim's assumptions
@@ -52,3 +53,5 @@ pluralize = require('pluralize');
 dayjs  = require('dayjs');
 nanoid = require('nanoid');
 RTree = require('rtree');
+SlateEditor = require('@concord-consortium/slate-editor');
+require('@concord-consortium/slate-editor/build/index.css');
