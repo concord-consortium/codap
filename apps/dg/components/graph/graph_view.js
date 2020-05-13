@@ -753,7 +753,8 @@ DG.GraphView = SC.View.extend(
                       tCurrXHeight = tThisXAxisView.get('layout').height;
                       tThisXAxisView.adjust({
                         left: tLeft, width: tColWidth + 1,
-                        bottom: tLegendHeight + tHeightForBottomLabel, height: tXAxisHeight
+                        bottom: tLegendHeight + tHeightForBottomLabel, height: tXAxisHeight,
+                        top: null, right: null
                       });
                       if (tCurrXHeight !== tXAxisHeight && tRowIndex === 0 && tColIndex === 0)
                         tThisXAxisView.notifyPropertyChange('drawHeight');
@@ -1091,6 +1092,10 @@ DG.GraphView = SC.View.extend(
                     // Don't append until after we've established the plot view
                     this_.appendChild(tBackgroundView);
                   });
+                }
+                else {
+                  tBackgroundView.set('xAxisView', this_.get('xAxisViewArray')[iColumn]);
+                  tBackgroundView.set('yAxisView', this_.get('yAxisViewArray')[iRow]);
                 }
                 tBackgroundView.set('rowIndex', iRow);
                 tBackgroundView.set('colIndex', iColumn);

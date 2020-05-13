@@ -759,6 +759,26 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     /**
+     * Change the attribute type (EAttributeType) on the axis described by the given key,
+     * to treat a Numeric attribute as Categorical.
+     * @param{String} iDescKey - key to the desired attribute description (x...|y...|legendAttributeDescription)
+     * @param{String} iAxisKey - key to the axis whose attribute is to be removed (x...|yAxis)
+     * @param{Boolean} true if we want to treat the attribute as numeric (else categorical).
+     */
+    changeAttributeType: function( iDescKey, iAxisKey, iTreatAsNumeric ) {
+      sc_super();
+
+      if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription') {
+        this.synchPlotWithAttributes();
+        this.privSyncAxisWithAttribute(iDescKey, iAxisKey);
+        this.rescaleAxesFromData(true /*allowShrinkage*/, true /*animatePoints*/);
+        this.updateAxisArrays();
+        this.updateSplitPlotArray();
+        this.notifyPropertyChange('splitPlotChange');
+      }
+    },
+
+    /**
      * The top or right "axis view" has accepted the drop of a nominal attribute
      * @param iDataContext {DG.DataContext}
      * @param iAttrRefs { {attributes: [{DG.Attribute}], collection: {DG.Collection}}}
