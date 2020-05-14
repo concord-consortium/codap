@@ -770,7 +770,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription') {
         this.synchPlotWithAttributes();
-        this.privSyncAxisWithAttribute(iDescKey, iAxisKey);
+        this.synchAxes();
         this.rescaleAxesFromData(true /*allowShrinkage*/, true /*animatePoints*/);
         this.updateAxisArrays();
         this.updateSplitPlotArray();
