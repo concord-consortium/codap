@@ -37,6 +37,11 @@ DG.AxisLabelView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
         orientation: null,
 
+        /**
+         * @property {DG.Attribute}
+         */
+        plottedAttribute: null,
+
         blankDropHint: 'DG.GraphView.addToEmptyPlace',
 
         desiredExtent: DG.RenderingUtilities.kCaptionFontHeight,
