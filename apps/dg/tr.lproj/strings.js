@@ -666,7 +666,7 @@ SC.stringsFor("tr", {
     "DG.Locale.name.es": "Spanish",
     "DG.Locale.name.he": "Hebrew",
     "DG.Locale.name.tr": "Turkish",
-    "DG.Locale.name.zh": "Chinese",
+    "DG.Locale.name.zh": "Traditional Chinese",
     "DG.Undo.graph.swapCategories": "Undo reordering categories",
     "DG.Redo.graph.swapCategories": "Redo reordering categories",
     "DG.TableController.collectionTitleText": "%@1 (%@2 cases)",
@@ -801,5 +801,6 @@ SC.stringsFor("tr", {
     "DG.Component.closeComponent.toolTip": "Close this Component",
     "DG.Component.minimizeComponent.toolTip": "Minimize or expand this Component",
     "DG.Locale.name.ja": "Japanese",
-    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3"
+    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3",
+    "DG.Locale.name.zh-Hans": "Simplified Chinese"
 });

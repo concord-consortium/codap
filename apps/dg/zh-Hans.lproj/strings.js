@@ -801,5 +801,6 @@ SC.stringsFor("zh-Hans", {
     "DG.Component.closeComponent.toolTip": "关闭该组分",
     "DG.Component.minimizeComponent.toolTip": "最小化或展开该组分",
     "DG.Locale.name.ja": "Japanese",
-    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3"
+    "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3",
+    "DG.Locale.name.zh-Hans": "Simplified Chinese"
 });
