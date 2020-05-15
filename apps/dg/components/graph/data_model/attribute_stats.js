@@ -351,6 +351,8 @@ DG.AttributeStats = SC.Object.extend((function () // closure
       var tCases = this._cases,
           tAttributes = this.get('attributes'),
           tNumericCaseCount = 0,
+          tTreatAsNumeric = this._attributeType === DG.Analysis.EAttributeType.eNumeric ||
+              (tAttributes.length > 0 && tAttributes[0].get('type') === 'numeric'),
           tAttributeType,
           tDataIsNumeric = true,  // True both for numbers and dates
           tDataIsDateTime = tCases.get('length') > 0,
@@ -370,7 +372,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         function addCaseValueToStats(iCaseValue) {
           // We have to determine whether iCaseValue is a date.
           // If it is numeric, it is not a date
-          var tValue = Number(iCaseValue);
+          var tValue = tTreatAsNumeric ? DG.MathUtilities.extractNumeric(iCaseValue) : Number( iCaseValue);
           tFoundADateDuringDataIsDateTime = tDataIsDateTime &&
               (tFoundADateDuringDataIsDateTime || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
           tDataIsDateTime = tDataIsDateTime && (SC.empty(iCaseValue) || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
@@ -379,7 +381,6 @@ DG.AttributeStats = SC.Object.extend((function () // closure
             if (tValue < tMin) tMin = tValue;
             if (tValue > tMax) tMax = tValue;
             tSum += tValue;
-            //tDataIsInteger = tDataIsInteger && (Math.floor( tValue ) === tValue);
             tValues.push(tValue);
             if (tValue > 0) {
               tPositiveMin = Math.min(tValue, tPositiveMin);
