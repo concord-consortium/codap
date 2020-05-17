@@ -1049,7 +1049,7 @@ DG.GraphView = SC.View.extend(
                 ioAxisViewArray[tIndex] = tNewView;
               }
             }
-            for (tIndex; tIndex < ioAxisViewArray.length; tIndex++) {
+            for (tIndex = tNumModels; tIndex < ioAxisViewArray.length; tIndex++) {
               ioAxisViewArray[tIndex].destroy();
             }
             ioAxisViewArray.length = tNumModels;
