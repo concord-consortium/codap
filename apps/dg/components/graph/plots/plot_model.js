@@ -929,6 +929,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        from the DataContext.
        */
       handleDataContextNotification: function (iNotifier, iChange) {
+        this.invalidateCaches();
         // Currently, much of the handling is in the PlotViews.
         // Some of it would fit better in the model, but for now we
         // leave things the way they are and simply make the change

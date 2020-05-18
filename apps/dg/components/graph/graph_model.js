@@ -1676,7 +1676,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       // Forward the notification to the plots, so they can respond as well.
       this.get('plots' ).forEach( function( iPlot) {
-        iPlot.handleDataContextNotification( iNotifier, iChange);
+        iPlot.get('siblingPlots').concat([iPlot]).forEach( function( iOnePlot) {
+          iOnePlot.handleDataContextNotification(iNotifier, iChange);
+        });
       });
       // Forward the notification to the number toggle, so it can respond as well.
       var numberToggleModel = this.get('numberToggle');
