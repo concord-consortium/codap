@@ -953,8 +953,10 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
 
         var dataConfiguration = this.get('dataConfiguration');
         if (dataConfiguration) {
-          this.invalidateCaches( iKey);
-          this.handleDataConfigurationChange(iKey);
+          this.get('siblingPlots').concat([this]).forEach( function( iPlot) {
+            iPlot.invalidateCaches(iKey);
+            iPlot.handleDataConfigurationChange(iKey);
+          });
 
           if (iKey === 'dataConfiguration') {
             dataConfiguration.addObserver('cases', this, 'dataConfigurationDidChange');
