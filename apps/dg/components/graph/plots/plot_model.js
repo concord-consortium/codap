@@ -854,6 +854,15 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       },
 
       /**
+       * Called directly by GraphModel so that anything that needs to be done special for
+       * a change in x or y attribute, as opposed to legend, can be done. See BinnedPlotModel.
+       * @parameter {String}  Either 'xAxis' or 'yAxis'
+       */
+      xOrYAttributeDidChange: function( iAxisKey) {
+        // subclasses may override
+      },
+
+      /**
        Returns true if the plot is affected by the specified change such that
        a redraw is required, false otherwise. Used to avoid redrawing when
        attribute values that aren't being plotted are changed, for instance.

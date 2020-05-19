@@ -527,7 +527,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
       var this_ = this,
-          tTargetDescKey, tTargetAxisKey, tOtherDim;
+          tTargetDescKey, tTargetAxisKey, tOtherDim,
+          tIsXorYChange = false;
 
       function switchAxes() {
 
@@ -587,11 +588,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
           tTargetDescKey = 'xAttributeDescription';
           tTargetAxisKey = 'xAxis';
           tOtherDim = 'y';
+          tIsXorYChange = true;
           break;
         case DG.GraphTypes.EOrientation.kVertical:
           tTargetDescKey = 'yAttributeDescription';
           tTargetAxisKey = 'yAxis';
           tOtherDim = 'x';
+          tIsXorYChange = true;
           break;
         case DG.GraphTypes.EOrientation.kVertical2:
           tTargetDescKey = 'y2AttributeDescription';
@@ -627,6 +630,16 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
         this.synchPlotWithAttributes();
         this.synchAxes();
+
+        if( tIsXorYChange) {
+          // Plots (e.g. BinnedPlotModel) need to know this directly so that can act differently
+          //  than for other attribute changes
+          this.get('plots').forEach( function( iPlot) {
+            iPlot.get('siblingPlots').concat([iPlot]).forEach( function( iOnePlot) {
+              iOnePlot.xOrYAttributeDidChange( tTargetAxisKey);
+            });
+          });
+        }
 
         this.invalidate();
       }

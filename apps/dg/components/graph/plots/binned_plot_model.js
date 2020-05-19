@@ -232,11 +232,6 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
          */
         invalidateCaches: function ( iKey) {
           sc_super();
-          if( iKey === 'attributeAssignment') {
-            this.set('width', null);
-            this.set('alignment', null);
-            this.set('widthIncrement', null);
-          }
           this.invalidateCasesMap();
         },
 
@@ -244,6 +239,21 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           this._casesMap = null;
           this.notifyPropertyChange('changed');
         }.observes('width', 'alignment'),
+
+        /**
+         * Called directly by GraphModel. If it is our primary axis attribute that has changed,
+         * we need to recompute width, alignment, and increment.
+         * @parameter {String}  Either 'xAxis' or 'yAxis'
+         */
+        xOrYAttributeDidChange: function( iAxisKey) {
+          var tPrimaryPlace = this.get('primaryAxisPlace'),
+              tPlaceThatChanged = (iAxisKey === 'xAxis') ? DG.GraphTypes.EPlace.eX : DG.GraphTypes.EPlace.eY;
+          if( tPrimaryPlace === tPlaceThatChanged) {
+            this.set('width', null);
+            this.set('alignment', null);
+            this.set('widthIncrement', null);
+          }
+        },
 
         updateCasesMap: function () {
           if( this.recomputing)
