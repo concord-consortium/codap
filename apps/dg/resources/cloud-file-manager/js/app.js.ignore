@@ -18401,7 +18401,7 @@ module.exports={
 }
 
 },{}],84:[function(require,module,exports){
-var baseLang, defaultLang, getBaseLanguage, getFirstBrowserLanguage, lang, languageFiles, translate, translations, urlParams, varRegExp;
+var baseLang, defaultLang, getBaseLanguage, getFirstBrowserLanguage, getPageLanguage, lang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
 
@@ -18451,6 +18451,15 @@ getBaseLanguage = function(langKey) {
   return void 0;
 };
 
+getPageLanguage = function() {
+  var pageLang;
+  pageLang = document.documentElement.lang;
+  if (pageLang && pageLang !== "unknown") {
+    return pageLang;
+  }
+  return void 0;
+};
+
 getFirstBrowserLanguage = function() {
   var i, language, languages, len, nav;
   nav = window.navigator;
@@ -18475,7 +18484,7 @@ languageFiles.forEach(function(lang) {
   }
 });
 
-lang = urlParams.lang || getFirstBrowserLanguage();
+lang = urlParams.lang || getPageLanguage() || getFirstBrowserLanguage();
 
 baseLang = getBaseLanguage(lang || '');
 
