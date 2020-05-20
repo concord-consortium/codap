@@ -123,7 +123,6 @@
     "codemirror": "^5.39.2",
     "create-react-class": "^15.6.3",
     "dayjs": "^1.8.14",
-    "deep-equal": "^1.0.1",
     "es5-shim": "^4.5.14",
     "es6-shim": "^0.35.5",
     "esri-leaflet": "^2.2.1",
