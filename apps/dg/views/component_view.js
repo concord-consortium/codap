@@ -256,6 +256,16 @@ DG.ComponentView = SC.View.extend(
                   tParent.userEdit = false;
                   DG.UndoHistory.execute(DG.Command.create({
                     name: 'component.titleChange',
+                    executeNotification: {
+                      action: 'notify',
+                      type: tComponentView.getPath('model.type'),
+                      resource: 'component['+tComponentView.getPath('model.id') + ']',
+                      values: {
+                        operation: 'titleChange',
+                        from: tComponentView.getPath('model.title'),
+                        to: value
+                      }
+                    },
                     undoString: 'DG.Undo.componentTitleChange',
                     redoString: 'DG.Redo.componentTitleChange',
                     _userPreviouslySetTitle: tComponentView.getPath('model.userSetTitle'),
