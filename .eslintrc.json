@@ -6,7 +6,7 @@
                 "sc_super": false, "static_url": false, "NO": false, "YES": false,
                 "module": false, "require": false },
   "plugins": ["react", "react-hooks"],
-  "extends": [ "eslint:recommended", "plugin:react/recommended" ],
+  "extends": [ "eslint:recommended", "plugin:react/recommended", "plugin:json/recommended-with-comments" ],
   "settings": {
     "react": {
       "createClass": "createReactClass", // Regex for Component Factory to use,
