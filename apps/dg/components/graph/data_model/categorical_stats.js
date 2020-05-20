@@ -54,14 +54,14 @@ DG.CategoricalStats = SC.Object.extend(
        */
       numberOfCells: function () {
         return DG.ObjectMap.length(this.cellMap);
-      }.property('cellMap'),
+      }.property(),
 
-      countDidChange: function () {
+      countOrNumberOfCellsDidChange: function () {
         var currNumberOfCells = this.get('numberOfCells');
         if (currNumberOfCells !== this._prevNumberOfCells)
           this.notifyPropertyChange('numberOfCells');
         this._prevNumberOfCells = currNumberOfCells;
-      }.observes('count'),
+      }.observes('count', 'cellMap'),
 
       /**
        @return{Number} corresponding to given name
@@ -92,8 +92,9 @@ DG.CategoricalStats = SC.Object.extend(
        * Return all values to original state
        */
       reset: function () {
-        this.set('count', 0);
-        this.set('cellMap', {});
+        // Don't use 'set' since it can lead to infinite loops
+        this.count = 0;
+        this.cellMap = {};
       }
 
     });

@@ -187,14 +187,19 @@ DG.GraphController = DG.DataDisplayController.extend(
          */
         addPlotViewObservers: function() {
           var this_ = this;
-          this.get('graphView').get('plotBackgroundViewArray').forEach(
-              function( iBackgroundViewArray, iRow){
-                iBackgroundViewArray.forEach( function( iBackgroundPlotView, iCol){
+          this.getPath('graphView.plotBackgroundViewArray').forEach(
+              function (iBackgroundViewArray, iRow) {
+                iBackgroundViewArray.forEach(function (iBackgroundPlotView, iCol) {
                   // We don't have to add to the root plotView
-                  if( (iRow !== 0 || iCol !== 0) && iBackgroundPlotView)
+                  if ((iRow !== 0 || iCol !== 0) && iBackgroundPlotView)
                     iBackgroundPlotView.addObserver('dragData', this_, this_.plotOrLegendViewDidAcceptDrop);
                 });
-              } );
+              });
+          this.getPath('graphView.xAxisViewArray').concat(this.getPath('graphView.yAxisViewArray')).
+            forEach(function (iAxisView, iIndex) {
+              if (iAxisView && !iAxisView.hasObserverFor('dragData', this_, this_.axisViewDidAcceptDrop))
+                iAxisView.addObserver('dragData', this_, this_.axisViewDidAcceptDrop);
+          });
         },
 
         /**
@@ -211,6 +216,11 @@ DG.GraphController = DG.DataDisplayController.extend(
                     iBackgroundPlotView.removeObserver('dragData', this_, this_.plotOrLegendViewDidAcceptDrop);
                 });
               } );
+          this.getPath('graphView.xAxisViewArray').concat(this.getPath('graphView.yAxisViewArray')).
+          forEach(function (iAxisView, iIndex) {
+            if (iAxisView)
+              iAxisView.removeObserver('dragData', this_, this_.axisViewDidAcceptDrop);
+          });
         },
 
         /**
@@ -461,6 +471,7 @@ DG.GraphController = DG.DataDisplayController.extend(
          graph gets reconfigured.
          */
         axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
+          iDragData = iDragData || iAxis.dragData;
           if (SC.none(iDragData)) // The over-notification caused by the * in the observes
             return;       // means we get here at times there isn't any drag data.
 

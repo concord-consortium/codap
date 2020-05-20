@@ -527,7 +527,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
       var this_ = this,
-          tTargetDescKey, tTargetAxisKey, tOtherDim;
+          tTargetDescKey, tTargetAxisKey, tOtherDim,
+          tIsXorYChange = false;
 
       function switchAxes() {
 
@@ -587,11 +588,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
           tTargetDescKey = 'xAttributeDescription';
           tTargetAxisKey = 'xAxis';
           tOtherDim = 'y';
+          tIsXorYChange = true;
           break;
         case DG.GraphTypes.EOrientation.kVertical:
           tTargetDescKey = 'yAttributeDescription';
           tTargetAxisKey = 'yAxis';
           tOtherDim = 'x';
+          tIsXorYChange = true;
           break;
         case DG.GraphTypes.EOrientation.kVertical2:
           tTargetDescKey = 'y2AttributeDescription';
@@ -627,6 +630,16 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
         this.synchPlotWithAttributes();
         this.synchAxes();
+
+        if( tIsXorYChange) {
+          // Plots (e.g. BinnedPlotModel) need to know this directly so that can act differently
+          //  than for other attribute changes
+          this.get('plots').forEach( function( iPlot) {
+            iPlot.get('siblingPlots').concat([iPlot]).forEach( function( iOnePlot) {
+              iOnePlot.xOrYAttributeDidChange( tTargetAxisKey);
+            });
+          });
+        }
 
         this.invalidate();
       }
@@ -770,7 +783,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription') {
         this.synchPlotWithAttributes();
-        this.privSyncAxisWithAttribute(iDescKey, iAxisKey);
+        this.synchAxes();
         this.rescaleAxesFromData(true /*allowShrinkage*/, true /*animatePoints*/);
         this.updateAxisArrays();
         this.updateSplitPlotArray();
@@ -1676,7 +1689,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       // Forward the notification to the plots, so they can respond as well.
       this.get('plots' ).forEach( function( iPlot) {
-        iPlot.handleDataContextNotification( iNotifier, iChange);
+        iPlot.get('siblingPlots').concat([iPlot]).forEach( function( iOnePlot) {
+          iOnePlot.handleDataContextNotification(iNotifier, iChange);
+        });
       });
       // Forward the notification to the number toggle, so it can respond as well.
       var numberToggleModel = this.get('numberToggle');

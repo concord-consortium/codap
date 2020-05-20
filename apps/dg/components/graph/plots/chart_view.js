@@ -68,7 +68,11 @@ DG.ChartView = DG.PlotView.extend(
         if (iOperation !== 'createCase' && iOperation !== 'createCases')
           this.get('model').invalidateCaches();
         this._elementOrderIsValid = false;
-        this.installCleanup();  // Call explicitly since we're not calling sc_super
+        // Call the following explicitly since we're not calling sc_super
+        if (iChangeKey === 'hiddenCases') {
+          this.updateSelection();
+        }
+        this.installCleanup();
       },
 
       /**

@@ -854,6 +854,15 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       },
 
       /**
+       * Called directly by GraphModel so that anything that needs to be done special for
+       * a change in x or y attribute, as opposed to legend, can be done. See BinnedPlotModel.
+       * @parameter {String}  Either 'xAxis' or 'yAxis'
+       */
+      xOrYAttributeDidChange: function( iAxisKey) {
+        // subclasses may override
+      },
+
+      /**
        Returns true if the plot is affected by the specified change such that
        a redraw is required, false otherwise. Used to avoid redrawing when
        attribute values that aren't being plotted are changed, for instance.
@@ -929,6 +938,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        from the DataContext.
        */
       handleDataContextNotification: function (iNotifier, iChange) {
+        this.invalidateCaches();
         // Currently, much of the handling is in the PlotViews.
         // Some of it would fit better in the model, but for now we
         // leave things the way they are and simply make the change
@@ -953,8 +963,10 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
 
         var dataConfiguration = this.get('dataConfiguration');
         if (dataConfiguration) {
-          this.invalidateCaches( iKey);
-          this.handleDataConfigurationChange(iKey);
+          this.get('siblingPlots').concat([this]).forEach( function( iPlot) {
+            iPlot.invalidateCaches(iKey);
+            iPlot.handleDataConfigurationChange(iKey);
+          });
 
           if (iKey === 'dataConfiguration') {
             dataConfiguration.addObserver('cases', this, 'dataConfigurationDidChange');

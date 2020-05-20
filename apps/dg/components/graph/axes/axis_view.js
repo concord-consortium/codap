@@ -80,6 +80,12 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         plottedAttribute: function () {
           return this.getPath('model.attributeDescription.attribute');
         }.property(),
+        plottedAttributeDidChange: function() {
+          // If make use of an AxisLabelView, let it know the new plottedAttribute so it can
+          // highlight correctly in a drag of an attribute
+          if( this.get('paperSourceForLabel'))
+            this.setPath( 'paperSourceForLabel.plottedAttribute', this.get('plottedAttribute'));
+        }.observes('model.attributeDescription.attribute'),
 
         xAttributeDescription: null,  // Used by vertical2 axis to test if drag attribute is valid
         otherYAttributeDescription: null,  // Used by vertical2 axis to test if drag attribute is valid
