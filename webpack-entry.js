@@ -1,8 +1,8 @@
 /* global _:true, CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true, createReactClass:true,
   createReactClassFactory:true, createReactFactory:true, createReactFC:true, ReactSizeMe: true, Popper:true, Tooltip:true,
-  Papa:true, L:true, deepEqual:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true, SlateEditor:true */
+  Papa:true, L:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true, SlateEditor:true */
 /* exported _, CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactClassFactory, createReactFC,
-  createReactFactory, ReactSizeMe, Popper, Tooltip, Papa, L, deepEqual, Promise, pluralize, dayjs, nanoid, RTree, SlateEditor */
+  createReactFactory, ReactSizeMe, Popper, Tooltip, Papa, L, Promise, pluralize, dayjs, nanoid, RTree, SlateEditor */
 
 var NativeDate = Date;
 require('es5-shim');
@@ -48,7 +48,6 @@ iframePhone = require('iframe-phone');
 Papa = require('papaparse');
 L = require('leaflet');
 L.esri = require('esri-leaflet');
-deepEqual = require('deep-equal');
 pluralize = require('pluralize');
 dayjs  = require('dayjs');
 nanoid = require('nanoid');
