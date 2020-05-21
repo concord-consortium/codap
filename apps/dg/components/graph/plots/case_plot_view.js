@@ -101,7 +101,7 @@ DG.CasePlotView = DG.PlotView.extend(
 
         handlersMustBeInstalledToExistingElements: true,
 
-        init: function() {
+        init: function () {
           sc_super();
         },
 
@@ -172,7 +172,7 @@ DG.CasePlotView = DG.PlotView.extend(
                   .addClass(DG.PlotUtilities.kDotClassName);
           tCircle.index = iIndex;
           tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
-          addHandlers( this, tCircle);
+          addHandlers(this, tCircle);
           return tCircle;
         },
 
@@ -184,10 +184,10 @@ DG.CasePlotView = DG.PlotView.extend(
           if (!this.get('paper') || !this.get('model') || !this.getPath('model.cases') || this.getPath('model.isAnimating'))
             return;
 
-          if( this.handlersMustBeInstalledToExistingElements) {
+          if (this.handlersMustBeInstalledToExistingElements) {
             var this_ = this;
-            this.get('plottedElements').forEach( function( iElement) {
-              addHandlers( this_, iElement);
+            this.get('plottedElements').forEach(function (iElement) {
+              addHandlers(this_, iElement);
             });
             this.handlersMustBeInstalledToExistingElements = false;
           }
@@ -266,6 +266,7 @@ DG.CasePlotView = DG.PlotView.extend(
                   tPointSet.clear();
                 }.bind(this);
             loop();
+            this._elementOrderIsValid = false;
           }
           else if (tPlottedElements.length > 0 && !this.getPath('model.isAnimating')) {
             tPlottedElements.forEach(function (iCircle, iIndex) {
