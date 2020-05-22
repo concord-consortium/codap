@@ -115,17 +115,15 @@ DG.UnivariateStats = SC.Object.extend(
      * Return all values to original state
      */
     reset:function () {
-      this.beginPropertyChanges();
-        this.set( 'count', 0 );
-        this.set( 'attributeType', null );
-        this.set( 'dataIsInteger', null );
-        this.set( 'sum', null );
-        this.set( 'squaredDeviations', null );
-        this.set( 'rangeMin', null );
-        this.set( 'rangeMax', null );
-        this.set( 'positiveMin', null );
-        this.set( 'positiveMax', null );
-      this.endPropertyChanges();
+      this.count = 0;
+      this.attributeType = null;
+      this.dataIsInteger = null;
+      this.sum = null;
+      this.squaredDeviations = null;
+      this.rangeMin = null;
+      this.rangeMax = null;
+      this.positiveMin = null;
+      this.positiveMax = null;
   }
 
   } );

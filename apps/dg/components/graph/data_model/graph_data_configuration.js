@@ -54,6 +54,13 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
   /**
    @property { DG.AttributePlacementDescription }
    */
+  captionAttributeDescription: function (iKey, iValue) {
+    return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eCaption);
+  }.property(),
+
+  /**
+   @property { DG.AttributePlacementDescription }
+   */
   rightAttributeDescription: function (iKey, iValue) {
     return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eRightSplit);
   }.property(),
@@ -80,6 +87,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
   init: function() {
 
     var attributeDescriptions = {
+          caption: DG.AttributePlacementDescription.create(),
           x: DG.AttributePlacementDescription.create(),
           y: DG.AttributePlacementDescription.create(),
           y2: DG.AttributePlacementDescription.create(),
@@ -154,6 +162,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     
     // Actually, during this coding transition, we're going to stash the previously
     // initialized attribute descriptions in attributesByPlace.
+    this.attributeDescriptionForPlace('caption', attributeDescriptions.caption, DG.GraphTypes.EPlace.eCaption);
     this.attributeDescriptionForPlace('x', attributeDescriptions.x, DG.GraphTypes.EPlace.eX);
     this.attributeDescriptionForPlace('y', attributeDescriptions.y, DG.GraphTypes.EPlace.eY);
     this.attributeDescriptionForPlace('y2', attributeDescriptions.y2, DG.GraphTypes.EPlace.eY2);

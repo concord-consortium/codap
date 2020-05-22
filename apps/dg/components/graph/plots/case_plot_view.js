@@ -56,9 +56,11 @@ DG.CasePlotView = DG.PlotView.extend(
                       opacity: kOpaque,
                       transform: DG.PlotUtilities.kDataHoverTransform
                     }, DG.PlotUtilities.kDataTipShowTime);
+                    iView.showDataTip(this, this.index);
                   }
                 },
                 function (event) { // out
+                  iView.hideDataTip();
                   if (!tIsDragging) {
                     this.stop();
                     this.animate({transform: tInitialTransform}, DG.PlotUtilities.kHighlightHideTime);

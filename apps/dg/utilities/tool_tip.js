@@ -31,6 +31,11 @@ DG.ToolTip = SC.Object.extend(
   */
   paperSource: null,
 
+  destroy: function() {
+    this.paperSource = null;
+    sc_super();
+  },
+
   /**
     What we draw on.
     @property { Raphael }

@@ -204,7 +204,8 @@ DG.AttributeStats = SC.Object.extend((function () // closure
               (tType === DG.Analysis.EAttributeType.eCategorical),
           tVarID, tCategoryMap;
 
-      this._cases = iCases || this._cases; // Do this first so subsequently computed stats will use the right cases
+      if( iCases)
+        this.setCases( iCases);// Do this first so subsequently computed stats will use the right cases
       if (iChange &&
           ((iChange.operation === 'createCase') ||
               (iChange.operation === 'createCases'))) {

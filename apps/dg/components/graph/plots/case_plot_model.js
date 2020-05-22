@@ -29,6 +29,24 @@ sc_require('components/graph/plots/plot_model');
 DG.CasePlotModel = DG.PlotModel.extend(
 /** @scope DG.CasePlotModel.prototype */ 
 {
+
+  dataContextDidChange: function(iSource, iKey) {
+    sc_super();
+    if( iKey === 'dataContext') {
+      var tConfiguration = this.get('dataConfiguration'),
+          tDataContext = tConfiguration && tConfiguration.get('dataContext'),
+          tChildMostCollection = tDataContext && tDataContext.getPath( 'childCollection.collection'),
+          tCaptionAttribute = tChildMostCollection && tChildMostCollection.get('attrs')[0],
+          tCaptionDescription = tConfiguration.get('captionAttributeDescription');
+      if( tCaptionAttribute) {
+        tConfiguration.setAttributeAndCollectionClient( 'captionAttributeDescription',
+            { collection: tChildMostCollection, attributes: [ tCaptionAttribute]});
+      }
+      else if( tCaptionDescription)
+        tCaptionDescription.removeAllAttributes();
+    }
+  }.observes('*dataConfiguration.dataContext'),
+
   /**
    * @property{Array of {x: {Number} y: {Number}}
    */
