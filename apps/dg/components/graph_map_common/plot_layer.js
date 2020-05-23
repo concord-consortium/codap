@@ -332,6 +332,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
        */
       plotConfigurationDidChange: function () {
         this._isRenderingValid = false;
+        this._elementOrderIsValid = false;
         this.displayDidChange();
       }.observes('.model.plotConfiguration'),
 
