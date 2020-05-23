@@ -1110,8 +1110,10 @@ DG.GraphView = SC.View.extend(
                   });
                   tPlotViewArray[iRow][iColumn][iIndex] = tNewPlotView;
                   this_.addPlotViewObserver(tNewPlotView);
-                  if (tCurrentPlotView)
+                  if (tCurrentPlotView) {
+                    this_.removePlotViewObserver(tCurrentPlotView);
                     tCurrentPlotView.destroy();
+                  }
                 }
               });
             }
@@ -1123,6 +1125,7 @@ DG.GraphView = SC.View.extend(
         configureAxisViewArrays();
         configurePlotViewArrays();
         this._isConfigurationInProgress = false;
+        this.renderLayout(this.renderContext(this.get('tagName')), false);
 
       }.observes('.model.splitPlotChange'),
 
