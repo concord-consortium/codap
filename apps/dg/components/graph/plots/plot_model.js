@@ -131,13 +131,11 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        @property { SC.SelectionSet }
        */
       selection: function () {
-        var tSelection = this.getPath('dataConfiguration.selection');
-        if( this.getPath('dataConfiguration.hasSplitAttribute')) {
-          var tCases = this.get('cases').toArray();
-          tSelection = tSelection.filter( function( iCase) {
-            return tCases.indexOf( iCase) >= 0;
-          });
-        }
+        var tSelection = this.getPath('dataConfiguration.selection'),
+            tCases = this.get('cases').toArray();
+        tSelection = tSelection.filter(function (iCase) {
+          return tCases.indexOf(iCase) >= 0;
+        });
         return tSelection;
       }.property(),
 
@@ -316,6 +314,17 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       _adornmentModels: null,
 
       /**
+       * @property {[DG.PlotAdornmentModel]}
+       */
+      adornmentModelsAsArray: function() {
+        var tResult = [];
+        DG.ObjectMap.forEach(this._adornmentModels, function( iKey, iAdornmentModel) {
+          tResult.push( iAdornmentModel);
+        });
+        return tResult;
+      }.property(),
+
+      /**
        @property { DG.PlottedCountModel }
        */
       _plottedCountModel: null,
@@ -352,7 +361,10 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       enableMeasuresForSelection: false,
 
       enableMeasuresForSelectionDidChange: function(){
-        // Do nothing. Subclasses may override
+        var tEnable = this.get('enableMeasuresForSelection');
+        this.get('adornmentModelsAsArray').forEach( function( iAdornmentModel) {
+          iAdornmentModel.set('enableMeasuresForSelection', tEnable);
+        });
       }.observes('enableMeasuresForSelection'),
 
       /**

@@ -60,7 +60,6 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
                               ['isInterceptLocked', 'updateToModel'],
                               ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel'],
                               ['sumSquaresResiduals', 'updateToModel'],
-                              ['enableMeasuresForSelection', 'enableMeasuresForSelectionDidChange'],
                               ['equationCoords', 'updateToModel']],
 
   /**

@@ -110,8 +110,9 @@ DG.PlotAdornment = SC.Object.extend(
     
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
-  modelPropertiesToObserve: [ ['willDestroy', 'detachModel'], 
-                              ['isVisible', 'updateVisibility'] ],
+  modelPropertiesToObserve: [ ['willDestroy', 'detachModel'],
+    ['computingNeeded', 'updateToModel'],
+    ['isVisible', 'updateVisibility'] ],
   concatenatedProperties: [ 'modelPropertiesToObserve' ],
   
   /**
@@ -224,6 +225,10 @@ DG.PlotAdornment = SC.Object.extend(
     {
       this.hideElements();
     }
+  },
+
+  updateToModel: function() {
+    // Subclasses will override
   }
 
 });

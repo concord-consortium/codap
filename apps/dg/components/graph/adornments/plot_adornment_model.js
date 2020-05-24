@@ -58,7 +58,45 @@ DG.PlotAdornmentModel = SC.Object.extend(
     this.notifyPropertyChange('willDestroy');
     sc_super();
   },
-  
+
+  /**
+   Private cache.
+   @property { Boolean }
+   */
+  _needsComputing: true,
+
+  /**
+   * True if we need to compute new values to match new cells.
+   * Note that this does not detect data changes where means need recomputing anyway.
+   * @return { Boolean }
+   */
+  isComputingNeeded: function() {
+    return this._needsComputing && this.isVisible;
+  },
+
+  /**
+   * Note that our mean values are out of date, for lazy evaluation.
+   * Dependencies, which will require a recompute
+   *  - case-attribute-values added/deleted/changed for the primary and secondary axis attribute(s)
+   *  - primary or secondary axis attributes changed (from one attribute to another)
+   *  - axis models changed (must be up to date when we use them here)
+   */
+  setComputingNeeded: function() {
+    this._needsComputing = true;
+    if( this.isComputingNeeded())
+      this.notifyPropertyChange('computingNeeded')
+  },
+
+  /**
+   * Set by MultipleLsrlsModel.
+   * @property {Boolean}
+   */
+  enableMeasuresForSelection: false,
+
+  enableMeasuresForSelectionDidChange: function() {
+    this.setComputingNeeded();
+  }.observes('enableMeasuresForSelection'),
+
   /**
     Returns an object which contains properties that should be written
     out with the document for archiving purposes.

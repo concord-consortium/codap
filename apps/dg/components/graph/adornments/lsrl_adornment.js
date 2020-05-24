@@ -65,11 +65,6 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 
   updateToModel: function() {
     this.positionEquationAndBackground();
-  },
-
-  enableMeasuresForSelectionDidChange:function() {
-    this.get('model').setComputingNeeded();
-    this.updateToModel();
   }
 
 });

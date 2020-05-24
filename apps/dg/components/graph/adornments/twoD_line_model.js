@@ -92,23 +92,6 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
     Private cache.
     @property { Boolean }
   */
-  _needsComputing: null,
-
-  /**
-   * Note that our slope and intercept values are out of date, for lazy evaluation.
-   * Dependencies, which will require a recompute
-   *  - case-attribute-values added/deleted/changed for the primary and secondary axis attribute(s)
-   *  - primary or secondary axis attributes changed (from one attribute to another)
-   *  - axis models changed (must be up to date when we use them here)
-   */
-  setComputingNeeded: function() {
-    this._needsComputing = true;
-  },
-
-  /**
-    Private cache.
-    @property { Boolean }
-  */
   _interceptLocked: null,
 
   /**
@@ -121,14 +104,6 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
     this.xIntercept = null;
     this._interceptLocked = false;
     this._needsComputing = true;
-  },
-
-  /**
-   True if we need to compute a new slope and intercept to force within plot bounds
-   @return { Boolean }
-   */
-  isComputingNeeded: function() {
-    return this._needsComputing && this.get('isVisible');
   },
 
   /**

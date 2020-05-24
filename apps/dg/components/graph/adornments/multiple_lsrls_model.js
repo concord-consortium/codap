@@ -51,12 +51,6 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
   }.property(),
 
   /**
-   * Set by PlotModel.
-   * @property {Boolean}
-   */
-  enableMeasuresForSelection: false,
-
-  /**
    Private cache.
    @property { Boolean }
    */
