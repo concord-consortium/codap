@@ -609,7 +609,11 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         if (!model) {
           var modelClass = DG.PlotAdornmentModel.registry[iAdornmentKey];
           DG.assert(modelClass, "No model class registered for '%@'".fmt(iAdornmentKey));
-          model = modelClass && modelClass.create({plotModel: this, adornmentKey: iAdornmentKey});
+          model = modelClass && modelClass.create({
+            plotModel: this,
+            adornmentKey: iAdornmentKey,
+            enableMeasuresForSelection: this.get('enableMeasuresForSelection')
+          });
           if (model)
             this.setAdornmentModel(iAdornmentKey, model);
         }
@@ -681,19 +685,11 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       },
 
       updateAdornmentModels: function() {
-        ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
-          var adornmentModel = this.getAdornmentModel(iAdornmentKey);
-          if (adornmentModel) {
-            if (adornmentModel.setComputingNeeded)
-              adornmentModel.setComputingNeeded();  // invalidate if axis model/attribute change
-            if (iAdornmentKey === 'multipleMovableValues') {
-              adornmentModel.recomputeValueIfNeeded(this.get('primaryAxisModel'));
-            }
-            else {
-              adornmentModel.recomputeValueIfNeeded(); // recompute only if/when visible
-            }
-          }
-        }.bind(this));
+        var tPrimaryAxisModel = this.get('primaryAxisModel');
+        this.get('adornmentModelsAsArray').forEach( function( iAdornmentModel) {
+            iAdornmentModel.setComputingNeeded();
+            iAdornmentModel.recomputeValueIfNeeded( tPrimaryAxisModel);
+        });
       },
 
       /**

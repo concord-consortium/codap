@@ -142,8 +142,8 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        Call the given function once for each case that has a value for each axis.
        function signature for iDoF is { iCase, iCaseIndex, iPrimaryCellIndex, iSecondaryCellIndex }
        */
-      forEachBivariateCaseDo: function( iDoF) {
-        var tCases = this.get('cases'),
+      forEachBivariateCaseDo: function( iDoF, iForSelectionOnly) {
+        var tCases = iForSelectionOnly ? this.get('selection') : this.get('cases'),
             tCC = this.get('computationContext');
         if( !tCC.primaryAxis || !tCases || !tCC.secondaryAxis)
           return; // Can happen during transitions. Bail!
@@ -157,7 +157,7 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        * Also cell index on primary and secondary axis, with primary axis as major axis.
        * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).
        */
-      getCellCaseCounts: function () {
+      getCellCaseCounts: function ( iForSelectionOnly) {
        var  tNumericAxisModel = this.get('primaryAxisModel'),
             tCategoricalAxisModel = this.get('secondaryAxisModel'),
             tValueArray = [];
@@ -186,7 +186,7 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.ChartModel.getCellCaseCounts()" );
             DG.assert( iValue.secondaryCell === (iSecondaryCell || 0), "secondary cell index error in DG.ChartModel.getCellCaseCounts()" );
           }
-        });
+        }, iForSelectionOnly);
 
         return tValueArray;
       },

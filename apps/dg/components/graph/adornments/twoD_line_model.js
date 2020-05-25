@@ -121,9 +121,9 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
    * @return { [{x:{Number}, y: {Number} legend: {String|Number}}] } with properties specific to a given subclass
    * @param {Boolean}
    */
-  getCoordinates: function( iForSelection) {
+  getCoordinates: function() {
     var tValues = [],
-        tCases = iForSelection ? this.getPath('plotModel.selection') : this.getPath('plotModel.cases'),
+        tCases = this.get('cases'),
         tXVarID = this.getPath('plotModel.xVarID'),
         tYVarID = this.getPath('plotModel.yVarID'),
         tlegendVarID = this.getPath('plotModel.legendVarID'),

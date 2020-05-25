@@ -82,29 +82,6 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
           return this._percentKind;
         }.property(),
 
-          /**
-           * True if we need to compute new values to match new cells.
-           * @return { Boolean }
-           */
-          isComputingNeeded: function () {
-            return this._needsComputing && this.get('isVisible');
-          },
-
-        /**
-         * Note that our values are out of date, for lazy evaluation.
-         */
-        setComputingNeeded: function () {
-          this._needsComputing = true;
-        }.observes('plotModel'),
-
-        /**
-         Convenience method
-         */
-        recomputeValueIfNeeded: function () {
-          if (this.isComputingNeeded())
-            this.recomputeValue();
-        },
-
         /** compute counts */
         recomputeValue: function () {
 
@@ -172,7 +149,7 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
 
           // get non-missing case count in each cell, and cell index, from plot models
           DG.assert(this.plotModel && this.plotModel.getCellCaseCounts);
-          var tValueArray = this.plotModel.getCellCaseCounts();
+          var tValueArray = this.plotModel.getCellCaseCounts( this.get('enableMeasuresForSelection'));
           switch( tPercentKind) {
             case DG.Analysis.EPercentKind.eCell:
               computeCellPercents();

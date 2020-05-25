@@ -92,10 +92,10 @@ DG.CasePlotModel = DG.PlotModel.extend(
    * Also cell index on primary and secondary axis, with primary axis as major axis.
    * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).
    */
-  getCellCaseCounts: function() {
+  getCellCaseCounts: function( iForSelectionOnly) {
     // assumes a single row and column axis cell and no missing cases
     var tValueArray = [];
-    var tCases = this.get('cases');
+    var tCases = iForSelectionOnly ? this.get('selection') : this.get('cases');
     var tNumCases = tCases.get('length');
     tValueArray.push( {
         count: tNumCases,

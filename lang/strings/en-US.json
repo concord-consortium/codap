@@ -735,6 +735,12 @@
     "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@", // "iqr=123.456"
     "DG.PlottedAverageAdornment.boxPlotTitle": "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
     "DG.PlottedCountAdornment.title": "%@ %@, %@%", // "12 cases, 50%"
+    "DG.PlottedCount.withoutSelection": "%@", // "<nn>"
+    "DG.PlottedCount.withSelection": "%@ selected", // "<nn> selected"
+    "DG.PlottedPercent.withoutSelection": "%@%", // "<nn>%"
+    "DG.PlottedPercent.withSelection": "%@% selected", // "<nn>% selected"
+    "DG.PlottedCountPercent.withoutSelection": "%@ (%@%)", // "<nn> (<pp>%)"
+    "DG.PlottedCountPercent.withSelection": "%@ (%@%) selected", // ""<nn> (<pp>%) selected"
 
     // DG.GraphModel
     "DG.DataDisplayMenu.attribute_x": "X: %@", // %@ = attribute name

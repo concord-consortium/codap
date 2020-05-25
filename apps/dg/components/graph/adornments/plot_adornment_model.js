@@ -43,6 +43,13 @@ DG.PlotAdornmentModel = SC.Object.extend(
     @type   {Boolean}
    */
   isVisible: true,
+
+  cases: function() {
+    return this.get('enableMeasuresForSelection') ?
+        this.getPath('plotModel.selection') :
+        this.getPath('plotModel.cases');
+
+  }.property(),
   
   /**
     Initialization method
@@ -84,7 +91,17 @@ DG.PlotAdornmentModel = SC.Object.extend(
   setComputingNeeded: function() {
     this._needsComputing = true;
     if( this.isComputingNeeded())
-      this.notifyPropertyChange('computingNeeded')
+      this.notifyPropertyChange('computingNeeded');
+  },
+
+  recomputeValueIfNeeded: function() {
+    if( this.isComputingNeeded()) {
+      this.recomputeValue();
+    }
+  },
+
+  recomputeValue: function() {
+    // Subclass will override
   },
 
   /**

@@ -46,18 +46,6 @@ DG.PlottedAverageModel = DG.PlotAdornmentModel.extend(
 
   precision: 0,       // decimal precision of attribute being averaged
 
-  /**
-    Use the bounds of the given axes to recompute slope and intercept.
-  */
-  recomputeValueIfNeeded: function() {
-    if( this.isComputingNeeded())
-      this.recomputeValue();
-  },
-
-  /** derived classes must implement */
-  recomputeValue: function() {
-  }
-  
 });
 
 
@@ -70,7 +58,7 @@ DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
    */
   computeSumCountMean: function( includeMAD) {
 
-    var tCases = this.getPath('plotModel.cases'),
+    var tCases = this.get('cases'),
         tNumericVarID = this.getPath( 'plotModel.primaryVarID'),
         tNumericAxisModel = this.getPath('plotModel.primaryAxisModel'),
         tCategoricalVarID = this.getPath( 'plotModel.secondaryVarID'),
@@ -204,7 +192,7 @@ DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
    */
   collectCellValsAndMedian: function() {
 
-    var tCases = this.getPath('plotModel.cases'),
+    var tCases = this.get('cases'),
         tNumericVarID = this.getPath( 'plotModel.primaryVarID'),
         tCategoricalVarID = this.getPath( 'plotModel.secondaryVarID'),
         tCategoricalAxisModel = this.getPath('plotModel.secondaryAxisModel');

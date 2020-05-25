@@ -85,7 +85,7 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function () {
      */
     filterCase: function (iEvalContext) {
       var tResult = sc_super(),
-          tCases = this.getPath('plotModel.cases');
+          tCases = this.get('cases');
       return tResult && tCases.indexOf(iEvalContext._case_) >= 0;
     },
 

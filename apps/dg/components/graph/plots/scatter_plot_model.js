@@ -781,8 +781,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        * Also cell index on primary and secondary axis, with primary axis as major axis.
        * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).
        */
-      getCellCaseCounts: function () {
-        var tCases = this.get('cases'),
+      getCellCaseCounts: function ( iForSelectionOnly) {
+        var tCases = iForSelectionOnly ? this.get('selection') : this.get('cases'),
             tXVarID = this.get('xVarID'),
             tYVarID = this.get('yVarID'),
             tCount = 0,

@@ -42,9 +42,8 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
        */
       recomputeSlopeAndIntercept: function () {
 
-        var tForSelection = this.get('enableMeasuresForSelection'),
-            tInterceptIsLocked = this.get('isInterceptLocked'),
-            tCoordinates = this.getCoordinates( tForSelection),
+        var tInterceptIsLocked = this.get('isInterceptLocked'),
+            tCoordinates = this.getCoordinates(),
             tAttrStats = this.getPath( 'plotModel.dataConfiguration.legendAttributeDescription.attributeStats'),
             tCategoryIndex = this.get('categoryIndex'),
             tSlopeIntercept;

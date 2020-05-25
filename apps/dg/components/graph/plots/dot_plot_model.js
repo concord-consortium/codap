@@ -365,8 +365,8 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
         function toggle() {
           var tBoxPlotModel = this_.getAdornmentModel('plottedBoxPlot');
           if (tBoxPlotModel) {
-            tBoxPlotModel.setComputingNeeded();
             tBoxPlotModel.toggleProperty('showOutliers');
+            tBoxPlotModel.setComputingNeeded();
           }
           return tBoxPlotModel.get('showOutliers');
         }

@@ -139,6 +139,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
       return this._plots;
     }.property(),
 
+    allPlots: function() {
+      var tResult = [];
+      this._plots.forEach( function( iPlot) {
+        tResult = tResult.concat( [iPlot].concat( iPlot.get('siblingPlots')));
+      });
+      return tResult;
+    }.property(),
+
     lastPlot: function() {
       var tNumPlots = this._plots.length;
       return ( tNumPlots > 0) ? this._plots[ tNumPlots - 1] : null;
@@ -634,10 +642,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
         if( tIsXorYChange) {
           // Plots (e.g. BinnedPlotModel) need to know this directly so that can act differently
           //  than for other attribute changes
-          this.get('plots').forEach( function( iPlot) {
-            iPlot.get('siblingPlots').concat([iPlot]).forEach( function( iOnePlot) {
-              iOnePlot.xOrYAttributeDidChange( tTargetAxisKey);
-            });
+          this.get('allPlots').forEach(function (iPlot) {
+            iPlot.xOrYAttributeDidChange(tTargetAxisKey);
           });
         }
 
@@ -1683,15 +1689,17 @@ DG.GraphModel = DG.DataLayerModel.extend(
           this.dataRangeDidChange( this, 'revision', this, iChange.indices);
           break;
         case 'selectCases':
-          //this.selectionDidChange();
+          if( this.get('enableMeasuresForSelection')) {
+            this.get('allPlots').forEach( function( iPlot) {
+              iPlot.updateAdornmentModels();
+            });
+          }
           break;
       }
 
       // Forward the notification to the plots, so they can respond as well.
-      this.get('plots' ).forEach( function( iPlot) {
-        iPlot.get('siblingPlots').concat([iPlot]).forEach( function( iOnePlot) {
-          iOnePlot.handleDataContextNotification(iNotifier, iChange);
-        });
+      this.get('allPlots').forEach(function (iPlot) {
+        iPlot.handleDataContextNotification(iNotifier, iChange);
       });
       // Forward the notification to the number toggle, so it can respond as well.
       var numberToggleModel = this.get('numberToggle');

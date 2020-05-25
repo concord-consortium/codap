@@ -78,18 +78,24 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
    * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
    */
   updateSymbols: function( iAnimate ) {
+    var this_ = this;
 
     function formatValueString( iValue) {
-      var tValueString = '',
+      var tForSelectionOnly = this_.getPath('model.enableMeasuresForSelection'),
+          tFormatString,
+          tValueString = '',
           tPercValue = DG.MathUtilities.roundToSignificantDigits(iValue.percent, 2).roundedValue; // 2 significant digits
       if( tShowCount && !tShowPercent) {
-        tValueString = iValue.count.toString();
+        tFormatString = tForSelectionOnly ? 'DG.PlottedCount.withSelection' : 'DG.PlottedCount.withoutSelection';
+        tValueString = tFormatString.loc (iValue.count.toString());
       }
       else if( tShowPercent && !tShowCount) {
-        tValueString = '%@%'.fmt( tPercValue);
+        tFormatString = tForSelectionOnly ? 'DG.PlottedPercent.withSelection' : 'DG.PlottedPercent.withoutSelection';
+        tValueString = tFormatString.loc( tPercValue);
       }
       else if( tShowCount && tShowPercent) {
-        tValueString = '%@ (%@%)'.fmt( iValue.count, tPercValue);
+        tFormatString = tForSelectionOnly ? 'DG.PlottedCountPercent.withSelection' : 'DG.PlottedCountPercent.withoutSelection';
+        tValueString = tFormatString.loc( iValue.count, tPercValue);
       }
       return tValueString;
     }
