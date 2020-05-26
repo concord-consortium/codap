@@ -384,7 +384,7 @@ DG.Formula.add = function(iOperand1, iOperand2) {
     return String(iOperand1);
 
   // no more special cases - concatenate strings
-  return DG.Formula.stringFinisher(iOperand1, iOperand2, '+');
+  return DG.Formula.stringFinisher(result, iOperand1, iOperand2, '+');
 };
 
 /**
