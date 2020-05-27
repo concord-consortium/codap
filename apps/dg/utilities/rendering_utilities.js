@@ -30,7 +30,7 @@ DG.RenderingUtilities = {
   
   kTransparent: "rgba(255, 255, 255, 0)",
   kSeeThrough: "rgba(255, 255, 255, 0.001)",  // Still receives mouse events
-  kCaptionFontHeight: 18,
+  kCaptionFontHeight: 20,
   kDefaultFontHeight: 12,
 
   /**

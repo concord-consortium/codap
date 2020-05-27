@@ -376,7 +376,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               case DG.GraphTypes.EOrientation.kVertical:
               case DG.GraphTypes.EOrientation.kVertical2:
               case DG.GraphTypes.EOrientation.kRight:
-                tLoc.x = tLabelExtent.x / 4 + 2;
+                tLoc.x = tLabelExtent.x / 4 + 4;
                 tLoc.y = tPosition - tLabelExtent.y / 2;
                 tPosition -= tLabelExtent.y + 4;
                 if (tOrientation === DG.GraphTypes.EOrientation.kVertical2 ||
