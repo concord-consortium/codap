@@ -802,5 +802,11 @@ SC.stringsFor("ja", {
     "DG.Component.minimizeComponent.toolTip": "このパーツを最小化、もしくは拡張します",
     "DG.Locale.name.ja": "日本語",
     "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3",
-    "DG.Locale.name.zh-Hans": "Simplified Chinese"
+    "DG.Locale.name.zh-Hans": "Simplified Chinese",
+    "DG.PlottedCount.withoutSelection": "%@",
+    "DG.PlottedCount.withSelection": "%@ selected",
+    "DG.PlottedPercent.withoutSelection": "%@%",
+    "DG.PlottedPercent.withSelection": "%@% selected",
+    "DG.PlottedCountPercent.withoutSelection": "%@ (%@%)",
+    "DG.PlottedCountPercent.withSelection": "%@ (%@%) selected"
 });
