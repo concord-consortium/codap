@@ -1901,7 +1901,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
           text: {
             name: directMapping,
-            text: directMapping,
+            text: function (key, value) {
+              return {key: 'apiText', value: value};
+            },
             title: directMapping,
             cannotClose: directMapping
           },
@@ -2435,4 +2437,3 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       //  }
       //}
     });
-

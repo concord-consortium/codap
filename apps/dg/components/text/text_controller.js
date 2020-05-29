@@ -55,6 +55,17 @@ DG.TextComponentController = DG.ComponentController.extend(
   }.observes('model.content.text'),
 
   /**
+   *  Listen for the text to be changed via API and handle it appropriately.
+   */
+  apiTextDidChange: function () {
+    var apiText = this.getPath('model.content.apiText');
+    if (!SC.none(apiText)) {
+      this.setTheText(apiText);
+      this.setPath('model.content.apiText', null);
+    }
+  }.observes('model.content.apiText'),
+
+  /**
    *  Pushes its argument to the editor's content. This is accomplished by
    *  setting the editor's 'value' property (via binding) to the desired
    *  value and then setting the editor's 'editorValue' property (also via
