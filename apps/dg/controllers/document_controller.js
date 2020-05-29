@@ -1145,7 +1145,7 @@ DG.DocumentController = SC.Object.extend(
                   componentClass: {type: 'DG.TextView', constructor: DG.TextView},
                   contentProperties: {
                     hint: "Type some notes here…",
-                    model: SC.Object.create({})
+                    model: DG.TextModel.create({})
                   },
                   defaultLayout: {width: 300, height: 100},
                   position: iComponent && iComponent.position,
