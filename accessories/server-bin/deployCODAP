@@ -58,6 +58,7 @@ fi
 
 # Move from tmp to release dir
 mv ${TMP_DIR}/${BUILD_NAME} ${RELEASE_DIR}
+ln -s ${RELEASE_DIR}/${BUILD_NAME}/static/dg/zh-Hans ${RELEASE_DIR}/${BUILD_NAME}/static/dg/zh
 
 # copy zip
 cp -i $ZIP_FILE ${RELEASE_DIR}/zips/${BUILD_NAME}.zip
