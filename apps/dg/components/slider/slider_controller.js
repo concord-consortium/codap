@@ -403,6 +403,7 @@ DG.SliderController = DG.ComponentController.extend(
       },
 
       restoreComponentStorage: function (iComponentStorage, iDocumentID) {
+        sc_super();
         var sliderModel = this.getPath('model.content');
         if (sliderModel) {
           var modelID = this.getLinkID(iComponentStorage, 'model');

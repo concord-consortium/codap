@@ -60,6 +60,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         },
 
         restoreComponentStorage: function (iStorage, iDocumentID) {
+          sc_super();
           var contextID = this.getLinkID(iStorage, 'context'),
               dataContext = null;
 

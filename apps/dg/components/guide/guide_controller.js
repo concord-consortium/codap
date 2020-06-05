@@ -161,6 +161,7 @@ DG.GuideController = DG.ComponentController.extend(
     },
 
     restoreComponentStorage:function ( iComponentStorage ) {
+      sc_super();
       this.get('guideModel' ).restoreComponentStorage( iComponentStorage);
     }
 

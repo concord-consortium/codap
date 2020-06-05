@@ -60,7 +60,7 @@ DG.TextComponentController = DG.ComponentController.extend(
   apiTextDidChange: function () {
     var apiText = this.getPath('model.content.apiText');
     if (!SC.none(apiText)) {
-      this.setTheText(apiText);
+      this.setTheText(JSON.parse(apiText));
       this.setPath('model.content.apiText', null);
     }
   }.observes('model.content.apiText'),
@@ -107,6 +107,7 @@ DG.TextComponentController = DG.ComponentController.extend(
    *  @param {String} iDocumentID --       ID of the component's document.
    */
   restoreComponentStorage: function( iComponentStorage, iDocumentID) {
+    sc_super();
     var theText = iComponentStorage.text || "",
         parsed;
     try {
@@ -177,6 +178,17 @@ DG.TextComponentController = DG.ComponentController.extend(
   commitEditing: function() {
     // prevents further undo merging
     this._session = null;
+    DG.currDocumentController().notificationManager.sendNotification({
+      action: 'notify',
+      resource: 'component',
+      values: {
+        operation: 'commitEdit',
+        type: this.getPath('model.type'),
+        id: this.getPath('model.id'),
+        title: this.getPath('model.title'),
+        text: JSON.stringify(this.get("theText") || "")
+      }
+    });
   },
 
   willCloseComponent: function() {
