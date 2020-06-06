@@ -758,6 +758,26 @@
       "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
     ]
   },
+  "uniqueValues": {
+    "displayName": "uniqueValues",
+    "description": "Returns the number of unique values produced by the argument.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "Evaluated for each case. The number of these that are unique will be the final value."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "Serves as a filter for the cases for which the expression will be computed."
+      }
+    ],
+    "examples": [
+      "uniqueValues(State) returns the number unique values of the attribute State. If all state names are present, the result would likely be 50",
+      "uniqueValues(Age, Sex=\"male\") returns the number of different ages for the cases whose sex is male"
+    ]
+  },
   "mad": {
     "displayName": "mad",
     "description": "Computes the mean absolute deviation the given expression.",

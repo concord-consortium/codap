@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global Set:true */
+
 sc_require('formula/aggregate_function');
 sc_require('formula/function_registry');
 
@@ -78,6 +80,33 @@ return {
     computeResults: function( iContext, iEvalContext, iInstance) {
       // default to 0 rather than undefined (e.g. if there are no cases)
       return sc_super() || 0;
+    }
+  }),
+
+  /**
+    uniqueValues([expr])
+    Returns the number of unique values of its first argument.
+    The second argument determines which case's values contribute.
+   */
+  uniqueValues: DG.ParentCaseAggregate.create({
+
+    requiredArgs: { min: 1, max: 1 },
+
+    evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
+      var value = this.getValue( iContext, iEvalContext, iInstance);
+      if (!iInstance.caches[iCacheID])
+        iInstance.caches[iCacheID] = new Set();
+      if(!SC.empty(value)) {
+        iInstance.caches[iCacheID].add(value);
+      }
+    },
+
+    computeResults: function( iContext, iEvalContext, iInstance) {
+      DG.ObjectMap.forEach( iInstance.caches,
+          function( iKey, iCache) {
+            iInstance.results[ iKey] = iCache.size;
+          });
+      return this.queryCache( iContext, iEvalContext, iInstance);
     }
   }),
 
