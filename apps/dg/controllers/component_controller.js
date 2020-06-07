@@ -132,7 +132,12 @@ DG.ComponentController = SC.Object.extend((function () // closure
      @param  iComponentStorage {Object}  An object whose properties should be restored.
      */
     restoreComponentStorage: function (iComponentStorage, iDocumentID) {
-      // Derived classes should override to restore from component storage
+      var tComponentModel = this.get('model'),
+          tRestoredTitle = iComponentStorage.title,
+          tRestoredName = iComponentStorage.name;
+      tComponentModel.set('title', tRestoredTitle || tRestoredName);
+      if( tRestoredName)
+        tComponentModel.set('name', tRestoredName);
     },
 
     /**
