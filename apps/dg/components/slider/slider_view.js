@@ -107,7 +107,7 @@ DG.SliderView = SC.View.extend(
 
       nameDidChange: function() {
         this.notifyPropertyChange('name');
-      }.observes('*model.name'),
+      }.observes('*model.name', '*model.content.name'),
 
       /**
        The screen coordinate of the model value.

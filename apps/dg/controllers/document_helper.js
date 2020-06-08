@@ -522,9 +522,13 @@ DG.DocumentHelper = SC.Object.extend(
         function reinstateGlobalValues() {
           iDocObject.globalValues.forEach(function (iValue) {
             var tValueInDoc = DG.globalsController.getGlobalValueByID(iValue.guid);
-            if (tValueInDoc)
+            if (tValueInDoc) {
               tValueInDoc.set('value', iValue.value);
-            tValueInDoc.set('name', iValue.name);
+              tValueInDoc.set('name', iValue.name);
+            }
+            else {
+              DG.globalsController.createGlobalValue( {name: iValue.name, value: iValue.value});
+            }
           });
         }
 
