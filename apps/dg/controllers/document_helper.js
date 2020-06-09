@@ -524,7 +524,7 @@ DG.DocumentHelper = SC.Object.extend(
             var tValueInDoc = DG.globalsController.getGlobalValueByID(iValue.guid);
             if (tValueInDoc)
               tValueInDoc.set('value', iValue.value);
-            tValueInDoc.set('name', iValue.naame);
+            tValueInDoc.set('name', iValue.name);
           });
         }
 
@@ -556,11 +556,11 @@ DG.DocumentHelper = SC.Object.extend(
 
         deleteDataContextsNotInDocObject();
 
+        reinstateGlobalValues();
+
         createOrUpdateDataContexts();
 
         createOrUpdateComponents();
-
-        reinstateGlobalValues();
 
         reinstateSelection();
 

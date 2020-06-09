@@ -831,7 +831,8 @@ DG.DocumentController = SC.Object.extend(
           var tRestoredTitle = iComponent.getPath('componentStorage.title');
           var tRestoredName = iComponent.getPath('componentStorage.name');
           iComponent.set('title', tRestoredTitle || tRestoredName);
-          iComponent.set('name', tRestoredName || tRestoredTitle);
+          if( tRestoredName)
+            iComponent.set('name', tRestoredName);
           if (DG.isStandaloneComponent(iComponent.get('name') || iComponent.get('title'), iComponent.get('type'))) {
             tParams.useLayout = true;
             tParams.layout = {};
@@ -1145,7 +1146,7 @@ DG.DocumentController = SC.Object.extend(
                   componentClass: {type: 'DG.TextView', constructor: DG.TextView},
                   contentProperties: {
                     hint: "Type some notes here…",
-                    model: SC.Object.create({})
+                    model: DG.TextModel.create({})
                   },
                   defaultLayout: {width: 300, height: 100},
                   position: iComponent && iComponent.position,
@@ -1298,7 +1299,8 @@ DG.DocumentController = SC.Object.extend(
           tRestoredLayout = tComponent.get('layout');
           tComponent.set('content', DG.CaseCardModel.create({context: iContext}));
           tComponent.set('title', tRestoredTitle || tRestoredName);
-          tComponent.set('name', tRestoredName || tRestoredTitle);
+          if( tRestoredName)
+            tComponent.set('name', tRestoredName);
           tController.set('model', tComponent);
           this.componentControllersMap[tComponent.get('id')] = tController;
           tController.didRestoreComponent(this.get('documentID'));

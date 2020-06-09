@@ -163,6 +163,7 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
       },
 
       restoreComponentStorage: function( iStorage, iDocumentID) {
+        sc_super();
         var caseCardModel = this.getPath('model.content');
         if (caseCardModel) {
           var contextID = this.getLinkID( iStorage, 'context'),
