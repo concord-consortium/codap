@@ -1219,7 +1219,10 @@ DG.DocumentController = SC.Object.extend(
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'slider'),
           execute: function () {
             var globalName = iComponent && (iComponent.componentStorage.name || iComponent.componentStorage.title);
-            this._global = this._global || docController.createGlobalValue({ name: globalName });
+            this._global = this._global ||
+                (iComponent && iComponent.componentStorage &&
+                    DG.store.find(DG.GlobalValue, DG.ArchiveUtils.getLinkID(iComponent.componentStorage, 'model'))) ||
+                docController.createGlobalValue({ name: globalName });
             if( !DG.globalsController.getGlobalValueByID(Number(this._global.get('id')))) {
               DG.globalsController.registerGlobalValue(this._global);
             }

@@ -138,10 +138,12 @@ DG.globalsController = SC.Controller.create( (function() {
      */
     registerGlobalValue: function( iGlobalValue) {
       var name = iGlobalValue && iGlobalValue.get('name');
-      this._globalsMap[ name] = iGlobalValue;
-      iGlobalValue.addObserver('name', this, this.nameDidChange);
-      iGlobalValue.addObserver('value', this, this.valueDidChange);
-      this.set('globalNameChanges', [{ newName: name }]);
+      if( !SC.none(name) && !this._globalsMap[name]) {
+        this._globalsMap[name] = iGlobalValue;
+        iGlobalValue.addObserver('name', this, this.nameDidChange);
+        iGlobalValue.addObserver('value', this, this.valueDidChange);
+        this.set('globalNameChanges', [{newName: name}]);
+      }
     },
 
     /**

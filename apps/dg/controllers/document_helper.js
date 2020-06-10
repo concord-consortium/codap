@@ -527,7 +527,7 @@ DG.DocumentHelper = SC.Object.extend(
               tValueInDoc.set('name', iValue.name);
             }
             else {
-              DG.globalsController.createGlobalValue( {name: iValue.name, value: iValue.value});
+              DG.globalsController.createGlobalValue( {name: iValue.name, value: iValue.value, guid: iValue.guid});
             }
           });
         }
