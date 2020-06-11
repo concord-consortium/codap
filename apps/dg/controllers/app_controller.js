@@ -203,10 +203,24 @@ DG.appController = SC.Object.create((function () // closure
           showMenu: function (iAnchor) {
             this.popup(iAnchor);
           },
+          openStandardPlugin: function (pluginDef) {
+            var doc = DG.currDocumentController();
+            var tComponent = DG.Component.createComponent({
+              type: "DG.GameView",
+              document: doc.get('content') ,
+              layout: pluginDef.dimensions,
+              componentStorage: {
+                currentGameName: pluginDef.title,
+                currentGameUrl: pluginDef.url,
+                allowInitGameOverride: true
+              }
+            });
+            doc.createComponentAndView( tComponent);
+          },
           selectedItemDidChange: function () {
             var selectedItem = this.get('selectedItem');
             if (selectedItem) {
-              DG.appController.openPlugin(selectedItem.url);
+              this.openStandardPlugin(selectedItem);
               this.set('selectedItem', null);
             }
           }.observes('selectedItem'),
@@ -227,6 +241,7 @@ DG.appController = SC.Object.create((function () // closure
           layout: {width: 150}
         });
       }.bind(this));
+
 
       // Give the user a chance to confirm/cancel before closing, reloading,
       // or navigating away from the page. The sites listed below provide some
@@ -311,6 +326,10 @@ DG.appController = SC.Object.create((function () // closure
           target: this,
           toolTip: pluginData.description,
           dgAction: 'openPlugin',
+          dimensions: {
+            width: pluginData.width || 400,
+            height: pluginData.height || 300
+          },
           icon: pluginData.icon? baseURL + pluginData.icon: 'tile-icon-mediaTool',
           // replace spaces with hyphens when creating the id
           id: 'dg-pluginMenuItem-' + pluginData.title.replace(/ /g, '-')
