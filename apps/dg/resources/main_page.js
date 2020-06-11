@@ -261,7 +261,6 @@ DG.mainPage = SC.Page.design((function() {
         tScrollView.set('hasHorizontalScroller', false);
         tScrollView.set('hasVerticalScroller', false);
       }
-      this.invokeLater( 'setupDragDrop', 300);
     },
 
     viewDidResize: function() {
