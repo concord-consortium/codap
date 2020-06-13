@@ -404,12 +404,27 @@ DG.DocumentHelper = SC.Object.extend(
         return DG.Document.createDocument(tDoc);
       },
 
+      updateDataContext: function (iResources, iValues) {
+        var context = iResources.dataContext;
+        if (context) {
+          ['managingController', 'title', 'description', 'preventReorg']
+              .forEach(function (prop) {
+                if (!SC.none(iValues[prop])) {
+                  context.set(prop, iValues[prop]);
+                }
+              });
+        }
+        return {
+          success: true
+        };
+      },
+
       /**
        * The current document will be made to conform to the information in the given JSON object.
        * @param iDocObject {Object}
        * @return {boolean}
        */
-      updateDocument: function (iDocObject) {
+      updateDocument: function (iDocObject, updateDataContextFunc) {
         var tDocController = DG.currDocumentController(),
             tComponentControllers = tDocController.get('componentControllersMap'),
             tComponentsStorage = iDocObject.components,
@@ -459,7 +474,7 @@ DG.DocumentHelper = SC.Object.extend(
               // Is the one we found identical to the one we're moving toward?
               if (JSON.stringify(iNewDocContext) !== JSON.stringify(tArchiveOfFoundExistingDocContext)) {
                 // Something's different. First update the toplevel info
-                this_.handleDataContext.update({dataContext: tFoundExistingDocContextRecord}, iNewDocContext);
+                this_.updateDataContext({dataContext: tFoundExistingDocContextRecord}, iNewDocContext);
 
                 /*
                                   // Synchronize collections. Are they the same?

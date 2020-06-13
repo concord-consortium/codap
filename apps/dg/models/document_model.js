@@ -80,13 +80,15 @@ DG.Document = DG.BaseModel.extend(
       var obj = {
           name: this.name,
           guid: this.id,
+          id: this.id,
           components: [],
           contexts: [],
           globalValues: [],
           appName: DG.APPNAME,
           appVersion: DG.VERSION,
           appBuildNum: DG.BUILD_NUM,
-          lang: SC.Locale.currentLanguage
+          lang: SC.Locale.currentLanguage,
+          idCount: DG.store._idCount      // Saved so that on restore we can start at this idCount
         };
       DG.ObjectMap.forEach(this.globalValues, function (globalKey) {
         var globalValue = this.globalValues[globalKey];
@@ -110,7 +112,8 @@ DG.Document.createDocument = function( iProperties) {
     tProperties = iProperties || {};
 
   /* A store must exist to create a document */
-  DG.store = DG.ModelStore.create();
+  DG.store = DG.ModelStore.create( {
+    _idCount: SC.none( iProperties.idCount) ? 0 : iProperties.idCount });
   tDocument =  DG.Document.create(tProperties);
 
   DG.activeDocument = tDocument;
