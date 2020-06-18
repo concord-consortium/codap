@@ -507,7 +507,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
     }.property(),
     cellMapDidChange: function () {
       this.notifyPropertyChange('cellMap');
-    }.observes('*categoricalStats.cellMap'),
+    }.observes('categoricalStats.cellMap'),
 
     /**
      @property{Object} The names of the properties of this object are the cell names
