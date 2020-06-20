@@ -831,7 +831,7 @@ DG.React.ready(function () {
             );
 
             return div({
-              className: 'react-data-card',
+              className: 'react-data-card dg-wants-wheel'
             }, tCollEntries);
           }
         };
