@@ -221,7 +221,8 @@ DG.GraphView = SC.View.extend(
       },
 
       addPlotViewObserver: function (iPlotView) {
-        iPlotView.addObserver('plotDisplayDidChange', this, this.plotDisplayDidChange);
+        if( !iPlotView.hasObserverFor('plotDisplayDidChange', this, this.plotDisplayDidChange))
+          iPlotView.addObserver('plotDisplayDidChange', this, this.plotDisplayDidChange);
       },
 
       removePlotViewObserver: function (iPlotView) {

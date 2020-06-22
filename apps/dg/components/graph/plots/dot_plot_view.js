@@ -425,53 +425,61 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   */
   movableValueChanged: function() {
     var tPlotModel = this.get('model'),
-        tMultipleMovableValues = tPlotModel && tPlotModel.getAdornmentModel('multipleMovableValues');
+        tMultipleMovableValues = tPlotModel && tPlotModel.getAdornmentModel('multipleMovableValues'),
+        tMultipleMovableValuesAdorn = this.get('multipleMovableValuesAdorn');
     if( tMultipleMovableValues) {
-      if( !this.multipleMovableValuesAdorn) {
-        this.multipleMovableValuesAdorn = DG.MultipleMovableValuesAdornment.create({
-                                     parentView: this, model: tMultipleMovableValues,
-                                     paperSource: this.get('paperSource'),
-                                     layerName: DG.LayerNames.kAdornments,
-                                     valueAxisView: this.get('primaryAxisView') });
+      if (tMultipleMovableValuesAdorn) {
+        tMultipleMovableValuesAdorn.set('parentView', this);
+        tMultipleMovableValuesAdorn.set('model', tMultipleMovableValues);
+        tMultipleMovableValuesAdorn.set('paperSource', this.get('paperSource'));
       }
-      this.multipleMovableValuesAdorn.updateToModel();
+      else {
+        tMultipleMovableValuesAdorn = DG.MultipleMovableValuesAdornment.create({
+          parentView: this, model: tMultipleMovableValues,
+          paperSource: this.get('paperSource'),
+          layerName: DG.LayerNames.kAdornments,
+          valueAxisView: this.get('primaryAxisView')
+        });
+        this.set('multipleMovableValuesAdorn', tMultipleMovableValuesAdorn)
+      }
+      tMultipleMovableValuesAdorn.updateToModel();
     }
-  }.observes('.model.valuesDidChange', '.model.multipleMovableValues'),
+  }.observes('*model.valuesDidChange', '*model.multipleMovableValues'),
 
   /**
    Presumably our model has created a plotted mean. We need to create our adornment.
    */
   plottedMeanChanged: function() {
     this.adornmentDidChange('plottedMean', 'plottedMeanAdorn', DG.PlottedMeanAdornment);
-  }.observes('.model.plottedMean'),
+  }.observes('*model.plottedMean'),
 
   /**
     Presumably our model has created a plotted mean. We need to create our adornment.
   */
   plottedMedianChanged: function() {
     this.adornmentDidChange('plottedMedian', 'plottedMedianAdorn', DG.PlottedMedianAdornment);
-  }.observes('.model.plottedMedian'),
+  }.observes('*model.plottedMedian'),
 
   /**
    Presumably our model has created a plotted St.Dev. We need to create our adornment.
    */
   plottedStDevChanged: function() {
     this.adornmentDidChange('plottedStDev', 'plottedStDevAdorn', DG.PlottedStDevAdornment);
-  }.observes('.model.plottedStDev'),
+  }.observes('*model.plottedStDev'),
   
   /**
    Presumably our model has created a plotted St.Dev. We need to create our adornment.
    */
   plottedMadChanged: function() {
     this.adornmentDidChange('plottedMad', 'plottedMadAdorn', DG.PlottedMeanAbsDevAdornment);
-  }.observes('.model.plottedMad'),
+  }.observes('*model.plottedMad'),
 
   /**
    Presumably our model has created a plotted IQR. We need to create our adornment.
    */
   plottedBoxPlotChanged: function() {
     this.adornmentDidChange('plottedBoxPlot', 'plottedBoxPlotAdorn', DG.PlottedBoxPlotAdornment);
-  }.observes('.model.plottedBoxPlot'),
+  }.observes('*model.plottedBoxPlot'),
   
   /**
     Update an adornment after a change to its corresponding adornment model.
@@ -485,11 +493,18 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
         tAdornment = this[ iAdornmentProperty];
     // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
     if( tAdornmentModel) {
-      if( !tAdornment) {
+      if (tAdornment) {
+        // These can get out of sync in undo
+        tAdornment.set('parentView', this);
+        tAdornment.set('model', tAdornmentModel);
+        tAdornment.set('paperSource', this.get('paperSource'));
+      }
+      else {
         tAdornment = iAdornmentClass.create({
-                        parentView: this, model: tAdornmentModel, paperSource: this.get('paperSource'),
-                        layerName: DG.LayerNames.kAdornments, shadingLayerName: DG.LayerNames.kIntervalShading });
-        this[ iAdornmentProperty] = tAdornment;
+          parentView: this, model: tAdornmentModel, paperSource: this.get('paperSource'),
+          layerName: DG.LayerNames.kAdornments, shadingLayerName: DG.LayerNames.kIntervalShading
+        });
+        this[iAdornmentProperty] = tAdornment;
       }
       tAdornment.updateToModel();
     }

@@ -101,13 +101,17 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   destroy: function() {
+    this.removePlottedValueEditView();
+    sc_super();
+  },
+
+  removePlottedValueEditView: function() {
     if( this.plottedValueEditView)
     {
       this.plottedValueEditView.removeFromParent();
       this.plottedValueEditView.destroy();
       this.plottedValueEditView = null;
     }
-    sc_super();
   },
 
   /**
@@ -142,8 +146,10 @@ DG.PlotView = DG.PlotLayer.extend(
       this.plottedCountAdorn.updateToModel();
     }
 
-    if( this.plottedValueAdorn)
-      this.plottedValueAdorn.updateToModel();
+    var tPlottedValueAdorn = this.get('plottedValueAdorn');
+    if( tPlottedValueAdorn) {
+      tPlottedValueAdorn.updateToModel();
+    }
   },
   
   rescaleOnParentCaseCompletion: function( iCases) {
@@ -536,7 +542,7 @@ DG.PlotView = DG.PlotLayer.extend(
       });
       this.plottedCountAdorn.updateToModel();
     }
-  }.observes('.model.plottedCount'),
+  }.observes('*model.plottedCount'),
 
   /**
    The visibility of the model's plotted function has changed. We respond accordingly.
@@ -544,30 +550,44 @@ DG.PlotView = DG.PlotLayer.extend(
   plottedValueChanged: function() {
     var plotModel = this.get('model'),
         tPlottedValue = plotModel && plotModel.getAdornmentModel('plottedValue'),
+        tPlottedValueAdorn = this.get('plottedValueAdorn'),
+        tFormulaEditContextExists = DG.PlottedFormulaEditContext.hasFormulaEditContextFor( tPlottedValue),
         tPlottedValueEditView = this.get('plottedValueEditView'),
         tPlottedValueIsVisible = tPlottedValue && tPlottedValue.get('isVisible');
+    if( !tPlottedValue)
+      return;
     if( !tPlottedValueIsVisible) {  // If it's not visible, we can avoid much of the work
-      if( tPlottedValueEditView)  // but we still make the edit view at the top of the plot hidden
+      if( tPlottedValueEditView)
         tPlottedValueEditView.set('isVisible', false);
       return;
     }
+    if( !tFormulaEditContextExists && tPlottedValueEditView) {
+      this.removePlottedValueEditView();
+      tPlottedValueEditView = null;
+    }
 
-    if( SC.none( tPlottedValueEditView)) {
+    if( tPlottedValue && SC.none( tPlottedValueEditView)) {
       tPlottedValueEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
       this.set('plottedValueEditView', tPlottedValueEditView);
-      this.get('parentView').set('plottedValueEditorView', tPlottedValueEditView);
+      this.setPath('parentView.plottedValueEditorView', tPlottedValueEditView);
     }
     tPlottedValueEditView.set('isVisible', tPlottedValue.get('isVisible'));
 
-    if( SC.none( this.plottedValueAdorn)) {
-      this.plottedValueAdorn = DG.PlottedValueAdornment.create({
+    if (tPlottedValueAdorn) {
+      tPlottedValueAdorn.set('parentView', this);
+      tPlottedValueAdorn.set('model', tPlottedValue);
+      tPlottedValueAdorn.set('paperSource', this.get('paperSource'));
+    }
+    else {
+      tPlottedValueAdorn = DG.PlottedValueAdornment.create({
         parentView: this,
         model: tPlottedValue,
         paperSource: this.get('paperSource'),
         layerName: DG.LayerNames.kAdornments
       });
+      this.set('plottedValueAdorn', tPlottedValueAdorn);
     }
-  }.observes('.model.plottedValue'),
+  }.observes('*model.plottedValue'),
 
   /**
     Called when the order of the categories on an axis changes (e.g. cells are dragged)
