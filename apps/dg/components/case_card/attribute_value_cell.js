@@ -19,6 +19,8 @@ DG.React.ready(function () {
       attribute: PropTypes.instanceOf(DG.Attribute).isRequired,
       // {DG.Case} the case to display; undefined to summarize
       displayCase: PropTypes.instanceOf(DG.Case),
+      // {DG.Case} the case to whose values to edit; undefined to summarize
+      editableCase: PropTypes.instanceOf( DG.Case),
       // {[DG.Case]} - the cases to summarize; undefined for single case
       summaryCases: PropTypes.arrayOf(PropTypes.instanceOf(DG.Case)),
       editProps: PropTypes.exact({
@@ -108,7 +110,7 @@ DG.React.ready(function () {
             })
           : DG.React.Components.TextInput({
               attr: tAttr,
-              'case': props.displayCase,
+              'case': props.editableCase,
               value: tValue,
               unit: tUnit,
               isEditable: tAttr.get('editable') && !tAttr.get('hasFormula'),

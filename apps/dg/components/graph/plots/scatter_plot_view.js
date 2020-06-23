@@ -578,14 +578,20 @@ DG.ScatterPlotView = DG.PlotView.extend(
       movablePointChanged: function () {
         if (!this.readyToDraw())
           return;
-        var tMovablePoint = this.getPath('model.movablePoint');
+        var tMovablePoint = this.getPath('model.movablePoint'),
+            tMovablePtAdorn = this.get('movablePointAdorn');
         if (tMovablePoint) {
-          if (!this.movablePointAdorn) {
-            var tAdorn = DG.MovablePointAdornment.create({
+          if (tMovablePtAdorn) {
+            tMovablePtAdorn.set('parentView', this);
+            tMovablePtAdorn.set('model', tMovablePoint);
+            tMovablePtAdorn.set('paperSource', this.get('paperSource'));
+          }
+          else {
+            tMovablePtAdorn = DG.MovablePointAdornment.create({
               parentView: this, model: tMovablePoint, paperSource: this.get('paperSource')
             });
-            tAdorn.createElements();
-            this.movablePointAdorn = tAdorn;
+            tMovablePtAdorn.createElements();
+            this.set('movablePointAdorn', tMovablePtAdorn);
           }
           this.movablePointAdorn.updateVisibility();
         }
@@ -599,13 +605,18 @@ DG.ScatterPlotView = DG.PlotView.extend(
           return;
         var tMovableLine = this.getPath('model.movableLine');
         if (tMovableLine) {
-          if (!this.movableLineAdorn) {
+          if (this.movableLineAdorn) {
+            this.setPath('movableLineAdorn.parentView', this);
+            this.setPath('movableLineAdorn.model', tMovableLine);
+            this.setPath('movableLineAdorn.paperSource', this.get('paperSource'));
+          }
+          else {
             var tAdorn = DG.MovableLineAdornment.create({
               parentView: this, model: tMovableLine, paperSource: this.get('paperSource'),
               layerName: DG.LayerNames.kAdornments
             });
             tAdorn.createElements();
-            this.movableLineAdorn = tAdorn;
+            this.set('movableLineAdorn', tAdorn);
           }
           this.movableLineAdorn.updateVisibility();
         }
@@ -622,7 +633,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
         var tMultipleLSRLs = this.getPath('model.multipleLSRLs');
         // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
         if (tMultipleLSRLs) {
-          if (!this.multipleLSRLsAdorn) {
+          if (this.multipleLSRLsAdorn) {
+            this.multipleLSRLsAdorn.set('parentView', this);
+            this.multipleLSRLsAdorn.set('model', tMultipleLSRLs);
+            this.multipleLSRLsAdorn.set('paperSource', this.get('paperSource'));
+          } else {
             var tAdorn = DG.MultipleLSRLsAdornment.create({
               parentView: this, model: tMultipleLSRLs, paperSource: this.get('paperSource'),
               layerName: DG.LayerNames.kAdornments
@@ -667,18 +682,22 @@ DG.ScatterPlotView = DG.PlotView.extend(
             tAdornModel = tPlotModel && tPlotModel.getAdornmentModel('connectingLine'),
             tAdorn = this.get('connectingLineAdorn'),
             tLineColorFunc = hasGrouping() || !isOneOfMany() ? this.getPointColor : this.getAttributeColor;
-        if (tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
+        if (tAdorn) {
+          tAdorn.set('parentView', this);
+          tAdorn.set('model', tAdornModel);
+          tAdorn.set('paperSource', this.get('paperSource'));
+        } else {
           tAdorn = DG.ConnectingLineAdornment.create({
             parentView: this, model: tAdornModel,
             paperSource: this.get('paperSource'),
             layerName: DG.LayerNames.kConnectingLines
           });
-          tAdorn.setPath('model.getLineColorFunc', tLineColorFunc.bind( this));
           this.set('connectingLineAdorn', tAdorn);
         }
+        tAdorn.setPath('model.getLineColorFunc', tLineColorFunc.bind(this));
 
         this.invokeLast(updateConnectingLine); // So that we're ready
-      }.observes('.model.connectingLine'),
+      }.observes('*model.connectingLine'),
 
       /**
        Observation method called when the squares need to be redrawn.
@@ -717,7 +736,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
         tFunctionEditView.set('isVisible', tPlottedFunction.get('isVisible'));
         tFunctionEditView.set('formulaExpression', tPlottedFunction.get('expression'));
 
-        if (SC.none(this.functionAdorn)) {
+        if (this.functionAdorn) {
+          this.functionAdorn.set('parentView', this);
+          this.functionAdorn.set('model', tPlottedFunction);
+          this.functionAdorn.set('parentView', this.get('paperSource'));
+        } else {
           this.functionAdorn = DG.PlottedFunctionAdornment.create({
             parentView: this, model: tPlottedFunction, paperSource: this.get('paperSource'),
             layerName: DG.LayerNames.kAdornments
@@ -725,7 +748,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         }
         this.functionAdorn.updateVisibility();
 
-      }.observes('.model.plottedFunction'),
+      }.observes('*model.plottedFunction'),
 
       /**
        Give us a chance to update adornments on creation.

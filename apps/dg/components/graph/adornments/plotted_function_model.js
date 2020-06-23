@@ -278,6 +278,7 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
       destroy: function () {
         if (this._expression)
           this.destroyDGFormula();
+        DG.PlottedFormulaEditContext.destroyFormulaEditContext( this.get('id'));
         sc_super();
       },
 

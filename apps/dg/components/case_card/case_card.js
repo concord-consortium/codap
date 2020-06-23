@@ -567,6 +567,7 @@ DG.React.ready(function () {
                 tValueCell = DG.React.AttributeValueCell({
                   attribute: iAttr,
                   displayCase: tCase,
+                  editableCase: iShouldSummarize ? null : iCases[0],
                   summaryCases: iShouldSummarize ? iCases : null,
                   editProps: {
                     isEditing: tAttrID === this.state.attrIdOfValueToEdit,
@@ -830,7 +831,7 @@ DG.React.ready(function () {
             );
 
             return div({
-              className: 'react-data-card',
+              className: 'react-data-card dg-wants-wheel'
             }, tCollEntries);
           }
         };

@@ -34,6 +34,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         displayProperties: ['suppressLabel',
           'model.attributeDescription.attribute',
           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
+          'model.attributeDescription.attributeStats.cellMap',
           'otherYAttributeDescription.attribute'],
         classNames: 'dg-axis-view'.w(),
 

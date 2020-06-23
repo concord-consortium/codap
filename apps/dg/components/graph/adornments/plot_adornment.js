@@ -124,7 +124,6 @@ DG.PlotAdornment = SC.Object.extend(
     this.myElements = [];
     // Trigger manually and then addObserver
     this.modelDidChange();
-    this.addObserver('model', this, 'modelDidChange');
   },
   
   /**
@@ -134,7 +133,6 @@ DG.PlotAdornment = SC.Object.extend(
   detachModel: function() {
     // Reset the model (triggering notification), then removeObserver
     this.set('model', null);
-    this.removeObserver('model', this, 'modelDidChange');
   },
   
   /**
@@ -184,7 +182,7 @@ DG.PlotAdornment = SC.Object.extend(
       }
       this._observedModel = model;
     }
-  },
+  }.observes('model'),
 
   showElements: function() {
     var tOpacity = this.get('opacity') || 1,

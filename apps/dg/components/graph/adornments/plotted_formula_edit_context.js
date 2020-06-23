@@ -125,6 +125,11 @@ DG.PlottedFormulaEditContext = SC.Object.extend({
 
 DG.PlottedFormulaEditContext.formulaEditContexts = {};
 
+DG.PlottedFormulaEditContext.hasFormulaEditContextFor = function(iPlottedFormula) {
+  return iPlottedFormula &&
+      !SC.none(DG.PlottedFormulaEditContext.formulaEditContexts[iPlottedFormula.get('id')]);
+};
+
 DG.PlottedFormulaEditContext.getFormulaEditContext = function(iPlottedFormula) {
   var adornmentID = iPlottedFormula.get('id');
   if (!DG.PlottedFormulaEditContext.formulaEditContexts[adornmentID]) {
@@ -134,3 +139,10 @@ DG.PlottedFormulaEditContext.getFormulaEditContext = function(iPlottedFormula) {
   return DG.PlottedFormulaEditContext.formulaEditContexts[adornmentID];
 };
 
+DG.PlottedFormulaEditContext.destroyFormulaEditContext = function( iID) {
+  var tContext = DG.PlottedFormulaEditContext.formulaEditContexts[iID];
+  if( tContext) {
+    tContext.destroy();
+    delete DG.PlottedFormulaEditContext.formulaEditContexts[iID];
+  }
+};

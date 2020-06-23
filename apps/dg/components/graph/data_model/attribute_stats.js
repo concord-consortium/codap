@@ -377,7 +377,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           tFoundADateDuringDataIsDateTime = tDataIsDateTime &&
               (tFoundADateDuringDataIsDateTime || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
           tDataIsDateTime = tDataIsDateTime && (SC.empty(iCaseValue) || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
-          if (!SC.empty(iCaseValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
+          if (!SC.empty(tValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
             tNumericCaseCount++;
             if (tValue < tMin) tMin = tValue;
             if (tValue > tMax) tMax = tValue;
@@ -507,7 +507,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
     }.property(),
     cellMapDidChange: function () {
       this.notifyPropertyChange('cellMap');
-    }.observes('*categoricalStats.cellMap'),
+    }.observes('categoricalStats.cellMap'),
 
     /**
      @property{Object} The names of the properties of this object are the cell names

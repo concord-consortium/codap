@@ -64,10 +64,13 @@ DG.main = function main() {
   var orgIgnoreMouseHandle = SC.RootResponder.prototype.ignoreMouseHandle;
   SC.RootResponder.prototype.ignoreMouseHandle = function(evt) {
     var dgWantsMouse = $(evt.target).closest('.dg-wants-mouse').length,
+        dgWantsWheel = $(evt.target).closest('.dg-wants-wheel').length && evt.type === 'mousewheel',
         wantsSCMouse = $(evt.target).closest('.dg-wants-sc-mouse').length;
     return wantsSCMouse
               ? NO
-              : (dgWantsMouse ? YES : orgIgnoreMouseHandle(evt));
+              : (dgWantsMouse ? YES
+                : (dgWantsWheel ? YES
+                  : orgIgnoreMouseHandle(evt)));
   };
 
   var orgIgnoreKeyHandle = SC.RootResponder.prototype.ignoreKeyHandle;

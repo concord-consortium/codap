@@ -34,7 +34,6 @@ DG.ModelStore = SC.Object.extend(
     init: function() {
       sc_super();
       this._store = [];
-      this._idCount = 0;
     },
     /**
      * register: registers the object in the global store.

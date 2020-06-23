@@ -260,7 +260,10 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   }.observes('DG.globalsController.globalNameChanges'),
 
   valueAxisAttrDidChange: function() {
-    this.get('model').invalidateExpression();
+    var tModel = this.get('model');
+    if( tModel) {
+      this.get('model').invalidateExpression();
+    }
   }.observes('*valueAxisView.model.firstAttributeName'),
 
   /**
