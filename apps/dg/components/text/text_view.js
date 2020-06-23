@@ -140,10 +140,12 @@ DG.TextView = SC.View.extend((function() {
           if (!isComponentSelected && isEditorFocused) {
             this._editor && this._editor.blur();
           }
-          else if (isComponentSelected && !isEditorFocused) {
-            this._editor && this._editor.focus();
+          // else if (isComponentSelected && !isEditorFocused) {
+            // this._editor && this._editor.focus();
+          // }
+          if (isComponentSelected) {
+            this.renderToolbar();
           }
-          this.renderToolbar();
         }.observes('.parentView.parentView.parentView.isSelected'),
 
         didCreateLayer: function() {
