@@ -305,6 +305,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         case 'cmdEditName':
           this.editName( columnID, iArgs.grid.getHeaderRowColumn(columnID));
           break;
+        case 'cmdResizeAttribute':
+          this.resizeColumn(columnID, iArgs.grid.getHeaderRowColumn(columnID));
+           break;
         case 'cmdEditAttribute':
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
           break;
@@ -792,6 +795,36 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           return;
 
         caseTableView.beginEditAttributeName(tAttr.get('name'));
+      },
+      resizeColumn: function (iAttrID, iMenuItem) {
+        var _this = this,
+            tDataContext = this.get('dataContext'),
+            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
+            tAttr = tAttrRef && tAttrRef.attribute,
+            collection = tAttrRef && tAttrRef.collection,
+            collectionID = collection && collection.get('id'),
+            adapter = collectionID && this.findAdapterForCollection(collectionID),
+            lastWidth;
+        if (adapter) {
+          lastWidth = adapter.getPreferredColumnWidth(iAttrID);
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'caseTable.resizeColumn',
+            undoString: 'DG.Undo.caseTable.resizeColumn',
+            redoString: 'DG.Undo.caseTable.resizeColumn',
+            log: 'Fit Column Width: {collection: %@, attribute: %@}'
+                .fmt(collection.get('name'), tAttr.get('name')),
+            execute: function() {
+              adapter.autoResizeColumn(tAttr);
+              _this.attributesDidChange();
+            },
+            undo: function() {
+              adapter.model.setPreferredAttributeWidth(iAttrID, lastWidth);
+              _this.attributesDidChange();
+            }
+          }));
+        } else {
+          DG.logWarn('Could not find adapter for attr: ' + iAttrID);
+        }
       },
       /**
        * Edit an attribute's properties. Brings up the Edit Attribute dialog.

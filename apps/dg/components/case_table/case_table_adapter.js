@@ -541,43 +541,57 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                       ioMenuItem.disabled = false;
                     }
                   },
-                  { title: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
+                  {
+                    title: 'DG.TableController.headerMenuItems.resizeColumn'.loc(),
+                    command: 'cmdResizeAttribute',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = false;
+                    }
+                  },
+                  {
+                    title: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
                     command: 'cmdEditAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = false;
                     }
                   },
-                  { title: 'DG.TableController.headerMenuItems.editFormula'.loc(),
+                  {
+                    title: 'DG.TableController.headerMenuItems.editFormula'.loc(),
                     command: 'cmdEditFormula',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');
                     }
                   },
-                  { title: hasDeletedFormula ? 'DG.TableController.headerMenuItems.recoverFormula'.loc() : 'DG.TableController.headerMenuItems.deleteFormula'.loc(),
+                  {
+                    title: hasDeletedFormula ? 'DG.TableController.headerMenuItems.recoverFormula'.loc() : 'DG.TableController.headerMenuItems.deleteFormula'.loc(),
                     command: hasDeletedFormula ? 'cmdRecoverDeletedFormula' : 'cmdDeleteFormulaKeepValues',
                     updater: function ( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable') || (!hasFormula && !hasDeletedFormula);
                     }
                   },
-                  { title: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
+                  {
+                    title: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
                     command: 'cmdRandomizeAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !DG.DataContextUtilities.attributeCanBeRandomized(context, attrID);
                     }
                   },
-                  { title: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
+                  {
+                    title: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
                     command: 'cmdSortAscending',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = false;
                     }
                   },
-                  { title: 'DG.TableController.headerMenuItems.sortDescending'.loc(),
+                  {
+                    title: 'DG.TableController.headerMenuItems.sortDescending'.loc(),
                     command: 'cmdSortDescending',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = false;
                     }
                   },
-                  { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
+                  {
+                    title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
                     command: 'cmdDeleteAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       // we disable the menu item if not deleteable or the
