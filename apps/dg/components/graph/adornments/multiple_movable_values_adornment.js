@@ -141,6 +141,8 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
       updateToModel: function () {
         var tAdornments = this.get('valueAdornments'),
             tPaper = this.get('paper');
+        if( !tPaper)
+          return; //Not ready yet
 
         var adjustNumberOfAdornments = function () {
               var tValues = this.getPath('model.values');

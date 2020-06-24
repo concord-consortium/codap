@@ -136,6 +136,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
   */
   createElements: function() {
     var this_ = this,
+        tPaper = this.get('paper'),
         tLayer = this.get('layer' ),
         tDragCoord,
         tOriginalValue;
@@ -193,8 +194,9 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
 
     if( this.myElements && (this.myElements.length > 0))
       return; // already created
+    if( !tPaper)
+      return; // Not ready yet
     var tCapSize = DG.PlotUtilities.kMovableValueCapSize,
-        tPaper = this.get('paper'),
         tCur = (this.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) ?
                   this.kLineSlideHCur : this.kLineSlideVCur;
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
@@ -234,13 +236,13 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     if( this.myElements === null)
       this.createElements();
 
-    var tAxisView = this.get('valueAxisView');
-    if( !tAxisView) return;
+    var tAxisView = this.get('valueAxisView'),
+        tPaper = this.get('paper');
+    if( !tAxisView || !tPaper) return;  // not ready yet
 
     var tCapOffset = DG.PlotUtilities.kMovableValueCapSize / 2,
         tValue = this.getPath('model.value'),
         tValueCoord = tAxisView && tAxisView.dataToCoordinate( tValue),
-        tPaper = this.get('paper'),
         tPt1, tPt2, tTextAnchor, tTextBox, tTextXOffset = 0,
         tTextYOffset = 0,
         tBackgrndAnchor;

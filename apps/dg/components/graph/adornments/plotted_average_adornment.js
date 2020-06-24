@@ -76,7 +76,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     var tAverageModel = this.get('model');
 
     // only recompute and update symbols if visible, this.updateVisibility() handles everything else
-    if( tAverageModel && tAverageModel.get('isVisible')) {
+    if( tAverageModel && tAverageModel.get('isVisible') && this.get('paper')) {
       if( ! this.textElement ) { // initialize the text element "average=", before updateSymbols()
         this.createTextElement();
         this.createBackgroundRect();
@@ -146,18 +146,18 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
    */
   updateSymbols: function( iAnimate ) {
     var tAdornment = this,
-        tLayer = this.get('layer' ),
-        tShadingLayer = this.get('shadingLayer' ),
+        tLayer = this.get('layer'),
+        tShadingLayer = this.get('shadingLayer'),
         tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
         tSecondaryAxisView = this.getPath('parentView.secondaryAxisView'),
         tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal),
         tValuesArray = this.getPath('model.values'),
         tNumValues = tValuesArray && tValuesArray.length,
-        tNumElements = this.myElements.length;
+        tNumElements = this.myElements.length,
+        tPaper = this.get('paper');
     if( !tSecondaryAxisView || !tNumValues)
       return; // Happens during transition after secondary attribute removed but before new axis created
-    var tPaper = this.get('paper'),
-        tCellHeight = (tNumValues ? (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin'))/tNumValues) : 0),
+    var tCellHeight = (tNumValues ? (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin'))/tNumValues) : 0),
         p = { x:0, y:0, symSize:this.symSize, cellHeight:tCellHeight-this.cellGap },
         tOffScreen = -3 * this.symSize; // negative view coordinate to move off screen to hide
     var tWorldCoord, tViewCoord, i, tSpread, tSpreadStart, tLowerWhisker, tUpperWhisker, tStat;

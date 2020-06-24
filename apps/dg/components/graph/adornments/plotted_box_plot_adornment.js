@@ -144,11 +144,11 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
               tSecondaryAxisView = this.getPath('parentView.secondaryAxisView'),
               tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal),
               tValuesArray = this.getPath('model.values'),
-              tNumValues = tValuesArray && tValuesArray.length;
-          if (!tSecondaryAxisView || !tNumValues)
+              tNumValues = tValuesArray && tValuesArray.length,
+              tPaper = this.get('paper');
+          if (!tSecondaryAxisView || !tNumValues || !tPaper)
             return; // Happens during transition after secondary attribute removed but before new axis created
-          var tPaper = this.get('paper'),
-              tCellHeight = (tNumValues ?
+          var tCellHeight = (tNumValues ?
                   (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin')) / tNumValues) : 0),
               tSpec = {x: 0, y: 0, symSize: this.symSize, cellHeight: tCellHeight - this.cellGap},
               tOffScreen = -3 * this.symSize, // negative view coordinate to move off screen to hide
