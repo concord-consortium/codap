@@ -812,7 +812,7 @@ if (typeof Slick === "undefined") {
             // this test as a means to determine that we're running on a touch platform.
             // We also increase the width of the resize area for the last column so that
             // it isn't entirely overlapped/hidden by the divider view.
-            .css({ width: 'ontouchstart' in window ? 16 : (i === lastResizable ? 10 : 4) })
+            .css({ width: 'ontouchstart' in window ? 16 : (i === lastResizable ? 10 : 8) })
             // [\KCPT]
             .bind("dragstart touchstart", function (e, dd) {
               if (!getEditorLock().commitCurrentEdit()) {
