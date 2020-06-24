@@ -50,6 +50,7 @@ DG.TextComponentController = DG.ComponentController.extend(
     return this.getPath('model.content.text');
   }.property(),
 
+
   theTextDidChange: function () {
     this.notifyPropertyChange('theText');
   }.observes('model.content.text'),
@@ -60,7 +61,11 @@ DG.TextComponentController = DG.ComponentController.extend(
   apiTextDidChange: function () {
     var apiText = this.getPath('model.content.apiText');
     if (!SC.none(apiText)) {
-      this.setTheText(JSON.parse(apiText));
+      try {
+        this.setTheText(JSON.parse(apiText));
+      } catch(ex) {
+        this.setTheText(apiText);
+      }
       this.setPath('model.content.apiText', null);
     }
   }.observes('model.content.apiText'),
