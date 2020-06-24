@@ -140,12 +140,9 @@ DG.TextView = SC.View.extend((function() {
           if (!isComponentSelected && isEditorFocused) {
             this._editor && this._editor.blur();
           }
-          // else if (isComponentSelected && !isEditorFocused) {
-            // this._editor && this._editor.focus();
-          // }
-          if (isComponentSelected) {
-            this.renderToolbar();
-          }
+          // renderToolbar renders the inspector panel, if not visible, but
+          // hides it if it is.
+          this.renderToolbar();
         }.observes('.parentView.parentView.parentView.isSelected'),
 
         didCreateLayer: function() {
