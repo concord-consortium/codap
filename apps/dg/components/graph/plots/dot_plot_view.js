@@ -440,7 +440,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
           layerName: DG.LayerNames.kAdornments,
           valueAxisView: this.get('primaryAxisView')
         });
-        this.set('multipleMovableValuesAdorn', tMultipleMovableValuesAdorn)
+        this.set('multipleMovableValuesAdorn', tMultipleMovableValuesAdorn);
       }
       tMultipleMovableValuesAdorn.updateToModel();
     }
