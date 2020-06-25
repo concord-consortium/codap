@@ -1132,6 +1132,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
           this.set('yAxis', this.get('y2Axis'));
         }
 
+        // Remove adornment models not found in storage
+
         // Restore any adornment models
         DG.ObjectMap.forEach(iStorage.adornments,
             function (iAdornmentKey, iAdornmentStorage) {

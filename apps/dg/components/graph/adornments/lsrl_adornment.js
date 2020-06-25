@@ -42,7 +42,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
     }.bind( this);
 
     var tLegendAttrDescription = this.getPath('model.plotModel.dataConfiguration.legendAttributeDescription');
-    if( tLegendAttrDescription.isNull() || tLegendAttrDescription.get('isNumeric')) {
+    if(!tLegendAttrDescription || tLegendAttrDescription.isNull() || tLegendAttrDescription.get('isNumeric')) {
       return sc_super();
     }
     var tNamesArray = getCellNamesArray(),

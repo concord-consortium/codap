@@ -491,7 +491,6 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
     var tPlotModel = this.get('model'),
         tAdornmentModel = tPlotModel && tPlotModel.getAdornmentModel( iAdornmentKey),
         tAdornment = this[ iAdornmentProperty];
-    // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
     if( tAdornmentModel) {
       if (tAdornment) {
         // These can get out of sync in undo
@@ -507,6 +506,9 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
         this[iAdornmentProperty] = tAdornment;
       }
       tAdornment.updateToModel();
+    } else if(tAdornment) {  // We can't have an adornment without a model
+      tAdornment.destroy();
+      delete this[iAdornmentProperty];
     }
   },
 

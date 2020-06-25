@@ -554,38 +554,39 @@ DG.PlotView = DG.PlotLayer.extend(
         tFormulaEditContextExists = DG.PlottedFormulaEditContext.hasFormulaEditContextFor( tPlottedValue),
         tPlottedValueEditView = this.get('plottedValueEditView'),
         tPlottedValueIsVisible = tPlottedValue && tPlottedValue.get('isVisible');
-    if( !tPlottedValue)
-      return;
-    if( !tPlottedValueIsVisible) {  // If it's not visible, we can avoid much of the work
-      if( tPlottedValueEditView)
-        tPlottedValueEditView.set('isVisible', false);
-      return;
+    if( tPlottedValueEditView && !tPlottedValueIsVisible) {  // If it's not visible, we can avoid much of the work
+      tPlottedValueEditView.set('isVisible', false);
     }
     if( !tFormulaEditContextExists && tPlottedValueEditView) {
       this.removePlottedValueEditView();
       tPlottedValueEditView = null;
     }
+    if( tPlottedValue) {
+      if (tPlottedValue && !tPlottedValueEditView) {
+        tPlottedValueEditView = DG.PlottedValueAdornment.createFormulaEditView(tPlottedValue);
+        this.set('plottedValueEditView', tPlottedValueEditView);
+        this.setPath('parentView.plottedValueEditorView', tPlottedValueEditView);
+      }
+      tPlottedValueEditView.set('isVisible', tPlottedValue.get('isVisible'));
 
-    if( tPlottedValue && SC.none( tPlottedValueEditView)) {
-      tPlottedValueEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
-      this.set('plottedValueEditView', tPlottedValueEditView);
-      this.setPath('parentView.plottedValueEditorView', tPlottedValueEditView);
+      if (tPlottedValueAdorn) {
+        tPlottedValueAdorn.set('parentView', this);
+        tPlottedValueAdorn.set('model', tPlottedValue);
+        tPlottedValueAdorn.set('paperSource', this.get('paperSource'));
+      }
+      else {
+        tPlottedValueAdorn = DG.PlottedValueAdornment.create({
+          parentView: this,
+          model: tPlottedValue,
+          paperSource: this.get('paperSource'),
+          layerName: DG.LayerNames.kAdornments
+        });
+        this.set('plottedValueAdorn', tPlottedValueAdorn);
+      }
     }
-    tPlottedValueEditView.set('isVisible', tPlottedValue.get('isVisible'));
-
-    if (tPlottedValueAdorn) {
-      tPlottedValueAdorn.set('parentView', this);
-      tPlottedValueAdorn.set('model', tPlottedValue);
-      tPlottedValueAdorn.set('paperSource', this.get('paperSource'));
-    }
-    else {
-      tPlottedValueAdorn = DG.PlottedValueAdornment.create({
-        parentView: this,
-        model: tPlottedValue,
-        paperSource: this.get('paperSource'),
-        layerName: DG.LayerNames.kAdornments
-      });
-      this.set('plottedValueAdorn', tPlottedValueAdorn);
+    else if( tPlottedValueAdorn) {
+      tPlottedValueAdorn.destroy();
+      this.set('plottedValueAdorn', null);
     }
   }.observes('*model.plottedValue'),
 

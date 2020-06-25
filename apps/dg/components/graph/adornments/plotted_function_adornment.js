@@ -48,6 +48,8 @@ DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
   createElements: function() {
     if( this.myElements && (this.myElements.length > 0))
       return; // already created
+    if( !this.get('paper'))
+      return; // Not ready yet
     this.curve = this.get('paper').path('').attr( { stroke: 'red' });
     this.curve.animatable = true;
     this.myElements.push( this.curve);
@@ -60,7 +62,7 @@ DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
     algorithm such as the one described at: <http://yacas.sourceforge.net/Algochapter4.html>.
   */
   updateToModel: function() {
-    if(!this.getPath('model.isVisible'))
+    if(!this.getPath('model.isVisible') || !this.get('paper'))
       return;
 
     this.createElements();

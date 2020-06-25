@@ -595,6 +595,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
           }
           this.movablePointAdorn.updateVisibility();
         }
+        else if( tMovablePtAdorn) {
+          // No model, so get rid of it
+          tMovablePtAdorn.destroy();
+          this.set('movablePointAdorn', null);
+        }
       }.observes('*model.movablePoint.isVisible'),
 
       /**
@@ -603,22 +608,27 @@ DG.ScatterPlotView = DG.PlotView.extend(
       movableLineChanged: function () {
         if (!this.readyToDraw())
           return;
-        var tMovableLine = this.getPath('model.movableLine');
+        var tMovableLine = this.getPath('model.movableLine'),
+            tMovableLineAdorn = this.get('movableLineAdorn');
         if (tMovableLine) {
-          if (this.movableLineAdorn) {
-            this.setPath('movableLineAdorn.parentView', this);
-            this.setPath('movableLineAdorn.model', tMovableLine);
-            this.setPath('movableLineAdorn.paperSource', this.get('paperSource'));
+          if (tMovableLineAdorn) {
+            tMovableLineAdorn.set('parentView', this);
+            tMovableLineAdorn.set('model', tMovableLine);
+            tMovableLineAdorn.set('paperSource', this.get('paperSource'));
           }
           else {
-            var tAdorn = DG.MovableLineAdornment.create({
+            tMovableLineAdorn = DG.MovableLineAdornment.create({
               parentView: this, model: tMovableLine, paperSource: this.get('paperSource'),
               layerName: DG.LayerNames.kAdornments
             });
-            tAdorn.createElements();
-            this.set('movableLineAdorn', tAdorn);
+            tMovableLineAdorn.createElements();
+            this.set('movableLineAdorn', tMovableLineAdorn);
           }
-          this.movableLineAdorn.updateVisibility();
+          tMovableLineAdorn.updateVisibility();
+        } else if( tMovableLineAdorn) {
+          // No model, so get rid of it
+          tMovableLineAdorn.destroy();
+          this.set('movableLineAdorn', null);
         }
         this.updateSquaresVisibility();
         this.displayDidChange();
@@ -630,21 +640,27 @@ DG.ScatterPlotView = DG.PlotView.extend(
       lsrlChanged: function () {
         if (!this.readyToDraw())
           return;
-        var tMultipleLSRLs = this.getPath('model.multipleLSRLs');
+        var tMultipleLSRLs = this.getPath('model.multipleLSRLs'),
+            tMultipleLSRLsAdorn = this.get('multipleLSRLsAdorn');
         // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
         if (tMultipleLSRLs) {
-          if (this.multipleLSRLsAdorn) {
-            this.multipleLSRLsAdorn.set('parentView', this);
-            this.multipleLSRLsAdorn.set('model', tMultipleLSRLs);
-            this.multipleLSRLsAdorn.set('paperSource', this.get('paperSource'));
+          if (tMultipleLSRLsAdorn) {
+            tMultipleLSRLsAdorn.set('parentView', this);
+            tMultipleLSRLsAdorn.set('model', tMultipleLSRLs);
+            tMultipleLSRLsAdorn.set('paperSource', this.get('paperSource'));
           } else {
-            var tAdorn = DG.MultipleLSRLsAdornment.create({
+            tMultipleLSRLsAdorn = DG.MultipleLSRLsAdornment.create({
               parentView: this, model: tMultipleLSRLs, paperSource: this.get('paperSource'),
               layerName: DG.LayerNames.kAdornments
             });
-            this.set('multipleLSRLsAdorn', tAdorn);
+            this.set('multipleLSRLsAdorn', tMultipleLSRLsAdorn);
           }
-          this.multipleLSRLsAdorn.updateVisibility();
+          tMultipleLSRLsAdorn.updateVisibility();
+        }
+        else if( tMultipleLSRLsAdorn) {
+          // No model, so get rid of it
+          tMultipleLSRLsAdorn.destroy();
+          this.set('multipleLSRLsAdorn', null);
         }
         this.updateSquaresVisibility();
         this.displayDidChange();
@@ -682,19 +698,25 @@ DG.ScatterPlotView = DG.PlotView.extend(
             tAdornModel = tPlotModel && tPlotModel.getAdornmentModel('connectingLine'),
             tAdorn = this.get('connectingLineAdorn'),
             tLineColorFunc = hasGrouping() || !isOneOfMany() ? this.getPointColor : this.getAttributeColor;
-        if (tAdorn) {
-          tAdorn.set('parentView', this);
-          tAdorn.set('model', tAdornModel);
-          tAdorn.set('paperSource', this.get('paperSource'));
-        } else {
-          tAdorn = DG.ConnectingLineAdornment.create({
-            parentView: this, model: tAdornModel,
-            paperSource: this.get('paperSource'),
-            layerName: DG.LayerNames.kConnectingLines
-          });
-          this.set('connectingLineAdorn', tAdorn);
+        if( tAdornModel) {
+          if (tAdorn) {
+            tAdorn.set('parentView', this);
+            tAdorn.set('model', tAdornModel);
+            tAdorn.set('paperSource', this.get('paperSource'));
+          } else {
+            tAdorn = DG.ConnectingLineAdornment.create({
+              parentView: this, model: tAdornModel,
+              paperSource: this.get('paperSource'),
+              layerName: DG.LayerNames.kConnectingLines
+            });
+            this.set('connectingLineAdorn', tAdorn);
+          }
+          tAdorn.setPath('model.getLineColorFunc', tLineColorFunc.bind(this));
+        } else if( tAdorn) {
+          // No model, so get rid of it
+          tAdorn.destroy();
+          this.set('connectingLineAdorn', null);
         }
-        tAdorn.setPath('model.getLineColorFunc', tLineColorFunc.bind(this));
 
         this.invokeLast(updateConnectingLine); // So that we're ready
       }.observes('*model.connectingLine'),
@@ -724,29 +746,39 @@ DG.ScatterPlotView = DG.PlotView.extend(
        */
       plottedFunctionChanged: function () {
         var model = this.get('model'),
-            tPlottedFunction = model && model.getAdornmentModel('plottedFunction');
-        if (!tPlottedFunction) return;
-        var tFunctionEditView = this.get('functionEditView');
+            tPlottedFunction = model && model.getAdornmentModel('plottedFunction'),
+            tPlottedFunctionAdorn = this.get('functionAdorn'),
+            tFunctionEditView = this.get('functionEditView');
 
-        if (!tFunctionEditView) {
-          tFunctionEditView = DG.PlottedFunctionAdornment.createFormulaEditView(tPlottedFunction);
-          this.set('functionEditView', tFunctionEditView);
-          this.get('parentView').set('functionEditorView', tFunctionEditView);
-        }
-        tFunctionEditView.set('isVisible', tPlottedFunction.get('isVisible'));
-        tFunctionEditView.set('formulaExpression', tPlottedFunction.get('expression'));
+        if (tPlottedFunction) {
+          if (!tFunctionEditView) {
+            tFunctionEditView = DG.PlottedFunctionAdornment.createFormulaEditView(tPlottedFunction);
+            this.set('functionEditView', tFunctionEditView);
+            this.get('parentView').set('functionEditorView', tFunctionEditView);
+          }
+          tFunctionEditView.set('isVisible', tPlottedFunction.get('isVisible'));
+          tFunctionEditView.set('formulaExpression', tPlottedFunction.get('expression'));
 
-        if (this.functionAdorn) {
-          this.functionAdorn.set('parentView', this);
-          this.functionAdorn.set('model', tPlottedFunction);
-          this.functionAdorn.set('parentView', this.get('paperSource'));
-        } else {
-          this.functionAdorn = DG.PlottedFunctionAdornment.create({
-            parentView: this, model: tPlottedFunction, paperSource: this.get('paperSource'),
-            layerName: DG.LayerNames.kAdornments
-          });
+          if (tPlottedFunctionAdorn) {
+            tPlottedFunctionAdorn.set('parentView', this);
+            tPlottedFunctionAdorn.set('model', tPlottedFunction);
+            tPlottedFunctionAdorn.set('parentView', this.get('paperSource'));
+          } else {
+            tPlottedFunctionAdorn = DG.PlottedFunctionAdornment.create({
+              parentView: this, model: tPlottedFunction, paperSource: this.get('paperSource'),
+              layerName: DG.LayerNames.kAdornments
+            });
+            this.set('functionAdorn', tPlottedFunctionAdorn);
+          }
+          tPlottedFunctionAdorn.updateVisibility();
         }
-        this.functionAdorn.updateVisibility();
+        else if (tPlottedFunctionAdorn) {
+          // No model, so get rid of it
+          tPlottedFunctionAdorn.destroy();
+          this.set('functionAdorn', null);
+          if( tFunctionEditView)
+            tFunctionEditView.set('isVisible', false);
+        }
 
       }.observes('*model.plottedFunction'),
 
