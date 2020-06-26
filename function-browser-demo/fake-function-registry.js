@@ -238,6 +238,11 @@ DG.functionRegistry = {
         "maxArgs": 3,
         "category": "DG.Formula.FuncCategoryString"
       },
+      "patternMatches": {
+        "minArgs": 2,
+        "maxArgs": 2,
+        "category": "DG.Formula.FuncCategoryString"
+      },
       "includes": {
         "minArgs": 2,
         "maxArgs": 2,

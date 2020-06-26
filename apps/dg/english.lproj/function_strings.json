@@ -1211,7 +1211,7 @@
   },
   "findString": {
     "displayName": "findString",
-    "description": "Searches the first string argument (optionally starting at the specified position) for the specified target string.",
+    "description": "Searches the first string argument (optionally starting at the specified position) for the specified target string. Returns the 1-based position at which the string was found.",
     "args": [
       {
         "name": "strToLookIn",
@@ -1226,13 +1226,34 @@
       {
         "name": "index",
         "type": "number",
-        "description": "The 1-based index to search for."
+        "description": "The 1-based index in <strToLookIn> to start the search."
       }
     ],
     "examples": [
       "findString(\"mathematics\", \"the\") returns 3",
       "findString(\"mathematics\", \"the\", 3) returns 0",
       "findString(40, 4) returns 1"
+    ]
+  },
+  "patternMatches": {
+    "displayName": "patternMatches",
+    "description": "Returns the number of times in the first argument the given string or regular expression occurs. The search is case insensitive.",
+    "args": [
+      {
+        "name": "strToLookIn",
+        "type": "string",
+        "description": "A string (in quotes) or an expression to search in."
+      },
+      {
+        "name": "pattern",
+        "type": "string or regular expression",
+        "description": "A string or a regular expression in quotes and bounded by \/ at both ends contained in quotes."
+      }
+    ],
+    "examples": [
+      "patternMatches(\"How many pickles can Peter Piper pick?\", \"pick\") returns 2",
+      "patternMatches(\"June 25, 2020\", \"\/[0-9]\/\") returns 6 because there are 6 digits.",
+      "patternMatches(\"From June to July\", \"\/june|july\/\") returns 2"
     ]
   },
   "includes": {

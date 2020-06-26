@@ -434,7 +434,14 @@ window.categorizedFunctionInfo = function() {
       "minArgs":2,
       "maxArgs":3
     },
-    "includes":{  
+    "patternMatches":{
+      "name":"patternMatches",
+      "displayName":"patternMatches",
+      "category":"String Functions",
+      "minArgs":2,
+      "maxArgs":2
+    },
+    "includes":{
       "name":"includes",
       "displayName":"includes",
       "category":"String Functions",

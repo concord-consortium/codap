@@ -118,6 +118,26 @@ DG.functionRegistry.registerFunctions((function() {
     },
 
     /**
+      Searches the first string argument the specified regular expression.
+      Returns the number of matches found.
+      @param    {String}  iString - the string to search within
+      @param    {String}  iPattern - the pattern to search for
+      @returns  {Number}  the number of matches found
+     */
+    'patternMatches': {
+      minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryString',
+      evalFn: function(iTarget, iPattern) {
+        var target = DG.DataUtilities.toString(iTarget),
+            pattern = DG.DataUtilities.toString(iPattern);
+        if (!pattern || !target)
+          return 0;
+        var re = new RegExp(pattern, 'g'),
+            result = target.match(re);
+        return !result ? 0 : result.length;
+      }
+    },
+
+    /**
       Returns true if the string first argument contains the second string argument.
       @param    {String}  iString - the string to search within
       @param    {String}  iTarget - the string to search for
