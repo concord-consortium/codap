@@ -1237,7 +1237,7 @@
   },
   "patternMatches": {
     "displayName": "patternMatches",
-    "description": "Returns the number of times in the first argument the given string or regular expression occurs. The search is case insensitive.",
+    "description": "Returns the number of times in the first argument the given string or regular expression occurs. The search is case sensitive.",
     "args": [
       {
         "name": "strToLookIn",
@@ -1247,13 +1247,46 @@
       {
         "name": "pattern",
         "type": "string or regular expression",
-        "description": "A string or a regular expression in quotes and bounded by \/ at both ends contained in quotes."
+        "description": "A string or a regular expression in quotes."
       }
     ],
     "examples": [
       "patternMatches(\"How many pickles can Peter Piper pick?\", \"pick\") returns 2",
-      "patternMatches(\"June 25, 2020\", \"\/[0-9]\/\") returns 6 because there are 6 digits.",
-      "patternMatches(\"From June to July\", \"\/june|july\/\") returns 2"
+      "patternMatches(\"June 25, 2020\", \"[0-9]\") returns 6 because there are 6 digits.",
+      "patternMatches(\"From June to July\", \"june|july\") returns 2"
+    ]
+  },
+  "wordListMatches": {
+    "displayName": "wordListMatches",
+    "description": "Returns the total number of times any of the words in a given word list are found in the given strToLookIn. If the (optional) name of a numeric rating attribute is specified, the sum of the ratings for the found words is returned.\nNote that the search is performed with case insensitivity.\nIf an entry in the word list begins and ends with \"/\" it is treated as a regular expression and searched for with case sensitivity.",
+    "args": [
+      {
+        "name": "strToLookIn",
+        "type": "string",
+        "description": "A string (in quotes) or an expression in which to look for words from the given word list."
+      },
+      {
+        "name": "\"datasetName\"",
+        "type": "string",
+        "description": "The name of a dataset (in quotes) that contains words whose frequency of occurrence in the given string will be counted"
+      },
+      {
+        "name": "\"wordListAttributeName\"",
+        "type": "string",
+        "description": "The name of an attribute in the word list dataset that contains the words to be searched for."
+      },
+      {
+        "name": "\"ratingsAttributeName (optional)\"",
+        "type": "string",
+        "description": "The (optional) name of an attribute in the word list dataset that contains numeric ratings for each word."
+      }
+    ],
+    "examples": [
+      "Assume a dataset named \"Short Words\" has an attribute named \"word\" whose values are \"a\", \"the\", and \"on\".",
+      "wordListMatches(\"a party on a Monday\", \"Short Words\", \"word\") returns 3 because \"a\" occurs twice, \"the\" does not occur, and \"on\" occurs once.",
+      "Suppose the \"Short Words\" dataset also has an attribute named \"rating\" whose are 4, 2, and 5.",
+      "wordListMatches(\"a party on a Monday\", \"Short Words\", \"word\", \"rating\") returns 13 as the sum of the ratings for each word each time it is found.",
+      "Suppose the \"word\" attribute has one value which is \"/a/\". Then\nwordListMatches(\"a party on a Monday\", \"Short Words\", \"word\") returns 4 since there are 4 occurrences of \"a\"."
     ]
   },
   "includes": {

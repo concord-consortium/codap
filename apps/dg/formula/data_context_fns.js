@@ -250,6 +250,88 @@ DG.functionRegistry.registerAggregates((function() {
           keyValue = keyValueFn && keyValueFn(iContext, iEvalContext);
       return iInstance.caches.keyValueMap[keyValue];
     }
+  }),
+
+  /**
+   wordListMatches(iStringToSearch, iWordListContextName, iWordListAttrName, iRatingsAttrName)
+   Returns the total number of times any of the words in a given word list are found in the
+   given iStringToSearch. If the (optional) name of a numeric rating attribute is specified,
+   the sum of the ratings for the found words is returned.
+   */
+  wordListMatches: DG.AggregateFunction.create({
+
+    category: 'DG.Formula.FuncCategoryString',
+
+    requiredArgs: { min: 3, max: 4 },
+
+    evaluate: function( iWordsContext, iEvalContext, iInstance) {
+
+      var wordsBinding = {},
+          ratingsBinding,
+          wordsContextFn, wordsContextName,
+          wordsContext;
+      if (!iInstance.caches) iInstance.caches = {};
+
+      if (!iInstance.caches.wordsBinding || !iInstance.caches.ratingsBinding) {
+        wordsContextFn = iInstance.argFns[1];
+        wordsContextName = wordsContextFn && wordsContextFn(iWordsContext, iEvalContext);
+        wordsContext = wordsContextName &&
+                        DG.currDocumentController().getContextByTitle(wordsContextName);
+        if (!wordsContext) throw new LookupDataSetError(wordsContextName);
+      }
+      if (!iInstance.caches.wordsBinding) {
+        wordsBinding = bindContextVar(wordsContext, iInstance.argFns[2],
+                                      iWordsContext, iEvalContext);
+        registerDependency(wordsBinding, iWordsContext, iInstance);
+        iInstance.caches.wordsBinding = wordsBinding;
+      }
+      else {
+        wordsBinding = iInstance.caches.wordsBinding;
+      }
+      if(iInstance.argFns[3]) {
+        ratingsBinding = {};
+        if (!iInstance.caches.ratingsBinding) {
+          ratingsBinding = bindContextVar(wordsContext, iInstance.argFns[3],
+              iWordsContext, iEvalContext);
+          registerDependency(ratingsBinding, iWordsContext, iInstance);
+          iInstance.caches.ratingsBinding = ratingsBinding;
+        }
+        else {
+          ratingsBinding = iInstance.caches.ratingsBinding;
+        }
+      }
+
+      if (!iInstance.caches.wordRatingMap) {
+        var wordRatingMap = {},
+            cases = wordsBinding.collection &&
+                      wordsBinding.collection.getPath('casesController.arrangedObjects');
+        if (cases) {
+          cases.forEach(function(iCase) {
+            var word = iCase && iCase.getValue(wordsBinding.attributeID),
+                rating = iCase ? ((ratingsBinding ? iCase.getValue(ratingsBinding.attributeID) : 1)) :
+                    null;
+            if (wordRatingMap[word] == null)
+              wordRatingMap[word] = rating;
+          });
+        }
+        iInstance.caches.wordRatingMap = wordRatingMap;
+      }
+
+      var stringToSearchFn = iInstance.argFns[0],
+          stringToSearch = stringToSearchFn && stringToSearchFn(iWordsContext, iEvalContext),
+          result = 0;
+      DG.ObjectMap.forEach(iInstance.caches.wordRatingMap, function (iWord, iRating) {
+        if(!SC.empty(iWord)) {
+          var tIsRegEx = iWord.startsWith('/') && iWord.endsWith('/'),
+              tPattern = tIsRegEx ? iWord.substring(1, iWord.length - 1) : '\\b' + iWord + '\\b',
+              tFlags = tIsRegEx ? 'g' : 'gi',
+              tRegExp = new RegExp(tPattern, tFlags),
+              tMatch = stringToSearch.match(tRegExp);
+          result += iRating * (!tMatch ? 0 : tMatch.length);
+        }
+      });
+      return result;
+    }
   })
   
   };

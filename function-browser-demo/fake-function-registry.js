@@ -243,6 +243,11 @@ DG.functionRegistry = {
         "maxArgs": 2,
         "category": "DG.Formula.FuncCategoryString"
       },
+      "wordListMatches": {
+        "minArgs": 3,
+        "maxArgs": 4,
+        "category": "DG.Formula.FuncCategoryString"
+      },
       "includes": {
         "minArgs": 2,
         "maxArgs": 2,
