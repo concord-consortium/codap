@@ -264,6 +264,16 @@ DG.functionRegistry.registerAggregates((function() {
 
     requiredArgs: { min: 3, max: 4 },
 
+/*
+      @param  {DG.FormulaContext}   iContext
+      @param  {Object}              iEvalContext -- { _case_: , _id_: }
+      @param  {Object}              iInstance -- The aggregate function instance from the context.
+      iInstance.argFns[] is an array of functions that retrieve the desired arguments
+        0 - iStringToSearch
+        1 - iWordListContextName
+        2 - iWordListAttrName
+        3 - iRatingsName
+*/
     evaluate: function( iWordsContext, iEvalContext, iInstance) {
 
       var wordsBinding = {},

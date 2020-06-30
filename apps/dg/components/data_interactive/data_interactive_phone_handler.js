@@ -204,7 +204,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var values = {};
           var attrs = dataSet.get('attrs');
           attrs.forEach(function (attr) {
-            values[attr.name] = item.getValue(attr.id);
+            var value = item.getValue(attr.id);
+            values[attr.name] = value != null ? value : "";
           });
           ret.values = values;
           ret.id = item.id;

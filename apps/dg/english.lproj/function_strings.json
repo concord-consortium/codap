@@ -1258,7 +1258,7 @@
   },
   "wordListMatches": {
     "displayName": "wordListMatches",
-    "description": "Returns the total number of times any of the words in a given word list are found in the given strToLookIn. If the (optional) name of a numeric rating attribute is specified, the sum of the ratings for the found words is returned.\nNote that the search is performed with case insensitivity.\nIf an entry in the word list begins and ends with \"/\" it is treated as a regular expression and searched for with case sensitivity.",
+    "description": "Returns the total number of times any of the words in a given word list is found in the given strToLookIn. If the (optional) name of a numeric rating attribute is specified, the sum of the ratings for the found words is returned.\nNote that the search is performed with case insensitivity.\nIf an entry in the word list begins and ends with \"/\" it is treated as a regular expression and searched for with case sensitivity.",
     "args": [
       {
         "name": "strToLookIn",
