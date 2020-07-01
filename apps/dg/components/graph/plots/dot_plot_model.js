@@ -363,13 +363,20 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
         var this_ = this;
 
         function toggle() {
-          var tBoxPlotModel = this_.getAdornmentModel('plottedBoxPlot');
-          if (tBoxPlotModel) {
-            tBoxPlotModel.toggleProperty('showOutliers');
-            tBoxPlotModel.setComputingNeeded();
+
+          function doToggle(iPlot) {
+            var tBoxPlotModel = iPlot.getAdornmentModel('plottedBoxPlot');
+            if (tBoxPlotModel) {
+              tBoxPlotModel.toggleProperty('showOutliers');
+              tBoxPlotModel.setComputingNeeded();
+            }
           }
-          return tBoxPlotModel.get('showOutliers');
+
+          doToggle(this_);
+          this_.get('siblingPlots').forEach(doToggle);
+          return this_.getAdornmentModel('plottedBoxPlot').get('showOutliers');
         }
+
 
         DG.UndoHistory.execute(DG.Command.create({
           name: "graph.boxPlot.showOutliers",
@@ -386,7 +393,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           },
           undo: function () {
             toggle();
-          },
+          }
         }));
       },
 
