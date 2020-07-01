@@ -84,10 +84,11 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       var tForSelectionOnly = this_.getPath('model.enableMeasuresForSelection'),
           tFormatString,
           tValueString = '',
+          tCountValue = tForSelectionOnly ? iValue.selectedCount: iValue.count,
           tPercValue = DG.MathUtilities.roundToSignificantDigits(iValue.percent, 2).roundedValue; // 2 significant digits
       if( tShowCount && !tShowPercent) {
         tFormatString = tForSelectionOnly ? 'DG.PlottedCount.withSelection' : 'DG.PlottedCount.withoutSelection';
-        tValueString = tFormatString.loc (iValue.count.toString());
+        tValueString = tFormatString.loc (tCountValue.toString());
       }
       else if( tShowPercent && !tShowCount) {
         tFormatString = tForSelectionOnly ? 'DG.PlottedPercent.withSelection' : 'DG.PlottedPercent.withoutSelection';
@@ -95,7 +96,9 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       }
       else if( tShowCount && tShowPercent) {
         tFormatString = tForSelectionOnly ? 'DG.PlottedCountPercent.withSelection' : 'DG.PlottedCountPercent.withoutSelection';
-        tValueString = tFormatString.loc( iValue.count, tPercValue);
+        tValueString = tForSelectionOnly ?
+            tFormatString.loc( tCountValue, iValue.count, tPercValue) :
+            tFormatString.loc( tCountValue, tPercValue);
       }
       return tValueString;
     }

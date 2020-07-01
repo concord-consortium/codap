@@ -743,7 +743,7 @@ SC.stringsFor("en", {
     "DG.PlottedPercent.withoutSelection": "%@%", // "<nn>%"
     "DG.PlottedPercent.withSelection": "%@% selected", // "<nn>% selected"
     "DG.PlottedCountPercent.withoutSelection": "%@ (%@%)", // "<nn> (<pp>%)"
-    "DG.PlottedCountPercent.withSelection": "%@ (%@%) selected", // ""<nn> (<pp>%) selected"
+    "DG.PlottedCountPercent.withSelection": "%@ of %@ (%@%) selected", // ""<nn> of <count> (<pp>%) selected"
 
     // DG.GraphModel
     "DG.DataDisplayMenu.attribute_x": "X: %@", // %@ = attribute name

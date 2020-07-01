@@ -87,12 +87,16 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
 
           function computeCellPercents() {
             var tTotalCount = 0;
+            if( !tForSelection) {
+              tValueArray.forEach(function (iCell) {
+                tTotalCount += iCell.count;
+              });
+            }
             tValueArray.forEach(function (iCell) {
-              tTotalCount += iCell.count;
-            });
-            tValueArray.forEach(function (iCell) {
-              if (tTotalCount > 0 && iCell.count > 0) {
-                iCell.percent = 100 * iCell.count / tTotalCount;
+              var tCellCount = tForSelection ? iCell.selectedCount : iCell.count;
+              tTotalCount = tForSelection ? iCell.count : tTotalCount;
+              if (tTotalCount > 0 && tCellCount > 0) {
+                iCell.percent = 100 * tCellCount / tTotalCount;
               } else {
                 iCell.percent = 0; // if 0 cases then 0%
               }
@@ -109,10 +113,13 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
               tRowCounts[ tRow] += iCell.count;
             });
             tValueArray.forEach(function (iCell, iIndex) {
-              var tRow = iIndex % tNumOnSecondary,
+              var tCellCount = tForSelection ? iCell.selectedCount : iCell.count,
+                  tRow = iIndex % tNumOnSecondary,
                   tRowCount = tRowCounts[ tRow];
-              if (tRowCount > 0 && iCell.count > 0) {
-                iCell.percent = 100 * iCell.count / tRowCount;
+              if( tForSelection)
+                iCell.count = tRowCount;  // So we'll see the right denominator in display
+              if (tRowCount > 0 && tCellCount > 0) {
+                iCell.percent = 100 * tCellCount / tRowCount;
               } else {
                 iCell.percent = 0; // if 0 cases then 0%
               }
@@ -129,10 +136,13 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
               tColumnCounts[ tColumn] += iCell.count;
             });
             tValueArray.forEach(function (iCell, iIndex) {
-              var tColumn = Math.floor( iIndex / tNumOnSecondary),
+              var tCellCount = tForSelection ? iCell.selectedCount : iCell.count,
+                  tColumn = Math.floor( iIndex / tNumOnSecondary),
                   tColumnCount = tColumnCounts[ tColumn];
-              if (tColumnCount > 0 && iCell.count > 0) {
-                iCell.percent = 100 * iCell.count / tColumnCount;
+              if( tForSelection)
+                iCell.count = tColumnCount;  // So we'll see the right denominator in display
+              if (tColumnCount > 0 && tCellCount > 0) {
+                iCell.percent = 100 * tCellCount / tColumnCount;
               } else {
                 iCell.percent = 0; // if 0 cases then 0%
               }
@@ -141,15 +151,18 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
 
           var tNumOnPrimary = this.getPath('plotModel.primaryAxisModel.numberOfCells'),
               tNumOnSecondary = this.getPath('plotModel.secondaryAxisModel.numberOfCells'),
-              tPercentKind = (tNumOnPrimary > 1 && tNumOnSecondary > 1) ? this.get('percentKind') : DG.Analysis.EPercentKind.eCell;
+              tPercentKind = (tNumOnPrimary > 1 && tNumOnSecondary > 1) ? this.get('percentKind') :
+                  DG.Analysis.EPercentKind.eCell,
+              tForSelection = this.get('enableMeasuresForSelection');
           // Take this opportunity to turn off showing percent if there is only one cell
-          if( this.get('isShowingPercent') && (tNumOnPrimary * tNumOnSecondary === 1)) {
+          if( this.get('isShowingPercent') && (tNumOnPrimary * tNumOnSecondary === 1) &&
+              !tForSelection) {
             this.set('isShowingPercent', false);
           }
 
           // get non-missing case count in each cell, and cell index, from plot models
           DG.assert(this.plotModel && this.plotModel.getCellCaseCounts);
-          var tValueArray = this.plotModel.getCellCaseCounts( this.get('enableMeasuresForSelection'));
+          var tValueArray = this.plotModel.getCellCaseCounts( tForSelection);
           switch( tPercentKind) {
             case DG.Analysis.EPercentKind.eCell:
               computeCellPercents();

@@ -656,6 +656,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
 
       /**
        * Remove the hidden cases from my collection client's selection
+       * @property {[DG.Case]}
        */
       selection: function () {
         var tSelection = this.getPath('collectionClient.casesController.selection');

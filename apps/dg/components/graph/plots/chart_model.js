@@ -284,7 +284,8 @@ DG.ChartModel = DG.PlotModel.extend(
 
     // initialize the values
     for( i=0; i<totalCells; ++i ) {
-      tValueArray.push({ count: 0, primaryCell: Math.floor(i/tNumCells2), secondaryCell: i%tNumCells2 });
+      tValueArray.push({ count: 0, selectedCount: 0,
+        primaryCell: Math.floor(i/tNumCells2), secondaryCell: i%tNumCells2 });
     }
 
     // compute count of cases in each cell, excluding missing values
@@ -296,7 +297,18 @@ DG.ChartModel = DG.PlotModel.extend(
         DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.ChartModel.getCellCaseCounts()" );
         DG.assert( iValue.secondaryCell === (iSecondaryCell || 0), "secondary cell index error in DG.ChartModel.getCellCaseCounts()" );
       }
-    }, iForSelectionOnly);
+    });
+
+    if( iForSelectionOnly) {
+      // compute count of cases in each cell, excluding missing values
+      this.forEachBivariateCaseDo(function (iCase, iIndex, iPrimaryCell, iSecondaryCell) {
+        tCellIndex = iPrimaryCell * tNumCells2 + iSecondaryCell;
+        if (isFinite(tCellIndex) && DG.MathUtilities.isInIntegerRange(tCellIndex, 0, totalCells)) {
+          var iValue = tValueArray[tCellIndex];
+          iValue.selectedCount += 1;
+        }
+      }, iForSelectionOnly);
+    }
 
     return tValueArray;
   },

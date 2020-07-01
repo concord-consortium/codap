@@ -69,7 +69,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
        * @property {Boolean}
        */
       wantsPercentCheckbox: function() {
-        return this.get('isShowingMovableValues');
+        return this.get('isShowingMovableValues') || this.get('enableMeasuresForSelection');
       }.property(),
 
       destroy: function () {

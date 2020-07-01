@@ -173,7 +173,7 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
         // initialize the values
         for (var i = 0; i < tNumCells; ++i) {
-          tValueArray.push({count: 0, primaryCell: Math.floor( i / tNumCatCells),
+          tValueArray.push({count: 0, selectedCount: 0, primaryCell: Math.floor( i / tNumCatCells),
             secondaryCell: i % tNumCatCells });
         }
 
@@ -186,7 +186,18 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.ChartModel.getCellCaseCounts()" );
             DG.assert( iValue.secondaryCell === (iSecondaryCell || 0), "secondary cell index error in DG.ChartModel.getCellCaseCounts()" );
           }
-        }, iForSelectionOnly);
+        });
+
+        if( iForSelectionOnly) {
+          // compute count of selected cases in each cell, excluding missing values
+          this.forEachBivariateCaseDo(function (iCase, iIndex, iPrimaryCell, iSecondaryCell) {
+            tCellIndex = iPrimaryCell * tNumCatCells + iSecondaryCell;
+            if (isFinite(tCellIndex) && DG.MathUtilities.isInIntegerRange(tCellIndex, 0, tNumCells)) {
+              var iValue = tValueArray[tCellIndex];
+              iValue.selectedCount += 1;
+            }
+          }, iForSelectionOnly);
+        }
 
         return tValueArray;
       },
