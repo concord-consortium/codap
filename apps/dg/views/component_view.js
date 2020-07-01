@@ -218,8 +218,8 @@ DG.ComponentView = SC.View.extend(
                     tFrame = tParent.get('frame'),
                     kXGap = 4, kYGap = 2,
                     tOrigin = DG.ViewUtilities.viewToWindowCoordinates({x: kXGap, y: kYGap}, tParent);
-                tComponentView.select();
                 tParent.set('userEdit', true);
+                tComponentView.select();
 
                 // SC 1.10 introduced a new inline editor model in which
                 // an 'exampleNode' is used to adjust inline editor style.
@@ -243,6 +243,10 @@ DG.ComponentView = SC.View.extend(
                     width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
                   }
                 });
+              },
+              inlineEditorDidEndEditing: function () {
+                sc_super();
+                this.get('parentView').set('userEdit', false);
               },
               valueChanged: function () {
                 var tComponentView = DG.ComponentView.findComponentViewParent(this),
