@@ -16,7 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global _, ReactDOM, SlateEditor */
+/* global ReactDOM, SlateEditor */
 
 /** @class  DG.TextView
 
@@ -53,8 +53,6 @@ DG.TextView = SC.View.extend((function() {
 
         _slatePlugins: null,
 
-        _debouncedFocusBlur: null,
-
         init: function() {
           sc_super();
 
@@ -68,23 +66,6 @@ DG.TextView = SC.View.extend((function() {
             }.bind(this)
           };
           this._slatePlugins = [onCommandPlugin];
-
-          // Debounce because Slate generates extraneous focus/blur events under the hood
-          // and we only want to respond after the dust has settled.
-          this._debouncedFocusBlur = _.debounce(function(focus) {
-            // Synchronize component selection with editor focus.
-            if (focus && !this.isComponentSelected()) {
-              SC.run(function() {
-                var componentView = this.getComponentView();
-                componentView && !this.isComponentSelected() && componentView.select();
-              }.bind(this));
-            }
-            else if (!focus) {
-              // emulate SC.View's 'commitOnBlur' property
-              this.commitEditing();
-            }
-          }.bind(this), 200);
-
         },
 
         /**
@@ -136,9 +117,13 @@ DG.TextView = SC.View.extend((function() {
          */
         isComponentSelectedDidChange: function() {
           var isComponentSelected = this.isComponentSelected(),
+              isEditingTitlebar = this.getPath('parentView.parentView.titlebar.userEdit'),
               isEditorFocused = this.isEditorFocused();
           if (!isComponentSelected && isEditorFocused) {
             this._editor && this._editor.blur();
+          }
+          else if (isComponentSelected && !isEditingTitlebar && !isEditorFocused) {
+            this._editor && this._editor.focus();
           }
           // renderToolbar renders the inspector panel, if not visible, but
           // hides it if it is.
@@ -224,10 +209,18 @@ DG.TextView = SC.View.extend((function() {
                   }.bind(this));
                 }.bind(this),
                 onFocus: function() {
-                  this._debouncedFocusBlur(true);
+                  if (!this.isComponentSelected()) {
+                    SC.run(function() {
+                      var componentView = this.getComponentView();
+                      componentView && componentView.select();
+                    }.bind(this));
+                  }
                 }.bind(this),
                 onBlur: function() {
-                  this._debouncedFocusBlur(false);
+                  SC.run(function() {
+                    // emulate SC.View's 'commitOnBlur' property
+                    this.commitEditing();
+                  }.bind(this));
                 }.bind(this)
               };
           ReactDOM.render(DG.React.SlateEditor(props), this.reactEditorDiv);
