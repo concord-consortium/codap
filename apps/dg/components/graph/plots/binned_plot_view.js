@@ -189,11 +189,6 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
                 tInitialTransform = null;
                 this_.hideDataTip();
               }
-            })
-            .mousedown(function (iEvent) {
-              SC.run(function () {
-                this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
-              });
             });
         return iElement;
       },

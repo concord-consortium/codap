@@ -274,11 +274,6 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
                 this_.hideDataTip();
               }
             })
-        .mousedown(function (iEvent) {
-          SC.run(function () {
-            this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
-          });
-        })
         .drag(function (dx, dy) { // continue
               if (dx !== 0 || dy !== 0) {
                 var tNewCoord = (tNumericPlace === DG.GraphTypes.EPlace.eX) ?
