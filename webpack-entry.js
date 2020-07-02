@@ -1,8 +1,8 @@
 /* global _:true, CodeMirror:true, React:true, ReactDOM:true, ReactDOMFactories:true, PropTypes:true, createReactClass:true,
   createReactClassFactory:true, createReactFactory:true, createReactFC:true, ReactSizeMe: true, Popper:true, Tooltip:true,
-  Papa:true, L:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true, SlateEditor:true */
+  L:true, Promise:true, pluralize:true, dayjs:true, nanoid:true, RTree:true, SlateEditor:true */
 /* exported _, CodeMirror, React, ReactDOM, ReactDOMFactories, PropTypes, createReactClass, createReactClassFactory, createReactFC,
-  createReactFactory, ReactSizeMe, Popper, Tooltip, Papa, L, Promise, pluralize, dayjs, nanoid, RTree, SlateEditor */
+  createReactFactory, ReactSizeMe, Popper, Tooltip, L, Promise, pluralize, dayjs, nanoid, RTree, SlateEditor */
 
 var NativeDate = Date;
 require('es5-shim');
@@ -45,7 +45,6 @@ Tooltip = require('tooltip.js')['default'];
 /*
 iframePhone = require('iframe-phone');
 */
-Papa = require('papaparse');
 L = require('leaflet');
 L.esri = require('esri-leaflet');
 pluralize = require('pluralize');
