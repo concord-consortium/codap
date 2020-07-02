@@ -808,7 +808,7 @@ SC.stringsFor("nb", {
     "DG.PlottedPercent.withoutSelection": "%@%",
     "DG.PlottedPercent.withSelection": "%@% selected",
     "DG.PlottedCountPercent.withoutSelection": "%@ (%@%)",
-    "DG.PlottedCountPercent.withSelection": "%@ (%@%) selected",
+    "DG.PlottedCountPercent.withSelection": "%@ of %@ (%@%) selected",
     "DG.Undo.caseTable.resizeColumn": "Undo fit width to content",
     "DG.Redo.caseTable.resizeColumn": "Redo fit width to content",
     "DG.TableController.headerMenuItems.resizeColumn": "Fit width to content"

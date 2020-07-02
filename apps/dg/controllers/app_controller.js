@@ -84,7 +84,7 @@ DG.appController = SC.Object.create((function () // closure
           log: 'createNewEmptyDataSet',
           isUndoable: false,
           execute: function () {
-            dataContext = DG.appController.createDataContextFromCSV(
+            dataContext = DG.appController.createMinimalDataContext(
                 'DG.AppController.createDataSet.initialAttribute'.loc(), /*'AttributeName'*/
                 'DG.AppController.createDataSet.name'.loc() /* 'New Dataset' */
             );
@@ -476,15 +476,15 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      * Create a data context from a string formatted as a CSV file.
-     * @param iText {string}
-     * @param iName {string}
+     * @param iColumnName {string}
+     * @param iContextName {string}
      * @return {DG.DataContext}
      */
-    createDataContextFromCSV: function (iText, iName) {
+    createMinimalDataContext: function (iColumnName, iContextName) {
       // Create document-specific store.
-      var newDocument, context, contextRecord,
+      var context, contextRecord,
           documentController = DG.currDocumentController(),
-          baseContextName = iName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
+          baseContextName = iContextName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
           contextName = baseContextName,
           collectionName = 'DG.AppController.createDataSet.collectionName'.loc(),
           i = 1;
@@ -495,19 +495,18 @@ DG.appController = SC.Object.create((function () // closure
         contextName = baseContextName + " " + (++i);
       }
 
-      // Parse the document contents from the retrieved docText.
-      newDocument = this.documentArchiver.
-                      convertCSVDataToCODAPDocument( iText, contextName, collectionName, iName);
-
-      if (SC.none(newDocument)) {
-        throw new Error('DG.AppController.validateDocument.parseError'.loc(iName));
-      }
-
-      // set the id of the current document into the data context.
-      newDocument.contexts[0].document = documentController.get('documentID');
-
       // Create the context record.
-      contextRecord = DG.DataContextRecord.createContext(newDocument.contexts[0]);
+      contextRecord = DG.DataContextRecord.createContext({
+        title: contextName,
+        name: contextName,
+        collections: [{
+          name: collectionName,
+          attrs: [{
+            name: iColumnName
+          }]
+        }],
+        contextStorage: {}
+      });
 
       // create the context
       context = documentController.createDataContextForModel(contextRecord);
