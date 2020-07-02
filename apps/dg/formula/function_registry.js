@@ -127,7 +127,7 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
      */
     if (!fnStringsMap) {
       $.ajax({
-        url: static_url('function_strings.json'),
+        url: static_url('json/function_strings.json'),
         dataType: 'text'
       })
       .done(function(text) {
