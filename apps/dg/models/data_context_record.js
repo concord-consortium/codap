@@ -182,6 +182,7 @@ DG.DataContextRecord = DG.BaseModel.extend(/** @scope DG.DataContextRecord.proto
         type: this.type,
         document: this.document && this.document.id || undefined,
         guid: this.id,
+        id: this.id,
         flexibleGroupingChangeFlag: this.flexibleGroupingChangeFlag,
         name: this.get('name'),
         title: this.get('title'),

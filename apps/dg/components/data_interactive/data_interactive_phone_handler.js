@@ -839,71 +839,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues) {
-          // returns a collection for the appropriate parent name, if any.
-          function mapParent (context, parentName) {
-            var parentKey;
-            var collections;
-            var collection;
-
-            if (SC.none(parentName)) {
-              collections = context.get('collections');
-              if (collections && collections.length > 0) {
-                parentKey = collections[collections.length - 1].get('id');
-              }
-            } else if (typeof parentName === 'number') {
-              parentKey = parentName;
-            } else if (parentName === '_root_') {
-              parentKey = null;
-            } else {
-              collection = context.getCollectionByName(parentName);
-              parentKey = collection ? collection.get('id') : null;
-            }
-            return (!SC.none(parentKey))? context.getCollectionByID(parentKey).collection: null;
-          }
-
-          // returns a success indicator and ids.
-          function createOneCollection(iContext, iCollectionSpec, iRequester) {
-            var change = {
-              operation: 'createCollection',
-              properties: iCollectionSpec,
-              attributes: ( iCollectionSpec && iCollectionSpec.attributes ),
-              requester: iRequester.get('id')
-            };
-            iCollectionSpec.parent = mapParent(iContext, iCollectionSpec.parent);
-            var changeResult = iContext.applyChange(change);
-            var success = (changeResult && changeResult.success);
-            var ids = changeResult.collection && {
-                  id: changeResult.collection.get('id'),
-                  name: changeResult.collection.get('name')
-                };
-            return {
-              success: success,
-              values: ids
-            };
-          }
-
-          var context = iResources.dataContext;
-          var success = true;
-          var collectionIdentifiers = [];
-
-          if (!context) {
-            return {success: false, values: {error: "no context"}};
-          }
-
-          if (!Array.isArray(iValues)) {
-            iValues = [iValues];
-          }
-
-          iValues.every(function (iCollectionSpec) {
-            var rslt = createOneCollection(context, iCollectionSpec, this);
-            success = success && rslt.success;
-            if (success) {
-            collectionIdentifiers.push(rslt.values);
-            }
-            return success;
-          }.bind(this));
-
-          return {success: success, values: collectionIdentifiers};
+          return DG.appController.documentArchiver.createCollection(iResources, iValues, this.get('id'));
         },
         update: function (iResources, iValues) {
           if (!iResources.collection) {
@@ -924,18 +860,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         'delete': function (iResources) {
-          var context = iResources.dataContext;
-          var collection = iResources.collection;
-
-          if (!collection) {
-            return {success: false, values: {error: 'Collection not found'}};
-          }
-
-          return context.applyChange({
-            operation: 'deleteCollection',
-            collection: collection,
-            requester: this.get('id')
-          });
+          return DG.appController.documentArchiver.deleteCollection(iResources, this.get('id'));
         }
       },
 
@@ -992,19 +917,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       handleAttribute: (function() {
 
-        function applyChangeAndProcessResult(context, change, metadata) {
-          if (metadata && metadata.dirtyDocument === false)
-            change.dirtyDocument = false;
-          var changeResult = context.applyChange(change),
-              resultAttrs = changeResult && changeResult.attrs,
-              returnAttrs = DG.DataInteractiveUtils.
-                              mapAttributeProperties(resultAttrs, change.attrPropsArray),
-              returnResult = { success: changeResult && changeResult.success };
-          if (returnAttrs)
-            returnResult.values = { attrs: returnAttrs };
-          return returnResult;
-        }
-
       return {
         get: function (iResources) {
           var attribute = iResources.attribute;
@@ -1019,52 +931,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues, iMetadata) {
-          if (!iResources.dataContext) {
-            return {success: false, values: {error: "no context"}};
-          }
-          if (!iResources.collection) {
-            return {success: false, values: {error: 'Collection not found'}};
-          }
-          var context = iResources.dataContext;
-          var attrSpecs = SC.clone(Array.isArray(iValues) ? iValues : [iValues]);
-          if (attrSpecs.some(function(spec) { return !spec.name; })) {
-            return {success: false, values: {error: "Create attribute: name required"}};
-          }
-          attrSpecs.forEach(function(attrSpec) {
-            attrSpec.clientName = attrSpec.name;
-            attrSpec.name = context.canonicalizeName(attrSpec.name + ' ');
-          });
-          var change = {
-            operation: 'createAttributes',
-            collection: iResources.collection,
-            attrPropsArray: attrSpecs,
-            requester: this.get('id')
-          };
-          return applyChangeAndProcessResult(context, change, iMetadata);
+          return DG.appController.documentArchiver.createAttribute(iResources, iValues, iMetadata, this.get('id'));
         },
         update: function (iResources, iValues, iMetadata) {
-          var context = iResources.dataContext;
-          if (!iResources.collection) {
-            return {success: false, values: {error: 'Collection not found'}};
-          }
-          if (!iResources.attribute) {
-            return {success: false, values: {error: 'Attribute not found'}};
-          }
-          if (!iValues.id && iResources.attribute.id)
-            iValues.id = iResources.attribute.id;
-          if (!iValues.name && iResources.attribute.name)
-            iValues.name = iResources.attribute.name;
-          else if (iValues.name) {
-            iValues.clientName = iValues.name;
-            iValues.name = context.canonicalizeName(iValues.name + ' ');
-          }
-          var change = {
-            operation: 'updateAttributes',
-            collection: iResources.collection,
-            attrPropsArray: [iValues],
-            requester: this.get('id')
-          };
-          return applyChangeAndProcessResult(context, change, iMetadata);
+          return DG.appController.documentArchiver.updateAttribute(iResources, iValues, iMetadata);
         },
         'delete': function (iResources, iValues, iMetadata) {
           var context = iResources.dataContext;
@@ -1091,32 +961,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          * is equivalent to the data context attributeMove action.
          */
         update: function (iResources, iValues, iMetadata) {
-          var context = iResources.dataContext;
-          if (!context) {
-            return {
-                success: false,
-                values: {error: 'context not found'}
-              };
-          }
-          var change = {
-            operation: 'moveAttribute',
-            requester: this.get('id'),
-            attr: iResources.attributeLocation,
-          };
-          if (iValues && !SC.none(iValues.collection)) {
-            change.toCollection = context.getCollectionByName(iValues.collection) ||
-                    context.getCollectionByID(iValues.collection);
-            if (!change.toCollection) {
-              return {
-                success: false,
-                values: {error: 'Target collection not found'}
-              };
-            }
-          }
-          if (iValues && !SC.none(iValues.position)) {
-            change.position = iValues.position;
-          }
-          return context.applyChange(change);
+          return DG.appController.documentArchiver.updateAttributeLocation(iResources, iValues, iMetadata);
         }
       },
       handleAttributeList: {
@@ -1144,80 +989,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleCase: {
         create: function (iResources, iValues) {
-
-          function convertDate( iValue) {
-            if (iValue instanceof Date) {
-              iValue.valueOf = function () {
-                return Date.prototype.valueOf.apply(this) / 1000;
-              };
-            }
-          }
-
-          function fixDates(iCase) {
-            if( Array.isArray( iCase.values)) {
-              iCase.values.forEach(function (iValue) {
-                convertDate( iValue);
-              });
-            }
-            else if ( typeof iCase.values === 'object') {
-              DG.ObjectMap.forEach( iCase.values, function( iKey, iValue) {
-                convertDate( iValue);
-              });
-            }
-          }
-
-          function createOrAppendRequest(iCase) {
-            fixDates(iCase);
-            var parent = iCase.parent;
-            var values = iCase.values;
-            var req = requests.find(function (request) {
-              return request.properties.parent === parent;
-            });
-            if (!req) {
-              req = {
-                operation: 'createCases',
-                collection: collection,
-                properties: {
-                  parent: parent
-                },
-                values: [],
-                requester: requester
-              };
-              requests.push(req);
-            }
-            req.values.push(values);
-          }
-          if (!iResources.collection) {
-            return {success: false, values: {error: 'Collection not found'}};
-          }
-
-          var success = true;
-          var context = iResources.dataContext;
-          var collection = iResources.collection;
-          var cases = Array.isArray(iValues)?iValues: [iValues];
-          var IDs = [];
-          var requester = this.get('id');
-          var requests = [];
-
-          // We wish to minimize the number of change requests submitted,
-          // but create case change requests are not structured like cases.
-          // we must reformat the Plugin API create/case to some number of
-          // change requests, one for each parent referred to in the create/case
-          // object.
-          cases.forEach(createOrAppendRequest);
-          requests.forEach(function (req) {
-            var changeResult = context.applyChange(req);
-            var success = success && (changeResult && changeResult.success);
-            var index;
-            if (changeResult.success) {
-              for (index = 0; index < changeResult.caseIDs.length; index++) {
-                var caseid = changeResult.caseIDs[index];
-                var itemid = (index <= changeResult.itemIDs.length) ? changeResult.itemIDs[index] : null;
-                IDs.push({id: caseid, itemID: itemid});
-              }
-            }
-          });
-          return {success: success, values: IDs};
+          return DG.appController.documentArchiver.createCases(iResources, iValues, this.get('id'));
         }
       },
 
