@@ -1525,8 +1525,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
       var this_ = this,
           tDataConfig = this.get('dataConfiguration'),
           tYAttrIndex = 0,
-          tY2AttrIndex = 0;
-      if( this.get('isSplit'))
+          tY2AttrIndex = 0,
+          tStartsOutSplit = this.get('isSplit'),
+          tEndsUpSplit;
+      if( tStartsOutSplit)
         this.removeAllSplitPlotsAndAxes();
 
       this._isBeingRestored = true;
@@ -1601,11 +1603,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
                                   iStorage.plotModels ||
                                   []);
       this._isBeingRestored = false;
-      if( this.get('isSplit')) {
+      tEndsUpSplit = this.get('isSplit');
+      if( tEndsUpSplit) {
         this.updateAxisArrays();
         this.updateSplitPlotArray();
-        this.notifyPropertyChange('splitPlotChange');
       }
+      if( tStartsOutSplit || tEndsUpSplit)
+        this.notifyPropertyChange('splitPlotChange');
 
     },
 

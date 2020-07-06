@@ -535,6 +535,8 @@ DG.AttributeStats = SC.Object.extend((function () // closure
      @private
      */
     _computeCategoricalStats: function () {
+      if( this._categoricalCacheIsValid)
+        return;
       var tCases = this._cases,
           tAttributes = this.get('attributes'),
           tCaseCount = 0,
@@ -601,9 +603,9 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         this.categoricalStats.beginPropertyChanges();
         this.categoricalStats.set('cellMap', tCellMap);
         this.categoricalStats.set('count', tCaseCount);
+        this._categoricalCacheIsValid = true;
         this.categoricalStats.endPropertyChanges();
       }
-      this._categoricalCacheIsValid = true;
     }
   };
 }()));
