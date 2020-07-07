@@ -294,8 +294,6 @@ DG.ChartModel = DG.PlotModel.extend(
       if( isFinite( tCellIndex) && DG.MathUtilities.isInIntegerRange( tCellIndex, 0, totalCells )) {
         var iValue = tValueArray[ tCellIndex ];
         iValue.count += 1;
-        DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.ChartModel.getCellCaseCounts()" );
-        DG.assert( iValue.secondaryCell === (iSecondaryCell || 0), "secondary cell index error in DG.ChartModel.getCellCaseCounts()" );
       }
     });
 
