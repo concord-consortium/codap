@@ -211,6 +211,9 @@ DG.TextView = SC.View.extend((function() {
                 onFocus: function() {
                   if (!this.isComponentSelected()) {
                     SC.run(function() {
+                      // Apparently the mouse down is captured, so we need to
+                      // manually close any inspector panels that are open.
+                      DG.mainPage.mainPane.hideInspectorPicker();
                       var componentView = this.getComponentView();
                       componentView && componentView.select();
                     }.bind(this));
