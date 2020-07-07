@@ -47,9 +47,11 @@ echo '    * up-to-date with github: “git pull”'
 git pull
 echo '    * remove tmp directory'
 rm -rf tmp
+echo '    * npm packages are up to date'
+npm install
 echo '    * nothing checked out, and in master: “git st”'
 [ "$CODAP_BRANCH" != "$EXP_CODAP_BRANCH" ] && error 'branch is not master'
-[`git status -s | wc -l` != 0 ] && error 'CODAP codeline is not clean'
+[ `git status -s | wc -l` != 0 ] && error 'CODAP codeline is not clean'
 echo '     * lint error free: “npm run lint”'
 npm run lint
 
