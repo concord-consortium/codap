@@ -175,9 +175,28 @@ DG.TextView = SC.View.extend((function() {
                 colors: { fill: "#ffffff", background: "#177991" },
                 selectedColors: { fill: "#177991", background: "#72bfca" },
                 buttonsPerRow: 9,
-                order: ["fontDecrease", "bold", "italic", "underlined", "deleted", "code", "superscript", "subscript",
-                        "color", "fontIncrease", "heading1", "heading2", "heading3", "block-quote",
-                        "ordered-list", "bulleted-list", "image", "link"],
+                order: [
+                    //column 1
+                  "fontDecrease",
+                  "bold",
+                  "underlined",
+                  "superscript",
+                  "ordered-list",
+                  "heading1",
+                  "heading3",
+                  "color",
+                  "link",
+
+                    //column 2
+                  "fontIncrease",
+                  "italic",
+                  "deleted",
+                  "subscript",
+                  "bulleted-list",
+                  "heading2",
+                  "block-quote",
+                  "image"
+                ],
                 editor: this._editor,
                 show: this.isComponentSelected()
               };
