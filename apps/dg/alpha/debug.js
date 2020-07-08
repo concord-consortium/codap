@@ -19,7 +19,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+sc_require('utilities/analytics');
 /**
   Constant used to indicate logging of user actions.
   Analogous to SC.LOGGER_LEVEL_INFO, which as also the SC.Logger level
@@ -463,7 +463,7 @@ DG.Debug = SC.Object.create( (function() {
           level           = logLevelMapping[iType]                      || 0,
           currentLevel    = logLevelMapping[this.get('googleAnalyticsLevel')] || 0;
 
-      return (level <= currentLevel);
+      return DG.GOOGLE_ANALYTICS_ID && (level <= currentLevel);
     },
 
     /** @private
