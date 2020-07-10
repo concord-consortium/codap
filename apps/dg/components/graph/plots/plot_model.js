@@ -97,8 +97,14 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
                 tColValue = (tColAttrID === DG.Attribute.kNullAttribute) ? null :
                   tColAttrDescription.getPath('attributeStats.cellNames')[ this.get('splitPlotColIndex')];
             this._casesCache = this.getPath('dataConfiguration.cases').filter( function( iCase) {
-              return (tRowValue === null || iCase.getValue( tRowAttrID) === tRowValue) &&
-                  (tColValue === null || iCase.getValue( tColAttrID) === tColValue);
+              var tRowCaseValue = iCase.getValue( tRowAttrID),
+                  tColCaseValue = iCase.getValue( tColAttrID);
+              if( typeof tRowCaseValue === 'boolean')
+                tRowCaseValue = String(tRowCaseValue);
+              if( typeof tColCaseValue === 'boolean')
+                tColCaseValue = String(tColCaseValue);
+              return (tRowValue === null || tRowCaseValue === tRowValue) &&
+                  (tColValue === null || tColCaseValue === tColValue);
             });
           }
           tCases = this._casesCache;
