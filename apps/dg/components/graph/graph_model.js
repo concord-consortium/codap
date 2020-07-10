@@ -299,23 +299,36 @@ DG.GraphModel = DG.DataLayerModel.extend(
           return DG.AxisModel;
       }
 
-      var configureAttributeDescription = function( iKey) {
-        var tAttributeName = this.get(iKey + 'AttributeName'),
-            tAttribute,
-            tDefaults = DG.currDocumentController().collectionDefaults(),
-            tCollectionClient = tDefaults.collectionClient;
-        if( tAttributeName) {
-          delete this[iKey + 'AttributeName'];  // Because that was how it was passed in
-          tAttribute = tDataContext ? tDataContext.getAttributeByName(tAttributeName) :
-              (tCollectionClient ? tCollectionClient.getAttributeByName(tAttributeName) : null);
-          if( tAttribute) {
-            if (tDataContext && !tCollectionClient)
-              tCollectionClient = tDataContext.getCollectionForAttribute(tAttribute);
-            this.get('dataConfiguration').setAttributeAndCollectionClient( iKey + 'AttributeDescription',
-                { collection: tCollectionClient, attributes: [ tAttribute]});
-          }
-        }
-      }.bind(this);
+      var configureAttributeDescription = function (iKey) {
+            var tAttributeName = this.get(iKey + 'AttributeName'),
+                tAttribute,
+                tDefaults = DG.currDocumentController().collectionDefaults(),
+                tCollectionClient = tDefaults.collectionClient;
+            if (tAttributeName) {
+              delete this[iKey + 'AttributeName'];  // Because that was how it was passed in
+              tAttribute = tDataContext ? tDataContext.getAttributeByName(tAttributeName) :
+                  (tCollectionClient ? tCollectionClient.getAttributeByName(tAttributeName) : null);
+              if (tAttribute) {
+                if (tDataContext && !tCollectionClient)
+                  tCollectionClient = tDataContext.getCollectionForAttribute(tAttribute);
+                this.get('dataConfiguration').setAttributeAndCollectionClient(iKey + 'AttributeDescription',
+                    {collection: tCollectionClient, attributes: [tAttribute]});
+              }
+            }
+          }.bind(this),
+          configureSplitAxis = function (iPrefix) {
+            // The top and right axes are always DG.CellAxis, so we might as well create them here
+            // Note that if they already exist, we need to leave them in place or they get disconnected
+            // from their axis views. This happens during reset when we change contexts
+            var tAxis = this.get(iPrefix + 'Axis'),
+                tDescription = tConfiguration.get(iPrefix + 'AttributeDescription');
+            if( !tAxis) {
+              tAxis = DG.CellAxisModel.create();
+              this.set(iPrefix + 'Axis', tAxis);
+            }
+            tAxis.set('dataConfiguration', tConfiguration);
+            tAxis.set('attributeDescription', tDescription);
+          }.bind( this);
 
       function getExtraYAttributes (model) {
         var yAttrName =  model.get('yAttributeName');
@@ -396,13 +409,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
         });
       }
 
-      // The top and right axes are always DG.CellAxis, so we might as well create them here
-      this.set('topAxis', DG.CellAxisModel.create( {
-        dataConfiguration: tConfiguration, attributeDescription: tConfiguration.get('topAttributeDescription')
-      }));
-      this.set('rightAxis', DG.CellAxisModel.create( {
-        dataConfiguration: tConfiguration, attributeDescription: tConfiguration.get('rightAttributeDescription')
-      }));
+      configureSplitAxis( 'top');
+      configureSplitAxis( 'right');
 
       var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
           numberToggle = this.get('numberToggle'),

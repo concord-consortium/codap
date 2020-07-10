@@ -452,10 +452,12 @@ DG.GraphController = DG.DataDisplayController.extend(
          * @param iDragData
          */
         handlePossibleForeignDataContext: function (iDataContext) {
-          var tDragContext = iDataContext;
+          var tDragContext = iDataContext,
+              tExistingContext = this.get('dataContext');
 
-          if (!SC.none(tDragContext) && (tDragContext !== this.get('dataContext'))) {
-            this.get('graphModel').reset();
+          if (tDragContext && (tDragContext !== tExistingContext)) {
+            if( tExistingContext)
+              this.get('graphModel').reset();
             this.set('dataContext', tDragContext);
             var tConfig = this.getPath('graphModel.dataConfiguration');
             tConfig.set('dataContext', tDragContext);
