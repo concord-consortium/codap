@@ -212,7 +212,18 @@ DG.DotChartView = DG.ChartView.extend(
 
         var this_ = this,
             tInitialTransform = null,
-            kOpaque = 1;
+            kOpaque = 1,
+            tBackground = this.get('paperSource');
+
+        function startMarquee(iWindowX, iWindowY, iEvent) {
+          tBackground.prepareMarquee();
+          var tStartPt = tBackground.startMarquee(iWindowX, iWindowY, iEvent, true /* don't deselect */),
+              tPtRadius = this.attr('r');
+          // Adjust start point so we're more likely to encompass the case represented by this element
+          tStartPt.x -= tPtRadius;
+          tStartPt.y -= tPtRadius;
+        }
+
         iElement.hover(function (event) {
               // Note that Firefox can come through here repeatedly so we have to check for existence
               if (SC.none(tInitialTransform)) {
@@ -232,7 +243,8 @@ DG.DotChartView = DG.ChartView.extend(
               }, DG.PlotUtilities.kHighlightHideTime);
               tInitialTransform = null;
               this_.hideDataTip();
-            });
+            })
+            .drag(tBackground.continueMarquee, startMarquee, tBackground.endMarquee);
 
         return iElement;
       },
