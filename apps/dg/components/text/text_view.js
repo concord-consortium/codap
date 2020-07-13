@@ -224,7 +224,7 @@ DG.TextView = SC.View.extend((function() {
                 }.bind(this),
                 onContentChange: function(content) {
                   SC.run(function() {
-                    this.set('value', content);
+                    this.set('value', SlateEditor.serializeValue(content));
                   }.bind(this));
                 }.bind(this),
                 onFocus: function() {
