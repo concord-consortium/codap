@@ -42,8 +42,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
       numPlotsOrIndexChanged: function() {
         // update connecting lines
         if (this.connectingLineAdorn) {
-          this.connectingLineAdorn.invalidateModel();
-          this.connectingLineAdorn.updateToModel();
+          this.connectingLineChanged();
         }
       }.observes('numPlots', 'plotIndex'),
 
