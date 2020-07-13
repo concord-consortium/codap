@@ -603,9 +603,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tDataConfiguration = this.getDataConfiguration(),
               tDragAttrIsNominal = tDataConfiguration.attributeIsNominal(tDragAttr),
               tCurrAttr = this.getPath('model.attributeDescription.attribute'),
-              tXAttr = this.getPath('xAttributeDescription.attribute'),
+              tXAttrDescription = this.get('xAttributeDescription'),
+              tXAttr = tXAttrDescription.get('attribute'),
+              tXIsNumeric = tXAttrDescription.get('isNumeric'),
               tOtherYAttr = this.getPath('otherYAttributeDescription.attribute'),
-              tValidForScatterplot = (tXAttr !== DG.Analysis.kNullAttribute) &&
+              tValidForScatterplot = (tXAttr !== DG.Analysis.kNullAttribute && tXIsNumeric) &&
                   (tCurrAttr !== tDragAttr) &&
                   !tDragAttrIsNominal &&
                   tOtherYAttr && !tDataConfiguration.attributeIsNominal( tOtherYAttr);
