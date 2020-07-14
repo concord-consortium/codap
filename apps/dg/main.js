@@ -270,20 +270,7 @@ DG.main = function main() {
 
     return url;
   }
-  function cfmGlobalsLoaded() {
-    return new Promise(function(resolve, reject) {
-                $.ajax({
-                  url: cfmUrl('globals.js'),
-                  dataType: 'script',
-                  success: function() {
-                    resolve(true);
-                  },
-                  failure: function() {
-                    reject(false);
-                  }
-                });
-              });
-  }
+
   function cfmAppLoaded() {
     return new Promise(function(resolve, reject) {
                 $.ajax({
@@ -310,7 +297,7 @@ DG.main = function main() {
   function cfmLoaded() {
     // if a cfmBaseUrl was specified, load the CFM libs dynamically via ajax
     if (DG.cfmBaseUrl) {
-      return Promise.all([cfmGlobalsLoaded(), cfmAppLoaded()]);
+      return cfmAppLoaded();
     }
 
     // if no cfmBaseUrl was specified, the CFM should have been loaded in index.rhtml
