@@ -670,7 +670,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 collectionSpec.attrs.forEach(function(attr) {
                   // original name and new name will be returned to client
                   attr.clientName = attr.name;
-                  attr.name = context.canonicalizeName(attr.name);
+                  // We add a space as a kludge. For historical reasons, when creating
+                  // attributes through other paths we interpret parens at the end
+                  // of a name as the unit, so we strip it from the name. Plugins
+                  // can set the unit in the request JSON. Adding a space will
+                  // suppress the stripping of the parens. The space will be
+                  // trimmed later.
+                  attr.name = context.canonicalizeName(attr.name + ' ');
                 });
               }
 
