@@ -35,7 +35,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   var kIndexColumnID = '__INDEX__',
       kDefaultColumnWidth = 60,
       kDefaultQualWidth = 60,
-      kIndexColumnWidth = 40,
+      kIndexColumnWidth = 35,
+      kMinIndexColumnWidth = 35,
+      kMinDataColumnWidth = 45,
       kDefaultRowHeight = 18,
       kDefaultColorWidth = 20,
       kMaxStringLength = 256,
@@ -502,6 +504,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             cssClass: 'dg-index-column',
             formatter: indexFormatter,
             width: kIndexColumnWidth,
+            minWidth: kMinIndexColumnWidth
           };
       columnDefs.push(columnInfo);
     }
@@ -528,6 +531,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             formatter: cellFormatter,
             tooltipFormatter: tooltipFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
+            minWidth: kMinDataColumnWidth,
             hasDependentInteractive: function () {
               return this.context.get('hasGameInteractive');
             },
