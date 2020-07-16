@@ -172,8 +172,10 @@ DG.TextView = SC.View.extend((function() {
                 modalDialogClassName: 'codap-slate-modal' + kWantsEventsClasses,
                 className: 'codap-slate-toolbar' + kWantsEventsClasses,
                 orientation: 'vertical',
-                colors: { fill: "#ffffff", background: "#177991" },
-                selectedColors: { fill: "#177991", background: "#72bfca" },
+                colors: {
+                  buttonColors: { fill: "#ffffff", background: "#177991" },
+                  selectedColors: { fill: "#177991", background: "#72bfca" }
+                },
                 buttonsPerRow: 9,
                 order: [
                     //column 1
