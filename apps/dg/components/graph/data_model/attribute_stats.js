@@ -531,12 +531,12 @@ DG.AttributeStats = SC.Object.extend((function () // closure
     },
 
     /**
-     Run through all attribute values and cache categorical stats
+     Run through all attribute values and cache categorical stats.
+     Note: Caller's responsibility to check for this._categoricalCacheIsValid. This routine will
+            run regardless.
      @private
      */
     _computeCategoricalStats: function () {
-      if( this._categoricalCacheIsValid)
-        return;
       var tCases = this._cases,
           tAttributes = this.get('attributes'),
           tCaseCount = 0,
