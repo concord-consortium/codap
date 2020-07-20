@@ -670,6 +670,7 @@ html, body {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
     border-radius:6px;
 }
+
 .dg-component-view .dg-titlebar .dg-version-view {
     cursor: grab;
 }
@@ -700,6 +701,7 @@ html, body {
     border-top-right-radius:6px;
     border-top-left-radius:6px;
     color: white;
+    z-index: 99;
 }
 
 .dg-titlebar-selected {
