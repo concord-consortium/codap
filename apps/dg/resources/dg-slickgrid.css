@@ -61,33 +61,35 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   font-weight: normal;
 }
 
-.slick-column-name .two-line-header-line-1{
+.slick-column-name .two-line-header-line-1, .slick-column-name .two-line-header-line-2 {
   display: block;
   text-align: left;
+  overflow: hidden;
   white-space: normal;
-  -moz-hyphens: auto;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+}
+
+.slick-column-name .two-line-header-line-1 {
+  word-wrap: break-word;
+  word-break: break-all;
   height: 2.4em;
-  overflow-y: hidden;
 }
 
 .slick-column-name .two-line-header-line-2 {
   display:none;
   direction: rtl; /* The second line, when visible, will present the end of the
                      string. RTL does this. */
-  height: 1.2em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .slick-column-name.two-line-header-truncating .two-line-header-line-1 {
   text-overflow: ellipsis;
   height: 1.2em;
+  white-space: nowrap;
+  word-wrap: normal;
 }
 
 .slick-column-name.two-line-header-truncating .two-line-header-line-2 {
+  height: 1.2em;
+  white-space: nowrap;
   display: block;
 }
 

@@ -1759,32 +1759,18 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         return;
       }
       function makeLinePair($el) {
-        var text = $el.text().replace(/_/g, ' ');
+        var text = $el.text();
         var $line1 = $('<span>').addClass('two-line-header-line-1').text(text);
         var $line2 = $('<span>').addClass('two-line-header-line-2').text(text);
         $el.empty().append($line1).append($line2);
       }
       function computeMiddleEllipsis($el) {
         var width = $el.width();
-        var height = $el.height();
         var v1 = $('.two-line-header-line-1', $el);
-        var style = [
-          'font-style:' + v1.css('font-style'),
-          'font-variant:' + v1.css('font-variant'),
-          'font-weight:' + v1.css('font-weight'),
-          'font-stretch:' + v1.css('font-stretch'),
-          'line-height:' + v1.css('line-height'),
-          'font-size:' + v1.css('font-size'),
-          'font-family:' + v1.css('font-family'),
-          'width: ' + width + 'px',
-          'overflow: auto',
-          'hyphens: auto',
-          'white-space: normal'
-        ].join(';');
         var text = v1.text();
-        var textMeasure = DG.measureText(text, style);
-        // DG.log('text, el-h,text-h: ' + [text, height, textMeasure.height].join());
-        if (textMeasure.height > height) {
+        var textWidth = DG.measureTextWidth(text, {font: v1.css('font')});
+        //DG.log('text, el-w,text-w,truncating: ' + [text, width,textWidth, (textWidth > 2*width)].join());
+        if (textWidth > 2 * width) {
           $el.addClass('two-line-header-truncating');
         } else {
           $el.removeClass('two-line-header-truncating');
