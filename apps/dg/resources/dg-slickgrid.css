@@ -69,7 +69,7 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   -webkit-hyphens: auto;
   hyphens: auto;
   height: 2.4em;
-  overflow-y: hidden;
+  overflow: hidden;
 }
 
 .slick-column-name .two-line-header-line-2 {
