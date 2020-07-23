@@ -1,26 +1,19 @@
-import TableTile from "../support/elements/TableTile";
 import CodapObject from "../support/elements/CodapObject";
 import CaseCardObject from "../support/elements/CaseCardObject";
 import CfmObject from "../support/elements/CfmObject";
-import MapTile from '../support/elements/MapTile';
 import SliderTile from '../support/elements/SliderObject';
 import TextTile from '../support/elements/TextObject';
 import CalculatorTile from '../support/elements/CalculatorObject';
-import Plugin from '../support/elements/PluginObject';
-import DrawToolPlugin from '../support/elements/DrawToolObject';
-import GraphTile from '../support/elements/GraphTile'
+import SamplerPlugin from '../support/plugin_elements/SamplerPluginObject';
 
-const table = new TableTile;
 const codap = new CodapObject;
 const cfm = new CfmObject;
 const casecard = new CaseCardObject;
-const graph = new GraphTile;
-const map = new MapTile;
+
 const slider = new SliderTile
 const textTile = new TextTile
 const calculator = new CalculatorTile
-const sampler = new Plugin
-const drawTool = new DrawToolPlugin
+const samplerPlugin = new SamplerPlugin
 
 const ext = '.codap';
 
@@ -32,12 +25,11 @@ const ext = '.codap';
 const baseUrl = `${Cypress.config("baseUrl")}`;
 
 before(()=> {
-    cy.viewport(1400,1000);
     cy.visit(baseUrl)
     cy.wait(5000)
 }) 
 
-context('CFM functionalities with table', ()=>{
+context('Tile variety', ()=>{
 
     it('verify restore of all components', ()=>{ //test to see if a blank table is saved properly.
         var filename='save_restore_test_doc',
@@ -53,21 +45,24 @@ context('CFM functionalities with table', ()=>{
         casecard.getCaseCardTile().should('be.visible').and('contain','1–9 ');
     })
 
-    // it('verify web page restore',()=>{
-    //     cy.getWebviewIframe().find('.concord-logo').should('be.visible')
-    // })
+    it('verify web page restore',()=>{
+        cy.getWebviewIframe().find('.concord-logo').should('be.visible')
+    })
     it('verify text box restore', ()=>{
         textTile.getTextTile().should('be.visible');
-        textTile.getTextTile().should('have.class', 'not-empty');
-        textTile.getTextArea().then(($textarea)=>{
-            expect($textarea[0].value).to.contain('save and restore')
-        })
+        textTile.getTextArea().should('contain','save and restore')
     })
 
-    // it('verify DrawTool restore', ()=>{ //no way to verify contents of the canvas
-    //     cy.getPluginIframe().find('#camera-flash').should('be.visible')
-    // })
+    it('verify DrawTool restore', ()=>{ //no way to verify contents of the canvas
+        cy.getPluginIframe().find('#camera-flash').should('be.visible')
+    })
     it('verify slider restore', ()=>{
         slider.getSliderTile().should('be.visible');
     })
-})   
+    it('verify calculator restore', ()=>{
+      calculator.getCalculatorTile().scrollIntoView().should('be.visible');
+  })
+  it('verify Sampler plugin restore', ()=>{
+    samplerPlugin.getSamplerPlugin().should('be.visible');
+})
+})

@@ -79,12 +79,14 @@
     "test": "bin/test_runner",
     "test:cypress": "cypress run --config video=false,defaultCommandTimeout=10000 --env testEnv=local,failOnSnapshotDiff=false",
     "test:cypress:branch": "cypress run --config video=false,defaultCommandTimeout=10000 --env testEnv=branch,failOnSnapshotDiff=false",
+    "test:cypress:staging": "cypress run --config video=false,defaultCommandTimeout=10000 --env testEnv=staging,failOnSnapshotDiff=true --browser chrome --headless",
     "test:full": "npm-run-all test test:cypress",
     "test:production": "cypress open --env testEnv=production,failOnSnapshotDiff=false",
     "test:staging": "cypress open --env testEnv=staging,failOnSnapshotDiff=false",
     "test:branch": "cypress open --env testEnv=branch,failOnSnapshotDiff=false",
     "test:local": "cypress open --env testEnv=local,failOnSnapshotDiff=false",
-    "unlink:slate": "npm uninstall --no-save @concord-consortium/slate-editor && npm install"
+    "unlink:slate": "npm uninstall --no-save @concord-consortium/slate-editor && npm install",
+    "test:cypress:staging:single": "cypress run --config video=true,defaultCommandTimeout=10000 --env testEnv=staging,failOnSnapshotDiff=false --browser chrome --headless --spec 'cypress/integration/graph_ruler_test.js'"
   },
   "repository": {
     "type": "git",
@@ -98,7 +100,7 @@
   "homepage": "http://codap.concord.org/",
   "devDependencies": {
     "css-loader": "^3.4.2",
-    "cypress": "^4.3.0",
+    "cypress": "^4.10.0",
     "cypress-commands": "^0.3.1",
     "cypress-file-upload": "^3.5.0",
     "cypress-image-snapshot": "^3.1.1",

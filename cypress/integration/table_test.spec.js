@@ -15,14 +15,13 @@ before(()=> {
     var filename='TableC',
         dir='../fixtures/';
 
-    cy.viewport(1400,1000);
     cy.visit(baseUrl)
     cy.wait(5000)
 
     cfm.openDocFromModal();
     cy.wait(500)
     cfm.openLocalDoc(dir+filename+ext)
-    codap.getTableTileTitle().click() //bring the table into focus
+    codap.getTableTile().click() //bring the table into focus
 }) 
 
 context('table ui',()=>{ //tests for ui elements
@@ -148,7 +147,6 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
             cy.get('.dg-formula-column .dg-numeric').eq(0).should('be.visible');
             cy.get('.dg-formula-column .dg-numeric').eq(0).then(($span)=>{
                 let num=($span.text())
-                console.log($span)
                 table.openAttributeMenu(name);
                 table.getAttributeMenuItem('Rerandomize').should('exist');
                 table.selectMenuItemFromAttributeMenu('Rerandomize');

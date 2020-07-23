@@ -16,7 +16,6 @@ context('math formulas',()=>{
         var filename='math-formula-test',
             dir='../fixtures/';
     
-        cy.viewport(1400,1000);
         cy.visit(baseUrl)
         cy.wait(5000)
     

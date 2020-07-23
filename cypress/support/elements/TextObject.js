@@ -1,9 +1,9 @@
 class TextTile{
     getTextTile(){
-        return cy.get('.dg.text-area');
+        return cy.get('.dg-text-view-edit-view');
     }
     getTextArea() {
-        return cy.get('textarea');
+        return cy.get('[data-testid=slate-editor]');
     }
     //$('textarea')[0].value
 //"save and restore"

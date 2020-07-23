@@ -5,8 +5,8 @@ import MapTile from '../support/elements/MapTile';
 import SliderTile from '../support/elements/SliderObject';
 import TextTile from '../support/elements/TextObject';
 import CalculatorTile from '../support/elements/CalculatorObject';
-import Plugin from '../support/elements/PluginObject';
-import DrawToolPlugin from '../support/elements/DrawToolObject';
+import SamplerPlugin from '../support/plugin_elements/SamplerPluginObject';
+import DrawToolPlugin from '../support/plugin_elements/DrawToolObject';
 
 const table = new TableTile;
 const codap = new CodapObject;
@@ -15,7 +15,7 @@ const map = new MapTile;
 const slider = new SliderTile
 const textTile = new TextTile
 const calculator = new CalculatorTile
-const sampler = new Plugin
+const sampler = new SamplerPlugin
 const drawTool = new DrawToolPlugin
 
 const baseUrl = `${Cypress.config("baseUrl")}`;
@@ -57,19 +57,19 @@ context('codap toolbar', ()=>{
         codap.openTile('plugin','Sampler')
         cy.wait(2000);
         sampler.getSamplerPlugin().should('be.visible')
-        codap.closeTile('plugin','index'); //close the tile because it interferes with later tests
+        codap.closeTile('plugin','Sampler'); //close the tile because it interferes with later tests.  
     })
     it('will open a Draw Tool', ()=>{
         codap.openTile('plugin','Draw Tool')
         cy.wait(2000);
         cy.getPluginIframe().find('#camera-flash').should('be.visible')
-        codap.closeTile('plugin', 'index'); //close the tile because it interferes with later tests
+        codap.closeTile('plugin', 'DrawTool'); //close the tile because it interferes with later tests
     })
     it('will open WeatherX Plugin', ()=>{
         codap.openTile('plugin','NOAA Weather')
         cy.wait(2000);
         cy.getPluginIframe().find('#wx-get-button').should('be.visible')
-        codap.closeTile('plugin', 'NOAA-weather'); //close the tile because it interferes with later tests
+        codap.closeTile('plugin', 'NOAA Weather'); //close the tile because it interferes with later tests
     })
     it('will focus table tile from Tile list', ()=>{
         codap.openTile('tilelist', 'New Dataset')
