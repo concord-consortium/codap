@@ -15,7 +15,6 @@ before(()=> {
     var filename='TableC',
         dir='../fixtures/';
 
-    cy.viewport(1400,1000);
     cy.visit(baseUrl)
     cy.wait(5000)
 
@@ -39,7 +38,7 @@ context('case card version', ()=>{
             table.getCaseCardNavForwardIcon().should('be.visible');
         })
         it('verify collection info is visible', ()=>{
-            table.getCaseCardCollectionHeader().should('be.visible').and('contain','179 cases');
+            table.getCaseCardCollectionHeaderLabel().should('be.visible').and('contain','179 cases');
         })
         it('verify add attribute icon is visible', ()=>{
             table.getCaseCardAddAttributePlusIcon().should('be.visible');

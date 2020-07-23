@@ -24,33 +24,12 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
-// Cypress.Commands.add("uploadFile",(selector, filename, type="")=>{
-//     // cy.fixture(filename).as("image");
-
-//     return cy.get(selector).then(subject => {
-//         return cy.fixture(filename,'base64')
-//             .then(Cypress.Blob.base64StringToBlob)
-//         // From Cypress document: https://docs.cypress.io/api/utilities/blob.html#Examples
-//         // return Cypress.Blob.base64StringToBlob(cy.fixture(filename), "image/png")
-//             .then((blob) => {
-//             const el = subject[0]
-//             const nameSegments = filename.split('/')
-//             const name = nameSegments[nameSegments.length - 1]
-//             const testFile = new File([blob], name, { type });
-//             const dataTransfer = new DataTransfer();
-//             dataTransfer.items.add(testFile);
-//             el.files = dataTransfer.files;
-//             return subject;
-//         })
-//     })
-// })
 import { addMatchImageSnapshotCommand } from 'cypress-image-snapshot/command'
 import 'cypress-commands';
 
 import TableTileObject from "./elements/TableTile";
 import GraphTile from "./elements/GraphTile";
 import MapTile from "./elements/MapTile";
-import Plugin from "./elements/PluginObject";
 import WebviewTile from "./elements/WebViewObject";
 
 //This will open the example documents from the CFM menu
@@ -58,36 +37,15 @@ import WebviewTile from "./elements/WebViewObject";
 const tableTile = new TableTileObject;
 const graphTile = new GraphTile;
 const mapTile = new MapTile;
-const pluginTile = new Plugin;
 const webviewTile = new WebviewTile;
-
-// import fs from 'fs-extra'
-// import path from 'path'
 
 addMatchImageSnapshotCommand({ //need to fine tune threshholds
   failureThreshold: 0.05, // threshold for entire image
   failureThresholdType: 'percent', // percent of image or number of pixels
   customDiffConfig: { threshold: 0.5 }, // threshold for each pixel
-  capture: 'viewport' // capture viewport in screenshot
+  capture: 'viewport', // capture viewport in screenshot
+  allowSizeMismatch: true
 })
-
-// Cypress.Commands.add('uploadFile', (selector, fileUrl, type = '') => { //fix this to work with CFM
-//     return cy
-//       .fixture(fileUrl, 'base64')
-//       .then(Cypress.Blob.base64StringToBlob)
-//       .then(blob => {
-//         return cy.window().then(win => {
-//           //papaparse was doing an instanceOf window.File check that was failing so we needed 
-//           //https://github.com/cypress-io/cypress/issues/170#issuecomment-411289023 
-//           const nameSegments = fileUrl.split('/');
-//           const name = nameSegments[nameSegments.length - 1];
-//           const testFile = new win.File([blob], name, { type });
-//           const event = { dataTransfer: { files: [testFile] } };
-//           // return subject
-//           return cy.get(selector).trigger('drop', event);
-//         });
-//       });
-// });
 
 Cypress.Commands.add('clickMenuItem', text => {
   cy.log('in clickMenuItem. text: '+text)
@@ -145,7 +103,7 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
     case ('card collection') :
         target_el=el.caseCardCollectionDropZone;
         break               
-    case ('graph_legend1') :
+    case ('graph_legend') :
         target_el=el.graphTile;
         break  
     case ('map') :
@@ -176,6 +134,7 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
       .trigger('mouseup', {force:true}, {which:1}, {dt})
 });
 
+// With current implementation of the cy.getPluginIframe and cy.getWebviewIframe custom command, only one iframe can be open
 Cypress.Commands.add("getPluginIframe", () => {
   return cy.get(".dg-web-view-frame iframe").iframe()
 });
@@ -258,24 +217,14 @@ function onIframeReady($iframe, successFn, errorFn) {
 }
 
 Cypress.Commands.add("uploadFile",(selector, filename, type="")=>{
-    // cy.fixture(filename).as("file");
-
     return cy.get(selector).then((subject) => {
         return cy.fixture(filename)
             .then((blob) => {
-                console.log(blob)
-                // console.log(subject[0])
             const el = subject[0]
-            // // const nameSegments = filename.split('/')
-            // // const name = nameSegments[nameSegments.length - 1]
             const testFile = new File([blob], filename, { type });
             const dataTransfer = new DataTransfer();
-            console.log(testFile)
             dataTransfer.items.add(testFile);
-            // dataTransfer.items.add(blob);
-            console.log(dataTransfer)
             el.files = dataTransfer.files;
-            console.log(subject)
             return subject;
         })
     })
@@ -304,6 +253,16 @@ Cypress.Commands.add("verifyComponentExists",(tiles)=>{
         webviewTile.getWebviewTile().should('be.visible').and('have.length', webviewNum)
     }
     if (pluginNum>0){
-        pluginTile.getPlugin().should('be.visible').and('have.length', pluginNum)
+        webviewTile.getPlugin().should('be.visible').and('have.length', pluginNum)
     }
+})
+
+Cypress.Commands.overwrite('screenshot', (originalFn, subject, name, options) => {
+  // only take screenshots in headless browser
+  if (Cypress.browser.isHeadless) {
+    // return the original screenshot function
+    return originalFn(subject, name, options)
+  }
+
+  return cy.log('No screenshot taken when headed')
 })

@@ -24,6 +24,9 @@ class GraphTile {
     getPlotView(){
         return cy.get('.dg-plot-view')
     }
+    getDataDotColored(){
+        return cy.get('.dg-data-dot-colored')
+    }
     getLegend(){
         return cy.get('.dg-legend-view')
     }
@@ -125,7 +128,7 @@ class GraphTile {
         return cy.get('.dg-movable-value-button')
     }
     getMeanLine(){
-        return cy.get('.dg-graph-view svg path[stroke="#0000ff"]')
+        return cy.get('.dg-graph-view svg [stroke-width="5"]')
     }
     hoverMeanLine(){
         return cy.get('.dg-graph-view svg path[stroke="#ffffff"]').first().trigger("mouseover")
