@@ -3,7 +3,7 @@
 
     // we have to reset a lot of the styles to overcome the effects of
     // SproutCore's styles, particularly stemming from the yuireset.
-    .codap-slate-editor {
+    .codap-ccrte-editor {
         box-sizing: border-box;
         height: 100%;
         padding-left: 5px;
@@ -49,6 +49,18 @@
           padding-inline-start: 30px;
         }
     }
+}
+
+.codap-ccrte-modal {
+  input[type=text] {
+    width: unset;
+  }
+
+  .checkbox > input:checked + span::before {
+    font-family: arial;
+    font-size: 13.5px;
+    font-weight: bold;
+  }
 }
 
 .dg-text-view-react-portal, .dg-text-view-modal-portal {
