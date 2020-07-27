@@ -319,6 +319,7 @@ DG.PlotView = DG.PlotLayer.extend(
               this.vanishPlottedElement( iOldAttrs, tNewAttrs );
             });
           }
+          this.notifyPropertyChange('plotDisplayDidChange');
         }.bind( this);
     this.setPath('model.isAnimating', true); // So plot's standard draw won't wipe out animation
     tCases.forEachWithInvokeLater( eachCaseFunc, finallyFunc);
