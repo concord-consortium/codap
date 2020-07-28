@@ -22,7 +22,7 @@
  * @param text {string} this text to measure
  * @param iStyle {object} font attributes if not default
  */
-DG.measureText = (function () {
+DG.measureTextWidth = (function () {
   var kSelector = 'dg-text-measurer';
   var $el;
 
@@ -36,7 +36,7 @@ DG.measureText = (function () {
       $el = $('<div>').addClass(kSelector);
       $el.appendTo(document.body);
     }
-    $el.attr('style', style).html(text);
-    return { width: $el.outerWidth(), height: $el.outerHeight() };
+    $el.attr(style).html(text);
+    return $el.outerWidth();
   };
 }());

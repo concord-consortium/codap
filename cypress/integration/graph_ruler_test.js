@@ -6,13 +6,20 @@ const cfm = new CfmObject;
 const graph = new GraphTile;
 const codap = new CodapObject;
 
-const codapDoc = '3TableGroups.json'
+// const codapDoc = '3TableGroups.json'
 
 const baseUrl = `${Cypress.config("baseUrl")}`;
 
 before(()=>{
-    cy.visit(baseUrl+"?url=https://codap.concord.org/~eireland/"+codapDoc)
-    cy.wait(5000)
+    // cy.visit(baseUrl+"?url=https://codap.concord.org/~eireland/"+codapDoc)
+    var filename = '3TableGroups',
+      ext = ".codap",
+      dir = '../fixtures/';
+      
+    cy.visit(baseUrl)
+    cfm.openDocFromModal();
+    cfm.openLocalDoc(dir + filename + ext);
+    cy.wait(2000)
 })                
 
 context('will test graph ruler functions', ()=>{
@@ -189,7 +196,7 @@ context('will test graph ruler functions', ()=>{
             cy.matchImageSnapshot('p_'+hash[0].attribute+'_on_'+hash[0].axis+'_adorned');
             cy.dragAttributeToTarget('table',hash[1].attribute, hash[1].axis)
             cy.wait(1000)
-            graph.getMeanLine().should('be.visible').and('have.length',2);
+            graph.getMeanLine().should('be.visible').and('have.length',1);
             graph.getMeanLine().last().click()
             cy.get('.dg-graph-view svg path[stroke="#0000ff"]').last().trigger('mouseover').then(()=>{    
                 graph.getGraphAdornmentText().should('contain','mean=−0.24')
@@ -229,7 +236,7 @@ context('will test graph ruler functions', ()=>{
             cy.matchImageSnapshot('p_'+hash[3].attribute+'_n_'+hash[2].attribute+'_adorned');
             cy.dragAttributeToTarget('table',hash[4].attribute, hash[4].axis)
             cy.wait(1000)
-            graph.getMeanLine().should('be.visible').and('have.length', 4);
+            graph.getMeanLine().should('be.visible').and('have.length', 3);
             graph.hoverMeanLine().first().then(()=>{
                 graph.getGraphAdornmentText().should('exist').and('contain','mean=12')
             })

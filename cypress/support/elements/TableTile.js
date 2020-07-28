@@ -51,12 +51,12 @@ class TableTileObject{
     getCollapseAllIcon(){
         return cy.get('.dg-table-drop-target .slick-header image')
     }
-    getCell(line, row, instance){
+    getCell(line, row, instance){//line and row have to be in quotes since it's getting appended as part of text
         //get collection name
         //get the .dg-case-table sibling of the .dg-case-table-title
         //get the child .slick-cell of the found .dg-case-table
 
-        //made it simpler for now
+        //made it simpler for now.
         return cy.get('.slick-cell.l'+line+'.r'+row).eq(instance)
     }
     getIndex(){
@@ -99,6 +99,9 @@ class TableTileObject{
     getCaseCardCollectionHeader(position=0){
         return cy.get('.collection-header-row').eq(position)
     }
+    getCaseCardCollectionHeaderLabel(position=0){
+      return cy.get('.collection-header-row').eq(position).find('.collection-label')
+  }
     getCaseCardNavBackIcon(){
         return cy.get('.nav-buttons .moonicon-icon-reverse-play')
     }

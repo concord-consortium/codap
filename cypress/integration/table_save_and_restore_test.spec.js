@@ -14,7 +14,6 @@ Cypress.config('fixturesFolder',dir)
 const baseUrl = `${Cypress.config("baseUrl")}`;
 
 before(()=> {
-    cy.viewport(1400,1000);
     cy.visit(baseUrl)
     cy.wait(5000)
 }) 
