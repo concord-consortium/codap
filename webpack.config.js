@@ -36,6 +36,31 @@ var config = {
   module: {
     rules: [
       {
+        test: /slate.*\.js$/,
+        loader: require.resolve('string-replace-loader'),
+        options: {
+          // SproutCore replaces Array.prototype.find() with a version that returns null on failure
+          // rather than undefined. Slate's onQuery function continues propagation on undefined,
+          // but treats all other values as the query's result. The SchemaPlugin returns the result
+          // of Array.prototype.find() to indicate true if the find was successful but that
+          // propagation should continue on failure. These replacements change the SchemaPlugin
+          // implementation so that undefined is returned on failure of Array.prototype.find(),
+          // independent of whether Array.prototype.find() returns undefined or null on failure.
+          multiple: [
+            {
+              search: "return rule && rule.isAtomic;",
+              replace: "return rule ? rule.isAtomic : undefined; // [CC] workaround for SC's Array.prototype.find() override",
+              strict: true  // fail build if replacement not performed
+            },
+            {
+              search: "return rule && rule.isVoid;",
+              replace: "return rule ? rule.isVoid : undefined; // [CC] workaround for SC's Array.prototype.find() override",
+              strict: true  // fail build if replacement not performed
+            }
+          ]
+        }
+      },
+      {
         test: /\.css$/i,
         use: [MiniCssExtractPlugin.loader, 'css-loader']
       }

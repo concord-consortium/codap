@@ -171,6 +171,7 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
           });
           if (iChange.cases) {
             result.cases = [];
+            result.extend = iChange.extend;
             (iChange.cases).forEach(function (iCase) {
               var values = {};
 

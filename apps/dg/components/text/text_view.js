@@ -168,9 +168,9 @@ DG.TextView = SC.View.extend((function() {
         renderToolbar: function() {
           var props = {
                 modalPortalRoot: this.reactModalDiv,
-                modalCoverClassName: 'codap-slate-cover' + kWantsEventsClasses,
-                modalDialogClassName: 'codap-slate-modal' + kWantsEventsClasses,
-                className: 'codap-slate-toolbar' + kWantsEventsClasses,
+                modalCoverClassName: 'codap-ccrte-cover' + kWantsEventsClasses,
+                modalDialogClassName: 'codap-ccrte-modal' + kWantsEventsClasses,
+                className: 'codap-ccrte-toolbar' + kWantsEventsClasses,
                 orientation: 'vertical',
                 colors: {
                   buttonColors: { fill: "#ffffff", background: "#177991" },
@@ -212,7 +212,7 @@ DG.TextView = SC.View.extend((function() {
             this.set('editorValue', value);
           }
           var props = {
-                className: 'codap-slate-editor',
+                className: 'codap-ccrte-editor',
                 plugins: this._slatePlugins,
                 value: value,
                 history: false,
