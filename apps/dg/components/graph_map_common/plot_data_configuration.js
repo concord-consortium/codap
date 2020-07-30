@@ -864,6 +864,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
        */
       hideCases: function (iArrayOfCases) {
         if (!iArrayOfCases || !iArrayOfCases.length) return;
+        this.notifyPropertyChange('hiddenCasesWillChange');
         this.set('hiddenCases', this.get('hiddenCases').concat(iArrayOfCases).uniq());
       },
 
@@ -874,6 +875,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
        */
       showCases: function (iArrayOfCases) {
         if (!iArrayOfCases || !iArrayOfCases.length) return;
+        this.notifyPropertyChange('hiddenCasesWillChange');
         this.set('hiddenCases', DG.ArrayUtils.subtract(this.get('hiddenCases'), iArrayOfCases,
             function (iCase) {
               return iCase && iCase.get('id');
