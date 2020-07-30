@@ -573,13 +573,29 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
        * Override the two mixin methods because the drop target view is mapPointView
        */
       dragStarted: function () {
-        DG.GraphDropTarget.dragStarted.apply(this, arguments);
-        if (!this.getPath('model.hasLatLongAttributes'))
-          this.setPath('mapPointView.isVisible', true);
+        if(this.get('dataConfiguration')) {
+          DG.GraphDropTarget.dragStarted.apply(this, arguments);
+          if (!this.getPath('model.hasLatLongAttributes'))
+            this.setPath('mapPointView.isVisible', true);
+        }
+      },
+
+      dragEntered: function() {
+        if(this.get('dataConfiguration')) {
+          DG.GraphDropTarget.dragEntered.apply(this, arguments);
+        }
+      },
+
+      dragExited: function() {
+        if(this.get('dataConfiguration')) {
+          DG.GraphDropTarget.dragExited.apply(this, arguments);
+        }
       },
 
       dragEnded: function () {
-        DG.GraphDropTarget.dragEnded.apply(this, arguments);
+        if(this.get('dataConfiguration')) {
+          DG.GraphDropTarget.dragEnded.apply(this, arguments);
+        }
       },
 
       /**
