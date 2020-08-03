@@ -436,10 +436,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.rescaleAxesFromData( true /* allow scale shrinkage */,
                                 true /* animate points */ );
 
+      this.addObserver('dataConfiguration.hiddenCasesWillChange', this.hiddenCasesWillChange);
       this.addObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
     },
 
     destroy: function() {
+      this.removeObserver('dataConfiguration.hiddenCasesWillChange', this.hiddenCasesWillChange);
       this.removeObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
       this.axisCoordinator.destroy();
 
@@ -1344,6 +1346,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
     },
 
+    hiddenCasesWillChange: function() {
+      if (!this._isBeingRestored && this.get('isSplit')) {
+        this.removeAllSplitPlotsAndAxes();
+      }
+    },
+
     hiddenCasesDidChange: function() {
       if( !this._isBeingRestored) {
         this.invalidate();
@@ -1351,6 +1359,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
         this.get('plots').forEach(function(plot) {
           plot.invalidateAggregateAdornments();
         });
+        if( this.get('isSplit')) {
+          this.updateAxisArrays();
+          this.updateSplitPlotArray();
+          this.notifyPropertyChange('splitPlotChange');
+        }
       }
     },
 
