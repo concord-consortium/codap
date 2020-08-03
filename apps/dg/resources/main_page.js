@@ -358,7 +358,7 @@ DG.mainPage = SC.Page.design((function() {
           DG.appController.importURL( tURI);
         });
       }
-      else if (tDataTransfer.types.includes('text/html')) {
+      else if (!this.get('_isDraggingAttr') && tDataTransfer.types.includes('text/html')) {
         SC.run(function () {
           DG.appController.importHTMLTable(tDataTransfer.getData('text/html'));
         });
