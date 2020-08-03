@@ -220,7 +220,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tNoAttributesOnThisAxis = this.getPath('model.noAttributes'),
               tNoAttributesOnEitherAxis = this.noAttributesOnEitherAxis(),
               tLabels, tNumAttributes, tNode, tAttributes, tAttribute;
-          if (SC.none(this.get('paperForLabel')))
+          if (SC.none(this.get('paperForLabel')) || (this._labelNodes == null))
             return [];
 
           if( (this.constructor === DG.AxisView) && (tNoAttributesOnEitherAxis ||
