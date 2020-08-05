@@ -316,9 +316,7 @@ DG.DocumentController = SC.Object.extend(
 
         // If we were created with a 'content' property pointing to our document,
         // then use it; otherwise, create a new document.
-        if (SC.empty(DG.get('initialGuideIndex'))) {
-          this.setDocument(this.get('content') || this.createDocument());
-        }
+        this.setDocument(this.get('content') || this.createDocument());
 
         if (DG.KEEP_IN_BOUNDS_PREF) {
           this.setInBoundsScaling(1, 0, 0);
@@ -340,7 +338,11 @@ DG.DocumentController = SC.Object.extend(
        * TODO: a new document.
        */
       createDocument: function (iName) {
-        var doc = DG.Document.createDocument({name: iName || SC.String.loc('DG.Document.defaultDocumentName')});
+        var doc = DG.Document.createDocument({
+          name: iName || SC.String.loc('DG.Document.defaultDocumentName'),
+          isNewDocument: true // mark this document as not having been saved and restored.
+                              // this property will not be persisted with the document.
+        });
         if (SC.none(iName)) {
           doc.set('_isPlaceholder', true);
         }
@@ -372,7 +374,10 @@ DG.DocumentController = SC.Object.extend(
           this.restoreDataContexts();
 
           // Set guide index if query parameter set.
-          this.updateGuideFromURL();
+          // Bypass for new documents, because new Documents do not have guides.
+          if (!iDocument.isNewDocument) {
+            this.updateGuideFromURL();
+          }
 
           // Create the individual component views
           SC.run(function () {

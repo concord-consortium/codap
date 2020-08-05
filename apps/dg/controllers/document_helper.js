@@ -180,6 +180,8 @@ DG.DocumentHelper = SC.Object.extend(
         var tDoc = {
           name: 'DG.Document.defaultDocumentName'.loc(),
           guid: 1,
+          isNewDocument: true, // mark this document as not having been saved and restored.
+                               // this property will not be persisted with the document.
           components: tComponents,
           appName: DG.APPNAME,
           appVersion: DG.VERSION,
