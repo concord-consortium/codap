@@ -374,7 +374,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if( iValues.type === 'graph') {
           ['xAttributeName', 'yAttributeName', 'y2AttributeName', 'legendAttributeName'].forEach( function( iPropName) {
             if( !SC.none(iDataContext) && !SC.none( iValues[iPropName])) {
-              iValues[ iPropName] = iDataContext.canonicalizeName( iValues[ iPropName]);
+              iValues[ iPropName] = iDataContext.canonicalizeName( iValues[ iPropName] + ' ');
             }
           });
         }
@@ -1032,7 +1032,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           attrSpecs.forEach(function(attrSpec) {
             attrSpec.clientName = attrSpec.name;
-            attrSpec.name = context.canonicalizeName(attrSpec.name);
+            attrSpec.name = context.canonicalizeName(attrSpec.name + ' ');
           });
           var change = {
             operation: 'createAttributes',
@@ -1056,7 +1056,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             iValues.name = iResources.attribute.name;
           else if (iValues.name) {
             iValues.clientName = iValues.name;
-            iValues.name = context.canonicalizeName(iValues.name);
+            iValues.name = context.canonicalizeName(iValues.name + ' ');
           }
           var change = {
             operation: 'updateAttributes',
