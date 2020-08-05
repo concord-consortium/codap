@@ -66,7 +66,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         sc_super();
         // Since our plotted elements are not going to be reused, we have to fully remove them.
         tPlottedElements.forEach(function (iElement) {
-          iElement.remove();
+          iElement.hide();
         });
       },
 
