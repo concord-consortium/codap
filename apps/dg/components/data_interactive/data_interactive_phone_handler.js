@@ -2051,6 +2051,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
             if (iValues.request) {
               if (iValues.request === 'select') {
+                DG.InspectorPickerPane.close();
                 view.select();
               } else if (iValues.request === 'autoScale') {
                 if (componentController && componentController.rescaleFunction) {
