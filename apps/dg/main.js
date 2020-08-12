@@ -394,6 +394,7 @@ DG.main = function main() {
               { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
             ],
           },
+          appSetsWindowTitle: true, // CODAP takes responsibility for the window title
           wrapFileContent: false,
           mimeType: 'application/json',
           readableMimeTypes: ['application/x-codap-document'],
