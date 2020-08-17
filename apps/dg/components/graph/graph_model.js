@@ -837,6 +837,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
       if( tDroppedAttribute === tOtherAttribute) {
         replaceOtherWithCurrent();
       }
+      if( this.get('isSplit'))
+        this.removeAllSplitPlotsAndAxes();
       tDataConfiguration.set('dataContext', iDataContext);
       tDataConfiguration.setAttributeAndCollectionClient(tTargetDescKey, iAttrRefs);
 
