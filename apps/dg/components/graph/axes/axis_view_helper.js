@@ -160,10 +160,12 @@ DG.AxisViewHelper = SC.Object.extend(
         /**
          Given a coordinate, return the result of the linear transformation
          to data value
+         @param iCoord {Number} in screen coordinates
+         @param iSnapToTick {boolean} if true, and return value is close to a tick, return the tick value
          @return {Number} in world coordinates.
          */
-        coordinateToData: function( iCoord) {
-          return this.coordinateToDataGivenCell( 0, /*this.whichCell( iCoord)*/ iCoord);
+        coordinateToData: function( iCoord, iSnapToTick) {
+          return this.coordinateToDataGivenCell( 0, /*this.whichCell( iCoord)*/ iCoord, iSnapToTick);
         },
 
         /**
@@ -195,17 +197,22 @@ DG.AxisViewHelper = SC.Object.extend(
          to data value. The value will be relative to the given cell; i.e., if
          the user has dragged outside of that cell, the returned value is as though
          that cell continued on in both directions.
-         @return {Number} in world coordinates
+         * @param iCell {number}
+         * @param iCoord {number}
+         * @param iSnapToTick {boolean} if true, and return value is close to a tick, return the tick value
+         * @return {Number} in world coordinates
          */
-        coordinateToDataGivenCell: function( iCell, iCoord) {
+        coordinateToDataGivenCell: function( iCell, iCoord, iSnapToTick) {
           var tData = 0,
               tCellWidth = this.get('fullCellWidth'),
-              tLowerBound, tUpperBound, tPixelMin, tPixelMax, tPixelDistance;
+              tLowerBound, tUpperBound, tPixelMin, tPixelMax, tPixelDistance, tPixelsPerWorldUnit;
           if (tCellWidth !== 0) {
             tLowerBound = this.get('lowerBound');
             tUpperBound = this.get('upperBound');
-//        TBool tReverseScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleReversed();
-//        TBool tLogScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleLogarithmic();
+/*
+       TBool tReverseScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleReversed();
+       TBool tLogScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleLogarithmic();
+*/
 
             if( this.get('isVertical')) {
               tPixelMin = this.get('pixelMax') + tCellWidth * (iCell + 1);
@@ -217,22 +224,34 @@ DG.AxisViewHelper = SC.Object.extend(
               iCoord += this.get('pixelMin'); // offset by the left of the axis
         }
             tPixelDistance = iCoord - tPixelMin;
-            tData = tLowerBound + tPixelDistance * (tUpperBound - tLowerBound) / ( tPixelMax - tPixelMin);
-//        TDouble tLogLinearParam( ((ds_CCellLinearAxis*) mAxisP)->
-//                        GetLogLinearTransitionParam()); // 0 => linear; 1 => log
-            // tPixelDistance is the number of pixels from the relevant axis boundary to the given coordinate
-//        TLength tPixelDistance( tReverseScale ? (pixelMax - iCoord) : (iCoord - pixelMin));
-            // For a vertical scale, tPixelDistance is negative, but tCellWidth is positive. That won't work for a
-            // log scale so we have to change the sign.
-//        if( tLogScale && (mOrientation === ds_kVertical))
-//          tPixelDistance *= -1;
-//        tData = ((tLogLinearParam === 0) ? 0 :
-//                tLogLinearParam * tLowerBounds *
-//                  pow( 10, log10( tUpperBounds / tLowerBounds) * tPixelDistance / tCellWidth))
-//            +
-//            ((tLogLinearParam === 1) ? 0 :
-//                (1 - tLogLinearParam) * (tLowerBounds + tPixelDistance * (tUpperBound - tLowerBound)
-//                              / ( tPixelMax - tPixelMin)));
+            tPixelsPerWorldUnit = ( tPixelMax - tPixelMin) / (tUpperBound - tLowerBound);
+            tData = tLowerBound + tPixelDistance / tPixelsPerWorldUnit;
+/*
+       TDouble tLogLinearParam( ((ds_CCellLinearAxis*) mAxisP)->
+                       GetLogLinearTransitionParam()); // 0 => linear; 1 => log
+            tPixelDistance is the number of pixels from the relevant axis boundary to the given coordinate
+       TLength tPixelDistance( tReverseScale ? (pixelMax - iCoord) : (iCoord - pixelMin));
+            For a vertical scale, tPixelDistance is negative, but tCellWidth is positive. That won't work for a
+            log scale so we have to change the sign.
+       if( tLogScale && (mOrientation === ds_kVertical))
+         tPixelDistance *= -1;
+       tData = ((tLogLinearParam === 0) ? 0 :
+               tLogLinearParam * tLowerBounds *
+                 pow( 10, log10( tUpperBounds / tLowerBounds) * tPixelDistance / tCellWidth))
+           +
+           ((tLogLinearParam === 1) ? 0 :
+               (1 - tLogLinearParam) * (tLowerBounds + tPixelDistance * (tUpperBound - tLowerBound)
+                             / ( tPixelMax - tPixelMin)));
+*/
+            if( iSnapToTick) {
+              var kSnapPixelThreshold = 2,
+                  tTickGap = this.get('tickGap'),
+                  tNearestTickValue = Math.round(tData / tTickGap) * tTickGap;
+              if (Math.abs(tNearestTickValue - tData) * tPixelsPerWorldUnit < kSnapPixelThreshold) {
+                tData = tNearestTickValue;
+              }
+
+            }
           }
 
           return tData;

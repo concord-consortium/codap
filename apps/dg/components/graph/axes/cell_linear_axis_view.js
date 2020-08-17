@@ -391,10 +391,12 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
     /**
     Given a coordinate, return the result of the linear transformation
     to data value
-    @return {Number} in world coordinates.
+     @param iCoord {number}
+     @param iSnapToTick {boolean} if true, and return value is close to a tick, return the tick value
+     @return {Number} in world coordinates.
     */
-    coordinateToData: function( iCoord) {
-      return this.get('axisViewHelper').coordinateToData( iCoord);
+    coordinateToData: function( iCoord, iSnapToTick) {
+      return this.get('axisViewHelper').coordinateToData( iCoord, iSnapToTick);
     },
 
     /**

@@ -153,7 +153,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     function continueTranslate( idX, idY) {
       var tAxisView = this_.get('valueAxisView'),
           tDelta = (tAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) ? idX : idY,
-          tValue = tAxisView.coordinateToData( tDragCoord + tDelta);
+          tValue = tAxisView.coordinateToData( tDragCoord + tDelta, true /* snapToTick */);
       this_.setPath('model.value', tValue);
     }
   
