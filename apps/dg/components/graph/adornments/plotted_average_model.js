@@ -44,6 +44,7 @@ DG.PlottedAverageModel = DG.PlotAdornmentModel.extend(
     return this._values;
   }.property(),
 
+  enableMeasuresForSelection: false,
   precision: 0,       // decimal precision of attribute being averaged
 
 });

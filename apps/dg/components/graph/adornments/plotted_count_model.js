@@ -68,6 +68,8 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
           return this._isShowingPercent;
         }.property(),
 
+        enableMeasuresForSelection: false,
+
         /**
          * @property {ePercentKind}
          */

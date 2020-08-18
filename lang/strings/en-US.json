@@ -789,6 +789,10 @@
     "DG.GraphView.zoomTip": "Double-click to zoom in.\nShift-double-click to zoom out",
     "DG.GraphView.rescale": "Rescale to data",
 
+    // DG.SelectedInfoView
+    "DG.SelectedInfoView.infoPlural": "Showing measures for %@ selected cases", // %@ = number selected
+    "DG.SelectedInfoView.infoSing": "Showing measures for %@ selected case", // %@ = number selected
+
     // DG.AxisView
     "DG.AxisView.labelTooltip": "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
     "DG.AxisView.vertical": "vertical",

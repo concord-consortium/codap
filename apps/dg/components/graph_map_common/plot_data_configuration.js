@@ -667,6 +667,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
             });
       }.property('xCollectionClient', 'yCollectionClient', 'y2CollectionClient', 'legendCollectionClient', 'hiddenCases'),
 
+      selectionDidChange: function() {
+        this.propertyDidChange('selection');
+      }.observes('collectionClient.casesController.selection'),
+
       /**
        * Bottleneck for detecting attribute assignment change
        */

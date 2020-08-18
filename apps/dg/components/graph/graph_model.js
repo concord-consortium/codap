@@ -458,7 +458,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
     enableMeasuresForSelectionDidChange: function() {
       var tEnabled = this.get('enableMeasuresForSelection');
-      this.get('plots').forEach( function( iPlot) {
+      this.get('allPlots').forEach( function( iPlot) {
         iPlot.set('enableMeasuresForSelection', tEnabled);
       });
     }.observes('enableMeasuresForSelection'),
@@ -1539,6 +1539,20 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
 
     },
+
+    /**
+     * Return an array of all the selected cases over all split plots
+     * @return number[]
+     */
+    selection: function() {
+      var tResult = [];
+      this.forEachSplitPlotElementDo( function( iPlot) {
+        var tSelection = iPlot[0].get('selection');
+        if( Array.isArray(tSelection))
+          tResult = tResult.concat( tSelection);
+      });
+      return tResult;
+    }.property(),
 
     /**
      * Use the properties of the given object to restore my plot, axes, and legend.
