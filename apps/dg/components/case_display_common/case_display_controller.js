@@ -145,6 +145,15 @@ DG.CaseDisplayController = DG.ComponentController.extend(
         };
       },
 
+      createCopyToClipboardButton: function () {
+        return {
+          title: 'DG.Inspector.copyCaseDataToClipboard', // "Export Case Data..."
+          localize: true,
+          target: this,
+          dgAction: 'exportCaseDataToClipboard'
+        };
+      },
+
       createRandomizeButton: function () {
         var tDataContext = this.get('dataContext');
         return {
@@ -401,10 +410,10 @@ DG.CaseDisplayController = DG.ComponentController.extend(
        Handler for the Export Case Data... menu command.
        Displays a dialog, so user can select and copy the case data from the current document.
        */
-      exportCaseData: function () {
-        function getCollectionMenuItems() {
+      _exportCaseData: function (dataContext, prompt, doIt, tooltip, callback) {
+        function getCollectionMenuItems(dataContext) {
           var names = [];
-          tDataContext.forEachCollection(function (collection) {
+          dataContext.forEachCollection(function (collection) {
             var name = collection.get('name');
             names.push(name);
           });
@@ -413,26 +422,83 @@ DG.CaseDisplayController = DG.ComponentController.extend(
         }
 
         // callback to get export string from one of the menu item titles
-        var exportCollection = function (whichCollection) {
-          return tDataContext.exportCaseData(whichCollection);
-        };
+
         // get array of exportable collection names for menu titles
-        var tDataContext = this.get('dataContext'),
-            tMenuItems = getCollectionMenuItems(),
+        var tMenuItems = getCollectionMenuItems(dataContext),
             tStartingMenuItem = tMenuItems[0];
 
         DG.CreateExportCaseDataDialog({
-          prompt: 'DG.AppController.exportCaseData.prompt',
+          prompt: prompt,
           collectionMenuTitle: tStartingMenuItem,
           collectionMenuItems: tMenuItems,
-          collectionMenuItemAction: exportCollection,
-          exportTitle: 'DG.AppController.exportDocument.exportTitle',
-          exportTooltip: 'DG.AppController.exportDocument.exportTooltip',
+          collectionMenuItemAction: callback,
+          exportTitle: doIt,
+          exportTooltip: tooltip,
           cancelTitle: 'DG.AppController.exportDocument.cancelTitle',
           cancelTooltip: 'DG.AppController.exportDocument.cancelTooltip'
         });
       },
 
+      exportCaseData: function () {
+        var tDataContext = this.get('dataContext');
+        var exportCollection = function (whichCollection) {
+          var caseDataString = tDataContext.exportCaseData(whichCollection);
+          DG.exportFile(caseDataString, "csv", "text/plain");
+        };
+        this._exportCaseData(tDataContext,
+            'DG.AppController.exportCaseData.prompt',
+            'DG.AppController.exportDocument.exportTitle',
+            'DG.AppController.exportDocument.exportTooltip',
+            exportCollection);
+      },
+
+      /**
+       * Export case data to clipboard.
+       * Puts up dialog to select a collection to export, then copies to
+       * clipboard both as text/plain and text/csv. The later is important for
+       * reimport.
+       *
+       * As of 8/2020 browser support varies. Firefox does not support
+       * the ClipboardItem API. Chrome does not support setting the ClipboardItem
+       * to mime types other than text/plain and image/png. Weirdly, Safari
+       * implements everything correctly. So, we attempt to use the API correctly,
+       * and if there is a failure we back down to an alternate method that uses
+       * the deprecated document command, 'copy'.
+       */
+      exportCaseDataToClipboard: function () {
+        var tDataContext = this.get('dataContext');
+        var exportCollection = function (whichCollection) {
+          function clipboardCopyAlt(data) {
+            document.oncopy = function (e) {
+              e.preventDefault(); // we handle it
+              var dT = e.clipboardData;
+              dT.setData( 'text/plain', data ); // as plain text
+              dT.setData( 'text/csv', data ); // as csv
+            };
+            document.execCommand( 'copy' );
+            window.alert('Copied');
+            document.oncopy = null;
+          }
+          var caseDataString = tDataContext.exportCaseData(whichCollection);
+          if (window.ClipboardItem) {
+            var blob = new Blob([caseDataString], {type: 'text/plain'});
+            window.navigator.clipboard.write([new window.ClipboardItem({
+              'text/csv': blob, 'text/plain': blob
+            })]).then(function (data) {
+              window.alert('copied');
+            }, function (err) {
+              clipboardCopyAlt(caseDataString);
+            });
+          } else {
+            clipboardCopyAlt(caseDataString);
+          }
+        };
+        this._exportCaseData(tDataContext,
+            "DG.Inspector.caseTable.exportCaseDialog.copyFrom",
+            "DG.Inspector.caseTable.exportCaseDialog.copy",
+            "DG.Inspector.caseTable.exportCaseDialog.copyTooltip",
+            exportCollection);
+      }
     };
   }()) // function closure
 );

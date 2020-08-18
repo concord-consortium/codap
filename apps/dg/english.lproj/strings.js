@@ -895,6 +895,10 @@ SC.stringsFor("en", {
     "DG.Inspector.newAttribute": "New Attribute in %@...",
     "DG.Inspector.randomizeAllAttributes": "Rerandomize All",
     "DG.Inspector.exportCaseData": "Export Case Data...",
+    "DG.Inspector.copyCaseDataToClipboard": "Copy to Clipboard...",
+    "DG.Inspector.caseTable.exportCaseDialog.copyFrom": "Copy case data from:",
+    "DG.Inspector.caseTable.exportCaseDialog.copy": "Copy",
+    "DG.Inspector.caseTable.exportCaseDialog.copyTooltip": "Copy data to clipboard",
 
     // Map Inspector
     "DG.Inspector.mapGrid": "Grid",

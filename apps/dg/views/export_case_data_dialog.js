@@ -105,9 +105,8 @@ DG.ExportCaseDataDialog = SC.PalettePane.extend(
     var menuItemString = this.getPath('contentView.collectionPopup.title'),
         menuItemAction = this.getPath('contentView.collectionPopup.itemAction');
     if( !SC.empty( menuItemString)) {
-      var caseDataString = menuItemAction( menuItemString); // get new case data to match the menu item
       this.close();
-      DG.exportFile(caseDataString, "csv", "text/plain");
+      menuItemAction( menuItemString); // get new case data to match the menu item
     }
   },
 
