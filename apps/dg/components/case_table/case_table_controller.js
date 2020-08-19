@@ -1093,6 +1093,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         tItems.push(this.createRandomizeButton());
         tItems.push(this.createExportCaseButton());
         tItems.push(this.createCopyToClipboardButton());
+        tItems.push(this.createGetFromClipboardButton());
 
         DG.MenuPane.create({
           classNames: 'dg-attributes-popup'.w(),

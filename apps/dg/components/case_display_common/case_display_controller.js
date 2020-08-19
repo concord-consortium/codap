@@ -147,10 +147,25 @@ DG.CaseDisplayController = DG.ComponentController.extend(
 
       createCopyToClipboardButton: function () {
         return {
-          title: 'DG.Inspector.copyCaseDataToClipboard', // "Export Case Data..."
+          title: 'DG.Inspector.copyCaseDataToClipboard', // "Copy Case Data..."
           localize: true,
           target: this,
           dgAction: 'exportCaseDataToClipboard'
+        };
+      },
+
+      // Firefox in 8/2020 does not support the readText API of the clipboard.
+      canPaste: function () {
+        return !!window.navigator.clipboard.readText;
+      },
+
+      createGetFromClipboardButton: function () {
+        return {
+          title: 'DG.Inspector.getCaseDataFromClipboard', // "Import Case Data..."
+          localize: true,
+          isEnabled: this.canPaste(),
+          target: this,
+          dgAction: 'importCaseDataFromClipboard'
         };
       },
 
@@ -486,9 +501,11 @@ DG.CaseDisplayController = DG.ComponentController.extend(
               dT.setData( 'text/csv', data ); // as csv
             };
             document.execCommand( 'copy' );
-            DG.AlertPane.info({
-              localization: true,
-              message: copyMessage
+            SC.run(function(){
+              DG.AlertPane.info({
+                localization: true,
+                message: copyMessage
+              });
             });
             document.oncopy = null;
           }
@@ -509,9 +526,11 @@ DG.CaseDisplayController = DG.ComponentController.extend(
             window.navigator.clipboard.write([new window.ClipboardItem({
               'text/csv': blob, 'text/plain': blob
             })]).then(function (data) {
-              DG.AlertPane.info({
-                localization: true,
-                message: copyMessage
+              SC.run(function () {
+                DG.AlertPane.info({
+                  localization: true,
+                  message: copyMessage
+                });
               });
             }, function (err) {
               clipboardCopyAlt(caseDataString);
@@ -525,6 +544,34 @@ DG.CaseDisplayController = DG.ComponentController.extend(
             "DG.Inspector.caseTable.exportCaseDialog.copy",
             "DG.Inspector.caseTable.exportCaseDialog.copyTooltip",
             exportCollection);
+      },
+      importCaseDataFromClipboard: function() {
+        var dataContext = this.get('dataContext');
+        var contextName = dataContext && dataContext.get('name');
+
+        window.focus();
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+
+        window.navigator.clipboard.readText().then(
+          function(data) {
+
+            SC.run(function () {
+              DG.appController.openCSVImporter({
+                contentType: 'text/csv',
+                text: data,
+                targetDatasetName: contextName,
+                name: 'clipboard',
+                showCaseTable: false
+              });
+            });
+          },
+          function (err) {
+            // maybe user didn't grant access to read from clipboard
+            console.log('Error importing from clipboard: ', err);
+          }
+        );
       }
     };
   }()) // function closure
