@@ -811,5 +811,12 @@ SC.stringsFor("he", {
     "DG.PlottedCountPercent.withSelection": "%@ of %@ (%@%) selected",
     "DG.Undo.caseTable.resizeColumn": "Undo fit width to content",
     "DG.Redo.caseTable.resizeColumn": "Redo fit width to content",
-    "DG.TableController.headerMenuItems.resizeColumn": "Fit width to content"
+    "DG.TableController.headerMenuItems.resizeColumn": "Fit width to content",
+    "DG.SelectedInfoView.infoPlural": "Showing measures for %@ selected cases",
+    "DG.SelectedInfoView.infoSing": "Showing measures for %@ selected case",
+    "DG.Inspector.copyCaseDataToClipboard": "Copy to Clipboard...",
+    "DG.Inspector.caseTable.exportCaseDialog.copyFrom": "Copy case data from:",
+    "DG.Inspector.caseTable.exportCaseDialog.copy": "Copy",
+    "DG.Inspector.caseTable.exportCaseDialog.copyTooltip": "Copy data to clipboard",
+    "DG.Inspector.caseTable.exportCaseDialog.copiedData": "Copied %@ to the clipboard"
 });
