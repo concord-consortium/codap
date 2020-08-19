@@ -427,16 +427,22 @@ DG.CaseDisplayController = DG.ComponentController.extend(
         var tMenuItems = getCollectionMenuItems(dataContext),
             tStartingMenuItem = tMenuItems[0];
 
-        DG.CreateExportCaseDataDialog({
-          prompt: prompt,
-          collectionMenuTitle: tStartingMenuItem,
-          collectionMenuItems: tMenuItems,
-          collectionMenuItemAction: callback,
-          exportTitle: doIt,
-          exportTooltip: tooltip,
-          cancelTitle: 'DG.AppController.exportDocument.cancelTitle',
-          cancelTooltip: 'DG.AppController.exportDocument.cancelTooltip'
-        });
+        // If we have only one collection then we will have two items in this
+        // array. If we only have one collection, then we can bypass the dialog.
+        if (tMenuItems.length > 2) {
+          DG.CreateExportCaseDataDialog({
+            prompt: prompt,
+            collectionMenuTitle: tStartingMenuItem,
+            collectionMenuItems: tMenuItems,
+            collectionMenuItemAction: callback,
+            exportTitle: doIt,
+            exportTooltip: tooltip,
+            cancelTitle: 'DG.AppController.exportDocument.cancelTitle',
+            cancelTooltip: 'DG.AppController.exportDocument.cancelTooltip'
+          });
+        } else {
+          callback(tMenuItems[1]);
+        }
       },
 
       exportCaseData: function () {
@@ -468,6 +474,10 @@ DG.CaseDisplayController = DG.ComponentController.extend(
       exportCaseDataToClipboard: function () {
         var tDataContext = this.get('dataContext');
         var exportCollection = function (whichCollection) {
+          /*
+           * This is the fallback copy method. We create a copy event handler which
+           * modifies the copy data, perform the copy, then remove the handler.
+           */
           function clipboardCopyAlt(data) {
             document.oncopy = function (e) {
               e.preventDefault(); // we handle it
@@ -476,16 +486,33 @@ DG.CaseDisplayController = DG.ComponentController.extend(
               dT.setData( 'text/csv', data ); // as csv
             };
             document.execCommand( 'copy' );
-            window.alert('Copied');
+            DG.AlertPane.info({
+              localization: true,
+              message: copyMessage
+            });
             document.oncopy = null;
           }
+
+          function makeCopyMessage(dataContext, collectionName) {
+            var isAllTables = (collectionName === 'DG.CaseTableController.allTables'.loc());
+            // var groupName = isAllTables? dataContext.get('name') : collectionName;
+            var collection = isAllTables? dataContext.get('childCollection'): dataContext.getCollectionByName(collectionName);
+            var caseCount = collection.getCaseCount();
+            var caseCountString = dataContext.getCaseCountString(collection, caseCount);
+            return "DG.Inspector.caseTable.exportCaseDialog.copiedData".loc(caseCountString);
+          }
+
           var caseDataString = tDataContext.exportCaseData(whichCollection);
+          var copyMessage = makeCopyMessage(tDataContext, whichCollection);
           if (window.ClipboardItem) {
             var blob = new Blob([caseDataString], {type: 'text/plain'});
             window.navigator.clipboard.write([new window.ClipboardItem({
               'text/csv': blob, 'text/plain': blob
             })]).then(function (data) {
-              window.alert('copied');
+              DG.AlertPane.info({
+                localization: true,
+                message: copyMessage
+              });
             }, function (err) {
               clipboardCopyAlt(caseDataString);
             });

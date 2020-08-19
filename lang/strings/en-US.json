@@ -899,6 +899,7 @@
     "DG.Inspector.caseTable.exportCaseDialog.copyFrom": "Copy case data from:",
     "DG.Inspector.caseTable.exportCaseDialog.copy": "Copy",
     "DG.Inspector.caseTable.exportCaseDialog.copyTooltip": "Copy data to clipboard",
+    "DG.Inspector.caseTable.exportCaseDialog.copiedData": "Copied %@ to the clipboard",
 
     // Map Inspector
     "DG.Inspector.mapGrid": "Grid",
