@@ -97,11 +97,12 @@ DG.CasePlotModel = DG.PlotModel.extend(
     var tValueArray = [];
     var tCases = iForSelectionOnly ? this.get('selection') : this.get('cases');
     var tNumCases = tCases.get('length');
-    tValueArray.push( {
-        count: tNumCases,
-        primaryCell: 0,
-        secondaryCell: 0
-      });
+    var tEntry = { primaryCell: 0, secondaryCell: 0 };
+    if( iForSelectionOnly)
+      tEntry.selectedCount = tNumCases;
+    else
+      tEntry.count = tNumCases;
+    tValueArray.push( tEntry);
     return tValueArray;
    }
 

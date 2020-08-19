@@ -46,6 +46,7 @@ DG.GraphView = SC.View.extend(
       yAxisMultiTarget: null,
       legendView: null,
       numberToggleView: null,
+      measuresForSelectedInfoView: null,  // DG.SelectedInfoView
 
       /**
        * The following three arrays are instrumental in bringing about splitting of a graph
@@ -356,6 +357,7 @@ DG.GraphView = SC.View.extend(
               rowIndex: 0,
               colIndex: 0
             }),
+            tSelectedInfoView = DG.SelectedInfoView.create({ graphModel: this.get('model')}),
             tPlots = this.getPath('model.plots');
 
         sc_super();
@@ -406,6 +408,9 @@ DG.GraphView = SC.View.extend(
           this.set('numberToggleView', tNumberToggleView);
           this.appendChild(tNumberToggleView);
         }
+
+        this.set('measuresForSelectedInfoView', tSelectedInfoView);
+        this.appendChild( tSelectedInfoView);
 
         tXAxisView.set('model', tXAxis);
         tYAxisView.set('model', tYAxis);
@@ -603,6 +608,10 @@ DG.GraphView = SC.View.extend(
         this.get('plotView').handleBackgroundDblClick(iEvent);
       },
 
+      measuresForSelectedInfoVisibilityDidChange: function() {
+        this.renderLayout(this.renderContext(this.get('tagName')));
+      }.observes('measuresForSelectedInfoView.isVisible'),
+
       /**
        Set the layout (view position) for our three subviews.
        @param {SC.RenderContext} the render context
@@ -627,20 +636,20 @@ DG.GraphView = SC.View.extend(
               bottom: tLegendHeight + tHeightForBottomLabel, height: tXAxisHeight
             });
             tYAxisView.set('layout', {
-              left: tWidthForLeftLabel, top: tNumberToggleHeight + tFunctionViewHeight +
-              tPlottedValueViewHeight,
+              left: tWidthForLeftLabel,
+              top: tTopSpace,
               bottom: tLegendHeight + tXHeight, width: tYAxisWidth
             });
             tY2AxisView.set('layout', {
               right: 0,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
+              top: tTopSpace,
               bottom: tLegendHeight + tXHeight,
               width: tY2DesiredWidth
             });
             tPlotBackground.set('layout', {
               left: tYWidth,
               right: tSpaceForY2,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
+              top: tTopSpace,
               bottom: tXHeight + tLegendHeight
             });
             this_.makeSubviewFrontmost(tY2AxisView);
@@ -658,14 +667,14 @@ DG.GraphView = SC.View.extend(
             var tCurrYWidth = tYAxisView.get('layout').width;
             tYAxisView.adjust({
               bottom: tXHeight + tLegendHeight, width: tYAxisWidth,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight
+              top: tTopSpace
             });
             if (tCurrYWidth !== tYAxisWidth)
               tYAxisView.notifyPropertyChange('drawWidth');
 
             tY2AxisView.adjust({
               bottom: tLegendHeight + tXHeight, width: tY2DesiredWidth,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight
+              top: tTopSpace
             });
             if (!tHasY2Attribute) {
               tY2AxisView.set('isVisible', false);
@@ -673,7 +682,7 @@ DG.GraphView = SC.View.extend(
             tPlotBackground.adjust({
               left: tYWidth,
               right: tSpaceForY2,
-              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
+              top: tTopSpace,
               bottom: tXHeight + tLegendHeight
             });
           }
@@ -687,31 +696,29 @@ DG.GraphView = SC.View.extend(
               tNumRows = tPlotBackgroundViewArray.length,
               tNumColumns = tPlotBackgroundViewArray[0].length,
               tFrame = this_.get('frame'),
-              tSpaceAboveTopAxis = tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
-              tRowHeight = (tFrame.height - tXHeight - tLegendHeight - tFunctionViewHeight -
-                  tPlottedValueViewHeight - tNumberToggleHeight - iTopHeight) / tNumRows,
+              tRowHeight = (tFrame.height - tXHeight - tLegendHeight - tTopSpace - iTopHeight) / tNumRows,
               tColWidth = (tFrame.width - tYWidth - tSpaceForY2 - iRightSpace) / tNumColumns,
               tRowIndex, tColIndex;
           if (firstTime) {
             tTopAxisView.set('layout', {
-              left: tYWidth, top: tSpaceAboveTopAxis,
+              left: tYWidth, top: tTopSpace,
               right: iRightSpace, height: iTopHeight
             });
             tRightAxisView.set('layout', {
-              width: iRightSpace, top: tSpaceAboveTopAxis + iTopHeight,
+              width: iRightSpace, top: tTopSpace + iTopHeight,
               right: 0, bottom: tLegendHeight + tXHeight
             });
           }
           else {
-            tTopAxisView.adjust({top: tSpaceAboveTopAxis, left: tYWidth, right: iRightSpace, height: iTopHeight});
+            tTopAxisView.adjust({top: tTopSpace, left: tYWidth, right: iRightSpace, height: iTopHeight});
             tRightAxisView.adjust({
-              width: iRightSpace, top: tSpaceAboveTopAxis + iTopHeight,
+              width: iRightSpace, top: tTopSpace + iTopHeight,
               bottom: tLegendHeight + tXHeight
             });
           }
           for (tRowIndex = 0; tRowIndex < tNumRows; tRowIndex++) {
             var tThisYAxisView = tYAxisViewArray[tRowIndex],
-                tTop = tSpaceAboveTopAxis + iTopHeight + (tNumRows - tRowIndex - 1) * tRowHeight;
+                tTop = tTopSpace + iTopHeight + (tNumRows - tRowIndex - 1) * tRowHeight;
             if (tThisYAxisView) {
               if (firstTime) {
                 tThisYAxisView.set('layout', {
@@ -798,23 +805,28 @@ DG.GraphView = SC.View.extend(
             tPlotViews = this.get('plotViews'),
             tLegendView = this.get('legendView'),
             tNumberToggleView = this.get('numberToggleView'),
+            tSelectedInfoView = this.get('measuresForSelectedInfoView'),
             tFunctionView = this.get('functionEditorView'),
             tPlottedValueView = this.get('plottedValueEditorView'),
             tShowNumberToggle = tNumberToggleView && tNumberToggleView.shouldShow(),
-            tXAxisHeight = !tXAxisView ? 0 : Math.min( tXAxisView.get('desiredExtent'), this.get('frame').height / 3),
+            tXAxisHeight = !tXAxisView ? 0 : Math.min(tXAxisView.get('desiredExtent'), this.get('frame').height / 3),
             tXHeight = tXAxisHeight + tHeightForBottomLabel,
-            tYAxisWidth = !tYAxisView ? 0 : Math.min( tYAxisView.get('desiredExtent'), this.get('frame').width / 3),
+            tYAxisWidth = !tYAxisView ? 0 : Math.min(tYAxisView.get('desiredExtent'), this.get('frame').width / 3),
             tYWidth = tYAxisWidth + tWidthForLeftLabel,
             tSpaceForY2 = (!tY2AxisView || !tHasY2Attribute) ? 0 : tY2AxisView.get('desiredExtent'),
             tY2DesiredWidth = !tY2AxisView ? 0 : tY2AxisView.get('desiredExtent'),
             tLegendHeight = !tLegendView ? 0 : tLegendView.get('desiredExtent'),
             tNumberToggleHeight = tShowNumberToggle ? tNumberToggleView.get('desiredExtent') : 0,
+            tSelectedInfoHeight = tSelectedInfoView ? tSelectedInfoView.get('desiredExtent') : 0,
             tFunctionViewHeight = (tFunctionView && tFunctionView.get('isVisible')) ?
                 tFunctionView.get('desiredExtent') : 0,
             tPlottedValueViewHeight = (tPlottedValueView && tPlottedValueView.get('isVisible')) ?
-                tPlottedValueView.get('desiredExtent') : 0;
+                tPlottedValueView.get('desiredExtent') : 0,
+            tTopSpace = tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight + tSelectedInfoHeight;
         if (!SC.none(tXAxisView) && !SC.none(tYAxisView) &&
             !SC.none(tPlotViews) && (tPlotViews.length > 0)) {
+          if( tSelectedInfoView)
+            tSelectedInfoView.adjust( { height: tSelectedInfoHeight});
           tTopAxisView.set('isVisible', this_.getPath('model.numSplitColumns') > 1);
           tRightAxisView.set('isVisible', this_.getPath('model.numSplitRows') > 1);
           var tTopHeight = tTopAxisView.get('isVisible') ? Math.min( tTopAxisView.get('desiredExtent'), this.get('frame').height / 3) : 0,
@@ -827,7 +839,7 @@ DG.GraphView = SC.View.extend(
             height: tHeightForBottomLabel
           });
           tLeftAxisLabelView.set('layout', {
-            top: tNumberToggleHeight + tPlottedValueViewHeight + tFunctionViewHeight,
+            top: tTopSpace,
             bottom: tHeightForBottomLabel + tLegendHeight, left: 0, width: tWidthForLeftLabel
           });
           if (this.getPath('model.isSplit'))

@@ -1162,6 +1162,11 @@ body.dg .sc-view.dg-doc-background {
     fill: steelblue;
 }
 
+.dg-selected-info-view {
+    background-color: #F9F9F9;
+    padding-left: 5px;
+}
+
 .dg-movable-shaded {
     fill: steelblue;
     stroke-opacity: 0;
