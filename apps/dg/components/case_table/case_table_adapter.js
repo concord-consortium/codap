@@ -595,6 +595,15 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                     }
                   },
                   {
+                    title: 'DG.TableController.headerMenuItems.hideAttribute'.loc(),
+                    command: 'cmdHideAttribute',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      // we disable the menu item if the column corresponds to the last
+                      // attribute in its collection
+                      ioMenuItem.disabled = iColumn.collection.numberOfVisibleAttributes() === 1;
+                    }
+                  },
+                  {
                     title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
                     command: 'cmdDeleteAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {

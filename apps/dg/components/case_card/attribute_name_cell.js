@@ -89,6 +89,10 @@ DG.React.ready(function () {
               clickHandler(this_.props.editFormulaCallback);
             }
 
+            function hideAttributeClickHandler() {
+              clickHandler(this_.props.hideAttributeCallback);
+            }
+
             function deleteAttributeClickHandler() {
               clickHandler(this_.props.deleteAttributeCallback);
             }
@@ -121,6 +125,11 @@ DG.React.ready(function () {
                       label: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
                       disabled: !this.props.attributeCanBeRandomizedCallback(),
                       clickHandler: rerandomizeClickHandler
+                    },
+                    {
+                      label: 'DG.TableController.headerMenuItems.hideAttribute'.loc(),
+                      disabled: false,
+                      clickHandler: hideAttributeClickHandler
                     },
                     {
                       label: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),

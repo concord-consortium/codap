@@ -320,6 +320,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         case 'cmdSortDescending':
           this.sortAttribute( columnID, true);
           break;
+        case 'cmdHideAttribute':
+          DG.DataContextUtilities.hideAttribute( this.get('dataContext'), columnID);
+          break;
         case 'cmdDeleteAttribute':
           DG.DataContextUtilities.deleteAttribute( this.get('dataContext'), columnID);
           break;
@@ -372,6 +375,10 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             break;
           case 'createAttributes':
             this.doCreateAttributes(iChange);
+            break;
+          case 'hideAttributes':
+          case 'unhideAttributes':
+            this.attributesDidChange(iChange);
             break;
           case 'deleteAttributes':
             this.doDeleteAttributes(iChange);

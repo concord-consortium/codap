@@ -721,6 +721,18 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     /**
+     * Returns an array of names for the attributes in the collection.
+     * @returns {[String]}
+     */
+    numberOfVisibleAttributes: function () {
+      return this.attrs.reduce( function (iCountVisible, iAttr) {
+        if( !iAttr.get('hidden'))
+          iCountVisible++;
+        return iCountVisible;
+      }, 0);
+    },
+
+    /**
      * Returns an array of ids for the cases in the collection,
      *  suitable for use by clients like Protovis.
      * @returns {[Number]}
