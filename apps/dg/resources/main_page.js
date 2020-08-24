@@ -22,8 +22,8 @@ DG.mainPage = SC.Page.design((function() {
   var kIsMobileDevice = SC.browser.device !== SC.DEVICE.desktop,
       kIsComponentMode = DG.get('componentMode') === 'yes',
       kIsEmbeddedMode = DG.get('embeddedMode') === 'yes',
-      kToolbarHeight = DG.STANDALONE_MODE ? 0 : 70,
-      kInfobarHeight = 24,
+      kToolbarHeight = DG.STANDALONE_MODE ? 0 : 66,
+      kInfobarHeight = 28,
       kIconTopPadding = 17;
 
   // begin compatible browser main page design

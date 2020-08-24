@@ -36760,10 +36760,10 @@ var ProviderInterface = /** @class */ (function () {
         }
     };
     ProviderInterface.prototype.renderAuthorizationDialog = function () {
-        console.warn('renderAuthorizationDialog not implimented');
+        console.warn('renderAuthorizationDialog not implemented');
     };
     ProviderInterface.prototype.renderUser = function () {
-        console.warn('renderUser not implimented');
+        console.warn('renderUser not implemented');
     };
     ProviderInterface.prototype.filterTabComponent = function (capability, defaultComponent) {
         return defaultComponent;
@@ -39835,11 +39835,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 var dropdown_view_1 = __importDefault(__webpack_require__(/*! ./dropdown-view */ "./code/views/dropdown-view.js"));
-var dropdown_view_2 = __importDefault(__webpack_require__(/*! ./dropdown-view */ "./code/views/dropdown-view.js"));
+var dropdown_anchors_1 = __webpack_require__(/*! ./dropdown-anchors */ "./code/views/dropdown-anchors.js");
 var translate_1 = __importDefault(__webpack_require__(/*! ../utils/translate */ "./code/utils/translate.js"));
 var div = ReactDOMFactories.div, i = ReactDOMFactories.i, span = ReactDOMFactories.span, input = ReactDOMFactories.input;
 var Dropdown = createReactFactory(dropdown_view_1.default);
-var TriangleOnlyAnchor = dropdown_view_2.default.TriangleOnlyAnchor;
 exports.default = createReactClass({
     displayName: 'MenuBar',
     componentDidMount: function () {
@@ -40000,7 +39999,7 @@ exports.default = createReactClass({
         var menuAnchor = flag ?
             (div({ className: "flag flag-" + flag }))
             :
-                (div({ className: "lang-menu with-border" }, (span({ className: "lang-label" }, label || defaultOption.label)), TriangleOnlyAnchor));
+                (div({ className: "lang-menu with-border" }, (span({ className: "lang-label" }, label || defaultOption.label)), dropdown_anchors_1.TriangleOnlyAnchor));
         return (Dropdown({
             className: "lang-menu",
             menuAnchorClassName: "menu-anchor-right",
@@ -40010,13 +40009,14 @@ exports.default = createReactClass({
     },
     render: function () {
         var _this = this;
+        var provider = this.props.provider;
+        var isAuthorized = provider && provider.isAuthorizationRequired() && provider.authorized();
         return (div({ className: 'menu-bar' }, (div({ className: 'menu-bar-left' }, (Dropdown({ items: this.props.items })), this.state.editingFilename ?
             (div({ className: 'menu-bar-content-filename' }, (input({ ref: (function (elt) { return _this.filenameRef = elt; }), value: this.state.editableFilename, onChange: this.filenameChanged, onKeyDown: this.watchForEnter }))))
             :
                 (div({ className: 'menu-bar-content-filename', onClick: this.filenameClicked }, this.state.filename)), this.props.fileStatus ?
             (span({ className: "menu-bar-file-status-" + this.props.fileStatus.type }, this.props.fileStatus.message)) : undefined)), (div({ className: 'menu-bar-right' }, this.props.options.info ?
-            (span({ className: 'menu-bar-info', onClick: this.infoClicked }, this.props.options.info)) : undefined, (this.props.provider != null ? this.props.provider.authorized() : undefined) ?
-            this.props.provider.renderUser() : undefined, this.props.options.help ?
+            (span({ className: 'menu-bar-info', onClick: this.infoClicked }, this.props.options.info)) : undefined, isAuthorized ? this.props.provider.renderUser() : undefined, this.props.options.help ?
             (i({ style: { fontSize: "13px" }, className: 'clickable icon-help', onClick: this.help })) : undefined, this.props.options.languageMenu ?
             this.renderLanguageMenu() : undefined))));
     }
@@ -40429,7 +40429,7 @@ exports.default = createReactClass({
     getShareLink: function () {
         var shareRef = this.getShareUrl();
         if (shareRef) {
-            return this.props.client.getCurrentUrl() + "#shared=" + encodeURI(shareRef);
+            return this.props.client.getCurrentUrl() + "#shared=" + encodeURIComponent(shareRef);
         }
         return null;
     },

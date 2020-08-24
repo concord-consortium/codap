@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# Gets the current CFM version and git object hash and writes them to a file in
+# the current directory
+PROGNAME=$(basename "$0")
+DIRNAME=$(dirname "$0")
+OUTFILE="./cfm-version.txt"
+
+function err_exit() {
+  echo "$PROGNAME: error: $1" 1>&2;
+  exit 1;
+}
+
+CFM_NAME=$DIRNAME/../../cloud-file-manager
+[ -e "$CFM_NAME" ] || err_exit "CFM directory expected at $CFM_NAME"
+[ -d "$CFM_NAME" ] || err_exit "CFM is not a directory: $CFM_NAME"
+
+command -v jq 1>/dev/null || err_exit "Please install 'jq'"
+
+CFM_VERSION=$(jq --raw-output .version "$CFM_NAME"/package.json)
+CFM_GIT_HASH=$(git -C "$CFM_NAME" log --max-count=1 --pretty=%H)
+
+echo "version: $CFM_VERSION" > $OUTFILE
+echo "commit: $CFM_GIT_HASH" >> $OUTFILE
