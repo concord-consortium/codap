@@ -37,6 +37,27 @@
       "ceil(-1.5) returns -1"
     ]
   },
+  "combinations": {
+    "displayName": "combinations",
+    "description": "Returns the number of ways that k things can be drawn from a set of n things without respect order. The formula is n! /(k! (n-k)!).",
+
+    "args": [
+      {
+        "name": "n",
+        "type": "number",
+        "description": "The number of items in the set (a non-negative integer)."
+      },
+      {
+        "name": "k",
+        "type": "number",
+        "description": "The number of items to be drawn from the set (a non-negative integer)."
+      }
+    ],
+    "examples": [
+      "combinations(5,3) returns 10",
+      "combinations(20, 7) returns 77520"
+    ]
+  },
   "exp": {
     "displayName": "exp",
     "description": "Returns the exponential e raised to the given argument.",
