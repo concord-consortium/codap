@@ -39,7 +39,7 @@
   },
   "combinations": {
     "displayName": "combinations",
-    "description": "Returns the number of ways that k things can be drawn from a set of n things without respect order. The formula is n! /(k! (n-k)!).",
+    "description": "Returns the number of ways that k things can be drawn from a set of n things without regard to order. The formula is n! /(k! (n-k)!).",
 
     "args": [
       {
