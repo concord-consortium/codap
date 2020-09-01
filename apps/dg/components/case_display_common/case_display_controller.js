@@ -265,6 +265,11 @@ DG.CaseDisplayController = DG.ComponentController.extend(
             tSetAsideCount = tDataContext.get('setAsideCount'),
             tUnselectedIsEnabled = (tCaseCount > 0) &&
                 (!tSelection || tSelection.get('length') < tCaseCount),
+            tHiddenAttributeCount = tDataContext.getHiddenAttributes().length,
+            tHiddenAttributePrompt = tHiddenAttributeCount === 0 ?
+              'DG.Inspector.attributes.showAllHiddenAttributesDisabled' :
+                (tHiddenAttributeCount === 1 ? 'DG.Inspector.attributes.showAllHiddenAttributesSing' :
+                     'DG.Inspector.attributes.showAllHiddenAttributesPlural'),
             tItems = [
               {
                 title: 'DG.Inspector.setaside.setAsideSelectedCases',
@@ -286,6 +291,13 @@ DG.CaseDisplayController = DG.ComponentController.extend(
                 target: this,
                 action: 'restoreSetAsideCases',
                 isEnabled: (tSetAsideCount > 0)
+              },
+              {
+                title: tHiddenAttributePrompt.loc(tHiddenAttributeCount),
+                localize: false,
+                target: this,
+                action: 'showAllHiddenAttributes',
+                isEnabled: (tHiddenAttributeCount > 0)
               }
             ],
             tMenu = DG.MenuPane.create({
@@ -406,6 +418,10 @@ DG.CaseDisplayController = DG.ComponentController.extend(
       restoreSetAsideCases: function () {
         var tContext = this.get('dataContext');
         tContext.restoreSetAsideCases();
+      },
+
+      showAllHiddenAttributes: function () {
+        DG.DataContextUtilities.showAllHiddenAttributes( this.get('dataContext'));
       },
 
       /**

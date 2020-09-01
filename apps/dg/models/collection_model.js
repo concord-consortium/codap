@@ -294,13 +294,19 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @returns {DG.Attribute}
      */
     createAttribute: function (iProperties) {
-      var attr;
+      var attr, tStoredAttr;
       iProperties = iProperties || {};
       // Relate it to its parent collection
       iProperties.collection = this;
-      attr = DG.Attribute.createAttribute(iProperties);
+      tStoredAttr = DG.store.find(DG.Attribute, iProperties.guid);
+      if( tStoredAttr) {
+        attr = tStoredAttr;
+      } else {
+        attr = DG.Attribute.createAttribute(iProperties);
+      }
       this.attrs.pushObject(attr);
-      this.dataSet.addAttributes([attr]);
+      if( !this.dataSet.hasAttribute(attr))
+        this.dataSet.addAttributes([attr]);
       return attr;
     },
 
@@ -721,6 +727,18 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     /**
+     * Returns an array of names for the attributes in the collection.
+     * @returns {[String]}
+     */
+    numberOfVisibleAttributes: function () {
+      return this.attrs.reduce( function (iCountVisible, iAttr) {
+        if( !iAttr.get('hidden'))
+          iCountVisible++;
+        return iCountVisible;
+      }, 0);
+    },
+
+    /**
      * Returns an array of ids for the cases in the collection,
      *  suitable for use by clients like Protovis.
      * @returns {[Number]}
@@ -789,6 +807,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         collapseChildren: this.get('collapseChildren'),
         defaults: this.get('defaults'),
         guid: this.get('id'),
+        id: this.get('id'),
         labels: this.labels,
         name: this.get('name'),
         parent: parentID,

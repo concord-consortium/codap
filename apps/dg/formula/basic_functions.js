@@ -71,6 +71,40 @@ DG.functionRegistry.registerFunctions((function() {
         return SC.empty(x) ? '' : Math.ceil(x);
       }
     },
+    'combinations': {
+      minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryArithmetic',
+      evalFn: function(n, k) {
+
+        function isInteger(num) {
+          return Math.floor(Number(num)) === Number(num);
+        }
+
+        var tResult = '';
+        if( !SC.empty(n) && !SC.empty(k) && isInteger(k) && isInteger(n)) {
+          k = Number(k);
+          n = Number(n);
+          if( k < 0 || k > n) {
+            tResult = 0;
+          } else {
+            if (n > 0 && isInteger(n)) {
+              k = Math.min(k, n - k);
+            }
+            tResult = 1;
+            var j = 1;
+            while (j <= k) {
+              tResult *= n--;
+              if (isFinite(tResult)) {
+                tResult /= j++;
+              } else {
+                tResult = "---OVERFLOW---";
+                j = k;  // So we can escape with the overflow result
+              }
+            }
+          }
+        }
+        return tResult;
+      }
+    },
     'cos': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric',
       evalFn: function(x) {

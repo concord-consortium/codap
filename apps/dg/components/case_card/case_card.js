@@ -474,6 +474,10 @@ DG.React.ready(function () {
                       iAttr.get('name'), iAttr.get('formula'));
                 }.bind(this),
 
+                hideAttribute = function () {
+                  DG.DataContextUtilities.hideAttribute(iContext, iAttr.get('id'));
+                }.bind(this),
+
                 deleteAttribute = function () {
                   DG.DataContextUtilities.deleteAttribute(iContext, iAttr.get('id'));
                 }.bind(this),
@@ -557,6 +561,7 @@ DG.React.ready(function () {
                                         }.bind(this),
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
+                  hideAttributeCallback: hideAttribute,
                   deleteAttributeCallback: deleteAttribute,
                   attributeIsEditableCallback: formulaIsEditable,
                   attributeCanBeRandomizedCallback: attributeCanBeRandomized,

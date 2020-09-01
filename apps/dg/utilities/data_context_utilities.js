@@ -249,6 +249,90 @@ DG.DataContextUtilities = {
   },
 
   /**
+   *
+   * @param iDataContext {DG.DataContext}
+   * @param iAttrID {number}
+   */
+  hideAttribute: function( iDataContext, iAttrID) {
+    var tAttrRef = iDataContext && iDataContext.getAttrRefByID( iAttrID),
+        tAttrName = tAttrRef.attribute.get('name'),
+        tCollectionClient = tAttrRef.collection,
+        tCollection = tCollectionClient.get('collection');
+
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "caseTable.hideAttribute",
+        undoString: 'DG.Undo.caseTable.hideAttribute',
+        redoString: 'DG.Redo.caseTable.hideAttribute',
+        log: 'Hide attribute "%@"'.fmt(tAttrName),
+        _beforeStorage: {
+          changeFlag: iDataContext.get('flexibleGroupingChangeFlag'),
+          fromCollectionID: tCollection.get('id'),
+          fromCollectionName: tCollection.get('name'),
+          fromCollectionParent: tCollection.get('parent'),
+          fromCollectionChild: tCollection.get('children')[0]
+        },
+        _afterStorage: {},
+        execute: function() {
+          var change;
+          change = {
+            operation: 'hideAttributes',
+            collection: tCollectionClient,
+            attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
+          };
+          iDataContext.applyChange(change);
+          iDataContext.set('flexibleGroupingChangeFlag', true);
+        },
+        undo: function() {
+          var tChange;
+          if (iDataContext.getCollectionByID(tCollection.get('id'))) {
+            tChange = {
+              operation: 'unhideAttributes',
+              attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
+            };
+            iDataContext.applyChange(tChange);
+            iDataContext.set('flexibleGroupingChangeFlag',
+                this._beforeStorage.changeFlag);
+            this._afterStorage.collection = tCollectionClient;
+          }
+        }
+      }));
+
+  },
+
+  /**
+   *
+   * @param iDataContext {DG.DataContext}
+   * @param iAttrID {number}
+   */
+  showAllHiddenAttributes: function( iDataContext) {
+    var tHiddenAttrs = iDataContext.getHiddenAttributes().map( function (iAttr) {
+          return { id: iAttr.get('id'), attribute: iAttr };
+        }),
+        tChange = {
+          attrs: tHiddenAttrs
+        };
+
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "caseTable.showAllHiddenAttributes",
+        undoString: 'DG.Undo.caseTable.showAllHiddenAttributes',
+        redoString: 'DG.Redo.caseTable.showAllHiddenAttributes',
+        log: 'Show all hidden attributes',
+        execute: function() {
+          if( tHiddenAttrs.length > 0) {
+            tChange.operation = 'unhideAttributes';
+            iDataContext.applyChange( tChange);
+          }
+          iDataContext.set('flexibleGroupingChangeFlag', true);
+        },
+        undo: function() {
+          tChange.operation = 'hideAttributes';
+          iDataContext.applyChange( tChange);
+        }
+      }));
+
+  },
+
+  /**
    * Delete an attribute. Confirmation will be requested if Undo is not enabled.
    *
    */

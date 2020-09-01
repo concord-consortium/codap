@@ -120,6 +120,10 @@ DG.DataSet = SC.Object.extend((function() // closure
       }.bind(this));
     },
 
+    hasAttribute: function( iAttr) {
+      return this.attrs.contains( iAttr);
+    },
+
     /**
      * Delete attribute from data set.
      *

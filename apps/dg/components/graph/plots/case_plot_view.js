@@ -126,6 +126,21 @@ DG.CasePlotView = DG.PlotView.extend(
         },
 
         /**
+         * Override because we do things a little differently
+         * @param iElement
+         * @param iIndex
+         * @param iAnimate
+         * @return {{events}|*}
+         */
+        assignElementAttributes: function (iElement, iIndex, iAnimate) {
+          addHandlers( this, iElement);
+          iElement.index = iIndex;
+          if (iAnimate)
+            DG.PlotUtilities.doCreateCircleAnimation(iElement);
+          return iElement;
+        },
+
+        /**
          * Set the coordinates and other attributes of the case circle (a Rafael element in this.get('plottedElements')).
          * @param iRC {} case-invariant Render Context
          * @param iCase {DG.Case} the case data
@@ -181,7 +196,6 @@ DG.CasePlotView = DG.PlotView.extend(
         /**
          We may clear and draw everything from scratch if required.
          */
-
         drawData: function () {
           if (!this.get('paper') || !this.get('model') || !this.getPath('model.cases') || this.getPath('model.isAnimating'))
             return;
