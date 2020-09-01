@@ -207,6 +207,271 @@ DG.DocumentHelper = SC.Object.extend(
         };
       },
 
+      deleteCollection: function( iResources, iRequesterID) {
+        var context = iResources.dataContext;
+        var collection = iResources.collection;
+
+        if (!collection) {
+          return {success: false, values: {error: 'Collection not found'}};
+        }
+
+        return context.applyChange({
+          operation: 'deleteCollection',
+          collection: collection,
+          requester: iRequesterID
+        });
+      },
+
+      createCollection: function(iResources, iValues, iID) {
+        // returns a collection for the appropriate parent name, if any.
+        function mapParent (context, parentName) {
+          var parentKey;
+          var collections;
+          var collection;
+
+          if (SC.none(parentName)) {
+            collections = context.get('collections');
+            if (collections && collections.length > 0) {
+              parentKey = collections[collections.length - 1].get('id');
+            }
+          } else if (typeof parentName === 'number') {
+            parentKey = parentName;
+          } else if (parentName === '_root_') {
+            parentKey = null;
+          } else {
+            collection = context.getCollectionByName(parentName);
+            parentKey = collection ? collection.get('id') : null;
+          }
+          return (!SC.none(parentKey))? context.getCollectionByID(parentKey).collection: null;
+        }
+
+        // returns a success indicator and ids.
+        function createOneCollection(iContext, iCollectionSpec, iContextID) {
+          var change = {
+            operation: 'createCollection',
+            properties: iCollectionSpec,
+            attributes: ( iCollectionSpec && iCollectionSpec.attributes ),
+            requester: iContextID
+          };
+          iCollectionSpec.parent = mapParent(iContext, iCollectionSpec.parent);
+          var changeResult = iContext.applyChange(change);
+          var success = (changeResult && changeResult.success);
+          var ids = changeResult.collection && {
+            id: changeResult.collection.get('id'),
+            name: changeResult.collection.get('name')
+          };
+          return {
+            success: success,
+            values: ids
+          };
+        }
+
+        var context = iResources.dataContext;
+        var success = true;
+        var collectionIdentifiers = [];
+
+        if (!context) {
+          return {success: false, values: {error: "no context"}};
+        }
+
+        if (!Array.isArray(iValues)) {
+          iValues = [iValues];
+        }
+
+        iValues.every(function (iCollectionSpec) {
+          var rslt = createOneCollection(context, iCollectionSpec, iID);
+          success = success && rslt.success;
+          if (success) {
+            collectionIdentifiers.push(rslt.values);
+          }
+          return success;
+        });
+
+        return {success: success, values: collectionIdentifiers};
+      },
+
+      applyChangeAndProcessResult: function(context, change, metadata) {
+        if (metadata && metadata.dirtyDocument === false)
+          change.dirtyDocument = false;
+        var changeResult = context.applyChange(change),
+            resultAttrs = changeResult && changeResult.attrs,
+            returnAttrs = DG.DataInteractiveUtils.mapAttributeProperties(resultAttrs, change.attrPropsArray),
+            returnResult = {success: changeResult && changeResult.success};
+        if (returnAttrs)
+          returnResult.values = { attrs: returnAttrs };
+        return returnResult;
+      },
+
+      /**
+       *
+       * @param iResources
+       * @param iValues
+       * @param iMetadata
+       */
+      createAttribute: function (iResources, iValues, iMetadata, iRequesterID) {
+        if (!iResources.dataContext) {
+          return {success: false, values: {error: "no context"}};
+        }
+        if (!iResources.collection) {
+          return {success: false, values: {error: 'Collection not found'}};
+        }
+        var context = iResources.dataContext;
+        var attrSpecs = SC.clone(Array.isArray(iValues) ? iValues : [iValues]);
+        if (attrSpecs.some(function(spec) { return !spec.name; })) {
+          return {success: false, values: {error: "Create attribute: name required"}};
+        }
+        attrSpecs.forEach(function(attrSpec) {
+          attrSpec.clientName = attrSpec.name;
+          attrSpec.name = context.canonicalizeName(attrSpec.name + ' ');
+        });
+        var change = {
+          operation: 'createAttributes',
+          collection: context.getCollectionByID( iResources.collection.get('id')),
+          attrPropsArray: attrSpecs,
+          requester: iRequesterID,
+          position: iResources.position
+        };
+        return this.applyChangeAndProcessResult(context, change, iMetadata);
+      },
+
+      /**
+       *
+       * @param iResources
+       * @param iValues
+       * @param iMetadata
+       */
+      updateAttribute: function (iResources, iValues, iMetadata) {
+
+        var context = iResources.dataContext;
+        if (!iResources.collection) {
+          return {success: false, values: {error: 'Collection not found'}};
+        }
+        if (!iResources.attribute) {
+          return {success: false, values: {error: 'Attribute not found'}};
+        }
+        if (!iValues.id && iResources.attribute.id)
+          iValues.id = iResources.attribute.id;
+        if (!iValues.name && iResources.attribute.name)
+          iValues.name = iResources.attribute.name;
+        else if (iValues.name) {
+          iValues.clientName = iValues.name;
+          iValues.name = context.canonicalizeName(iValues.name + ' ');
+        }
+        var change = {
+          operation: 'updateAttributes',
+          collection: iResources.collection,
+          attrPropsArray: [iValues],
+          requester: this.get('id')
+        };
+        return this.applyChangeAndProcessResult(context, change, iMetadata);
+      },
+
+      updateAttributeLocation: function(iResources, iValues, iMetadata) {
+        var context = iResources.dataContext;
+        if (!context) {
+          return {
+            success: false,
+            values: {error: 'context not found'}
+          };
+        }
+        var change = {
+          operation: 'moveAttribute',
+          requester: this.get('id'),
+          attr: iResources.attributeLocation
+        };
+        if (iValues && !SC.none(iValues.collection)) {
+          change.toCollection = context.getCollectionByName(iValues.collection) ||
+              context.getCollectionByID(iValues.collection);
+          if (!change.toCollection) {
+            return {
+              success: false,
+              values: {error: 'Target collection not found'}
+            };
+          }
+        }
+        if (iValues && !SC.none(iValues.position)) {
+          change.position = iValues.position;
+        }
+        return context.applyChange(change);
+      },
+
+      createCases: function( iResources, iValues, iRequesterID) {
+
+        function convertDate( iValue) {
+          if (iValue instanceof Date) {
+            iValue.valueOf = function () {
+              return Date.prototype.valueOf.apply(this) / 1000;
+            };
+          }
+        }
+
+        function fixDates(iCase) {
+          if( Array.isArray( iCase.values)) {
+            iCase.values.forEach(function (iValue) {
+              convertDate( iValue);
+            });
+          }
+          else if ( typeof iCase.values === 'object') {
+            DG.ObjectMap.forEach( iCase.values, function( iKey, iValue) {
+              convertDate( iValue);
+            });
+          }
+        }
+
+        function createOrAppendRequest(iCase) {
+          fixDates(iCase);
+          var parent = iCase.parent;
+          var values = iCase.values;
+          var req = requests.find(function (request) {
+            return request.properties.parent === parent;
+          });
+          if (!req) {
+            req = {
+              operation: 'createCases',
+              collection: collection,
+              properties: {
+                parent: parent
+              },
+              values: [],
+              requester: requester
+            };
+            requests.push(req);
+          }
+          req.values.push(values);
+        }
+        if (!iResources.collection) {
+          return {success: false, values: {error: 'Collection not found'}};
+        }
+        // ------------------createCases-----------------
+        var success = true;
+        var context = iResources.dataContext;
+        var collection = iResources.collection;
+        var cases = Array.isArray(iValues)?iValues: [iValues];
+        var IDs = [];
+        var requester = iRequesterID;
+        var requests = [];
+
+        // We wish to minimize the number of change requests submitted,
+        // but create case change requests are not structured like cases.
+        // we must reformat the Plugin API create/case to some number of
+        // change requests, one for each parent referred to in the create/case
+        // object.
+        cases.forEach(createOrAppendRequest);
+        requests.forEach(function (req) {
+          var changeResult = context.applyChange(req);
+          var success = success && (changeResult && changeResult.success);
+          var index;
+          if (changeResult.success) {
+            for (index = 0; index < changeResult.caseIDs.length; index++) {
+              var caseid = changeResult.caseIDs[index];
+              var itemid = (index <= changeResult.itemIDs.length) ? changeResult.itemIDs[index] : null;
+              IDs.push({id: caseid, itemID: itemid});
+            }
+          }
+        });
+        return {success: success, values: IDs};
+      },
+
       /**
        * The current document will be made to conform to the information in the given JSON object.
        * @param iDocObject {Object}
@@ -245,57 +510,181 @@ DG.DocumentHelper = SC.Object.extend(
           });
         }
 
+        function synchronizeCollections( iNewDocContextObject, iExistingDocContextRecord) {
+
+          function findCollectionWithID( iContext, iID) {
+            return iContext.collections.find( function(iCollection) {
+              return Number(iCollection.guid) === Number(iID);
+            });
+          }
+
+          function deleteCollectionsNotFoundInNewContext() {
+            DG.ObjectMap.forEach( iExistingDocContextRecord.collections, function (iID, iExistinCollection) {
+              var tFoundNewCollection = findCollectionWithID( iNewDocContextObject, iID),
+                  tDataContext = tDocController.getContextByID( iExistingDocContextRecord.get('id'));
+              if (!tFoundNewCollection) {
+                this_.deleteCollection({
+                  dataContext: tDataContext,
+                  collection: iExistinCollection
+                });
+              }
+            });
+          }
+
+          function addNewCollectionsNotFoundInExistingContext() {
+            var tDataContext = tDocController.getContextByID( iExistingDocContextRecord.get('id'));
+            iNewDocContextObject.collections.forEach(function (iNewCollection) {
+              var tCorrespondingExistingCollection = iExistingDocContextRecord.collections[ iNewCollection.guid];
+              if (!tCorrespondingExistingCollection) {
+                this_.createCollection({dataContext: tDataContext}, iNewCollection);
+              }
+            });
+          }
+
+          function syncExistingWithNew( iExistingCollection, iNewCollection) {
+
+            function syncAttributes( iExistingAttrs, iNewAttrs) {
+              var tExistingDataContext = tDocController.getContextByID(iExistingDocContextRecord.guid);
+              // If there are existing attributes not present in new attributes, delete them
+              // For those that are found, update them
+              iExistingAttrs.forEach(function (iExistingAttr) {
+                var tNewAttr = iNewAttrs.find(function (iNewAttr) {
+                  return iExistingAttr.cid === iNewAttr.cid;
+                });
+                if (!tNewAttr) {
+                  DG.DataContextUtilities.deleteAttribute(tExistingDataContext, iExistingAttr.get('id'));
+                }
+                else if( JSON.stringify(tNewAttr) !==
+                    JSON.stringify( iExistingAttr.toArchive( true /*fulldata*/))) {  // Sync them up
+                  this_.updateAttribute({
+                    dataContext: tExistingDataContext,
+                    collection: iExistingCollection,
+                    attribute: iExistingAttr
+                  }, tNewAttr);
+                  tNewAttr.__found = true;
+                }
+              });
+              // Create attributes not found in existing collection
+              iNewAttrs.forEach(function (iNewAttr, iIndex) {
+                if (!iNewAttr.__found) {
+                  this_.createAttribute({
+                    dataContext: tExistingDataContext,
+                    collection: iExistingCollection,
+                    position: iIndex
+                  }, iNewAttr);
+                }
+                else delete iNewAttr.__found;
+              });
+              // Now move attributes to the positions specified by iNewAttrs
+              iNewAttrs.forEach(function (iNewAttr, iIndex) {
+                this_.updateAttributeLocation({
+                      dataContext: tExistingDataContext,
+                      attributeLocation: iExistingAttrs.find(function (iExistingAttr) {
+                        return iExistingAttr.cid === iNewAttr.cid;
+                      })
+                    },
+                    {
+                      collection: iExistingCollection.get('name'),
+                      position: iIndex
+                    });
+              });
+            }
+
+            function syncCases( iExistingCases, iNewCases) {
+              var tArchiveOfExistingCases = iExistingCases.map( function( iCase) {
+                return iCase.toArchive();
+              });
+              if( JSON.stringify( tArchiveOfExistingCases) !== JSON.stringify( iNewCases)) {
+                var tExistingDataContext = tDocController.getContextByID( iExistingDocContextRecord.get('id'));
+                iNewCases.forEach( function(iNewCaseObject) {
+                  var tExistingCase = tExistingDataContext.getCaseByID( iNewCaseObject.id);
+                  if( tExistingCase) {  // update
+                    tExistingCase._status = 'updated';
+                    if (JSON.stringify(iNewCaseObject) !== JSON.stringify(tExistingCase.toArchive())) {
+                      tExistingDataContext.applyChange({
+                        operation: 'updateCases',
+                        collection: iExistingCollection,
+                        cases: [tExistingCase],
+                        values: [iNewCaseObject.values]
+                      });
+                    }
+                  }
+                  else {
+                    var tResult = this_helper.createCases({
+                          dataContext: tExistingDataContext,
+                          collection: iExistingCollection
+                        },
+                        iNewCaseObject),
+                        tNewCase = tExistingDataContext.getCaseByID( tResult.values[0].id);
+                    tNewCase._status = 'updated';
+                  }
+                });
+                // Any cases not updated should be deleted
+                iExistingCases.forEach( function( iExistingCase) {
+                  if( iExistingCase._status !== 'updated') {
+                    tExistingDataContext.applyChange({
+                      operation: 'deleteCases',
+                      collection: iExistingCollection,
+                      cases: [iExistingCase],
+                      values: []
+                    });
+                  }
+                  else {
+                    // Get rid of flag
+                    delete iExistingCase._status;
+                  }
+                });
+              }
+            }
+
+            if( JSON.stringify( iExistingCollection.toArchive( false /* dont exclude cases*/)) !==
+                JSON.stringify( iNewCollection)) {
+              syncAttributes( iExistingCollection.attrs, iNewCollection.attrs);
+              syncCases( iExistingCollection.cases, iNewCollection.cases);
+            }
+          }
+
+          //-----------------------synchronize Collections-----------------------
+          var tArchiveOfExistingCollections = [];
+          DG.ObjectMap.forEach( iExistingDocContextRecord.collections,
+              function( iKey, iCollection) {
+                tArchiveOfExistingCollections.push( iCollection.toArchive(true /* fullData */));
+              }
+          );
+          // Are the arrays of collections already the same?
+          if (JSON.stringify(iNewDocContextObject.collections) !==
+              JSON.stringify(tArchiveOfExistingCollections)) {
+            // Not the same. Any collection in doc context but not in new context should be deleted
+            deleteCollectionsNotFoundInNewContext();
+            // Any new collections not already existing should be created
+            addNewCollectionsNotFoundInExistingContext();
+            // Sync each collection
+            iNewDocContextObject.collections.forEach( function( iNewCollection) {
+              var tCorrespondingExistingCollection = iExistingDocContextRecord.collections[ iNewCollection.guid];
+              syncExistingWithNew( tCorrespondingExistingCollection, iNewCollection);
+            });
+          }
+        }
+
         function createOrUpdateDataContexts() {
           var tExistingContexts = tDocController.get('contextRecords'),
               tNewDocContexts = iDocObject.contexts;  // The ones we're moving toward
 
           tNewDocContexts.forEach(function (iNewDocContext) {
             var tDocContextID = iNewDocContext.guid,
-                tFoundExistingDocContextRecord;
+                tExistingDataContextRecord;
             DG.ObjectMap.forEach(tExistingContexts, function (iGuid, iContext) {
               if (Number(iGuid) === tDocContextID)
-                tFoundExistingDocContextRecord = iContext;
+                tExistingDataContextRecord = iContext;
             });
-            if (tFoundExistingDocContextRecord) {  // We found an existing context with the same ID
-              var tArchiveOfFoundExistingDocContext = tFoundExistingDocContextRecord.toArchive(true /* fullData */)/*,
-                    tFoundExistingDocContext = tDocController.getContextByID( tFoundExistingDocContextRecord.get('id'))*/;
+            if (tExistingDataContextRecord) {  // We found an existing context with the same ID
+              var tArchiveOfFoundExistingDocContext = tExistingDataContextRecord.toArchive(true /* fullData */);
               // Is the one we found identical to the one we're moving toward?
               if (JSON.stringify(iNewDocContext) !== JSON.stringify(tArchiveOfFoundExistingDocContext)) {
                 // Something's different. First update the toplevel info
-                this_.updateDataContext({dataContext: tFoundExistingDocContextRecord}, iNewDocContext);
+                this_.updateDataContext({dataContext: tExistingDataContextRecord}, iNewDocContext);
 
-                /*
-                                  // Synchronize collections. Are they the same?
-                                  if(JSON.stringify( iNewDocContext.collections) !==
-                                      JSON.stringify( tArchiveOfFoundExistingDocContext.collections)) {
-                                    window.alert('Cannot yet deal with reorganization of dataset');
-
-                                    // Not the same. Any collection in doc context but not in new context should be deleted
-                                    tArchiveOfFoundExistingDocContext.collections.forEach( function( iArchivedFoundCollection, iIndex) {
-                                      var tFoundNewCollection = iNewDocContext.collections.find( function(iNewCollection) {
-                                        return Number(iNewCollection.guid) === Number(iArchivedFoundCollection.guid);
-                                      });
-                                      if( !tFoundNewCollection) {
-                                        var tDocCollectionToDelete =
-                                              tFoundExistingDocContextRecord.collections[Number(iArchivedFoundCollection.guid)];
-                                        this_.handleCollection.delete( { dataContext: tFoundExistingDocContext,
-                                          collection: tDocCollectionToDelete });
-                                      }
-                                    });
-
-                                    // Any new collections not already existing should be created
-                                    iNewDocContext.collections.forEach( function( iNewCollection) {
-                                      if( !tFoundExistingDocContextRecord.collections[Number(iNewCollection.guid)]) {
-                                        // Set the new collection's attributes aside
-                                        // var tAttrs = iNewCollection..attrs;
-                                        delete iNewCollection.attrs;
-                                        this_.handleCollection.create( { dataContext: tFoundExistingDocContext }, iNewCollection);
-                                        // Move set aside attributes from wherever they are to the new collection
-
-                                      }
-                                    });
-                                  }
-                */
+                synchronizeCollections( iNewDocContext, tExistingDataContextRecord);
 
               }
             }
@@ -309,8 +698,16 @@ DG.DocumentHelper = SC.Object.extend(
           tComponentsStorage.forEach(function (iCompStorage) {
             var tComponentController = tComponentControllers[iCompStorage.guid];
             if (tComponentController) {
+              var tComponentView = tComponentController.get('view'),
+                  tViewIsMinimized = tComponentView.get('isMinimized')
               tComponentController.restoreComponentStorage(iCompStorage.componentStorage);
-              tComponentController.get('view').animate(iCompStorage.layout, {duration: 0.4, timing: 'ease-in-out'});
+              if((tViewIsMinimized && SC.none(iCompStorage.savedHeight))||
+                  (!tViewIsMinimized && !SC.none(iCompStorage.savedHeight))) {
+                tComponentView.toggleMinimization();
+              }
+              else {
+                tComponentController.get('view').animate(iCompStorage.layout, {duration: 0.4, timing: 'ease-in-out'});
+              }
             }
             else {
               iCompStorage.document = DG.activeDocument;
@@ -357,7 +754,9 @@ DG.DocumentHelper = SC.Object.extend(
           });
         }
 
-        var tResult = true;
+        // Begin updateDocument
+        var tResult = true,
+            this_helper = this;
 
         deleteComponentsNotInDocObject();
 
@@ -370,6 +769,8 @@ DG.DocumentHelper = SC.Object.extend(
         createOrUpdateComponents();
 
         reinstateSelection();
+
+        DG.UndoHistory.clearUndoRedoHistory();
 
         return tResult;
       }

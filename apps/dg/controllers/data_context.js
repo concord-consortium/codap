@@ -734,12 +734,15 @@ DG.DataContext = SC.Object.extend((function () // closure
       if (!iChange.collection) {
         iChange.collection = this.get('childCollection');
       }
+    if( !iChange.collection.casesController)
+      iChange.collection = iChange.collection.get('name');
 
-      if (typeof iChange.collection === "string") {
-        collection = this.getCollectionByName(iChange.collection);
-      } else {
-        collection = iChange.collection;
-      }
+    if (typeof iChange.collection === "string") {
+      collection = this.getCollectionByName( iChange.collection);
+      iChange.collection = collection;  // Because we'll need it as an object later
+    } else {
+      collection = iChange.collection;
+    }
 
       // we hold off on observers because of performance issues adding many
       // cases when some cases are selected

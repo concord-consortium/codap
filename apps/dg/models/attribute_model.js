@@ -525,6 +525,7 @@ DG.Attribute = DG.BaseModel.extend(
           formula: this.hasFormula() ? this.formula : undefined,
           deletedFormula: this.hasDeletedFormula() ? this.deletedFormula : undefined,
           guid: this.id,
+          id: this.id,
           precision: this.precision,
           unit: this.unit
         };

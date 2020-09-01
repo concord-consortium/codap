@@ -198,6 +198,7 @@ DG.Component = DG.BaseModel.extend(
         obj = {
           type: this.type,
           guid: this.id,
+          id: this.id,
           componentStorage: tStorage,
           layout: this.layout,
           savedHeight: this.get('savedHeight')
