@@ -3,7 +3,7 @@ class TableTileObject{
         return cy.get('.dg-hier-table-view');
     }
     getCollection(){
-        return cy.get('.dg-case-table-title')
+        return cy.get('.dg-case-table')
     }
     getAttributeHeader(){
         return cy.get('.slick-column-name .two-line-header-line-1')

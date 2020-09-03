@@ -1,12 +1,12 @@
 import CodapObject from "../../support/elements/CodapObject";
 import GraphTile from "../../support/elements/GraphTile";
-import TableTile from "../../support/elements/TableTile";
+import CaseCardTile from "../../support/elements/CaseCardObject";
 import TextTile from "../../support/elements/TextObject";
 import Sage from "../../support/plugin_elements/sage/SagePluginObject"
 
 const codap = new CodapObject;
 const graph = new GraphTile;
-const table = new TableTile;
+const casecard = new CaseCardTile;
 const text = new TextTile;
 const sage = new Sage;
 
@@ -66,7 +66,7 @@ context(('Sagemodeler with CODAP'), () => {
 
 context.only('Sagemodeler document opens',()=>{
   before(()=>{
-    cy.visit('https://sagemodeler.concord.org/app/?codap=staging#shared=159516');
+    cy.visit('https://sagemodeler.concord.org/app/?codap=staging#shared=https://cfm-shared.concord.org/gRFYONX8GmYg9SJ4266K/file.json');
   })
   describe('Sagemodeler shared document opens',()=>{
     it('verify Sagemodeler shared document opens',()=>{

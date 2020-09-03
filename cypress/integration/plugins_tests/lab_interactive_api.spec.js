@@ -17,18 +17,20 @@ context("Lab interactives", function () {
     cy.getPluginIframe().find('button.start').click();
     cy.wait(5000);
     cy.getPluginIframe().find('button.analyze-data').click()
+    cy.wait(500)
   })
   describe('Lab interactives with Parachute Model', function () {
     it('verify data is shown in table', function () {
+      // codap.openTile('table', "runs/measurements")
       table.getCollection().eq(0).within(() => {
         table.getCell(1, 1, 0).find('.dg-numeric').should('contain', 1)
         table.getCell(2, 2, 0).find('.dg-numeric').should('contain', this.mass)
         table.getCell(3, 3, 0).find('.dg-numeric').should('contain', this.parachuteSize)
       })
       table.getCollection().eq(1).within(function () {
-        table.getCell(1, 1, 0).find('.dg-numeric').should('contain', 0)
-        table.getCell(2, 2, 0).find('.dg-numeric').should('not.contain', 0)
-        table.getCell(3, 3, 0).find('.dg-numeric').should('contain', 0)
+        table.getCell(1, 1, 0).find('.dg-numeric').eq(0).should('not.be.empty')
+        table.getCell(2, 2, 0).find('.dg-numeric').eq(0).should('not.be.empty')
+        table.getCell(3, 3, 0).find('.dg-numeric').eq(0).should('not.be.empty')
       })
     })
   })
