@@ -699,7 +699,7 @@ DG.DocumentHelper = SC.Object.extend(
             var tComponentController = tComponentControllers[iCompStorage.guid];
             if (tComponentController) {
               var tComponentView = tComponentController.get('view'),
-                  tViewIsMinimized = tComponentView.get('isMinimized')
+                  tViewIsMinimized = tComponentView.get('isMinimized');
               tComponentController.restoreComponentStorage(iCompStorage.componentStorage);
               if((tViewIsMinimized && SC.none(iCompStorage.savedHeight))||
                   (!tViewIsMinimized && !SC.none(iCompStorage.savedHeight))) {
