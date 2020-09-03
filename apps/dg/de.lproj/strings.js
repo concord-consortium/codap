@@ -818,5 +818,14 @@ SC.stringsFor("de", {
     "DG.Inspector.caseTable.exportCaseDialog.copyFrom": "Copy case data from:",
     "DG.Inspector.caseTable.exportCaseDialog.copy": "Copy",
     "DG.Inspector.caseTable.exportCaseDialog.copyTooltip": "Copy data to clipboard",
-    "DG.Inspector.caseTable.exportCaseDialog.copiedData": "Copied %@ to the clipboard"
+    "DG.Inspector.caseTable.exportCaseDialog.copiedData": "Copied %@ to the clipboard",
+    "DG.Undo.caseTable.hideAttribute": "Undo hiding attribute",
+    "DG.Redo.caseTable.hideAttribute": "Redo hiding attribute",
+    "DG.Undo.caseTable.showAllHiddenAttributes": "Undo show all hidden attributes",
+    "DG.Redo.caseTable.showAllHiddenAttributes": "Redo show all hidden attributes",
+    "DG.TableController.headerMenuItems.hideAttribute": "Hide Attribute",
+    "DG.Inspector.attributes.showAllHiddenAttributesSing": "Show %@ Hidden Attribute",
+    "DG.Inspector.attributes.showAllHiddenAttributesPlural": "Show %@ Hidden Attributes",
+    "DG.Inspector.attributes.showAllHiddenAttributesDisabled": "Show Hidden Attributes",
+    "DG.Inspector.getCaseDataFromClipboard": "Import Case Data from Clipboard..."
 });
