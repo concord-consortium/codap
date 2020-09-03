@@ -434,18 +434,18 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
           if (handler) {
             if (handler[action]) {
-              SC.run(function () {
-                try {
-                  result = handler[action].call(this, resourceMap, values,
-                      metadata) || {success: false};
-                  if (result.values) {
-                    this.filterResultValues(result.values);
-                  }
-                } catch (ex) {
-                  DG.logWarn(ex);
-                  result.values = {error: ex.toString()};
+              // SC.run(function () {
+              try {
+                result = handler[action].call(this, resourceMap, values,
+                    metadata) || {success: false};
+                if (result.values) {
+                  this.filterResultValues(result.values);
                 }
-              }.bind(this));
+              } catch (ex) {
+                DG.logWarn(ex);
+                result.values = {error: ex.toString()};
+              }
+              // }.bind(this));
             } else {
               result.values = {
                 error: 'Unsupported action: %@/%@'.loc(action, type)
@@ -475,15 +475,18 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         this.setIfChanged('connected', true);
         DG.log('Handle Request: ' + JSON.stringify(iMessage));
         var result = {success: false};
-        if (!SC.none(iMessage)) {
-          if (Array.isArray(iMessage)) {
-            result = iMessage.map(function (cmd) {
-              return this.handleOneCommand(cmd);
-            }.bind(this));
-          } else {
-            result = this.handleOneCommand(iMessage);
+        SC.run(function () {
+
+          if (!SC.none(iMessage)) {
+            if (Array.isArray(iMessage)) {
+              result = iMessage.map(function (cmd) {
+                return this.handleOneCommand(cmd);
+              }.bind(this));
+            } else {
+              result = this.handleOneCommand(iMessage);
+            }
           }
-        }
+        }.bind(this));
         DG.log('Returning response: ' + JSON.stringify(result));
         iCallback(result);
       },
@@ -1260,7 +1263,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               };
             }
           } else {
-            return { success: false, values: {error: "item not found"}};
+            // if no items, we expect an array of items for the "values" field
+            return context.applyChange({
+              operation: 'updateItems',
+              items: iValues,
+              requester: this.get('id')
+            });
           }
         }
 

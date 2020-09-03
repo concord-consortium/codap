@@ -810,7 +810,13 @@ DG.DataContext = SC.Object.extend((function () // closure
         return tCase;
       }
 
-      var item = this.updateItem(iChange.items.id, iChange.items.values);
+      var itemsUpdate = iChange.items;
+      if (itemsUpdate && !Array.isArray(itemsUpdate)) {
+        itemsUpdate = [itemsUpdate];
+      }
+      var items = itemsUpdate.map(function (itemUpdate) {
+        return this.updateItem(itemUpdate.id, itemUpdate.values);
+      }.bind(this));
       var regenResults = this.regenerateCollectionCases();
       var deletedCases = regenResults && regenResults.deletedCases;
       var createdCases = regenResults && regenResults.createdCases;
@@ -818,14 +824,17 @@ DG.DataContext = SC.Object.extend((function () // closure
       var collectionIDCaseMap;
       var collections = [];
 
-      var myCase = findCaseForItem(item, this.getLastCollection());
+      var myCases = items.map(function (item) {
+        var myCase = findCaseForItem(item, this.getLastCollection());
+        return myCase && myCase.id;
+      }.bind(this));
       var result = {
         success: true,
-        changedCases: [myCase.id],
+        changedCases: myCases,
         deletedCases: deletedCases,
         createCases: createdCases
       };
-      if (myCase) {
+      if (myCases && myCases.length) {
         this.applyChange({
           operation: 'updateCases',
           collection: regenResults.collection,
