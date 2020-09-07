@@ -354,6 +354,8 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           tNumericCaseCount = 0,
           tTreatAsNumeric = this._attributeType === DG.Analysis.EAttributeType.eNumeric ||
               (tAttributes.length > 0 && tAttributes[0].get('type') === 'numeric'),
+          tTreatAsDateTime = this._attributeType === DG.Analysis.EAttributeType.eDateTime ||
+              (tAttributes.length > 0 && tAttributes[0].get('type') === 'date'),
           tAttributeType,
           tDataIsNumeric = true,  // True both for numbers and dates
           tDataIsDateTime = tCases.get('length') > 0,
@@ -376,7 +378,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           var tValue = tTreatAsNumeric ? DG.MathUtilities.extractNumeric(iCaseValue) : Number( iCaseValue);
           tFoundADateDuringDataIsDateTime = tDataIsDateTime &&
               (tFoundADateDuringDataIsDateTime || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
-          tDataIsDateTime = tDataIsDateTime && (SC.empty(iCaseValue) || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
+          tDataIsDateTime = tTreatAsDateTime || (tDataIsDateTime && (SC.empty(iCaseValue) || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue)));
           if (!SC.empty(tValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
             tNumericCaseCount++;
             if (tValue < tMin) tMin = tValue;
