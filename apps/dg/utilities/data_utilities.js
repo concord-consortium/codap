@@ -206,7 +206,7 @@ DG.DataUtilities.sortableValue = function(value) {
   var type = typeCode(value),
       num = type === kTypeNumber ? value : NaN;
   // strings convertible to numbers are treated numerically
-  if (type === kTypeString) {
+  if (type === kTypeString && value.length) {
     num = Number(value);
     if (!isNaN(num))
       return { type: kTypeNumber, value: num };
