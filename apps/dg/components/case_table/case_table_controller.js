@@ -876,6 +876,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
                             ? DG.DataUtilities.compareDescending
                             : DG.DataUtilities.compareAscending,
             attribute = DG.Attribute.getAttributeByID(attrID),
+            isNumeric = attribute.get('type') === 'numeric',
             collection = attribute && attribute.get('collection'),
             collectionID = collection && collection.get('id'),
             hierTableView = this.getPath('view.contentView'),
@@ -887,7 +888,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           while (tCase && (tCase.getPath('collection.id') !== collectionID))
             tCase = tCase.get('parent');
 
-          return tCase && tCase.getRawValue(attrID);
+          var rawValue = tCase && tCase.getRawValue(attrID);
+          var numValue = tCase && (isNumeric? tCase.getForcedNumericValue(attrID): null);
+          return tCase && (SC.empty(numValue)? rawValue: numValue);
         }
 
         function refreshTable() {

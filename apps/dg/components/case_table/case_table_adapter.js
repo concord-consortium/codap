@@ -87,7 +87,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = String(cellValue);
           } else if (DG.isDate(cellValue) || type === 'date') {
             result = dateFormatter(cellValue, precision, type);
-          } else if (DG.isNumeric(cellValue)) {
+          } else if (DG.isNumeric(cellValue) || type === 'numeric') {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
             result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
@@ -114,9 +114,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       numberFormatter = function (cellValue, type, precision) {
-        var roundDigits = !SC.empty(precision)? precision : 2,
-            multiplier = !SC.empty(roundDigits) ? Math.pow(10,roundDigits) : 1;
-        return '<span class="dg-numeric">' + (Math.round( multiplier * cellValue) / multiplier) + '</span>';
+        var value = DG.isNumeric(cellValue)? DG.getNumeric(cellValue): DG.MathUtilities.extractNumeric(cellValue);
+        if (value != null && value !== '') {
+          var roundDigits = !SC.empty(precision)? precision : 2,
+              multiplier = !SC.empty(roundDigits) ? Math.pow(10,roundDigits) : 1;
+          return '<span class="dg-numeric">' + (Math.round( multiplier * value) / multiplier) + '</span>';
+        } else {
+          return stringFormatter(cellValue);
+        }
       },
 
       errorFormatter = function (error) {
