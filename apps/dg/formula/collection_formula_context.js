@@ -144,7 +144,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     @returns  {Object}    Return value can be a Number, String, Boolean, error object, etc.
    */
   getAttrValue: function( iCase, iAttrID) {
-    var tValue = iCase && iAttrID && iCase.getRawValue( iAttrID);
+    var tValue = iCase && iAttrID && iCase.getTypedValue( iAttrID);
     // Propagate errors via exceptions
     if( tValue instanceof Error) throw tValue;
     return tValue;
@@ -368,7 +368,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
                                   var tCase = iEvalContext._caseMap_
                                                 ? iEvalContext._caseMap_[collectionID]
                                                 : iEvalContext._case_,
-                                      tValue = tCase && tCase.getRawValue(attributeID);
+                                      tValue = tCase && tCase.getTypedValue(attributeID);
                                   // Propagate error values immediately
                                   if( tValue instanceof Error) throw tValue;
                                   return tValue;

@@ -269,6 +269,25 @@ DG.Case = DG.BaseModel.extend((function() {
     },
 
     /**
+     * Return the value that fits the attribute's type
+     * @param iAttrID {Number}
+     * @return {number|string|null}
+     */
+    getTypedValue: function( iAttrID) {
+      switch (DG.Attribute.getAttributeByID( iAttrID).get('type')) {
+        case 'numeric':
+          return this.getForcedNumericValue( iAttrID);
+        case 'date':
+          return this.getValue( iAttrID);
+        case 'nominal':
+          return this.getStrValue( iAttrID);
+        default:
+          return this.getValue( iAttrID);
+      }
+      return this.getRawValue( iAttrID);
+    },
+
+    /**
      * Is there a value of the specified attribute for this case.
      * Note that a formula can return a null value, so some cases will be thought
      * to have a value for the given attribute ID, when actually they don't.
