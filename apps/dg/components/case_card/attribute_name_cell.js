@@ -128,7 +128,7 @@ DG.React.ready(function () {
                     },
                     {
                       label: 'DG.TableController.headerMenuItems.hideAttribute'.loc(),
-                      disabled: false,
+                      disabled: !this.props.attributeCanBeHiddenCallback(),
                       clickHandler: hideAttributeClickHandler
                     },
                     {
