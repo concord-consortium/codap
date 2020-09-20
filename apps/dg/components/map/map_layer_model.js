@@ -85,8 +85,16 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
        * @param iChange {Object}
        */
       handleUpdateAttributes: function( iChange) {
-        if( this.isAffectedByChange( iChange))
-          this.notifyPropertyChange( 'attributeUpdated');
+        if( this.isAffectedByChange( iChange)) {
+          this.notifyPropertyChange('attributeUpdated');
+          var tAssignedAttr = this.getPath( 'dataConfiguration.legendAttributeDescription.attribute'),
+              tAssignedAttrID = tAssignedAttr && tAssignedAttr.get('id');
+          if( !SC.none(tAssignedAttrID)) {
+            var tSubModel = this.get('legend');
+            if (tSubModel)
+              tSubModel.handleUpdateAttribute(tAssignedAttrID);
+          }
+        }
       },
 
       /**
