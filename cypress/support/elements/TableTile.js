@@ -109,7 +109,7 @@ class TableTileObject{
         return cy.get('.nav-buttons .moonicon-icon-play')
     }
     getCaseCardAddCasePlusIcon(){
-        return cy.get('.nav-header .dg-floating-plus-right')
+        return cy.get('.nav-header .dg-floating-button-right')
     }
     getCaseCardAddAttributePlusIcon(){
         return cy.get('.react-data-card-row .dg-floating-plus')

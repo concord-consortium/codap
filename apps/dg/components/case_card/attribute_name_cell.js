@@ -165,8 +165,6 @@ DG.React.ready(function () {
                     img({
                       src: static_url('images/add_circle_grey_72x72.png'),
                       className: 'dg-floating-plus dg-wants-touch' + tNewAttrDisabledClass,
-                      width: 19,
-                      height: 19,
                       title: 'DG.TableController.newAttributeTooltip'.loc(),
                       onClick: newAttributeClickHandler
                     }),

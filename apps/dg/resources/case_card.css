@@ -151,15 +151,27 @@ $nav-header-width: 75px;
 .react-data-card .dg-floating-plus {
     position: absolute;
     left: 4px;
+    width: 19px;
+    height: 19px;
     cursor: pointer;
 }
 
-.react-data-card .dg-floating-plus-right {
+.react-data-card .dg-floating-plus:hover {
+    width: 23px;
+    height: 23px;
+}
+
+.react-data-card .dg-floating-button-right {
     position: relative;
     vertical-align: middle;
     right: 4px;
-    left: 0px;
     cursor: pointer;
+    /*justify-content: center;*/
+    background-color: #609EA1;
+    border-width: 0;
+    font-size: x-small;
+    color: white;
+    border-radius: 4px;
 }
 
 td.attr-cell {

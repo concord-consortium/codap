@@ -4,6 +4,8 @@
 DG.React.ready(function () {
   var
       img = ReactDOMFactories.img,
+      br = ReactDOMFactories.br,
+      button = ReactDOMFactories.button,
       span = ReactDOMFactories.span;
 
   DG.React.Components.NavButtons = DG.React.createComponent(
@@ -53,15 +55,17 @@ DG.React.ready(function () {
                 style: { 'color': 'transparent', 'cursor': 'default'}
               });
             }
+            var tAddCaseLabelWords = "DG.CaseCard.addCaseButton".loc(),
+                tSpaceIndex = tAddCaseLabelWords.indexOf(' '),
+                tFirstWord = tSpaceIndex >= 0 ? tAddCaseLabelWords.substring(0, tSpaceIndex) : tAddCaseLabelWords,
+                tRemainder = tSpaceIndex >= 0 ? tAddCaseLabelWords.substring(tSpaceIndex) : '',
+                tLabel = span({},tFirstWord,br(),tRemainder);
             tAddCaseButton =
-                img({
-                  src: static_url('images/add_circle_blue_72x72.png'),
-                  className: 'dg-floating-plus-right',
-                  width: 19,
-                  height: 19,
+                button({
+                  className: 'dg-floating-button-right',
                   title: 'DG.CaseCard.newCaseToolTip'.loc(),
                   onClick: this.getNewCase
-                });
+                }, tLabel);
 
             return span({className: 'nav-buttons dg-wants-touch'},
                 tFirstButton, tSecondButton, tAddCaseButton);

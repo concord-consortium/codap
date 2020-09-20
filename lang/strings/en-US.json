@@ -133,6 +133,7 @@
     "DG.CaseCard.attrHintFormula": "%@1 = %@2",
     "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3",
     "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
+    "DG.CaseCard.addCaseButton": "add case",    // Expected to be two short words separated by a space
 
     // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",
