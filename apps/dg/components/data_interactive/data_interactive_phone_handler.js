@@ -993,6 +993,35 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleCase: {
         create: function (iResources, iValues) {
           return DG.appController.documentArchiver.createCases(iResources, iValues, this.get('id'));
+        },
+        update: function (iResources, iValues) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var result = {success: false};
+          var cases = [];
+          var values = [];
+
+          iValues.forEach(function (entry) {
+            var caseID = entry.id;
+            var tCase = context.getCaseByID(caseID);
+            if (tCase) {
+              cases.push(tCase);
+              values.push(entry.values);
+            }
+          });
+
+          var changeResult;
+          if (collection && cases.length) {
+            changeResult = context.applyChange({
+              operation: 'updateCases',
+              collection: collection,
+              cases: cases,
+              values: values,
+              requester: this.get('id')
+            });
+            result = changeResult;
+          }
+          return result;
         }
       },
 
