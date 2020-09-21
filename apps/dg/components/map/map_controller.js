@@ -347,7 +347,7 @@ DG.MapController = DG.DataDisplayController.extend(
                     name: 'data.style.' + name,
                     undoString: 'DG.Undo.graph.' + name,
                     redoString: 'DG.Redo.graph.' + name,
-                    log: "Changed" + end + " attribute color",
+                    log: "Changed " + end + " attribute color",
                     execute: function () {
                       this.reduceKey = this.name + currentOpenSession;
                       this._beforeStorage = {
@@ -357,6 +357,7 @@ DG.MapController = DG.DataDisplayController.extend(
                       tCategoryMap[end + '-attribute-color'] = iColor.toHexString();
                       iMapLayerModel.setPath(alphaAttr, iColor.getAlpha());
                       iMapLayerModel.propertyDidChange('pointColor');
+                      tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
                     },
                     undo: function () {
                       tCategoryMap['attribute-color'] = this._beforeStorage.color;

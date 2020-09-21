@@ -34,7 +34,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     
     /** @scope DG.LegendView.prototype */
     return {
-      displayProperties: ['model.attributeDescription.attribute'],
+      displayProperties: ['model.attributeDescription.attribute', 'model.attributeDescription.attribute.categoryMap'],
 
       classNames: ['dg-legend-view'],
 

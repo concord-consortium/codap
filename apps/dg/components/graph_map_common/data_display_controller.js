@@ -373,6 +373,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     tCategoryMap[iColorKey] = iColor.toHexString();
                     this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                    tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
                   },
                   undo: function () {
                     tCategoryMap[iColorKey] = this._beforeStorage.color;
@@ -405,6 +406,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       };
                       this_.setPath('dataDisplayModel.' + colorAttr, iColor.toHexString());
                       this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
+                      tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
                     }.bind( this));
                   },
                   undo: function () {
@@ -434,6 +436,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     tCategoryMap[end + '-attribute-color'] = iColor.toHexString();
                     this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                    tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
                   },
                   undo: function () {
                     tCategoryMap['attribute-color'] = this._beforeStorage.color;
