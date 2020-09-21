@@ -800,11 +800,12 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         });
 
         // initialize the values for the single 'cell' of the scatterplot
-        tValueArray.push({
-          count: tCount,
-          primaryCell: 0,
-          secondaryCell: 0
-        });
+        var tCell = { primaryCell: 0, secondaryCell: 0 };
+        if( iForSelectionOnly)
+          tCell.selectedCount = tCount;
+        else
+          tCell.count = tCount;
+        tValueArray.push(tCell);
         return tValueArray;
       }
 
