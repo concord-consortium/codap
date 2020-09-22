@@ -47,12 +47,28 @@ DG.MouseAndTouchView = {
     this.set('isMouseOver', NO);
     return YES;
   },
+  /**
+   * In mouseDown, mouseDragged, and mouseUp below we're allowing our parent view to participate
+   * in case it can handle mouseDragged (as does DragBorderView). We've arranged things so that
+   * dragging will be handled by the parent view but a simple mouseDown followed by mouseUp (a click)
+   * will be handled by this view.
+   */
   mouseDown: function (evt) {
     if (!this.get('isMouseDown')) {
       this.set('isMouseDown', YES);
       this.set('isActive', YES);
     }
-    return YES; // so we get other events
+    if( this.parentView.mouseDown)
+      return this.parentView.mouseDown(evt); // We want to allow mouseDrag in parent
+    else
+      return YES;
+  },
+  mouseDragged: function(evt) {
+    if( this.parentView.mouseDragged) {
+      this.set('isActive', NO);
+      return this.parentView.mouseDragged(evt);
+    }
+    else return NO;
   },
   mouseUp: function (evt) {
     if (this.get('isActive')) {
@@ -64,8 +80,10 @@ DG.MouseAndTouchView = {
     else {
       this.set('isMouseDown', NO);
       this.mouseExited(evt);
+      if( this.parentView.mouseUp)
+        return this.parentView.mouseUp(evt);
     }
-    return YES; // so we get other events
+    return YES;
   },
   touchStart: function (iTouch) {
     return YES;
