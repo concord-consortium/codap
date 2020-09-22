@@ -415,7 +415,8 @@ DG.DataContext = SC.Object.extend((function () // closure
      * @returns {*}
      */
     getCaseByID: function (iCaseID) {
-      return DG.store.find(DG.Case, iCaseID);
+      var iCase = DG.store.find(DG.Case, iCaseID);
+      if (iCase && iCase instanceof DG.Case) return iCase;
     },
 
 

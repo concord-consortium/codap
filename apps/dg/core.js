@@ -124,7 +124,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0553',
+    BUILD_NUM: '0554',
 
     IS_DG_BUILD: isDGBuild.property(),
 

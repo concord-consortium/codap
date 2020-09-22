@@ -282,9 +282,9 @@ DG.Case = DG.BaseModel.extend((function() {
         case 'nominal':
           return this.getStrValue( iAttrID);
         default:
-          return this.getValue( iAttrID);
+          return this.getRawValue( iAttrID);
       }
-      return this.getRawValue( iAttrID);
+      //return this.getRawValue( iAttrID);
     },
 
     /**

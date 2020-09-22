@@ -3,7 +3,7 @@
 
 DG.React.ready(function () {
   var
-      img = ReactDOMFactories.img,
+      // img = ReactDOMFactories.img,
       br = ReactDOMFactories.br,
       button = ReactDOMFactories.button,
       span = ReactDOMFactories.span;

@@ -827,5 +827,6 @@ SC.stringsFor("ja", {
     "DG.Inspector.attributes.showAllHiddenAttributesSing": "Show %@ Hidden Attribute",
     "DG.Inspector.attributes.showAllHiddenAttributesPlural": "Show %@ Hidden Attributes",
     "DG.Inspector.attributes.showAllHiddenAttributesDisabled": "Show Hidden Attributes",
-    "DG.Inspector.getCaseDataFromClipboard": "Import Case Data from Clipboard..."
+    "DG.Inspector.getCaseDataFromClipboard": "Import Case Data from Clipboard...",
+    "DG.CaseCard.addCaseButton": "add case"
 });
