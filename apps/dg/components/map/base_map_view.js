@@ -130,12 +130,11 @@ DG.BaseMapView = SC.View.extend(
         if (this._map) {
           // May need to resize here
         } else {
-        this._map = L.map(this._layerID, {
-          scrollWheelZoom: false,
-          zoomSnap: 0,
-          trackResize: true
-        })
-            .setView(this.getPath('model.center'), this.getPath('model.zoom'));
+          this._map = L.map(this._layerID, {
+            scrollWheelZoom: false,
+            zoomSnap: 0,
+            trackResize: true
+          }).setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd)
               .on('dragstart', onDisplayChangeEvent)
               .on('dragend', onDisplayChangeEvent)
@@ -151,6 +150,10 @@ DG.BaseMapView = SC.View.extend(
           this.backgroundChanged(); // will initialize baseMap
         }
       },
+
+      centerDidChange: function () {
+        this.get('map').setView(this.getPath('model.newCenter'), this.getPath('model.newZoom'), {animate: true});
+      }.observes('model.newCenter', 'model.newZoom'),
 
       viewDidResize: function () {
         var tMap = this.get('map');

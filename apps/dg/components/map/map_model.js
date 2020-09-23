@@ -25,6 +25,7 @@
 DG.MapModel = SC.Object.extend(
     /** @scope DG.MapModel.prototype */
     (function () {
+      var kDefaultLocation = [45.4408, 12.3155];
 
       return {
         /**
@@ -33,6 +34,8 @@ DG.MapModel = SC.Object.extend(
          */
         center: null,
         zoom: null,
+        newCenter: null,
+        newZoom: null,
 
         /**
          * This is the name of the layer used as an argument to L.esri.basemapLayer
@@ -169,10 +172,21 @@ DG.MapModel = SC.Object.extend(
 
           this.mapLayerModels = [];
 
-          this._processDocumentContexts();
+          var layerWasAdded = this._processDocumentContexts();
 
-          this.set('center', [45.4408, 12.3155]); //
+          this.set('center', kDefaultLocation); //
           this.set('zoom', 1);  // Reasonable default
+          if (!layerWasAdded) {
+            if (navigator.geolocation && navigator.geolocation.getCurrentPosition) {
+              navigator.geolocation.getCurrentPosition(
+                  function(pos) {
+                    var coords = pos.coords;
+                    this.set('newCenter', [coords.latitude, coords.longitude]);
+                    this.set('newZoom', 8);
+                  }.bind(this)
+                );
+            }
+          }
           this.set('baseMapLayerName', 'Topographic');
 
         },
