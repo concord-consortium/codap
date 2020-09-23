@@ -22,7 +22,7 @@ before(()=> {
     cy.wait(500)
     cfm.openLocalDoc(dir+filename+ext)
     codap.getTableTile().click() //bring the table into focus
-}) 
+})
 
 context('table ui',()=>{ //tests for ui elements
     describe('table components', ()=>{//component title, minimize and close are tested in codap general tests
@@ -45,7 +45,7 @@ context('table ui',()=>{ //tests for ui elements
         })
         it('verify columns are visible',()=>{
             table.getColumnHeader().should('have.length',5)
-        })  
+        })
         it('verify add attribute icon is visible for every collection on table focus', ()=>{
             table.getAddNewAttributePlusIcon(collectionName).should('be.visible')
         })
@@ -73,7 +73,7 @@ context('table tile component functionality', ()=>{ //tests for general table co
         casecard.getCaseCardTile().should('be.visible');
     })
     it('verify case card switches to table when table icon is clicked', ()=>{
-        table.changeToTable();
+        casecard.changeToTable();
         table.getCaseTableTile().should('be.visible')
     })
     //TODO: can't get the close icon to be visible
@@ -113,7 +113,7 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
             // TODO need to figure out the mouse event for the hover
             // table.getAttribute(name)
             //     .trigger('mouseover');
-            // table.getAttribute(name).should('have.attr','title').and('contain',description)    
+            // table.getAttribute(name).should('have.attr','title').and('contain',description)
         })
         it('verify edit formula', ()=>{ //also verify that formula appears on hover, and column changes color
             let formula = ('CNUM1*CNUM2');
@@ -190,11 +190,11 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
             table.getCollectionByName(collectionName).should('not.exist')
         })
     })
-    
+
     describe('index menu',()=>{
        it('verify index column cannot be reordered',()=>{
 
-       }) 
+       })
        it('verify insert 1 case at the bottom',()=>{
 
        })
@@ -223,13 +223,13 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
 
         })
         it('verify insert multiple cases below current case in the middle',()=>{
- 
+
         })
         it('verify insert multiple cases above current case in the middle', ()=>{
- 
+
         })
         it('verify delete case in the middle', ()=>{
- 
+
         })
     })
 })
@@ -255,14 +255,14 @@ context('Multiple collections',function(){
     before(()=> {
         var filename='3TableGroups',
             dir='../fixtures/';
-    
+
         cfm.closeDocFromFileMenu();
         cfm.closeConfirmDialogMessage();
         cfm.openDocFromFileMenu();
         cy.wait(500)
         cfm.openLocalDoc(dir+filename+ext)
         codap.getTableTileTitle().click() //bring the table into focus
-    }) 
+    })
     describe('table UI', ()=>{
         it('verify collection name is visible', ()=>{
             table.getCollectionTitle().should('have.length', 3);
@@ -286,7 +286,7 @@ context('Multiple collections',function(){
             table.getCollapseIcon().should('have.attr', 'href').and('include', 'collapse.gif') //parent should still be collapsible
             // table.getExpandIcon().should('have.attr','href').and('include', 'expand.gif') //child should be collapsed
             table.getExpandAllIcon().last().click({force:true}); //expand child again
-        }) 
+        })
     })
     describe('expand and collapse collection',()=>{ //need to create a three level table
         it('verify collapse child collection',()=>{
@@ -323,6 +323,6 @@ context('Multiple collections',function(){
             table.getExpandAllIcon().first().click()
             cy.get('.dg-collapsed-row').should('have.length',0)
         })
-    }) 
-    
+    })
+
 })
