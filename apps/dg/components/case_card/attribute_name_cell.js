@@ -41,24 +41,34 @@ DG.React.ready(function () {
             }
 
             function dragLocation() {
+              var tResult = '';
+              this_.moveDirection = '';
               if (this_.props.dragStatus && this_.props.dragStatus.event && this_.cellRef) {
                 var tEvent = this_.props.dragStatus.event,
                     tX = tEvent.clientX,
                     tY = tEvent.clientY,
-                    tRect = this_.cellRef.getBoundingClientRect();
-                if (tX > tRect.x && tX < tRect.x + tRect.width && tY > tRect.y) {
-                  if (tY < tRect.y + tRect.height / 2) {
-                    this_.moveDirection = 'up';
-                    return 'attr-cell-upper';
-                  }
-                  else if (tY < tRect.y + tRect.height) {
-                    this_.moveDirection = 'down';
-                    return 'attr-cell-lower';
+                    tRect = this_.cellRef.getBoundingClientRect(),
+                    tDragType = this_.props.dragStatus.dragType;
+                if (tX > tRect.x && tX < tRect.x + tRect.width && tY > tRect.y &&
+                    tY < tRect.y + tRect.height) {
+                  switch (tDragType) {
+                    case 'ownContext':
+                      if (tY < tRect.y + tRect.height / 2) {
+                        this_.moveDirection = 'up';
+                        tResult = 'attr-cell-upper';
+                      }
+                      else if (tY < tRect.y + tRect.height) {
+                        this_.moveDirection = 'down';
+                        tResult = 'attr-cell-lower';
+                      }
+                      break;
+                    case 'foreignContext':
+                      this_.moveDirection = 'join';
+                      tResult = 'attr-cell-all';
                   }
                 }
               }
-              this_.moveDirection = '';
-              return '';
+              return tResult;
             }
 
             function handleDropIfAny() {

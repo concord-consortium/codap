@@ -212,6 +212,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         'isDragInProgress:dg-table-drop-target-show'
       ],
 
+      /**
+       * @property {DG.CaseTableDragHelper}
+       */
+      dragHelper: null,
+
       computeDragOperations: function( iDrag) {
         if( this.isValidAttribute( iDrag))
           return SC.DRAG_LINK;
@@ -219,135 +224,48 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           return SC.DRAG_NONE;
       },
 
+      /**
+       * We determine the drag helper appropriate to the attribute being dragged and pass responsibility
+       * to it for all drag functions.
+       * @param iDrag
+       */
       dragStarted: function( iDrag) {
-        if (this.parentView.gridAdapter && this.parentView.gridAdapter.canAcceptDrop(iDrag.data.attribute)) {
-          this.set('isDragInProgress', true);
+        var tHelper = DG.CaseTableDragHelper.createHelper(this, iDrag);
+        if( tHelper) {
+          this.set('dragHelper', tHelper);
+          this.get('dragHelper').dragStarted( iDrag);
         }
       },
 
       dragEnded: function () {
-        this.set('isDragInProgress', false);
+        var tDragHelper =  this.get('dragHelper');
+        tDragHelper.dragEnded();
+        tDragHelper.destroy();
+        this.set('dragHelper', null);
       },
 
       dragEntered: function( iDragObject, iEvent) {
-        this.set('isDragEntered', true);
+        this.get('dragHelper').dragEntered(iDragObject, iEvent);
       },
 
-      dragInsertPoint: null,
-
-      _computeInsertionPoint: function (location) {
-        function findDragInsertionPoint(slickGrid, locX) {
-          var columnDefs = slickGrid.getColumns();
-          var obj;
-          var x = 0;
-          var colMiddle;
-          var colWidth;
-          // Find the column with the closest boundary to locX. That is,
-          // find the first column index whose midpoint is greater than locX.
-          // If we don't find it, then the last column must be it.
-          var columnIndex = columnDefs.findIndex(function (def, ix, defs) {
-            var result = false;
-            colWidth = def.width || 0;
-            colMiddle = x + (colWidth / 2);
-            // skip row index
-            if (ix > 0 && locX < colMiddle) {
-              result = true;
-            }
-            x += colWidth;
-            return result;
-          });
-
-          if (columnIndex >= 0) {
-            obj = {
-              columnIndex: columnIndex,
-              nearerBound: 'left'
-            };
-          } else {
-            obj = {
-              columnIndex: columnDefs.length - 1,
-              nearerBound: 'right'
-            };
-          }
-          return obj;
-        }
-        var slickGrid = this.parentView._slickGrid;
-        var gridPosition =  slickGrid.getGridPosition();
-        var headerRowHeight = slickGrid.getOptions().headerRowHeight;
-        // compute cursor location relative to grid
-        var loc = {x: location.x-gridPosition.left, y:location.y-gridPosition.top};
-        // find new insertion point
-        var inHeader = loc.y < headerRowHeight;
-        var newDragInsertionPoint = inHeader && findDragInsertionPoint(slickGrid, loc.x);
-
-        if (newDragInsertionPoint) {
-          newDragInsertionPoint.headerNode = (newDragInsertionPoint.columnIndex >=0 )
-              && this.$('.slick-header-column',
-                  slickGrid.getHeaderRow())[newDragInsertionPoint.columnIndex];
-
-          // if unchanged, we are done
-          if (this.dragInsertPoint &&
-              (this.dragInsertPoint.columnIndex === newDragInsertionPoint.columnIndex)
-              && (this.dragInsertPoint.nearerBound === newDragInsertionPoint.nearerBound)) {
-            return;
-          }
-        }
-        if (this.dragInsertPoint) {
-          this.$(this.dragInsertPoint.headerNode)
-              .removeClass('drag-insert-' + this.dragInsertPoint.nearerBound);
-        }
-        this.dragInsertPoint = newDragInsertionPoint;
-        if (newDragInsertionPoint) {
-          this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
-              + this.dragInsertPoint.nearerBound);
-        }
-      },
       dragUpdated: function( iDragObject, iEvent) {
-        this._computeInsertionPoint(iDragObject.location);
+        this.get('dragHelper').dragUpdated(iDragObject, iEvent);
       },
 
       dragExited: function( iDragObject, iEvent) {
-        if (this.dragInsertPoint) {
-          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
-              + this.dragInsertPoint.nearerBound);
-        }
-        this.dragInsertPoint = null;
-        this.set('isDragEntered', false);
+        this.get('dragHelper').dragExited(iDragObject, iEvent);
       },
 
       acceptDragOperation: function(drag, op) {
-        $('.sc-ghost-view').hide();
-        var $dragTarget = $(document.elementFromPoint(drag.location.x, drag.location.y));//$(drag.event.target);
-        var isOverHeader = $dragTarget.parents('.slick-header').length > 0;
-        $('.sc-ghost-view').show();
-        if (!isOverHeader && this.dragInsertPoint) {
-          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
-              + this.dragInsertPoint.nearerBound);
-        }
-        return isOverHeader;
+        return this.get('dragHelper').acceptDragOperation(drag, op);
       },
 
-      _performDragOperation: function (dragData) {
-        var attr = dragData.attribute;
-        var position;
-
-        // if we have an insert point, then we initiate the move.
-        // Otherwise we ignore the drop.
-        if (this.dragInsertPoint) {
-          position = (this.dragInsertPoint.nearerBound === 'right')
-              ? this.dragInsertPoint.columnIndex + 1
-              : this.dragInsertPoint.columnIndex;
-          this.parentView.gridAdapter.requestMoveAttribute(attr, position);
-        }
-      },
       performDragOperation:function ( iDragObject, iDragOp ) {
-        var dragData = iDragObject.data;
-        this._performDragOperation(dragData);
+        this.get('dragHelper').performDragOperation(iDragObject, iDragOp);
       },
 
       isValidAttribute: function( iDrag) {
-        var tDragAttr = iDrag.data.attribute;
-        return !SC.none( tDragAttr)
-            && this.parentView.gridAdapter.canAcceptDrop(iDrag.data.attribute);
+        return this.get('dragHelper').isValidAttribute(iDrag);
       },
 
       /**

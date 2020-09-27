@@ -234,6 +234,30 @@ DG.Attribute = DG.BaseModel.extend(
       },
 
       /**
+       * Return object with copies of all properties that could be transferred to another attribute
+       * @return {{}}
+       */
+      getTransferableProperties: function() {
+        return {
+          name: this.get('name'),
+          title: this.get('title'),
+          formula: this.get('formula'),
+          deletedFormula: this.get('deletedFormula'),
+          categoryMap: JSON.parse(JSON.stringify( this.get('categoryMap'))),
+          blockDisplayOfEmptyCategories: this.get('blockDisplayOfEmptyCategories'),
+          description: this.get('description'),
+          type: this.get('type'),
+          precision: this.get('precision'),
+          unit: this.get('unit')
+          // The rest of the properties shouldn't be transferred, at least in the join situation
+          // editable: this.get('editable'),
+          // hidden: this.get('hidden'),
+          // renameable: this.get('renameable'),
+          // deleteable: this.get('deleteable'),
+        };
+      },
+
+      /**
        * Iterate through the categories in the order maintained in the categoryMap
        *
        * @param iFunc has signature String, Color, Integer

@@ -744,5 +744,69 @@ DG.DataContextUtilities = {
         this.execute(true);
       }
     }));
+  },
+
+  joinSourceToDestCollection: function( iSourceKeyAttribute, iDestContext, iDestCollection, iDestKeyAttribute){
+
+    function forEachJoinableSourceAttribute( iCallback) {
+      tSourceAttributes.forEach(function (iForeignAttribute) {
+        if (iForeignAttribute !== iSourceKeyAttribute && !iForeignAttribute.get('hidden')) {
+          var tAttributeName = iForeignAttribute.get('name'),
+              tIndex = 1;
+          while( tExistingDestAttributeNames.indexOf( tAttributeName) >= 0) {
+            tAttributeName = iForeignAttribute.get('name') + '_' + tIndex;
+            tIndex++;
+          }
+          iCallback( iForeignAttribute, tAttributeName);
+        }
+      });
+    }
+
+    var tSourceAttributeName = iSourceKeyAttribute && iSourceKeyAttribute.get('name'),
+        tSourceCollection = iSourceKeyAttribute && iSourceKeyAttribute.collection,
+        tSourceDatasetName = tSourceCollection && tSourceCollection.getPath('context.title'),
+        tSourceAttributes = tSourceCollection && tSourceCollection.get('attrs'),
+        tDestKeyValueAttributeName = iDestKeyAttribute && iDestKeyAttribute.get('name'),
+        tExistingDestAttributeNames = iDestCollection.getPath('collection.attrs').map( function( iAttr) {
+          return iAttr.get('name');
+        });
+    if( tSourceAttributes && tSourceAttributeName && tSourceDatasetName && iDestCollection &&
+        tDestKeyValueAttributeName && iDestContext) {
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "dataContext.join",
+        undoString: 'DG.Undo.DataContext.join'.loc(tSourceDatasetName, iDestContext.get('title')),
+        redoString: 'DG.Redo.DataContext.join'.loc(tSourceDatasetName, iDestContext.get('title')),
+        log: 'Join attributes from "%@" to "%@"'.fmt(tSourceDatasetName, iDestContext.get('title')),
+        execute: function () {
+          var tAttrSpecs = [];
+          forEachJoinableSourceAttribute(function (iForeignAttribute, iNewAttrName) {
+            var tProps = iForeignAttribute.getTransferableProperties(),
+                tForeignAttributeName = iForeignAttribute.get('name');
+            tAttrSpecs.push(Object.assign(tProps, {
+              name: iNewAttrName,
+              title: iNewAttrName,
+              formula: 'lookupByKey("%@", "%@", "%@", `%@`)'.fmt(tSourceDatasetName, tForeignAttributeName,
+                  tSourceAttributeName, tDestKeyValueAttributeName)
+            }));
+          });
+          iDestContext.applyChange({
+            operation: 'createAttributes',
+            collection: iDestCollection,
+            attrPropsArray: tAttrSpecs
+          });
+        },
+        undo: function() {
+          var tAttributes = [];
+          forEachJoinableSourceAttribute(function (iForeignAttribute, iNewAttrName) {
+            tAttributes.push( iDestCollection.getAttributeByName( iNewAttrName));
+          });
+          iDestContext.applyChange({
+            operation: 'deleteAttributes',
+            collection: iDestCollection,
+            attrs: tAttributes
+          });
+        }
+      }));
+    }
   }
 };

@@ -1381,7 +1381,7 @@ DG.DataContext = SC.Object.extend((function () // closure
     },
 
     doCreateAttributes: function (iChange) {
-      var collection = typeof iChange.collection === "string"
+      var collectionClient = typeof iChange.collection === "string"
           ? this.getCollectionByName(iChange.collection)
           : iChange.collection,
           attrNames = [],
@@ -1394,15 +1394,15 @@ DG.DataContext = SC.Object.extend((function () // closure
         if (!iAttrProps) {
           return;
         }
-        var hadAttribute = collection.hasAttribute(iAttrProps.name),
+        var hadAttribute = collectionClient.hasAttribute(iAttrProps.name),
             attrProps = DG.copy(iAttrProps),
             attribute;
         // User-created attributes default to editable
         if (!hadAttribute)
           attrProps.editable = true;
-        attribute = collection.guaranteeAttribute(attrProps);
+        attribute = collectionClient.guaranteeAttribute(attrProps);
         if (!SC.none(iChange.position)) {
-          _this.moveAttribute(attribute, collection, iChange.position);
+          _this.moveAttribute(attribute, collectionClient, iChange.position);
         }
         if (attribute) {
           if (!hadAttribute)
@@ -1416,7 +1416,7 @@ DG.DataContext = SC.Object.extend((function () // closure
       }
 
       // Create/update each specified attribute
-      if (collection && iChange.attrPropsArray)
+      if (collectionClient && iChange.attrPropsArray)
         iChange.attrPropsArray.forEach(createAttribute);
       this.invalidateNamesAndNotify(attrNames);
       // For now we assume success

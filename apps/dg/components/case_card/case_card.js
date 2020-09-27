@@ -375,7 +375,7 @@ DG.React.ready(function () {
             /**
              * --------------------------Another attribute is dropped---------------
              */
-            var handleDrop = function (iMoveDirection) {
+            var moveWithinOwnContext = function(iMoveDirection) {
               var tDroppedAttr = this.props.dragStatus.dragObject.data.attribute,
                   tPosition = iAttrIndex + (iMoveDirection === 'up' ? 0 : 1),
                   tFromCollection = tDroppedAttr.get('collection');
@@ -395,6 +395,24 @@ DG.React.ready(function () {
               iContext.invokeLater(function () {
                 iContext.applyChange(tChange);
               });
+            }.bind(this);
+
+            var joinForeignContext = function() {
+              var tKeyAttribute = this.props.dragStatus.dragObject.data.attribute,
+                  tCollClient = iContext.getCollectionByID(iCollection.get('id'));
+              if( tKeyAttribute && iContext && tCollClient && iAttr) {
+                iContext.invokeLater( function() {
+                  DG.DataContextUtilities.joinSourceToDestCollection( tKeyAttribute, iContext,
+                      tCollClient, iAttr);
+                });
+              }
+            }.bind( this);
+
+            var handleDrop = function (iMoveDirection) {
+              if( this.props.dragStatus.dragType === 'ownContext')
+                moveWithinOwnContext( iMoveDirection);
+              else if( this.props.dragStatus.dragType === 'foreignContext')
+                joinForeignContext();
             }.bind(this);
 
             /**

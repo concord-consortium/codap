@@ -364,7 +364,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     return columnWidth;
   },
 
-  getColumnIndexFromAttribute: function (attr) {
+    /**
+     *
+     * @param iIndex {number}
+     * @return {DG.Attribute}
+     */
+  getAttributeFromColumnIndex: function (iIndex) {
+    return this.gridColumns[iIndex].attribute;
+  },
+
+ getColumnIndexFromAttribute: function (attr) {
     return this.gridColumns.findIndex(function (columnInfo) {
       return columnInfo.attribute && (attr.id === columnInfo.attribute.id);
     });
@@ -921,7 +930,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      *   (a) the dataContext prevents the drop
      *   (b) the dragged attribute is from another dataContext,
      *   (c) the plugin prevents the drop
-     * see DG.DataContextUtilities.canAcceptDrop() for details
+     * see DG.DataContextUtilities.canAcceptAttributeDrop() for details
      *
      * @param attr
      * @returns {boolean}

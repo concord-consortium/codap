@@ -36,7 +36,8 @@ DG.React.ready(function () {
 
             function dragIsInMe() {
               var tResult;
-              if (this_.props.dragStatus && this_.props.dragStatus.event && this_.domRow) {
+              if (this_.props.dragStatus && this_.props.dragStatus.dragType === 'ownContext'
+                  && this_.props.dragStatus.event && this_.domRow) {
                 var tEvent = this_.props.dragStatus.event,
                     tX = tEvent.clientX,
                     tY = tEvent.clientY,

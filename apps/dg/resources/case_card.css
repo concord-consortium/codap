@@ -191,6 +191,10 @@ tr:nth-child(even) td.attr-cell {
     border-bottom: thick yellow solid;
 }
 
+.react-data-card tr:nth-child(even) .attr-cell-all, .react-data-card tr:nth-child(odd) .attr-cell-all {
+    background-color: yellow;
+}
+
 .react-data-card-value {
     cursor: text;
 }

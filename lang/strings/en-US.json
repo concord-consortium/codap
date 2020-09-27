@@ -636,6 +636,10 @@
     // DG.CaseTableController
     "DG.CaseTableController.allTables": "All tables",
 
+    // DG.DataContext
+    "DG.Undo.DataContext.join": "Undo join of %@ to %@",    // Undo join of <source> to <destination>
+    "DG.Redo.DataContext.join": "Redo join of %@ to %@",
+
     // DG.AttributeFormat
     // See docs at https://momentjs.com/docs/#/displaying/format/
     "DG.AttributeFormat.DatePrecision.year": "YYYY",

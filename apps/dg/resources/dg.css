@@ -1365,6 +1365,10 @@ input.dg-editor-text {
     background-color: #ffffb3;
 }
 
+.slick-header-column.drag-hover {
+    background-color: yellow;
+}
+
 .slick-header-column.drag-insert-left {
     border-left-color: yellow;
     border-left-style: solid;

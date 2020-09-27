@@ -164,10 +164,20 @@ DG.CaseCardView = SC.View.extend(
           return YES;
         },
 
+        /**
+         *
+         * @param iDrag
+         * @return {string | false}
+         */
         isValidAttribute: function (iDrag) {
-          var tDragAttr = iDrag.data.attribute,
-              tAttrs = this.get('context').getAttributes();
-          return tAttrs.indexOf(tDragAttr) >= 0;
+          var tResult = false,
+              tDragAttr = iDrag.data.attribute,
+              tDragContext = iDrag.data.context;
+          if( tDragAttr && tDragContext && tDragContext === this.get('context'))
+            tResult = 'ownContext';
+          else if( tDragContext && tDragAttr)
+            tResult = 'foreignContext';
+          return tResult;
         },
 
         canAcceptDrop: function (iDrag) {
@@ -191,7 +201,8 @@ DG.CaseCardView = SC.View.extend(
         },
 
         dragEntered: function (iDragObject, iEvent) {
-          this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent}});
+          this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent,
+              dragType: this.get('dragType')}});
         },
 
         dragUpdated: function (iDragObject, iEvent) {
@@ -238,7 +249,8 @@ DG.CaseCardView = SC.View.extend(
             setupScrollTimer( scrollDown);
           }
 
-          this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent}});
+          this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent,
+              dragType: this.get('dragType')}});
         },
 
         dragExited: function (iDragObject, iEvent) {
@@ -250,8 +262,10 @@ DG.CaseCardView = SC.View.extend(
         },
 
         dragStarted: function (iDrag) {
-          if (this.isValidAttribute(iDrag) &&  this.canAcceptDrop(iDrag)) {
+          var tValidityCheck = this.isValidAttribute(iDrag);
+          if (tValidityCheck &&  this.canAcceptDrop(iDrag)) {
             this.set('dragInProgress', true);
+            this.set('dragType', tValidityCheck);
           }
         },
 
@@ -263,7 +277,8 @@ DG.CaseCardView = SC.View.extend(
         },
 
         performDragOperation: function( iDragObject, iOp) {
-          this.renderCard({ dragStatus: { dragObject: iDragObject, op: iOp } });
+          this.renderCard({ dragStatus: { dragObject: iDragObject, op: iOp,
+              dragType: this.get('dragType') } });
         }
 
         // todo: handle data drags
