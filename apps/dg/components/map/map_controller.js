@@ -299,6 +299,7 @@ DG.MapController = DG.DataDisplayController.extend(
                       tCategoryMap[iColorKey] = iColor.toHexString();
                       iMapLayerModel.setPath('transparency', iColor.getAlpha());
                       iMapLayerModel.propertyDidChange('pointColor');
+                      tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
                     },
                     undo: function () {
                       tCategoryMap[iColorKey] = this._beforeStorage.color;

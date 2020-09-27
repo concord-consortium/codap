@@ -57,6 +57,10 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
         }
       }.observes('dataConfiguration.legendAttributeDescription.attribute'),
 
+      handleLegendCategoryMapChange: function() {
+        this.notifyPropertyChange('colorMap');
+      }.observes('dataConfiguration.legendAttributeDescription.attribute.categoryMap'),
+
       handleOneDataContextChange: function( iNotifier, iChange) {
         sc_super();
 

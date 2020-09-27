@@ -366,7 +366,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           this.updateConnectingLine();
         }
       }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
-          'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible', 'model.strokeSameAsFill'),
+          'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible', 'model.strokeSameAsFill',
+          'model.colorMap'),
 
       updateSelection: function () {
         if (SC.none(this.get('map')))

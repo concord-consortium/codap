@@ -166,7 +166,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
     }.bind( this));
     this.updateSelection();
   }.observes('model.areaColor', 'model.areaTransparency', 'model.areaStrokeColor', 'model.areaStrokeTransparency',
-      'model.strokeSameAsFill', 'model.pointColor'),
+      'model.strokeSameAsFill', 'model.pointColor', 'model.colorMap'),
 
   /**
    * Remove all features.
