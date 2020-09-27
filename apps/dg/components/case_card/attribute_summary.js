@@ -27,14 +27,16 @@ DG.React.ready(function () {
                 tSummary;
             this.props.cases.forEach(function (iCase) {
               var tValue = iCase.getValue(tAttrID);
-              if (!tUniqueValues[tValue])
-                tUniqueValues[tValue] = 0;
-              tUniqueValues[tValue]++;
-              if (tValue !== '' && isFinite(tValue)) {
-                tMin = Math.min(tMin, tValue);
-                tMax = Math.max(tMax, tValue);
-              } else if( tValue !== '') {
-                tAllNumeric = false;
+              if( !SC.empty(tValue)) {
+                if (!tUniqueValues[tValue])
+                  tUniqueValues[tValue] = 0;
+                tUniqueValues[tValue]++;
+                if (tValue !== '' && isFinite(tValue)) {
+                  tMin = Math.min(tMin, tValue);
+                  tMax = Math.max(tMax, tValue);
+                } else if (tValue !== '') {
+                  tAllNumeric = false;
+                }
               }
             });
             if( tAllNumeric) {
