@@ -1,8 +1,8 @@
 {
-    "video": false,
     "defaultCommandTimeout": 10000,
     "viewportWidth": 1400,
     "viewportHeight": 1000,
     "modifyObstructiveCode":false,
-    "chromeWebSecurity":false
+    "chromeWebSecurity":false,
+    "video": false
 }
