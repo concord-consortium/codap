@@ -151,6 +151,10 @@ DG.CaseCardView = SC.View.extend(
           return YES;
         },
 
+        /**
+         * Commit current edit
+         * @param evt
+         */
         mouseDown: function (evt) {
           DG.globalEditorLock.commitCurrentEdit();
         },

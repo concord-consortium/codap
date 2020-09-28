@@ -64,6 +64,7 @@ DG.React.ready(function () {
 
           render: function () {
             var
+                this_ = this,
                 tUnits = SC.empty(this.state.value) ? '' : ' ' + (this.state.unit || ''),
                 tValueClassName = this.props.isEditable ? 'react-data-card-value ' : '',
                 tValue = SC.empty( this.state.value) ? '____' : this.state.value,
@@ -74,7 +75,7 @@ DG.React.ready(function () {
                       type: 'text',
                       // ref is called on creation of the input element
                       ref: function( input) {
-                        this.inputElement = input;
+                        this_.inputElement = input;
                         input && input.focus();
                       },
                       value: this.state.value,
