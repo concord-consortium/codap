@@ -15,11 +15,13 @@ describe('Sampler plugin', function () {
     codap.openTile('plugin', 'Sampler')
     cy.wait(2000)
     //run sampler
-    cy.getPluginIframe().find('#speed').type(3 + '{enter}')
+    cy.getPluginIframe().find('#repeat').clear().type("1{enter}")
+    cy.getPluginIframe().find('#speed').type(3 + "{enter}")
     cy.getPluginIframe().find('#run').click()
-    cy.wait(10000)
+    codap.getTableTile().should('be.visible');
   })
   it('verify data is shown in table', function () {
+    cy.wait(8000)
     table.getCollection().eq(0).within(() => {
       table.getCell(1, 1, 0).find('.dg-numeric').should('contain', 1)
       // table.getCell(2,2,0).find('.dg-numeric').should('contain',this.mass)

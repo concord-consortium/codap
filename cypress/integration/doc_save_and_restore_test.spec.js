@@ -24,45 +24,45 @@ const ext = '.codap';
 
 const baseUrl = `${Cypress.config("baseUrl")}`;
 
-before(()=> {
-    cy.visit(baseUrl)
-    cy.wait(5000)
-}) 
-
-context('Tile variety', ()=>{
-
-    it('verify restore of all components', ()=>{ //test to see if a blank table is saved properly.
-        var filename='save_restore_test_doc',
-            dir='../fixtures/';
-
-        cfm.openDocFromModal();
-        cy.wait(500)
-        cfm.openLocalDoc(dir+filename+ext);
-        codap.getComponentViews().should('have.length', 13);
-    })
-
-    it('verify case card restore', ()=>{
-        casecard.getCaseCardTile().should('be.visible').and('contain','1–9 ');
-    })
-
-    it('verify web page restore',()=>{
-        cy.getWebviewIframe().find('.concord-logo').should('be.visible')
-    })
-    it('verify text box restore', ()=>{
-        textTile.getTextTile().should('be.visible');
-        textTile.getTextArea().should('contain','save and restore')
-    })
-
-    it('verify DrawTool restore', ()=>{ //no way to verify contents of the canvas
-        cy.getPluginIframe().find('#camera-flash').should('be.visible')
-    })
-    it('verify slider restore', ()=>{
-        slider.getSliderTile().should('be.visible');
-    })
-    it('verify calculator restore', ()=>{
-      calculator.getCalculatorTile().scrollIntoView().should('be.visible');
-  })
-  it('verify Sampler plugin restore', ()=>{
-    samplerPlugin.getSamplerPlugin().should('be.visible');
+before(() => {
+  cy.visit(baseUrl)
+  cy.wait(5000)
 })
+
+context('Tile variety', () => {
+
+  it('verify restore of all components', () => { //test to see if a blank table is saved properly.
+    var filename = 'save_restore_test_doc',
+      dir = '../fixtures/';
+
+    cfm.openDocFromModal();
+    cy.wait(500)
+    cfm.openLocalDoc(dir + filename + ext);
+    codap.getComponentViews().should('have.length', 13);
+  })
+
+  it('verify case card restore', () => {
+    casecard.getCaseCardTile().should('be.visible').and('contain', '1–9 ');
+  })
+
+  it('verify web page restore', () => {
+    cy.getWebviewIframe().find('.concord-logo').should('be.visible')
+  })
+  it('verify text box restore', () => {
+    textTile.getTextTile().should('be.visible');
+    textTile.getTextTile().should('contain', 'save and restore')
+  })
+
+  it('verify DrawTool restore', () => { //no way to verify contents of the canvas
+    cy.getPluginIframe().find('#camera-flash').should('be.visible')
+  })
+  it('verify slider restore', () => {
+    slider.getSliderTile().should('be.visible');
+  })
+  it('verify calculator restore', () => {
+    calculator.getCalculatorTile().scrollIntoView().should('be.visible');
+  })
+  it('verify Sampler plugin restore', () => {
+    samplerPlugin.getSamplerPlugin().should('be.visible');
+  })
 })

@@ -143,6 +143,10 @@ Cypress.Commands.add("getWebviewIframe", () => {
   return cy.get(".dg-web-view-frame iframe").iframe()
 });
 
+Cypress.Commands.add("getSageIframe", () => {
+  return cy.get(".dg-web-view-frame iframe").iframe()
+});
+
 Cypress.Commands.add("iframe", { prevSubject: "element" }, $iframe => {
   Cypress.log({
       name: "iframe",

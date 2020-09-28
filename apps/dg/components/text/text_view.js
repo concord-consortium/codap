@@ -252,6 +252,20 @@ DG.TextView = SC.View.extend((function() {
 
         commitEditing: function () {
           this._controller.commitEditing();
+        },
+
+        /**
+         * Prevent drop into text edit area from propagating to the CODAP workspace
+         * where it would be interpreted as a CSV drop.
+         * @param ev {MouseEvent}
+         */
+        dataDragDropped: function (ev) {
+          var dt = ev.dataTransfer;
+          if (dt && !dt.files.length) {
+            ev.stopPropagation();
+          } else {
+            return false;
+          }
         }
       }),
 

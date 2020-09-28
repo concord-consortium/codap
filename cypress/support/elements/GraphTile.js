@@ -24,6 +24,9 @@ class GraphTile {
     getPlotView(){
         return cy.get('.dg-plot-view')
     }
+    getDataDot(){
+      return cy.get('.dg-data-dot')
+  }
     getDataDotColored(){
         return cy.get('.dg-data-dot-colored')
     }
