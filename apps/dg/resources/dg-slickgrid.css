@@ -80,6 +80,7 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  unicode-bidi: bidi-override;
 }
 
 .slick-column-name.two-line-header-truncating .two-line-header-line-1 {

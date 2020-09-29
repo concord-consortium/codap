@@ -23,6 +23,11 @@
  * @param iStyle {object} font attributes if not default
  */
 DG.measureText = (function () {
+  function hasOverflowed(element) {
+    return element.scrollHeight > element.clientHeight ||
+        element.scrollWidth > element.clientWidth;
+  }
+
   var kSelector = 'dg-text-measurer';
   var $el;
 
@@ -37,6 +42,6 @@ DG.measureText = (function () {
       $el.appendTo(document.body);
     }
     $el.attr('style', style).html(text);
-    return { width: $el.outerWidth(), height: $el.outerHeight() };
+    return { width: $el.outerWidth(), height: $el.outerHeight(), hasOverflowed:  hasOverflowed($el[0])};
   };
 }());

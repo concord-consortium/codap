@@ -1758,10 +1758,36 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (this.isComponentDetached()) {
         return;
       }
+      /**
+       * reverse a string: while doing so, reverse the direction of bracket-like
+       * characters.
+       */
+      function reverse(str) {
+        // str.split("").reverse().join("");
+        var rMap = {
+          '[': ']',
+          ']': '[',
+          '{': '}',
+          '}': '{',
+          '(': ')',
+          ')': '('
+        };
+        if (!str) return str;
+        var s = str.split('');
+        var c;
+        var ix;
+        var n = [];
+        for (ix = s.length - 1; ix >= 0; ix -= 1) {
+          c = s[ix];
+          if (rMap[c]) c = rMap[c];
+          n.push(c);
+        }
+        return n.join('');
+      }
       function makeLinePair($el) {
         var text = $el.text().replace(/_/g, ' ');
         var $line1 = $('<span>').addClass('two-line-header-line-1').text(text);
-        var $line2 = $('<span>').addClass('two-line-header-line-2').text(text);
+        var $line2 = $('<span>').addClass('two-line-header-line-2').text(reverse(text));
         $el.empty().append($line1).append($line2);
       }
       function computeMiddleEllipsis($el) {
@@ -1776,15 +1802,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           'line-height:' + v1.css('line-height'),
           'font-size:' + v1.css('font-size'),
           'font-family:' + v1.css('font-family'),
-          'width: ' + width + 'px',
+          'width:' + width + 'px',
+          'height:' + height + 'px',
           'overflow: auto',
           'hyphens: auto',
           'white-space: normal'
         ].join(';');
         var text = v1.text();
         var textMeasure = DG.measureText(text, style);
-        // DG.log('text, el-h,text-h: ' + [text, height, textMeasure.height].join());
-        if (textMeasure.height > height) {
+        // DG.log('text, height, width, textMeasure.height, textMeasure.width, ' +
+        //     'textMeasure.isOverflowed: ' +
+        //     [text, height, width, textMeasure.height, textMeasure.width,
+        //       textMeasure.hasOverflowed].join());
+        if (textMeasure.hasOverflowed) {
           $el.addClass('two-line-header-truncating');
         } else {
           $el.removeClass('two-line-header-truncating');
