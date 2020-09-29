@@ -553,8 +553,12 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             hierTableView.get('childTableViews').
               forEach( function( iCaseTableView) {
                 var tableAdapter = iCaseTableView.get('gridAdapter');
+                var columns;
                 if( updatedAdapters.indexOf( tableAdapter) >= 0) {
-                  iCaseTableView.setColumns( tableAdapter.get('gridColumns'));
+                  columns = tableAdapter.get('gridColumns').filter(function (column) {
+                    return column.attribute && !column.attribute.hidden;
+                  });
+                  iCaseTableView.setColumns( columns);
                 }
               });
           }
