@@ -301,6 +301,7 @@ DG.ColorUtilities = {
       else if(this.isHSB( tHigh))
       {
         tHigh = Raphael.hsb2rgb( tHigh.h, tHigh.s, tHigh.b);
+        tHigh.colorString = tHigh.colorString || 'rgb(%@,%@,%@)'.fmt(tHigh.r, tHigh.g, tHigh.b);
         tHigh.r /= 255;
         tHigh.g /= 255;
         tHigh.b /= 255;
