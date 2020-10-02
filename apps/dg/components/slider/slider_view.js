@@ -137,6 +137,14 @@ DG.SliderView = SC.View.extend(
               isEditable: true,
               isTextSelectable: YES,
               exampleNode: null,
+              // override MouseAndTouchView because we're not worried about enabling dragging in parentView
+              mouseDown: function (evt) {
+                if (!this.get('isMouseDown')) {
+                  this.set('isMouseDown', YES);
+                  this.set('isActive', YES);
+                }
+                return YES; // so we get other events
+              },
               inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
                 sc_super();
                 var tFrame = this.get('frame'),
@@ -288,7 +296,7 @@ DG.SliderView = SC.View.extend(
         }
         else
           // Let other event handling proceed - especially double-click
-          return NO;
+          return YES;
       },
 
       mouseDragged: function( iEvent) {
