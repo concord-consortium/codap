@@ -274,17 +274,21 @@ DG.Case = DG.BaseModel.extend((function() {
      * @return {number|string|null}
      */
     getTypedValue: function( iAttrID) {
-      switch (DG.Attribute.getAttributeByID( iAttrID).get('type')) {
-        case 'numeric':
-          return this.getForcedNumericValue( iAttrID);
-        case 'date':
-          return this.getValue( iAttrID);
-        case 'nominal':
-          return this.getStrValue( iAttrID);
-        default:
-          return this.getRawValue( iAttrID);
+      var tAttribute = DG.Attribute.getAttributeByID( iAttrID);
+      if( tAttribute) {
+        switch (DG.Attribute.getAttributeByID(iAttrID).get('type')) {
+          case 'numeric':
+            return this.getForcedNumericValue(iAttrID);
+          case 'date':
+            return this.getValue(iAttrID);
+          case 'nominal':
+            return this.getStrValue(iAttrID);
+          default:
+            return this.getRawValue(iAttrID);
+        }
       }
-      //return this.getRawValue( iAttrID);
+      else
+        return this.getRawValue( iAttrID);
     },
 
     /**
