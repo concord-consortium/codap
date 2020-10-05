@@ -76,6 +76,7 @@ DG.MouseAndTouchView = {
       this.set('isMouseOver', NO);
       this.set('isMouseDown', NO);
       this.doIt();
+      DG.mainPage.docView.coverUpComponentViews('uncover');
     }
     else {
       this.set('isMouseDown', NO);
