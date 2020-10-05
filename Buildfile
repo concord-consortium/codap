@@ -42,3 +42,4 @@ end
 # with the web location of your developer instance of the codap extensions directory
 # see developer notes: https://github.com/concord-consortium/codap/wiki/Developer-Guide
 #proxy '/extn', :to => 'localhost:80', :url => '/some/path'
+proxy '/extn', :to => 'codap-server.concord.org:80', :url => '/releases/latest/extn'
