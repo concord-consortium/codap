@@ -828,5 +828,7 @@ SC.stringsFor("he", {
     "DG.Inspector.attributes.showAllHiddenAttributesPlural": "Show %@ Hidden Attributes",
     "DG.Inspector.attributes.showAllHiddenAttributesDisabled": "Show Hidden Attributes",
     "DG.Inspector.getCaseDataFromClipboard": "Import Case Data from Clipboard...",
-    "DG.CaseCard.addCaseButton": "add case"
+    "DG.CaseCard.addCaseButton": "add case",
+    "DG.Undo.DataContext.join": "Undo join of %@ to %@",
+    "DG.Redo.DataContext.join": "Redo join of %@ to %@"
 });

@@ -556,7 +556,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
                 var columns;
                 if( updatedAdapters.indexOf( tableAdapter) >= 0) {
                   columns = tableAdapter.get('gridColumns').filter(function (column) {
-                    return column.attribute && !column.attribute.hidden;
+                    return !column.attribute || !column.attribute.hidden;
                   });
                   iCaseTableView.setColumns( columns);
                 }
