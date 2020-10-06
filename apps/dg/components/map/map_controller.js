@@ -299,7 +299,8 @@ DG.MapController = DG.DataDisplayController.extend(
                       tCategoryMap[iColorKey] = iColor.toHexString();
                       iMapLayerModel.setPath('transparency', iColor.getAlpha());
                       iMapLayerModel.propertyDidChange('pointColor');
-                      tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
+                      if( tLegendAttrDesc.get('attribute'))
+                        tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
                     },
                     undo: function () {
                       tCategoryMap[iColorKey] = this._beforeStorage.color;
@@ -358,7 +359,8 @@ DG.MapController = DG.DataDisplayController.extend(
                       tCategoryMap[end + '-attribute-color'] = iColor.toHexString();
                       iMapLayerModel.setPath(alphaAttr, iColor.getAlpha());
                       iMapLayerModel.propertyDidChange('pointColor');
-                      tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
+                      if( tLegendAttrDesc.get('attribute'))
+                        tLegendAttrDesc.get('attribute').propertyDidChange('categoryMap');
                     },
                     undo: function () {
                       tCategoryMap['attribute-color'] = this._beforeStorage.color;
