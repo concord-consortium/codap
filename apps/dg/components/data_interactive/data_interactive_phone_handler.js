@@ -93,6 +93,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           caseByID: this.handleCaseByIndexOrID,
           caseCount: this.handleCaseCount,
           caseSearch: this.handleCaseSearch,
+          caseFormulaSearch: this.handleCaseFormulaSearch,
           collection: this.handleCollection,
           collectionList: this.handleCollectionList,
           component: this.handleComponent,
@@ -321,6 +322,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (resourceSelector.caseSearch) {
           result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
+        }
+
+        if (resourceSelector.caseFormulaSearch) {
+          result.caseFormulaSearch = collection && collection.searchCasesByFormula(resourceSelector.caseFormulaSearch);
         }
 
         if (resourceSelector.item) {
@@ -1229,6 +1234,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
           if (success) {
             cases = iResources.caseSearch.map(function (iCase) {
+              return this.makeSerializableCase(iResources.collection, iCase);
+            }.bind(this));
+          }
+          return {
+            success: success,
+            values: cases
+          };
+        }
+      },
+      handleCaseFormulaSearch: {
+        get: function (iResources) {
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+          var success = (iResources.caseFormulaSearch != null),
+              cases = [];
+
+          if (success) {
+            cases = iResources.caseFormulaSearch.map(function (iCase) {
               return this.makeSerializableCase(iResources.collection, iCase);
             }.bind(this));
           }

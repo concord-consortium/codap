@@ -492,6 +492,40 @@ DG.CollectionClient = SC.Object.extend(
     return this.casesController.filter(function (iCase) {
       return this.testCaseAgainstQuery(iCase, parsedQuery);
     }.bind(this));
+
+  },
+
+  /**
+   * Returns the cases in this collection that satisfy the query string, where
+   * "satisfy" means the formula returns a truthy value for the case.
+   *
+   * @param queryString {string} A formula expression with the same syntax
+   *   and meaning as the string constructed in the Formula Editor
+   * @return {[DG.Case]}
+   */
+  searchCasesByFormula: function (queryString) {
+    var collectionID = this.get('id');
+    var context = DG.CollectionFormulaContext.create({
+      ownerSpec: {
+        type: DG.DEP_TYPE_UNDEFINED,
+        id: this.get('id'),
+        name: this.get('name')
+      },
+      collection: this.get('collection')
+    });
+    var formula = DG.Formula.create({context: context});
+    formula.set('source', queryString);
+
+    var cases = this.casesController.filter(function (iCase) {
+      return formula.evaluate({
+        _case_: iCase,
+        _id_: iCase && iCase.get('id'),
+        _collectionID_: collectionID
+      });
+    });
+
+    formula.destroy();
+    return cases;
   },
 
   /**
