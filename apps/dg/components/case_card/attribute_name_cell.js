@@ -33,6 +33,30 @@ DG.React.ready(function () {
             }
           },
 
+          showDragTip: function( iShow) {
+            if( iShow && !this.tipIsShowing) {
+              var tRect = this.cellRef.getBoundingClientRect(),
+                  tData = this.props.dragStatus.dragObject.data,
+                  tSourceKeyAttributeName = tData.attribute.get('name'),
+                  tSourceCollectionName = tData.collection.get('name'),
+                  tSourceContextName = tData.context.get('name'),
+                  tDestKeyAttribute = this.props.attribute,
+                  tDestCollectionName = tDestKeyAttribute.getPath('collection.name'),
+                  tDestContextName = tDestKeyAttribute.getPath('collection.dataSet.dataContextRecord.name'),
+                  tDestKeyAttributeName = tDestKeyAttribute.get('name'),
+                  tTip = "DG.Collection.joinTip".loc(tSourceCollectionName,
+                          tSourceContextName, tDestCollectionName, tDestContextName,
+                          tSourceKeyAttributeName, tDestKeyAttributeName);
+              DG.mainPage.getPath('mainPane.tipView').show(
+                  {x: tRect.left, y: tRect.top + tRect.height}, tTip);
+              this.tipIsShowing = true;
+            }
+            else if(!iShow && this.tipIsShowing) {
+              DG.mainPage.getPath('mainPane.tipView').hide();
+              this.tipIsShowing = false;
+            }
+          },
+
           render: function () {
             var this_ = this;
 
@@ -56,8 +80,7 @@ DG.React.ready(function () {
                       if (tY < tRect.y + tRect.height / 2) {
                         this_.moveDirection = 'up';
                         tResult = 'attr-cell-upper';
-                      }
-                      else if (tY < tRect.y + tRect.height) {
+                      } else if (tY < tRect.y + tRect.height) {
                         this_.moveDirection = 'down';
                         tResult = 'attr-cell-lower';
                       }
@@ -116,7 +139,7 @@ DG.React.ready(function () {
                 this_.props.newAttributeCallback();
             }
 
-            var renderStaticContents = function() {
+            var renderStaticContents = function () {
               var tMenuItems = [
                     {
                       label: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
@@ -148,23 +171,23 @@ DG.React.ready(function () {
                     }
                   ].map(function (iItem, iIndex) {
                     return DG.React.Components.DropdownItem({
-                              disabled: iItem.disabled,
-                              key: 'item-' + iIndex,
-                              clickHandler: iItem.clickHandler
-                            },
-                            iItem.label);
+                          disabled: iItem.disabled,
+                          key: 'item-' + iIndex,
+                          clickHandler: iItem.clickHandler
+                        },
+                        iItem.label);
                   }),
                   tNameDiv = div({
                     className: 'react-name-cell'
                   }, this.props.content);
               return DG.React.Components.Dropdown({
-                        trigger: tNameDiv,
-                        menuItems: tMenuItems,
-                        ref: function (iDropdown) {
-                          this.dropdown = iDropdown;
-                        }.bind(this),
-                        onRefCallback: assignCellRef
-                      });
+                trigger: tNameDiv,
+                menuItems: tMenuItems,
+                ref: function (iDropdown) {
+                  this.dropdown = iDropdown;
+                }.bind(this),
+                onRefCallback: assignCellRef
+              });
             }.bind(this);
 
             handleDropIfAny();
@@ -179,20 +202,21 @@ DG.React.ready(function () {
                       onClick: newAttributeClickHandler
                     }),
                 tColumnWidth = this.props.columnWidthPct != null
-                                ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
-                                : undefined,
+                    ? (Math.round(this.props.columnWidthPct * 1000) / 10) + '%'
+                    : undefined,
                 tContents = this.props.isEditing
-                              ? DG.React.SimpleEdit({
-                                  className: 'react-data-card-attr-name-input',
-                                  value: this.props.attribute.get('name'),
-                                  onCompleteEdit: this.props.onEndRenameAttribute
-                                })
-                              : renderStaticContents();
+                    ? DG.React.SimpleEdit({
+                      className: 'react-data-card-attr-name-input',
+                      value: this.props.attribute.get('name'),
+                      onCompleteEdit: this.props.onEndRenameAttribute
+                    })
+                    : renderStaticContents();
+            this.showDragTip(this.moveDirection === 'join');
             return td({
-                      className: tClassName,
-                      ref: assignCellRef,
-                      style: { width: tColumnWidth }
-                    }, tNewAttrButton, tContents);
+              className: tClassName,
+              ref: assignCellRef,
+              style: {width: tColumnWidth}
+            }, tNewAttrButton, tContents);
           }
         };
       }()), []);

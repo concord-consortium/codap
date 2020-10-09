@@ -86,6 +86,13 @@ html, body {
     z-index: 1000000;
 }
 
+.dg-tipview {
+    background-color: #838783;
+    color: white;
+    border-radius: 5px;
+    padding: 5px;
+}
+
 /* Default font for case tables */
 .dg-case-table {
     font-family: 'Montserrat-Regular', sans-serif !important;

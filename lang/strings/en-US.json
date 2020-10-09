@@ -135,6 +135,8 @@
     "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
     "DG.CaseCard.addCaseButton": "add case",    // Expected to be two short words separated by a space
 
+    "DG.Collection.joinTip": "Join %@ in %@ to %@ in %@ by matching %@ with %@",    // Join <sourceCollection> in <sourceContext> to <destCollection> in <destContext> by matching <sourceAttribute> with <destAttribute>
+
     // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",
     "DG.ToolButtonData.tableButton.toolTip": "Open a case table for each data set(ctrl-alt-t)",

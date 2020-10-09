@@ -28,11 +28,35 @@
  */
 DG.TipView = SC.LabelView.extend(
     /** @scope DG.TipView.prototype */ {
-      classNames: 'dg.tipview'.w(),
+      classNames: 'dg-tipview'.w(),
 
       isEditable: false,
 
       localize: true,
 
+      show: function( iWindowLocation, iText) {
+        var this_ = this,
+            kWidth = 200,
+            tViewLocation = DG.ViewUtilities.windowToViewCoordinates(iWindowLocation, this.get('parentView')),
+            tParentFrame = this.getPath('parentView').clippingFrame(),
+            tHeight;
+        this_.set('value', iText);
+        this_.adjust({left: 0, top: -500, width: kWidth, height: 0, opacity: 0 });
+        this_.set('isVisible', true);
+        this.invokeLater( function() {
+          tHeight = this_._view_layer.scrollHeight;
+          tViewLocation.x = Math.min(tViewLocation.x, tParentFrame.x + tParentFrame.width - kWidth);
+          tViewLocation.y = Math.min(tViewLocation.y, tParentFrame.y + tParentFrame.height - tHeight);
+          this_.set('isVisible', false);
+          this_.adjust({left: tViewLocation.x, top: tViewLocation.y});
+          this_.set('isVisible', true);
+          this_.animate({height: tHeight - 10, opacity: 1},
+              {duration: 0.5, delay: 0.25, timing: 'ease-in-out'});
+        }, 10);
+      },
+
+      hide: function() {
+        this.set('isVisible', false);
+      }
 
     });

@@ -102,7 +102,7 @@ DG.mainPage = SC.Page.design((function() {
      */
     inspectorPicker: null,
 
-    childViews: 'navBar topView scrollView'.w(),
+    childViews: 'navBar topView scrollView tipView'.w(),
 
     containerViewBinding: 'scrollView.contentView',
 
@@ -238,6 +238,10 @@ DG.mainPage = SC.Page.design((function() {
         evt.allowDefault();
         return sc_super();
       }
+    }),
+
+    tipView: DG.TipView.design( {
+      isVisible: false
     }),
 
     flagsChanged: function( iEvent) {
