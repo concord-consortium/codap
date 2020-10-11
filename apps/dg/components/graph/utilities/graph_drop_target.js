@@ -24,8 +24,6 @@
 DG.GraphDropTarget =
 {
   kDropFrameClass: 'dg-graph-drop-frame',
-  kDropHintClass: 'dg-graph-drop-hint',
-  kDropBoxClass: 'dg-graph-drop-box',
 
   /**
    * Return the key to a localizable string to be displayed when the target has no current attribute
@@ -72,7 +70,7 @@ DG.GraphDropTarget =
 
   dragEntered: function( iDragObject, iEvent) {
     this.borderFrame.addClass('dg-graph-drop-frame-fill');
-    this.showDropHint();
+    this.showDropHint( {x: iEvent.clientX, y: iEvent.clientY});
   },
 
   dragExited: function( iDragObject, iEvent) {
@@ -177,52 +175,21 @@ DG.GraphDropTarget =
    */
   dropHintString: null,
 
-  /**
-   * @property {Raphael element}
-   */
-  dropHintElement: null,
-  dropHintBox: null,
-
   isVertical: function() {
     var tOrientation = this.get('orientation');
     return tOrientation &&
         [DG.GraphTypes.EOrientation.kVertical, DG.GraphTypes.EOrientation.kVertical2, DG.GraphTypes.EOrientation.kRight].indexOf( tOrientation) >= 0;
   }.property(),
 
-  showDropHint: function() {
+  showDropHint: function( iWindowLoc) {
     if( SC.empty( this.dropHintString))
       return;
-    var tPaper = this.get('paper' ),
-        kPadding = 3,
-        tX = tPaper.width / 2,
-        tY = tPaper.height / 2;
-    if( !this.dropHintElement) {
-      this.dropHintBox = tPaper.rect( 0, 0, 0, 0, 3)
-        .addClass( this.kDropBoxClass);
-      this.dropHintElement = tPaper.text( tX, tY, this.dropHintString )
-        .addClass( this.kDropHintClass);
-    }
-    this.dropHintBox.transform('');
-    this.dropHintElement.transform('');
-    this.dropHintElement.attr({ text: this.dropHintString, x: tX, y: tY });
-    var tBBox = this.dropHintElement.getBBox();
-    this.dropHintBox.attr({ x: tBBox.x - kPadding, y: tBBox.y - kPadding,
-                          width: tBBox.width + 2 * kPadding, height: tBBox.height + 2 * kPadding });
-    if( this.isVertical()) {
-      this.dropHintBox.transform('R-90');
-      this.dropHintElement.transform('R-90');
-    }
-    this.dropHintBox.toFront()
-       .show();
-    this.dropHintElement.toFront()
-      .show();
+    iWindowLoc.y +=10;  // Get below the mouse
+    DG.mainPage.getPath('mainPane.tipView').show(iWindowLoc, this.dropHintString);
   },
 
   hideDropHint: function() {
-    if( this.dropHintElement) {
-      this.dropHintElement.hide();
-      this.dropHintBox.hide();
-    }
+    DG.mainPage.getPath('mainPane.tipView').hide();
   },
 
   /**

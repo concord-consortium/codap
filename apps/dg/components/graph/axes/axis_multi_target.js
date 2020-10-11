@@ -81,7 +81,7 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     dragEntered:function ( iDragObject, iEvent ) {
       this.plusArea.addClass( 'dg-graph-drop-plus-fill' );
       this.set('dragIsInside', true);
-      this.showDropHint();
+      this.showDropHint({x: iEvent.clientX, y: iEvent.clientY});
     },
 
     dragExited:function ( iDragObject, iEvent ) {
