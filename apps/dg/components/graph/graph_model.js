@@ -1440,6 +1440,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
             if( tPlotIndex === 0) {
               tNewPlot.installAdornmentModelsFrom(tRootPlot);
               tRootPlot.addSibling(tNewPlot);
+              tNewPlot.set('enableMeasuresForSelection', this_.get('enableMeasuresForSelection'));
             }
             iPlotArray[tPlotIndex] = tNewPlot;
             if (tCurrentPlot) {
