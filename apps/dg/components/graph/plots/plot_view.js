@@ -440,14 +440,14 @@ DG.PlotView = DG.PlotLayer.extend(
 
   /**
     Subclasses may override. Note that deselection happens in startMarquee.
-    @param {SC.Event}
+    @param iEvent {SC.Event}
   */
   handleBackgroundClick: function( iEvent) {
   },
 
   /**
     Subclasses will override if they have a double-click behavior
-    @param {SC.Event}
+    @param iEvent {SC.Event}
   */
   handleBackgroundDblClick: function( iEvent) {
   },
@@ -568,6 +568,7 @@ DG.PlotView = DG.PlotLayer.extend(
         this.set('plottedValueEditView', tPlottedValueEditView);
         this.setPath('parentView.plottedValueEditorView', tPlottedValueEditView);
       }
+      // noinspection JSObjectNullOrUndefined
       tPlottedValueEditView.set('isVisible', tPlottedValue.get('isVisible'));
 
       if (tPlottedValueAdorn) {
