@@ -149,6 +149,7 @@ DG.CaseDisplayController = DG.ComponentController.extend(
         return {
           title: 'DG.Inspector.copyCaseDataToClipboard', // "Copy Case Data..."
           localize: true,
+          isEnabled: this.canCopy(),
           target: this,
           dgAction: 'exportCaseDataToClipboard'
         };
@@ -156,7 +157,12 @@ DG.CaseDisplayController = DG.ComponentController.extend(
 
       // Firefox in 8/2020 does not support the readText API of the clipboard.
       canPaste: function () {
-        return !!window.navigator.clipboard.readText;
+        return !!(window.navigator.clipboard && window.navigator.clipboard.readText);
+      },
+
+      // ios Safari: some versions do not support window.navigator.clipboard.
+      canCopy: function () {
+        return !!(window.navigator.clipboard);
       },
 
       createGetFromClipboardButton: function () {
