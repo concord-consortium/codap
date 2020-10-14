@@ -1714,7 +1714,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             context: function (key, value) {
               return {key: 'dataContextName', value: value.get('name')};
             },
-            cannotClose: directMapping
+            cannotClose: directMapping,
+            center: function (key, value) {
+              return {key: 'newCenter', value: value};// two element array of [lat,long]
+            },
+            zoom: function (key, value) {
+              return {key: 'newZoom', value: value};// positive number: 1 displays world higher numbers zoom IN
+            }
           },
           slider: {
             animationDirection: directMapping,
@@ -1786,11 +1792,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             // var name = iValues.name || iValues.title;
             var success = true;
             var component, errorMessage,global;
-
-            // if (SC.none(name)) {
-            //   success = false;
-            //   errorMessage = "Components must have a name";
-            // }
 
             if (SC.none(typeClass)) {
               success = false;
