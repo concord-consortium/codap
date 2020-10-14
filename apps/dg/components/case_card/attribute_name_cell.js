@@ -47,8 +47,11 @@ DG.React.ready(function () {
                   tTip = "DG.Collection.joinTip".loc(tSourceCollectionName,
                           tSourceContextName, tDestCollectionName, tDestContextName,
                           tSourceKeyAttributeName, tDestKeyAttributeName);
-              DG.mainPage.getPath('mainPane.tipView').show(
-                  {x: tRect.left, y: tRect.top + tRect.height}, tTip);
+              var tTipView = DG.mainPage.getPath('mainPane.tipView');
+              tTipView.invokeLater( function() {
+                tTipView.show(
+                    {x: tRect.left, y: tRect.top + tRect.height}, tTip);
+              }, 10);
               this.tipIsShowing = true;
             }
             else if(!iShow && this.tipIsShowing) {
