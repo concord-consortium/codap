@@ -421,7 +421,7 @@ DG.GraphView = SC.View.extend(
         tRightAxisView.set('model', tRightAxis);
 
         tPlots.forEach(function (iPlotModel) {
-          var tPlotView = this.mapPlotModelToPlotView(iPlotModel).create();
+          var tPlotView = this.mapPlotModelToPlotView(iPlotModel).create({model: iPlotModel});
           this.addPlotView(tPlotView);
           this.setPlotViewProperties(tPlotView, iPlotModel,
               iPlotModel.get('verticalAxisIsY2') ? 'y2AxisView' : 'yAxisView');
