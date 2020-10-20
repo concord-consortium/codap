@@ -1943,9 +1943,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
             remapProperties(iValues, remapped, codapType);
 
+            componentContent.beginPropertyChanges();
             Object.keys(remapped).forEach(function (key) {
               componentContent.set(key, remapped[key]);
             });
+            componentContent.endPropertyChanges();
 
             return {
               success: true
@@ -1994,6 +1996,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 case 'map': // eslint-disable-line no-fallthrough
                   rtn.dataContext = extractObjectName(componentStorage, 'context');
                   rtn.legendAttributeName = extractObjectName( componentStorage, 'legendAttr');
+                  rtn.center = extractObjectName('center');
+                  rtn.zoom = extractObjectName('zoom');
                   break;
                 default:
               }
