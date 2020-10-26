@@ -1714,7 +1714,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             context: function (key, value) {
               return {key: 'dataContextName', value: value.get('name')};
             },
-            cannotClose: directMapping
+            cannotClose: directMapping,
+            center: function (key, value) {
+              return {key: 'newCenter', value: value};// two element array of [lat,long]
+            },
+            zoom: function (key, value) {
+              return {key: 'newZoom', value: value};// positive number: 1 displays world higher numbers zoom IN
+            }
           },
           slider: {
             animationDirection: directMapping,
@@ -1786,11 +1792,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             // var name = iValues.name || iValues.title;
             var success = true;
             var component, errorMessage,global;
-
-            // if (SC.none(name)) {
-            //   success = false;
-            //   errorMessage = "Components must have a name";
-            // }
 
             if (SC.none(typeClass)) {
               success = false;
@@ -1942,9 +1943,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
             remapProperties(iValues, remapped, codapType);
 
+            componentContent.beginPropertyChanges();
             Object.keys(remapped).forEach(function (key) {
               componentContent.set(key, remapped[key]);
             });
+            componentContent.endPropertyChanges();
 
             return {
               success: true
@@ -1993,6 +1996,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 case 'map': // eslint-disable-line no-fallthrough
                   rtn.dataContext = extractObjectName(componentStorage, 'context');
                   rtn.legendAttributeName = extractObjectName( componentStorage, 'legendAttr');
+                  rtn.center = extractObjectName('center');
+                  rtn.zoom = extractObjectName('zoom');
                   break;
                 default:
               }

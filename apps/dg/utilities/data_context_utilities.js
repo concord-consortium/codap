@@ -138,6 +138,12 @@ DG.DataContextUtilities = {
   },
 
   updateAttribute: function (iContext, iCollection, iAttribute, iChangedAttrProps) {
+    var newAttrName = iChangedAttrProps.name;
+    if (newAttrName) {
+      newAttrName = iContext.getUniqueAttributeName(newAttrName, [iAttribute.name]);
+      iChangedAttrProps.name = newAttrName;
+    }
+
     var tOldAttrProps = {
       id: iAttribute.get('id'),
       name: iAttribute.get('name'),

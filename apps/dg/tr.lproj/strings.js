@@ -830,5 +830,6 @@ SC.stringsFor("tr", {
     "DG.Inspector.getCaseDataFromClipboard": "Import Case Data from Clipboard...",
     "DG.CaseCard.addCaseButton": "add case",
     "DG.Undo.DataContext.join": "Undo join of %@ to %@",
-    "DG.Redo.DataContext.join": "Redo join of %@ to %@"
+    "DG.Redo.DataContext.join": "Redo join of %@ to %@",
+    "DG.Collection.joinTip": "Join %@ in %@ to %@ in %@ by matching %@ with %@"
 });
