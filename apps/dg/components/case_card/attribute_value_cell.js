@@ -50,6 +50,9 @@ DG.React.ready(function () {
         spanStyle,
         tBoundaryInternalImage,
         tQualitativeInternalSpan;
+    if( tType === 'numeric' && !DG.isNumeric(tValue)) {
+      tValue = props.displayCase && props.displayCase.getForcedNumericValue(tAttrID);
+    }
     if (tValue instanceof Error) {
       tValue = tValue.name + tValue.message;
     } else if (DG.isColorSpecString(tValue)) {
@@ -105,7 +108,7 @@ DG.React.ready(function () {
     var tValueField = props.summaryCases
           ? DG.React.Components.AttributeSummary({
               cases: props.summaryCases,
-              attrID: tAttrID,
+              attr: tAttr,
               unit: tUnit
             })
           : DG.React.Components.TextInput({
