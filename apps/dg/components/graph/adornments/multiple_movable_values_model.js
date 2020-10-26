@@ -107,7 +107,7 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
       });
       for (var tIndex = 0; tIndex <= tEdges.length; tIndex++)
         tCountPercents.push({count: 0, percent: 0});
-      var tCases = this.getPath('plotModel.cases'),
+      var tCases = this.get('cases'),
           tNumericVarID = this.getPath('plotModel.primaryVarID'),
           tTotalCount = 0;
 
