@@ -229,7 +229,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       tCover = this.myElements[i*kElemsPerCell+2];
       if( iAnimate) {
         tBackground.animate({ path: this.backgroundPath( p,tIsHorizontal) }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-        tSymbol.animate({ path: this.symbolPath( p,tIsHorizontal) }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+        tSymbol.animate({ path: this.symbolPath( p,tIsHorizontal) }, DG.PlotUtilities.kDefaultAnimationTime, '<>',
+            this.updateToModel.bind( this));
       } else {
         tBackground.attr({ path: this.backgroundPath( p,tIsHorizontal) });
         tSymbol.attr({ path: this.symbolPath( p,tIsHorizontal) });
