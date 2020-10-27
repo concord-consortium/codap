@@ -18,7 +18,10 @@ DG.React.ready(function () {
         return {
 
           render: function () {
-            var tAttrID = this.props.attrID,
+            var tAttribute = this.props.attr,
+                tAttrID = tAttribute.get('id'),
+                tType = tAttribute.get('type'),
+                tIsNumericType = tType === 'numeric',
                 tAllNumeric = true,
                 tMin = Number.MAX_VALUE,
                 tMax = -Number.MAX_VALUE,
@@ -26,7 +29,7 @@ DG.React.ready(function () {
                 tNumUniqueValues,
                 tSummary;
             this.props.cases.forEach(function (iCase) {
-              var tValue = iCase.getValue(tAttrID);
+              var tValue = tIsNumericType ? iCase.getForcedNumericValue(tAttrID) : iCase.getValue(tAttrID);
               if( !SC.empty(tValue)) {
                 if (!tUniqueValues[tValue])
                   tUniqueValues[tValue] = 0;

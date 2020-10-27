@@ -710,7 +710,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
             });
             this.set('connectingLineAdorn', tAdorn);
           }
-          tAdorn.setPath('model.getLineColorFunc', tLineColorFunc.bind(this));
+          tAdornModel.set('getLineColorFunc', tLineColorFunc.bind(this));
+          tAdornModel.setComputingNeeded();
         } else if( tAdorn) {
           // No model, so get rid of it
           tAdorn.destroy();

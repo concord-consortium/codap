@@ -77,7 +77,8 @@ DG.PointDataTip = DG.DataTip.extend(
         }
 
         function appendPair( iPair) {
-          if (!SC.none(iPair)) {
+          // Only append if not already present
+          if (!SC.none(iPair) && tTipText.indexOf(iPair) < 0) {
             if (tTipText.length > 0)
               tTipText += '\n';
             tTipText += iPair;
