@@ -366,8 +366,11 @@ DG.appController = SC.Object.create((function () // closure
         a.href = url;
         return a;
       }
-
-      var fullPathname = parseURL(iURL).pathname;
+      var parsedURL = parseURL(iURL);
+      if (parsedURL.protocol === 'data:') {
+        return 'data';
+      }
+      var fullPathname = parsedURL.pathname;
       var path = fullPathname?fullPathname
           .replace(/\/$/, '')
           .replace(/.*\//, '')

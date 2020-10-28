@@ -698,6 +698,24 @@ DG.main = function main() {
     DG.cfm = iCloudFileManager;
 
     if (DG.cfm) {
+      /*
+       * @param event {object} Event properties:
+       *     event.type  { 'closedFile' | 'connected' | 'getContent' | 'importedData' |
+       *             'log' | 'newedFile' | 'openedFile' | 'ready' | 'renamedFile' |
+       *             'savedFile' | 'sharedFile' | 'stateChanged' | 'unsharedFile' |
+       *             'willOpenFile' }
+       *     event.data {object}
+       *     event.state {object}
+       *     event.callback {function}
+       *
+       * These activities generate the following event streams:
+       *   startup: connected, ready
+       *   open file: willOpenFile, openedFile, ready
+       *   save locally: getContent (2x), savedFile
+       *   autosave: getContent, savedFile
+       *   close document: closedFile
+       *   import file: importedData
+       */
       DG.cfm.clientConnect(function (event) {
         /* global _ */
         var docController, /*docContent, docMetadata,*/
@@ -711,6 +729,24 @@ DG.main = function main() {
           return name?name.replace(/\.codap$/, '').replace(/\.json$/, ''): 'unknown';
         }
 
+        // DG.log('CFM Event: ' + JSON.stringify({
+        //   type: event.type,
+        //   state: event.state && {
+        //     dirty: event.state.dirty,
+        //     failures: event.state.failures,
+        //     metadata: event.state.metadata && {
+        //       autoSaveDisabled: event.state.metadata.autoSaveDisabled,
+        //       description: event.state.metadata.description,
+        //       filename: event.state.metadata.filename,
+        //       name: event.state.metadata.name,
+        //       providerName: event.state.metadata.provider.name,
+        //
+        //       type: event.state.metadata.type,
+        //       url: event.state.metadata.url
+        //     },
+        //     saved: event.state.saved
+        //   }
+        // }) );
         switch (event.type) {
           case 'connected':
             DG.cfmClient = event.data.client;
@@ -816,6 +852,11 @@ DG.main = function main() {
                     function(iReason) {
                       DG.logWarn(iReason);
                       event.callback('DG.AppController.openDocument.error.general'.loc());
+                      // we force the state to be clean to avoid the CFM overriding
+                      // the file that failed to open with whatever was the previous
+                      // document, then close the file.
+                      event.state.dirty = false;
+                      DG.cfmClient.closeFile();
                     }
                   );
               });

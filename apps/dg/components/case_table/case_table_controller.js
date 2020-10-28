@@ -484,10 +484,14 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
        */
       doSelectCases: function( iChange) {
         var hierTableView = this.getPath('view.contentView');
+        // DG.log('Select Cases(' + iChange.operation + '): ' + (iChange.cases && iChange.cases.map(function(iCase) {
+        //   return iCase.id;
+        // }).join()));
+        var scrollToCase = (iChange.operation === 'selectCases') && iChange.cases && iChange.cases[0]
         this.invokeOnceLater(function () {
           if( hierTableView) {
             hierTableView.updateSelectedRows();
-            hierTableView.scrollSelectionToView();
+            hierTableView.scrollSelectionToView(scrollToCase);
           }
         });
       },
