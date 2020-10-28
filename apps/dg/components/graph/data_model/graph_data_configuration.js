@@ -183,6 +183,35 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     sc_super();
   },
 
+  /**
+   * We override so that we can make sure the caption attribute is set correctly
+   */
+  setAttributeAndCollectionClient: function () {
+    sc_super();
+    this.updateCaptionAttribute();
+  },
+
+  /**
+   * The 'caption' should always be the attribute leftmost in the child-most collection among those
+   * belonging to the attributes that are plotted.
+   */
+  updateCaptionAttribute: function() {
+    var tCollections = this.getPath('dataContext.collections'), // parent-most has index 0
+        tChildMostCollectionIndex = -1; // deliberately out of bounds
+    if( !tCollections)
+      return; // Not ready for this yet
+    ['x', 'y', 'legend', 'y2', 'top', 'right'].forEach(function( iKey) {
+      var tAttributeCollection = this.getPath(iKey + 'AttributeDescription.attribute.collection'),
+          tFoundIndex = tAttributeCollection ? tCollections.indexOf(tAttributeCollection) : -1;
+      tChildMostCollectionIndex = Math.max(tChildMostCollectionIndex, tFoundIndex);
+    }.bind(this));
+    if( tChildMostCollectionIndex >= 0) {
+      var tAttributes = tCollections[tChildMostCollectionIndex].get('attrs'),
+          tLeftMostAttr = tAttributes.length >= 0 ? tAttributes[0] : null;
+      this.setPath('captionAttributeDescription.attribute', tLeftMostAttr);
+    }
+  },
+
   legendColorMapDidChange: function() {
     this._casesCache = null;
   },
