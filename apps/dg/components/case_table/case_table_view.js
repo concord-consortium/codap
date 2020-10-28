@@ -2056,15 +2056,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return controller && !controller.getPath('view.isVisible');
     },
 
-    scrollSelectionToView: function () {
+    scrollSelectionToView: function (primaryCase) {
       if (this.isComponentDetached()) {
         return;
       }
       var selectedRows = this._slickGrid.getSelectedRows();
-      if (selectedRows.length > 0) {
-        this.scrollToView(selectedRows);
+      var collection = this.getPath('gridAdapter.collection');
+      if (primaryCase && (primaryCase.getPath('collection.id') === collection.get('id'))) {
+        this.scrollToCase(primaryCase.get('id'));
       } else {
-        this._slickGrid.render();
+        if (selectedRows.length > 0) {
+          this.scrollToView(selectedRows);
+        } else {
+          this._slickGrid.render();
+        }
       }
     },
 

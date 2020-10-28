@@ -665,10 +665,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
                               });
     },
 
-    scrollSelectionToView: function () {
+    scrollSelectionToView: function (primaryCase) {
       var childTableViews = this.get('childTableViews') || [];
       childTableViews.forEach( function( iTableView) {
-        iTableView.scrollSelectionToView();
+        iTableView.scrollSelectionToView(primaryCase);
       });
     },
 
