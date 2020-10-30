@@ -49,7 +49,8 @@ DG.React.ready(function () {
         tColor,
         spanStyle,
         tBoundaryInternalImage,
-        tQualitativeInternalSpan;
+        tQualitativeInternalSpan,
+        tValueClassName = '';
     if( tType === 'numeric' && !DG.isNumeric(tValue)) {
       tValue = props.displayCase && props.displayCase.getForcedNumericValue(tAttrID);
     }
@@ -102,6 +103,7 @@ DG.React.ready(function () {
       var tPrecision = tAttr.get('precision');
       tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
       tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
+      tValueClassName += ' react-data-card-numeric ';
     } else if (SC.none(tValue) || (typeof tValue === 'object')) {
       tValue = '';
     }
@@ -121,8 +123,8 @@ DG.React.ready(function () {
               onToggleEditing: props.editProps.onToggleEditing,
               onEscapeEditing: props.editProps.onEscapeEditing,
               onEditModeCallback: props.editProps.onEditModeCallback
-            }),
-        tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
+            });
+    tValueClassName += tHasFormula ? 'react-data-card-formula' : '';
     if (tColorValueField) {
       tValueField = tColorValueField;
     }
