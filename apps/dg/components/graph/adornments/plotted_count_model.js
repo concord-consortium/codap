@@ -155,11 +155,18 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
               tNumOnSecondary = this.getPath('plotModel.secondaryAxisModel.numberOfCells'),
               tPercentKind = (tNumOnPrimary > 1 && tNumOnSecondary > 1) ? this.get('percentKind') :
                   DG.Analysis.EPercentKind.eCell,
+              tIsRotated = this.getPath('plotModel.primaryAxisPlace') === DG.GraphTypes.EPlace.eY,
               tForSelection = this.get('enableMeasuresForSelection');
           // Take this opportunity to turn off showing percent if there is only one cell
           if( this.get('isShowingPercent') && (tNumOnPrimary * tNumOnSecondary === 1) &&
               !tForSelection) {
             this.set('isShowingPercent', false);
+          }
+          if( tIsRotated) {
+            if( tPercentKind === DG.Analysis.EPercentKind.eColumn)
+              tPercentKind = DG.Analysis.EPercentKind.eRow;
+            else if(tPercentKind === DG.Analysis.EPercentKind.eRow)
+              tPercentKind = DG.Analysis.EPercentKind.eColumn;
           }
 
           // get non-missing case count in each cell, and cell index, from plot models
