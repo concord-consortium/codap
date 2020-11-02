@@ -429,7 +429,8 @@ DG.main = function main() {
       options.providers.splice(1, 0, {
         "name": "googleDrive",
         "mimeType": "application/json",
-        "clientId": DG.get('googleDriveClientID')
+        "clientId": DG.get('googleDriveClientID'),
+        "apiKey": DG.get('googleDriveAPIKey')
       });
      }
     if (DG.cfmConfigurationOverride) {

@@ -153,6 +153,7 @@ DG = SC.Application.create((function () // closure
     /* This is the developer client id. Provides access to an unverified
      * version of the app. Should be overridden for end users */
     googleDriveClientID: '891260722961-81f8ic8tddobbh66p1j7nenr42hb93u1.apps.googleusercontent.com',
+    googleDriveAPIKey: 'AIzaSyDici8Bs9pd6-dSxheNPTpnJlcR4YuGGQQ',
 
     /**
      * URL for a plugin data store.
