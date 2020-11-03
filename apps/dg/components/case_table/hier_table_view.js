@@ -517,13 +517,17 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     contentWidthDidChange: function (sender, key, value) {
       var tContentWidth = this.getPath('contentView.frame.width');
       var tWidth = this.get('frame').width;
+      var tPageWidth = window.innerWidth;
       var tComponentView = DG.ComponentView.findComponentViewParent( this);
       if (SC.none(tComponentView)) {
         return;
       }
       var horizontalScrollActive = this.get('isHorizontalScrollActive');
 
-      if (!horizontalScrollActive || tWidth > tContentWidth) {
+      // if content width is less than the page width and we aren't already
+      // scrolling horizontally, or if the width of the component is greater
+      // than the content, then make the component width match the content width
+      if ((tContentWidth < tPageWidth && !horizontalScrollActive) || tWidth > tContentWidth) {
         tComponentView.adjust('width', tContentWidth);
       }
       this._lastContentWidth = tContentWidth;
