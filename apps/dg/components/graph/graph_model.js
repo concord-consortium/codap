@@ -550,7 +550,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       function switchAxes() {
 
-        function synchAxis( iDescKey, iAxisKey, iAxisClass) {
+        function synchAxis( iDescKey, iAxisKey, iAxisClass, iScaleType) {
           var tCurrentAxisClass = this_.get( iAxisKey).constructor,
               tAxisModelParams = { dataConfiguration: tDataConfiguration };
 
@@ -560,6 +560,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
                 tNewAxis = iAxisClass.create(tAxisModelParams);
             tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
             tNewAxis.setLinkToPlotIfDesired( this_.get('plot'));
+            tNewAxis.set('scaleType', iScaleType);
             this_.set( iAxisKey, tNewAxis );
             tAxisToDestroy.destroy();
             this_.setPath('plot.' + iAxisKey, tNewAxis);
@@ -575,7 +576,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
             tSourceType = tDataConfiguration.getPath( tTargetDescKey + '.attributeStats.attributeType'),
             tSourceAxisKey = tOtherDim + 'Axis',
             tTargetAxisClass = this_.get( tSourceAxisKey).constructor,
+            tTargetAxisScaleType = this_.getPath( tSourceAxisKey + '.scaleType'),
             tSourceAxisClass = this_.get( tTargetAxisKey).constructor,
+            tSourceAxisScaleType = this_.getPath( tTargetAxisKey + '.scaleType'),
             tAttrsForSource = SC.none(tCurrentAttribute) ? [] : [tCurrentAttribute],
             tCollClientForSource = tDataConfiguration.getPath(tSourceDescKey + '.collectionClient'),
             tAttrRefsForSource = {
@@ -587,8 +590,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tDataConfiguration.setAttributeAndCollectionClient(tSourceDescKey, tAttrRefsForSource,
             tSourceRole, tSourceType);
         this_.beginPropertyChanges();
-        synchAxis(tTargetDescKey, tTargetAxisKey, tTargetAxisClass);
-        synchAxis(tSourceDescKey, tSourceAxisKey, tSourceAxisClass);
+        synchAxis(tTargetDescKey, tTargetAxisKey, tTargetAxisClass, tTargetAxisScaleType);
+        synchAxis(tSourceDescKey, tSourceAxisKey, tSourceAxisClass, tSourceAxisScaleType);
         this_.endPropertyChanges();
         this_.invalidate();
         this_.rescaleAxesFromData(true, true);

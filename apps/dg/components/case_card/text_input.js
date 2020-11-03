@@ -95,6 +95,7 @@ DG.React.ready(function () {
                     }) :
                     span({
                       className: tValueClassName + (this.props.className || ''),
+                      title: tValue,
                       onClick: function ( iEvent) {
                         if (!this.state.editing && this.props.onToggleEditing && this.props.isEditable) {
                           this.props.onToggleEditing(this);

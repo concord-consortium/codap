@@ -93,9 +93,9 @@ DG.BarChartView = DG.ChartView.extend(
           // We can get in here after a delete, in which case, iChanges can be referring to
           // a plot element that no longer exists.
           if (!this_.get('plottedElements')[iIndex])
-            this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
+            this_.callCreateElement(tCases.at(iIndex), iIndex, this_._createAnimationOn);
           var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
-          this_.privSetElementCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
+          this_.privSetElementCoords(tRC, tCases.at(iIndex), iIndex, tCellIndices);
         });
         sc_super();
       },

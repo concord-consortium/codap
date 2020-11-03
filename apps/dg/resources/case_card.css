@@ -133,6 +133,7 @@ $nav-header-width: 75px;
 }
 
 .react-data-card td span {
+    padding-right: 5px;
     margin-right: 0;
     font-size: 11px;
 }
@@ -197,6 +198,10 @@ tr:nth-child(even) td.attr-cell {
 
 .react-data-card-value {
     cursor: text;
+}
+
+.react-data-card-numeric {
+    text-align: right;
 }
 
 .react-data-card-color-table-cell {
