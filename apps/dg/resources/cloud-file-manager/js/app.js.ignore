@@ -38333,7 +38333,7 @@ var getFirstBrowserLanguage = function () {
 };
 var translations = {};
 languageFiles.forEach(function (lang) {
-    translations[lang.key] = lang.contents;
+    translations[lang.key.toLowerCase()] = lang.contents;
     // accept full key with region code or just the language code
     var baseLang = getBaseLanguage(lang.key);
     if (baseLang && !translations[baseLang]) {
@@ -38342,7 +38342,8 @@ languageFiles.forEach(function (lang) {
 });
 var lang = url_params_1.default.lang || getPageLanguage() || getFirstBrowserLanguage();
 var baseLang = getBaseLanguage(lang || '');
-var defaultLang = lang && translations[lang] ? lang : baseLang && translations[baseLang] ? baseLang : "en";
+// CODAP/Sproutcore lower cases language in documentElement
+var defaultLang = lang && translations[lang.toLowerCase()] ? lang : baseLang && translations[baseLang] ? baseLang : "en";
 console.log("CFM: using " + defaultLang + " for translation (lang is \"" + url_params_1.default.lang + "\" || \"" + getFirstBrowserLanguage() + "\")");
 var varRegExp = /%\{\s*([^}\s]*)\s*\}/g;
 var translate = function (key, vars, lang) {
