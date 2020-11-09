@@ -90,6 +90,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         var tConfig = this.get('dataConfiguration'),
             tLegendDesc = tConfig.get('legendAttributeDescription'),
             tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
+            tLegendAttrType = tLegendDesc.get('attributeType'),
             tStrokeParams = this.getStrokeParams(),
             tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
                 DG.MathUtilities.nQuantileValues(
@@ -109,6 +110,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           longVarID: tModel.getPath('dataConfiguration.longAttributeID'),
           legendDesc: tLegendDesc,
           legendVarID: tLegendVarID,
+          legendVarType: tLegendAttrType,
           updatedPositions: true,
           pointsShouldBeVisible: this.getPath('model.pointsShouldBeVisible'),
           isVisible: this.getPath( 'model.isVisible') && this.getPath('model.pointsShouldBeVisible'),
@@ -124,7 +126,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
               return this.pointColor;
 
             DG.assert(iCase);
-            var tColorValue = iCase.getValue(this.legendVarID),
+            var tColorValue = (this.legendVarType === DG.Analysis.EAttributeType.eDateTime) ?
+                             iCase.getForcedNumericValue(this.legendVarID) : iCase.getValue(this.legendVarID),
                 tCaseColor = DG.ColorUtilities.calcCaseColor(tColorValue, this.legendDesc,
                     this.pointColor, tQuantileValues);
             return tCaseColor.colorString || tCaseColor;

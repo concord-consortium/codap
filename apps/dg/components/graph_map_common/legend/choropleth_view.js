@@ -48,19 +48,27 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
         doDraw: function doDraw() {
           var kStrokeWidth = 0.5,
               tAttrDesc = this.getPath('model.attributeDescription'),
+              tAttrType = tAttrDesc.get('attributeType'),
               tWidth = this._paper.width - 2;
 
           var drawScale = function () {
                 var tMinMax = tAttrDesc.get('minMax'),
-                    tMinFormatter = DG.Format.number().fractionDigits(0, 2),
-                    tMaxFormatter = DG.Format.number().fractionDigits(0, 2);
-                if( tMinMax.min < 2500)
-                  tMinFormatter.group('');
-                if( tMinMax.max < 2500)
-                  tMaxFormatter.group('');
-                var tMin = tMinFormatter(tMinMax.min),
-                    tMax = tMaxFormatter(tMinMax.max),
-                    tTextY = kRectHeight + kTickLength + DG.RenderingUtilities.kDefaultFontHeight / 2;
+                    tMin, tMax;
+                if( tAttrType === DG.Analysis.EAttributeType.eNumeric) {
+                  var tMinFormatter = DG.Format.number().fractionDigits(0, 2),
+                      tMaxFormatter = DG.Format.number().fractionDigits(0, 2);
+                  if (tMinMax.min < 2500)
+                    tMinFormatter.group('');
+                  if (tMinMax.max < 2500)
+                    tMaxFormatter.group('');
+                  tMin = tMinFormatter(tMinMax.min);
+                  tMax = tMaxFormatter(tMinMax.max);
+                }
+                else if( tAttrType === DG.Analysis.EAttributeType.eDateTime) {
+                  tMin = DG.formatDate( tMinMax.min);
+                  tMax = DG.formatDate( tMinMax.max);
+                }
+                var tTextY = kRectHeight + kTickLength + DG.RenderingUtilities.kDefaultFontHeight / 2;
                 this._elementsToClear.push(this._paper.text(kStrokeWidth, tTextY, tMin)
                     .attr({'text-anchor': 'start'}));
                 this._elementsToClear.push(this._paper.text(tWidth - 2 * kStrokeWidth, tTextY, tMax)
@@ -83,13 +91,16 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                         tRight = tLeft + tWidth * (iIndex +1) / tQuintileN,
                         tColor = DG.ColorUtilities.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high,
                             (iIndex + 1)/ tQuintileN),
+                        tTitle = tAttrType === DG.Analysis.EAttributeType.eNumeric ?
+                            '%@ – %@'.fmt( Math.round(iStartValue * 100) / 100,
+                                Math.round(tStopValue * 100) / 100) :
+                            '%@ – %@'.fmt(DG.formatDate(iStartValue), DG.formatDate(tStopValue)),
                         tRect = this._paper.rect(tLeft, 0, 0, 0)
                             .attr({
                               width: tRight - tLeft, height: kRectHeight,
                               fill: tColor.colorString || tColor,
                               'stroke-width': kStrokeWidth,
-                              title: '%@ – %@'.fmt( Math.round(iStartValue * 100) / 100,
-                                  Math.round(tStopValue * 100) / 100)
+                              title: tTitle
                             })
                             .addClass('dg-choro-rect')
                             .click( function( iEvent) {

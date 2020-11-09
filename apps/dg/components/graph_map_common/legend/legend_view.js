@@ -83,6 +83,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tExtent = tLabelHeight + (tLabelHeight === 0 ? 0 : 2 * kVMargin);
         switch( this.get('attributeType')) {
           case DG.Analysis.EAttributeType.eNumeric:
+          case DG.Analysis.EAttributeType.eDateTime:
             tExtent += this.get('choroplethView').desiredExtent( tLabelHeight);
             break;
           case DG.Analysis.EAttributeType.eCategorical:
@@ -246,6 +247,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         renderLabel();
         switch( this.get('attributeType')) {
           case DG.Analysis.EAttributeType.eNumeric:
+          case DG.Analysis.EAttributeType.eDateTime:
             tChoroplethView.set('isVisible', true);
             tCategoriesView.set('isVisible', false);
             tChoroplethView.adjust('top', kVMargin + this.get('labelExtent').y);

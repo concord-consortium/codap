@@ -203,8 +203,8 @@ DG.ColorUtilities = {
       newColor = DG.ColorUtilities.kMissingValueCaseColor;
     } else {
       // we have an attribute and non-missing case value, now get stored or computed color
-      var tIsNumeric = iColorAttributeDescription.get('isNumeric'),
-          tAttributeType = iColorAttributeDescription.get('attributeType'),
+      var tAttributeType = iColorAttributeDescription.get('attributeType'),
+          tIsNumeric = iColorAttributeDescription.get('isNumeric'),
           tCategoryMap = tAttribute.get('categoryMap');
       switch (tAttributeType) {
         case DG.Analysis.EAttributeType.eCategorical:
@@ -217,6 +217,7 @@ DG.ColorUtilities = {
             newColor = tCaseColor.toString();
           break;
         case DG.Analysis.EAttributeType.eNumeric:
+        case DG.Analysis.EAttributeType.eDateTime:
           if (SC.isArray(iQuantileValues)) {
             var tFoundIndex = -1,
                 tNumQuantiles = iQuantileValues.length - 1,
