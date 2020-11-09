@@ -856,7 +856,7 @@ DG.GraphView = SC.View.extend(
           else {
             tLegendView.adjust('height', tLegendHeight);
             if (tNumberToggleView)
-              tNumberToggleView.adjust('height', tNumberToggleHeight);
+              tNumberToggleView.adjust({height: tNumberToggleHeight, top: tSelectedInfoHeight});
             // NumberToggleView visibility is handled by binding
           }
         }
