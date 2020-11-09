@@ -487,7 +487,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         // DG.log('Select Cases(' + iChange.operation + '): ' + (iChange.cases && iChange.cases.map(function(iCase) {
         //   return iCase.id;
         // }).join()));
-        var scrollToCase = (iChange.operation === 'selectCases') && iChange.cases && iChange.cases[0]
+        var scrollToCase = (iChange.operation === 'selectCases') && iChange.cases && iChange.cases[0];
         this.invokeOnceLater(function () {
           if( hierTableView) {
             hierTableView.updateSelectedRows();
