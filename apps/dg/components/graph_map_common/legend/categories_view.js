@@ -255,6 +255,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             },
 
             doDraw: function doDraw() {
+              if( !this.get('isVisible'))
+                return;
               var tAttrDesc = this.getPath('model.attributeDescription'),
                   tWidth = this._paper.width,
                   tHeight = this._paper.height,
