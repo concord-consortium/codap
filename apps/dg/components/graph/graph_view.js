@@ -826,7 +826,7 @@ DG.GraphView = SC.View.extend(
         if (!SC.none(tXAxisView) && !SC.none(tYAxisView) &&
             !SC.none(tPlotViews) && (tPlotViews.length > 0)) {
           if( tSelectedInfoView)
-            tSelectedInfoView.adjust( { height: tSelectedInfoHeight});
+            tSelectedInfoView.adjust( { height: tSelectedInfoHeight, top: tNumberToggleHeight});
           tTopAxisView.set('isVisible', this_.getPath('model.numSplitColumns') > 1);
           tRightAxisView.set('isVisible', this_.getPath('model.numSplitRows') > 1);
           var tTopHeight = tTopAxisView.get('isVisible') ? Math.min( tTopAxisView.get('desiredExtent'), this.get('frame').height / 3) : 0,
@@ -847,16 +847,16 @@ DG.GraphView = SC.View.extend(
           else
             layoutUnsplitPlot();
           if (tFunctionView)
-            tFunctionView.adjust('top', tNumberToggleHeight);
+            tFunctionView.adjust('top', tNumberToggleHeight + tSelectedInfoHeight);
           if (tPlottedValueView)
-            tPlottedValueView.adjust('top', tNumberToggleHeight + tFunctionViewHeight);
+            tPlottedValueView.adjust('top', tNumberToggleHeight + tFunctionViewHeight + tSelectedInfoHeight);
           if (firstTime) {
             tLegendView.set('layout', {bottom: 0, height: tLegendHeight});
           }
           else {
             tLegendView.adjust('height', tLegendHeight);
             if (tNumberToggleView)
-              tNumberToggleView.adjust({height: tNumberToggleHeight, top: tSelectedInfoHeight});
+              tNumberToggleView.adjust({height: tNumberToggleHeight});
             // NumberToggleView visibility is handled by binding
           }
         }
