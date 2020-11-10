@@ -30,7 +30,44 @@ DG.PlotDataConfiguration = SC.Object.extend(
        The data context which is the source of the data for this graph.
        @property   {DG.DataContext}
        */
-      dataContext: null,
+      _dataContext: null,
+      dataContext: function( iKey, iValue) {
+        if( iValue) {
+          if( this._dataContext)
+            this._dataContext.removeObserver('changeCount', this, 'handleDataContextNotification');
+          this._dataContext = iValue;
+          this._dataContext.addObserver('changeCount', this, 'handleDataContextNotification');
+        }
+        return this._dataContext;
+      }.property(),
+
+      handleDataContextNotification: function( iNotifier) {
+        iNotifier.get('newChanges' ).forEach( function( iChange) {
+          if( iChange.operation === 'moveAttribute')
+            this.updateCaptionAttribute();
+        }.bind(this));
+      },
+
+      /**
+       * The 'caption' should always be the attribute leftmost in the child-most collection among those
+       * belonging to the attributes that are plotted.
+       */
+      updateCaptionAttribute: function() {
+        var tCollections = this.getPath('dataContext.collections'), // parent-most has index 0
+            tChildMostCollectionIndex = -1; // deliberately out of bounds
+        if( !tCollections)
+          return; // Not ready for this yet
+        ['x', 'y', 'legend', 'y2', 'top', 'right'].forEach(function( iKey) {
+          var tAttributeCollection = this.getPath(iKey + 'AttributeDescription.attribute.collection'),
+              tFoundIndex = tAttributeCollection ? tCollections.indexOf(tAttributeCollection) : -1;
+          tChildMostCollectionIndex = Math.max(tChildMostCollectionIndex, tFoundIndex);
+        }.bind(this));
+        if( tChildMostCollectionIndex >= 0) {
+          var tAttributes = tCollections[tChildMostCollectionIndex].get('attrs'),
+              tLeftMostAttr = tAttributes.length >= 0 ? tAttributes[0] : null;
+          this.setPath('captionAttributeDescription.attribute', tLeftMostAttr);
+        }
+      },
 
       dataContextDidChange: function () {
         this.invalidateCaches();
