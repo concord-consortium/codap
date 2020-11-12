@@ -414,15 +414,24 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       callCreateElement: function (iCase, iIndex, iAnimate, iIsVisible) {
         // console.log('create element at index ' + iIndex);
         var tPlottedElements = this.get('plottedElements'),
-            tElement;
+            tLayerManager = this.get('layerManager'),
+            tDestLayer = tLayerManager.getLayer(DG.LayerNames.kPoints),
+            tElement,
+            tFromLayer;
         if (tPlottedElements[iIndex]) {
           tElement = tPlottedElements[iIndex];
+          tFromLayer = tLayerManager.layerForElement( tElement);
         }
         else {
           tElement = this.createElement(iCase, iIndex, iAnimate);
           tPlottedElements[iIndex] = tElement;
         }
-        this.getPath('layerManager.' + DG.LayerNames.kPoints).push(tElement);
+        if( tFromLayer) {
+          tLayerManager.moveElementFromTo( tElement, tFromLayer, tDestLayer);
+        }
+        else {
+          tDestLayer.push(tElement);
+        }
         this._elementOrderIsValid = false; // So updateSelection will work
         return this.assignElementAttributes(tElement, iIndex, iAnimate, iIsVisible);
       },
@@ -702,9 +711,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
 
         var this_ = this,
             tPlottedElements = this.get('plottedElements'),
-            // Use long path for selection because we can call this before bindings have happened
-            // There must be a better way?
-            tSelection = this.getPath('model.dataConfiguration.collectionClient.casesController.selection'),
+            tSelection = this.getPath('model.selection'),
             // Points are 'colored' if there is a legend or if there is more than one plot
             tIsColored = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
                 DG.Analysis.kNullAttribute) ||
@@ -725,7 +732,6 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         if (tIsRect) {
           tSelectedRadius = tUnselectedRadius = 0.1;
         }
-
         tCases.forEach(function (iCase, iIndex) {
           var tIsSelected, tElement, tFrom, tTo, tClass, tRadius,
               tTransform = '';
@@ -733,7 +739,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
           // perhaps when newly added cases don't have plottable values.
           if ((iIndex < tPlottedElements.length) && tPlottedElements[iIndex]) {
             tElement = tPlottedElements[iIndex];
-            tIsSelected = tSelection.containsObject(iCase);
+            tIsSelected = tSelection.indexOf(iCase) >= 0;
             tFrom = tIsSelected ? DG.LayerNames.kPoints : DG.LayerNames.kSelectedPoints;
             tTo = tIsSelected ? DG.LayerNames.kSelectedPoints : DG.LayerNames.kPoints;
             tClass = this_.getPlottedElementClass(tIsSelected, tIsColored);

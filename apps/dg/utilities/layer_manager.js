@@ -77,6 +77,29 @@ DG.LayerManager = function( iPaper) {
       return this;
     },
 
+    /**
+     *
+     * @param iName {String}
+     * @return {DG.RaphaelLayer}
+     */
+    getLayer: function( iName) {
+      var tResult;
+      this.forEach( function( iLayer) {
+        if( iLayer.get('name') === iName)
+          tResult = iLayer;
+      });
+      return tResult;
+    },
+
+    layerForElement: function( iElement) {
+      var tFoundLayer;
+      this.forEach( function( iLayer) {
+        if( !tFoundLayer && iLayer.contains( iElement))
+          tFoundLayer = iLayer;
+      });
+      return tFoundLayer;
+    },
+
     forEach: function( iCallback) {
       var tLayer, tPrevLayer;
       for( tLayer = this._lastLayer; tLayer; tLayer = tPrevLayer) {
@@ -92,6 +115,7 @@ DG.LayerManager = function( iPaper) {
      * @param iToLayer {DG.RaphaelLayer or String}
      */
     moveElementFromTo: function( iElement, iFromLayer, iToLayer) {
+      // this.testValidity();
       if( iFromLayer === iToLayer)
         return;
       if( typeof iFromLayer === 'string')

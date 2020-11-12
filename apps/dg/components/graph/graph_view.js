@@ -1139,7 +1139,12 @@ DG.GraphView = SC.View.extend(
         configurePlotViewArrays();
         this._isConfigurationInProgress = false;
         this.renderLayout(this.renderContext(this.get('tagName')), false);
-
+        this.invokeLater( function() {
+          // This will take place after appendChild of any new background view
+          this.forEachPlotViewDo(function( iPlotView) {
+            iPlotView.updateSelection();
+          });
+        }, 10);
       }.observes('.model.splitPlotChange'),
 
       allModelSplitsWereRemoved: function () {
