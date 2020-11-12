@@ -353,6 +353,14 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
       }.observes('DG.globalsController.globalNameChanges'),
 
       /**
+       Recompilation will force us to pay attention to changed cases
+       */
+      enableMeasuresForSelectionDidChange: function () {
+        // Requires recompilation
+        this.invalidateExpression();
+      }.observes('enableMeasuresForSelection'),
+
+      /**
        Invalidate the expression so it gets recompiled/evaluated.
        */
       invalidateExpression: function () {
