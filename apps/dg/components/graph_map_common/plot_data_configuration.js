@@ -57,7 +57,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
             tChildMostCollectionIndex = -1; // deliberately out of bounds
         if( !tCollections)
           return; // Not ready for this yet
-        ['x', 'y', 'legend', 'y2', 'top', 'right'].forEach(function( iKey) {
+        ['x', 'y', 'legend', 'y2', 'top', 'right', 'polygon'].forEach(function( iKey) {
           var tAttributeCollection = this.getPath(iKey + 'AttributeDescription.attribute.collection'),
               tFoundIndex = tAttributeCollection ? tCollections.indexOf(tAttributeCollection) : -1;
           tChildMostCollectionIndex = Math.max(tChildMostCollectionIndex, tFoundIndex);
