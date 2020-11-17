@@ -796,7 +796,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
           if (iChange.result.caseIDs || iChange.result.caseID) {
             var caseIDs = iChange.result.caseIDs || [iChange.result.caseID];
             caseIDs.forEach(function (iCaseID) {
-              var tNewCase = this.dataContext.getCaseByID(iCaseID);
+              var tNewCase = this.get('dataContext').getCaseByID(iCaseID);
               if (tNewCase)
                 this._casesCache.push(tNewCase);
             }.bind(this));
@@ -936,7 +936,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
       restoreHiddenCases: function (iArrayOfCaseIDs) {
         if (!iArrayOfCaseIDs || !iArrayOfCaseIDs.length) return;
         this.set('hiddenCases', iArrayOfCaseIDs.map(function (iID) {
-              return this.dataContext.getCaseByID(iID);
+              return this.get('dataContext').getCaseByID(iID);
             }.bind(this)
         ));
       },
