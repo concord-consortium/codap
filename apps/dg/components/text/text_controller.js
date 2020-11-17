@@ -101,8 +101,13 @@ DG.TextComponentController = DG.ComponentController.extend(
   createComponentStorage: function() {
     var theText = this.get('theText'),
         theStorage = {};
-    if( !SC.empty( theText))
-      theStorage.text = JSON.stringify(theText);
+    if( !SC.empty( theText)) {
+      if (typeof theText === 'string') {
+        theStorage.text = theText;
+      } else {
+        theStorage.text = JSON.stringify(theText);
+      }
+    }
     return theStorage;
   },
 
