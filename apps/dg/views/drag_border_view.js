@@ -41,9 +41,6 @@ DG.DragBorderView = SC.View.extend(
       return {
         /** @scope DG.DragBorderView.prototype */
         dragCursor: null,
-        canBeDragged: function () {
-          return this.parentView.get('isResizable');
-        },
         cursor: function () {
           if (this.canBeDragged())
             return this.dragCursor;
@@ -223,6 +220,10 @@ DG.DragBorderView = SC.View.extend(
 
 DG.DragLeftBorderView = DG.DragBorderView.extend({
   dragCursor: kLeftBorderCursor,
+  canBeDragged: function() {
+    var tCanBeDragged = this.getPath('parentView.isWidthResizable');
+    return tCanBeDragged;
+  },
   dragAdjust: function (evt, info) {
     var tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxComponentSize,
         tMinWidth = this.get('contentMinWidth') || kMinComponentSize,
@@ -249,6 +250,10 @@ DG.DragLeftBorderView = DG.DragBorderView.extend({
 
 DG.DragRightBorderView = DG.DragBorderView.extend({
   dragCursor: kRightBorderCursor,
+  canBeDragged: function() {
+    var tCanBeDragged = this.getPath('parentView.isWidthResizable');
+    return tCanBeDragged;
+  },
   dragAdjust: function (evt, info) {
     // Don't let user drag right edge off left of window
     var tMinWidth = this.get('contentMinWidth') || kMinComponentSize,
@@ -273,6 +278,10 @@ DG.DragRightBorderView = DG.DragBorderView.extend({
 
 DG.DragBottomBorderView = DG.DragBorderView.extend({
   dragCursor: kBottomBorderCursor,
+  canBeDragged: function() {
+    var tCanBeDragged = this.getPath('parentView.isHeightResizable');
+    return tCanBeDragged;
+  },
   dragAdjust: function (evt, info) {
     var tMinHeight = this.get('contentMinHeight') || kMinComponentSize,
         tMaxHeight = this.get('contentMaxHeight') || kMaxComponentSize,
@@ -294,6 +303,11 @@ DG.DragBottomBorderView = DG.DragBorderView.extend({
 
 DG.DragBottomLeftBorderView = DG.DragBorderView.extend({
   dragCursor: kBottomLeftBorderCursor,
+  canBeDragged: function() {
+    var tCanBeDragged = this.getPath('parentView.isWidthResizable') ||
+        this.getPath('parentView.isHeightResizable');
+    return tCanBeDragged;
+  },
   dragAdjust: function (evt, info) {
     // Don't let user drag right edge off left of window
     var tMinHeight = this.get('contentMinHeight') || kMinComponentSize,
@@ -310,15 +324,23 @@ DG.DragBottomLeftBorderView = DG.DragBorderView.extend({
       var tInspectorDimensions = this.parentView.getInspectorDimensions();
       tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
     }
-    // Don't let width or height of component become too small
-    tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
-    tLoc = info.left + info.width - tNewWidth;
-    if (tLoc < tContainerWidth - tMinWidth) {
-      this.parentView.adjust('width', tNewWidth);
-      this.parentView.adjust('left', tLoc);
+    if( !this.getPath('parentView.isWidthResizable'))
+      tNewWidth = info.width; // No change
+    else {
+      // Don't let width or height of component become too small
+      tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
+      tLoc = info.left + info.width - tNewWidth;
+      if (tLoc < tContainerWidth - tMinWidth) {
+        this.parentView.adjust('width', tNewWidth);
+        this.parentView.adjust('left', tLoc);
+      }
     }
-    tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
-    this.parentView.adjust('height', tNewHeight);
+    if( !this.getPath('parentView.isHeightResizable'))
+      tNewHeight = info.height;
+    else {
+      tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
+      this.parentView.adjust('height', tNewHeight);
+    }
     if (DG.KEEP_IN_BOUNDS_PREF) {
       var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
           tScaleFactor = tInBoundsScaling.scaleFactor;
@@ -330,6 +352,11 @@ DG.DragBottomLeftBorderView = DG.DragBorderView.extend({
 
 DG.DragBottomRightBorderView = DG.DragBorderView.extend({
   dragCursor: kBottomRightBorderCursor,
+  canBeDragged: function() {
+    var tCanBeDragged = this.getPath('parentView.isWidthResizable') ||
+        this.getPath('parentView.isHeightResizable');
+    return tCanBeDragged;
+  },
   dragAdjust: function (evt, info) {
     // Don't let user drag right edge off left of window
     var tMinHeight = this.get('contentMinHeight') || kMinComponentSize,
@@ -346,11 +373,19 @@ DG.DragBottomRightBorderView = DG.DragBorderView.extend({
       var tInspectorDimensions = this.parentView.getInspectorDimensions();
       tMaxWidth = Math.min(tMaxWidth, tContainerWidth - (info.left + tInspectorDimensions.width));
     }
-    // Don't let width or height of component become too small
-    tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
-    this.parentView.adjust('width', tNewWidth);
-    tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
-    this.parentView.adjust('height', tNewHeight);
+    if( !this.getPath('parentView.isWidthResizable'))
+      tNewWidth = info.width; // No change
+    else {
+      // Don't let width or height of component become too small
+      tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
+      this.parentView.adjust('width', tNewWidth);
+    }
+    if( !this.getPath('parentView.isHeightResizable'))
+      tNewHeight = info.height; // No change
+    else {
+      tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
+      this.parentView.adjust('height', tNewHeight);
+    }
     if (DG.KEEP_IN_BOUNDS_PREF) {
       var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
           tScaleFactor = tInBoundsScaling.scaleFactor;

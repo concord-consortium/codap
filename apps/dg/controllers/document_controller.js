@@ -790,6 +790,8 @@ DG.DocumentController = SC.Object.extend(
           if (!SC.none(this.content))
             tComponentProperties.document = this.content;
           tComponent = DG.Component.createComponent(tComponentProperties);
+          if( !SC.none( iParams.isResizable))
+            tComponent.set('isResizable', iParams.isResizable);
         } else {
           this.registerComponent(tComponent);
         }
@@ -824,6 +826,7 @@ DG.DocumentController = SC.Object.extend(
         // Configure/create the component and hook it up to the controller
         //
         tComponent = this.configureComponent(iComponent, iParams);
+        tParams.model = tComponent;
 
         //
         // Configure/create the view and connect it to the controller
@@ -868,8 +871,6 @@ DG.DocumentController = SC.Object.extend(
           if (iParams.controller) {
             iParams.controller.set('view', tComponentView);
           }
-          // Tell the view about its model (the component)
-          tComponentView.set('model', tComponent);
           tComponent.set('layout', tComponentView.get('layout'));
         }
 
@@ -940,7 +941,6 @@ DG.DocumentController = SC.Object.extend(
               },
               position: iComponent && iComponent.position,
               title: tGameName,
-              isResizable: true,
               useLayout: !!tLayout,
               positionOnCreate: true
             });
@@ -1006,7 +1006,6 @@ DG.DocumentController = SC.Object.extend(
             contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
             defaultLayout: {width: 500, height: 200},
             position: iComponent && iComponent.position,
-            isResizable: true
           };
           caseTableView = this.createComponentView(component, props);
           if (iComponent && iComponent.layout) {
@@ -1112,7 +1111,6 @@ DG.DocumentController = SC.Object.extend(
                   },
                   defaultLayout: tDefaultLayout,
                   position: iComponent && iComponent.position,
-                  isResizable: true
                 }
             );
             this._component = tView.getPath('controller.model');
@@ -1156,7 +1154,6 @@ DG.DocumentController = SC.Object.extend(
                   defaultLayout: {width: 300, height: 100},
                   position: iComponent && iComponent.position,
                   title: 'DG.DocumentController.textTitle'.loc(), // "Text"
-                  isResizable: true
                 }
             );
             this._component = tView.getPath('controller.model');
@@ -1196,7 +1193,6 @@ DG.DocumentController = SC.Object.extend(
                   defaultLayout: {width: 530, height: 360},
                   position: iComponent && iComponent.position,
                   title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
-                  isResizable: true
                 }
             );
             this._component = tView.getPath('controller.model');
@@ -1240,7 +1236,7 @@ DG.DocumentController = SC.Object.extend(
                   contentProperties: {id: this._componentId, model: tSliderModel},
                   defaultLayout: {width: 300, height: 98},
                   position: iComponent && iComponent.position,
-                  isResizable: true
+                  isResizable: { width: true, height: false}
                 }
             );
             this._componentId = tView.getPath('controller.model.id');
@@ -1265,7 +1261,7 @@ DG.DocumentController = SC.Object.extend(
               defaultLayout: {},
               position: iComponent && iComponent.position,
               title: 'DG.DocumentController.calculatorTitle'.loc(), // "Calculator"
-              isResizable: false
+              isResizable: { width: false, height: false}
             }
         );
         this._singletonViews.calcView = tView;
@@ -1317,8 +1313,7 @@ DG.DocumentController = SC.Object.extend(
         var tComponentView = DG.ComponentView.create({
               layout: tRestoredLayout,
               isVisible: !SC.none(tRestoredLayout.isVisible) ? tRestoredLayout.isVisible : true,
-              showTitleBar: true,
-              isResizable: true,
+              showTitleBar: true
             }),
             tContentView = DG.CaseCardView.create({
               classNames: 'dg-opaque'.w() /*dg-scrollable'.w()*/,
@@ -1398,7 +1393,6 @@ DG.DocumentController = SC.Object.extend(
                   defaultLayout: iLayout,
                   position: iComponent && iComponent.position,
                   title: iTitle,
-                  isResizable: true,
                   useLayout: !SC.none(iComponent) || !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
                 }
             );
@@ -1442,7 +1436,6 @@ DG.DocumentController = SC.Object.extend(
                     },
                     defaultLayout: {width: 400, height: 200},
                     position: iComponent && iComponent.position,
-                    isResizable: true,
                     useLayout: true
                   }
               );

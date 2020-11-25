@@ -520,6 +520,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (iValues.cannotClose != null) {
               diComponent.set('cannotClose', iValues.cannotClose);
             }
+            if (iValues.isResizable != null) {
+              diComponent.set('isResizable', iValues.isResizable);
+            }
 
             var props = this.get('modelProps');
             props.forEach(function(prop) {
