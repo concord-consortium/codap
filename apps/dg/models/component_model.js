@@ -129,8 +129,6 @@ DG.Component = DG.BaseModel.extend(
           else if( typeof iValue === 'boolean')
             this._isResizable = { width: iValue, height: iValue };
         }
-        if( this._isResizable === null)
-          this._isResizable = { width: true, height: true };
         return this._isResizable.width && this._isResizable.height;
       }.property(),
 
@@ -193,6 +191,7 @@ DG.Component = DG.BaseModel.extend(
 
       init: function() {
         sc_super();
+        this._isResizable = { width: true, height: true };  // default
         var tStorage = this.get('componentStorage');
         if (tStorage) {
           if( tStorage.title) {

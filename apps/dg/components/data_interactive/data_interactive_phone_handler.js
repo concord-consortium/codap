@@ -1933,6 +1933,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               component.set('cannotClose', iValues.cannotClose);
               delete iValues.cannotClose;
             }
+            if (!SC.none(iValues.isResizable)) {
+              component.set('isResizable', iValues.isResizable);
+              delete iValues.isResizable;
+            }
             if (iValues.dimensions) {
               dimensions = iValues.dimensions;
               component.setPath('content.dimensions', dimensions);

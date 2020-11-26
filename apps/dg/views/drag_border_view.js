@@ -40,13 +40,15 @@ DG.DragBorderView = SC.View.extend(
 
       return {
         /** @scope DG.DragBorderView.prototype */
-        dragCursor: null,
         cursor: function () {
           if (this.canBeDragged())
             return this.dragCursor;
           else
             return null;
         }.property('dragCursor').cacheable(),
+        isResizableDidChange: function() {
+          this.set('isVisible', this.canBeDragged());
+        }.observes('parentView.isResizable'),
         mouseDown: function (evt) {
           if (evt.button === 2 || evt.ctrlKey) {
             return NO;

@@ -63,6 +63,9 @@ DG.ComponentView = SC.View.extend(
             this.setPath('model.isResizable', iValue);
           return this.getPath('model.isResizable');
         }.property(),
+        isResizableDidChange: function() {
+          this.propertyDidChange('isResizable');
+        }.observes('model.isResizable'),
         isWidthResizable: function() {
           return this.getPath('model.isWidthResizable');
         }.property(),
@@ -157,6 +160,7 @@ DG.ComponentView = SC.View.extend(
           if (this.get('isStandaloneComponent')) {
             this.hideBorders();
           }
+          this.set('title', this.getPath('model.title'));
         },
         hideBorders: function () {
           this.get('borderRight').set('isVisible', false);
