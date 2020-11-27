@@ -578,7 +578,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           });
           tNumCells = tCellNumber;
           // If we have more categories than the limit, combine extra categories into kOther
-          if(!SC.none(tNumberOfCategoriesLimit) && tNumCells > tNumberOfCategoriesLimit) {
+          if(!SC.none(tNumberOfCategoriesLimit) && tNumCells > tNumberOfCategoriesLimit + 1) {
             // Make a sorted array for efficient identification of categories beyond limit
             DG.ObjectMap.forEach(tCellMap, function( iKey, iValue) {
               tArrayOfKeysAndNumber.push({ key: iKey, cellNumber: iValue.cellNumber});

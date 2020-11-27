@@ -1207,6 +1207,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
       if( SC.none( tNewPlotClass ) )
         tNewPlotClass = DG.PlotModel;
 
+      var tBothAxesCategorical = tXType === DG.Analysis.EAttributeType.eCategorical &&
+                                  tYType === DG.Analysis.EAttributeType.eCategorical;
       // If the current plot is a BinnedPlotModel, it is compatible with needing a DotPlotModel
       if( tNewPlotClass === DG.DotPlotModel && tCurrentPlot &&
           tCurrentPlot.constructor === DG.BinnedPlotModel) {
@@ -1216,7 +1218,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
         if( tXType === DG.Analysis.EAttributeType.eCategorical || tYType === DG.Analysis.EAttributeType.eCategorical)
           tCurrentPlot.set('dotsAreFused', false);
       }
-      else if( tNewPlotClass === DG.DotChartModel && tCurrentPlot && tCurrentPlot.constructor === DG.BarChartModel) {
+      else if( tNewPlotClass === DG.DotChartModel && tCurrentPlot && tCurrentPlot.constructor === DG.BarChartModel &&
+                !tBothAxesCategorical) {
         // We're allowed to keep the bar chart
         tNewPlotClass = DG.BarChartModel;
       }
