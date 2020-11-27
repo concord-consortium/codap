@@ -135,6 +135,7 @@
     "pluralize": "^4.0.0",
     "popper.js": "^1.14.3",
     "prop-types": "^15.7.2",
+    "random-variate-generators": "^1.5.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-dom-factories": "^1.0.2",

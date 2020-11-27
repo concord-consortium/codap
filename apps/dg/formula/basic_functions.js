@@ -17,7 +17,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/*global RandVarGen:true */
 sc_require('formula/function_registry');
 
 /**
@@ -32,6 +32,7 @@ DG.functionRegistry.registerFunctions((function() {
 
   var savedRandomGaussian = 0;  // The routine for generating random numbers drawn from a gaussian
                                 // distribution generates two such numbers. We save one for next call
+  var rvg;
 
   return {
     // JavaScript standard Math library functions
@@ -286,6 +287,25 @@ DG.functionRegistry.registerFunctions((function() {
         fac = Math.sqrt(-2.0*Math.log(rsq)/rsq);
         savedRandomGaussian = fac*v2;					// Save the first N(0,1) as double
         return sigma*fac*v1 + mu;	// and return the second.
+      }
+    },
+
+  /**
+      Generator for random numbers drawn from a binomial distribution.
+      @param    {Number}  n -- The number of independent events
+      @param    {Number}  p -- The probability of success for a single event
+      @returns  {Number}  An integer drawn from a random binomial distribution with the given n and p
+     */
+    'randomBinomial': {
+      minArgs:2, maxArgs:2, isRandom: true, category: 'DG.Formula.FuncCategoryRandom',
+      evalFn: function(n,p) {
+        if( SC.empty(n) || SC.empty(p) || n < 0 || Math.floor(n) !== n || p < 0 || p > 1)
+          return '';
+        else {
+          if( !rvg)
+            rvg = new RandVarGen.RandVarGen();
+          return rvg.binomial( p, n);
+        }
       }
     },
 
