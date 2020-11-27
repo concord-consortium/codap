@@ -1112,8 +1112,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * and a binned plot with BinnedAxisModel plus AxisModel.
      * Note that undo/redo is taken care of before we get here.
      * @param iBinnedPlot {DG.BinnedPlotModel }
-     * @param iKey {String} Should be 'dotsAreFused'
-     * @param iValue {Boolean}
      */
     dotsAreFusedDidChange: function( iBinnedPlot) {
       var tDataConfiguration = this.get('dataConfiguration'),
