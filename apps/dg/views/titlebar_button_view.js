@@ -39,10 +39,14 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
         classNameBindings: ['isSelected:dg-close-icon-selected'],
         init: function() {
           sc_super();
-          // The following two lines are a workaround to make sure that in SageModeler the button shows
-          // itself on the initial hover over the titlebar. (Strange, I know.)
-          this.set('isVisible', true);
-          this.invokeLater( function() { this.set('isVisible', false); }.bind(this), 1);
+          if( !SC.platform.touch) {
+            // The following two lines are a workaround to make sure that in SageModeler the button shows
+            // itself on the initial hover over the titlebar. (Strange, I know.)
+            this.set('isVisible', true);
+            this.invokeLater(function () {
+              this.set('isVisible', false);
+            }.bind(this), 1);
+          }
         },
         doIt: function() {
           var tComponentId = this.parentView.viewToDrag().getPath(
@@ -172,10 +176,14 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
         classNames: 'dg-min-icon'.w(),
         init: function() {
           sc_super();
-          // The following two lines are a workaround to make sure that in SageModeler the button shows
-          // itself on the initial hover over the titlebar. (Strange, I know.)
-          this.set('isVisible', true);
-          this.invokeLater( function() { this.set('isVisible', false); }.bind(this), 1);
+          if( !SC.platform.touch) {
+            // The following two lines are a workaround to make sure that in SageModeler the button shows
+            // itself on the initial hover over the titlebar. (Strange, I know.)
+            this.set('isVisible', true);
+            this.invokeLater(function () {
+              this.set('isVisible', false);
+            }.bind(this), 1);
+          }
         },
         isSelected: false,
         classNameBindings: ['isSelected:dg-min-icon-selected'],
