@@ -309,6 +309,19 @@ DG.functionRegistry.registerFunctions((function() {
       }
     },
 
+  /**
+      Chooses one at random from its list of arguments
+      @param    {any}  the arguments can have any type
+      @returns  {any}
+     */
+    'randomPick': {
+      minArgs:2, maxArgs:1000, isRandom: true, category: 'DG.Formula.FuncCategoryRandom',
+      evalFn: function() {
+        var tChosen = Math.floor(arguments.length * Math.random());
+        return arguments[tChosen];
+      }
+    },
+
     /**
       Rounds a number to the nearest integer or specified decimal place.
       @param    {Number}  x -- The number to be rounded

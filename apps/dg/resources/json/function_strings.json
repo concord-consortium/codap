@@ -746,6 +746,17 @@
       "randomNormal(-10, 5) will return a random number drawn from a normally distributed population with mean -10 and standard deviation 5"
     ]
   },
+  "randomPick": {
+    "displayName": "randomPick",
+    "description": "Given a list of arguments, chooses one at random and returns it.",
+    "args": [],
+    "examples": [
+      "randomPick(1,2,3,4,5,6) makes a die, returning one of the number 1–6 chosen at random.",
+      "randomPick(\"heads\",\"tails\") makes a fair coin, returning either heads or tails.",
+      "randomPick(\"Male\", \"Male\", \"Female\") gives you a population to draw from that is two-thirds Male.",
+      "randomPick(GirlsName, BoysName) randomly picks either the value of attribute GirlsName or attribute BoysName. For example, it might pick Ismail one time and Joyce another."
+    ]
+  },
   "string": {
     "displayName": "string",
     "description": "Converts the argument to a string.",
