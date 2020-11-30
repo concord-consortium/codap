@@ -53,7 +53,26 @@ DG.ComponentView = SC.View.extend(
       return {
         classNames: ['dg-component-view'],
         classNameBindings: ['isSelected:dg-component-view-selected'],
-        isResizable: YES,
+
+        /**
+         * Returns true if model has both width and height as resizable, false otherwise
+         * @property {boolean}
+         */
+        isResizable: function( iKey, iValue) {
+          if( !SC.empty(iValue))
+            this.setPath('model.isResizable', iValue);
+          return this.getPath('model.isResizable');
+        }.property(),
+        isResizableDidChange: function() {
+          this.propertyDidChange('isResizable');
+        }.observes('model.isResizable'),
+        isWidthResizable: function() {
+          return this.getPath('model.isWidthResizable');
+        }.property(),
+        isHeightResizable: function() {
+          return this.getPath('model.isHeightResizable');
+        }.property(),
+
         isClosable: YES,
         showTitleBar: YES,
 
@@ -141,6 +160,7 @@ DG.ComponentView = SC.View.extend(
           if (this.get('isStandaloneComponent')) {
             this.hideBorders();
           }
+          this.set('title', this.getPath('model.title'));
         },
         hideBorders: function () {
           this.get('borderRight').set('isVisible', false);
@@ -770,7 +790,8 @@ DG.ComponentView._createComponent = function (iParams) {
         originalLayout: iParams.layout,
         isVisible: tMakeItVisible,
         showTitleBar: !iParams.isStandaloneComponent,
-        isStandaloneComponent: iParams.isStandaloneComponent
+        isStandaloneComponent: iParams.isStandaloneComponent,
+        model: iParams.model
       });
   if( iParams.controller)
     iParams.controller.set('view', tComponentView);

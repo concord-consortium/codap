@@ -115,9 +115,40 @@ DG.Component = DG.BaseModel.extend(
         return this._cannotClose;
       }.property('_cannotClose'),
 
-      // cannotCloseChanged: function () {
-      //   this.notifyPropertyChange('cannotClose');
-      // }.observes('content.cannotClose'),
+      /**
+       * @property {{width:{boolean}, height: {boolean}}}
+       */
+      _isResizable: null,
+      /**
+       * @property {boolean}
+       */
+      isResizable: function( iKey, iValue) {
+        if(!SC.empty(iValue)) {
+          if( typeof iValue === 'object')
+            this._isResizable = iValue;
+          else if( typeof iValue === 'boolean')
+            this._isResizable = { width: iValue, height: iValue };
+        }
+        return this._isResizable.width && this._isResizable.height;
+      }.property(),
+
+      /**
+       * @property {boolean}
+       */
+      isWidthResizable: function(iKey, iValue) {
+        if( !SC.empty(iValue) && typeof iValue === 'boolean')
+          this._isResizable.width = iValue;
+        return this._isResizable.width;
+      }.property(),
+
+      /**
+       * @property {boolean}
+       */
+      isHeightResizable: function(iKey, iValue) {
+        if( !SC.empty(iValue) && typeof iValue === 'boolean')
+          this._isResizable.height = iValue;
+        return this._isResizable.height;
+      }.property(),
 
       /**
        * Content is an arbitrary javascript object, serializable, and defined
@@ -160,6 +191,7 @@ DG.Component = DG.BaseModel.extend(
 
       init: function() {
         sc_super();
+        this._isResizable = { width: true, height: true };  // default
         var tStorage = this.get('componentStorage');
         if (tStorage) {
           if( tStorage.title) {

@@ -630,30 +630,42 @@ DG.PlotDataConfiguration = SC.Object.extend(
                 tResult.push(iCase);
             });
 
-            // If there is a categorical legend attribute then we sort the cases so that cases
-            // belonging to a given category are together. The order of categories is determined by
-            // the attribute's categoryMap
+            // If there is a legend attribute then we sort the cases.
+            // For a categorical legend we sort so that cases
+            //   belonging to a given category are together. The order of categories is determined by
+            //   the attribute's categoryMap
+            // For a numeric legend we sort by the attribute values.
             var tLegendAttrs = tAttributesByPlace[DG.GraphTypes.EPlace.eLegend],
                 tLegendAttrDesc = tLegendAttrs && tLegendAttrs[0],
                 tMapOriginalToSorted = [];
             for (var index = 0; index < tResult.length; index++) {
               tMapOriginalToSorted.push(index);
             }
-            if (this.get('sortCasesByLegendCategories') && tLegendAttrDesc &&
-                tLegendAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eCategorical) {
-              var tLegendID = tLegendAttrDesc.getPath('attribute.id'),
-                  tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap');
-              tMapOriginalToSorted = DG.ArrayUtils.stableSort(tMapOriginalToSorted, function (iIndex1, iIndex2) {
-                var tValue1 = tResult[iIndex1].getStrValue(tLegendID),
-                    tValue2 = tResult[iIndex2].getStrValue(tLegendID);
-                return tCategoryMap.__order.indexOf(tValue2) - tCategoryMap.__order.indexOf(tValue1);
-              });
+            if (this.get('sortCasesByLegendCategories') && tLegendAttrDesc) {
+              var tLegendID = tLegendAttrDesc.getPath('attribute.id');
+              switch (tLegendAttrDesc.get('attributeType')) {
+                case DG.Analysis.EAttributeType.eCategorical:
+                  var tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap');
+                  tMapOriginalToSorted = DG.ArrayUtils.stableSort(tMapOriginalToSorted, function (iIndex1, iIndex2) {
+                    var tValue1 = tResult[iIndex1].getStrValue(tLegendID),
+                        tValue2 = tResult[iIndex2].getStrValue(tLegendID);
+                    return tCategoryMap.__order.indexOf(tValue2) - tCategoryMap.__order.indexOf(tValue1);
+                  });
+                  break;
+                case DG.Analysis.EAttributeType.eNumeric:
+                  tMapOriginalToSorted = DG.ArrayUtils.stableSort(tMapOriginalToSorted, function (iIndex1, iIndex2) {
+                    var tValue1 = tResult[iIndex1].getValue(tLegendID),
+                        tValue2 = tResult[iIndex2].getValue(tLegendID);
+                    return tValue2 - tValue1;
+                  });
+                  break;
+              }
             }
             this._plotCaseArray.set('_cases', tResult);
             this._plotCaseArray.set('_map', tMapOriginalToSorted);
           }
-          this._casesCache = this._plotCaseArray;
         }
+        this._casesCache = this._plotCaseArray;
         return this._casesCache;
       }.property('xCollectionClient', 'yCollectionClient', 'legendCollectionClient'),
 

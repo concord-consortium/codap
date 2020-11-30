@@ -520,6 +520,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (iValues.cannotClose != null) {
               diComponent.set('cannotClose', iValues.cannotClose);
             }
+            if (iValues.isResizable != null) {
+              diComponent.set('isResizable', iValues.isResizable);
+            }
 
             var props = this.get('modelProps');
             props.forEach(function(prop) {
@@ -1929,6 +1932,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (!SC.none(iValues.cannotClose)) {
               component.set('cannotClose', iValues.cannotClose);
               delete iValues.cannotClose;
+            }
+            if (!SC.none(iValues.isResizable)) {
+              component.set('isResizable', iValues.isResizable);
+              delete iValues.isResizable;
             }
             if (iValues.dimensions) {
               dimensions = iValues.dimensions;
