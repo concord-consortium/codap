@@ -1009,7 +1009,7 @@ DG.DocumentController = SC.Object.extend(
             isResizable: true
           };
           caseTableView = this.createComponentView(component, props);
-          if (iComponent && iComponent.layout) {
+          if (iComponent && iComponent.layout && !iComponent.layout.isVisible) {
             caseTableView.savedLayout = iComponent.layout;
           }
 
