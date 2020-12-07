@@ -658,7 +658,7 @@ DG.ComponentView = SC.View.extend(
           if( savedLayout) {
             // we only want to animate to saved layout one time, so delete it
             // from the object.
-            delete this.savedLayout;
+            this.set('savedLayout', null);
             this.animate( savedLayout,
                 {duration: 0.4, timing: 'ease-in-out'},
                 function () {
