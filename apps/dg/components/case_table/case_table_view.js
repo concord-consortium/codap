@@ -2251,8 +2251,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       function isInHeader(e) {
         return !!($(e.target).closest(".slick-header-column", ".slick-header-columns").length);
       }
-      // bail if we are in the actual table space
-      if (this._slickGrid.getCellFromEvent(iEvent) || isInHeader(iEvent) ) {
+      var tComponentView = DG.ComponentView.findComponentViewParent( this);
+      // bail if we are in the actual table space or are not yet selected
+      if (this._slickGrid.getCellFromEvent(iEvent)
+          || isInHeader(iEvent)
+          || (tComponentView && !tComponentView.get('isSelected'))) {
         return NO;
       }
       var dataContext = this.get('dataContext');

@@ -239,6 +239,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         click: function () {
           DG.globalEditorLock.commitCurrentEdit();
 
+          var tComponentView = DG.ComponentView.findComponentViewParent( this);
           var dataContext = this.get('dataContext');
           var tChange = {
             operation: 'selectCases',
@@ -246,6 +247,10 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
             select: true,
             extend: false
           };
+          if (tComponentView && !tComponentView.get('isSelected')) {
+            tComponentView.select();
+            return NO;
+          }
           dataContext.applyChange(tChange);
         },
         touchStart: function() {
