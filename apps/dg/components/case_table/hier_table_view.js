@@ -542,6 +542,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       // if frame width was adjusted we expand the rightmost column of rightmost
       // collection
       if ((tContentWidth > 0)
+          && tFrameWidth
           && Number(tFrameWidth) !== Number(tContentWidth)
           && changeAgent === 'frame') {
         this.expandRightmostColumn(tFrameWidth, tContentWidth);

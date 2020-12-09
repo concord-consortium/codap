@@ -182,8 +182,11 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
    Drag handles are positioned slightly to the right of the column header edge
    raised above the fray so they can be grabbed.
  */
-.slick-header-columns .slick-header-column:not(:last-child) .slick-resizable-handle {
+.slick-header-columns .slick-header-column .slick-resizable-handle {
   right: -4px;
   z-index: 10;
 }
 
+.slick-header-columns .slick-header-column:last .slick-resizable-handle {
+  cursor: e-resize;
+}
