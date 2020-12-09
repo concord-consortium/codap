@@ -215,21 +215,38 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       }.property(),
 
       configurationDescriptions: function() {
-        var this_ = this,
+        var kRowHeight = 20,
             tDescriptions = sc_super();
         tDescriptions.push(
             {
-              constructorClass: SC.CheckboxView,
+              constructorClass: SC.RadioView,
               properties:
-                  {
-                    title: 'DG.Inspector.graphGroupIntoBins',
-                    value: this_.get('displayAsBinned'),
-                    classNames: 'dg-graph-binned-check'.w(),
-                    valueDidChange: function () {
-                      this_.toggleDisplayBins();
-                      DG.mainPage.mainPane.hideInspectorPicker();
-                    }.observes('value')
-                  }
+                {
+                  layout: { height: 3 * kRowHeight },
+                  items: [
+                    {
+                      title: 'DG.Inspector.graphPlotPoints'.loc(),
+                      value: false, // was originally a boolean
+                      enabled: YES
+                    },
+                    {
+                      title: 'DG.Inspector.graphGroupIntoBins'.loc(),
+                      value: true,  // was originally a boolean
+                      enabled: YES
+                    },
+                    {
+                      title: 'DG.Inspector.graphBarForEachPoint'.loc(),
+                      value: 'bars',
+                      enabled: YES
+                    }
+                  ],
+                  value: false,
+                  itemTitleKey: 'title',
+                  itemValueKey: 'value',
+                  itemIsEnabledKey: 'enabled',
+                  isEnabled: YES,
+                  layoutDirection: SC.LAYOUT_VERTICAL
+                }
             }
         );
         return tDescriptions;
@@ -256,4 +273,3 @@ DG.UnivariatePlotModel.configureRoles = function (iConfig) {
   iConfig.setPath(tOtherAxisKey + 'AttributeDescription.role',
       DG.Analysis.EAnalysisRole.eSecondaryCategorical);
 };
-

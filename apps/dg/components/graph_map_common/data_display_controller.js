@@ -288,7 +288,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       init: function () {
                         sc_super();
                         this_.getPath('dataDisplayModel.configurationDescriptions').forEach(function (iDesc) {
-                          iDesc.properties.layout = {height: kRowHeight};
+                          iDesc.properties.layout = Object.assign({height: kRowHeight}, iDesc.properties.layout);
                           iDesc.properties.localize = true;
                           this.appendChild(iDesc.constructorClass.create(iDesc.properties));
                         }.bind(this));
@@ -975,4 +975,3 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
     }()) // function closure
 );
-
