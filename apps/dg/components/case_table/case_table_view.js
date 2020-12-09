@@ -69,8 +69,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     titleBarContainer: SC.View.extend({
       childViews: 'titleBar'.w(),
       classNames: ['dg-case-table-title-bar-container'],
-      layout: { left: 0, right: 0, top: 0, height: 22 },
-      mouseDown: function(ev) {
+      layout: {left: 0, right: 0, top: 0, height: 22},
+      mouseDown: function (ev) {
         // if not in a current edit, background clicks should complete any edit
         if (ev.target.tagName !== 'INPUT') {
           DG.globalEditorLock.commitCurrentEdit();
@@ -89,9 +89,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             var parentView = this.parentView;
             return parentView && parentView.get('refView');
           }.property(),
-          layout: { centerX: 0, height: 22 },
-          classNames: 'dg-case-table-title'.w(),
-          // layout: { left: 0, right: 0, top: 0, height: 22 },
+          layout: {centerX: 0, height: 22},
+          classNames: 'dg-case-table-title'.w(), // layout: { left: 0, right: 0, top: 0, height: 22 },
           isEditable: function () {
             return !this.getPath('refView.dataContext.hasDataInteractive');
           }.property(),
@@ -103,7 +102,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             var collectionName = this.getPath('refView.collectionName');
             var caseCount = this.getPath('refView.caseCount');
             var hasChildTable = !!this.getPath('refView.childTable');
-            var setAsideCount = hasChildTable? 0: this.getPath('refView.dataContext.setAsideCount');
+            var setAsideCount = hasChildTable ? 0 : this.getPath(
+                'refView.dataContext.setAsideCount');
             if (hasChildTable || (setAsideCount === 0)) {
               return 'DG.TableController.collectionTitleText'.loc(collectionName,
                   caseCount);
@@ -113,7 +113,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             }
           }.property(),
 
-          valueDidChange: function() {
+          valueDidChange: function () {
             this.notifyPropertyChange('value');
           }.observes('*refView.collectionName', '*refView.caseCount'),
 
@@ -143,13 +143,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                 tCollectionName = this.getPath('refView.collectionName');
             if (tDataContext) {
               DG.CaseDisplayUtils
-                .setCollectionNameWithCommand(tDataContext, tCollectionName, value);
+                  .setCollectionNameWithCommand(tDataContext, tCollectionName,
+                      value);
             }
             return sc_super();
           },
 
           localize: true,
-          doIt: function() {
+          doIt: function () {
             this.beginEditing();
           },
         }),
@@ -159,40 +160,46 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           }.property(),
           classNames: ['dg-floating-plus'],
           classNameBindings: ['disabled'],
-          layout: { top: 0, right: 0, width: 22, height: 22 },
-          // https://www.materialui.co/icon/add-circle
+          layout: {
+            top: 0,
+            right: 0,
+            width: 22,
+            height: 22
+          }, // https://www.materialui.co/icon/add-circle
           value: static_url('images/add_circle_grey_72x72.png'),
           tooltip: 'DG.TableController.newAttributeTooltip'.loc(),
-          disabled: function() {
+          disabled: function () {
             var context = this.getPath('refView.gridAdapter.dataContext');
-            var isTopLevel = !this.getPath('refView.gridAdapter.hasParentCollection');
-            return context && isTopLevel && DG.DataContextUtilities.isTopLevelReorgPrevented(context);
+            var isTopLevel = !this.getPath(
+                'refView.gridAdapter.hasParentCollection');
+            return context && isTopLevel && DG.DataContextUtilities.isTopLevelReorgPrevented(
+                context);
           }.property('_dataContextDidChange'),
-          dataContextDidChange: function() {
+          dataContextDidChange: function () {
             this.notifyPropertyChange('_dataContextDidChange');
           }.observes('refView.gridAdapter.dataContext.metadataChangeCount'),
-          didAppendToDocument: function() {
+          didAppendToDocument: function () {
             sc_super();
 
             var tooltip = this.get('tooltip');
-            if (tooltip)
-              this.$().attr('title', tooltip);
+            if (tooltip) this.$().attr('title', tooltip);
           },
-          mouseDown: function(evt) {
+          mouseDown: function (evt) {
             var tableController = getController(this),
                 collection = this.getPath('refView.gridAdapter.collection');
             // only respond to left-button clicks; see SC.Event for constant
             if (tableController && collection && (evt.which === 1)) {
               SC.RootResponder.responder
-                  .sendAction('newAttributeAction', tableController, this, this.get('pane'),
-                      { collection: collection, autoEditName: true });
+                  .sendAction('newAttributeAction', tableController, this,
+                      this.get('pane'),
+                      {collection: collection, autoEditName: true});
             }
             return YES;
           },
-          touchStart: function( evt) {
+          touchStart: function (evt) {
             return YES;
           },
-          touchEnd: function( evt) {
+          touchEnd: function (evt) {
             evt.allowDefault();
             return YES;
           }
@@ -203,21 +210,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     tableView: SC.View.extend({
       classNames: ['dg-case-table'],
-      layout: { left: 0, right: 0, top: 22, bottom: 0 },
+      layout: {left: 0, right: 0, top: 22, bottom: 0},
       backgroundColor: "white",
 
       isDropTarget: true,
 
-      classNameBindings: [
-        'isDragInProgress:dg-table-drop-target-show'
-      ],
+      classNameBindings: ['isDragInProgress:dg-table-drop-target-show'],
 
       /**
        * @property {DG.CaseTableDragHelper}
        */
       dragHelper: null,
 
-      computeDragOperations: function( iDrag) {
+      computeDragOperations: function (iDrag) {
         if( this.isValidAttribute( iDrag))
           return SC.DRAG_LINK;
         else
@@ -229,42 +234,42 @@ DG.CaseTableView = SC.View.extend( (function() // closure
        * to it for all drag functions.
        * @param iDrag
        */
-      dragStarted: function( iDrag) {
+      dragStarted: function (iDrag) {
         var tHelper = DG.CaseTableDragHelper.createHelper(this, iDrag);
-        if( tHelper) {
+        if (tHelper) {
           this.set('dragHelper', tHelper);
-          this.get('dragHelper').dragStarted( iDrag);
+          this.get('dragHelper').dragStarted(iDrag);
         }
       },
 
       dragEnded: function () {
-        var tDragHelper =  this.get('dragHelper');
+        var tDragHelper = this.get('dragHelper');
         tDragHelper.dragEnded();
         tDragHelper.destroy();
         this.set('dragHelper', null);
       },
 
-      dragEntered: function( iDragObject, iEvent) {
+      dragEntered: function (iDragObject, iEvent) {
         this.get('dragHelper').dragEntered(iDragObject, iEvent);
       },
 
-      dragUpdated: function( iDragObject, iEvent) {
+      dragUpdated: function (iDragObject, iEvent) {
         this.get('dragHelper').dragUpdated(iDragObject, iEvent);
       },
 
-      dragExited: function( iDragObject, iEvent) {
+      dragExited: function (iDragObject, iEvent) {
         this.get('dragHelper').dragExited(iDragObject, iEvent);
       },
 
-      acceptDragOperation: function(drag, op) {
+      acceptDragOperation: function (drag, op) {
         return this.get('dragHelper').acceptDragOperation(drag, op);
       },
 
-      performDragOperation:function ( iDragObject, iDragOp ) {
+      performDragOperation: function (iDragObject, iDragOp) {
         this.get('dragHelper').performDragOperation(iDragObject, iDragOp);
       },
 
-      isValidAttribute: function( iDrag) {
+      isValidAttribute: function (iDrag) {
         return this.get('dragHelper').isValidAttribute(iDrag);
       },
 
@@ -311,7 +316,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           return false;
         }
       },
-      dataDragDropped: function(iEvent) {
+      dataDragDropped: function (iEvent) {
         var externalDragObject = this.get('_externalDragObject');
         if (externalDragObject && this.isValidAttribute(externalDragObject)) {
           iEvent.preventDefault();
@@ -331,20 +336,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     }),
 
-
     parentTable: null,
 
     childTable: null,
 
     _hiddenDragView: SC.LabelView.design({
       classNames: 'dg-drag-label'.w(),
-      layout: { width: 100, height: 20, top: -50, left: 0 },
+      layout: {width: 100, height: 20, top: -50, left: 0},
       value: ''
 //    cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8)
     }),
 
-    ancestorViewDidResizeOrScroll: function() {
-      this.invokeLater(function() {
+    ancestorViewDidResizeOrScroll: function () {
+      this.invokeLater(function () {
         var visibleFrameBounds = this.get('visibleFrameBounds');
         var titleBar = this.getPath('titleBarContainer.titleBar');
         if (visibleFrameBounds) {
@@ -357,19 +361,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }.bind(this));
     },
 
-    frameBounds: function() {
-      var pv = this.get('parentView'),
-          frame = this.get('frame');
+    frameBounds: function () {
+      var pv = this.get('parentView'), frame = this.get('frame');
       return pv ? pv.convertFrameToView(frame, null) : frame;
     }.property(),
 
-    visibleFrameBounds: function() {
-      var view = this,
-          pv = this.get('parentView'),
-          frame = this.get('frame'),
+    visibleFrameBounds: function () {
+      var view = this, pv = this.get('parentView'), frame = this.get('frame'),
           baseFrame = pv ? pv.convertFrameToView(frame, null) : frame,
-          visibleBounds = {},
-          right, bottom;
+          visibleBounds = {}, right, bottom;
       // find boundary of the hierarchical table view
       while (pv && !(view instanceof DG.HierTableView)) {
         view = pv;
@@ -381,15 +381,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var boundingFrame = pv.convertFrameToView(view.get('frame'), null);
       visibleBounds.x = Math.max(boundingFrame.x, baseFrame.x);
       visibleBounds.y = Math.max(boundingFrame.y, baseFrame.y);
-      right = Math.min(boundingFrame.x + boundingFrame.width, baseFrame.x + baseFrame.width);
-      bottom = Math.min(boundingFrame.y + boundingFrame.height, baseFrame.y + baseFrame.height);
+      right = Math.min(boundingFrame.x + boundingFrame.width,
+          baseFrame.x + baseFrame.width);
+      bottom = Math.min(boundingFrame.y + boundingFrame.height,
+          baseFrame.y + baseFrame.height);
       visibleBounds.width = Math.max(right - visibleBounds.x, 0);
       visibleBounds.height = Math.max(bottom - visibleBounds.y, 0);
 
       return this.convertFrameFromView(visibleBounds, null);
     }.property(),
 
-    layout: { left: 0, right: 0, top: 0, bottom: 0 },
+    layout: {left: 0, right: 0, top: 0, bottom: 0},
 
     backgroundColor: "white",
 
@@ -404,7 +406,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return this.getPath('gridAdapter.collectionName');
     }.property(),
 
-    collectionNameDidChange: function() {
+    collectionNameDidChange: function () {
       this.notifyPropertyChange('collectionName');
     }.observes('*gridAdapter.collectionName'),
 
@@ -416,92 +418,93 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return this.getPath('gridAdapter.collection.casesController.length');
     }.property(),
 
-    caseCountDidChange: function() {
+    caseCountDidChange: function () {
       this.notifyPropertyChange('caseCount');
     }.observes('*gridAdapter.collection.casesController.length'),
 
     /**
-      The adapter used for adapting the case data for use in SlickGrid.
-      @property   {DG.CaseTableAdapter}
+     The adapter used for adapting the case data for use in SlickGrid.
+     @property   {DG.CaseTableAdapter}
      */
     gridAdapter: null,
 
     /**
-      The SlickGrid DataView object for filtering/accessing the row data.
-      @property   {Slick.Data.DataView}
+     The SlickGrid DataView object for filtering/accessing the row data.
+     @property   {Slick.Data.DataView}
      */
     gridDataView: null,
 
     /**
-      Notification-only property. The value of this property is meaningless.
-      It is used purely as a property name to notify when clients should
-      respond to a complete change in the underlying SlickGrid. We don't
-      want clients to have access to the private _slickGrid Property, however,
-      so we signal changes by notifying with this property name instead.
-      @property   {undefined}
+     Notification-only property. The value of this property is meaningless.
+     It is used purely as a property name to notify when clients should
+     respond to a complete change in the underlying SlickGrid. We don't
+     want clients to have access to the private _slickGrid Property, however,
+     so we signal changes by notifying with this property name instead.
+     @property   {undefined}
      */
     gridView: undefined,
 
     /**
-      The SlickGrid itself.
-      @property   {Slick.Grid}
-      @private
+     The SlickGrid itself.
+     @property   {Slick.Grid}
+     @private
      */
     _slickGrid: null,
 
     /**
-      The event handler for registering interest in SlickGrid events.
-      @property   {Slick.EventHandler}
+     The event handler for registering interest in SlickGrid events.
+     @property   {Slick.EventHandler}
      */
     _gridEventHandler: null,
 
     /**
-      @private
-      The current width of the table/grid. Used to compute the gridWidth()
-      and gridWidthChange() properties.
-      @property   {Number}
+     @private
+     The current width of the table/grid. Used to compute the gridWidth()
+     and gridWidthChange() properties.
+     @property   {Number}
      */
     _gridWidth: 0,
 
     /**
-      @private
-      The previous width of the table/grid. Used to compute the gridWidthChange() property.
-      @property   {Number}
+     @private
+     The previous width of the table/grid. Used to compute the gridWidthChange() property.
+     @property   {Number}
      */
     _prevGridWidth: 0,
 
     /**
-      @private
-      A timer for use in tracking proto-case editing.
-      @property   {Number}  timerID
+     @private
+     A timer for use in tracking proto-case editing.
+     @property   {Number}  timerID
      */
     _protoCaseTimer: null,
 
     /**
-      To commit proto-case values as a new case when the user finishes entering values,
-      we set a timer whenever a proto-case cell is exited, and then clear it whenever
-      a proto-case cell is entered. When the user finishes entering values, the timer
-      expires and the case is created. This handles situations when the user exits the
-      case table entirely, for instance, which would be tricky to handle otherwise.
+     To commit proto-case values as a new case when the user finishes entering values,
+     we set a timer whenever a proto-case cell is exited, and then clear it whenever
+     a proto-case cell is entered. When the user finishes entering values, the timer
+     expires and the case is created. This handles situations when the user exits the
+     case table entirely, for instance, which would be tricky to handle otherwise.
      */
-    clearProtoCaseTimer: function() {
+    clearProtoCaseTimer: function () {
       if (this._protoCaseTimer) {
         clearTimeout(this._protoCaseTimer);
         this._protoCaseTimer = null;
       }
     },
 
-    resetProtoCaseTimer: function() {
+    resetProtoCaseTimer: function () {
       this.clearProtoCaseTimer();
 
-      this._protoCaseTimer = setTimeout(function() {
+      this._protoCaseTimer = setTimeout(function () {
         // timer can outlive table
         if (!this._slickGrid) return;
         var rowCount = this._slickGrid.getDataLength(),
             lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
-            hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values);
+            hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(
+                lastRowItem._values);
         if (hasProtoCase) {
-          SC.run(function() {
+          SC.run(function () {
             this.commitProtoCase(lastRowItem);
           }.bind(this));
         }
@@ -509,17 +512,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      Creates a new case with the specified proto-case values.
+     Creates a new case with the specified proto-case values.
      */
-    commitProtoCase: function(protoCase) {
-      function getParentCase (context, collection) {
+    commitProtoCase: function (protoCase) {
+      function getParentCase(context, collection) {
         var parentCollectionID = collection.getParentCollectionID(),
             parentCollection = SC.none(parentCollectionID)?
                 null:
                 context.getCollectionByID(parentCollectionID),
             parentCaseCount = parentCollection && parentCollection.getCaseCount();
         if (!SC.none(parentCaseCount)) {
-          return parentCollection.getCaseAt(parentCaseCount-1);
+          return parentCollection.getCaseAt(parentCaseCount - 1);
         }
       }
 
@@ -529,14 +532,18 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           values;
       if (!collection || !attrIDs) return;
 
-      values = attrIDs.map(function(attrID) {
-                            var value = protoCase._values[attrID];
-                            return value != null ? value : "";
-                          });
+      values = attrIDs.map(function (attrID) {
+        var value = protoCase._values[attrID];
+        return value != null ? value : "";
+      });
       protoCase._values = {};
 
-      DG.DataContextUtilities.createCaseUndoable(this.get('dataContext'),
-          { collection: collection, attrIDs: attrIDs, values: values, parent: parentCase });
+      DG.DataContextUtilities.createCaseUndoable(this.get('dataContext'), {
+        collection: collection,
+        attrIDs: attrIDs,
+        values: values,
+        parent: parentCase
+      });
     },
 
     /**
@@ -554,12 +561,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }.property('_slickGrid'),
 
     /**
-      The current width of the table/grid. Designed to be used for clients to observe
-      when the table width changes and to respond appropriately.
-      @property   {Number}
+     The current width of the table/grid. Designed to be used for clients to observe
+     when the table width changes and to respond appropriately.
+     @property   {Number}
      */
-    gridWidth: function( iKey, iValue) {
-      if( !SC.none( iValue)) {
+    gridWidth: function (iKey, iValue) {
+      if (!SC.none(iValue)) {
         this._prevGridWidth = this._gridWidth;
         this._gridWidth = iValue;
         return this;
@@ -568,15 +575,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }.property(),
 
     /**
-      The delta from the previous width to the current width.
-      Clients may use this to determine how much adjustment is required.
-      @property   {Number}
+     The delta from the previous width to the current width.
+     Clients may use this to determine how much adjustment is required.
+     @property   {Number}
      */
-    gridWidthChange: function() {
+    gridWidthChange: function () {
       return this._gridWidth - this._prevGridWidth;
     }.property(),
 
-    gridWidthDidChange: function() {
+    gridWidthDidChange: function () {
       var parentView = this.get('parentView');
       // Apparently, we can get gridWidthDidChange before the parent view is
       // established. This occurs on Chrome, W8.1 or MacOS Mavericks, but not
@@ -601,7 +608,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return rtn;
     }.property(),
 
-    sizeDidChange: function() {
+    sizeDidChange: function () {
       var parentView = this.get('parentView');
       // Protect against the possibility we don't have a parent view
       if (parentView) {
@@ -628,38 +635,38 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }.observes('scrollPos'),
 
     tableDidExpandCollapse: function () {
-      var parentView =this.get('parentView');
+      var parentView = this.get('parentView');
       if (parentView) {
         parentView.tableDidExpandCollapse(this);
       }
     }.observes('expandCollapseCount'),
 
     /**
-      The number of rows in the table. This property is updated as rows are added/removed.
-      Clients may observe or bind to it to be notified when the rowCount changes.
-      @property   {Number}
+     The number of rows in the table. This property is updated as rows are added/removed.
+     Clients may observe or bind to it to be notified when the rowCount changes.
+     @property   {Number}
      */
     rowCount: 0,
 
     /**
-      The current scroll position within the table. This property is updated as the table
-      is scrolled. Clients may observe or bind to it to be notified when scroll pos changes.
-      @property   {Object}  scrollPos
-                  {Number}  scrollPos.scrollTop -- The vertical scroll position
-                  {Number}  scrollPos.scrollLeft -- The horizontal scroll position
+     The current scroll position within the table. This property is updated as the table
+     is scrolled. Clients may observe or bind to it to be notified when scroll pos changes.
+     @property   {Object}  scrollPos
+     {Number}  scrollPos.scrollTop -- The vertical scroll position
+     {Number}  scrollPos.scrollLeft -- The horizontal scroll position
      */
     scrollPos: null,
 
     /**
-      Incremented whenever an expand/collapse occurs.
-      Clients may observe this property to respond.
-      @property   {Number}
+     Incremented whenever an expand/collapse occurs.
+     Clients may observe this property to respond.
+     @property   {Number}
      */
     expandCollapseCount: 0,
 
     scrollAnimator: null,
 
-    displayProperties: ['gridAdapter','gridDataView','_slickGrid'],
+    displayProperties: ['gridAdapter', 'gridDataView', '_slickGrid'],
 
     init: function () {
       this.beginPropertyChanges();
@@ -672,19 +679,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      Called when the view is resized, in which case the SlickGrid should resize as well.
+     Called when the view is resized, in which case the SlickGrid should resize as well.
      */
-    viewDidResize: function() {
+    viewDidResize: function () {
       sc_super();
       // We must use invokeLast() here because at this point the SproutCore
       // 'layout' has changed, but the corresponding DOM changes haven't
       // necessarily happened yet. Since SlickGrid queries the DOM objects
       // directly (via jQuery), we don't want to resize until the views have
       // finished updating the DOM.
-    this.invokeLast( function() {
-        if( this._slickGrid) {
+      this.invokeLast(function () {
+        if (this._slickGrid) {
           this._slickGrid.resizeCanvas();
-          this.setIfChanged('gridWidth', this._slickGrid.getContentSize().width);
+          this.setIfChanged('gridWidth',
+              this._slickGrid.getContentSize().width);
         }
       }.bind(this));
     },
@@ -695,7 +703,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     headerMenu: null,
 
-    hideHeaderMenu: function() {
+    hideHeaderMenu: function () {
       if (this.headerMenu) {
         this.headerMenu.hideMenu();
       }
@@ -704,61 +712,57 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     /**
      Initializes the SlickGrid from the contents of the adapter (DG.CaseTableAdapter).
      */
-    initGridView: function() {
+    initGridView: function () {
       var gridLayer = this.tableView.get('layer'),
           gridAdapter = this.get('gridAdapter'),
           dataView = gridAdapter && gridAdapter.gridDataView,
           hierTableView = this.get('parentView');
-      this._slickGrid = new Slick.Grid( gridLayer, gridAdapter.gridDataView,
-                                        gridAdapter.gridColumns, gridAdapter.gridOptions);
+      this._slickGrid = new Slick.Grid(gridLayer, gridAdapter.gridDataView,
+          gridAdapter.gridColumns, gridAdapter.gridOptions);
 
       this._slickGrid.setSelectionModel(new DG.CaseTableRowSelectionModel({
-        selectActiveRow: true,
-        caseTableAdapter: this.gridAdapter
+        selectActiveRow: true, caseTableAdapter: this.gridAdapter
       }));
 
       /*
        * Add a column header menu to each column.
        */
-      if( DG.supports('caseTableHeaderMenus')) {
+      if (DG.supports('caseTableHeaderMenus')) {
         this.headerMenu = new Slick.Plugins.HeaderMenu({
-                                                  buttonIsCell: true,
-                                                  buttonImage: static_url("images/down.gif")
-                                                });
+          buttonIsCell: true, buttonImage: static_url("images/down.gif")
+        });
         this._slickGrid.registerPlugin(this.headerMenu);
         this.$('.slick-viewport').addClass('dg-wants-touch');
 
-        this.headerMenu.onBeforeMenuShow.subscribe(function(e, args) {
+        this.headerMenu.onBeforeMenuShow.subscribe(function (e, args) {
           hierTableView.hideHeaderMenus();
           var enabledItems = 0;
           // call any associated updater functions, e.g. to enable/disable
-          if( args.menu && args.menu.items && args.menu.items.length) {
-            args.menu.items.forEach( function( ioMenuItem) {
-                                        if( ioMenuItem.updater) {
-                                          ioMenuItem.updater( args.column, args.menu, ioMenuItem);
-                                        }
-                                        if( !ioMenuItem.disabled)
-                                          ++enabledItems;
-                                     });
+          if (args.menu && args.menu.items && args.menu.items.length) {
+            args.menu.items.forEach(function (ioMenuItem) {
+              if (ioMenuItem.updater) {
+                ioMenuItem.updater(args.column, args.menu, ioMenuItem);
+              }
+              if (!ioMenuItem.disabled) ++enabledItems;
+            });
             // add 'dg-wants-touch' class to menus
-            setTimeout(function() {
+            setTimeout(function () {
               $('.slick-header-menu')
-                .addClass(function(index, classes) {
-                  return (!classes || (classes.indexOf('dg-wants-touch') < 0))
-                          ? 'dg-wants-touch' : '';
-                });
-              }, 10);
+                  .addClass(function (index, classes) {
+                    return (!classes || (classes.indexOf(
+                        'dg-wants-touch') < 0)) ? 'dg-wants-touch' : '';
+                  });
+            }, 10);
           }
           // Only show the menu if there's at least one enabled item
           return (enabledItems > 0);
         });
 
-        this.headerMenu.onCommand.subscribe(function(e, args) {
+        this.headerMenu.onCommand.subscribe(function (e, args) {
           SC.run(function () {
             var controller = getController(this);
             // Dispatch the command to the controller
-            if( controller)
-              controller.doCommand( args);
+            if (controller) controller.doCommand(args);
           }.bind(this));
         }.bind(this));
       } // DG.supports('caseTableHeaderMenus')
@@ -770,20 +774,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.subscribe('onKeyDown', this.handleKeyDown);
       this.subscribe('onScroll', this.handleScroll);
       this.subscribe('onHeaderClick', this.handleHeaderClick);
-      this.subscribe('onHeaderDragInit', function( iEvent, iDragData) {
-                        // dragging should complete any current edit
-                        DG.globalEditorLock.commitCurrentEdit();
-                        // prevent the grid from cancelling drag'n'drop by default
-                        iEvent.stopImmediatePropagation();
-                      });
+      this.subscribe('onHeaderDragInit', function (iEvent, iDragData) {
+        // dragging should complete any current edit
+        DG.globalEditorLock.commitCurrentEdit();
+        // prevent the grid from cancelling drag'n'drop by default
+        iEvent.stopImmediatePropagation();
+      });
       this.subscribe('onHeaderDragStart', this.handleHeaderDragStart);
       this.subscribe('onBeforeAutoEditCell', this.handleBeforeAutoEditCell);
       this.subscribe('onBeforeEditCell', this.handleBeforeEditCell);
-      this.subscribe('onCanvasWidthChanged', function(e, args) {
-                        SC.run( function() {
-                          this.setIfChanged('gridWidth', this._slickGrid.getContentSize().width);
-                        }.bind( this));
-                      }.bind( this));
+      this.subscribe('onCanvasWidthChanged', function (e, args) {
+        SC.run(function () {
+          this.setIfChanged('gridWidth',
+              this._slickGrid.getContentSize().width);
+        }.bind(this));
+      }.bind(this));
       this.subscribe('onColumnsResized', this.handleColumnsResized);
       this.subscribe('onColumnResizing', this.handleColumnResizing);
       this.subscribe('onSelectedRowsChanged', this.handleSelectedRowsChanged);
@@ -791,17 +796,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var sgEditController = this._slickGrid.getEditController(),
           commitFunction = sgEditController.commitCurrentEdit,
           cancelFunction = sgEditController.cancelCurrentEdit;
-      sgEditController.commitCurrentEdit = function() {
+      sgEditController.commitCurrentEdit = function () {
         var activeCell = this._slickGrid.getActiveCell(),
-            dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row);
+            dataItem = activeCell && this._slickGrid.getDataItem(
+                activeCell.row);
         if (dataItem && dataItem._isProtoCase) {
           this.resetProtoCaseTimer();
         }
         return commitFunction();
       }.bind(this);
-      sgEditController.cancelCurrentEdit = function() {
+      sgEditController.cancelCurrentEdit = function () {
         var activeCell = this._slickGrid.getActiveCell(),
-            dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row);
+            dataItem = activeCell && this._slickGrid.getDataItem(
+                activeCell.row);
         if (dataItem && dataItem._isProtoCase) {
           this.resetProtoCaseTimer();
         }
@@ -811,8 +818,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       // wire up model events to drive the grid
       dataView.onRowCountChanged.subscribe(function (e, args) {
-        SC.run( function() {
-          if( this._slickGrid) {
+        SC.run(function () {
+          if (this._slickGrid) {
             var editState = this.saveEditState();
             this._slickGrid.invalidate();
             this.set('rowCount', args.current);
@@ -820,20 +827,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               this.restoreEditStateWhenReady(editState);
             }
           }
-        }.bind( this));
-      }.bind( this));
+        }.bind(this));
+      }.bind(this));
 
       dataView.onRowsChanged.subscribe(function (e, args) {
-        SC.run( function() {
-          if( this._slickGrid) {
+        SC.run(function () {
+          if (this._slickGrid) {
             var editState = this.saveEditState();
             this._slickGrid.invalidate();
             if (editState) {
               this.restoreEditStateWhenReady(editState);
             }
           }
-        }.bind( this));
-      }.bind( this));
+        }.bind(this));
+      }.bind(this));
 
       $(gridLayer).show();
 
@@ -847,7 +854,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         ev.stopPropagation();
       });
 
-        this.adjustHeaderForOverflow();
+      this.adjustHeaderForOverflow();
       // Let clients know when there's a new _slickGrid
       this.notifyPropertyChange('gridView');
     },
@@ -858,7 +865,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (gridAdapter) {
         gridAdapter.gridDataView.refresh();
       } else {
-        DG.logWarn('CaseTableView._resetDataView: no data view' );
+        DG.logWarn('CaseTableView._resetDataView: no data view');
       }
       if (childTable && recurse) {
         childTable._refreshDataView(recurse);
@@ -899,42 +906,35 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (!childView) {
         return;
       }
-      var row = childView.getPath('gridAdapter.gridDataView').getRowById(iCaseID);
+      var row = childView.getPath('gridAdapter.gridDataView').getRowById(
+          iCaseID);
       childView.animateScrollToTop(row - iViewportPosition);
       childView.alignChildTables(iViewportPosition, iCaseID);
     },
 
-    showCaseIndexPopup: function(iEvent, iCell) {
+    showCaseIndexPopup: function (iEvent, iCell) {
       var tDataContext = this.get('dataContext'),
           tIsEnabled = this.getPath('gridAdapter.isCollectionReorgAllowed'),
           tSelection = tDataContext && tDataContext.getSelectedCases(),
           tSelectionCount = tSelection && tSelection.get('length'),
           tDeleteIsEnabled = tSelectionCount > 0,
-          tDeleteSingle = tSelectionCount === 1,
-          tItems = [
-            {
-              title: 'DG.CaseTable.indexMenu.insertCase',
-              localize: true,
-              target: this,
-              action: 'insertCase'
-            },
-            {
-              title: 'DG.CaseTable.indexMenu.insertCases',
-              localize: true,
-              target: this,
-              action: 'insertCases'
-            },
-            {
-              title: tDeleteSingle
-                        ? 'DG.CaseTable.indexMenu.deleteCase'
-                        : 'DG.CaseTable.indexMenu.deleteCases',
-              localize: true,
-              target: getController(this),
-              action: 'deleteSelectedCases',
-              isEnabled: tDeleteIsEnabled
-            }
-          ],
-          tMenu = DG.MenuPane.create({
+          tDeleteSingle = tSelectionCount === 1, tItems = [{
+            title: 'DG.CaseTable.indexMenu.insertCase',
+            localize: true,
+            target: this,
+            action: 'insertCase'
+          }, {
+            title: 'DG.CaseTable.indexMenu.insertCases',
+            localize: true,
+            target: this,
+            action: 'insertCases'
+          }, {
+            title: tDeleteSingle ? 'DG.CaseTable.indexMenu.deleteCase' : 'DG.CaseTable.indexMenu.deleteCases',
+            localize: true,
+            target: getController(this),
+            action: 'deleteSelectedCases',
+            isEnabled: tDeleteIsEnabled
+          }], tMenu = DG.MenuPane.create({
             classNames: 'dg-case-index-popup',
             layout: {width: 200, height: 150},
             items: tItems
@@ -973,11 +973,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     },
 
-    insertCase: function() {
+    insertCase: function () {
       this.doInsertCases(1);
     },
 
-    doInsertCases: function(caseCount, insertAfter) {
+    doInsertCases: function (caseCount, insertAfter) {
       var dataContext = this.get('dataContext'),
           dataView = this.getPath('gridAdapter.gridDataView'),
           clickCaseIndex = this._caseIndexMenuCell.row,
@@ -986,10 +986,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           beforeCase = dataView && dataView.getItem(beforeCaseIndex),
           collectionID = clickCase.getPath('collection.id'),
           beforeItemID = beforeCase && beforeCase.getPath('item.id'),
-          newItem = {},
-          newItems = [newItem],
-          parentCase,
-          newCaseIDs;
+          newItem = {}, newItems = [newItem], parentCase, newCaseIDs;
 
       // new case is child of same parent case(s)
       while ((parentCase = clickCase.get('parent'))) {
@@ -997,120 +994,123 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         clickCase = parentCase;
       }
 
-      for( var i = 1; i < caseCount; ++i) {
+      for (var i = 1; i < caseCount; ++i) {
         newItems.push(DG.clone(newItem));
       }
 
       // insert the new case
-      DG.UndoHistory.execute(
-        DG.Command.create({
-          name: "caseTable.insertCases",
-          undoString: 'DG.Undo.caseTable.insertCases',
-          redoString: 'DG.Redo.caseTable.insertCases',
-          log: "insert %@ cases in table".fmt(caseCount),
-          execute: function() {
-            newCaseIDs = dataContext.addItems(newItems, beforeItemID).caseIDs;
-          },
-          undo: function() {
-            var cases = newCaseIDs.map(function(caseID) { return DG.store.find('DG.Case', caseID); });
-            dataContext.deleteCasesAndChildren({ operation: 'deleteCases', cases: cases });
-          },
-          redo: function() {
-            this.execute();
-          }
-        })
-      );
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "caseTable.insertCases",
+        undoString: 'DG.Undo.caseTable.insertCases',
+        redoString: 'DG.Redo.caseTable.insertCases',
+        log: "insert %@ cases in table".fmt(caseCount),
+        execute: function () {
+          newCaseIDs = dataContext.addItems(newItems, beforeItemID).caseIDs;
+        },
+        undo: function () {
+          var cases = newCaseIDs.map(function (caseID) {
+            return DG.store.find('DG.Case', caseID);
+          });
+          dataContext.deleteCasesAndChildren(
+              {operation: 'deleteCases', cases: cases});
+        },
+        redo: function () {
+          this.execute();
+        }
+      }));
 
       // synchronize selection after case insertion
       if (newCaseIDs) {
         var newSiblingCases = [];
         // auto-select the new case that is a sibling of the one clicked
-        newCaseIDs.forEach(function(caseID) {
-                            var newCase = dataContext.getCaseByID(caseID),
-                                newCaseCollectionID = newCase && newCase.getPath('collection.id');
-                            if (newCaseCollectionID === collectionID)
-                              newSiblingCases.push(newCase);
-                          });
+        newCaseIDs.forEach(function (caseID) {
+          var newCase = dataContext.getCaseByID(caseID),
+              newCaseCollectionID = newCase && newCase.getPath('collection.id');
+          if (newCaseCollectionID === collectionID) newSiblingCases.push(
+              newCase);
+        });
         if (newSiblingCases.length) {
-          this.invokeLater(function() {
-            dataContext.applyChange({ operation: 'selectCases', cases: newSiblingCases, select: true });
+          this.invokeLater(function () {
+            dataContext.applyChange({
+              operation: 'selectCases',
+              cases: newSiblingCases,
+              select: true
+            });
           });
         }
       }
     },
 
-    insertCases: function() {
+    insertCases: function () {
       var dataContext = this.get('dataContext'),
           selectedCases = dataContext && dataContext.getSelectedCases(),
           selectedCount = selectedCases && selectedCases.get('length'),
           insertCasesPane = DG.InsertCasesDialog.create({
-                                                  caseTableView: this,
-                                                  initialCaseCount: selectedCount });
+            caseTableView: this, initialCaseCount: selectedCount
+          });
       insertCasesPane.append();
     },
 
     /**
-      Destroys the SlickGrid object and its DataView.
-      Used to respond to a change of game, where we recreate the SlickGrid from scratch.
+     Destroys the SlickGrid object and its DataView.
+     Used to respond to a change of game, where we recreate the SlickGrid from scratch.
      */
-    destroySlickGrid: function() {
-      if( this._slickGrid)
-        this._slickGrid.destroy();
+    destroySlickGrid: function () {
+      if (this._slickGrid) this._slickGrid.destroy();
       this._slickGrid = null;
       this.gridDataView = null;
     },
 
     /**
-      Destroys the SlickGrid object, its DataView object, and the CaseTableAdapter.
+     Destroys the SlickGrid object, its DataView object, and the CaseTableAdapter.
      */
-    _destroy: function() {
+    _destroy: function () {
       if (this.scrollAnimator) {
         if (this.scrollAnimator.destroy) this.scrollAnimator.destroy();
         this.scrollAnimator = null;
       }
       this.destroySlickGrid();
 
-      if( this.gridAdapter)
-        this.gridAdapter.destroy();
+      if (this.gridAdapter) this.gridAdapter.destroy();
       this.gridAdapter = null;
     },
 
     /**
-      Called when the component is about to be destroyed.
+     Called when the component is about to be destroyed.
      */
-    willDestroy: function() {
+    willDestroy: function () {
       this._destroy();
     },
 
     /**
-      Destroys the DG.CaseTableView instance.
+     Destroys the DG.CaseTableView instance.
      */
-    destroy: function() {
+    destroy: function () {
       this._destroy();
       sc_super();
     },
 
     /**
-      Utility function to assist with subscribing to (expressing interest in)
-      SlickGrid events.
-      @param    {String}    iEventName
-      @param    {Function}  iHandler -- The function to be called when the event occurs
+     Utility function to assist with subscribing to (expressing interest in)
+     SlickGrid events.
+     @param    {String}    iEventName
+     @param    {Function}  iHandler -- The function to be called when the event occurs
      */
-    subscribe: function( iEventName, iHandler) {
-      var _inHandler,
-          wrapHandler = function( iHandler) {
-            return function () {
-              var result;
-              if (!_inHandler) {
-                _inHandler = true;
-                result = iHandler.apply( this, arguments);
-                _inHandler = false;
-                return result;
-              }
-            }.bind( this);
-          }.bind( this);
+    subscribe: function (iEventName, iHandler) {
+      var _inHandler, wrapHandler = function (iHandler) {
+        return function () {
+          var result;
+          if (!_inHandler) {
+            _inHandler = true;
+            result = iHandler.apply(this, arguments);
+            _inHandler = false;
+            return result;
+          }
+        }.bind(this);
+      }.bind(this);
 
-      this._gridEventHandler.subscribe( this._slickGrid[ iEventName], wrapHandler( iHandler));
+      this._gridEventHandler.subscribe(this._slickGrid[iEventName],
+          wrapHandler(iHandler));
     },
 
     /**
@@ -1120,30 +1120,32 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
      @param   {Number}  iRowIndex -- the index of the row whose bounds are being requested
      @returns {Object}  The bounding rectangle of the specified row
-                        Object.left -- the left edge of the bounding rectangle
-                        Object.top -- the top edge of the bounding rectangle
-                        Object.right -- the right edge of the bounding rectangle
-                        Object.bottom -- the bottom edge of the bounding rectangle
+     Object.left -- the left edge of the bounding rectangle
+     Object.top -- the top edge of the bounding rectangle
+     Object.right -- the right edge of the bounding rectangle
+     Object.bottom -- the bottom edge of the bounding rectangle
      */
-    getRowBounds: function( iRowIndex) {
+    getRowBounds: function (iRowIndex) {
       // start with the bounds of the first (left-most) cell in the row
-      var rowBounds = this._slickGrid && this._slickGrid.getCellNodeBox( iRowIndex, 0),
+      var rowBounds = this._slickGrid && this._slickGrid.getCellNodeBox(
+          iRowIndex, 0),
           columns = this._slickGrid && this._slickGrid.getColumns(),
           colCount = columns && columns.length;
-      if( rowBounds && colCount) {
+      if (rowBounds && colCount) {
         // Expand the right edge to include the bounds of the last cell in the row
-        var lastCellBounds = this._slickGrid.getCellNodeBox( iRowIndex, colCount - 1);
+        var lastCellBounds = this._slickGrid.getCellNodeBox(iRowIndex,
+            colCount - 1);
         rowBounds.right = lastCellBounds.right;
       }
       return rowBounds;
     },
 
     /**
-      Respond to a change in DG.CaseTableAdapter by destroying the SlickGrid.
-      A new one will be recreated on render() if there is a valid adapter.
+     Respond to a change in DG.CaseTableAdapter by destroying the SlickGrid.
+     A new one will be recreated on render() if there is a valid adapter.
      */
-    gridAdapterDidChange: function() {
-      if( this._slickGrid) {
+    gridAdapterDidChange: function () {
+      if (this._slickGrid) {
         this.destroySlickGrid();
         this.displayDidChange();
         this.notifyPropertyChange('gridView');
@@ -1151,15 +1153,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }.observes('gridAdapter'),
 
     /**
-      Refreshes the Slick.DataView and re-renders the Slick.Grid.
+     Refreshes the Slick.DataView and re-renders the Slick.Grid.
      */
-    refresh: function() {
+    refresh: function () {
       this.setPath('gridAdapter.lastRefresh', null);
 
       var editState = this.saveEditState();
       var gridAdapter = this.get('gridAdapter');
-      if( gridAdapter) gridAdapter.refresh();
-      if( this._slickGrid) {
+      if (gridAdapter) gridAdapter.refresh();
+      if (this._slickGrid) {
         this._slickGrid.invalidate();
         if (editState) {
           this.restoreEditStateWhenReady(editState);
@@ -1169,16 +1171,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      SproutCore render method.
+     SproutCore render method.
      * @param {SC.RenderContext} iContext
      * @param {boolean} iFirstTime
      */
-    render: function( iContext, iFirstTime) {
+    render: function (iContext, iFirstTime) {
       sc_super();
 
-      if( this._slickGrid) {
+      if (this._slickGrid) {
         var gridAdapter = this.get('gridAdapter');
-        if( this._rowDataDidChange) {
+        if (this._rowDataDidChange) {
           gridAdapter.refresh();
         }
         // Render with our changes
@@ -1190,43 +1192,45 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     },
 
-    didAppendToDocument: function() {
+    didAppendToDocument: function () {
       var gridAdapter = this.get('gridAdapter');
       if (!this._slickGrid && SC.none(gridAdapter)) {
-        console.log("DG.CaseTableView.didAppendToDocument: Can't initialize _slickGrid!");
+        console.log(
+            "DG.CaseTableView.didAppendToDocument: Can't initialize _slickGrid!");
         return;
       }
 
-      if( !this._slickGrid) {
+      if (!this._slickGrid) {
         this.initGridView();
         this.set('gridWidth', this._slickGrid.getContentSize().width);
       }
 
       // initial layout
-      this.invokeLater(function() {
+      this.invokeLater(function () {
         this.ancestorViewDidResizeOrScroll();
       }.bind(this));
     },
 
     /**
-      Returns the touch position in view coordinates.
-      @param    {Object}    iTouch The touch event
-      @returns  {Object}    The { x:, y: } location of the touch in view coordinates
+     Returns the touch position in view coordinates.
+     @param    {Object}    iTouch The touch event
+     @returns  {Object}    The { x:, y: } location of the touch in view coordinates
      */
-    touchPosInView: function( iTouch) {
-      return this.convertFrameFromView({ x: iTouch.pageX, y: iTouch.pageY }, null, true);
+    touchPosInView: function (iTouch) {
+      return this.convertFrameFromView({x: iTouch.pageX, y: iTouch.pageY}, null,
+          true);
     },
 
     /**
-      Returns the touch position in table body content coordinates.
-      @param    {Object}    iTouch The touch event
-      @returns  {Object}    The { x:, y: } location of the touch in table body content coordinates
+     Returns the touch position in table body content coordinates.
+     @param    {Object}    iTouch The touch event
+     @returns  {Object}    The { x:, y: } location of the touch in table body content coordinates
      */
-    touchPosInBodyContent: function( iTouch) {
-      var touchPos = this.touchPosInView( iTouch),
+    touchPosInBodyContent: function (iTouch) {
+      var touchPos = this.touchPosInView(iTouch),
           scrollPos = this.get('scrollPos');
       touchPos.y -= kHeaderHeight;
-      if( scrollPos) {
+      if (scrollPos) {
         touchPos.x += scrollPos.scrollLeft;
         touchPos.y += scrollPos.scrollTop;
       }
@@ -1234,71 +1238,71 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      Returns the cell in which the specified touch event occurred.
-      @param    {Object}    iTouch The touch event
-      @returns  {Object}    The { row:, cell: } indices of the touched cell
+     Returns the cell in which the specified touch event occurred.
+     @param    {Object}    iTouch The touch event
+     @returns  {Object}    The { row:, cell: } indices of the touched cell
      */
-    cellFromTouch: function( iTouch) {
-      var cell = {}, touchPos = this.touchPosInView( iTouch);
-      if( touchPos.y < kHeaderHeight) {
+    cellFromTouch: function (iTouch) {
+      var cell = {}, touchPos = this.touchPosInView(iTouch);
+      if (touchPos.y < kHeaderHeight) {
         // we only care about the column here
-        cell = this._slickGrid.getCellFromPoint( touchPos.x, 0);
+        cell = this._slickGrid.getCellFromPoint(touchPos.x, 0);
         cell.row = -1;  // signals header row
-      }
-      else {
-        cell = this.bodyCellFromTouch( iTouch);
+      } else {
+        cell = this.bodyCellFromTouch(iTouch);
       }
       return cell;
     },
 
-    bodyCellFromTouch: function( iTouch) {
-      var touchPos = this.touchPosInBodyContent( iTouch);
-      return this._slickGrid.getCellFromPoint( touchPos.x, touchPos.y);
+    bodyCellFromTouch: function (iTouch) {
+      var touchPos = this.touchPosInBodyContent(iTouch);
+      return this._slickGrid.getCellFromPoint(touchPos.x, touchPos.y);
     },
 
     _touchStartTouch: null,
     _touchStartCell: null,
     _touchDragCell: null,
 
-    captureTouch: function(touch) {
+    captureTouch: function (touch) {
       return YES;
     },
 
     /**
-      Called when the table is scrolled.
-      @param  {Slick.Event}   iEvent -- the event which triggered the scroll
-      @param  {*} iArgs {{scrollTop: number, scrollLeft: number}}
+     Called when the table is scrolled.
+     @param  {Slick.Event}   iEvent -- the event which triggered the scroll
+     @param  {*} iArgs {{scrollTop: number, scrollLeft: number}}
      */
-    handleScroll: function( iEvent, iArgs) {
+    handleScroll: function (iEvent, iArgs) {
       this.set('scrollPos', iArgs);
     },
 
-    handleBeforeAutoEditCell: function(iEvent, iArgs) {
+    handleBeforeAutoEditCell: function (iEvent, iArgs) {
       // enable autoEdit for keyboard navigation and for the proto-case row
       var activeRowItem = this._slickGrid.getDataItem(iArgs.row);
       return (iArgs.source === 'navigate') || (activeRowItem && activeRowItem._isProtoCase);
     },
 
-    handleBeforeEditCell: function(iEvent, iArgs) {
+    handleBeforeEditCell: function (iEvent, iArgs) {
       var activeRowItem = this._slickGrid.getDataItem(iArgs.row),
           rowCount = this._slickGrid.getDataLength(),
           lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
-          hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values),
-          retval = true;
+          hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(
+              lastRowItem._values), retval = true;
 
       this.clearProtoCaseTimer();
 
       SC.run(function () {
         // editing another case commits the proto-case
-        if (!activeRowItem._isProtoCase && hasProtoCase)
-          this.commitProtoCase(lastRowItem);
+        if (!activeRowItem._isProtoCase && hasProtoCase) this.commitProtoCase(
+            lastRowItem);
 
         // editing the proto-case deselects other rows
         if (activeRowItem._isProtoCase) {
           this.get('gridAdapter').deselectAllCases();
         }
         // if attribute not editable and not the proto-case row, then can't edit
-        else if (!this.get('gridAdapter').isCellEditable(iArgs.row, iArgs.cell)) {
+        else if (!this.get('gridAdapter').isCellEditable(iArgs.row,
+            iArgs.cell)) {
           retval = false;
         } else {
           this.get('gridAdapter').deselectAllCases();
@@ -1308,11 +1312,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      Called when a drag is started in a column header cell.
-      @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
-      @param  {Object}        iDragData -- additional information about the drag
+     Called when a drag is started in a column header cell.
+     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
+     @param  {Object}        iDragData -- additional information about the drag
      */
-    handleHeaderDragStart: function( iEvent, iDragData) {
+    handleHeaderDragStart: function (iEvent, iDragData) {
       DG.TouchTooltips.hideAllTouchTooltips();
       // don't show a touch-tooltip after starting a drag
       this.cancelAttrTapHold();
@@ -1328,8 +1332,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       // stopImmediatePropagation() doesn't exist (and apparently isn't necessary)
       // when handling touch events.
-      if( iEvent.stopImmediatePropagation)
-        iEvent.stopImmediatePropagation();
+      if (iEvent.stopImmediatePropagation) iEvent.stopImmediatePropagation();
 
       hierTableView.hideHeaderMenus();
       // We make this funky call to mainPane because (we think) SlickGrid has swallowed the mousedown
@@ -1337,13 +1340,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       DG.mainPage.mainPane.hideInspectorPicker();
       var tDragView = this._hiddenDragView,
           tAttributeName = column.attribute.get('name');
-      SC.run( function () {
+      SC.run(function () {
         tDragView.set('value', tAttributeName);
-        this.removeChild( tDragView);
-        this.appendChild( tDragView);
+        this.removeChild(tDragView);
+        this.appendChild(tDragView);
       }.bind(this));
       // setting attribute and starting drag need to be in separate run loops.
-      SC.run( function() {
+      SC.run(function () {
         // Make sure dragView is in front. Won't actually happen without this runloop.
         // We could dynamically adjust the width here, but since the font used for the
         // drag image is currently different than the one used in the table, it's not
@@ -1371,15 +1374,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     inProgressAttributeEditElementName: null,
-    completeEditAttributeName: function() {
+    completeEditAttributeName: function () {
       var attrName = this.inProgressAttributeEditElementName;
       var elt = this.$('#attribute-name-editor');
       if (attrName) {
-        SC.run(function() {
-          var $input = elt,
-              dataContext = this.get('dataContext'),
+        SC.run(function () {
+          var $input = elt, dataContext = this.get('dataContext'),
               unit = DG.Attribute.extractUnitFromNameString($input.val()),
-              newName = dataContext.getUniqueAttributeName($input.val(), [attrName]);
+              newName = dataContext.getUniqueAttributeName($input.val(),
+                  [attrName]);
           if ((newName !== attrName) || unit) {
             var controller = getController(this),
                 attrRef = dataContext && dataContext.getAttrRefByName(attrName);
@@ -1394,7 +1397,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     },
     cancelEditAttributeElement: function () {
-      SC.run(function() {
+      SC.run(function () {
         this.updateColumnInfo();
         this.inProgressAttributeEditElementName = null;
       }.bind(this));
@@ -1408,14 +1411,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       DG.globalEditorLock.deactivate(this);
     },
     /**
-      Makes the attribute name editable in the appropriate column header.
-      Since SlickGrid doesn't support editable column headers natively, we use
-      jQuery to install an <input> element and manage it completely outside SlickGrid.
-      @param  {string}  attrName -- the name of the attribute to be edited
+     Makes the attribute name editable in the appropriate column header.
+     Since SlickGrid doesn't support editable column headers natively, we use
+     jQuery to install an <input> element and manage it completely outside SlickGrid.
+     @param  {string}  attrName -- the name of the attribute to be edited
      */
-    beginEditAttributeName: function(attrName) {
-      var _this = this,
-          gridAdapter = this.get('gridAdapter'),
+    beginEditAttributeName: function (attrName) {
+      var _this = this, gridAdapter = this.get('gridAdapter'),
           column = gridAdapter && gridAdapter.getAttributeColumn(attrName),
           columnIndex = column && column.columnIndex,
           headerColumns = this.$('.slick-header-column'),
@@ -1426,49 +1428,67 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       DG.globalEditorLock.activate(this);
       this.inProgressAttributeEditElementName = attrName;
       if ($nameEl) {
-        $nameEl.empty().append($('<input>').addClass('dg-attr-name-edit-input').val(attrName));
-        this.getPath('parentView.parentView.parentView').scrollDOMElementHorizontallyToView($nameEl[0]);
+        $nameEl.empty().append(
+            $('<input>').addClass('dg-attr-name-edit-input').val(attrName));
+        this.getPath(
+            'parentView.parentView.parentView').scrollDOMElementHorizontallyToView(
+            $nameEl[0]);
         var $input = $nameEl.find('input');
-        $input.attr({ type: 'text', autocapitalize: 'none', autocomplete: 'off',
-                       autocorrect: 'off', inputmode: 'latin-name', spellcheck: false, id: 'attribute-name-editor' })
-              .on('mousedown', function(evt) {
-                evt.stopImmediatePropagation();
-              })
-              .on('mouseup', function(evt) { evt.stopImmediatePropagation(); })
-              .on('touchstart', function(evt) {
-                evt.stopImmediatePropagation();
-              })
-              .on('touchend', function(evt) {
-                evt.stopImmediatePropagation();
-              })
-              .on('dragstart', function() { return false; })
-              .on('click', function(evt) {
-                            evt.preventDefault();
-                            evt.stopImmediatePropagation();
-                          })
-              .on('change', function() { _this.completeEditAttributeName(this); })
-              .on('blur', function() { _this.completeEditAttributeName(this); })
-              .on('keydown', function(evt) {
-                              switch(evt.keyCode) {
-                                case 13:
-                                  _this.completeEditAttributeName(this);
-                                  break;
-                                case 27:
-                                  _this.cancelEditAttributeName(this);
-                                  break;
-                              }
-                            })
-              .focus()
-              .select();
+        $input.attr({
+          type: 'text',
+          autocapitalize: 'none',
+          autocomplete: 'off',
+          autocorrect: 'off',
+          inputmode: 'latin-name',
+          spellcheck: false,
+          id: 'attribute-name-editor'
+        })
+            .on('mousedown', function (evt) {
+              evt.stopImmediatePropagation();
+            })
+            .on('mouseup', function (evt) {
+              evt.stopImmediatePropagation();
+            })
+            .on('touchstart', function (evt) {
+              evt.stopImmediatePropagation();
+            })
+            .on('touchend', function (evt) {
+              evt.stopImmediatePropagation();
+            })
+            .on('dragstart', function () {
+              return false;
+            })
+            .on('click', function (evt) {
+              evt.preventDefault();
+              evt.stopImmediatePropagation();
+            })
+            .on('change', function () {
+              _this.completeEditAttributeName(this);
+            })
+            .on('blur', function () {
+              _this.completeEditAttributeName(this);
+            })
+            .on('keydown', function (evt) {
+              switch (evt.keyCode) {
+                case 13:
+                  _this.completeEditAttributeName(this);
+                  break;
+                case 27:
+                  _this.cancelEditAttributeName(this);
+                  break;
+              }
+            })
+            .focus()
+            .select();
         // $plusEl.addClass('disabled');
       }
     },
 
     /**
-      Called when a table header cell is clicked.
-      @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
+     Called when a table header cell is clicked.
+     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
      */
-    handleHeaderClick: function(iEvent, iArgs) {
+    handleHeaderClick: function (iEvent, iArgs) {
       DG.globalEditorLock.commitCurrentEdit();
     },
 
@@ -1477,24 +1497,23 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * @param iEvent
      */
     handleClick: function (iEvent, iCell) {
-      SC.run(function() {
+      SC.run(function () {
         var hierTableView = this.get('parentView');
         hierTableView.hideHeaderMenus();
 
         var dataContext = this.get('dataContext'),
             dataItem = this._slickGrid.getDataItem(iCell.row),
-            collection = this.getPath('gridAdapter.collection'),
-            // when a group is closed, its slickgrid dataItem is the parent case,
+            collection = this.getPath(
+                'gridAdapter.collection'), // when a group is closed, its slickgrid dataItem is the parent case,
             // so its collection will not match the collection for the current view
-            isClosedGroup = dataItem && collection &&
-                (dataItem.get('collection').get('id') !== collection.get('id')),
+            isClosedGroup = dataItem && collection && (dataItem.get(
+                'collection').get('id') !== collection.get('id')),
             isProtoCase = dataItem && dataItem._isProtoCase;
-        if (iCell.cell === 0 ) {
-          if (isProtoCase)
-            this.get('gridAdapter').deselectAllCases();
-          if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem)
-              && !isClosedGroup)
-            this.showCaseIndexPopup(iEvent, iCell);
+        if (iCell.cell === 0) {
+          if (isProtoCase) this.get('gridAdapter').deselectAllCases();
+          if (DG.DataContextUtilities.isCaseEditable(dataContext,
+              dataItem) && !isClosedGroup) this.showCaseIndexPopup(iEvent,
+              iCell);
         }
       }.bind(this));
     },
@@ -1533,71 +1552,70 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           activeCell = this._slickGrid.getActiveCell(),
           dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row),
 
-          handlePrev = function() {
+          handlePrev = function () {
             this.clearProtoCaseTimer();
 
-            if (!dataItem._isProtoCase || (activeCell.cell > findFirstFocusableColumn(columns))) {
+            if (!dataItem._isProtoCase || (activeCell.cell > findFirstFocusableColumn(
+                columns))) {
               this._slickGrid.navigatePrev();
             }
             // navigating off the proto-case commits it
-            else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase &&
-                      DG.ObjectMap.length(dataItem._values)) {
-              SC.run(function() {
+            else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase && DG.ObjectMap.length(
+                dataItem._values)) {
+              SC.run(function () {
                 this.commitProtoCase(dataItem);
                 // wait until everything has refreshed to navigate to the next row
-                this.invokeNext(function() {
+                this.invokeNext(function () {
                   this._slickGrid.navigatePrev();
                 }.bind(this));
               }.bind(this));
-            }
-            else {
+            } else {
               this._slickGrid.navigatePrev();
             }
 
             iEvent.stopImmediatePropagation();
           }.bind(this),
 
-          handleNext = function() {
+          handleNext = function () {
             this.clearProtoCaseTimer();
 
-            if (!dataItem._isProtoCase || (activeCell.cell < findLastFocusableColumn(columns))) {
+            if (!dataItem._isProtoCase || (activeCell.cell < findLastFocusableColumn(
+                columns))) {
               this._slickGrid.navigateNext();
             }
             // navigating off the proto-case commits it
-            else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase &&
-                      DG.ObjectMap.length(dataItem._values)) {
-              SC.run(function() {
+            else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase && DG.ObjectMap.length(
+                dataItem._values)) {
+              SC.run(function () {
                 this.commitProtoCase(dataItem);
                 // wait until everything has refreshed to navigate to the next row
-                this.invokeNext(function() {
+                this.invokeNext(function () {
                   this._slickGrid.navigateNext();
                 }.bind(this));
               }.bind(this));
-            }
-            else {
+            } else {
               this._slickGrid.editActiveCell();
             }
 
             iEvent.stopImmediatePropagation();
           }.bind(this),
 
-          handleUp = function() {
+          handleUp = function () {
             if (!dataItem._isProtoCase) {
               this._slickGrid.navigateUp();
             }
             // navigating off the proto-case commits it
-            else if (dataItem._isProtoCase && editorLock.commitCurrentEdit() &&
-                      DG.ObjectMap.length(dataItem._values)) {
-              SC.run(function() {
+            else if (dataItem._isProtoCase && editorLock.commitCurrentEdit() && DG.ObjectMap.length(
+                dataItem._values)) {
+              SC.run(function () {
                 this.clearProtoCaseTimer();
                 this.commitProtoCase(dataItem);
                 // wait until everything has refreshed to navigate to the next row
-                this.invokeNext(function() {
+                this.invokeNext(function () {
                   this._slickGrid.navigateUp();
                 }.bind(this));
               }.bind(this));
-            }
-            else {
+            } else {
               this.clearProtoCaseTimer();
               this._slickGrid.navigateUp();
             }
@@ -1605,23 +1623,22 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             iEvent.stopImmediatePropagation();
           }.bind(this),
 
-          handleDown = function() {
+          handleDown = function () {
             if (!dataItem._isProtoCase) {
               this._slickGrid.navigateDown();
             }
             // navigating off the proto-case commits it
-            else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase &&
-                      DG.ObjectMap.length(dataItem._values)) {
-              SC.run(function() {
+            else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase && DG.ObjectMap.length(
+                dataItem._values)) {
+              SC.run(function () {
                 this.clearProtoCaseTimer();
                 this.commitProtoCase(dataItem);
                 // wait until everything has refreshed to navigate to the next row
-                this.invokeNext(function() {
+                this.invokeNext(function () {
                   this._slickGrid.navigateDown();
                 }.bind(this));
               }.bind(this));
-            }
-            else {
+            } else {
               this._slickGrid.editActiveCell();
             }
 
@@ -1631,16 +1648,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (editorIsActive && dataItem) {
         switch (iEvent.keyCode) {
           case 9:
-            if (iEvent.shiftKey)
-              handlePrev();
-            else
-              handleNext();
+            if (iEvent.shiftKey) handlePrev(); else handleNext();
             break;
           case 13:
-            if (iEvent.shiftKey)
-              handleUp();
-            else
-              handleDown();
+            if (iEvent.shiftKey) handleUp(); else handleDown();
             break;
           case 38:
             handleUp();
@@ -1657,12 +1668,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * @param iEvent
      * @param {{grid: SlickGrid}}iArgs
      */
-    handleColumnsResized: function(iEvent, iArgs) {
+    handleColumnsResized: function (iEvent, iArgs) {
       var parentView = this.get('parentView');
       var model = parentView && parentView.get('model');
       var columnWidths = this.get('columnWidths');
-      if (parentView) {
-        DG.ObjectMap.forEach(columnWidths, function(key, value) {
+      if (model) {
+        DG.ObjectMap.forEach(columnWidths, function (key, value) {
           model.setPreferredAttributeWidth(key, value);
         });
       }
@@ -1676,6 +1687,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (this.isComponentDetached()) {
         return;
       }
+
       /**
        * reverse a string: while doing so, reverse the direction of bracket-like
        * characters.
@@ -1683,12 +1695,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       function reverse(str) {
         // str.split("").reverse().join("");
         var rMap = {
-          '[': ']',
-          ']': '[',
-          '{': '}',
-          '}': '{',
-          '(': ')',
-          ')': '('
+          '[': ']', ']': '[', '{': '}', '}': '{', '(': ')', ')': '('
         };
         if (!str) return str;
         var s = str.split('');
@@ -1702,30 +1709,28 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }
         return n.join('');
       }
+
       function makeLinePair($el) {
         var text = $el.text().replace(/_/g, ' ');
         var $line1 = $('<span>').addClass('two-line-header-line-1').text(text);
-        var $line2 = $('<span>').addClass('two-line-header-line-2').text(reverse(text));
+        var $line2 = $('<span>').addClass('two-line-header-line-2').text(
+            reverse(text));
         $el.empty().append($line1).append($line2);
       }
+
       function computeMiddleEllipsis($el) {
         var width = $el.width();
         var height = $el.height();
         var v1 = $('.two-line-header-line-1', $el);
-        var style = [
-          'font-style:' + v1.css('font-style'),
-          'font-variant:' + v1.css('font-variant'),
-          'font-weight:' + v1.css('font-weight'),
-          'font-stretch:' + v1.css('font-stretch'),
-          'line-height:' + v1.css('line-height'),
-          'font-size:' + v1.css('font-size'),
-          'font-family:' + v1.css('font-family'),
-          'width:' + width + 'px',
-          'height:' + height + 'px',
-          'overflow: auto',
-          'hyphens: auto',
-          'white-space: normal'
-        ].join(';');
+        var style = ['font-style:' + v1.css(
+            'font-style'), 'font-variant:' + v1.css(
+            'font-variant'), 'font-weight:' + v1.css(
+            'font-weight'), 'font-stretch:' + v1.css(
+            'font-stretch'), 'line-height:' + v1.css(
+            'line-height'), 'font-size:' + v1.css(
+            'font-size'), 'font-family:' + v1.css(
+            'font-family'), 'width:' + width + 'px', 'height:' + height + 'px', 'overflow: auto', 'hyphens: auto', 'white-space: normal'].join(
+            ';');
         var text = v1.text();
         var textMeasure = DG.measureText(text, style);
         // DG.log('text, height, width, textMeasure.height, textMeasure.width, ' +
@@ -1739,16 +1744,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }
       }
 
-      $(this.get('layer')).find('.slick-header-column').each(function (ix, cell) {
-        // if we are mid-edit of a header field, ignore this attr.
-        if ($(cell).find('input').length) { return; }
-        var $nameElement = $(cell).find('.slick-column-name');
-        var $line1 = $nameElement.find('.two-line-header-line-1');
-        if (!$line1.length) {
-          makeLinePair($nameElement);
-        }
-        computeMiddleEllipsis($nameElement);
-      });
+      $(this.get('layer')).find('.slick-header-column').each(
+          function (ix, cell) {
+            // if we are mid-edit of a header field, ignore this attr.
+            if ($(cell).find('input').length) {
+              return;
+            }
+            var $nameElement = $(cell).find('.slick-column-name');
+            var $line1 = $nameElement.find('.two-line-header-line-1');
+            if (!$line1.length) {
+              makeLinePair($nameElement);
+            }
+            computeMiddleEllipsis($nameElement);
+          });
     },
 
     /**
@@ -1756,7 +1764,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * @param iEvent
      * @param {{grid: SlickGrid}}iArgs
      */
-    handleSelectedRowsChanged: function(iEvent, iArgs) {
+    handleSelectedRowsChanged: function (iEvent, iArgs) {
       var selectedRows = iArgs.rows,
           selectedRowCount = selectedRows && selectedRows.length,
           editorLock = this._slickGrid.getEditorLock(),
@@ -1766,46 +1774,46 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           activeCell = this._slickGrid.getActiveCell(),
           isActiveProtoCase = hasProtoCase && activeCell && (activeCell.row === rowCount - 1);
 
-        // if non-proto-case rows are selected, commit the proto-case
-        if (selectedRowCount) {
-          editorLock.commitCurrentEdit();
-          if (isActiveProtoCase && DG.ObjectMap.length(lastRowItem._values)) {
-            this.invokeLater(function() {
-              SC.run(function() {
-                this.commitProtoCase(lastRowItem);
-              }.bind(this));
-            });
-          }
+      // if non-proto-case rows are selected, commit the proto-case
+      if (selectedRowCount) {
+        editorLock.commitCurrentEdit();
+        if (isActiveProtoCase && DG.ObjectMap.length(lastRowItem._values)) {
+          this.invokeLater(function () {
+            SC.run(function () {
+              this.commitProtoCase(lastRowItem);
+            }.bind(this));
+          });
         }
+      }
     },
 
     /**
-      Refreshes the column headers to accommodate new attributes.
-      Call when the column header info is required for new attributes.
+     Refreshes the column headers to accommodate new attributes.
+     Call when the column header info is required for new attributes.
      */
-    updateColumnInfo: function() {
-      if( this._slickGrid) {
-        this.setColumns( this.get('gridAdapter').updateColumnInfo());
+    updateColumnInfo: function () {
+      if (this._slickGrid) {
+        this.setColumns(this.get('gridAdapter').updateColumnInfo());
         this._slickGrid.invalidate();
       }
     },
 
     /**
-      Refreshes the column headers when attribute information has changed.
-      @param  {Array of Objects}  iColumnsInfo -- Array of column entries
+     Refreshes the column headers when attribute information has changed.
+     @param  {[object]}  iColumnsInfo -- Array of column entries
      */
-    setColumns: function( iColumnsInfo) {
-      if( this._slickGrid) {
-        this._slickGrid.setColumns( iColumnsInfo);
+    setColumns: function (iColumnsInfo) {
+      if (this._slickGrid) {
+        this._slickGrid.setColumns(iColumnsInfo);
         this._slickGrid.render();
         this.adjustHeaderForOverflow();
       }
     },
 
     /**
-      Returns the currently active edit state (if any).
+     Returns the currently active edit state (if any).
      */
-    saveEditState: function() {
+    saveEditState: function () {
       var editor = this._slickGrid && this._slickGrid.getCellEditor(),
           editState = editor && editor.saveEditState(),
           editController = editState && this._slickGrid.getEditController();
@@ -1815,21 +1823,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      Restores a previously active edit state.
+     Restores a previously active edit state.
      */
-    restoreEditState: function(state) {
+    restoreEditState: function (state) {
       var editCase = state && state.item,
           isProtoCase = editCase && editCase._isProtoCase,
-          caseId = editCase && editCase.id,
-          editColumn = state && state.column,
+          caseId = editCase && editCase.id, editColumn = state && state.column,
           editAttr = editColumn && editColumn.attribute,
 
           gridAdapter = this.get('gridAdapter'),
           gridDataView = gridAdapter && gridAdapter.get('gridDataView'),
-          editRow = isProtoCase
-                      ? gridDataView.get('caseTableLength') - 1
-                      : gridDataView.getRowById(caseId),
-          editCell = editAttr && gridAdapter.getColumnIndexFromAttribute(editAttr);
+          editRow = isProtoCase ? gridDataView.get(
+              'caseTableLength') - 1 : gridDataView.getRowById(caseId),
+          editCell = editAttr && gridAdapter.getColumnIndexFromAttribute(
+              editAttr);
       if ((editRow != null) && (editRow >= 0) && (editCell != null) && (editCell >= 0)) {
         this._slickGrid.setActiveCell(editRow, editCell);
         this._slickGrid.editActiveCell();
@@ -1839,22 +1846,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      Waits to update a previously active edit state until sufficient time
-      has elapsed since the last table refresh. This allows us to wait until
-      the dust settles so that we don't try to restore a previous edit state
-      in the middle of a sequence of operations that will just wipe out the
-      active edit again.
+     Waits to update a previously active edit state until sufficient time
+     has elapsed since the last table refresh. This allows us to wait until
+     the dust settles so that we don't try to restore a previous edit state
+     in the middle of a sequence of operations that will just wipe out the
+     active edit again.
      */
-    restoreEditStateWhenReady: function(state) {
-      var restoreWhenReady = function() {
+    restoreEditStateWhenReady: function (state) {
+      var restoreWhenReady = function () {
         if (state) {
           var lastRefresh = this.getPath('gridAdapter.lastRefresh'),
               elapsed = lastRefresh ? new Date() - lastRefresh : 0,
               kThreshold = 50;
           if (elapsed >= kThreshold) {
             this.restoreEditState(state);
-          }
-          else {
+          } else {
             setTimeout(restoreWhenReady, kThreshold - elapsed);
           }
         }
@@ -1866,18 +1872,18 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-      Expands/collapses all of the row groups at once.
-      @param    {Boolean}   iExpand -- Expands all row groups if truthy;
-                                        collapses all row groups otherwise
+     Expands/collapses all of the row groups at once.
+     @param    {Boolean}   iExpand -- Expands all row groups if truthy;
+     collapses all row groups otherwise
      */
-    expandCollapseAll: function( iExpand) {
+    expandCollapseAll: function (iExpand) {
       var collection = this.getPath('gridAdapter.collection');
       var cases = collection.get('casesController');
       var dataView = this.getPath('gridAdapter.gridDataView');
       var model = this.parentView.get('model');
 
-      DG.assert( collection);
-      DG.assert( cases);
+      DG.assert(collection);
+      DG.assert(cases);
       var priorExpCoState = model.get('collapsedNodes');
 
       DG.UndoHistory.execute(DG.Command.create({
@@ -1892,9 +1898,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           cases.forEach(function (myCase) {
             try {
               if (iExpand) {
-                dataView.expandGroup( myCase.id);
+                dataView.expandGroup(myCase.id);
               } else {
-                dataView.collapseGroup( myCase.id);
+                dataView.collapseGroup(myCase.id);
               }
             } catch (e) {
               DG.logError('expandCollapseAll: ' + e);
@@ -1906,7 +1912,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         undo: function () {
           this.beginDataViewUpdate(true);
           cases.forEach(function (myCase) {
-            dataView.expandGroup( myCase.id);
+            dataView.expandGroup(myCase.id);
           });
           priorExpCoState.forEach(function (caseID) {
             dataView.collapseGroup(caseID);
@@ -1923,54 +1929,55 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     },
 
-      /**
-       * This method should be called at the beginning of a multipart update
-       * affecting the gridDataView so as to prevent potentially expensive
-       * redundant calculations. GridDataView.refresh() will be bypassed until
-       * endDataViewUpdate is called.
-       * @param recurse {boolean}
-       */
-      beginDataViewUpdate: function (recurse) {
-        var dataView = this.getPath('gridAdapter.gridDataView');
-        var childTable = this.get('childTable');
-        DG.assert( dataView);
-        dataView.beginUpdate();
-        if (recurse && childTable) {
-          childTable.beginDataViewUpdate(recurse);
-        }
-      },
-
-      /**
-       * Should be called at the end of a multipart update affecting the gridDataView.
-       *
-       * @param recurse {boolean}
-       */
-      endDataViewUpdate: function (recurse) {
-        var dataView = this.getPath('gridAdapter.gridDataView');
-        var childTable = this.get('childTable');
-        DG.assert( dataView);
-        dataView.endUpdate();
-        if (recurse && childTable) {
-          childTable.endDataViewUpdate(recurse);
-        }
-      },
     /**
-      Refreshes the row data. Call when the table body needs to be refreshed.
+     * This method should be called at the beginning of a multipart update
+     * affecting the gridDataView so as to prevent potentially expensive
+     * redundant calculations. GridDataView.refresh() will be bypassed until
+     * endDataViewUpdate is called.
+     * @param recurse {boolean}
      */
-    updateRowData: function() {
+    beginDataViewUpdate: function (recurse) {
+      var dataView = this.getPath('gridAdapter.gridDataView');
+      var childTable = this.get('childTable');
+      DG.assert(dataView);
+      dataView.beginUpdate();
+      if (recurse && childTable) {
+        childTable.beginDataViewUpdate(recurse);
+      }
+    },
+
+    /**
+     * Should be called at the end of a multipart update affecting the gridDataView.
+     *
+     * @param recurse {boolean}
+     */
+    endDataViewUpdate: function (recurse) {
+      var dataView = this.getPath('gridAdapter.gridDataView');
+      var childTable = this.get('childTable');
+      DG.assert(dataView);
+      dataView.endUpdate();
+      if (recurse && childTable) {
+        childTable.endDataViewUpdate(recurse);
+      }
+    },
+
+    /**
+     Refreshes the row data. Call when the table body needs to be refreshed.
+     */
+    updateRowData: function () {
       this._rowDataDidChange = true;
       this._renderRequired = true;
       this.displayDidChange();
     },
 
     /**
-      Synchronizes the number of table rows with the number of cases.
-      Tries to do so efficiently, but has to rebuild the table in some cases.
+     Synchronizes the number of table rows with the number of cases.
+     Tries to do so efficiently, but has to rebuild the table in some cases.
 
-      @param  forceRedraw {Boolean} Whether to force a re-indexing of the rows
+     @param  forceRedraw {Boolean} Whether to force a re-indexing of the rows
      */
-    updateRowCount: function( forceRedraw) {
-      if( !this._slickGrid) return;
+    updateRowCount: function (forceRedraw) {
+      if (!this._slickGrid) return;
 
       // For now, additions and deletions require complete rebuild.
       // When deletion is handled via DataContext API we can do better.
@@ -1991,8 +1998,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var viewportHeight = viewport.bottom - viewport.top; // in rows
       var viewportCenterHeight = Math.max(viewportHeight - 4, 0);
       var viewportCenterDelta = (viewportHeight - viewportCenterHeight - 1) / 2;
-      var isARowVisible = (Math.abs(minDeltaFromMidViewPort) <= (viewportCenterHeight / 2));
-      var newTop = Math.max(viewport.top + viewportCenterDelta - minDeltaFromMidViewPort, 0);
+      var isARowVisible = (Math.abs(
+          minDeltaFromMidViewPort) <= (viewportCenterHeight / 2));
+      var newTop = Math.max(
+          viewport.top + viewportCenterDelta - minDeltaFromMidViewPort, 0);
       // DG.log('collection,minDeltaFromMidViewPort,viewportHeight,viewportCenterHeight,viewportCenterDelta,isARowVisible,newTop=['+[this.get('collectionName'),minDeltaFromMidViewPort,viewportHeight,viewportCenterHeight,viewportCenterDelta,isARowVisible,newTop].join() + ']');
       // The slickgrid viewport is measured in rows and includes the
       // header and partial rows. To guarantee the value is within the visible
@@ -2003,51 +2012,52 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     },
 
-      animateScrollToTop: function (rowIndex) {
-        var viewport = this._slickGrid.getViewport();
-        this.scrollAnimator.animate(this, viewport.top, rowIndex);
-      },
+    animateScrollToTop: function (rowIndex) {
+      var viewport = this._slickGrid.getViewport();
+      this.scrollAnimator.animate(this, viewport.top, rowIndex);
+    },
 
-      /**
-       * It is possible that the DOM and SlickGrid get out of sync. This method
-       * makes the DOM match Slickgrid's idea of the current scroll state.
-       */
-      refreshScroll: function() {
-        var rowIx = this._slickGrid.getViewport().top;
-        this.scrollToRow(0);
-        this.scrollToRow(rowIx);
-      },
+    /**
+     * It is possible that the DOM and SlickGrid get out of sync. This method
+     * makes the DOM match Slickgrid's idea of the current scroll state.
+     */
+    refreshScroll: function () {
+      var rowIx = this._slickGrid.getViewport().top;
+      this.scrollToRow(0);
+      this.scrollToRow(rowIx);
+    },
 
-      /**
-       * Scrolls the table so that the indicated row is at the top of the displayed
-       * region, if possible.
-       */
-      scrollToRow: function (rowIx) {
-        this._slickGrid.scrollRowToTop(rowIx);
-      },
+    /**
+     * Scrolls the table so that the indicated row is at the top of the displayed
+     * region, if possible.
+     */
+    scrollToRow: function (rowIx) {
+      this._slickGrid.scrollRowToTop(rowIx);
+    },
 
-      /**
-       * Returns the minimum distance of an array of rows to the viewport middle in row units.
-       * @param  rowArray {[Number]}   Array of indices of rows
-       * @return {Number} number of rows distant
-       */
-      getMinScrollDelta: function (rowArray) {
-        var viewport = this._slickGrid.getViewport(); // viewport.top, .bottom: row units
-        var viewMiddle = (viewport.top/* + 3*/ + viewport.bottom) / 2;
-        var distances = rowArray.map(function (row) {return viewMiddle - row;});
-        var minDist = distances.reduce(function(minimumDist, dist) {
-            return (Math.abs(minimumDist) > Math.abs(dist))? dist: minimumDist;
-          }, Number.MAX_VALUE);
-        return minDist;
-      },
+    /**
+     * Returns the minimum distance of an array of rows to the viewport middle in row units.
+     * @param  rowArray {[Number]}   Array of indices of rows
+     * @return {Number} number of rows distant
+     */
+    getMinScrollDelta: function (rowArray) {
+      var viewport = this._slickGrid.getViewport(); // viewport.top, .bottom: row units
+      var viewMiddle = (viewport.top/* + 3*/ + viewport.bottom) / 2;
+      var distances = rowArray.map(function (row) {
+        return viewMiddle - row;
+      });
+      return distances.reduce(function (minimumDist, dist) {
+        return (Math.abs(minimumDist) > Math.abs(dist)) ? dist : minimumDist;
+      }, Number.MAX_VALUE);
+    },
 
     /**
      * Sets the set of selected rows.
      * @param  iSelectedRows {[Number]}   Array of indices of selected rows
      */
-    setSelectedRows: function( iSelectedRows) {
-      if( this._slickGrid) {
-        this._slickGrid.setSelectedRows( iSelectedRows);
+    setSelectedRows: function (iSelectedRows) {
+      if (this._slickGrid) {
+        this._slickGrid.setSelectedRows(iSelectedRows);
       }
     },
 
@@ -2062,7 +2072,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
       var selectedRows = this._slickGrid.getSelectedRows();
       var collection = this.getPath('gridAdapter.collection');
-      if (primaryCase && (primaryCase.getPath('collection.id') === collection.get('id'))) {
+      if (primaryCase && (primaryCase.getPath(
+          'collection.id') === collection.get('id'))) {
         this.scrollToCase(primaryCase.get('id'));
       } else {
         if (selectedRows.length > 0) {
@@ -2091,12 +2102,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      *
      * @param recurse {boolean}
      */
-    updateSelectedRows: function(recurse) {
+    updateSelectedRows: function (recurse) {
       var adapter = this.get('gridAdapter'),
           selection = adapter && adapter.getSelectedRows(),
           childView = this.get('childTable');
-      if( selection) {
-          this.setSelectedRows( selection);
+      if (selection) {
+        this.setSelectedRows(selection);
       }
       if (recurse && childView) {
         childView.updateSelectedRows(recurse);
@@ -2105,22 +2116,23 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     _scrollEventCount: 0,
 
-      /**
-       * Scrolls to maintain its relationship with the table on its left.
-       *
-       * The relationship is defined by the rule that any visible case's parent
-       * should be visible.
-       *
-       * In this case we will scroll this table if first child of the left table's
-       * top visible row is lower than the top of this table or the last child of
-       * the left table's bottom visible row is higher than the last row.
-       *
-       * @returns {boolean} Whether a scroll was performed.
-       */
+    /**
+     * Scrolls to maintain its relationship with the table on its left.
+     *
+     * The relationship is defined by the rule that any visible case's parent
+     * should be visible.
+     *
+     * In this case we will scroll this table if first child of the left table's
+     * top visible row is lower than the top of this table or the last child of
+     * the left table's bottom visible row is higher than the last row.
+     *
+     * @returns {boolean} Whether a scroll was performed.
+     */
     scrollToAlignWithLeft: function () {
       function getRightRowRange(iCase) {
         if (!iCase) {
-          DG.log('No case: scrollToAlignWithLeft: %@', leftTable.get('collectionName'));
+          DG.log('No case: scrollToAlignWithLeft: %@',
+              leftTable.get('collectionName'));
           return;
         }
 
@@ -2130,23 +2142,22 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
         var children = iCase.get('children');
         var c0 = children && children[0];
-        var cn = children && children[children.length-1];
+        var cn = children && children[children.length - 1];
         var rtn;
         if (model.isCollapsedNode(iCase)) {
           rtn = {
             first: dataView.getRowById(iCase)
           };
           rtn.last = rtn.first;
-        }
-        else if (c0 && cn) {
+        } else if (c0 && cn) {
           rtn = {
-            first: dataView.getRowById(c0.id),
-            last: dataView.getRowById(cn.id)
+            first: dataView.getRowById(c0.id), last: dataView.getRowById(cn.id)
           };
         }
         return rtn;
       }
-      var model =  this.getPath('parentView.model');
+
+      var model = this.getPath('parentView.model');
       var viewport = this.get('gridViewport');
       var viewportHeight = viewport.bottom - viewport.top - 1;
       var dataView = this.getPath('gridAdapter.gridDataView');
@@ -2168,14 +2179,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var rightTopRange = getRightRowRange(leftTopCase);
 
       // Find row in this table of the last child of bottom item in left viewport
-      var leftBottomCase = leftDataView.getItem(lastItemIndex(leftDataView, leftViewport));
+      var leftBottomCase = leftDataView.getItem(
+          lastItemIndex(leftDataView, leftViewport));
       var rightBottomRange = getRightRowRange(leftBottomCase);
 
       // If viewport top is less than c0Row, then scroll c0Row to top.
       if (rightTopRange && (rightTopRange.first > viewport.top)) {
         this._slickGrid.scrollRowToTop(rightTopRange.first);
         didScroll = true;
-      } else if (rightBottomRange && (rightBottomRange.last < lastItemIndex(dataView, viewport))) {
+      } else if (rightBottomRange && (rightBottomRange.last < lastItemIndex(
+          dataView, viewport))) {
         // if viewport bottom is greater than cnRow, then scroll cnRow to bottom.
         this._slickGrid.scrollRowToTop(rightBottomRange.last - viewportHeight);
         didScroll = true;
@@ -2199,7 +2212,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       //
       function getParentRow(iCase) {
         if (!iCase) {
-          DG.log('No case: scrollToAlignWithRight: %@', rightTable.get('collectionName'));
+          DG.log('No case: scrollToAlignWithRight: %@',
+              rightTable.get('collectionName'));
           return;
         }
         if (iCase._isProtoCase) {
@@ -2211,27 +2225,29 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }
         return dataView.getRowById(caseInLeftRow.id);
       }
-      var model =  this.getPath('parentView.model');
+
+      var model = this.getPath('parentView.model');
       var viewport = this.get('gridViewport');
       var viewportHeight = viewport.bottom - viewport.top - 1;
       var dataView = this.getPath('gridAdapter.gridDataView');
       var rightTable = this.get('childTable');
       var rightViewport = rightTable && rightTable.get('gridViewport');
-      var rightDataView = rightTable && rightTable.getPath('gridAdapter.gridDataView');
+      var rightDataView = rightTable && rightTable.getPath(
+          'gridAdapter.gridDataView');
       var didScroll = false;
-      if (!dataView || (dataView.getLength() === 0) ||
-          !rightDataView || (rightDataView.getLength() === 0)) {
+      if (!dataView || (dataView.getLength() === 0) || !rightDataView || (rightDataView.getLength() === 0)) {
         // nothing to do
         return false;
       }
 
 
-        // Find row in right table of first child, p0Row, of top item in this table
+      // Find row in right table of first child, p0Row, of top item in this table
       var topRightCase = rightDataView.getItem(rightViewport.top);
       var p0Row = getParentRow(topRightCase);
 
       // Find row in right table of the last child, pnRow, of bottom item in left table
-      var bottomRightCase = rightDataView.getItem(Math.min(rightDataView.getLength() - 1, rightViewport.bottom));
+      var bottomRightCase = rightDataView.getItem(
+          Math.min(rightDataView.getLength() - 1, rightViewport.bottom));
       // if right table DOM not ready yet, this case will not exist. We return.
       var pnRow = getParentRow(bottomRightCase);
 
@@ -2249,35 +2265,36 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     click: function (iEvent) {
       function isInHeader(e) {
-        return !!($(e.target).closest(".slick-header-column", ".slick-header-columns").length);
+        return !!($(e.target).closest(".slick-header-column",
+            ".slick-header-columns").length);
       }
-      var tComponentView = DG.ComponentView.findComponentViewParent( this);
+
+      var tComponentView = DG.ComponentView.findComponentViewParent(this);
       // bail if we are in the actual table space or are not yet selected
-      if (this._slickGrid.getCellFromEvent(iEvent)
-          || isInHeader(iEvent)
-          || (tComponentView && !tComponentView.get('isSelected'))) {
+      if (this._slickGrid.getCellFromEvent(iEvent) || isInHeader(
+          iEvent) || (tComponentView && !tComponentView.get('isSelected'))) {
         return NO;
       }
       var dataContext = this.get('dataContext');
       var tChange = {
-        operation: 'selectCases',
-        cases: [],
-        select: true,
-        extend: false
+        operation: 'selectCases', cases: [], select: true, extend: false
       };
       dataContext.applyChange(tChange);
       return NO;
     },
+
     mouseDown: function () {
       DG.TouchTooltips.hideAllTouchTooltips();
       return YES;
     },
+
     cancelAttrTapHold: function (evt) {
       if (this._attrTapHoldTimer) {
         clearTimeout(this._attrTapHoldTimer);
         this._attrTapHoldTimer = null;
       }
     },
+
     touchStart: function (evt) {
       DG.TouchTooltips.hideAllTouchTooltips();
       var elt = document.elementFromPoint(evt.clientX, evt.clientY);
@@ -2285,21 +2302,42 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         elt = elt.parentElement;
       }
       if (elt) {
-        this._attrTapHoldTimer = setTimeout(function() {
-                                    DG.TouchTooltips.showTouchTooltip(evt, elt, elt.title);
-                                    this._attrTapHold = null;
-                                  }.bind(this), 500);
+        this._attrTapHoldTimer = setTimeout(function () {
+          DG.TouchTooltips.showTouchTooltip(evt, elt, elt.title);
+          this._attrTapHold = null;
+        }.bind(this), 500);
       }
       // claim the event so we get the touchEnd
       return YES;
     },
+
     touchEnd: function (evt) {
       this.cancelAttrTapHold();
       // allows the browser to generate mouse events
       // cf. DG.mainPage.scrollView.touchStart() for details
       evt.allowDefault();
       return YES;
-    }
-  }; // end return from closure
+    },
 
+    widenColumnsProportionally: function (factor) {
+      var columns = this._slickGrid.getColumns();
+      columns.forEach(function (column) {
+        if (column.attribute) {
+          column.width = column.width * factor;
+        }
+      });
+      this._slickGrid.setColumns(columns);
+    },
+
+    /**
+     * Resizes the last column of this case table by delta.
+     * @param delta {number} Pixels
+     */
+    resizeLastColumn: function(delta) {
+      var columns = this._slickGrid.getColumns();
+      var lastColumn = columns[columns.length - 1];
+      lastColumn.width = Math.max(lastColumn.width + delta, lastColumn.minWidth);
+      this._slickGrid.setColumns(columns);
+    }
+  };
 }())); // end closure

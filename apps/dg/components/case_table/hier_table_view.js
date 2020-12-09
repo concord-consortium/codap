@@ -91,15 +91,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }, 10);
     }.observes('parentView.parentView.isSelected'),
 
-    /**
-     * The maximum width the DG.Component will permit by dragging.
-     *
-     * @type {number} pixels
-     */
-    containerMaxWidth: function () {
-      return this.getPath('contentView.frame.width');
-    }.property(),
-
     init: function() {
       sc_super();
       // Adjust the horizontal scrollbar so that the right scroll arrow can be hit.
@@ -110,7 +101,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      * Adjustments needed to accommodate shared embedded mode CODAP
      * @override View.convertFrameToView
      **/
-    convertFrameToView: function (frame, targetView) {
+    convertFrameToView: function (frame/*, targetView*/) {
       var tOffset = $(this.containerLayer()).offset();
       return { x: tOffset.left - window.pageXOffset, y: tOffset.top - window.pageYOffset, width: frame.width, height: frame.height };
     },
@@ -467,8 +458,8 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       childViews.forEach( function( iView) {
                             if( iView && iView.willDestroy)
                               iView.willDestroy();
-                          });
-      this.contentView.removeObserver('frameSize', this, 'contentWidthDidChange');
+        iView.removeObserver('frameSize', this, 'contentWidthDidChange');
+      });
     },
 
     /**
@@ -506,31 +497,71 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (SC.none(this._lastContentWidth)) {
         this._lastContentWidth = this.getPath('contentView.frame.width');
       }
-      return this.get('frame').width < this.get('_lastContentWidth');
+      return this.get('frame').width <= this.get('_lastContentWidth');
     }.property(),
 
     _lastContentWidth: null,
 
+    widenColumnsProportionally: function (newComponentWidth, currentComponentWidth) {
+      var childTableViews = this.get('childTableViews') || [];
+      var currentColumnWidths = childTableViews.reduce(function (subtotal, tableView) {
+        var columnWidths = tableView.get('columnWidths') || {};
+        return subtotal + Object.keys(columnWidths).reduce(function (tableSubtotal, key) {
+          // if the key is numeric, it is an attribute id
+          // we only want to sum the widths of attribute columns
+          var width = isNaN(key)? 0: columnWidths[key];
+          return tableSubtotal + width;
+        }, 0);
+      }, 0);
+      var factor = (currentColumnWidths + newComponentWidth - currentComponentWidth) / currentColumnWidths;
+      childTableViews.forEach( function( iTableView) {
+        iTableView.widenColumnsProportionally(factor);
+      });
+    },
+
+    expandRightmostColumn: function (frameWidth, contentWidth) {
+      var childTableViews = this.get('childTableViews');
+      var lastTableView = childTableViews && childTableViews[childTableViews.length-1];
+      lastTableView.resizeLastColumn(frameWidth - contentWidth);
+    },
+
     /**
      * Width of the contained table set changed.
      */
-    contentWidthDidChange: function (sender, key, value) {
+    adjustContentWidth: function (changeAgent) {
       var tContentWidth = this.getPath('contentView.frame.width');
-      var tWidth = this.get('frame').width;
+      var tFrameWidth = this.get('frame').width;
       var tPageWidth = window.innerWidth;
-      var tComponentView = DG.ComponentView.findComponentViewParent( this);
+      var tComponentView = DG.ComponentView.findComponentViewParent(this);
       if (SC.none(tComponentView)) {
         return;
       }
       var horizontalScrollActive = this.get('isHorizontalScrollActive');
+      // DG.log('contentWidthDidChange: tContentWidth,tFrameWidth,horizontalScrollActive: ' + [tContentWidth,tFrameWidth,horizontalScrollActive].join() );
+
+      // if frame width was adjusted we expand the rightmost column of rightmost
+      // collection
+      if ((tContentWidth > 0)
+          && Number(tFrameWidth) !== Number(tContentWidth)
+          && changeAgent === 'frame') {
+        this.expandRightmostColumn(tFrameWidth, tContentWidth);
+      }
 
       // if content width is less than the page width and we aren't already
-      // scrolling horizontally, or if the width of the component is greater
-      // than the content, then make the component width match the content width
-      if ((tContentWidth < tPageWidth && !horizontalScrollActive) || tWidth > tContentWidth) {
+      // scrolling horizontally then make the component width match the content width
+      if (((tContentWidth < tPageWidth ) && !horizontalScrollActive)
+          || ((tContentWidth < tFrameWidth) && (changeAgent === "content"))){
         tComponentView.adjust('width', tContentWidth);
       }
       this._lastContentWidth = tContentWidth;
+    },
+
+    frameDidChange: function () {
+      this.adjustContentWidth('frame');
+    }.observes('frame'),
+
+    contentWidthDidChange: function () {
+      this.adjustContentWidth('content');
     },
 
     /**
