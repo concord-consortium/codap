@@ -721,7 +721,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           gridAdapter.gridColumns, gridAdapter.gridOptions);
 
       this._slickGrid.setSelectionModel(new DG.CaseTableRowSelectionModel({
-        selectActiveRow: true, caseTableAdapter: this.gridAdapter
+        selectActiveRow: true, caseTableAdapter: this.gridAdapter, caseTableView: this
       }));
 
       /*
@@ -844,15 +844,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       $(gridLayer).show();
 
-      $(gridLayer).bind('wheel', function (ev) {
-        ev.stopPropagation();
-      });
-      $(gridLayer).bind('DOMMouseScroll', function (ev) {
-        ev.stopPropagation();
-      });
-      $(gridLayer).bind('MozMousePixelScroll', function (ev) {
-        ev.stopPropagation();
-      });
+      // $(gridLayer).bind('wheel', function (ev) {
+      //   ev.stopPropagation();
+      // });
+      // $(gridLayer).bind('DOMMouseScroll', function (ev) {
+      //   ev.stopPropagation();
+      // });
+      // $(gridLayer).bind('MozMousePixelScroll', function (ev) {
+      //   ev.stopPropagation();
+      // });
 
       this.adjustHeaderForOverflow();
       // Let clients know when there's a new _slickGrid
@@ -2263,23 +2263,54 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return didScroll;
     },
 
+    /**
+     * Handles click
+     *
+     * Note that there are two places this click event may be handled: here and
+     * in the case_table_row_selection_model. This handler responds to clicks that
+     * are not in any case table or menu. The case_table_row_selection_model cannot
+     * make decisions, however, depending on whether the component is selected,
+     * since the component is always selected by the time the event is fired.
+     *
+     * @param iEvent {Event}
+     * @return {boolean}
+     */
     click: function (iEvent) {
       function isInHeader(e) {
         return !!($(e.target).closest(".slick-header-column",
             ".slick-header-columns").length);
       }
 
-      var tComponentView = DG.ComponentView.findComponentViewParent(this);
-      // bail if we are in the actual table space or are not yet selected
-      if (this._slickGrid.getCellFromEvent(iEvent) || isInHeader(
-          iEvent) || (tComponentView && !tComponentView.get('isSelected'))) {
+      var clickedCell = this._slickGrid.getCellFromEvent(iEvent);
+
+      // if we are in the header, bail. This will be handled later.
+      if (isInHeader(iEvent)) {
         return NO;
       }
+
+      var tComponentView = DG.ComponentView.findComponentViewParent(this);
+      var tIsComponentSelected = tComponentView && tComponentView.get('isSelected');
       var dataContext = this.get('dataContext');
+      var selectedCases = dataContext.getSelectedCases();
       var tChange = {
         operation: 'selectCases', cases: [], select: true, extend: false
       };
-      dataContext.applyChange(tChange);
+
+      // if we clicked in the table body and the component is unselected then we
+      // want to select cases iff they were not selected. If the component is
+      // selected, we let that pass through.
+      if (clickedCell ) {
+        var clickedCase = this._slickGrid.getDataItem(clickedCell.row);
+        if (selectedCases
+            && clickedCase
+            && (tIsComponentSelected || !(selectedCases.indexOf(clickedCase) >=0))) {
+          tChange.cases = [clickedCase];
+          dataContext.applyChange(tChange);
+          return YES;
+        }
+      } else if (tIsComponentSelected) {
+        dataContext.applyChange(tChange);
+      }
       return NO;
     },
 
