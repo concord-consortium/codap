@@ -875,8 +875,17 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         attributePane.append();
       },
 
+      /**
+       * Sort by an attribute.
+       *
+       * If the attribute is in a child collection, the sorting should _not_
+       * affect the order of the parent collection. In other words, the sorting
+       * is among the children of the same parent.
+       * @param attrID {string|number}
+       * @param isDescending {boolean}
+       */
       sortAttribute: function(attrID, isDescending) {
-        var dataContext = this.getPath('dataContext'),
+        var dataContext = this.get('dataContext'),
             dataSet = dataContext && dataContext.getPath('model.dataSet'),
             childCollection = dataContext && dataContext.get('childCollection'),
             childCollectionID = childCollection && childCollection.get('id'),
@@ -887,6 +896,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             isNumeric = attribute.get('type') === 'numeric',
             collection = attribute && attribute.get('collection'),
             collectionID = collection && collection.get('id'),
+            parentCollection = collection.get('parent'),
             hierTableView = this.getPath('view.contentView'),
             oldClientMap, newClientMap;
 
@@ -896,9 +906,35 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           while (tCase && (tCase.getPath('collection.id') !== collectionID))
             tCase = tCase.get('parent');
 
-          var rawValue = tCase && tCase.getRawValue(attrID);
-          var numValue = tCase && (isNumeric? tCase.getForcedNumericValue(attrID): null);
-          return tCase && (SC.empty(numValue)? rawValue: numValue);
+          return tCase;
+        }
+
+        function getValue(iCase, attrID) {
+          var rawValue = iCase && iCase.getRawValue(attrID);
+          var numValue = iCase && (isNumeric? iCase.getForcedNumericValue(attrID): null);
+          return iCase && (SC.empty(numValue)? rawValue: numValue);
+        }
+
+        function makeCompare(attrID, isDescending, parentCollection) {
+          var compareIndex = function (a,b) {return a-b;};
+          if (parentCollection) {
+            return function (caseA, caseB) {
+              var caseAParentIndex = parentCollection.caseIDToIndexMap[caseA.getPath(
+                  'parent.id')];
+              var caseBParentIndex = parentCollection.caseIDToIndexMap[caseB.getPath(
+                  'parent.id')];
+              if (caseAParentIndex !== caseBParentIndex) {
+                return compareIndex(caseAParentIndex, caseBParentIndex);
+              } else {
+                return compareFunc(getValue(caseA, attrID), getValue(caseB, attrID));
+              }
+            };
+          }
+          else {
+            return function (caseA, caseB) {
+              return compareFunc(getValue(caseA, attrID), getValue(caseB, attrID));
+            };
+          }
         }
 
         function refreshTable() {
@@ -914,7 +950,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             redoString: 'DG.Redo.caseTable.sortCases',
             log: "sort cases by attribute: %@ (\"%@\")".fmt(attrID, attribute && attribute.get('name')),
             execute: function() {
-              oldClientMap = dataSet.sortItems(attrID, accessFunc, compareFunc);
+              oldClientMap = dataSet.sortItems(attrID, accessFunc, makeCompare(attrID, isDescending, parentCollection));
               newClientMap = dataSet.getClientIndexMapCopy();
               refreshTable();
             },
@@ -1128,6 +1164,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           var id =  attr && attr.id;
           return {id: id, width: caseTableModel.getPreferredAttributeWidth(id)};
         }.bind(this));
+        var componentWidth = this.contentView.get('frame').width;
         DG.UndoHistory.execute(DG.Command.create({
           name: 'caseTable.resizeColumns',
           undoString: 'DG.Undo.caseTable.resizeColumns',
