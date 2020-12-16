@@ -1387,6 +1387,9 @@ DG.GraphView = SC.View.extend(
           case DG.BinnedPlotModel:
             tNewViewClass = iPlotModel.get('dotsAreFused') ? DG.HistogramView : DG.BinnedPlotView;
             break;
+          case DG.LinePlotModel:
+            tNewViewClass = DG.LinePlotView;
+            break;
           case DG.ScatterPlotModel:
             tNewViewClass = DG.ScatterPlotView;
             break;
@@ -1419,4 +1422,3 @@ DG.GraphView = SC.View.extend(
       }
 
     });
-

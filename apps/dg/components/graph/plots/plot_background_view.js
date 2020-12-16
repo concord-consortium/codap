@@ -26,17 +26,17 @@ sc_require('views/raphael_base');
   @extends DG.RaphaelBaseView
 */
 DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
-    
-    
+
     /** @scope DG.PlotBackgroundView.prototype */
     (function () {
       var marqueeInfo;
-      
+
       return {
         autoDestroyProperties: ['_backgroundForClick'],
 
-        displayProperties: ['xAxisView.model.lowerBound', 'xAxisView.model.upperBound',
-          'yAxisView.model.lowerBound', 'yAxisView.model.upperBound',
+        displayProperties: [
+          'xAxisView.model.lowerBound', 'xAxisView.model.upperBound', 'xAxisView.model.drawZeroLine',
+          'yAxisView.model.lowerBound', 'yAxisView.model.upperBound', 'yAxisView.model.drawZeroLine',
           'xAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
           'yAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
           'graphModel.plotBackgroundColor', 'graphModel.plotBackgroundOpacity'],
@@ -247,6 +247,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tFrame = this.get('frame'),
               tXAxisView = this.get('xAxisView'),
               tYAxisView = this.get('yAxisView'),
+              tDrawXZeroLine = tXAxisView.getPath('model.drawZeroLine'),
+              tDrawYZeroLine = tYAxisView.getPath('model.drawZeroLine'),
               tBackgroundLayer = this.getPath('layerManager.' + DG.LayerNames.kBackground),
               tGridLayer = this.getPath('layerManager.' + DG.LayerNames.kGrid),
               tBothWaysNumeric = (tXAxisView.get('isNumeric') && tYAxisView.get('isNumeric')),
@@ -302,24 +304,28 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               hLine(iY, DG.PlotUtilities.kRuleColor, DG.PlotUtilities.kRuleWidth);
             }
 
-            function drawZeroLines() {
+            function drawZeroLines(iDrawXLine, iDrawYLine, iColor) {
 
               function drawLine(iAxisView, iDrawingFunc) {
-                var tZeroCoord = iAxisView.get('zeroPixel');
-                if (tZeroCoord && !iAxisView.get('isDateTime'))
-                  iDrawingFunc(tZeroCoord, DG.PlotUtilities.kZeroLineColor, DG.PlotUtilities.kZeroLineWidth);
+                var tZeroCoord = iAxisView.get('zeroPixel'),
+                    tColor = iColor || DG.PlotUtilities.kZeroLineColor;
+                if ((tZeroCoord != null) && !iAxisView.get('isDateTime'))
+                  iDrawingFunc(tZeroCoord, tColor, DG.PlotUtilities.kZeroLineWidth);
               }
 
-              drawLine(tXAxisView, vLine);
-              drawLine(tYAxisView, hLine);
+              iDrawXLine && drawLine(tXAxisView, vLine);
+              iDrawYLine && drawLine(tYAxisView, hLine);
             }
 
             if (tBothWaysNumeric) {
               tXAxisView.forEachTickDo(drawVRule);
               if (!tHasY2Attribute)
                 tYAxisView.forEachTickDo(drawHRule);
-              drawZeroLines();
+              drawZeroLines(true, true);
             } // else suppress numeric grid lines for dot plots (numeric only on one axis), because it interferes with mean/median lines, etc.
+            else if (tDrawXZeroLine || tDrawYZeroLine) {
+              drawZeroLines(tDrawXZeroLine, tDrawYZeroLine, DG.PlotUtilities.kRuleColor);
+            }
           } // createRulerLines
 
           function showCursor(iEvent) {

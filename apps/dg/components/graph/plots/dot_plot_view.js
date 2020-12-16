@@ -25,7 +25,7 @@ sc_require('components/graph/plots/univariate_plot_view');
   @extends DG.UnivariatePlotView
 */
 DG.DotPlotView = DG.UnivariatePlotView.extend(
-/** @scope DG.DotPlotView.prototype */ 
+/** @scope DG.DotPlotView.prototype */
 {
   displayProperties: ['primaryAxisView.model.lowerBound', 'primaryAxisView.model.upperBound'],
 
@@ -44,7 +44,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
 
   /** @property {DG.plottedStDevAdorn} */
   plottedStDevAdorn: null,
-  
+
   /** @property {DG.plottedMadAdorn} */
   plottedMadAdorn: null,
 
@@ -153,6 +153,28 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
     if (this.plottedValueAdorn) {
       this.plottedValueAdorn.updateToModel();
     }
+  },
+
+  /**
+   * Called from animateFromTransferredElements to create animatable elements.
+   * @param {DG.Case} iCase
+   * @param {number} iIndex
+   * @param {Object} iOldEltAttrs
+   */
+  createAnimatingElement: function(iCase, iIndex, iOldEltAttrs) {
+    var tOldElementIsRect = iOldEltAttrs && iOldEltAttrs.type === 'rect',
+        tElement = this.callCreateElement(iCase, iIndex, false),
+        attrs = iOldEltAttrs && {
+          r: tOldElementIsRect
+              ? Math.min(iOldEltAttrs.width, iOldEltAttrs.height) / 2
+              : iOldEltAttrs.r || this._pointRadius,
+          cx: tOldElementIsRect ? iOldEltAttrs.x + iOldEltAttrs.width / 2 : iOldEltAttrs.cx,
+          cy: tOldElementIsRect ? iOldEltAttrs.y + iOldEltAttrs.height / 2 : iOldEltAttrs.cy,
+          fill: iOldEltAttrs.fill,
+          stroke: iOldEltAttrs.stroke
+        };
+    attrs && tElement.attr(attrs);
+    return tElement;
   },
 
   /**
@@ -380,7 +402,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
 
       if( tMaxThatFit <= 0) // If things are really tight, overlap points directly on top of each other
         return iBinWidth;
-          
+
       tCases.forEach( function( iCase) {
         var tColorValue = !SC.none( tColorID) ? iCase.getValue( tColorID) : null,
             tNumericCoord = tNumericAxisView.dataToCoordinate( iCase.getForcedNumericValue( tNumericVarID)),
@@ -405,7 +427,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
       }
       return tOverlap;
     } // computeOverlap()
-    
+
     // Fill arrays with zeroes
     this.set( 'binArrays', DG.MathUtilities.range( tNumCells ).map( function() {
       return DG.MathUtilities.range( tNumBins ).map( function() {
@@ -461,7 +483,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   plottedStDevChanged: function() {
     this.adornmentDidChange('plottedStDev', 'plottedStDevAdorn', DG.PlottedStDevAdornment);
   }.observes('*model.plottedStDev'),
-  
+
   /**
    Presumably our model has created a plotted St.Dev. We need to create our adornment.
    */
@@ -475,7 +497,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   plottedBoxPlotChanged: function() {
     this.adornmentDidChange('plottedBoxPlot', 'plottedBoxPlotAdorn', DG.PlottedBoxPlotAdornment);
   }.observes('*model.plottedBoxPlot'),
-  
+
   /**
     Update an adornment after a change to its corresponding adornment model.
     @param    {String}    iAdornmentKey -- e.g. 'plottedMean' or 'plottedMedian'
@@ -540,4 +562,3 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   }
 
 });
-

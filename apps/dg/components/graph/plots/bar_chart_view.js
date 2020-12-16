@@ -31,6 +31,11 @@ DG.BarChartView = DG.ChartView.extend(
     /** @scope DG.BarChartView.prototype */
     {
       /**
+       * Expected type of plotted elements
+       */
+      plottedElementType: 'rect',
+
+      /**
        * If we're displaying as a barchart, this is how high the slices are in a given bar
        * @property {[Number]}
        */
@@ -573,4 +578,3 @@ DG.BarChartView = DG.ChartView.extend(
       }
     })
 ;
-

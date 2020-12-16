@@ -19,7 +19,6 @@
 // ==========================================================================
 
 sc_require('components/graph/plots/univariate_plot_model');
-sc_require('components/graph/plots/numeric_plot_model_mixin');
 
 /** @class  DG.DotPlotModel The model for a dot plot.
 
@@ -629,4 +628,3 @@ DG.DotPlotModel.configureRoles = function (iConfig) {
   // Base class has method for this
   DG.UnivariatePlotModel.configureRoles( iConfig);
 };
-

@@ -78,10 +78,20 @@ DG.UnivariatePlotView = DG.PlotView.extend(
       }.observes('*model.secondaryAxisPlace', 'xAxisView', 'yAxisView'),
 
       /**
-       * The secondaryAxisView needs to be told that its tick marks and labels are not to be centered in each cell.
-       * Though this is the default, if the prior plot was a dot chart, the axis will be stuck in centering mode.
+       * Prepare axes for univariate plot, including resetting plot-specific values.
        */
       setupAxes: function () {
+        // Review question: would these resets make more sense in DG.PlotView?
+        var tPrimaryAxisModel = this.getPath('primaryAxisView.model');
+        if (tPrimaryAxisModel) {
+          if (tPrimaryAxisModel.get('preferZeroLowerBound'))
+            tPrimaryAxisModel.set('preferZeroLowerBound', false);
+          if (tPrimaryAxisModel.get('drawZeroLine'))
+            tPrimaryAxisModel.set('drawZeroLine', false);
+        }
+
+        // The secondaryAxisView needs to be told that its tick marks and labels are not to be centered in each cell.
+        // Though this is the default, if the prior plot was a dot chart, the axis will be stuck in centering mode.
         var tCellAxis = this.get('secondaryAxisView');
         if (tCellAxis) {
           tCellAxis.set('centering', false);
@@ -160,4 +170,3 @@ DG.UnivariatePlotView = DG.PlotView.extend(
       }
 
     });
-

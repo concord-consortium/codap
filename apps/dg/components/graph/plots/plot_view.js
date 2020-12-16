@@ -25,7 +25,7 @@ sc_require('components/graph_map_common/plot_layer');
   @extends DG.PlotLayer
 */
 DG.PlotView = DG.PlotLayer.extend(
-/** @scope DG.PlotView.prototype */ 
+/** @scope DG.PlotView.prototype */
 {
   autoDestroyProperties: ['plottedCountAdorn'],
 
@@ -58,6 +58,11 @@ DG.PlotView = DG.PlotLayer.extend(
   isUsingY2DidChange: function() {
     this.notifyPropertyChange('isUsingY2');
   }.observes('*yAxisView.orientation'),
+
+  /**
+   * Expected type of plotted elements
+   */
+  plottedElementType: 'circle',
 
   /**
     Used to store point coordinates at the beginning of a configuration change.
@@ -137,7 +142,7 @@ DG.PlotView = DG.PlotLayer.extend(
     this.displayDidChange();
   }.observes('xAxisView.model.lowerBound', 'xAxisView.model.upperBound',
       'yAxisView.model.lowerBound', 'yAxisView.model.upperBound', '.model.axisBounds'),
-  
+
   /** Invalidate and update adornments shared by all plot types */
   updateAdornments: function() {
     var tCountAdornModel = this.plottedCountAdorn && this.plottedCountAdorn.get('model');
@@ -151,7 +156,7 @@ DG.PlotView = DG.PlotLayer.extend(
       tPlottedValueAdorn.updateToModel();
     }
   },
-  
+
   rescaleOnParentCaseCompletion: function( iCases) {
     var caseCount = iCases && iCases.length,
         lastCase = caseCount && iCases[ caseCount - 1],
@@ -233,6 +238,37 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   /**
+   * Returns 'transferredElementCoordinates' converted to view coordinates.
+   */
+  getTransferredElementsViewCoords: function() {
+    var coords = this.get('transferredElementCoordinates'),
+        frame = this.get('frame');
+    if(coords && frame) {
+      coords.forEach( function( iPoint, iIndex ) {
+        // adjust old coordinates from parent frame to this view
+        // assign x/y and cx/cy to support animating to rects or circles
+        if (iPoint.cx != null) iPoint.cx -= frame.x;
+        if (iPoint.cy != null) iPoint.cy -= frame.y;
+        if (iPoint.x != null) iPoint.x -= frame.x;
+        if (iPoint.y != null) iPoint.y -= frame.y;
+      });
+    }
+    return coords;
+  },
+
+  /**
+   * Called from animateFromTransferredElements to create animatable elements.
+   * @param {DG.Case} iCase
+   * @param {number} iIndex
+   * @param {Object} iOldEltAttrs
+   */
+  createAnimatingElement: function(iCase, iIndex, iOldEltAttrs) {
+    var tElement = this.callCreateElement(iCase, iIndex, false);
+    iOldEltAttrs && tElement.attr(iOldEltAttrs);
+    return tElement;
+  },
+
+  /**
     Called when this view is taking over from another one in order to animate points from their
     previous position to their new position. Handles 3 types of animations:
       (a) one-to-many animation for moving from parent to corresponding child case(s)
@@ -242,8 +278,8 @@ DG.PlotView = DG.PlotLayer.extend(
   animateFromTransferredElements: function() {
     var tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
-        tFrame = this.get('frame'),
-        tOldPointAttrs = this.get('transferredElementCoordinates'),
+        tOldPointAttrs = this.getTransferredElementsViewCoords(),
+        tOldElementType = tOldPointAttrs.length > 0 && tOldPointAttrs[0].type,
         tNewPointAttrs = [], // used if many-to-one animation
         tNewToOldCaseMap = [],
         tOldToNewCaseMap = [];
@@ -270,21 +306,22 @@ DG.PlotView = DG.PlotLayer.extend(
     this._elementOrderIsValid = false;
     DG.sounds.playMixup();
     this.prepareToResetCoordinates();
-    // this.removePlottedElements();  // remove old circles
-    tOldPointAttrs.forEach( function( iPoint, iIndex ) {
-        // adjust old coordinates from parent frame to this view
-        iPoint.cx -= tFrame.x;
-        iPoint.cy -= tFrame.y;
+    if (tOldElementType !== this.get('plottedElementType')) {
+      this.removePlottedElements(true);
+      // one would think that removePlottedElements() would obviate the need for this, but no
+      this.get('plottedElements').forEach(function(iElement) {
+        iElement.remove();
       });
+      this.get('plottedElements').length = 0;
+    }
 
     var eachCaseFunc = function (iCase, iIndex, iIsLast) {
           // create new circles, animating from old coordinates where possible
           var tPt = getCaseCurrentLocation( iIndex ),
               tAnimate = false,
-              tCallBack,
-              tNewElement = this.callCreateElement( iCase, iIndex, false);
+              tCallBack;
+          this.createAnimatingElement(iCase, iIndex, tPt);
           if( !SC.none( tPt)) {
-            tNewElement.attr( tPt);
             tAnimate = true;
             if( iIsLast) {
               tCallBack = function() {
@@ -606,4 +643,3 @@ DG.PlotView = DG.PlotLayer.extend(
   }
 
 });
-

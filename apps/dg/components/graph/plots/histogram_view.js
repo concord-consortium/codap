@@ -31,6 +31,11 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
       kLineSlideVCur: DG.Browser.customCursorStr(static_url('cursors/LineSlide.cur'), 8, 8),
 
       /**
+       * Expected type of plotted elements
+       */
+      plottedElementType: 'rect',
+
+      /**
        * @property {[{coverRect: Element, draggableEdge: Element,
        *            lowerEdgeWorldValue: Number, lowerEdgeScreenCoord: Number }]}
        */
@@ -609,4 +614,3 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
       }
 
     });
-

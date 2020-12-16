@@ -411,7 +411,7 @@ DG.PlotUtilities = {
   },
 
   /**
-   * Modification of Raphael's setFillAndStroke, tuned to CODAP's situation of just working with circle elements
+   * Modification of Raphael's setFillAndStroke, tuned to CODAP's situation of just working with circle and rect elements
    * @param o {Raphael Element}
    * @param params {Object}
    */
@@ -438,15 +438,18 @@ DG.PlotUtilities = {
             o.transform(value);
             break;
           case "cx":
-            node.setAttribute(att, value);
-            o._.dirty = 1;
-            break;
           case "cy":
-            node.setAttribute(att, value);
-            o._.dirty = 1;
+          case "x":
+          case "y":
+          case "width":
+          case "height":
+            if (isFinite(value)) {
+              node.setAttribute(att, value);
+              o._.dirty = 1;
+            }
             break;
-          case "r":                 // eslint-disable-next-line eqeqeq
-            if (o.type == "rect") { // jshint ignore:line
+          case "r":
+            if (o.type == "rect") { // eslint-disable-line eqeqeq
               $(node, {rx: value, ry: value});
             } else {
               node.setAttribute(att, value);
@@ -469,21 +472,21 @@ DG.PlotUtilities = {
               $(node, {"fill-opacity": attrs["fill-opacity"]});
             }
             clr[has]("opacity") && $(node, {"fill-opacity": clr.opacity > 1 ?
-                clr.opacity / 100 : clr.opacity});  // jshint ignore:line
+                clr.opacity / 100 : clr.opacity});
             // fall through
           case "stroke":
             clr = R.getRGB(value);
-            node.setAttribute(att, clr.hex);            // eslint-disable-next-line eqeqeq
-            att == "stroke" && clr[has]("opacity") &&   // jshint ignore:line
+            node.setAttribute(att, clr.hex);
+            att == "stroke" && clr[has]("opacity") &&   // eslint-disable-line eqeqeq
               $(node, {"stroke-opacity": clr.opacity > 1 ? clr.opacity / 100 : clr.opacity});
             break;
           case "opacity":
             if (attrs.gradient && !attrs[has]("stroke-opacity")) {
               $(node, {"stroke-opacity": value > 1 ? value / 100 : value});
-            }  // jshint ignore:line
+            }
           // fall through
-          default:                                                      // eslint-disable-next-line eqeqeq
-            att == "font-size" && (value = parseInt(value, 10) + "px"); // jshint ignore:line
+          default:
+            att == "font-size" && (value = parseInt(value, 10) + "px"); // eslint-disable-line eqeqeq
             var cssrule = att.replace(/(\-.)/g, function (w) {
               return w.substring(1).toUpperCase();
             });
@@ -533,4 +536,3 @@ DG.PlotUtilities = {
   }
 
 };
-
