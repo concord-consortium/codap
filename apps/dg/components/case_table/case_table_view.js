@@ -2351,13 +2351,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     widenColumnsProportionally: function (factor) {
+      var model = this.getPath('parentView.model');
       var columns = this._slickGrid.getColumns();
       columns.forEach(function (column) {
         if (column.attribute) {
           column.width = column.width * factor;
+          if (model) {
+            model.setPreferredAttributeWidth(column.id, column.width);
+          }
         }
       });
-      this._slickGrid.setColumns(columns);
+      this.setColumns(columns);
     },
 
     /**
@@ -2365,10 +2369,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * @param delta {number} Pixels
      */
     resizeLastColumn: function(delta) {
+      var model = this.getPath('parentView.model');
       var columns = this._slickGrid.getColumns();
       var lastColumn = columns[columns.length - 1];
+      var lastColumnId = lastColumn.id;
       lastColumn.width = Math.max(lastColumn.width + delta, lastColumn.minWidth);
-      this._slickGrid.setColumns(columns);
+      if (model) {
+        model.setPreferredAttributeWidth(lastColumnId, lastColumn.width);
+      }
+      this.setColumns(columns);
     }
   };
 }())); // end closure
