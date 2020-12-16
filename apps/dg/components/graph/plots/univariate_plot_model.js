@@ -29,7 +29,8 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
     /** @scope DG.UnivariatePlotModel.prototype */
     {
       /**
-       * @property {Boolean}
+       * Originally a boolean; extended to support line/bar plot
+       * @property {Boolean | "bars"}
        */
       displayAsBinned: null,
 
@@ -158,7 +159,7 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).
        */
       getCellCaseCounts: function ( iForSelectionOnly) {
-       var  tNumericAxisModel = this.get('primaryAxisModel'),
+        var tNumericAxisModel = this.get('primaryAxisModel'),
             tCategoricalAxisModel = this.get('secondaryAxisModel'),
             tValueArray = [];
 
@@ -183,8 +184,8 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           if( isFinite( tCellIndex) && DG.MathUtilities.isInIntegerRange( tCellIndex, 0, tNumCells )) {
             var iValue = tValueArray[ tCellIndex ];
             iValue.count += 1;
-            DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.ChartModel.getCellCaseCounts()" );
-            DG.assert( iValue.secondaryCell === (iSecondaryCell || 0), "secondary cell index error in DG.ChartModel.getCellCaseCounts()" );
+            DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.UnivariatePlotModel.getCellCaseCounts()" );
+            DG.assert( iValue.secondaryCell === (iSecondaryCell || 0), "secondary cell index error in DG.UnivariatePlotModel.getCellCaseCounts()" );
           }
         });
 
@@ -202,10 +203,6 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         return tValueArray;
       },
 
-      toggleDisplayBins: function() {
-        this.toggleProperty('displayAsBinned');
-      },
-
       /**
        * A dot plot can be configured as a binned chart
        * @property {Boolean}
@@ -215,7 +212,8 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       }.property(),
 
       configurationDescriptions: function() {
-        var kRowHeight = 20,
+        var this_ = this,
+            kRowHeight = 20,
             tDescriptions = sc_super();
         tDescriptions.push(
             {
@@ -240,7 +238,12 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
                       enabled: YES
                     }
                   ],
-                  value: false,
+                  value: this_.get('displayAsBinned'),
+                  valueDidChange: function () {
+                    var value = this.get('value');
+                    this_.set('displayAsBinned', value);
+                    DG.mainPage.mainPane.hideInspectorPicker();
+                  }.observes('value'),
                   itemTitleKey: 'title',
                   itemValueKey: 'value',
                   itemIsEnabledKey: 'enabled',

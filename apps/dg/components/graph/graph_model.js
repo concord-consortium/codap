@@ -975,18 +975,17 @@ DG.GraphModel = DG.DataLayerModel.extend(
     addPlotObserver: function( iPlot) {
       switch( iPlot.constructor) {
         case DG.BarChartModel:
-          /* jshint ignore:start */
           iPlot.addObserver('breakdownType', this, this.propagateBreakdownType);
           // fallthrough intentional
-          /* jshint ignore:end */
-          // eslint disable-next-line no-fallthrough
         case DG.DotChartModel:
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
           break;
         case DG.BinnedPlotModel:
-          iPlot.addObserver('dotsAreFused', this, this.dotsAreFusedDidChange);  //jshint -W086
-        case DG.DotPlotModel:   // eslint-disable-line no-fallthrough
-          iPlot.addObserver('displayAsBinned', this, this.swapBinningType);
+          iPlot.addObserver('dotsAreFused', this, this.dotsAreFusedDidChange);
+          // fallthrough intentional
+        case DG.DotPlotModel:
+        case DG.LinePlotModel:
+          iPlot.addObserver('displayAsBinned', this, this.changePlotModelType);
           break;
       }
     },
@@ -1004,9 +1003,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
           iPlot.removeObserver('breakdownType', this, this.propagateBreakdownType);
           break;
         case DG.BinnedPlotModel:
-          iPlot.removeObserver('dotsAreFused', this, this.dotsAreFusedDidChange);  //jshint -W086
-        case DG.DotPlotModel:   // eslint-disable-line no-fallthrough
-          iPlot.removeObserver('displayAsBinned', this, this.swapBinningType);
+          iPlot.removeObserver('dotsAreFused', this, this.dotsAreFusedDidChange);
+          // fallthrough intentional
+        case DG.DotPlotModel:
+        case DG.LinePlotModel:
+          iPlot.removeObserver('displayAsBinned', this, this.changePlotModelType);
           break;
       }
     },
@@ -1084,25 +1085,43 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * binned numeric axis while that for a normal dot plot is a cell linear axis.
      * @param iDotPlot {DG.DotPlotModel | DG.BinnedPlotModel }
      * @param iKey {String} Should be 'displayAsBinned'
-     * @param iValue {Boolean}
+     * @param iValue {Boolean | "bars"}
      */
-    swapBinningType: function( iDotPlot, iKey, iValue) {
-      var tInitialValue = iDotPlot.get('displayAsBinned'),
-          tOldPlotClass = iDotPlot.constructor,
-          tNewPlotClass = tOldPlotClass === DG.DotPlotModel ?
-              DG.BinnedPlotModel : DG.DotPlotModel,
-          tUndo = tInitialValue ? ('DG.Undo.graph.showAsBinnedPlot') : ('DG.Undo.graph.showAsDotPlot'),
-          tRedo = tInitialValue ? ('DG.Redo.graph.showAsBinnedPlot') : ('DG.Redo.graph.showAsDotPlot');
+    changePlotModelType: function(iPlotModel, iKey, iValue) {
+      var tValue = iPlotModel.get('displayAsBinned'),
+          tPlotTypeMap = {
+            "false": {
+              constructor: DG.DotPlotModel,
+              logLabel: "DotPlot",
+              undo: 'DG.Undo.graph.showAsDotPlot',
+              redo: 'DG.Redo.graph.showAsDotPlot'
+            },
+            "true": {
+              constructor: DG.BinnedPlotModel,
+              logLabel: "BinnedPlot",
+              undo: 'DG.Undo.graph.showAsBinnedPlot',
+              redo: 'DG.Redo.graph.showAsBinnedPlot'
+            },
+            bars: {
+              constructor: DG.LinePlotModel,
+              logLabel: "LinePlot",
+              undo: 'DG.Undo.graph.showAsLinePlot',
+              redo: 'DG.Redo.graph.showAsLinePlot'
+            }
+          },
+          tOldPlotClass = iPlotModel.constructor;
+      var tPlotTypeEntry = tPlotTypeMap[tValue];
+      if (!tPlotTypeEntry) return;
       DG.UndoHistory.execute(DG.Command.create({
-        name: "graph.toggleBinningType",
-        undoString: tUndo,
-        redoString: tRedo,
-        log: ("toggleShowAs: %@").fmt(tInitialValue ? "BinnedPlot" : "DotPlot"),
+        name: "graph.changeDotPlotModelType",
+        undoString: tPlotTypeEntry.undo,
+        redoString: tPlotTypeEntry.redo,
+        log: ("toggleShowAs: %@").fmt(tPlotTypeEntry.logLabel),
         execute: function() {
-          this.swapPlotForNewPlot(tNewPlotClass);
+          this.swapPlotForNewPlot(tPlotTypeEntry.constructor);
         }.bind(this),
         undo: function() {
-          this.swapPlotForNewPlot( tOldPlotClass);
+          this.swapPlotForNewPlot(tOldPlotClass);
         }.bind(this)
       }));
     },
@@ -1166,7 +1185,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.getPath('plot.secondaryAxisModel').setLowerAndUpperBounds(0, tNewBound, true /* with animation */);
     },
 
-        /**
+    /**
      Figure out the appropriate plot for the current attribute configuration. If it is not
      the current plot, switch.
      We have need of three local variables that point to a plot.
@@ -1215,6 +1234,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
         // because we can't yet combine count axis with categorical axis.
         if( tXType === DG.Analysis.EAttributeType.eCategorical || tYType === DG.Analysis.EAttributeType.eCategorical)
           tCurrentPlot.set('dotsAreFused', false);
+      }
+      else if(tNewPlotClass === DG.DotPlotModel && tCurrentPlot && tCurrentPlot.constructor === DG.LinePlotModel) {
+        // We're allowed to keep the line/bar plot
+        tNewPlotClass = DG.LinePlotModel;
       }
       else if( tNewPlotClass === DG.DotChartModel && tCurrentPlot && tCurrentPlot.constructor === DG.BarChartModel &&
                 !tBothAxesCategorical) {
@@ -1858,4 +1881,3 @@ DG.GraphModel = DG.DataLayerModel.extend(
     }
 
   } );
-

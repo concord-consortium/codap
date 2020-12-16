@@ -456,7 +456,7 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
               tRedo = tDotsStartOutFused ? 'DG.Redo.graph.dissolveRectanglesToDots' :
                   'DG.Redo.graph.fuseDotsToRectangles';
           DG.UndoHistory.execute(DG.Command.create({
-            name: "graph.toggleBinningType",
+            name: "graph.changeDotPlotModelType",
             undoString: tUndo,
             redoString: tRedo,
             log: ("toggleShowAs: %@").fmt(tDotsStartOutFused ? "Histogram" : "BinnedDotPlot"),
@@ -567,4 +567,3 @@ DG.BinnedPlotModel.configureRoles = function (iConfig) {
   // Base class has method for this
   DG.UnivariatePlotModel.configureRoles(iConfig);
 };
-

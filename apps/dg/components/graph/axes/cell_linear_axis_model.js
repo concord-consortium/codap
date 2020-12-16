@@ -25,7 +25,7 @@ sc_require('components/graph/axes/cell_axis_model');
   @extends DG.CellAxisModel
 */
 DG.CellLinearAxisModel = DG.CellAxisModel.extend(
-/** @scope DG.CellLinearAxisModel.prototype */ 
+/** @scope DG.CellLinearAxisModel.prototype */
 {
   /**
     The gap between tick marks in world coordinates.
@@ -54,6 +54,18 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
       this.__upperBound = iValue;
     return this.__upperBound;
   }.property(),
+
+  /**
+   * Prefer a zero lower bound for axis when supported by data.
+   * @property { boolean }
+   */
+  preferZeroLowerBound: false,
+
+  /**
+   * Draw a grid line at zero.
+   * @property { boolean }
+   */
+  drawZeroLine: false,
 
   /**
     Should the zero be locked at one end of the axis?
@@ -101,7 +113,7 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     @property { Number }
   */
   _upperBound: null,
-  
+
   /**
     Override (for now) because superclass will compute it wrong!
     @property{Number} >= 1
@@ -109,7 +121,7 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   numberOfCells: function() {
     return 1;
   }.property(),
-  
+
    /**
       @private
     @property { boolean }
@@ -196,7 +208,7 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     else {
       this._lowerBound = tNewBounds.lower;
       this._upperBound = tNewBounds.upper;
-      
+
       if( this._setBoundsFromInternalBounds()) {
         this.beginPropertyChanges();
         this._resetTickGap( this.get('lowerBound'), this.get('upperBound'));
@@ -207,9 +219,9 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   },
 
   /**
-    My data range has changed. Recompute a reasonable _lowerBound and 
+    My data range has changed. Recompute a reasonable _lowerBound and
     _upperBound.
-    
+
     If iAllowRangeToShrink is false, we will keep the current bounds if they
     are wide enough to encompass the new dataMin and dataMax.
 
@@ -228,12 +240,12 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
       return;
 
     this._resetScale(iDataMin, iDataMax);
-  
+
     // There are special conditions having to do with multiples that require us
     // to call both _setBoundsFromInternalBounds and _resetTickGap. If either
     // returns true, then we have _handleAxisChange.
     var tSetBoundsResult = this._setBoundsFromInternalBounds(),
-        tResetTickGapResult = this._resetTickGap( this.get('lowerBound'), 
+        tResetTickGapResult = this._resetTickGap( this.get('lowerBound'),
                                                   this.get('upperBound'));
     if ( tSetBoundsResult || tResetTickGapResult)
       this._handleAxisChange();
@@ -343,7 +355,7 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     // that tickGap is at least one.
     if (this.displayOnlyIntegers && (tTickGap < 1))
       tTickGap = 1;
-    
+
     return tTickGap;
   },
 
@@ -356,19 +368,19 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   _resetTickGap: function( iDataMin, iDataMax) {
     var tOldTickGap = this.tickGap,
         tNewTickGap = this._computeTickGap( iDataMin, iDataMax);
-    
+
     this.set('tickGap', tNewTickGap);
-    
+
     return tOldTickGap !== tNewTickGap;
   },
 
   /**
   Use the internal bounds to set the apparent bounds. If either bound
   is "close" to zero, snap it to zero.
-  
+
   Don't use this algorithm if there is a transformation in place
   because a transformation typically has trouble with zero.
-  
+
     @return {boolean} True if either apparent bounds changes, false otherwise.
     @private
   */
@@ -377,27 +389,27 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
         tSavedLower = this.get('lowerBound'),
         tSavedUpper = this.get('upperBound'),
         tGrabRange = (this._upperBound - this._lowerBound) * kGrabFraction;
-    
+
     this.beginPropertyChanges();
     if ((this.get( 'lockZero') || ((this._lowerBound > 0) && (this._lowerBound - tGrabRange < 0))))
       this.set( 'lowerBound', 0);
     else
       this.set( 'lowerBound', this._lowerBound);
-  
+
     if ((this._upperBound < 0)  && (this._upperBound + tGrabRange > 0))
       this.set( 'upperBound', 0);
     else
       this.set( 'upperBound', this._upperBound);
     this.endPropertyChanges();
-      
-    return (tSavedLower !== this.get('lowerBound')) || 
+
+    return (tSavedLower !== this.get('lowerBound')) ||
         (tSavedUpper !== this.get('upperBound'));
 },
 
   /**
   A change in my model can trigger a change in how I handle leading or
   trailing zeroes.
-  
+
     @private
   */
   _handleAxisChange: function() {
@@ -410,6 +422,8 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     @return {Number} a reasonable value for the lower bounds
   */
   _findLow: function( iDataMin, iTickGap) {
+    if ((iDataMin >= 0) && this.get('preferZeroLowerBound'))
+      return 0;
     if( iTickGap !== 0)
       return (Math.floor( iDataMin / iTickGap) - 0.5) * iTickGap;
     else
@@ -438,4 +452,3 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   }
 
 });
-

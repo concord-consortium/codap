@@ -23,7 +23,7 @@
   @extends SC.Object
 */
 DG.ToolTip = SC.Object.extend(
-/** @scope DG.ToolTip.prototype */ 
+/** @scope DG.ToolTip.prototype */
 {
   /**
     Our gateway to attributes, values, and axes
@@ -131,9 +131,9 @@ DG.ToolTip = SC.Object.extend(
 
     // Adjust tX and tY so that the tip will be within the plotview
     if( tX + tShadowXOffset > tPaper.width)
-      tX -= (tX + tShadowXOffset) - tPaper.width;
+      tX = Math.max(-kRectXOffset, tX - (tX + tShadowXOffset - tPaper.width));
     if( tY + tShadowYOffset + tRectHeight > tPaper.height)
-      tY -= (tY + tShadowYOffset + tRectHeight) - tPaper.height;
+      tY = Math.max(-kRectYOffset, tY - (tY + tShadowYOffset + tRectHeight - tPaper.height));
     // If the tip rectangle encompasses tipOrigin, move the tip rectangle up and to the left
     if( DG.ViewUtilities.ptInRect( this.tipOrigin,
             { x: tX, y: tY, width: tRectWidth + kShadowWidth + 5, height: tRectHeight + kShadowWidth + 5})) {
@@ -190,4 +190,3 @@ DG.ToolTip = SC.Object.extend(
   }
 
 });
-
