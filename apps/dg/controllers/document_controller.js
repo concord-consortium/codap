@@ -1004,8 +1004,8 @@ DG.DocumentController = SC.Object.extend(
             controller: controller,
             componentClass: componentClassDef,
             contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
-            defaultLayout: {width: 500, height: 200},
-            position: iComponent && iComponent.position,
+            defaultLayout: {width: 200, height: 150},
+            position: iComponent && iComponent.position
           };
           caseTableView = this.createComponentView(component, props);
           if (iComponent && iComponent.layout && !iComponent.layout.isVisible) {
