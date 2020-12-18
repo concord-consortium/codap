@@ -81,7 +81,6 @@ DG.UnivariatePlotView = DG.PlotView.extend(
        * Prepare axes for univariate plot, including resetting plot-specific values.
        */
       setupAxes: function () {
-        // Review question: would these resets make more sense in DG.PlotView?
         var tPrimaryAxisModel = this.getPath('primaryAxisView.model');
         if (tPrimaryAxisModel) {
           if (tPrimaryAxisModel.get('preferZeroLowerBound'))
