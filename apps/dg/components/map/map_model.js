@@ -607,9 +607,11 @@ DG.MapModel = SC.Object.extend(
               this.set('gridMultiplier', iStorage.mapModelStorage.gridMultiplier);
             this.set('centerAndZoomBeingRestored', true);
             this.get('mapLayerModels').forEach(function (iLayerModel, iIndex) {
-              var tLayerStorage = SC.isArray(iStorage.mapModelStorage.layerModels) ?
-                  iStorage.mapModelStorage.layerModels[iIndex] : iStorage;
-              iLayerModel.restoreStorage(tLayerStorage);
+              if( iIndex < iStorage.mapModelStorage.layerModels.length) {
+                var tLayerStorage = SC.isArray(iStorage.mapModelStorage.layerModels) ?
+                    iStorage.mapModelStorage.layerModels[iIndex] : iStorage;
+                iLayerModel.restoreStorage(tLayerStorage);
+              }
             });
           }
         }
