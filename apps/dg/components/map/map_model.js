@@ -240,7 +240,7 @@ DG.MapModel = SC.Object.extend(
             this.destroyMapLayer( iLayerModel);
             var tIndex = tLayerModels.indexOf( iLayerModel);
             tLayerModels.splice( tIndex, 1);
-          });
+          }.bind(this));
           tLayerModelWasAdded = this._processDocumentContexts();
           if( tLayerModelsToRemove.length > 0 || tLayerModelWasAdded)
             this.notifyPropertyChange('mapLayerModelsChange');
