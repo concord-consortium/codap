@@ -479,8 +479,8 @@ DG.DocumentHelper = SC.Object.extend(
        */
       updateDocument: function (iDocObject, updateDataContextFunc) {
         var tDocController = DG.currDocumentController(),
-            tComponentControllers = tDocController.get('componentControllersMap'),
-            tComponentsStorage = iDocObject.components,
+            tComponentControllers = tDocController.get('componentControllersMap') || [],
+            tComponentsStorage = iDocObject.components || [],
             this_ = this;
 
         function deleteComponentsNotInDocObject() {
@@ -497,11 +497,11 @@ DG.DocumentHelper = SC.Object.extend(
         }
 
         function deleteDataContextsNotInDocObject() {
-          var tExistingContexts = tDocController.get('contextRecords'),
-              tIDsOfStoredContexts = iDocObject.contexts.map(
+          var tExistingContexts = tDocController.get('contextRecords') || [],
+              tIDsOfStoredContexts = iDocObject.contexts ? iDocObject.contexts.map(
                   function (iContext) {
                     return Number(iContext.guid);
-                  });
+                  }) : [];
           DG.ObjectMap.forEach(tExistingContexts, function (iGuid, iContext) {
             var tFoundStorage = tIDsOfStoredContexts.indexOf(Number(iGuid)) >= 0;
             if (!tFoundStorage) {
@@ -668,7 +668,7 @@ DG.DocumentHelper = SC.Object.extend(
 
         function createOrUpdateDataContexts() {
           var tExistingContexts = tDocController.get('contextRecords'),
-              tNewDocContexts = iDocObject.contexts;  // The ones we're moving toward
+              tNewDocContexts = iDocObject.contexts || [];  // The ones we're moving toward
 
           tNewDocContexts.forEach(function (iNewDocContext) {
             var tDocContextID = iNewDocContext.guid,
@@ -720,7 +720,8 @@ DG.DocumentHelper = SC.Object.extend(
 
         // Global values are not stored in slider components so we have to reinstate them separately
         function reinstateGlobalValues() {
-          iDocObject.globalValues.forEach(function (iValue) {
+          if( iDocObject.globalValues)
+            iDocObject.globalValues.forEach(function (iValue) {
             var tValueInDoc = DG.globalsController.getGlobalValueByID(iValue.guid);
             if (tValueInDoc) {
               tValueInDoc.set('value', iValue.value);
@@ -734,7 +735,8 @@ DG.DocumentHelper = SC.Object.extend(
 
         function reinstateSelection() {
           var tDocContexts = tDocController.get('contexts');
-          iDocObject.contexts.forEach(function (iContext) {
+          if( iDocObject.contexts)
+            iDocObject.contexts.forEach(function (iContext) {
             var tDocContext = tDocContexts.find(function (iDocContext) {
               return iDocContext.getPath('model.id') === iContext.guid;
             });
