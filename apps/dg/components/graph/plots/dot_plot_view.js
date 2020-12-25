@@ -164,24 +164,26 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   createAnimatingElement: function(iCase, iIndex, iOldEltAttrs) {
     var tNumericAxisIsHorizontal = this.getPath('primaryAxisView.orientation') === 'horizontal',
         tOldElementIsRect = iOldEltAttrs && iOldEltAttrs.type === 'rect',
-        tElement = this.callCreateElement(iCase, iIndex, false),
-        tCX = tOldElementIsRect ? iOldEltAttrs.x : iOldEltAttrs.cx,
-        tCY = tOldElementIsRect ? iOldEltAttrs.y : iOldEltAttrs.cy,
-        attrs;
-    if( tOldElementIsRect) {
-      tCX += tNumericAxisIsHorizontal ? iOldEltAttrs.width : iOldEltAttrs.width / 2;
-      tCY += tNumericAxisIsHorizontal ? iOldEltAttrs.height / 2 : 0;
+        tElement = this.callCreateElement(iCase, iIndex, false);
+    if( iOldEltAttrs) {
+      var tCX = tOldElementIsRect ? iOldEltAttrs.x : iOldEltAttrs.cx,
+          tCY = tOldElementIsRect ? iOldEltAttrs.y : iOldEltAttrs.cy,
+          attrs;
+      if (tOldElementIsRect) {
+        tCX += tNumericAxisIsHorizontal ? iOldEltAttrs.width : iOldEltAttrs.width / 2;
+        tCY += tNumericAxisIsHorizontal ? iOldEltAttrs.height / 2 : 0;
+      }
+      attrs = iOldEltAttrs && {
+        r: tOldElementIsRect
+            ? Math.min(iOldEltAttrs.width, iOldEltAttrs.height) / 2
+            : iOldEltAttrs.r || this._pointRadius,
+        cx: tCX,
+        cy: tCY,
+        fill: iOldEltAttrs.fill,
+        stroke: iOldEltAttrs.stroke
+      };
+      attrs && tElement.attr(attrs);
     }
-        attrs = iOldEltAttrs && {
-          r: tOldElementIsRect
-              ? Math.min(iOldEltAttrs.width, iOldEltAttrs.height) / 2
-              : iOldEltAttrs.r || this._pointRadius,
-          cx: tCX,
-          cy: tCY,
-          fill: iOldEltAttrs.fill,
-          stroke: iOldEltAttrs.stroke
-        };
-    attrs && tElement.attr(attrs);
     return tElement;
   },
 
