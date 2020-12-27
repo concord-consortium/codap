@@ -357,8 +357,7 @@ DG.GraphView = SC.View.extend(
               rowIndex: 0,
               colIndex: 0
             }),
-            tSelectedInfoView = DG.SelectedInfoView.create({ graphModel: this.get('model')}),
-            tPlots = this.getPath('model.plots');
+            tSelectedInfoView = DG.SelectedInfoView.create({ graphModel: this.get('model')});
 
         sc_super();
 
@@ -420,12 +419,8 @@ DG.GraphView = SC.View.extend(
         tTopAxisView.set('model', tTopAxis);
         tRightAxisView.set('model', tRightAxis);
 
-        tPlots.forEach(function (iPlotModel) {
-          var tPlotView = this.mapPlotModelToPlotView(iPlotModel).create({model: iPlotModel});
-          this.addPlotView(tPlotView);
-          this.setPlotViewProperties(tPlotView, iPlotModel,
-              iPlotModel.get('verticalAxisIsY2') ? 'y2AxisView' : 'yAxisView');
-        }.bind(this));
+        this.assignPlotViewToEachPlot();
+
         this.appendChild(tY2AxisView); // So it will be on top and drag-hilite will show over plot
         tY2AxisView.set('isVisible', tY2AxisView.get('model').constructor !== DG.AxisModel);
         tTopAxisView.set('isVisible', this.getPath('model.numSplitColumns') > 1);
@@ -489,6 +484,36 @@ DG.GraphView = SC.View.extend(
             iFunc(iPlotView, 0, 0, iIndex);
           });
         }
+      },
+
+      /**
+       * We use this during init and during an undo restore (which doesn't go through init) to make sure each
+       * plot has a corresponding plotview.
+       */
+      assignPlotViewToEachPlot: function() {
+        // Make a copy of the array of plotViews so we can see if any are left over that should be removed
+        var tPlotViewsCopy = this._plotViews.map(function(iPlotView) { return iPlotView;});
+        this.getPath('model.plots').forEach(function (iPlotModel) {
+          var tFoundPlotView;
+          this.forEachPlotViewDo( function( iPlotView) {
+            if( !tPlotView && iPlotView.get('model') === iPlotModel)
+              tFoundPlotView = iPlotView;
+          });
+          if( !tFoundPlotView) {
+            var tPlotView = this.mapPlotModelToPlotView(iPlotModel).create({model: iPlotModel});
+            this.addPlotView(tPlotView);
+            this.setPlotViewProperties(tPlotView, iPlotModel,
+                iPlotModel.get('verticalAxisIsY2') ? 'y2AxisView' : 'yAxisView');
+          }
+          else {
+            var tIndex = tPlotViewsCopy.indexOf( tFoundPlotView);
+            tPlotViewsCopy.splice( tIndex, 1);
+          }
+        }.bind(this));
+        // Destroy any remaining plotViews of the originals
+        tPlotViewsCopy.forEach( function( iPlotView) {
+          iPlotView.destroy();
+        });
       },
 
       /**
@@ -1291,12 +1316,12 @@ DG.GraphView = SC.View.extend(
        * of the attributes because an attribute may have gone from numeric to qualitative or vice versa.
        */
       configurationIsAboutToChange: function () {
-        var tPlotView = this.get('plotView');
         if (this.getPath('model.aboutToChangeConfiguration')) {
-          tPlotView.prepareForConfigurationChange();
+          this.get('plotView').prepareForConfigurationChange();
         }
-        else {
-          tPlotView.handleConfigurationChange();
+        else {  // model configuration has finished changing. Take care of view layer.
+          this.assignPlotViewToEachPlot();
+          this.get('plotView').handleConfigurationChange();
           this.synchAxisViewsWithAttributeTypes();
         }
       }.observes('.model.aboutToChangeConfiguration'),

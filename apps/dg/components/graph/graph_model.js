@@ -1649,8 +1649,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
             iStorage[iKey + 'Role'], iStorage[iKey + 'AttributeType']);
       }.bind( this));
 
-      this.set('aboutToChangeConfiguration', false ); // We're done
-
       ['x', 'y', 'y2', 'top', 'right'].forEach( function( iKey) {
         var tAxisClassName = iStorage[iKey + 'AxisClass'],
             tAxisClass = tAxisClassName && DG[tAxisClassName.substring(3)], // convert string to axis class
@@ -1668,6 +1666,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
                                   iStorage.plotModels ||
                                   []);
       this._isBeingRestored = false;
+
+      this.set('aboutToChangeConfiguration', false ); // We're done. View layer can adapt
+
       tEndsUpSplit = this.get('isSplit');
       if( tEndsUpSplit) {
         this.updateAxisArrays();
