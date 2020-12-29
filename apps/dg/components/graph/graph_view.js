@@ -1424,6 +1424,9 @@ DG.GraphView = SC.View.extend(
           case DG.BarChartModel:
             tNewViewClass = DG.BarChartView;
             break;
+          case DG.ComputedBarChartModel:
+            tNewViewClass = DG.ComputedBarChartView;
+            break;
         }
         return tNewViewClass;
       },

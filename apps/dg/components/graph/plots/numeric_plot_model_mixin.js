@@ -21,7 +21,7 @@
 /** @class  Mixin to encapsulate certain behaviors that plot models with one or two numeric
     axes have in common.
 */
-DG.NumericPlotModelMixin = 
+DG.NumericPlotModelMixin =
 {
   /**
     Animate a dilation of the plot around the given fixed point.
@@ -32,7 +32,7 @@ DG.NumericPlotModelMixin =
   doDilation: function( iPlaces, iFixedPoint, iFactor) {
     var this_ = this,
       tAxisInfoArray = [];
-  
+
     function computeNewBounds( iAxis, iFixedCoord) {
       if( SC.none( iAxis))
         return;
@@ -40,12 +40,12 @@ DG.NumericPlotModelMixin =
       var tNewBounds = iAxis.computeBoundsForDilation( iFixedCoord, iFactor);
       tAxisInfoArray.push ( { axis: iAxis, newBounds: tNewBounds });
     }
-  
+
     iPlaces.forEach( function( iPlace) {
       var tCoord = (iPlace === DG.GraphTypes.EPlace.eX) ? iFixedPoint.x : iFixedPoint.y;
       computeNewBounds( this_.getAxisForPlace( iPlace), tCoord);
     });
-    
+
     if( SC.none( this.plotAnimator))
       this.plotAnimator = DG.GraphAnimator.create( { plot: this });
     this.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate();
@@ -61,11 +61,13 @@ DG.NumericPlotModelMixin =
     var this_ = this,
       tAxisInfoArray = [],
       tOldBoundsArray = [];
-  
-    function setNewBounds( iPlace, iAxis) {
-      var tAttribute = iAxis && iAxis.getPath('attributeDescription.attribute');
+
+    function setNewBounds( iPlace, iAxis, isPseudoNumeric) {
+      var tAttribute = iAxis && iAxis.getPath('attributeDescription.attribute'),
+          // a pseudo-numeric axis is a numeric axis that doesn't correspond to an attribute
+          tIsPseudoNumeric = isPseudoNumeric || (iAxis.constructor === DG.CountAxisModel);
       if( !iAxis || !iAxis.setDataMinAndMax ||
-          (iAxis.constructor !== DG.CountAxisModel && tAttribute === DG.Analysis.kNullAttribute)) {
+          (!tIsPseudoNumeric && tAttribute === DG.Analysis.kNullAttribute)) {
         tOldBoundsArray.push({}); // Must have an object here or things get out of sync
         return;
       }
@@ -86,12 +88,12 @@ DG.NumericPlotModelMixin =
       tNewUpper = iAxis.get('upperBound');
       tAxisInfoArray.push ( { axis: iAxis, newBounds: { lower: tNewLower, upper: tNewUpper } });
     }
-    
+
     function setOldBounds( iAxis, iBounds) {
       if( !SC.none( iAxis))
         iAxis.setLowerAndUpperBounds(iBounds.lower, iBounds.upper);
     }
-    
+
     function boundsChanged( iAxisInfoArray, iOldBoundsArray) {
       var tIndex;
       for( tIndex = 0; tIndex < iAxisInfoArray.length; tIndex++) {
@@ -117,7 +119,7 @@ DG.NumericPlotModelMixin =
       }
       return this_.getAxisForPlace( tPlace);
     }
-  
+
     // Body of rescaleAxesFromData
     if( SC.none( iAnimatePoints))
       iAnimatePoints = true;
@@ -139,7 +141,7 @@ DG.NumericPlotModelMixin =
       execute: function() {
 
         iPlaces.forEach( function( iPlace) {
-          setNewBounds( iPlace, axisForPlace( iPlace));
+          setNewBounds( iPlace, axisForPlace( iPlace), this_.get('isBarHeightComputed'));
         });
 
         // we store clones of the data, because if/when we animate, the two arrays we need are emptied
@@ -184,7 +186,7 @@ DG.NumericPlotModelMixin =
       redo: function() {
         if (this._undoData) {
           this._undoData.places.forEach( function( iPlace) {
-            setNewBounds( iPlace, axisForPlace( iPlace));
+            setNewBounds( iPlace, axisForPlace( iPlace), this_.get('isBarHeightComputed'));
           });
 
           // Only animate if the bounds have changed
@@ -211,6 +213,5 @@ DG.NumericPlotModelMixin =
      */
     onRescaleIsComplete: function() {
     }
-  
-};
 
+};
