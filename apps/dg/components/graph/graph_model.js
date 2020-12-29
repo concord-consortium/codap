@@ -975,7 +975,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
     addPlotObserver: function( iPlot) {
       switch( iPlot.constructor) {
         case DG.BarChartModel:
-          iPlot.addObserver('breakdownType', this, this.propagateBreakdownType);
+        case DG.ComputedBarChartModel:
+          iPlot.addObserver('isBarHeightComputed', this, this.swapComputedBarChartType);
+          if (iPlot.constructor === DG.BarChartModel)
+            iPlot.addObserver('breakdownType', this, this.propagateBreakdownType);
           // fallthrough intentional
         case DG.DotChartModel:
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
@@ -997,10 +1000,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
     removePlotObserver: function( iPlot) {
       iPlot.removeObserver('connectingLine', this, this.connectingLineChanged);
       switch( iPlot.constructor) {
-        case DG.DotChartModel:
         case DG.BarChartModel:
+        case DG.ComputedBarChartModel:
+          iPlot.removeObserver('isBarHeightComputed', this, this.swapComputedBarChartType);
+          if (iPlot.constructor === DG.BarChartModel)
+            iPlot.removeObserver('breakdownType', this, this.propagateBreakdownType);
+          // fallthrough intentional
+        case DG.DotChartModel:
           iPlot.removeObserver('displayAsBarChart', this, this.swapChartType);
-          iPlot.removeObserver('breakdownType', this, this.propagateBreakdownType);
           break;
         case DG.BinnedPlotModel:
           iPlot.removeObserver('dotsAreFused', this, this.dotsAreFusedDidChange);
@@ -1022,7 +1029,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
       this.set('aboutToChangeConfiguration', true); // signal to prepare
       iNewPlotClass.configureRoles(tConfig);
-      tNewPlot = iNewPlotClass.create(this.getModelPointStyleAccessors());
+      var tPlotProps = this.getModelPointStyleAccessors();
+      if (tOldPlot.kindOf(DG.BarChartBaseModel))
+        tPlotProps.breakdownType = tOldPlot.get('breakdownType');
+      tNewPlot = iNewPlotClass.create(tPlotProps);
       this.addPlotObserver(tNewPlot);
 
       tAdornmentModels = tOldPlot.copyAdornmentModels(tNewPlot);
@@ -1044,12 +1054,45 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this.removePlotObserver(tOldPlot);
       tOldPlot.destroy();
+
+      // allow for switching axis type, e.g. CellLinearAxis <=> CountAxis for bar charts with/without formulas
+      this.synchAxes();
+      tNewPlot.rescaleAxesFromData();
+
       this.set('aboutToChangeConfiguration', false);  // all done
       if( tIsSplit) {
         this.updateAxisArrays();
         this.updateSplitPlotArray();
         this.notifyPropertyChange('splitPlotChange');
       }
+    },
+
+    /**
+     * We swap out the given plot model for its alternate. A BarChart gets a count axis and, if we're making a
+     * dot chart, we must remove the count axis.
+     * @param iChartPlot {DG.BarChartModel | DG.ComputedBarChartModel }
+     * @param iKey {String} Should be 'isBarHeightComputed'
+     * @param iValue {Boolean}
+     */
+    swapComputedBarChartType: function( iChartPlot, iKey, iValue) {
+      var tInitialValue = iChartPlot.get('isBarHeightComputed'),
+          tOldPlotClass = iChartPlot.constructor,
+          tNewPlotClass = tOldPlotClass === DG.ComputedBarChartModel ?
+              DG.BarChartModel : DG.ComputedBarChartModel,
+          tUndo = tInitialValue ? 'DG.Undo.graph.showAsComputedBarChart' : 'DG.Undo.graph.showAsStandardBarChart',
+          tRedo = tInitialValue ? 'DG.Redo.graph.showAsComputedBarChart' : 'DG.Redo.graph.showAsStandardBarChart';
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "graph.toggleComputedBarChart",
+        undoString: tUndo,
+        redoString: tRedo,
+        log: ("toggleShowAs: %@").fmt(tInitialValue ? "ComputedBarChart" : "BarChart"),
+        execute: function() {
+          this.swapPlotForNewPlot(tNewPlotClass);
+        }.bind(this),
+        undo: function() {
+          this.swapPlotForNewPlot(tOldPlotClass);
+        }.bind(this)
+      }));
     },
 
     /**

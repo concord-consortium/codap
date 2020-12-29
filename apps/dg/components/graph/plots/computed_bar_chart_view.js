@@ -1,9 +1,9 @@
 // ==========================================================================
-//                          DG.BarChartView
+//                          DG.ComputedBarChartView
 //
-//  Author:   William Finzer
+//  Author:   Kirk Swenson
 //
-//  Copyright (c) 2017 by The Concord Consortium, Inc. All rights reserved.
+//  Copyright (c) 2020 by The Concord Consortium, Inc. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -23,35 +23,35 @@ sc_require('components/graph/plots/bar_chart_base_view');
 /** @class  DG.BarChartView, a plot of rectangles, one for each category. Each rectangle is made of
  * thinner rectangles, one for each case.
 
- @extends DG.BarChartBaseView
+ @extends DG.ComputedBarChartView
  */
-DG.BarChartView = DG.BarChartBaseView.extend(
-  /** @scope DG.BarChartView.prototype */
+DG.ComputedBarChartView = DG.BarChartBaseView.extend(
+  /** @scope DG.ComputedBarChartView.prototype */
   {
-    /**
-     * Make sure the count axis has the correct upper bounds
-     */
-    setupAxes: function () {
-      sc_super();
-      var tCountAxisView = this.get('secondaryAxisView');
-      // Only set the bounds if they aren't already present
-      if (tCountAxisView && SC.none( tCountAxisView.getPath('model.lowerBound'))) {
-        tCountAxisView.get('model').setLowerAndUpperBounds(0, this.getPath('model.naturalUpperBound'));
-      }
-    },
-
     /**
      * Return the class of the count axis with the x or y to put it on.
      * @return {[{}]}
      */
     getAxisViewDescriptions: function () {
       var tDescriptions = sc_super(),
-          tCountKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x';
+          tNumericKey = this.getPath('model.orientation') === DG.GraphTypes.EOrientation.kVertical ? 'y' : 'x';
       tDescriptions.push( {
-        axisKey: tCountKey,
-        axisClass: DG.CountAxisView
+        axisKey: tNumericKey,
+        axisClass: DG.CellLinearAxisView
       });
       return tDescriptions;
+    },
+
+    getBarHeight: function(iPrimaryName, iCount, iTotal) {
+      var model = this.get('model'),
+          barHeight = model && model.getBarHeight(iPrimaryName);
+      return model && barHeight * iCount / iTotal;
+    },
+
+    drawData: function drawData() {
+      var model = this.get('model');
+      model._buildCache();
+      sc_super();
     }
   }
 );

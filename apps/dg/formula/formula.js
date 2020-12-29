@@ -18,9 +18,6 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('formula/formula_common');
-sc_require('formula/formula_context');
-
 /** @class DG.Formula
 
   The DG.Formula object supports parsing, compilation, and evaluation of

@@ -882,6 +882,7 @@ SC.stringsFor("en", {
     "DG.Inspector.graphTransparency": "Transparent",
     "DG.Inspector.graphCount": "Count",
     "DG.Inspector.graphPercent": "Percent",
+    "DG.Inspector.graphFormula": "Formula",
     "DG.Inspector.graphRow": "Row",
     "DG.Inspector.graphColumn": "Column",
     "DG.Inspector.graphCell": "Cell",
