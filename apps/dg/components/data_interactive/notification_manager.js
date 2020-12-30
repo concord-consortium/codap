@@ -173,6 +173,8 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
             result.cases = [];
             result.extend = iChange.extend;
             (iChange.cases).forEach(function (iCase) {
+              if( iCase._isProtoCase)
+                return; // In rare situation got here and what follows causes exception
               var values = {};
 
               iCase.collection.attrs.forEach(function (attr) {
