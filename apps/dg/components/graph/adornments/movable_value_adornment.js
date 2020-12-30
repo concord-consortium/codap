@@ -166,6 +166,14 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
         undoString: 'DG.Undo.graph.moveMovableValue',
         redoString: 'DG.Redo.graph.removeMovableValue',
         log: "Moved movable value from %@ to %@".fmt( tOriginal, this_.get('value')),
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'drag movable line',
+            type: 'DG.GraphView'
+          }
+        },
         execute: function() {
           tNew = this_.getPath('model.value');
         },

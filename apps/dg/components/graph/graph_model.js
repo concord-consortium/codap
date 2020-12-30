@@ -485,6 +485,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
           undoString: isEnabled ? 'DG.Undo.disable' + iCapability : 'DG.Undo.enable' + iCapability,
           redoString: isEnabled ? 'DG.Redo.disable' + iCapability : 'DG.Redo.enable' + iCapability,
           log: isEnabled ? "Disable" + iCapability : "Enable" + iCapability,
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle ' + iCapability,
+              type: 'DG.GraphView'
+            }
+          },
           execute: function() {
             this._undoData = !!self.get('enable' + iCapability);
             self.set('enable' + iCapability, !isEnabled);
@@ -1071,6 +1079,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
         undoString: tUndo,
         redoString: tRedo,
         log: ("toggleShowAs: %@").fmt(tInitialValue ? "DotChart" : "BarChart"),
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'switch bar and dot',
+            type: 'DG.GraphView'
+          }
+        },
         execute: function() {
           this.swapPlotForNewPlot(tNewPlotClass);
         }.bind(this),
@@ -1117,6 +1133,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
         undoString: tPlotTypeEntry.undo,
         redoString: tPlotTypeEntry.redo,
         log: ("toggleShowAs: %@").fmt(tPlotTypeEntry.logLabel),
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'toggle show as %@'.fmt(tPlotTypeEntry.logLabel),
+            type: 'DG.GraphView'
+          }
+        },
         execute: function() {
           this.swapPlotForNewPlot(tPlotTypeEntry.constructor);
         }.bind(this),

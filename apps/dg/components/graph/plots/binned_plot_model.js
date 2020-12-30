@@ -440,6 +440,14 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             undoString: 'DG.Undo.graph.' + iParamString,
             redoString: 'DG.Redo.graph.' + iParamString,
             log: ("change %@ from %@ to %@").fmt(iKey, tInitialValue, iValue),
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'change bin parameter',
+                type: 'DG.GraphView'
+              }
+            },
             execute: function() {
               this.set(iKey, iValue);
             }.bind(this),
@@ -460,6 +468,14 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             undoString: tUndo,
             redoString: tRedo,
             log: ("toggleShowAs: %@").fmt(tDotsStartOutFused ? "Histogram" : "BinnedDotPlot"),
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'toggle between histogram and dots',
+                type: 'DG.GraphView'
+              }
+            },
             execute: function() {
               this.toggleProperty('dotsAreFused');
             }.bind(this)

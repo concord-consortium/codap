@@ -169,6 +169,14 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             _model: function() {
               return this._controller().getPath(tAxisKey+'.model');
             },
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'change axis bounds',
+                type: 'DG.GraphView'
+              }
+            },
             execute: function() { },
             undo: function() {
               this._model().setLowerAndUpperBounds(oldLowerBound, oldUpperBound, true /* animate */ );

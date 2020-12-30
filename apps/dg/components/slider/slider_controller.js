@@ -222,6 +222,14 @@ DG.SliderController = DG.ComponentController.extend(
                 name: 'slider.change',
                 _newValue: null,
                 _prevValue: null,
+                executeNotification: {
+                  action: 'notify',
+                  resource: 'component',
+                  values: {
+                    operation: 'change slider value',
+                    type: 'DG.SliderView'
+                  }
+                },
                 execute: function () {
                   this._prevValue = this_.getPath(this.valueKey);
                   this._newValue = this.typeCheckFunc( this.controlView.get('value'));

@@ -125,6 +125,14 @@ DG.MovablePointAdornment = DG.PlotAdornment.extend(
                 undoString: 'DG.Undo.graph.moveMovablePoint',
                 redoString: 'DG.Redo.graph.moveMovablePoint',
                 log: "Moved movable point from %@ to %@".fmt( tOriginal, this.getPath('model.coordinates')),
+                executeNotification: {
+                  action: 'notify',
+                  resource: 'component',
+                  values: {
+                    operation: 'drag movable poin',
+                    type: 'DG.GraphView'
+                  }
+                },
                 execute: function() {
                   tNew = this.getPath('model.coordinates');
                 }.bind( this),

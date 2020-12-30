@@ -91,6 +91,14 @@ DG.Calculator = SC.View.extend( (function() // closure
         redoString: 'DG.Redo.calculator.calculate',
         log: "Calculator value cleared",
         _redoValue: null,
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'calculate',
+            type: 'DG.Caluclator'
+          }
+        },
         execute: function() {
           calculator.editView.set('value', this._redoValue || '');
           calculator._justEvaled = NO;
@@ -145,6 +153,14 @@ DG.Calculator = SC.View.extend( (function() // closure
         undoString: 'DG.Undo.calculator.calculate',
         redoString: 'DG.Redo.calculator.calculate',
         log: "Calculation done: %@ = %@".fmt(tCurrent, this.formatForExport( tValue)),
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'calculate',
+            type: 'DG.Calculator'
+          }
+        },
         execute: function() {
           calculator.editView.set('value', newValue);
           calculator._justEvaled = YES;

@@ -114,6 +114,14 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           undoString: tUndo,
           redoString: tRedo,
           log: ("togglePlotted" + iWhat + ": %@").fmt(tInitialValue ? "hide" : "show"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle movable value',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
           }.bind(this),
@@ -188,6 +196,14 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           undoString: 'DG.Undo.graph.addMovableValue',
           redoString: 'DG.Redo.graph.addMovableValue',
           log: "Added Movable Value",
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'add movable value',
+              type: 'DG.GraphView'
+            }
+          },
           execute: doAddMovableValue,
           undo: doUndoAddMovableValue
         }));
@@ -257,6 +273,14 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           undoString: 'DG.Undo.graph.removeMovableValue',
           redoString: 'DG.Redo.graph.removeMovableValue',
           log: "Added Movable Value",
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'remove movable value',
+              type: 'DG.GraphView'
+            }
+          },
           execute: doRemoveMovableValue,
           undo: doUndoRemoveMovableValue
         }));
@@ -298,6 +322,14 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           name: "graph." + iToggleLogString,  // e.g. graph.togglePlottedMean
           undoString: null,
           log: iToggleLogString,
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: iToggleLogString,
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             var wasShown = toggle(),
 
@@ -381,6 +413,14 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           name: "graph.boxPlot.showOutliers",
           undoString: null,
           log: "graph.boxPlot.showOutliers",
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle show outliers',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             var wasShown = toggle(),
 

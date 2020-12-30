@@ -229,6 +229,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           undoString: (willShow ? 'DG.Undo.graph.showMovablePoint' : 'DG.Undo.graph.hideMovablePoint'),
           redoString: (willShow ? 'DG.Redo.graph.showMovablePoint' : 'DG.Redo.graph.hideMovablePoint'),
           log: "toggleMovablePoint: %@".fmt(willShow ? "show" : "hide"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle movable point',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
           },
@@ -266,6 +274,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           undoString: (willShow ? 'DG.Undo.graph.showMovableLine' : 'DG.Undo.graph.hideMovableLine'),
           redoString: (willShow ? 'DG.Redo.graph.showMovableLine' : 'DG.Redo.graph.hideMovableLine'),
           log: "toggleMovableLine: %@".fmt(willShow ? "show" : "hide"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle movable line',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
           },
@@ -317,6 +333,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           undoString: (willShow ? 'DG.Undo.graph.showLSRL' : 'DG.Undo.graph.hideLSRL'),
           redoString: (willShow ? 'DG.Redo.graph.showLSRL' : 'DG.Redo.graph.hideLSRL'),
           log: "toggleLSRL: %@".fmt(willShow ? "show" : "hide"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle LSRL',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
           },
@@ -384,6 +408,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           undoString: (willLock ? 'DG.Undo.graph.lockIntercept' : 'DG.Undo.graph.unlockIntercept'),
           redoString: (willLock ? 'DG.Redo.graph.lockIntercept' : 'DG.Redo.graph.unlockIntercept'),
           log: "lockIntercept: %@".fmt(willLock),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle lock intercept',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             this._undoData = gatherUndoData();
             toggle();
@@ -426,6 +458,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           undoString: (willShow ? 'DG.Undo.graph.showPlotFunction' : 'DG.Undo.graph.hidePlotFunction'),
           redoString: (willShow ? 'DG.Redo.graph.showPlotFunction' : 'DG.Redo.graph.hidePlotFunction'),
           log: "togglePlotFunction: %@".fmt(willShow ? "show" : "hide"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle plot function',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
             connectFunctions();
@@ -461,6 +501,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           undoString: (willShow ? 'DG.Undo.graph.showConnectingLine' : 'DG.Undo.graph.hideConnectingLine'),
           redoString: (willShow ? 'DG.Redo.graph.showConnectingLine' : 'DG.Redo.graph.hideConnectingLine'),
           log: "toggleConnectingLine: %@".fmt(willShow ? "show" : "hide"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle connecting line',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
           },
@@ -492,6 +540,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           undoString: (willShow ? 'DG.Undo.graph.showSquares' : 'DG.Undo.graph.hideSquares'),
           redoString: (willShow ? 'DG.Redo.graph.showSquares' : 'DG.Redo.graph.hideSquares'),
           log: "toggleShowSquares: %@".fmt(willShow ? "show" : "hide"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle show squares',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
           },

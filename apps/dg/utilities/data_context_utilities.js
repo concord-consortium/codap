@@ -783,6 +783,14 @@ DG.DataContextUtilities = {
         undoString: 'DG.Undo.DataContext.join'.loc(tSourceDatasetName, iDestContext.get('title')),
         redoString: 'DG.Redo.DataContext.join'.loc(tSourceDatasetName, iDestContext.get('title')),
         log: 'Join attributes from "%@" to "%@"'.fmt(tSourceDatasetName, iDestContext.get('title')),
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'join',
+            type: DG.CaseTable
+          }
+        },
         execute: function () {
           var tAttrSpecs = [];
           forEachJoinableSourceAttribute(function (iForeignAttribute, iNewAttrName) {

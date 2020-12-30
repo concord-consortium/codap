@@ -74,6 +74,7 @@ DG.DragBorderView = SC.View.extend(
             height: layout.height,
             width: layout.width
           };
+/*  We don't want to send this notification because we might only click and not drag.
           var tViewToDrag = this.viewToDrag();
           DG.currDocumentController().notificationManager.sendNotification({
             action: 'notify',
@@ -84,6 +85,7 @@ DG.DragBorderView = SC.View.extend(
               id: tViewToDrag.getPath('controller.model.id')
             }
           });
+*/
           tView.get('controller').updateModelLayout();
           return YES; // so we get other events
         },

@@ -323,6 +323,14 @@ DG.SliderView = SC.View.extend(
             _componentId: this_.getPath('controller.model.id'),
             _newValue: this_.getPath('model.value'),
             _prevValue: this_._previousValue,
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'change slider value',
+                type: 'DG.SliderView'
+              }
+            },
             execute: function() {
               this_.get('model').encompassValue();
               if (this._newValue === this._prevValue) {

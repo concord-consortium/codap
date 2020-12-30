@@ -730,6 +730,14 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             _controller: function() {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'edit formula',
+                type: 'DG.CaseTable'
+              }
+            },
             execute: function() {
               tRef = tContext.getAttrRefByName( tAttributeName);
               var tChange = {
@@ -828,6 +836,14 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             redoString: 'DG.Undo.caseTable.resizeColumn',
             log: 'Fit Column Width: {collection: %@, attribute: %@}'
                 .fmt(collection.get('name'), tAttr.get('name')),
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'resize column',
+                type: 'DG.CaseTable'
+              }
+            },
             execute: function() {
               adapter.autoResizeColumn(tAttr);
               _this.attributesDidChange();
@@ -1170,6 +1186,14 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           undoString: 'DG.Undo.caseTable.resizeColumns',
           redoString: 'DG.Redo.caseTable.resizeColumns',
           log: "resizeColumns: { dataContext: % }".fmt(dataContext),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'resize columns',
+              type: 'DG.CaseTable'
+            }
+          },
           execute: function () {
             adapters.forEach( function (adapter) {
               adapter.autoResizeAllColumns();

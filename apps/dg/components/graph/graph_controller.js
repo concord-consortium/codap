@@ -558,6 +558,14 @@ DG.GraphController = DG.DataDisplayController.extend(
             _controller: function () {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'add axis attribute',
+                type: 'DG.GraphView'
+              }
+            },
             execute: function () {
               var controller = this._controller(),
                   tDataConfiguration = controller.getPath('graphModel.dataConfiguration');
@@ -618,6 +626,14 @@ DG.GraphController = DG.DataDisplayController.extend(
             _componentId: this.getPath('model.id'),
             _controller: function () {
               return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'add 2nd axis attribute',
+                type: 'DG.GraphView'
+              }
             },
             execute: function () {
               var controller = this._controller(),
@@ -695,6 +711,14 @@ DG.GraphController = DG.DataDisplayController.extend(
                   undoString: 'DG.Undo.graph.' + name,
                   redoString: 'DG.Redo.graph.' + name,
                   log: "Changed background color",
+                  executeNotification: {
+                    action: 'notify',
+                    resource: 'component',
+                    values: {
+                      operation: 'change background color',
+                      type: 'DG.GraphView'
+                    }
+                  },
                   execute: function () {
                     this.reduceKey = this.name + currentOpenSession;
                     this._beforeStorage = {
@@ -752,6 +776,14 @@ DG.GraphController = DG.DataDisplayController.extend(
                 undoString: 'DG.Undo.graph.toggleTransparent',
                 redoString: 'DG.Redo.graph.toggleTransparent',
                 log: logMessage,
+                executeNotification: {
+                  action: 'notify',
+                  resource: 'component',
+                  values: {
+                    operation: 'toggle background transparency',
+                    type: 'DG.GraphView'
+                  }
+                },
                 execute: function () {
                   this.get('graphModel').toggleProperty('isTransparent');
                 }.bind(this),

@@ -412,6 +412,14 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
           undoString: (willShow ? 'DG.Undo.graph.showPlotValue' : 'DG.Undo.graph.hidePlotValue'),
           redoString: (willShow ? 'DG.Redo.graph.showPlotValue' : 'DG.Redo.graph.hidePlotValue'),
           log: "togglePlotValue: %@".fmt(willShow ? "show" : "hide"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle plotted value',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
             connectFunctions();
@@ -448,6 +456,14 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
           undoString: tUndo,
           redoString: tRedo,
           log: ("togglePlotted" + iWhat + ": %@").fmt(tInitialValue ? "hide" : "show"),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle plotted ' + iWhat,
+              type: 'DG.GraphView'
+            }
+          },
           execute: function () {
             toggle();
           }.bind(this),

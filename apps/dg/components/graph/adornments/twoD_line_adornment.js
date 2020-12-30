@@ -253,6 +253,14 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
         undoString: 'DG.Undo.graph.repositionEquation',
         redoString: 'DG.Redo.graph.repositionEquation',
         log: "Moved equation from %@ to %@".fmt( tOriginal, this.getPath('model.coordinates')),
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'reposition equation',
+            type: 'DG.GraphView'
+          }
+        },
         execute: function() {
           tNew = this_.getPath('model.equationCoords');
         }.bind( this),

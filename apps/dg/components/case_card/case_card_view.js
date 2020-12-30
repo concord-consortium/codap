@@ -104,6 +104,14 @@ DG.CaseCardView = SC.View.extend(
             name: 'caseCard.columnWidthChange',
             undoString: 'DG.Undo.caseCard.columnWidthChange',
             redoString: 'DG.Redo.caseCard.columnWidthChange',
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'change column width',
+                type: 'DG.CaseCard'
+              }
+            },
             execute: function () {
               setColumnWidth(iCollectionName, iColumnWidthPct);
               this.log = "Change case card column width for collection '%@' to '%@'%"

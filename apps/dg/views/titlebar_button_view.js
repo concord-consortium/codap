@@ -195,6 +195,14 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
             undoString: 'DG.Undo.component.minimize',
             redoString: 'DG.Redo.component.minimize',
             log: (tComponentView.get('isMinimized') ? "Expanded component" : "Minimized component"),
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'toggle minimize component',
+                type: tComponentView.getPath('model.type')
+              }
+            },
             execute: function() {
               tComponentView.toggleMinimization();
             },
@@ -352,6 +360,14 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
                 undoString: 'DG.Undo.component.toggleCardToTable',
                 redoString: 'DG.Redo.component.toggleCardToTable',
                 log: 'Toggle case card to case table',
+                executeNotification: {
+                  action: 'notify',
+                  resource: 'component',
+                  values: {
+                    operation: 'toggle card to table',
+                    type: 'DG.CaseCard'
+                  }
+                },
                 execute: function() {
                   DG.currDocumentController().toggleCardToTable(tComponentView);
                 },

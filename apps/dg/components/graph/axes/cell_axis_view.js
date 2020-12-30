@@ -193,6 +193,14 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 _initialCell: tOriginalCellIndex,
                 _finalCell: tCellBeingDragged,
                 _axisModel: this_.get('model'),
+                executeNotification: {
+                  action: 'notify',
+                  resource: 'component',
+                  values: {
+                    operation: 'swap categories',
+                    type: 'DG.GraphView'
+                  }
+                },
                 execute: function () {
                 },
                 undo: function () {

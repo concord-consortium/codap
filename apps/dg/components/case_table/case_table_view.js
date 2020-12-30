@@ -1891,6 +1891,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         undoString: 'DG.Undo.caseTable.groupToggleExpandCollapseAll',
         redoString: 'DG.Redo.caseTable.groupToggleExpandCollapseAll',
         log: 'Expand/Collapse all',
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'expand/collapse all',
+            type: 'DG.CaseTable'
+          }
+        },
         execute: function () {
           //DG.log('expandCollapseAll: [expand/collection/cases]: '
           //    + [iExpand, this.get('collectionName'), cases.get('length')].join('/'));

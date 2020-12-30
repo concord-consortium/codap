@@ -99,6 +99,14 @@ DG.PlottedFormulaEditContext = SC.Object.extend({
       redoString: clientOptions.redoString,
       log: clientOptions.logMessage &&
             clientOptions.logMessage.fmt(originalFormula, newFormula),
+      executeNotification: {
+        action: 'notify',
+        resource: 'component',
+        values: {
+          operation: 'edit plot formula',
+          type: 'DG.GraphView'
+        }
+      },
       execute: function() {
         setFormula(newFormula);
       },

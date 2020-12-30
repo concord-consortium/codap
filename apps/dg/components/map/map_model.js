@@ -511,6 +511,14 @@ DG.MapModel = SC.Object.extend(
               undoString: 'DG.Undo.hideSelectedCases',
               redoString: 'DG.Redo.hideSelectedCases',
               log: "Hide %@ selected cases".fmt(tSelectionSpecs.numSelected.length),
+              executeNotification: {
+                action: 'notify',
+                resource: 'component',
+                values: {
+                  operation: 'hide selected cases',
+                  type: 'DG.MapView'
+                }
+              },
               execute: function() {
                 this._undoData = tSelectionSpecs;
                 tSelectionSpecs.selectionData.forEach( function( iData) {
@@ -531,6 +539,14 @@ DG.MapModel = SC.Object.extend(
               undoString: 'DG.Undo.hideUnselectedCases',
               redoString: 'DG.Redo.hideUnselectedCases',
               log: "Hide %@ unselected cases".fmt(tSelectionSpecs.numCases - tSelectionSpecs.numSelected),
+              executeNotification: {
+                action: 'notify',
+                resource: 'component',
+                values: {
+                  operation: 'hide unselected cases',
+                  type: 'DG.MapView'
+                }
+              },
               execute: function() {
                 this._undoData = tSelectionSpecs;
                 tSelectionSpecs.selectionData.forEach( function( iData) {
@@ -559,6 +575,14 @@ DG.MapModel = SC.Object.extend(
               undoString: 'DG.Undo.showAllCases',
               redoString: 'DG.Redo.showAllCases',
               log: "Show all cases",
+              executeNotification: {
+                action: 'notify',
+                resource: 'component',
+                values: {
+                  operation: 'show all cases',
+                  type: 'DG.MapView'
+                }
+              },
               execute: function() {
                 this._undoData = tSelectionSpecs;
                 tSelectionSpecs.selectionData.forEach( function( iData) {

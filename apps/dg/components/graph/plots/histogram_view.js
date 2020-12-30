@@ -244,6 +244,14 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
           redoString: 'DG.Redo.graph.dragBinBoundary',
           log: "dragBinBoundary from { alignment: %@, width: %@ } to { alignment: %@, width: %@ }".
                   fmt(iInitialAlignment, iInitialBinWidth, tNewAlignment, tNewBinWidth),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'drag bin boundary',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function() { },
           undo: function() {
             this_.setPath('model.alignment', iInitialAlignment);

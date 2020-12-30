@@ -290,6 +290,14 @@ DG.MapController = DG.DataDisplayController.extend(
                     undoString: 'DG.Undo.graph.changePointColor',
                     redoString: 'DG.Redo.graph.changePointColor',
                     log: "Changed categorical point color",
+                    executeNotification: {
+                      action: 'notify',
+                      resource: 'component',
+                      values: {
+                        operation: 'change point color',
+                        type: 'DG.MapView'
+                      }
+                    },
                     execute: function () {
                       this.reduceKey = this.name + iColorKey + currentOpenSession;
                       this._beforeStorage = {
@@ -321,6 +329,14 @@ DG.MapController = DG.DataDisplayController.extend(
                     undoString: 'DG.Undo.graph.' + name,
                     redoString: 'DG.Redo.graph.' + name,
                     log: "Changed point color",
+                    executeNotification: {
+                      action: 'notify',
+                      resource: 'component',
+                      values: {
+                        operation: 'change ' + name,
+                        type: 'DG.MapView'
+                      }
+                    },
                     execute: function () {
                       SC.run(function () {
                         this.reduceKey = this.name + currentOpenSession;
@@ -350,6 +366,14 @@ DG.MapController = DG.DataDisplayController.extend(
                     undoString: 'DG.Undo.graph.' + name,
                     redoString: 'DG.Redo.graph.' + name,
                     log: "Changed " + end + " attribute color",
+                    executeNotification: {
+                      action: 'notify',
+                      resource: 'component',
+                      values: {
+                        operation: 'change attribute color',
+                        type: 'DG.MapView'
+                      }
+                    },
                     execute: function () {
                       this.reduceKey = this.name + currentOpenSession;
                       this._beforeStorage = {
@@ -464,6 +488,14 @@ DG.MapController = DG.DataDisplayController.extend(
                             undoString: 'DG.Undo.graph.changePointSize',
                             redoString: 'DG.Redo.graph.changePointSize',
                             log: "Changed point size",
+                            executeNotification: {
+                              action: 'notify',
+                              resource: 'component',
+                              values: {
+                                operation: 'change point size',
+                                type: 'DG.MapView'
+                              }
+                            },
                             execute: function () {
                               this._beforeStorage = iMapLayerModel.getPath('pointSizeMultiplier');
                               iMapLayerModel.setPath('pointSizeMultiplier', picker.get('value'));
@@ -579,6 +611,14 @@ DG.MapController = DG.DataDisplayController.extend(
                     undoString: becomingSameAsFill ? 'DG.Undo.graph.makeStrokeSameAsFill' : 'DG.Undo.graph.makeStrokeIndependent',
                     redoString: becomingSameAsFill ? 'DG.Redo.graph.makeStrokeSameAsFill' : 'DG.Redo.graph.makeStrokeIndependent',
                     log: logMessage,
+                    executeNotification: {
+                      action: 'notify',
+                      resource: 'component',
+                      values: {
+                        operation: 'toggle stroke same as fill',
+                        type: 'DG.MapView'
+                      }
+                    },
                     execute: function () {
                       iMapLayerModel.toggleProperty('strokeSameAsFill');
                     }.bind(this),
@@ -767,6 +807,14 @@ DG.MapController = DG.DataDisplayController.extend(
                     undoString: becomingSameAsFill ? 'DG.Undo.graph.makeStrokeSameAsFill' : 'DG.Undo.graph.makeStrokeIndependent',
                     redoString: becomingSameAsFill ? 'DG.Redo.graph.makeStrokeSameAsFill' : 'DG.Redo.graph.makeStrokeIndependent',
                     log: logMessage,
+                    executeNotification: {
+                      action: 'notify',
+                      resource: 'component',
+                      values: {
+                        operation: 'toggle stroke same as fill',
+                        type: 'DG.MapView'
+                      }
+                    },
                     execute: function () {
                       iMapLayerModel.toggleProperty('strokeSameAsFill');
                     }.bind(this),

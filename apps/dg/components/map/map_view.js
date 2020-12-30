@@ -203,6 +203,14 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
           _controller: function () {
             return DG.currDocumentController().componentControllersMap[this._componentId];
           },
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'change base map',
+              type: 'DG.MapView'
+            }
+          },
           execute: function () {
             this._controller().setPath('view.contentView.model.baseMapLayerName', iNewValue);
           },
@@ -234,6 +242,14 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
           _componentId: this.getPath('controller.model.id'),
           _controller: function () {
             return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'change grid size',
+              type: 'DG.MapView'
+            }
           },
           execute: function () {
           },
@@ -537,6 +553,14 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
               _componentId: this.getPath('controller.model.id'),
               _controller: function () {
                 return DG.currDocumentController().componentControllersMap[this._componentId];
+              },
+              executeNotification: {
+                action: 'notify',
+                resource: 'component',
+                values: {
+                  operation: 'change map coordinates',
+                  type: 'DG.MapView'
+                }
               },
               execute: function () {
                 var view = this._controller().getPath('view.contentView');

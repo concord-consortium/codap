@@ -161,6 +161,14 @@ DG.TextComponentController = DG.ComponentController.extend(
         return DG.currDocumentController().componentControllersMap[this._componentId];
       },
       _reduceKey: 'textComponent.edit' + this._session,
+      executeNotification: {
+        action: 'notify',
+        resource: 'component',
+        values: {
+          operation: 'edit text',
+          type: 'DG.TextView'
+        }
+      },
       execute: function () {
         this._beforeStorage = this._controller().get('previousValue');
         this._afterStorage = value;

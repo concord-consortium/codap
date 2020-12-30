@@ -921,6 +921,14 @@ DG.DocumentController = SC.Object.extend(
           log: 'addGame: {name: "%@", url: "%@"}'.fmt(tGameName, tGameUrl),
           isUndoable: !isInitialization,
           _component: null,
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'create game controller',
+              type: 'DG.WebView'
+            }
+          },
           execute: function () {
             var tController = DG.GameController.create();
             tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
@@ -1039,6 +1047,14 @@ DG.DocumentController = SC.Object.extend(
           undoString: 'DG.Undo.caseTable.open',
           redoString: 'DG.Redo.caseTable.open',
           log: 'Create caseTable component',
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'open case table',
+              type: 'DG.CaseTable'
+            }
+          },
           execute: function () {
             var view;
             docController.contexts.forEach(function (context) {

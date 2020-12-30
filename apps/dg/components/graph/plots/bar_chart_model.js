@@ -111,6 +111,14 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
           undoString: 'DG.Undo.graph.changeBreakdownType',
           redoString: 'DG.Redo.graph.changeBreakdownType',
           log: ("change %@ from %@ to %@").fmt(iKey, tInitialValue, iValue),
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'change breakdown type',
+              type: 'DG.GraphView'
+            }
+          },
           execute: function() {
             this.set(iKey, iValue);
           }.bind(this),
