@@ -693,6 +693,9 @@ SC.stringsFor("en", {
     "DG.CountAxisView.percentLabel": "Percent",
     "DG.CountAxisView.percentLabelDescription": "Percent of cases in the bar along this axis",
 
+    // DG.FormulaAxisView
+    "DG.FormulaAxisView.labelDescription": "The expression that determines the length of the bars. Click to edit.",
+
     // DG.PlotModel
     "DG.PlotModel.mixup": "Mix Up the Plot",
     "DG.PlotModel.showCount": "Show Count",
@@ -715,6 +718,9 @@ SC.stringsFor("en", {
     "DG.BarChartModel.cellTipSingular": "%@ of %@ %@ (%@%) is %@",
     "DG.BarChartModel.cellTipNoLegendSingular": "%@ of %@ (%@%) is %@", // "<n=1> of <total> (<p>%) is <X>"
     "DG.BarChartModel.cellTipNoLegendPlural": "%@ of %@ (%@%) are %@", // "<n> of <total> (<p>%) are <X>"
+
+    // DG.ComputedBarChartModel
+    "DG.ComputedBarChartModel.cellTip": "For group %@ the value is %@", // For group <groupName> the value is <value>
 
     // DG.BinnedPlotModel
     "DG.BinnedPlotModel.dragBinTip": "Drag to change bin width",  // "Drag to change bin width"

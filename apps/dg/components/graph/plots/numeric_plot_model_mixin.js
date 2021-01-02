@@ -65,7 +65,8 @@ DG.NumericPlotModelMixin =
     function setNewBounds( iPlace, iAxis, isPseudoNumeric) {
       var tAttribute = iAxis && iAxis.getPath('attributeDescription.attribute'),
           // a pseudo-numeric axis is a numeric axis that doesn't correspond to an attribute
-          tIsPseudoNumeric = isPseudoNumeric || (iAxis.constructor === DG.CountAxisModel);
+          tIsPseudoNumeric = isPseudoNumeric || (iAxis &&
+              iAxis.constructor === DG.CountAxisModel);
       if( !iAxis || !iAxis.setDataMinAndMax ||
           (!tIsPseudoNumeric && tAttribute === DG.Analysis.kNullAttribute)) {
         tOldBoundsArray.push({}); // Must have an object here or things get out of sync

@@ -96,6 +96,12 @@ DG.ChartModel = DG.PlotModel.extend(
   */
   cachedIndex: null,
 
+  validCachedCells: function() {
+    if( !this._cacheIsValid)
+      this._buildCache();
+    return this.get('cachedCells');
+  }.property(),
+
   xAxisDidChange: function() {
     sc_super();
     this.invalidateCaches();

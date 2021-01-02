@@ -71,7 +71,7 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
      */
     getDesiredAxisClassFor: function( iPlace) {
       if(iPlace === this.get('secondaryAxisPlace'))
-        return DG.CellLinearAxisModel;
+        return DG.FormulaAxisModel;
       return sc_super();
     },
 
@@ -81,15 +81,27 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
       @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
       */
     getDataMinAndMaxForDimension: function (iPlace) {
-      // TODO: compute min/max from data
-      var tResult = {
-        min: -5,
-        max: 5,
+      var tMin = Infinity,
+          tMax = -Infinity,
+          tPrimaryVarID = this.get('primaryVarID');
+      this.get('validCachedCells').forEach(function (iPrimary) {
+        var tPrimaryName = iPrimary[0][0].theCase.getValue(tPrimaryVarID),
+            tCellValue = this.getBarHeight( tPrimaryName);
+        tMin = Math.min( tMin, tCellValue);
+        tMax = Math.max( tMax, tCellValue);
+      }.bind( this));
+      return {
+        min: tMin,
+        max: tMax,
         isDataInteger: false
       };
-      return tResult;
     },
 
+    /**
+     *
+     * @param iPrimaryName
+     * @return {number} in world coordinates
+     */
     getBarHeight: function(iPrimaryName) {
       // TODO: create/update formula when attribute configuration or expression changes
       if (!this.get('formula')) this.createFormula();

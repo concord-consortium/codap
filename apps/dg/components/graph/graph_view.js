@@ -310,6 +310,8 @@ DG.GraphView = SC.View.extend(
               return DG.AxisView;
             case DG.CellLinearAxisModel:
               return (iAttributeType === 'qualitative') ? DG.QualCellLinearAxisView : DG.CellLinearAxisView;
+            case DG.FormulaAxisModel:
+              return DG.FormulaAxisView;
             case DG.CellAxisModel:
               return DG.CellAxisView;
             case DG.CountAxisModel:
@@ -977,6 +979,9 @@ DG.GraphView = SC.View.extend(
               tNewViewClass = (tAttrType === 'qualitative') ?
                   DG.QualCellLinearAxisView : DG.CellLinearAxisView;
               break;
+            case DG.FormulaAxisModel:
+              tNewViewClass = DG.FormulaAxisView;
+              break;
             case DG.CountAxisModel:
               tNewViewClass = DG.CountAxisView;
               break;
@@ -1347,6 +1352,9 @@ DG.GraphView = SC.View.extend(
           }
           else if (tCurrentAxisModelClass === DG.CountAxisModel) {
             tNewViewClass = DG.CountAxisView;
+          }
+          else if (tCurrentAxisModelClass === DG.FormulaAxisModel) {
+            tNewViewClass = DG.FormulaAxisView;
           }
           else if (tCurrentAxisModelClass === DG.BinnedAxisModel) {
             tNewViewClass = DG.BinnedAxisView;
