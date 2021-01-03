@@ -393,13 +393,14 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       switch( tOperation) {
         case 'deleteAttributes':
           iChange.attrs.forEach(function (iAttr) {
+            iAttr = iAttr.attribute || iAttr; // We get here with two forms. Cover both.
             ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
               var tDescKey = iKey + 'AttributeDescription',
                   tAxisKey = iKey + 'Axis',
                   tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
               if(tAttrs) {
                 tAttrs.forEach(function (iPlottedAttr, iIndex) {
-                  if (iPlottedAttr === iAttr.attribute) {
+                  if (iPlottedAttr === iAttr) {
                     if (iKey === 'legend')
                       this.removeLegendAttribute();
                     else
