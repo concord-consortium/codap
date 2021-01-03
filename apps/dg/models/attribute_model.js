@@ -19,6 +19,9 @@
 sc_require('models/model_store');
 sc_require('models/base_model');
 
+/* global Set:true */
+
+
 /** @class
  *
  * Describes the named constituent data values of a case. An attribute may be
@@ -476,6 +479,8 @@ DG.Attribute = DG.BaseModel.extend(
 
       /**
        * Gets called when attribute is used categorically in a graph and something has changed.
+       * When we find categories that are no longer used we push them to the end rather than delete them.
+       * That way swapping categories by dragging on a legend will still work.
        */
       updateCategoryMap: function() {
 
@@ -494,7 +499,8 @@ DG.Attribute = DG.BaseModel.extend(
           var tAttrID = this.get('id'),
               tCases = tCollection.get('cases'),
               tCategoryMap = this._categoryMap || { __order: []},
-              tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length;
+              tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
+              tFoundCategoriesSet = new Set();
           validateCategoryMap(tCategoryMap, tColorIndex);
           tCases && tCases.forEach( function( iCase) {
             var tValue = iCase.getStrValue( tAttrID);
@@ -505,6 +511,7 @@ DG.Attribute = DG.BaseModel.extend(
                 tCategoryMap.__order.push(tValue);
               }
             }
+            tFoundCategoriesSet.add( tValue);
           }.bind( this));
           // Note that we are not deleting categories that may no longer be present. This is so we don't lose
           // color assignments for categories whose cases are deleted but then reappear. (Think sampler.)
@@ -519,6 +526,14 @@ DG.Attribute = DG.BaseModel.extend(
               else return 0;
             });  // Default is alphabetical
           }
+          // We push categories that are present but not found in cases to the end
+          DG.ObjectMap.forEach( tCategoryMap, function (iCategory) {
+            if(iCategory !== '__order' && !tFoundCategoriesSet.has(iCategory)) {
+              var tIndex = tCategoryMap.__order.indexOf(iCategory);
+              tCategoryMap.__order.splice( tIndex, 1);
+              tCategoryMap.__order.push( iCategory);
+            }
+          });
           this.set('categoryMap', tCategoryMap);
         }
       },
