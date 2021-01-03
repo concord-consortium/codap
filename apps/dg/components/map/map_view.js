@@ -416,6 +416,11 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         this.set('dragData', iView.get('dragData'));
       },
 
+      viewDidResize: function () {
+        sc_super();
+        this.adjustLayout(this.renderContext(this.get('tagName')));
+      },
+
       /**
        Set the layout (view position) for our subviews.
        @returns {void}
