@@ -29,7 +29,7 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
   {
     isBarHeightComputed: true,
 
-    expression: 'mean(num)',
+    expression: '0',
 
     formula: null,
 
@@ -41,7 +41,12 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
 
     destroy: function() {
       this.destroyFormula();
+      DG.BarChartFormulaEditContext.destroyFormulaEditContext( DG.Debug.scObjectID(this));
       sc_super();
+    },
+
+    editFormula: function() {
+      DG.ComputedBarChartView.createFormulaEditView(this.get('formula'));
     },
 
     createFormula: function() {
@@ -58,7 +63,15 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
       });
 
       this.set('formula', DG.Formula.create({ context: this.formulaContext, source: this.get('expression') }));
+      this.setPath( 'formula.id', id);
     },
+
+    formulaExpressionDidChange: function() {
+      var tExpression = this.getPath('formula.expression');
+      this.destroyFormula();
+      this.set('expression', tExpression);
+      this.createFormula();
+    }.observes('formula.expression'),
 
     destroyFormula: function() {
       this.formula.destroy();

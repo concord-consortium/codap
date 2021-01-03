@@ -33,6 +33,28 @@ DG.FormulaAxisView = DG.CellLinearAxisView.extend(
 
   return {
 
+    /**
+     * We return a single menu item with which the user can edit the formula for computing bar lengths
+     * @returns {[{title,action]}
+     */
+    getMenuItems: function () {
+      var tMenuItems = [
+        { title: 'Edit formula', action: null }
+      ];
+
+      return tMenuItems;
+    },
+
+    /**
+     * This function is installed as the handler for the menu that appears when my label (a formula expression)
+     * is clicked.
+     * We always want to edit the formula.
+     */
+    menuChangeHandler: function() {
+      var tFormulaOwner = this.getPath('model.expressionSource');
+      tFormulaOwner.editFormula();
+    }
+
   };
 
 }())

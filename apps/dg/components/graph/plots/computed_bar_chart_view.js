@@ -42,6 +42,10 @@ DG.ComputedBarChartView = DG.BarChartBaseView.extend(
       return tDescriptions;
     },
 
+    formulaDidChange: function() {
+      this.notifyPropertyChange('plotDisplayDidChange');
+    }.observes('model.formula'),
+
     getBarHeight: function(iPrimaryName, iCount, iTotal) {
       var model = this.get('model'),
           barHeight = model && model.getBarHeight(iPrimaryName);
@@ -167,3 +171,18 @@ DG.ComputedBarChartView = DG.BarChartBaseView.extend(
 
   }
 );
+
+DG.ComputedBarChartView.createFormulaEditView = function(iFunction) {
+  var tFormulaEditContext = DG.BarChartFormulaEditContext.getFormulaEditContext(iFunction);
+  tFormulaEditContext.set('clientOptions', {
+    attrNamePrompt: 'DG.BarChartFunction.namePrompt',
+    formulaPrompt: 'DG.BarChartFunction.formulaPrompt',
+    formulaHint: 'DG.BarChartFunction.formulaHint',
+    commandName: 'graph.editBarChartFunction',
+    undoString: 'DG.Undo.graph.changeBarChartFunction',
+    redoString: 'DG.Redo.graph.changeBarChartFunction',
+    logMessage: 'Change bar chart function: "%@1" to "%@2"'
+  });
+  tFormulaEditContext.openFormulaEditorDialog();
+};
+
