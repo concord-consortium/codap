@@ -272,6 +272,10 @@ DG.MathUtilities = {
         },
         tSumDiffsX = 0,
         tSumDiffsY = 0;
+    // Under certain circumstances (adding new case) an empty value can sneak in here. Filter out.
+    iCoordPairs = iCoordPairs.filter(function( iPair) {
+      return !(SC.empty(iPair.x) || SC.empty(iPair.y));
+    });
     iCoordPairs.forEach(function (iPair) {
       if (isFinite(iPair.x) && isFinite(iPair.y)) {
         tResult.count += 1;
