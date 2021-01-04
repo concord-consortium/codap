@@ -386,12 +386,14 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
             tBounds = tPointView ? tPointView.getBounds() : null;
         if (tPolygonLayers) {
           tPolygonLayers.forEach(function (iLayer) {
-            var tPolyBounds = iLayer.getBounds();
-            if (!SC.none(tPolyBounds)) {
-              if (!tBounds)
-                tBounds = tPolyBounds;
-              else
-                tBounds.extend(tPolyBounds);
+            if( iLayer.getPath('model.isVisible')) {
+              var tPolyBounds = iLayer.getBounds();
+              if (!SC.none(tPolyBounds)) {
+                if (!tBounds)
+                  tBounds = tPolyBounds;
+                else
+                  tBounds.extend(tPolyBounds);
+              }
             }
           });
         }

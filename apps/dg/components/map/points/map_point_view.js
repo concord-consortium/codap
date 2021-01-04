@@ -97,12 +97,14 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
         tPointLayers = this.get('mapPointLayers');
     if( tPointLayers) {
       tPointLayers.forEach( function( iLayer) {
-        var tPointBounds = iLayer.getBounds();
-        if (!SC.none(tPointBounds)) {
-          if (!tBounds)
-            tBounds = tPointBounds;
-          else
-            tBounds.extend(tPointBounds);
+        if( iLayer.getPath('model.isVisible')) {
+          var tPointBounds = iLayer.getBounds();
+          if (!SC.none(tPointBounds)) {
+            if (!tBounds)
+              tBounds = tPointBounds;
+            else
+              tBounds.extend(tPointBounds);
+          }
         }
       });
     }
