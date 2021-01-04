@@ -110,7 +110,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       dateFormatter = function (cellValue, precision, type) {
         var date = DG.isDate(cellValue)? cellValue: DG.parseDate(cellValue, type === 'date');
-        return date?DG.formatDate(date, precision): '"' + cellValue + '"';
+        return  date?('<span class="dg-date">'+ DG.formatDate(date, precision) + '</span>'): '"' + cellValue + '"';
       },
 
       numberFormatter = function (cellValue, type, precision) {
@@ -156,7 +156,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                 tBoundaryObject.jsonBoundaryObject.properties.THUMB;
         if (tThumb !== null && tThumb !== undefined) {
           tResult = "<span class='dg-boundary-thumb'>" +
-              "<img src=\'" + tThumb + "\' height='14'></span>";
+              "<img src=\'" + tThumb + "\' alt='thumb' height='14'></span>";
         }
         else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof  Error)) {
           tResult = errorFormatter(tBoundaryObject.jsonBoundaryObject);

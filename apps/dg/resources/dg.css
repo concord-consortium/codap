@@ -1536,6 +1536,13 @@ html.dg-embedded-mode .dg-data-tip-text {
     display: block;
     font-variant-numeric: tabular-nums;
 }
+
+.slick-cell .dg-date {
+    width: 100%;
+    text-align: right;
+    display: block;
+}
+
 body.windows .slick-row .slick-cell:last-of-type {
     padding-right: 17px;
 }
