@@ -833,9 +833,10 @@
     "DG.PlottedFunction.namePrompt": "Plotted Function",
     "DG.PlottedFunction.formulaPrompt": "f() =",
     "DG.PlottedFunction.formulaHint": "Type an expression e.g. x*x/30 - 50",
-    "DG.BarChartFunction.namePrompt": "Bar chart formula",
+    "DG.BarChartFunction.namePrompt": "Bar Chart",
     "DG.BarChartFunction.formulaPrompt": "bar length =",
     "DG.BarChartFunction.formulaHint": "Type a formula to compute bar length",
+    "DG.BarChartFunction.emptyExpressionAxisPrompt": "Click here to provide a formula",
 
     // DG.MapView
     "DG.MapView.showGrid": "Show Grid",

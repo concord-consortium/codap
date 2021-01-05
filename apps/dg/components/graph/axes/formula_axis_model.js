@@ -29,7 +29,7 @@ DG.FormulaAxisModel = DG.CellLinearAxisModel.extend(
 {
   /**
    * Will be set by PlotView to provide access to formula expression to display as label
-   * @property {Function}
+   * @property {DG.ComputedBarChartModel}
    */
   expressionSource: null,
 
@@ -48,7 +48,10 @@ DG.FormulaAxisModel = DG.CellLinearAxisModel.extend(
    Override
    */
   labels: function() {
-    return [this.expressionSource ? this.expressionSource.get('expression') : []];
+    var tLabel = this.expressionSource ? this.expressionSource.get('expression') : '';
+    if( SC.empty( tLabel))
+      tLabel = "DG.BarChartFunction.emptyExpressionAxisPrompt".loc();
+    return [tLabel];
   }.property('scaleType'),
 
   /**

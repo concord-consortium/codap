@@ -172,8 +172,8 @@ DG.ComputedBarChartView = DG.BarChartBaseView.extend(
   }
 );
 
-DG.ComputedBarChartView.createFormulaEditView = function(iFunction) {
-  var tFormulaEditContext = DG.BarChartFormulaEditContext.getFormulaEditContext(iFunction);
+DG.ComputedBarChartView.createFormulaEditView = function(iPlotModel) {
+  var tFormulaEditContext = DG.BarChartFormulaEditContext.getFormulaEditContext(iPlotModel);
   tFormulaEditContext.set('clientOptions', {
     attrNamePrompt: 'DG.BarChartFunction.namePrompt',
     formulaPrompt: 'DG.BarChartFunction.formulaPrompt',

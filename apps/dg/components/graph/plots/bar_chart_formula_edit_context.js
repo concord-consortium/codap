@@ -20,9 +20,11 @@
 
 DG.BarChartFormulaEditContext = DG.PlottedFormulaEditContext.extend({
 
+  plotModel: null,  // Set by caller during create
+
   openFormulaEditorDialog: function() {
     var formulaContext = this,
-        dataContext = this.getPath('plottedFormula.context.plotModel.dataContext'),
+        dataContext = this.getPath('plotModel.dataContext'),
         result = DG.AttributeFormulaView.buildOperandsMenuAndCompletionData(dataContext),
         clientOptions = this.get('clientOptions'),
         options = Object.assign({
@@ -31,7 +33,7 @@ DG.BarChartFormulaEditContext = DG.PlottedFormulaEditContext.extend({
                     attrNamePrompt: 'DG.PlottedFormula.defaultNamePrompt'.loc(),
                     attrNameValue: "",
                     attrNameIsEnabled: false,
-                    formulaValue: formulaContext.get('expression'),
+                    formulaValue: formulaContext.getPath('plotModel.expression'),
                     formulaCompletions: result.completionData,
                     formulaOperands: result.operandsMenu
                   }, clientOptions),
@@ -42,11 +44,10 @@ DG.BarChartFormulaEditContext = DG.PlottedFormulaEditContext.extend({
 
   createEditCommand: function(newFormula) {
     var clientOptions = this.get('clientOptions'),
-        originalFormula = this.get('expression');
+        originalFormula = this.getPath('plotModel.expression');
 
     var setFormula = function setFormula(formula) {
-      this.set('expression', formula);
-      this.setPath('formulaView.value', formula);
+      this.setPath('plotModel.expression', formula);
     }.bind(this);
 
     return DG.Command.create({
@@ -81,18 +82,18 @@ DG.BarChartFormulaEditContext = DG.PlottedFormulaEditContext.extend({
 
 DG.BarChartFormulaEditContext.formulaEditContexts = {};
 
-DG.BarChartFormulaEditContext.hasFormulaEditContextFor = function(iPlottedFormula) {
-  return iPlottedFormula &&
-      !SC.none(DG.BarChartFormulaEditContext.formulaEditContexts[iPlottedFormula.get('id')]);
+DG.BarChartFormulaEditContext.hasFormulaEditContextFor = function(iPlotModel) {
+  return iPlotModel &&
+      !SC.none(DG.BarChartFormulaEditContext.formulaEditContexts[DG.Debug.scObjectID(iPlotModel)]);
 };
 
-DG.BarChartFormulaEditContext.getFormulaEditContext = function(iPlottedFormula) {
-  var adornmentID = iPlottedFormula.get('id');
-  if (!DG.BarChartFormulaEditContext.formulaEditContexts[adornmentID]) {
-    DG.BarChartFormulaEditContext.formulaEditContexts[adornmentID] =
-      DG.BarChartFormulaEditContext.create({ plottedFormula: iPlottedFormula });
+DG.BarChartFormulaEditContext.getFormulaEditContext = function(iPlotModel) {
+  var plotID = DG.Debug.scObjectID(iPlotModel);
+  if (!DG.BarChartFormulaEditContext.formulaEditContexts[plotID]) {
+    DG.BarChartFormulaEditContext.formulaEditContexts[plotID] =
+      DG.BarChartFormulaEditContext.create({ plotModel: iPlotModel });
   }
-  return DG.BarChartFormulaEditContext.formulaEditContexts[adornmentID];
+  return DG.BarChartFormulaEditContext.formulaEditContexts[plotID];
 };
 
 DG.BarChartFormulaEditContext.destroyFormulaEditContext = function( iID) {

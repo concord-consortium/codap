@@ -29,11 +29,14 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
   {
     isBarHeightComputed: true,
 
-    expression: '0',
+    expression: '',
 
     formula: null,
 
     formulaContext: null,
+
+    _editInProgress: false,
+    _receivedInitialExpression: false,
 
     init: function() {
       sc_super();
@@ -46,7 +49,8 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
     },
 
     editFormula: function() {
-      DG.ComputedBarChartView.createFormulaEditView(this.get('formula'));
+      DG.ComputedBarChartView.createFormulaEditView(this);
+      this._editInProgress = true;
     },
 
     createFormula: function() {
@@ -66,15 +70,17 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
       this.setPath( 'formula.id', id);
     },
 
-    formulaExpressionDidChange: function() {
-      var tExpression = this.getPath('formula.expression');
+    expressionDidChange: function() {
       this.destroyFormula();
-      this.set('expression', tExpression);
       this.createFormula();
-    }.observes('formula.expression'),
+      this._editInProgress = false;
+      this._receivedInitialExpression = true;
+      this.doRescaleAxesFromData([this.get('secondaryAxisPlace')], true, true, false);
+    }.observes('expression'),
 
     destroyFormula: function() {
-      this.formula.destroy();
+      if( this.formula)
+        this.formula.destroy();
     },
 
     /**
@@ -89,8 +95,6 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
     },
 
     /**
-     Subclasses may override
-      @param { DG.GraphTypes.EPlace }
       @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
       */
     getDataMinAndMaxForDimension: function (iPlace) {
@@ -103,6 +107,10 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
         tMin = Math.min( tMin, tCellValue);
         tMax = Math.max( tMax, tCellValue);
       }.bind( this));
+      if( tMin < 0 && tMax < 0)
+        tMax = 0;
+      else if(tMin > 0 && tMax > 0)
+        tMin = 0;
       return {
         min: tMin,
         max: tMax,
@@ -117,6 +125,14 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
      */
     getBarHeight: function(iPrimaryName) {
       // TODO: create/update formula when attribute configuration or expression changes
+      if( SC.empty( this.get('expression')) && !this._receivedInitialExpression) {
+        this.invokeLater( function() {
+          if( !this._editInProgress) {
+            this.editFormula();
+          }
+        }.bind( this), 100);
+        return 0;
+      }
       if (!this.get('formula')) this.createFormula();
       var formula = this.get('formula'),
           evalContext = iPrimaryName ? { _groupID_: iPrimaryName } : {},
@@ -124,14 +140,37 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
 
       try {
         if (formula)
-          result = formula.evaluate(evalContext);
+          result = Number(formula.evaluate(evalContext));
       }
       catch(e) {
         // Propagate errors to return value
         result = e;
       }
 
-      return result;
+      return (typeof result === 'number') ? result : 0;
+    },
+
+    /**
+     * @return {Object} the saved data.
+     */
+    createStorage: function () {
+      var tStorage = sc_super();
+
+      tStorage.expression = this.expression;
+
+      return tStorage;
+    },
+
+    /**
+     * @param iStorage
+     */
+    restoreStorage: function (iStorage) {
+      sc_super();
+      if (!SC.none(iStorage.expression)) {
+        this.set( 'expression', iStorage.expression);
+      }
     }
+
+
   }
 );

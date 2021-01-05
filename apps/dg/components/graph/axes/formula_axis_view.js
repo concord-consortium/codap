@@ -33,6 +33,8 @@ DG.FormulaAxisView = DG.CellLinearAxisView.extend(
 
   return {
 
+    displayProperties: 'model.expressionSource.formula'.w(),
+
     /**
      * We return a single menu item with which the user can edit the formula for computing bar lengths
      * @returns {[{title,action]}
