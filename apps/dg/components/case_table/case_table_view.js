@@ -25,7 +25,6 @@ sc_require('components/case_table/scroll_animation_utility');
 sc_require('components/case_table/case_table_row_selection_model');
 sc_require('views/image_view');
 sc_require('views/mouse_and_touch_view');
-
 /** @class
 
   A CaseTableView contains a scrollable data grid view.
@@ -1676,6 +1675,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         DG.ObjectMap.forEach(columnWidths, function (key, value) {
           model.setPreferredAttributeWidth(key, value);
         });
+        this.updateColumnInfo();
       }
     },
 
