@@ -496,7 +496,7 @@ DG.GraphView = SC.View.extend(
         this.getPath('model.plots').forEach(function (iPlotModel) {
           var tFoundPlotView;
           this.forEachPlotViewDo( function( iPlotView) {
-            if( !tPlotView && iPlotView.get('model') === iPlotModel)
+            if( !tFoundPlotView && iPlotView.get('model') === iPlotModel)
               tFoundPlotView = iPlotView;
           });
           if( !tFoundPlotView) {
