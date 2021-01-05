@@ -204,6 +204,10 @@ tr:nth-child(even) td.attr-cell {
     text-align: right;
 }
 
+.react-data-card-date {
+    text-align: right;
+}
+
 .react-data-card-color-table-cell {
     display: inline-block;
     width: 100%;
