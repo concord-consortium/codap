@@ -1180,7 +1180,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           var id =  attr && attr.id;
           return {id: id, width: caseTableModel.getPreferredAttributeWidth(id)};
         }.bind(this));
-        var componentWidth = this.contentView.get('frame').width;
+        // var componentWidth = this.contentView.get('frame').width;
         DG.UndoHistory.execute(DG.Command.create({
           name: 'caseTable.resizeColumns',
           undoString: 'DG.Undo.caseTable.resizeColumns',
