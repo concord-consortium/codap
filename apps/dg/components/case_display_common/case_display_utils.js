@@ -21,7 +21,7 @@ DG.CaseDisplayUtils = {
 
   /**
    *
-   * @param iAttribute {DG.AttributeModel} attribute for tooltip
+   * @param iAttribute {DG.Attribute} attribute for tooltip
    */
   getTooltipForAttribute: function (iAttribute) {
     var name = iAttribute.get('name'),
