@@ -120,9 +120,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
     */
     doDraw: function doDraw() {
       var this_ = this,
-          tOrientation = this.get('orientation'),
-          tHelper = this.get('axisViewHelper')
-          ;
+          tOrientation = this.get('orientation');
 
       function setupEventHandling() {
         var tFrame = this_.get('frame'),
@@ -200,11 +198,12 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             if (!tClickHandling && this_._isDragging) {
               //DG.SoundUtilities.drag();
               var tDelta = this_.get('isVertical') ? idY : idX,
+                  tHelper = this_.get('axisViewHelper'),
                   tLowerBound = this_.getPath('model.lowerBound'),
                   tCurrentDelta = tHelper.coordinateToDataGivenCell(0, 0) -
                       tHelper.coordinateToDataGivenCell(0, tDelta),
                   tIncDelta = tCurrentDelta - (tLowerBound - this_._lowerBoundAtDragStart);
-              this_.get('model').translate(tIncDelta);
+                this_.get('model').translate(tIncDelta);
             }
           });
         }
