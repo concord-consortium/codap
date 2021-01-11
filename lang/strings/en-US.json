@@ -266,6 +266,8 @@
     "DG.Redo.graph.hidePlotValue": "Redo hiding plotted value",
     "DG.Undo.graph.changePlotValue": "Undo change plotted value",
     "DG.Redo.graph.changePlotValue": "Redo change plotted value",
+    "DG.Undo.graph.changeBarChartFunction": "Undo change bar chart formula",
+    "DG.Redo.graph.changeBarChartFunction": "Redo change bar chart formula",
     "DG.Undo.graph.showConnectingLine": "Undo showing connecting line",
     "DG.Redo.graph.showConnectingLine": "Redo showing connecting line",
     "DG.Undo.graph.hideConnectingLine": "Undo hiding connecting line",
@@ -693,6 +695,9 @@
     "DG.CountAxisView.percentLabel": "Percent",
     "DG.CountAxisView.percentLabelDescription": "Percent of cases in the bar along this axis",
 
+    // DG.FormulaAxisView
+    "DG.FormulaAxisView.labelDescription": "The expression that determines the length of the bars. Click to edit.",
+
     // DG.PlotModel
     "DG.PlotModel.mixup": "Mix Up the Plot",
     "DG.PlotModel.showCount": "Show Count",
@@ -715,6 +720,9 @@
     "DG.BarChartModel.cellTipSingular": "%@ of %@ %@ (%@%) is %@",
     "DG.BarChartModel.cellTipNoLegendSingular": "%@ of %@ (%@%) is %@", // "<n=1> of <total> (<p>%) is <X>"
     "DG.BarChartModel.cellTipNoLegendPlural": "%@ of %@ (%@%) are %@", // "<n> of <total> (<p>%) are <X>"
+
+    // DG.ComputedBarChartModel
+    "DG.ComputedBarChartModel.cellTip": "For group %@ the value is %@", // For group <groupName> the value is <value>
 
     // DG.BinnedPlotModel
     "DG.BinnedPlotModel.dragBinTip": "Drag to change bin width",  // "Drag to change bin width"
@@ -817,7 +825,7 @@
     "DG.MovableMonthYear": "%@, %@", // <monthname>, <year>
     "DG.MovableMonthDayHour": "%@ %@ %@:00", // <monthname> <day> <hour>:00
 
-    // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
+    // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment/DG.BarChartFunction
     "DG.PlottedFormula.defaultNamePrompt": "Formula",
     "DG.PlottedValue.namePrompt": "Plotted Value",
     "DG.PlottedValue.formulaPrompt": "value =",
@@ -825,6 +833,10 @@
     "DG.PlottedFunction.namePrompt": "Plotted Function",
     "DG.PlottedFunction.formulaPrompt": "f() =",
     "DG.PlottedFunction.formulaHint": "Type an expression e.g. x*x/30 - 50",
+    "DG.BarChartFunction.namePrompt": "Bar Chart",
+    "DG.BarChartFunction.formulaPrompt": "bar length =",
+    "DG.BarChartFunction.formulaHint": "Type a formula to compute bar length",
+    "DG.BarChartFunction.emptyExpressionAxisPrompt": "Click here to provide a formula",
 
     // DG.MapView
     "DG.MapView.showGrid": "Show Grid",
@@ -882,6 +894,7 @@
     "DG.Inspector.graphTransparency": "Transparent",
     "DG.Inspector.graphCount": "Count",
     "DG.Inspector.graphPercent": "Percent",
+    "DG.Inspector.graphFormula": "Formula",
     "DG.Inspector.graphRow": "Row",
     "DG.Inspector.graphColumn": "Column",
     "DG.Inspector.graphCell": "Cell",
