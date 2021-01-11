@@ -522,7 +522,8 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     expandRightmostColumn: function (frameWidth, contentWidth) {
       var childTableViews = this.get('childTableViews');
       var lastTableView = childTableViews && childTableViews[childTableViews.length-1];
-      lastTableView.resizeLastColumn(frameWidth - contentWidth);
+      if( lastTableView)
+        lastTableView.resizeLastColumn(frameWidth - contentWidth);
     },
 
     /**
