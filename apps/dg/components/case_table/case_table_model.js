@@ -45,6 +45,11 @@ DG.CaseTableModel = DG.DataContextBaseModel.extend(/** @scope DG.CaseTableModel.
    */
   _collapsedNodes: null,
 
+  /**
+   * @type {number}
+   */
+  horizontalScrollOffset: 0,
+
   init: function () {
     sc_super();
     this.preferredAttributeWidths = this.preferredAttributeWidths || {};

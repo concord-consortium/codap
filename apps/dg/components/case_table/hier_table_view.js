@@ -138,6 +138,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
     viewDidScrollHorizontally: function() {
       this.get('contentView').parentViewDidResizeOrScroll();
+      // if in document...
+      if (document.getElementById(this.get('layerId'))) {
+        this.setPath('model.horizontalScrollOffset', this.get('horizontalScrollOffset'));
+      }
     }.observes('horizontalScrollOffset'),
 
     /**
@@ -660,6 +664,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (!contentView.hasObserverFor('frameSize', this, 'contentWidthDidChange')) {
         contentView.addObserver('frameSize', this, 'contentWidthDidChange');
       }
+      // set the horizontal scroll to that saved in the model. We defer a render
+      // cycle to let the slickgrid construction update the DOM
+      this.invokeLater(function () {
+        this.set('horizontalScrollOffset', this.getPath('model.horizontalScrollOffset'));
+      });
 
     },
 
