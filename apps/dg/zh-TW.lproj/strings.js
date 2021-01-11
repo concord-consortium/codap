@@ -831,5 +831,7 @@ SC.stringsFor("zh-TW", {
     "DG.CaseCard.addCaseButton": "add case",
     "DG.Undo.DataContext.join": "Undo join of %@ to %@",
     "DG.Redo.DataContext.join": "Redo join of %@ to %@",
-    "DG.Collection.joinTip": "Join %@ in %@ to %@ in %@ by matching %@ with %@"
+    "DG.Collection.joinTip": "Join %@ in %@ to %@ in %@ by matching %@ with %@",
+    "DG.Inspector.graphPlotPoints": "Points",
+    "DG.Inspector.graphBarForEachPoint": "Bar for Each Point"
 });

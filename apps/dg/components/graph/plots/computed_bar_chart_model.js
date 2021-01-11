@@ -67,7 +67,7 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
       });
 
       this.set('formula', DG.Formula.create({ context: this.formulaContext, source: this.get('expression') }));
-      this.setPath( 'formula.id', id);
+      // this.setPath( 'formula.id', id);
     },
 
     expressionDidChange: function() {
