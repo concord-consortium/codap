@@ -98,6 +98,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       sc_super();
       // Adjust the horizontal scrollbar so that the right scroll arrow can be hit.
       this.set('horizontalScrollerLayout', { left: 0, right: 18, top: 0, bottom: 8 });
+      this.model.bind('horizontalScrollOffset', this, 'horizontalScrollOffset');
     },
 
     /**
@@ -497,6 +498,16 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       return NO;
     },
 
+    /**
+     * @return {boolean}
+     */
+    isHorizontalScrollActive: function () {
+      if (SC.none(this._lastContentWidth)) {
+        this._lastContentWidth = this.getPath('contentView.frame.width');
+      }
+      return this.get('frame').width < this.get('_lastContentWidth');
+    }.property(),
+
     _lastContentWidth: null,
 
     widenColumnsProportionally: function (newComponentWidth, currentComponentWidth) {
@@ -534,6 +545,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (SC.none(tComponentView)) {
         return;
       }
+      var horizontalScrollActive = this.get('isHorizontalScrollerVisible');
       // DG.log('contentWidthDidChange: tContentWidth,tFrameWidth,horizontalScrollActive: ' + [tContentWidth,tFrameWidth,horizontalScrollActive].join() );
 
       // if frame width was adjusted we expand the rightmost column of rightmost
