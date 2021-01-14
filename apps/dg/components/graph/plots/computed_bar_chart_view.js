@@ -42,8 +42,27 @@ DG.ComputedBarChartView = DG.BarChartBaseView.extend(
       return tDescriptions;
     },
 
+    /**
+     * We have to set things up for animation
+     */
     formulaDidChange: function() {
+      var tModel = this.get('model');
+      // Store the current element coordinates for use in animation
+      this.set('transferredElementCoordinates', this.getElementPositionsInParentFrame());
+      var tSecondaryAxisModel = tModel.get('secondaryAxisModel'),
+          tStashedBounds = {
+            lower: tSecondaryAxisModel.get('lowerBound'),
+            upper: tSecondaryAxisModel.get('upperBound')
+          };
+      // Set axis to final position so final positions of rectangles can be computed
+      tModel.doRescaleAxesFromData([tModel.get('secondaryAxisPlace')], true, false, false);
+      this.animateFromTransferredElements();
+      // Put axis back where it was so it can animate
+      tSecondaryAxisModel.setDataMinAndMax(tStashedBounds.lower, tStashedBounds.upper, true);
+      // Cause plot view to animate
       this.notifyPropertyChange('plotDisplayDidChange');
+      // Simultaneously cause axis to animate
+      tModel.doRescaleAxesFromData([tModel.get('secondaryAxisPlace')], true, true, false);
     }.observes('model.formula'),
 
     getBarHeight: function(iPrimaryName, iCount, iTotal) {

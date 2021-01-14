@@ -75,7 +75,6 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
       this.createFormula();
       this._editInProgress = false;
       this._receivedInitialExpression = true;
-      this.doRescaleAxesFromData([this.get('secondaryAxisPlace')], true, true, false);
     }.observes('expression'),
 
     destroyFormula: function() {
