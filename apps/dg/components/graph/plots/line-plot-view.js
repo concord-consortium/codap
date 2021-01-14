@@ -142,7 +142,8 @@ DG.LinePlotView = DG.DotPlotView.extend(
               height: tHeight,
               fill: iElement.attr('fill'),
               stroke: iElement.attr('stroke'),
-              type: 'rect'};
+              type: 'rect',
+              isNegativeBar: iElement._isNegativeBar};
       });
   },
 
@@ -187,7 +188,8 @@ DG.LinePlotView = DG.DotPlotView.extend(
         tScreenCoord = iRC.primaryAxisView.dataToCoordinate(tWorld),
         tZeroCoord = iRC.primaryAxisView.dataToCoordinate(0),
         tIsMissingCase = !DG.isFinite(tScreenCoord) || (iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);
-
+    // For animation purposes, record whether the bar is negative
+    tRect._isNegativeBar = tWorld < 0;
     // show or hide if needed, then update if shown.
     if( this.showHidePlottedElement(tRect, tIsMissingCase, iIndex) && iRC.categoryAxisModel) {
 
