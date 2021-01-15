@@ -1083,7 +1083,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * @param iValue {Boolean}
      */
     swapComputedBarChartType: function( iChartPlot, iKey, iValue) {
-      var tInitialValue = iChartPlot.get('isBarHeightComputed'),
+      var this_ = this,
+          tInitialValue = iChartPlot.get('isBarHeightComputed'),
           tOldPlotClass = iChartPlot.constructor,
           tNewPlotClass = tOldPlotClass === DG.ComputedBarChartModel ?
               DG.BarChartModel : DG.ComputedBarChartModel,
@@ -1094,12 +1095,24 @@ DG.GraphModel = DG.DataLayerModel.extend(
         undoString: tUndo,
         redoString: tRedo,
         log: ("toggleShowAs: %@").fmt(tInitialValue ? "ComputedBarChart" : "BarChart"),
+        _beforeStorage: null,
+        _afterStorage: null,
+        _componentId: this.get('componentID'),
+        _controller: function () {
+          return DG.currDocumentController().componentControllersMap[this._componentId];
+        },
         execute: function() {
-          this.swapPlotForNewPlot(tNewPlotClass);
-        }.bind(this),
+          this._beforeStorage = this._controller().createComponentStorage();
+          this_.swapPlotForNewPlot(tNewPlotClass);
+        },
         undo: function() {
-          this.swapPlotForNewPlot(tOldPlotClass);
-        }.bind(this)
+          this._afterStorage = this._controller().createComponentStorage();
+          this._controller().restoreComponentStorage(this._beforeStorage);
+        },
+        redo: function () {
+          this._controller().restoreComponentStorage(this._afterStorage);
+          this._afterStorage = null;
+        }
       }));
     },
 

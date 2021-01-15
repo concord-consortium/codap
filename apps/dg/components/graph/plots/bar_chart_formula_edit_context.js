@@ -51,6 +51,7 @@ DG.BarChartFormulaEditContext = DG.PlottedFormulaEditContext.extend({
     }.bind(this);
 
     return DG.Command.create({
+      isUndoable: clientOptions.isUndoable,
       name: clientOptions.commandName,
       undoString: clientOptions.undoString,
       redoString: clientOptions.redoString,
@@ -70,7 +71,10 @@ DG.BarChartFormulaEditContext = DG.PlottedFormulaEditContext.extend({
 
   applyNewFormula: function() {
     var cmd = this.createEditCommand(this.getPath('formulaDialog.formula'));
-    DG.UndoHistory.execute(cmd);
+    if( cmd.isUndoable)
+      DG.UndoHistory.execute(cmd);
+    else
+      cmd.execute();
 
     var dialog = this.get('formulaDialog');
     if (dialog) {

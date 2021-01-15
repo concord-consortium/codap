@@ -87,11 +87,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
          */
         modelDidChange: function () {
           // Our model is our component; its content is the graph model
-          var dataDisplayModel = this.getPath('model.content'),
-              tDataContext = this.get('dataContext');
+          var dataDisplayModel = this.getPath('model.content');
           this.set('dataDisplayModel', dataDisplayModel);
-          if (dataDisplayModel && tDataContext)
+          if (dataDisplayModel) {
             dataDisplayModel.set('dataContext', this.get('dataContext'));
+            dataDisplayModel.set('componentID', this.getPath('model.id'));
+          }
         }.observes('model'),
 
         init: function () {

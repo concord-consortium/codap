@@ -48,8 +48,13 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
       sc_super();
     },
 
-    editFormula: function() {
-      DG.ComputedBarChartView.createFormulaEditView(this);
+    /**
+     * We don't allow undo of the initial creation of the formula
+     * @param iIsUndoable {boolean}
+     */
+    editFormula: function(iIsUndoable) {
+      iIsUndoable = SC.none( iIsUndoable) ? true : iIsUndoable;
+      DG.ComputedBarChartView.createFormulaEditView(this, iIsUndoable);
       this._editInProgress = true;
     },
 
@@ -127,7 +132,7 @@ DG.ComputedBarChartModel = DG.BarChartBaseModel.extend(
       if( SC.empty( this.get('expression')) && !this._receivedInitialExpression) {
         this.invokeLater( function() {
           if( !this._editInProgress) {
-            this.editFormula();
+            this.editFormula(false /* not undoable */);
           }
         }.bind( this), 100);
         return 0;

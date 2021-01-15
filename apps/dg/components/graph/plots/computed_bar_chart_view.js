@@ -150,7 +150,7 @@ DG.ComputedBarChartView = DG.BarChartBaseView.extend(
     },
 
     /**
-     * We compute the height of each slide, corresponding to each case in a cell. These differ from cell to
+     * We compute the height of each slice, corresponding to each case in a cell. These differ from cell to
      * cell since the total height of a bar depends on evaluation of the formula for that cell.
      * Slice heights are in display coordinates. Negative heights indicate a bar that descends downward
      * from zero.
@@ -194,9 +194,10 @@ DG.ComputedBarChartView = DG.BarChartBaseView.extend(
   }
 );
 
-DG.ComputedBarChartView.createFormulaEditView = function(iPlotModel) {
+DG.ComputedBarChartView.createFormulaEditView = function(iPlotModel, iIsUndoable) {
   var tFormulaEditContext = DG.BarChartFormulaEditContext.getFormulaEditContext(iPlotModel);
   tFormulaEditContext.set('clientOptions', {
+    isUndoable: iIsUndoable,
     attrNamePrompt: 'DG.BarChartFunction.namePrompt',
     formulaPrompt: 'DG.BarChartFunction.formulaPrompt',
     formulaHint: 'DG.BarChartFunction.formulaHint',
