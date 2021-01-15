@@ -51,6 +51,8 @@ DG.LinePlotView = DG.DotPlotView.extend(
     this.setPath('primaryAxisView.model.preferZeroLowerBound', true);
     this.setPath('primaryAxisView.model.drawZeroLine', true);
 
+    this.setPath('secondaryAxisView.centering', true);
+
     var model = this.get('model');
     model && model.rescaleAxesFromData(true);
   },
