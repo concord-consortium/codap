@@ -41,7 +41,7 @@ DG.TableCardRegistry = SC.Object.extend({
    */
   registerView: function (dataContext, view) {
     var contextID = (typeof dataContext === 'object')? dataContext.get('id'): dataContext;
-    if (contextID != null) {
+    if (contextID != null && view) {
       var tContentView = view.get('contentView');
       if (view && tContentView instanceof DG.HierTableView) {
         this.contextTableMap[contextID] = view;

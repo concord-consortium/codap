@@ -65,6 +65,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     dataContext: function () {
       return this.getPath('gridAdapter.dataContext');
     }.property(),
+    dataContextDidChange: function() {
+      this.respondToDataContextAndGridAdapterChanges();
+    }.observes('gridAdapter.dataContext'),
 
     titleBarContainer: SC.View.extend({
       childViews: 'titleBar'.w(),
@@ -1145,12 +1148,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      A new one will be recreated on render() if there is a valid adapter.
      */
     gridAdapterDidChange: function () {
+      this.respondToDataContextAndGridAdapterChanges();
+    }.observes('gridAdapter'),
+
+    respondToDataContextAndGridAdapterChanges: function() {
       if (this._slickGrid) {
         this.destroySlickGrid();
         this.displayDidChange();
         this.notifyPropertyChange('gridView');
       }
-    }.observes('gridAdapter'),
+    },
 
     /**
      Refreshes the Slick.DataView and re-renders the Slick.Grid.
