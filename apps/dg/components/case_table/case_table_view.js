@@ -726,6 +726,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         selectActiveRow: true, caseTableAdapter: this.gridAdapter, caseTableView: this
       }));
 
+      if (this.getPath('gridAdapter.isMultilineRowHeight'))
+        this.$('.slick-viewport').addClass('slick-multiline-cells');
+
       /*
        * Add a column header menu to each column.
        */
@@ -783,6 +786,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         iEvent.stopImmediatePropagation();
       });
       this.subscribe('onHeaderDragStart', this.handleHeaderDragStart);
+      this.subscribe('onRowResizeDragInit', this.handleRowResizeDragInit);
+      this.subscribe('onRowResizeDragStart', this.handleRowResizeDragStart);
+      this.subscribe('onRowResizeDrag', this.handleRowResizeDrag);
+      this.subscribe('onRowResizeDragEnd', this.handleRowResizeDragEnd);
       this.subscribe('onBeforeAutoEditCell', this.handleBeforeAutoEditCell);
       this.subscribe('onBeforeEditCell', this.handleBeforeEditCell);
       this.subscribe('onCanvasWidthChanged', function (e, args) {
@@ -1377,6 +1384,57 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           }  // For use by clients like the text box
         });
       });
+    },
+
+    /**
+     Called when a drag is started in a row resize splitter.
+     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
+     @param  {Object}        iDragData -- additional information about the drag
+     */
+    handleRowResizeDragInit: function (iEvent, iDragData) {
+      DG.TouchTooltips.hideAllTouchTooltips();
+      iEvent.stopImmediatePropagation();
+    },
+
+    /**
+     Called when a drag is started in a row resize splitter.
+     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
+     @param  {Object}        iDragData -- additional information about the drag
+     */
+    handleRowResizeDragStart: function (iEvent, iDragData) {
+      this.$('.slick-viewport').addClass('slick-resizing-row');
+      iEvent.stopImmediatePropagation();
+    },
+
+    setRowHeight: function (rowHeight) {
+      SC.run(function() {
+        this.setPath('gridAdapter.rowHeight', rowHeight);
+        if (this.getPath('gridAdapter.isMultilineRowHeight'))
+          this.$('.slick-viewport').addClass('slick-multiline-cells');
+        else
+          this.$('.slick-viewport').removeClass('slick-multiline-cells');
+        this._slickGrid.setOptions({ rowHeight: rowHeight });
+        // force a full re-render
+        this.setColumns(this._slickGrid.getColumns());
+      }.bind(this));
+    },
+
+    /**
+     Called when a drag is continued in a row resize splitter.
+     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
+     @param  {Object}        iDragData -- additional information about the drag
+     */
+    handleRowResizeDrag: function (iEvent, iDragData) {
+      this.setRowHeight(iDragData.rowHeight);
+    },
+
+    /**
+     Called when a drag is continued in a row resize splitter.
+     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
+     @param  {Object}        iDragData -- additional information about the drag
+     */
+    handleRowResizeDragEnd: function (iEvent, iDragData) {
+      this.$('.slick-viewport').removeClass('slick-resizing-row');
     },
 
     inProgressAttributeEditElementName: null,
@@ -2008,8 +2066,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * @param {[number]} rowIndices
      */
     scrollToView: function (rowIndices) {
-      var minDeltaFromMidViewPort = this.getMinScrollDelta(rowIndices); // in rows
       var viewport = this.get('gridViewport');
+      // if at least one of the specified rows is visible, no need to scroll
+      for (var i = 0; i < rowIndices.length; ++i) {
+        if ((rowIndices[i] >= viewport.top) && (rowIndices[i] <= viewport.bottom)) return;
+      }
+      // The bailout above was added because the code below was seen to
+      // scroll undesirably in situations in which no scroll was necessary
+      // while developing the rowHeight-changing code.
+      var minDeltaFromMidViewPort = this.getMinScrollDelta(rowIndices); // in rows
       var viewportHeight = viewport.bottom - viewport.top; // in rows
       var viewportCenterHeight = Math.max(viewportHeight - 4, 0);
       var viewportCenterDelta = (viewportHeight - viewportCenterHeight - 1) / 2;
