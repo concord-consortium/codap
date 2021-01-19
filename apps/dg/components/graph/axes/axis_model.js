@@ -55,7 +55,7 @@ DG.AxisModel = SC.Object.extend(
     Note: This should be cacheable, but I couldn't make it work.
   */
   labels: function() {
-    var tDesc = this.attributeDescription,
+    var tDesc = this.get('attributeDescription'),
         tLabels = [];
     if( tDesc) {
       tDesc.get('attributes' ).forEach( function( iAttribute) {

@@ -58,6 +58,8 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
           if( dataContext)
             dataContext.addObserver('changeCount', this, 'handleDataContextChanges');
           this._prevDataContext = dataContext;
+          // In case the previous dataContext was destroyed, we are removed from the registry, so reregister
+          DG.currDocumentController().tableCardRegistry.registerView(dataContext, this.get('view'));
         }
       }.observes('dataContext', 'view'),
 

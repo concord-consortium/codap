@@ -31,6 +31,12 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
     autoDestroyProperties: [ 'legend' ],
 
     /**
+     * @property {number} May be used to access controller for calls to createComponentStorage and
+     * restoreComponentStorage for purposes of undo/redo
+     */
+    componentID: null,
+
+    /**
      @property { DG.LegendModel }
      */
     legend: null,

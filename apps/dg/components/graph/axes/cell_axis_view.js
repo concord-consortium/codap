@@ -31,6 +31,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
   return {
     /** @scope DG.CellAxisView.prototype */
 
+    displayProperties: ['centering'],
+
     /**
      Number of pixels required from the axis line to the edge of the graph view
      @property { Number }

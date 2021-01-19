@@ -117,7 +117,13 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
               collection = dataContext.getCollectionByID( collectionID),
               // try to find an existing adapter for the specified collection
               adapter = this.findAdapterForCollection( collectionID);
-          if( !adapter) {
+          if( adapter) {
+            adapter.beginPropertyChanges();
+            adapter.set('dataContext', dataContext);
+            adapter.set('collection', collection);
+            adapter.endPropertyChanges();
+          }
+          else {
             // create a new adapter for the specified collection
             adapter = DG.CaseTableAdapter.create({
               dataContext: dataContext,
@@ -157,6 +163,8 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             iDivider.setPath('dropData', null);
           };
 
+          contentView.set('dataContext', dataContext);
+
           // Remove the observer and destroy stray divider views before the new setup.
           var oldDividerViews = contentView.getPath('dividerViews');
           oldDividerViews.forEach(function (iDividerView) {
@@ -180,6 +188,8 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           if( dataContext)
             dataContext.addObserver('changeCount', this, 'contextDataDidChange');
           this._prevDataContext = dataContext;
+          // In case the previous dataContext was destroyed, we are removed from the registry, so reregister
+          DG.currDocumentController().tableCardRegistry.registerView(dataContext, this.get('view'));
         }
 
         var childCollection = this.getPath('dataContext.childCollection');
@@ -280,6 +290,10 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
               ix += 1;
             }
           }
+        }
+        // Todo: This low-level call to get a refresh is problematic. Figure out a better way
+        if( this.get('contentView')) {
+          this.get('contentView').frameDidChange();
         }
       },
 

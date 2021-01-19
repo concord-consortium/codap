@@ -87,11 +87,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
          */
         modelDidChange: function () {
           // Our model is our component; its content is the graph model
-          var dataDisplayModel = this.getPath('model.content'),
-              tDataContext = this.get('dataContext');
+          var dataDisplayModel = this.getPath('model.content');
           this.set('dataDisplayModel', dataDisplayModel);
-          if (dataDisplayModel && tDataContext)
+          if (dataDisplayModel) {
             dataDisplayModel.set('dataContext', this.get('dataContext'));
+            dataDisplayModel.set('componentID', this.getPath('model.id'));
+          }
         }.observes('model'),
 
         init: function () {
@@ -720,7 +721,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
               tMenuItems,
 
           tAttributeMenu = DG.MenuPane.create({});
-          tAttributeMenu.addObserver('selectedItem', this, this.attributeMenuItemChanged);
+
+          // A FormulaAxisView has its own handler for its menu
+          var tChangeHandler = iAxisView.menuChangeHandler ? iAxisView.menuChangeHandler.bind(iAxisView) :
+              this.attributeMenuItemChanged;
+          tAttributeMenu.addObserver('selectedItem', this, tChangeHandler);
 
           iAxisView.appendChild(tMenuAnchorView);
 
@@ -742,7 +747,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             }
           }
 
-          tMenuItems = this.getAttributeMenuItems();
+          tMenuItems = iAxisView.getMenuItems ? iAxisView.getMenuItems() : this.getAttributeMenuItems();
           // WARNING: before we added this separator, the "Remove Attribute" menu item had a bug where it would not respond correctly
           // on the first click.  It appears that SC.MenuItemView.mouseUp() gets a null 'targetMenuItem' at that point,
           // which prevents our menu handler from being called.  This may or may not a bug related to the submenu just above this point.

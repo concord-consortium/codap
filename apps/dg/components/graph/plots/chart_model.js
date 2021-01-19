@@ -25,7 +25,7 @@ sc_require('components/graph/plots/plot_model');
   @extends SC.Object
 */
 DG.ChartModel = DG.PlotModel.extend(
-/** @scope DG.ChartModel.prototype */ 
+/** @scope DG.ChartModel.prototype */
 {
 
   /**
@@ -95,6 +95,12 @@ DG.ChartModel = DG.PlotModel.extend(
     @property{SC.Array of {primaryCell, primaryCell, indexInCell}}
   */
   cachedIndex: null,
+
+  validCachedCells: function() {
+    if( !this._cacheIsValid)
+      this._buildCache();
+    return this.get('cachedCells');
+  }.property(),
 
   xAxisDidChange: function() {
     sc_super();
@@ -239,7 +245,7 @@ DG.ChartModel = DG.PlotModel.extend(
       iDoF( iCase, iIndex, tPrimaryCell, tSecondaryCell);
     }
   },
-  
+
   /**
     Call the given function once for each case that has a value for each axis.
     function signature for iDoF is { iCase, iCaseIndex, iPrimaryCellIndex, iSecondaryCellIndex }
@@ -253,7 +259,7 @@ DG.ChartModel = DG.PlotModel.extend(
       this.doForOneCase( iCase, iIndex, tCC, iDoF);
     }.bind(this));
   },
-  
+
   /**
    * @param iKey {String} If present, the property that changed to bring about this call
     My data has changed, so my cache is no longer valid.
@@ -310,7 +316,7 @@ DG.ChartModel = DG.PlotModel.extend(
 
     return tValueArray;
   },
- 
+
   /**
     Build a sparse 3-dim matrix of cases.
   */
@@ -320,6 +326,11 @@ DG.ChartModel = DG.PlotModel.extend(
         tMaxInCell = 0;
     this.forEachBivariateCaseDo( function( iCase, iIndex, iPrimaryCell, iSecondaryCell) {
       var tCellLength;
+      // forEachBivariateCaseDo() assumes that if there is no attribute on the secondary axis,
+      // then there is no secondary cell. This code assumes that if there's no secondary cell
+      // then there's nothing to cache. In the case of a computed bar chart we want to cache
+      // the primary cell counts even when there's no explicit secondary cell.
+      iSecondaryCell = iSecondaryCell || 0;
       if(SC.none( iPrimaryCell) || SC.none( iSecondaryCell))
         return;
 

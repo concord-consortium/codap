@@ -32,16 +32,24 @@ DG.React.ready(function () {
 
         var ChangeListener = SC.Object.extend({
           dependent: null,
-          context: null,
+          _context: null,
+          context: function( iKey, iValue) {
+            if( iValue && iValue !== this._context) {
+              if( this._context) {
+                this._context.removeObserver('changeCount', this, this.contextDataDidChange);
+              }
+              this.guaranteeDataContextObserver(iValue);
+              this._context = iValue;
+            }
+            return this._context;
+          }.property(),
 
           init: function () {
             sc_super();
-
-            this.guaranteeDataContextObserver(this.context);
           },
 
           destroy: function () {
-            this.removeDataContextObserver(this.context);
+            this.removeDataContextObserver(this.get('context'));
             this.dependent = null;
 
             sc_super();
@@ -54,7 +62,8 @@ DG.React.ready(function () {
           },
 
           removeDataContextObserver: function (iDataContext) {
-            iDataContext.removeObserver('changeCount', this, this.contextDataDidChange);
+            if( iDataContext)
+              iDataContext.removeObserver('changeCount', this, this.contextDataDidChange);
           },
 
           contextDataDidChange: function (iDataContext) {
@@ -138,9 +147,13 @@ DG.React.ready(function () {
 
           componentDidMount: function () {
             this.changeListener = ChangeListener.create({
-              dependent: this,
-              context: this.props.context
+              dependent: this
             });
+            this.changeListener.set('context', this.props.context);
+          },
+
+          componentDidUpdate: function() {
+            this.changeListener.set('context', this.props.context);
           },
 
           componentWillUnmount: function () {

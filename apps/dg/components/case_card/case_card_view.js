@@ -40,7 +40,13 @@ DG.CaseCardView = SC.View.extend(
         /**
          * @property { DG.DataContext }
          */
-        context: null,
+        context: function() {
+          return this.getPath('model.context');
+        }.property('model'),
+
+        contextDidChange: function() {
+          this.renderCard();
+        }.observes('model.context'),
 
         /**
          * @property {Element}

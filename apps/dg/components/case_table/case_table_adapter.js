@@ -733,6 +733,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       Rebuilds the table when the data context changes.
      */
     dataContextDidChange: function() {
+      this.beginPropertyChanges();
+      this.setPath('gridDataView.context', this.get('dataContext'));
+      this.setPath('gridDataView.collection', this.get('collection'));
+      this.endPropertyChanges();
       this.rebuild();
     }.observes('dataContext'),
 
@@ -875,7 +879,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                   If null/undefined, mark all cases changed.
      */
     markCasesChanged: function( iCases) {
-      var dataView = this.gridDataView,
+      var dataView = this.get('gridDataView'),
           // if no cases are specified, mark all cases changed
           cases = iCases || this.getPath('collection.casesController');
       dataView.beginUpdate();
