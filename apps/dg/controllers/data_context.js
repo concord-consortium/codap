@@ -2328,7 +2328,7 @@ DG.DataContext = SC.Object.extend((function () // closure
       var columnDelimiter = ',',
           rowDelimiter = '\r\n',
           collection,
-          attribNames,
+          attributes,
           attribIDs,
           rows = [];
 
@@ -2338,23 +2338,23 @@ DG.DataContext = SC.Object.extend((function () // closure
 
       if (iWhichCollection === 'DG.CaseTableController.allTables'.loc()) {
         collection = this.getLastCollection();
-        attribIDs = [];
-        attribNames = [];
-        this.getAttributes().forEach(function (attr) {
-          attribIDs.push(attr.get('id'));
-          attribNames.push(attr.get('name'));
-        });
+        attributes = this.getAttributes();
       } else {
         collection = this.getCollectionByName(iWhichCollection);
-        attribNames = collection && collection.getAttributeNames();
-        attribIDs = collection && collection.getAttributeIDs();
+        attributes = collection.attrsController;
       }
+
+      // remove hidden attributes
+      attributes = attributes.filter(function (attr) {
+        return !attr.hidden;
+      });
+      attribIDs = attributes.map(function(attr) {return attr.id; });
 
       // create a tab and newline delimited string of attribute names and case values.
 
       // add a row of attribute names
-      rows.push(attribNames.map(function (name) {
-        return escape(name);
+      rows.push(attributes.map(function (attr) {
+        return escape(attr.name);
       }).join(columnDelimiter));
 
       // add each row of case values
