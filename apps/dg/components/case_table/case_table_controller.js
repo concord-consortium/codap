@@ -952,9 +952,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           var compareIndex = function (a,b) {return a-b;};
           if (parentCollection) {
             return function (caseA, caseB) {
-              var caseAParentIndex = parentCollection.caseIDToIndexMap[caseA.getPath(
+              var caseAParentIndex = caseA && parentCollection.caseIDToIndexMap[caseA.getPath(
                   'parent.id')];
-              var caseBParentIndex = parentCollection.caseIDToIndexMap[caseB.getPath(
+              var caseBParentIndex = caseB && parentCollection.caseIDToIndexMap[caseB.getPath(
                   'parent.id')];
               if (caseAParentIndex !== caseBParentIndex) {
                 return compareIndex(caseAParentIndex, caseBParentIndex);
