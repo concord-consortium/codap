@@ -1655,7 +1655,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           caseTable: {
             name: directMapping,
             title: directMapping,
-            cannotClose: directMapping
+            cannotClose: directMapping,
+            horizontalScrollOffset: directMapping
           },
           game: {
             currentGameName: function (key, value) {
@@ -1835,7 +1836,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               }
               // tables with data contexts
               if ((tValues.type === 'caseTable') && tableDataContext) {
-                component = DG.appController.showCaseDisplayFor(tableDataContext);
+                // component = DG.appController.showCaseDisplayFor(tableDataContext, props);
+                component = doc.addCaseTable(
+                    DG.mainPage.get('docView'), null,
+                    Object.assign({position: 'top', dataContext: tableDataContext}, props));
+                component.invokeLater(function () { component.showAndSelect(); });
               }
               // sliders with global values
               else if ((tValues.type === 'slider') && tValues.globalValueName) {
@@ -1999,8 +2004,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 case 'graph':
                   rtn.xAttributeName = extractObjectName( componentStorage, 'xAttr');
                   rtn.yAttributeName = extractObjectName( componentStorage, 'yAttr');
-                  rtn.y2AttributeName = extractObjectName( componentStorage, 'y2Attr');//jshint -W086
-                case 'map': // eslint-disable-line no-fallthrough
+                  rtn.y2AttributeName = extractObjectName( componentStorage, 'y2Attr');
+                  // falls through
+                case 'map':
                   rtn.dataContext = extractObjectName(componentStorage, 'context');
                   rtn.legendAttributeName = extractObjectName( componentStorage, 'legendAttr');
                   rtn.center = extractObjectName('center');

@@ -98,7 +98,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       sc_super();
       // Adjust the horizontal scrollbar so that the right scroll arrow can be hit.
       this.set('horizontalScrollerLayout', { left: 0, right: 18, top: 0, bottom: 8 });
-      this.model.bind('horizontalScrollOffset', this, 'horizontalScrollOffset');
     },
 
     /**
@@ -144,6 +143,13 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         this.setPath('model.horizontalScrollOffset', this.get('horizontalScrollOffset'));
       }
     }.observes('horizontalScrollOffset'),
+
+    modelDidScrollHorizontally: function() {
+      var hso = this.getPath('model.horizontalScrollOffset');
+      if (hso != null) {
+        this.setIfChanged('horizontalScrollOffset', hso);
+      }
+    }.observes('model.horizontalScrollOffset'),
 
     /**
      * The content view is where "the action" is in this class. It contains a
@@ -619,6 +625,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       var caseTablesInAdapterOrder = [];
       var childTableView;
       var lastChildTableView = null;
+      var horizontalScrollOffset = this.getPath('model.horizontalScrollOffset');
       var x;
 
       // Remove all the contents of the view. We are going to recreate the order.
@@ -679,7 +686,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       // set the horizontal scroll to that saved in the model. We defer a render
       // cycle to let the slickgrid construction update the DOM
       this.invokeLater(function () {
-        this.set('horizontalScrollOffset', this.getPath('model.horizontalScrollOffset'));
+        if (!SC.none(horizontalScrollOffset)) {
+          this.set('horizontalScrollOffset', horizontalScrollOffset);
+        }
       });
 
     },
