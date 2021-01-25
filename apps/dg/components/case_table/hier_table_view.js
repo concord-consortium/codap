@@ -35,6 +35,9 @@ sc_require('components/case_table/relation_divider_view');
 
   @extends SC.SplitView
 */
+// eslint-disable-next-line no-redeclare
+/*global YES:true, NO:true */
+
 DG.HierTableView = SC.ScrollView.extend( (function() {
 /** @scope DG.HierTableView.prototype */
 
@@ -135,6 +138,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
     viewDidScrollHorizontally: function() {
       this.get('contentView').parentViewDidResizeOrScroll();
+      // if in document...
+      if (document.getElementById(this.get('layerId'))) {
+        this.setPath('model.horizontalScrollOffset', this.get('horizontalScrollOffset'));
+      }
     }.observes('horizontalScrollOffset'),
 
     /**
@@ -490,16 +497,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       return NO;
     },
 
-    /**
-     * @return {boolean}
-     */
-    isHorizontalScrollActive: function () {
-      if (SC.none(this._lastContentWidth)) {
-        this._lastContentWidth = this.getPath('contentView.frame.width');
-      }
-      return this.get('frame').width <= this.get('_lastContentWidth');
-    }.property(),
-
     _lastContentWidth: null,
 
     widenColumnsProportionally: function (newComponentWidth, currentComponentWidth) {
@@ -537,25 +534,33 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (SC.none(tComponentView)) {
         return;
       }
-      var horizontalScrollActive = this.get('isHorizontalScrollActive');
       // DG.log('contentWidthDidChange: tContentWidth,tFrameWidth,horizontalScrollActive: ' + [tContentWidth,tFrameWidth,horizontalScrollActive].join() );
 
       // if frame width was adjusted we expand the rightmost column of rightmost
       // collection
       if ((tContentWidth > 0)
-          && tFrameWidth
+          && (tFrameWidth != null && tFrameWidth > 0)
           && Number(tFrameWidth) !== Number(tContentWidth)
           && changeAgent === 'frame') {
         this.expandRightmostColumn(tFrameWidth, tContentWidth);
+        tContentWidth = this.getPath('contentView.frame.width');
       }
 
-      // if content width is less than the page width and we aren't already
-      // scrolling horizontally then make the component width match the content width
-      if (((tContentWidth < tPageWidth ) && !horizontalScrollActive)
-          || ((tContentWidth < tFrameWidth) && (changeAgent === "content"))){
+      // frame width should be no wider than the page
+      if (tContentWidth > tPageWidth) {
+        tComponentView.adjust('width', tPageWidth);
+      }
+      // if we are not scrolling then growth in content should expand frame
+      else if (tFrameWidth === this._lastContentWidth && changeAgent === "content") {
         tComponentView.adjust('width', tContentWidth);
       }
-      this._lastContentWidth = tContentWidth;
+      // the content width should never be less than the component width
+      else if (tContentWidth < tFrameWidth) {
+        tComponentView.adjust('width', tContentWidth);
+      }
+      if (changeAgent === 'content') {
+        this._lastContentWidth = tContentWidth;
+      }
     },
 
     frameDidChange: function () {
@@ -659,6 +664,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (!contentView.hasObserverFor('frameSize', this, 'contentWidthDidChange')) {
         contentView.addObserver('frameSize', this, 'contentWidthDidChange');
       }
+      // set the horizontal scroll to that saved in the model. We defer a render
+      // cycle to let the slickgrid construction update the DOM
+      this.invokeLater(function () {
+        this.set('horizontalScrollOffset', this.getPath('model.horizontalScrollOffset'));
+      });
 
     },
 

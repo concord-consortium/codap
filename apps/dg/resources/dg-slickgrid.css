@@ -187,6 +187,7 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   z-index: 10;
 }
 
-.slick-header-columns .slick-header-column:last .slick-resizable-handle {
-  cursor: e-resize;
+/* sets the last columns handle to the left of the component border */
+.slick-header-columns .slick-header-column:last-of-type .slick-resizable-handle {
+  right: 5px;
 }

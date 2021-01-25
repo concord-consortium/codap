@@ -281,8 +281,8 @@ DG.ContainerView = SC.View.extend(
       /** positionNewComponent - It is assumed that the given view has not yet been added
         and that its layout has the desired width and height.
         We find a non-overlapping position for the view and place it there.
-        @param{DG.ComponentView} - the view to be positioned
-        @param {String} Default is 'top'
+        @param{DG.ComponentView} iView - the view to be positioned
+        @param {String} iPosition Default is 'top'
         @param {boolean} iPositionGameViews - true to set GameView positions as well as sizes
       */
       positionNewComponent: function( iView, iPosition, iPositionGameViews) {
@@ -336,7 +336,10 @@ DG.ContainerView = SC.View.extend(
         }
         else {
           tReservedRects.push(tFinalRect);
-          this.invokeNext(function () {
+          // Hack: deferring this command fixes an issue where the animation
+          // was failing for case tables in InBounds mode.
+          // Todo 1/2021: ferret out cause and fix more properly
+          this.invokeLater(function () {
             iView.adjust({
               left: DG.ViewUtilities.kGridSize, top: DG.ViewUtilities.kGridSize,
               width: 0, height: 0
@@ -358,7 +361,7 @@ DG.ContainerView = SC.View.extend(
                   // Better would be to define something like 'didReachFinalPosition' as a generic component
                   this.didReachInitialPosition();
                 });
-          }.bind(this));
+          }.bind(this), 100);
           iView.adjust({width: 0, height: 0});
         }
         return tFinalRect;

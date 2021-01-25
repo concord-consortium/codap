@@ -807,6 +807,8 @@ DG.main = function main() {
                   DG.logUser("getContent: attempted to return invalid document!");
                 }
                 event.callback(contents);
+              }, function (msg) {
+                DG.log(msg);
               });
             break;
 

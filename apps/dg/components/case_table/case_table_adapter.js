@@ -110,7 +110,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       dateFormatter = function (cellValue, precision, type) {
         var date = DG.isDate(cellValue)? cellValue: DG.parseDate(cellValue, type === 'date');
-        return date?DG.formatDate(date, precision): '"' + cellValue + '"';
+        return  date?('<span class="dg-date">'+ DG.formatDate(date, precision) + '</span>'): '"' + cellValue + '"';
       },
 
       numberFormatter = function (cellValue, type, precision) {
@@ -141,11 +141,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           return "";
         }
 
-        var color = DG.PlotUtilities.kDefaultPointColor,
-            tWidth = value ;
-
+        var color = DG.PlotUtilities.kDefaultPointColor;
         return "<span class='dg-qualitative-backing'>" +
-        "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "%'></span></span>";
+        "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + value + "%'></span></span>";
       },
 
       boundaryFormatter = function ( value) {
@@ -156,7 +154,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                 tBoundaryObject.jsonBoundaryObject.properties.THUMB;
         if (tThumb !== null && tThumb !== undefined) {
           tResult = "<span class='dg-boundary-thumb'>" +
-              "<img src=\'" + tThumb + "\' height='14'></span>";
+              "<img src=\'" + tThumb + "\' alt='thumb' height='14'></span>";
         }
         else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof  Error)) {
           tResult = errorFormatter(tBoundaryObject.jsonBoundaryObject);
@@ -168,10 +166,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       colorFormatter = function (row, cell, value, columnDef, dataContext) {
-        var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,'')),
-            tSpan = "<span class='dg-color-table-cell' style= 'background:" + tColor.toString('rgb') + "'></span>";
-
-        return tSpan;
+        var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,''));
+        return "<span class='dg-color-table-cell' style= 'background:" + tColor.toString(
+            'rgb') + "'></span>";
       },
 
       tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
@@ -387,45 +384,36 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
     getColumnWidthStats: function (attr) {
       var columnInfo = this.getColumnFromAttribute(attr);
-      var kSelector = 'dg-text-measurer';
-      var $el = $('.' + kSelector);
-
-      function measureText(text) {
-        return $el.html(text).width();
-      }
 
       var cellStyle = {
         display: 'block',
         'font-family': 'Montserrat-Regular, sans-serif',
-        'font-size': '10.66667px',
-        'text-align': 'left',
+        'font-size': '10.6667px',
+        'font-style':'normal',
         'font-weight': 'normal',
-        'font-style':'normal'
+        'text-align': 'left',
+        padding: '1px 4px 2px'
       };
       var headerStyle = {
         display: 'block',
         'font-family': 'Montserrat-Regular, sans-serif',
-        'font-size': '10.666667px',
-        'text-align': 'left',
-        'font-weight': 'bold',
-        'font-style':'normal'
+      'font-size': '10.6667px',
+      'font-style':'normal',
+      'font-weight': 'normal',
+      'text-align': 'left'
       };
       var minWidth = Number.MAX_VALUE;
       var maxWidth = 0;
       var sum = 0;
       var ct = 0;
 
-      $el = $('<div>').addClass(kSelector);
-      $el.appendTo(document.body);
-      $el.css(headerStyle);
-
-      var headerWidth = measureText(getColumnHeaderString(attr));
-
-      $el.css(cellStyle);
+    var dimensions = DG.measureText(getColumnHeaderString(attr), headerStyle);
+    var headerWidth = dimensions && dimensions.width;
 
       this.collection.casesController.slice(0,500).forEach( function (myCase) {
         var attrValue = myCase.getValue(attr.id);
         var valueString;
+      var dimensions;
         var width;
         if (DG.isColorSpecString(attrValue)) {
           width = kDefaultColorWidth;
@@ -433,7 +421,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           width = kDefaultQualWidth;
         } else {
           valueString = cellFormatter(0, 0, attrValue, columnInfo, myCase);
-          width = measureText(valueString);
+        dimensions = DG.measureText(valueString, cellStyle);
+        width = dimensions && dimensions.width + 1;
         }
         maxWidth = Math.max(maxWidth, width);
         minWidth = Math.min(minWidth, width);
@@ -452,7 +441,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
     autoResizeColumn: function (attr) {
       var stats = this.getColumnWidthStats(attr);
-      var width = Math.max(Math.ceil(3 +stats.headerWidth/2), stats.maxWidth) + 11;
+      var width = Math.max(Math.ceil(3 +stats.headerWidth/2), Math.min(stats.maxWidth, 200)) + 11;
       // DG.log('Resizing stats: ' + JSON.stringify(stats));
       // DG.log('Resizing column %@ from %@ to %@'.loc(attr.name, this.model.getPreferredAttributeWidth(attr.id), width));
       this.model.setPreferredAttributeWidth(attr.id, width);
@@ -484,7 +473,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     /**
       Builds the array of column definitions required by SlickGrid from the data context.
 
-      @returns  {Array of Object} The properties of each object define the column
+      @returns  {[Object]} The properties of each object define the column
      */
     updateColumnInfo: function() {
       var context = this.get('dataContext'),
@@ -725,10 +714,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                       });
                                     },
                 dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
-                  var value = iColumnInfo.id === kIndexColumnID
-                                ? getCaseIndex(iRowItem)
-                                : iRowItem.getValue(iColumnInfo.id);
-                  return value;
+                  return iColumnInfo.id === kIndexColumnID ? getCaseIndex(
+                      iRowItem) : iRowItem.getValue(iColumnInfo.id);
                 }
              };
       return this.gridOptions;
@@ -785,7 +772,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       Note: We could potentially speed this up by only considering rows
       that are currently visible on screen, although this would require
       additional synchronization of selection when scrolling, for instance.
-      @returns  {Array of Number}   The indices of the selected cases
+      @returns  {[number]}   The indices of the selected cases
      */
     getSelectedRows: function() {
       var dataContext = this.get('dataContext'),
@@ -857,7 +844,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
     /**
      * Selects a range of cases based on an array of row indices.
-     * @param rows {[number]} Array of row indices
+     * @param iRowIndices {[number]} Array of row indices
      */
     selectRowsInList: function (iRowIndices) {
       var tDataView = this.get('gridDataView'),
@@ -888,7 +875,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
     /**
       Invalidates the rows corresponding to the specified cases.
-      @param  iCases {Array of DG.Case}  The set of cases to mark as changed.
+      @param  iCases {[DG.Case]}  The set of cases to mark as changed.
                                   If null/undefined, mark all cases changed.
      */
     markCasesChanged: function( iCases) {

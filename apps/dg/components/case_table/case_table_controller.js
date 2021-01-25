@@ -229,10 +229,12 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         var caseTableModel = this.getPath('model.content'),
             dataContext = caseTableModel.get('context'),
             isActive = caseTableModel.get('isActive'),
+            horizontalScrollOffset = caseTableModel.get('horizontalScrollOffset'),
             collapsedNodes = caseTableModel.get('collapsedNodes'),
             attributeWidths = [],
             storage = {
-              isActive: isActive
+              isActive: isActive,
+              horizontalScrollOffset: horizontalScrollOffset
             };
         if( dataContext) {
           this.addLink(storage, 'context', dataContext);
@@ -283,6 +285,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             this.set('dataContext', dataContext);
           }
           caseTableModel.set('isActive', isActive);
+          caseTableModel.set('horizontalScrollOffset', iStorage.horizontalScrollOffset);
           if (collapsedNodesCount > 0) {
             while(ix < collapsedNodesCount) {
               caseTableModel.collapseNode(DG.store.find('DG.Case',

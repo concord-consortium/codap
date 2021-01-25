@@ -2013,9 +2013,9 @@ DG.DocumentController = SC.Object.extend(
             iContext.willSaveContext();
           });
           return Promise.resolve(this.get('content').toArchive(fullData));
-        }.bind(this)).then(undefined, function (reason) { // should be 'catch', but eslint and yui-compressor complain
+        }.bind(this))/*.then(undefined, function (reason) { // should be 'catch', but eslint and yui-compressor complain
           console.warn(reason);
-        });
+        })*/;
 
         return returnPromise;
       }
