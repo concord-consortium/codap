@@ -42,8 +42,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 /** @scope DG.HierTableView.prototype */
 
   var /*kColumnHeaderBackgroundColor = '#E6E6E6',*/
-      kDefaultColumnWidth = 60,
-      kMinTableWidth = kDefaultColumnWidth;
+    kMinTableWidth = 60;
 
   return {
 
@@ -523,7 +522,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         return subtotal + Object.keys(columnWidths).reduce(function (tableSubtotal, key) {
           // if the key is numeric, it is an attribute id
           // we only want to sum the widths of attribute columns
-          var width = isNaN(key)? 0: columnWidths[key];
+          var width = isNaN(Number(key))? 0: columnWidths[key];
           return tableSubtotal + width;
         }, 0);
       }, 0);

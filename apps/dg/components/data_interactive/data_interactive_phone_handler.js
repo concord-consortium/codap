@@ -16,6 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+// noinspection SpellCheckingInspection
 /** @class
  *
  * The DataInteractivePhoneHandler handles inbound messages for the Data Interactive
@@ -132,7 +133,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return logMonitor.iPhoneHandler !== self;
         }));
 
-        sc_super();
+        return sc_super();
       },
 
 
@@ -171,10 +172,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       parseResourceSelector: function (iResource) {
         // selects phrases like 'aaaa[bbbb]' or 'aaaa' in a larger context
         // var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
-        var selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*\])?)/g;
+        var selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*])?)/g;
         // selects complete strings matching the pattern 'aaaa[bbbb]' or 'aaaa'
         // var clauseRE =   /^([\w]+)(?:\[\s*([^\]][^\]]*)\s*\])?$/;
-        var clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*\])?$/;
+        var clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*])?$/;
         var result = {};
         var selectors = iResource.match(selectorRE);
         result.type = '';
@@ -371,6 +372,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       /**
        * Certain properties of the values object may need to be modified; e.g. attribute
        * names will need to conform to the conventions established by the API.
+       * @param iDataContext {DG.DataContext}
        * @param iValues {Object}
        */
       validateValues: function(iDataContext, iValues) {
@@ -865,7 +867,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             requester: this.get('id')
           };
           var changeResult = context.applyChange(change);
-          var success = (changeResult && changeResult.success) || success;
+          var success = (changeResult && changeResult.success);
           return {
             success: success,
           };
@@ -1592,7 +1594,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             return context.getCaseByID(caseID);
           }).filter(function (iCase) {return !!iCase; });
         }
-        var result = context.applyChange({
+        return context.applyChange({
           operation: 'selectCases',
           collection: collection,
           cases: cases,
@@ -1600,7 +1602,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           extend: extend,
           requester: this.get('id')
         });
-        return result;
       },
 
       handleComponent: (function () {
@@ -2142,10 +2143,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (iValues.id && (iValues.id !== logMonitorValues.id)) {
               return true;
             }
-            if (iValues.clientId && (iValues.clientId !== logMonitorValues.clientId)) {
-              return true;
-            }
-            return false;
+            return !!(iValues.clientId
+                && (iValues.clientId !== logMonitorValues.clientId));
+
           }));
 
           return {
