@@ -550,7 +550,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (SC.none(tComponentView)) {
         return;
       }
-      var horizontalScrollActive = this.get('isHorizontalScrollerVisible');
       // DG.log('contentWidthDidChange: tContentWidth,tFrameWidth,horizontalScrollActive: ' + [tContentWidth,tFrameWidth,horizontalScrollActive].join() );
 
       // if frame width was adjusted we expand the rightmost column of rightmost
