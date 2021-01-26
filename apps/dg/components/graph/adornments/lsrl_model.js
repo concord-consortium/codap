@@ -28,9 +28,9 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
     /** @scope DG.TwoDLineModel.prototype */
     {
       /**
-       * @property {Number}
+       * @property {string}
        */
-      categoryIndex: null,
+      categoryName: null,
 
       /**
        * @property {Number}
@@ -44,11 +44,10 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
 
         var tInterceptIsLocked = this.get('isInterceptLocked'),
             tCoordinates = this.getCoordinates(),
-            tAttrStats = this.getPath( 'plotModel.dataConfiguration.legendAttributeDescription.attributeStats'),
-            tCategoryIndex = this.get('categoryIndex'),
+            tCategoryName = this.get('categoryName'),
             tSlopeIntercept;
         tCoordinates = tCoordinates.filter( function( iCoords) {
-          return SC.none( iCoords.legend) || tCategoryIndex === tAttrStats.cellNameToCellNumber( iCoords.legend);
+          return SC.none( iCoords.legend) || tCategoryName === iCoords.legend;
         });
         tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tCoordinates, tInterceptIsLocked);
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||

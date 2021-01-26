@@ -63,10 +63,10 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
   },
 
   destroy: function() {
-    this.beginPropertyChanges();
-    while( this.lsrls.length > 0) {
-      this.removeLSRL();
-    }
+    this.get('lsrls').forEach( function( iLSRL) {
+      iLSRL.destroy();
+    });
+    this.lsrls = [];
     sc_super();
   },
 
@@ -136,27 +136,45 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
   },
 
   synchLSRLs: function() {
-    var tNumCells = this.get('numLegendCells'),
-        tLSRLs = this.get('lsrls'),
-        tCategoryIndex = tLSRLs.length;
-    while( tLSRLs.length < tNumCells) {
-      this.addLSRLModel( tCategoryIndex++);
+    var this_ = this,
+        tLegendAttrDescription = this.getPath('plotModel.dataConfiguration.legendAttributeDescription'),
+        tCellNames = tLegendAttrDescription.getPath('attributeStats.categoricalStats.cellNames') || [],
+        tLSRLs = this.get('lsrls');
+    if( tCellNames.length > 0) {
+      // Remove LSRLs for which there is no longer a cell name
+      tLSRLs.filter(function (iLSRL) {
+        return tCellNames.indexOf(iLSRL.get('categoryName')) < 0;
+      }).forEach(function (eLSRL) {
+        this_.removeLSRL(eLSRL);
+      });
+      // Add an LSRL for which a cell name exists but no corresponding LSRL
+      tCellNames.filter(function (iName) {
+        return tLSRLs.findIndex(function (iLSRL) {
+          return iLSRL.get('categoryName') === iName;
+        }) < 0;
+      }).forEach(function (iName) {
+        this_.addLSRLModel(iName);
+      });
     }
-    while( tLSRLs.length > tNumCells) {
-      this.removeLSRL();
+    else {
+      while( tLSRLs.length > 1) {
+        tLSRLs.pop().destroy();
+      }
+      if( tLSRLs.length === 0)
+        this.addLSRLModel('_main_')
     }
   },
 
   /**
    *
-   * @optional iStorage {Object}
+   * @param iCategoryName {string}
    * @return {DG.LSRLModel}
    */
-  addLSRLModel: function( iCategoryIndex) {
+  addLSRLModel: function( iCategoryName) {
 
     var tLSRLModel = DG.LSRLModel.create( {
                       plotModel: this.get('plotModel'),
-                      categoryIndex: iCategoryIndex,
+                      categoryName: iCategoryName,
                       showSumSquares: this.get('showSumSquares'),
                       enableMeasuresForSelection: this.get('enableMeasuresForSelection')
                     });
@@ -166,11 +184,11 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     return tLSRLModel;
   },
 
-  removeLSRL: function() {
-    var tLsrls = this.get('lsrls');
-    if( tLsrls && tLsrls.length > 0) {
-      tLsrls.pop().destroy();
-    }
+  removeLSRL: function(iLSRL) {
+    var tLsrls = this.get('lsrls'),
+        tIndex = tLsrls.indexOf(iLSRL);
+    tLsrls.splice(tIndex, 1);
+    iLSRL.destroy();
   },
 
   createStorage: function() {

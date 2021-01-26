@@ -32,21 +32,11 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 
   lineColor: function() {
 
-    var getCellNamesArray = function() {
-      var tCellMap = tLegendAttrDescription.getPath('attributeStats.cellMap'),
-          tCellNamesArray = [];
-      DG.ObjectMap.forEach( tCellMap, function( iKey, iValue) {
-        tCellNamesArray.push( iKey);
-      });
-      return tCellNamesArray;
-    }.bind( this);
-
     var tLegendAttrDescription = this.getPath('model.plotModel.dataConfiguration.legendAttributeDescription');
     if(!tLegendAttrDescription || tLegendAttrDescription.isNull() || tLegendAttrDescription.get('isNumeric')) {
       return sc_super();
     }
-    var tNamesArray = getCellNamesArray(),
-        tColor = DG.ColorUtilities.calcCaseColor(tNamesArray[ this.getPath( 'model.categoryIndex')],
+    var tColor = DG.ColorUtilities.calcCaseColor(this.getPath( 'model.categoryName'),
                             tLegendAttrDescription).colorString;
     return tColor;
   }.property(),
