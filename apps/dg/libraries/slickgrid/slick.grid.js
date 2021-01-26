@@ -231,6 +231,7 @@ if (typeof Slick === "undefined") {
 
     var rowsCache = {};
     var rowResizers = {}; // [CC]
+    var activeResizeRow = null;  // [CC]
     var renderedRows = 0;
     var numVisibleRows;
     var prevScrollTop = 0;
@@ -1597,6 +1598,7 @@ if (typeof Slick === "undefined") {
     }
 
     function handleRowResizeDragStart(e, dd) {
+      activeResizeRow = $(dd.target).data("row-index");
       dd.initialRowHeight = options.rowHeight;
       dd.minRowHeight = options.minRowHeight;
       dd.rowHeight = options.rowHeight;
@@ -1616,6 +1618,7 @@ if (typeof Slick === "undefined") {
 
     function handleRowResizeDragEnd(e, dd) {
       trigger(self.onRowResizeDragEnd, dd, e);
+      activeResizeRow = null;
     }
 
     function installRowResizeHandlesForRange(firstRow, lastRow) {
@@ -1633,7 +1636,7 @@ if (typeof Slick === "undefined") {
       var resizerTop = options.rowHeight - offset - resizerHeight / 2 - 0.5;
       var rowResizer = rowResizers[row] // use cached resizer (with updated position) if available
                         ? rowResizers[row].css("top", resizerTop)
-                        : "<div class='slick-row-resizer' style='top:" + resizerTop + "px;height:" + resizerHeight + "px'></div>";
+                        : "<div class='slick-row-resizer' data-row-index='" + row + "' style='top:" + resizerTop + "px;height:" + resizerHeight + "px'></div>";
       $(rowNode).append(rowResizer);
       var $resizer = $(rowNode).children(".slick-row-resizer");
       if ($resizer) {
@@ -1663,6 +1666,8 @@ if (typeof Slick === "undefined") {
      */
 
     function cleanupRows(rangeToKeep) {
+      // [CC] keep rendering all relevant rows if we're actively resizing
+      (activeResizeRow != null) && (rangeToKeep.bottom = Math.max(rangeToKeep.bottom, activeResizeRow));
       for (var i in rowsCache) {
         if (((i = parseInt(i, 10)) !== activeRow) && (i < rangeToKeep.top || i > rangeToKeep.bottom)) {
           removeRowFromCache(i);
@@ -2159,6 +2164,7 @@ if (typeof Slick === "undefined") {
 
       postProcessFromRow = visible.top;
       postProcessToRow = Math.min(options.enableAddRow ? getDataLength() : getDataLength() - 1, visible.bottom);
+      (activeResizeRow != null) && (postProcessToRow = Math.max(postProcessToRow, activeResizeRow));  // [CC]
       startPostProcessing();
 
       installRowResizeHandlesForRange(postProcessFromRow, postProcessToRow);  // [CC]
