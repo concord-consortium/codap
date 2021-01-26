@@ -42,8 +42,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 /** @scope DG.HierTableView.prototype */
 
   var /*kColumnHeaderBackgroundColor = '#E6E6E6',*/
-      kDefaultColumnWidth = 60,
-      kMinTableWidth = kDefaultColumnWidth;
+    kMinTableWidth = 60;
 
   return {
 
@@ -143,6 +142,13 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         this.setPath('model.horizontalScrollOffset', this.get('horizontalScrollOffset'));
       }
     }.observes('horizontalScrollOffset'),
+
+    modelDidScrollHorizontally: function() {
+      var hso = this.getPath('model.horizontalScrollOffset');
+      if (hso != null) {
+        this.setIfChanged('horizontalScrollOffset', hso);
+      }
+    }.observes('model.horizontalScrollOffset'),
 
     /**
      * The content view is where "the action" is in this class. It contains a
@@ -497,6 +503,16 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       return NO;
     },
 
+    /**
+     * @return {boolean}
+     */
+    isHorizontalScrollActive: function () {
+      if (SC.none(this._lastContentWidth)) {
+        this._lastContentWidth = this.getPath('contentView.frame.width');
+      }
+      return this.get('frame').width < this.get('_lastContentWidth');
+    }.property(),
+
     _lastContentWidth: null,
 
     widenColumnsProportionally: function (newComponentWidth, currentComponentWidth) {
@@ -506,7 +522,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         return subtotal + Object.keys(columnWidths).reduce(function (tableSubtotal, key) {
           // if the key is numeric, it is an attribute id
           // we only want to sum the widths of attribute columns
-          var width = isNaN(key)? 0: columnWidths[key];
+          var width = isNaN(Number(key))? 0: columnWidths[key];
           return tableSubtotal + width;
         }, 0);
       }, 0);
@@ -607,6 +623,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       var caseTablesInAdapterOrder = [];
       var childTableView;
       var lastChildTableView = null;
+      var horizontalScrollOffset = this.getPath('model.horizontalScrollOffset');
       var x;
 
       // Remove all the contents of the view. We are going to recreate the order.
@@ -667,7 +684,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       // set the horizontal scroll to that saved in the model. We defer a render
       // cycle to let the slickgrid construction update the DOM
       this.invokeLater(function () {
-        this.set('horizontalScrollOffset', this.getPath('model.horizontalScrollOffset'));
+        if (!SC.none(horizontalScrollOffset)) {
+          this.set('horizontalScrollOffset', horizontalScrollOffset);
+        }
       });
 
     },

@@ -833,5 +833,20 @@ SC.stringsFor("nn", {
     "DG.Redo.DataContext.join": "Redo join of %@ to %@",
     "DG.Collection.joinTip": "Join %@ in %@ to %@ in %@ by matching %@ with %@",
     "DG.Inspector.graphPlotPoints": "Points",
-    "DG.Inspector.graphBarForEachPoint": "Bar for Each Point"
+    "DG.Inspector.graphBarForEachPoint": "Bar for Each Point",
+    "DG.Undo.graph.changeBarChartFunction": "Undo change bar chart formula",
+    "DG.Redo.graph.changeBarChartFunction": "Redo change bar chart formula",
+    "DG.Undo.graph.showAsLinePlot": "Undo bar for each point",
+    "DG.Redo.graph.showAsLinePlot": "Redo bar for each point",
+    "DG.Undo.graph.showAsStandardBarChart": "Undo using count or percent for bar chart scale",
+    "DG.Redo.graph.showAsStandardBarChart": "Redo using count or percent for bar chart scale",
+    "DG.Undo.graph.showAsComputedBarChart": "Undo computing bar length with formula",
+    "DG.Redo.graph.showAsComputedBarChart": "Redo computing bar length with formula",
+    "DG.FormulaAxisView.labelDescription": "The expression that determines the length of the bars. Click to edit.",
+    "DG.ComputedBarChartModel.cellTip": "For group %@ the value is %@",
+    "DG.BarChartFunction.namePrompt": "Bar Chart",
+    "DG.BarChartFunction.formulaPrompt": "bar length =",
+    "DG.BarChartFunction.formulaHint": "Type a formula to compute bar length",
+    "DG.BarChartFunction.emptyExpressionAxisPrompt": "Click here to provide a formula",
+    "DG.Inspector.graphFormula": "Formula"
 });

@@ -16,6 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+// noinspection SpellCheckingInspection
 /** @class
  *
  * The DataInteractivePhoneHandler handles inbound messages for the Data Interactive
@@ -132,7 +133,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return logMonitor.iPhoneHandler !== self;
         }));
 
-        sc_super();
+        return sc_super();
       },
 
 
@@ -171,10 +172,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       parseResourceSelector: function (iResource) {
         // selects phrases like 'aaaa[bbbb]' or 'aaaa' in a larger context
         // var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
-        var selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*\])?)/g;
+        var selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*])?)/g;
         // selects complete strings matching the pattern 'aaaa[bbbb]' or 'aaaa'
         // var clauseRE =   /^([\w]+)(?:\[\s*([^\]][^\]]*)\s*\])?$/;
-        var clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*\])?$/;
+        var clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*])?$/;
         var result = {};
         var selectors = iResource.match(selectorRE);
         result.type = '';
@@ -371,6 +372,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       /**
        * Certain properties of the values object may need to be modified; e.g. attribute
        * names will need to conform to the conventions established by the API.
+       * @param iDataContext {DG.DataContext}
        * @param iValues {Object}
        */
       validateValues: function(iDataContext, iValues) {
@@ -865,7 +867,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             requester: this.get('id')
           };
           var changeResult = context.applyChange(change);
-          var success = (changeResult && changeResult.success) || success;
+          var success = (changeResult && changeResult.success);
           return {
             success: success,
           };
@@ -1592,7 +1594,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             return context.getCaseByID(caseID);
           }).filter(function (iCase) {return !!iCase; });
         }
-        var result = context.applyChange({
+        return context.applyChange({
           operation: 'selectCases',
           collection: collection,
           cases: cases,
@@ -1600,7 +1602,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           extend: extend,
           requester: this.get('id')
         });
-        return result;
       },
 
       handleComponent: (function () {
@@ -1655,7 +1656,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           caseTable: {
             name: directMapping,
             title: directMapping,
-            cannotClose: directMapping
+            cannotClose: directMapping,
+            horizontalScrollOffset: directMapping
           },
           game: {
             currentGameName: function (key, value) {
@@ -1835,7 +1837,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               }
               // tables with data contexts
               if ((tValues.type === 'caseTable') && tableDataContext) {
-                component = DG.appController.showCaseDisplayFor(tableDataContext);
+                // component = DG.appController.showCaseDisplayFor(tableDataContext, props);
+                component = doc.addCaseTable(
+                    DG.mainPage.get('docView'), null,
+                    Object.assign({position: 'top', dataContext: tableDataContext}, props));
+                component.invokeLater(function () { component.showAndSelect(); });
               }
               // sliders with global values
               else if ((tValues.type === 'slider') && tValues.globalValueName) {
@@ -1999,8 +2005,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 case 'graph':
                   rtn.xAttributeName = extractObjectName( componentStorage, 'xAttr');
                   rtn.yAttributeName = extractObjectName( componentStorage, 'yAttr');
-                  rtn.y2AttributeName = extractObjectName( componentStorage, 'y2Attr');//jshint -W086
-                case 'map': // eslint-disable-line no-fallthrough
+                  rtn.y2AttributeName = extractObjectName( componentStorage, 'y2Attr');
+                  // falls through
+                case 'map':
                   rtn.dataContext = extractObjectName(componentStorage, 'context');
                   rtn.legendAttributeName = extractObjectName( componentStorage, 'legendAttr');
                   rtn.center = extractObjectName('center');
@@ -2136,10 +2143,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (iValues.id && (iValues.id !== logMonitorValues.id)) {
               return true;
             }
-            if (iValues.clientId && (iValues.clientId !== logMonitorValues.clientId)) {
-              return true;
-            }
-            return false;
+            return !!(iValues.clientId
+                && (iValues.clientId !== logMonitorValues.clientId));
+
           }));
 
           return {

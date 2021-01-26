@@ -135,7 +135,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      Array of change objects that have been applied to/by this data context.
      Newly-applied changes are appended to the array, so the most recent changes
      are at the end.
-     @property   {Array of Object} Array of change objects
+     @property   {[Object]} Array of change objects
      */
     changes: null,
 
@@ -270,7 +270,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      * @type {boolean}
      */
     hasDataInteractive: function () {
-      return !SC.none(this.owningDataInteractive());
+      return !SC.none(this.get('owningDataInteractive'));
     }.property(),
 
     /**
@@ -320,7 +320,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      * @type {boolean}
      */
     hasGameInteractive: function () {
-      var owningDataInteractive = this.owningDataInteractive();
+      var owningDataInteractive = this.get('owningDataInteractive');
       var activeChannel = owningDataInteractive && owningDataInteractive.activeChannel();
       // Its possible that the owning interactive has not contacted codap, so has not
       // established a channel. We assume this is a Game Interactive.
@@ -364,7 +364,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      Returns an array of DG.Case objects corresponding to the selected cases.
      Optionally returns another array of DG.Case objects for the unselected cases.
      Note that the cases may come from multiple collections within the data context.
-     @returns    {Array of DG.Case}    The currently selected cases
+     @returns    {[DG.Case]}    The currently selected cases
      or
      {
                   selected: {Array of DG.Case}    The currently selected cases,
@@ -439,7 +439,7 @@ DG.DataContext = SC.Object.extend((function () // closure
     /**
      Returns an array of change objects which correspond to the changes that have
      occurred since the last change notification.
-     @property   {Array of Object}
+     @property   {[Object]}
      */
     newChanges: function () {
       var changesLength = this.changes && this.changes.length,
@@ -805,10 +805,9 @@ DG.DataContext = SC.Object.extend((function () // closure
      */
     doUpdateItem: function (iChange) {
       function findCaseForItem(item, collection) {
-        var tCase = collection.get('casesController').find(function (myCase) {
+        return collection.get('casesController').find(function (myCase) {
           return myCase.item.id === item.id;
         });
-        return tCase;
       }
 
       var itemsUpdate = iChange.items;
@@ -1592,6 +1591,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      * The new cases may be cases of any collection in the data set.
      *
      * @param iItems {[Object] || [DG.DataItem] || Object || DG.DataItem}
+     * @param iBeforeItemID {number|string}
      * @return an array of cases created as a consequence of item creation
      */
     addItems: function (iItems, iBeforeItemID) {
@@ -1665,8 +1665,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      */
     updateItem: function (iItemID, iValues) {
       var dataSet = this.getPath('model.dataSet');
-      var item = dataSet.updateItem(iItemID, iValues);
-      return item;
+      return dataSet.updateItem(iItemID, iValues);
     },
 
     /*
@@ -1923,15 +1922,13 @@ DG.DataContext = SC.Object.extend((function () // closure
      {Array of Number}       .attrIDs
      */
     doChangeAttributesVisibility: function (iChange) {
-      var attrNodes = [],
-          result = {success: true, attrIDs: []};
+      var result = {success: true, attrIDs: []};
 
       // Function to hide or show each individual attribute
       function setVisibility(iAttr, iHidden) {
         // Look up the attribute by ID if one is specified
         var attribute = iAttr.attribute;
         if (attribute) {
-          attrNodes.push({type: DG.DEP_TYPE_ATTRIBUTE, id: iAttr.id});
           attribute.set('hidden', iHidden);
           result.attrIDs.push(iAttr.id);
         }
@@ -2115,7 +2112,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      appropriate dependentCases notifications. See notifyInvalidationResult
      for details of the notifications.
      @param  {object[]}  iNodes - array of nodes whose dependents are to be invalidated
-     @param  {object}    iChange - optional change object
+     @param  {object}    [iChange] - optional change object
      {string}    .operation (e.g. 'createCases'|'updateCases'|'deleteCases')
      */
     invalidateDependentsAndNotify: function (iNodes, iChange) {
@@ -2328,33 +2325,33 @@ DG.DataContext = SC.Object.extend((function () // closure
       var columnDelimiter = ',',
           rowDelimiter = '\r\n',
           collection,
-          attribNames,
+          attributes,
           attribIDs,
           rows = [];
 
       if (SC.empty(iWhichCollection)) {
-        return;
+        return '';
       }
 
       if (iWhichCollection === 'DG.CaseTableController.allTables'.loc()) {
         collection = this.getLastCollection();
-        attribIDs = [];
-        attribNames = [];
-        this.getAttributes().forEach(function (attr) {
-          attribIDs.push(attr.get('id'));
-          attribNames.push(attr.get('name'));
-        });
+        attributes = this.getAttributes();
       } else {
         collection = this.getCollectionByName(iWhichCollection);
-        attribNames = collection && collection.getAttributeNames();
-        attribIDs = collection && collection.getAttributeIDs();
+        attributes = collection.attrsController;
       }
+
+      // remove hidden attributes
+      attributes = attributes.filter(function (attr) {
+        return !attr.hidden;
+      });
+      attribIDs = attributes.map(function(attr) {return attr.id; });
 
       // create a tab and newline delimited string of attribute names and case values.
 
       // add a row of attribute names
-      rows.push(attribNames.map(function (name) {
-        return escape(name);
+      rows.push(attributes.map(function (attr) {
+        return escape(attr.name);
       }).join(columnDelimiter));
 
       // add each row of case values
@@ -2786,7 +2783,7 @@ DG.DataContext = SC.Object.extend((function () // closure
     },
 
     /**
-     * @return {DG.Attribute}[]
+     * @return [{DG.Attribute}]
      */
     getHiddenAttributes: function () {
       var tResult = [];
@@ -2800,7 +2797,7 @@ DG.DataContext = SC.Object.extend((function () // closure
     /**
      Sets the values of the specified case from the specified array of values.
      @param    iCase {DG.Case}   The case whose values are to be set
-     @param    iValues{Array of values} The values to use in setting the case values
+     @param    iValues{[string|number|boolean|null]} The values to use in setting the case values
      @param    iCollection {DG.CollectionClient} (optional) -- The collection which owns the case.
      Will be looked up if it isn't provided, but more efficient if the client provides it.
      */
@@ -2975,7 +2972,7 @@ DG.DataContext.getContextFromCollection = function (iCollectionClient) {
  {String}                object.plotYAttr -- default Y attribute on graphs
  */
 DG.DataContext.collectionDefaults = function () {
-  var defaultValues = {
+  return {
     collectionClient: null, //this.get('childCollection'),
     parentCollectionClient: null, //this.get('parentCollection'),
     plotXAttr: null,
@@ -2983,7 +2980,6 @@ DG.DataContext.collectionDefaults = function () {
     plotYAttr: null,
     plotYAttrIsNumeric: true
   };
-  return defaultValues;
 };
 
 /**
@@ -2997,8 +2993,7 @@ DG.DataContext.collectionDefaults = function () {
  */
 DG.DataContext.factory = function (iProperties) {
   var type = iProperties && iProperties.type,
-      func = type && DG.DataContext.registry[type],
-      context = func ? func(iProperties) : DG.DataContext.create(iProperties);
-  return context;
+      func = type && DG.DataContext.registry[type];
+  return func ? func(iProperties) : DG.DataContext.create(iProperties);
 };
 

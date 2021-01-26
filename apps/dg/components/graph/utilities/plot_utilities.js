@@ -514,8 +514,10 @@ DG.PlotUtilities = {
         break;
       case DG.BinnedAxisView:
         tModelClass = DG.BinnedAxisModel;
+        break;
       case DG.FormulaAxisView:
         tModelClass = DG.FormulaAxisModel;
+        break;
     }
     return tModelClass;
   },
