@@ -1429,7 +1429,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     /**
-     Called when a drag is continued in a row resize splitter.
+     Called when a drag is ended in a row resize splitter.
      @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
      @param  {Object}        iDragData -- additional information about the drag
      */
