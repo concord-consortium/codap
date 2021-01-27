@@ -1,5 +1,5 @@
 // ==========================================================================
-//  
+//
 //  Author:   jsandoe
 //
 //  Copyright (c) 2015 by The Concord Consortium, Inc. All rights reserved.
@@ -36,7 +36,14 @@ DG.CaseTableModel = DG.DataContextBaseModel.extend(/** @scope DG.CaseTableModel.
    *
    * @property {Object} a hash of widths (pixels) keyed by caseTable id.
    */
-  preferredTableWidths: null,
+  // preferredTableWidths: null,
+
+  /**
+   * Case table row heights as requested by the user, keyed by collection id.
+   *
+   * @property {Object} a hash of row heights (pixels) keyed by collection id.
+   */
+  tableRowHeights: null,
 
   /**
    * A hash of case ids and their collapsed state and whether they are visible
@@ -53,7 +60,8 @@ DG.CaseTableModel = DG.DataContextBaseModel.extend(/** @scope DG.CaseTableModel.
   init: function () {
     sc_super();
     this.preferredAttributeWidths = this.preferredAttributeWidths || {};
-    this.preferredTableWidths = this.preferredTableWidths || {};
+    // this.preferredTableWidths = this.preferredTableWidths || {};
+    this.tableRowHeights = this.tableRowHeights || {};
     this._collapsedNodes = this._collapsedNodes || {};
   },
 
@@ -63,6 +71,14 @@ DG.CaseTableModel = DG.DataContextBaseModel.extend(/** @scope DG.CaseTableModel.
 
   setPreferredAttributeWidth: function(attrID, width) {
     this.preferredAttributeWidths[attrID] = width;
+  },
+
+  getTableRowHeight: function(collectionId) {
+    return this.tableRowHeights[collectionId];
+  },
+
+  setTableRowHeight: function(collectionId, rowHeight) {
+    this.tableRowHeights[collectionId] = rowHeight;
   },
 
   didDeleteCases: function (iCases) {

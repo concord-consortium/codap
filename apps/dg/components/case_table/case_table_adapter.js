@@ -28,6 +28,8 @@
   @extends SC.Object
  */
 /* global tinycolor */
+var kMultilineRowHeightThreshold = 24;
+
 DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 /** @scope DG.CaseTableAdapter.prototype */ {
 
@@ -185,7 +187,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
   return {  // return from closure
 
-    rowHeight: kDefaultRowHeight,
+    minRowHeight: kDefaultRowHeight,
 
     /**
       The data context for the collections viewed in the table.
@@ -223,6 +225,29 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      * @type {DG.CaseTableModel}
      */
     model: null,
+
+    /**
+     * The row height for the table
+     * @property {number}
+     */
+    rowHeight: function(key, value) {
+      var model = this.get('model'),
+          collectionId = this.getPath('collection.id');
+      if (model && collectionId) {
+        if (value != null) {
+          model.setTableRowHeight(collectionId, value);
+        }
+        return model.getTableRowHeight(collectionId) || kDefaultRowHeight;
+      }
+    }.property(),
+
+    /**
+     * True if the row height supports multiline text formatting, false otherwise
+     * @property {boolean}
+     */
+    isMultilineRowHeight: function() {
+      return this.get('rowHeight') >= kMultilineRowHeightThreshold;
+    }.property(),
 
     /**
       Returns true if there are formulas with aggregate functions in this adapter's collection.
@@ -698,7 +723,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       }.bind(this);
 
       this.gridOptions = {
-                rowHeight: kDefaultRowHeight,
+                rowHeight: this.get('rowHeight'),
                 headerRowHeight: kDefaultRowHeight*2,
                 enableColumnReorder: false,
                 syncColumnCellResize: true,
@@ -952,8 +977,12 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
   this.init = function () {
 
     var kLeftArrowKeyCode = 37,
-        kRightArrowKeyCode = 39;
-    $input = SC.$("<INPUT type=text class='dg-editor-text' />")
+        kRightArrowKeyCode = 39,
+        grid = args.grid,
+        gridOptions = grid.getOptions(),
+        // column = args.column,
+        tag = gridOptions.rowHeight >= kMultilineRowHeightThreshold ? "textarea" : "input";
+    $input = SC.$("<" + tag + " type=text class='dg-editor-text' />")
       .appendTo(args.container)
       .bind("keydown.nav", function (e) {
         if (e.keyCode === kLeftArrowKeyCode || e.keyCode === kRightArrowKeyCode) {

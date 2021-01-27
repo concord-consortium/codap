@@ -232,6 +232,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             horizontalScrollOffset = caseTableModel.get('horizontalScrollOffset'),
             collapsedNodes = caseTableModel.get('collapsedNodes'),
             attributeWidths = [],
+            rowHeights = [],
             storage = {
               isActive: isActive,
               horizontalScrollOffset: horizontalScrollOffset
@@ -250,6 +251,17 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           }
         }.bind(this));
         storage.attributeWidths = attributeWidths;
+
+        DG.ObjectMap.forEach(caseTableModel.get('tableRowHeights'), function (collectionId, rowHeight) {
+          var obj = {};
+          var collection = dataContext.getCollectionByID(collectionId);
+          if (collection) {
+            this.addLink(obj, 'collection', collection);
+            obj.rowHeight = rowHeight;
+            rowHeights.push(obj);
+          }
+        }.bind(this));
+        storage.rowHeights = rowHeights;
 
         collapsedNodes.forEach(function (caseID, key) {
           var tCase = dataContext.getCaseByID(caseID);
@@ -271,6 +283,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
               dataContext = contextID
                   && DG.currDocumentController().getContextByID(contextID),
               attributeWidths = {},
+              rowHeights = {},
               isActive = iStorage.isActive,
               ix = 0;
           if (iStorage.attributeWidths) {
@@ -279,6 +292,13 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
               attributeWidths[id] = obj.width;
             }.bind(this));
             caseTableModel.set('preferredAttributeWidths', attributeWidths);
+          }
+          if (iStorage.rowHeights) {
+            iStorage.rowHeights.forEach(function (obj) {
+              var collectionId = this.getLinkID(obj, 'collection');
+              rowHeights[collectionId] = obj.rowHeight;
+            }.bind(this));
+            caseTableModel.set('tableRowHeights', rowHeights);
           }
           if( dataContext) {
             caseTableModel.set('context', dataContext);
@@ -1268,4 +1288,3 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
     };
   }()) // function closure
 );
-
