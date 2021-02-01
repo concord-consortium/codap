@@ -164,7 +164,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   createAnimatingElement: function(iCase, iIndex, iOldEltAttrs) {
     var tNumericAxisIsHorizontal = this.getPath('primaryAxisView.orientation') === 'horizontal',
         tOldElementIsRect = iOldEltAttrs && iOldEltAttrs.type === 'rect',
-        tOldElementIsNegativeBar = iOldEltAttrs.isNegativeBar,
+        tOldElementIsNegativeBar = iOldEltAttrs && iOldEltAttrs.isNegativeBar,
         tElement = this.callCreateElement(iCase, iIndex, false);
     if( iOldEltAttrs) {
       var tCX = tOldElementIsRect ? iOldEltAttrs.x : iOldEltAttrs.cx,

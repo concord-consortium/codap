@@ -16,7 +16,7 @@
     font-size: 11px !important;
     background-color: white;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     font-family: 'Montserrat', sans-serif;
     table-layout: fixed;
