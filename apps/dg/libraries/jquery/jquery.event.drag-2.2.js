@@ -139,8 +139,9 @@ drag = $special.drag = {
 		// insert new interaction elements
 		if ( results && results.length ){
 			dd.interactions = [];
+			var elem = this;	// [CC] capture `this` outside $.each
 			$.each( results, function(){
-				dd.interactions.push( drag.interaction( this, dd ) );
+				dd.interactions.push( drag.interaction( elem, dd ) );
 			});
 		}
 		// remember how many interactions are propagating

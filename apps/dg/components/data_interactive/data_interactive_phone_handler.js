@@ -765,6 +765,57 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               }
             };
           }
+        },
+        /**
+         *
+         * @param iResources
+         * @param iValues {{
+         *       request:'setAside'|'restoreSetasides',
+         *       caseIDs: [number]
+         *     }}
+         * @return {{success: boolean, values: object}}
+         */
+        notify: function (iResources, iValues) {
+          var context = iResources.dataContext;
+          var request = iValues && iValues.request;
+          var caseIDs = iValues && iValues.caseIDs;
+          var success = true;
+          var error;
+          var changeResult;
+          var cases;
+          if (request === 'setAside') {
+            if (!caseIDs) {
+              success = false;
+              error = 'Bad request';
+            }
+            else {
+              cases = caseIDs.map(function (caseID){
+                var myCase = context.getCaseByID(caseID);
+                if (!myCase) {
+                  DG.log('Attempt to set aside missing case: ' + caseID);
+                }
+                return myCase;
+              }).filter(function (myCase) {return !!myCase;});
+              changeResult = context.applyChange({
+                operation: 'deleteCases',
+                setAside: true,
+                cases: cases,
+                requester: this.get('id')
+              });
+              success = changeResult.success;
+              if (!changeResult.success) {
+                error = 'Request failed';
+              }
+            }
+          }
+          else if (request === 'restoreSetasides') {
+            context.restoreSetAsideCases();
+          }
+          else {
+            success = false;
+            error = 'unknown request: ' + request;
+          }
+          return {success: success, values: {error: error}};
         }
       },
 

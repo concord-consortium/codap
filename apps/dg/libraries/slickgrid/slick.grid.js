@@ -89,6 +89,9 @@ if (typeof Slick === "undefined") {
    *                                      grid.init() method explicitly. Supports situations in
    *                                      which SlickGrid containers may not be in the DOM at creation.
    *      rowHeight:          {Number}    Height of each row in pixels
+   *      minRowHeight:       {Number}    Minimum height of each row (enforced during resizing; default: 18)
+   *      rowResizerHeight:   {Number}    Height of row resizer handle (default: minRowHeight / 2)
+   *      snapToLineHeight:   {Number}    Line height to snap to for row resizing (default: 14, null to disable)
    *      autoHeight:         {Boolean}   (?) Don't need vertical scroll bar
    *      defaultColumnWidth: {Number}    Default column width for columns that don't specify a width
    *      enableColumnReorder:{Boolean}   Can columns be reordered?
@@ -137,6 +140,9 @@ if (typeof Slick === "undefined") {
     var defaults = {
       explicitInitialization: false,
       rowHeight: 25,
+      minRowHeight: 18, // [CC]
+      rowResizerHeight: null, // [CC] if not set, defaults to minRowHeight / 2
+      snapToLineHeight: 14, // [CC]
       defaultColumnWidth: 80,
       enableAddRow: false,
       leaveSpaceForNewRows: false,
@@ -224,6 +230,8 @@ if (typeof Slick === "undefined") {
     var editController;
 
     var rowsCache = {};
+    var rowResizers = {}; // [CC]
+    var activeResizeRow = null;  // [CC]
     var renderedRows = 0;
     var numVisibleRows;
     var prevScrollTop = 0;
@@ -1561,7 +1569,11 @@ if (typeof Slick === "undefined") {
         tooltipAttr = tooltipValue ? " title=\"" + tooltipValue + "\"" : "";
       }
 
-      stringArray.push("<div class='" + cellCss + "'" + tooltipAttr + ">");
+      // [CC] https://css-tricks.com/almanac/properties/l/line-clamp/
+      var lineHeight = 14,  // must show part of a line to clamp the ellipsis on that line
+          style = " style='-webkit-line-clamp:" + Math.ceil((options.rowHeight - 8) / lineHeight) + "'";
+      stringArray.push("<div class='" + cellCss + "'" + tooltipAttr + style + ">");
+      // [/CC]
 
       // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
       if (d) {
@@ -1574,8 +1586,88 @@ if (typeof Slick === "undefined") {
       rowsCache[row].cellColSpans[cell] = colspan;
     }
 
+    /*
+     * [CC] Handle row height resizing via drag handles
+     */
+    function handleRowResizeDragInit(e, dd) {
+      var retval = trigger(self.onRowResizeDragInit, dd, e);
+      if (e.isImmediatePropagationStopped()) {
+        return retval;
+      }
+      return false;
+    }
+
+    function handleRowResizeDragStart(e, dd) {
+      activeResizeRow = $(dd.target).data("row-index");
+      dd.initialRowHeight = options.rowHeight;
+      dd.minRowHeight = options.minRowHeight;
+      dd.rowHeight = options.rowHeight;
+      var retval = trigger(self.onRowResizeDragStart, dd, e);
+      if (e.isImmediatePropagationStopped()) {
+        return retval;
+      }
+      return false;
+    }
+
+    function handleRowResizeDrag(e, dd) {
+      dd.rowHeight = Math.max(dd.minRowHeight, dd.initialRowHeight + dd.deltaY);
+      if (options.snapToLineHeight)
+        dd.rowHeight = options.snapToLineHeight * Math.round((dd.rowHeight - 4) / options.snapToLineHeight) + 4;
+      return trigger(self.onRowResizeDrag, dd, e);
+    }
+
+    function handleRowResizeDragEnd(e, dd) {
+      trigger(self.onRowResizeDragEnd, dd, e);
+      activeResizeRow = null;
+    }
+
+    function installRowResizeHandlesForRange(firstRow, lastRow) {
+      for (var row = firstRow; row <= lastRow; ++row) {
+        var cacheEntry = rowsCache[row];
+        if (cacheEntry && cacheEntry.rowNode && !cacheEntry.hasRowResizeHandle) {
+          cacheEntry.hasRowResizeHandle = installResizeHandleForRow(row, cacheEntry.rowNode);
+        }
+      }
+    }
+
+    function installResizeHandleForRow(row, rowNode) {
+      // resizer straddles the bottom edge of the row
+      var resizerHeight = options.rowResizerHeight || options.minRowHeight / 2;
+      var resizerTop = options.rowHeight - offset - resizerHeight / 2 - 0.5;
+      var rowResizer = rowResizers[row] // use cached resizer (with updated position) if available
+                        ? rowResizers[row].css("top", resizerTop)
+                        : "<div class='slick-row-resizer' data-row-index='" + row + "' style='top:" + resizerTop + "px;height:" + resizerHeight + "px'></div>";
+      $(rowNode).append(rowResizer);
+      var $resizer = $(rowNode).children(".slick-row-resizer");
+      if ($resizer) {
+        $resizer.on("draginit", handleRowResizeDragInit);
+        $resizer.on("dragstart", handleRowResizeDragStart);
+        $resizer.on("drag", handleRowResizeDrag);
+        $resizer.on("dragend", handleRowResizeDragEnd);
+        return true;  // handlers have been installed
+      }
+      return false; // handlers have not been installed
+    }
+
+    function removeResizeHandleForRow(row, rowNode) {
+      var $resizer = $(rowNode).children(".slick-row-resizer");
+      if ($resizer) {
+        $resizer.off("draginit", handleRowResizeDragInit);
+        $resizer.off("dragstart", handleRowResizeDragStart);
+        $resizer.off("drag", handleRowResizeDrag);
+        $resizer.off("dragend", handleRowResizeDragEnd);
+        // detach and cache resize handle so it can be reused
+        // otherwise, drag couldn't continue through rerender
+        rowResizers[row] = $resizer.detach();
+      }
+    }
+    /*
+     * [/CC]
+     */
 
     function cleanupRows(rangeToKeep) {
+      // [CC] keep rendering all relevant rows if we're actively resizing
+      (activeResizeRow != null) && (rangeToKeep.bottom = Math.max(rangeToKeep.bottom, activeResizeRow));
       for (var i in rowsCache) {
         if (((i = parseInt(i, 10)) !== activeRow) && (i < rangeToKeep.top || i > rangeToKeep.bottom)) {
           removeRowFromCache(i);
@@ -1603,6 +1695,11 @@ if (typeof Slick === "undefined") {
       if (!cacheEntry) {
         return;
       }
+      // [CC]
+      if (cacheEntry.rowNode && cacheEntry.hasRowResizeHandle) {
+        removeResizeHandleForRow(row, cacheEntry.rowNode);
+      }
+      // [/CC]
       $canvas[0].removeChild(cacheEntry.rowNode);
       delete rowsCache[row];
       delete postProcessedRows[row];
@@ -1843,7 +1940,8 @@ if (typeof Slick === "undefined") {
       var cacheEntry = rowsCache[row];
       if (cacheEntry) {
         if (cacheEntry.cellRenderQueue.length) {
-          var lastChild = cacheEntry.rowNode.lastChild;
+          // [CC] last child is last cell, ignoring row-resize handles
+          var lastChild = $(cacheEntry.rowNode).children(".slick-cell").last()[0];
           while (cacheEntry.cellRenderQueue.length) {
             var columnIdx = cacheEntry.cellRenderQueue.pop();
             cacheEntry.cellNodesByColumnIdx[columnIdx] = lastChild;
@@ -1988,6 +2086,8 @@ if (typeof Slick === "undefined") {
         rowsCache[i] = {
           "rowNode": null,
 
+          "hasRowResizeHandle": false,  // [CC]
+
           // ColSpans of rendered cells (by column idx).
           // Can also be used for checking whether a cell has been rendered.
           "cellColSpans": [],
@@ -2064,7 +2164,10 @@ if (typeof Slick === "undefined") {
 
       postProcessFromRow = visible.top;
       postProcessToRow = Math.min(options.enableAddRow ? getDataLength() : getDataLength() - 1, visible.bottom);
+      (activeResizeRow != null) && (postProcessToRow = Math.max(postProcessToRow, activeResizeRow));  // [CC]
       startPostProcessing();
+
+      installRowResizeHandlesForRange(postProcessFromRow, postProcessToRow);  // [CC]
 
       lastRenderedScrollTop = scrollTop;
       lastRenderedScrollLeft = scrollLeft;
@@ -3429,9 +3532,14 @@ if (typeof Slick === "undefined") {
       "onCellCssStylesChanged": new Slick.Event(),
 
       // [CC]
-      // Customization to add new event for in progress notifications of
-      // column resizing.
+      // for in progress notifications of column resizing.
       "onColumnResizing": new Slick.Event(),
+      // row resizing
+      "onRowResizeDragInit": new Slick.Event(),
+      "onRowResizeDragStart": new Slick.Event(),
+      "onRowResizeDrag": new Slick.Event(),
+      "onRowResizeDragEnd": new Slick.Event(),
+      // [/CC]
 
       // Methods
       "registerPlugin": registerPlugin,
