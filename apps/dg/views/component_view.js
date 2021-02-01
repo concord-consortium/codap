@@ -215,7 +215,6 @@ DG.ComponentView = SC.View.extend(
               this.setPath('closeBox.isSelected', this.get('isSelected'));
               this.setPath('minimize.isSelected', this.get('isSelected'));
             }.observes('isSelected'),
-            model: null,  // DG.Component. Needed to determine if closebox should show
             childViews: ('statusView versionView titleView ' +
             (!kLockThingsDown ? 'minimize closeBox ' : '') +
             (kShowUndoRedoButtons ? 'undo redo ' : '')).w(),
@@ -370,8 +369,10 @@ DG.ComponentView = SC.View.extend(
                 }) :
                 null,
             mouseEntered: function (evt) {
+              var tComponentView = DG.ComponentView.findComponentViewParent(this),
+                  tCannotClose = tComponentView && tComponentView.getPath('model.cannotClose');
               this.setPath('minimize.isVisible', true);
-              this.setPath('closeBox.isVisible', !this.getPath('model.cannotClose'));
+              this.setPath('closeBox.isVisible', !tCannotClose);
               this.setPath('undo.isVisible', true);
               this.setPath('redo.isVisible', true);
               return YES;
