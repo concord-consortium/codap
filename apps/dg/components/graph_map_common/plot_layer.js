@@ -417,7 +417,9 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
             tDestLayer = tLayerManager.getLayer(DG.LayerNames.kPoints),
             tElement,
             tFromLayer;
-        if (tPlottedElements[iIndex]) {
+        // Note that it's possible that an element has been wiped out through a remove. A test for that
+        //  is to check the node property of the element.
+        if (tPlottedElements[iIndex] && tPlottedElements[iIndex].node) {
           tElement = tPlottedElements[iIndex];
           tFromLayer = tLayerManager.layerForElement( tElement);
         }
@@ -718,7 +720,8 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
             tLayerManager = this.get('layerManager'),
             tCases = this.getPath('model.cases'),
             tUnselectedRadius = this._pointRadius,
-            tIsRect = tPlottedElements[0] && tPlottedElements[0][0].constructor === SVGRectElement,
+            tZeroElement = tPlottedElements[0] && tPlottedElements[0].node,
+            tIsRect = tZeroElement && tZeroElement.constructor === SVGRectElement,
             tSelectedRadius = tUnselectedRadius + DG.PlotUtilities.kPointRadiusSelectionAddend;
 
         if (!tCases || !tSelection)

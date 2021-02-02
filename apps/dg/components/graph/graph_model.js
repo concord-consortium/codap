@@ -1337,7 +1337,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
         // copy adornments that work across plot types
         tAdornmentModels = tCurrentPlot.copyAdornmentModels( tOperativePlot );
       }
-
       tOperativePlot.setIfChanged( 'dataConfiguration', tConfig );
       tOperativePlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
       tOperativePlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
