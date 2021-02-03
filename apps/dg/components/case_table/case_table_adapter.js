@@ -652,7 +652,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         }
       }
 
-      addIndexColumn();
+      if (this.model && !this.model.get('isIndexHidden')) {
+        addIndexColumn();
+      }
 
       // Process the attributes in the collection
       collection.forEachAttribute( processAttribute.bind(this));

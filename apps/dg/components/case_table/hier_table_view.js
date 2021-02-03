@@ -150,6 +150,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }
     }.observes('model.horizontalScrollOffset'),
 
+    isIndexHiddenDidChange: function () {
+      this.updateColumnInfo();
+    }.observes('.model.isIndexHidden'),
+
     /**
      * The content view is where "the action" is in this class. It contains a
      * SplitView that, in turn contains a hierarchical arrangement of case tables.
