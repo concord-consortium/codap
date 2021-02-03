@@ -161,7 +161,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
         tLSRLs.pop().destroy();
       }
       if( tLSRLs.length === 0)
-        this.addLSRLModel('_main_')
+        this.addLSRLModel('_main_');
     }
   },
 

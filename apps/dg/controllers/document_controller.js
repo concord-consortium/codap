@@ -667,8 +667,10 @@ DG.DocumentController = SC.Object.extend(
               // size are determining factors in the computing the scaleBounds
               if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
                 if (iComponent.layout &&
-                    (iComponent.layout.left && iComponent.layout.width &&
-                    iComponent.layout.top && iComponent.layout.height)) {
+                    ((iComponent.layout.left != null) &&
+                        (iComponent.layout.width != null) &&
+                        (iComponent.layout.top != null) &&
+                        (iComponent.layout.height != null))) {
 
                   // Include the inspector size in scaleBounds calculation
                   var tInspectorDimensions = { width: 0, height : 0 };
