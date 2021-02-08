@@ -1573,7 +1573,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             isClosedGroup = dataItem && collection && (dataItem.get(
                 'collection').get('id') !== collection.get('id')),
             isProtoCase = dataItem && dataItem._isProtoCase;
-        if (iCell.cell === 0) {
+        if (iCell.cell === 0 && !hierTableView.getPath('model.isIndexHidden')) {
           if (isProtoCase) this.get('gridAdapter').deselectAllCases();
           if (DG.DataContextUtilities.isCaseEditable(dataContext,
               dataItem) && !isClosedGroup) this.showCaseIndexPopup(iEvent,
