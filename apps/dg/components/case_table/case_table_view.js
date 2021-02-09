@@ -94,7 +94,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           layout: {centerX: 0, height: 22},
           classNames: 'dg-case-table-title'.w(), // layout: { left: 0, right: 0, top: 0, height: 22 },
           isEditable: function () {
-            return !this.getPath('refView.dataContext.hasDataInteractive');
+            var owningDataInteractive = this.getPath('refView.dataContext.owningDataInteractive');
+            var owningInteractivePreventsReorg = owningDataInteractive && owningDataInteractive.get('preventDataContextReorg');
+            return !owningDataInteractive || !owningInteractivePreventsReorg;
           }.property(),
 
           /**
