@@ -1708,7 +1708,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             name: directMapping,
             title: directMapping,
             cannotClose: directMapping,
-            horizontalScrollOffset: directMapping
+            horizontalScrollOffset: directMapping,
+            isIndexHidden: directMapping
           },
           game: {
             currentGameName: function (key, value) {

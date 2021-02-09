@@ -150,6 +150,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }
     }.observes('model.horizontalScrollOffset'),
 
+    isIndexHiddenDidChange: function () {
+      this.updateColumnInfo();
+    }.observes('.model.isIndexHidden'),
+
     /**
      * The content view is where "the action" is in this class. It contains a
      * SplitView that, in turn contains a hierarchical arrangement of case tables.
@@ -546,13 +550,14 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       var tContentWidth = this.getPath('contentView.frame.width');
       var tFrameWidth = this.get('frame').width;
       var tPageWidth = window.innerWidth;
+      var tMaxFrameWidth = Math.max(tPageWidth, tFrameWidth);
       var tComponentView = DG.ComponentView.findComponentViewParent(this);
       if (SC.none(tComponentView)) {
         return;
       }
       // DG.log('contentWidthDidChange: tContentWidth,tFrameWidth,horizontalScrollActive: ' + [tContentWidth,tFrameWidth,horizontalScrollActive].join() );
 
-      // if frame width was adjusted we expand the rightmost column of rightmost
+      // if frame width was adjusted to be larger than the content, we expand the rightmost column of rightmost
       // collection
       if ((tContentWidth > 0)
           && (tFrameWidth != null && tFrameWidth > 0)
@@ -562,13 +567,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         tContentWidth = this.getPath('contentView.frame.width');
       }
 
-      // frame width should be no wider than the page
-      if (tContentWidth > tPageWidth) {
-        tComponentView.adjust('width', tPageWidth);
-      }
-      // if we are not scrolling then growth in content should expand frame
-      else if (tFrameWidth === this._lastContentWidth && changeAgent === "content") {
-        tComponentView.adjust('width', tContentWidth);
+      // if we are not scrolling then growth in content should expand frame,
+      // but it should not expand it more than the width of the page
+      if (tFrameWidth === this._lastContentWidth && changeAgent === "content") {
+        tComponentView.adjust('width', Math.min(tContentWidth, tMaxFrameWidth));
       }
       // the content width should never be less than the component width
       else if (tContentWidth < tFrameWidth) {
