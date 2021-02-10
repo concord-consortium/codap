@@ -552,7 +552,12 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       var tPageWidth = window.innerWidth;
       var tMaxFrameWidth = Math.max(tPageWidth, tFrameWidth);
       var tComponentView = DG.ComponentView.findComponentViewParent(this);
-      if (SC.none(tComponentView)) {
+      // If we have no component view parent we are not a part of the document, yet.
+      // If we have no content width, then slickgrid has not rendered contents, yet.
+      // If we have no frame width then the component may be beginning an animation
+      // into existence.
+      // If any of these, exit.
+      if (SC.none(tComponentView) || !tContentWidth || !tFrameWidth) {
         return;
       }
       // DG.log('contentWidthDidChange: tContentWidth,tFrameWidth,horizontalScrollActive: ' + [tContentWidth,tFrameWidth,horizontalScrollActive].join() );
@@ -560,7 +565,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       // if frame width was adjusted to be larger than the content, we expand the rightmost column of rightmost
       // collection
       if ((tContentWidth > 0)
-          && (tFrameWidth != null && tFrameWidth > 0)
+          && (tFrameWidth > 0)
           && Number(tFrameWidth) !== Number(tContentWidth)
           && changeAgent === 'frame') {
         this.expandRightmostColumn(tFrameWidth, tContentWidth);
