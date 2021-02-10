@@ -117,9 +117,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             }
           }.property(),
 
-          valueDidChange: function () {
+          valueDidChange: function (l) {
             this.notifyPropertyChange('value');
+            this.set('toolTip', this.get('value'));
           }.observes('*refView.collectionName', '*refView.caseCount'),
+
+          toolTip: '',
 
           /**
            * We are displaying the collection name and count. We only want to
