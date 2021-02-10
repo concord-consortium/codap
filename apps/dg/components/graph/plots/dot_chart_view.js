@@ -324,7 +324,7 @@ DG.DotChartView = DG.ChartView.extend(
           iElement.y -= tFrame.y;
         });
         if (tElementsWereRects) {
-          this.removePlottedElements();
+          this.removePlottedElements(true);
         }
 
         var eachCaseFunc = function (iCase, iIndex) {

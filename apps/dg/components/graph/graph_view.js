@@ -1008,7 +1008,7 @@ DG.GraphView = SC.View.extend(
             tInitLayout = true; // new view requires a new layout
           }
         }
-
+        this.beginPropertyChanges();
         handleOneAxis('model.xAxis', 'xAxisView');
         handleOneAxis('model.yAxis', 'yAxisView');
         handleOneAxis('model.y2Axis', 'y2AxisView');
@@ -1017,6 +1017,7 @@ DG.GraphView = SC.View.extend(
         this.setPath('yAxisMultiTarget.attributeDescription', this.getPath('model.yAxis.attributeDescription'));
         this.setPath('yAxisMultiTarget.otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
         this.renderLayout(this.renderContext(this.get('tagName')), tInitLayout);
+        this.endPropertyChanges();
       }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
 
       handleLegendModelChange: function () {
