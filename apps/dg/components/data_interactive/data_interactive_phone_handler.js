@@ -1636,6 +1636,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var context = iResources.dataContext;
         var collection = iResources.collection;
         var cases;
+        extend = extend && iValues.length !== 0;  // No cases indicates we're not extending selection but deselecting all
         if (collection) {
           cases = iValues.map(function (caseID) {
             return collection.getCaseByID(caseID);
