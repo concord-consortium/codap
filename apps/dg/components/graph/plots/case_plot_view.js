@@ -225,7 +225,8 @@ DG.CasePlotView = DG.PlotView.extend(
             };
           }
 
-          var tXPixelMin = this.getPath('xAxisView.pixelMin'),
+          var tRC = this.createRenderContext(),
+              tXPixelMin = this.getPath('xAxisView.pixelMin'),
               tXPixelMax = this.getPath('xAxisView.pixelMax'),
               tYPixelMax = this.getPath('yAxisView.pixelMin'),
               tYPixelMin = this.getPath('yAxisView.pixelMax'),
@@ -288,9 +289,15 @@ DG.CasePlotView = DG.PlotView.extend(
             tPlottedElements.forEach(function (iCircle, iIndex) {
               var tCoords = tModel.getWorldCoords(iIndex);
               iCircle.attr({
+                fill: tColor,
+                'fill-opacity': tRC.transparency,
+                'opacity': tRC.transparency
+              });
+              iCircle.show();
+              iCircle.animate({
                 cx: dataToCoordinate(tCoords.x, tXPixelMin, tXPixelMax, kMargin),
                 cy: dataToCoordinate(tCoords.y, tYPixelMin, tYPixelMax, kMargin)
-              });
+              }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
             });
           }
         },
