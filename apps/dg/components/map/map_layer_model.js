@@ -248,6 +248,14 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
       },
 
       restoreStorage: function( iStorage) {
+        // This is our chance to restore the proper data context. We can't do it at a higher level because
+        // each of our layers can have a different one
+        var tContextID = DG.ArchiveUtils.getLinkID( iStorage, 'context');
+        if( !SC.none( tContextID)) {
+          var tDataContext = DG.currDocumentController().getContextByID(tContextID);
+          this.set('dataContext', tDataContext);
+        }
+
         sc_super();
         var tLegendAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'legendColl', 'legendAttr'),
             tDataConfig = this.get('dataConfiguration');
