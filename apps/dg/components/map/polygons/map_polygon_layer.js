@@ -240,11 +240,15 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
     tCases.forEach( function( iCase) {
       var tFeature = this.features.find( function (iFeature) {
               return iFeature && iFeature.options['case'] === iCase;
-            });
+            }),
+          tIsSelected = tSelection.containsObject( iCase),
+          tFillColor = tHasLegend ? tRC.calcCaseColorString( iCase) :
+              (tIsSelected ? DG.PlotUtilities.kMapAreaNoLegendSelectedColor : DG.PlotUtilities.kMapAreaNoLegendColor);
       if (!tFeature)
         return;
-      if( tSelection.containsObject( iCase)) {
+      if( tIsSelected) {
         tFeature.setStyle( {
+          fillColor: tFillColor,
           color: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendSelectedBorderColor :
               DG.PlotUtilities.kMapAreaNoLegendSelectedBorderColor,
           fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendSelectedOpacity :
@@ -253,7 +257,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
         });
         if( !tHasLegend) {
           tFeature.setStyle( {
-            fillColor: DG.PlotUtilities.kMapAreaNoLegendSelectedColor
+            fillColor: tFillColor
           });
         }
       }
@@ -264,7 +268,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
           fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedOpacity :
               tRC.areaTransparency,
           weight: DG.PlotUtilities.kMapAreaUnselectedBorderWeight,
-          fillColor: tRC.calcCaseColorString( iCase)
+          fillColor: tFillColor
         });
         tFeature.bringToBack();
       }
