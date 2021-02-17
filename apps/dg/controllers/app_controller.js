@@ -544,7 +544,7 @@ DG.appController = SC.Object.create((function () // closure
       return true;
     },
 
-    importWebView: function(iDataURI, iName) {
+    importImage: function(iDataURI, iName) {
       function determineImageSize(imgSrc, callback) {
         var newImg = new Image();
 
@@ -560,9 +560,9 @@ DG.appController = SC.Object.create((function () // closure
       var documentController = DG.currDocumentController();
       determineImageSize(iDataURI, function (iWidth, iHeight) {
         SC.run(function () {
-          documentController.addWebView(  DG.mainPage.get('docView'), null,
-              iDataURI, iName, {width: Math.min(iWidth, 640),
-                height: Math.min(iHeight + 25, 480) });
+          documentController.addImageView(  DG.mainPage.get('docView'), null,
+              iDataURI, iName, {width: Math.min(iWidth, 480),
+                height: Math.min(iHeight + 25, 385) });
         });
       });
     },
@@ -619,7 +619,7 @@ DG.appController = SC.Object.create((function () // closure
             DG.cfmClient.openUrlFile(iURL);
             break;
           case 'IMAGE':
-            this.importWebView(iURL);
+            this.importImage(iURL, iName);
             break;
           default:
             addInteractive();
@@ -877,7 +877,7 @@ DG.appController = SC.Object.create((function () // closure
                     iFile.name.replace(/\.[^.]*$/, ''), iFile.name);
               }
               else if (iType === 'IMAGE') {
-                that.importWebView(this.result, iFile.name);
+                that.importImage(this.result, iFile.name);
               }
               if (iDialog)
                 iDialog.close();

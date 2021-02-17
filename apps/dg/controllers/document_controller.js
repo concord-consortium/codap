@@ -588,6 +588,9 @@ DG.DocumentController = SC.Object.extend(
             case 'DG.WebView':
               tView = this.addWebView(docView, iComponent, null, null, null, isInitialization);
               break;
+            case 'DG.ImageComponentView':
+              tView = this.addImageView(docView, iComponent, null, null, null, isInitialization);
+              break;
             case 'DG.GuideView':
               tView = this.addGuideView(docView, iComponent, isInitialization);
               break;
@@ -1369,9 +1372,10 @@ DG.DocumentController = SC.Object.extend(
           if (!/^https?:\/\//i.test(tURL)) {
             tURL = 'http://' + tURL;
           }
-          this_.addWebView(DG.mainPage.get('docView'), null,
-              tURL, 'Web Page',
-              {width: 600, height: 400});
+          // this_.addWebView(DG.mainPage.get('docView'), null,
+          //     tURL, 'Web Page',
+          //     {width: 600, height: 400});
+          DG.appController.importURL(tURL, null, tURL);
         }
 
         tDialog = DG.CreateSingleTextDialog({
@@ -1406,6 +1410,46 @@ DG.DocumentController = SC.Object.extend(
                   parentView: iParentView,
                   controller: DG.WebViewController.create({model: this.model}),
                   componentClass: {type: 'DG.WebView', constructor: DG.WebView},
+                  contentProperties: {value: iURL, backgroundColor: 'white', model: this.model},
+                  defaultLayout: iLayout,
+                  position: iComponent && iComponent.position,
+                  title: iTitle,
+                  useLayout: !SC.none(iComponent) || !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
+                }
+            );
+            this._component = tView.getPath('controller.model');
+          },
+          undo: function () {
+            var view = DG.currDocumentController().componentControllersMap[this._component.get('id')].get('view');
+            view.parentView.removeComponentView(view);
+          }
+        }));
+        return tView;
+      },
+
+      addImageView: function (iParentView, iComponent, iURL, iTitle, iLayout, isInitialization) {
+        iURL = iURL || '';
+        iTitle = iTitle || '';
+        iLayout = iLayout || {width: 600, height: 400};
+        var tView;
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'webView.show',
+          undoString: 'DG.Undo.webView.show',
+          redoString: 'DG.Redo.webView.show',
+          log: 'Show webView: {title: "%@", url: "%@"}'.fmt(iTitle, iURL),
+          isUndoable: !isInitialization,
+          _component: null,
+          model: SC.Object.create({
+            defaultTitle: iTitle,
+            URL: iURL
+          }),
+          executeNotification: DG.UndoHistory.makeComponentNotification('create', 'webView'),
+          undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'webView'),
+          execute: function () {
+            tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
+                  parentView: iParentView,
+                  controller: DG.ImageComponentController.create({model: this.model}),
+                  componentClass: {type: 'DG.ImageComponentView', constructor: DG.ImageComponentView},
                   contentProperties: {value: iURL, backgroundColor: 'white', model: this.model},
                   defaultLayout: iLayout,
                   position: iComponent && iComponent.position,
