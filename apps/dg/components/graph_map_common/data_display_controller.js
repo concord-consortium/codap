@@ -834,10 +834,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 return;
               }
               if (tCollectionClient) {
-                // change attribute
+                // change attribute. Note: Can't use index because of possible hidden attributes.
+                var tAttr = tCollectionClient.attrsController.get('content').find(function(iObject) {
+                  return iObject.name === tNewItem.title;
+                });
                 tAttrRefs = {
                   collection: tCollectionClient,
-                  attributes: [tCollectionClient.attrsController.objectAt(tNewItem.contentIndex)]
+                  attributes: [tAttr]
                 };
                 if (tIsLegend) {
                   tNewItem.log = "legendAttributeChange: { to attribute %@ }".fmt(tAttrRefs.attributes[0].get('name'));
