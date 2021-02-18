@@ -551,6 +551,10 @@ DG.DocumentHelper = SC.Object.extend(
                   tComponentView.adjust({left: 0, top: 0, width: 10, height: 10});
                   tComponentView.set('isVisible', true);
                 }
+                tComponentView.adjust({zIndex: iCompStorage.layout.zIndex,
+                    isVisible: iCompStorage.layout.isVisible });
+                delete iCompStorage.layout.zIndex;
+                delete iCompStorage.layout.isVisible;
                 tComponentView.animate(iCompStorage.layout, {duration: 0.4, timing: 'ease-in-out'});
               }
               else {
@@ -619,7 +623,9 @@ DG.DocumentHelper = SC.Object.extend(
 
         reinstateSelection();
 
-        DG.UndoHistory.clearUndoRedoHistory();
+        setTimeout( function() {
+          DG.UndoHistory.clearUndoRedoHistory();
+        }, 200);
 
         return tResult;
       }

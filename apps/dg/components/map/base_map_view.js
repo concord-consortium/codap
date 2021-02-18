@@ -173,7 +173,7 @@ DG.BaseMapView = SC.View.extend(
         this._idleTimeout = setTimeout(function () {
           this._idleTimeout = null;
           this.incrementProperty('idleCount');
-        }.bind(this), 500);
+        }.bind(this), 100);
       },
 
       backgroundChanged: function () {
