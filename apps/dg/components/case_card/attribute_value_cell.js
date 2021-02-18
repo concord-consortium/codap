@@ -104,7 +104,7 @@ DG.React.ready(function () {
       tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
       tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
       tValueClassName += ' react-data-card-numeric ';
-    } else if (tType === 'date') {
+    } else if (tType === 'date' && !props.summaryCases) {
       tValueClassName += ' react-data-card-date ';
     } else if (SC.none(tValue) || (typeof tValue === 'object')) {
       tValue = '';
