@@ -43,7 +43,7 @@ DG.ImageComponentController = DG.ComponentController.extend(
     this.notifyPropertyChange('theURL');
   }.observes('model.content.URL'),
 
-  title: 'DG.WebView.defaultTitle'.loc(),
+  title: 'DG.ImageComponent.defaultTitle'.loc(),
 
   /**
    *
@@ -108,12 +108,12 @@ DG.ImageComponentController = DG.ComponentController.extend(
    */
   viewDidChange: function() {
     // Bind the contents of the webView to our 'theURL' property.
-    var tWebView = this.getPath('view.containerView.contentView');
-    if( tWebView) {
+    var tView = this.getPath('view.containerView.contentView');
+    if( tView) {
       if( SC.empty( this.theURL)) // then it's safe to stuff it with the web view's URL
-        this.set('theURL', tWebView.get('value'));
-      tWebView.bind('value', this, 'theURL');
-      tWebView.set('controller', this);
+        this.set('theURL', tView.get('value'));
+      tView.bind('value', this, 'theURL');
+      tView.set('controller', this);
     }
   }.observes('view.containerView.contentView')
 

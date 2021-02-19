@@ -544,7 +544,7 @@ DG.appController = SC.Object.create((function () // closure
       return true;
     },
 
-    importImage: function(iDataURI, iName) {
+    importImage: function(iURL, iName) {
       function determineImageSize(imgSrc, callback) {
         var newImg = new Image();
 
@@ -558,10 +558,11 @@ DG.appController = SC.Object.create((function () // closure
         newImg.src = imgSrc; // this must be done AFTER setting onload
       }
       var documentController = DG.currDocumentController();
-      determineImageSize(iDataURI, function (iWidth, iHeight) {
+      var tName = iName? iName.slice(0,30): '';
+      determineImageSize(iURL, function (iWidth, iHeight) {
         SC.run(function () {
           documentController.addImageView(  DG.mainPage.get('docView'), null,
-              iDataURI, iName, {width: Math.min(iWidth, 480),
+              iURL, tName, {width: Math.min(iWidth, 480),
                 height: Math.min(iHeight + 25, 385) });
         });
       });

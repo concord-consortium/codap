@@ -1372,9 +1372,6 @@ DG.DocumentController = SC.Object.extend(
           if (!/^https?:\/\//i.test(tURL)) {
             tURL = 'http://' + tURL;
           }
-          // this_.addWebView(DG.mainPage.get('docView'), null,
-          //     tURL, 'Web Page',
-          //     {width: 600, height: 400});
           DG.appController.importURL(tURL, null, tURL);
         }
 
@@ -1429,22 +1426,22 @@ DG.DocumentController = SC.Object.extend(
 
       addImageView: function (iParentView, iComponent, iURL, iTitle, iLayout, isInitialization) {
         iURL = iURL || '';
-        iTitle = iTitle || '';
+        iTitle = iTitle || iURL || '';
         iLayout = iLayout || {width: 600, height: 400};
         var tView;
         DG.UndoHistory.execute(DG.Command.create({
           name: 'webView.show',
-          undoString: 'DG.Undo.webView.show',
-          redoString: 'DG.Redo.webView.show',
+          undoString: 'DG.Undo.imageComponent.show',
+          redoString: 'DG.Redo.imageComponent.show',
           log: 'Show webView: {title: "%@", url: "%@"}'.fmt(iTitle, iURL),
           isUndoable: !isInitialization,
           _component: null,
           model: SC.Object.create({
-            defaultTitle: iTitle,
+            defaultTitle: iTitle || 'DG.ImageComponent.defaultTitle'.loc(),
             URL: iURL
           }),
-          executeNotification: DG.UndoHistory.makeComponentNotification('create', 'webView'),
-          undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'webView'),
+          executeNotification: DG.UndoHistory.makeComponentNotification('create', 'imageComponent'),
+          undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'imageComponent'),
           execute: function () {
             tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
                   parentView: iParentView,
@@ -1454,7 +1451,7 @@ DG.DocumentController = SC.Object.extend(
                   defaultLayout: iLayout,
                   position: iComponent && iComponent.position,
                   title: iTitle,
-                  useLayout: !SC.none(iComponent) || !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
+                  useLayout: true
                 }
             );
             this._component = tView.getPath('controller.model');
