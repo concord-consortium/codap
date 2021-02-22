@@ -436,13 +436,15 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.rescaleAxesFromData( true /* allow scale shrinkage */,
                                 true /* animate points */ );
 
-      this.addObserver('dataConfiguration.hiddenCasesWillChange', this.hiddenCasesWillChange);
-      this.addObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
+      this.addObserver('dataConfiguration.hiddenCasesWillChange', this.displayedCasesWillChange);
+      this.addObserver('dataConfiguration.hiddenCases', this.displayedCasesDidChange);
+      this.addObserver('dataConfiguration.displayOnlySelected', this.displayedCasesDidChange);
     },
 
     destroy: function() {
-      this.removeObserver('dataConfiguration.hiddenCasesWillChange', this.hiddenCasesWillChange);
-      this.removeObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
+      this.removeObserver('dataConfiguration.hiddenCasesWillChange', this.displayedCasesWillChange);
+      this.removeObserver('dataConfiguration.hiddenCases', this.displayedCasesDidChange);
+      this.removeObserver('dataConfiguration.displayOnlySelected', this.displayedCasesDidChange);
       this.axisCoordinator.destroy();
 
       sc_super();
@@ -1454,13 +1456,13 @@ DG.GraphModel = DG.DataLayerModel.extend(
       }
     },
 
-    hiddenCasesWillChange: function() {
+    displayedCasesWillChange: function() {
       if (!this._isBeingRestored && this.get('isSplit')) {
         this.removeAllSplitPlotsAndAxes();
       }
     },
 
-    hiddenCasesDidChange: function() {
+    displayedCasesDidChange: function() {
       if( !this._isBeingRestored) {
         this.invalidate();
         this.rescaleAxesFromData( false, /* no shrinkage allowed */ true /* animate */);
@@ -1710,6 +1712,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         this.removePlotObserver( tPlot);
         tPlot.destroy();
       }
+      tDataConfig.set('displayOnlySelected', iStorage.displayOnlySelected);
 
       ['isTransparent', 'plotBackgroundColor', 'plotBackgroundOpacity', 'plotBackgroundImage',
       'plotBackgroundImageLockInfo', 'enableMeasuresForSelection'].forEach( function( iKey) {
@@ -1838,6 +1841,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
           this.dataRangeDidChange( this, 'revision', this, iChange.indices);
           break;
         case 'selectCases':
+          if( this.getPath('dataConfiguration.displayOnlySelected')) {
+            this.dataDidChange(null, null, iChange);
+          }
           if( this.get('enableMeasuresForSelection')) {
             this.get('allPlots').forEach( function( iPlot) {
               iPlot.updateAdornmentModels();

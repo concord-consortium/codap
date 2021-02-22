@@ -386,6 +386,8 @@ SC.stringsFor("en", {
     "DG.Redo.interactiveUndoableAction": "Redo an action in the interactive",
     "DG.Undo.showAllCases": "Undo showing all cases",
     "DG.Redo.showAllCases": "Redo showing all cases",
+    "DG.Undo.displayOnlySelected": "Undo displaying only selected cases",
+    "DG.Redo.displayOnlySelected": "Redo displaying only selected cases",
     "DG.Undo.map.create": "Undo adding map",
     "DG.Redo.map.create": "Redo adding map",
     "DG.Undo.map.fitBounds": "Undo resizing map",
@@ -795,6 +797,8 @@ SC.stringsFor("en", {
     "DG.DataDisplayMenu.enableMeasuresForSelection": "Show Measures for Selection",
     "DG.DataDisplayMenu.disableMeasuresForSelection": "Hide Measures for Selection",
     "DG.DataDisplayMenu.showAll": "Show All Cases",
+    "DG.DataDisplayMenu.displayOnlySelected": "Display Only Selected Cases",
+    "DG.DataDisplayMenu.displayingOnlySelected": "Displaying Only Selected Cases",
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
     "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
@@ -803,6 +807,14 @@ SC.stringsFor("en", {
     "DG.DataDisplayMenu.lockImageToAxes": "Lock Background Image to Axes",
     "DG.DataDisplayMenu.unlockImageFromAxes": "Unlock Background Image from Axes",
     "DG.DataDisplayMenu.removeBackgroundImage": "Remove Background Image",
+
+    // DG.PlotBackgroundView
+    "DG.PlotBackgroundView.msg0": "This graph is set to display",
+    "DG.PlotBackgroundView.msg1": "only selected cases.",
+    "DG.PlotBackgroundView.msg2": "No cases are selected",
+    "DG.PlotBackgroundView.msg3": "so nothing is being displayed.",
+    "DG.PlotBackgroundView.msg4": "You can select cases in a",
+    "DG.PlotBackgroundView.msg5": "case table or another graph.",
 
     // DG.GraphView
     "DG.GraphView.replaceAttribute": "Replace %@ with %@",

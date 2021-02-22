@@ -525,10 +525,10 @@ DG.GraphView = SC.View.extend(
         if (this._isConfigurationInProgress)
           return; // Not a good time to draw
         var tNumPlots = this.get('plotViews').length;
-        this.forEachPlotViewDo(function (iPlotView, iRow, iCol, iIndex) {
-          if (iPlotView.readyToDraw())
-            iPlotView.doDraw(iIndex, tNumPlots, iChangedProperty);
-        });
+          this.forEachPlotViewDo(function (iPlotView, iRow, iCol, iIndex) {
+            if (iPlotView.readyToDraw())
+              iPlotView.doDraw(iIndex, tNumPlots, iChangedProperty);
+          });
       },
 
       pointsDidChange: function (iModel, iProperty) {
@@ -558,6 +558,20 @@ DG.GraphView = SC.View.extend(
         // Note: Asterisks below are necessary in case axis view gets swapped out
       }.observes('*xAxisView.categoriesDragged', '*yAxisView.categoriesDragged',
           '*topAxisView.categoriesDragged', '*rightAxisView.categoriesDragged'),
+
+      selectionOrDisplayOnlySelectedDidChange: function() {
+        var tMsgs = [];
+        if(this.getPath('model.dataConfiguration.displayOnlySelected') &&
+            this.getPath('model.dataConfiguration.selection').length === 0) {
+          tMsgs = [0, 1,2,3,4,5].map( function(i) {
+            return ('DG.PlotBackgroundView.msg' + i).loc();
+          });
+        }
+        this.get('plotBackgroundViewArray').forEach(function( iBackgroundViewSubArray) {
+          iBackgroundViewSubArray[0].setIfChanged('messages', tMsgs);
+        });
+      }.observes('model.dataConfiguration.displayOnlySelected',
+          'model.dataConfiguration.selection'),
 
       prepareToSelectPoints: function () {
         this.forEachPlotViewDo(function (iPlotView) {

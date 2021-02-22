@@ -594,7 +594,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
        */
       cases: function () {
         if (SC.none(this._casesCache)) {
-          var tCases = this.get('allCases'),
+          var tCases = this.get('displayOnlySelected') ? this.get('selection') : this.get('allCases'),
               tHidden = this.get('hiddenCases'),
               tNotHidden,
               tResult = [],
@@ -699,6 +699,16 @@ DG.PlotDataConfiguration = SC.Object.extend(
       getCaseCount: function () {
         return this.getPath('cases.length');
       },
+
+      _displayOnlySelected: false,
+      displayOnlySelected: function(iKey, iValue) {
+        if( !SC.none(iValue)) {
+          this.invalidateCaches();
+          this.notifyPropertyChange('hiddenCasesWillChange');
+          this._displayOnlySelected = iValue;
+        }
+        return this._displayOnlySelected;
+      }.property(),
 
       /**
        * Remove the hidden cases from my collection client's selection
@@ -822,10 +832,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
         this.invalidateAttributeDescriptionCaches(tCases, iChange);
       },
 
-      hiddenCasesDidChange: function () {
+      whatIsBeingDisplayedDidChange: function () {
         this._casesCache = null;
         this.invalidateAttributeDescriptionCaches();
-      }.observes('hiddenCases'),
+      }.observes('hiddenCases', 'displayOnlySelected'),
 
       /**
        * Something has happened such that cases have been deleted. Some cases in our hiddenCases array

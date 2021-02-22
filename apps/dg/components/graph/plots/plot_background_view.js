@@ -39,7 +39,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           'yAxisView.model.lowerBound', 'yAxisView.model.upperBound', 'yAxisView.model.drawZeroLine',
           'xAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
           'yAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
-          'graphModel.plotBackgroundColor', 'graphModel.plotBackgroundOpacity'],
+          'graphModel.plotBackgroundColor', 'graphModel.plotBackgroundOpacity',
+          'messages'
+        ],
 
         classNames: 'dg-plot-view'.w(),
         classNameBindings: ['graphModel.isTransparent:dg-plot-view-transparent'],
@@ -87,6 +89,11 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          */
         darkenBackground: false,
 
+        /**
+         * @property {string[]}
+         */
+        messages: null,
+
         colorDidChange: function () {
           var tStoredColor = this.getPath('graphModel.plotBackgroundColor') || 'white',
               tStoredOpacity = this.getPath('graphModel.plotBackgroundOpacity'),
@@ -125,6 +132,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           sc_super();
           this.set('backgroundColor', 'white');
           this.colorDidChange();
+          this.messages = [];
         },
 
         /**
@@ -428,6 +436,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
           drawCellBands();
 
+          this.displayMessages();
+
           if (SC.none(this._backgroundForClick)) {
             this._backgroundForClick = this.getPath('layerManager.' + DG.LayerNames.kClick).push(
                 this._paper.rect(0, 0, 0, 0)
@@ -466,6 +476,32 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tHintString = (tIsNotEmpty ? 'DG.GraphView.dropInPlot' : 'DG.GraphView.addToEmptyX')
                   .loc(iDrag.data.attribute.get('name'));
           this.set('dropHintString', tHintString);
+        },
+
+        /**
+         * Display the given strings centered
+         * @param iMessages {string[]}
+         */
+        displayMessages: function() {
+          var tMessages = this.get('messages'),
+              tNumStrings = tMessages.length,
+              tPaper = this.get('paper');
+          if( !tPaper)
+            return;
+          var tLayer = this.getPath('layerManager.' + DG.LayerNames.kDataTip);
+          tLayer.clear();
+          if( tNumStrings > 0) {
+            var tMsg = tPaper.text(0, 0, tMessages[0]);
+            tMsg.attr('font-size', 12);
+            var tTextHeight = DG.RenderingUtilities.getExtentForTextElement(tMsg).height,
+                tY = (tPaper.height - tNumStrings * tTextHeight) / 2;
+            tMsg.remove();
+            tMessages.forEach(function (iMsg, iIndex) {
+              var tText = tPaper.text(tPaper.width / 2, tY + iIndex * tTextHeight, iMsg);
+              tText.attr('font-size', 12);
+              tLayer.push(tText);
+            });
+          }
         }
 
       }; // object returned closure

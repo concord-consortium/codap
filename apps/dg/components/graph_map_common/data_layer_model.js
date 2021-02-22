@@ -378,6 +378,7 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
         }
       }
       this.get('dataConfiguration').restoreHiddenCases( iStorage.hiddenCases);
+      this.setPath('dataConfiguration.displayOnlySelected', iStorage.displayOnlySelected);
 
       if( !SC.none( iStorage.pointColor))
         this.set('pointColor', iStorage.pointColor);
@@ -596,6 +597,7 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           tHideSelectedNumber = (tSelection && tSelection.length > 1) ? 'Plural' : 'Sing',
           tHideUnselectedNumber = (tSelection && tCases &&
               (tCases.get('length') - tSelection.length > 1)) ? 'Plural' : 'Sing',
+          tDisplayingOnlySelected = this.getPath('dataConfiguration.displayOnlySelected'),
           self = this;
 
       function hideSelectedCases() {
@@ -665,12 +667,25 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           redoString: 'DG.Redo.showAllCases',
           log: "Show all cases",
           execute: function() {
+            self.setPath('dataConfiguration.displayOnlySelected', false );
             this._undoData = self.getPath('dataConfiguration.hiddenCases');
             self.get('dataConfiguration' ).showAllCases();
           },
           undo: function() {
             self.get('dataConfiguration' ).hideCases( this._undoData );
           }
+        }));
+      }
+
+      function displayOnlySelected() {
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'graph.display.displayOnlySelected',
+          undoString: 'DG.Undo.displayOnlySelected',
+          redoString: 'DG.Redo.displayOnlySelected',
+          log: "Display only selected cases",
+          execute: function() {
+            self.setPath('dataConfiguration.displayOnlySelected', true );
+          },
         }));
       }
 
@@ -681,8 +696,10 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           target: this, action: hideSelectedCases },
         { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
           target: this, action: hideUnselectedCases },
-        { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
-          target: this, action: showAllCases }
+        { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden || tDisplayingOnlySelected,
+          target: this, action: showAllCases },
+        { title: 'DG.DataDisplayMenu.displayOnlySelected', isEnabled: !tDisplayingOnlySelected,
+          target: this, action: displayOnlySelected }
       ];
     },
 
