@@ -442,6 +442,10 @@ SC.stringsFor("en", {
     "DG.Redo.component.toggleTableToCard": "Redo changing case table to case card",
     "DG.Undo.component.toggleCardToTable": "Undo changing case card to case table",
     "DG.Redo.component.toggleCardToTable": "Redo changing case card to case table",
+    "DG.Undo.webView.show": "Undo adding webView component",
+    "DG.Redo.webView.show": "Redo adding webView component",
+    "DG.Undo.imageComponent.show": "Undo adding image component",
+    "DG.Redo.imageComponent.show": "Redo adding image component",
 
     // DG.DataContext
     "DG.DataContext.singleCaseName": "case",
@@ -968,6 +972,9 @@ SC.stringsFor("en", {
 
     // Web View
     "DG.WebView.defaultTitle": "Web Page",
+
+    // Image View
+    "DG.ImageComponent.defaultTitle": "Image",
 
     "DG.Locale.name.de": "German",
     "DG.Locale.name.el": "Greek",
