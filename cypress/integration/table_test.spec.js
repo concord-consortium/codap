@@ -21,7 +21,7 @@ before(()=> {
     cfm.openDocFromModal();
     cy.wait(500)
     cfm.openLocalDoc(dir+filename+ext)
-    codap.getTableTile().click() //bring the table into focus
+    codap.getTableTileTitle().click().type('{enter}') //bring the table into focus
 })
 
 context('table ui',()=>{ //tests for ui elements

@@ -49,6 +49,19 @@ DG.WebView = SC.View.extend(
         return this.get('value').replace(/^https?:/, '');
       }.property('value'),
 
+      urlDidChange: function () {
+        // var _this = this;
+        // this.childViews.forEach(function (view) {_this.removeView(view);});
+        // if (DG.get('hideWebViewLoading') !== 'yes') {
+        //   this.appendChild(this.loadingView.create({}));
+        // }
+        // this.appendChild(this.webView.create({}));
+        this.notifyPropertyChange('webView.value');
+      }.observes('_url'),
+
+      // init: function () {
+      //   this.valueDidChange();
+      // },
       /**
        * Whether we are loading.
        * @type {boolean}
@@ -90,15 +103,11 @@ DG.WebView = SC.View.extend(
           return this.getPath('parentView._url');
         }.property(),
 
-        urlDidChange: function () {
-          this.notifyPropertyChange('value');
-        }.observes('*parentView.value'),
-
         /**
          * @override SC.WebView.iframeDidLoad
          */
         iframeDidLoad: function () {
-          if (!SC.none(this.value)) {
+          if (!SC.none(this.get('value'))) {
             this.setPath('parentView.isLoading', false);
           }
           sc_super();
