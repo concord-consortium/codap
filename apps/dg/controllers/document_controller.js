@@ -1361,8 +1361,7 @@ DG.DocumentController = SC.Object.extend(
        */
       viewWebPage: function () {
 
-        var this_ = this,
-            tDialog = null;
+        var tDialog = null;
 
         function createWebPage() {
           // User has pressed OK. tURL must have a value or 'OK' disabled.
