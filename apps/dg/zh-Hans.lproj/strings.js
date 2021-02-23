@@ -848,5 +848,20 @@ SC.stringsFor("zh-Hans", {
     "DG.BarChartFunction.formulaPrompt": "bar length =",
     "DG.BarChartFunction.formulaHint": "Type a formula to compute bar length",
     "DG.BarChartFunction.emptyExpressionAxisPrompt": "Click here to provide a formula",
-    "DG.Inspector.graphFormula": "Formula"
+    "DG.Inspector.graphFormula": "Formula",
+    "DG.Undo.displayOnlySelected": "Undo displaying only selected cases",
+    "DG.Redo.displayOnlySelected": "Redo displaying only selected cases",
+    "DG.Undo.webView.show": "Undo adding webView component",
+    "DG.Redo.webView.show": "Redo adding webView component",
+    "DG.Undo.imageComponent.show": "Undo adding image component",
+    "DG.Redo.imageComponent.show": "Redo adding image component",
+    "DG.DataDisplayMenu.displayOnlySelected": "Display Only Selected Cases",
+    "DG.DataDisplayMenu.displayingOnlySelected": "Displaying Only Selected Cases",
+    "DG.PlotBackgroundView.msg0": "This graph is set to display",
+    "DG.PlotBackgroundView.msg1": "only selected cases.",
+    "DG.PlotBackgroundView.msg2": "No cases are selected",
+    "DG.PlotBackgroundView.msg3": "so nothing is being displayed.",
+    "DG.PlotBackgroundView.msg4": "You can select cases in a",
+    "DG.PlotBackgroundView.msg5": "case table or another graph.",
+    "DG.ImageComponent.defaultTitle": "Image"
 });
