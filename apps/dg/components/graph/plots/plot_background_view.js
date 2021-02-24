@@ -93,6 +93,10 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          * @property {string[]}
          */
         messages: null,
+        /**
+         * @private {element[]}
+         */
+        _messageElements: null,
 
         colorDidChange: function () {
           var tStoredColor = this.getPath('graphModel.plotBackgroundColor') || 'white',
@@ -133,6 +137,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           this.set('backgroundColor', 'white');
           this.colorDidChange();
           this.messages = [];
+          this._messageElements = [];
         },
 
         /**
@@ -485,11 +490,20 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         displayMessages: function() {
           var tMessages = this.get('messages'),
               tNumStrings = tMessages.length,
-              tPaper = this.get('paper');
+              tPaper = this.get('paper'),
+              tMessageElements = this._messageElements;
+
+          function removeExistingMessageElements() {
+            tMessageElements.forEach( function( iElement) {
+              tLayer.prepareToMoveOrRemove(iElement);
+              iElement.remove();
+            });
+          }
+
           if( !tPaper)
             return;
           var tLayer = this.getPath('layerManager.' + DG.LayerNames.kDataTip);
-          tLayer.clear();
+          removeExistingMessageElements();
           if( tNumStrings > 0) {
             var tMsg = tPaper.text(0, 0, tMessages[0]);
             tMsg.attr('font-size', 12);
@@ -500,6 +514,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               var tText = tPaper.text(tPaper.width / 2, tY + iIndex * tTextHeight, iMsg);
               tText.attr('font-size', 12);
               tLayer.push(tText);
+              tMessageElements.push(tText);
             });
           }
         }
