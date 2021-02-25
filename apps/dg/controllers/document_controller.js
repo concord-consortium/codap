@@ -1371,7 +1371,7 @@ DG.DocumentController = SC.Object.extend(
           if (!/^https?:\/\//i.test(tURL)) {
             tURL = 'http://' + tURL;
           }
-          DG.appController.importURL(tURL, null, tURL);
+          DG.appController.importURL(tURL, "DG.WebView", tURL);
         }
 
         tDialog = DG.CreateSingleTextDialog({

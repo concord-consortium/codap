@@ -359,7 +359,7 @@ DG.mainPage = SC.Page.design((function() {
       }
       else if( !SC.empty(tURI) && isURI(tURI)) {
         SC.run(function () {
-          DG.appController.importURL( tURI);
+          DG.appController.importURL( tURI, 'DG.WebView');
         });
       }
       else if (!this.get('_isDraggingAttr') && tDataTransfer.types.includes('text/html')) {
