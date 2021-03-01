@@ -1176,9 +1176,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           var dataContext = iResources.dataContext;
           var myCase = iResources.caseByIndex || iResources.caseByID;
-          var collection = iResources.collection || getCollectionClientFromCase(myCase, dataContext);
-          var values;
+          var collection, values;
           if (myCase) {
+            collection = iResources.collection || getCollectionClientFromCase(myCase, dataContext);
             values = {
               'case': this.makeSerializableCase(collection, myCase),
               caseIndex: collection.getCaseIndexByID(myCase.get('id'))
