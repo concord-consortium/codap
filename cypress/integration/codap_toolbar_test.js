@@ -57,7 +57,7 @@ context('codap toolbar', ()=>{
         codap.openTile('plugin','Sampler')
         cy.wait(2000);
         sampler.getSamplerPlugin().should('be.visible')
-        codap.closeTile('plugin','Sampler'); //close the tile because it interferes with later tests.  
+        codap.closeTile('plugin','Sampler'); //close the tile because it interferes with later tests.
     })
     it('will open a Draw Tool', ()=>{
         codap.openTile('plugin','Draw Tool')
@@ -82,25 +82,26 @@ context('codap toolbar', ()=>{
         codap.singleDialogEntry(url);
         //need to verify iframe with webpage
         // cy.wait(7000);
-        cy.getWebviewIframe().find('.concord-logo').should('be.visible')
+        cy.getWebviewIframe().first().find('.concord-logo').should('be.visible')
         codap.closeTile('option', 'Web Page'); //close the tile because it interferes with later tests
     })
     it('will open Help tile', ()=>{
         var helpURL = "https://codap.concord.org/help"
         codap.openTile('help', 'Help Pages')
+        cy.wait(1500);
         //verify iframe of helpURL is showing and has #page-title contains "CODAP Help"
-        cy.getWebviewIframe().find('#page-title').should('contain', 'CODAP Help')
+        cy.getWebviewIframe().last().find('#page-title').should('contain', 'CODAP Help')
         codap.closeTile('help', 'Help with CODAP'); //close the tile because it interferes with later tests
     })
     // it('will open Help Forum Page', ()=>{
     //     //will have to investigate how to verify something opening in a new tab
-    //     //Can't use the currently recommended way of 
+    //     //Can't use the currently recommended way of
     //     //cy.get('a[href="/foo"]').should('have.attr', 'target', '_blank') // so simple
     //     //because menu item does not have an href
     // })
     // it('will open CODAP product Page', ()=>{
     //     //will have to investigate how to verify something opening in a new tab
-    //     //Can't use the currently recommended way of 
+    //     //Can't use the currently recommended way of
     //     //cy.get('a[href="/foo"]').should('have.attr', 'target', '_blank') // so simple
     //     //because menu item does not have an href
     // })
