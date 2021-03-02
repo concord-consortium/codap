@@ -197,11 +197,11 @@ DG.CasePlotView = DG.PlotView.extend(
          We may clear and draw everything from scratch if required.
          */
         drawData: function () {
+          var this_ = this;
           if (!this.get('paper') || !this.get('model') || !this.getPath('model.cases') || this.getPath('model.isAnimating'))
             return;
 
           if (this.handlersMustBeInstalledToExistingElements) {
-            var this_ = this;
             this.get('plottedElements').forEach(function (iElement) {
               addHandlers(this_, iElement);
             });
@@ -225,6 +225,51 @@ DG.CasePlotView = DG.PlotView.extend(
             };
           }
 
+          function doCreatePlotElements() {
+            var tInc = 200,
+                i,
+                loop = function () {
+                  if (tPlottedElements.length >= tNumCases)
+                    return;
+                  var tStart = tPlottedElements.length,
+                      tDescriptions = [];
+                  tXPixelMax = this_.getPath('xAxisView.pixelMax');
+                  tYPixelMax = this_.getPath('yAxisView.pixelMin');
+                  if (tXPixelMax < 30 || tYPixelMax < 30) {
+                    this_.invokeLater(loop, 100);
+                    return;
+                  }
+                  for (i = tStart; i < tStart + tInc && i < tNumCases; i++) {
+                    tDescriptions.push(createCircleDescription(i));
+                  }
+                  tPointSet = this_.get('paper').add(tDescriptions).forEach(function (iElement, iIndex) {
+                    tPlottedElements.push(iElement);
+                    tLayer.push(iElement);
+                    iElement.addClass(DG.PlotUtilities.kDotClassName);
+                    iElement.index = tStart + iIndex;
+                    iElement.node.setAttribute('shape-rendering', 'geometric-precision');
+                    return true;
+                  });
+                  addHandlers(this_, tPointSet);
+                  this_.setPath('model.isAnimating', true);
+                  tPointSet.animate({
+                        r: tR,
+                        fill: tColor
+                      },
+                      DG.PlotUtilities.kDefaultAnimationTime, '<>');
+                  tStart += tInc;
+                  tInc *= 2;
+                  if (tStart < tNumCases) {
+                    this_.invokeLater(loop, 10);
+                  } else {
+                    this_.setPath('model.isAnimating', false);
+                  }
+                  tPointSet.clear();
+                }.bind(this_);
+            loop();
+            this_._elementOrderIsValid = false;
+          }
+
           var tRC = this.createRenderContext(),
               tXPixelMin = this.getPath('xAxisView.pixelMin'),
               tXPixelMax = this.getPath('xAxisView.pixelMax'),
@@ -240,52 +285,20 @@ DG.CasePlotView = DG.PlotView.extend(
               tColor = tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
               tStrokeParams = this.getStrokeParams(),
               tLayer = this.getPath('layerManager.' + DG.LayerNames.kPoints);
-          if (!tPlottedElements || tPlottedElements.length === 0) {
-            var tInc = 200,
-                i,
-                loop = function () {
-                  if (tPlottedElements.length >= tNumCases)
-                    return;
-                  var tStart = tPlottedElements.length,
-                      tDescriptions = [];
-                  tXPixelMax = this.getPath('xAxisView.pixelMax');
-                  tYPixelMax = this.getPath('yAxisView.pixelMin');
-                  if (tXPixelMax < 30 || tYPixelMax < 30) {
-                    this.invokeLater(loop, 100);
-                    return;
-                  }
-                  for (i = tStart; i < tStart + tInc && i < tNumCases; i++) {
-                    tDescriptions.push(createCircleDescription(i));
-                  }
-                  tPointSet = this.get('paper').add(tDescriptions).forEach(function (iElement, iIndex) {
-                    tPlottedElements.push(iElement);
-                    tLayer.push(iElement);
-                    iElement.addClass(DG.PlotUtilities.kDotClassName);
-                    iElement.index = tStart + iIndex;
-                    iElement.node.setAttribute('shape-rendering', 'geometric-precision');
-                    return true;
-                  });
-                  addHandlers(this, tPointSet);
-                  this.setPath('model.isAnimating', true);
-                  tPointSet.animate({
-                        r: tR,
-                        fill: tColor
-                      },
-                      DG.PlotUtilities.kDefaultAnimationTime, '<>');
-                  tStart += tInc;
-                  tInc *= 2;
-                  if (tStart < tNumCases) {
-                    this.invokeLater(loop, 10);
-                  }
-                  else {
-                    this.setPath('model.isAnimating', false);
-                  }
-                  tPointSet.clear();
-                }.bind(this);
-            loop();
-            this._elementOrderIsValid = false;
-          }
-          else if (tPlottedElements.length > 0 && !this.getPath('model.isAnimating')) {
+          if (!tPlottedElements || tPlottedElements.length < tNumCases) {
+            doCreatePlotElements();
+          } else if (tPlottedElements.length > 0 && !this.getPath('model.isAnimating')) {
+            if (tPlottedElements.length > tNumCases) {
+              var tLayerManager = this.get('layerManager');
+              for (var index = tNumCases; index < tPlottedElements.length; index++) {
+                if (!SC.none(tPlottedElements[index])) {
+                  tPlottedElements[index].stop();
+                  tLayerManager.removeElement(tPlottedElements[index]);
+                  DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[index], tLayerManager);
+                }
+              }
+              tPlottedElements.length = tNumCases;
+            }
             tPlottedElements.forEach(function (iCircle, iIndex) {
               var tCoords = tModel.getWorldCoords(iIndex);
               iCircle.attr({
