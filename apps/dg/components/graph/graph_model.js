@@ -912,11 +912,18 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.notifyPropertyChange('canSupportConfigurations');
     },
 
+    /**
+     * If there are no cases, don't do anything
+     * @param iShrink {boolean}
+     * @param iAnimate {boolean}
+     * @param iLogIt {boolean}
+     * @param iUserAction {boolean}
+     */
     rescaleAxesFromData: function( iShrink, iAnimate, iLogIt, iUserAction) {
-      this.forEachSplitPlotElementDo( function( iPlotArray) {
-        if( iPlotArray[0])  // During some transitions, we may temporarily not have any plots in this cell
-          iPlotArray[0].rescaleAxesFromData( iShrink, iAnimate, iLogIt, iUserAction);
-      });
+        this.forEachSplitPlotElementDo(function (iPlotArray) {
+          if (iPlotArray[0])  // During some transitions, we may temporarily not have any plots in this cell
+            iPlotArray[0].rescaleAxesFromData(iShrink, iAnimate, iLogIt, iUserAction);
+        });
     },
 
     mixUp: function() {
