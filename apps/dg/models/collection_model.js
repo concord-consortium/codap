@@ -208,9 +208,9 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
       this.attrs = [];
       this.cases = [];
-      this.children = [];
+      this.children = this.children || [];
       this.dataSet = this.context.dataSet;
-      this.dataSet.registerCollection(this, null);
+      this.dataSet.registerCollection(this, this.children[0]);
       this.updateCaseIDToIndexMap();
     },
 
@@ -245,6 +245,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         }.bind(this));
       }
       context = this.context;
+      if(context.dataSet)
+        context.dataSet.unregisterCollection( this);
       context.removeCollection(this);
       sc_super();
     },
