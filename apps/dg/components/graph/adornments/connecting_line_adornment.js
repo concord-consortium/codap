@@ -154,7 +154,8 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
    * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
    */
   doUpdateLine: function( iAnimate, getCoordsFunc ) {
-    var this_ = this,
+    var kEmptyPath = 'M0,0',
+        this_ = this,
         tCoordinatesKeyedByParentID = this.getPath('model.values'),
         kCount = 10,  // This is fixed so we get same colors no matter how many lines there are
         tPaper = this.get('paper' ),
@@ -171,7 +172,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
     DG.ObjectMap.forEach( tCoordinatesKeyedByParentID, function( iParentID, iCoordinatesObject) {
       var tCoordinates = iCoordinatesObject.coordinates,
           tNumValues = tCoordinates ? tCoordinates.length : 0,
-          tPath = 'M0,0', // use empty path if no points to connect
+          tPath = kEmptyPath, // use empty path if no points to connect
           tLineColor = iCoordinatesObject.color ?
               (typeof iCoordinatesObject.color === 'string' ? iCoordinatesObject.color : iCoordinatesObject.color.colorString) :
               DG.ColorUtilities.calcAttributeColorFromIndex( tLineNum % kCount, kCount).colorString,
@@ -180,10 +181,12 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       // create a new path, connecting each sorted data point
       for( i=0; i<tNumValues; ++i ) {
         var tCoords = getCoordsFunc( tCoordinates[i].x, tCoordinates[i].y);
-        if( i===0 ) {
-          tPath = 'M%@,%@'.fmt( tCoords.x, tCoords.y ); // move to first line
-        } else {
-          tPath += ' L%@,%@'.fmt( tCoords.x, tCoords.y ); // draw to subsequent lines
+        if( tCoords.x && tCoords.y) {
+          if (tPath === kEmptyPath) {
+            tPath = 'M%@,%@'.fmt(tCoords.x, tCoords.y); // move to first line
+          } else {
+            tPath += ' L%@,%@'.fmt(tCoords.x, tCoords.y); // draw to subsequent lines
+          }
         }
       }
       DG.assert( tPath );

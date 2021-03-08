@@ -173,7 +173,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         var tFirstPlot = this.get('plot');
         // TODO: Clumsy way to transfer setting for connectingLine. Fix it!
         if( tFirstPlot.isAdornmentVisible('connectingLine'))
-          iPlot.toggleAdornmentVisibility('connectingLine');
+          iPlot.setAdornmentVisibility('connectingLine', true);
         if( iPlot.get('verticalAxisIsY2')) {
           this._plots.push( iPlot);
         }
