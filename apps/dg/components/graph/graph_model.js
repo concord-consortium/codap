@@ -1074,7 +1074,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       // allow for switching axis type, e.g. CellLinearAxis <=> CountAxis for bar charts with/without formulas
       this.synchAxes();
-      tNewPlot.rescaleAxesFromData();
+      tNewPlot.rescaleAxesFromData(true /*iAllowAxisShrinkage*/);
 
       this.set('aboutToChangeConfiguration', false);  // all done
       if( tIsSplit) {
