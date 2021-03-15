@@ -217,6 +217,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
         }
         if (shouldProcessCategorical) {
           this.categoricalStats.beginPropertyChanges();
+          this.setIfChanged('_categoricalCacheIsValid', false);
         }
         tCaseIDs.forEach(function (iCaseID) {
           var tCase = DG.store.find(DG.Case, iCaseID);
@@ -229,8 +230,6 @@ DG.AttributeStats = SC.Object.extend((function () // closure
               }
               if (shouldProcessCategorical)
                 processOneCategorical(tCase, tVarID, tCategoryMap);
-              else
-                this.setIfChanged('_categoricalCacheIsValid', false);
             }.bind(this));
           }
         }.bind(this));
