@@ -553,16 +553,25 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       var tMaxFrameWidth = Math.max(tPageWidth, tFrameWidth);
       var tComponentView = DG.ComponentView.findComponentViewParent(this);
       var tContentHasBeenSeen = this._lastContentWidth != null;
+      var tIsAnimating = this.get('isComponentLayoutAnimating');
+      // console.log('HierTableView.adjustContentWidth: /changeAgent, ' +
+      //     'tContentWidth, tFrameWidth, tPageWidth, this._lastContentWidth, tIsAnimating/' +
+      //     [changeAgent, tContentWidth, tFrameWidth, tPageWidth, this._lastContentWidth, tIsAnimating].join());
+      // console.trace();
+
       // If we have no component view parent we are not a part of the document, yet.
       // If we have no content width, then slickgrid has not rendered contents, yet.
       // If we have no frame width then the component may be beginning an animation
       // into existence.
       // If content width is the same as frame width, we have nothing to do.
       // If any of these, exit.
-      if (SC.none(tComponentView) || !tContentWidth || !tFrameWidth || tContentWidth === tFrameWidth) {
+      if (SC.none(tComponentView) ||
+          !tContentWidth ||
+          !tFrameWidth ||
+          tContentWidth === tFrameWidth ||
+          tIsAnimating) {
         return;
       }
-      // DG.log('HierTableView.adjustContentWidth: /changeAgent, tContentWidth, tFrameWidth, tPageWidth, this._lastContentWidth/' + [changeAgent, tContentWidth, tFrameWidth, tPageWidth, this._lastContentWidth].join())
 
       // if frame width was adjusted to be larger than the content, we expand the rightmost column of rightmost
       // collection
@@ -597,6 +606,25 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     contentWidthDidChange: function () {
       this.adjustContentWidth('content');
     },
+
+    isComponentLayoutAnimating: function () {
+      var tComponentView = DG.ComponentView.findComponentViewParent(this);
+      return tComponentView && tComponentView.get('viewState') === SC.CoreView.ATTACHED_SHOWN_ANIMATING;
+    }.property(),
+
+    _wasAnimating: false,
+    componentIsAnimatingDidChange: function () {
+      var tComponentView = DG.ComponentView.findComponentViewParent(this);
+      var viewState = tComponentView && tComponentView.get('viewState');
+      var isAnimating = (viewState && viewState === SC.CoreView.ATTACHED_SHOWN_ANIMATING);
+      if (this._wasAnimating !== isAnimating) {
+        this.notifyPropertyChange('isComponentLayoutAnimating');
+      }
+      if (this._wasAnimating && !isAnimating) {
+        this.adjustContentWidth('content');
+      }
+      this._wasAnimating = isAnimating;
+    }.observes('parentView.parentView.viewState'),
 
     /**
       Observer function called when any of the child tables is changed.
