@@ -96,6 +96,16 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     /**
+     *
+     * @param {DG.Collection} collection
+     */
+    unregisterCollection: function( collection) {
+      var tIndex = this.collectionOrder.indexOf(collection);
+      if( tIndex >= 0)
+        this.collectionOrder.splice(tIndex, 1);
+    },
+
+    /**
      * Adds attributes. Ideally this is an initialization step, but may be called
      * at any time.
      *

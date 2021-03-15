@@ -661,67 +661,73 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       handleDataContext: {
         create: function (iResources, iValues) {
-          var context,
+          var tFoundContext = DG.currDocumentController().getContextByName(iValues.name),
               status = true,
-              createSpec = DG.copy(iValues),
-              resultValues = DG.clone(iValues);
-          // we don't want to create the collections yet
-          delete createSpec.collections;
-          context = DG.currDocumentController().createNewDataContext(createSpec);
-          if (iResources.isDefaultDataContext) {
-            this.setPath('controller.context', context);
+              context;
+          if( tFoundContext) {
+            context = tFoundContext;
           }
-          // create the collections
-          if (resultValues.collections) {
-            resultValues.collections.forEach(function (collectionSpec) {
-              var collectionClient,
-                  parentCollectionClient,
-                  error = false;
+          else {
+            var createSpec = DG.copy(iValues),
+                resultValues = DG.clone(iValues);
+            // we don't want to create the collections yet
+            delete createSpec.collections;
+            context = DG.currDocumentController().createNewDataContext(createSpec);
+            if (iResources.isDefaultDataContext) {
+              this.setPath('controller.context', context);
+            }
+            // create the collections
+            if (resultValues.collections) {
+              resultValues.collections.forEach(function (collectionSpec) {
+                var collectionClient,
+                    parentCollectionClient,
+                    error = false;
 
-              // map requested names to valid names
-              if (collectionSpec.attrs) {
-                collectionSpec.attrs.forEach(function(attr) {
-                  // original name and new name will be returned to client
-                  attr.clientName = attr.name;
-                  // We add a space as a kludge. For historical reasons, when creating
-                  // attributes through other paths we interpret parens at the end
-                  // of a name as the unit, so we strip it from the name. Plugins
-                  // can set the unit in the request JSON. Adding a space will
-                  // suppress the stripping of the parens. The space will be
-                  // trimmed later.
-                  attr.name = context.canonicalizeName(attr.name + ' ');
-                });
-              }
-
-              createSpec = DG.clone(collectionSpec);
-
-              if (createSpec.parent) {
-                parentCollectionClient = context.getCollectionByName(createSpec.parent);
-
-                if (parentCollectionClient) {
-                  createSpec.parent = parentCollectionClient.collection;
-                } else {
-                  DG.log( 'Attempt to create collection "%@": Unknown parent: "%@"'
-                          .loc(createSpec.name, createSpec.parent));
-                  error = true;
-                }
-              }
-              if (!error) {
-                collectionClient = context.createCollection(createSpec);
-
-                // return id for created collection
-                collectionSpec.id = collectionClient && collectionClient.get('id');
-
-                if (collectionClient && collectionSpec.attrs) {
-                  // return id for each created attribute
-                  collectionSpec.attrs.forEach(function(attrSpec) {
-                    var attr = collectionClient.getAttributeByName(attrSpec.name);
-                    attrSpec.id = attr && attr.get('id');
+                // map requested names to valid names
+                if (collectionSpec.attrs) {
+                  collectionSpec.attrs.forEach(function (attr) {
+                    // original name and new name will be returned to client
+                    attr.clientName = attr.name;
+                    // We add a space as a kludge. For historical reasons, when creating
+                    // attributes through other paths we interpret parens at the end
+                    // of a name as the unit, so we strip it from the name. Plugins
+                    // can set the unit in the request JSON. Adding a space will
+                    // suppress the stripping of the parens. The space will be
+                    // trimmed later.
+                    attr.name = context.canonicalizeName(attr.name + ' ');
                   });
                 }
-              }
-              status = status && !SC.none(collectionClient);
-            });
+
+                createSpec = DG.clone(collectionSpec);
+
+                if (createSpec.parent) {
+                  parentCollectionClient = context.getCollectionByName(createSpec.parent);
+
+                  if (parentCollectionClient) {
+                    createSpec.parent = parentCollectionClient.collection;
+                  } else {
+                    DG.log('Attempt to create collection "%@": Unknown parent: "%@"'
+                        .loc(createSpec.name, createSpec.parent));
+                    error = true;
+                  }
+                }
+                if (!error) {
+                  collectionClient = context.createCollection(createSpec);
+
+                  // return id for created collection
+                  collectionSpec.id = collectionClient && collectionClient.get('id');
+
+                  if (collectionClient && collectionSpec.attrs) {
+                    // return id for each created attribute
+                    collectionSpec.attrs.forEach(function (attrSpec) {
+                      var attr = collectionClient.getAttributeByName(attrSpec.name);
+                      attrSpec.id = attr && attr.get('id');
+                    });
+                  }
+                }
+                status = status && !SC.none(collectionClient);
+              });
+            }
           }
           return {
             success: status,

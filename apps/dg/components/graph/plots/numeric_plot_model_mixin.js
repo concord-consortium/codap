@@ -58,6 +58,8 @@ DG.NumericPlotModelMixin =
     @param{Boolean} Default is true
   */
   doRescaleAxesFromData: function( iPlaces, iAllowScaleShrinkage, iAnimatePoints, iUserAction) {
+    if( this.getPath('dataConfiguration.cases').length() === 0)
+      return; // Don't rescale if there are no cases
     var this_ = this,
       tAxisInfoArray = [],
       tOldBoundsArray = [];

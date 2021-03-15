@@ -173,7 +173,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         var tFirstPlot = this.get('plot');
         // TODO: Clumsy way to transfer setting for connectingLine. Fix it!
         if( tFirstPlot.isAdornmentVisible('connectingLine'))
-          iPlot.toggleAdornmentVisibility('connectingLine');
+          iPlot.setAdornmentVisibility('connectingLine', true);
         if( iPlot.get('verticalAxisIsY2')) {
           this._plots.push( iPlot);
         }
@@ -912,11 +912,18 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.notifyPropertyChange('canSupportConfigurations');
     },
 
+    /**
+     * If there are no cases, don't do anything
+     * @param iShrink {boolean}
+     * @param iAnimate {boolean}
+     * @param iLogIt {boolean}
+     * @param iUserAction {boolean}
+     */
     rescaleAxesFromData: function( iShrink, iAnimate, iLogIt, iUserAction) {
-      this.forEachSplitPlotElementDo( function( iPlotArray) {
-        if( iPlotArray[0])  // During some transitions, we may temporarily not have any plots in this cell
-          iPlotArray[0].rescaleAxesFromData( iShrink, iAnimate, iLogIt, iUserAction);
-      });
+        this.forEachSplitPlotElementDo(function (iPlotArray) {
+          if (iPlotArray[0])  // During some transitions, we may temporarily not have any plots in this cell
+            iPlotArray[0].rescaleAxesFromData(iShrink, iAnimate, iLogIt, iUserAction);
+        });
     },
 
     mixUp: function() {
@@ -1067,7 +1074,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       // allow for switching axis type, e.g. CellLinearAxis <=> CountAxis for bar charts with/without formulas
       this.synchAxes();
-      tNewPlot.rescaleAxesFromData();
+      tNewPlot.rescaleAxesFromData(true /*iAllowAxisShrinkage*/);
 
       this.set('aboutToChangeConfiguration', false);  // all done
       if( tIsSplit) {
