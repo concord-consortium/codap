@@ -1667,9 +1667,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var kTypeMap = {
           'DG.Calculator': 'calculator',
           'DG.TableView': 'caseTable',
+          'DG.CaseCard': 'caseCard',
           'DG.GameView': 'game',
           'DG.GraphView': 'graph',
           'DG.GuideView': 'guideView',
+          'DG.ImageComponentView': 'image',
           'DG.MapView': 'map',
           'DG.SliderView': 'slider',
           'DG.TextView': 'text',
@@ -1680,9 +1682,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var kResourceMap = {
           'calculator': 'DG.Calculator',
           'caseTable': 'DG.TableView',
+          'caseCard': 'DG.CaseCard',
           'game': 'DG.GameView',
           'graph': 'DG.GraphView',
           'guideView': 'DG.GuideView',
+          'image': 'DG.ImageComponentView',
           'map': 'DG.MapView',
           'slider': 'DG.SliderView',
           'text': 'DG.TextView',
@@ -1699,6 +1703,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
           caseTable: {
             dimensions: {width: 500, height: 200}
+          },
+          caseCard: {
+            dimensions: {width: 200, height: 400}
           }
         };
 
@@ -1717,6 +1724,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             cannotClose: directMapping,
             horizontalScrollOffset: directMapping,
             isIndexHidden: directMapping
+          },
+          caseCard: {
+            name: directMapping,
+            title: directMapping,
+            cannotClose: directMapping
           },
           game: {
             currentGameName: function (key, value) {
@@ -1764,6 +1776,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             items: directMapping,
             currentItemIndex: directMapping,
             isVisible: directMapping
+          },
+          image: {
+            name: directMapping,
+            title: directMapping,
+            URL: directMapping,
+            cannotClose: directMapping
           },
           map: {
             name: directMapping,
@@ -1889,7 +1907,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               remapProperties(tValues, props.componentStorage, type);
 
               var tableDataContext;
-              if (tValues.type === 'caseTable') {
+              if (tValues.type === 'caseTable' || tValues.type === 'caseCard') {
                 mapTableLinkPropertiesFromDI(tValues, props.componentStorage);
                 if (tValues.dataContext)
                   tableDataContext = DG.currDocumentController().getContextByName(tValues.dataContext);
@@ -1900,6 +1918,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 component = doc.addCaseTable(
                     DG.mainPage.get('docView'), null,
                     Object.assign({position: 'top', dataContext: tableDataContext}, props));
+                component.invokeLater(function () { component.showAndSelect(); });
+              }
+              if ((tValues.type === 'caseCard') && tableDataContext) {
+                // component = DG.appController.showCaseDisplayFor(tableDataContext, props);
+                component = doc.addCaseCard(
+                    DG.mainPage.get('docView'), props.layout, tableDataContext);
                 component.invokeLater(function () { component.showAndSelect(); });
               }
               // sliders with global values
