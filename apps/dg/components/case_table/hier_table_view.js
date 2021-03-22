@@ -622,6 +622,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }
       if (this._wasAnimating && !isAnimating) {
         this.adjustContentWidth('content');
+        this.refresh();
       }
       this._wasAnimating = isAnimating;
     }.observes('parentView.parentView.viewState'),
