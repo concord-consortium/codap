@@ -1018,6 +1018,7 @@ DG.DocumentController = SC.Object.extend(
             componentClass: componentClassDef,
             contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
             defaultLayout: {width: 500, height: 200},
+            useLayout: iProperties.useLayout,
             position: iComponent? iComponent.position: iProperties.position
           };
           caseTableView = this.createComponentView(component, props);
@@ -1302,11 +1303,12 @@ DG.DocumentController = SC.Object.extend(
         if (tPreexistingCaseCard) { // We've already got one for this context. Only one allowed.
           return tPreexistingCaseCard;
         }
+        var tNewComponent = !(iComponent || tPreexistingCaseCard);
         var tController = DG.CaseCardController.create({
               dataContext: iContext
             }),
             tTitle = iTitle || (iContext ? iContext.get('name') : 'DG.DocumentController.caseCardTitle'.loc()),
-            tComponent = iComponent, tRestoredLayout = iLayout;
+            tComponent = iComponent, tRestoredLayout = iLayout || {};
         if (!tComponent) {
           // creating component
           tComponent = this.configureComponent(iComponent, {
@@ -1345,6 +1347,9 @@ DG.DocumentController = SC.Object.extend(
         tComponentView.addContent(tContentView);
         tComponentView.set('contentView', tContentView);
         tComponentView.set('controller', tController);
+        if (tNewComponent) {
+          iParentView.positionNewComponent(tComponentView);
+        }
         tController.set('view', tComponentView);
         this.registerComponent(tComponent);
         if (tComponentView.get('isVisible')) {
@@ -1719,7 +1724,8 @@ DG.DocumentController = SC.Object.extend(
                     iCardComponentView.setPath('model.content.isActive', false);
                     var tTableComponentView = this.tableCardRegistry.getTableView(tContext) ||
                         this.addCaseTable(iCardComponentView.get('parentView'), null, {
-                          dataContext: iCardComponentView.getPath('controller.dataContext')
+                          dataContext: iCardComponentView.getPath('controller.dataContext'),
+                          useLayout: true // use layout for position
                         }),
                         tTableLayout = tTableComponentView.get('savedLayout') || {width: 500, height: 200};
                     tTableComponentView.setPath('model.cannotClose', tCannotClose);
