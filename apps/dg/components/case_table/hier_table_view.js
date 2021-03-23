@@ -609,7 +609,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
     isComponentLayoutAnimating: function () {
       var tComponentView = DG.ComponentView.findComponentViewParent(this);
-      return tComponentView && tComponentView.get('viewState') === SC.CoreView.ATTACHED_SHOWN_ANIMATING;
+      return tComponentView && !!tComponentView._activeAnimations;
     }.property(),
 
     _wasAnimating: false,
