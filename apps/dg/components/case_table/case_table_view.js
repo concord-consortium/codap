@@ -91,7 +91,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             var parentView = this.parentView;
             return parentView && parentView.get('refView');
           }.property(),
-          layout: {centerX: 0, height: 22},
+          layout: {left: 0, top: 3, right: 22, height: 22},
+          exampleNode: null,
           classNames: 'dg-case-table-title'.w(), // layout: { left: 0, right: 0, top: 0, height: 22 },
           isEditable: function () {
             var owningDataInteractive = this.getPath('refView.dataContext.owningDataInteractive');
@@ -135,6 +136,31 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           inlineEditorWillBeginEditing: function (editor, value, editable) {
             sc_super();
             editor.set('value', this.getPath('refView.collectionName'));
+            var exampleNode = this.get('exampleNode');
+            var tParent = this.get('parentView');
+            var tFrame = tParent.get('frame');
+            var kXGap = 4, kYGap = 2;
+            var tOrigin = DG.ViewUtilities.viewToWindowCoordinates({x: kXGap, y: kYGap}, tParent);
+            if (!exampleNode) {
+              exampleNode = this.get('layer').cloneNode(false);
+              exampleNode.id = exampleNode.id + "-clone";
+              exampleNode.style.visibility = 'hidden';
+              exampleNode.style.textAlign = 'center';
+              exampleNode.className = exampleNode.className.replace('dg-case-table-title', '');
+              tParent.get('layer').appendChild(exampleNode);
+              this.set('exampleNode', exampleNode);
+            }
+            exampleNode.style.left = 3 + 'px';
+            exampleNode.style.top = 9 + 'px';
+
+            editor.set({
+              exampleElement: exampleNode,
+              exampleFrame: {
+                x: tOrigin.x, y: tOrigin.y,
+                width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
+              }
+            });
+
           },
           /**
            * Capture the edit result.

@@ -111,6 +111,17 @@ html, body {
     white-space: nowrap;
 }
 
+.dg-case-table-title-bar-container div.dg-case-table-title {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: text;
+    position: relative;
+}
+
 .dg-case-table-title-bar-container .dg-case-table-title:hover {
     cursor: text;
 }
