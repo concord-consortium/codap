@@ -287,11 +287,12 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
 
               for (tCellIndex = 0; tCellIndex < tNumCells && tCellIndex < tCellNames.length; tCellIndex++) {
                 var tName = tCellNames[tCellIndex],
-                    tColor = DG.ColorUtilities.calcCaseColor(tName, tAttrDesc).colorString,
+                    tColor = DG.ColorUtilities.calcCaseColor(tName, tAttrDesc),
                     tRow = Math.floor(tCellIndex / tNumColumns),
                     tCol = tCellIndex % tNumColumns,
                     tCategoryKey = tCategoryKeys[tName],
                     tIsDraggedCell = this.dragInfo && this.dragInfo.cellBeingDragged === tCellIndex;
+                tColor = tColor.colorString || tColor;
                 if (!tCategoryKey) {
                   tCategoryKeys[tName] = tCategoryKey = CategoryKey.create({
                     model: this.get('model'),

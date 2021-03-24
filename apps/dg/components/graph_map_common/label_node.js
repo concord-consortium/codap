@@ -93,7 +93,7 @@ DG.LabelNode = SC.Object.extend(
               tTextColor = DG.PlotUtilities.kDefaultPointColor;
             }
             else {
-              tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
+              tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors);
             }
             tPointColor = tTextColor;
         }

@@ -175,7 +175,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
           tPath = kEmptyPath, // use empty path if no points to connect
           tLineColor = iCoordinatesObject.color ?
               (typeof iCoordinatesObject.color === 'string' ? iCoordinatesObject.color : iCoordinatesObject.color.colorString) :
-              DG.ColorUtilities.calcAttributeColorFromIndex( tLineNum % kCount, kCount).colorString,
+              DG.ColorUtilities.calcAttributeColorFromIndex( tLineNum % kCount, kCount),
           i,
           tLine;
       // create a new path, connecting each sorted data point

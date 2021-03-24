@@ -59,9 +59,11 @@ DG.ColorUtilities = {
    The first seven are also visually distinct for people with defective color vision
     */
   kKellyColors: [
-      '#FFB300', '#803E75', '#FF6800', '#A6BDD7', '#C10020', '#CEA262', '#817066', '#007D34',
-      '#00538A', '#F13A13', '#53377A', '#FF8E00', '#B32851', '#F4C800', '#7F180D', '#93AA00', '#593315',
-      '#232C16', '#FF7A5C', '#F6768E'
+      '#FF6800', '#803E75', '#A6BDD7', '#FFB300',
+      '#C10020', '#CEA262', '#817066', '#007D34',
+      '#00538A', '#F13A13', '#53377A', '#FF8E00',
+      '#B32851', '#F4C800', '#7F180D', '#93AA00',
+      '#593315', '#232C16', '#FF7A5C', '#F6768E'
     ],
 
 
@@ -131,20 +133,19 @@ DG.ColorUtilities = {
 
   /**
    * calcAttributeColorFromIndex()
-   *      Calculate the color assigned to a variable in a dataset, based on
-   *      its index in the list of variables.  We take all the circle of hues
-   *      and equally space the attributes to assign a hue to each.  This color
-   *      is then used as a basis for the variable's color gradient.
+   *      Return a kelly color based on the given attribute index.
    * @param {number} attribIndex : 0+ integer
    * @param {number} attribCount : 1+ integer
-   * @returns {DG.ColorUtilities.hsbColor}
+   * @returns {string}
    */
   calcAttributeColorFromIndex: function (attribIndex, attribCount) {
     if( attribIndex === 0)
       return { colorString: DG.PlotUtilities.kDefaultPointColor};
     else if(attribIndex < 0 || attribIndex >= attribCount)
       return this.kNoAttribCaseColor;
-
+    else
+      return this.kKellyColors[attribIndex % this.kKellyColors.length];
+/*
     var tHue = attribIndex / attribCount;  // get hue in range [0.0-1.0]
     tHue += DG.ColorUtilities.kStartingHue;      // shift hue so starting variable is blue
     tHue -= Math.floor(tHue);      // convert back to range [0 - 1]
@@ -152,6 +153,7 @@ DG.ColorUtilities = {
     var tBrightness = DG.ColorUtilities.dampenBrightnessByHue(1.0, tHue, DG.ColorUtilities.kBrightnessDampenFactor);
     var tAttribColor = DG.ColorUtilities.hsb_to_PlatformColor(tHue, tSaturation, tBrightness);
     return tAttribColor;
+*/
   },
 
   /**
@@ -159,7 +161,7 @@ DG.ColorUtilities = {
    *      Calculate the color assigned to a variable in a dataset, using
    *      the color attribute description.
    * @param {DG.AttributePlacementDescription} iColorAttributeDescription
-   * @returns {DG.ColorUtilities.hsbColor}
+   * @returns {string}
    */
   calcAttributeColor: function (iColorAttributeDescription) {
 

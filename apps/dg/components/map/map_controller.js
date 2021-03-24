@@ -535,7 +535,8 @@ DG.MapController = DG.DataDisplayController.extend(
               }
               else if (tLegendAttrDesc.get('isNumeric')) {
                 if (tCategoryMap && SC.none(tCategoryMap['attribute-color'])) {
-                  tCategoryMap['attribute-color'] = DG.ColorUtilities.calcAttributeColor(tLegendAttrDesc).colorString;
+                  var tColor = DG.ColorUtilities.calcAttributeColor(tLegendAttrDesc);
+                  tCategoryMap['attribute-color'] = tColor.colorString || tColor;
                 }
 
                 tAttrColor = tCategoryMap && tCategoryMap['attribute-color'];
@@ -646,9 +647,10 @@ DG.MapController = DG.DataDisplayController.extend(
                 });
                 var tAttribute = tLegendAttrDesc.get('attribute');
                 tAttribute.forEachCategory(function (iCategory) {
-                  var tInitialColor = tCategoryMap[iCategory] ?
+                  var tCalcColor = DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc);
+                      tInitialColor = tCategoryMap[iCategory] ?
                       tCategoryMap[iCategory] :
-                      DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
+                          tCalcColor.colorString || tCalcColor;
                   tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).setAlpha(iMapLayerModel.getPath('transparency'));
                   tContentView.appendChild(DG.PickerControlView.create({
                     layout: {height: 2 * kRowHeight},
@@ -760,9 +762,10 @@ DG.MapController = DG.DataDisplayController.extend(
                 });
                 var tLegendAttribute = tLegendAttrDesc.get('attribute');
                 tLegendAttribute.forEachCategory(function (iCategory) {
-                  var tInitialColor = tCategoryMap[iCategory] ?
+                  var tCalcColor = DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc);
+                      tInitialColor = tCategoryMap[iCategory] ?
                       tCategoryMap[iCategory] :
-                      DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
+                          tCalcColor.colorString || tCalcColor;
                   tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).setAlpha(iMapLayerModel.get('transparency'));
                   tContentView.appendChild(DG.PickerControlView.create({
                     layout: {height: 2 * kRowHeight},

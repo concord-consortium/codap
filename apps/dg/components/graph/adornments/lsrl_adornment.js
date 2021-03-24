@@ -37,7 +37,8 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
       return sc_super();
     }
     var tColor = DG.ColorUtilities.calcCaseColor(this.getPath( 'model.categoryName'),
-                            tLegendAttrDescription).colorString;
+                            tLegendAttrDescription);
+    tColor = tColor.colorString || tColor;
     return tColor;
   }.property(),
 

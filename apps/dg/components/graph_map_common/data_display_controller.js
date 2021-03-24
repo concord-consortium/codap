@@ -539,7 +539,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
           }
           else if( tLegendAttrDesc.get('isNumeric')) {
             if(tCategoryMap && SC.none( tCategoryMap['attribute-color'])) {
-              tCategoryMap['attribute-color'] = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc).colorString;
+              var tColor = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc);
+              tCategoryMap['attribute-color'] = tColor.colorString || tColor;
             }
             var tAttrColor = tCategoryMap && tCategoryMap['attribute-color'],
                 tControlView = SC.View.create(SC.FlowedLayout,
@@ -640,9 +641,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 }),
                 tAttribute = tLegendAttrDesc.get('attribute');
             tAttribute.forEachCategory(function (iCategory) {
-              var tInitialColor = tCategoryMap[iCategory] ?
+              var tCalcColor = DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc),
+                  tInitialColor = tCategoryMap[iCategory] ?
                   tCategoryMap[iCategory] :
-                  DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
+                      tCalcColor.colorString || tCalcColor;
               tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).
                                 setAlpha(this.getPath('dataDisplayModel.transparency'));
               tContentView.appendChild(DG.PickerControlView.create({
