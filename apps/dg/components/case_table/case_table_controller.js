@@ -418,6 +418,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             break;
           case 'hideAttributes':
           case 'unhideAttributes':
+          case 'updateAttributes':
             this.attributesDidChange(iChange);
             break;
           case 'deleteAttributes':
@@ -425,9 +426,6 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             break;
           case 'moveAttribute':
             this.doMoveAttributes(iChange);
-            break;
-          case 'updateAttributes':
-            this.doUpdateAttributes( iChange);
             break;
           case 'resetCollections':
             this.caseCountDidChange( iChange);
