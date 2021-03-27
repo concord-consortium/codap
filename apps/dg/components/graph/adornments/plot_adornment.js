@@ -139,14 +139,18 @@ DG.PlotAdornment = SC.Object.extend(
     Destruction method
    */
   destroy: function() {
-    var tLayerManager = this.getPath('paperSource.layerManager');
     this.detachModel();
+    this.removeElements();
+    sc_super();
+  },
+
+  removeElements: function() {
+    var tLayerManager = this.getPath('paperSource.layerManager');
     this.myElements.forEach( function( iElement) {
       tLayerManager.removeElement( iElement);
       iElement.remove();
     });
     this.myElements = null;
-    sc_super();
   },
   
   /**

@@ -82,6 +82,15 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
       modelPropertiesToObserve: [['values', 'updateToModel'],
         ['isShowingCount', 'updateToModel'], ['isShowingPercent', 'updateToModel']],
 
+      valueAxisViewDidChange: function() {
+        var tNewView = this.get('valueAxisView');
+        if( tNewView && this.valueAdornments) {
+          this.valueAdornments.forEach(function( iAdorn) {
+            iAdorn.set('valueAxisView', tNewView);
+          });
+        }
+      }.observes('valueAxisView'),
+
       createElements: function () {
         var removeElement = function () {
               tCountLayer.prepareToMoveOrRemove(this);

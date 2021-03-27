@@ -61,6 +61,13 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   */
   binArrays: null,
 
+  primaryAxisViewDidChange: function() {
+    sc_super();
+    var tMultMovableValuesAdorn = this.get('multipleMovableValuesAdorn');
+    if( tMultMovableValuesAdorn)
+      tMultMovableValuesAdorn.set('valueAxisView', this.get('primaryAxisView'));
+  },
+
   /**
    * Return the classes of the desired axis views and the x or y to put them on.
    * @return {[{}]}

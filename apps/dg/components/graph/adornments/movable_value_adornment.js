@@ -54,6 +54,10 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
   orientation: function() {
     return this.getPath('valueAxisView.orientation');
   }.property(),
+  orientationDidChange: function() {
+    this.removeElements();
+    this.updateToModel();
+  }.observes('*valueAxisView.orientation'),
 
   screenCoord: function() {
     return this.get('valueAxisView').dataToCoordinate( this.getPath('model.value'));
@@ -241,7 +245,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     Compute the positions of the line segment and text element
   */
   updateToModel: function() {
-    if( this.myElements === null)
+    if( !this.myElements)
       this.createElements();
 
     var tAxisView = this.get('valueAxisView'),
