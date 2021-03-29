@@ -1299,6 +1299,7 @@ DG.DocumentController = SC.Object.extend(
           });
         }
 
+        var tTableView = iContext && this.tableCardRegistry.getTableView(iContext);
         var tPreexistingCaseCard = findPreexistingCaseCardComponentView();
         if (tPreexistingCaseCard) { // We've already got one for this context. Only one allowed.
           return tPreexistingCaseCard;
@@ -1347,7 +1348,9 @@ DG.DocumentController = SC.Object.extend(
         tComponentView.addContent(tContentView);
         tComponentView.set('contentView', tContentView);
         tComponentView.set('controller', tController);
-        if (tNewComponent) {
+        // If the case table has existed, our position has been determined by
+        // its position, so we bypass the layout operation.
+        if (tNewComponent && !tTableView) {
           iParentView.positionNewComponent(tComponentView);
         }
         tController.set('view', tComponentView);
