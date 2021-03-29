@@ -474,7 +474,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
     autoResizeAllColumns: function () {
       this.collection.forEachAttribute(function (attr) {
-        this.autoResizeColumn(attr);
+        if( !attr.get('hidden'))
+          this.autoResizeColumn(attr);
       }.bind(this));
     },
 
