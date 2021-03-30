@@ -647,7 +647,7 @@ DG.MapController = DG.DataDisplayController.extend(
                 });
                 var tAttribute = tLegendAttrDesc.get('attribute');
                 tAttribute.forEachCategory(function (iCategory) {
-                  var tCalcColor = DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc);
+                  var tCalcColor = DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc),
                       tInitialColor = tCategoryMap[iCategory] ?
                       tCategoryMap[iCategory] :
                           tCalcColor.colorString || tCalcColor;
@@ -762,7 +762,7 @@ DG.MapController = DG.DataDisplayController.extend(
                 });
                 var tLegendAttribute = tLegendAttrDesc.get('attribute');
                 tLegendAttribute.forEachCategory(function (iCategory) {
-                  var tCalcColor = DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc);
+                  var tCalcColor = DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc),
                       tInitialColor = tCategoryMap[iCategory] ?
                       tCategoryMap[iCategory] :
                           tCalcColor.colorString || tCalcColor;
