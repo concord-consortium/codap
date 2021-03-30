@@ -145,12 +145,14 @@ DG.PlotAdornment = SC.Object.extend(
   },
 
   removeElements: function() {
-    var tLayerManager = this.getPath('paperSource.layerManager');
-    this.myElements.forEach( function( iElement) {
-      tLayerManager.removeElement( iElement);
-      iElement.remove();
-    });
-    this.myElements = null;
+    if( this.myElements) {
+      var tLayerManager = this.getPath('paperSource.layerManager');
+      this.myElements.forEach(function (iElement) {
+        tLayerManager.removeElement(iElement);
+        iElement.remove();
+      });
+      this.myElements = null;
+    }
   },
   
   /**
