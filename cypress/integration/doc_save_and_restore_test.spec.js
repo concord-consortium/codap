@@ -45,7 +45,7 @@ context('Tile variety', () => {
     casecard.getCaseCardTile().should('be.visible').and('contain', '1–9 ');
   })
 
-  it('verify web page restore', () => {
+  it.skip('verify web page restore', () => {
     cy.getWebviewIframe().last().find('.logo').should('be.visible')
   })
   it('verify text box restore', () => {
