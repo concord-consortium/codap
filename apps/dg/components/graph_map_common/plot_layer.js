@@ -619,8 +619,8 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
             tRC = this.createRenderContext(),
             tPlottedElements = this.get('plottedElements');
 
-        if (SC.none(tCases))
-          return; // No cases, nothing to draw
+        if (SC.none(tCases) || !tRC)
+          return; // No cases, nothing to draw or can't create render context
 
         // remove invalid case elements
         this._mustMoveElementsToNewCoordinates = false;
