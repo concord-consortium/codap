@@ -568,8 +568,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (SC.none(tComponentView) ||
           !tContentWidth ||
           !tFrameWidth ||
-          tContentWidth === tFrameWidth ||
-          tIsAnimating) {
+          tContentWidth === tFrameWidth ) {
         return;
       }
 
@@ -580,6 +579,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
           && Number(tFrameWidth) !== Number(tContentWidth)
           && changeAgent === 'frame'
           && tContentHasBeenSeen
+          && !tIsAnimating
       ) {
         this.expandRightmostColumn(tFrameWidth, tContentWidth);
         tContentWidth = this.getPath('contentView.frame.width');
