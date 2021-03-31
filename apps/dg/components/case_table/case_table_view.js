@@ -1818,15 +1818,25 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         var width = $el.width();
         var height = $el.height();
         var v1 = $('.two-line-header-line-1', $el);
-        var style = ['font-style:' + v1.css(
-            'font-style'), 'font-variant:' + v1.css(
-            'font-variant'), 'font-weight:' + v1.css(
-            'font-weight'), 'font-stretch:' + v1.css(
-            'font-stretch'), 'line-height:' + v1.css(
-            'line-height'), 'font-size:' + v1.css(
-            'font-size'), 'font-family:' + v1.css(
-            'font-family'), 'width:' + width + 'px', 'height:' + height + 'px', 'overflow: auto', 'hyphens: auto', 'white-space: normal'].join(
+        var style = [
+          'font-style:' + v1.css('font-style'),
+          'font-variant:' + v1.css('font-variant'),
+          'font-weight:' + v1.css('font-weight'),
+          'font-stretch:' + v1.css('font-stretch'),
+          'line-height:' + v1.css('line-height'),
+          'font-size:' + v1.css('font-size'),
+          'font-family:' + v1.css('font-family'),
+          'width:' + width + 'px',
+          'height:' + height + 'px',
+          'overflow: auto',
+          'white-space: normal',
+          '-webkit-hyphens: auto',
+          '-ms-hyphens: auto',
+          'hyphens: auto',
+          'overflow-wrap: break-word'
+          ].join(
             ';');
+
         var text = v1.text();
         var textMeasure = DG.measureText(text, style);
         // DG.log('text, height, width, textMeasure.height, textMeasure.width, ' +

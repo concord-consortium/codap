@@ -65,9 +65,10 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   display: block;
   text-align: left;
   white-space: normal;
-  -moz-hyphens: auto;
+  -ms-hyphens: auto;
   -webkit-hyphens: auto;
   hyphens: auto;
+  overflow-wrap: break-word;
   height: 2.4em;
   overflow: hidden;
 }
