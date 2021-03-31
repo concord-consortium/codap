@@ -78,19 +78,19 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
         break
     case ('card') :
         source_el=el.caseCardHeader;
-        break   
+        break
     case ('x1') :
         source_el=el.x_axis;
-        break 
+        break
     case ('x') :
         source_el=el.x_axis_label;
         break
     case ('y1') :
         source_el=el.y_axis;
-        break     
+        break
     case ('y') :
         source_el=el.y_axis_label;
-        break     
+        break
   }
 
   switch(target) {
@@ -102,38 +102,45 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
         break
     case ('card collection') :
         target_el=el.caseCardCollectionDropZone;
-        break               
+        break
     case ('graph_legend') :
         target_el=el.graphTile;
-        break  
+        break
     case ('map') :
         target_el=el.mapTile;
-        break  
+        break
     case ('x1') :
         target_el=el.x_axis;
-        break          
+        break
     case ('x') :
         target_el=el.x_axis_label;
         break
     case ('y1') :
         target_el=el.y_axis;
-        break      
+        break
     case ('y') :
         target_el=el.y_axis_label;
         break
     case('newCollection'):
         target_el=el.newCollection;
-        break        
+        break
   }
   cy.get(source_el).contains(attribute)
       .trigger('mousedown', {which:1},{dt})
       .trigger('dragstart', {dt})
-  cy.get(target_el).eq(num)
+  cy.get(target_el).eq(num).scrollIntoView()
       .trigger('mousemove',{force:true}, {which:1},{dt})
       .trigger('mousemove', {force:true},{which:1},{dt})
       .trigger('mouseup', {force:true}, {which:1}, {dt})
 });
 
+Cypress.Commands.add("resizeTile", (num) => {
+  cy.get(".dg-component-resize-handle").eq(num)
+    .trigger('mousedown', {force:true})
+    .trigger('mousemove', 200,0, {force: true})
+    .trigger('dragend', {force:true})
+    .trigger('mouseup', {force:true});
+});
 // With current implementation of the cy.getPluginIframe and cy.getWebviewIframe custom command, only one iframe can be open
 Cypress.Commands.add("getPluginIframe", () => {
   return cy.get(".dg-web-view-frame iframe").iframe()

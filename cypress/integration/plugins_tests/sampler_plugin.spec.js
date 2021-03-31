@@ -30,7 +30,7 @@ describe('Sampler plugin', function () {
       table.getCell(1, 1, 0).find('.dg-numeric').should('contain', 1)
     })
     table.getCollection().eq(2).within(function () {
-      table.getCell(1, 1, 0).find('.dg-numeric').should('not.contain', '')
+      table.getCell(1, 1, 0).should('contain', 'a')
     })
   })
 })

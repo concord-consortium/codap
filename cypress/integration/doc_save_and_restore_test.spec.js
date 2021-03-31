@@ -46,7 +46,7 @@ context('Tile variety', () => {
   })
 
   it('verify web page restore', () => {
-    cy.getWebviewIframe().last().find('.concord-logo').should('be.visible')
+    cy.getWebviewIframe().last().find('.logo').should('exist')
   })
   it('verify text box restore', () => {
     textTile.getTextTile().should('be.visible');

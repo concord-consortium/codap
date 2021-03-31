@@ -75,25 +75,61 @@ context('table tile component functionality', ()=>{ //tests for general table co
     it('verify case card switches to table when table icon is clicked', ()=>{
         casecard.changeToTable();
         table.getCaseTableTile().should('be.visible')
+        cy.wait(2000);
     })
     //TODO: can't get the close icon to be visible
-    it.skip('verify table closes when close icon is clicked',()=>{
-        codap.closeTile('table','Table C');
+    it('verify table closes when close icon is clicked',()=>{
+        codap.closeTile('table','TableC');
+        cy.wait(2000);
         codap.getTableTile().should('not.be.visible');
     })
-    it.skip('verify table re-opens with correct data when table title is selected from table menu', ()=>{
-        codap.openTile('table','Table C');
+    it('verify table re-opens with correct data when table title is selected from table menu', ()=>{
+        codap.openTile('table','TableC');
         codap.getTableTile().should('be.visible');
         table.getCaseCardIcon().should('be.visible');
-        table.getAddNewAttributePlusIcon('Table C').should('be.visible');
-        table.getCollection().should('be.visible').and('have.length', 1);
-        table.getCollectionTitle().contains('Table C').should('be.visible')
-        table.getIndex().should('have.length', 34)
+        // table.getAddNewAttributePlusIcon('TableC').should('be.visible');
+        table.getCollection().should('exist').and('have.length', 1);
+        table.getCollectionTitle().contains('179 cases').should('exist')
+        table.getIndex().should('have.length', 61)
     })
 })
 
 context('table view functionality', ()=>{ //tests for table view/slick grid elements
-    describe('table header attribute menu', ()=>{
+  describe('reorder attribute',()=>{ //TODO: need to figure out how to verify order of columns
+    before(()=>{
+      cy.resizeTile(0);
+    })
+    it('verify attribute reorder within a collection',()=>{
+        cy.dragAttributeToTarget('table','CNUM1', 'table',2)
+        table.getAttributeHeader().eq(2).should('contain','CNUM1')
+    })
+    it('verify attribute create new leftmost collection',()=>{
+        var collectionName='CCAT1S'
+        cy.dragAttributeToTarget('table','CCAT1', 'newCollection')
+        table.getCollectionTitle().should('have.length', 2);
+        table.getCollectionByName(collectionName).should('be.visible')
+    })
+    it('verify create new collection between collections',()=>{
+        var collectionName="CCAT2S"
+        cy.dragAttributeToTarget('table','CCAT2', 'newCollection', 1)
+        table.getCollectionTitle().should('have.length', 3);
+        table.getCollectionByName(collectionName).should('be.visible')
+    })
+    it('verify remove of middle collection',()=>{
+        var collectionName="CCAT2S"
+        cy.dragAttributeToTarget('table','CCAT2', 'table',6)
+        table.getCollectionTitle().should('have.length', 2);
+        table.getCollectionByName(collectionName).should('not.exist')
+    })
+    it('verify remove of leftmost collection',()=>{
+        var collectionName="CCAT1S"
+        cy.dragAttributeToTarget('table','CCAT1', 'table',3)
+        table.getCollectionTitle().should('have.length', 1);
+        table.getCollectionByName(collectionName).should('not.exist')
+    })
+  })
+
+  describe('table header attribute menu', ()=>{
         let name = 'formAttr'
         it('verify add attribute',()=>{
             table.addNewAttribute('cases');
@@ -160,36 +196,7 @@ context('table view functionality', ()=>{ //tests for table view/slick grid elem
             table.getColumnHeader().should('have.length',6);
         })
     })
-    describe('reorder attribute',()=>{ //TODO: need to figure out how to verify order of columns
-        it('verify attribute reorder within a collection',()=>{
-            cy.dragAttributeToTarget('table','CNUM1', 'table',2)
-            table.getAttributeHeader().eq(2).should('contain','CNUM1')
-        })
-        it('verify attribute create new leftmost collection',()=>{
-            var collectionName='CCAT1S'
-            cy.dragAttributeToTarget('table','CCAT1', 'newCollection')
-            table.getCollectionTitle().should('have.length', 2);
-            table.getCollectionByName(collectionName).should('be.visible')
-        })
-        it('verify create new collection between collections',()=>{
-            var collectionName="CCAT2S"
-            cy.dragAttributeToTarget('table','CCAT2', 'newCollection', 1)
-            table.getCollectionTitle().should('have.length', 3);
-            table.getCollectionByName(collectionName).should('be.visible')
-        })
-        it('verify remove of middle collection',()=>{
-            var collectionName="CCAT2S"
-            cy.dragAttributeToTarget('table','CCAT2', 'table',6)
-            table.getCollectionTitle().should('have.length', 2);
-            table.getCollectionByName(collectionName).should('not.exist')
-        })
-        it('verify remove of leftmost collection',()=>{
-            var collectionName="CCAT1S"
-            cy.dragAttributeToTarget('table','CCAT1', 'table',6)
-            table.getCollectionTitle().should('have.length', 1);
-            table.getCollectionByName(collectionName).should('not.exist')
-        })
-    })
+
 
     describe('index menu',()=>{
        it('verify index column cannot be reordered',()=>{
