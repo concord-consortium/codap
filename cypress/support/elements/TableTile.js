@@ -6,16 +6,12 @@ class TableTileObject{
     getCaseTableTile(){
         return cy.get('.dg-hier-table-view');
     }
-    getCollection(){
-        return cy.get('.dg-case-table')
-    }
     getAttributeHeader(){
         return cy.get('.slick-column-name .two-line-header-line-1')
     }
     getCaseCardIcon(){
         return cy.get('.dg-card-icon')
     }
-
     getAddNewAttributePlusIcon(collection){
         return cy.get('.dg-case-table-title').contains(collection).siblings('.dg-floating-plus')
     }

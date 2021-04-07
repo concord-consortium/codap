@@ -10,24 +10,24 @@ const codap = new CodapObject;
 
 const baseUrl = `${Cypress.config("baseUrl")}`;
 
-before(()=>{
+beforeEach(()=>{
     // cy.visit(baseUrl+"?url=https://codap.concord.org/~eireland/"+codapDoc)
     var filename = '3TableGroups',
       ext = ".codap",
       dir = '../fixtures/';
-      
+
     cy.visit(baseUrl)
     cfm.openDocFromModal();
     cfm.openLocalDoc(dir + filename + ext);
     cy.wait(2000)
-})                
+})
 
 context('will test graph ruler functions', ()=>{
     it('will test num univariate plot', ()=>{
         var hash = [{attribute: 'ANUM1', axis:'x1', collection:'Table A', length:1}]
         codap.openTile('graph');
         cy.wait(2000)
-        hash.forEach((hash)=>{ 
+        hash.forEach((hash)=>{
             cy.dragAttributeToTarget('table',hash.attribute, hash.axis)
             graph.clickRulerTool();
             graph.turnOnRulerTool('count')
@@ -56,7 +56,10 @@ context('will test graph ruler functions', ()=>{
                 cy.wait(4000)
                 cy.matchImageSnapshot('n_'+hash.attribute+'_on_'+hash.axis+'_unadorned');
             })
-            codap.closeTile('graph','Table C');
+            // cy.get(".dg-graph-view").siblings('.dg-titlebar').children('.dg-titleview').contains("Table C").siblings('.dg-close-icon')
+            // .click({force:true})
+            // cy.wait(2000);
+            // codap.closeTile('graph','Table C');
     })
     it('will test cat v cat shows count and percent', ()=>{
         var hash = [{attribute: 'ACAT1', axis:'x1', collection:'Table A', length:3},
@@ -65,7 +68,7 @@ context('will test graph ruler functions', ()=>{
                     {attribute:'CCAT1', axis:'y', collection:'Table C', length:8}]
         codap.openTile('graph');
         cy.wait(2000)
-        hash.forEach((hash)=>{ 
+        hash.forEach((hash)=>{
             cy.dragAttributeToTarget('table',hash.attribute, hash.axis)
             graph.clickRulerTool();
             graph.turnOnRulerTool('count')
@@ -76,7 +79,7 @@ context('will test graph ruler functions', ()=>{
             graph.getCountAdorn().should('have.length',hash.length) //count adorment should still be present
             graph.turnOffRulerTool('count')
             graph.getCountAdorn().should('not.be.visible')
-        }) 
+        })
         codap.closeTile('graph','Table C');
         //TODO: need to test the different percent settings
     })
@@ -88,7 +91,7 @@ context('will test graph ruler functions', ()=>{
                     {attribute: 'ACAT1', axis:'x', collection:'Table A'}]
         codap.openTile('graph');
         cy.wait(2000)
-        hash.forEach((hash, idx)=>{    
+        hash.forEach((hash, idx)=>{
             cy.dragAttributeToTarget('table',hash.attribute, hash.axis)
             if (idx===0) {cy.dragAttributeToTarget('table',hash.attribute2, hash.axis2)}
             graph.clickRulerTool();
@@ -101,7 +104,7 @@ context('will test graph ruler functions', ()=>{
                 graph.getValueFormulaLabel().click();
                 graph.enterFormula('55');
                 graph.clickRulerTool();
-            } 
+            }
             graph.getMovableValueButton().click();
             cy.clickMenuItem('Add');
             cy.wait(1000)
@@ -118,7 +121,7 @@ context('will test graph ruler functions', ()=>{
             cy.clickMenuItem('Remove');
             cy.wait(4000)
             cy.matchImageSnapshot('c_v_n_'+hash.attribute+'_on_'+hash.axis+'_unadorned');
-        }) 
+        })
         codap.closeTile('graph','Table C');
     })
     it('will test num v num ruler adorments', ()=>{
@@ -128,7 +131,7 @@ context('will test graph ruler functions', ()=>{
                     {attribute: 'ANUM1', axis:'x', collection:'Table A'}]
         codap.openTile('graph');
         cy.wait(2000)
-        hash.forEach((hash, idx)=>{    
+        hash.forEach((hash, idx)=>{
             cy.dragAttributeToTarget('table',hash.attribute, hash.axis)
             if (idx===0) {cy.dragAttributeToTarget('table',hash.attribute2, hash.axis2)}
             graph.clickRulerTool();
@@ -144,13 +147,13 @@ context('will test graph ruler functions', ()=>{
                 graph.getValueFormulaLabel().click();
                 graph.enterFormula('x*x/30-50');
                 graph.clickRulerTool();
-            } 
+            }
             graph.turnOnRulerTool('plottedValue')
             if (idx===0) {
                 graph.getValueFormulaLabel().click();
                 graph.enterFormula('55');
                 graph.clickRulerTool();
-            } 
+            }
             graph.turnOnRulerTool('squares')
             cy.wait(4000)
             cy.matchImageSnapshot('n_v_n_'+hash.attribute+'_on_'+hash.axis+'_adorned');
@@ -168,7 +171,7 @@ context('will test graph ruler functions', ()=>{
             graph.turnOffRulerTool('squares')
             cy.wait(4000)
             cy.matchImageSnapshot('n_v_n_'+hash.attribute+'_on_'+hash.axis+'_unadorned');
-        }) 
+        })
         codap.closeTile('graph','Table C');
     })
 
@@ -198,7 +201,7 @@ context('will test graph ruler functions', ()=>{
             cy.wait(1000)
             graph.getMeanLine().should('be.visible').and('have.length',1);
             graph.getMeanLine().last().click()
-            cy.get('.dg-graph-view svg path[stroke="#0000ff"]').last().trigger('mouseover').then(()=>{    
+            cy.get('.dg-graph-view svg path[stroke="#0000ff"]').last().trigger('mouseover').then(()=>{
                 graph.getGraphAdornmentText().should('contain','mean=−0.24')
             })
             cy.matchImageSnapshot('p_'+hash[1].attribute+'_on_'+hash[1].axis+'_adorned');
@@ -285,7 +288,7 @@ context('will test graph ruler functions', ()=>{
         })
     afterEach(()=>{
         codap.closeTile('graph','Table C');
-    })    
+    })
     })
 })
 
