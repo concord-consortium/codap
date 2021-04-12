@@ -45,25 +45,32 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         return this._shadingLayer;
       }.property(),
 
-      /**
-       * @property {[Element]}
+      /** The object has category names as property names and an object of this form for values:
+       * { category: { shadingRegions: {Element[]}, shadingCounts: {Element[]}}}
+       * @property {Object}
        */
-      shadingElements: null,
+      shadingElementsObject: null,
 
       /**
-       * @property {[Element]}
+       * @property {DG.CellLinearAxisView}
        */
-      countElements: null,
+      valueAxisView: null,
 
-      isShowingCountElements: function () {
+      /**
+       @property { DG.CellAxisView }
+       */
+      splitAxisView: function() {
+        return this.getPath('parentView.secondaryAxisView');
+      }.property(),
+
+      isShowingCountsOrPercents: function () {
         return this.getPath('model.isShowingCount') || this.getPath('model.isShowingPercent');
       }.property(),
 
       init: function () {
         sc_super();
         this.set('valueAdornments', []);
-        this.set('shadingElements', []);
-        this.set('countElements', []);
+        this.set('shadingElements', {});
       },
 
       destroy: function () {
@@ -79,8 +86,9 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
 
        @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
        */
-      modelPropertiesToObserve: [['values', 'updateToModel'],
-        ['isShowingCount', 'updateToModel'], ['isShowingPercent', 'updateToModel']],
+      modelPropertiesToObserve: [['valueChange', 'updateToModel'],
+        ['isShowingCount', 'updateToModel'], ['isShowingPercent', 'updateToModel'],
+        ['valueModels', 'numberOfValuesChanged'], ['countPercentsObject', 'numberOfValuesChanged']],
 
       valueAxisViewDidChange: function() {
         var tNewView = this.get('valueAxisView');
@@ -92,55 +100,40 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
       }.observes('valueAxisView'),
 
       createElements: function () {
-        var removeElement = function () {
-              tCountLayer.prepareToMoveOrRemove(this);
-              this.remove();
-            },
-            tMyElements = this.get('myElements'),
-            tShadingElements = this.get('shadingElements'),
-            tCountElements = this.get('countElements'),
+        var tMyElements = this.get('myElements'),
+            tShadingElementsObject = {},
             tShadingLayer = this.get('shadingLayer'),
             tCountLayer = this.get('layer'),
-            tNumValues = this.getPath('model.values').length,
+            tNumValues = this.getPath('model.valueModels').length,
             tNumRegions = (tNumValues === 1) ? 0 : Math.ceil(tNumValues / 2),
-            tNumCounts = this.get('isShowingCountElements') ? (tNumValues === 0 ? 0 : tNumValues + 1) : 0,
+            tNumCounts = tNumValues === 0 ? 0 : tNumValues + 1,
             tAnchor = this.getPath('valueAxisView.orientation') === DG.GraphTypes.EOrientation.kHorizontal ?
-                'middle' : 'end',
-            tElement;
-        while (tShadingElements.length < tNumRegions) {
-          var tNewRegion = this.get('paper').rect(0, 0, 0, 0)
-              .attr({'opacity': 0})
-              .addClass('dg-movable-shaded');
-          tShadingLayer.push(tNewRegion);
-          tMyElements.push(tNewRegion);
-          tShadingElements.push(tNewRegion);
-          tNewRegion.animate({'opacity': DG.PlotUtilities.kMovableRegionOpacity},
-              DG.PlotUtilities.kDefaultAnimationTime, '<>');
-        }
-        while (tShadingElements.length > tNumRegions) {
-          tElement = tShadingElements.pop();
-          tShadingLayer.prepareToMoveOrRemove( tElement);
-          DG.ArrayUtils.remove(tMyElements, tElement);
-          tElement.animate({'opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
-              removeElement);
-        }
-
-        while (tCountElements.length < tNumCounts) {
-          var tNewText = this.get('paper').text(0, 0, '')
-              .attr({'opacity': 0, 'text-anchor': tAnchor})
-              .addClass('dg-graph-adornment');
-          tCountLayer.push(tNewText);
-          tMyElements.push(tNewText);
-          tCountElements.push(tNewText);
-          tNewText.animate({'opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-        }
-        while (tCountElements.length > tNumCounts) {
-          tElement = tCountElements.pop();
-          tCountLayer.prepareToMoveOrRemove( tElement);
-          DG.ArrayUtils.remove(tMyElements, tElement);
-          tElement.animate({'opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
-              removeElement);
-        }
+                'middle' : 'end';
+        DG.ObjectMap.forEach(this.getPath('model.countPercentsObject'), function (iCat, iObj) {
+          tShadingElementsObject[iCat] = { shadingRegions: [], shadingCounts: []};
+          var tShadingRegions = tShadingElementsObject[iCat].shadingRegions;
+          while (tShadingRegions.length < tNumRegions) {
+            var tNewRegion = this.get('paper').rect(0, 0, 0, 0)
+                .attr({'opacity': 0})
+                .addClass('dg-movable-shaded');
+            tShadingLayer.push(tNewRegion);
+            tMyElements.push(tNewRegion);
+            tShadingRegions.push(tNewRegion);
+            tNewRegion.animate({'opacity': DG.PlotUtilities.kMovableRegionOpacity},
+                DG.PlotUtilities.kDefaultAnimationTime, '<>');
+          }
+          var tCountElements = tShadingElementsObject[iCat].shadingCounts;
+          while (tCountElements.length < tNumCounts) {
+            var tNewText = this.get('paper').text(0, 0, '')
+                .attr({'opacity': 0, 'text-anchor': tAnchor})
+                .addClass('dg-graph-adornment');
+            tCountLayer.push(tNewText);
+            tMyElements.push(tNewText);
+            tCountElements.push(tNewText);
+            tNewText.animate({'opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+          }
+        }.bind(this));
+        this.set('shadingElementsObject', tShadingElementsObject);
       },
 
       /**
@@ -153,8 +146,15 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         if( !tPaper)
           return; //Not ready yet
 
-        var adjustNumberOfAdornments = function () {
-              var tValues = this.getPath('model.values');
+        var getCellNames = function() {
+              var tNames = this.getPath('model.plotModel.secondaryAxisModel.attributeDescription.cellNames');
+              if (!tNames || tNames.length === 0)
+                tNames = [DG.MovableValueModel.kSingleCellName];
+              return tNames;
+            }.bind(this),
+
+            adjustNumberOfAdornments = function () {
+              var tValues = this.getPath('model.valueModels');
               while (tValues.length > tAdornments.length) {
                 var tNewAdorn = DG.MovableValueAdornment.create({
                   parentView: this.get('parentView'),
@@ -179,39 +179,40 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
             }.bind(this),
 
             adjustShadedRegions = function () {
-              // Sort them so that shaded regions work properly
-              tAdornments.sort(function (iA1, iA2) {
-                return iA1.get('value') - iA2.get('value');
-              });
-
-              this.createElements();
-
               if (tAdornments.length > 1) {
-                // Update the shaded regions
-                var tX, tY, tWidth, tHeight;
-                tAdornments.forEach(function (iAdornment, iIndex) {
-                  if (iIndex % 2 === 0) {
-                    var tLabelSpace = iAdornment.get('kLabelSpace'),
-                        tRegion = this.shadingElements[iIndex / 2],
-                        tScreenCoord = iAdornment.get('screenCoord');
-                    if (iAdornment.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal) {
-                      var tRight = iIndex === tAdornments.length - 1 ? tPaper.width :
-                          tAdornments[iIndex + 1].get('screenCoord');
-                      tX = tScreenCoord;
-                      tY = tLabelSpace / 2;
-                      tWidth = tRight - tScreenCoord;
-                      tHeight = tPaper.height - tLabelSpace / 2;
+                tCellNames.forEach(function (iCat) {
+                  var tScreenCoords = tAdornments.map(function (iAdorn) {
+                    return iAdorn.screenCoord(iCat);
+                  });
+                  // Sort them so that shaded regions work properly
+                  tScreenCoords.sort(function(a,b) { return a-b; });
+                  // Update the shaded regions
+                  var tX, tY, tWidth, tHeight;
+                  tScreenCoords.forEach(function (iCoord, iIndex) {
+                    if (iIndex % 2 === 0) {
+                      var tLabelSpace = DG.MovableValueAdornment.kLabelSpace,
+                          tRegion = this.shadingElementsObject[iCat].shadingRegions[iIndex / 2],
+                          tCellCoord = tSplitAxisView && tSplitAxisView.cellNameToCoordinate(iCat);
+                      if(!DG.isFinite(tCellCoord))
+                        tCellCoord = tCellExtent / 2;
+                      if (this.getPath('valueAxisView.orientation') === DG.GraphTypes.EOrientation.kHorizontal) {
+                        var tRight = iIndex === tScreenCoords.length - 1 ? tPaper.width :
+                            tScreenCoords[iIndex + 1];
+                        tX = iCoord;
+                        tY = tCellCoord - tCellExtent / 2 + tLabelSpace / 2;
+                        tWidth = Math.abs(tRight - iCoord);
+                        tHeight = Math.abs(tCellExtent - tLabelSpace / 2);
+                      } else {
+                        var tNextY = (iIndex === tScreenCoords.length - 1) ? 0 :
+                            tScreenCoords[iIndex + 1];
+                        tX = tCellCoord - tCellExtent / 2;
+                        tY = iCoord;
+                        tWidth = Math.abs(tCellExtent - tLabelSpace);
+                        tHeight = Math.abs(tNextY - iCoord);
+                      }
+                      tRegion.attr({x: tX, y: tY, width: tWidth, height: tHeight});
                     }
-                    else {
-                      var tNextY = (iIndex === tAdornments.length - 1) ? 0 :
-                          tAdornments[iIndex + 1].get('screenCoord');
-                      tX = 0;
-                      tY = tNextY;
-                      tWidth = tPaper.width - tLabelSpace;
-                      tHeight = tScreenCoord - tNextY;
-                    }
-                    tRegion.attr({x: tX, y: tY, width: tWidth, height: tHeight});
-                  }
+                  }.bind(this));
                 }.bind(this));
               }
             }.bind(this),
@@ -237,32 +238,79 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
 
               var tAxisView = this.get('valueAxisView'),
                   tOrientation = tAxisView.get('orientation'),
-                  tLabelSpace = tAdornments.length > 0 ? tAdornments[0].get('kLabelSpace') : 0,
+                  tLabelSpace = tAdornments.length > 0 ? DG.MovableValueAdornment.kLabelSpace : 0,
                   tShowCount = this.getPath('model.isShowingCount'),
                   tShowPercent = this.getPath('model.isShowingPercent'),
-                  tCountElements = this.get('countElements'),
-                  tCountPercents = this.getPath('model.countPercents');
-              tCountPercents.forEach(function (iObj, iIndex) {
-                var tLowerCoord = tAxisView.dataToCoordinate(iObj.lower),
-                    tUpperCoord = tAxisView.dataToCoordinate(iObj.upper),
-                    tY = tOrientation === DG.GraphTypes.EOrientation.kHorizontal ? tLabelSpace / 2 + 12 :
-                        (tLowerCoord + tUpperCoord) / 2,
-                    tX = tOrientation === DG.GraphTypes.EOrientation.kHorizontal ? (tLowerCoord + tUpperCoord) / 2 : tPaper.width - 5;
-                tCountElements[iIndex].attr({x: tX, y: tY, text: formatValueString(iObj)});
+                  tCountPercentsObject = this.getPath('model.countPercentsObject');
+              DG.ObjectMap.forEach(tCountPercentsObject, function (iKey, iCountPercentsArray) {
+                var tCountElements = this.shadingElementsObject[iKey].shadingCounts,
+                    tCellCoord = tSplitAxisView.cellNameToCoordinate(iKey);
+                if( !DG.isFinite(tCellCoord))
+                  tCellCoord = tCellExtent / 2;
+                iCountPercentsArray.forEach(function (iCountPercentObj, iIndex) {
+                  var tLowerCoord = tAxisView.dataToCoordinate(iCountPercentObj.lower),
+                      tUpperCoord = tAxisView.dataToCoordinate(iCountPercentObj.upper),
+                      tY = tOrientation === DG.GraphTypes.EOrientation.kHorizontal ?
+                          tCellCoord - tCellExtent / 2 + tLabelSpace / 2 + 12 :
+                          (tLowerCoord + tUpperCoord) / 2,
+                      tX = tOrientation === DG.GraphTypes.EOrientation.kHorizontal ?
+                          (tLowerCoord + tUpperCoord) / 2 :
+                          tCellCoord + tCellExtent / 2 - 5;
+                  tCountElements[iIndex].attr({x: tX, y: tY, text: formatValueString(iCountPercentObj)});
+                }.bind(this));
               }.bind(this));
 
-            }.bind(this);
+            }.bind(this),
+
+        hideShowPercentsAndCounts = function(iShow) {
+          DG.ObjectMap.forEach(tCountPercentsObject, function (iKey, iCountPercentsArray) {
+            var tCountElements = this.shadingElementsObject[iKey].shadingCounts;
+            tCountElements.forEach( function( iElement) {
+              if(iShow)
+                iElement.show();
+              else
+                iElement.hide();
+            });
+          }.bind(this));
+        }.bind(this);
 
         // begin updateToModel
+        var tCellNames = getCellNames(),
+            tSplitAxisView = this.get('splitAxisView'),
+            tCellExtent = tSplitAxisView && tSplitAxisView.get('fullCellWidth'),
+            tCountPercentsObject = this.getPath('model.countPercentsObject'),
+            tShadingElementsObject = this.get('shadingElementsObject');
         this.get('model').recomputeValueIfNeeded();
         adjustNumberOfAdornments();
         tAdornments.forEach(function (iValueAdornment) {
           iValueAdornment.updateToModel();
         });
+        if( this.get('myElements').length === 0 ||
+            tCellNames.some(function(iName) {
+              return !tShadingElementsObject[iName];  // signifying it's out of date
+            }) ||
+            Object.keys(tShadingElementsObject).some(function( iKey) {
+              return tCellNames.indexOf(iKey) < 0;  // again, it's out of date
+            })
+        ) {
+          this.removeElements();
+          this.myElements = [];
+          this.createElements();
+        }
 
         adjustShadedRegions();
-        if (this.get('isShowingCountElements'))
+        if (this.get('isShowingCountsOrPercents')) {
           adjustPercentsAndCounts();
+          hideShowPercentsAndCounts(true);
+        }
+        else
+          hideShowPercentsAndCounts(false);
+      },
+
+      numberOfValuesChanged: function() {
+        this.removeElements();  // Force recomputation from scratch
+        this.myElements = [];
+        this.updateToModel();
       }
 
     });

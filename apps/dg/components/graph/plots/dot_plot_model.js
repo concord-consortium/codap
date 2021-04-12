@@ -60,7 +60,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
        * @property {Boolean}
        */
       isShowingMovableValues: function () {
-        return this.getPath('multipleMovableValuesModel.values').length > 0;
+        return this.getPath('multipleMovableValuesModel.valueModels').length > 0;
       }.property(),
 
       /**
@@ -74,7 +74,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
       destroy: function () {
         var tMultipleMovableValues = this.getAdornmentModel('multipleMovableValues');
         if (tMultipleMovableValues) {
-          tMultipleMovableValues.removeObserver('values', this, 'valuesDidChange');
+          tMultipleMovableValues.removeObserver('valueModels', this, 'valuesDidChange');
         }
         sc_super();
       },
@@ -155,7 +155,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
               function addMovableValueToPlot( iPlot, iIndexMinusOne) {
                 var tIndex = iIndexMinusOne + 1,
                     tMultipleMovableValues = iPlot.get('multipleMovableValuesModel'),
-                    tNumAlreadyShowing = tMultipleMovableValues.get('values').length,
+                    tNumAlreadyShowing = tMultipleMovableValues.get('valueModels').length,
                     tPlottedCount = iPlot.get('plottedCount'), // from base class
                     tBaseClassCountIsShowing = (tNumAlreadyShowing === 0) && tPlottedCount &&
                         tPlottedCount.get('isShowingCount'),
@@ -218,7 +218,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
             tRootMMVs = this.getAdornmentModel('multipleMovableValues'),
             tShowing = { count: tRootMMVs.get('isShowingCount'),
               percent: tRootMMVs.get('isShowingPercent')},
-            tNumShowing = tRootMMVs.get('values').length,
+            tNumShowing = tRootMMVs.get('valueModels').length,
             tRemovedValues = [];
 
             function doRemoveMovableValue() {
