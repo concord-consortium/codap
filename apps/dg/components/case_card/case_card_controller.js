@@ -122,6 +122,7 @@ DG.CaseCardController = DG.CaseDisplayController.extend(
       createInspectorButtons:  function () {
         var tButtons = sc_super();
 
+        tButtons.push(this.createInfoButton());
         tButtons.push(this.createTrashButton());
         tButtons.push(this.createHideShowButton());
         tButtons.push(this.createRulerButton());

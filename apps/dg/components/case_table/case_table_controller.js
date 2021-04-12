@@ -1254,6 +1254,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
        */
       createInspectorButtons: function() {
         var tButtons = sc_super();
+        tButtons.push(this.createInfoButton());
         // rescale item
         tButtons.push(DG.IconButton.create({
           layout: {width: 32, left: 0, height: 25},
