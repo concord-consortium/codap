@@ -359,12 +359,13 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     getDataItemCount: function() {
-      return this._clientToItemIndexMap.length;
+      return this.getDataItems().length;
     },
 
     getDataItems: function() {
       return this._clientToItemIndexMap
-              .map(function(index) { return this.dataItems[index]; }.bind(this));
+          .map(function(index) { return this.dataItems[index]; }.bind(this))
+          .filter(function (item) {return !item.deleted;});
     },
 
     /**
