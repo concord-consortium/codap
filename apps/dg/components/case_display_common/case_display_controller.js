@@ -109,6 +109,19 @@ DG.CaseDisplayController = DG.ComponentController.extend(
             });
       },
 
+      createInfoButton: function () {
+        return DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'dg-display-dataset-info'.w(),
+          iconClass: 'moonicon-icon-info',
+          showBlip: true,
+          target: this,
+          action: 'showInfoPopup',
+          toolTip: 'DG.Inspector.datasetInfo.toolTip',  // "Show information about dataset"
+          localize: true
+        });
+      },
+
       createHideShowButton: function () {
         return DG.IconButton.create({
           layout: {width: 32},
@@ -256,6 +269,11 @@ DG.CaseDisplayController = DG.ComponentController.extend(
               items: tItems
             });
         tMenu.popup(this.get('inspectorButtons')[0]);
+      },
+
+      showInfoPopup: function () {
+        var attributePane = DG.DatasetMetadataView.create({dataContext: this.dataContext});
+        attributePane.append();
       },
 
       /**
