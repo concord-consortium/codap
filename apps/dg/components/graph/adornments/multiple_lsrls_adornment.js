@@ -65,6 +65,11 @@ DG.MultipleLSRLsAdornment = DG.PlotAdornment.extend(
 
         var adjustNumberOfAdornments = function () {
               var tLSRLs = this.getPath('model.lsrls');
+              tAdornments.forEach( function( iAdornment, iIndex) {
+                if( iIndex < tLSRLs.length) {
+                  iAdornment.set('model', tLSRLs[iIndex]);
+                }
+              })
               while (tLSRLs.length > tAdornments.length) {
                 var tNewAdorn = DG.LSRLAdornment.create({
                   parentView: this.get('parentView'),

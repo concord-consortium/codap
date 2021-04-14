@@ -254,7 +254,7 @@ DG.ColorUtilities = {
    */
   getCategoryColorFromColorMap: function (iColorMap, iCaseValue) {
     if (iColorMap) {
-      var tColorValue = iColorMap[iCaseValue];
+      var tColorValue = iColorMap[iCaseValue] || '#000000';
       if (typeof tColorValue === 'string') {
         tColorValue = {colorString: tColorValue};    // {string} Rafael-compatible color value
       }
