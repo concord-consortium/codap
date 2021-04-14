@@ -638,7 +638,6 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
                     title: 'DG.Inspector.graphAdd'.loc(),
                     target: this,
                     action: function() {
-                      tButton.setPath('parentView.parentView.isVisible', false);
                       this.addMovableValue();
                     }
                   },
@@ -646,7 +645,6 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
                     title: 'DG.Inspector.graphRemove'.loc(),
                     target: this,
                     action: function() {
-                      tButton.setPath('parentView.parentView.isVisible', false);
                       this.removeMovableValue();
                     }
                   },
