@@ -159,6 +159,8 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
                     tPlottedCount = iPlot.get('plottedCount'), // from base class
                     tBaseClassCountIsShowing = (tNumAlreadyShowing === 0) && tPlottedCount &&
                         tPlottedCount.get('isShowingCount'),
+                    tBaseClassPercentIsShowing = (tNumAlreadyShowing === 0) && tPlottedCount &&
+                        tPlottedCount.get('isShowingPercent'),
                     tAddedValue = tAddedValues[ tIndex];
                 if (tAddedValue) {
                   tMultipleMovableValues.addThisValue(tAddedValue);
@@ -171,6 +173,10 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
                 if (tBaseClassCountIsShowing) {
                   tPlottedCount.set('isShowingCount', false);
                   tMultipleMovableValues.set('isShowingCount', true);
+                }
+                if (tBaseClassPercentIsShowing) {
+                  tPlottedCount.set('isShowingPercent', false);
+                  tMultipleMovableValues.set('isShowingPercent', true);
                 }
                 iPlot.notifyPropertyChange('movableValueChange');
               }

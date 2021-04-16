@@ -128,10 +128,6 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   */
   _lockZero: false,
 
-  init: function() {
-    sc_super();
-  },
-
   /**
   We set lower and upper bounds without notifying until after the change
   is complete. Since clients rely on notification from the operands, we
