@@ -69,7 +69,39 @@ DG.PlotDataConfiguration = SC.Object.extend(
         }
       },
 
+      /**
+       * Because this can happen during restoreStorage when a restored dataContext is swapped in for
+       * the destroyed one we're holding onto, we need to go through and hook up each attribute
+       * description with the correct collection client and attribute.
+       */
       dataContextDidChange: function () {
+
+        var validateAttributes = function() {
+          var tDataContext = this.get('dataContext'),
+              tDestroyedAttributeExists = this.get('attributesByPlace').some( function( iAttrDescs) {
+                return iAttrDescs && iAttrDescs[0] && iAttrDescs[0].getPath('attribute.isDestroyed');
+              });
+          if( tDestroyedAttributeExists) {
+            ['x', 'y', 'legend', 'y2', 'top', 'right', 'polygon'].forEach(function (iKey) {
+              var tKey = iKey + 'AttributeDescription',
+                  tAttributeDescription = this.get(tKey),
+                  tCurrentAttributes = (tAttributeDescription && tAttributeDescription.get('attributes')) || [],
+                  tValidCollection = tCurrentAttributes.length > 0 ?
+                      tDataContext.getAttrRefByID(tCurrentAttributes[0].id).collection : null,
+                  tValidAttrs = tCurrentAttributes.map(function (iAttr) {
+                    return tDataContext.getAttrRefByID(iAttr.id).attribute;
+                  }),
+                  tValidAttrRefs = {collection: tValidCollection, attributes: tValidAttrs};
+              this.setAttributeAndCollectionClient(tKey, tValidAttrRefs);
+            }.bind(this));
+
+            var tCasesController = this.getPath('collectionClient.casesController');
+            if (!tCasesController.hasObserverFor('selection', this, this.selectionDidChange))
+              tCasesController.addObserver('selection', this, this.selectionDidChange);
+          }
+        }.bind(this);
+
+        validateAttributes();
         this.invalidateCaches();
         this.notifyPropertyChange('defaultTitle');
       }.observes('dataContext'),
@@ -724,7 +756,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
       }.property('xCollectionClient', 'yCollectionClient', 'y2CollectionClient', 'legendCollectionClient', 'hiddenCases'),
 
       selectionDidChange: function() {
-        this.propertyDidChange('selection');
+        this.notifyPropertyChange('selection');
       }.observes('collectionClient.casesController.selection'),
 
       /**

@@ -521,13 +521,20 @@ DG.DocumentHelper = SC.Object.extend(
                 tExistingDataContextRecord = iContext;
             });
             if (tExistingDataContextRecord) {  // We found an existing context with the same ID
-              var tArchiveOfFoundExistingDocContext = tExistingDataContextRecord.toArchive(true /* fullData */);
+              // We don't want a difference in selected cases (contained in contextStorage) to count as a difference
+              var tArchiveOfFoundExistingDocContext = tExistingDataContextRecord.toArchive(true /* fullData */),
+                  tNewContextStorage = iNewDocContext.contextStorage;
+              delete iNewDocContext.contextStorage;
+              delete tArchiveOfFoundExistingDocContext.contextStorage;
               // Is the one we found identical to the one we're moving toward?
               if (JSON.stringify(iNewDocContext) !== JSON.stringify(tArchiveOfFoundExistingDocContext)) {
                 // Something's different.
+                iNewDocContext.contextStorage = tNewContextStorage; // Restore this
                 tDocController.destroyDataContext(tDocContextID);
                 tDocController.createNewDataContext(iNewDocContext);
               }
+              else
+                iNewDocContext.contextStorage = tNewContextStorage; // So selection will be restored
             }
             else {
               tDocController.createNewDataContext(iNewDocContext);
