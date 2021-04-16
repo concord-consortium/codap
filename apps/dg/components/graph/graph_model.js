@@ -372,10 +372,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
         configureAttributeDescription(iKey);
         if( ['x', 'y', 'y2'].indexOf( iKey) >= 0) {
           var tDescription = this.getPath(
-              'dataConfiguration.' + (iKey + 'AttributeDescription'));
-          this.set(iKey + 'Axis',
-              getAxisClassFromType(tDescription.get('attributeType')).create(
-                  {dataConfiguration: this.dataConfiguration}));
+              'dataConfiguration.' + (iKey + 'AttributeDescription')),
+              tAxisClass = getAxisClassFromType(tDescription.get('attributeType')),
+              tAxis = tAxisClass.create(
+                  {dataConfiguration: this.dataConfiguration});
+          this.set(iKey + 'Axis', tAxis);
+          this.passGetPointColorToAxis(iKey, tAxis);
           this.setPath(iKey + 'Axis.attributeDescription', tDescription);
         }
       }.bind(this));
@@ -571,6 +573,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
             tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
             tNewAxis.setLinkToPlotIfDesired( this_.get('plot'));
             tNewAxis.set('scaleType', iScaleType);
+            this_.passGetPointColorToAxis(iAxisKey, tNewAxis);
             this_.set( iAxisKey, tNewAxis );
             tAxisToDestroy.destroy();
             this_.setPath('plot.' + iAxisKey, tNewAxis);
@@ -935,6 +938,19 @@ DG.GraphModel = DG.DataLayerModel.extend(
     },
 
     /**
+     * This is a bit awkward, but if the axis is a DG.CellLinearAxisModel and the key is for a y-axis
+     * we pass our getPointColor accessor to the axis so it can be passed on to the appropriate label
+     * node to keep the 0th label color synched to the 0th scatterplot point color.
+     * @param iKey {string}
+     * @param iAxis {DG.AxisModel}
+     */
+    passGetPointColorToAxis: function( iKey, iAxis) {
+      if( iKey.charAt(0) === 'y' && (iKey.length === 1 || iKey.charAt(1) !== '2') &&
+          iAxis.constructor === DG.CellLinearAxisModel)
+        iAxis.set('getPointColor', this.getPointColor.bind(this));
+    },
+
+    /**
      * Attribute and plot assignment together determine what class of axis should appear on each dimension.
      * We query the plot for each dimension and, if the axis class is not currently present, we construct
      * the desired axis and destroy the old one, being careful to let everyone know of the change.
@@ -952,6 +968,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
                 dataConfiguration: tDataConfiguration,
                 attributeDescription: tDataConfiguration.get( iObj.dim + 'AttributeDescription')
               });
+          this_.passGetPointColorToAxis(iObj.dim, tNewAxis);
           this_.set( iObj.dim + 'Axis', tNewAxis);
           tPlot.set( iObj.dim + 'Axis', tNewAxis);
           tCurrentAxis.destroy();
@@ -979,6 +996,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         var tAxisToDestroy = this.get( iAxisKey ),
             tNewAxis = tDesiredAxisClass.create(tAxisModelParams);
         tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
+        this.passGetPointColorToAxis( iAxisKey, tNewAxis);
         this.set( iAxisKey, tNewAxis );
         tAxisToDestroy.destroy();
       }
@@ -1746,6 +1764,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         if( tAxisClass && tAxisClass !== tCurrentAxisClass) {
           var tNewAxis = tAxisClass.create({ dataConfiguration: tDataConfig});
           tNewAxis.set('attributeDescription', tDataConfig.get(iKey + 'AttributeDescription'));
+          this.passGetPointColorToAxis( iKey, tNewAxis);
           this.set(iKey + 'Axis', tNewAxis);
           tPrevAxis.destroy();
         }

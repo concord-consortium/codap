@@ -534,6 +534,7 @@ DG.GraphView = SC.View.extend(
       pointsDidChange: function (iModel, iProperty) {
         this.drawPlots(iProperty);
         this.get('legendView').displayDidChange();
+        this.get('yAxisView').displayDidChange();
       }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
           'model.transparency', 'model.strokeTransparency', 'model.strokeSameAsFill'),
 

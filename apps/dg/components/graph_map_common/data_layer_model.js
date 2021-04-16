@@ -107,6 +107,14 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
     pointColor: DG.PlotUtilities.kDefaultPointColor,
 
     /**
+     * This function is passed as an accessor to certain plots and axes
+     * @return {*}
+     */
+    getPointColor: function() {
+      return this.get('pointColor');
+    },
+
+    /**
      * Stroke color default can be changed by user.
      * @property {String} representing a color
      */
@@ -513,9 +521,7 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
     getModelPointStyleAccessors: function() {
       var this_ = this;
       return {
-        getPointColor: function() {
-          return this_.get('pointColor');
-        },
+        getPointColor: this_.getPointColor.bind(this_),
         getStrokeColor: function() {
           return this_.get('strokeSameAsFill') ?  this_.get('pointColor') : this_.get('strokeColor');
         },

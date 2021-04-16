@@ -240,6 +240,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 rotation: tRotation,
                 colorIndex: tBaseLabelIndex + iIndex,
                 numColors: tNumAttributes,
+                getPointColor: iIndex === 0 ? this_.getPath('model.getPointColor') : null,
                 priorNode: (tLabelCount > 0) ? tLabels[ tLabelCount - 1] : null });
               tAttributes = this_.getPath('model.attributeDescription.attributes');
               tAttribute = (SC.isArray(tAttributes)) ? tAttributes[iIndex] : null;
@@ -261,6 +262,8 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tNode.beginPropertyChanges();
                 tNode.setIfChanged('colorIndex', tBaseLabelIndex + iIndex);
                 tNode.setIfChanged('numColors', tNumAttributes);
+                if( iIndex === 0 && tNumAttributes > 1)
+                  tNode.numColorsChanged(); // in case the base color has changed
               tNode.endPropertyChanges();
             }
 

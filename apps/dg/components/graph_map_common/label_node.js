@@ -41,6 +41,7 @@ DG.LabelNode = SC.Object.extend(
       kCircleRadius: 6,
       anchor: 'center',
       touchEndHandler: null,
+      getPointColor: null,  // May be set by creator to an accessor function
 
       bBox: function() {
         return this._textElement.getBBox();
@@ -90,7 +91,7 @@ DG.LabelNode = SC.Object.extend(
             break;
           default:
             if (this.colorIndex === 0) {
-              tTextColor = DG.PlotUtilities.kDefaultPointColor;
+              tTextColor = this.getPointColor ? this.getPointColor() : DG.PlotUtilities.kDefaultPointColor;
             }
             else {
               tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors);

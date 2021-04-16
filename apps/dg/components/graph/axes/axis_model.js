@@ -42,6 +42,13 @@ DG.AxisModel = SC.Object.extend(
   scaleCanAnimate: true,
 
   /**
+   * Passed by GraphModel so that the point color on the label for a scatterplot's first attribute
+   * will correspond to that set by the user for its points.
+   * @property {function}
+   */
+  getPointColor: null,
+
+  /**
    * Override if desired
    * @param iPlotModel {DG.PlotModel}
    */
