@@ -129,10 +129,8 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             tPrimaryIsValid = SC.none( iCC.primaryVarID) || !SC.none( tPrimaryVal),
             tSecondaryVal = iCase.getValue( iCC.secondaryVarID),
             tSecondaryIsValid = SC.none( iCC.secondaryVarID) || !SC.none( tSecondaryVal),
-            tLegendVal = iCase.getValue( iCC.legendVarID),
-            tLegendIsValid = SC.none( iCC.legendVarID) || !SC.none( tLegendVal),
             tPrimaryCell, tSecondaryCell;
-        if( tPrimaryIsValid && tSecondaryIsValid && tLegendIsValid) {
+        if( tPrimaryIsValid && tSecondaryIsValid) {
           tPrimaryCell = iCC.primaryAxis.valueToCellNumber( tPrimaryVal);
           tSecondaryCell = iCC.secondaryAxis.cellNameToCellNumber( tSecondaryVal);
           iDoF( iCase, iIndex, tPrimaryCell, tSecondaryCell);

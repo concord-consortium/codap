@@ -413,8 +413,6 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
           // The '-1' in the following is to ensure at least one point's worth of space between cells
           tMaxThatFit = Math.round( tMaxStackHeight / (2 * tRadius)) - 1,
           tOverlap = 0,
-          tColorDesc = this_.getPath('model.dataConfiguration.legendAttributeDescription'),
-          tColorID = tColorDesc.get('attributeID'),
           tMaxInBin, tPixelsOutside;
       tCases = tCases.filter( function( iCase) {
         return DG.isFinite( iCase.getForcedNumericValue( tNumericVarID));
@@ -424,14 +422,13 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
         return iBinWidth;
 
       tCases.forEach( function( iCase) {
-        var tColorValue = !SC.none( tColorID) ? iCase.getValue( tColorID) : null,
-            tNumericCoord = tNumericAxisView.dataToCoordinate( iCase.getForcedNumericValue( tNumericVarID)),
+        var tNumericCoord = tNumericAxisView.dataToCoordinate( iCase.getForcedNumericValue( tNumericVarID)),
             tBin = Math.round( tNumericCoord / (2 * tRadius)),
             tCellNumber = tCategoricalAxisModel.cellNameToCellNumber( iCase.getStrValue(tCategoricalVarID));
         // Note that we can get a valid cell number for which we have not yet allocated a
         // bin array. We choose to ignore that cell for the purposes of computing overlap. The
         // desired bin array will be created the next time we draw.
-        if( (SC.none( tColorID) || !SC.none( tColorValue)) && (tBin >= 0) && !SC.none( tCellNumber) &&
+        if( /*(SC.none( tColorID) || !SC.none( tColorValue)) && */(tBin >= 0) && !SC.none( tCellNumber) &&
                 (tCellNumber >= 0) && (tCellNumber < tBinArrays.length) &&
                 (tBin < tBinArrays[ tCellNumber].length))
               tBinArrays[ tCellNumber][ tBin].total++;

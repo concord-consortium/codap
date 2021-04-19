@@ -681,7 +681,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
                   tMapOriginalToSorted = DG.ArrayUtils.stableSort(tMapOriginalToSorted, function (iIndex1, iIndex2) {
                     var tValue1 = tResult[iIndex1].getStrValue(tLegendID),
                         tValue2 = tResult[iIndex2].getStrValue(tLegendID);
-                    return tCategoryMap.__order.indexOf(tValue2) - tCategoryMap.__order.indexOf(tValue1);
+                    if( SC.empty( tValue1))
+                      return 1;
+                    else if(SC.empty( tValue2))
+                      return -1;
+                    else
+                      return tCategoryMap.__order.indexOf(tValue2) - tCategoryMap.__order.indexOf(tValue1);
                   });
                   break;
                 case DG.Analysis.EAttributeType.eNumeric:
