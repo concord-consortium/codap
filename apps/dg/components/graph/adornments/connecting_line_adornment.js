@@ -178,6 +178,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
               DG.ColorUtilities.calcAttributeColorFromIndex( tLineNum % kCount, kCount),
           i,
           tLine;
+      tLineColor = tLineColor.colorString || tLineColor;
       // create a new path, connecting each sorted data point
       for( i=0; i<tNumValues; ++i ) {
         var tCoords = getCoordsFunc( tCoordinates[i].x, tCoordinates[i].y);
