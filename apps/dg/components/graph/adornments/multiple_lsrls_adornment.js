@@ -69,7 +69,7 @@ DG.MultipleLSRLsAdornment = DG.PlotAdornment.extend(
                 if( iIndex < tLSRLs.length) {
                   iAdornment.set('model', tLSRLs[iIndex]);
                 }
-              })
+              });
               while (tLSRLs.length > tAdornments.length) {
                 var tNewAdorn = DG.LSRLAdornment.create({
                   parentView: this.get('parentView'),
