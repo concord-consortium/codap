@@ -863,5 +863,10 @@ SC.stringsFor("nb", {
     "DG.PlotBackgroundView.msg3": "so nothing is being displayed.",
     "DG.PlotBackgroundView.msg4": "You can select cases in a",
     "DG.PlotBackgroundView.msg5": "case table or another graph.",
-    "DG.ImageComponent.defaultTitle": "Image"
+    "DG.ImageComponent.defaultTitle": "Image",
+    "DG.TableController.datasetMetadata.title": "Dataset Information",
+    "DG.CaseTable.datasetMetadata.url": "source",
+    "DG.CaseTable.datasetMetadata.creationDate": "import date",
+    "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
 });
