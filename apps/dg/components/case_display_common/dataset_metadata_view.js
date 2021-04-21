@@ -191,6 +191,7 @@ DG.DatasetMetadataView = SC.PalettePane.extend( (function() // closure
         metadata.source = contentView.getPath('urlCtl.controlView.value');
         metadata.importDate = contentView.getPath('creationDateCtl.controlView.value');
         metadata.description = contentView.getPath('descriptionCtl.controlView.value');
+        dataContext.setPath('model.metadata', metadata);
 
         DG.log('setting metadata: ' + JSON.stringify(metadata));
         this.close();
