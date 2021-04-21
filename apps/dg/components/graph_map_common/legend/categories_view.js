@@ -202,7 +202,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
           /** @scope DG.CategoriesView.prototype */
           return {
             displayProperties: ['model.attributeDescription.attribute',
-              'model.attributeDescription.attributeStats.categoricalStats.numberOfCells'],
+              'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
+              'model.updateCases'],
 
             /**
              Set by owning LegendView on creation
