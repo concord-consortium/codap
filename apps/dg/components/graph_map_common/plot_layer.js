@@ -998,13 +998,15 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
             tMultiplier = tMultiplierFunc ? tMultiplierFunc.call(this.get('model')) : 1,
             tRadius = DG.PlotUtilities.kPointRadiusMax,
             tMinSize = DG.PlotUtilities.kPointRadiusMin,
-            tPower = DG.PlotUtilities.kPointRadiusLogBase;
+            tPower = DG.PlotUtilities.kPointRadiusLogBase,
+            tResult;
         // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
         for (var i = tPower; i <= tDataLength; i = i * tPower) {
           --tRadius;
           if (tRadius <= tMinSize) break;
         }
-        return Math.max(1, tRadius * tMultiplier);
+        tResult = tRadius * tMultiplier;
+        return tResult < 1 ? 0 : tResult;
       },
 
       radiusForCircleElement: function (iElement) {

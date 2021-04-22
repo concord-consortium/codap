@@ -383,7 +383,8 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   },
 
   zeroBinArray: function() {
-    this._zeroBinArray( 2 * this._pointRadius);
+    var tBinWidth = this._pointRadius === 0 ? 10 : 2 * this._pointRadius;
+    this._zeroBinArray( tBinWidth);
   },
 
   /**

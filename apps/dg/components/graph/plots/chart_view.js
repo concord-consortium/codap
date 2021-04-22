@@ -135,14 +135,9 @@ DG.ChartView = DG.PlotView.extend(
           return; // We can get here before things are linked up during restore
 
 
+        tRC = this.createRenderContext();
         this.computeCellParams();
 
-/*
-        for (tIndex = tCases.get('length'); tIndex < tPlotElementLength; tIndex++) {
-          DG.PlotUtilities.doHideRemoveAnimation(tPlottedElements[tIndex], tLayerManager);
-        }
-*/
-        tRC = this.createRenderContext();
         tCases.forEach(function (iCase, iIndex) {
           var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
           if (iIndex >= tPlotElementLength)
