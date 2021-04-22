@@ -304,7 +304,8 @@ DG.CasePlotView = DG.PlotView.extend(
               iCircle.attr({
                 fill: tColor,
                 'fill-opacity': tRC.transparency,
-                'opacity': tRC.transparency
+                'opacity': tRC.transparency,
+                r: tR
               });
               iCircle.show();
               iCircle.animate({
