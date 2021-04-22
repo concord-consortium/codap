@@ -455,23 +455,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
               model: tGridModel,
               showTips: true /* !this.getPath('model.pointsShouldBeVisible') */
             }));
-        // Make the points smaller so they don't completely cover the grid cells
-/*
-        if (tGridModel.get('isVisible'))
-          this.setPath('mapPointView.mapPointLayers.fixedPointRadius', 3);
-*/
-
-        // this.gridVisibilityChanged();
       },
-
-      gridVisibilityDidChange: function() {
-/*
-        var tFixedSize = this.getPath('model.gridModel.isVisible') ? 3 : null;
-        this.get('mapPointLayers').forEach( function( iLayer) {
-          iLayer.set('fixedPointRadius', tFixedSize);
-        });
-*/
-      }.observes('model.gridModel.isVisible'),
 
       /**
        Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange

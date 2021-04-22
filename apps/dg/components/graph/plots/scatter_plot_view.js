@@ -260,10 +260,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
        * If we're connecting points with lines, we override to make the points much less important than the lines
        */
       calcPointRadius: function () {
-        var kMinRadius = 2,
-            tRadius = sc_super();
+        var tRadius = sc_super();
         if (this.connectingLineAdorn && this.connectingLineAdorn.wantVisible())
-          tRadius = Math.max(kMinRadius, tRadius - 4);
+          tRadius = tRadius / 2;
         return tRadius;
       },
 
