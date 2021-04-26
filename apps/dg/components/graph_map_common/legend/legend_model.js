@@ -179,6 +179,8 @@ DG.LegendModel = SC.Object.extend(
         // could potentially be removed.
         if (this.get('isNumeric'))
           this.numericRangeDidChange();
+        else
+          this.notifyPropertyChange('updateCases');
         break;
       case 'selectCases':
         this.updateSelection();

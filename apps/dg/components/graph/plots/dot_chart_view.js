@@ -268,13 +268,6 @@ DG.DotChartView = DG.ChartView.extend(
       },
 
       /**
-       Only recreate elements if necessary. Otherwise, just set svg element coordinates.
-       */
-      drawData: function drawData() {
-        sc_super();
-      },
-
-      /**
        We override the base class implementation
        */
       animateFromTransferredElements: function () {

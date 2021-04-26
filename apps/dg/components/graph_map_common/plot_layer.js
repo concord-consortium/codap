@@ -209,12 +209,6 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
       _pointRadius: DG.PlotUtilities.kPointRadiusMax,
 
       /**
-       * If this is non-null, it will be used as the radius for points regardless of number of points
-       * {@property Number}
-       */
-      fixedPointRadius: null,
-
-      /**
        True if rendered content is up-to-date, false if redraw is required.
        @property { Boolean }
        */
@@ -987,9 +981,6 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
        * @return {Number} radius of circle for each case, as a positive integer.
        */
       calcPointRadius: function () {
-        if (this.fixedPointRadius)
-          return this.fixedPointRadius;
-
         // Search for a point size in [min-max] range, where the point size is a power of logbase that is close to the data length.
         // This step function avoids excessive plot resizing with every change in number of cases.
         var tDataConfiguration = this.getPath('model.dataConfiguration'),
@@ -998,13 +989,15 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
             tMultiplier = tMultiplierFunc ? tMultiplierFunc.call(this.get('model')) : 1,
             tRadius = DG.PlotUtilities.kPointRadiusMax,
             tMinSize = DG.PlotUtilities.kPointRadiusMin,
-            tPower = DG.PlotUtilities.kPointRadiusLogBase;
+            tPower = DG.PlotUtilities.kPointRadiusLogBase,
+            tResult;
         // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
         for (var i = tPower; i <= tDataLength; i = i * tPower) {
           --tRadius;
           if (tRadius <= tMinSize) break;
         }
-        return Math.max(1, tRadius * tMultiplier);
+        tResult = tRadius * tMultiplier;
+        return tResult < 1 ? 0 : tResult;
       },
 
       radiusForCircleElement: function (iElement) {
@@ -1148,7 +1141,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
         this.get('plottedElements').forEach(function (iElement) {
           iElement.animate(tAttr, DG.PlotUtilities.kDefaultAnimationTime, '<>');
         });
-      }.observes('fixedPointRadius'),
+      },
 
       /**
        * Subclasses will override

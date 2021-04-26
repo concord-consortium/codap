@@ -383,7 +383,8 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   },
 
   zeroBinArray: function() {
-    this._zeroBinArray( 2 * this._pointRadius);
+    var tBinWidth = this._pointRadius === 0 ? 10 : 2 * this._pointRadius;
+    this._zeroBinArray( tBinWidth);
   },
 
   /**
@@ -428,7 +429,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
         // Note that we can get a valid cell number for which we have not yet allocated a
         // bin array. We choose to ignore that cell for the purposes of computing overlap. The
         // desired bin array will be created the next time we draw.
-        if( /*(SC.none( tColorID) || !SC.none( tColorValue)) && */(tBin >= 0) && !SC.none( tCellNumber) &&
+        if((tBin >= 0) && !SC.none( tCellNumber) &&
                 (tCellNumber >= 0) && (tCellNumber < tBinArrays.length) &&
                 (tBin < tBinArrays[ tCellNumber].length))
               tBinArrays[ tCellNumber][ tBin].total++;
