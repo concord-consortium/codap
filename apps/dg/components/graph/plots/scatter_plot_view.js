@@ -565,7 +565,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
        */
       updateSelection: function () {
         sc_super();
-        if (this.connectingLineAdorn && this.connectingLineAdorn.wantVisible()) {
+        var tConnectingLineAdorn = this.get('connectingLineAdorn');
+        if (tConnectingLineAdorn && tConnectingLineAdorn.wantVisible()) {
+          if(this.getPath('model.dataConfiguration.displayOnlySelected')) {
+            tConnectingLineAdorn.get('model').setComputingNeeded();
+          }
           this.connectingLineAdorn.updateSelection();
         }
       },
