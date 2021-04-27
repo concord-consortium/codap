@@ -38274,6 +38274,7 @@ var he_1 = __importDefault(__webpack_require__(/*! ./lang/he */ "./code/utils/la
 var ja_1 = __importDefault(__webpack_require__(/*! ./lang/ja */ "./code/utils/lang/ja.json"));
 var nb_1 = __importDefault(__webpack_require__(/*! ./lang/nb */ "./code/utils/lang/nb.json"));
 var nn_1 = __importDefault(__webpack_require__(/*! ./lang/nn */ "./code/utils/lang/nn.json"));
+var th_1 = __importDefault(__webpack_require__(/*! ./lang/th */ "./code/utils/lang/th.json"));
 var tr_1 = __importDefault(__webpack_require__(/*! ./lang/tr */ "./code/utils/lang/tr.json"));
 var th_1 = __importDefault(__webpack_require__(/*! ./lang/th */ "./code/utils/lang/th.json"));
 var zh_Hans_1 = __importDefault(__webpack_require__(/*! ./lang/zh-Hans */ "./code/utils/lang/zh-Hans.json"));
