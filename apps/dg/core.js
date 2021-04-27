@@ -557,6 +557,12 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-no'
       },
       {
+        langName: 'ไทย',
+        langDigraph: 'th',
+        countryDigraph: 'TH',
+        icon: 'flag flag-th'
+      },
+      {
         langName: 'Türkçe',
         langDigraph: 'tr',
         countryDigraph: 'TR',
