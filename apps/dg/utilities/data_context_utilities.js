@@ -403,7 +403,7 @@ DG.DataContextUtilities = {
                 id: this._beforeStorage.fromCollectionID,
                 name: this._beforeStorage.fromCollectionName,
                 parent: this._beforeStorage.fromCollectionParent,
-                children: [this._beforeStorage.fromCollectionChild]
+                children: this._beforeStorage.fromCollectionChild?[this._beforeStorage.fromCollectionChild]:[]
               },
               attributes: [tAttrRef.attribute]
             };

@@ -1997,6 +1997,17 @@ DG.DataContext = SC.Object.extend((function () // closure
       return result;
     },
 
+    expungeCasesForChildCollection: function () {
+      // works only when there are multiple collections
+      var childCollection = this.childCollection();
+      var parentCollectionID = childCollection && childCollection.getParentCollectionID();
+      var parentCollection = parentCollectionID && this.getCollectionByID(parentCollectionID);
+      var parentCases = parentCollection.get('casesController');
+      var parentItemIDs = parentCases.map(function (myCase) {return myCase.item.id;});
+      var items = this.get('dataSet').getDataItems();
+      var orphanedItems = items.filter(function (item) { return !parentItemIDs.contains(item.id);});
+      return this.deleteItems(orphanedItems);
+    },
     /**
      * Handle change request to delete a collection. If the collection is the
      * last remaining collection, do nothing.
@@ -2008,6 +2019,11 @@ DG.DataContext = SC.Object.extend((function () // closure
       var collectionCount = this.get('collections').length;
       if (collectionCount === 1) {
         return ({success: false, values: {error: 'cannot delete last collection'}});
+      }
+      // if collection is the rightmost collection, then we delete data items not
+      // directly associated with the parent collection cases.
+      if (!collection.get('children')) {
+        this.expungeCasesForChildCollection();
       }
       this.destroyCollection(collection);
       this.regenerateCollectionCases([collection]);
