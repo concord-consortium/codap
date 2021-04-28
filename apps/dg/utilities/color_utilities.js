@@ -48,6 +48,7 @@ DG.ColorUtilities = {
   //kNoAttribCaseSelectedColor : { colorString: 'red' } //tp_CColor tp_CColorGradient::kNoVarCaseSelectedColor = kcp_kRedColor;
   //kNoAttribFocusedCaseColor : { colorString: 'yellow' } // tp_CColor tp_CColorGradient::kNoVarFocusedCaseColor  = kcp_kYellowColor;
   kMissingValueCaseColor: {colorString: '#A0A0A0'}, //tp_CColor tp_CColorGradient::kMissingValueCaseColor = kcp_kDarkGrayColor;
+  kMapMissingValueCaseColor: {colorString: '#ffffff01'}, //tp_CColor tp_CColorGradient::kMissingValueCaseColor = kcp_kDarkGrayColor;
   // kDefaultBorderColor: {colorString: 'black'},     // tp_CColor tp_CColorGradient::kDefaultBorderColor = kcp_kBlackColor;
   // tp_CColor tp_CColorGradient::kHasVarFocusedCaseBorderColor = kcp_kBlueColor;
 
