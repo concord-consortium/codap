@@ -131,7 +131,7 @@ DG.functionRegistry.registerFunctions((function() {
             pattern = DG.DataUtilities.toString(iPattern);
         if (!pattern || !target)
           return 0;
-        var re = new RegExp(pattern, 'g'),
+        var re = new RegExp(pattern, 'gmi'),
             result = target.match(re);
         return !result ? 0 : result.length;
       }
@@ -149,7 +149,8 @@ DG.functionRegistry.registerFunctions((function() {
         var string = DG.DataUtilities.toString(iString), target = DG.DataUtilities.toString(iTarget);
         if (!target) return true;
         if (!string) return false;
-        return string.indexOf(target) >= 0;
+        // case insensitive
+        return string.toLowerCase().indexOf(target.toLowerCase()) >= 0;
       }
     },
 

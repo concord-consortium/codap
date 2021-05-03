@@ -1289,7 +1289,7 @@
   },
   "patternMatches": {
     "displayName": "patternMatches",
-    "description": "Returns the number of times in the first argument the given string or regular expression occurs. The search is case sensitive.",
+    "description": "Returns the number of times in the first argument the given string or regular expression occurs. The search is case insensitive.",
     "args": [
       {
         "name": "strToLookIn",
