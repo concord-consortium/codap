@@ -1495,7 +1495,15 @@ DG.DataContext = SC.Object.extend((function () // closure
      *
      * May create or delete cases as necessary. Tries to avoid unnecessary creation
      * or destruction.
-     * @return {[DG.Case]}
+     *
+     * @param affectedCollections {[CollectionClient]}
+     * @param [notifyOperation] {string} Optional operation name for use in response
+     * @return {object} Change object. If notifyOperation is not set returns an
+     *    object with the following properties: collections {[CollectionClient]},
+     *    createdCases {[Case]}, deletedCases {[Case]}. If notifyOperation is set, returns an
+     *    object with the following properties: operation {string}, isComplete {true},
+     *    result {{cases: {[Case]}}}, collections {[CollectionClient]},
+     *    createdCases {[Case]}, deletedCases {[Case]}.
      */
     regenerateCollectionCases: function (affectedCollections, notifyOperation) {
       var topCollection = this.getCollectionAtIndex(0),
@@ -1997,6 +2005,17 @@ DG.DataContext = SC.Object.extend((function () // closure
       return result;
     },
 
+    expungeCasesForChildCollection: function () {
+      // works only when there are multiple collections
+      var childCollection = this.childCollection();
+      var parentCollectionID = childCollection && childCollection.getParentCollectionID();
+      var parentCollection = parentCollectionID && this.getCollectionByID(parentCollectionID);
+      var parentCases = parentCollection.get('casesController');
+      var parentItemIDs = parentCases.map(function (myCase) {return myCase.item.id;});
+      var items = this.get('dataSet').getDataItems();
+      var orphanedItems = items.filter(function (item) { return !parentItemIDs.contains(item.id);});
+      return this.deleteItems(orphanedItems);
+    },
     /**
      * Handle change request to delete a collection. If the collection is the
      * last remaining collection, do nothing.
@@ -2005,13 +2024,21 @@ DG.DataContext = SC.Object.extend((function () // closure
      */
     doDeleteCollection: function (iChange) {
       var collection = iChange.collection;
+      var response;
       var collectionCount = this.get('collections').length;
+      var deletedItems;
       if (collectionCount === 1) {
         return ({success: false, values: {error: 'cannot delete last collection'}});
       }
+      // if collection is the rightmost collection, then we delete data items not
+      // directly associated with the parent collection cases.
+      if (!collection.getPath('collection.children').length) {
+        deletedItems = this.expungeCasesForChildCollection();
+      }
       this.destroyCollection(collection);
-      this.regenerateCollectionCases([collection]);
-      return {success: true};
+      response = this.regenerateCollectionCases([collection]) || {};
+      response.deletedItems = deletedItems;
+      return response;
     },
 
     doResetCollections: function (iChange) {
