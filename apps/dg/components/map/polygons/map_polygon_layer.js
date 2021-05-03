@@ -101,7 +101,9 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
-            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, null, tQuantileValues);
+            tCaseColor = tColorValue ?
+                DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, null, tQuantileValues) :
+                DG.ColorUtilities.kMapMissingValueCaseColor;
         return tCaseColor.colorString || tCaseColor;
       },
       calcStrokeColorString: function( iCase ) {
