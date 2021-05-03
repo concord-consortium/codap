@@ -409,7 +409,6 @@ DG.DataContextUtilities = {
             tStatus = iDataContext.applyChange(tChange);
             this._afterStorage.collection = tStatus.collection;
             if (this._afterStorage.deletedItems) {
-              tDataSet = iDataContext.get('dataSet');
               this._afterStorage.deletedItems.forEach(function (item) {
                 if (!item.setAside) {
                   item.deleted = false;
