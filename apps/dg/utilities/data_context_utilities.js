@@ -363,27 +363,27 @@ DG.DataContextUtilities = {
         },
         _afterStorage: {},
         execute: function() {
-          var change;
+          var response;
           if ((tCollectionClient.get('attrsController').get('length') === 1) &&
               (iDataContext.get('collections').length !== 1) &&
               (tCollectionClient.getAttributeByID(iAttrID))) {
-            change = {
-              operation: 'deleteCollection',
-              collection: tCollectionClient
-            };
+            response = iDataContext.applyChange( {
+              operation: 'deleteCollection', collection: tCollectionClient
+            });
+            this._afterStorage.deletedItems = response && response.deletedItems;
           } else {
-            change = {
+            iDataContext.applyChange( {
               operation: 'deleteAttributes',
               collection: tCollectionClient,
-              attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
-            };
+              attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
+            });
           }
-          iDataContext.applyChange( change);
           iDataContext.set('flexibleGroupingChangeFlag', true);
         },
         undo: function() {
           var tChange;
           var tStatus;
+          var tDataSet;
           if (iDataContext.getCollectionByID(tCollection.get('id'))) {
             tChange = {
               operation: 'createAttributes',
@@ -409,6 +409,14 @@ DG.DataContextUtilities = {
             };
             tStatus = iDataContext.applyChange(tChange);
             this._afterStorage.collection = tStatus.collection;
+            if (this._afterStorage.deletedItems) {
+              tDataSet = iDataContext.get('dataSet');
+              this._afterStorage.deletedItems.forEach(function (item) {
+                if (!item.setAside) {
+                  item.deleted = false;
+                }
+              });
+            }
             iDataContext.regenerateCollectionCases();
             iDataContext.set('flexibleGroupingChangeFlag',
                 this._beforeStorage.changeFlag);
