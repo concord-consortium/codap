@@ -75,14 +75,15 @@ context('codap toolbar', ()=>{
         codap.openTile('tilelist', 'New Dataset')
         cy.get('.dg-hier-table-view').siblings('.dg-titlebar-selected').should('exist')
     })
-    it('will dsiplay a webpage', ()=>{
+    it('will display a webpage', ()=>{
         var url='https://concord.org'
         codap.openTile('option', 'Display Web Page')
         codap.getSingleDialog().should('exist')
         codap.singleDialogEntry(url);
         //need to verify iframe with webpage
         // cy.wait(7000);
-        cy.getWebviewIframe().first().find('.concord-logo').should('be.visible')
+        cy.wait(1500);
+        cy.getWebviewIframe().find('.concord-logo').should('be.visible')
         codap.closeTile('option', 'Web Page'); //close the tile because it interferes with later tests
     })
     it('will open Help tile', ()=>{
@@ -90,7 +91,7 @@ context('codap toolbar', ()=>{
         codap.openTile('help', 'Help Pages')
         cy.wait(1500);
         //verify iframe of helpURL is showing and has #page-title contains "CODAP Help"
-        cy.getWebviewIframe().last().find('#page-title').should('contain', 'CODAP Help')
+        cy.getWebviewIframe().find('#page-title').should('contain', 'CODAP Help')
         codap.closeTile('help', 'Help with CODAP'); //close the tile because it interferes with later tests
     })
     // it('will open Help Forum Page', ()=>{
