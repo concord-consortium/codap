@@ -17,6 +17,7 @@ context('Onboarding plugin to CODAP', () => {
   describe('Getting started with CODAP plugin', () => {
     it('verify graph check on plugin', () => {
       codap.openTile('graph')
+      cy.wait(1000);
       cy.getPluginIframe().find('input.App-checkbox[name=MakeGraph]').should('be.checked')
     })
   })

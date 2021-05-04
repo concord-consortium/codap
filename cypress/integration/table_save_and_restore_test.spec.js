@@ -8,7 +8,7 @@ const codap = new CodapObject;
 const cfm = new CfmObject;
 const casecard = new CaseCardObject;
 
-const dir = '../../../../Downloads/';
+const dir = '../downloads/';
 const ext = '.codap';
 Cypress.config('fixturesFolder',dir)
 const baseUrl = `${Cypress.config("baseUrl")}`;
@@ -16,7 +16,7 @@ const baseUrl = `${Cypress.config("baseUrl")}`;
 before(()=> {
     cy.visit(baseUrl)
     cy.wait(5000)
-}) 
+})
 
 context('CFM functionalities with table', ()=>{
 
@@ -98,12 +98,12 @@ context('CFM functionalities with table', ()=>{
         cfm.selectCFMMenuItem('Open')
         cfm.openLocalDoc(dir+filename+ext);
         codap.openTile('table','New Dataset')
-        table.getCaseTableTile().should('be.visible')  
+        table.getCaseTableTile().should('be.visible')
         cfm.openCFMMenu();
         cfm.selectCFMMenuItem('Close');
-        // cfm.closeConfirmDialogMessage();      
+        // cfm.closeConfirmDialogMessage();
     })
-    it('verify save and restore of closed non-blank table', ()=>{ 
+    it('verify save and restore of closed non-blank table', ()=>{
         var filename='closed nonblank table';
         // cfm.createNewDocument();
         codap.openTile('table','new');
@@ -122,9 +122,9 @@ context('CFM functionalities with table', ()=>{
         cfm.openLocalDoc(dir+filename+ext);
         codap.openTile('table','New Dataset')
         table.getCaseTableTile().should('be.visible')
-        // TODO: need to verify cell contents  
+        // TODO: need to verify cell contents
         cfm.openCFMMenu();
         cfm.selectCFMMenuItem('Close');
-        // cfm.closeConfirmDialogMessage();   
+        // cfm.closeConfirmDialogMessage();
     })
 })
