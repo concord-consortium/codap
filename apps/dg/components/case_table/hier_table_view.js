@@ -554,6 +554,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       var tComponentView = DG.ComponentView.findComponentViewParent(this);
       var tContentHasBeenSeen = this._lastContentWidth != null;
       var tIsAnimating = this.get('isComponentLayoutAnimating');
+      var tLayout = tComponentView && tComponentView.get('layout');
       // console.log('HierTableView.adjustContentWidth: /changeAgent, ' +
       //     'tContentWidth, tFrameWidth, tPageWidth, this._lastContentWidth, tIsAnimating/' +
       //     [changeAgent, tContentWidth, tFrameWidth, tPageWidth, this._lastContentWidth, tIsAnimating].join());
@@ -588,7 +589,16 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       // if we are not scrolling then growth in content should expand frame,
       // but it should not expand it more than the width of the page
       if (tFrameWidth === this._lastContentWidth && changeAgent === "content") {
-        tComponentView.adjust('width', Math.min(tContentWidth, tMaxFrameWidth));
+        var newWidth = Math.min(tContentWidth, tMaxFrameWidth);
+        if (DG.KEEP_IN_BOUNDS_PREF) {
+          tComponentView.configureViewBoundsLayout({height:tLayout.height,
+            width:newWidth,
+            x:tLayout.left,
+            y:tLayout.top
+          });
+        } else {
+          tComponentView.adjust('width', newWidth);
+        }
       }
       // the content width should never be less than the component width
       else if (tContentWidth < tFrameWidth) {
