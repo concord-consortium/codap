@@ -3,6 +3,7 @@ import GraphTile from "../../support/elements/GraphTile";
 import CaseCardTile from "../../support/elements/CaseCardObject";
 import TextTile from "../../support/elements/TextObject";
 import Sage from "../../support/plugin_elements/sage/SagePluginObject"
+import { getIframeBody } from "../../support/commands"
 
 const codap = new CodapObject;
 const graph = new GraphTile;
@@ -70,7 +71,7 @@ context.only('Sagemodeler document opens',()=>{
   })
   describe('Sagemodeler shared document opens',()=>{
     it('verify Sagemodeler shared document opens',()=>{
-      cy.get('#app .innerApp iframe').iframe().within(()=>{
+      getIframeBody('#app .innerApp iframe').within(()=>{
         cy.wait(3000);
         cy.getSageIframe().find('.node-container').should('be.visible').and('have.length', 11);
         cy.getSageIframe().find(sage.relationshipArrow()).should('be.visible').and('have.length', 12);

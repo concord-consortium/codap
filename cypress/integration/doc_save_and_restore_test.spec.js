@@ -46,7 +46,7 @@ context('Tile variety', () => {
   })
 
   it('verify web page restore', () => {
-    cy.getWebviewIframe().last().find('.logo').should('exist')
+    cy.getWebviewIframe(2).find('.logo').should('exist')
   })
   it('verify text box restore', () => {
     textTile.getTextTile().should('be.visible');
@@ -54,7 +54,7 @@ context('Tile variety', () => {
   })
 
   it('verify DrawTool restore', () => { //no way to verify contents of the canvas
-    cy.getPluginIframe().find('#camera-flash').should('be.visible')
+    cy.getPluginIframe(1).find('#camera-flash').should('be.visible')
   })
   it('verify slider restore', () => {
     slider.getSliderTile().should('be.visible');

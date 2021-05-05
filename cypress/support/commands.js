@@ -142,89 +142,37 @@ Cypress.Commands.add("resizeTile", (num) => {
     .trigger('mouseup', {force:true});
 });
 // With current implementation of the cy.getPluginIframe and cy.getWebviewIframe custom command, only one iframe can be open
-Cypress.Commands.add("getPluginIframe", () => {
-  return cy.get(".dg-web-view-frame iframe").iframe()
+Cypress.Commands.add("getPluginIframe", (position = 0) => {
+  getIframeBody(".dg-web-view-frame", position)
 });
 
-Cypress.Commands.add("getWebviewIframe", () => {
-  return cy.get(".dg-web-view-frame iframe").iframe()
+Cypress.Commands.add("getWebviewIframe", (position = 0) => {
+  getIframeBody(".dg-web-view-frame", position);
 });
 
 Cypress.Commands.add("getSageIframe", () => {
-  return cy.get(".dg-web-view-frame iframe").iframe()
+  getIframeBody(".dg-web-view-frame")
 });
 
-Cypress.Commands.add("iframe", { prevSubject: "element" }, $iframe => {
-  Cypress.log({
-      name: "iframe",
-      consoleProps() {
-          return {
-              iframe: $iframe,
-          };
-      },
-  });
-  return new Cypress.Promise(resolve => {
-      onIframeReady(
-          $iframe,
-          () => {
-              resolve($iframe.contents().find("body"));
-          },
-          () => {
-              $iframe.on("load", () => {
-                  resolve($iframe.contents().find("body"));
-              });
-          }
-      );
-  });
-});
+const getIframeDocument = (selector, position) => {
+  return cy.get(selector).eq(position).get("iframe")
+  // Cypress yields jQuery element, which has the real
+  // DOM element under property "0".
+  // From the real DOM iframe element we can get
+  // the "document" element, it is stored in "contentDocument" property
+  // Cypress "its" command can access deep properties using dot notation
+  // https://on.cypress.io/its
+  .its(`${position}.contentDocument`).should('exist')
+}
 
-function onIframeReady($iframe, successFn, errorFn) {
-  try {
-      const iCon = $iframe.first()[0].contentWindow,
-          bl = "about:blank",
-          compl = "complete";
-      const callCallback = () => {
-          try {
-              const $con = $iframe.contents();
-              if ($con.length === 0) {
-                  // https://git.io/vV8yU
-                  throw new Error("iframe inaccessible");
-              }
-              successFn($con);
-          } catch (e) {
-              // accessing contents failed
-              errorFn();
-          }
-      };
-      const observeOnload = () => {
-          $iframe.on("load.jqueryMark", () => {
-              try {
-                  const src = $iframe.attr("src").trim(),
-                      href = iCon.location.href;
-                  if (href !== bl || src === bl || src === "") {
-                      $iframe.off("load.jqueryMark");
-                      callCallback();
-                  }
-              } catch (e) {
-                  errorFn();
-              }
-          });
-      };
-      if (iCon.document.readyState === compl) {
-          const src = $iframe.attr("src").trim(),
-              href = iCon.location.href;
-          if (href === bl && src !== bl && src !== "") {
-              observeOnload();
-          } else {
-              callCallback();
-          }
-      } else {
-          observeOnload();
-      }
-  } catch (e) {
-      // accessing contentWindow failed
-      errorFn();
-  }
+export const getIframeBody = (selector, position=0) => {
+  // get the document
+  return getIframeDocument(selector, position)
+  // automatically retries until body is loaded
+  .its('body').should('not.be.undefined')
+  // wraps "body" DOM element to allow
+  // chaining more Cypress commands, like ".find(...)"
+  .then(cy.wrap)
 }
 
 Cypress.Commands.add("uploadFile",(selector, filename, type="")=>{
