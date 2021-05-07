@@ -138,6 +138,13 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         this.set('caseTableAdapters', newAdapters);
       },
 
+      resetProtoCaseRows: function() {
+        this.get('caseTableAdapters').forEach(function(adapter) {
+          var gridDataView = adapter.get('gridDataView');
+          if (gridDataView) gridDataView.resetProtoCases();
+        });
+      },
+
       /**
         Configure the table for the new data context.
        */
@@ -158,10 +165,11 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             var context = iDivider.getPath('dataContext');
             var parentTable = iDivider.getPath('leftTable');
 
+            this.resetProtoCaseRows();
             DG.UndoHistory.execute(DG.DataContextUtilities.createCollectionCommand(dropData.attribute, dropData.collection, context, parentTable.getPath('gridAdapter.collection.id')));
 
             iDivider.setPath('dropData', null);
-          };
+          }.bind(this);
 
           contentView.set('dataContext', dataContext);
 
@@ -1283,6 +1291,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           return;
         }
         var context = this.dataContext;
+        this.resetProtoCaseRows();
         DG.UndoHistory.execute(DG.DataContextUtilities.createCollectionCommand(dropData.attribute,
             dropData.collection, context));
         this.setPath('contentView.leftDropTarget.dropData', null);

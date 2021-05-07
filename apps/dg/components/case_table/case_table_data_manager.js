@@ -222,6 +222,13 @@ DG.CaseTableDataManager = SC.Object.extend({
     return protoCase;
   },
 
+  resetProtoCases: function () {
+    DG.ObjectMap.forEach(this._protoCases, function(key, protoCase) {
+      protoCase.set('beforeCaseID', null);
+      protoCase.set('parentCaseID', null);
+    });
+  },
+
   /**
    * Resets this object in response to state changes such as:
    *   expand or collapse of a case, addition or deletion of a case.
