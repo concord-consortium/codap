@@ -588,28 +588,34 @@ DG.DataContextUtilities = {
     if (!props.collection || !props.attrIDs) return;
 
     var createResult;
+    var isRegenerated = false;
     function doCreateCase() {
-      return iContext.applyChange({
+      var result = iContext.applyChange({
         operation: 'createCases',
         attributeIDs: props.attrIDs,
         collection: props.collection,
         properties: { parent: props.parent },
         values: [ props.values ]
       });
-    }
-    function doCreateItem() {
-      var attrIDs = props.collection.getAttributeIDs();
-      var valueArray = props.values;
-      var values = {};
-      valueArray.forEach(function (value, ix) {
-        var attrID = attrIDs[ix];
-        var ref = iContext.getAttrRefByID(attrID);
-        var attr = ref && ref.attribute;
-        if( attr)
-          values[attr.name] = value;
-      });
-      var result = iContext.addItems(values);
-      return result && result.caseIDs;
+      if (result.success && props.beforeCaseID) {
+        var dataSet = iContext.get('dataSet');
+        var beforeCase = iContext.getCaseByID(props.beforeCaseID);
+        var beforeItem = beforeCase && beforeCase.item;
+        var beforeItemIndex = dataSet && beforeItem &&
+                                dataSet.getDataItemClientIndexByID(beforeItem.id);
+        if (result.itemIDs && dataSet && (beforeItemIndex != null)) {
+          iContext.applyChange({
+            operation: 'moveItems',
+            items: result.itemIDs.map(function(id) { return dataSet.getDataItemByID(id); }),
+            itemOrder: beforeItemIndex
+          });
+          isRegenerated = true;
+        }
+      }
+      if (!isRegenerated)
+        iContext.regenerateCollectionCases();
+
+      return result;
     }
 
     function doDeleteCase(caseIDs) {
@@ -628,15 +634,7 @@ DG.DataContextUtilities = {
       redoString: 'DG.Redo.caseTable.createNewCase',
       log: "create new case",
       execute: function() {
-        var caseIDs;
-        if (props.parent) {
-          createResult = doCreateCase();
-        } else {
-          caseIDs = doCreateItem();
-          createResult = {
-            caseIDs: caseIDs
-          };
-        }
+        createResult = doCreateCase();
       },
       undo: function() {
         if (createResult && createResult.caseIDs)

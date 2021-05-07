@@ -412,6 +412,10 @@ html, body {
         }
 
     }
+
+    .sc-scroller-view {
+        z-index: 1;
+    }
 }
 
 /* only show hover effect on mouse devices that support hover */
@@ -1504,6 +1508,44 @@ input, textarea {
 
 .slick-row.odd .slick-cell.dg-index-column {
     background-color: #D3E9C8
+}
+
+.slick-row.dg-proto-row {
+    .slick-cell {
+        &.dg-index-column {
+            background-color: #bddfdf;
+
+            img {
+                position: absolute;
+                left: -2px;
+                top: -2px;
+                width: 18px;
+                height: 18px;
+            }
+        }
+        height: 11px;
+        border-top: 1.5px solid silver;
+        border-bottom: 2px solid silver;
+        &.active.editable {
+            border-top: 1.5px solid transparent;
+            border-color: silver;
+        }
+    }
+    &.drag-source {
+        opacity: 0.3;
+    }
+    &.drag-preview {
+        opacity: 0.7;
+        cursor: grabbing !important;
+    }
+}
+
+.slick-row {
+    &.drag-hilite {
+        .slick-cell {
+            background-color: #ffffb3 !important;
+        }
+    }
 }
 
 html.dg-embedded-mode .sc-main, html.dg-embedded-mode .dg-doc-background {

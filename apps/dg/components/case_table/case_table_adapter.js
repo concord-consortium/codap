@@ -51,7 +51,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       indexFormatter = function  (rowIndex, colIndex, cellValue, colInfo, rowItem) {
-        return '<span class="dg-index">' + cellValue + '</span>';
+        return rowItem && rowItem._isProtoCase
+                ? '<img src="' + static_url("images/drag-indicator.svg") + '"/>'
+                : '<span class="dg-index">' + cellValue + '</span>';
       },
 
       /**
@@ -422,10 +424,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var headerStyle = {
         display: 'block',
         'font-family': 'Montserrat-Regular, sans-serif',
-      'font-size': '10.6667px',
-      'font-style':'normal',
-      'font-weight': 'normal',
-      'text-align': 'left'
+        'font-size': '10.6667px',
+        'font-style':'normal',
+        'font-weight': 'normal',
+        'text-align': 'left'
       };
       var minWidth = Number.MAX_VALUE;
       var maxWidth = 0;
@@ -477,6 +479,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         if( !attr.get('hidden'))
           this.autoResizeColumn(attr);
       }.bind(this));
+    },
+
+    getProtoCase: function() {
+      var dataView = this.get('gridDataView');
+      var collection = this.get('collection');
+      return dataView && collection ? dataView.getProtoCase(collection) : undefined;
     },
 
     isCellEditable: function(row, column) {

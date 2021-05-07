@@ -1,5 +1,5 @@
 // ==========================================================================
-//  
+//
 //  Author:   jsandoe
 //
 //  Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
@@ -172,6 +172,7 @@ DG.CaseTableDataManager = SC.Object.extend({
    * be multiple data sets, each collection can have its own proto-case.
    */
   getProtoCase: function(collection) {
+    if (!collection) collection = this.get('collection');
     var collectionID = collection && collection.get('id'),
         protoCase = collectionID && this._protoCases[collectionID];
     if (!collectionID) return null;
@@ -180,11 +181,18 @@ DG.CaseTableDataManager = SC.Object.extend({
       // Proto-case can be tested for explicitly via _isProtoCase property,
       // or in the negative by `item instanceof DG.Case` being false.
       protoCase = this._protoCases[collectionID] = SC.Object.create({
-        id: Math.pow(2, 32) - collection.get('id'),
+        id: Math.pow(2, 32) - collectionID,
 
         collection: collection,
 
         _isProtoCase: true,
+
+        // id of case in this collection which proto-case should be before
+        beforeCaseID: null,
+
+        // id of parent case in next-level collection; defaults to null,
+        // which is interpreted as last case in next-level collection
+        parentCaseID: null,
 
         children: [],
 
@@ -267,7 +275,30 @@ DG.CaseTableDataManager = SC.Object.extend({
     this._rowCaseMap = rowCaseIndex;
     if (this.getPath('adapter.isCollectionReorgAllowed')) {
       // add proto-case to support data entry row
-      this._rowCaseMap.push(this.getProtoCase(myCollection));
+      var protoCase = this.getProtoCase(myCollection);
+      var protoCaseBeforeID = protoCase.get('beforeCaseID');
+      var protoCaseParentID = protoCase.get('parentCaseID');
+      var protoCaseIndex = -1;
+      if (protoCaseBeforeID) {
+        this._rowCaseMap.forEach(function(aCase, i) {
+          if (aCase.getPath('id') === protoCaseBeforeID) {
+            protoCaseIndex = i;
+          }
+        });
+      }
+      if ((protoCaseIndex < 0) && protoCaseParentID) {
+        this._rowCaseMap.forEach(function(aCase, i) {
+          if (aCase.getPath('parent.id') === protoCaseParentID) {
+            protoCaseIndex = i + 1;
+          }
+        });
+      }
+      if (protoCaseIndex >= 0) {
+        this._rowCaseMap.splice(protoCaseIndex, 0, protoCase);
+      }
+      else {
+        this._rowCaseMap.push(protoCase);
+      }
     }
     if (this._rowCaseMap.length !== beforeCount) {
       this.onRowCountChanged.notify({previous: beforeCount, current: this._rowCaseMap.length}, null, this);
@@ -358,8 +389,7 @@ DG.CaseTableDataManager = SC.Object.extend({
   },
 
   /**
-   * Gets the index of the case table row, given a case id.
-   *
+   * Gets the index of the case table row, given a case (or proto-case) id.
    *
    * Method signature matches method of Slick Grid default DataView.
    *
@@ -370,9 +400,11 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @returns {Number}
    */
   getRowById: function (iCaseID) {
-    var myCase = DG.store.find('DG.Case', iCaseID);
-
-    return this._rowCaseMap.indexOf(myCase);
+    return this._rowCaseMap
+            .findIndex(function(rowCase) {
+              // allow number/string matches
+              return rowCase && (rowCase.get('id') == iCaseID); // eslint-disable-line eqeqeq
+            });
   },
 
   /**
@@ -415,7 +447,6 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @param iCaseID {number}
    */
   collapseGroup: function (iCaseID) {
-
     var myCase = DG.store.find('DG.Case', iCaseID);
     if (myCase) {
       this.model.collapseNode(myCase);
@@ -448,6 +479,16 @@ DG.CaseTableDataManager = SC.Object.extend({
     if (myCase) {
       return this.model.isCollapsedNode(myCase);
     }
+  },
+
+  resetDataEntryRowForCollapsedParent: function (iCaseID) {
+    // collapsing a group with the entry row moves the entry row to its default location
+    DG.ObjectMap.forEach(this._protoCases, function(collectionID, protoCase) {
+      if (protoCase.get('parentCaseID') === iCaseID) {
+        protoCase.set('beforeCaseID', null);
+        protoCase.set('parentCaseID', null);
+      }
+    });
   },
 
   /**

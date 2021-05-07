@@ -393,12 +393,13 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
         var leftRowBounds = iLeftTable.getRowBounds(iParentRow);
         var topRightRowBounds = iRightTable.getRowBounds(topRightRow);
         var bottomRightRowBounds = iRightTable.getRowBounds(bottomRightRow);
+        var isTopLine = (iParentRow === 0) || (topRightRow === 0);
         if (leftRowBounds && topRightRowBounds && bottomRightRowBounds) {
           return {
-            leftTop: leftRowBounds.top,
-            leftBottom: leftRowBounds.bottom,
-            rightTop: topRightRowBounds.top,
-            rightBottom: bottomRightRowBounds.bottom
+            leftTop: leftRowBounds.top + (!isTopLine ? 1 : 0),
+            leftBottom: leftRowBounds.bottom + 1,
+            rightTop: topRightRowBounds.top + (!isTopLine ? 1 : 0),
+            rightBottom: bottomRightRowBounds.bottom + 1
           };
         }
       }
@@ -445,7 +446,7 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
           return;
         }
         var isFillRequired = iParentRow % 2;
-        var isBottomRequired = iChildIDRange.isLast;
+        var isBottomRequired = iChildIDRange.renderBottom;
         var imageUrl = determineImageURL(iChildIDRange);
         var imagePos = {x: 3, y: rowBounds.leftTop - leftScrollTop + 5};
         var imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE;
@@ -527,37 +528,64 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
         var leftViewport = leftTable.get('gridViewport');
         var viewportCount = leftViewport.bottom - leftViewport.top;
         var leftDataView = leftAdapter.get('gridDataView');
-        // determine if this is the last data row. There will always be a proto-row,
-        // so we take the length and subtract one for the proto-row and one because of
-        // zero-indexing
-        var lastRow = leftDataView? leftDataView.getLength() - 2: -1;
+        var rightDataView = rightAdapter.get('gridDataView');
+        var rightProtoCase = rightAdapter.getProtoCase();
+        var rightProtoCaseID = rightProtoCase && rightProtoCase.get('id');
+        var rightProtoCaseIndex = rightDataView && rightDataView.getRowById(rightProtoCaseID);
+        var protoCaseParentID = rightProtoCase && rightProtoCase.get('parentCaseID');
         var ix;
         var rowIx;
         var parentID;
         var parentCase;
+        var nextParentCase;
+        var lastParentCase;
         var childIDRange;
+        var hasProtoCaseChild;
+        var firstChildID;
+        var firstChildIndex;
+        var lastChildID;
+        var lastChildIndex;
 
         DG.assert(leftViewport, 'leftViewport missing');
         DG.assert(leftDataView, 'leftDataView missing');
+
+        for (ix = 0; ix < viewportCount; ++ix) {
+          var parentItem = leftDataView.getItem(leftViewport.top + ix);
+          if (parentItem && !parentItem._isProtoCase)
+            lastParentCase = parentItem;
+        }
 
         // for each visible row in the left-hand table compute the relationship
         // graphic
         for (ix = 0; ix < viewportCount; ix += 1) {
           rowIx = ix + leftViewport.top;
           parentCase = leftDataView.getItem(rowIx);
+          nextParentCase = leftDataView.getItem(rowIx + 1);
 
           // if we found a parent case, compute the extent of its children and
           // its state, then make the appropriate graphics. Otherwise, hide
           // whatever elements may already be present.
           if (parentCase && parentCase.children[0]) {
             parentID = parentCase.get('id');
+            hasProtoCaseChild = (protoCaseParentID === parentID) ||
+                                  (!protoCaseParentID && (parentCase === lastParentCase));
+            firstChildID = parentCase.children[0].get('id');
+            firstChildIndex = rightDataView && rightDataView.getRowById(firstChildID);
+            if (hasProtoCaseChild && (rightProtoCaseIndex < firstChildIndex)) {
+              firstChildID = rightProtoCaseID;
+            }
+            lastChildID = parentCase.children[parentCase.children.length - 1].get('id');
+            lastChildIndex = rightDataView && rightDataView.getRowById(lastChildID);
+            if (hasProtoCaseChild && (rightProtoCaseIndex > lastChildIndex)) {
+              lastChildID = rightProtoCaseID;
+            }
             childIDRange = {
-              firstChildID: parentCase.children[0].get('id'),
-              lastChildID: parentCase.children[parentCase.children.length - 1].get('id'),
+              firstChildID: firstChildID,
+              lastChildID: lastChildID,
               isCollapsed: leftAdapter.model.isCollapsedNode(parentCase),
-              isContained: (parentCase.get('collection').get('id') !== leftAdapter.get(
-                  'collection').get('id')),
-              isLast: (rowIx === lastRow)
+              isContained: (parentCase.get('collection').get('id') !==
+                            leftAdapter.get('collection').get('id')),
+              renderBottom: !nextParentCase || nextParentCase._isProtoCase
             };
             updateParentChildRelations(ix, rowIx, parentID, childIDRange);
           } else {
@@ -565,8 +593,7 @@ DG.RelationDividerView = DG.CaseTableDropTarget.extend( (function() {
           }
         }
         // if the viewport has shrunk, hide additional lines
-        for (ix = viewportCount; ix < this_._parentChildRelationsMap.length;
-             ix += 1) {
+        for (ix = viewportCount; ix < this_._parentChildRelationsMap.length; ix += 1) {
           hideRelationshipElements(ix);
         }
       }

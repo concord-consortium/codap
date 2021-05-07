@@ -550,18 +550,25 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     commitProtoCase: function (protoCase) {
       function getParentCase(context, collection) {
         var parentCollectionID = collection.getParentCollectionID(),
-            parentCollection = SC.none(parentCollectionID)?
-                null:
-                context.getCollectionByID(parentCollectionID),
-            parentCaseCount = parentCollection && parentCollection.getCaseCount();
+            parentCollection = parentCollectionID && context.getCollectionByID(parentCollectionID),
+            parentCase = protoCase && protoCase.parentCaseID && parentCollection &&
+                          parentCollection.getCaseByID(protoCase.parentCaseID);
+        // if the proto-case is associated with a particular parent case, return it
+        if (parentCase) return parentCase;
+        // otherwise, associate it with the last parent case
+        var parentCaseCount = parentCollection && parentCollection.getCaseCount();
         if (!SC.none(parentCaseCount)) {
           return parentCollection.getCaseAt(parentCaseCount - 1);
         }
       }
 
-      var collection = protoCase && protoCase.collection,
+      var gridAdapter = this.get('gridAdapter'),
+          gridDataView = gridAdapter.get('gridDataView'),
+          collection = protoCase && protoCase.collection,
           attrIDs = collection && collection.getAttributeIDs(),
+          beforeCaseID = protoCase && protoCase.get('beforeCaseID'),
           parentCase = getParentCase(this.get('dataContext'), collection),
+          parentCaseID = parentCase && parentCase.get('id'),
           values;
       if (!collection || !attrIDs) return;
 
@@ -571,10 +578,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       });
       protoCase._values = {};
 
+      if (gridDataView && parentCaseID) {
+        // cell navigation happens within invokeNext(); group expansion is next after that
+        this.invokeNext(function() {
+          this.invokeNext(function() {
+            gridDataView.expandGroup(parentCaseID);
+            gridAdapter.refresh();
+          });
+        });
+      }
+
       DG.DataContextUtilities.createCaseUndoable(this.get('dataContext'), {
         collection: collection,
         attrIDs: attrIDs,
         values: values,
+        beforeCaseID: beforeCaseID,
         parent: parentCase
       });
     },
@@ -959,6 +977,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           tSelectionCount = tSelection && tSelection.get('length'),
           tDeleteIsEnabled = tSelectionCount > 0,
           tDeleteSingle = tSelectionCount === 1, tItems = [{
+            title: 'DG.CaseTable.indexMenu.moveEntryRow',
+            localize: true,
+            target: this,
+            action: 'moveDataEntryRow'
+          }, {
             title: 'DG.CaseTable.indexMenu.insertCase',
             localize: true,
             target: this,
@@ -985,6 +1008,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     },
 
+    collapseGroup: function (iCaseID) {
+      this.getPath('gridAdapter.gridDataView').collapseGroup(iCaseID);
+      var childDataView = this.getPath('childTable.gridAdapter.gridDataView');
+      if (childDataView) childDataView.resetDataEntryRowForCollapsedParent(iCaseID);
+    },
+
     /**
      * Collapses a node in the case tree and resets all case tables below.
      * @param iCaseID {number}
@@ -992,7 +1021,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     collapseCase: function (iCaseID) {
       var childTable = this.get('childTable');
       var viewportRow;
-      this.getPath('gridAdapter.gridDataView').collapseGroup(iCaseID);
+      this.collapseGroup(iCaseID);
       if (childTable) {
         childTable._refreshDataView(true);
         viewportRow = this.getViewportPosition(iCaseID);
@@ -1010,6 +1039,27 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.getPath('gridAdapter.gridDataView').expandGroup(iCaseID);
       if (childTable) {
         childTable._refreshDataView(true);
+      }
+    },
+
+    resetDataEntryRowForCollapsedParent: function (iCaseID) {
+      var childDataView = this.getPath('childTable.gridAdapter.gridDataView');
+      if (childDataView) childDataView.resetDataEntryRowForCollapsedParent(iCaseID);
+    },
+
+    moveDataEntryRow: function () {
+      var adapter = this.get('gridAdapter'),
+          dataView = adapter.get('gridDataView'),
+          clickCaseIndex = this._caseIndexMenuCell.row,
+          clickCase = dataView && dataView.getItem(clickCaseIndex),
+          parentCase = clickCase && clickCase.get('parent'),
+          collection = clickCase && clickCase.get('collection'),
+          protoCase = dataView && dataView.getProtoCase(collection);
+      if (protoCase && clickCase && !clickCase._isProtoCase) {
+        protoCase.set('beforeCaseID', clickCase.get('id'));
+        protoCase.set('parentCaseID', parentCase && parentCase.get('id'));
+        adapter.deselectAllCases();
+        adapter.refresh();
       }
     },
 
@@ -1167,14 +1217,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     getRowBounds: function (iRowIndex) {
       // start with the bounds of the first (left-most) cell in the row
-      var rowBounds = this._slickGrid && this._slickGrid.getCellNodeBox(
-          iRowIndex, 0),
+      var rowBounds = this._slickGrid && this._slickGrid.getCellNodeBox(iRowIndex, 0),
           columns = this._slickGrid && this._slickGrid.getColumns(),
           colCount = columns && columns.length;
       if (rowBounds && colCount) {
         // Expand the right edge to include the bounds of the last cell in the row
-        var lastCellBounds = this._slickGrid.getCellNodeBox(iRowIndex,
-            colCount - 1);
+        var lastCellBounds = this._slickGrid.getCellNodeBox(iRowIndex, colCount - 1);
         rowBounds.right = lastCellBounds.right;
       }
       return rowBounds;
@@ -1605,10 +1653,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                 'collection').get('id') !== collection.get('id')),
             isProtoCase = dataItem && dataItem._isProtoCase;
         if (iCell.cell === 0 && !hierTableView.getPath('model.isIndexHidden')) {
-          if (isProtoCase) this.get('gridAdapter').deselectAllCases();
-          if (DG.DataContextUtilities.isCaseEditable(dataContext,
-              dataItem) && !isClosedGroup) this.showCaseIndexPopup(iEvent,
-              iCell);
+          if (isProtoCase)
+            this.get('gridAdapter').deselectAllCases();
+          else if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem) && !isClosedGroup)
+            this.showCaseIndexPopup(iEvent, iCell);
         }
       }.bind(this));
     },
@@ -2014,12 +2062,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               if (iExpand) {
                 dataView.expandGroup(myCase.id);
               } else {
-                dataView.collapseGroup(myCase.id);
+                this.collapseGroup(myCase.id);
               }
             } catch (e) {
               DG.logError('expandCollapseAll: ' + e);
             }
-          });
+          }.bind(this));
           this.endDataViewUpdate(true);
           this.childTable._refreshDataView(true);
         }.bind(this),
@@ -2029,8 +2077,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             dataView.expandGroup(myCase.id);
           });
           priorExpCoState.forEach(function (caseID) {
-            dataView.collapseGroup(caseID);
-          });
+            this.collapseGroup(caseID);
+          }.bind(this));
           this.updateSelectedRows(true);
           this.incrementProperty('expandCollapseCount');
           this.endDataViewUpdate(true);
@@ -2402,6 +2450,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             ".slick-header-columns").length);
       }
 
+      if (this.getPath('gridAdapter.isModelDragging')) return NO;
+
       var clickedCell = this._slickGrid.getCellFromEvent(iEvent);
 
       // if we are in the header, bail. This will be handled later.
@@ -2420,8 +2470,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       // if we clicked in the table body and the component is unselected then we
       // want to select cases iff they were not selected. If the component is
       // selected, we let that pass through.
-      if (clickedCell ) {
+      if (clickedCell) {
         var clickedCase = this._slickGrid.getDataItem(clickedCell.row);
+        if (clickedCase && clickedCase._isProtoCase) {
+          dataContext.applyChange({ operation: 'selectCases', select: false });
+          return YES;
+        }
         if (selectedCases
             && clickedCase
             && (tIsComponentSelected || !(selectedCases.indexOf(clickedCase) >=0))) {
