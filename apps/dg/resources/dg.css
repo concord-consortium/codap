@@ -1492,12 +1492,20 @@ input, textarea {
     background-color: rgba(256, 256, 0, 0.2);
 }
 
-.slick-row:not(.dg-collapsed-row) .slick-cell.dg-index-column{
+.slick-row:not(.dg-collapsed-row) .slick-cell.dg-index-column {
     cursor: pointer;
 }
 
+.slick-row.dg-proto-row .slick-cell.dg-index-column {
+    cursor: grab;
+}
+
+.slick-row.dg-proto-row.drag-preview .slick-cell {
+    cursor: grabbing !important;
+}
+
 .slick-resizing-row {
-    .slick-row:not(.dg-collapsed-row) .slick-cell.dg-index-column{
+    .slick-row:not(.dg-collapsed-row) .slick-cell.dg-index-column {
         cursor: row-resize;
     }
 }
@@ -1535,6 +1543,7 @@ input, textarea {
         opacity: 0.3;
     }
     &.drag-preview {
+        z-index: 10;
         opacity: 0.7;
         cursor: grabbing !important;
     }

@@ -205,6 +205,7 @@ DG.CaseTableRowSelectionModel = function (options) {
       _dragInputRowClone = _dragInputRow.cloneNode(true);
       $(_dragInputRow).addClass('drag-source');
       $(_dragInputRowClone).addClass('drag-preview');
+      $(_dragInputRowClone).find('.slick-row-resizer').remove();
       $(_gridViewport).append(_dragInputRowClone);
     }
 
