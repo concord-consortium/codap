@@ -95,7 +95,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
     init: function() {
       sc_super();
-      // Adjust the horizontal scrollbar so that the right scroll arrow can be hit.
       this.set('horizontalScrollerLayout', { left: 0, right: 18, top: 0, bottom: 0 });
     },
 

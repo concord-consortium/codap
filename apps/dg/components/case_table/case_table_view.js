@@ -1011,7 +1011,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     collapseGroup: function (iCaseID) {
       this.getPath('gridAdapter.gridDataView').collapseGroup(iCaseID);
       var childDataView = this.getPath('childTable.gridAdapter.gridDataView');
-      if (childDataView) childDataView.resetDataEntryRowForCollapsedParent(iCaseID);
+      if (childDataView) childDataView.resetProtoCases(iCaseID);
     },
 
     /**
@@ -1040,11 +1040,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (childTable) {
         childTable._refreshDataView(true);
       }
-    },
-
-    resetDataEntryRowForCollapsedParent: function (iCaseID) {
-      var childDataView = this.getPath('childTable.gridAdapter.gridDataView');
-      if (childDataView) childDataView.resetDataEntryRowForCollapsedParent(iCaseID);
     },
 
     moveDataEntryRow: function () {

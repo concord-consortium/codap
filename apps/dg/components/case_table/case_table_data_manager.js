@@ -222,10 +222,20 @@ DG.CaseTableDataManager = SC.Object.extend({
     return protoCase;
   },
 
-  resetProtoCases: function () {
-    DG.ObjectMap.forEach(this._protoCases, function(key, protoCase) {
-      protoCase.set('beforeCaseID', null);
-      protoCase.set('parentCaseID', null);
+  /**
+   * Resets the data entry rows (proto-cases) to their default location
+   * at the bottom of the table.
+   *
+   * If iParentCaseID is specified, then only resets data entry rows
+   * associated with that particular parent case.
+   */
+  resetProtoCases: function (iParentCaseID) {
+    // collapsing a group with the entry row moves the entry row to its default location
+    DG.ObjectMap.forEach(this._protoCases, function(collectionID, protoCase) {
+      if (!iParentCaseID || (protoCase.get('parentCaseID') === iParentCaseID)) {
+        protoCase.set('beforeCaseID', null);
+        protoCase.set('parentCaseID', null);
+      }
     });
   },
 
@@ -486,16 +496,6 @@ DG.CaseTableDataManager = SC.Object.extend({
     if (myCase) {
       return this.model.isCollapsedNode(myCase);
     }
-  },
-
-  resetDataEntryRowForCollapsedParent: function (iCaseID) {
-    // collapsing a group with the entry row moves the entry row to its default location
-    DG.ObjectMap.forEach(this._protoCases, function(collectionID, protoCase) {
-      if (protoCase.get('parentCaseID') === iCaseID) {
-        protoCase.set('beforeCaseID', null);
-        protoCase.set('parentCaseID', null);
-      }
-    });
   },
 
   /**
