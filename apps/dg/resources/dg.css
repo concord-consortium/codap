@@ -1522,16 +1522,19 @@ input, textarea {
     .slick-cell {
         &.dg-index-column {
             background-color: #bddfdf;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
 
             img {
                 position: absolute;
-                left: -2px;
-                top: -2px;
                 width: 18px;
                 height: 18px;
+                margin-left: -7px;
+                margin-top: 1px;
             }
         }
-        height: 11px;
+        height: calc(100% - 7px);
         border-top: 1.5px solid silver;
         border-bottom: 2px solid silver;
         &.active.editable {
