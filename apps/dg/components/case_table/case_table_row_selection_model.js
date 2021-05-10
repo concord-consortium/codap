@@ -412,7 +412,7 @@ DG.CaseTableRowSelectionModel = function (options) {
     var afterParentCase = afterRowIsCollapsed
                             ? afterCase
                             : afterCase && afterCase.get('parent');
-    var afterParentCaseID = afterParentCase && afterParentCase.get('id');
+    var afterParentCaseID = afterParentCase && afterParentCase.get('id') || null;
     var beforeRow = targets && (targets.length >= 2) && targets[1];
     var beforeRowIsCollapsed = beforeRow && $(beforeRow).hasClass('dg-collapsed-row');
     var beforeCaseID = beforeRow && $(beforeRow).data('row-id');
@@ -421,7 +421,7 @@ DG.CaseTableRowSelectionModel = function (options) {
     var beforeParentCase = beforeRowIsCollapsed
                             ? beforeCase
                             : beforeCase && beforeCase.get('parent');
-    var beforeParentCaseID = beforeParentCase && beforeParentCase.get('id');
+    var beforeParentCaseID = beforeParentCase && beforeParentCase.get('id') || null;
     var parentCaseID = afterParentCaseID || beforeParentCaseID;
     var hasSameParentCase = afterCase && beforeCase && (afterParentCaseID === beforeParentCaseID);
     var hasNoParentCase = (afterCase == null) && (beforeCase == null);
