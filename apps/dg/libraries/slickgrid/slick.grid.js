@@ -1509,7 +1509,7 @@ if (typeof Slick === "undefined") {
 
       stringArray.push("<div class='ui-widget-content " + rowCss + "' " +
                             "style='top:" + (options.rowHeight * row - offset) + "px' " +
-                            "data-row-id='" + (d ? d.get('id') : '') + "'>");
+                            "data-row-id='" + (d ? d.get('id') : '') + "'>"); // [CC]
 
       var colspan, m;
       for (var i = 0, ii = columns.length; i < ii; i++) {
