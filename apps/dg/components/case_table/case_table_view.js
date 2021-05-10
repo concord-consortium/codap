@@ -1068,7 +1068,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           clickCaseIndex = this._caseIndexMenuCell.row,
           clickCase = dataView && dataView.getItem(clickCaseIndex),
           beforeCaseIndex = insertAfter ? clickCaseIndex + 1 : clickCaseIndex,
-          beforeCase = dataView && dataView.getItem(beforeCaseIndex),
+          beforeRow = dataView && dataView.getItem(beforeCaseIndex),
+          beforeCase = beforeRow && beforeRow._isProtoCase
+                        ? dataView.getItem(beforeCaseIndex + 1)
+                        : beforeRow,
           collectionID = clickCase.getPath('collection.id'),
           beforeItemID = beforeCase && beforeCase.getPath('item.id'),
           newItem = {}, newItems = [newItem], parentCase, newCaseIDs;
