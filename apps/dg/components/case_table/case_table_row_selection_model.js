@@ -184,6 +184,11 @@ DG.CaseTableRowSelectionModel = function (options) {
   }
 
   function handleDragInit(e) {
+    if (_grid.getActiveCell()) {
+      _grid.getEditorLock().commitCurrentEdit();
+      _grid.focus();
+    }
+
     e.stopImmediatePropagation();
   }
 
