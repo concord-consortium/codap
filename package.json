@@ -123,7 +123,7 @@
   },
   "dependencies": {
     "@concord-consortium/slate-editor": "^0.5.0",
-    "codemirror": "^5.39.2",
+    "codemirror": "^5.58.2",
     "create-react-class": "^15.7.0",
     "dayjs": "^1.8.14",
     "es5-shim": "^4.5.14",
