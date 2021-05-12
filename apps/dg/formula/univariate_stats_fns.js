@@ -341,8 +341,77 @@ return {
           iInstance.results[ iCacheID] = String( value);
       }
     }
+  }),
+  /**
+   * rmean(expr, width, filter)
+   * Returns the running mean. 'expr' is the expression evaluated for each case.
+   * 'width', is the number of prior and succeeding cases included in the mean.
+   * It is a positive odd integer. For example, a width of seven will sum the
+   * values for the three prior (filtered) cases, the three succeeding (filtered)
+   * cases, and the current case and divide by seven. The filter is an expression
+   * that excludes cases from consideration.
+   *
+   * Algorithm:
+   * (1) Build an array of groups with each group being an array of cases.
+   * Group membership for a child collection is the list of parent case children.
+   * Group membership for a parent collection is the cases in the collection.
+   * The array of cases for each group is filtered.
+   * (2) For each case in each group,
+   * find the value of its expression, then find the set of group members within range,
+   * and for each member of _this_ set, add the value to its cached sum and
+   * increment its cached value.
+   * (3) computeResultFromCache
+   */
+  rmean: DG.AggregateFunction.create({
+    category: 'DG.Formula.FuncCategoryStatistical',
+    requiredArgs: { min: 2, max: 3 }, // expression, range, filter
+    isCaseIndexDependent: function () { return false; },
+    evaluate: function(iContext, iEvalContext, iInstance) {
+      var valueFn = iInstance.argFns[0],
+          widthFn = iInstance.argFns[1],
+          filterFn = iInstance.argFns[2];
+      /**
+       * @return {[object]}
+       */
+      function getRangeEvalContexts(iContext, iEvalContext) {
+        var width = widthFn(iContext, iEvalContext);
+        var halfWidth = Math.floor(width/2);
+        var rtn = [iEvalContext];
+        var iCase = iEvalContext._case_;
+        var parentCase = iCase && iCase.get('parent');
+        var siblings = parentCase ? parentCase.get('children')
+            : (iContext && iContext.getPath('collection.cases'));
+        var thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_); // 1-based index
+        var ix = thisCaseIndex - 1; // 0-based index
+        var remaining = halfWidth;
+        var tCase;
+        while(ix > 0 && remaining > 0) {
+          ix -= 1;
+          tCase = siblings[ix];
+          if (!filterFn || filterFn(iContext, {_case_: tCase, _id_: tCase.get('id') })) {
+            rtn.push({ _case_: tCase, _id_: tCase && tCase.get('id')  });
+            remaining -= 1;
+          }
+        }
+        ix = thisCaseIndex - 1; // 0-based index
+        remaining = halfWidth;
+        while(ix < siblings.length - 1 && remaining > 0) {
+          ix += 1;
+          tCase = siblings[ix];
+          if (tCase && (!filterFn || filterFn(iContext, {_case_: tCase, _id_: tCase.get('id') }))) {
+            rtn.push({ _case_: tCase, _id_: tCase && tCase.get('id')  });
+            remaining -= 1;
+          }
+        }
+        return rtn;
+      }
+      var rangeContexts = getRangeEvalContexts(iContext, iEvalContext);
+      var sum = rangeContexts.reduce(function (accum, iTEvalContext, ix) {
+        return accum + DG.getNumeric(valueFn(iContext, iTEvalContext));
+      }.bind(this), 0);
+      return sum / rangeContexts.length;
+    }
   })
-  
 };
 
 }()));

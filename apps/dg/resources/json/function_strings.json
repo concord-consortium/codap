@@ -886,6 +886,31 @@
       "mean(Height, Sex = \"F\") computes the mean Height of females"
     ]
   },
+  "rollingMean": {
+    "displayName": "rollingMean",
+    "description": "Returns the rolling arithmetic mean of its expression evaluated for every case. The rolling mean averages the n nearest values with the given value where n is the value of \"width\".",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose mean will be returned."
+      },
+      {
+        "name": "width",
+        "type": "expression",
+        "description": "The number of values included in each mean. This value is rounded to the nearest odd value."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "A true-false expression that selects the cases considered."
+      }
+    ],
+    "examples": [
+      "rollingMean(Height, 5) computes the rolling mean of the attribute Height, including the the current value and the two preceding and following values",
+      "rollingMean(Height, 5, Habitat!=\"water\") computes the rolling mean of Height, excluding water dwelling Mammals"
+    ]
+  },
   "median": {
     "displayName": "median",
     "description": "Returns the median. Half the values of the attribute will be above this and half will be below.",
