@@ -852,14 +852,17 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       getPlottedAttributeIDs: function () {
         var plottedAttributeIDs = [],
             dataConfiguration = this.get('dataConfiguration'),
-            properties = ['xAttributeID', 'yAttributeID', 'legendAttributeID'];
+            attrDescriptions = dataConfiguration.get('attributesByPlace');
         if (!dataConfiguration) return plottedAttributeIDs;
-        properties.forEach(function (iProperty) {
-          var attrID = dataConfiguration.get(iProperty);
-          if (!SC.none(attrID) && (attrID !== DG.Analysis.kNullAttribute)) {
-            if (plottedAttributeIDs.indexOf(attrID) < 0)
-              plottedAttributeIDs.push(attrID);
-          }
+        attrDescriptions.forEach(function (iDescArray) {
+          iDescArray.forEach( function( iDesc) {
+            iDesc.get('attributes').forEach( function( iAttr) {
+              var tID = iAttr.get('id');
+              if( !SC.none(tID) && tID !== DG.Analysis.kNullAttribute &&
+                  plottedAttributeIDs.indexOf(tID) < 0)
+                plottedAttributeIDs.push(tID);
+            });
+          });
         });
         return plottedAttributeIDs;
       },
