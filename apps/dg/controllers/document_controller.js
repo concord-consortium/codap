@@ -1676,30 +1676,30 @@ DG.DocumentController = SC.Object.extend(
         iTableComponentView.set('savedLayout', tTableLayout);
         // animate case table to default card width, then animate to closed height,
         // then toggle to case card and animate to final position
-        iTableComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'},
-            function () {
-              iTableComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
-                  {duration: 0.3, timing: 'ease-in-out'},
-                  function () {
-                    iTableComponentView.set('isVisible', false);
-                    tTableLayout.isVisible = false;
-                    // restore position of invisible component, so it will come back to the right place.
-                    iTableComponentView.set('layout', tTableLayout);
-                    iTableComponentView.setPath('model.content.isActive', false);
-                    tCardComponentView = this.tableCardRegistry.getCardView(tContext) ||
-                        this.addCaseCard(iTableComponentView.get('parentView'),
-                            tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
-                    tCardComponentView.setPath('model.cannotClose', tCannotClose);
-                    tCardComponentView.set('layout', tCardInitialLayout);
-                    var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
-                    if (!tCardComponentView.get('savedLayout')) { tCardComponentView.set('savedLayout', tCardLayout);}
-                    tCardComponentView.set('isVisible', true);
+        iTableComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'});
+        this.invokeLater(function() {
+          iTableComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
+              {duration: 0.3, timing: 'ease-in-out'});
+        }, 300);
+        this.invokeLater(function() {
+          iTableComponentView.set('isVisible', false);
+          tTableLayout.isVisible = false;
+          // restore position of invisible component, so it will come back to the right place.
+          iTableComponentView.set('layout', tTableLayout);
+          iTableComponentView.setPath('model.content.isActive', false);
+          tCardComponentView = this.tableCardRegistry.getCardView(tContext) ||
+              this.addCaseCard(iTableComponentView.get('parentView'),
+                  tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
+          tCardComponentView.setPath('model.cannotClose', tCannotClose);
+          tCardComponentView.set('layout', tCardInitialLayout);
+          var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
+          if (!tCardComponentView.get('savedLayout')) { tCardComponentView.set('savedLayout', tCardLayout);}
+          tCardComponentView.set('isVisible', true);
 
-                    tCardComponentView.select();
-                    tCardComponentView.setPath('model.content.isActive', true);
-                    this.tableCardRegistry.registerView(tContext, tCardComponentView);
-                  }.bind(this));
-            }.bind(this));
+          tCardComponentView.select();
+          tCardComponentView.setPath('model.content.isActive', true);
+          this.tableCardRegistry.registerView(tContext, tCardComponentView);
+        }.bind(this), 600);
       },
 
       toggleCardToTable: function (iCardComponentView) {
