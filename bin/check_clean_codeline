@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Verifies a codeline is clean and on the expected named branch
+#
+PROGNAME=$(basename "$0")
+#DIRNAME=$(dirname "$0")
+
+function usage () {
+  echo "usage $PROGNAME directory [expected-branch]" 1>&2
+  exit 1
+}
+
+# usage: fail status-code message
+function fail () {
+  echo "$PROGNAME: $2" 1>&2
+  exit "$1"
+}
+
+DIRECTORY=$1
+EXPECTED_BRANCH=$2
+
+# check number of arguments
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ] ; then usage; fi
+
+# check that codeline exists
+if [ ! -d "$DIRECTORY" ] ; then
+  fail 2 "Codeline directory does not exist"
+fi
+
+# check that codeline is on expected branch
+if [ "$EXPECTED_BRANCH" != "" ] ; then
+  BRANCH=$(git -C "$DIRECTORY" rev-parse --abbrev-ref HEAD)
+  if [ "$BRANCH" != "$EXPECTED_BRANCH" ] ; then
+    fail 4 "Expected branch doesn't match current branch"
+  fi
+fi
+
+# check that codeline is clean
+if [ $(git -C "$DIRECTORY" status -s | wc -l) != 0 ] ; then
+  fail 3 "Directory is not clean"
+fi
+
