@@ -693,11 +693,11 @@ DG.ComponentView = SC.View.extend(
             this.set('savedLayout', null);
             this.toggleMinimization();
           }
-          this.set('isVisible', true);
-          this.select();
           if (DG.KEEP_IN_BOUNDS_PREF && !this.get('isStandaloneComponent')) {
             DG.currDocumentController().enforceViewBounds();
           }
+          this.set('isVisible', true);
+          this.select();
         },
 
         /**
