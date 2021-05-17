@@ -360,8 +360,10 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
   doDraw: function doDraw() {
 
     function updateAverageAdorn( a ) {
-      if( !SC.none( a ) && a.wantVisible())
+      if( !SC.none( a ) && a.wantVisible()) {
+        a.get('model').setComputingNeeded();
         a.updateToModel();
+      }
     }
 
     sc_super();
