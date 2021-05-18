@@ -735,15 +735,15 @@ DG.DataContext = SC.Object.extend((function () // closure
       if (!iChange.collection) {
         iChange.collection = this.get('childCollection');
       }
-    if( !iChange.collection.casesController)
-      iChange.collection = iChange.collection.get('name');
+      if( !iChange.collection.casesController)
+        iChange.collection = iChange.collection.get('name');
 
-    if (typeof iChange.collection === "string") {
-      collection = this.getCollectionByName( iChange.collection);
-      iChange.collection = collection;  // Because we'll need it as an object later
-    } else {
-      collection = iChange.collection;
-    }
+      if (typeof iChange.collection === "string") {
+        collection = this.getCollectionByName( iChange.collection);
+        iChange.collection = collection;  // Because we'll need it as an object later
+      } else {
+        collection = iChange.collection;
+      }
 
       // we hold off on observers because of performance issues adding many
       // cases when some cases are selected
@@ -1247,8 +1247,7 @@ DG.DataContext = SC.Object.extend((function () // closure
           var caseCount = collection.getPath('cases.length');
           collection.moveCase(iCase, caseCount - 1, skipIDMapUpdate);
         } else {
-          // could potentially support moving a case to a particular index,
-          // or perhaps before/after another case with a particular ID, etc.
+          collection.moveCase(iCase, caseOrder, skipIDMapUpdate);
         }
         // Note that when a sort occurs, all of the caseIDs are listed.
         // In this case, we could list all of the cases affected, i.e. all of
@@ -1652,7 +1651,7 @@ DG.DataContext = SC.Object.extend((function () // closure
       this.invalidateAttrsOfCollections(collections, change);
 
       // generate object containing case and item ids
-      function creatIdObject() {
+      function createIdObject() {
         var caseIDs = [];
         var itemIDs = [];
         results.createdCases.forEach(function (iCase) {
@@ -1662,7 +1661,7 @@ DG.DataContext = SC.Object.extend((function () // closure
         return {caseIDs: caseIDs, itemIDs: itemIDs};
       }
 
-      return results && creatIdObject();
+      return results && createIdObject();
     },
 
     /**

@@ -624,6 +624,7 @@ SC.stringsFor("en", {
     // DG.CaseTable
     "DG.CaseTable.indexColumnName": "index",
     "DG.CaseTable.indexColumnTooltip": "The row number (caseIndex) within the collection",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here",
     "DG.CaseTable.indexMenu.insertCase": "Insert Case",
     "DG.CaseTable.indexMenu.insertCases": "Insert Cases...",
     "DG.CaseTable.indexMenu.deleteCase": "Delete Case",
