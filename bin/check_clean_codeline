@@ -24,14 +24,14 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ] ; then usage; fi
 
 # check that codeline exists
 if [ ! -d "$DIRECTORY" ] ; then
-  fail 2 "Codeline directory does not exist"
+  fail 2 "Codeline directory does not exist: $DIRECTORY"
 fi
 
 # check that codeline is on expected branch
 if [ "$EXPECTED_BRANCH" != "" ] ; then
   BRANCH=$(git -C "$DIRECTORY" rev-parse --abbrev-ref HEAD)
   if [ "$BRANCH" != "$EXPECTED_BRANCH" ] ; then
-    fail 4 "Expected branch doesn't match current branch"
+    fail 4 "Expected branch ($EXPECTED_BRANCH) doesn't match current branch: $BRANCH"
   fi
 fi
 

@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Gets the current git object hash from CODAP Extn repositories and writes them
+# to files in the current directory
+PROGNAME=$(basename "$0")
+DIRNAME=$(dirname "$0")
+
+EXTN_DIRS="../codap-data-interactives ../codap-data"
+
+for t in $EXTN_DIRS; do
+#  echo $t;
+  FN=.$(basename $t)_githash
+#  echo $FN
+  git -C "$t" log --max-count=1 --pretty=%H > $FN
+done
