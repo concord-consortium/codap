@@ -389,6 +389,9 @@ return {
         var remaining = numPreceding;
         var tCase;
         var value = DG.getNumeric(valueFn(iContext, iEvalContext));
+        if (numPreceding > ix || numFollowing >= (siblings.length - ix)) {
+          return [];
+        }
         if (value != null) {rtn.push(value);}
         while(ix > 0 && remaining > 0) {
           ix -= 1;
@@ -413,6 +416,9 @@ return {
         return rtn;
       }
       var values = getRangeValues(iContext, iEvalContext);
+      if (values.length === 0) {
+        return null;
+      }
       var sum = values.reduce(function (accum, value, ix) {
         return accum + value;
       }.bind(this), 0);
