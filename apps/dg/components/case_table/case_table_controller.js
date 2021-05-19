@@ -492,6 +492,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         this.caseCountDidChange( iChange);
         this.doSelectCases(iChange);
         caseTableModel.didDeleteCases(iChange.cases);
+        this.resetProtoCaseRows();
       },
       doDependentCases: function(iChange) {
         if (iChange.changes) {
