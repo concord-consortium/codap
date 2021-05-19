@@ -898,12 +898,12 @@
       {
         "name": "width",
         "type": "expression",
-        "description": "The number of values included in each mean. This value is rounded to the nearest odd value."
+        "description": "The number of values included in each mean. This value is rounded to the nearest whole number."
       },
       {
         "name": "filter",
         "type": "boolean",
-        "description": "A true-false expression that selects the cases considered."
+        "description": "(optional) A true-false expression that selects the cases considered."
       }
     ],
     "examples": [

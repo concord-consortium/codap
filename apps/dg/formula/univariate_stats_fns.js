@@ -362,7 +362,7 @@ return {
    * increment its cached value.
    * (3) computeResultFromCache
    */
-  rmean: DG.AggregateFunction.create({
+  rollingMean: DG.AggregateFunction.create({
     category: 'DG.Formula.FuncCategoryStatistical',
     requiredArgs: { min: 2, max: 3 }, // expression, range, filter
     isCaseIndexDependent: function () { return false; },
@@ -373,43 +373,50 @@ return {
       /**
        * @return {[object]}
        */
-      function getRangeEvalContexts(iContext, iEvalContext) {
-        var width = widthFn(iContext, iEvalContext);
-        var halfWidth = Math.floor(width/2);
-        var rtn = [iEvalContext];
+      function getRangeValues(iContext, iEvalContext) {
+        var width = Math.round(widthFn(iContext, iEvalContext));
+        if (width<1) return [];
+        var isOddWidth = !!(width % 2);
+        var numPreceding = Math.floor(width/2);
+        var numFollowing = width - 1 - numPreceding;
+        var rtn = [];
         var iCase = iEvalContext._case_;
         var parentCase = iCase && iCase.get('parent');
         var siblings = parentCase ? parentCase.get('children')
             : (iContext && iContext.getPath('collection.cases'));
         var thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_); // 1-based index
         var ix = thisCaseIndex - 1; // 0-based index
-        var remaining = halfWidth;
+        var remaining = numPreceding;
         var tCase;
+        var value = DG.getNumeric(valueFn(iContext, iEvalContext));
+        if (value != null) {rtn.push(value);}
         while(ix > 0 && remaining > 0) {
           ix -= 1;
           tCase = siblings[ix];
           if (!filterFn || filterFn(iContext, {_case_: tCase, _id_: tCase.get('id') })) {
-            rtn.push({ _case_: tCase, _id_: tCase && tCase.get('id')  });
+            value = DG.getNumeric(valueFn(iContext, { _case_: tCase, _id_: tCase && tCase.get('id')  }));
+            if (value != null) { rtn.push(value); }
             remaining -= 1;
           }
         }
         ix = thisCaseIndex - 1; // 0-based index
-        remaining = halfWidth;
+        remaining = numFollowing;
         while(ix < siblings.length - 1 && remaining > 0) {
           ix += 1;
           tCase = siblings[ix];
           if (tCase && (!filterFn || filterFn(iContext, {_case_: tCase, _id_: tCase.get('id') }))) {
-            rtn.push({ _case_: tCase, _id_: tCase && tCase.get('id')  });
+            value = DG.getNumeric(valueFn(iContext, { _case_: tCase, _id_: tCase && tCase.get('id')  }));
+            if (value != null) { rtn.push(value); }
             remaining -= 1;
           }
         }
         return rtn;
       }
-      var rangeContexts = getRangeEvalContexts(iContext, iEvalContext);
-      var sum = rangeContexts.reduce(function (accum, iTEvalContext, ix) {
-        return accum + DG.getNumeric(valueFn(iContext, iTEvalContext));
+      var values = getRangeValues(iContext, iEvalContext);
+      var sum = values.reduce(function (accum, value, ix) {
+        return accum + value;
       }.bind(this), 0);
-      return sum / rangeContexts.length;
+      return sum / values.length;
     }
   })
 };
