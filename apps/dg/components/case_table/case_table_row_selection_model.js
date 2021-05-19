@@ -25,15 +25,27 @@
 DG.CaseTableRowSelectionModel = function (options) {
   var _grid;
   var _caseTableAdapter;
+  var _gridDataView;
   var _ranges = [];
   var _self = this;
   var _handler = new Slick.EventHandler();
   var _inHandler;
   var _options;
-  var _inDrag = false;  // eslint-disable-line no-unused-vars
   var _dragStartRow;
   var _dragStartY = null;
+  var _dragStartClientX = null;
   var _dragStartClientY = null;
+  var _dragClientY = null;
+  var _dragInputRow = null;
+  var _dragInputBounds = null;
+  var _gridViewport = null;
+  var _gridViewportBounds = null;
+  var _dragInputRowClone = null;
+  var _dragInputRowTargets = null;
+  var _topAutoScrollTimer = null;
+  var _bottomAutoScrollTimer = null;
+  var kAutoScrollMargin = 20;
+  var kAutoScrollInterval = 100;
 
   var _defaults = {
     selectActiveRow: true
@@ -42,21 +54,16 @@ DG.CaseTableRowSelectionModel = function (options) {
   function init(grid) {
     _options = $.extend(true, {}, _defaults, options);
     _caseTableAdapter = _options.caseTableAdapter;
+    _gridDataView = _caseTableAdapter.gridDataView;
     _grid = grid;
     // _handler.subscribe(_grid.onActiveCellChanged,
     //     wrapHandler(handleActiveCellChange));
-    _handler.subscribe(_grid.onKeyDown,
-        wrapHandler(handleKeyDown));
-    _handler.subscribe(_grid.onClick,
-        wrapHandler(handleClick));
-    _handler.subscribe(_grid.onDragInit,
-        wrapHandler(handleDragInit));
-    _handler.subscribe(_grid.onDragStart,
-        wrapHandler(handleDragStart));
-    _handler.subscribe(_grid.onDrag,
-        wrapHandler(handleDrag));
-    _handler.subscribe(_grid.onDragEnd,
-        wrapHandler(handleDragEnd));
+    _handler.subscribe(_grid.onKeyDown, wrapHandler(handleKeyDown));
+    _handler.subscribe(_grid.onClick, wrapHandler(handleClick));
+    _handler.subscribe(_grid.onDragInit, wrapHandler(handleDragInit));
+    _handler.subscribe(_grid.onDragStart, wrapHandler(handleDragStart));
+    _handler.subscribe(_grid.onDrag, wrapHandler(handleDrag));
+    _handler.subscribe(_grid.onDragEnd, wrapHandler(handleDragEnd));
   }
 
   function destroy() {
@@ -100,7 +107,7 @@ DG.CaseTableRowSelectionModel = function (options) {
     return ranges;
   }
 
-  function getRowsRange(from, to) { // jshint ignore:line
+  function getRowsRange(from, to) {
     var i, rows = [];
     for (i = from; i <= to; i++) {
       rows.push(i);
@@ -177,11 +184,16 @@ DG.CaseTableRowSelectionModel = function (options) {
   }
 
   function handleDragInit(e) {
-    _inDrag = true;
+    if (_grid.getActiveCell()) {
+      _grid.getEditorLock().commitCurrentEdit();
+      _grid.focus();
+    }
+
     e.stopImmediatePropagation();
   }
 
   function handleDragStart(e) {
+    _caseTableAdapter.set('isModelDragging', true);
     var activeCell = _grid.getCellFromEvent(e);
     var activeCellBox = _grid.getCellNodeBox(activeCell.row, activeCell.cell);
     // We prepare for computing future drag offsets by capturing the current
@@ -190,15 +202,143 @@ DG.CaseTableRowSelectionModel = function (options) {
     // coordinate system.
     _dragStartRow = activeCell && activeCell.row;
     _dragStartY = (activeCellBox.top + activeCellBox.bottom) / 2;
-    _dragStartClientY = e.clientY;
+    _dragStartClientX = e.clientX;
+    _dragStartClientY = _dragClientY = e.clientY;
+    for (var elt = e.target; elt; elt = elt.parentElement) {
+      if (elt && $(elt).hasClass("dg-proto-row")) {
+        _dragInputRow = elt;
+        _dragInputBounds = _dragInputRow.getBoundingClientRect();
+      }
+      if (elt && $(elt).hasClass("slick-viewport")) {
+        _gridViewport = elt;
+        _gridViewportBounds = _gridViewport.getBoundingClientRect();
+        break;
+      }
+    }
+    if (_dragInputRow) {
+      $(_dragInputRow).addClass('drag-source');
 
-    var selection = activeCell && [activeCell.row];
+      _dragInputRowClone = _dragInputRow.cloneNode(true);
+      $(_dragInputRowClone).addClass('drag-preview');
+      $(_dragInputRowClone).find('.slick-row-resizer').remove();
+      $(_gridViewport).append(_dragInputRowClone);
+    }
+
+    var selection = !_dragInputRow && activeCell && [activeCell.row];
 
     if (selection) {
       notifyContextOfSelectionChange(selection);
     }
 
     e.stopImmediatePropagation();
+  }
+
+  function nextSiblingRow(rowElt) {
+    if (!rowElt) return rowElt;
+    var $elt = $(rowElt);
+    var rowId = $elt.data('row-id');
+    var rowIndex = _gridDataView.getRowById(rowId);
+    var nextRowItem = _gridDataView.getItem(rowIndex + 1);
+    var nextRowId = nextRowItem && nextRowItem.get('id');
+    var $next = nextRowId && $(_gridViewport).find('[data-row-id="' + nextRowId + '"]');
+    if ($next && $next.hasClass('dg-collapsed-row'))
+      return null;
+    return $next && $next[0] || null;
+  }
+
+  function prevSiblingRow(rowElt) {
+    if (!rowElt) return rowElt;
+    var $elt = $(rowElt);
+    var rowId = $elt.data('row-id');
+    var rowIndex = _gridDataView.getRowById(rowId);
+    var prevRowItem = _gridDataView.getItem(rowIndex - 1);
+    var prevRowId = prevRowItem && prevRowItem.get('id');
+    var $prev = prevRowId && $(_gridViewport).find('[data-row-id="' + prevRowId + '"]');
+    if ($prev && $prev.hasClass('dg-collapsed-row'))
+      return null;
+    return $prev && $prev[0] || null;
+  }
+
+  function rowTargetsFromPoint() {
+    var targets = [], prevSibling, nextSibling;
+    var viewportBounds = _gridViewport.getBoundingClientRect();
+    var x = _dragStartClientX, y = _dragClientY;
+    y = Math.max(y, viewportBounds.top + 1);
+    y = Math.min(y, viewportBounds.bottom - 1);
+    var elts = isFinite(y) ? document.elementsFromPoint(x, y) : [];
+    for (var ix = 0; ix < elts.length; ++ix) {
+      var elt = elts[ix];
+      if ($(elt).hasClass('slick-row') && !$(elt).hasClass('drag-preview')) {
+        var bounds = elt.getBoundingClientRect();
+        if (!$(elt).hasClass('dg-collapsed-row')) {
+          if (y > (bounds.top + bounds.bottom) / 2)
+            nextSibling = nextSiblingRow(elt);
+          else
+            prevSibling = prevSiblingRow(elt);
+        }
+        if (prevSibling !== undefined)
+          targets.push(prevSibling);
+        targets.push(elt);
+        if (nextSibling !== undefined)
+          targets.push(nextSibling);
+        if ((prevSibling === undefined) && (nextSibling === undefined))
+          targets.push(elt);
+        break;
+      }
+    }
+    return targets;
+  }
+
+  function updateRowHighlighting() {
+    var i;
+    var targets = rowTargetsFromPoint();
+    if (_dragInputRowTargets) {
+      for (i = 0; i < _dragInputRowTargets.length; ++i) {
+        $(_dragInputRowTargets[i]).removeClass('drag-hilite');
+      }
+    }
+    for (i = 0; i < targets.length; ++i) {
+      $(targets[i]).addClass('drag-hilite');
+    }
+    _dragInputRowTargets = targets;
+  }
+
+  function adjustDragPreviewTop() {
+    var yOffset = _dragStartClientY - _dragInputBounds.top;
+    var newTop = _gridViewport.scrollTop + _dragClientY - _gridViewportBounds.top - yOffset;
+    var viewportRows = _grid.getViewport();
+    var maxVisibleRow = Math.min(viewportRows.bottom, _gridDataView.get('caseTableLength'));
+    var rowHeight = _caseTableAdapter.get('rowHeight');
+    newTop = Math.max(_gridViewport.scrollTop, newTop);
+    newTop = Math.min(Math.max(maxVisibleRow - 1, 0) * rowHeight, newTop);
+    $(_dragInputRowClone).css('top', newTop + "px");
+  }
+
+  function handleAutoScrollTop() {
+    var viewportRows = _grid.getViewport();
+    if (viewportRows.top > 0) {
+      var newTopRow = viewportRows.top - 1;
+      _grid.scrollRowIntoView(newTopRow);
+      adjustDragPreviewTop();
+      updateRowHighlighting();
+      _topAutoScrollTimer = newTopRow > 0
+                              ? setTimeout(handleAutoScrollTop, kAutoScrollInterval)
+                              : null;
+    }
+  }
+
+  function handleAutoScrollBottom() {
+    var viewportRows = _grid.getViewport();
+    var rowCount = _gridDataView.get('caseTableLength');
+    if (viewportRows.bottom < rowCount) {
+      var newBottomRow = viewportRows.bottom + 1;
+      _grid.scrollRowIntoView(newBottomRow);
+      adjustDragPreviewTop();
+      updateRowHighlighting();
+      _bottomAutoScrollTimer = newBottomRow < rowCount
+        ? setTimeout(handleAutoScrollBottom, kAutoScrollInterval)
+        : null;
+    }
   }
 
   function handleDrag(e) {
@@ -209,8 +349,10 @@ DG.CaseTableRowSelectionModel = function (options) {
     var activeCell = _grid.getCellFromPoint(0, yOffset);
     var selection;
     var ix, start, end;
+    _dragClientY = e.clientY;
 
-    if (activeCell && (_dragStartRow !== null) && (_dragStartRow !== undefined)) {
+    // handle row selection
+    if (activeCell && (_dragStartRow != null) && !_dragInputRow) {
       selection = [];
       start = Math.min(_dragStartRow, activeCell.row);
       end = Math.max(_dragStartRow, activeCell.row);
@@ -220,18 +362,121 @@ DG.CaseTableRowSelectionModel = function (options) {
       notifyContextOfSelectionChange(selection);
     }
 
+    // handle input row drag
+    else if (_dragInputRow) {
+      adjustDragPreviewTop();
+      updateRowHighlighting();
+
+      // autoscroll support
+      var viewportBounds = _gridViewport.getBoundingClientRect();
+      var viewportRows = _grid.getViewport();
+      var rowCount = _gridDataView.get('caseTableLength');
+      var isInTopAutoScrollZone = e.clientY - viewportBounds.top < kAutoScrollMargin;
+      if (isInTopAutoScrollZone) {
+        if (!_topAutoScrollTimer && (_gridViewport.scrollTop > 0)) {
+          _topAutoScrollTimer = setTimeout(handleAutoScrollTop, kAutoScrollInterval);
+        }
+      }
+      else {
+        if (_topAutoScrollTimer) {
+          clearInterval(_topAutoScrollTimer);
+          _topAutoScrollTimer = null;
+        }
+
+        var isInBottomAutoScrollZone = viewportBounds.bottom - e.clientY < kAutoScrollMargin;
+        if (isInBottomAutoScrollZone) {
+          if (!_bottomAutoScrollTimer && (viewportRows.bottom < rowCount)) {
+            _bottomAutoScrollTimer = setTimeout(handleAutoScrollBottom, kAutoScrollInterval);
+          }
+        }
+        else if (_bottomAutoScrollTimer) {
+          clearInterval(_bottomAutoScrollTimer);
+          _bottomAutoScrollTimer = null;
+        }
+      }
+    }
+
     e.stopImmediatePropagation();
   }
 
   function handleDragEnd(e) {
     e.stopImmediatePropagation();
-    _inDrag = false;
+
+    var dataContext = _caseTableAdapter.get('dataContext');
+    var targets = _dragInputRow && rowTargetsFromPoint();
+    var afterRow = targets && (targets.length >= 1) && targets[0];
+    var afterRowIsCollapsed = afterRow && $(afterRow).hasClass('dg-collapsed-row');
+    var afterCaseID = afterRow && $(afterRow).data('row-id');
+    var afterCase = dataContext && afterCaseID && dataContext.getCaseByID(afterCaseID);
+    var afterCaseIsProtoCase = afterRow && $(afterRow).hasClass('dg-proto-row');
+    var afterParentCase = afterRowIsCollapsed
+                            ? afterCase
+                            : afterCase && afterCase.get('parent');
+    var afterParentCaseID = afterParentCase && afterParentCase.get('id') || null;
+    var beforeRow = targets && (targets.length >= 2) && targets[1];
+    var beforeRowIsCollapsed = beforeRow && $(beforeRow).hasClass('dg-collapsed-row');
+    var beforeCaseID = beforeRow && $(beforeRow).data('row-id');
+    var beforeCase = dataContext && beforeCaseID && dataContext.getCaseByID(beforeCaseID);
+    var beforeCaseIsProtoCase = beforeRow && $(beforeRow).hasClass('dg-proto-row');
+    var beforeParentCase = beforeRowIsCollapsed
+                            ? beforeCase
+                            : beforeCase && beforeCase.get('parent');
+    var beforeParentCaseID = beforeParentCase && beforeParentCase.get('id') || null;
+    var parentCaseID = afterParentCaseID || beforeParentCaseID;
+    var hasSameParentCase = afterCase && beforeCase && (afterParentCaseID === beforeParentCaseID);
+    var hasNoParentCase = (afterCase == null) && (beforeCase == null);
+    var protoCase = _gridDataView.getProtoCase();
+    if (protoCase && !afterCaseIsProtoCase && !beforeCaseIsProtoCase) {
+      protoCase.set('beforeCaseID',
+                    !afterRow || hasNoParentCase || hasSameParentCase
+                      ? beforeCaseID || null : null);
+      protoCase.set('parentCaseID', parentCaseID || null);
+      SC.run(function() {
+        if (afterRowIsCollapsed)
+          _gridDataView.expandGroup(afterCaseID);
+        _caseTableAdapter.refresh();
+        setTimeout(function() {
+          var protoCaseIndex = _gridDataView.getRowById(protoCase.get('id'));
+          if (protoCaseIndex)
+            _grid.scrollRowIntoView(protoCaseIndex);
+        }, 50);
+      });
+    }
+
     _dragStartRow = undefined;
     _dragStartY = null;
+    _dragStartClientX = null;
     _dragStartClientY = null;
-  }
+    _dragClientY = null;
+    if (_dragInputRow) {
+      $(_dragInputRow).removeClass('drag-source');
+      _dragInputRow = null;
+    }
+    _dragInputBounds = null;
+    if (_dragInputRowClone) {
+      $(_dragInputRowClone).remove();
+      _dragInputRowClone = null;
+    }
+    if (_dragInputRowTargets) {
+      for (var ix = 0; ix < _dragInputRowTargets.length; ++ix) {
+        $(_dragInputRowTargets[ix]).removeClass('drag-hilite');
+      }
+      _dragInputRowTargets = null;
+    }
+    if (_topAutoScrollTimer) {
+      clearTimeout(_topAutoScrollTimer);
+      _topAutoScrollTimer = null;
+    }
+    if (_bottomAutoScrollTimer) {
+      clearTimeout(_bottomAutoScrollTimer);
+      _bottomAutoScrollTimer = null;
+    }
+    _gridViewport = null;
+    _gridViewportBounds = null;
+    _caseTableAdapter.set('isModelDragging', false);
+}
 
-  function handleClick(e) { // jshint ignore:line
+  function handleClick(e) {
     var cell = _grid.getCellFromEvent(e);
     if (!cell) return false;
     if (!_grid.canCellBeActive(cell.row, cell.cell) &&

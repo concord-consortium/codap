@@ -494,13 +494,15 @@ DG.DataSet = SC.Object.extend((function() // closure
         switch (order) {
           case 'first':
             newIndexMap.unshift(itemIndex);
-            this.setClientIndexMap(newIndexMap);
             break;
           case 'last':
             newIndexMap.push(itemIndex);
-            this.setClientIndexMap(newIndexMap);
+            break;
+          default:
+            newIndexMap.splice(order, 0, itemIndex);
             break;
         }
+        this.setClientIndexMap(newIndexMap);
       }
     },
 
