@@ -23,14 +23,15 @@ describe('Sampler plugin', function () {
   it('verify data is shown in table', function () {
     cy.wait(8000)
     table.getCollection().eq(0).within(() => {
-      table.getCell(1, 1, 0).find('.dg-numeric').should('contain', 1)
-      // table.getCell(2,2,0).find('.dg-numeric').should('contain',this.mass)
+      table.getCell(0, 0, 0).find('.dg-numeric').should('contain', 1)
+      table.getCell(1, 1, 0).should('contain', "mixer")
+      table.getCell(2,2,0).find('.dg-numeric').should('contain',5)
     })
     table.getCollection().eq(1).within(function () {
-      table.getCell(1, 1, 0).find('.dg-numeric').should('contain', 1)
+      table.getCell(0, 0, 0).find('.dg-numeric').should('contain', 1)
     })
     table.getCollection().eq(2).within(function () {
-      table.getCell(1, 1, 0).should('contain', 'a')
+      table.getCell(0, 0, 0).should('not.be.empty', '')
     })
   })
 })
