@@ -889,7 +889,7 @@ DG.DataContext = SC.Object.extend((function () // closure
 
     doMoveItems: function (iChange) {
       var dataSet = this.get('dataSet');
-      if (dataSet && iChange.items && iChange.itemOrder) {
+      if (dataSet && iChange.items && (iChange.itemOrder != null)) {
         var oldIndexMap = dataSet.getClientIndexMapCopy();
         iChange.items.forEach(function (item, index) {
           var itemOrder = Array.isArray(iChange.itemOrder)
@@ -3022,4 +3022,3 @@ DG.DataContext.factory = function (iProperties) {
       func = type && DG.DataContext.registry[type];
   return func ? func(iProperties) : DG.DataContext.create(iProperties);
 };
-

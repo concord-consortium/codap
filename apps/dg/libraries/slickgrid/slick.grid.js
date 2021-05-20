@@ -1633,6 +1633,8 @@ if (typeof Slick === "undefined") {
     }
 
     function installResizeHandleForRow(row, rowNode) {
+      // don't allow row-resize from input row
+      if ($(rowNode).hasClass('dg-proto-row')) return;
       // resizer straddles the bottom edge of the row
       var resizerHeight = options.rowResizerHeight || options.minRowHeight / 2;
       var resizerTop = options.rowHeight - offset - resizerHeight / 2 - 0.5;
