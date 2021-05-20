@@ -155,6 +155,8 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
    * @param iExtend {Boolean}
    */
   selectParent: function( iParentID, iExtend) {
+    if(!DG.isFinite(iParentID))
+      return; // no parent
     var tDataContext = this.getPath('plotModel.dataContext'),
         tParent = tDataContext.getCaseByID( iParentID),
         tParentCaseIndex = tParent.get('collection').getCaseIndexByID( iParentID) + 1,
