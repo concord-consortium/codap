@@ -569,6 +569,24 @@ html, body {
     display: none;
 }
 
+.dg-equationview {
+    background-color: yellow;
+    opacity: 60%;
+    padding: 3px;
+    cursor: move;
+    width: fit-content;
+    height: fit-content;
+}
+
+.dg-equationview p {
+    font-family: 'Montserrat-Bold', sans-serif;
+    font-size: 12px;
+}
+
+.dg-equationview-opaque {
+    opacity: 100%;
+}
+
 .dg-component-view-selected .dg-movable-line-handle {
     display: initial;
 }

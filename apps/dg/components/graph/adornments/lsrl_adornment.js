@@ -43,13 +43,16 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
   }.property(),
 
   equationString: function() {
-    var tResult = sc_super();
+    var tResult = sc_super(),
+        kRSquared = '<p style = "color:%@;">r<sup>2</sup> = %@';
     if( !this.getPath('model.isInterceptLocked')) {
-      var tFormat = DG.Format.number().fractionDigits(0, 3),
+      var tColor = this.get('equationColor'),
+          tFormat = DG.Format.number().fractionDigits(0, 3),
           tRSquared = this.getPath('model.rSquared'),
           tRSquaredString = SC.none(tRSquared) ? '' : tFormat(tRSquared);
 
-      tResult = tResult + 'DG.ScatterPlotModel.rSquared'.loc(tRSquaredString) + this.get('sumResidSquaredString');
+      tResult = tResult + kRSquared.loc(tColor, tRSquaredString) +
+          this.get('sumResidSquaredString');
     }
     return tResult;
   }.property(),

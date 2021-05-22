@@ -96,6 +96,16 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
   }.observes('isInterceptLocked'),
 
   /**
+   * Keep my list of LSRLModels in synch
+   */
+  showSumSquaresChanged: function() {
+    var tShowing = this.get('showSumSquares');
+    this.get('lsrls').forEach( function( iLSRLModel) {
+      iLSRLModel.set('showSumSquares', tShowing);
+    });
+  }.observes('showSumSquares'),
+
+  /**
    *  We do not set that our values need computing because these are only re-evaluated when
    *  the axis attribute changes.
    */

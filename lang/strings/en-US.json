@@ -722,11 +722,8 @@
     "DG.PlotModel.hideCount": "Hide Count",
 
     // DG.ScatterPlotModel
-    "DG.ScatterPlotModel.sumSquares": ",\nSum of squares = %@", // sumOfResidualsSquared
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@", // r-squared
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@", // y,slope,x,signInt,Int
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@ %@", // x,constant,unit
-    "DG.ScatterPlotModel.slopeOnly": "slope = %@ %@", // numeric slope
+    "DG.ScatterPlotModel.sumSquares": "Sum of squares", // sumOfResidualsSquared
+    "DG.ScatterPlotModel.slopeOnly": "slope", // numeric slope
     "DG.ScatterPlotModel.yearsLabel": "per year", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.daysLabel": "per day", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.hoursLabel": "per hour", // used in equation for line when x is a datetime axis
