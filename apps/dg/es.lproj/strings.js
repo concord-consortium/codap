@@ -494,9 +494,6 @@ SC.stringsFor("es", {
     "DG.PlotModel.showCount": "Mostrar Conteo",
     "DG.PlotModel.hideCount": "Ocultar Conteo",
     "DG.ScatterPlotModel.sumSquares": ",\nSuma de los cuadrados = %@",
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@",
     "DG.ScatterPlotModel.slopeOnly": "pendiente = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "por año",
     "DG.ScatterPlotModel.daysLabel": "por día",
@@ -868,5 +865,6 @@ SC.stringsFor("es", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });

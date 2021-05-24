@@ -494,9 +494,6 @@ SC.stringsFor("el", {
     "DG.PlotModel.showCount": "Προβολή Μετρητή",
     "DG.PlotModel.hideCount": "Απόκρυψη Μετρητή",
     "DG.ScatterPlotModel.sumSquares": ",\nΆθροισμα τετραγώνων = %@",
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@",
     "DG.ScatterPlotModel.slopeOnly": "κλίση = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "ανά έτος",
     "DG.ScatterPlotModel.daysLabel": "ανά μέρα",
@@ -868,5 +865,6 @@ SC.stringsFor("el", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });

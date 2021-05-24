@@ -494,9 +494,6 @@ SC.stringsFor("th", {
     "DG.PlotModel.showCount": "แสดงการนับจำนวน",
     "DG.PlotModel.hideCount": "ซ่อนการนับจำนวน",
     "DG.ScatterPlotModel.sumSquares": ",\nSum of squares = %@",
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@ %@",
     "DG.ScatterPlotModel.slopeOnly": "ความชัน = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "ต่อปี",
     "DG.ScatterPlotModel.daysLabel": "ต่อวัน",
@@ -868,5 +865,6 @@ SC.stringsFor("th", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });

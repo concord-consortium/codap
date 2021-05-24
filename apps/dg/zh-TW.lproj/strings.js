@@ -494,9 +494,6 @@ SC.stringsFor("zh-TW", {
     "DG.PlotModel.showCount": "顯示數量",
     "DG.PlotModel.hideCount": "隱藏數量",
     "DG.ScatterPlotModel.sumSquares": ",\n平方總和 = %@",
-    "DG.ScatterPlotModel.rSquared": ",\nr平方 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@* %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@",
     "DG.ScatterPlotModel.slopeOnly": "線的斜率 = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "每年",
     "DG.ScatterPlotModel.daysLabel": "每天",
@@ -868,5 +865,6 @@ SC.stringsFor("zh-TW", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });

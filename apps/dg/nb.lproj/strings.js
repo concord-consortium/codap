@@ -494,9 +494,6 @@ SC.stringsFor("nb", {
     "DG.PlotModel.showCount": "Vis antall observasjoner",
     "DG.PlotModel.hideCount": "Skjul antall observasjonser",
     "DG.ScatterPlotModel.sumSquares": ",\nKvadratsum = %@",
-    "DG.ScatterPlotModel.rSquared": "r^2 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@ %@",
     "DG.ScatterPlotModel.slopeOnly": "stigning = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "per år",
     "DG.ScatterPlotModel.daysLabel": "per dag",
@@ -868,5 +865,6 @@ SC.stringsFor("nb", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });
