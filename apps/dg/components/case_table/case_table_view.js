@@ -1958,7 +1958,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (this._slickGrid) {
         this._slickGrid.setColumns(iColumnsInfo);
         this._slickGrid.render();
-        this.adjustHeaderForOverflow();
+        // give slickgrid a chance to complete the render.
+        this.invokeNext(function () {
+          this.adjustHeaderForOverflow();
+        });
       }
     },
 
