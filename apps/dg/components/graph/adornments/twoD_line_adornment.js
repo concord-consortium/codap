@@ -351,7 +351,6 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           x: (tIntercepts.pt1.x + tIntercepts.pt2.x) / 2,
           y: (tIntercepts.pt1.y + tIntercepts.pt2.y) / 2
         });
-        tBackgrndX = tTextAnchor.x - tTextWidth / 2;
         return tTextAnchor;
       }
 
@@ -370,7 +369,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tEquationCoords = this.getPath('model.equationCoords'),
           tScreen1 = worldToScreen(tIntercepts.pt1),
           tScreen2 = worldToScreen(tIntercepts.pt2),
-          tFrame, tTextWidth, tBackgrndX;
+          tFrame, tTextWidth;
 
       DG.RenderingUtilities.updateLine(this.lineSeg, tScreen1, tScreen2);
       DG.RenderingUtilities.updateLine(this.coverSeg, tScreen1, tScreen2);
