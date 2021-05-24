@@ -488,7 +488,7 @@ DG.DataSet = SC.Object.extend((function() // closure
     moveDataItemByID: function (itemID, order) {
       var clientIndex = this.getDataItemClientIndexByID(itemID);
       var itemIndex = this._clientToItemIndexMap[clientIndex];
-      if ((clientIndex != null) && order) {
+      if ((clientIndex != null) && (order != null)) {
         var newIndexMap = this._clientToItemIndexMap.slice();
         newIndexMap.splice(clientIndex, 1);
         switch (order) {

@@ -129,7 +129,7 @@ echo RELPATH_FIX="$RELPATH_FIX"
 #
 # Fix absolute references in HTML and Javascript pages. These references
 # are changeable through a command line parameter.
-files=`find ${WORK_DIR} -type f \( -name "*.html" -o -name "*.js" \)`
+files=`find ${WORK_DIR}/static -type f \( -name "*.html" -o -name "*.js" \)`
 for t in ${files} ; do
     sed "${PATH_FIX}" "${t}" > /tmp/${PROGNAME}_replace.$$ &&
     mv /tmp/${PROGNAME}_replace.$$ "${t}"
@@ -137,7 +137,7 @@ done
 # Fix absolute references in CSS. These references are not changeable through
 # command line parameter. The references are relative to the css file, not the
 # html which may have included them.
-files=`find ${WORK_DIR} -type f \( -name "*.css" \)`
+files=`find ${WORK_DIR}/static -type f \( -name "*.css" \)`
 for t in ${files} ; do
     sed "${RELPATH_FIX}" "${t}" > /tmp/${PROGNAME}_replace.$$ &&
     mv /tmp/${PROGNAME}_replace.$$ "${t}"

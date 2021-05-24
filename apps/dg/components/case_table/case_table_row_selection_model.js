@@ -426,9 +426,12 @@ DG.CaseTableRowSelectionModel = function (options) {
     var hasSameParentCase = afterCase && beforeCase && (afterParentCaseID === beforeParentCaseID);
     var hasNoParentCase = (afterCase == null) && (beforeCase == null);
     var protoCase = _gridDataView.getProtoCase();
-    if (protoCase && !afterCaseIsProtoCase && !beforeCaseIsProtoCase) {
+    if (protoCase &&
+        // allow dragging between end of one group and beginning of next group
+        !(afterCaseIsProtoCase && hasSameParentCase) &&
+        !(beforeCaseIsProtoCase && hasSameParentCase)) {
       protoCase.set('beforeCaseID',
-                    !afterRow || hasNoParentCase || hasSameParentCase
+                    !afterRow || hasNoParentCase || hasSameParentCase || afterCaseIsProtoCase
                       ? beforeCaseID || null : null);
       protoCase.set('parentCaseID', parentCaseID || null);
       SC.run(function() {

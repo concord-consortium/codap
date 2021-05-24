@@ -584,8 +584,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           this.invokeNext(function() {
             gridDataView.expandGroup(parentCaseID);
             gridAdapter.refresh();
-          });
-        });
+          }.bind(this));
+        }.bind(this));
       }
 
       DG.DataContextUtilities.createCaseUndoable(this.get('dataContext'), {
@@ -1958,7 +1958,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (this._slickGrid) {
         this._slickGrid.setColumns(iColumnsInfo);
         this._slickGrid.render();
-        this.adjustHeaderForOverflow();
+        // give slickgrid a chance to complete the render.
+        this.invokeNext(function () {
+          this.adjustHeaderForOverflow();
+        });
       }
     },
 
@@ -1979,16 +1982,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     restoreEditState: function (state) {
       var editCase = state && state.item,
-          isProtoCase = editCase && editCase._isProtoCase,
           caseId = editCase && editCase.id, editColumn = state && state.column,
           editAttr = editColumn && editColumn.attribute,
 
           gridAdapter = this.get('gridAdapter'),
           gridDataView = gridAdapter && gridAdapter.get('gridDataView'),
-          editRow = isProtoCase ? gridDataView.get(
-              'caseTableLength') - 1 : gridDataView.getRowById(caseId),
-          editCell = editAttr && gridAdapter.getColumnIndexFromAttribute(
-              editAttr);
+          editRow = gridDataView.getRowById(caseId),
+          editCell = editAttr && gridAdapter.getColumnIndexFromAttribute(editAttr);
       if ((editRow != null) && (editRow >= 0) && (editCell != null) && (editCell >= 0)) {
         this._slickGrid.setActiveCell(editRow, editCell);
         this._slickGrid.editActiveCell();

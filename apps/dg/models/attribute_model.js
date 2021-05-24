@@ -527,9 +527,9 @@ DG.Attribute = DG.BaseModel.extend(
             });  // Default is alphabetical
           }
           // We push categories that are present but not found in cases to the end
-          var ignorable = ['__order', 'stroke-color', 'stroke-transparency'];
+          // var ignorable = ['__order', 'stroke-color', 'stroke-transparency'];
           DG.ObjectMap.forEach( tCategoryMap, function (iCategory) {
-            if(ignorable.indexOf(iCategory) < 0 && !tFoundCategoriesSet.has(iCategory)) {
+            if(/*ignorable.indexOf(iCategory) < 0 &&*/ !tFoundCategoriesSet.has(iCategory)) {
               var tIndex = tCategoryMap.__order.indexOf(iCategory);
               tCategoryMap.__order.splice( tIndex, 1);
               tCategoryMap.__order.push( iCategory);
