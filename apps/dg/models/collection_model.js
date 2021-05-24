@@ -627,7 +627,22 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         // values for this collection's attributes and the values being arrays of items
         items.forEach(function (item) {
           if (!item.deleted) {
-            var values = attrs.map(function (attr) { return item.values[attr.id];}).join();
+            var values = attrs.map(function (attr) {
+              var value =  item.values[attr.id];
+              var strValue;
+              if (typeof value === 'object') {
+                try {
+                  strValue = JSON.stringify(value);
+                } catch (ex) {
+                  console.warn('In collection ' + collectionID + ', item ' +
+                      item.id + ', Attribute value is non-serializable object');
+                  strValue = 'object';
+                }
+              } else {
+                strValue = String(value);
+              }
+              return strValue;
+            }).join();
             var list = itemGroups[values] || [];
             if (list.length === 0) {
               itemGroups[values] = list;
