@@ -494,9 +494,6 @@ SC.stringsFor("tr", {
     "DG.PlotModel.showCount": "Sayımı Göster",
     "DG.PlotModel.hideCount": "Sayımı Gizle",
     "DG.ScatterPlotModel.sumSquares": ",\nKareler toplamı = %@",
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@",
     "DG.ScatterPlotModel.slopeOnly": "eğim = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "Yılda",
     "DG.ScatterPlotModel.daysLabel": "Günde",
@@ -868,5 +865,6 @@ SC.stringsFor("tr", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });

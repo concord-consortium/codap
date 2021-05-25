@@ -485,7 +485,7 @@ DG.Attribute = DG.BaseModel.extend(
       updateCategoryMap: function() {
         var ignorable = ['__order', 'stroke-color', 'stroke-transparency'];
 
-        function validateCategoryMap(iCategoryMap, iColorIndex) {
+        function validateAndFixCategoryMap(iCategoryMap, iColorIndex) {
           // A plugin can produce a category map without colors assigned. This messes up assignment to __order.
           // Also, it can happen that the __order array contains extra elements and/or is missing an element
           var tLeftOver = iCategoryMap.__order.slice();
@@ -513,7 +513,7 @@ DG.Attribute = DG.BaseModel.extend(
               tCategoryMap = this._categoryMap || { __order: []},
               tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
               tFoundCategoriesSet = new Set();
-          validateCategoryMap(tCategoryMap, tColorIndex);
+          validateAndFixCategoryMap(tCategoryMap, tColorIndex);
           tCases && tCases.forEach( function( iCase) {
             var tValue = iCase.getStrValue( tAttrID);
             if( SC.none( tCategoryMap[ String( tValue)])) {
@@ -540,7 +540,7 @@ DG.Attribute = DG.BaseModel.extend(
           }
           // We push categories that are present but not found in cases to the end
           DG.ObjectMap.forEach( tCategoryMap, function (iCategory) {
-            if(ignorable.indexOf(iCategory) < 0 && !tFoundCategoriesSet.has(iCategory)) {
+            if(!ignorable.includes(iCategory) && !tFoundCategoriesSet.has(iCategory)) {
               var tIndex = tCategoryMap.__order.indexOf(iCategory);
               tCategoryMap.__order.splice( tIndex, 1);
               tCategoryMap.__order.push( iCategory);

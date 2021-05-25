@@ -494,9 +494,6 @@ SC.stringsFor("ja", {
     "DG.PlotModel.showCount": "カウントする",
     "DG.PlotModel.hideCount": "カウントを非表示する",
     "DG.ScatterPlotModel.sumSquares": ",\n平方和 = %@",
-    "DG.ScatterPlotModel.rSquared": ",\nr^2= %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@ %@",
     "DG.ScatterPlotModel.slopeOnly": "傾き= %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "/ 年",
     "DG.ScatterPlotModel.daysLabel": "/ 日",
@@ -868,5 +865,6 @@ SC.stringsFor("ja", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });

@@ -494,9 +494,6 @@ SC.stringsFor("zh-Hans", {
     "DG.PlotModel.showCount": "显示计数",
     "DG.PlotModel.hideCount": "隐藏计数",
     "DG.ScatterPlotModel.sumSquares": "，\n平方和=%@",
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@ %@",
     "DG.ScatterPlotModel.slopeOnly": "斜率 = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "每年",
     "DG.ScatterPlotModel.daysLabel": "每天",
@@ -868,5 +865,6 @@ SC.stringsFor("zh-Hans", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });

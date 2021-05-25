@@ -343,7 +343,7 @@ return {
     }
   }),
   /**
-   * rmean(expr, width, filter)
+   * rolling_mean(expr, width, filter)
    * Returns the running mean. 'expr' is the expression evaluated for each case.
    * 'width', is the number of prior and succeeding cases included in the mean.
    * It is a positive odd integer. For example, a width of seven will sum the
@@ -351,20 +351,10 @@ return {
    * cases, and the current case and divide by seven. The filter is an expression
    * that excludes cases from consideration.
    *
-   * Algorithm:
-   * (1) Build an array of groups with each group being an array of cases.
-   * Group membership for a child collection is the list of parent case children.
-   * Group membership for a parent collection is the cases in the collection.
-   * The array of cases for each group is filtered.
-   * (2) For each case in each group,
-   * find the value of its expression, then find the set of group members within range,
-   * and for each member of _this_ set, add the value to its cached sum and
-   * increment its cached value.
-   * (3) computeResultFromCache
    */
   rollingMean: DG.AggregateFunction.create({
     category: 'DG.Formula.FuncCategoryStatistical',
-    requiredArgs: { min: 2, max: 3 }, // expression, range, filter
+    requiredArgs: { min: 2, max: 3 }, // expression, width, filter
     isCaseIndexDependent: function () { return false; },
     evaluate: function(iContext, iEvalContext, iInstance) {
       var valueFn = iInstance.argFns[0],
@@ -376,7 +366,6 @@ return {
       function getRangeValues(iContext, iEvalContext) {
         var width = Math.round(widthFn(iContext, iEvalContext));
         if (width<1) return [];
-        var isOddWidth = !!(width % 2);
         var numPreceding = Math.floor(width/2);
         var numFollowing = width - 1 - numPreceding;
         var rtn = [];

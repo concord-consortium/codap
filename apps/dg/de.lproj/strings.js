@@ -494,9 +494,6 @@ SC.stringsFor("de", {
     "DG.PlotModel.showCount": "Anzahl zeigen",
     "DG.PlotModel.hideCount": "Anzahl verbergen",
     "DG.ScatterPlotModel.sumSquares": ",\nSumme der Quadrate = %@",
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@",
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@",
     "DG.ScatterPlotModel.slopeOnly": "Steigung = %@ %@",
     "DG.ScatterPlotModel.yearsLabel": "pro Jahr",
     "DG.ScatterPlotModel.daysLabel": "pro Tag",
@@ -868,5 +865,6 @@ SC.stringsFor("de", {
     "DG.CaseTable.datasetMetadata.url": "source",
     "DG.CaseTable.datasetMetadata.creationDate": "import date",
     "DG.TableController.datasetMetadata.descriptionHint": "Describe the dataset",
-    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset"
+    "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
+    "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here"
 });
