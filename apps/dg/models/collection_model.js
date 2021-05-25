@@ -629,19 +629,19 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
           if (!item.deleted) {
             var values = attrs.map(function (attr) {
               var value =  item.values[attr.id];
-              var strValue;
+              var newValue;
               if (typeof value === 'object') {
                 try {
-                  strValue = JSON.stringify(value);
+                  newValue = JSON.stringify(value);
                 } catch (ex) {
                   console.warn('In collection ' + collectionID + ', item ' +
                       item.id + ', Attribute value is non-serializable object');
-                  strValue = 'object';
+                  newValue = 'object';
                 }
               } else {
-                strValue = String(value);
+                newValue = value;
               }
-              return strValue;
+              return newValue;
             }).join();
             var list = itemGroups[values] || [];
             if (list.length === 0) {
