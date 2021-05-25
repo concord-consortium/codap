@@ -483,14 +483,26 @@ DG.Attribute = DG.BaseModel.extend(
        * That way swapping categories by dragging on a legend will still work.
        */
       updateCategoryMap: function() {
+        var ignorable = ['__order', 'stroke-color', 'stroke-transparency'];
 
         function validateCategoryMap(iCategoryMap, iColorIndex) {
           // A plugin can produce a category map without colors assigned. This messes up assignment to __order.
+          // Also, it can happen that the __order array contains extra elements and/or is missing an element
+          var tLeftOver = iCategoryMap.__order.slice();
           DG.ObjectMap.forEach( iCategoryMap, function( iCategory, iValue) {
-            if( SC.none( iValue)) {
-              iCategoryMap[iCategory] = DG.ColorUtilities.kKellyColors[iColorIndex];
-              iColorIndex = (iColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;
+            if( !ignorable.includes(iCategory)) {
+              if (SC.none(iValue)) {
+                iCategoryMap[iCategory] = DG.ColorUtilities.kKellyColors[iColorIndex];
+                iColorIndex = (iColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;
+              }
+              if( tLeftOver.includes(iCategory))
+                tLeftOver.splice(tLeftOver.indexOf(iCategory), 1);
+              else
+                iCategoryMap.__order.push( iCategory);
             }
+          });
+          tLeftOver.forEach( function( iElement) {
+            iCategoryMap.__order.splice(iCategoryMap.__order.indexOf(iElement), 1);
           });
         }
 
@@ -527,9 +539,8 @@ DG.Attribute = DG.BaseModel.extend(
             });  // Default is alphabetical
           }
           // We push categories that are present but not found in cases to the end
-          // var ignorable = ['__order', 'stroke-color', 'stroke-transparency'];
           DG.ObjectMap.forEach( tCategoryMap, function (iCategory) {
-            if(/*ignorable.indexOf(iCategory) < 0 &&*/ !tFoundCategoriesSet.has(iCategory)) {
+            if(ignorable.indexOf(iCategory) < 0 && !tFoundCategoriesSet.has(iCategory)) {
               var tIndex = tCategoryMap.__order.indexOf(iCategory);
               tCategoryMap.__order.splice( tIndex, 1);
               tCategoryMap.__order.push( iCategory);
