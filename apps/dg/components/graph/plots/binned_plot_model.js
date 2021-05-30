@@ -40,6 +40,11 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         displayAsBinned: true,
 
         dotsAreFused: false,
+        dotsAreFusedDidChange: function() {
+          if( this.get('dotsAreFused')) {
+            this.setPath('plottedCount.isVisible', false);
+          }
+        }.observes('dotsAreFused'),
 
         restoreInProgress: false,
 

@@ -72,7 +72,10 @@ DG.BinnedAxisModel = DG.AxisModel.extend(
       }.property(),
 
       valueToCellNumber: function( iValue) {
-        return this.get('binnedPlotModel').valueToBinNumber( iValue);
+        var tBinnedPlotModel = this.get('binnedPlotModel');
+        if( tBinnedPlotModel)
+          return tBinnedPlotModel.valueToBinNumber( iValue);
+        else return 0;
       },
 
       /**
