@@ -1089,6 +1089,7 @@ DG.GraphView = SC.View.extend(
             var tZerothView = ioAxisViewArray[0],
                 tViewClass = tZerothView.constructor,
                 tOrientation = tZerothView.get('orientation'),
+                tCentering = tZerothView.get('centering'),
                 tNumModels = iAxisModelArray.length,
                 tIndex;
             for (tIndex = 1; tIndex < tNumModels; tIndex++) {
@@ -1097,6 +1098,7 @@ DG.GraphView = SC.View.extend(
               if (!tCurrentView || tCurrentView.constructor !== tViewClass) {
                 tNewView = tViewClass.create({
                   orientation: tOrientation,
+                  centering: tCentering,
                   model: iAxisModelArray[tIndex],
                   suppressLabel: true
                 });
