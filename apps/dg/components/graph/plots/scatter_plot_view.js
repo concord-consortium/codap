@@ -462,13 +462,12 @@ DG.ScatterPlotView = DG.PlotView.extend(
             var tSlope = iLine.get('slope'),
                 tIntercept = iLine.get('intercept'),
                 tCasesForLine = tCases,
-                tCategoryIndex = iLine.get('categoryIndex'),
+                tCategory = iLine.get('categoryName'),
                 tLegendAttrDesc = this_.getPath('model.dataConfiguration.legendAttributeDescription'),
                 tLegendAttrID = tLegendAttrDesc.getPath('attribute.id');
-            if (!SC.none(tLegendAttrID) && !SC.none(tCategoryIndex)) {
-              var tAttrStats = tLegendAttrDesc.get('attributeStats');
+            if (!SC.none(tLegendAttrID) && !SC.none(tCategory)) {
               tCasesForLine = tCases.filter(function (iCase) {
-                return tCategoryIndex === tAttrStats.cellNameToCellNumber(iCase.getValue(tLegendAttrID));
+                return tCategory === iCase.getValue(tLegendAttrID);
               });
             }
             tCasesForLine.forEach(function (iCase) {
