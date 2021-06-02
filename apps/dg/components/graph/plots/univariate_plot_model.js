@@ -81,6 +81,11 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             DG.GraphTypes.EOrientation.kHorizontal;
       }.property('primaryAxisPlace'),
 
+      destroy: function() {
+        this.invalidateComputationContext();
+        sc_super();
+      },
+
       handleDataConfigurationChange: function ( iKey) {
         if (!DG.assert(!this.get('isDestroyed'), "DG.DotPlotModel.handleDataConfiguration() shouldn't be triggered after destroy()!"))
           return;
@@ -97,7 +102,7 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       invalidateCaches: function ( iKey) {
         sc_super();
-        this._cachedComputationContext = null;
+        this.invalidateComputationContext();
       },
 
       /**
@@ -123,6 +128,10 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         }
         return this._cachedComputationContext;
       }.property('primaryAxisModel', 'secondaryAxisModel', 'primaryVarID', 'secondaryVarID', 'legendVarID' ),
+
+      invalidateComputationContext: function() {
+        this._cachedComputationContext = null;
+      },
 
       doForOneCase: function( iCase, iIndex, iCC, iDoF) {
         var tPrimaryVal = iCase.getValue( iCC.primaryVarID),

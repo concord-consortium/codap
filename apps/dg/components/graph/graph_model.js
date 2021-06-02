@@ -1249,6 +1249,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.get('xAxis').destroy();
       this.get('yAxis').destroy();
       // this.beginPropertyChanges();
+      iBinnedPlot.invalidateComputationContext(); // because we're changing its axes
       if( iBinnedPlot.get('dotsAreFused')) {
         // Transitioning to Histogram
         this.set(tPrimaryKey + 'Axis', DG.CellLinearAxisModel.create({
