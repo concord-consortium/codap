@@ -32,14 +32,15 @@ sc_require('views/tooltip_enabler');
 DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
-    return {
+      return {
         classNames: 'dg-close-icon'.w(),
         toolTip: 'DG.Component.closeComponent.toolTip',
         isSelected: false,
         classNameBindings: ['isSelected:dg-close-icon-selected'],
-        init: function() {
+        allowParent: NO,
+        init: function () {
           sc_super();
-          if( !SC.platform.touch) {
+          if (!SC.platform.touch) {
             // The following two lines are a workaround to make sure that in SageModeler the button shows
             // itself on the initial hover over the titlebar. (Strange, I know.)
             this.set('isVisible', true);
@@ -48,7 +49,7 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
             }.bind(this), 1);
           }
         },
-        doIt: function() {
+        doIt: function () {
           var tComponentId = this.parentView.viewToDrag().getPath(
               'controller.model.id'),
               tController = DG.currDocumentController().componentControllersMap[tComponentId],
@@ -93,12 +94,10 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
             }
           }
         },
-
         closeComponent: function (iComponentID, iController) {
           if (iController.toggleViewVisibility) {
             iController.toggleViewVisibility();
-          }
-          else {
+          } else {
             var tState;
             // Give the controller a chance to do some housekeeping before we close it (defocus, commit edits, etc.).
             // Also, do this outside of the undo command, so that it can register its own
@@ -159,8 +158,8 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
             }));
           }
         }
-    };
-  }()) // function closure
+      };
+    }()) // function closure
 );
 
 /** @class
@@ -172,11 +171,12 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
 DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
-    return {
+      return {
         classNames: 'dg-min-icon'.w(),
-        init: function() {
+        allowParent: NO,
+        init: function () {
           sc_super();
-          if( !SC.platform.touch) {
+          if (!SC.platform.touch) {
             // The following two lines are a workaround to make sure that in SageModeler the button shows
             // itself on the initial hover over the titlebar. (Strange, I know.)
             this.set('isVisible', true);
@@ -188,7 +188,7 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
         isSelected: false,
         classNameBindings: ['isSelected:dg-min-icon-selected'],
         toolTip: 'DG.Component.minimizeComponent.toolTip',
-        doIt: function() {
+        doIt: function () {
           var tComponentView = this.parentView.viewToDrag();
           DG.UndoHistory.execute(DG.Command.create({
             name: 'component.minimize',
@@ -203,16 +203,16 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
                 type: tComponentView.getPath('model.type')
               }
             },
-            execute: function() {
+            execute: function () {
               tComponentView.toggleMinimization();
             },
-            undo: function() {
+            undo: function () {
               this.execute();
             }
           }));
         }
-    };
-  }()) // function closure
+      };
+    }()) // function closure
 );
 
 /** @class
@@ -235,7 +235,7 @@ DG.TitleBarUndoRedoButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
 /** @class
 
     DG.TitleBarUndoButton handles the undo button that appears in a component view's title bar
-    when DG.embeddedMode === 'yes'.
+ when DG.embeddedMode === 'yes'.
 
  @extends SC.View
  */
@@ -243,14 +243,14 @@ DG.TitleBarUndoButton = DG.TitleBarUndoRedoButton.extend(
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
       return {
-        toolTip: function() {
+        toolTip: function () {
           var cmd = this.get('nextUndoCommand');
           return (cmd ? cmd.get('undoString') : 'DG.mainPage.mainPane.undoButton.toolTip');  // "Undo the last action"
         }.property('nextUndoCommand'),
         nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
         isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
         classNames: 'dg-undo-icon'.w(),
-        doIt: function() {
+        doIt: function () {
           DG.UndoHistory.undo();
         }
       };
@@ -260,7 +260,7 @@ DG.TitleBarUndoButton = DG.TitleBarUndoRedoButton.extend(
 /** @class
 
     DG.TitleBarRedoButton handles the redo button that appears in a component view's title bar
-    when DG.embeddedMode === 'yes'.
+ when DG.embeddedMode === 'yes'.
 
  @extends SC.View
  */
@@ -268,14 +268,14 @@ DG.TitleBarRedoButton = DG.TitleBarUndoRedoButton.extend(
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
       return {
-        toolTip: function() {
+        toolTip: function () {
           var cmd = this.get('nextRedoCommand');
           return (cmd ? cmd.get('redoString') : 'DG.mainPage.mainPane.redoButton.toolTip');  // "Redo the last undone action"
         }.property('nextRedoCommand'),
         nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
         isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
         classNames: 'dg-redo-icon'.w(),
-        doIt: function() {
+        doIt: function () {
           DG.UndoHistory.redo();
         }
       };
@@ -295,10 +295,11 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
         classNames: 'dg-card-icon'.w(),
         toolTip: 'DG.DocumentController.toggleToCaseCard',
         isVisible: true, // to start with
-        doIt: function() {
+        doIt: function () {
           var tComponentView = this.parentView.viewToDrag(),
               tItems = [
-                { title: 'DG.DocumentController.toggleToCaseCard'.loc(),
+                {
+                  title: 'DG.DocumentController.toggleToCaseCard'.loc(),
                 }
               ];
 
@@ -306,16 +307,16 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
             classNames: 'dg-attributes-popup'.w(),
             layout: {width: 200, height: 150},
             items: tItems,
-            selectedItemDidChange: function() {
+            selectedItemDidChange: function () {
               DG.UndoHistory.execute(DG.Command.create({
                 name: 'toggle.toCaseCard',
                 undoString: 'DG.Undo.component.toggleTableToCard',
                 redoString: 'DG.Redo.component.toggleTableToCard',
                 log: 'Toggle case table to case card',
-                execute: function() {
+                execute: function () {
                   DG.currDocumentController().toggleTableToCard(tComponentView);
                 },
-                undo: function() {
+                undo: function () {
                   var tDocController = DG.currDocumentController(),
                       tContext = tComponentView.getPath('controller.dataContext'),
                       tCardComponentView = tDocController.tableCardRegistry.getCardView(tContext);
@@ -343,10 +344,11 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
         classNames: 'dg-table-icon'.w(),
         toolTip: 'DG.DocumentController.toggleToCaseTable',
         isVisible: true, // to start with
-        doIt: function() {
+        doIt: function () {
           var tComponentView = this.parentView.viewToDrag(),
               tItems = [
-                { title: 'DG.DocumentController.toggleToCaseTable'.loc(),
+                {
+                  title: 'DG.DocumentController.toggleToCaseTable'.loc(),
                 }
               ];
 
@@ -354,7 +356,7 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
             classNames: 'dg-attributes-popup'.w(),
             layout: {width: 200, height: 150},
             items: tItems,
-            selectedItemDidChange: function() {
+            selectedItemDidChange: function () {
               DG.UndoHistory.execute(DG.Command.create({
                 name: 'toggle.toCaseTable',
                 undoString: 'DG.Undo.component.toggleCardToTable',
@@ -368,10 +370,10 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
                     type: 'DG.CaseCard'
                   }
                 },
-                execute: function() {
+                execute: function () {
                   DG.currDocumentController().toggleCardToTable(tComponentView);
                 },
-                undo: function() {
+                undo: function () {
                   var tDocController = DG.currDocumentController(),
                       tContext = tComponentView.getPath('controller.dataContext'),
                       tTableComponentView = tDocController.tableCardRegistry.getTableView(tContext);

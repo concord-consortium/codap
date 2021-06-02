@@ -28,6 +28,7 @@
  @extends SC.View
  */
 DG.MouseAndTouchView = {
+  allowParent: YES,  // determines whether we pass events to parent view
   isMouseDown: NO,
   isMouseOver: NO,
   isActive: NO,
@@ -58,17 +59,16 @@ DG.MouseAndTouchView = {
       this.set('isMouseDown', YES);
       this.set('isActive', YES);
     }
-    if( this.parentView.mouseDown)
+    if (this.allowParent && this.parentView.mouseDown)
       return this.parentView.mouseDown(evt); // We want to allow mouseDrag in parent
     else
       return YES;
   },
-  mouseDragged: function(evt) {
-    if( this.parentView.mouseDragged) {
+  mouseDragged: function (evt) {
+    if (this.allowParent && this.parentView.mouseDragged) {
       this.set('isActive', NO);
       return this.parentView.mouseDragged(evt);
-    }
-    else return NO;
+    } else return NO;
   },
   mouseUp: function (evt) {
     if (this.get('isActive')) {
@@ -77,11 +77,10 @@ DG.MouseAndTouchView = {
       this.set('isMouseDown', NO);
       this.doIt();
       DG.mainPage.docView.coverUpComponentViews('uncover');
-    }
-    else {
+    } else {
       this.set('isMouseDown', NO);
       this.mouseExited(evt);
-      if( this.parentView.mouseUp)
+      if (this.allowParent && this.parentView.mouseUp)
         return this.parentView.mouseUp(evt);
     }
     return YES;
@@ -93,4 +92,5 @@ DG.MouseAndTouchView = {
     this.doIt();
   },
   doIt: null
-};
+}
+;
