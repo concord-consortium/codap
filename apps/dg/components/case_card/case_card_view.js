@@ -47,6 +47,10 @@ DG.CaseCardView = SC.View.extend(
         contextDidChange: function() {
           this.renderCard();
         }.observes('model.context'),
+        /**
+         * @property {function}
+         */
+        isSelectedCallback: null,
 
         /**
          * @property {Element}
@@ -60,6 +64,8 @@ DG.CaseCardView = SC.View.extend(
         classNameBindings: ['dragInProgress'],
 
         _mouseYInDrag: 0,
+
+        _mouseHandlersInstalled: false,
 
         /*
         @property {SC.Timer}
@@ -133,6 +139,27 @@ DG.CaseCardView = SC.View.extend(
         },
 
         renderCard: function (iExtraProps) {
+          var this_ = this;
+
+          function installMouseHandlers() {
+            if( this_._mouseHandlersInstalled)
+              return;
+            var tLayer = this_.get('layer'),
+                tOKToDeselectOnClick = false;
+            tLayer.addEventListener('mousedown', function(e) {
+                tOKToDeselectOnClick = this_.isSelectedCallback();
+            });
+            tLayer.addEventListener('click', function(e) {
+              if(tOKToDeselectOnClick && !DG.Core.gClickWillBeHandledInReactComponent) {
+                SC.run(function() {
+                  this_.get('context').applyChange({operation: 'selectCases', select: false});
+                });
+              }
+              tOKToDeselectOnClick = false;
+            });
+            this_._mouseHandlersInstalled = true;
+          }
+
           function isChangedWidth(oldWidth, newWidth) {
             var oldWidthRounded = oldWidth && DG.MathUtilities.roundToDecimalPlaces(oldWidth, 4),
                 newWidthRounded = newWidth && DG.MathUtilities.roundToDecimalPlaces(newWidth, 4);
@@ -141,6 +168,7 @@ DG.CaseCardView = SC.View.extend(
           var props = Object.assign({
                         context: this.get('context'),
                         columnWidthMap: this.getPath('model.columnWidthMap') || {},
+                        isSelectedCallback: this.isSelectedCallback,
                         onResizeColumn: function(collection, widthPct, isComplete) {
                           SC.run(function() {
                             var columnWidthMap = this.getPath('model.columnWidthMap') || {},
@@ -153,6 +181,8 @@ DG.CaseCardView = SC.View.extend(
                         }.bind(this)
                       }, iExtraProps || {});
           ReactDOM.render( DG.React.CaseCard(props), this.reactDiv);
+
+          installMouseHandlers();
         },
 
         touchStart: function (evt) {

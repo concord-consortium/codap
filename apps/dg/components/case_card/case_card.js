@@ -13,7 +13,7 @@ DG.React.ready(function () {
   var CaseCard = createReactClass(
       (function () {
 
-        var kSelectDelay = 1000,  // ms
+        var kSelectDelay = 200,  // ms
             kSelectInterval = 100,  // ms
             gWaitingForSelect = false,
             gTimeOfLastSelectCall,  // time
@@ -248,6 +248,7 @@ DG.React.ready(function () {
               }.bind(this),
               onNext: this.moveToNextCase,
               onPrevious: this.moveToPreviousCase,
+              onDeselect: this.deselect,
               onNewCase: this.newCase,
               dragStatus: this.props.dragStatus,
               dropCallback: handleDropInCollectionHeader
@@ -610,6 +611,12 @@ DG.React.ready(function () {
                   displayCase: tCase,
                   editableCase: iShouldSummarize ? null : iCases[0],
                   summaryCases: iShouldSummarize ? iCases : null,
+                  deselectCallback: function() {
+                    SC.run(function () {
+                      if( this.props.isSelectedCallback())
+                        this.props.context.applyChange({ operation: 'selectCases', select: false });
+                    }.bind(this));
+                  }.bind(this),
                   editProps: {
                     isEditing: tAttrID === this.state.attrIdOfValueToEdit,
                     onToggleEditing: toggleEditing,
@@ -734,6 +741,12 @@ DG.React.ready(function () {
               var tNext = SC.none(iCaseIndex) ? 0 : iCaseIndex; // because in zero-based this is the index of the next case
               this.moveToCase(iCollectionClient, tNext);
             }
+          },
+
+          deselect: function() {
+            SC.run(function() {
+              this.props.context.applyChange({ operation: 'selectCases', select: false });
+            }.bind(this));
           },
 
           newCase: function( iCollectionClient) {
@@ -872,7 +885,8 @@ DG.React.ready(function () {
             );
 
             return div({
-              className: 'react-data-card dg-wants-wheel'
+              className: 'react-data-card dg-wants-wheel',
+              onMouseDownCapture: DG.Core.setClickHandlingForReact,
             }, tCollEntries);
           }
         };
@@ -886,6 +900,8 @@ DG.React.ready(function () {
     dragStatus: PropTypes.object,
     // map from collection name => column width percentage (0-1)
     columnWidthMap: PropTypes.objectOf(PropTypes.number).isRequired,
+    // Is the component in which I'm contained the selected component in the document?
+    isSelectedCallback: PropTypes.func.isRequired,
     // function(collectionName, columnWidth) - update column width in model
     onResizeColumn: PropTypes.func.isRequired,
   };

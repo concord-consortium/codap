@@ -24,6 +24,18 @@
 DG.Core = {
 
   /**
+   * This pseudo global flag is set during onMouseDownCapture function in React components to signal to
+   * an SC.View that contains them can tell that they should not attempt to handle a given event.
+   */
+  gClickWillBeHandledInReactComponent: false,
+  setClickHandlingForReact: function() {
+    DG.Core.gClickWillBeHandledInReactComponent = true;
+    setTimeout(function() {
+      DG.Core.gClickWillBeHandledInReactComponent = false;
+    }, 200);
+  },
+
+  /**
     Returns the "class" object which corresponds to the specified string.
     @param    {String}  iClassName -- The name of the class object to be returned
     @returns  {Object}  The class object corresponding to the specified name

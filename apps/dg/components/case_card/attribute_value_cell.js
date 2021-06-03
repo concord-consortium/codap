@@ -23,6 +23,7 @@ DG.React.ready(function () {
       editableCase: PropTypes.instanceOf( DG.Case),
       // {[DG.Case]} - the cases to summarize; undefined for single case
       summaryCases: PropTypes.arrayOf(PropTypes.instanceOf(DG.Case)),
+      deselectCallback: PropTypes.func.isRequired,
       editProps: PropTypes.exact({
         isEditing: PropTypes.bool.isRequired,
         // function(attribute) - toggle into/out of editing mode
@@ -137,7 +138,9 @@ DG.React.ready(function () {
       tValueField = tQualitativeValueField;
     }
     return (
-      td({className: 'dg-wants-touch ' + tValueClassName}, tValueField)
+      td({
+        className: 'dg-wants-touch ' + tValueClassName
+      }, tValueField)
     );
   }
   // two-stage definition required for React-specific eslint rules

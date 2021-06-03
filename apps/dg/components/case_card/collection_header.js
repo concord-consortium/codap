@@ -113,7 +113,8 @@ DG.React.ready(function () {
                   numCases: tNumCases,
                   onPrevious: this.props.onPrevious,
                   onNext: this.props.onNext,
-                  onNewCase: this.props.onNewCase
+                  onNewCase: this.props.onNewCase,
+                  onDeselect: this.props.onDeselect
                 });
             return (
               tr({

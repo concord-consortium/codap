@@ -881,6 +881,27 @@ html, body {
     color: black;
 }
 
+.dg-card-deselect {
+    background-image:  static_url('images/circle-deselect.svg');
+    background-size: cover;
+    height: 16px;
+    width: 16px;
+    margin-right: -1px;
+    background-color: transparent;
+    border-color: transparent;
+    border-width: 0;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.dg-card-deselect:hover {
+    background-image:  static_url('images/circle-deselect-hover.svg');
+}
+
+.dg-card-deselect:disabled {
+    background-image:  static_url('images/circle-deselect-disabled.svg');
+}
+
 .dg-table-icon:before {
     font-family: 'icomoon';
     content: "\31";

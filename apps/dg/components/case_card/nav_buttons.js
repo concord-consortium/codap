@@ -17,6 +17,10 @@ DG.React.ready(function () {
             this.props.onPrevious(this.props.collectionClient, this.props.caseIndex);
           },
 
+          deselect: function () {
+            this.props.onDeselect();
+          },
+
           getNext: function () {
             this.props.onNext(this.props.collectionClient, this.props.caseIndex);
           },
@@ -28,8 +32,13 @@ DG.React.ready(function () {
           render: function () {
             var tCaseIndex = this.props.caseIndex,
                 tNumCases = this.props.numCases,
+                tNumSelected = this.props.collectionClient
+                    ? this.props.collectionClient.getPath('casesController.selection').toArray().length
+                    : 0,
                 tFirstTitle,
                 tFirstButton,
+                tDeselectTitle,
+                tDeselectButton,
                 tSecondTitle,
                 tSecondButton,
                 tAddCaseButton;
@@ -37,10 +46,18 @@ DG.React.ready(function () {
               tFirstTitle = !SC.none( tCaseIndex) ? 'DG.CaseCard.navPrevCase' : 'DG.CaseCard.navLastCase';
               tFirstButton = span({
                 className: 'moonicon-icon-reverse-play',
+                style: {paddingRight: '4px'},
                 onClick: this.getPrevious,
                 title: tFirstTitle.loc()
               });
             }
+            tDeselectTitle = tNumSelected === 0 ? 'DG.CaseCard.noDeselect' : 'DG.CaseCard.deselect';
+            tDeselectButton = button({
+              className: 'dg-card-deselect',
+              disabled: tNumSelected === 0,
+              onClick: this.deselect,
+              title: tDeselectTitle.loc()
+            });
             if(!(this.props.numCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases))) {
               tSecondTitle = !SC.none( tCaseIndex) ? 'DG.CaseCard.navNextCase' : 'DG.CaseCard.navFirstCase';
               tSecondButton = span({
@@ -68,7 +85,7 @@ DG.React.ready(function () {
                 }, tLabel);
 
             return span({className: 'nav-buttons dg-wants-touch'},
-                tFirstButton, tSecondButton, tAddCaseButton);
+                tFirstButton, tDeselectButton, tSecondButton, tAddCaseButton);
           }
         };
       }()), []);

@@ -1341,7 +1341,10 @@ DG.DocumentController = SC.Object.extend(
             }),
             tContentView = DG.CaseCardView.create({
               classNames: 'dg-opaque'.w() /*dg-scrollable'.w()*/,
-              model: tComponent.get('content')
+              model: tComponent.get('content'),
+              isSelectedCallback: function() {
+                return tComponentView.get('isSelected');
+              }
             });
         tComponentView.set('model', tComponent);
         iParentView.appendChild(tComponentView);

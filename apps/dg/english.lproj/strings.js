@@ -134,6 +134,8 @@ SC.stringsFor("en", {
     "DG.CaseCard.attrHintDescriptionAndFormula": "%@1: %@2\n%@1 = %@3",
     "DG.CaseCard.newCaseToolTip": "Add an empty case to this collection",
     "DG.CaseCard.addCaseButton": "add case",    // Expected to be two short words separated by a space
+    "DG.CaseCard.deselect": "Deselect all cases",
+    "DG.CaseCard.noDeselect": "No cases are selected",
 
     "DG.Collection.joinTip": "Join %@ in %@ to %@ in %@ by matching %@ with %@",    // Join <sourceCollection> in <sourceContext> to <destCollection> in <destContext> by matching <sourceAttribute> with <destAttribute>
 
