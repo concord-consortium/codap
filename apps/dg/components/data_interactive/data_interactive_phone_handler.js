@@ -509,13 +509,31 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       /**
        *     {{
-       *      action: 'update'|'get'|'delete'
+       *      action: 'create'|'update'|'get'|'delete'
        *      what: {type: 'interactiveFrame'}
        *      values: { {title: {String}, version: {String}, dimensions: { width: {Number}, height: {Number} }}}
        *     }}
        * @return {object} Object should include status and values.
        */
       handleInteractiveFrame: {
+        create: function (iResources, iValues) {
+          var tDoc = DG.currDocumentController(),
+                tComponent;
+          tComponent = DG.Component.createComponent({
+            "type": "DG.GameView",
+            "document": tDoc.get('content') ,
+            "componentStorage": {
+              "currentGameName": iValues.name || iValues.url || "",
+              "currentGameUrl": iValues.url,
+              allowInitGameOverride: true
+            }
+          });
+          tDoc.createComponentAndView( tComponent);
+
+          return {
+            success: true,
+          };
+        },
         update: function (iResources, iValues) {
           var diModel = iResources.interactiveFrame.getPath('model.content');
           var diComponent = DG.currDocumentController().getComponentByID(this.get('id'));
