@@ -84,7 +84,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           } else if (type === 'qualitative') {
             result = qualBarFormatter(cellValue);
           } else if (cellValue instanceof DG.SimpleMap) {
-            result = stringFormatter(cellValue.toString());
+            result = stringFormatter(cellValue.toString(), this, colInfo);
           } else if (type === 'boundary') {
             result = boundaryFormatter(cellValue);
           } else if (typeof cellValue === 'boolean') {
@@ -97,7 +97,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
                 rowItem);
           } else if (typeof cellValue === 'string') {
-            result = stringFormatter(cellValue);
+            result = stringFormatter(cellValue, this, colInfo);
           }
           else {
             DG.log('caseTableAdapter.cellFormatter: unhandled value type ' +
@@ -132,8 +132,19 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         return stringFormatter(error);
       },
 
-      stringFormatter = function (cellValue) {
-        cellValue = cellValue.toString().substring(0, kMaxStringLength);
+      computeTruncateSize = function (rowHeight, colInfo) {
+        var rows = Math.floor((rowHeight - 4) / (kDefaultRowHeight - 4));
+        // assume 8 bytes per character
+        var cols = Math.floor((colInfo? colInfo.width: kDefaultColumnWidth) / 5);
+        return Math.max(rows * cols, kMaxStringLength);
+      },
+
+      stringFormatter = function (cellValue, caseTableAdapter, colInfo) {
+        // if we have a long string, truncate string to a value that is larger
+        // than displayable in the cell.
+        if (!(cellValue.length && cellValue.length < kMaxStringLength) && caseTableAdapter) {
+          cellValue = cellValue.substring(0, computeTruncateSize(caseTableAdapter.get('rowHeight'), colInfo));
+        }
         // standard values are HTML-escaped
         return cellValue.replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -565,7 +576,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               focusable: !hasFormula,
               cssClass: hasFormula? 'dg-formula-column': undefined,
               toolTip: DG.CaseDisplayUtils.getTooltipForAttribute( iAttribute),
-              formatter: cellFormatter,
+              formatter: cellFormatter.bind(this),
               tooltipFormatter: tooltipFormatter,
               width: this.getPreferredColumnWidth(iAttribute.get('id')),
               minWidth: kMinDataColumnWidth,
