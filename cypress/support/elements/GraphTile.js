@@ -45,19 +45,19 @@ class GraphTile {
                 this.getHorizontalAxis().click();
                 cy.clickMenuItem(collection);
                 cy.clickMenuItem(attribute);
-                return 
+                return
             case('x') :
                 this.getHorizontalAxisLabel()
                     .trigger('mousemove', {force:true})
                     .click({force:true});
                 cy.clickMenuItem(collection);
                 cy.clickMenuItem(attribute);
-                return     
+                return
             case('y1') : //first time clicking on the y axis, label does not exist yet.
                 this.getLeftVerticalAxis().click();
                 cy.clickMenuItem(collection);
                 cy.clickMenuItem(attribute);
-                return    
+                return
             case('y') :
                 this.getLeftVerticalAxisLabel()
                     .trigger('mousemove', {force:true})
@@ -67,14 +67,14 @@ class GraphTile {
                 return
             case('graph_legend1') :
                 cy.dragAttributeToTarget('table', attribute, axis)
-                return  
+                return
             case('graph_legend') :
                 this.getLegendLabel()
                     .trigger('mousemove', {force:true})
                     .click({force:true});
                 cy.clickMenuItem(collection);
                 cy.clickMenuItem(attribute);
-                return            
+                return
         }
         cy.wait(4000)
     }
@@ -85,20 +85,20 @@ class GraphTile {
                 break
             case('x1'):
                 this.getHorizontalAxisLabel().click();
-                break    
+                break
             case('y'):
                 this.getLeftVerticalAxisLabel().click();
                 break
             case('y1'):
                 this.getLeftVerticalAxisLabel().click();
-                break    
+                break
             case('legend'):
                 this.getLegendLabel().click();
-                break        
+                break
         }
         cy.clickMenuItem('Remove')
     }
-    
+
     //Graph adornments
     getCountAdorn(){
         return cy.get('.dg-graph-adornment-count')
@@ -125,7 +125,7 @@ class GraphTile {
         cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20});
     }
     turnOffRulerTool(tool){ //same as turnOnRulerTool but here for test clarity
-        cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20});    
+        cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20});
     }
     getMovableValueButton(){
         return cy.get('.dg-movable-value-button')
@@ -139,8 +139,11 @@ class GraphTile {
     getGraphAdornmentText(){
         return cy.get('.dg-graph-adornment tspan').last().text()
     }
+    getGraphEquationView(){
+      return cy.get('.dg-equationview')
+    }
     getLSLine(){
-        return cy.get('.dg-graph-view svg path[stroke="#008000"]')
+        return cy.get('.dg-graph-view svg [stroke="#008000"]')
     }
 }
 export default GraphTile
