@@ -59,7 +59,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       /**
        * Formats table cells.
        *
-       * Implements slickgrid cellformatter api.
+       * Implements slickgrid cellFormatter api.
        *
        * @param rowIndex {number}
        * @param colIndex {number}
@@ -128,8 +128,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         }
       },
 
+      /**
+       * Formats an error
+       * @param error {Error}
+       * @return {*}
+       */
       errorFormatter = function (error) {
-        return stringFormatter(error);
+        return stringFormatter(error.toString());
       },
 
       computeTruncateSize = function (rowHeight, colInfo) {
@@ -139,6 +144,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         return Math.max(rows * cols, kMaxStringLength);
       },
 
+      /**
+       * Formats a string for display
+       * @param cellValue {string}
+       * @param [caseTableAdapter] {DG.CaseTableAdapter}
+       * @param [colInfo] {Object} Slickgrid column info object
+       * @return {string}
+       */
       stringFormatter = function (cellValue, caseTableAdapter, colInfo) {
         // if we have a long string, truncate string to a value that is larger
         // than displayable in the cell.
