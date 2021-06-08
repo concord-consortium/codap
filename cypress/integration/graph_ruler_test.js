@@ -214,17 +214,20 @@ context('will test graph ruler functions', ()=>{
             cy.dragAttributeToTarget('table', hash[2].attribute, hash[2].axis);
             graph.clickRulerTool();
             graph.turnOnRulerTool('lsrl')
-            graph.getLSLine().should('be.visible');
-            graph.getGraphAdornmentText().should('exist').and('contain','r^2 = 0.004')
+            graph.getLSLine().attribute("stroke-opacity").should("include", '1' );
+            graph.getGraphEquationView().should('exist').and('contain','0.004')
             cy.matchImageSnapshot('p_'+hash[1].attribute+'_n_'+hash[2].attribute+'_adorned');
             cy.dragAttributeToTarget('table',hash[0].attribute, hash[0].axis)
             cy.wait(1000)
-            graph.getLSLine().should('be.visible').and('have.length',2);
-            graph.getGraphAdornmentText().should('exist').and('contain','r^2 = 0')
+            graph.getLSLine().attribute("stroke-opacity").should("include", '1' );
+            graph.getGraphEquationView().should('exist').and('contain','  +  10.5')
             cy.matchImageSnapshot('p_'+hash[0].attribute+'_n_'+hash[2].axis+'_adorned');
             graph.clickRulerTool({force:true});
             graph.turnOffRulerTool('lsrl')
+            cy.wait(1000);
             cy.matchImageSnapshot('p_'+hash[0].attribute+'_n_'+hash[2].axis+'_unadorned');
+            graph.getLSLine().attribute("stroke-opacity").should("include", '0' );
+            graph.getGraphEquationView().should('have.class', 'sc-hidden')
         })
         it('test cat v num plot transitions',()=>{
             cy.dragAttributeToTarget('table', hash[3].attribute, hash[3].axis);
