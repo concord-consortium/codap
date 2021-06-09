@@ -118,7 +118,7 @@ DG.TextComponentController = DG.ComponentController.extend(
    */
   restoreComponentStorage: function( iComponentStorage, iDocumentID) {
     sc_super();
-    var theText = iComponentStorage.text || "",
+    var theText = iComponentStorage.text || iComponentStorage.apiText || "",
         parsed;
     try {
       parsed = JSON.parse(theText);
