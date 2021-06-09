@@ -930,7 +930,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         'delete': function (iResources) {
-          return DG.appController.documentArchiver.deleteCollection(iResources, this.get('id'));
+          var resp = DG.appController.documentArchiver.deleteCollection(iResources, this.get('id'));
+          if (resp && resp.collections && resp.collections.length) {
+            return { success: true, values: {collections: [resp.collections[0].get('id')]}};
+          }
+          else {
+            return {success: false, values: {error: 'Delete failed'}};
+          }
         }
       },
 
