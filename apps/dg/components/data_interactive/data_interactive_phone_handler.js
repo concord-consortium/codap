@@ -494,8 +494,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           }
         }.bind(this));
-        DG.log('Returning response: ' + JSON.stringify(result));
-        iCallback(result);
+        try {
+          DG.log('Returning response: ' + JSON.stringify(result));
+          iCallback(result);
+        } catch (ex) {
+          DG.logWarn(ex);
+          iCallback({success: false, values: {error: 'bad reply: ' + ex.toString()}});
+        }
       },
 
       /**
