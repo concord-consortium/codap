@@ -27,7 +27,7 @@ sc_require('components/graph_map_common/plot_layer');
 DG.PlotView = DG.PlotLayer.extend(
 /** @scope DG.PlotView.prototype */
 {
-  autoDestroyProperties: ['plottedCountAdorn'],
+  autoDestroyProperties: ['plottedCountAdorn', 'plottedValueAdorn'],
 
   /**
    * These two properties are used to determine point color when there are multiple plots in a graph
