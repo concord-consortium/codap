@@ -83,6 +83,18 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
       },
 
       /**
+       * We don't show counts or percents.
+       */
+      modelDidChange: function() {
+        var tCountModel = this.getPath('model.plottedCount');
+        if( tCountModel) {
+          tCountModel.set('isVisible', false);
+          tCountModel.set('isShowingCount', false);
+          tCountModel.set('isShowingPercent', false);
+        }
+      }.observes('model'),
+
+      /**
        * Return the class of the count axis with the x or y to put it on.
        * @return {[{}]}
        */
