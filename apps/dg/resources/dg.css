@@ -575,7 +575,9 @@ html, body {
     padding: 3px;
     cursor: move;
     width: fit-content;
+    width: -moz-fit-content;
     height: fit-content;
+    height: -moz-fit-content;
 }
 
 .dg-equationview p {
