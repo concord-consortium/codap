@@ -106,9 +106,11 @@ DG.BarChartView = DG.BarChartBaseView.extend(
         var tNewAttrs = {
           x: tCoordX, y: tCoordY, r: 0.1, width: tWidth, height: tHeight,
           fill: iRC.calcCaseColorString(iCase),
+          opacity: iRC.transparency,
           'fill-opacity': iRC.transparency,
           'stroke-opacity': 0
         };
+        tRect.show();
         if (iAnimate) {
           tRect.animate(tNewAttrs, DG.PlotUtilities.kDefaultAnimationTime, '<>', iCallback);
         } else {
