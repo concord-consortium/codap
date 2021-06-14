@@ -301,7 +301,7 @@ DG.BarChartBaseView = DG.ChartView.extend(
 
         var tPaper = this.get('paper'),
             tCoverRectsLayer = this.get('coverRectsLayer'),
-            tCellArray = this.getPath('model.cachedCells'),
+            tCellArray = this.getPath('model.validCachedCells'),
             tRC = this.createRenderContext(),
             tPrimaryVarID = this.getPath('model.primaryVarID'),
             tLegendVarID = this.getPath('model.legendVarID'),

@@ -32,7 +32,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       var kSumSquares = '<p style = "color:%@;">%@ = %@</p>', // sumOfResidualsSquared
           kSlopeIntercept = '<p style="color:%@;"><i>%@</i> = %@ <i>%@</i> %@ %@</p>', // color,y,slope,x,signInt,Int
           kInfiniteSlope = '<p style = "color:%@;"><i>%@</i> = %@ %@</p>', // x,constant,unit
-          kSlopeOnly = '<p style = "color:%@;">%@ = %@ %@</p>'; // numeric slope
+          kSlopeOnly = '<p style = "color:%@;">%@ = %@ %@</p>', // color, left side, numeric slope, slope unit
+          kUnitsWrapper = '<span style = "color:gray;">%@</span>'; // units
 
   return {
     /**
@@ -113,11 +114,12 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
                 tSlopeMultiplier = 3600 * 24 * 365.25; // per year
                 tXVar = 'DG.ScatterPlotModel.yearsLabel'.loc();
               }
+              tXVar = kUnitsWrapper.loc(tXVar);
               tSlope *= tSlopeMultiplier;
               tSlopeString = tSlope.toPrecision(3) + " ";
               if (tSlopeString !== "0 ") {  // Implies intercept is meaningless because 0 of x-axis is arbitrary
                 tInterceptString = tSign = "";
-                tSlopeString += this_.getPath('yAxisView.model.firstAttributeUnit') + ' ';
+                tSlopeString += kUnitsWrapper.loc(this_.getPath('yAxisView.model.firstAttributeUnit')) + ' ';
               }
             },
 
@@ -136,9 +138,9 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
                   ' ' + tYUnit + tSlash + tXUnit + ')';
             },
 
-            getInterceptUnit = function () {
+            getInterceptUnitString = function () {
               var tYUnit = this_.getPath('yAxisView.model.firstAttributeUnit');
-              return (tYUnit === '') ? '' : ' ' + tYUnit;
+              return (tYUnit === '') ? '' : ' ' + kUnitsWrapper.loc(tYUnit);
             };
 
         var kSlopeInterceptForm = kSlopeIntercept,// y,slope,x,signInt,Int
@@ -148,11 +150,12 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
                 tSlope, tIntercept,
                 this_.get('xAxisView'), this_.get('yAxisView')),
             tIntNumFormat = DG.Format.number().group('').fractionDigits(0, tDigits.interceptDigits),
-            tInterceptString = tIntNumFormat(tIntercept) + getInterceptUnit(),
+            tInterceptString = tIntNumFormat(tIntercept) + getInterceptUnitString(),
             tSlopeNumFormat = DG.Format.number().group('').fractionDigits(0, tDigits.slopeDigits),
             tSlopeUnit = getSlopeUnit(),
             tSlopeAsString = tSlopeNumFormat(tSlope),
-            tSlopeString = (SC.empty(tSlopeUnit) ? "" : "(") + tSlopeAsString + tSlopeUnit + " ",
+            tFormattedSlopeUnit = kUnitsWrapper.loc(tSlopeUnit),
+            tSlopeString = (SC.empty(tSlopeUnit) ? "" : "(") + tSlopeAsString + tFormattedSlopeUnit + " ",
             tSign = (tIntercept < 0) ? " " : " + ",
             tXIsDateTime = this_.getPath('xAxisView.isDateTime'),
             tYVar = this_.getPath('yAxisView.model.firstAttributeName'),
@@ -184,7 +187,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
             tColor = this_.get('equationColor');
         return kInfiniteSlope.loc(tColor, tXVar,
             DG.Format.number().group('').fractionDigits(0, tDigits)(tXIntercept),
-            tXUnit);
+            kUnitsWrapper.loc(tXUnit));
       }
 
       if (this.getPath('model.isVertical'))

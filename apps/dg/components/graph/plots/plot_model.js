@@ -1191,6 +1191,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         if (tPlottedCount) {  // copy plottedCount for all PlotModel types
           tAdornmentModels.plottedCount = tPlottedCount;
           tPlottedCount.set('plotModel', iNewPlotModel);
+          this._plottedCountModel = null; // So we don't destroy the one we're passing to the new plot
+          this._adornmentModels.plottedCount = null;
         }
 
         return tAdornmentModels;
