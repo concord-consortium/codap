@@ -39,6 +39,7 @@ context('Tile variety', () => {
     cy.wait(500)
     cfm.openLocalDoc(dir + filename + ext);
     codap.getComponentViews().should('have.length', 13);
+    cy.wait(2000)
   })
 
   it('verify case card restore', () => {

@@ -494,8 +494,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           }
         }.bind(this));
-        DG.log('Returning response: ' + JSON.stringify(result));
-        iCallback(result);
+        try {
+          DG.log('Returning response: ' + JSON.stringify(result));
+          iCallback(result);
+        } catch (ex) {
+          DG.logWarn(ex);
+          iCallback({success: false, values: {error: 'bad reply: ' + ex.toString()}});
+        }
       },
 
       /**
@@ -930,7 +935,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         'delete': function (iResources) {
-          return DG.appController.documentArchiver.deleteCollection(iResources, this.get('id'));
+          var resp = DG.appController.documentArchiver.deleteCollection(iResources, this.get('id'));
+          if (resp && resp.collections && resp.collections.length) {
+            return { success: true, values: {collections: [resp.collections[0].get('id')]}};
+          }
+          else {
+            return {success: false, values: {error: 'Delete failed'}};
+          }
         }
       },
 
