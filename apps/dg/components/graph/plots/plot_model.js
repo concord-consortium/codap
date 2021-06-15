@@ -99,9 +99,9 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             this._casesCache = this.getPath('dataConfiguration.cases').filter( function( iCase) {
               var tRowCaseValue = iCase.getValue( tRowAttrID),
                   tColCaseValue = iCase.getValue( tColAttrID);
-              if( typeof tRowCaseValue === 'boolean')
+              if( ['boolean', 'number'].includes(typeof tRowCaseValue))
                 tRowCaseValue = String(tRowCaseValue);
-              if( typeof tColCaseValue === 'boolean')
+              if( ['boolean', 'number'].includes(typeof tColCaseValue))
                 tColCaseValue = String(tColCaseValue);
               return (tRowValue === null || tRowCaseValue === tRowValue) &&
                   (tColValue === null || tColCaseValue === tColValue);
