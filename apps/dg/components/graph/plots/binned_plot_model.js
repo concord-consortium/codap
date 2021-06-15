@@ -483,7 +483,10 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
             },
             execute: function() {
               this.toggleProperty('dotsAreFused');
-            }.bind(this)
+            }.bind(this),
+            undo: function() {
+              this.execute();
+            }
           }));
         },
 
