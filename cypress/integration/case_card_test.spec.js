@@ -34,8 +34,11 @@ context('case card version', () => {
       table.getTableToolPalette().should('be.visible');
     })
     it('verify navigation button is visible', () => {
-      casecard.getCaseCardNavBackIcon().should('be.visible');
-      casecard.getCaseCardNavForwardIcon().should('be.visible');
+      casecard.getCaseCardNavBackIcon().should('exist');
+      casecard.getCaseCardNavForwardIcon().should('exist');
+    })
+    it('verify deselect button is visible', () => {
+      casecard.getCaseCardDeselectButton().should('be.visible').and('have.attr', 'disabled');
     })
     it('verify collection info is visible', () => {
       casecard.getCaseCardCollectionHeaderLabel().should('be.visible').and('contain', '179 cases');
@@ -53,13 +56,13 @@ context('case card version', () => {
   describe('case card functionality', () => {
     it('verify navigation with nav arrows', () => {
       let data1 = "dog", data2 = "rabbit";
-      casecard.getCaseCardNavForwardIcon().click();
+      casecard.getCaseCardNavForwardIcon().click({force:true});
       casecard.getCaseCardAttributeSummary().should('not.exist')
       casecard.getCaseCardCollectionHeader().should('contain', '1 selected of 179 cases');
       casecard.getCaseCardCell().first().should('contain', data1)
-      casecard.getCaseCardNavForwardIcon().click();
+      casecard.getCaseCardNavForwardIcon().click({force:true});
       casecard.getCaseCardCell().first().should('contain', data2)
-      casecard.getCaseCardNavBackIcon().click();
+      casecard.getCaseCardNavBackIcon().click({force:true});
       casecard.getCaseCardCell().first().should('contain', data1)
     })
     it('verify add case', () => {

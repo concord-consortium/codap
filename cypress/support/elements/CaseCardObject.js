@@ -24,6 +24,9 @@ class CaseCardObject {
   getCaseCardNavForwardIcon() {
     return cy.get('.nav-buttons .moonicon-icon-play')
   }
+   getCaseCardDeselectButton() {
+    return cy.get('.nav-buttons .dg-card-deselect')
+  }
   getCaseCardAddCasePlusIcon() {
     return cy.get('.nav-header .dg-floating-button-right')
   }
