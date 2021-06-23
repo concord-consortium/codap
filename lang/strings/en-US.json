@@ -656,6 +656,7 @@
     "DG.CaseTable.dividerView.expandGroupTooltip": "expand group",
     "DG.CaseTable.dividerView.collapseAllTooltip": "collapse all groups",
     "DG.CaseTable.dividerView.collapseGroupTooltip": "collapse group",
+    "DG.CaseTable.indexProto.tooltip": "Drag to place data entry row within this table",
 
     // DG.CaseTableController
     "DG.CaseTableController.allTables": "All tables",

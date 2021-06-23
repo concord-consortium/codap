@@ -52,7 +52,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       indexFormatter = function  (rowIndex, colIndex, cellValue, colInfo, rowItem) {
         return rowItem && rowItem._isProtoCase
-                ? '<img src="' + static_url("images/drag-indicator.svg") + '"/>'
+                ? '<img src="' + static_url("images/drag-indicator.svg") +
+                      '" title="' + "DG.CaseTable.indexProto.tooltip".loc() + '"/>'
                 : '<span class="dg-index">' + cellValue + '</span>';
       },
 
