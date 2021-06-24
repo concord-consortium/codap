@@ -146,40 +146,52 @@ DG.CaseTableRowSelectionModel = function (options) {
   // }
 
   function handleKeyDown(e) {
-    var activeRow = _grid.getActiveCell();
+    var activeCell = _grid.getActiveCell();
 
     var kUpArrowKeyCode = 38;
     var kDownArrowKeyCode = 40;
+    var increment, currRow, numRows, newRow, newItem, selectedRows, top, bottom, active;
 
     // handle shift-upArrow and shift-downArrow
-    if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey &&
+    if (activeCell && !e.ctrlKey && !e.altKey && !e.metaKey &&
         (e.which === kUpArrowKeyCode || e.which === kDownArrowKeyCode)) {
-      var selectedRows = getSelectedRows();
-      selectedRows.sort(function (x, y) {
-        return x - y;
-      });
+      increment = (e.which === kUpArrowKeyCode)? -1: 1;
+      currRow = activeCell.row;
 
-      if (!selectedRows.length) {
-        selectedRows = [activeRow.row];
-      }
+      if (e.shiftKey) {
+        selectedRows = getSelectedRows();
+        selectedRows.sort(function (x, y) {
+          return x - y;
+        });
 
-      var top = selectedRows[0];
-      var bottom = selectedRows[selectedRows.length - 1];
-      var active;
+        if (!selectedRows.length) {
+          selectedRows = [activeCell.row];
+        }
 
-      if (e.which === kDownArrowKeyCode) {
-        active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
+        top = selectedRows[0];
+        bottom = selectedRows[selectedRows.length - 1];
+
+        if (e.which === kDownArrowKeyCode) {
+          active = currRow < bottom || top === bottom ? ++bottom : ++top;
+        } else {
+          active = currRow < bottom ? --bottom : --top;
+        }
+
+        if (active >= 0 && active < _grid.getDataLength()) {
+          _grid.scrollRowIntoView(active);
+          notifyContextOfSelectionChange(getRowsRange(top, bottom));
+        }
       } else {
-        active = activeRow.row < bottom ? --bottom : --top;
+        numRows = _grid.getDataLength();
+        newRow = Math.min(Math.max(0, currRow + increment), numRows);
+        newItem = _gridDataView.getItem(newRow);
+        if (newItem._isProtoCase) newRow = currRow;
+        notifyContextOfSelectionChange([newRow]);
+        _grid.setActiveCell(newRow, activeCell.cell);
       }
 
-      if (active >= 0 && active < _grid.getDataLength()) {
-        _grid.scrollRowIntoView(active);
-        notifyContextOfSelectionChange(getRowsRange(top, bottom));
-      }
-
-      e.preventDefault();
-      e.stopPropagation();
+      // e.preventDefault();
+      e.stopImmediatePropagation();
     }
   }
 
