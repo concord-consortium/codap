@@ -2364,7 +2364,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function() {
           return {
             success: true,
-            values: DG.functionRegistry.get("namesArray"),
+            values: DG.functionRegistry.get("categorizedFunctionInfo"),
           };
         },
         notify: function (_iResources, iValues) {
