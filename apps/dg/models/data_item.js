@@ -67,11 +67,18 @@ DG.DataItem = SC.Object.extend({
     this.values[attributeID] = DG.DataUtilities.canonicalizeInputValue( value);
   },
 
-  getValue: function(attributeID) {
+  /**
+   * Gets the value of an attribute. If formula attribute, evaluates the formula
+   * in the context of the case associated with the item at the level of the attribute.
+   * @param attributeID {number|string} Id of attribute
+   * @param [baseCollectionID] {number} Id of the rightmost collection in the DataContext
+   * @return {*}
+   */
+  getValue: function(attributeID, baseCollectionID) {
     var attr = DG.Attribute.getAttributeByID(attributeID);
     var tCase;
     if (attr.hasFormula()) {
-      tCase = DG.Case.findCase(attr.collection.id, this.id);
+      tCase = DG.Case.findCase(baseCollectionID || attr.collection.id, this.id);
       return (tCase && tCase.getRawValue(attributeID));
     } else {
       return this.values[attributeID];

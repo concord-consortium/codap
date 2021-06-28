@@ -205,9 +205,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           var ret = {};
           var values = {};
+          var baseCollectionID = dataSet.getPath('baseCollection.id');
           var attrs = dataSet.get('attrs');
           attrs.forEach(function (attr) {
-            var value = item.getValue(attr.id);
+            var value = item.getValue(attr.id, baseCollectionID);
             values[attr.name] = value != null ? value : "";
           });
           ret.values = values;
