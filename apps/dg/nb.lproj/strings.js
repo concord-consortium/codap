@@ -868,5 +868,6 @@ SC.stringsFor("nb", {
     "DG.Inspector.datasetInfo.toolTip": "Display information about dataset",
     "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here",
     "DG.CaseCard.deselect": "Deselect all cases",
-    "DG.CaseCard.noDeselect": "No cases are selected"
+    "DG.CaseCard.noDeselect": "No cases are selected",
+    "DG.CaseTable.indexProto.tooltip": "Drag to place data entry row within this table"
 });
