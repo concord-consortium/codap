@@ -50,7 +50,7 @@ DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.pr
   /**
    * @type {boolean}
    */
-  preventDataContextReorg: true,
+  preventDataContextReorg: false,
 
   /**
    * @type {boolean}
