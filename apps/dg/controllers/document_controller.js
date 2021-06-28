@@ -493,6 +493,19 @@ DG.DocumentController = SC.Object.extend(
             this.contexts.splice(dataContextIndex, 1);
             this.propertyDidChange('contextsLength');
             this.tableCardRegistry.deregisterViews(dataContextID);
+
+            // Send notification indicating which data context was deleted
+            this.notificationManager.sendNotification({
+              action: 'notify',
+              resource: 'documentChangeNotice',
+              values: {
+                operation: 'dataContextDeleted',
+                deletedContext: dataContext.get('name'),
+              }
+            }, function (response) {
+              DG.log('Sent notification for deletion of context ' + dataContextID);
+              DG.log('Response: ' + JSON.stringify(response));
+            });
           } else {
             DG.logWarn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
           }

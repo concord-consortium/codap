@@ -114,7 +114,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           logMessage: this.handleLogMessage,
           logMessageMonitor: this.handleLogMessageMonitor,
           selectionList: this.handleSelectionList,
-          undoChangeNotice: this.handleUndoChangeNotice
+          undoChangeNotice: this.handleUndoChangeNotice,
+          formulaEngine: this.handleFormulaEngine,
         };
       },
 
@@ -246,7 +247,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'componentList',
               'document',
               'global',
-              'globalList'].indexOf(resourceSelector.type) < 0) {
+              'globalList',
+              'formulaEngine',].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
           if (!(resourceSelector.dataContext) ) {
@@ -2357,7 +2359,52 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }).filter(function(el) { return el; });
           return {success: true, values: result};
         }
-      }
+      },
+      handleFormulaEngine: {
+        get: function() {
+          return {
+            success: true,
+            values: DG.functionRegistry.get("categorizedFunctionInfo"),
+          };
+        },
+        notify: function (_iResources, iValues) {
+          var request = iValues.request;
+          switch (request) {
+            case "evalExpression":
+              var source = iValues.source;
+              try {
+                return {
+                  success: true,
+                  values: iValues.records.map(function(record) {
+                    var context = DG.FormulaContext.create({
+                      vars: record,
+                    });
+                    var formula = DG.Formula.create({
+                      source: source,
+                      context: context,
+                    });
+                    return formula.evaluateDirect();
+                  }),
+                };
+              } catch (ex) {
+                return {
+                  success: false,
+                  values: {
+                    error: ex.toString(),
+                  },
+                };
+              }
+              break;
+            default:
+              return {
+                success: false,
+                values: {
+                  error: "Unsupported request type: " + request,
+                },
+              };
+          }
+        }
+      },
       //get: function (iResources) {
       //  return {
       //    success: true,
