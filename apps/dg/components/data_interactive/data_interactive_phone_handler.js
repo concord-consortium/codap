@@ -2395,6 +2395,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   },
                 };
               }
+              // eslint-disable-next-line no-unreachable
               break;
             default:
               return {
