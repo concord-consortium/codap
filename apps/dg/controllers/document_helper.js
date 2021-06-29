@@ -482,6 +482,19 @@ DG.DocumentHelper = SC.Object.extend(
             tComponentControllers = tDocController.get('componentControllersMap') || [],
             tComponentsStorage = iDocObject.components || [];
 
+        function notifyDocumentChange(operation) {
+          tDocController.notificationManager.sendNotification({
+            action: 'notify',
+            resource: 'documentChangeNotice',
+            values: {
+              operation: operation
+            }
+          }, function (response) {
+            DG.log('Sent notification for document change: ' + operation);
+            DG.log('Response: ' + JSON.stringify(response));
+          });
+        }
+
         function deleteComponentsNotInDocObject() {
           var tIDsOfStoredComponents = tComponentsStorage.map(
               function (iCompStorage) {
@@ -618,6 +631,8 @@ DG.DocumentHelper = SC.Object.extend(
         // Begin updateDocument
         var tResult = true;
 
+        notifyDocumentChange('updateDocumentBegun');
+
         deleteComponentsNotInDocObject();
 
         deleteDataContextsNotInDocObject();
@@ -632,7 +647,9 @@ DG.DocumentHelper = SC.Object.extend(
 
         setTimeout( function() {
           DG.UndoHistory.clearUndoRedoHistory();
+          notifyDocumentChange('updateDocumentEnded');
         }, 200);
+
 
         return tResult;
       }
