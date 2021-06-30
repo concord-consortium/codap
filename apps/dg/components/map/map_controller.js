@@ -74,7 +74,7 @@ DG.MapController = DG.DataDisplayController.extend(
           this.invokeLater( function() {
             SC.run( function() {
               this.get('mapModel').adaptToNewOrRemovedContexts();
-              this.set('_inspectorButtons', null);
+              this.destroyInspectorButtons();
             }.bind( this));
           }.bind( this), 100);
         },
