@@ -378,7 +378,12 @@ DG.AttributeStats = SC.Object.extend((function () // closure
           tFoundADateDuringDataIsDateTime = tDataIsDateTime &&
               (tFoundADateDuringDataIsDateTime || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
           tDataIsDateTime = tTreatAsDateTime || (tDataIsDateTime && (SC.empty(iCaseValue) || DG.isDate(iCaseValue) || DG.isDateString( iCaseValue)));
-          if (!SC.empty(tValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
+          if (tDataIsDateTime && (!SC.empty(iCaseValue))) {
+            var tDate = DG.isDate( iCaseValue) ? iCaseValue : DG.createDate( iCaseValue);
+            if (tDate) {tNumericCaseCount++;
+              if (tDate.valueOf() < tMin) tMin = tDate.valueOf();
+              if (tDate.valueOf() > tMax) tMax = tDate.valueOf();}
+          } else if (!SC.empty(tValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
             tNumericCaseCount++;
             if (tValue < tMin) tMin = tValue;
             if (tValue > tMax) tMax = tValue;
@@ -388,12 +393,6 @@ DG.AttributeStats = SC.Object.extend((function () // closure
               tPositiveMin = Math.min(tValue, tPositiveMin);
               tPositiveMax = Math.max(tValue, tPositiveMax);
             }
-          }
-          else if (tDataIsDateTime && (!SC.empty(iCaseValue))) {
-            var tDate = DG.isDate( iCaseValue) ? iCaseValue : DG.createDate( iCaseValue);
-            if (tDate) {tNumericCaseCount++;
-            if (tDate.valueOf() < tMin) tMin = tDate.valueOf();
-            if (tDate.valueOf() > tMax) tMax = tDate.valueOf();}
           }
           // Let infinity and NaN through as numbers. And don't let null be treated as categorical
           else if ((typeof iCaseValue !== 'number') && !SC.empty(iCaseValue)) {
