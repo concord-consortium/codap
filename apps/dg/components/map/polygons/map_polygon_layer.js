@@ -143,7 +143,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
   }.observes('model.dataConfiguration.attributeAssignment'),
 
   /**
-   We should only have to worry about the fill color
+   We should only have to worry about the fill color and fill opacity
    */
   doDraw: function() {
     if( !this.readyToDraw())
@@ -163,6 +163,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
           fillColor: tColorString,
           color: tStrokeColorString,
           opacity: tRC.areaStrokeTransparency,
+          fillOpacity: tRC.areaTransparency
         });
       }
     }.bind( this));
@@ -220,6 +221,10 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
     this.doDraw();
   },
 
+  mustClearBecauseDataContextDidChange: function() {
+    this.clear(); // So fresh features will get correct cases as option
+  }.observes('model.dataContext'),
+
   /**
    For each case, set the fill of its corresponding point to show its selection state
    */
@@ -276,6 +281,10 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
       }
     }.bind( this));
   },
+
+  selectionDidChange: function() {
+    this.updateSelection();
+  }.observes('model.selection'),
 
   addFeatures: function() {
     if( this._areFeaturesAdded || this._featuresRemainingToFetch > 0)

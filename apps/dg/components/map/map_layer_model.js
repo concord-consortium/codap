@@ -72,6 +72,8 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
 
         if (tOperation === 'deleteCases')
           this.get('dataConfiguration').synchHiddenCases();
+        if (tOperation === 'selectCases')
+          this.notifyPropertyChange('selection');
 
         // We must invalidate before we build indices because the change may
         // have affected the set of included cases, which affects indices.
@@ -252,8 +254,10 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
         // each of our layers can have a different one
         var tContextID = DG.ArchiveUtils.getLinkID( iStorage, 'context');
         if( !SC.none( tContextID)) {
+          this.beginPropertyChanges();  // So that polygon layer will only clear once
           var tDataContext = DG.currDocumentController().getContextByID(tContextID);
           this.set('dataContext', tDataContext);
+          this.endPropertyChanges();
         }
 
         sc_super();

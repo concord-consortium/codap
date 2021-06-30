@@ -985,7 +985,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
        * By using 'set' we trigger notification for observers.
        */
       showAllCases: function () {
-        this.set('hiddenCases', []);
+        if( this.get('hiddenCases').length > 0)
+          this.set('hiddenCases', []);
       },
 
       /**
