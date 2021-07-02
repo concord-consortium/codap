@@ -778,7 +778,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
       }.bind(this);
 
-      var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' );
+      var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' ),
+          tIsSplit = this.get('isSplit');
+      if( tIsSplit) {
+        this.removeAllSplitPlotsAndAxes();
+      }
       tY2AttrDescription.removeAllAttributes();
       tY2AttrDescription.addAttribute( iAttrRefs.attributes[0]);
       tY2AttrDescription.set('collectionClient', iAttrRefs.collection);
@@ -801,6 +805,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
       setNewBounds();
 
       this.notifyPropertyChange('y2AttributeAdded');
+
+      if( tIsSplit) {
+        this.updateAxisArrays();
+        this.updateSplitPlotArray();
+        this.notifyPropertyChange('splitPlotChange');
+      }
     },
 
     /**
