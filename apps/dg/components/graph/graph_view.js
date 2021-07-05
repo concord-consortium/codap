@@ -1109,6 +1109,9 @@ DG.GraphView = SC.View.extend(
                 }
                 ioAxisViewArray[tIndex] = tNewView;
               }
+              else {
+                tCurrentView.set('model', iAxisModelArray[tIndex]);
+              }
             }
             for (tIndex = tNumModels; tIndex < ioAxisViewArray.length; tIndex++) {
               ioAxisViewArray[tIndex].destroy();

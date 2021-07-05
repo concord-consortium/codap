@@ -558,7 +558,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
       var this_ = this,
           tTargetDescKey, tTargetAxisKey, tOtherDim,
-          tIsXorYChange = false;
+          tIsXorYChange = false,
+          tIsSplit = this.get('isSplit');
 
       function switchAxes() {
 
@@ -617,6 +618,9 @@ DG.GraphModel = DG.DataLayerModel.extend(
         }
       }
 
+      if( tIsSplit) {
+        this.removeAllSplitPlotsAndAxes();
+      }
       switch (iOrientation) {
         case DG.GraphTypes.EOrientation.kHorizontal:
           tTargetDescKey = 'xAttributeDescription';
@@ -651,7 +655,6 @@ DG.GraphModel = DG.DataLayerModel.extend(
           tIsAxisSwitch = tNewAttribute === tOtherAttribute;
 
       tDataConfiguration.beginPropertyChanges();
-      this.removeAllSplitPlotsAndAxes();
 
       if (tIsAxisSwitch) {
         switchAxes();
@@ -678,9 +681,11 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       tDataConfiguration.endPropertyChanges();
       this.set('aboutToChangeConfiguration', false); // reset for next time
-      this.updateAxisArrays();
-      this.updateSplitPlotArray();
-      this.notifyPropertyChange('splitPlotChange');
+      if( tIsSplit) {
+        this.updateAxisArrays();
+        this.updateSplitPlotArray();
+        this.notifyPropertyChange('splitPlotChange');
+      }
     },
 
     /**
