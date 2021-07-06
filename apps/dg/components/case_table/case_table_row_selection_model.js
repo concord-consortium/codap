@@ -146,6 +146,7 @@ DG.CaseTableRowSelectionModel = function (options) {
   // }
 
   function handleKeyDown(e) {
+    var editLock = _grid.getEditorLock();
     var activeCell = _grid.getActiveCell();
 
     var kUpArrowKeyCode = 38;
@@ -153,7 +154,8 @@ DG.CaseTableRowSelectionModel = function (options) {
     var increment, currRow, numRows, newRow, newItem, selectedRows, top, bottom, active;
 
     // handle shift-upArrow and shift-downArrow
-    if (activeCell && !e.ctrlKey && !e.altKey && !e.metaKey &&
+    // Do not handle keypress if editing or there is no active cell.
+    if (!editLock && activeCell && !e.ctrlKey && !e.altKey && !e.metaKey &&
         (e.which === kUpArrowKeyCode || e.which === kDownArrowKeyCode)) {
       increment = (e.which === kUpArrowKeyCode)? -1: 1;
       currRow = activeCell.row;
