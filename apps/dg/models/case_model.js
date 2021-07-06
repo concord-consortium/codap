@@ -210,11 +210,10 @@ DG.Case = DG.BaseModel.extend((function() {
         // treat dates numerically
         value = Number(value);
         valType = "number";
-      } else if (this._cachedDate[iAttrID]) {
-        value = Number(this._cachedDate[iAttrID]);
-        valType = "number";
       } else if (attrType === 'date') {
-        this._cachedDate[iAttrID] = DG.parseDate(value, true);
+        if (!this._cachedDate[iAttrID]) {
+          this._cachedDate[iAttrID] = DG.parseDate(value, true);
+        }
         value = Number(this._cachedDate[iAttrID]);
         valType = "number";
       } else if (DG.isDateString(value)) {
