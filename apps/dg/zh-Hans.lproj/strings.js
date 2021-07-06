@@ -869,5 +869,12 @@ SC.stringsFor("zh-Hans", {
     "DG.CaseTable.indexMenu.moveEntryRow": "Move Data Entry Row Here",
     "DG.CaseCard.deselect": "Deselect all cases",
     "DG.CaseCard.noDeselect": "No cases are selected",
-    "DG.CaseTable.indexProto.tooltip": "Drag to place data entry row within this table"
+    "DG.CaseTable.indexProto.tooltip": "Drag to place data entry row within this table",
+    "DG.AttributeFormat.DatePrecisionShort.year": "YYYY",
+    "DG.AttributeFormat.DatePrecisionShort.month": "M/YY",
+    "DG.AttributeFormat.DatePrecisionShort.day": "M/D/YY",
+    "DG.AttributeFormat.DatePrecisionShort.hour": "M/D/YY HH:00",
+    "DG.AttributeFormat.DatePrecisionShort.minute": "M/D/YY HH:mm",
+    "DG.AttributeFormat.DatePrecisionShort.second": "M/D/YY HH:mm:ss",
+    "DG.AttributeFormat.DatePrecisionShort.millisecond": "M/D/YY HH:mm:ss.SSS"
 });
