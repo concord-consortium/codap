@@ -48,6 +48,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
     isVisibleChanged: function() {
       console.log('isVisibleChanged');
+      // Headers may be in a bad state, refresh them
+      if (this.get('isVisible')) {
+        this.updateColumnInfo();
+      }
     }.observes('isVisible'),
 
     /**
