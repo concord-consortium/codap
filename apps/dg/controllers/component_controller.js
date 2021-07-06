@@ -59,6 +59,13 @@ DG.ComponentController = SC.Object.extend((function () // closure
       return [];
     },
 
+    destroyInspectorButtons: function() {
+      this._inspectorButtons.forEach( function( iButton) {
+        iButton.destroy();
+      });
+      this.set('_inspectorButtons', null);
+    },
+
     /**
      * The component view will add these to its titlebar
      * @property {[SC.View]}

@@ -210,6 +210,13 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
          */
         recomputing: false,
 
+        isDateTime: function() {
+          var tPrimaryPlace = this.get('primaryAxisPlace'),
+              tAxisPrefix = tPrimaryPlace === DG.GraphTypes.EPlace.eX ? 'x' : 'y';
+          return this.getPath('dataConfiguration.' + tAxisPrefix + 'AttributeDescription.attributeType') ===
+              DG.Analysis.EAttributeType.eDateTime;
+        }.property(),
+
         /**
          *
          * @param iIndex {Number}
@@ -361,10 +368,18 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
               tNumberOfBins = this.get('totalNumberOfBins'),
               tWidth = this.get('width'),
               tWidthIncrement = this.get('widthIncrement'),
-              tDigits = tWidthIncrement >= 1 ? 0 : Math.abs( Math.floor( Math.log10(tWidthIncrement)));
+              tDigits = tWidthIncrement >= 1 ? 0 : Math.abs( Math.floor( Math.log10(tWidthIncrement))),
+              tIsDateTime = this.get('isDateTime'),
+              tDateLevel = tIsDateTime ?
+                  DG.DateUtilities.mapLevelToPrecision(DG.DateUtilities.determineLevels(tLowerEdge, tLowerEdge +
+                      ( tNumberOfBins - 1) * tWidth).innerLevel) :
+                  null;
           for( var tBinNum = 0; tBinNum < tNumberOfBins; tBinNum++) {
-            iFunc( tBinNum, DG.MathUtilities.formatNumber( tLowerEdge, tDigits),
-                DG.MathUtilities.formatNumber( tLowerEdge + tWidth, tDigits));
+            var tLower = tIsDateTime ? DG.DateUtilities.formatDate( tLowerEdge, tDateLevel, true /* useShort */) :
+                  DG.MathUtilities.formatNumber( tLowerEdge, tDigits),
+                tUpper = tIsDateTime ? DG.DateUtilities.formatDate( tLowerEdge + tWidth, tDateLevel, true /* useShort */) :
+                    DG.MathUtilities.formatNumber( tLowerEdge + tWidth, tDigits);
+            iFunc( tBinNum, tLower, tUpper);
             tLowerEdge += tWidth;
           }
         },

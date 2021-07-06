@@ -674,6 +674,13 @@ SC.stringsFor("en", {
     "DG.AttributeFormat.DatePrecision.minute": "MMM D, YYYY HH:mm",
     "DG.AttributeFormat.DatePrecision.second": "MMM D, YYYY HH:mm:ss",
     "DG.AttributeFormat.DatePrecision.millisecond": "MMM D, YYYY HH:mm:ss.SSS",
+    "DG.AttributeFormat.DatePrecisionShort.year": "YYYY",
+    "DG.AttributeFormat.DatePrecisionShort.month": "M/YY",
+    "DG.AttributeFormat.DatePrecisionShort.day": "M/D/YY",
+    "DG.AttributeFormat.DatePrecisionShort.hour": "M/D/YY HH:00",
+    "DG.AttributeFormat.DatePrecisionShort.minute": "M/D/YY HH:mm",
+    "DG.AttributeFormat.DatePrecisionShort.second": "M/D/YY HH:mm:ss",
+    "DG.AttributeFormat.DatePrecisionShort.millisecond": "M/D/YY HH:mm:ss.SSS",
 
     // DG.AttributeFormulaView
     "DG.AttrFormView.attrNamePrompt": "Attribute Name:",

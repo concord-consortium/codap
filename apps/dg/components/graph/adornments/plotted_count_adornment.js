@@ -114,9 +114,13 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
     }
 
     var tModel = this.get('model'),
-        tValuesArray = tModel.get('values'),
+        tIsVisible = tModel.get('isVisible'),
         tShowCount = tModel.get('isShowingCount'),
-        tShowPercent = tModel.get('isShowingPercent'),
+        tShowPercent = tModel.get('isShowingPercent');
+    if( !tIsVisible || (!tShowCount && !tShowPercent))
+      return; // We have nothing to to update
+
+    var tValuesArray = tModel.get('values'),
         tNumValues = tValuesArray.length,
         tNumElements = this.myElements.length;
 

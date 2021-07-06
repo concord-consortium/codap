@@ -20,10 +20,98 @@
 
 
 /**
-    @namespace Data value utility functions
+    @namespace Date value utility functions
 */
 DG.DateUtilities = {
-    // add constants here
+  // DateTime levels
+   EDateTimeLevel: {
+    eSecond: 0,
+    eMinute: 1,
+    eHour: 2,
+    eDay: 3,
+    eMonth: 4,
+    eYear: 5
+  },
+  kSecond: 1000,
+  kMinute: (1000) * 60,
+  kHour: ((1000) * 60) * 60,
+  kDay: (((1000) * 60) * 60) * 24,
+  kMonth: ((((1000) * 60) * 60) * 24) * 30,
+  kYear: ((((1000) * 60) * 60) * 24) * 365
+
+};
+
+/**
+ * 1. Compute the outermost date-time level that changes from the
+ * minimum to the maximum date.
+ * 2. The inner level is one smaller than this unless the difference of
+ * the min and max outer levels is greater than some arbitrary minimum,
+ * in which case the inner is the same as the outer.
+ *
+ * @param iMinDate { Number } milliseconds
+ * @param iMaxDate { Number } milliseconds
+ * @return {{outerLevel: EDateTimeLevel, innerLevel: EDateTimeLevel, increment: {Number}}
+ */
+DG.DateUtilities.determineLevels = function(iMinDate, iMaxDate) {
+  var tDateDiff = iMaxDate - iMinDate,
+      tIncrement = 1, // Will only be something else if inner level is year
+      tOuterLevel, tInnerLevel;
+
+  if (tDateDiff < 3 * this.kMinute) {
+    tOuterLevel = this.EDateTimeLevel.eDay;
+    tInnerLevel = this.EDateTimeLevel.eSecond;
+  }
+  else if (tDateDiff < 3 * this.kHour) {
+    tOuterLevel = this.EDateTimeLevel.eDay;
+    tInnerLevel = this.EDateTimeLevel.eMinute;
+  }
+  else if (tDateDiff < 3 * this.kDay) {
+    tOuterLevel = this.EDateTimeLevel.eDay;
+    tInnerLevel = this.EDateTimeLevel.eHour;
+  }
+  else if (tDateDiff < 3 * this.kMonth) {
+    tOuterLevel = this.EDateTimeLevel.eMonth;
+    tInnerLevel = this.EDateTimeLevel.eDay;
+  }
+  else if (tDateDiff < 3 * this.kYear) {
+    tOuterLevel = this.EDateTimeLevel.eYear;
+    tInnerLevel = this.EDateTimeLevel.eMonth;
+  }
+  else {
+    tOuterLevel = this.EDateTimeLevel.eYear;
+    tInnerLevel = this.EDateTimeLevel.eYear;
+    tIncrement = Math.max( 1, DG.MathUtilities.goodTickValue( tDateDiff / (this.kYear * 5)));
+  }
+  return {
+    increment: tIncrement,
+    outerLevel: tOuterLevel,
+    innerLevel: tInnerLevel
+  };
+};
+
+DG.DateUtilities.mapLevelToPrecision = function( iLevel) {
+  var tPrecision = DG.Attribute.DATE_PRECISION_NONE;
+  switch (iLevel) {
+    case this.EDateTimeLevel.eSecond:
+      tPrecision = DG.Attribute.DATE_PRECISION_SECOND;
+      break;
+    case this.EDateTimeLevel.eMinute:
+      tPrecision = DG.Attribute.DATE_PRECISION_MINUTE;
+      break;
+    case this.EDateTimeLevel.eHour:
+      tPrecision = DG.Attribute.DATE_PRECISION_HOUR;
+      break;
+    case this.EDateTimeLevel.eDay:
+      tPrecision = DG.Attribute.DATE_PRECISION_DAY;
+      break;
+    case this.EDateTimeLevel.eMonth:
+      tPrecision = DG.Attribute.DATE_PRECISION_MONTH;
+      break;
+    case this.EDateTimeLevel.eYear:
+      tPrecision = DG.Attribute.DATE_PRECISION_YEAR;
+      break;
+  }
+  return tPrecision;
 };
 
 /**
@@ -92,41 +180,49 @@ DG.DateUtilities.isDateString = function(iValue, iLoose) {
 DG.isDateString = DG.DateUtilities.isDateString;
 
 /**
-  Default formatting for Date objects.
+ * Default formatting for Date objects.
+ * @param date {Date | number }
+ * @param precision {number}
+ * @param useShortFormat {boolean} default is false
+ * @return {string}
  */
-DG.DateUtilities.formatDate = function(x, precision) {
+DG.DateUtilities.formatDate = function(x, precision, useShortFormat) {
   if (!(x && (DG.isDate(x) || DG.isDateString(x) || DG.MathUtilities.isNumeric(x)))) return;
   // use dayjs.js for formatting to avoid browser bugs
   /* global dayjs */
-  var dt = (DG.isDate(x) || DG.isDateString(x)) ? dayjs(DG.parseDate(x)) : dayjs(Number(x) * 1000),
-      formatString = "DG.AttributeFormat.DatePrecision.millisecond".loc();
+  useShortFormat = SC.none(useShortFormat) ? false : useShortFormat;
+  var formatString = "DG.AttributeFormat.DatePrecision",
+      dt = (DG.isDate(x) || DG.isDateString(x)) ? dayjs(DG.parseDate(x)) : dayjs(Number(x) * 1000);
+  formatString += useShortFormat ? 'Short.' : '.';
   if(precision == null) {
     precision = DG.Attribute.DATE_PRECISION_MILLISECOND;
   }
   switch (precision) {
     case DG.Attribute.DATE_PRECISION_YEAR:
-      formatString = "DG.AttributeFormat.DatePrecision.year".loc();
+      formatString += 'year';
       break;
     case DG.Attribute.DATE_PRECISION_MONTH:
-      formatString = "DG.AttributeFormat.DatePrecision.month".loc();
+      formatString += 'month';
       break;
     case DG.Attribute.DATE_PRECISION_DAY:
-      formatString = "DG.AttributeFormat.DatePrecision.day".loc();
+      formatString += 'day';
       break;
     case DG.Attribute.DATE_PRECISION_HOUR:
-      formatString = "DG.AttributeFormat.DatePrecision.hour".loc();
+      formatString += 'hour';
       break;
     case DG.Attribute.DATE_PRECISION_MINUTE:
-      formatString = "DG.AttributeFormat.DatePrecision.minute".loc();
+      formatString += 'minute';
       break;
     case DG.Attribute.DATE_PRECISION_SECOND:
-      formatString = "DG.AttributeFormat.DatePrecision.second".loc();
+      formatString += 'second';
       break;
     case DG.Attribute.DATE_PRECISION_MILLISECOND:
-      formatString = "DG.AttributeFormat.DatePrecision.millisecond".loc();
+      formatString += 'millisecond';
       break;
+    default:
+      formatString += 'millisecond';
   }
-  var formatted_date = dt.format( formatString);
+  var formatted_date = dt.format( formatString.loc());
   formatted_date = formatted_date.replace(/( 00:00)?(:00)?\.000$/, '');
   return formatted_date;
 };

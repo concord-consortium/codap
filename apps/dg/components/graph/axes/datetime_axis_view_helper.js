@@ -18,6 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('utilities/date_utilities');
 sc_require('components/graph/axes/axis_view_helper');
 
 /** @class  DG.DateTimeAxisViewHelper - This class is instantiated by instances of
@@ -29,20 +30,13 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
     /** @scope DG.DateTimeAxisViewHelper.prototype */ (function () {
 
       // DateTime levels
-      var EDateTimeLevel = {
-            eSecond: 0,
-            eMinute: 1,
-            eHour: 2,
-            eDay: 3,
-            eMonth: 4,
-            eYear: 5
-          },
-          kSecond = 1000,
-          kMinute = kSecond * 60,
-          kHour = kMinute * 60,
-          kDay = kHour * 24,
-          kMonth = kDay * 30,
-          kYear = kDay * 365,
+      var EDateTimeLevel = DG.DateUtilities.EDateTimeLevel,
+          // kSecond = DG.DateUtilities.kSecond,
+          kMinute = DG.DateUtilities.kMinute,
+          kHour = DG.DateUtilities.kHour,
+          kDay = DG.DateUtilities.kDay,
+          // kMonth = DG.DateUtilities.kMonth,
+          kYear = DG.DateUtilities.kYear,
           kMonthNames = [
             'DG.Formula.DateShortMonthJanuary',
             'DG.Formula.DateShortMonthFebruary',
@@ -57,54 +51,6 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
             'DG.Formula.DateShortMonthNovember',
             'DG.Formula.DateShortMonthDecember'
           ];
-
-      /**
-       * 1. Compute the outermost date-time level that changes from the
-       * minimum to the maximum date.
-       * 2. The inner level is one smaller than this unless the difference of
-       * the min and max outer levels is greater than some arbitrary minimum,
-       * in which case the inner is the same as the outer.
-       *
-       * @param iMinDate { Number } milliseconds
-       * @param iMaxDate { Number } milliseconds
-       * @return {{outerLevel: EDateTimeLevel, innerLevel: EDateTimeLevel, increment: {Number}}
-       */
-      function determineLevels(iMinDate, iMaxDate) {
-        var tDateDiff = iMaxDate - iMinDate,
-            tIncrement = 1, // Will only be something else if inner level is year
-            tOuterLevel, tInnerLevel;
-
-        if (tDateDiff < 3 * kMinute) {
-          tOuterLevel = EDateTimeLevel.eDay;
-          tInnerLevel = EDateTimeLevel.eSecond;
-        }
-        else if (tDateDiff < 3 * kHour) {
-          tOuterLevel = EDateTimeLevel.eDay;
-          tInnerLevel = EDateTimeLevel.eMinute;
-        }
-        else if (tDateDiff < 3 * kDay) {
-          tOuterLevel = EDateTimeLevel.eDay;
-          tInnerLevel = EDateTimeLevel.eHour;
-        }
-        else if (tDateDiff < 3 * kMonth) {
-          tOuterLevel = EDateTimeLevel.eMonth;
-          tInnerLevel = EDateTimeLevel.eDay;
-        }
-        else if (tDateDiff < 3 * kYear) {
-          tOuterLevel = EDateTimeLevel.eYear;
-          tInnerLevel = EDateTimeLevel.eMonth;
-        }
-        else {
-          tOuterLevel = EDateTimeLevel.eYear;
-          tInnerLevel = EDateTimeLevel.eYear;
-          tIncrement = Math.max( 1, DG.MathUtilities.goodTickValue( tDateDiff / (kYear * 5)));
-        }
-        return {
-          increment: tIncrement,
-          outerLevel: tOuterLevel,
-          innerLevel: tInnerLevel
-        };
-      }
 
       /**
        * Given the date value, return the string that fully describes the given
@@ -386,7 +332,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
               tUpper = 1000 * this.get('upperBound');
           if (SC.none(tLower) || SC.none(tUpper) || (tUpper === tLower))
               return; // not yet ready
-          var tLevels = determineLevels(tLower, tUpper),
+          var tLevels = DG.DateUtilities.determineLevels(tLower, tUpper),
               tNumLevels = (tLevels.outerLevel !== tLevels.innerLevel) ? 2 : 1,
               tMaxNumberExtent = tNumLevels * DG.RenderingUtilities.kDefaultFontHeight;
           if (tMaxNumberExtent !== this.get('maxNumberExtent')) {
@@ -581,7 +527,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
         forEachTickDo: function( iDoF) {
           var tLower = 1000 * this.get('lowerBound'), // milliseconds
               tUpper = 1000 * this.get('upperBound'),
-              tLevels = determineLevels(tLower, tUpper),
+              tLevels = DG.DateUtilities.determineLevels(tLower, tUpper),
               tDateLabel = findFirstDateAboveOrAtLevel(tLevels.innerLevel, tLower,
                               tLevels.increment),
               tValue;

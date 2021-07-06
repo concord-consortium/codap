@@ -88,9 +88,11 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
       modelDidChange: function() {
         var tCountModel = this.getPath('model.plottedCount');
         if( tCountModel) {
+          tCountModel.beginPropertyChanges();
           tCountModel.set('isVisible', false);
           tCountModel.set('isShowingCount', false);
           tCountModel.set('isShowingPercent', false);
+          tCountModel.endPropertyChanges();
         }
       }.observes('model'),
 

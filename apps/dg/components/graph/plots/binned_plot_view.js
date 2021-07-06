@@ -297,7 +297,8 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
           }
 
           function continueTranslate(idX, idY) {
-            var tDelta = (tOrientation === DG.GraphTypes.EOrientation.kVertical) ? -idY : idX,
+            var tOrientation = this_.getPath('primaryAxisView.orientation'),
+                tDelta = (tOrientation === DG.GraphTypes.EOrientation.kVertical) ? -idY : idX,
                 tNewBinWidthPixels = Math.max(kMinBinWidth, tBinWidthAtStartOfDrag + tDelta),
                 tNewWorldWidth = tNewBinWidthPixels * tWorldPerPixel;
             tNewWorldWidth = Math.round(tNewWorldWidth / tWidthIncrement) * tWidthIncrement;
@@ -367,6 +368,7 @@ DG.BinnedPlotView = DG.UnivariatePlotView.extend(
             else {
               tLine = tBoundaries[tBinNum].boundary;
               tCover = tBoundaries[tBinNum].cover;
+              tCover.attr({cursor: tCursor});
               DG.RenderingUtilities.updateLine(tLine, {x: tLeft, y: tTop}, {x: tRight, y: tBottom});
               DG.RenderingUtilities.updateLine(tCover, {x: tLeft, y: tTop}, {x: tRight, y: tBottom});
             }
