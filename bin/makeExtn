@@ -48,7 +48,7 @@ PARENT_DIR=`dirname $TARGET_DIR`
 
 mkdir -p "$TARGET_DIR"
 
-( cd $CODAP_PLUGIN_BUILD_DIR && npm run build )
+( cd $CODAP_PLUGIN_BUILD_DIR && ./bin/build )
 ( cd $CODAP_EXAMPLES_BUILD_DIR && npm run build )
 
 rsync -av --delete $CODAP_EXAMPLES_REFDIR $TARGET_DIR/
