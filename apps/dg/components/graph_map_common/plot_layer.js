@@ -385,6 +385,7 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
        */
       assignElementAttributes: function (iElement, iIndex, iAnimate) {
         // Remove event handlers
+        iElement.undrag();  // No-op if no drag handlers
         if (iElement.events) {
           iElement.events.forEach(function (iHandler) {
             iHandler.unbind();
