@@ -114,6 +114,17 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   */
   _upperBound: null,
 
+  init: function() {
+    sc_super();
+    this.attributeDescriptionDidChange();
+  },
+
+  attributeDescriptionDidChange: function() {
+    var tAttrDesc = this.get('attributeDescription');
+    if( tAttrDesc && Number(tAttrDesc.getPath('attribute.precision')) === 0)
+      this.set('displayOnlyIntegers', true);
+  }.observes('attributeDescription'),
+
   /**
     Override (for now) because superclass will compute it wrong!
     @property{Number} >= 1
