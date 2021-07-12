@@ -566,12 +566,6 @@ DG.DocumentController = SC.Object.extend(
               tView = this.addGame(docView, iComponent, isInitialization);
               break;
             case 'DG.TableView':
-
-              // If there is no component, we are creating new components.
-              // We currently create case tables for each context, rather than creating
-              // them on a context-by-context basis. This may change, for now this means
-              // if we are asked to create *a* case table we will create all case
-              // tables.
               if (iComponent && iComponent.componentStorage && iComponent.componentStorage._links_) {
                 tView = this.addCaseTable(docView, iComponent);
               } else {
@@ -589,7 +583,8 @@ DG.DocumentController = SC.Object.extend(
               tView = this.addSlider(docView, iComponent, isInitialization);
               break;
             case 'DG.Calculator':
-              tView = this.addCalculator(docView, iComponent, isInitialization);
+              this.toggleComponent(docView, 'calcView');
+              tView = this._singletonViews.calcView;
               break;
             case 'DG.TextView':
               tView = this.addText(docView, iComponent, isInitialization);
