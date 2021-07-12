@@ -412,7 +412,7 @@ DG.ComponentView = SC.View.extend(
               tOuterView.adjust('top', tY);
 
               if (DG.KEEP_IN_BOUNDS_PREF) {
-                var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+                var tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
                     tScaleFactor = tInBoundsScaling.scaleFactor;
                 tOuterView.originalLayout.top = tY / tScaleFactor;
                 tOuterView.originalLayout.left = tX / tScaleFactor;
@@ -565,7 +565,7 @@ DG.ComponentView = SC.View.extend(
               tOriginalLayout = this.get('originalLayout'),
               tContainerWidth = tTitleBar.getContainerWidth(),
               tContainerHeight = tTitleBar.getContainerHeight(),
-              tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+              tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
               tScaleFactor = tInBoundsScaling.scaleFactor,
               tScaleBoundsX = tInBoundsScaling.scaleBoundsX,
               tScaleBoundsY = tInBoundsScaling.scaleBoundsY,
@@ -609,7 +609,7 @@ DG.ComponentView = SC.View.extend(
         },
         configureViewBoundsLayout : function (iNewPos) {
           var tOriginalLayout = this.get('originalLayout'),
-              tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+              tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
               tScaleFactor = tInBoundsScaling.scaleFactor;
           tOriginalLayout.top = iNewPos.y / tScaleFactor;
           tOriginalLayout.left = iNewPos.x / tScaleFactor;
