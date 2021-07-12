@@ -515,8 +515,8 @@ DG.PlotView = DG.PlotLayer.extend(
         tLegendDesc = tConfig.get('legendAttributeDescription' ),
         tYVarIDKey = tModel.getPath('verticalAxisIsY2') ? 'y2VarID' : 'yVarID',
         tStrokeParams = this.getStrokeParams(),
-        tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
-                            DG.MathUtilities.nQuantileValues(
+        tIsNumeric = tLegendDesc && tLegendDesc.get('isNumeric'),
+        tQuantileValues = (tIsNumeric) ? DG.MathUtilities.nQuantileValues(
                                 tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
                             [];
     this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
@@ -546,7 +546,8 @@ DG.PlotView = DG.PlotLayer.extend(
        */
       calcCaseColorString: function( iCase ) {
         DG.assert( iCase );
-        var tColorValue = iCase.getValue( this.legendVarID),
+        var tColorValue = tIsNumeric ? iCase.getForcedNumericValue( this.legendVarID) :
+                      iCase.getValue( this.legendVarID),
             tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc,
                 this.attrColor || this.pointColor, tQuantileValues );
         return tCaseColor.colorString || tCaseColor;
