@@ -223,8 +223,8 @@ DG.AxisViewHelper = SC.Object.extend(
               tPixelMax = tPixelMin + tCellWidth;
               iCoord += this.get('pixelMin'); // offset by the left of the axis
         }
-            tPixelDistance = Math.abs(iCoord - tPixelMin);
-            tPixelsPerWorldUnit = Math.abs(( tPixelMax - tPixelMin) / (tUpperBound - tLowerBound));
+            tPixelDistance = iCoord - tPixelMin;
+            tPixelsPerWorldUnit = ( tPixelMax - tPixelMin) / (tUpperBound - tLowerBound);
             tData = tLowerBound + tPixelDistance / tPixelsPerWorldUnit;
 /*
        TDouble tLogLinearParam( ((ds_CCellLinearAxis*) mAxisP)->

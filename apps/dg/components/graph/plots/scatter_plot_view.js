@@ -412,14 +412,14 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   // Save the initial world coordinates
                   this.wx = tCase.getForcedNumericValue(tVarIDs.x);
                   this.wy = tCase.getForcedNumericValue(tVarIDs.y);
-                  this.animate({opacity: kOpaque}, DG.PlotUtilities.kDataTipShowTime, "bounce");
+                  this.attr({opacity: kOpaque});
                 },
                 function () {  // end
                   this.animate({transform: tInitialTransform}, DG.PlotUtilities.kHighlightHideTime);
                   tInitialTransform = null;
                   returnCaseValuesToStart(this.index, {x: this.wx, y: this.wy});
                   tIsDragging = false;
-                  this.ox = this.oy = this.wx = this.wy = undefined;
+                  delete this.ox; delete this.oy; delete this.wx; delete this.wy;
                   this_.hideDataTip();
                 });
         return iElement;

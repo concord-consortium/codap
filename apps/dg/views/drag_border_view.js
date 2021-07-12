@@ -244,7 +244,7 @@ DG.DragLeftBorderView = DG.DragBorderView.extend({
       this.parentView.adjust('left', tLoc);
     }
     if (DG.KEEP_IN_BOUNDS_PREF) {
-      var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+      var tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
           tScaleFactor = tInBoundsScaling.scaleFactor;
       this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
       this.parentView.originalLayout.left = tLoc / tScaleFactor;
@@ -273,7 +273,7 @@ DG.DragRightBorderView = DG.DragBorderView.extend({
     tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
     this.parentView.adjust('width', tNewWidth);
     if (DG.KEEP_IN_BOUNDS_PREF) {
-      var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+      var tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
           tScaleFactor = tInBoundsScaling.scaleFactor;
       this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
     }
@@ -298,7 +298,7 @@ DG.DragBottomBorderView = DG.DragBorderView.extend({
         Math.max(tNewHeight, tMinHeight), tMaxHeight));
     this.parentView.adjust('height', tNewHeight);
     if (DG.KEEP_IN_BOUNDS_PREF) {
-      var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+      var tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
           tScaleFactor = tInBoundsScaling.scaleFactor;
       this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
     }
@@ -346,7 +346,7 @@ DG.DragBottomLeftBorderView = DG.DragBorderView.extend({
       this.parentView.adjust('height', tNewHeight);
     }
     if (DG.KEEP_IN_BOUNDS_PREF) {
-      var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+      var tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
           tScaleFactor = tInBoundsScaling.scaleFactor;
       this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
       this.parentView.originalLayout.width = tNewWidth / tScaleFactor;
@@ -391,7 +391,7 @@ DG.DragBottomRightBorderView = DG.DragBorderView.extend({
       this.parentView.adjust('height', tNewHeight);
     }
     if (DG.KEEP_IN_BOUNDS_PREF) {
-      var tInBoundsScaling = DG.currDocumentController().inBoundsScaling(),
+      var tInBoundsScaling = DG.currDocumentController().get('inBoundsScaling'),
           tScaleFactor = tInBoundsScaling.scaleFactor;
       this.parentView.originalLayout.height = tNewHeight / tScaleFactor;
       this.parentView.originalLayout.width = tNewWidth / tScaleFactor;

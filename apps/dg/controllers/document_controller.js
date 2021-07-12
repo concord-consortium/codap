@@ -660,7 +660,7 @@ DG.DocumentController = SC.Object.extend(
         var components = this.get('components');
         if (components) {
           var scaleBounds = {x:0, y:0},
-              storedScaleFactor = this.inBoundsScaling().scaleFactor,
+              storedScaleFactor = this.get('inBoundsScaling').scaleFactor,
               scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
           // Only compute new bounds if scaleFactor = 1, the max value.
           // In this case we are showing the components with original layout
@@ -677,7 +677,8 @@ DG.DocumentController = SC.Object.extend(
               // If we have a valid, visible component, determine if its position and
               // size are determining factors in the computing the scaleBounds
               if (iComponent.type !== 'DG.GuideView' || !this.guideViewHidden()) {
-                if (iComponent.layout &&
+                if (iComponent.get('isVisible') &&
+                    iComponent.layout &&
                     ((iComponent.layout.left != null) &&
                         (iComponent.layout.width != null) &&
                         (iComponent.layout.top != null) &&
@@ -708,14 +709,7 @@ DG.DocumentController = SC.Object.extend(
                 }
               }
             }.bind(this));
-            var storedInBoundsScaling = this.inBoundsScaling(),
-                scaleBoundsX = storedInBoundsScaling.scaleBoundsX,
-                scaleBoundsY = storedInBoundsScaling.scaleBoundsY;
-            if ((!scaleBoundsX || !scaleBoundsY) ||
-                (scaleBoundsX === 0 || scaleBoundsY === 0) ||
-                (scaleBounds.x > scaleBoundsX || scaleBounds.y > scaleBoundsY)) {
-              this.setInBoundsScaleBounds(scaleBounds.x, scaleBounds.y);
-            }
+            this.setInBoundsScaleBounds(scaleBounds.x, scaleBounds.y);
           }
         }
       },
@@ -727,7 +721,7 @@ DG.DocumentController = SC.Object.extend(
         var docView = DG.mainPage.get('docView'),
             containerWidth = $('#codap').width(),
             containerHeight = $('#codap').height(),
-            storedInBoundsScaling = this.inBoundsScaling(),
+            storedInBoundsScaling = this.get('inBoundsScaling'),
             scaleBoundsX = storedInBoundsScaling.scaleBoundsX,
             scaleBoundsY = storedInBoundsScaling.scaleBoundsY,
             scaleFactor = 1;
