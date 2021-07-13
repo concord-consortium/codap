@@ -976,28 +976,33 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           tSelection = tDataContext && tDataContext.getSelectedCases(),
           tSelectionCount = tSelection && tSelection.get('length'),
           tDeleteIsEnabled = tSelectionCount > 0,
-          tDeleteSingle = tSelectionCount === 1, tItems = [{
-            title: 'DG.CaseTable.indexMenu.moveEntryRow',
-            localize: true,
-            target: this,
-            action: 'moveDataEntryRow'
-          }, {
-            title: 'DG.CaseTable.indexMenu.insertCase',
-            localize: true,
-            target: this,
-            action: 'insertCase'
-          }, {
-            title: 'DG.CaseTable.indexMenu.insertCases',
-            localize: true,
-            target: this,
-            action: 'insertCases'
-          }, {
-            title: tDeleteSingle ? 'DG.CaseTable.indexMenu.deleteCase' : 'DG.CaseTable.indexMenu.deleteCases',
-            localize: true,
-            target: getController(this),
-            action: 'deleteSelectedCases',
-            isEnabled: tDeleteIsEnabled
-          }], tMenu = DG.MenuPane.create({
+          tDeleteSingle = tSelectionCount === 1,
+          tDataItem = this._slickGrid.getDataItem(iCell.row),
+          isProtoCase = tDataItem && tDataItem._isProtoCase,
+          tItems = [{
+              title: 'DG.CaseTable.indexMenu.moveEntryRow',
+              localize: true,
+              target: this,
+              action: 'moveDataEntryRow',
+              isEnabled: !isProtoCase
+            }, {
+              title: 'DG.CaseTable.indexMenu.insertCase',
+              localize: true,
+              target: this,
+              action: 'insertCase'
+            }, {
+              title: 'DG.CaseTable.indexMenu.insertCases',
+              localize: true,
+              target: this,
+              action: 'insertCases'
+            }, {
+              title: tDeleteSingle ? 'DG.CaseTable.indexMenu.deleteCase' : 'DG.CaseTable.indexMenu.deleteCases',
+              localize: true,
+              target: getController(this),
+              action: 'deleteSelectedCases',
+              isEnabled: tDeleteIsEnabled
+          }],
+          tMenu = DG.MenuPane.create({
             classNames: 'dg-case-index-popup',
             layout: {width: 200, height: 150},
             items: tItems
@@ -1657,9 +1662,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                 'collection').get('id') !== collection.get('id')),
             isProtoCase = dataItem && dataItem._isProtoCase;
         if (iCell.cell === 0 && !hierTableView.getPath('model.isIndexHidden')) {
-          if (isProtoCase)
-            this.get('gridAdapter').deselectAllCases();
-          else if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem) && !isClosedGroup)
+          if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem) && !isClosedGroup)
             this.showCaseIndexPopup(iEvent, iCell);
         }
       }.bind(this));
