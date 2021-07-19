@@ -200,7 +200,6 @@ DG.PlotAdornment = SC.Object.extend(
             DG.PlotUtilities.kDefaultAnimationTime, '<>');
       }
     });
-    this.set('isHidden', false);
   },
 
   hideElements: function () {
@@ -214,7 +213,6 @@ DG.PlotAdornment = SC.Object.extend(
       else
         iElement.hide();
     });
-    this.set('isHidden', true);
   },
 
   /**

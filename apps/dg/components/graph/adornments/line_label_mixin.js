@@ -40,7 +40,7 @@ DG.LineLabelMixin =
       },
 
       /**
-       Make the movable line. This only needs to be done once.
+       Make the text element that appears on hover
        Caller can optionally add the line element to this.myElements array.
        @return {Raphael element} the text element
        */

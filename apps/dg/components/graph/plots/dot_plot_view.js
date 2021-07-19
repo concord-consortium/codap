@@ -130,6 +130,24 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
     this.updateAverages();
   }.observes('model.colorMap'),
 
+  initializeAdornments: function() {
+    sc_super();
+    this.setOffsetsForAverages();
+  },
+
+  setOffsetsForAverages: function() {
+    var tOffset = 0;
+    ['plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedMadAdorn'].forEach(
+        function( iKey) {
+          if( this.getPath(iKey + '.model.isVisible')) {
+            if( this.getPath(iKey + '.offset') !== tOffset)
+              this.setPath(iKey + '.offset', tOffset);
+            tOffset++;
+          }
+        }.bind(this)
+    );
+  },
+
   /**
    * Invalidate and update the averages adornments.
    * To be called when cases or plot configuration
@@ -160,6 +178,8 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
     if (this.plottedValueAdorn) {
       this.plottedValueAdorn.updateToModel();
     }
+
+    this.setOffsetsForAverages();
   },
 
   /**
@@ -372,11 +392,11 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
 
     this.updateSelection();
 
-    updateAverageAdorn( this.plottedMeanAdorn );
-    updateAverageAdorn( this.plottedMedianAdorn );
-    updateAverageAdorn( this.plottedStDevAdorn );
-    updateAverageAdorn( this.plottedMadAdorn );
-    updateAverageAdorn( this.plottedBoxPlotAdorn );
+    ['plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedMadAdorn', 'plottedBoxPlotAdorn'].forEach(
+        function( iKey) {
+          updateAverageAdorn(this[iKey]);
+        }.bind(this)
+    );
 
     if( !SC.none( this.plottedValueAdorn))
       this.plottedValueAdorn.updateToModel();
@@ -547,6 +567,7 @@ DG.DotPlotView = DG.UnivariatePlotView.extend(
       tAdornment.destroy();
       delete this[iAdornmentProperty];
     }
+    this.setOffsetsForAverages();
   },
 
   /**

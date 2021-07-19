@@ -63,7 +63,7 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
 
   /**
    * Coordinates of the center of the equation rectangle as a proportion of the plot frame
-   * @property {{proportionCenterX: {Number}, proportionCenterY: {Number}}
+   * @property {{proportionCenterX: {Number}, proportionCenterY: {Number}}}
    */
   equationCoords: null,
 

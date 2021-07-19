@@ -22,11 +22,13 @@
 
 sc_require('components/graph/adornments/plotted_average_adornment');
 
+DG.PlottedBoxPlotLogString = '';  // global to avoid duplicate log strings.
+
 /**
  * @class  Plots a box plot showing whiskers, Q1, Q3, and median.
  * @extends DG.PlottedAverageAdornment
  */
-DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
+DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend( DG.LineLabelMixin,
     /** @scope DG.PlottedBoxPlotAdornment.prototype */
     (function () {
 
@@ -130,6 +132,49 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
           if( tModel && tModel.get('isVisible')) {
             tModel.recomputeValueIfNeeded();
             this.updateSymbols( iAnimate );
+          }
+        },
+
+        /**
+         * Show or hide the text element "average = 123.456"
+         * Using DG.LineLabelMixin to position.
+         * @param iShow {Boolean} Show or hide this text element?
+         * @param iDisplayValue {Number} Value along numeric axis, for text display
+         * @param iAxisValue {Number} Value along numeric axis, for positioning
+         * @param iFractionFromTop {Number} used to position text on cross-axis
+         * @param iElementID {Number} Rafael element id of the text, so we can find and update it on the fly.
+         * @param iValue {Object} Has the statistics for the current cell
+         */
+        updateTextElement: function( iShow, iDisplayValue, iAxisValue, iFractionFromTop, iValue, iElementID ) {
+          DG.assert( this.textElement );
+          if( iShow && DG.isFinite( iDisplayValue ) ) {
+            // set up parameters used by DG.LineLabelMixin.updateTextToModel()
+            this.value = iAxisValue; // for St.Dev., iAxisValue not equal to iDisplayValue
+            this.valueAxisView = this.getPath('parentView.primaryAxisView');
+            this.valueString = this.titleString( iDisplayValue, iValue );
+            this.updateTextToModel( iFractionFromTop );
+            this.textElement.show();
+            this.backgrndRect.show();
+            this.textShowingForID = iElementID;
+          } else {
+            // hide until next time
+            //this.value = 0;
+            this.valueString = '';
+            this.valueAxisView = null;
+            this.textElement.hide();
+            this.backgrndRect.hide();
+            this.textShowingForID = undefined;
+          }
+        },
+
+        /**
+         * Create a user log of the the hover over the average line, but remove duplicates
+         * @param logString
+         */
+        updateHoverLog: function( logString ) {
+          if( logString !== DG.PlottedBoxPlotLogString ) { // not 2 of the same log strings in a row
+            DG.PlottedBoxPlotLogString = logString;        // save for next comparison
+            DG.logUser("%@: %@", "hoverOverGraphLine", DG.PlottedBoxPlotLogString );
           }
         },
 

@@ -49,8 +49,48 @@ DG.PlottedAverageModel = DG.PlotAdornmentModel.extend(
 
 });
 
+/**
+ * @class  The model for a plotted average (mean or median).
+ * @extends SC.Object
+*/
+DG.PlottedSimpleAverageModel = DG.PlottedAverageModel.extend(
+/** @scope DG.PlottedAverageModel.prototype */
+{
+  /**
+   * Coordinates of the center of the equation rectangle as a proportion of the plot frame
+   * @property {{proportionCenterX: {Number}, proportionCenterY: {Number}}[]}
+   */
+  equationCoordsArray: null,
+  
+  init: function() {
+    sc_super();
+    this.equationCoordsArray = [];
+  },
 
-DG.PlottedMeanStDevModel = DG.PlottedAverageModel.extend(
+  createStorage: function() {
+    var tStorage = sc_super();
+    DG.ObjectMap.copy( tStorage, {
+      equationCoordsArray: this.get('equationCoordsArray')
+    });
+    return tStorage;
+  },
+
+  /**
+   * @param { Object } with properties specific to a given subclass
+   */
+  restoreStorage: function( iStorage) {
+    sc_super();
+    if( iStorage) {
+      if( iStorage.equationCoordsArray)
+        this.set('equationCoordsArray', iStorage.equationCoordsArray);
+    }
+  }
+  
+});
+
+
+
+    DG.PlottedMeanStDevModel = DG.PlottedSimpleAverageModel.extend(
 /** @scope DG.PlottedMeanStDevModel.prototype */
 {
   /**
@@ -183,7 +223,7 @@ DG.PlottedMadModel = DG.PlottedMeanStDevModel.extend(
     });
 DG.PlotAdornmentModel.registry.plottedMad = DG.PlottedMadModel;
 
-DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
+DG.PlottedQuantileModel = DG.PlottedSimpleAverageModel.extend(
 /** @scope DG.PlottedMedianModel.prototype */
 {
   /**

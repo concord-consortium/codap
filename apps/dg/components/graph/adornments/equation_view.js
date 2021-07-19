@@ -30,6 +30,11 @@ DG.EquationView = SC.LabelView.extend(
     /** @scope DG.EquationView.prototype */ {
       classNames: 'dg-equationview'.w(),
 
+      transitionShow: SC.View.FADE_IN,
+      transitionShowOptions: { duration: 1, timing: 'ease-in-out'},
+      transitionHide: SC.View.FADE_OUT,
+      transitionHideOptions: { duration: 1, timing: 'ease-in-out'},
+
       isEditable: false,
 
       localize: true,
@@ -53,25 +58,35 @@ DG.EquationView = SC.LabelView.extend(
        * @param iEquation {String} HTML
        */
       show: function (iViewLocation, iEquation) {
-        // this.set('value', iEquation);
+        if(!isFinite(iViewLocation.x) || !isFinite(iViewLocation.y))
+          return; // Can happen during transitions
         this.get('layer').innerHTML = iEquation;
 
-        SC.run( function() {
+        SC.run(function () {
           this.adjust({left: iViewLocation.x, top: iViewLocation.y});
         }.bind(this));
-        this.set('isVisible', true);
       },
 
-      didCreateLayer: function() {
-        var tLayer = this.get('layer');
-        tLayer.addEventListener('mouseover', this.highlight);
-        tLayer.addEventListener('mouseout', this.unhighlight);
+      didCreateLayer: function () {
+        var this_ = this,
+            tLayer = this.get('layer');
+        tLayer.addEventListener('mouseover', this_.callHighlight.bind(this_));
+        tLayer.addEventListener('mouseout', this_.callUnHighlight.bind(this_));
       },
 
-      willDestroyLayer: function() {
-        var tLayer = this.get('layer');
-        tLayer.removeEventListener('mouseover', this.highlight);
-        tLayer.removeEventListener('mouseout', this.unhighlight);
+      willDestroyLayer: function () {
+        var this_ = this,
+            tLayer = this.get('layer');
+        tLayer.removeEventListener('mouseover', this_.callHighlight.bind(this_));
+        tLayer.removeEventListener('mouseout', this_.callUnHighlight.bind(this_));
+      },
+
+      callHighlight: function () {
+        this.highlight(this.get('index'));
+      },
+
+      callUnHighlight: function () {
+        this.unhighlight(this.get('index'));
       },
 
       hide: function () {
@@ -79,3 +94,5 @@ DG.EquationView = SC.LabelView.extend(
       }
 
     });
+
+DG.EquationView.defaultHeight = 16;

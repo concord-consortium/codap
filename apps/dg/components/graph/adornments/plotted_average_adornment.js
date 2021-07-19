@@ -24,14 +24,12 @@
 sc_require('components/graph/adornments/plot_adornment');
 sc_require('components/graph/adornments/line_label_mixin');
 
-DG.PlottedAverageLogString = '';  // global to avoid duplicate log strings.
-
 /**
  * @class  Abstract base class for plot adornments that draw averages (mean, median) as symbols in the plot.
  * @extends DG.PlotAdornment
  */
-DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
-/** @scope DG.PlottedMeanAdornment.prototype */
+DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
+/** @scope DG.PlottedAverageAdornment.prototype */
 {
   cellGap:  2,          /** gap in pixels between one average line and the next */
   hoverWidth: 5,        /** width of invisible 'cover' line that has popup text */
@@ -55,6 +53,18 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   }.property('paperSource', 'shadingLayerName' ),
 
   /**
+   * The number of average adornments displayed before me
+   * Used to compute default equation position so as not to overlap with previous equations
+   * @property offset {number}
+   */
+  offset:0,
+
+  /**
+   * @property {Element[]}
+   */
+  lineCovers: null,
+
+  /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.
 
@@ -62,6 +72,17 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
    */
   // Disabled, needs redesign to avoid redundancy with DG.DotPlotView calls to updateToModel()
   //modelPropertiesToObserve: [ ['values', 'updateToModel'] ],
+
+  init: function() {
+    sc_super();
+    this.lineCovers = [];
+  },
+
+  offsetDidChange: function() {
+    this.get('equationViews').forEach( function(iView, iIndex) {
+      this.updateEquation(iIndex);
+    }.bind( this));
+  }.observes('offset'),
 
   /** do we want the average to be visible and up to date? Yes if our model 'isVisible' */
   wantVisible: function() {
@@ -74,70 +95,44 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
    */
   updateToModel: function( iAnimate ) {
     var tAverageModel = this.get('model');
-
-    // only recompute and update symbols if visible, this.updateVisibility() handles everything else
-    if( tAverageModel && tAverageModel.get('isVisible') && this.get('paper')) {
-      if( ! this.textElement ) { // initialize the text element "average=", before updateSymbols()
-        this.createTextElement();
-        this.createBackgroundRect();
-        this.textElement.attr('opacity', 1);  // We don't show this element until user hovers,
-                                              // at which point we need opacity to be 1
-      }
+    if( tAverageModel.get('isVisible')) {
+      this.createEquationViews(); // No-op if they are already created
       tAverageModel.recomputeValueIfNeeded();
-      this.updateSymbols( iAnimate );
+      this.updateSymbols(iAnimate);
     }
   },
 
-  /**
-   * Show or hide the text element "average = 123.456"
-   * Using DG.LineLabelMixin to position.
-   * @param iShow {Boolean} Show or hide this text element?
-   * @param iDisplayValue {Number} Value along numeric axis, for text display
-   * @param iAxisValue {Number} Value along numeric axis, for positioning
-   * @param iFractionFromTop {Number} used to position text on cross-axis
-   * @param iElementID {Number} Rafael element id of the text, so we can find and update it on the fly.
-   * @param iValue {Object} Has the statistics for the current cell
-   */
-  updateTextElement: function( iShow, iDisplayValue, iAxisValue, iFractionFromTop, iValue, iElementID ) {
-    DG.assert( this.textElement );
-    if( iShow && DG.isFinite( iDisplayValue ) ) {
-      // set up parameters used by DG.LineLabelMixin.updateTextToModel()
-      this.value = iAxisValue; // for St.Dev., iAxisValue not equal to iDisplayValue
-      this.valueAxisView = this.getPath('parentView.primaryAxisView');
-      this.valueString = this.titleString( iDisplayValue, iValue );
-      this.updateTextToModel( iFractionFromTop );
-      this.textElement.show();
-      this.backgrndRect.show();
-      this.textShowingForID = iElementID;
-    } else {
-      // hide until next time
-      //this.value = 0;
-      this.valueString = '';
-      this.valueAxisView = null;
-      this.textElement.hide();
-      this.backgrndRect.hide();
-      this.textShowingForID = undefined;
+  updateEquation: function( iIndex) {
+    var tIsHorizontal = this.getPath('parentView.primaryAxisView.orientation') === DG.GraphTypes.EOrientation.kHorizontal,
+        tValuesArray = this.getPath('model.values'),
+        tNumValues = tValuesArray && tValuesArray.length,
+        tCenterWorld = tValuesArray[iIndex][this.centerKey],
+        tCellWidth = this.getPath('parentView.secondaryAxisView.fullCellWidth'),
+        tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
+        tEquationView = this.get('equationViews')[iIndex],
+        tCoordsFromModel = this.getPath('model.equationCoordsArray')[iIndex],
+        tEquationFrame = tEquationView && tEquationView.get('frame'),
+        tParentFrame = this.getPath('parentView.frame'),
+        tX, tY;
+    if( !tEquationView)
+      return; // Can happen during transitions
+    if( tCoordsFromModel) {
+      tX = tCoordsFromModel.proportionCenterX * tParentFrame.width - tEquationFrame.width / 2;
+      tY = tCoordsFromModel.proportionCenterY * tParentFrame.height - DG.EquationView.defaultHeight / 2;
     }
-  },
-
-  /**
-   * Create a user log of the the hover over the average line, but remove duplicates
-   * @param logString
-   */
-  updateHoverLog: function( logString ) {
-    if( logString !== DG.PlottedAverageLogString ) { // not 2 of the same log strings in a row
-      DG.PlottedAverageLogString = logString;        // save for next comparison
-      DG.logUser("%@: %@", "hoverOverGraphLine", DG.PlottedAverageLogString );
+    else {
+      var kOffscreen = -9,
+          tViewCoord = isFinite( tCenterWorld ) ? tPrimaryAxisView.dataToCoordinate( tCenterWorld) : kOffscreen,
+          tSpreadWorld = tValuesArray[iIndex][this.spreadKey],
+          tSpreadCoord = isFinite( tSpreadWorld ) ?
+              Math.abs(tPrimaryAxisView.dataToCoordinate( tSpreadWorld) - tPrimaryAxisView.dataToCoordinate( 0)) : 0,
+          tLoc = this.getTextPositionOnAxis(tViewCoord, tSpreadCoord ),
+          tOffset = this.get('offset') * DG.EquationView.defaultHeight;
+      tX = tIsHorizontal ? tLoc : iIndex * tCellWidth;
+      tY = tIsHorizontal ? tOffset + (tNumValues - iIndex - 1) * tCellWidth :
+          tOffset + (iIndex % 2) * DG.EquationView.defaultHeight;
     }
-  },
-
-  /**
-   * Get the desired axis position of the pop-up text, in the attribute's coordinates.
-   * @param iCenterValue {Number}
-   * @param iSpreadValue {Number}
-   */
-  getTextPositionOnAxis: function( iCenterValue, iSpreadValue ) {
-    return iCenterValue; // default to text going to the left of the center line
+    tEquationView.show( { x: tX, y: tY}, this.titleString(tCenterWorld));
   },
 
   /**
@@ -157,27 +152,18 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
         tPaper = this.get('paper');
     if( !tSecondaryAxisView || !tNumValues)
       return; // Happens during transition after secondary attribute removed but before new axis created
-    var tCellHeight = (tNumValues ? (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin'))/tNumValues) : 0),
+    var tCellHeight = tAdornment.getPath('parentView.secondaryAxisView.fullCellWidth'),
         p = { x:0, y:0, symSize:this.symSize, cellHeight:tCellHeight-this.cellGap },
         tOffScreen = -3 * this.symSize; // negative view coordinate to move off screen to hide
     var tWorldCoord, tViewCoord, i, tSpread, tSpreadStart, tLowerWhisker, tUpperWhisker, tStat;
     var tSymbol, tCover, tBackground, kElemsPerCell=3; // rafael elements
 
     function overScope() {
-      var tAttributes = { stroke: tAdornment.hoverColor };
-      this.stop();
-      this.animate( tAttributes, tAdornment.hoverDelay );
-      if( this.textStatValue !== tAdornment.value ) // avoid redundant log statments since adornment made visible
-        tAdornment.updateHoverLog( tAdornment.statisticKey+"="+this.textStatValue );
-      tAdornment.updateTextElement( true, this.textStatValue, this.textAxisPosition, this.textCrossPosition,
-          this.value, this.id );
+      tAdornment.highlightOne( this._valueIndex);
     }
 
     function outScope() {
-      var tAttributes = { stroke: DG.RenderingUtilities.kTransparent };
-      this.stop();
-      this.animate( tAttributes, DG.PlotUtilities.kHighlightHideTime );
-      tAdornment.updateTextElement( false );
+      tAdornment.unHighlightOne( this._valueIndex);
     }
 
     // for each average value (one per cell on secondary axis), add *two* graphical elements
@@ -212,6 +198,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
         tCover = tPaper.path('M0,0')
             .attr({ 'stroke-width':this.hoverWidth, stroke:DG.RenderingUtilities.kTransparent })
             .hover( overScope, outScope);
+        tCover._valueIndex = i;
+        this.lineCovers[i] = tCover;
         tBackground.animatable = tSymbol.animatable = true;
         tBackground.animate( { 'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
         tSymbol.animate( { 'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
@@ -247,16 +235,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 
       tSymbol.toFront(); // keep averages on top of cases
       tCover.toFront();  // keep cover on top of average symbol
-      if( this.textElement ) {
-        this.backgrndRect.toFront();
-        this.textElement.toFront();
-      } // keep text in front of case circles
 
-      // if mouse is now over an element with text showing, update the text now.
-      if( this.textShowingForID === tCover.id ) {
-        this.updateTextElement( true, tCover.textStatValue, tCover.textAxisPosition, tCover.textCrossPosition,
-            tCover.id, tCover.value );
-      }
+      this.updateEquation( i);
     }
 
     // remove extra symbols (if number of cells has shrunk)
@@ -325,19 +305,190 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
    */
   titleString: function( axisValue ) {
     // convert resource to string with rounding, and insert axis value number
-    DG.assert( isFinite( axisValue ));
-    var tPrecision = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
-        tNumFormat = DG.Format.number().fractionDigits( 0, tPrecision).group('');
-    return this.titleResource.loc( tNumFormat( axisValue));
+    if( !isFinite( axisValue ))
+      return '';
+    var tPrecision = DG.PlotUtilities.findFractionDigitsForAxis( this.getPath('parentView.primaryAxisView')),
+        tNumFormat = DG.Format.number().fractionDigits( 0, tPrecision).group(''),
+        tUnits = this.getPath('parentView.primaryAxisView.model.firstAttributeUnit'),
+        tHTML = '<p style = "color:%@;">%@ %@</p>',
+        tUnitsSpan = '<span style = "color:gray;">%@</span>'.loc(tUnits),
+        tValueString = this.titleResource.loc( tNumFormat( axisValue));
+    return tHTML.loc(this.symStroke, tValueString, tUnitsSpan);
   }
 
 });
 
 /**
+ * @class  Base class for plotted average adornments that consist of a single line or area
+ * @extends DG.PlottedAverageAdornment
+ */
+DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend(
+    /** @scope DG.PlottedSimpleAverageAdornment.prototype */
+    (function () {
+
+      return {
+
+        destroy: function() {
+          if( this.get('equationViews')) {
+            this.get('equationViews').forEach(function (iView) {
+              iView.destroy();
+            });
+          }
+          sc_super();
+        },
+
+        /**
+         * @property {DG.EquationView[]}
+         */
+        equationViews: null,
+
+        setEquationsVisibility: function( iIsVisible) {
+          this.get('equationViews').forEach( function(iView) {
+            iView.set('isVisible', iIsVisible);
+          });
+        },
+
+        showElements: function() {
+          sc_super();
+          this.setEquationsVisibility(true);
+        },
+
+        hideElements: function () {
+          sc_super();
+          this.setEquationsVisibility(false);
+        },
+
+        /**
+         * There will be one equation view for each of our values
+         */
+        createEquationViews: function() {
+          var this_ = this,
+              tEqViewIndex, tMouseStart, tOriginalCoordinates, tReturnPoint;
+
+          function highlightElements( iIndex) {
+            this_.highlightOne(iIndex);
+          }
+
+          function unHighlightElements(iIndex) {
+            this_.unHighlightOne(iIndex);
+          }
+
+          function beginDrag(event) {
+            var tEqView = this;
+
+            function getCurrentCoords() {
+              var tFrame = tEqView.get('frame'),
+                  tXCenter = tFrame.x + tFrame.width / 2,
+                  tYCenter = tFrame.y + DG.EquationView.defaultHeight / 2;
+              return {
+                proportionCenterX: tXCenter / this_.get('paper').width,
+                proportionCenterY: tYCenter / this_.get('paper').height
+              };
+            }
+            tEqViewIndex = tEqView.get('index');
+            tMouseStart = {x: event.clientX, y: event.clientY};
+            tOriginalCoordinates = this_.getPath('model.equationCoordsArray')[tEqViewIndex];
+            tReturnPoint = SC.none(tOriginalCoordinates) ? getCurrentCoords() : tOriginalCoordinates;
+            return YES;
+          }
+
+          function continueDrag(event) {
+            var dX = (event.clientX - tMouseStart.x) / 2,
+                dY = (event.clientY - tMouseStart.y),
+                tPaper = this_.get('paper'),
+                tCoordsArray = this_.getPath('model.equationCoordsArray'),
+                tCoords = {
+                  proportionCenterX: tReturnPoint.proportionCenterX + dX / tPaper.width,
+                  proportionCenterY: tReturnPoint.proportionCenterY + dY / tPaper.height
+                };
+            tCoordsArray[tEqViewIndex] = tCoords;
+            this_.updateEquation(tEqViewIndex);
+          }
+
+          function endDrag(iEvent) {
+            var tOriginal = tOriginalCoordinates,
+                tNew;
+            DG.UndoHistory.execute(DG.Command.create({
+              name: "graph.repositionEquation",
+              undoString: 'DG.Undo.graph.repositionEquation',
+              redoString: 'DG.Redo.graph.repositionEquation',
+              log: "Moved equation from %@ to %@".fmt(tOriginal, this.getPath('model.coordinates')),
+              executeNotification: {
+                action: 'notify',
+                resource: 'component',
+                values: {
+                  operation: 'reposition equation',
+                  type: 'DG.GraphView'
+                }
+              },
+              execute: function () {
+                tNew = this_.getPath('model.equationCoordsArray')[tEqViewIndex];
+              }.bind(this),
+              undo: function () {
+                this_.get('model.equationCoordsArray')[tEqViewIndex] = tOriginal;
+              }.bind(this),
+              redo: function () {
+                this_.get('model.equationCoordsArray')[tEqViewIndex] = tNew;
+              }.bind(this)
+            }));
+          }
+
+          if( !this.equationViews)
+            this.equationViews = [];
+          var tValuesArray = this.getPath('model.values'),
+              tNumValues = tValuesArray && tValuesArray.length;
+          while( this.equationViews.length < tNumValues) {
+            var tEquationView = DG.EquationView.create({
+              index: this.equationViews.length,
+              highlight: highlightElements,
+              unhighlight: unHighlightElements,
+              mouseDown: beginDrag,
+              mouseDragged: continueDrag,
+              mouseUp: endDrag,
+              isVisible: this.getPath('model.isVisible')
+            });
+            this.get('paperSource').appendChild(tEquationView);
+            this.equationViews.push(tEquationView);
+          }
+          while( this.equationViews.length > tNumValues) {
+            this.equationViews.pop().destroy();
+          }
+        },
+
+        highlightOne: function( iIndex) {
+          var tAttributes = { stroke: this.hoverColor },
+              tCoverElement = this.lineCovers[iIndex];
+          tCoverElement.stop();
+          tCoverElement.animate( tAttributes, this.hoverDelay );
+          this.get('equationViews')[iIndex].set('highlighted', true);
+        },
+
+        unHighlightOne: function( iIndex) {
+          var tAttributes = { stroke: DG.RenderingUtilities.kTransparent },
+              tCoverElement = this.lineCovers[iIndex];
+          tCoverElement.stop();
+          tCoverElement.animate( tAttributes, DG.PlotUtilities.kHighlightHideTime );
+          this.get('equationViews')[iIndex].set('highlighted', false);
+        },
+
+        /**
+         * Get the desired axis position of the equation view, in the attribute's coordinates.
+         * @param iCenterValue {Number}
+         * @param iSpreadValue {Number}
+         */
+        getTextPositionOnAxis: function( iCenterValue, iSpreadValue ) {
+          return iCenterValue + 2; // default to text going to the right of the center line
+        },
+
+      };  // object returned closure
+    }()) // function closure
+);
+
+/**
  * @class  Plots a computed value.
  * @extends DG.PlottedAverageAdornment
  */
-DG.PlottedMeanAdornment = DG.PlottedAverageAdornment.extend(
+DG.PlottedMeanAdornment = DG.PlottedSimpleAverageAdornment.extend(
 /** @scope DG.PlottedMeanAdornment.prototype */
 {
   statisticKey: 'mean', /** {String} key to relevant statistic in this.model.values[i][statistic] */
@@ -381,9 +532,9 @@ DG.PlottedMeanAdornment = DG.PlottedAverageAdornment.extend(
 
 /**
  * @class  Plots a computed value.
- * @extends DG.PlottedAverageAdornment
+ * @extends DG.PlottedSimpleAverageAdornment
  */
-DG.PlottedMedianAdornment = DG.PlottedAverageAdornment.extend(
+DG.PlottedMedianAdornment = DG.PlottedSimpleAverageAdornment.extend(
 /** @scope DG.PlottedMedianAdornment.prototype */
 {
   statisticKey: 'median', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
@@ -419,9 +570,9 @@ DG.PlottedMedianAdornment = DG.PlottedAverageAdornment.extend(
 
 /**
  * @class  Plots a computed value.
- * @extends DG.PlottedAverageAdornment
+ * @extends DG.PlottedSimpleAverageAdornment
  */
-DG.PlottedDevAdornment = DG.PlottedAverageAdornment.extend(
+DG.PlottedDevAdornment = DG.PlottedSimpleAverageAdornment.extend(
 /** @scope DG.PlottedDevAdornment.prototype */
 {
   /**
@@ -481,7 +632,7 @@ DG.PlottedDevAdornment = DG.PlottedAverageAdornment.extend(
    * @param iSpreadValue
    */
   getTextPositionOnAxis: function( iCenterValue, iSpreadValue ) {
-    return iCenterValue + 2 * iSpreadValue; // text going to the right of the shading
+    return iCenterValue + 2 * iSpreadValue + 2; // text going to the right of the shading
   }
 
 });
@@ -532,9 +683,9 @@ DG.PlottedMeanAbsDevAdornment = DG.PlottedDevAdornment.extend(
 
 /**
  * @class  Plots a computed Inter-Quartile Range (IQR), between the first and third quartiles (Q1 and Q3).
- * @extends DG.PlottedAverageAdornment
+ * @extends DG.PlottedSimpleAverageAdornment
  */
-DG.PlottedIQRAdornment = DG.PlottedAverageAdornment.extend(
+DG.PlottedIQRAdornment = DG.PlottedSimpleAverageAdornment.extend(
 /** @scope DG.PlottedIQRAdornment.prototype */
 {
   statisticKey: 'IQR', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
