@@ -47,7 +47,8 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
             tCategoryName = this.get('categoryName'),
             tSlopeIntercept;
         tCoordinates = tCoordinates.filter( function( iCoords) {
-          return SC.none( iCoords.legend) || tCategoryName === iCoords.legend;
+          // '==' will provide equality when one is string and other is number
+          return SC.none( iCoords.legend) || tCategoryName == iCoords.legend; // jshint ignore:line
         });
         tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tCoordinates, tInterceptIsLocked);
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||
