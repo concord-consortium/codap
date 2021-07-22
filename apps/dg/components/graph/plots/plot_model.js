@@ -602,7 +602,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        @param    {DG.AdornmentModel} iAdornmentModel -- the specified adornment model
        */
       setAdornmentModel: function (iAdornmentKey, iAdornmentModel) {
-        DG.assert(this._adornmentModels);
+        if( !this._adornmentModels)
+          this._adornmentModels = {};
         DG.assert(iAdornmentKey);
         this._adornmentModels[iAdornmentKey] = iAdornmentModel;
         this.notifyPropertyChange(iAdornmentKey);
