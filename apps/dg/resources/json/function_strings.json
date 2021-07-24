@@ -404,6 +404,144 @@
     ]
   },
   /*
+   * Logic Functions
+   */
+  "boolean": {
+    "displayName": "boolean",
+    "description": "Returns false if the expression evaluates to false or 0, returns true otherwise.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression to be evaluated."
+      }
+    ],
+    "examples": [
+      "boolean(age > 60) is true or false depending on the value of age",
+      "boolean(age) returns true for all values except 0",
+      "boolean(\"false\") returns true because a string value is neither false nor 0"
+    ]
+  },
+  "isBoolean": {
+    "displayName": "isBoolean",
+    "description": "Checks whether the expression has a value of true or false.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isBoolean(true) returns true",
+      "isBoolean(3+4=7) returns true",
+      "isBoolean(3+4=6) returns false",
+      "isBoolean(\"a\"+\"b\"=\"ab\") returns true"
+    ]
+  },
+  "isBoundary": {
+    "displayName": "isBoundary",
+    "description": "Returns true for an expression that evaluates to a boundary, false otherwise",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isBoundary(lookupBoundary(US_state_boundaries, 'Alabama')) returns true",
+      "isBoundary(lookupBoundary(US_state_boundaries, 'Bogus')) returns false",
+      "isBoundary(3+4) returns false"
+    ]
+  },
+  "isColor": {
+    "displayName": "isColor",
+    "description": "Checks whether the expression is a color value. It returns true for strings in rgb or hex format colors such as rgb(128,0,64) and #00ffff.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isColor(\"#ffffff\") returns true since \"#eeeeee\" represents a very light gray",
+      "isColor(\"red\") returns false since \"red\" is not an rgb or hex representation",
+      "isColor(\"rgb(64,0,128)\") returns true since \"rgb(64,0,128)\" represents a dark purple color",
+      "isColor(\"#88669\") returns false since \"#88669\" does not have the correct number of digits for a hex color"
+    ]
+  },
+  "isDate": {
+    "displayName": "isDate",
+    "description": "Checks whether the expression evaluates to a date, possibly include time.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isDate(\"5/22/21\") returns true",
+      "isDate(\"Jul 23, 2021 14:46\") returns true",
+      "isDate(\"02/2021\") returns false since there is no day",
+      "isDate(\"August 100,2021\") returns false"
+    ]
+  },
+  "isFinite": {
+    "displayName": "isFinite",
+    "description": "Checks whether the expression is finite.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isFinite(5) returns true",
+      "isFinite(5 - 9) returns true",
+      "isFinite(\"abc\") returns false",
+      "isFinite(1/0) returns false"
+    ]
+  },
+  "isMissing": {
+    "displayName": "isMissing",
+    "description": "Checks whether the expression results in a value.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isMissing(\"\") returns true because the empty string is the same as no value",
+      "isMissing(8) returns false",
+      "isMissing(\"123\") returns false",
+      "isMissing() returns true"
+    ]
+  },
+  "isNumber": {
+    "displayName": "isNumber",
+    "description": "Checks whether the expression's value is a number.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isNumber(5) returns true",
+      "isNumber(5 - 9) returns true",
+      "isNumber(\"hello\") returns false",
+      "isNumber(1/0) returns true since Infinity is a number"
+    ]
+  },
+
+  /*
    * Lookup Functions
    */
   "first": {
@@ -581,22 +719,6 @@
   /*
    * Other Functions
    */
-  "boolean": {
-    "displayName": "boolean",
-    "description": "Returns false if the expression evaluates to false or 0, returns true otherwise.",
-    "args": [
-      {
-        "name": "expression",
-        "type": "expression",
-        "description": "The expression to be evaluated."
-      }
-    ],
-    "examples": [
-      "boolean(age > 60) is true or false depending on the value of age",
-      "boolean(age) returns true for all values except 0",
-      "boolean(\"false\") returns true because a string value is neither false nor 0"
-    ]
-  },
   "greatCircleDistance": {
     "displayName": "greatCircleDistance",
     "description": "Returns the shortest distance in kilometers between two points on the surface of the earth specified by latitude and longitude.",
@@ -649,23 +771,6 @@
     "examples": [
       "if(Speed>40,\"Fast\",\"Slow\") returns \"Fast\" if the value of Speed is greater than 40, otherwise returns \"Slow\"",
       "if(ID<\"H\",\"Group1\",if(ID<\"S\",\"Group2\",\"Group3\")) returns Group1, Group2, or Group3 depending on where in the alphabet the value of ID lies"
-    ]
-  },
-  "isFinite": {
-    "displayName": "isFinite",
-    "description": "Checks whether the expression is finite.",
-    "args": [
-      {
-        "name": "expression",
-        "type": "expression",
-        "description": "The expression whose value is tested"
-      }
-    ],
-    "examples": [
-      "isFinite(5) returns true",
-      "isFinite(5 - 9) returns true",
-      "isFinite(\"123\") returns false",
-      "isFinite(1/0) returns false"
     ]
   },
   "number": {

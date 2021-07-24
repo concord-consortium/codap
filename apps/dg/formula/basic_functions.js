@@ -156,18 +156,6 @@ DG.functionRegistry.registerFunctions((function() {
     },
 
     /**
-      Coerces its argument to a boolean value.
-      @param    {Object}  x The argument to be coerced to boolean
-      @returns  {Boolean} The converted boolean value
-     */
-    'boolean': {
-      minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion',
-      evalFn: function(x) {
-        return SC.empty(x) ? '' : Boolean(x);
-      }
-    },
-
-    /**
       Returns the fractional part of its argument.
       @param    {Number}  The numeric value whose fractional part is to be returned
       @returns  {Number}  The fractional part of its numeric argument
@@ -187,11 +175,6 @@ DG.functionRegistry.registerFunctions((function() {
                 ? (trueValue != null ? trueValue : '')
                 : (falseValue != null ? falseValue : '');
       }
-    },
-
-    'isFinite': {
-      minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryOther',
-      evalFn: function(x) { return DG.isFinite(x); }
     },
 
     /**

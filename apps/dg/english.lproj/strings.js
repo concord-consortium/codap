@@ -468,6 +468,7 @@ SC.stringsFor("en", {
     "DG.Formula.FuncCategoryArithmetic": "Arithmetic Functions",
     "DG.Formula.FuncCategoryConversion": "Other Functions", // put into "Other" for now
     "DG.Formula.FuncCategoryDateTime": "Date/Time Functions",
+    "DG.Formula.FuncCategoryLogic": "Logic Functions",
     "DG.Formula.FuncCategoryLookup": "Lookup Functions",
     "DG.Formula.FuncCategoryOther": "Other Functions",
     "DG.Formula.FuncCategoryRandom": "Other Functions", // put into "Other" for now
