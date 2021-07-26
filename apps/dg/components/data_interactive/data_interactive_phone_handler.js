@@ -2385,7 +2385,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                       source: source,
                       context: context,
                     });
-                    return formula.evaluateDirect();
+                    return formula.evaluate();
                   }),
                 };
               } catch (ex) {
