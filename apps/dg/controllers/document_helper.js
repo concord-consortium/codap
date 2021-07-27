@@ -195,10 +195,18 @@ DG.DocumentHelper = SC.Object.extend(
       updateDataContext: function (iResources, iValues) {
         var context = iResources.dataContext;
         if (context) {
-          ['managingController', 'title', 'description', 'preventReorg']
+          ['managingController', 'title', 'description', 'preventReorg', 'metadata']
               .forEach(function (prop) {
+                var existingMetadata;
                 if (!SC.none(iValues[prop])) {
-                  context.set(prop, iValues[prop]);
+                  if (prop === 'metadata') {
+                    if (typeof iValues[prop] === 'object') {
+                      existingMetadata = context.getPath('model.metadata') || {};
+                      context.setPath('model.metadata', Object.assign(existingMetadata, iValues[prop]));
+                    }
+                  } else {
+                    context.set(prop, iValues[prop]);
+                  }
                 }
               });
         }

@@ -57,6 +57,7 @@ DG.DataContextRecord = DG.BaseModel.extend(/** @scope DG.DataContextRecord.proto
 
   /**
    * A free-text description of the data context.
+   * Deprecated: use metadata.description.
    */
   description: "",
 

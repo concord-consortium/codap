@@ -567,7 +567,7 @@ DG.DataContext = SC.Object.extend((function () // closure
           result = this.destroy();
           break;
         case 'updateDataContext':
-          result = this.doUpdateDataContextMetadata(iChange);
+          result = this.doUpdateDataContext(iChange);
           break;
         default:
           DG.logWarn('DataContext.performChange: unknown operation: '
@@ -648,10 +648,10 @@ DG.DataContext = SC.Object.extend((function () // closure
      *    {Object}              iChange.properties -- new property values
      * @returns {{success: boolean}}
      */
-    doUpdateDataContextMetadata: function (iChange) {
+    doUpdateDataContext: function (iChange) {
       var success = true;
       var updatedProperties = {};
-      var kMetaProperties = ['name', 'title', 'description', 'preventReorg'];
+      var kMetaProperties = ['name', 'title', 'preventReorg'];
       DG.ObjectMap.forEach(iChange.properties, function (key, value) {
         // name is not mutable
         if (kMetaProperties.contains(key)) {
