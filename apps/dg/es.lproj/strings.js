@@ -876,5 +876,6 @@ SC.stringsFor("es", {
     "DG.AttributeFormat.DatePrecisionShort.hour": "M/D/YY HH:00",
     "DG.AttributeFormat.DatePrecisionShort.minute": "M/D/YY HH:mm",
     "DG.AttributeFormat.DatePrecisionShort.second": "M/D/YY HH:mm:ss",
-    "DG.AttributeFormat.DatePrecisionShort.millisecond": "M/D/YY HH:mm:ss.SSS"
+    "DG.AttributeFormat.DatePrecisionShort.millisecond": "M/D/YY HH:mm:ss.SSS",
+    "DG.Formula.FuncCategoryLogic": "Logic Functions"
 });
