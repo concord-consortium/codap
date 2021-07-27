@@ -34,7 +34,7 @@ DG.functionRegistry.registerFunctions((function() {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryLogic',
       evalFn: function(x) {
         return SC.empty(x) ? '' :
-            x === false || x === 'false' || x === 0 || x === '0' ? false : true;
+            !(x === false || x === 'false' || x === 0 || x === '0');
       }
     },
 

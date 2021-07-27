@@ -48,6 +48,7 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
             tSlopeIntercept;
         tCoordinates = tCoordinates.filter( function( iCoords) {
           // '==' will provide equality when one is string and other is number
+          // eslint-disable-next-line eqeqeq
           return SC.none( iCoords.legend) || tCategoryName == iCoords.legend; // jshint ignore:line
         });
         tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tCoordinates, tInterceptIsLocked);

@@ -1659,8 +1659,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                 'gridAdapter.collection'), // when a group is closed, its slickgrid dataItem is the parent case,
             // so its collection will not match the collection for the current view
             isClosedGroup = dataItem && collection && (dataItem.get(
-                'collection').get('id') !== collection.get('id')),
-            isProtoCase = dataItem && dataItem._isProtoCase;
+                'collection').get('id') !== collection.get('id'));
         if (iCell.cell === 0 && !hierTableView.getPath('model.isIndexHidden')) {
           if (DG.DataContextUtilities.isCaseEditable(dataContext, dataItem) && !isClosedGroup)
             this.showCaseIndexPopup(iEvent, iCell);
