@@ -249,7 +249,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'document',
               'global',
               'globalList',
-              'formulaEngine',].indexOf(resourceSelector.type) < 0) {
+              'formulaEngine'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
           if (!(resourceSelector.dataContext) ) {
@@ -1021,18 +1021,31 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return DG.appController.documentArchiver.updateAttribute(iResources, iValues, iMetadata);
         },
         'delete': function (iResources, iValues, iMetadata) {
-          var context = iResources.dataContext;
-          var change = {
-            operation: 'deleteAttributes',
-            collection: iResources.collection,
-            attrs: [iResources.attribute],
-            requester: this.get('id')
-          };
-          if (iMetadata && iMetadata.dirtyDocument === false) {
-            change.dirtyDocument = false;
+          var iDataContext = iResources.dataContext;
+          var attr = iResources.attribute;
+          var iAttrID = attr && attr.get('id');
+          var tCollectionClient = iResources.collection;
+          var response, change;
+          if ((tCollectionClient.get('attrsController').get('length') === 1) &&
+              (iDataContext.get('collections').length !== 1) &&
+              (tCollectionClient.getAttributeByID(iAttrID))) {
+            response = iDataContext.applyChange( {
+              operation: 'deleteCollection', collection: tCollectionClient
+            });
+          } else {
+            change = {
+                operation: 'deleteAttributes',
+                collection: tCollectionClient,
+                attrs: [{id: iAttrID, attribute: attr}],
+                requester: this.get('id')
+              };
+            if (iMetadata && iMetadata.dirtyDocument === false) {
+              change.dirtyDocument = false;
+            }
+            response = iDataContext.applyChange( change);
           }
-          var changeResult = context.applyChange(change);
-          var success = (changeResult && changeResult.success);
+          iDataContext.set('flexibleGroupingChangeFlag', true);
+          var success = !!(response && response.success);
           return {
             success: success,
           };

@@ -2040,6 +2040,7 @@ DG.DataContext = SC.Object.extend((function () // closure
       this.destroyCollection(collection);
       response = this.regenerateCollectionCases([collection]) || {};
       response.deletedItems = deletedItems;
+      response.success = true;
       return response;
     },
 
