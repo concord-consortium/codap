@@ -513,6 +513,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     _protoCaseTimer: null,
 
     /**
+     * Used so that we know when all cued invokeLast's inside viewDidResize has fired off so that
+     * we can cause slickGrid to refresh one last time
+     */
+    _canvasResizeCounter: 0,
+
+    /**
      To commit proto-case values as a new case when the user finishes entering values,
      we set a timer whenever a proto-case cell is exited, and then clear it whenever
      a proto-case cell is entered. When the user finishes entering values, the timer
@@ -734,16 +740,24 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     viewDidResize: function () {
       sc_super();
-      // We must use invokeLast() here because at this point the SproutCore
-      // 'layout' has changed, but the corresponding DOM changes haven't
-      // necessarily happened yet. Since SlickGrid queries the DOM objects
-      // directly (via jQuery), we don't want to resize until the views have
-      // finished updating the DOM.
+      /**
+       * The layout has changed but the DOM has not yet changed, so we invokeLast.
+       * Even worse, an animation can cause changes to happen to the layout _after_
+       * the invokeLast, changes that aren't covered here. For that reason, we keep
+       * a counter and when it's zero, we fire off an invokeLater with a timer equal
+       * to a typical animation duration. Ugh!
+       */
+      this._canvasResizeCounter++;
       this.invokeLast(function () {
+        this._canvasResizeCounter--;
         if (this._slickGrid) {
           this._slickGrid.resizeCanvas();
           this.setIfChanged('gridWidth',
               this._slickGrid.getContentSize().width);
+          if( this._canvasResizeCounter === 0)
+            this.invokeLater( function() {
+              this._slickGrid.resizeCanvas();
+            }.bind(this), 400);
         }
       }.bind(this));
     },
