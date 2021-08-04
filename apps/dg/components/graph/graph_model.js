@@ -699,7 +699,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
       DG.logUser("addAxisAttribute: { attribute: %@ }", iAttrRefs.attributes[0].get('name'));
 
       var tYAttrDescription = this.getPath('dataConfiguration.yAttributeDescription' ),
-          tAttrIndex = tYAttrDescription.get('attributes' ).length;
+          tAttrIndex = tYAttrDescription.get('attributes' ).length,
+          tIsSplit = this.get('isSplit');
+
+      if( tIsSplit) {
+        this.removeAllSplitPlotsAndAxes();
+      }
 
       if( tAttrIndex === 0) {
         // We aren't adding after all. Happens when foreign context is brought to multi-attribute place
@@ -728,6 +733,12 @@ DG.GraphModel = DG.DataLayerModel.extend(
         tPlot.setAdornmentVisibility('connectingLine', tConnectingLineModel.get('isVisible'));
 
       this.notifyPropertyChange('attributeAdded');
+
+      if( tIsSplit) {
+        this.updateAxisArrays();
+        this.updateSplitPlotArray();
+        this.notifyPropertyChange('splitPlotChange');
+      }
     },
 
     /**
