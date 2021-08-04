@@ -211,7 +211,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
 
       var vars = this.get('vars');
       if( vars && (vars[iName] !== undefined))
-        return 'c.vars.' + iName;
+        return 'c.vars["' + iName + '"]';
     }
     this.registerDependency({ independentSpec: {
                                 type: DG.DEP_TYPE_UNDEFINED,

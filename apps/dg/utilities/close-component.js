@@ -55,6 +55,7 @@ DG.closeComponent = function (iComponentID) {
             operation: 'delete',
             type: tController.getPath('model.type'),
             id: tController.getPath('model.id'),
+            name: tController.getPath('model.name'),
             title: tController.getPath('model.title')
           }
         });
