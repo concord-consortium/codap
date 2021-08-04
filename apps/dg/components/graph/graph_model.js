@@ -196,20 +196,20 @@ DG.GraphModel = DG.DataLayerModel.extend(
      * @param iPlotIndex {Number}
      */
     removePlotAtIndex: function( iPlotIndex) {
-      DG.assert( iPlotIndex < this._plots.length,
-        'Attempt to remove non-existent plot');
       var tPlot = this._plots[ iPlotIndex];
-      this._plots.splice( iPlotIndex, 1);
-      this.removePlotObserver( tPlot);
-      tPlot.destroy();
-      var tActualYIndex = 0;
-      this._plots.forEach( function( iPlot, iIndex) {
-        // Only plots for attributes on regular y-axis need their yAttributeIndex updated
-        if( !iPlot.get('verticalAxisIsY2')) {
-          iPlot.setIfChanged('yAttributeIndex', tActualYIndex);
-          tActualYIndex++;
-        }
-      });
+      if( tPlot) {
+        this._plots.splice(iPlotIndex, 1);
+        this.removePlotObserver(tPlot);
+        tPlot.destroy();
+        var tActualYIndex = 0;
+        this._plots.forEach(function (iPlot, iIndex) {
+          // Only plots for attributes on regular y-axis need their yAttributeIndex updated
+          if (!iPlot.get('verticalAxisIsY2')) {
+            iPlot.setIfChanged('yAttributeIndex', tActualYIndex);
+            tActualYIndex++;
+          }
+        });
+      }
     },
 
     /**
@@ -989,6 +989,16 @@ DG.GraphModel = DG.DataLayerModel.extend(
           tCurrentAxis.destroy();
         }
       });
+      if( tDataConfiguration.getPath('xAttributeDescription.isCategorical') &&
+          tDataConfiguration.getPath('yAttributeDescription.isNumeric') &&
+          tDataConfiguration.getPath('yAttributeDescription.attributes').length > 1) {
+        // Make sure there is only one attribute assigned to y-axis
+        var tNumAttributes = tDataConfiguration.getPath('yAttributeDescription.attributes').length;
+        while( tNumAttributes > 1) {
+          this.removeAttribute('yAttributeDescription', 'yAxis', --tNumAttributes);
+        }
+
+      }
     },
 
     /**
