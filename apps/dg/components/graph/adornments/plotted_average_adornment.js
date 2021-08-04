@@ -107,6 +107,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
         tValuesArray = this.getPath('model.values'),
         tNumValues = tValuesArray && tValuesArray.length,
         tCenterWorld = tValuesArray[iIndex][this.centerKey],
+        tStat = tValuesArray[iIndex][this.statisticKey],
         tCellWidth = this.getPath('parentView.secondaryAxisView.fullCellWidth'),
         tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
         tEquationView = this.get('equationViews')[iIndex],
@@ -132,7 +133,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
       tY = tIsHorizontal ? tOffset + (tNumValues - iIndex - 1) * tCellWidth :
           tOffset + (iIndex % 2) * DG.EquationView.defaultHeight;
     }
-    tEquationView.show( { x: tX, y: tY}, this.titleString(tCenterWorld));
+    tEquationView.show( { x: tX, y: tY}, this.titleString(tStat));
   },
 
   /**
