@@ -447,6 +447,10 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         tMapLayer.adjust('bottom', tLegendHeight);
 
         this._isRenderLayoutInProgress = false;
+        // The polygons in the map, if any, may now be exposed, so give it a nudge so that they will repaint.
+        this.invokeLast( function() {
+          this.getPath('mapLayer.map').invalidateSize(false);
+        }.bind(this));
       }.observes('model.legendAttributeChange'),
 
       /**
