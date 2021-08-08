@@ -96,7 +96,7 @@ DG.Calculator = SC.View.extend( (function() // closure
           resource: 'component',
           values: {
             operation: 'calculate',
-            type: 'DG.Caluclator'
+            type: 'DG.Calculator'
           }
         },
         execute: function() {

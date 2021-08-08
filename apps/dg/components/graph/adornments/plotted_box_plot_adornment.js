@@ -28,7 +28,7 @@ DG.PlottedBoxPlotLogString = '';  // global to avoid duplicate log strings.
  * @class  Plots a box plot showing whiskers, Q1, Q3, and median.
  * @extends DG.PlottedAverageAdornment
  */
-DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend( DG.LineLabelMixin,
+DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
     /** @scope DG.PlottedBoxPlotAdornment.prototype */
     (function () {
 

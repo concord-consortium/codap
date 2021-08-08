@@ -62,6 +62,7 @@ DG.PlotAdornmentModel = SC.Object.extend(
     Destruction method
    */
   destroy: function() {
+    this.plotModel = null;
     this.notifyPropertyChange('willDestroy');
     sc_super();
   },

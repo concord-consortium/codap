@@ -71,6 +71,11 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
         return this.get('isShowingMovableValues') || this.get('enableMeasuresForSelection');
       }.property(),
 
+      /** If true, labels for mean, median, std dev and MAD will show and persist
+       * @property {boolean}
+       */
+      showMeasureLabels: false,
+
       destroy: function () {
         var tMultipleMovableValues = this.getAdornmentModel('multipleMovableValues');
         if (tMultipleMovableValues) {
@@ -489,8 +494,15 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
         this.doDilation([this.get('primaryAxisPlace')], iFixedPoint, iFactor);
       },
 
-       restoreStorage: function (iStorage) {
+      createStorage: function () {
+        var tStorage = sc_super();
+        tStorage.showMeasureLabels = this.get('showMeasureLabels');
+        return tStorage;
+      },
+
+      restoreStorage: function (iStorage) {
         sc_super();
+        this.showMeasureLabels = iStorage.showMeasureLabels || false;
         var tMultipleMovable = this.getAdornmentModel('multipleMovableValues');
         if (tMultipleMovable)
           tMultipleMovable.set('axisModel', this.get('primaryAxisModel'));
@@ -526,7 +538,8 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
       },
 
       checkboxDescriptions: function () {
-        var this_ = this;
+        var this_ = this,
+            tShowLabelsCheckbox = [];
 
         function createBoxPlotToggle() {
           var kMargin = 20,
@@ -582,7 +595,44 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           return tComposite;
         }
 
-        return sc_super().concat([
+        function toggleShowMeasureLabels() {
+          var tString = this_.get('showMeasureLabels') ? 'hide' : 'show';
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'toggle show measure labels',
+            undoString: 'DG.Undo.graph.'+ tString + 'MeasureLabels',
+            redoString: 'DG.Redo.graph.'+ tString + 'MeasureLabels',
+            log: tString + ' measure labels',
+            _redoValue: null,
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: tString + ' measure labels',
+                type: 'DG.Graph'
+              }
+            },
+            execute: function() {
+              this_.toggleProperty('showMeasureLabels');
+            },
+            undo: function() {
+              this.execute();
+            }
+          }));
+        }
+        if( !SC.platform.touch) { // We don't show this option on a touch system
+          tShowLabelsCheckbox.push(
+              {
+                title: 'DG.Inspector.showLabels',
+                value: this_.get('showMeasureLabels'),
+                classNames: 'dg-graph-showLabels-check'.w(),
+                valueDidChange: function () {
+                  toggleShowMeasureLabels();
+                }.observes('value')
+              }
+          );
+        }
+
+        return sc_super().concat(tShowLabelsCheckbox.concat([
           {
             title: 'DG.Inspector.graphPlottedMean',
             value: this_.isAdornmentVisible('plottedMean'),
@@ -626,7 +676,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
               this_.togglePlotValue();
             }.observes('value')
           }
-        ]);
+        ]));
       }.property(),
 
       lastValueControls: function () {

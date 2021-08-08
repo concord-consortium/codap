@@ -262,10 +262,6 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         return tDescriptions;
       }.property(),
 
-      restoreStorage: function (iStorage) {
-        sc_super();
-      }
-
     });
 
 /**
