@@ -913,13 +913,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     collection: tCollectionClient,
                     attributes: [iDragData.attribute]
                   });
-              this.get('view').select();
+              this_.get('view').select();
 
               this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
-            }.bind( this),
+            },
             undo: function () {
               this._afterStorage = this_.createComponentStorage();
-              this_.restoreComponentStorage(this_._beforeStorage);
+              this_.restoreComponentStorage(this._beforeStorage);
             },
             redo: function () {
               this_.restoreComponentStorage(this._afterStorage);
