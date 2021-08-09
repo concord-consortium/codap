@@ -583,7 +583,7 @@ DG.DocumentController = SC.Object.extend(
               tView = this.addSlider(docView, iComponent, isInitialization);
               break;
             case 'DG.Calculator':
-              this.toggleComponent(docView, 'calcView');
+              this.toggleComponent(docView, 'calcView', iComponent);
               tView = this._singletonViews.calcView;
               break;
             case 'DG.TextView':
@@ -1617,7 +1617,7 @@ DG.DocumentController = SC.Object.extend(
        * @param iDocView
        * @param iComponentName
        */
-      toggleComponent: function (iDocView, iComponentName) {
+      toggleComponent: function (iDocView, iComponentName, iComponent) {
         var componentView = this._singletonViews[iComponentName],
             componentArchive;
         // If it already exists, then delete it.
@@ -1634,7 +1634,7 @@ DG.DocumentController = SC.Object.extend(
               this._deleteComponent(iComponentName);
             }.bind(this),
             undo: function () {
-              this._addComponent(iComponentName, iDocView, componentArchive);
+              this._addCalcComponent(iComponentName, iDocView, componentArchive);
             }.bind(this),
             redo: function () {
               this._deleteComponent(iComponentName);
@@ -1651,14 +1651,14 @@ DG.DocumentController = SC.Object.extend(
             executeNotification: DG.UndoHistory.makeComponentNotification('show', iComponentName),
             undoNotification: DG.UndoHistory.makeComponentNotification('hide', iComponentName),
             execute: function () {
-              this._addComponent(iComponentName, iDocView);
+              this._addCalcComponent(iComponentName, iDocView, iComponent);
             }.bind(this),
             undo: function () {
               componentArchive = this._archiveComponent(iComponentName);
               this._deleteComponent(iComponentName);
             }.bind(this),
             redo: function () {
-              this._addComponent(iComponentName, iDocView, componentArchive);
+              this._addCalcComponent(iComponentName, iDocView, componentArchive);
             }.bind(this)
           }));
         }
@@ -1761,9 +1761,15 @@ DG.DocumentController = SC.Object.extend(
 
       /**
        * Helper for toggleComponent. Creates a new component and adds it to the view/document.
+       * Though awkward, we currently only use this for DG.Calculator. The componentArchive parameter
+       * can be missing, an archive object, or the model object. If it's the model object, we
+       * check to make sure it is already stored and, if so, use it as the component.
        */
-      _addComponent: function (iComponentName, iDocView, componentArchive) {
-        var component = componentArchive ? DG.Component.createComponent(componentArchive) : null;
+      _addCalcComponent: function (iComponentName, iDocView, componentArchive) {
+        var tComponentID = componentArchive && componentArchive.get('id'),
+            tStoredComponent = DG.store.find(tComponentID),
+            component = (tStoredComponent && tStoredComponent === componentArchive) ? tStoredComponent :
+                (componentArchive ? DG.Component.createComponent(componentArchive) : null);
         switch (iComponentName) {
           case 'calcView':
             this.addCalculator(iDocView, component);
