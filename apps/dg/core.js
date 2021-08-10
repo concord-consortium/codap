@@ -59,14 +59,18 @@ DG = SC.Application.create((function () // closure
   var getUrlParameter = function (iParam, iDefault) {
     iParam = iParam.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     iDefault = iDefault || '';
-    var regexS = "[\\?&]" + iParam + "=([^&]*)";
+    var regexS = "[\\?&]" + iParam + "(&|$|=([^&]*))";
     var regex = new RegExp(regexS);
     var results = regex.exec(window.location.search);
     var encoded;
     if (SC.none(results)) {
       return iDefault;
+    } else if (!results[2]) {
+      // follow query-string convention of returning null for url parameters without values
+      // cf. https://github.com/sindresorhus/query-string#falsy-values
+      return null;
     } else {
-      encoded = results[1].replace(/[+]/g, '%20');
+      encoded = results[2].replace(/[+]/g, '%20');
       return decodeURIComponent(encoded);
     }
   };
@@ -349,7 +353,10 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     hideCFMMenu: function () {
-      return !!getUrlParameter('interactiveApi') || !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara');
+      var interactiveApi = getUrlParameter('interactiveApi'),
+          // handle presence of the parameter without a value
+          hasInteractiveApiParam = !!interactiveApi || (interactiveApi === null);
+      return hasInteractiveApiParam || !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara');
     }.property(),
 
     cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
