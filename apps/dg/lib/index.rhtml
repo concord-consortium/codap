@@ -67,6 +67,24 @@
     <%= bootstrap %>
 
     <script src="../../../../codap-config.js" type="text/javascript"></script>
+    <!-- https://www.html5rocks.com/en/tutorials/speed/script-loading/ -->
+    <script>
+      (function() {
+        // load the CFM here if cfmBaseUrl is not specified
+        // otherwise, we delay-load CFM using cfmBaseUrl in main.js
+        var loadCfm = window.location.search.indexOf('cfmBaseUrl=') < 0;
+        [
+          loadCfm ? "<%= sc_static('cloud-file-manager/js/app.js.ignore') %>" : null
+        ].forEach(function(src) {
+          if (src) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.async = false;
+            document.head.appendChild(script);
+          }
+        });
+      }());
+    </script>
 
     <% #
        # This line should appear in your head area to include the stylesheets

@@ -271,21 +271,44 @@ DG.main = function main() {
     return url;
   }
 
+  function cfmAppLoaded() {
+    return new Promise(function(resolve, reject) {
+                $.ajax({
+                  url: cfmUrl('app.js'),
+                  dataType: 'script',
+                  success: function() {
+                    resolve(true);
+                  },
+                  failure: function() {
+                    reject(false);
+                  }
+                });
+              });
+  }
+
   /**
    * Returns a promise which is resolved when the CFM is loaded.
+   * The bundled libraries (e.g. React) and the CFM bundles are loaded via
+   * script tags created dynamically in the index.rhtml using a mechanism
+   * described in https://www.html5rocks.com/en/tutorials/speed/script-loading/
+   * which guarantees that the scripts will by loaded in order, so we need
+   * only check that the CFM is defined to determine that all scripts are loaded.
    */
   function cfmLoaded() {
+    // if a cfmBaseUrl was specified, load the CFM libs dynamically via ajax
+    if (DG.cfmBaseUrl) {
+      return cfmAppLoaded();
+    }
+
+    // if no cfmBaseUrl was specified, the CFM should have been loaded in index.rhtml
     return new Promise(function(resolve, reject) {
-      $.ajax({
-        url: cfmUrl('app.js'),
-        dataType: 'script',
-        success: function() {
+      function checkCfm() {
+        if (typeof CloudFileManager !== "undefined")
           resolve(true);
-        },
-        failure: function() {
-          reject(false);
-        }
-      });
+        else
+          setTimeout(checkCfm, 10);
+      }
+      checkCfm();
     });
   }
 
