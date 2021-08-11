@@ -518,7 +518,7 @@ DG.main = function main() {
     var extensionMap = {
       codap: 'application/vnd.codap+json',
       json: 'application/json',
-      geojson: 'application/vnd.geo+json',
+      geojson: 'application/geo+json',
       csv: 'application/csv',
       txt: 'application/csv'
     };

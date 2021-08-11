@@ -442,6 +442,10 @@ DG.appController = SC.Object.create((function () // closure
       this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
+    openGoogleSheetsImporter: function (iConfig) {
+      this.openImporterPlugin('Importer', '/Importer/', iConfig);
+    },
+
     /**
      * Imports a csv to the document from a data uri.
      *
@@ -544,6 +548,14 @@ DG.appController = SC.Object.create((function () // closure
       return true;
     },
 
+    importGoogleSheets: function (iURL) {
+      var config = {
+        contentType: 'application/vnd.google-apps.spreadsheet',
+        url: iURL,
+        showCaseTable: true
+      }
+      this.openGoogleSheetsImporter(config);
+    },
     importImage: function(iURL, iName) {
       function determineImageSize(imgSrc, callback) {
         var newImg = new Image();
@@ -621,6 +633,9 @@ DG.appController = SC.Object.create((function () // closure
             break;
           case 'IMAGE':
             this.importImage(iURL, iName);
+            break;
+          case 'SHEETS':
+            this.importGoogleSheets(iURL);
             break;
           default:
             addInteractive();
@@ -778,7 +793,12 @@ DG.appController = SC.Object.create((function () // closure
         group: 'IMAGE',
         mime: 'application/pdf',
         xtensions: 'pdf'
-      },*/
+      }*/,
+      {
+        group: 'SHEETS',
+        mime: ['application/vnd.google-apps.spreadsheet'],
+        extensions: []
+      }
     ],
     /**
      * Attempts to match a filename or URL or a type to an entry in the above
@@ -787,6 +807,7 @@ DG.appController = SC.Object.create((function () // closure
      * @param type: a type string. May be missing.
      */
     matchMimeSpec: function (name, type) {
+      var isSheetsURL = /docs.google.com\/spreadsheets/.test(name);
       var isDataURIMatch = /^data:([^;]+);.+$/.exec(name);
       var match = name && name.match(/\.([^.\/]+)$/);
       var mySuffix = match && match[1].toLowerCase();
@@ -795,7 +816,10 @@ DG.appController = SC.Object.create((function () // closure
       if (type == null && isDataURIMatch) {
         type = isDataURIMatch[1];
       }
-      typeDesc = type && this.mimeTypesAndExtensions.find(function (mimeDef) {
+      if (isSheetsURL) {
+        type = 'application/vnd.google-apps.spreadsheet'
+      }
+      typeDesc = typeDesc || type && this.mimeTypesAndExtensions.find(function (mimeDef) {
         return (type != null) && mimeDef.mime.find(function (str) {
           return str === type;
         });
