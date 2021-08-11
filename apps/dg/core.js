@@ -349,7 +349,7 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     hideCFMMenu: function () {
-      return !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara');
+      return !!getUrlParameter('interactiveApi') || !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara');
     }.property(),
 
     cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
