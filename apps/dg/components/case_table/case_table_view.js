@@ -1572,6 +1572,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.completeEditAttributeName();
       DG.globalEditorLock.deactivate(this);
     },
+    resetActiveCell: function () {
+      this._slickGrid.resetActiveCell();
+    },
     cancelCurrentEdit: function () {
       this.cancelEditAttributeElement();
       DG.globalEditorLock.deactivate(this);
@@ -1664,8 +1667,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      */
     handleClick: function (iEvent, iCell) {
       SC.run(function () {
-        var hierTableView = this.get('parentView');
-        hierTableView.hideHeaderMenus();
+        function findHierTableViewParent(iView) {
+          while (iView && !(iView instanceof DG.HierTableView))
+            iView = iView.get('parentView');
+
+          return iView;
+        }
+        var hierTableView = findHierTableViewParent(this);
+        hierTableView.selectComponent();
+        hierTableView.contentView.hideHeaderMenus();
 
         var dataContext = this.get('dataContext'),
             dataItem = this._slickGrid.getDataItem(iCell.row),
