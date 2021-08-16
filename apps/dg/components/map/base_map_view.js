@@ -144,8 +144,8 @@ DG.BaseMapView = SC.View.extend(
               .on('dragstart drag move', function () {
                 this._clearIdle();
               }.bind(this))
-              .on('dragend zoomend moveend', function () {
-                this._setIdle();
+              .on('dragend zoomend moveend', function (iEvent) {
+                this._setIdle(iEvent.type);
               }.bind(this));
           this.backgroundChanged(); // will initialize baseMap
         }
@@ -166,14 +166,20 @@ DG.BaseMapView = SC.View.extend(
       _clearIdle: function () {
         if (this._idleTimeout) {
           clearTimeout(this._idleTimeout);
+          this._idleTimeout = null;
         }
       },
-      _setIdle: function () {
-        this._clearIdle();
-        this._idleTimeout = setTimeout(function () {
-          this._idleTimeout = null;
-          this.incrementProperty('idleCount');
-        }.bind(this), 100);
+      _setIdle: function (eventType) {
+        // console.log('eventType = %@, _idleTimeout = %@'.loc( eventType, this._idleTimeout));
+        if(!this._idleTimeout) {
+          this._clearIdle();
+          this._idleTimeout = setTimeout(function () {
+            this._idleTimeout = null;
+            this.set('lastEventType', eventType); // So observers can act conditionally on event
+            this.incrementProperty('idleCount');
+            this.set('lastEventType', null);
+          }.bind(this), 100);
+        }
       },
 
       backgroundChanged: function () {

@@ -449,7 +449,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
         this._isRenderLayoutInProgress = false;
         // The polygons in the map, if any, may now be exposed, so give it a nudge so that they will repaint.
         this.invokeLast( function() {
-          this.getPath('mapLayer.map').invalidateSize(false);
+          this.getPath('mapLayer.map').invalidateSize({pan: false});
         }.bind(this));
       }.observes('model.legendAttributeChange'),
 
@@ -560,6 +560,7 @@ DG.MapView = SC.View.extend(DG.GraphDropTarget,
               name: "map." + change,
               undoString: 'DG.Undo.map.' + change,
               redoString: 'DG.Redo.map.' + change,
+              causedChange: this.getPath('mapLayer.lastEventType') !== 'moveend',
               log: 'mapEvent: %@ at {center: %@, zoom: %@}'.fmt(change, newCenter, newZoom),
               _componentId: this.getPath('controller.model.id'),
               _controller: function () {
