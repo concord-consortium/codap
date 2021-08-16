@@ -877,7 +877,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           if (SC.none(iDragData)) // The over-notification caused by the * in the observes
             return;       // means we get here at times there isn't any drag data.
 
-          var this_ = this;
+          var controller = this;
 
           DG.UndoHistory.execute(DG.Command.create({
             name: 'axis.attributeChange',
@@ -897,13 +897,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
               }
             },
             execute: function () {
-              this._beforeStorage = this_.createComponentStorage();
+              this._beforeStorage = controller.createComponentStorage();
 
               var tDragContext = iDragData.context,
                   tCollectionClient = getCollectionClientFromDragData(tDragContext, iDragData),
-                  tDisplayModel = this_.get('dataDisplayModel');
+                  tDisplayModel = controller.get('dataDisplayModel');
               tDisplayModel.handleDroppedContext( tDragContext);
-              this_.set('dataContext', tDragContext);
+              controller.set('dataContext', tDragContext);
 
               iView.dragData = null;
 
@@ -913,16 +913,16 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     collection: tCollectionClient,
                     attributes: [iDragData.attribute]
                   });
-              this_.get('view').select();
+              controller.get('view').select();
 
               this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
             },
             undo: function () {
-              this._afterStorage = this_.createComponentStorage();
-              this_.restoreComponentStorage(this._beforeStorage);
+              this._afterStorage = controller.createComponentStorage();
+              controller.restoreComponentStorage(this._beforeStorage);
             },
             redo: function () {
-              this_.restoreComponentStorage(this._afterStorage);
+              controller.restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
             }
           }));
