@@ -364,6 +364,8 @@ DG.DocumentController = SC.Object.extend(
           this.set('ready', false);
           this.set('content', iDocument);
 
+          if(DG.mainPage.mainPane.hideInspectorPicker)  // undefined if not fully initialized yet
+            DG.mainPage.mainPane.hideInspectorPicker(); // we don't want it showing for new doc
           DG.Component.clearContentMap();
           this.componentControllersMap = {};
           this._caseTableComponents = {};
