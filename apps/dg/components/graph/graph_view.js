@@ -433,12 +433,14 @@ DG.GraphView = SC.View.extend(
       },
 
       destroy: function () {
+        var tPlotViews = this.get('plotViews'),
+            tModel = this.get('model');
+        sc_super();
         // Plotviews are not actually subviews so sc_super doesn't destroy them
-        this.get('plotViews').forEach(function (iPlotView) {
+        tPlotViews.forEach(function (iPlotView) {
           iPlotView.destroy();
         });
-        this.model.destroy(); // so that it can unlink observers
-        sc_super();
+        tModel.destroy(); // so that it can unlink observers
       },
 
       /**
