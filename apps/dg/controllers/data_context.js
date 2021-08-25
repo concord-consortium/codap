@@ -2357,7 +2357,8 @@ DG.DataContext = SC.Object.extend((function () // closure
           collection,
           attributes,
           attribIDs,
-          rows = [];
+          rows = [],
+          metadata = this.getPath('model.metadata');
 
       if (SC.empty(iWhichCollection)) {
         return '';
@@ -2377,7 +2378,39 @@ DG.DataContext = SC.Object.extend((function () // closure
       });
       attribIDs = attributes.map(function(attr) {return attr.id; });
 
-      // create a tab and newline delimited string of attribute names and case values.
+      rows.push('# name: ' + this.get('name'));
+      // Create comment annotations documenting metadata and attribute properties
+      if (metadata) {
+        Object.entries(metadata).forEach(function(entry) {
+          var key = entry[0];
+          var value = entry[1];
+          rows.push('# ' + key + ': ' + value);
+        });
+      }
+
+      // Create attribute annotations
+      attributes.forEach(function (attr) {
+        var defaults = {
+          type: 'none',
+          precision: 2
+        };
+        var props = [
+          'name',
+          'description',
+          'type',
+          'unit',
+          'precision',
+          'editible'
+        ].map(function (property) {
+          var value = attr.get(property);
+          if (value != null && value !== '' && (defaults[property] !== value)) {
+            return property + ': ' + value;
+          } else {
+            return '';
+          }
+        }).filter(function (e) { return (e !== '');});
+        rows.push('# attribute -- ' + props.join(', '));
+      });
 
       // add a row of attribute names
       rows.push(attributes.map(function (attr) {

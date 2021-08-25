@@ -90,12 +90,26 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       if (!this.getPath('parentView.parentView.isSelected')) {
         // DG.log('Hiding Header Menus');
         this.contentView.hideHeaderMenus();
+        this.resetActiveCell();
       }
       this.setPath('horizontalScrollerView.isVisible', false);
       this.invokeLater( function() {
         this.setPath('horizontalScrollerView.isVisible', true);
       }, 10);
     }.observes('parentView.parentView.isSelected'),
+
+    resetActiveCell: function () {
+      var childViews = this.get('childTableViews');
+      childViews.forEach(function (view) {
+        view.resetActiveCell();
+      });
+
+    },
+
+    selectComponent: function () {
+      var tComponentView = DG.ComponentView.findComponentViewParent(this);
+      tComponentView.select();
+    },
 
     init: function() {
       sc_super();
