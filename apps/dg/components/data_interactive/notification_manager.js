@@ -158,6 +158,9 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
                 break;
               case 'collection':
                 result[k] = v.get('id');
+                result.name = iChange.properties.name;
+                result.attribute = (iChange.attributes && iChange.attributes.length > 0) ?
+                    iChange.attributes[0].get('name') : null;
                 break;
               case 'attrs':
                 // return archivable attribute descriptors rather DG.Attributes
