@@ -172,6 +172,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
               resource: 'component',
               values: {
                 operation: 'change axis bounds',
+                newBounds: { lower: newLowerBound, upper: newUpperBound },
                 type: 'DG.GraphView'
               }
             },
