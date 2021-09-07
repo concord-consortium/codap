@@ -29,7 +29,7 @@ sc_require('utilities/iframe-phone-emulator');
 //
 DG.main = function main() {
 
- DG.Browser.init(); // Import any DG specific browser hacks we need.
+  DG.Browser.init(); // Import any DG specific browser hacks we need.
 
   SC.$('body' ).addClass( 'dg');
 
@@ -518,7 +518,7 @@ DG.main = function main() {
     var extensionMap = {
       codap: 'application/vnd.codap+json',
       json: 'application/json',
-      geojson: 'application/vnd.geo+json',
+      geojson: 'application/geo+json',
       csv: 'application/csv',
       txt: 'application/csv'
     };
@@ -534,6 +534,18 @@ DG.main = function main() {
 
   function resolveDocument(iDocContents, iMetadata) {
     return new Promise(function (resolve, reject) {
+      function makeEmptyDocument() {
+        return {
+          name: "Untitled Document",
+          components: [],
+          contexts: [],
+          globals: [],
+          appName: DG.APPNAME,
+          appVersion: DG.VERSION,
+          appBuildNum: DG.BUILD_NUM,
+          lang: SC.Locale.currentLanguage
+        };
+      }
       function makePluginDocument(gameState, pluginName, pluginPath) {
         return {
           name: "Untitled Document",
@@ -579,8 +591,7 @@ DG.main = function main() {
       }
       var metadata = iMetadata || {};
       var urlString = metadata.url || ('file:' + metadata.filename);
-      var expectedContentType = getExpectedContentType(metadata.contentType,
-          urlString);
+      var expectedContentType = getExpectedContentType(metadata.contentType, urlString);
       var url = urlString && parseURL(urlString);
       var urlPath = url && url.pathname;
       var datasetName = urlPath?
@@ -609,7 +620,11 @@ DG.main = function main() {
         contentType = expectedContentType;
       }
 
-      if (contentType === 'application/csv') {
+      // CFM: empty document contents => blank document associated with a particular Provider
+      if (!iDocContents) {
+        resolve(makeEmptyDocument());
+      }
+      else if (contentType === 'application/csv') {
         DG.log('resolving CSV Document');
         resolve(makeCSVDocument(urlString, datasetName));
       }
@@ -669,7 +684,7 @@ DG.main = function main() {
       render: function () {
         var button = ReactDOMFactories.button,
             div = ReactDOMFactories.div;
-            
+
         return div({onKeyDown: function(evt) {
                     // escape key
                     if (evt.keyCode === 27) this.createNewDocument();
@@ -830,23 +845,25 @@ DG.main = function main() {
               DG.splash.showSplash();
             });
 
-            setTimeout(function(){
+            setTimeout(function() {
               SC.run(function() {
                 DG.cfmClient.hideBlockingModal();
                 resolveDocument(event.data.content, event.data.metadata)
                   .then(
                     function(iDocContents) {
                       SC.run(function () {
-                        var metadata = event.data.content.metadata,
+                        var metadata = event.data.content
+                                        ? event.data.content.metadata
+                                        : event.data.metadata,
                             sharedMetadata = metadata && metadata.shared,
-                            cfmSharedMetadata = sharedMetadata ? $.extend(true,
-                                {}, sharedMetadata) : {};
+                            cfmSharedMetadata = sharedMetadata
+                                                  ? $.extend(true, {}, sharedMetadata)
+                                                  : {};
 
                         DG.appController.closeDocument();
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
-                            .setDocument(
-                                DG.Document.createDocument(iDocContents));
+                          .setDocument(DG.Document.createDocument(iDocContents));
                         DG.set('showUserEntryView', false);
                         // acknowledge successful open; return shared metadata
                         event.callback(null, cfmSharedMetadata);

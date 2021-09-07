@@ -1563,6 +1563,9 @@
   width: 600px;
   color: #000;
 }
+.share-dialog .disabled {
+  opacity: 0.35;
+}
 .share-dialog .share-top-dialog {
   padding: 30px;
 }
@@ -1675,8 +1678,13 @@
 }
 .share-dialog .sharing-tab-contents input {
   margin-top: 5px;
+  margin-bottom: 10px;
   padding: 5px;
   width: 100%;
+}
+.share-dialog .sharing-tab-contents input[type="checkbox"] {
+  width: unset !important;
+  margin-bottom: unset;
 }
 .share-dialog .sharing-tab-contents textarea {
   margin-top: 5px;
