@@ -486,11 +486,9 @@ DG.React.ready(function () {
                 },
                 renameAttribute = function(iNewName) {
                   var currName = iAttr.get('name'),
-                      currUnit = iAttr.get('unit'),
-                      newName = iContext.getUniqueAttributeName(iNewName, [currName]),
-                      newUnit = DG.Attribute.extractUnitFromNameString(iNewName);
-                  if ((newName !== currName) || (newUnit !== currUnit)) {
-                    updateAttribute({ name: newName, unit: newUnit });
+                      newName = iContext.getUniqueAttributeName(iNewName, [currName]);
+                  if (newName !== currName) {
+                    updateAttribute({ name: newName });
                   }
                 }.bind(this),
                 editAttribute = function () {

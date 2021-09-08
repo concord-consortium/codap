@@ -1448,10 +1448,6 @@ DG.DataContext = SC.Object.extend((function () // closure
             ? collection.getAttributeByID(iAttrProps.id)
             : null;
 
-        iAttrProps.unit = DG.Attribute.extractUnitFromNameString(iAttrProps.name
-            + (iAttrProps.unit ? '(' + iAttrProps.unit + ')' : ''))
-            || attribute.unit;
-
         // Look up the attribute by name if not found by ID
         if (!attribute && collection && iAttrProps.name) {
           attribute = collection.getAttributeByName(iAttrProps.name);

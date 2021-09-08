@@ -1540,18 +1540,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (attrName) {
         SC.run(function () {
           var $input = elt, dataContext = this.get('dataContext'),
-              unit = DG.Attribute.extractUnitFromNameString($input.val()),
               newName = dataContext.getUniqueAttributeName($input.val(),
                   [attrName]);
-          if ((newName !== attrName) || unit) {
+          if (newName !== attrName) {
             var controller = getController(this),
                 attrRef = dataContext && dataContext.getAttrRefByName(attrName);
             var changes = {};
             if (newName) {
               changes.name = newName;
-            }
-            if (unit) {
-              changes.unit = unit;
             }
             controller.updateAttribute(attrRef, changes);
           }
