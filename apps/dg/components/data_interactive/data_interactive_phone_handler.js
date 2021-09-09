@@ -2121,6 +2121,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   rtn.xUpperBound = componentStorage.xUpperBound;
                   rtn.yLowerBound = componentStorage.yLowerBound;
                   rtn.yUpperBound = componentStorage.yUpperBound;
+                  rtn.y2LowerBound = componentStorage.y2LowerBound;
+                  rtn.y2UpperBound = componentStorage.y2UpperBound;
                   /* falls through */
                 case 'map':
                   rtn.dataContext = extractObjectName(componentStorage, 'context');
