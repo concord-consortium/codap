@@ -146,7 +146,6 @@ DG.DragBorderView = SC.View.extend(
                       tViewToDrag._view_layer.style.transition = "";
                       // set actual model layout once animation has completed
                       this._oldLayout = this._controller().revertModelLayout(layout);
-                      this._oldLayout.height = layout.height;
                       tContainer.updateFrame();
                     }.bind(this));
                 if (DG.KEEP_IN_BOUNDS_PREF) {

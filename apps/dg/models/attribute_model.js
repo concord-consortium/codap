@@ -678,19 +678,18 @@ DG.Attribute.extractUnitFromNameString = function (iName) {
  */
 DG.Attribute.canonicalizeName = function (iName, iCanonicalize) {
   var tName = String(SC.none(iName) ? '' : iName),
-      tReg = /\([^)]*\)$/,  // Identifies parenthesized substring at end
-      tNewName = tName;
+      tReg = /\([^)]*\)$/;  // Identifies parenthesized substring at end
 
-  tNewName = tName.replace(tReg, '');  // Get rid of parenthesized units
-
-  tNewName = tNewName.trim(); // Get rid of trailing white space
-  if (iCanonicalize || ((iCanonicalize == null) && DG.canonicalizeNames))
-    tNewName = tNewName.replace(/\W/g, '_');  // Replace non-word characters with underscore
-  // if after all this we have an empty string replace with a default name.
-  if (tNewName.length === 0) {
-    tNewName = 'attr';
+  tName = tName.trim(); // Get rid of trailing white space
+  if (iCanonicalize || ((iCanonicalize == null) && DG.canonicalizeNames)) {
+    tName = tName.replace(tReg, '');  // Get rid of parenthesized units
+    tName = tName.replace(/\W/g, '_');  // Replace non-word characters with underscore
   }
-  return tNewName;
+  // if after all this we have an empty string replace with a default name.
+  if (tName.length === 0) {
+    tName = 'attr';
+  }
+  return tName;
 };
 /**
  * Destroys the specified DG.Attribute.

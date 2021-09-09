@@ -553,7 +553,7 @@ DG.appController = SC.Object.create((function () // closure
         contentType: 'application/vnd.google-apps.spreadsheet',
         url: iURL,
         showCaseTable: true
-      }
+      };
       this.openGoogleSheetsImporter(config);
     },
     importImage: function(iURL, iName) {
@@ -817,7 +817,7 @@ DG.appController = SC.Object.create((function () // closure
         type = isDataURIMatch[1];
       }
       if (isSheetsURL) {
-        type = 'application/vnd.google-apps.spreadsheet'
+        type = 'application/vnd.google-apps.spreadsheet';
       }
       typeDesc = typeDesc || type && this.mimeTypesAndExtensions.find(function (mimeDef) {
         return (type != null) && mimeDef.mime.find(function (str) {

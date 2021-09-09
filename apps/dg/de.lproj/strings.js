@@ -877,5 +877,10 @@ SC.stringsFor("de", {
     "DG.AttributeFormat.DatePrecisionShort.minute": "M/D/YY HH:mm",
     "DG.AttributeFormat.DatePrecisionShort.second": "M/D/YY HH:mm:ss",
     "DG.AttributeFormat.DatePrecisionShort.millisecond": "M/D/YY HH:mm:ss.SSS",
-    "DG.Formula.FuncCategoryLogic": "Logic Functions"
+    "DG.Formula.FuncCategoryLogic": "Logic Functions",
+    "DG.Undo.graph.showMeasureLabels": "Undo showing measure labels",
+    "DG.Redo.graph.showMeasureLabels": "Redo showing measure labels",
+    "DG.Undo.graph.hideMeasureLabels": "Undo hiding measure labels",
+    "DG.Redo.graph.hideMeasureLabels": "Redo hiding measure labels",
+    "DG.Inspector.showLabels": "Show Measure Labels"
 });
