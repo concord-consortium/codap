@@ -617,7 +617,8 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
             resource: 'component',
             values: {
               operation: 'hideSelected',
-              type: ''
+              type: '',
+              numberHidden: tSelection.length
             }
           },
           execute: function() {
@@ -634,6 +635,10 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       }
 
       function hideUnselectedCases() {
+        var tUnselected = DG.ArrayUtils.subtract( tCases, tSelection,
+            function( iCase) {
+              return iCase.get('id');
+            });
         DG.UndoHistory.execute(DG.Command.create({
           name: 'graph.display.hideUnselectedCases',
           undoString: 'DG.Undo.hideUnselectedCases',
@@ -644,14 +649,11 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
             resource: 'component',
             values: {
               operation: 'hideUnselected',
-              type: ''
+              type: '',
+              numberHidden: tUnselected.length
             }
           },
           execute: function() {
-            var tUnselected = DG.ArrayUtils.subtract( tCases, tSelection,
-                function( iCase) {
-                  return iCase.get('id');
-                });
             this._undoData = tUnselected;
 
             this.log = "Hide %@ unselected cases".fmt(tUnselected.length);
