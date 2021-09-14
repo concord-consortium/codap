@@ -143,7 +143,7 @@ DG.BarChartBaseModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
                     }
                     // so it will be copied to the new plot
                     this_.set('breakdownType', this.value);
-                    // fallthrough
+                    /* falls through */
                   case kChartRadioFormula:
                     // we're switching to/from a computed bar chart
                     this_.set('isBarHeightComputed', this.value === kChartRadioFormula);

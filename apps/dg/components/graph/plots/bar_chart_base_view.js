@@ -252,7 +252,8 @@ DG.BarChartBaseView = DG.ChartView.extend(
                                  iNumCasesInContainingCell, iCategoryName, iPrimaryName, iTotalNumCases) {
           var this_ = this,
               tToolTipText, tToolTip,
-              tBarTop = this.getBarHeight(iPrimaryName, iCount, iNumCasesInContainingCell),
+              tTotalCount = tHasLegend ? iNumCasesInContainingCell : iTotalNumCases,
+              tBarTop = this.getBarHeight(iPrimaryName, iCount, tTotalCount),
               tCurrCoord = tRC.secondaryAxisView.dataToCoordinate(tBarTop),
               tX, tY, tWidth, tHeight;
           if (tRC.isVerticalOrientation) {
@@ -305,6 +306,7 @@ DG.BarChartBaseView = DG.ChartView.extend(
             tRC = this.createRenderContext(),
             tPrimaryVarID = this.getPath('model.primaryVarID'),
             tLegendVarID = this.getPath('model.legendVarID'),
+            tHasLegend = !SC.none(tLegendVarID),
             tTotalNumCases = this.getPath('model.cases').length();
         tCoverRectsLayer.clear();
         tCellArray.forEach(function (iPrimary, iPrimaryIndex) {
@@ -314,7 +316,8 @@ DG.BarChartBaseView = DG.ChartView.extend(
           iPrimary.forEach(function (iSecondary, iSecondaryIndex) {
             var tCount = 0,
                 tTotalNumCasesInPrimary = iSecondary.length,
-                tBarTop = this.getBarHeight(tPrimaryName, tCount, tTotalNumCasesInPrimary),
+                tTotalNumCasesForBar = tHasLegend ? tTotalNumCasesInPrimary : tTotalNumCases,
+                tBarTop = this.getBarHeight(tPrimaryName, tCount, tTotalNumCasesForBar),
                 tPreviousCoord = tRC.secondaryAxisView.dataToCoordinate(tBarTop),
                 tPreviousValue = null,
                 tCaseIndices = [],
@@ -325,7 +328,7 @@ DG.BarChartBaseView = DG.ChartView.extend(
               // don't render the first bar segment since it's rendered below
               if (tPreviousValue && tValue !== tPreviousValue) {
                 tPreviousCoord = makeRect(tPrimaryCoord, tPreviousCoord, tCount,
-                    tCaseIndices, tTotalNumCasesInPrimary, tPreviousValue, tPrimaryName);
+                    tCaseIndices, tTotalNumCasesInPrimary, tPreviousValue, tPrimaryName, tTotalNumCasesForBar);
                 tCaseIndices = [];
               }
               tCaseIndices.push(iCaseContainer.caseIndex);

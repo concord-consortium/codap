@@ -127,12 +127,17 @@ DG.BarChartView = DG.BarChartBaseView.extend(
        */
       computeCellParams: function () {
         var tMaxInCell = this.getPath('model.maxInCell'),
+            tTotalNumCases = this.getPath('model.cases').length(),
+            tHasLegend = !SC.none(this.getPath('model.legendVarID')),
+            tMaxPercentInCell = 100 * tMaxInCell / tTotalNumCases,
             tSecondaryAxisView = this.get('secondaryAxisView'),
             tCoordOfMaxInCell = tSecondaryAxisView.dataToCoordinate(tMaxInCell),
             tCoordOf100Percent = tSecondaryAxisView.dataToCoordinate(100),
+            tCoordOfMaxPercentInCell = tSecondaryAxisView.dataToCoordinate(tMaxPercentInCell),
             tCoordOfZero = tSecondaryAxisView.dataToCoordinate(0),
             tBreakdownType = this.getPath('model.breakdownType'),
             tMinBarSliceHeight = Math.abs(tCoordOfMaxInCell - tCoordOfZero) / tMaxInCell,
+            tMinPercentSliceHeight = Math.abs(tCoordOfMaxPercentInCell - tCoordOfZero) / tMaxInCell,
             tSliceHeights = this.getPath('model.primaryCellCounts').map(function (iCount) {
               var tSliceHeight = 0;
               switch (tBreakdownType) {
@@ -140,7 +145,8 @@ DG.BarChartView = DG.BarChartBaseView.extend(
                   tSliceHeight = tMinBarSliceHeight;
                   break;
                 case DG.Analysis.EBreakdownType.ePercent:
-                  tSliceHeight = Math.abs(tCoordOf100Percent - tCoordOfZero) / iCount;
+                  tSliceHeight = tHasLegend ? Math.abs(tCoordOf100Percent - tCoordOfZero) / iCount :
+                      tMinPercentSliceHeight;
               }
               return tSliceHeight;
             });

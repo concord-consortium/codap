@@ -39,13 +39,15 @@ DG.BarChartModel = DG.BarChartBaseModel.extend(
       },
 
       naturalUpperBound: function () {
-        var tNaturalUpperBound;
+        var tNaturalUpperBound,
+            tMaxInCell = this.get('maxInCell'),
+            tHasLegend = !SC.none(this.get('legendVarID'));
         switch (this.get('breakdownType')) {
           case DG.Analysis.EBreakdownType.eCount:
-            tNaturalUpperBound = Math.max( 4, this.get('maxInCell'));
+            tNaturalUpperBound = Math.max( 4, tMaxInCell);
             break;
           case DG.Analysis.EBreakdownType.ePercent:
-            tNaturalUpperBound = 100;
+            tNaturalUpperBound = tHasLegend ? 100 : 100 * tMaxInCell / this.get('cases').length();
             break;
         }
         return 1.05 * tNaturalUpperBound;
