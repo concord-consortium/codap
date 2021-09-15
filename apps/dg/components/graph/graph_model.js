@@ -243,6 +243,16 @@ DG.GraphModel = DG.DataLayerModel.extend(
      @property {Boolean}
      */
     aboutToChangeConfiguration: false,
+    /**
+     * Whenever we're done changing configuration, make sure the plot background image lock state
+     * is consistent with axis configuration. We can only lock background image if both axes are numeric.
+     */
+    setProperBackgroundLockInfo: function() {
+      if( !this.get('aboutToChangeConfiguration')) {
+        if(!this.bothAxesAreNumeric())
+          this.set('plotBackgroundImageLockInfo', null);
+      }
+    }.observes('aboutToChangeConfiguration'),
 
     /**
      Keep plot axis in synch
@@ -913,6 +923,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
      */
     hasNumericAxis: function() {
       return this.getPath('xAxis.isNumeric') || this.getPath('yAxis.isNumeric');
+    }.property('xAxis', 'yAxis'),
+
+    /**
+     * Useful for knowing whether we can lock background.
+     * @return {Boolean}
+     */
+    bothAxesAreNumeric: function() {
+      return this.getPath('xAxis.isNumeric') && this.getPath('yAxis.isNumeric');
     }.property('xAxis', 'yAxis'),
 
     /**

@@ -101,16 +101,17 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
       /** Submenu items for copying/exporting component images */
       createImageExportMenuItems: function() {
-        var tIsMapView = this.getPath('model.type') === 'DG.MapView';
-        var tBackground = this.getPath('graphModel.plotBackgroundImage'),
+        var tIsMapView = this.getPath('model.type') === 'DG.MapView',
+            tBackground = this.getPath('graphModel.plotBackgroundImage'),
             tBackgroundCue = tBackground ?
                   'DG.DataDisplayMenu.removeBackgroundImage' : 'DG.DataDisplayMenu.addBackgroundImage',
             tBackgroundAction = tBackground ? 'removeBackgroundImage' : 'addBackgroundImage',
             tBackgroundItems = tIsMapView ? [] : [
                   { title: tBackgroundCue, isEnabled: true,
                     target: this, action: tBackgroundAction }
-                ];
-        if( tBackground) {
+                ],
+            tBothAxesAreNumeric = this.getPath('graphModel.bothAxesAreNumeric');
+        if( tBackground && tBothAxesAreNumeric) {
           var tLockInfo = this.getPath('graphModel.plotBackgroundImageLockInfo'),
               tLocked = tLockInfo && tLockInfo.locked,
               tLockedCue = tLocked ? 'DG.DataDisplayMenu.unlockImageFromAxes' :
