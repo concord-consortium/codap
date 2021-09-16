@@ -37453,7 +37453,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
         // initialize the cloudContentFactory with all data we want in the envelope
         provider_interface_1.cloudContentFactory.setEnvelopeMetadata({
-            cfmVersion: '1.3.1',
+            cfmVersion: '1.3.2',
             appName: this.appOptions.appName || "",
             appVersion: this.appOptions.appVersion || "",
             appBuildNum: this.appOptions.appBuildNum || ""
@@ -38366,7 +38366,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype._dialogSave = function (stringContent, metadata, callback) {
         var _this = this;
-        if (stringContent !== null) {
+        if (stringContent != null) {
             return this.saveFileNoDialog(stringContent, metadata, callback);
         }
         else {
@@ -41353,7 +41353,7 @@ var CloudContentFactory = /** @class */ (function () {
     function CloudContentFactory() {
         this.envelopeMetadata = {
             // replaced by version number at build time
-            cfmVersion: '1.3.1',
+            cfmVersion: '1.3.2',
             appName: '',
             appVersion: '',
             appBuildNum: ''
