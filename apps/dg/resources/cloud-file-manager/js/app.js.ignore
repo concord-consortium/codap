@@ -37285,6 +37285,7 @@ var CLOUDFILEMANAGER_EVENT_ID = 0;
 var CLOUDFILEMANAGER_EVENTS = {};
 var CloudFileManagerClientEvent = /** @class */ (function () {
     function CloudFileManagerClientEvent(type, data, callback, state) {
+        if (callback === void 0) { callback = null; }
         this.type = type;
         if (data == null) {
             data = {};
@@ -37579,6 +37580,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         return this._ui.setMenuBarInfo(info);
     };
     CloudFileManagerClient.prototype.newFile = function (callback) {
+        if (callback === void 0) { callback = null; }
         this._closeCurrentFile();
         this._resetState();
         window.location.hash = "";
@@ -37586,6 +37588,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.newFileDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         if (this.newFileOpensInNewTab) {
             return window.open(this.getCurrentUrl(this.newFileAddsNewToQuery ? "#new" : null), '_blank');
         }
@@ -37605,6 +37608,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     CloudFileManagerClient.prototype.openFile = function (metadata, callback) {
         var _this = this;
         var _a;
+        if (callback === void 0) { callback = null; }
         if ((_a = metadata === null || metadata === void 0 ? void 0 : metadata.provider) === null || _a === void 0 ? void 0 : _a.can(provider_interface_1.ECapabilities.load, metadata)) {
             this._event('willOpenFile', { op: "openFile" });
             return metadata.provider.load(metadata, function (err, content) {
@@ -37626,6 +37630,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.openFileDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         var showDialog = function () {
             return _this._ui.openFileDialog(function (metadata) {
                 return _this.openFile(metadata, callback);
@@ -37639,6 +37644,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
     };
     CloudFileManagerClient.prototype.closeFile = function (callback) {
+        if (callback === void 0) { callback = null; }
         this._closeCurrentFile();
         this._resetState();
         window.location.hash = "";
@@ -37647,6 +37653,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.closeFileDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         if (!this.state.dirty) {
             return this.closeFile(callback);
         }
@@ -37655,22 +37662,26 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
     };
     CloudFileManagerClient.prototype.importData = function (data, callback) {
+        if (callback === void 0) { callback = null; }
         this._event('importedData', data);
         return (typeof callback === 'function' ? callback(data) : undefined);
     };
     CloudFileManagerClient.prototype.importDataDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         return this._ui.importDataDialog(function (data) {
             return _this.importData(data, callback);
         });
     };
     CloudFileManagerClient.prototype.readLocalFile = function (file, callback) {
+        if (callback === void 0) { callback = null; }
         var reader = new FileReader();
         reader.onload = function (loaded) { return typeof callback === 'function' ? callback({ name: file.name, content: loaded.target.result }) : undefined; };
         return reader.readAsText(file);
     };
     CloudFileManagerClient.prototype.openLocalFile = function (file, callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         this._event('willOpenFile', { op: "openLocalFile" });
         return this.readLocalFile(file, function (data) {
             var content = provider_interface_1.cloudContentFactory.createEnvelopedCloudContent(data.content);
@@ -37684,6 +37695,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.importLocalFile = function (file, callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         return this.readLocalFile(file, function (data) {
             return _this.importData(data, callback);
         });
@@ -37811,6 +37823,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.save = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         return this._event('getContent', { shared: this._sharedMetadata() }, function (stringContent) {
             return _this.saveContent(stringContent, callback);
         });
@@ -37818,6 +37831,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     CloudFileManagerClient.prototype.saveContent = function (stringContent, callback) {
         var _this = this;
         var _a;
+        if (callback === void 0) { callback = null; }
         var provider = ((_a = this.state.metadata) === null || _a === void 0 ? void 0 : _a.provider) || this.autoProvider(provider_interface_1.ECapabilities.save);
         if (provider != null) {
             return provider.authorized(function (isAuthorized) {
@@ -37836,6 +37850,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.saveFile = function (stringContent, metadata, callback) {
         var _a;
+        if (callback === void 0) { callback = null; }
         // must be able to 'resave' to save silently, i.e. without save dialog
         if ((_a = metadata === null || metadata === void 0 ? void 0 : metadata.provider) === null || _a === void 0 ? void 0 : _a.can(provider_interface_1.ECapabilities.resave, metadata)) {
             return this.saveFileNoDialog(stringContent, metadata, callback);
@@ -37846,6 +37861,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.saveFileNoDialog = function (stringContent, metadata, callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         this._setState({
             saving: metadata
         });
@@ -37887,18 +37903,24 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.saveFileDialog = function (stringContent, callback) {
         var _this = this;
+        if (stringContent === void 0) { stringContent = null; }
+        if (callback === void 0) { callback = null; }
         return this._ui.saveFileDialog(function (metadata) {
             return _this._dialogSave(stringContent, metadata, callback);
         });
     };
     CloudFileManagerClient.prototype.saveFileAsDialog = function (stringContent, callback) {
         var _this = this;
+        if (stringContent === void 0) { stringContent = null; }
+        if (callback === void 0) { callback = null; }
         return this._ui.saveFileAsDialog(function (metadata) {
             return _this._dialogSave(stringContent, metadata, callback);
         });
     };
     CloudFileManagerClient.prototype.createCopy = function (stringContent, callback) {
         var _this = this;
+        if (stringContent === void 0) { stringContent = null; }
+        if (callback === void 0) { callback = null; }
         var saveAndOpenCopy = function (stringContent) {
             var _a;
             return _this.saveCopiedFile(stringContent, (_a = _this.state.metadata) === null || _a === void 0 ? void 0 : _a.name, function (err, copyParams) {
@@ -38091,6 +38113,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     CloudFileManagerClient.prototype.revertToShared = function (callback) {
         var _this = this;
         var _a, _b, _c;
+        if (callback === void 0) { callback = null; }
         // Look for sharedDocumentUrl or Url first:
         var id = ((_a = this.state.currentContent) === null || _a === void 0 ? void 0 : _a.get("sharedDocumentUrl"))
             || ((_b = this.state.currentContent) === null || _b === void 0 ? void 0 : _b.get("url"))
@@ -38112,12 +38135,14 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.revertToSharedDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         if ((this.state.currentContent != null ? this.state.currentContent.get("sharedDocumentId") : undefined) && (this.state.shareProvider != null)) {
             return this.confirm(translate_1.default("~CONFIRM.REVERT_TO_SHARED_VIEW"), function () { return _this.revertToShared(callback); });
         }
     };
     CloudFileManagerClient.prototype.downloadDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         // should share metadata be included in downloaded local files?
         return this._event('getContent', { shared: this._sharedMetadata() }, function (content) {
             var _a;
@@ -38207,11 +38232,13 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.renameDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         return this._ui.renameDialog(this.state.metadata != null ? this.state.metadata.name : undefined, function (newName) {
             return _this.rename(_this.state.metadata, newName, callback);
         });
     };
     CloudFileManagerClient.prototype.revertToLastOpened = function (callback) {
+        if (callback === void 0) { callback = null; }
         this._event('willOpenFile', { op: "revertToLastOpened" });
         if ((this.state.openedContent != null) && this.state.metadata) {
             return this._fileOpened(this.state.openedContent, this.state.metadata, { openedContent: this.state.openedContent.clone() });
@@ -38219,6 +38246,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype.revertToLastOpenedDialog = function (callback) {
         var _this = this;
+        if (callback === void 0) { callback = null; }
         if ((this.state.openedContent != null) && this.state.metadata) {
             return this.confirm(translate_1.default('~CONFIRM.REVERT_TO_LAST_OPENED'), function () { return _this.revertToLastOpened(callback); });
         }
@@ -38252,6 +38280,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     CloudFileManagerClient.prototype.saveSecondaryFile = function (stringContent, metadata, callback) {
         var _this = this;
         var _a;
+        if (callback === void 0) { callback = null; }
         if ((_a = metadata === null || metadata === void 0 ? void 0 : metadata.provider) === null || _a === void 0 ? void 0 : _a.can(provider_interface_1.ECapabilities["export"], metadata)) {
             return metadata.provider.saveAsExport(stringContent, metadata, function (err, statusCode) {
                 return err ? _this.alert(err) : callback === null || callback === void 0 ? void 0 : callback(stringContent, metadata);
@@ -38432,6 +38461,7 @@ var CloudFileManagerClient = /** @class */ (function () {
     };
     CloudFileManagerClient.prototype._event = function (type, data, eventCallback) {
         var _a;
+        if (eventCallback === void 0) { eventCallback = null; }
         if (data == null) {
             data = {};
         }
@@ -38473,6 +38503,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
     };
     CloudFileManagerClient.prototype._createOrUpdateCurrentContent = function (stringContent, metadata) {
+        if (metadata === void 0) { metadata = null; }
         var currentContent;
         if (this.state.currentContent != null) {
             (currentContent = this.state.currentContent);
