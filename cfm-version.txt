@@ -1,2 +1,2 @@
-version: 1.3.0
-commit: abfd35b01c9e3313f45b1c0a0574f63a8059ace1
+version: 1.3.2
+commit: 2f41c9eacbf32cad2988438ebfdbbe0bf1d2b781
