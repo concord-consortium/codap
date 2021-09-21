@@ -39958,9 +39958,13 @@ var query_string_1 = __importDefault(__webpack_require__(/*! query-string */ "..
 var lodash_1 = __webpack_require__(/*! lodash */ "lodash");
 var provider_interface_1 = __webpack_require__(/*! ./provider-interface */ "./code/providers/provider-interface.ts");
 var lara_interactive_api_1 = __webpack_require__(/*! @concord-consortium/lara-interactive-api */ "../node_modules/@concord-consortium/lara-interactive-api/index.js");
-var getInteractiveState = function () { return lodash_1.cloneDeep(lara_interactive_api_1.getInteractiveState()); };
+var getInteractiveState = function () {
+    console.log("InteractiveApiProvider.getInteractiveState [cloneDeep]");
+    return lodash_1.cloneDeep(lara_interactive_api_1.getInteractiveState());
+};
 var setInteractiveState = function (newState) {
-    return lara_interactive_api_1.setInteractiveState(lodash_1.cloneDeep(newState));
+    console.log("InteractiveApiProvider.setInteractiveState [cloneDeep]");
+    lara_interactive_api_1.setInteractiveState(lodash_1.cloneDeep(newState));
 };
 // pass `interactiveApi=attachment` as url parameter to always save state as an attachment
 exports.kAttachmentUrlParameter = "attachment";
@@ -40097,7 +40101,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
                         _a = _b.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        _a = interactiveState;
+                        _a = lodash_1.cloneDeep(interactiveState);
                         _b.label = 3;
                     case 3: return [2 /*return*/, _a];
                 }
@@ -40110,15 +40114,19 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.processRawInteractiveState(initInteractiveMessage.interactiveState)];
+                        console.log("handleInitialInteractiveState [begin]");
+                        _a.label = 1;
                     case 1:
-                        interactiveState = _a.sent();
-                        return [3 /*break*/, 3];
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.processRawInteractiveState(initInteractiveMessage.interactiveState)];
                     case 2:
-                        e_2 = _a.sent();
-                        return [3 /*break*/, 3];
+                        interactiveState = _a.sent();
+                        console.log("handleInitialInteractiveState", "isExtensible:", Object.isExtensible(interactiveState));
+                        return [3 /*break*/, 4];
                     case 3:
+                        e_2 = _a.sent();
+                        return [3 /*break*/, 4];
+                    case 4:
                         providerParams = {
                             // documentId is used to load initial state from shared document
                             documentId: query_string_1.default.parse(location.search).documentId,
@@ -40145,6 +40153,8 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
     InteractiveApiProvider.prototype.handleUrlParams = function () {
         var params = query_string_1.default.parse(location.search);
         // can have a value or be null (present without a value)
+        console.log("InteractiveApiProvider.handleUrlParams", "queryParams:", JSON.stringify(params));
+        console.log("InteractiveApiProvider.handleUrlParams", "interactiveApi:", params.interactiveApi);
         if (params.interactiveApi !== undefined) {
             return true;
         }
@@ -40164,6 +40174,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
                         _b.label = 2;
                     case 2:
                         _b.trys.push([2, 5, , 6]);
+                        console.log("InteractiveApiProvider.load [getInteractiveState]");
                         _a = this.processRawInteractiveState;
                         return [4 /*yield*/, getInteractiveState()];
                     case 3: return [4 /*yield*/, _a.apply(this, [_b.sent()])
@@ -40199,6 +40210,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
                     case 2:
                         response = _a.sent();
                         if (response.ok) {
+                            console.log("InteractiveApiProvider.save [setInteractiveState]");
                             setInteractiveState(interactiveStateAttachment(contentType));
                         }
                         else {
@@ -40207,6 +40219,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
                         }
                         return [3 /*break*/, 4];
                     case 3:
+                        console.log("InteractiveApiProvider.save [setInteractiveState]");
                         setInteractiveState(clientContent);
                         _a.label = 4;
                     case 4:
@@ -40262,6 +40275,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
                         interactiveState = _a;
                         if (interactiveState) {
                             // initialize our interactive state from the shared document contents
+                            console.log("InteractiveApiProvider.openSaved [setInteractiveState]");
                             setInteractiveState(interactiveState);
                             // notify that we have new state
                             successCallback(interactiveState);
@@ -40275,6 +40289,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
                         return [3 /*break*/, 10];
                     case 9:
                         // in the absence of any provided content, initialize with an empty string
+                        console.log("InteractiveApiProvider.openSaved [setInteractiveState]");
                         setInteractiveState("");
                         // notify that we have new state
                         successCallback("");
