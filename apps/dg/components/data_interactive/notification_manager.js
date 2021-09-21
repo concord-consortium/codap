@@ -25,7 +25,7 @@
 DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prototype */
 (function () {
   /**
-   * Returns a list of active documents
+   * Returns a list of active channels
    * @param document {DG.DocumentController}
    */
   function findActiveChannels (document) {
@@ -86,9 +86,19 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
     sendNotification: function (message, callback) {
       var activeChannels = findActiveChannels(DG.currDocumentController());
       activeChannels.forEach(function (channel) {
-        channel.sendMessage(message);
+        channel.sendMessage(message, callback);
       });
     },
+
+    sendChannelNotification: function (gameController, message, callback) {
+      var channel = gameController.get('activeChannel');
+      if (channel) {
+        channel.sendMessage(message, callback);
+      } else {
+        DG.logWarn("NotificationManager.sendChannelNotification to unknown plugin");
+      }
+    },
+
     contextCountDidChange: function () {
       DG.log('contextCountDidChange');
       // re-add observers for all data contexts

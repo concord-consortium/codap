@@ -63,7 +63,7 @@ DG.ViewUtilities = {
       iWindowPt.y -= tFrame.y;
 /*
       iWindowPt.x += iView.get('horizontalScrollOffset') || 0;
-      iWindowPt.y += iView.get('verticalScrollOffset') || 0;
+      iWindowPt.y += iView.get('verticalScrollOffs et') || 0;
 */
       iView = iView.parentView;
     } while( !SC.none( iView));
@@ -76,9 +76,9 @@ DG.ViewUtilities = {
   /**
     Transform a given point in window coordinates to coordinates in the
     given view.
-    @param { Point as in {x: y: }}
-    @param { SC.View }
-    @return { Point as in {x: y: }}
+    @param iViewPt { {x: number, y: number}}
+    @param iView { SC.View }
+    @return { {x: number, y: number}}
   */
   viewToWindowCoordinates: function( iViewPt, iView) {
     var tFrame;
