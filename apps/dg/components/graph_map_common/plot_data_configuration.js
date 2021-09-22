@@ -86,10 +86,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
               var tKey = iKey + 'AttributeDescription',
                   tAttributeDescription = this.get(tKey),
                   tCurrentAttributes = (tAttributeDescription && tAttributeDescription.get('attributes')) || [],
-                  tValidCollection = tCurrentAttributes.length > 0 ?
-                      tDataContext.getAttrRefByID(tCurrentAttributes[0].id).collection : null,
+                  tSuspectAttribute = tCurrentAttributes.length > 0 ? tCurrentAttributes[0] : null,
+                  tLookedUpAttributeRef = tSuspectAttribute && tDataContext.getAttrRefByID(tSuspectAttribute.id),
+                  tValidCollection = tLookedUpAttributeRef && tLookedUpAttributeRef.collection,
                   tValidAttrs = tCurrentAttributes.map(function (iAttr) {
-                    return tDataContext.getAttrRefByID(iAttr.id).attribute;
+                    var tGottenAttrRef = tDataContext.getAttrRefByID(iAttr.id);
+                    return tGottenAttrRef && tGottenAttrRef.attribute;
                   }),
                   tValidAttrRefs = {collection: tValidCollection, attributes: tValidAttrs};
               this.setAttributeAndCollectionClient(tKey, tValidAttrRefs);
