@@ -92,6 +92,7 @@ DG.DragBorderView = SC.View.extend(
 
         mouseUp: function (evt) {
           var tViewToDrag = this.viewToDrag(),
+              tComponentID = tViewToDrag.getPath('controller.model.id'),
               tContainer = tViewToDrag.get('parentView'),
               tOldLayout = this._mouseDownInfo,
               tNewLayout = tViewToDrag.get('layout'),
@@ -116,7 +117,7 @@ DG.DragBorderView = SC.View.extend(
                 values: {
                   operation: isResize ? 'resize' : 'move',
                   type: tViewToDrag.getPath('controller.model.type'),
-                  id: tViewToDrag.getPath('controller.model.id'),
+                  id: tComponentID,
                   title: tViewToDrag.getPath('controller.model.title')
                 }
               },
@@ -157,6 +158,9 @@ DG.DragBorderView = SC.View.extend(
               },
               redo: function () {
                 var layout = SC.clone(this._oldLayout);
+                var documentController = DG.currDocumentController();
+                var component = documentController.componentControllersMap[tComponentID];
+                tViewToDrag = component.get('view');
                 if (tViewToDrag.isMinimized()) {
                   layout.height = 25;
                 }
