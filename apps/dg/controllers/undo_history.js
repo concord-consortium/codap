@@ -157,6 +157,14 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
 
+      if( !command.undoNotification)
+        command.undoNotification = {
+          action: 'notify',
+          resource: 'document',
+          values: {
+            operation: 'undo',
+          }
+        };
       this._logAction(command, this.UNDO);
       this._notify(command, this.UNDO);
       this._dirtyDocument(command.changedObject);
@@ -204,6 +212,14 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
 
+      if( !command.redoNotification)
+        command.redoNotification = {
+          action: 'notify',
+          resource: 'document',
+          values: {
+            operation: 'redo',
+          }
+        };
       this._logAction(command, this.REDO);
       this._notify(command, this.REDO);
       this._dirtyDocument(command.changedObject);
