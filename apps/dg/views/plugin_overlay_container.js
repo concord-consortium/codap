@@ -104,12 +104,12 @@ DG.PluginOverlayContainer = SC.View.extend({
 
         dragEntered: function (iDrag) {
           curDoc.notificationManager.sendChannelNotification(this.gameController,
-            formatDragData('dragenter', iDrag.data), '*');
+            formatDragData('dragenter', iDrag.data));
         },
 
         dragExited: function (iDrag) {
           curDoc.notificationManager.sendChannelNotification(this.gameController,
-              formatDragData('dragleave', iDrag.data), '*');
+              formatDragData('dragleave', iDrag.data));
         },
 
         dragUpdated: function (iDrag) {
@@ -120,7 +120,7 @@ DG.PluginOverlayContainer = SC.View.extend({
           // TODO: use drag enter / exit info?
           if (x >= iFrameRect.left && x <= iFrameRect.right && y >= iFrameRect.top && y <= iFrameRect.bottom) {
             curDoc.notificationManager.sendChannelNotification(this.gameController,
-                formatDragData('drag', iDrag.data, {x: x-iFrameRect.left, y: y - iFrameRect.top}), '*');
+                formatDragData('drag', iDrag.data, {x: x-iFrameRect.left, y: y - iFrameRect.top}));
           }
         },
 
@@ -149,12 +149,12 @@ DG.PluginOverlayContainer = SC.View.extend({
 
         dragStarted: function (iDrag) {
           curDoc.notificationManager.sendChannelNotification(this.gameController,
-              formatDragData('dragstart', iDrag.data), '*');
+              formatDragData('dragstart', iDrag.data));
         },
 
         dragEnded: function (iDrag) {
           curDoc.notificationManager.sendChannelNotification(this.gameController,
-              formatDragData('dragend', iDrag.data), '*');
+              formatDragData('dragend', iDrag.data));
         }
       }).create();
 
