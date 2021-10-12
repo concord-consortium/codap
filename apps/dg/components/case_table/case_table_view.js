@@ -1841,11 +1841,37 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var parentView = this.get('parentView');
       var model = parentView && parentView.get('model');
       var columnWidths = this.get('columnWidths');
+      var oldColumnWidths = {};
       if (model) {
-        DG.ObjectMap.forEach(columnWidths, function (key, value) {
-          model.setPreferredAttributeWidth(key, value);
+        Object.keys(columnWidths).forEach(function (key) {
+          oldColumnWidths[key] = model.getPreferredAttributeWidth(key);
         });
-        this.updateColumnInfo();
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'caseTable.columnResize',
+          undoString: 'DG.Undo.caseTable.resizeOneColumn',
+          redoString: 'DG.Redo.caseTable.resizeOneColumn',
+          log: 'Resize one case table column',
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'resize column',
+              type: 'DG.CaseTable'
+            }
+          },
+          execute: function () {
+            DG.ObjectMap.forEach(columnWidths, function (key, value) {
+              model.setPreferredAttributeWidth(key, value);
+            });
+            this.updateColumnInfo();
+          }.bind(this),
+          undo: function () {
+            DG.ObjectMap.forEach(oldColumnWidths, function (key, value) {
+              model.setPreferredAttributeWidth(key, value);
+            });
+            this.updateColumnInfo();
+          }.bind(this)
+        }));
       }
     },
 

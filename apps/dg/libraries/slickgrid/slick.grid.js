@@ -811,7 +811,7 @@ if (typeof Slick === "undefined") {
           return;
         }
         $col = $(e);
-        $("<div class='slick-resizable-handle' />")
+        $("<div class='slick-resizable-handle dg-wants-mouse dg-wants-touch' />")
             .appendTo(e)
             // [KCPT]
             // all touch support here added by KCPT.

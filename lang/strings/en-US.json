@@ -224,6 +224,8 @@
     "DG.Redo.caseTable.groupToggleExpandCollapseAll": "Redo toggle expand/collapse all",
     "DG.Undo.caseTable.expandCollapseOneCase": "Undo expand or collapse of a group",
     "DG.Redo.caseTable.expandCollapseOneCase": "Redo expand or collapse of a group",
+    "DG.Undo.caseTable.resizeOneColumn": "Undo resize column",
+    "DG.Redo.caseTable.resizeOneColumn": "Redo resize column",
     "DG.Undo.caseTable.resizeColumns": "Undo auto-resize all columns",
     "DG.Redo.caseTable.resizeColumns": "Redo auto-resize all columns",
     "DG.Undo.caseTable.resizeColumn": "Undo fit width to content",
