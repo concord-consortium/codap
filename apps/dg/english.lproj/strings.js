@@ -645,6 +645,7 @@ SC.stringsFor("en", {
     "DG.CaseTable.attribute.type.date": "date",
     "DG.CaseTable.attribute.type.qualitative": "qualitative",
     "DG.CaseTable.attribute.type.boundary": "boundary",
+    "DG.CaseTable.attribute.type.checkbox": "checkbox",
     "DG.CaseTable.attributeEditor.name": "name",
     "DG.CaseTable.attributeEditor.description": "description",
     "DG.CaseTable.attributeEditor.type": "type",

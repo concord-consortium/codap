@@ -713,6 +713,7 @@ DG.Attribute.TYPE_NUMERIC = 'numeric';
 DG.Attribute.TYPE_DATE = 'date';
 DG.Attribute.TYPE_QUALITATIVE = 'qualitative';
 DG.Attribute.TYPE_BOUNDARY = 'boundary';
+DG.Attribute.TYPE_CHECKBOX = 'checkbox';
 
 DG.Attribute.attributeTypes = [
   DG.Attribute.TYPE_UNSPECIFIED,
@@ -720,7 +721,8 @@ DG.Attribute.attributeTypes = [
   DG.Attribute.TYPE_NUMERIC,
   DG.Attribute.TYPE_DATE,
   DG.Attribute.TYPE_QUALITATIVE,
-  DG.Attribute.TYPE_BOUNDARY
+  DG.Attribute.TYPE_BOUNDARY,
+  DG.Attribute.TYPE_CHECKBOX
 ];
 
 /**

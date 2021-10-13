@@ -914,21 +914,74 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }.bind(this));
       }.bind(this));
 
+      $(gridLayer).on('change', '.dg-checkbox-cell input:checkbox', {slickGrid: this._slickGrid}, this.handleCheckboxChange);
       $(gridLayer).show();
-
-      // $(gridLayer).bind('wheel', function (ev) {
-      //   ev.stopPropagation();
-      // });
-      // $(gridLayer).bind('DOMMouseScroll', function (ev) {
-      //   ev.stopPropagation();
-      // });
-      // $(gridLayer).bind('MozMousePixelScroll', function (ev) {
-      //   ev.stopPropagation();
-      // });
 
       this.adjustHeaderForOverflow();
       // Let clients know when there's a new _slickGrid
       this.notifyPropertyChange('gridView');
+    },
+    handleCheckboxChange: function (ev) {
+      function updateCheckboxValue (iCase, iAttrID, iContext, iNewValue) {
+        var attrID = iAttrID,
+            tCase = iCase,
+            originalValue = tCase.getValue(iAttrID),
+            newValue = iNewValue,
+            context = iContext,
+            contextName = context.get('name'),
+            collection = tCase.get('collection'),
+            collectionName = collection && collection.get('name') || "",
+            attr = collection && collection.getAttributeByID(Number(attrID)),
+            attrName = attr && attr.get('name'),
+            caseID = tCase.id;
+
+        function applyEditChange(attrID, iValue, isUndoRedo) {
+          context.applyChange({
+            operation: 'updateCases',
+            cases: [ tCase ],
+            attributeIDs: [ attrID ],
+            values: [ [iValue] ]
+          });
+        }
+
+        var cmd = DG.Command.create({
+          name: 'caseTable.editCellValue',
+          undoString: 'DG.Undo.caseTable.editCellValue',
+          redoString: 'DG.Redo.caseTable.editCellValue',
+          log: "editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }"
+              .fmt(collectionName, caseID, attrID, originalValue, newValue),
+          execute: function() {
+            applyEditChange(attrID, newValue);
+          },
+          undo: function() {
+            applyEditChange(attrID, originalValue, true);
+          },
+          redo: function() {
+            context = DG.currDocumentController().getContextByName(contextName);
+            collection = context && context.getCollectionByName(collectionName);
+            attr = collection && collection.getAttributeByName(attrName);
+            attrID = attr.get('id');
+            // var cases = collection && collection.get('casesController');
+            // tCase = cases && cases.objectAt(caseIndex);
+            if (tCase)
+              applyEditChange(attrID, newValue, true);
+          }
+        });
+        DG.UndoHistory.execute(cmd);
+      }
+
+      var slickGrid = ev.data.slickGrid;
+      var gridCoord = slickGrid.getCellFromEvent(ev);
+      DG.log('checkbox: ' + gridCoord.row + ', ' + gridCoord.cell);
+      var tCase = slickGrid.getDataItem(gridCoord.row);
+      var tColumn = slickGrid.getColumns()[gridCoord.cell];
+      var tAttrID = tColumn.id;
+      var tContext = tColumn.context;
+      var tValue = this.checked?'true':'false';
+      updateCheckboxValue(tCase, tAttrID, tContext, tValue);
+
+      ev.preventDefault();
+      ev.stopPropagation();
     },
 
     _refreshDataView: function (recurse) {

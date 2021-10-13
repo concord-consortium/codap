@@ -70,37 +70,44 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
        * @return {DOMElement|string} formatted cell contents
        */
       cellFormatter = function (rowIndex, colIndex, cellValue, colInfo, rowItem) {
+        function isBoolean(v) {
+          if (typeof v === 'string') { v = v.toLowerCase(); }
+          return ['','false','true',false, true, null].includes(v) || v === undefined;
+        }
         var result;
         try {
           var attr = colInfo.attribute;
           var type = attr && attr.get('type');
           var precision = attr && attr.get('precision');
           if( cellValue && cellValue.jsonBoundaryObject)
-            type = 'boundary';
+            type = DG.Attribute.TYPE_BOUNDARY;
 
-          if (SC.none(cellValue)) {
-            result = "";
-          } else if (cellValue instanceof Error) {
+          if (cellValue instanceof Error) {
             result = errorFormatter(cellValue);
-          } else if (type === 'qualitative') {
+          } else if (type === DG.Attribute.TYPE_QUALITATIVE) {
             result = qualBarFormatter(cellValue);
           } else if (cellValue instanceof DG.SimpleMap) {
             result = stringFormatter(cellValue.toString(), this, colInfo);
-          } else if (type === 'boundary') {
+          } else if (type === DG.Attribute.TYPE_BOUNDARY) {
             result = boundaryFormatter(cellValue);
+          } else if (type === DG.Attribute.TYPE_CHECKBOX
+              && isBoolean(cellValue)
+              && (rowItem instanceof DG.Case)) {
+            result = checkboxFormatter(cellValue, this, colInfo);
+          } else if (SC.none(cellValue)) {
+            result = "";
           } else if (typeof cellValue === 'boolean') {
             result = String(cellValue);
-          } else if (DG.isDate(cellValue) || type === 'date') {
+          } else if (DG.isDate(cellValue) || type === DG.Attribute.TYPE_DATE) {
             result = dateFormatter(cellValue, precision, type);
-          } else if (DG.isNumeric(cellValue) || type === 'numeric') {
+          } else if (DG.isNumeric(cellValue) || type === DG.Attribute.TYPE_NUMERIC) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
             result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
                 rowItem);
           } else if (typeof cellValue === 'string') {
             result = stringFormatter(cellValue, this, colInfo);
-          }
-          else {
+          } else {
             DG.log('caseTableAdapter.cellFormatter: unhandled value type ' +
                 'for %@: %@'.loc(colInfo.name, cellValue.toString()));
             result = '';
@@ -114,7 +121,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       dateFormatter = function (cellValue, precision, type) {
-        var date = DG.isDate(cellValue)? cellValue: DG.parseDate(cellValue, type === 'date');
+        var date = DG.isDate(cellValue)? cellValue: DG.parseDate(cellValue, type === DG.Attribute.TYPE_DATE);
         return  date?('<span class="dg-date">'+ DG.formatDate(date, precision) + '</span>'): '"' + cellValue + '"';
       },
 
@@ -197,6 +204,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,''));
         return "<span class='dg-color-table-cell' style= 'background:" + tColor.toString(
             'rgb') + "'></span>";
+      },
+
+      checkboxFormatter = function (cellValue, caseTableAdapter, colInfo) {
+        var value = (cellValue && cellValue.toLowerCase() !== 'false')? 'checked': '';
+        return '<span class="dg-checkbox-cell dg-wants-mouse dg-wants-touch"><input type="checkbox" title="' +
+            cellValue + '" ' + value + '/></span>';
       },
 
       tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
@@ -468,7 +481,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         var width;
         if (DG.isColorSpecString(attrValue)) {
           width = kDefaultColorWidth;
-        } else if (attr.type === 'qualitative'){
+        } else if (attr.type === DG.Attribute.TYPE_QUALITATIVE){
           width = kDefaultQualWidth;
         } else {
           valueString = cellFormatter(0, 0, attrValue, columnInfo, myCase);
