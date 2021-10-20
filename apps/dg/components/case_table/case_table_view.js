@@ -972,7 +972,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       var slickGrid = ev.data.slickGrid;
       var gridCoord = slickGrid.getCellFromEvent(ev);
-      DG.log('checkbox: ' + gridCoord.row + ', ' + gridCoord.cell);
+      // DG.log('checkbox: ' + gridCoord.row + ', ' + gridCoord.cell);
       var tCase = slickGrid.getDataItem(gridCoord.row);
       var tColumn = slickGrid.getColumns()[gridCoord.cell];
       var tAttrID = tColumn.id;

@@ -207,9 +207,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       checkboxFormatter = function (cellValue, caseTableAdapter, colInfo) {
-        var value = (cellValue && cellValue.toLowerCase() !== 'false')? 'checked': '';
+        cellValue = (typeof cellValue === 'string')? cellValue.toLowerCase(): cellValue;
+        var attr = colInfo.attribute;
+        var readOnly = (attr && (attr.formula || !attr.editable));
+        var valueString = (cellValue && cellValue !== 'false')? ' checked': '';
+        var disabledString = readOnly? ' disabled': '';
+
         return '<span class="dg-checkbox-cell dg-wants-mouse dg-wants-touch"><input type="checkbox" title="' +
-            cellValue + '" ' + value + '/></span>';
+            cellValue + '"' + valueString + disabledString + '/></span>';
       },
 
       tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
