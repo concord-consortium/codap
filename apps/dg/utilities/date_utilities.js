@@ -186,45 +186,30 @@ DG.isDateString = DG.DateUtilities.isDateString;
  * @param useShortFormat {boolean} default is false
  * @return {string}
  */
+
 DG.DateUtilities.formatDate = function(x, precision, useShortFormat) {
+  var formatPrecisions = {
+    'year': {year: 'numeric'},
+    'month': {year: 'numeric', month: 'numeric'},
+    'day': {year: 'numeric', month: 'numeric', day: 'numeric'},
+    'hour': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric'},
+    'minute': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'},
+    'second': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'},
+    'millisecond': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3}
+  };
+
+  var precisionFormat = formatPrecisions[precision] || formatPrecisions.minute;
+
   if (!(x && (DG.isDate(x) || DG.isDateString(x) || DG.MathUtilities.isNumeric(x)))) return;
-  // use dayjs.js for formatting to avoid browser bugs
-  /* global dayjs */
-  useShortFormat = SC.none(useShortFormat) ? false : useShortFormat;
-  var formatString = "DG.AttributeFormat.DatePrecision",
-      dt = (DG.isDate(x) || DG.isDateString(x)) ? dayjs(DG.parseDate(x)) : dayjs(Number(x) * 1000);
-  formatString += useShortFormat ? 'Short.' : '.';
-  if(precision == null) {
-    precision = DG.Attribute.DATE_PRECISION_MILLISECOND;
+
+  if ( DG.MathUtilities.isNumeric(x)) {
+    x = new Date(x*1000);
+  } else if (DG.isDateString(x)) {
+    x = new Date();
   }
-  switch (precision) {
-    case DG.Attribute.DATE_PRECISION_YEAR:
-      formatString += 'year';
-      break;
-    case DG.Attribute.DATE_PRECISION_MONTH:
-      formatString += 'month';
-      break;
-    case DG.Attribute.DATE_PRECISION_DAY:
-      formatString += 'day';
-      break;
-    case DG.Attribute.DATE_PRECISION_HOUR:
-      formatString += 'hour';
-      break;
-    case DG.Attribute.DATE_PRECISION_MINUTE:
-      formatString += 'minute';
-      break;
-    case DG.Attribute.DATE_PRECISION_SECOND:
-      formatString += 'second';
-      break;
-    case DG.Attribute.DATE_PRECISION_MILLISECOND:
-      formatString += 'millisecond';
-      break;
-    default:
-      formatString += 'millisecond';
-  }
-  var formatted_date = dt.format( formatString.loc());
-  formatted_date = formatted_date.replace(/( 00:00)?(:00)?\.000$/, '');
-  return formatted_date;
+
+  var locale = DG.get('currentLanguage');
+  return new Intl.DateTimeFormat(locale, precisionFormat).format(x);
 };
 DG.formatDate = DG.DateUtilities.formatDate;
 
