@@ -882,5 +882,8 @@ SC.stringsFor("nb", {
     "DG.Redo.graph.showMeasureLabels": "Redo showing measure labels",
     "DG.Undo.graph.hideMeasureLabels": "Undo hiding measure labels",
     "DG.Redo.graph.hideMeasureLabels": "Redo hiding measure labels",
-    "DG.Inspector.showLabels": "Show Measure Labels"
+    "DG.Inspector.showLabels": "Show Measure Labels",
+    "DG.Undo.caseTable.resizeOneColumn": "Undo resize column",
+    "DG.Redo.caseTable.resizeOneColumn": "Redo resize column",
+    "DG.CaseTable.attribute.type.checkbox": "checkbox"
 });
