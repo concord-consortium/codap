@@ -30,14 +30,14 @@
 */
 DG.ScrollView = SC.ScrollView.extend(
 /** @scope DG.ScrollView.prototype */ {
-  
+
   // Thumb should not overlap the arrow buttons
   horizontalScrollerView: SC.ScrollerView.extend({ buttonOverlap: 0 }),
   
   // Always leave room for resize-corner, even when opposite scroller isn't visible
   horizontalScrollerLayout: function() {
     var tRight = this.get('isVerticalScrollerVisible') ? 0 : this.getPath('horizontalScrollerView.scrollbarThickness');
-    return { left: 0, bottom: 0, right: tRight };
+    return { top: 0, left: 0, bottom: 0, right: tRight };
   }.property(),
   
   // Thumb should not overlap the arrow buttons
@@ -46,9 +46,11 @@ DG.ScrollView = SC.ScrollView.extend(
   // Always leave room for resize-corner, even when opposite scroller isn't visible
   verticalScrollerLayout: function() {
     var tBottom = this.get('isHorizontalScrollerVisible') ? 0 : this.getPath('verticalScrollerView.scrollbarThickness');
-    return { left: 0, bottom: tBottom, right: 0 };
+    return { top: 0, left: 0, bottom: tBottom, right: 0 };
   }.property(),
-  
+
+
+
   // Convenience function
   scrollToBottom: function() {
     this.scrollTo( null, this.get('maximumVerticalScrollOffset'));

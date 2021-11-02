@@ -207,7 +207,7 @@ DG.mainPage = SC.Page.design((function() {
       }) // rightButtons
     }), // topView
 
-    scrollView: SC.ScrollView.design({
+    scrollView: DG.ScrollView.design({
       layout: { top: kInfobarHeight + kToolbarHeight },
       horizontalAlign: SC.ALIGN_LEFT,
       verticalAlign: SC.ALIGN_TOP,
