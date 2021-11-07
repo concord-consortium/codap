@@ -300,7 +300,7 @@ DG.AttributeStats = SC.Object.extend((function () // closure
      @property{DG.Analysis.EAttributeType} True if all values are numbers or blank
      */
     attributeType: function (iKey, iValue) {
-      if (iValue !== undefined)
+      if (!SC.none(iValue))
         this._attributeType = iValue;
       if (!SC.none(this._attributeType))
         return this._attributeType;
