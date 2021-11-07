@@ -155,7 +155,7 @@ DG.TextComponentController = DG.ComponentController.extend(
       name: 'textComponent.edit',
       undoString: 'DG.Undo.textComponent.edit',
       redoString: 'DG.Redo.textComponent.edit',
-      log: "Edited text component: '%@'".fmt(value),
+      //log: "Edited text component: '%@'".fmt(value),
       _componentId: this.getPath('model.id'),
       _controller: function() {
         return DG.currDocumentController().componentControllersMap[this._componentId];
