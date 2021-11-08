@@ -33,8 +33,8 @@ DG.React.ready(function () {
             }
           },
 
-          showDragTip: function( iShow) {
-            if( iShow && !this.tipIsShowing) {
+          showDragTip: function (iShow) {
+            if (iShow && !this.tipIsShowing) {
               var tRect = this.cellRef.getBoundingClientRect(),
                   tData = this.props.dragStatus.dragObject.data,
                   tSourceKeyAttributeName = tData.attribute.get('name'),
@@ -45,16 +45,15 @@ DG.React.ready(function () {
                   tDestContextName = tDestKeyAttribute.getPath('collection.dataSet.dataContextRecord.name'),
                   tDestKeyAttributeName = tDestKeyAttribute.get('name'),
                   tTip = "DG.Collection.joinTip".loc(tSourceCollectionName,
-                          tSourceContextName, tDestCollectionName, tDestContextName,
-                          tSourceKeyAttributeName, tDestKeyAttributeName);
+                      tSourceContextName, tDestCollectionName, tDestContextName,
+                      tSourceKeyAttributeName, tDestKeyAttributeName);
               var tTipView = DG.mainPage.getPath('mainPane.tipView');
-              tTipView.invokeLater( function() {
+              tTipView.invokeLater(function () {
                 tTipView.show(
                     {x: tRect.left, y: tRect.top + tRect.height}, tTip);
               }, 10);
               this.tipIsShowing = true;
-            }
-            else if(!iShow && this.tipIsShowing) {
+            } else if (!iShow && this.tipIsShowing) {
               DG.mainPage.getPath('mainPane.tipView').hide();
               this.tipIsShowing = false;
             }
@@ -129,6 +128,14 @@ DG.React.ready(function () {
               clickHandler(this_.props.hideAttributeCallback);
             }
 
+            function deleteAttributeFormulaClickHandler() {
+              clickHandler(this_.props.deleteAttributeFormulaCallback);
+            }
+
+            function recoverAttributeFormulaClickHandler() {
+              clickHandler(this_.props.recoverAttributeFormulaCallback);
+            }
+
             function deleteAttributeClickHandler() {
               clickHandler(this_.props.deleteAttributeCallback);
             }
@@ -143,7 +150,11 @@ DG.React.ready(function () {
             }
 
             var renderStaticContents = function () {
-              var tMenuItems = [
+              var hasFormula = this.props.attribute.get('formula') !== '',
+                  hasDeletedFormula = this.props.attribute.hasDeletedFormula(),
+                  tDeleteFormulaLabel = hasDeletedFormula ? 'DG.TableController.headerMenuItems.recoverFormula'.loc() :
+                      'DG.TableController.headerMenuItems.deleteFormula'.loc(),
+                  tMenuItems = [
                     {
                       label: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
                       clickHandler: renameAttributeClickHandler
@@ -156,6 +167,12 @@ DG.React.ready(function () {
                       label: 'DG.TableController.headerMenuItems.editFormula'.loc(),
                       disabled: !this.props.attributeIsEditableCallback(),
                       clickHandler: editFormulaClickHandler
+                    },
+                    {
+                      label: tDeleteFormulaLabel,
+                      disabled: !this.props.attributeIsEditableCallback() || (!hasFormula && !hasDeletedFormula),
+                      clickHandler: hasDeletedFormula ? recoverAttributeFormulaClickHandler :
+                          deleteAttributeFormulaClickHandler
                     },
                     {
                       label: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
