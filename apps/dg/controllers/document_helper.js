@@ -590,6 +590,8 @@ DG.DocumentHelper = SC.Object.extend(
               }
             }
             else {
+              // Sometimes the controller no longer exits by the component does. This prevents an assert
+              DG.store.deregister(iCompStorage.id);
               iCompStorage.document = DG.activeDocument;
               iCompStorage.allowMoreThanOne = true; // defaults to false and not stored
               var tComponent = DG.Component.createComponent(iCompStorage);
