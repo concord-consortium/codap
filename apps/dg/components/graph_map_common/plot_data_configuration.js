@@ -31,9 +31,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
        @property   {DG.DataContext}
        */
       _dataContext: null,
-      dataContext: function( iKey, iValue) {
-        if( iValue) {
-          if( this._dataContext)
+      dataContext: function (iKey, iValue) {
+        if (iValue) {
+          if (this._dataContext)
             this._dataContext.removeObserver('changeCount', this, 'handleDataContextNotification');
           this._dataContext = iValue;
           this._dataContext.addObserver('changeCount', this, 'handleDataContextNotification');
@@ -41,9 +41,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
         return this._dataContext;
       }.property(),
 
-      handleDataContextNotification: function( iNotifier) {
-        iNotifier.get('newChanges' ).forEach( function( iChange) {
-          if( iChange.operation === 'moveAttribute')
+      handleDataContextNotification: function (iNotifier) {
+        iNotifier.get('newChanges').forEach(function (iChange) {
+          if (iChange.operation === 'moveAttribute')
             this.updateCaptionAttribute();
         }.bind(this));
       },
@@ -52,21 +52,26 @@ DG.PlotDataConfiguration = SC.Object.extend(
        * The 'caption' should always be the attribute leftmost in the child-most collection among those
        * belonging to the attributes that are plotted.
        */
-      updateCaptionAttribute: function() {
+      updateCaptionAttribute: function () {
         var tCollections = this.getPath('dataContext.collections'), // parent-most has index 0
-            tChildMostCollectionIndex = -1; // deliberately out of bounds
-        if( !tCollections)
+            tChildMostCollectionIndex = -1; // default to parent-most collection
+        if (!tCollections)
           return; // Not ready for this yet
-        ['x', 'y', 'legend', 'y2', 'top', 'right', 'polygon'].forEach(function( iKey) {
+        ['x', 'y', 'legend', 'y2', 'top', 'right', 'polygon'].forEach(function (iKey) {
           var tAttributeCollection = this.getPath(iKey + 'AttributeDescription.attribute.collection'),
               tFoundIndex = tAttributeCollection ? tCollections.indexOf(tAttributeCollection) : -1;
           tChildMostCollectionIndex = Math.max(tChildMostCollectionIndex, tFoundIndex);
         }.bind(this));
-        if( tChildMostCollectionIndex >= 0) {
-          var tAttributes = tCollections[tChildMostCollectionIndex].get('attrs'),
-              tLeftMostAttr = tAttributes.length >= 0 ? tAttributes[0] : null;
-          this.setPath('captionAttributeDescription.attribute', tLeftMostAttr);
-        }
+        if (tChildMostCollectionIndex === -1)
+          tChildMostCollectionIndex = tCollections.length - 1;
+        var tCases = this.get('cases'),
+            tCaptionAttributeDescription = this.get('captionAttributeDescription'),
+            tAttributes = tCollections[tChildMostCollectionIndex].get('attrs'),
+            tLeftMostAttrNotHidden = tAttributes.find(function (iAttr) {
+              return !iAttr.get('hidden');
+            });
+        tCaptionAttributeDescription.setCases(tCases);
+        tCaptionAttributeDescription.set('attribute', tLeftMostAttrNotHidden);
       },
 
       /**
@@ -76,12 +81,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
        */
       dataContextDidChange: function () {
 
-        var validateAttributes = function() {
+        var validateAttributes = function () {
           var tDataContext = this.get('dataContext'),
-              tDestroyedAttributeExists = this.get('attributesByPlace').some( function( iAttrDescs) {
+              tDestroyedAttributeExists = this.get('attributesByPlace').some(function (iAttrDescs) {
                 return iAttrDescs && iAttrDescs[0] && iAttrDescs[0].getPath('attribute.isDestroyed');
               });
-          if( tDestroyedAttributeExists) {
+          if (tDestroyedAttributeExists) {
             ['x', 'y', 'legend', 'y2', 'top', 'right', 'polygon'].forEach(function (iKey) {
               var tKey = iKey + 'AttributeDescription',
                   tAttributeDescription = this.get(tKey),
@@ -381,10 +386,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
        *
        * @param iPrefixes {[String]}
        */
-      noAttributesFor: function( iPrefixes) {
-        return iPrefixes.every( function( iPrefix) {
-          return this.getPath( iPrefix + 'AttributeDescription.noAttributes');
-        }.bind( this));
+      noAttributesFor: function (iPrefixes) {
+        return iPrefixes.every(function (iPrefix) {
+          return this.getPath(iPrefix + 'AttributeDescription.noAttributes');
+        }.bind(this));
       },
 
       /**
@@ -683,9 +688,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
                   tMapOriginalToSorted = DG.ArrayUtils.stableSort(tMapOriginalToSorted, function (iIndex1, iIndex2) {
                     var tValue1 = tResult[iIndex1].getStrValue(tLegendID),
                         tValue2 = tResult[iIndex2].getStrValue(tLegendID);
-                    if( SC.empty( tValue1))
+                    if (SC.empty(tValue1))
                       return 1;
-                    else if(SC.empty( tValue2))
+                    else if (SC.empty(tValue2))
                       return -1;
                     else
                       return tCategoryMap.__order.indexOf(tValue2) - tCategoryMap.__order.indexOf(tValue1);
@@ -740,8 +745,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
       },
 
       _displayOnlySelected: false,
-      displayOnlySelected: function(iKey, iValue) {
-        if( !SC.none(iValue)) {
+      displayOnlySelected: function (iKey, iValue) {
+        if (!SC.none(iValue)) {
           this.invalidateCaches();
           this.notifyPropertyChange('hiddenCasesWillChange');
           this._displayOnlySelected = iValue;
@@ -762,7 +767,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
             });
       }.property('xCollectionClient', 'yCollectionClient', 'y2CollectionClient', 'legendCollectionClient', 'hiddenCases'),
 
-      selectionDidChange: function() {
+      selectionDidChange: function () {
         this.notifyPropertyChange('selection');
       }.observes('collectionClient.casesController.selection'),
 
@@ -863,8 +868,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
             }.bind(this));
           }
           tCases = this._casesCache;
-        }
-        else {
+        } else {
           this._casesCache = null;
           tCases = iCases || this.get('cases');
         }
@@ -950,7 +954,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
        */
       atLeastOneFormula: function () {
         var tProperties = ['xAttributeDescription', 'yAttributeDescription', 'legendAttributeDescription',
-        'y2AttributeDescription'];
+          'y2AttributeDescription'];
         return tProperties.some(function (iProperty) {
           return this.getPath(iProperty + '.hasFormula');
         }.bind(this));
@@ -987,7 +991,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
        * By using 'set' we trigger notification for observers.
        */
       showAllCases: function () {
-        if( this.get('hiddenCases').length > 0)
+        if (this.get('hiddenCases').length > 0)
           this.set('hiddenCases', []);
       },
 
@@ -1033,27 +1037,27 @@ DG.PlotDataConfiguration = SC.Object.extend(
        * @param iAttribute {DG.Attribute }
        * @return {boolean}
        */
-      attributeIsNominal: function( iAttribute) {
+      attributeIsNominal: function (iAttribute) {
 
         function getCollectionClient(iContext, iCollection) {
           var collectionID = iCollection && iCollection.get('id');
           return iContext && !SC.none(collectionID) && iContext.getCollectionByID(collectionID);
         }
 
-        if(!this._tempAttrDescription) {
+        if (!this._tempAttrDescription) {
           this._tempAttrDescription = DG.AttributePlacementDescription.create();
         }
         var tDescription = this._tempAttrDescription;
 
-        if( tDescription.get('attribute') !== iAttribute) {
-          var tCollectionClient = getCollectionClient( this.get('dataContext'), iAttribute.get('collection'));
+        if (tDescription.get('attribute') !== iAttribute) {
+          var tCollectionClient = getCollectionClient(this.get('dataContext'), iAttribute.get('collection'));
           tDescription.removeAllAttributes();
           tDescription.beginPropertyChanges();
-            tDescription.set('collectionClient', (tCollectionClient) || null);
-            this._casesCache = null;  // because setting a new attribute and collection client can require recomputation of cases
-            tDescription.setCases(this.get('cases'));
-            tDescription.addAttribute(iAttribute);
-            tDescription.invalidateCaches(this.get('cases'));  // So that notification order won't be important
+          tDescription.set('collectionClient', (tCollectionClient) || null);
+          this._casesCache = null;  // because setting a new attribute and collection client can require recomputation of cases
+          tDescription.setCases(this.get('cases'));
+          tDescription.addAttribute(iAttribute);
+          tDescription.invalidateCaches(this.get('cases'));  // So that notification order won't be important
           tDescription.endPropertyChanges();
         }
         return tDescription.get('isCategorical');

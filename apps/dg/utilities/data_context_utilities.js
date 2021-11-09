@@ -22,15 +22,15 @@
 
 DG.DataContextUtilities = {
 
-  isTopLevelReorgPrevented: function(iDataContext) {
+  isTopLevelReorgPrevented: function (iDataContext) {
     var pluginController = iDataContext.get('managingController');
     return !!pluginController && pluginController.get('preventTopLevelReorg');
   },
 
-  getNonTopLevelAttributeCount: function(iDataContext) {
+  getNonTopLevelAttributeCount: function (iDataContext) {
     var attrCount = 0;
     var collections = iDataContext.get('collections');
-    collections.forEach(function(collection, index) {
+    collections.forEach(function (collection, index) {
       if (index > 0) {
         attrCount += collection.getPath('attrs.length');
       }
@@ -38,34 +38,34 @@ DG.DataContextUtilities = {
     return attrCount;
   },
 
-  isAttributeDeletable: function(iDataContext, iAttribute) {
+  isAttributeDeletable: function (iDataContext, iAttribute) {
     if (!iAttribute.get('deleteable')) return false;
 
     var pluginController = iDataContext.get('managingController');
     var pluginPreventsTopLevelReorg = !!pluginController &&
-                                            pluginController.get('preventTopLevelReorg');
+        pluginController.get('preventTopLevelReorg');
     var isTopLevelAttribute = !iAttribute.getPath('collection.parent');
     var nonTopLevelAttributeCount = DG.DataContextUtilities.getNonTopLevelAttributeCount(iDataContext);
     var isLastNonTopLevelAttribute = !isTopLevelAttribute && (nonTopLevelAttributeCount === 1);
     if (pluginPreventsTopLevelReorg && isLastNonTopLevelAttribute) return false;
 
     var pluginPreventsAttributeDeletion = !!pluginController &&
-                                            pluginController.get('preventAttributeDeletion');
+        pluginController.get('preventAttributeDeletion');
     var pluginAllowsEmptyAttributeDeletion = !!pluginController &&
-                                              pluginController.get('allowEmptyAttributeDeletion');
+        pluginController.get('allowEmptyAttributeDeletion');
     var hasAttributeFormula = iAttribute.get('hasFormula');
     var hasAttributeValues = !hasAttributeFormula && iAttribute.get('hasValues');
     var isEmptyAttribute = !hasAttributeFormula && !hasAttributeValues;
     return !pluginPreventsAttributeDeletion ||
-            (pluginAllowsEmptyAttributeDeletion && isEmptyAttribute);
+        (pluginAllowsEmptyAttributeDeletion && isEmptyAttribute);
   },
 
   /**
    * Returns false if the owning plugin disables editing of the case, true otherwise.
-   * @param {DG.DataContext} iDataContext 
-   * @param {string} itemID 
+   * @param {DG.DataContext} iDataContext
+   * @param {string} itemID
    */
-  isCaseEditable: function(iDataContext, iCase) {
+  isCaseEditable: function (iDataContext, iCase) {
     // we don't disable rows that don't correspond to cases, e.g. proto-case rows
     if (!iCase) return true;
     // is the plugin controlling editability?
@@ -107,14 +107,14 @@ DG.DataContextUtilities = {
    *                        without changing the collection hierarchy.
    * @returns {Boolean}   Whether the drop should be accepted
    */
-  canAcceptAttributeDrop: function(iDataContext, iAttribute, isTopLevelDrop, allowTopLevelAttrs) {
+  canAcceptAttributeDrop: function (iDataContext, iAttribute, isTopLevelDrop, allowTopLevelAttrs) {
     // check whether DataContext prevents reorganization
     if (iDataContext.get('hasGameInteractive') || iDataContext.get('preventReorg'))
       return false;
 
     // we can't reorganize drops of attributes from another DataContext
     var ownsThisAttribute = iAttribute &&
-                              !SC.none(iDataContext.getCollectionByID(iAttribute.collection.id));
+        !SC.none(iDataContext.getCollectionByID(iAttribute.collection.id));
     if (!ownsThisAttribute) return false;
 
     // check whether plugin prevents all reorganization
@@ -124,7 +124,7 @@ DG.DataContextUtilities = {
 
     // check whether plugin prevents top-level reorganization
     var pluginPreventsTopLevelReorg = pluginController &&
-                                        pluginController.get('preventTopLevelReorg');
+        pluginController.get('preventTopLevelReorg');
     var isTopLevelDragAttr = iAttribute && !iAttribute.getPath('collection.parent');
     if (pluginPreventsTopLevelReorg) {
       if (isTopLevelDragAttr && isTopLevelDrop && allowTopLevelAttrs)
@@ -259,49 +259,49 @@ DG.DataContextUtilities = {
    * @param iDataContext {DG.DataContext}
    * @param iAttrID {number}
    */
-  hideAttribute: function( iDataContext, iAttrID) {
-    var tAttrRef = iDataContext && iDataContext.getAttrRefByID( iAttrID),
+  hideAttribute: function (iDataContext, iAttrID) {
+    var tAttrRef = iDataContext && iDataContext.getAttrRefByID(iAttrID),
         tAttrName = tAttrRef.attribute.get('name'),
         tCollectionClient = tAttrRef.collection,
         tCollection = tCollectionClient.get('collection');
 
-      DG.UndoHistory.execute(DG.Command.create({
-        name: "caseTable.hideAttribute",
-        undoString: 'DG.Undo.caseTable.hideAttribute',
-        redoString: 'DG.Redo.caseTable.hideAttribute',
-        log: 'Hide attribute "%@"'.fmt(tAttrName),
-        _beforeStorage: {
-          changeFlag: iDataContext.get('flexibleGroupingChangeFlag'),
-          fromCollectionID: tCollection.get('id'),
-          fromCollectionName: tCollection.get('name'),
-          fromCollectionParent: tCollection.get('parent'),
-          fromCollectionChild: tCollection.get('children')[0]
-        },
-        _afterStorage: {},
-        execute: function() {
-          var change;
-          change = {
-            operation: 'hideAttributes',
-            collection: tCollectionClient,
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "caseTable.hideAttribute",
+      undoString: 'DG.Undo.caseTable.hideAttribute',
+      redoString: 'DG.Redo.caseTable.hideAttribute',
+      log: 'Hide attribute "%@"'.fmt(tAttrName),
+      _beforeStorage: {
+        changeFlag: iDataContext.get('flexibleGroupingChangeFlag'),
+        fromCollectionID: tCollection.get('id'),
+        fromCollectionName: tCollection.get('name'),
+        fromCollectionParent: tCollection.get('parent'),
+        fromCollectionChild: tCollection.get('children')[0]
+      },
+      _afterStorage: {},
+      execute: function () {
+        var change;
+        change = {
+          operation: 'hideAttributes',
+          collection: tCollectionClient,
+          attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
+        };
+        iDataContext.applyChange(change);
+        iDataContext.set('flexibleGroupingChangeFlag', true);
+      },
+      undo: function () {
+        var tChange;
+        if (iDataContext.getCollectionByID(tCollection.get('id'))) {
+          tChange = {
+            operation: 'unhideAttributes',
             attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
           };
-          iDataContext.applyChange(change);
-          iDataContext.set('flexibleGroupingChangeFlag', true);
-        },
-        undo: function() {
-          var tChange;
-          if (iDataContext.getCollectionByID(tCollection.get('id'))) {
-            tChange = {
-              operation: 'unhideAttributes',
-              attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
-            };
-            iDataContext.applyChange(tChange);
-            iDataContext.set('flexibleGroupingChangeFlag',
-                this._beforeStorage.changeFlag);
-            this._afterStorage.collection = tCollectionClient;
-          }
+          iDataContext.applyChange(tChange);
+          iDataContext.set('flexibleGroupingChangeFlag',
+              this._beforeStorage.changeFlag);
+          this._afterStorage.collection = tCollectionClient;
         }
-      }));
+      }
+    }));
 
   },
 
@@ -310,31 +310,31 @@ DG.DataContextUtilities = {
    * @param iDataContext {DG.DataContext}
    * @param iAttrID {number}
    */
-  showAllHiddenAttributes: function( iDataContext) {
-    var tHiddenAttrs = iDataContext.getHiddenAttributes().map( function (iAttr) {
-          return { id: iAttr.get('id'), attribute: iAttr };
+  showAllHiddenAttributes: function (iDataContext) {
+    var tHiddenAttrs = iDataContext.getHiddenAttributes().map(function (iAttr) {
+          return {id: iAttr.get('id'), attribute: iAttr};
         }),
         tChange = {
           attrs: tHiddenAttrs
         };
 
-      DG.UndoHistory.execute(DG.Command.create({
-        name: "caseTable.showAllHiddenAttributes",
-        undoString: 'DG.Undo.caseTable.showAllHiddenAttributes',
-        redoString: 'DG.Redo.caseTable.showAllHiddenAttributes',
-        log: 'Show all hidden attributes',
-        execute: function() {
-          if( tHiddenAttrs.length > 0) {
-            tChange.operation = 'unhideAttributes';
-            iDataContext.applyChange( tChange);
-          }
-          iDataContext.set('flexibleGroupingChangeFlag', true);
-        },
-        undo: function() {
-          tChange.operation = 'hideAttributes';
-          iDataContext.applyChange( tChange);
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "caseTable.showAllHiddenAttributes",
+      undoString: 'DG.Undo.caseTable.showAllHiddenAttributes',
+      redoString: 'DG.Redo.caseTable.showAllHiddenAttributes',
+      log: 'Show all hidden attributes',
+      execute: function () {
+        if (tHiddenAttrs.length > 0) {
+          tChange.operation = 'unhideAttributes';
+          iDataContext.applyChange(tChange);
         }
-      }));
+        iDataContext.set('flexibleGroupingChangeFlag', true);
+      },
+      undo: function () {
+        tChange.operation = 'hideAttributes';
+        iDataContext.applyChange(tChange);
+      }
+    }));
 
   },
 
@@ -342,13 +342,13 @@ DG.DataContextUtilities = {
    * Delete an attribute. Confirmation will be requested if Undo is not enabled.
    *
    */
-  deleteAttribute: function( iDataContext, iAttrID) {
-    var tAttrRef = iDataContext && iDataContext.getAttrRefByID( iAttrID),
+  deleteAttribute: function (iDataContext, iAttrID) {
+    var tAttrRef = iDataContext && iDataContext.getAttrRefByID(iAttrID),
         tAttrName = tAttrRef.attribute.get('name'),
         tCollectionClient = tAttrRef.collection,
         tCollection = tCollectionClient.get('collection');
 
-    var doDeleteAttribute = function() {
+    var doDeleteAttribute = function () {
       DG.UndoHistory.execute(DG.Command.create({
         name: "caseTable.deleteAttribute",
         undoString: 'DG.Undo.caseTable.deleteAttribute',
@@ -362,17 +362,17 @@ DG.DataContextUtilities = {
           fromCollectionChild: tCollection.get('children')[0]
         },
         _afterStorage: {},
-        execute: function() {
+        execute: function () {
           var response;
           if ((tCollectionClient.get('attrsController').get('length') === 1) &&
               (iDataContext.get('collections').length !== 1) &&
               (tCollectionClient.getAttributeByID(iAttrID))) {
-            response = iDataContext.applyChange( {
+            response = iDataContext.applyChange({
               operation: 'deleteCollection', collection: tCollectionClient
             });
             this._afterStorage.deletedItems = response && response.deletedItems;
           } else {
-            iDataContext.applyChange( {
+            iDataContext.applyChange({
               operation: 'deleteAttributes',
               collection: tCollectionClient,
               attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
@@ -380,7 +380,7 @@ DG.DataContextUtilities = {
           }
           iDataContext.set('flexibleGroupingChangeFlag', true);
         },
-        undo: function() {
+        undo: function () {
           var tChange;
           var tStatus;
           if (iDataContext.getCollectionByID(tCollection.get('id'))) {
@@ -402,7 +402,7 @@ DG.DataContextUtilities = {
                 id: this._beforeStorage.fromCollectionID,
                 name: this._beforeStorage.fromCollectionName,
                 parent: this._beforeStorage.fromCollectionParent,
-                children: this._beforeStorage.fromCollectionChild?[this._beforeStorage.fromCollectionChild]:[]
+                children: this._beforeStorage.fromCollectionChild ? [this._beforeStorage.fromCollectionChild] : []
               },
               attributes: [tAttrRef.attribute]
             };
@@ -420,7 +420,7 @@ DG.DataContextUtilities = {
                 this._beforeStorage.changeFlag);
           }
         },
-        redo: function() {
+        redo: function () {
           var change;
           var tCollectionClient1 = iDataContext.getCollectionByID(this._afterStorage.collection.get('id'));
           if ((tCollectionClient1.get('attrsController').get('length') === 1) &&
@@ -434,10 +434,10 @@ DG.DataContextUtilities = {
             change = {
               operation: 'deleteAttributes',
               collection: tCollectionClient1,
-              attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
+              attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
             };
           }
-          iDataContext.applyChange( change);
+          iDataContext.applyChange(change);
           iDataContext.set('flexibleGroupingChangeFlag', true);
         }
       }));
@@ -466,30 +466,162 @@ DG.DataContextUtilities = {
   },
 
   /**
+   * Delete attribute's formula keeping values
+   *
+   */
+  deleteAttributeFormula: function (iDataContext, iAttrID, iUpdateFunc) {
+    var tRef = iDataContext && iDataContext.getAttrRefByID(iAttrID),
+        tAttrName = tRef.attribute.get('name'),
+        tCollection = tRef && iDataContext.getCollectionForAttribute(tRef.attribute),
+        tFormula = '',
+        tPrevFormula = tRef && tRef.attribute.get('formula');
+
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "caseTable.editAttributeFormula",
+      undoString: 'DG.Undo.caseTable.editAttributeFormula',
+      redoString: 'DG.Redo.caseTable.editAttributeFormula',
+      execute: function () {
+        var tChange = {
+              operation: 'createAttributes',
+              collection: tCollection,
+              attrPropsArray: [{ name: tAttrName, formula: tFormula }]
+            },
+            tResult = iDataContext && iDataContext.applyChange( tChange);
+        if( tResult.success) {
+          tRef.attribute.set('formula', tFormula);
+          tRef.attribute.set('deletedFormula', tPrevFormula);
+          iUpdateFunc && iUpdateFunc();
+
+          var action = "attributeEditFormula";
+          this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+              action, tAttrName, tCollection.get('name'), tFormula);
+        } else {
+          this.set('causedChange', false);
+        }
+      },
+      undo: function () {
+        var tChange, tResult, action; // eslint-disable-line no-unused-vars
+        tChange = {
+          operation: 'createAttributes',
+          collection: tCollection,
+          attrPropsArray: [{ name: tAttrName, formula: tPrevFormula }]
+        };
+
+        tResult = iDataContext && iDataContext.applyChange( tChange);
+        if( tResult.success) {
+          tRef.attribute.set('formula', tPrevFormula);
+          tRef.attribute.set('deletedFormula', tFormula);
+          iUpdateFunc && iUpdateFunc();
+
+          action = "attributeEditFormula";
+          this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+              action, tAttrName, tCollection.get('name'), tPrevFormula);
+        } else {
+          this.set('causedChange', false);
+        }
+      },
+      redo: function () {
+        this.execute();
+      }
+    }));
+  },
+
+  /**
+   * Recover attribute's formula
+   *
+   */
+  recoverAttributeFormula: function (iDataContext, iAttrID, iUpdateFunc) {
+    var tRef = iDataContext && iDataContext.getAttrRefByID(iAttrID),
+        tCollection = tRef && iDataContext.getCollectionForAttribute(tRef.attribute),
+        tAttrName = tRef && tRef.attribute.get('name'),
+        tFormula = tRef && tRef.attribute.get('deletedFormula'),
+        tPrevFormula = '';
+
+    DG.assert( tRef && tAttrName, "recoverDeletedFormula() is missing the attribute reference or attribute name" );
+
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "caseTable.editAttributeFormula",
+      undoString: 'DG.Undo.caseTable.editAttributeFormula',
+      redoString: 'DG.Redo.caseTable.editAttributeFormula',
+      execute: function() {
+        var tChange = {
+              operation: 'createAttributes',
+              collection: tCollection,
+              attrPropsArray: [{ name: tAttrName, formula: tFormula }]
+            },
+            tResult = iDataContext && iDataContext.applyChange( tChange);
+        if( tResult.success) {
+          tRef.attribute.set('formula', tFormula);
+          tRef.attribute.set('deletedFormula', tPrevFormula);
+          iUpdateFunc && iUpdateFunc();
+
+          var action = "attributeEditFormula";
+          this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+              action, tAttrName, tCollection.get('name'), tFormula);
+        } else {
+          this.set('causedChange', false);
+        }
+      },
+      undo: function() {
+        var tChange, tResult, action; // eslint-disable-line no-unused-vars
+        tChange = {
+          operation: 'createAttributes',
+          collection: tCollection,
+          attrPropsArray: [{ name: tAttrName, formula: tPrevFormula }]
+        };
+
+        tResult = iDataContext && iDataContext.applyChange( tChange);
+        if( tResult.success) {
+          tRef.attribute.set('formula', tPrevFormula);
+          tRef.attribute.set('deletedFormula', tFormula);
+          iUpdateFunc && iUpdateFunc();
+
+          action = "attributeEditFormula";
+          this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+              action, tAttrName, tCollection.get('name'), tPrevFormula);
+        } else {
+          this.set('causedChange', false);
+        }
+      },
+      redo: function() {
+        this.execute();
+      }
+    }));
+  },
+
+  /**
    *
    * @param iContext {DG.DataContext}
    * @param iAttrID {Number}
    * @return {Boolean}
    */
-  attributeCanBeRandomized: function( iContext, iAttrID) {
+  attributeCanBeRandomized: function (iContext, iAttrID) {
     var depMgr = iContext && iContext.get('dependencyMgr'),
         dependency = depMgr &&
-            depMgr.findDependency({ type: DG.DEP_TYPE_ATTRIBUTE,
-                  id: iAttrID },
-                { type: DG.DEP_TYPE_SPECIAL,
-                  id: 'random' });
+            depMgr.findDependency({
+                  type: DG.DEP_TYPE_ATTRIBUTE,
+                  id: iAttrID
+                },
+                {
+                  type: DG.DEP_TYPE_SPECIAL,
+                  id: 'random'
+                });
     return dependency;
   },
 
   /**
    * Randomize a single attribute
    */
-  randomizeAttribute: function(iDataContext, iAttrID) {
+  randomizeAttribute: function (iDataContext, iAttrID) {
     if (iDataContext && iAttrID) {
-      iDataContext.invalidateDependencyAndNotify({ type: DG.DEP_TYPE_ATTRIBUTE,
-            id: iAttrID },
-          { type: DG.DEP_TYPE_SPECIAL,
-            id: 'random' },
+      iDataContext.invalidateDependencyAndNotify({
+            type: DG.DEP_TYPE_ATTRIBUTE,
+            id: iAttrID
+          },
+          {
+            type: DG.DEP_TYPE_SPECIAL,
+            id: 'random'
+          },
           true /* force aggregate */);
     }
   },
@@ -583,30 +715,33 @@ DG.DataContextUtilities = {
   /**
    Creates a new case with the specified values.
    */
-  createCaseUndoable: function(iContext, props) {
+  createCaseUndoable: function (iContext, props) {
     var contextName = iContext.get('name');
     if (!props.collection || !props.attrIDs) return;
 
     var createResult;
     var isRegenerated = false;
+
     function doCreateCase() {
       var result = iContext.applyChange({
         operation: 'createCases',
         attributeIDs: props.attrIDs,
         collection: props.collection,
-        properties: { parent: props.parent },
-        values: [ props.values ]
+        properties: {parent: props.parent},
+        values: [props.values]
       });
       if (result.success && props.beforeCaseID) {
         var dataSet = iContext.get('dataSet');
         var beforeCase = iContext.getCaseByID(props.beforeCaseID);
         var beforeItem = beforeCase && beforeCase.item;
         var beforeItemIndex = dataSet && beforeItem &&
-                                dataSet.getDataItemClientIndexByID(beforeItem.id);
+            dataSet.getDataItemClientIndexByID(beforeItem.id);
         if (result.itemIDs && dataSet && (beforeItemIndex != null)) {
           iContext.applyChange({
             operation: 'moveItems',
-            items: result.itemIDs.map(function(id) { return dataSet.getDataItemByID(id); }),
+            items: result.itemIDs.map(function (id) {
+              return dataSet.getDataItemByID(id);
+            }),
             itemOrder: beforeItemIndex
           });
           isRegenerated = true;
@@ -619,7 +754,7 @@ DG.DataContextUtilities = {
     }
 
     function doDeleteCase(caseIDs) {
-      var cases = caseIDs.map(function(id) {
+      var cases = caseIDs.map(function (id) {
         return DG.store.find('DG.Case', id);
       });
       return iContext.applyChange({
@@ -633,14 +768,14 @@ DG.DataContextUtilities = {
       undoString: 'DG.Undo.caseTable.createNewCase',
       redoString: 'DG.Redo.caseTable.createNewCase',
       log: "create new case",
-      execute: function() {
+      execute: function () {
         createResult = doCreateCase();
       },
-      undo: function() {
+      undo: function () {
         if (createResult && createResult.caseIDs)
           doDeleteCase(createResult.caseIDs);
       },
-      redo: function() {
+      redo: function () {
         iContext = DG.currDocumentController().getContextByName(contextName);
         if (iContext)
           createResult = doCreateCase();
@@ -650,7 +785,7 @@ DG.DataContextUtilities = {
     DG.UndoHistory.execute(cmd);
   },
 
-  stashAttributeValue: function( iContext, iCase, iAttr, iValue) {
+  stashAttributeValue: function (iContext, iCase, iAttr, iValue) {
     var tAttrID = iAttr.get('id'),
         originalValue = iCase.getStrValue(tAttrID),
         newValue = DG.DataUtilities.canonicalizeInputValue(iValue),
@@ -699,7 +834,7 @@ DG.DataContextUtilities = {
     DG.UndoHistory.execute(cmd);
   },
 
-  newAttribute: function( iDataContext, iCollection, iPosition, iEditorViewOrCallback, iAutoEdit) {
+  newAttribute: function (iDataContext, iCollection, iPosition, iEditorViewOrCallback, iAutoEdit) {
     if (iEditorViewOrCallback) {
       DG.globalEditorLock.commitCurrentEdit();
     }
@@ -710,64 +845,63 @@ DG.DataContextUtilities = {
       name: "caseTable.createAttribute",
       undoString: 'DG.Undo.caseTable.createAttribute',
       redoString: 'DG.Redo.caseTable.createAttribute',
-      execute: function(isRedo) {
-        SC.run( function() {
+      execute: function (isRedo) {
+        SC.run(function () {
           tAttrRef = iDataContext.getAttrRefByName(tAttrName);
           var change = {
                 operation: 'createAttributes',
                 collection: iCollection,
-                attrPropsArray: [{ name: tAttrName }],
+                attrPropsArray: [{name: tAttrName}],
                 position: iPosition
               },
               result = iDataContext && iDataContext.applyChange(change);
-          if(!isRedo && result.success) {
+          if (!isRedo && result.success) {
             this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
                 'attributeCreate', tAttrName, iCollection.get('name'));
             // simple callback function
             if (typeof iEditorViewOrCallback === "function") {
               iEditorViewOrCallback(tAttrName);
-            }
-            else if (iAutoEdit && iEditorViewOrCallback) {
-              iEditorViewOrCallback.invokeLater(function() {
+            } else if (iAutoEdit && iEditorViewOrCallback) {
+              iEditorViewOrCallback.invokeLater(function () {
                 iEditorViewOrCallback.beginEditAttributeName(tAttrName);
               });
             }
           } else {
             this.set('causedChange', false);
           }
-        }.bind( this));
+        }.bind(this));
       },
-      undo: function() {
+      undo: function () {
         tAttrRef = iDataContext.getAttrRefByName(tAttrName);
         var attr = tAttrRef.attribute,
             change = {
               operation: 'deleteAttributes',
               collection: iCollection,
-              attrs: [{ id: attr.get('id'), attribute: attr }]
+              attrs: [{id: attr.get('id'), attribute: attr}]
             },
-            result = iDataContext && iDataContext.applyChange( change);
-        if(!result.success) {
+            result = iDataContext && iDataContext.applyChange(change);
+        if (!result.success) {
           this.set('causedChange', false);
         }
       },
-      redo: function() {
+      redo: function () {
         this.execute(true);
       }
     }));
   },
 
-  joinSourceToDestCollection: function( iSourceKeyAttribute, iDestContext, iDestCollection, iDestKeyAttribute){
+  joinSourceToDestCollection: function (iSourceKeyAttribute, iDestContext, iDestCollection, iDestKeyAttribute) {
 
-    function forEachJoinableSourceAttribute( iCallback) {
+    function forEachJoinableSourceAttribute(iCallback) {
       tSourceAttributes.forEach(function (iForeignAttribute) {
         if (iForeignAttribute !== iSourceKeyAttribute && !iForeignAttribute.get('hidden')) {
           var tAttributeName = iForeignAttribute.get('name'),
               tIndex = 1;
-          while( tExistingDestAttributeNames.indexOf( tAttributeName) >= 0) {
+          while (tExistingDestAttributeNames.indexOf(tAttributeName) >= 0) {
             tAttributeName = iForeignAttribute.get('name') + '_' + tIndex;
             tIndex++;
           }
-          iCallback( iForeignAttribute, tAttributeName);
+          iCallback(iForeignAttribute, tAttributeName);
         }
       });
     }
@@ -777,10 +911,10 @@ DG.DataContextUtilities = {
         tSourceDatasetName = tSourceCollection && tSourceCollection.getPath('context.title'),
         tSourceAttributes = tSourceCollection && tSourceCollection.get('attrs'),
         tDestKeyValueAttributeName = iDestKeyAttribute && iDestKeyAttribute.get('name'),
-        tExistingDestAttributeNames = iDestCollection.getPath('collection.attrs').map( function( iAttr) {
+        tExistingDestAttributeNames = iDestCollection.getPath('collection.attrs').map(function (iAttr) {
           return iAttr.get('name');
         });
-    if( tSourceAttributes && tSourceAttributeName && tSourceDatasetName && iDestCollection &&
+    if (tSourceAttributes && tSourceAttributeName && tSourceDatasetName && iDestCollection &&
         tDestKeyValueAttributeName && iDestContext) {
       DG.UndoHistory.execute(DG.Command.create({
         name: "dataContext.join",
@@ -813,10 +947,10 @@ DG.DataContextUtilities = {
             attrPropsArray: tAttrSpecs
           });
         },
-        undo: function() {
+        undo: function () {
           var tAttributes = [];
           forEachJoinableSourceAttribute(function (iForeignAttribute, iNewAttrName) {
-            tAttributes.push( iDestCollection.getAttributeByName( iNewAttrName));
+            tAttributes.push(iDestCollection.getAttributeByName(iNewAttrName));
           });
           iDestContext.applyChange({
             operation: 'deleteAttributes',

@@ -516,6 +516,14 @@ DG.React.ready(function () {
                   DG.DataContextUtilities.deleteAttribute(iContext, iAttr.get('id'));
                 }.bind(this),
 
+                deleteAttributeFormula = function () {
+                  DG.DataContextUtilities.deleteAttributeFormula(iContext, iAttr.get('id'));
+                }.bind(this),
+
+                recoverAttributeFormula = function () {
+                  DG.DataContextUtilities.recoverAttributeFormula(iContext, iAttr.get('id'));
+                }.bind(this),
+
                 formulaIsEditable = function () {
                   return iAttr.get('editable');
                 },
@@ -598,6 +606,8 @@ DG.React.ready(function () {
                   attributeCanBeHiddenCallback: attributeCanBeHidden,
                   hideAttributeCallback: hideAttribute,
                   deleteAttributeCallback: deleteAttribute,
+                  deleteAttributeFormulaCallback: deleteAttributeFormula,
+                  recoverAttributeFormulaCallback: recoverAttributeFormula,
                   attributeIsEditableCallback: formulaIsEditable,
                   attributeCanBeRandomizedCallback: attributeCanBeRandomized,
                   rerandomizeCallback: rerandomizeAttribute,
