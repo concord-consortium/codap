@@ -19,6 +19,7 @@
 sc_require('controllers/document_helper');
 sc_require('controllers/document_controller');
 sc_require('utilities/menu_pane');
+sc_require('utilities/clipboard_utilities');
 
 /** @class
 
@@ -56,7 +57,7 @@ DG.appController = SC.Object.create((function () // closure
      * Show the case table or case card for a data context.
      * @param iDataContext
      */
-    showCaseDisplayFor: function(iDataContext) {
+    showCaseDisplayFor: function(iMenuItem) {
       function removeCaseDisplay(componentID) {
         var controller = documentController.componentControllersMap[componentID];
         var view = controller.get('view');
@@ -71,12 +72,13 @@ DG.appController = SC.Object.create((function () // closure
       // is there a data context? if so, is there a case table for it? If so,
       // select it. If not create it. If there is no data context, create a
       // new one.
+      var dataContext = iMenuItem.dataContext;
+      var action = iMenuItem.dgAction;
       var documentController = DG.currDocumentController();
-      var dataContext = iDataContext;
       var foundView;
       var caseTable;
       // If no data context, we create a new one.
-      if (SC.none(dataContext)) {
+      if (SC.none(dataContext) && action === 'openCaseTableForNewContext') {
         DG.UndoHistory.execute(DG.Command.create({
           name: 'dataContext.create',
           undoString: 'DG.Undo.dataContext.create',
@@ -86,10 +88,10 @@ DG.appController = SC.Object.create((function () // closure
           execute: function () {
             dataContext = DG.appController.createMinimalDataContext(
                 'DG.AppController.createDataSet.initialAttribute'.loc(), /*'AttributeName'*/
-                'DG.AppController.createDataSet.name'.loc() /* 'New Dataset' */
-            );
+                'DG.AppController.createDataSet.name'.loc() /* 'New Dataset' */);
             caseTable = documentController.addCaseTable(
-                DG.mainPage.get('docView'), null, {position: 'top', dataContext: dataContext});
+                DG.mainPage.get('docView'), null,
+                {position: 'top', dataContext: dataContext});
             this.invokeLater(function () {
               caseTable.setFocusToComponentTitle();
             }, 1000);
@@ -101,6 +103,8 @@ DG.appController = SC.Object.create((function () // closure
             this.execute();
           }
         }));
+      } else if (SC.none(dataContext) && action === 'openNewDataSetFromClipboard') {
+        this.openNewDataSetFromClipboard();
       } else {
         foundView = documentController.tableCardRegistry.getViewForContext(dataContext);
         if (foundView) {
@@ -175,7 +179,7 @@ DG.appController = SC.Object.create((function () // closure
             this.popup(iAnchor);
           },
           selectedItemDidChange: function () {
-            DG.appController.showCaseDisplayFor(this.get('selectedItem').dataContext);
+            DG.appController.showCaseDisplayFor(this.get('selectedItem'));
           }.observes('selectedItem'),
           itemLayerIdKey: 'id',
           layout: {width: 150}
@@ -306,6 +310,15 @@ DG.appController = SC.Object.create((function () // closure
       }.bind(this));
       menuItems.push({
         localize: true,
+        title: 'DG.AppController.caseTableMenu.clipboardDataset',
+        toolTip: 'DG.AppController.caseTableMenu.clipboardDatasetToolTip',
+        target: DG.appController,
+        isEnabled: DG.ClipboardUtilities.canPaste(),
+        dgAction: 'openNewDataSetFromClipboard',
+        icon: 'tile-icon-table'
+      })
+      menuItems.push({
+        localize: true,
         title: 'DG.AppController.caseTableMenu.newDataSet',
         toolTip: 'DG.AppController.caseTableMenu.newDataSetToolTip',
         target: DG.mainPage,
@@ -359,6 +372,36 @@ DG.appController = SC.Object.create((function () // closure
         //   target: this, dgAction: 'reportProblem', id: 'dg-optionMenuItems-report-problem' }
       ];
     }.property(),
+
+    openNewDataSetFromClipboard: function() {
+      var _this = this;
+
+      window.focus();
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
+
+      window.navigator.clipboard.readText().then(
+          function(data) {
+            SC.run(function () {
+              if (/^https?:\/\/[^\n]*$/.test(data)) {
+                _this.importURL(data);
+              } else {
+                _this.openCSVImporter({
+                  contentType: 'text/csv',
+                  text: data,
+                  datasetName: 'clipboard data',
+                  showCaseTable: true
+                });
+              }
+            });
+          },
+          function (err) {
+            // maybe user didn't grant access to read from clipboard
+            console.log('Error importing from clipboard: ', err);
+          }
+      );
+    },
 
     extractNameFromURLPath: function (iURL) {
       function parseURL(url) {

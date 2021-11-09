@@ -756,7 +756,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               this._slickGrid.getContentSize().width);
           if( this._canvasResizeCounter === 0)
             this.invokeLater( function() {
-              this._slickGrid.resizeCanvas();
+              if (this._slickGrid) this._slickGrid.resizeCanvas();
             }.bind(this), 400);
         }
       }.bind(this));
