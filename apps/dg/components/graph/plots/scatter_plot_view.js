@@ -338,12 +338,14 @@ DG.ScatterPlotView = DG.PlotView.extend(
         }
 
         function returnCaseValuesToStart(iCaseIndex, iStartWorldCoords) {
-          var tCase = this_.getPath('model.cases').unorderedAt(iCaseIndex),
-              tVarIDs = getVarIDs(),
-              tDeltaX = tCase.getForcedNumericValue(tVarIDs.x) - iStartWorldCoords.x,
-              tDeltaY = tCase.getForcedNumericValue(tVarIDs.y) - iStartWorldCoords.y;
-          if ((tDeltaX !== 0) || (tDeltaY !== 0))
-            this_.get('model').animateSelectionBackToStart([tVarIDs.x, tVarIDs.y], [tDeltaX, tDeltaY]);
+          if( !SC.none(iStartWorldCoords.x) && !SC.none(iStartWorldCoords.y)) {
+            var tCase = this_.getPath('model.cases').unorderedAt(iCaseIndex),
+                tVarIDs = getVarIDs(),
+                tDeltaX = tCase.getForcedNumericValue(tVarIDs.x) - iStartWorldCoords.x,
+                tDeltaY = tCase.getForcedNumericValue(tVarIDs.y) - iStartWorldCoords.y;
+            if ((tDeltaX !== 0) || (tDeltaY !== 0))
+              this_.get('model').animateSelectionBackToStart([tVarIDs.x, tVarIDs.y], [tDeltaX, tDeltaY]);
+          }
         }
 
         function completeHoverAnimation() {
@@ -403,6 +405,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   }, this);
                 },
                 function (x, y) { // begin
+                  if( tIsDragging)
+                    return;
                   var tCase = this_.getPath('model.cases').unorderedAt(this.index),
                       tVarIDs = getVarIDs();
                   tIsDragging = true;
