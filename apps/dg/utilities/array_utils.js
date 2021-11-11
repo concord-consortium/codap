@@ -142,8 +142,11 @@ DG.ArrayUtils = {
     iSubtrahend.forEach( function( iElement) {
       delete tHash[ iGetIdF( iElement)];
     });
-    DG.ObjectMap.forEach( tHash, function( iKey) {
-      tDifference.push( tHash[ iKey]);
+    // Note that we have to keep the original order of elements
+    iMinuend.forEach(function(iElement) {
+      var tID = iGetIdF(iElement);
+      if( tHash[tID])
+        tDifference.push(tHash[tID]);
     });
     return tDifference;
   },
