@@ -359,20 +359,24 @@ DG.PlotUtilities = {
     iAttrIndex = !SC.none(iAttrIndex) ? iAttrIndex : 0;
     var tAttrs = iAttrDesc.get('attributes'),
         tAttrID = SC.isArray(tAttrs) ? tAttrs[iAttrIndex].get('id') : null,
+        tType = iAttrDesc.get('attributeType'),
         tValue = iCase && !SC.none( tAttrID) && iCase.getValue(tAttrID),
         tDigits, tNumFormat;
     if (SC.empty(tValue)) return '';
-
-    if (iAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eNumeric) {
-      tDigits = iGetDigitsFunc();
-      if (SC.none(tDigits))  // Can happen for maps when there is no axis view
-        tDigits = 2;
-      tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
-      tNumFormat.group(''); // Don't separate with commas
-      tValue = tNumFormat(iCase.getForcedNumericValue(tAttrID));
-    }
-    else {
-      tValue = iCase.getStrValue(tAttrID);
+    switch (tType) {
+      case DG.Analysis.EAttributeType.eNumeric:
+        tDigits = iGetDigitsFunc();
+        if (SC.none(tDigits))  // Can happen for maps when there is no axis view
+          tDigits = 2;
+        tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
+        tNumFormat.group(''); // Don't separate with commas
+        tValue = tNumFormat(iCase.getForcedNumericValue(tAttrID));
+        break;
+      case DG.Analysis.EAttributeType.eDateTime:
+        tValue = DG.DateUtilities.formatDate(tValue);
+        break;
+      default:
+        tValue = iCase.getStrValue(tAttrID);
     }
     return tValue;
   },

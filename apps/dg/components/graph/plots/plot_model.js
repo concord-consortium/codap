@@ -747,19 +747,18 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        * specified in the array of deltas.
        * @param iAttrIDs {[Number]}
        * @param iDeltas {[Number]}
-       * @param iDisableAnimation {Boolean} Default is false
+       * @param iSelectedCases? {{}[]}
        */
-      animateSelectionBackToStart: function (iAttrIDs, iDeltas, iDisableAnimation) {
+      animateSelectionBackToStart: function (iAttrIDs, iDeltas, iSelectedCases) {
         if (SC.none(this.caseValueAnimator))
           this.caseValueAnimator = DG.CaseValueAnimator.create();
         else  // We must end the animation before setting animator properties
           this.caseValueAnimator.endAnimation();
 
         this.caseValueAnimator.set('dataContext', this.get('dataContext'));
-        this.caseValueAnimator.set('cases', DG.copy(this.get('selection')));
+        this.caseValueAnimator.set('cases', iSelectedCases || DG.copy(this.get('selection')));
         this.caseValueAnimator.set('attributeIDs', iAttrIDs);
         this.caseValueAnimator.set('deltas', iDeltas);
-        this.caseValueAnimator.set('disableAnimation', iDisableAnimation);
 
         this.caseValueAnimator.animate();
       },
