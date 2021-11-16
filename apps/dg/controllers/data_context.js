@@ -1792,7 +1792,7 @@ DG.DataContext = SC.Object.extend((function () // closure
           toCollection.addAttribute(iAttr, newPosition);
 
           casesAffected = dataContext.regenerateCollectionCases([collection, toCollection]);
-          // dataContext.invalidateAttrsOfCollections(casesAffected.collections);
+          dataContext.invalidateAttrsOfCollections(casesAffected.collections);
           dataContext.invalidateNamesAndNotify([iAttr.name]);
           iAttr.endPropertyChanges();
         },
