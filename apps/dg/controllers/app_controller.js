@@ -316,7 +316,7 @@ DG.appController = SC.Object.create((function () // closure
         isEnabled: DG.ClipboardUtilities.canPaste(),
         dgAction: 'openNewDataSetFromClipboard',
         icon: 'tile-icon-table'
-      })
+      });
       menuItems.push({
         localize: true,
         title: 'DG.AppController.caseTableMenu.newDataSet',
