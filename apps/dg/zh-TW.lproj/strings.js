@@ -885,5 +885,7 @@ SC.stringsFor("zh-TW", {
     "DG.Inspector.showLabels": "Show Measure Labels",
     "DG.Undo.caseTable.resizeOneColumn": "Undo resize column",
     "DG.Redo.caseTable.resizeOneColumn": "Redo resize column",
-    "DG.CaseTable.attribute.type.checkbox": "checkbox"
+    "DG.CaseTable.attribute.type.checkbox": "checkbox",
+    "DG.AppController.caseTableMenu.clipboardDataset": "-- new from clipboard --",
+    "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard"
 });
