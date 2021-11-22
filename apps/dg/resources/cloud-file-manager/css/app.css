@@ -1559,6 +1559,146 @@
 .rename-dialog .buttons button.disabled {
   background-color: #777;
 }
+.select-interactive-state-dialog .header {
+  background: #214d5a;
+  width: 100%;
+  color: #fff;
+  font-size: 1.5em;
+  padding: 5px;
+  text-align: center;
+}
+.select-interactive-state-dialog .content {
+  background: #fff;
+  margin-top: 8px;
+  padding: 0;
+  font-size: 18px;
+  color: #666;
+  overflow: auto;
+}
+.select-interactive-state-dialog #question {
+  padding: 5px 25px;
+  text-align: center;
+}
+.select-interactive-state-dialog .versions {
+  text-align: center;
+}
+.select-interactive-state-dialog .version-info {
+  display: inline-block;
+  width: 45%;
+  margin: 2% 10px;
+}
+.select-interactive-state-dialog table.version-desc {
+  width: 100%;
+  border: none;
+}
+.select-interactive-state-dialog table.version-desc td {
+  padding: 5px;
+  font-size: 14px;
+}
+.select-interactive-state-dialog table.version-desc th {
+  width: 100px;
+  font-weight: normal;
+}
+.select-interactive-state-dialog .prop {
+  font-weight: bold;
+}
+.select-interactive-state-dialog .dialog-button {
+  background: #82bec8;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  text-align: center;
+  padding: 6px 10px;
+  margin: 10px;
+  width: auto;
+  display: inline-block;
+  color: #fff;
+  cursor: pointer;
+}
+.select-interactive-state-dialog .dialog-button:hover {
+  background: #679aa1;
+}
+.select-interactive-state-dialog .iframe-wrapper {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.select-interactive-state-dialog .preview {
+  width: 100%;
+  height: 250px;
+  cursor: pointer;
+}
+.select-interactive-state-dialog .preview:hover {
+  -webkit-box-shadow: 2px 2px 4px #aaa;
+  -moz-box-shadow: 2px 2px 4px #aaa;
+  box-shadow: 2px 2px 4px #aaa;
+}
+.select-interactive-state-dialog .preview-label {
+  font-size: 14px;
+  padding: 5px;
+  cursor: pointer;
+}
+.select-interactive-state-dialog .preview-label:hover {
+  color: #333;
+}
+.select-interactive-state-dialog .preview-active {
+  position: fixed;
+  top: 40px;
+  left: 3%;
+  width: 94%;
+  height: 90%;
+  z-index: 100;
+  cursor: pointer;
+}
+@media (max-width: 1200px) {
+  .select-interactive-state-dialog .preview-active iframe {
+    width: 150%;
+    height: 150%;
+    transform: scale3d(0.666666, 0.666666, 1);
+  }
+}
+@media (min-width: 1200px) {
+  .select-interactive-state-dialog .preview-active iframe {
+    width: 100%;
+    height: 100%;
+    transform: scale3d(1, 1, 1);
+  }
+}
+.select-interactive-state-dialog .overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 90;
+  background: #6ca0a9;
+  padding-top: 10px;
+  font-size: 20px;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+}
+.select-interactive-state-dialog .show-overlay {
+  display: block;
+}
+.select-interactive-state-dialog iframe.preview-iframe {
+  width: 300% !important;
+  height: 300% !important;
+  transform: scale3d(0.333333, 0.333333, 1);
+  transform-origin: left top;
+  border: solid 1px;
+}
+.select-interactive-state-dialog iframe.preview-iframe-fullsize {
+  width: 100% !important;
+  height: 100% !important;
+  transform: scale3d(1, 1, 1);
+  transform-origin: left top;
+  border: solid 1px;
+}
+.select-interactive-state-dialog .scroll-wrapper {
+  overflow: hidden;
+}
 .share-dialog {
   width: 600px;
   color: #000;
