@@ -1422,6 +1422,40 @@ DG.DataContext = SC.Object.extend((function () // closure
     },
 
     /**
+     * fixes formulas affected by an attribute name change
+     * @param iAttr
+     * @param iNewName
+     * @private
+     */
+    _handleAttrNameChange: function (iAttr, iNewName, iChange) {
+      var response = [];
+      if (iNewName == null || iAttr.name === iNewName) {
+        return;
+      }
+      var node = this.get('dependencyMgr').findNode({type:DG.DEP_TYPE_ATTRIBUTE, id: iAttr.id});
+      if (node) {
+        var dependents = node.dependents;
+        dependents.forEach(function (dep) {
+          if (dep.type === 'attribute') {
+            var attrSpec = this.getAttrRefByID(dep.id);
+            var attr = attrSpec && attrSpec.attribute;
+            var formula = attr && attr._dgFormula;
+            var parseObj = formula && formula.get('parsed');
+            var newFormula = parseObj && DG.Formula.toString(DG.Formula.renameVariable(parseObj, iAttr.name, iNewName));
+            if (newFormula) {
+              response.push({
+                operation: 'updateAttributes',
+                collection: attr.collection,
+                attrPropsArray: [{id: attr.id, formula: newFormula}]
+              });
+            }
+          }
+        }.bind(this));
+      }
+      return response;
+    },
+
+    /**
      Updates the specified properties of the specified attributes.
      @param  {Object}    iChange - The change request object
      {String}  .operation - "updateAttributes"
@@ -1454,8 +1488,10 @@ DG.DataContext = SC.Object.extend((function () // closure
           attribute.beginPropertyChanges();
           DG.ObjectMap.forEach(iAttrProps,
               function (iKey, iValue) {
+                var actions;
                 var oldName;
                 if (iKey === 'name') {
+                  actions = _this._handleAttrNameChange(attribute, iAttrProps.name, iChange);
                   oldName = attribute.get('name');
                   if (names.indexOf(oldName) < 0)
                     names.push(oldName);
@@ -1466,6 +1502,11 @@ DG.DataContext = SC.Object.extend((function () // closure
                 if (iKey !== "id") {
                   attribute.set(iKey, iValue);
                 }
+                if (actions) {
+                  actions.forEach(function (action) {
+                    _this.applyChange(action);
+                  });
+                }
               });
           attribute.endPropertyChanges();
           result.success = true;
@@ -1474,6 +1515,7 @@ DG.DataContext = SC.Object.extend((function () // closure
         }
       }
 
+      var _this = this;
       // Create/update each specified attribute
       if (collection && iChange.attrPropsArray)
         iChange.attrPropsArray.forEach(updateAttribute);
