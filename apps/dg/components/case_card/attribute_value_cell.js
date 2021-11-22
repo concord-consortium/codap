@@ -36,6 +36,28 @@ DG.React.ready(function () {
     }
   };
   function AttributeValueCell(props) {
+
+    function isBoolean(v) {
+      if (typeof v === 'string') { v = v.toLowerCase(); }
+      return ['','false','true',false, true, null].includes(v) || v === undefined;
+    }
+
+    var checkboxFormatter = function (cellValue) {
+      cellValue = (typeof cellValue === 'string')? cellValue.toLowerCase(): cellValue;
+      var readOnly = (tAttr && (tAttr.formula || !tAttr.editable));
+      var valueString = (cellValue && cellValue !== 'false')? ' checked': '';
+      var disabledString = readOnly? ' disabled': '';
+
+/*
+      span({className: 'dg-checkbox-cell dg-wants-mouse dg-wants-touch'},
+          tFirstButton, tDeselectButton, tSecondButton, tAddCaseButton);
+      return '<span class="dg-checkbox-cell dg-wants-mouse dg-wants-touch"><input type="checkbox" title="' +
+          cellValue + '"' + valueString + disabledString + '/></span>';
+*/
+    };
+
+
+
     var tAttr = props.attribute,
         tAttrID = tAttr.get('id'),
         tUnit = tAttr.get('unit') || '',
@@ -83,7 +105,10 @@ DG.React.ready(function () {
           className: 'react-data-card-qualitative-backing'
         }, tQualitativeInternalSpan);
       }
-    } else if (tType === 'boundary') {
+    } else if (tType === DG.Attribute.TYPE_CHECKBOX
+        && isBoolean(tValue)) {
+      tValue = checkboxFormatter(tValue, this);
+    }  else if (tType === 'boundary') {
       var tResult = 'a boundary',
           tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tValue),
           tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
