@@ -908,7 +908,7 @@ DG.Formula.renameVariable = function (formulaObject, oldName, newName) {
   }
   function visitFunctionCall(iNode) {
     return {
-      args: iNode.args.map(function (arg) {return visit(arg)}),
+      args: iNode.args.map(function (arg) {return visit(arg);}),
       name: visit(iNode.name),
       type: iNode.type
     };
@@ -972,7 +972,7 @@ DG.Formula.toString = function (formulaObject) {
     return name;
   }
   function visitFunctionCall(iNode) {
-    var args = iNode.args.map(function (arg) {return visit(arg)});
+    var args = iNode.args.map(function (arg) {return visit(arg);});
     var name = visit(iNode.name);
     return name + "(" + args.join() + ")";
   }
