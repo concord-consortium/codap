@@ -263,6 +263,7 @@ DG.CasePlotView = DG.PlotView.extend(
                     this_.invokeLater(loop, 10);
                   } else {
                     this_.setPath('model.isAnimating', false);
+                    this_.updateSelection();
                   }
                   tPointSet.clear();
                 }.bind(this_);

@@ -136,7 +136,6 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
       // hide until next time
       //this.value = 0;
       this.valueString = '';
-      this.valueAxisView = null;
       this.textElement.hide();
       this.backgrndRect.hide();
       this.textShowingForID = undefined;
@@ -581,13 +580,18 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend( DG.LineLab
         },
 
         /**
-         * Get the desired axis position of the equation view, in the attribute's coordinates.
+         * Get the desired axis position of the equation view, in display coordinates.
          * @param iCenterValue {Number}
          * @param iSpreadValue {Number}
          */
         getTextPositionOnAxis: function( iCenterValue, iSpreadValue ) {
-          return iCenterValue + 2; // default to text going to the right of the center line
-        },
+          var tOffset = 0,
+            tAxisView = this.get('valueAxisView');
+          if( tAxisView) {
+            tOffset = Math.abs(tAxisView.coordinateToData(2) - tAxisView.coordinateToData(0))
+          }
+          return iCenterValue + tOffset; // default to text going to the right of the center line
+        }
 
       };  // object returned closure
     }()) // function closure
