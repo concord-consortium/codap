@@ -37479,7 +37479,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
         // initialize the cloudContentFactory with all data we want in the envelope
         provider_interface_1.cloudContentFactory.setEnvelopeMetadata({
-            cfmVersion: '1.4.0',
+            cfmVersion: '1.4.1',
             appName: this.appOptions.appName || "",
             appVersion: this.appOptions.appVersion || "",
             appBuildNum: this.appOptions.appBuildNum || ""
@@ -38439,6 +38439,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         return this._ui.alertDialog(message, (titleOrCallback || translate_1.default("~CLIENT_ERROR.TITLE")), callback);
     };
     CloudFileManagerClient.prototype.selectInteractiveStateDialog = function (props, callback) {
+        this._event("requiresUserInteraction");
         this._ui.selectInteractiveStateDialog(__assign(__assign({}, props), { onSelect: callback }));
     };
     CloudFileManagerClient.prototype._dialogSave = function (stringContent, metadata, callback) {
@@ -40272,7 +40273,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
             });
         });
     };
-    InteractiveApiProvider.prototype.getinteractiveId = function (initInteractiveMessage) {
+    InteractiveApiProvider.prototype.getInteractiveId = function (initInteractiveMessage) {
         return initInteractiveMessage.mode === "runtime" ? initInteractiveMessage.interactive.id : undefined;
     };
     InteractiveApiProvider.prototype.handleInitialInteractiveState = function (initInteractiveMessage) {
@@ -40339,7 +40340,7 @@ var InteractiveApiProvider = /** @class */ (function (_super) {
                         _b.label = 2;
                     case 2:
                         _b.trys.push([2, 5, , 6]);
-                        interactiveId = this.getinteractiveId(initInteractiveMessage);
+                        interactiveId = this.getInteractiveId(initInteractiveMessage);
                         _a = this.processRawInteractiveState;
                         return [4 /*yield*/, getInteractiveState()];
                     case 3: return [4 /*yield*/, _a.apply(this, [_b.sent(), interactiveId])
@@ -41560,7 +41561,7 @@ var CloudContentFactory = /** @class */ (function () {
     function CloudContentFactory() {
         this.envelopeMetadata = {
             // replaced by version number at build time
-            cfmVersion: '1.4.0',
+            cfmVersion: '1.4.1',
             appName: '',
             appVersion: '',
             appBuildNum: ''
