@@ -205,7 +205,7 @@ DG.DateUtilities.formatDate = function(x, precision, useShortFormat) {
   if ( DG.MathUtilities.isNumeric(x)) {
     x = new Date(x*1000);
   } else if (DG.isDateString(x)) {
-    x = new Date();
+    x = new Date(x);
   }
 
   var locale = DG.get('currentLanguage');
