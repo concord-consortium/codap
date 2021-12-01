@@ -784,6 +784,13 @@ DG.main = function main() {
 
             break;
 
+          // hide the splash screen if CFM requires interaction with the user
+          case 'requiresUserInteraction':
+            SC.run(function() {
+              DG.splash.hideSplash();
+            });
+            break;
+
           case "ready":
             if ( SC.empty(DG.startingDocUrl)) {
               cfmShowUserEntryView();

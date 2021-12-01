@@ -885,3 +885,127 @@ DG.Formula.evaluatePostfix = function( iPostfix, iContext) {
   return slen > 0 ? stack[slen-1] : undefined;
 };
 //@endif
+
+/**
+ * Returns a cloned tree with variable renamed.
+ * @param oldName
+ * @param newName
+ */
+DG.Formula.renameVariable = function (formulaObject, oldName, newName) {
+  function visit(iNode) {
+    var fn = fnMap[ iNode.type];
+    return fn && fn( iNode);
+  }
+  function visitNoOp(iNode) {
+    return iNode;
+  }
+  function visitVariable(iNode) {
+    if (iNode.name === oldName) {
+      return {type: iNode.type, name: newName};
+    } else {
+      return iNode;
+    }
+  }
+  function visitFunctionCall(iNode) {
+    return {
+      args: iNode.args.map(function (arg) {return visit(arg);}),
+      name: visit(iNode.name),
+      type: iNode.type
+    };
+  }
+  function visitUnaryExpression(iNode) {
+    return {
+      expression: visit(iNode.expression),
+      operator: iNode.operator,
+      type: iNode.type
+    };
+  }
+  function visitBinaryExpression(iNode) {
+    return {
+      left: visit(iNode.left),
+      right: visit(iNode.right),
+      operator: iNode.operator,
+      type: iNode.type
+    };
+  }
+  function visitConditionalExpression(iNode) {
+    return {
+      condition: visit(iNode.condition),
+      trueExpression: visit(iNode.trueExpression),
+      falseExpression: visit(iNode.falseExpression),
+      type: iNode.type
+    };
+  }
+  var fnMap = {
+    'BooleanLiteral': visitNoOp,
+    'NumericLiteral': visitNoOp,
+    'StringLiteral': visitNoOp,
+    'Variable': visitVariable,
+    'FunctionCall': visitFunctionCall,
+    'UnaryExpression': visitUnaryExpression,
+    'BinaryExpression': visitBinaryExpression,
+    'ConditionalExpression': visitConditionalExpression
+  };
+  return visit(formulaObject);
+};
+
+/**
+ * Generates a formula string from a formula object
+ * @return {*}
+ */
+DG.Formula.toString = function (formulaObject) {
+  function visit(iNode) {
+    var fn = fnMap[ iNode.type];
+    return fn && fn( iNode);
+  }
+  function visitNoOp(iNode) {
+    return iNode.value;
+  }
+  function visitStringLiteral(iNode) {
+    return '"' + iNode.value + '"';
+  }
+  function visitVariable(iNode) {
+    var name = iNode.name;
+    if (!/^[a-zA-Z0-9]*$/.test(name)) {
+      name = '`' + name + '`';
+    }
+    return name;
+  }
+  function visitFunctionCall(iNode) {
+    var args = iNode.args.map(function (arg) {return visit(arg);});
+    var name = visit(iNode.name);
+    return name + "(" + args.join() + ")";
+  }
+  function visitUnaryExpression(iNode) {
+     var expression = visit(iNode.expression);
+     var operator = iNode.operator;
+     return '(' + operator + expression + ')';
+  }
+  function visitBinaryExpression(iNode) {
+    var vals = {
+      left: visit(iNode.left),
+      right: visit(iNode.right),
+      operator: iNode.operator
+    };
+    return '(' + String(vals.left) + ' ' + vals.operator + ' ' + String(vals.right) + ')';
+  }
+  function visitConditionalExpression(iNode) {
+    var vals = {
+      condition: visit(iNode.condition),
+      trueExpression: visit(iNode.trueExpression),
+      falseExpression: visit(iNode.falseExpression)
+    };
+    return '(' + String(vals.condition) + ')? (' + vals.trueExpression + '): (' + vals.falseExpression + ')';
+  }
+  var fnMap = {
+    'BooleanLiteral': visitNoOp,
+    'NumericLiteral': visitNoOp,
+    'StringLiteral': visitStringLiteral,
+    'Variable': visitVariable,
+    'FunctionCall': visitFunctionCall,
+    'UnaryExpression': visitUnaryExpression,
+    'BinaryExpression': visitBinaryExpression,
+    'ConditionalExpression': visitConditionalExpression
+  };
+  return visit(formulaObject);
+};
