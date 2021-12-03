@@ -69,6 +69,9 @@ DG.MultipleLSRLsAdornment = DG.PlotAdornment.extend(
                 if( iIndex < tLSRLs.length) {
                   iAdornment.set('model', tLSRLs[iIndex]);
                 }
+                else {
+                  iAdornment.set('model', null);  // Will later be removed from list of adornments
+                }
               });
               while (tLSRLs.length > tAdornments.length) {
                 var tNewAdorn = DG.LSRLAdornment.create({
