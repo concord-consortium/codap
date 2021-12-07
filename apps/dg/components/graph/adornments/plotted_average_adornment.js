@@ -588,7 +588,7 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend( DG.LineLab
           var tOffset = 0,
             tAxisView = this.get('valueAxisView');
           if( tAxisView) {
-            tOffset = Math.abs(tAxisView.coordinateToData(2) - tAxisView.coordinateToData(0))
+            tOffset = Math.abs(tAxisView.coordinateToData(2) - tAxisView.coordinateToData(0));
           }
           return iCenterValue + tOffset; // default to text going to the right of the center line
         }
