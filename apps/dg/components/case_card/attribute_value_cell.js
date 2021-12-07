@@ -44,7 +44,7 @@ DG.React.ready(function () {
 
     var checkboxFormatter = function (cellValue) {
       cellValue = (typeof cellValue === 'string')? cellValue.toLowerCase(): cellValue;
-      var readOnly = (tAttr && (tAttr.formula || !tAttr.editable));
+      //var readOnly = (tAttr && (tAttr.formula || !tAttr.editable));
       //var valueString = (cellValue && cellValue !== 'false')? ' checked': '';
       //var disabledString = readOnly? ' disabled': '';
 
