@@ -867,14 +867,16 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         return plottedAttributeIDs;
       },
 
+      /**
+       *
+       * @param iAttributeIDs {(string|number)[]}
+       * @return {boolean}
+       */
       getPlottedAttributesIncludeIDs: function (iAttributeIDs) {
-        var plottedAttrIDs = this.getPlottedAttributeIDs(),
-            includes = false;
-        iAttributeIDs.forEach(function (iAttributeID) {
-          if (plottedAttrIDs.indexOf(iAttributeID) >= 0)
-            includes = true;
+        var plottedAttrIDs = this.getPlottedAttributeIDs();
+        return iAttributeIDs.some(function(iAttributeID) {
+          return plottedAttrIDs.indexOf(Number(iAttributeID)) >= 0;
         });
-        return includes;
       },
 
       /**

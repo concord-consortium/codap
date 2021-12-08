@@ -6,6 +6,7 @@ sc_require('react/dg-react');
 DG.React.ready(function () {
   var img = ReactDOMFactories.img,
       span = ReactDOMFactories.span,
+      input = ReactDOMFactories.input,
       td = ReactDOMFactories.td;
 
   /**
@@ -17,13 +18,15 @@ DG.React.ready(function () {
     propTypes: {
       // {DG.Attribute} the attribute to display
       attribute: PropTypes.instanceOf(DG.Attribute).isRequired,
+      dataContext: PropTypes.instanceOf(DG.DataContext).isRequired,
       // {DG.Case} the case to display; undefined to summarize
       displayCase: PropTypes.instanceOf(DG.Case),
       // {DG.Case} the case to whose values to edit; undefined to summarize
-      editableCase: PropTypes.instanceOf( DG.Case),
+      editableCase: PropTypes.instanceOf(DG.Case),
       // {[DG.Case]} - the cases to summarize; undefined for single case
       summaryCases: PropTypes.arrayOf(PropTypes.instanceOf(DG.Case)),
       deselectCallback: PropTypes.func.isRequired,
+      forceUpdateCallback: PropTypes.func.isRequired,
       editProps: PropTypes.exact({
         isEditing: PropTypes.bool.isRequired,
         // function(attribute) - toggle into/out of editing mode
@@ -31,32 +34,43 @@ DG.React.ready(function () {
         // function(attribute) - escape out of editing mode
         onEscapeEditing: PropTypes.func.isRequired,
         // function(attribute) - callback to inform caller of TextInput
-        onEditModeCallback: PropTypes.func.isRequired 
+        onEditModeCallback: PropTypes.func.isRequired
       }).isRequired
     }
   };
+
   function AttributeValueCell(props) {
 
     function isBoolean(v) {
-      if (typeof v === 'string') { v = v.toLowerCase(); }
-      return ['','false','true',false, true, null].includes(v) || v === undefined;
+      if (typeof v === 'string') {
+        v = v.toLowerCase();
+      }
+      return ['', 'false', 'true', false, true, null].includes(v) || v === undefined;
     }
 
     var checkboxFormatter = function (cellValue) {
-      cellValue = (typeof cellValue === 'string')? cellValue.toLowerCase(): cellValue;
-      var readOnly = (tAttr && (tAttr.formula || !tAttr.editable));
-      var valueString = (cellValue && cellValue !== 'false')? ' checked': '';
-      var disabledString = readOnly? ' disabled': '';
 
-/*
-      span({className: 'dg-checkbox-cell dg-wants-mouse dg-wants-touch'},
-          tFirstButton, tDeselectButton, tSecondButton, tAddCaseButton);
-      return '<span class="dg-checkbox-cell dg-wants-mouse dg-wants-touch"><input type="checkbox" title="' +
-          cellValue + '"' + valueString + disabledString + '/></span>';
-*/
+      function handleChange() {
+        var tChange = {
+          operation: 'updateCases',
+          cases: [props.displayCase],
+          caseIDs: [props.displayCase.get('id')],
+          attributeIDs: [tAttr.get('id')],
+          values: [[!booleanValue]]
+        };
+        props.dataContext.applyChange(tChange);
+        props.forceUpdateCallback();
+      }
+
+      cellValue = (typeof cellValue === 'string') ? cellValue.toLowerCase() : cellValue;
+      var readOnly = (tAttr && (tAttr.formula || !tAttr.editable)),
+          booleanValue = cellValue && cellValue !== 'false';
+      return span({className: 'dg-checkbox-cell dg-wants-mouse dg-wants-touch',},
+          input({
+            type: 'checkbox', checked: booleanValue, disabled: readOnly,
+            onChange: handleChange
+          }));
     };
-
-
 
     var tAttr = props.attribute,
         tAttrID = tAttr.get('id'),
@@ -64,23 +78,24 @@ DG.React.ready(function () {
         tHasFormula = tAttr.get('hasFormula'),
         tValue = props.displayCase && props.displayCase.getValue(tAttrID),
         tType = tValue && tValue.jsonBoundaryObject
-                  ? 'boundary'
-                  : tAttr.get('type'),
+            ? 'boundary'
+            : tAttr.get('type'),
         tColorValueField,
         tQualitativeValueField,
         tBoundaryValueField,
+        tCheckboxField,
         tColor,
         spanStyle,
         tBoundaryInternalImage,
         tQualitativeInternalSpan,
         tValueClassName = '';
-    if( tType === 'numeric' && !DG.isNumeric(tValue)) {
+    if (tType === 'numeric' && !DG.isNumeric(tValue)) {
       tValue = props.displayCase && props.displayCase.getForcedNumericValue(tAttrID);
     }
     if (tValue instanceof Error) {
       tValue = tValue.name + tValue.message;
     } else if (DG.isColorSpecString(tValue)) {
-      tColor = tinycolor( tValue.toLowerCase().replace(/\s/gi,''));
+      tColor = tinycolor(tValue.toLowerCase().replace(/\s/gi, ''));
       spanStyle = {
         backgroundColor: tColor.toString('rgb')
       };
@@ -106,22 +121,21 @@ DG.React.ready(function () {
         }, tQualitativeInternalSpan);
       }
     } else if (tType === DG.Attribute.TYPE_CHECKBOX
-        && isBoolean(tValue)) {
-      tValue = checkboxFormatter(tValue, this);
-    }  else if (tType === 'boundary') {
+        && isBoolean(tValue) && !props.summaryCases) {
+      tCheckboxField = checkboxFormatter(tValue, this);
+    } else if (tType === 'boundary') {
       var tResult = 'a boundary',
           tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tValue),
           tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
               tBoundaryObject.jsonBoundaryObject.properties &&
               tBoundaryObject.jsonBoundaryObject.properties.THUMB;
       if (tThumb !== null && tThumb !== undefined) {
-            tBoundaryInternalImage = img({
-              className: 'react-data-card-thumbnail',
-              src: tThumb
-            });
+        tBoundaryInternalImage = img({
+          className: 'react-data-card-thumbnail',
+          src: tThumb
+        });
         tBoundaryValueField = span({}, tBoundaryInternalImage);
-      }
-      else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof Error)) {
+      } else if (tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof Error)) {
         tValue = tBoundaryObject.jsonBoundaryObject.name + tBoundaryObject.jsonBoundaryObject.message;
       }
       tValue = tResult;
@@ -136,38 +150,39 @@ DG.React.ready(function () {
       tValue = '';
     }
     var tValueField = props.summaryCases
-          ? DG.React.Components.AttributeSummary({
-              cases: props.summaryCases,
-              attr: tAttr,
-              unit: tUnit
-            })
-          : DG.React.Components.TextInput({
-              attr: tAttr,
-              'case': props.editableCase,
-              value: tValue,
-              unit: tUnit,
-              isEditable: tAttr.get('editable') && !tAttr.get('hasFormula'),
-              createInEditMode: props.editProps.isEditing,
-              onToggleEditing: props.editProps.onToggleEditing,
-              onEscapeEditing: props.editProps.onEscapeEditing,
-              onEditModeCallback: props.editProps.onEditModeCallback
-            });
+        ? DG.React.Components.AttributeSummary({
+          cases: props.summaryCases,
+          attr: tAttr,
+          unit: tUnit
+        })
+        : DG.React.Components.TextInput({
+          attr: tAttr,
+          'case': props.editableCase,
+          value: tValue,
+          unit: tUnit,
+          isEditable: tAttr.get('editable') && !tAttr.get('hasFormula'),
+          createInEditMode: props.editProps.isEditing,
+          onToggleEditing: props.editProps.onToggleEditing,
+          onEscapeEditing: props.editProps.onEscapeEditing,
+          onEditModeCallback: props.editProps.onEditModeCallback
+        });
     tValueClassName += tHasFormula ? 'react-data-card-formula' : '';
     if (tColorValueField) {
       tValueField = tColorValueField;
-    }
-    else if (tBoundaryValueField) {
+    } else if (tCheckboxField) {
+      tValueField = tCheckboxField;
+    } else if (tBoundaryValueField) {
       tValueField = tBoundaryValueField;
-    }
-    else if (tQualitativeValueField) {
+    } else if (tQualitativeValueField) {
       tValueField = tQualitativeValueField;
     }
     return (
-      td({
-        className: 'dg-wants-touch ' + tValueClassName
-      }, tValueField)
+        td({
+          className: 'dg-wants-touch ' + tValueClassName
+        }, tValueField)
     );
   }
+
   // two-stage definition required for React-specific eslint rules
   DG.React.AttributeValueCell = createReactFC(config, AttributeValueCell);
 });
