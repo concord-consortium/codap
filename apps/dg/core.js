@@ -151,6 +151,7 @@ DG = SC.Application.create((function () // closure
     showHelpForumURL: 'https://codap.concord.org/forums/forum/test/',
 
     showWebSiteURL: 'https://codap.concord.org',
+    showPrivacyURL: 'https://codap.concord.org/privacy',
 
     splashURL: static_url('images/codap-splash-screen.png'),
 
