@@ -79,7 +79,8 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
         tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
         tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor,
         tStrokeSameAsFill = tModel.get('strokeSameAsFill'),
-        tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
+        tIsNumeric = tLegendDesc.get('isNumeric'),
+        tQuantileValues = (tLegendDesc && tIsNumeric) ?
             DG.MathUtilities.nQuantileValues(
                 tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
             [];
@@ -100,7 +101,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
           return tModel.get('areaColor');
 
         DG.assert( iCase );
-        var tColorValue = iCase.getValue( this.legendVarID),
+        var tColorValue = tIsNumeric ? iCase.getForcedNumericValue(this.legendVarID) : iCase.getValue( this.legendVarID),
             tCaseColor = tColorValue ?
                 DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, null, tQuantileValues) :
                 DG.ColorUtilities.kMapMissingValueCaseColor;

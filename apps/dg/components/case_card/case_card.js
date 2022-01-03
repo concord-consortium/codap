@@ -616,6 +616,7 @@ DG.React.ready(function () {
                 }),
                 tValueCell = DG.React.AttributeValueCell({
                   attribute: iAttr,
+                  dataContext: this.props.context,
                   displayCase: tCase,
                   editableCase: iShouldSummarize ? null : iCases[0],
                   summaryCases: iShouldSummarize ? iCases : null,
@@ -625,6 +626,7 @@ DG.React.ready(function () {
                         this.props.context.applyChange({ operation: 'selectCases', select: false });
                     }.bind(this));
                   }.bind(this),
+                  forceUpdateCallback: this.incrementStateCount,
                   editProps: {
                     isEditing: tAttrID === this.state.attrIdOfValueToEdit,
                     onToggleEditing: toggleEditing,

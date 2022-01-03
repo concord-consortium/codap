@@ -19,6 +19,7 @@
 // ==========================================================================
 
 sc_require('alpha/destroyable');
+/* global Set:true */
 
 /** @class  DG.PlotModel - The model for a graph's plot.
 
@@ -867,14 +868,16 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         return plottedAttributeIDs;
       },
 
+      /**
+       *
+       * @param iAttributeIDs {(string|number)[]}
+       * @return {boolean}
+       */
       getPlottedAttributesIncludeIDs: function (iAttributeIDs) {
-        var plottedAttrIDs = this.getPlottedAttributeIDs(),
-            includes = false;
-        iAttributeIDs.forEach(function (iAttributeID) {
-          if (plottedAttrIDs.indexOf(iAttributeID) >= 0)
-            includes = true;
+        var plottedAttrIDs = this.getPlottedAttributeIDs();
+        return iAttributeIDs.some(function(iAttributeID) {
+          return plottedAttrIDs.indexOf(Number(iAttributeID)) >= 0;
         });
-        return includes;
       },
 
       /**
@@ -915,11 +918,26 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             }
             break;
           case 'updateCases':
+            var changedAttrIDs = Array.isArray(iChange.attributeIDs) ?  iChange.attributeIDs : [];
             // only if the attributes involved are being plotted OR
             // if there are formulas such that the plotted attributes
             // are affected indirectly.
-            var changedAttrIDs = Array.isArray(iChange.attributeIDs) ?  iChange.attributeIDs : [];
-            if( !SC.none( iChange.attributeID))
+              // An updateCases from a plugin can be missing the an attributeIDs property. In that case
+              // the changes are in a values array of objects each of which consists of attribute name as
+              // key and the new value as value of that key. We look up the id of attributes.
+              if( SC.none( iChange.attributeID) && Array.isArray(iChange.values) && iChange.collection) {
+                var tCollection = iChange.collection.collection,
+                    tAttrSet = new Set();
+                iChange.values.forEach( function(iChangeObject) {
+                  DG.ObjectMap.keys(iChangeObject).forEach(function( iKey) {
+                    tAttrSet.add(iKey);
+                  });
+                });
+                tAttrSet.forEach(function(iKey) {
+                  changedAttrIDs.push(tCollection.getAttributeByName(iKey).get('id'));
+                });
+              }
+            else if( !SC.none( iChange.attributeID))
               changedAttrIDs.push( iChange.attributeID);
             isAffected = this.getPlottedAttributesIncludeIDs(changedAttrIDs);
             break;
