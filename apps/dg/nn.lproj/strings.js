@@ -887,5 +887,6 @@ SC.stringsFor("nn", {
     "DG.Redo.caseTable.resizeOneColumn": "Redo resize column",
     "DG.CaseTable.attribute.type.checkbox": "checkbox",
     "DG.AppController.caseTableMenu.clipboardDataset": "-- new from clipboard --",
-    "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard"
+    "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard",
+    "DG.AppController.optionMenuItems.toPrivacyPage": "Privacy Page..."
 });
