@@ -3,7 +3,7 @@
         {
             "document":"Four Seals",
             "tiles":[
-                { 
+                {
                     "table": 1,
                     "graph": 1,
                     "map": 1,
@@ -16,7 +16,7 @@
         {
             "document":"Getting started with CODAP",
             "tiles":[
-                { 
+                {
                     "table": 0,
                     "graph": 0,
                     "map": 0,
@@ -29,7 +29,7 @@
         {
             "document":"Mammals",
             "tiles":
-                { 
+                {
                     "table": 1,
                     "graph": 3,
                     "map": 0,
@@ -41,7 +41,7 @@
         {
             "document":"Map Data",
             "tiles":
-                { 
+                {
                     "table": 1,
                     "graph": 0,
                     "map": 1,
@@ -53,7 +53,7 @@
         {
             "document":"Markov Game",
             "tiles":
-                { 
+                {
                     "table": 0,
                     "graph": 0,
                     "map": 0,
@@ -65,7 +65,7 @@
         {
             "document":"Parachute Model",
             "tiles":
-                { 
+                {
                     "table": 1,
                     "graph": 0,
                     "map": 0,
@@ -77,14 +77,14 @@
         {
             "document":"Roller Coasters",
             "tiles":
-                { 
+                {
                     "table": 1,
-                    "graph": 1,
+                    "graph": 2,
                     "map": 0,
                     "guide": 1,
                     "webview":0,
                     "plugin":0
                 }
         }
-    ]    
+    ]
 }

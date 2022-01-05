@@ -29,7 +29,7 @@ context('codap toolbar', ()=>{
         cy.get('button').contains("Create New Document").click();
     })
     it('will open a new table', ()=>{
-        codap.openTile('table','new')
+        codap.openTile('table','-- new --')
         table.getCaseTableTile().should('be.visible');
     })
     it('will open a graph', ()=>{

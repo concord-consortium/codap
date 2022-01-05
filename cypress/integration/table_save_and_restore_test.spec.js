@@ -10,7 +10,7 @@ const casecard = new CaseCardObject;
 
 const dir = '../downloads/';
 const ext = '.codap';
-Cypress.config('fixturesFolder',dir)
+// Cypress.config('fixturesFolder',dir)
 const baseUrl = `${Cypress.config("baseUrl")}`;
 
 before(()=> {
@@ -23,7 +23,7 @@ context('CFM functionalities with table', ()=>{
     it('verify save and restore of blank table', ()=>{ //test to see if a blank table is saved properly.
         var filename='blank_table'
         cfm.createNewDocument();
-        codap.openTile('table','new');
+        codap.openTile('table','-- new --');
         table.getCaseTableTile().should('be.visible')
         cfm.saveToLocalDrive(filename);
         cy.wait(500);
@@ -41,7 +41,7 @@ context('CFM functionalities with table', ()=>{
     it('verify save and restore of closed blank table', ()=>{ //bug found by Dan
         var filename='closed_table';
         // cfm.createNewDocument();
-        codap.openTile('table','new');
+        codap.openTile('table','-- new --');
         table.getCaseTableTile().should('be.visible');
         table.getCollection().click();
         codap.closeTile('table','New Dataset');
@@ -62,7 +62,7 @@ context('CFM functionalities with table', ()=>{
     it('verify save and restore of non-blank table', ()=>{
         var filename='nonblank_table';
         // cfm.createNewDocument();
-        codap.openTile('table','new');
+        codap.openTile('table','-- new --');
         table.getCaseTableTile().should('be.visible');
         table.getCollection().click();
         // TODO: add some cases to the table
@@ -85,7 +85,7 @@ context('CFM functionalities with table', ()=>{
     it('verify save and restore of minimized table', ()=>{
         var filename='min_table';
         // cfm.createNewDocument();
-        codap.openTile('table','new');
+        codap.openTile('table','-- new --');
         table.getCaseTableTile().should('be.visible');
         table.getCollection().click();
         codap.minimizeTile();
@@ -106,7 +106,7 @@ context('CFM functionalities with table', ()=>{
     it('verify save and restore of closed non-blank table', ()=>{
         var filename='closed nonblank table';
         // cfm.createNewDocument();
-        codap.openTile('table','new');
+        codap.openTile('table','-- new --');
         table.getCaseTableTile().should('be.visible');
         table.getCollection().click();
         // TODO: add data to table
