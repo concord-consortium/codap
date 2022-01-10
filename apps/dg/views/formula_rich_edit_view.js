@@ -41,6 +41,10 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
     return DG.Formula.identifierRegExp.test(ch);
   }
 
+  function endsWithParentheses(str) {
+    return /\(\)$/.test(str);
+  }
+  
   function cmHintReplace(cm, data, completion) {
     var rangeStart = completion.from || data.from,
         rangeEnd = completion.to || data.to,
