@@ -723,8 +723,8 @@
 }
 @font-face {
   font-family: 'CodapIvy';
-  src: static_url("../webfonts/CodapIvy.eot");
-  src: static_url("../webfonts/CodapIvy.eot") format('embedded-opentype'), static_url("../webfonts/CodapIvy.ttf") format('truetype'), static_url("../webfonts/CodapIvy.woff") format('woff'), static_url("../webfonts/CodapIvy.svg") format('svg');
+  src: static_url("webfonts/CodapIvy.eot");
+  src: static_url("webfonts/CodapIvy.eot") format('embedded-opentype'), static_url("webfonts/CodapIvy.ttf") format('truetype'), static_url("webfonts/CodapIvy.woff") format('woff'), static_url("webfonts/CodapIvy.svg") format('svg');
   font-weight: normal;
   font-style: normal;
 }

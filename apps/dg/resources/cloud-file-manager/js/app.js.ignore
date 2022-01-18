@@ -37482,7 +37482,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
         // initialize the cloudContentFactory with all data we want in the envelope
         provider_interface_1.cloudContentFactory.setEnvelopeMetadata({
-            cfmVersion: '1.5.2',
+            cfmVersion: '1.5.3',
             appName: this.appOptions.appName || "",
             appVersion: this.appOptions.appVersion || "",
             appBuildNum: this.appOptions.appBuildNum || ""
@@ -41584,7 +41584,7 @@ var CloudContentFactory = /** @class */ (function () {
     function CloudContentFactory() {
         this.envelopeMetadata = {
             // replaced by version number at build time
-            cfmVersion: '1.5.2',
+            cfmVersion: '1.5.3',
             appName: '',
             appVersion: '',
             appBuildNum: ''
