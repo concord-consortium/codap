@@ -23,9 +23,20 @@
  * @param iStyle {object} font attributes if not default
  */
 DG.measureText = (function () {
+  /**
+   * Whether or not the element contents being measured has exceeded its
+   * container. This obviously depends on whether the style passed in defines
+   * a container that can be exceeded. If, for example, the style specifies a
+   * width and has overflow, 'auto'.
+   * @param element
+   * @return {boolean}
+   */
   function hasOverflowed(element) {
-    return element.scrollHeight > element.clientHeight ||
-        element.scrollWidth > element.clientWidth;
+    // For some versions of Safari, with some zoom settings, the scroll dimensions
+    // exceed the client dimensions, but no overflow has occurred. We account for
+    // for this possibility.
+    return element.scrollHeight - 1 > element.clientHeight ||
+        element.scrollWidth - 1 > element.clientWidth;
   }
 
   var kSelector = 'dg-text-measurer';

@@ -367,7 +367,9 @@ DG.appController = SC.Object.create((function () // closure
         { localize: true, title: 'DG.AppController.optionMenuItems.help-forum', // "Help...",
           target: this, dgAction: 'showHelpForum', id: 'dg-optionMenuItem-help-forum' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
-          target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' }
+          target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' },
+        { localize: true, title: 'DG.AppController.optionMenuItems.toPrivacyPage', // "CODAP privacy...",
+          target: this, dgAction: 'showPrivacyPage', id: 'dg-optionMenuItem-privacy-page' }
         // { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
         //   target: this, dgAction: 'reportProblem', id: 'dg-optionMenuItems-report-problem' }
       ];
@@ -1161,7 +1163,12 @@ DG.appController = SC.Object.create((function () // closure
     showWebSite: function () {
       var kWebsiteURL = DG.get('showWebSiteURL');
 
-      window.open(kWebsiteURL, "CODAP Product Page"); //If tab with site is already open, no new tabs are generated, but tab with page does not come forward
+      window.open(kWebsiteURL); //If tab with site is already open, no new tabs are generated, but tab with page does not come forward
+    },
+
+    showPrivacyPage: function () {
+      var kWebsiteURL = DG.get('showPrivacyURL');
+      window.open(kWebsiteURL);
     },
 
     /**

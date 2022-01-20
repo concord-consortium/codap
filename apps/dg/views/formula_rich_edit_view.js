@@ -21,7 +21,7 @@
 // ==========================================================================
 
 sc_require('views/text_field_view');
-
+/*global CodeMirror:true */
 /** @class
 
   This text editor deals specially with hyphens by turning them into true minus signs.
@@ -31,8 +31,6 @@ sc_require('views/text_field_view');
 */
 DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
 /** @scope DG.FormulaTextEditView.prototype */
-
-  /* global CodeMirror */
 
   function isMatchableChar(ch) {
     // to prevent autocomplete of literal strings, include any quotes in the string to match
@@ -44,15 +42,15 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
   }
 
   function endsWithParentheses(str) {
-    return /\([^\(\)]*\)$/.test(str);
+    return /\(\)$/.test(str);
   }
-
+  
   function cmHintReplace(cm, data, completion) {
     var rangeStart = completion.from || data.from,
         rangeEnd = completion.to || data.to,
         nextCharEnd = { line: rangeEnd.line, ch: rangeEnd.ch + 1 },
         nextChar = cm.getRange(rangeEnd, nextCharEnd),
-        isInsertingFunction = endsWithParentheses(completion.text),
+        isInsertingFunction = (completion.category === 'Functions'),
         replaceWithoutParens = isInsertingFunction && (nextChar === '('),
         canonicalString = isInsertingFunction ? completion.text :
             DG.Attribute.canonicalizeName(completion.text, true),
@@ -76,8 +74,8 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
 
   function cmSortCompletions(c1, c2) {
     /* global removeDiacritics */
-    var isFunction1 = endsWithParentheses(c1.text),
-        isFunction2 = endsWithParentheses(c2.text),
+    var isFunction1 = (c1.category === 'Functions'),
+        isFunction2 = (c2.category === 'Functions'),
         // ignore case and diacritics for sorting purposes
         canonical1 = removeDiacritics(c1.text).toLowerCase(),
         canonical2 = removeDiacritics(c2.text).toLowerCase();
@@ -105,10 +103,10 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
           list: (!curWord || !options.completionData
                   ? []
                   : options.completionData.reduce(function(memo, item) {
-            if (item && item.label && item.label.match(regex))
-              memo.push({ text: item.value, className: 'dg-wants-touch', hint: cmHintReplace });
-            return memo;
-          }, [])).sort(cmSortCompletions),
+                      if (item && item.label && item.label.match(regex))
+                        memo.push({ text: item.value, category: item.category.key, className: 'dg-wants-touch', hint: cmHintReplace });
+                      return memo;
+                    }, [])).sort(cmSortCompletions),
           from: CodeMirror.Pos(cursor.line, start),
           to: CodeMirror.Pos(cursor.line, end)
         };

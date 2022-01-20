@@ -500,8 +500,10 @@ DG.React.ready(function () {
                 }.bind(this),
 
                 editFormula = function () {
-                  DG.DataContextUtilities.editAttributeFormula(iContext, iCollection,
-                      iAttr.get('name'), iAttr.get('formula'));
+                  iContext.invokeLater( function () {
+                    DG.DataContextUtilities.editAttributeFormula(iContext, iCollection,
+                        iAttr.get('name'), iAttr.get('formula'));
+                  }, 30);
                 }.bind(this),
 
                 hideAttribute = function () {

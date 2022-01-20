@@ -37287,6 +37287,7 @@ exports.CloudFileManagerClient = exports.CloudFileManagerClientEvent = void 0;
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 var lodash_1 = __importDefault(__webpack_require__(/*! lodash */ "lodash"));
+var js_sha256_1 = __webpack_require__(/*! js-sha256 */ "../node_modules/js-sha256/src/sha256.js");
 var translate_1 = __importDefault(__webpack_require__(/*! ./utils/translate */ "./code/utils/translate.ts"));
 var is_string_1 = __importDefault(__webpack_require__(/*! ./utils/is-string */ "./code/utils/is-string.ts"));
 var base64_js_1 = __importDefault(__webpack_require__(/*! base64-js */ "../node_modules/base64-js/index.js")); // https://github.com/beatgammit/base64-js
@@ -37304,6 +37305,7 @@ var s3_provider_1 = __importDefault(__webpack_require__(/*! ./providers/s3-provi
 var local_file_provider_1 = __importDefault(__webpack_require__(/*! ./providers/local-file-provider */ "./code/providers/local-file-provider.ts"));
 var post_message_provider_1 = __importDefault(__webpack_require__(/*! ./providers/post-message-provider */ "./code/providers/post-message-provider.ts"));
 var url_provider_1 = __importDefault(__webpack_require__(/*! ./providers/url-provider */ "./code/providers/url-provider.ts"));
+var test_provider_1 = __importDefault(__webpack_require__(/*! ./providers/test-provider */ "./code/providers/test-provider.ts"));
 var provider_interface_1 = __webpack_require__(/*! ./providers/provider-interface */ "./code/providers/provider-interface.ts");
 var report_error_1 = __webpack_require__(/*! ./utils/report-error */ "./code/utils/report-error.ts");
 var CLOUDFILEMANAGER_EVENT_ID = 0;
@@ -37384,7 +37386,8 @@ var CloudFileManagerClient = /** @class */ (function () {
             document_store_provider_1.default,
             local_file_provider_1.default,
             post_message_provider_1.default,
-            s3_provider_1.default
+            s3_provider_1.default,
+            test_provider_1.default
         ];
         for (var _i = 0, providerList_1 = providerList; _i < providerList_1.length; _i++) {
             Provider = providerList_1[_i];
@@ -37479,7 +37482,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
         // initialize the cloudContentFactory with all data we want in the envelope
         provider_interface_1.cloudContentFactory.setEnvelopeMetadata({
-            cfmVersion: '1.4.1',
+            cfmVersion: '1.5.3',
             appName: this.appOptions.appName || "",
             appVersion: this.appOptions.appVersion || "",
             appBuildNum: this.appOptions.appBuildNum || ""
@@ -37802,8 +37805,9 @@ var CloudFileManagerClient = /** @class */ (function () {
                         if (err) {
                             return _this.alert(err, function () { return _this.ready(); });
                         }
-                        // if we just opened the file, it doesn't need to be saved until the contents are changed
-                        var additionalState = { openedContent: content.clone(), saved: true };
+                        // if we just opened the file, it doesn't need to be saved until the contents are changed unless
+                        // it requires conversion from an older version
+                        var additionalState = { openedContent: content.clone(), dirty: content.requiresConversion() };
                         _this._fileOpened(content, metadata, additionalState, _this._getHashParams(metadata));
                         return provider.fileOpened(content, metadata);
                     });
@@ -37893,6 +37897,14 @@ var CloudFileManagerClient = /** @class */ (function () {
     CloudFileManagerClient.prototype.saveFile = function (stringContent, metadata, callback) {
         var _a;
         if (callback === void 0) { callback = null; }
+        // if the content didn't change skip the save (but fake it for the client)
+        var savedContentHash = this._computeContentHash(stringContent);
+        if (this.state.contentHash === savedContentHash) {
+            console.log("CFM: File content not changed, skipping sending save to provider!");
+            var currentContent = this._createOrUpdateCurrentContent(stringContent, metadata);
+            this._fileChanged('savedFile', currentContent, metadata, { saved: true }, this._getHashParams(metadata));
+            return (typeof callback === 'function' ? callback(currentContent, metadata) : undefined);
+        }
         // must be able to 'resave' to save silently, i.e. without save dialog
         if ((_a = metadata === null || metadata === void 0 ? void 0 : metadata.provider) === null || _a === void 0 ? void 0 : _a.can(provider_interface_1.ECapabilities.resave, metadata)) {
             return this.saveFileNoDialog(stringContent, metadata, callback);
@@ -38462,10 +38474,18 @@ var CloudFileManagerClient = /** @class */ (function () {
                 : true;
         }
     };
+    CloudFileManagerClient.prototype._computeContentHash = function (content) {
+        var clientContent = (typeof (content === null || content === void 0 ? void 0 : content.getClientContent) === 'function') ? content.getClientContent() : content;
+        return js_sha256_1.sha256(JSON.stringify(clientContent));
+    };
     CloudFileManagerClient.prototype._fileChanged = function (type, content, metadata, additionalState, hashParams) {
         if (hashParams === void 0) { hashParams = null; }
         if (additionalState == null) {
             additionalState = {};
+        }
+        if (type === 'savedFile') {
+            // update the hash after saving to check on future saves
+            additionalState.contentHash = this._computeContentHash(content);
         }
         this._updateMetaDataOverwritable(metadata);
         this._updateState(content, metadata, additionalState, hashParams);
@@ -38478,6 +38498,8 @@ var CloudFileManagerClient = /** @class */ (function () {
         if (additionalState == null) {
             additionalState = {};
         }
+        // save a hash of the incoming content to check in future saves
+        additionalState.contentHash = this._computeContentHash(content);
         var eventData = { content: (_b = (_a = content === null || content === void 0 ? void 0 : content.getClientContent) === null || _a === void 0 ? void 0 : _a.call(content)) !== null && _b !== void 0 ? _b : content };
         // update state before sending 'openedFile' events so that 'openedFile' listeners that
         // reference state have the updated state values
@@ -38541,7 +38563,8 @@ var CloudFileManagerClient = /** @class */ (function () {
             dirty: false,
             saving: null,
             saved: false,
-            failures: 0
+            failures: 0,
+            contentHash: null
         });
     };
     CloudFileManagerClient.prototype._closeCurrentFile = function () {
@@ -41561,7 +41584,7 @@ var CloudContentFactory = /** @class */ (function () {
     function CloudContentFactory() {
         this.envelopeMetadata = {
             // replaced by version number at build time
-            cfmVersion: '1.4.1',
+            cfmVersion: '1.5.3',
             appName: '',
             appVersion: '',
             appBuildNum: ''
@@ -42469,6 +42492,109 @@ exports.default = S3ShareProvider;
 
 /***/ }),
 
+/***/ "./code/providers/test-provider.ts":
+/*!*****************************************!*\
+  !*** ./code/providers/test-provider.ts ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var provider_interface_1 = __webpack_require__(/*! ./provider-interface */ "./code/providers/provider-interface.ts");
+var TestProvider = /** @class */ (function (_super) {
+    __extends(TestProvider, _super);
+    function TestProvider(options, client) {
+        var _this = _super.call(this, {
+            name: TestProvider.Name,
+            displayName: (options === null || options === void 0 ? void 0 : options.displayName) || "Test Provider",
+            urlDisplayName: options === null || options === void 0 ? void 0 : options.urlDisplayName,
+            capabilities: {
+                save: true,
+                resave: true,
+                "export": true,
+                load: true,
+                list: true,
+                remove: true,
+                rename: true,
+                close: false
+            }
+        }) || this;
+        _this.options = options;
+        _this.client = client;
+        _this.files = {};
+        return _this;
+    }
+    TestProvider.Available = function () {
+        return true;
+    };
+    TestProvider.prototype.save = function (content, metadata, callback) {
+        this.files[metadata.filename] = { content: content, metadata: metadata };
+        return callback === null || callback === void 0 ? void 0 : callback(null);
+    };
+    TestProvider.prototype.load = function (metadata, callback) {
+        var file = this.files[metadata.filename];
+        if (file) {
+            return callback(null, file.content);
+        }
+        return callback("Unable to load '" + metadata.name + "': file not previously saved");
+    };
+    TestProvider.prototype.list = function (metadata, callback) {
+        return callback(null, Object.values(this.files).map(function (v) { return v.metadata; }));
+    };
+    TestProvider.prototype.remove = function (metadata, callback) {
+        delete this.files[metadata.filename];
+        return callback === null || callback === void 0 ? void 0 : callback(null);
+    };
+    TestProvider.prototype.rename = function (metadata, newName, callback) {
+        var temp = this.files[metadata.filename];
+        delete this.files[metadata.filename];
+        this.files[newName] = temp;
+        metadata.name = newName;
+        return callback === null || callback === void 0 ? void 0 : callback(null, metadata);
+    };
+    TestProvider.prototype.canOpenSaved = function () { return true; };
+    TestProvider.prototype.canAuto = function () { return true; };
+    TestProvider.prototype.openSaved = function (openSavedParams, callback) {
+        var metadata = new provider_interface_1.CloudMetadata({
+            name: openSavedParams,
+            type: provider_interface_1.CloudMetadata.File,
+            parent: null,
+            provider: this
+        });
+        return this.load(metadata, function (err, content) { return callback(err, content, metadata); });
+    };
+    TestProvider.prototype.getOpenSavedParams = function (metadata) {
+        return metadata.name;
+    };
+    TestProvider.prototype._getKey = function (name) {
+        if (name === void 0) { name = ''; }
+        return "cfm::" + name.replace(/\t/g, ' ');
+    };
+    TestProvider.Name = 'testProvider';
+    return TestProvider;
+}(provider_interface_1.ProviderInterface));
+exports.default = TestProvider;
+
+
+/***/ }),
+
 /***/ "./code/providers/url-provider.ts":
 /*!****************************************!*\
   !*** ./code/providers/url-provider.ts ***!
@@ -42975,6 +43101,17 @@ module.exports = JSON.parse("{\"~MENUBAR.UNTITLED_DOCUMENT\":\"Dokument utan nam
 
 /***/ }),
 
+/***/ "./code/utils/lang/pt-BR.json":
+/*!************************************!*\
+  !*** ./code/utils/lang/pt-BR.json ***!
+  \************************************/
+/*! exports provided: ~MENUBAR.UNTITLED_DOCUMENT, ~MENU.NEW, ~MENU.OPEN, ~MENU.CLOSE, ~MENU.IMPORT_DATA, ~MENU.SAVE, ~MENU.SAVE_AS, ~MENU.EXPORT_AS, ~MENU.CREATE_COPY, ~MENU.SHARE, ~MENU.SHARE_GET_LINK, ~MENU.SHARE_UPDATE, ~MENU.DOWNLOAD, ~MENU.RENAME, ~MENU.REVERT_TO, ~MENU.REVERT_TO_LAST_OPENED, ~MENU.REVERT_TO_SHARED_VIEW, ~DIALOG.SAVE, ~DIALOG.SAVE_AS, ~DIALOG.EXPORT_AS, ~DIALOG.CREATE_COPY, ~DIALOG.OPEN, ~DIALOG.DOWNLOAD, ~DIALOG.RENAME, ~DIALOG.SHARED, ~DIALOG.IMPORT_DATA, ~PROVIDER.LOCAL_STORAGE, ~PROVIDER.READ_ONLY, ~PROVIDER.GOOGLE_DRIVE, ~PROVIDER.DOCUMENT_STORE, ~PROVIDER.LOCAL_FILE, ~FILE_STATUS.SAVING, ~FILE_STATUS.SAVED, ~FILE_STATUS.SAVED_TO_PROVIDER, ~FILE_STATUS.UNSAVED, ~FILE_DIALOG.FILENAME, ~FILE_DIALOG.OPEN, ~FILE_DIALOG.SAVE, ~FILE_DIALOG.CANCEL, ~FILE_DIALOG.REMOVE, ~FILE_DIALOG.REMOVE_CONFIRM, ~FILE_DIALOG.REMOVED_TITLE, ~FILE_DIALOG.REMOVED_MESSAGE, ~FILE_DIALOG.LOADING, ~FILE_DIALOG.LOAD_FOLDER_ERROR, ~FILE_DIALOG.DOWNLOAD, ~DOWNLOAD_DIALOG.DOWNLOAD, ~DOWNLOAD_DIALOG.CANCEL, ~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO, ~RENAME_DIALOG.RENAME, ~RENAME_DIALOG.CANCEL, ~SHARE_DIALOG.COPY, ~SHARE_DIALOG.VIEW, ~SHARE_DIALOG.CLOSE, ~SHARE_DIALOG.COPY_SUCCESS, ~SHARE_DIALOG.COPY_ERROR, ~SHARE_DIALOG.COPY_TITLE, ~SHARE_DIALOG.LONGEVITY_WARNING, ~SHARE_UPDATE.TITLE, ~SHARE_UPDATE.MESSAGE, ~CONFIRM.OPEN_FILE, ~CONFIRM.NEW_FILE, ~CONFIRM.AUTHORIZE_OPEN, ~CONFIRM.AUTHORIZE_SAVE, ~CONFIRM.CLOSE_FILE, ~CONFIRM.REVERT_TO_LAST_OPENED, ~CONFIRM.REVERT_TO_SHARED_VIEW, ~CONFIRM_DIALOG.TITLE, ~CONFIRM_DIALOG.YES, ~CONFIRM_DIALOG.NO, ~LOCAL_FILE_DIALOG.DROP_FILE_HERE, ~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED, ~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED, ~IMPORT.LOCAL_FILE, ~IMPORT.URL, ~IMPORT_URL.MULTIPLE_URLS_DROPPED, ~IMPORT_URL.PLEASE_ENTER_URL, ~URL_TAB.DROP_URL_HERE, ~URL_TAB.IMPORT, ~CLIENT_ERROR.TITLE, ~ALERT_DIALOG.TITLE, ~ALERT_DIALOG.CLOSE, ~ALERT.NO_PROVIDER, ~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL, ~GOOGLE_DRIVE.CONNECTING_MESSAGE, ~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID, ~DOCSTORE.LOAD_403_ERROR, ~DOCSTORE.LOAD_SHARED_404_ERROR, ~DOCSTORE.LOAD_404_ERROR, ~DOCSTORE.SAVE_403_ERROR, ~DOCSTORE.SAVE_DUPLICATE_ERROR, ~DOCSTORE.SAVE_ERROR_WITH_MESSAGE, ~DOCSTORE.SAVE_ERROR, ~DOCSTORE.REMOVE_403_ERROR, ~DOCSTORE.REMOVE_ERROR, ~DOCSTORE.RENAME_403_ERROR, ~DOCSTORE.RENAME_ERROR, ~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE, ~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE, ~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE, ~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER, ~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE, ~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE, ~SHARE_DIALOG.SHARE_STATE, ~SHARE_DIALOG.SHARE_STATE_ENABLED, ~SHARE_DIALOG.SHARE_STATE_DISABLED, ~SHARE_DIALOG.ENABLE_SHARING, ~SHARE_DIALOG.STOP_SHARING, ~SHARE_DIALOG.UPDATE_SHARING, ~SHARE_DIALOG.PREVIEW_SHARING, ~SHARE_DIALOG.ENABLE_SHARING_MESSAGE, ~SHARE_DIALOG.LINK_TAB, ~SHARE_DIALOG.LINK_MESSAGE, ~SHARE_DIALOG.EMBED_TAB, ~SHARE_DIALOG.EMBED_MESSAGE, ~SHARE_DIALOG.LARA_MESSAGE, ~SHARE_DIALOG.LARA_CODAP_URL, ~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING, ~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES, ~CONFIRM.CHANGE_LANGUAGE, ~FILE_STATUS.FAILURE, ~SHARE_DIALOG.PLEASE_WAIT, ~GOOGLE_DRIVE.ERROR_CONNECTING_MESSAGE, ~GOOGLE_DRIVE.ERROR_MISSING_APIKEY, ~GOOGLE_DRIVE.UNABLE_TO_UPLOAD, ~GOOGLE_DRIVE.UNABLE_TO_UPLOAD_MSG, ~SHARE_DIALOG.INTERACTIVE_API_MESSAGE, ~DIALOG.SELECT_INTERACTIVE_STATE.USE_THIS_VERSION, ~DIALOG.SELECT_INTERACTIVE_STATE.CLICK_TO_PREVIEW, ~DIALOG.SELECT_INTERACTIVE_STATE.UPDATED_AT, ~DIALOG.SELECT_INTERACTIVE_STATE.PAGE, ~DIALOG.SELECT_INTERACTIVE_STATE.ACTIVITY, ~DIALOG.SELECT_INTERACTIVE_STATE.CURRENT_VS_LINKED, ~DIALOG.SELECT_INTERACTIVE_STATE.LINKED_VS_LINKED, ~DIALOG.SELECT_INTERACTIVE_STATE.TITLE, ~DIALOG.SELECT_INTERACTIVE_STATE.PREVIEW_INFO, default */
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"~MENUBAR.UNTITLED_DOCUMENT\":\"Arquivo Sem Nome\",\"~MENU.NEW\":\"Novo\",\"~MENU.OPEN\":\"Abrir ...\",\"~MENU.CLOSE\":\"Fechar\",\"~MENU.IMPORT_DATA\":\"Importar dados ...\",\"~MENU.SAVE\":\"Salvar\",\"~MENU.SAVE_AS\":\"Salvar como ...\",\"~MENU.EXPORT_AS\":\"Exportar como ...\",\"~MENU.CREATE_COPY\":\"Criar uma cópia\",\"~MENU.SHARE\":\"Compartilhar ...\",\"~MENU.SHARE_GET_LINK\":\"Obter link compartilhável\",\"~MENU.SHARE_UPDATE\":\"Atualizar link compartilhável\",\"~MENU.DOWNLOAD\":\"Download\",\"~MENU.RENAME\":\"Renomear\",\"~MENU.REVERT_TO\":\"Reverter para ...\",\"~MENU.REVERT_TO_LAST_OPENED\":\"Versão anterior\",\"~MENU.REVERT_TO_SHARED_VIEW\":\"Link compartilhável\",\"~DIALOG.SAVE\":\"Salvar\",\"~DIALOG.SAVE_AS\":\"Salvar como ...\",\"~DIALOG.EXPORT_AS\":\"Exportar como ...\",\"~DIALOG.CREATE_COPY\":\"Criar uma cópia ...\",\"~DIALOG.OPEN\":\"Abrir\",\"~DIALOG.DOWNLOAD\":\"Download\",\"~DIALOG.RENAME\":\"Renomear\",\"~DIALOG.SHARED\":\"Compartilhar\",\"~DIALOG.IMPORT_DATA\":\"Importar Dados\",\"~PROVIDER.LOCAL_STORAGE\":\"Armazenamento Local\",\"~PROVIDER.READ_ONLY\":\"Somente Leitura\",\"~PROVIDER.GOOGLE_DRIVE\":\"Google Drive\",\"~PROVIDER.DOCUMENT_STORE\":\"Concord Cloud\",\"~PROVIDER.LOCAL_FILE\":\"Arquivo Local\",\"~FILE_STATUS.SAVING\":\"Salvando ...\",\"~FILE_STATUS.SAVED\":\"Todas as mudanças foram salvas\",\"~FILE_STATUS.SAVED_TO_PROVIDER\":\"Todas as mudanças foram salvas em %{providerName}\",\"~FILE_STATUS.UNSAVED\":\"Não Salvo\",\"~FILE_DIALOG.FILENAME\":\"Nome do Arquivo\",\"~FILE_DIALOG.OPEN\":\"Abrir\",\"~FILE_DIALOG.SAVE\":\"Salvar\",\"~FILE_DIALOG.CANCEL\":\"Cancelar\",\"~FILE_DIALOG.REMOVE\":\"Excluir\",\"~FILE_DIALOG.REMOVE_CONFIRM\":\"Tem certeza que deseja excluir %{filename}?\",\"~FILE_DIALOG.REMOVED_TITLE\":\"Aquivo Excluido\",\"~FILE_DIALOG.REMOVED_MESSAGE\":\"%{filename} excluído\",\"~FILE_DIALOG.LOADING\":\"Carregando ...\",\"~FILE_DIALOG.LOAD_FOLDER_ERROR\":\"*** Erro carregando arquivos ***\",\"~FILE_DIALOG.DOWNLOAD\":\"Download\",\"~DOWNLOAD_DIALOG.DOWNLOAD\":\"Download\",\"~DOWNLOAD_DIALOG.CANCEL\":\"Cancelar\",\"~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO\":\"Incluir informações de compartilhamento no arquivo baixado\",\"~RENAME_DIALOG.RENAME\":\"Renomear\",\"~RENAME_DIALOG.CANCEL\":\"Cancelar\",\"~SHARE_DIALOG.COPY\":\"Copiar\",\"~SHARE_DIALOG.VIEW\":\"Exibir\",\"~SHARE_DIALOG.CLOSE\":\"Fechar\",\"~SHARE_DIALOG.COPY_SUCCESS\":\"A informação foi copiada para a área de transferência.\",\"~SHARE_DIALOG.COPY_ERROR\":\"Desculpe, não foi possível copiar a informação para a área de transferência.\",\"~SHARE_DIALOG.COPY_TITLE\":\"Copiar o resultado\",\"~SHARE_DIALOG.LONGEVITY_WARNING\":\"Esta versão compartilhável do arquivo será mantida por até 1 ano sem acesso.\",\"~SHARE_UPDATE.TITLE\":\"Link compartilhável atualizado\",\"~SHARE_UPDATE.MESSAGE\":\"O link compartilhável foi atualizado. Esse processo por levar até 1 minuto.\",\"~CONFIRM.OPEN_FILE\":\"Você não salvou as alterações. Tem certeza que deseja abrir um novo arquivo?\",\"~CONFIRM.NEW_FILE\":\"Você não salvou as alterações. Tem certeza que deseja criar um novo arquivo?\",\"~CONFIRM.AUTHORIZE_OPEN\":\"Necessária autorização para abrir o arquivo. Deseja continuar?\",\"~CONFIRM.AUTHORIZE_SAVE\":\"Necessária autorização para salvar o arquivo. Deseja continuar?\",\"~CONFIRM.CLOSE_FILE\":\"Deseja sair sem salvar as alterações?\",\"~CONFIRM.REVERT_TO_LAST_OPENED\":\"Deseja retomar este arquivo na sua versão aberta e mais recente?\",\"~CONFIRM.REVERT_TO_SHARED_VIEW\":\"Tem certeza que deseja retomar este arquivo na sua versão anterior?\",\"~CONFIRM_DIALOG.TITLE\":\"Está certo disso?\",\"~CONFIRM_DIALOG.YES\":\"Sim\",\"~CONFIRM_DIALOG.NO\":\"Não\",\"~LOCAL_FILE_DIALOG.DROP_FILE_HERE\":\"Arraste e solte um arquivo aqui. Ou clique aqui.\",\"~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED\":\"Desculpe, você pode abrir um arquivo por vez.\",\"~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED\":\"Desculpe, você não pode arrastar mais de um arquivo por vez.\",\"~IMPORT.LOCAL_FILE\":\"Arquivo Local\",\"~IMPORT.URL\":\"URL\",\"~IMPORT_URL.MULTIPLE_URLS_DROPPED\":\"Desculpe, você pode abrir uma URL por vez.\",\"~IMPORT_URL.PLEASE_ENTER_URL\":\"Por favor, digite uma url para importar.\",\"~URL_TAB.DROP_URL_HERE\":\"Arraste uma URL para cá, ou entre com uma abaixo\",\"~URL_TAB.IMPORT\":\"Importar\",\"~CLIENT_ERROR.TITLE\":\"Erro\",\"~ALERT_DIALOG.TITLE\":\"Alerta\",\"~ALERT_DIALOG.CLOSE\":\"Fechar\",\"~ALERT.NO_PROVIDER\":\"Não foi possível abrir este arquivo por falta de um provedor apropriado.\",\"~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL\":\"Login no Google\",\"~GOOGLE_DRIVE.CONNECTING_MESSAGE\":\"Conectando no Google ...\",\"~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID\":\"Falta a requisição do clientId nas opções oferecidas pelo Google Drive\",\"~DOCSTORE.LOAD_403_ERROR\":\"Você não tem permissão de carregar %{filename}.<br><br>I Se você está utilizando o arquivo compartilhado de alguém, deve ter sido bloqueado.\",\"~DOCSTORE.LOAD_SHARED_404_ERROR\":\"Não foi possível carregar o arquivo. <br><br> Talvez ele não está mais disponível?\",\"~DOCSTORE.LOAD_404_ERROR\":\"Não foi possível carregar %{filename}\",\"~DOCSTORE.SAVE_403_ERROR\":\"Você não pode salvar '%{filename}'.<br><br> Você deve acessar novamente sua conta.\",\"~DOCSTORE.SAVE_DUPLICATE_ERROR\":\"Impossível criar %{filename}.  Arquivo já existe.\",\"~DOCSTORE.SAVE_ERROR_WITH_MESSAGE\":\"Impossível salvar %{filename}: [%{message}]\",\"~DOCSTORE.SAVE_ERROR\":\"Impossível salvar %{filename}\",\"~DOCSTORE.REMOVE_403_ERROR\":\"Você não tem permissão para remover %{filename}.<br><br> Você deve acessar sua conta novamente.\",\"~DOCSTORE.REMOVE_ERROR\":\"Impossível remover %{filename}\",\"~DOCSTORE.RENAME_403_ERROR\":\"Você não tem permissão para renomear %{filename}.<br><br> Faça o login e tente novamente.\",\"~DOCSTORE.RENAME_ERROR\":\"Não foi possível renomear %{nome do arquivo}\",\"~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE\":\"Alerta Concord Cloud\",\"~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE\":\"Alerta Concord Cloud\",\"~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE\":\"Salvar em outro lugar\",\"~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER\":\"Farei isso depois\",\"~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE\":\"A Concord Cloud foi desligada!\",\"~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE\":\"Por favor, salve seus arquivos em outro local.\",\"~SHARE_DIALOG.SHARE_STATE\":\"Link compartilhável: \",\"~SHARE_DIALOG.SHARE_STATE_ENABLED\":\"habilitado\",\"~SHARE_DIALOG.SHARE_STATE_DISABLED\":\"desabilitado\",\"~SHARE_DIALOG.ENABLE_SHARING\":\"Habilitar compartilhamento\",\"~SHARE_DIALOG.STOP_SHARING\":\"Desabilitar compartilhamento\",\"~SHARE_DIALOG.UPDATE_SHARING\":\"Atualizar compartilhamento\",\"~SHARE_DIALOG.PREVIEW_SHARING\":\"Prévia de aquivo compartilhado\",\"~SHARE_DIALOG.ENABLE_SHARING_MESSAGE\":\"Quando o compartilhamento é habilidade, uma cópia do arquivo atual é criada e pode ser compartilhada.\",\"~SHARE_DIALOG.LINK_TAB\":\"Link\",\"~SHARE_DIALOG.LINK_MESSAGE\":\"Colar isto em um e-mail, ou messagem de texto \",\"~SHARE_DIALOG.EMBED_TAB\":\"Incorporar\",\"~SHARE_DIALOG.EMBED_MESSAGE\":\"Incorporar o código para incluir em páginas web, ou em locais semelhantes\",\"~SHARE_DIALOG.LARA_MESSAGE\":\"Use este link quando criar uma atividade no LARA\",\"~SHARE_DIALOG.LARA_CODAP_URL\":\"URL do Servidor CODAP:\",\"~SHARE_DIALOG.LARA_FULLSCREEN_BUTTON_AND_SCALING\":\"Botão maximizar e redimensionar\",\"~SHARE_DIALOG.LARA_DISPLAY_VISIBILITY_TOGGLES\":\"Muda a visibilidade dos dados nos gráficos\",\"~CONFIRM.CHANGE_LANGUAGE\":\"Você não salvou as modificações. Tem certeza que deseja mudar o idioma?\",\"~FILE_STATUS.FAILURE\":\"Tentando novamente...\",\"~SHARE_DIALOG.PLEASE_WAIT\":\"Por favor, aguarde enquanto geramos um link compartilhável …\",\"~GOOGLE_DRIVE.ERROR_CONNECTING_MESSAGE\":\"Erro na conexão com o Google!\",\"~GOOGLE_DRIVE.ERROR_MISSING_APIKEY\":\"Falha na conexão com a apiKey no Google Drive\",\"~GOOGLE_DRIVE.UNABLE_TO_UPLOAD\":\"Não foi possível enviar o arquivo\",\"~GOOGLE_DRIVE.UNABLE_TO_UPLOAD_MSG\":\"Não foi possível enviar o arquivo: %{message}\",\"~SHARE_DIALOG.INTERACTIVE_API_MESSAGE\":\"Use este link ao criar uma atividade para o Activity Player\",\"~DIALOG.SELECT_INTERACTIVE_STATE.USE_THIS_VERSION\":\"Use esta versão\",\"~DIALOG.SELECT_INTERACTIVE_STATE.CLICK_TO_PREVIEW\":\"Clique para visualizar\",\"~DIALOG.SELECT_INTERACTIVE_STATE.UPDATED_AT\":\"Atualizado em\",\"~DIALOG.SELECT_INTERACTIVE_STATE.PAGE\":\"Página\",\"~DIALOG.SELECT_INTERACTIVE_STATE.ACTIVITY\":\"Atividade\",\"~DIALOG.SELECT_INTERACTIVE_STATE.CURRENT_VS_LINKED\":\"Outra página contém dados mais recentes. Qual página você gostaria de usar?\",\"~DIALOG.SELECT_INTERACTIVE_STATE.LINKED_VS_LINKED\":\"Existem duas possiblidades para continuar o seu trabalho. Qual a versão você gostaria de usar?\",\"~DIALOG.SELECT_INTERACTIVE_STATE.TITLE\":\"O que você gostaria de fazer?\",\"~DIALOG.SELECT_INTERACTIVE_STATE.PREVIEW_INFO\":\"Esta é uma visualização prévia de seus dados. Clique em qualquer lugar para fechá-lo.\"}");
+
+/***/ }),
+
 /***/ "./code/utils/lang/th.json":
 /*!*********************************!*\
   !*** ./code/utils/lang/th.json ***!
@@ -43264,6 +43401,7 @@ var he_json_1 = __importDefault(__webpack_require__(/*! ./lang/he.json */ "./cod
 var ja_json_1 = __importDefault(__webpack_require__(/*! ./lang/ja.json */ "./code/utils/lang/ja.json"));
 var nb_json_1 = __importDefault(__webpack_require__(/*! ./lang/nb.json */ "./code/utils/lang/nb.json"));
 var nn_json_1 = __importDefault(__webpack_require__(/*! ./lang/nn.json */ "./code/utils/lang/nn.json"));
+var pt_BR_json_1 = __importDefault(__webpack_require__(/*! ./lang/pt-BR.json */ "./code/utils/lang/pt-BR.json"));
 var th_json_1 = __importDefault(__webpack_require__(/*! ./lang/th.json */ "./code/utils/lang/th.json"));
 var tr_json_1 = __importDefault(__webpack_require__(/*! ./lang/tr.json */ "./code/utils/lang/tr.json"));
 var zh_Hans_json_1 = __importDefault(__webpack_require__(/*! ./lang/zh-Hans.json */ "./code/utils/lang/zh-Hans.json"));
@@ -43277,6 +43415,7 @@ var languageFiles = [
     { key: 'ja', contents: ja_json_1.default },
     { key: 'nb', contents: nb_json_1.default },
     { key: 'nn', contents: nn_json_1.default },
+    { key: 'pt-BR', contents: pt_BR_json_1.default },
     { key: 'th', contents: th_json_1.default },
     { key: 'tr', contents: tr_json_1.default },
     { key: 'zh', contents: zh_Hans_json_1.default },

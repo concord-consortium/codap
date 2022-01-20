@@ -126,11 +126,21 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       numberFormatter = function (cellValue, type, precision) {
-        var value = DG.isNumeric(cellValue)? DG.getNumeric(cellValue): DG.MathUtilities.extractNumeric(cellValue);
+        var value = DG.isNumeric(cellValue)
+                ? DG.getNumeric(cellValue)
+                : DG.MathUtilities.extractNumeric(cellValue),
+            roundDigits = !SC.empty(precision)? precision : 2,
+            formattedValue;
+
         if (value != null && value !== '') {
-          var roundDigits = !SC.empty(precision)? precision : 2,
-              multiplier = !SC.empty(roundDigits) ? Math.pow(10,roundDigits) : 1;
-          return '<span class="dg-numeric">' + (Math.round( multiplier * value) / multiplier) + '</span>';
+          if (type === DG.Attribute.TYPE_NUMERIC) {
+            formattedValue = Intl.NumberFormat(DG.get('currentLanguage'),
+                {maximumFractionDigits: roundDigits}).format(value);
+          } else {
+            var multiplier = !SC.empty(roundDigits) ? Math.pow(10,roundDigits) : 1;
+            formattedValue = Math.round( multiplier * value) / multiplier;
+          }
+          return '<span class="dg-numeric">' + formattedValue + '</span>';
         } else {
           return stringFormatter(cellValue);
         }

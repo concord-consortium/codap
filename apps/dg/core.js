@@ -128,7 +128,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0607',
+    BUILD_NUM: '0613',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -151,6 +151,7 @@ DG = SC.Application.create((function () // closure
     showHelpForumURL: 'https://codap.concord.org/forums/forum/test/',
 
     showWebSiteURL: 'https://codap.concord.org',
+    showPrivacyURL: 'https://codap.concord.org/privacy',
 
     splashURL: static_url('images/codap-splash-screen.png'),
 
@@ -562,6 +563,12 @@ DG = SC.Application.create((function () // closure
         langDigraph: 'nn',
         countryDigraph: 'NO',
         icon: 'flag flag-no'
+      },
+      {
+        langName: 'português do Brasil',
+        langDigraph: 'pt-BR',
+        countryDigraph: 'BR',
+        icon: 'flag flag-br'
       },
       {
         langName: 'ไทย',
