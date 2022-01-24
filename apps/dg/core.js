@@ -565,7 +565,7 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-no'
       },
       {
-        langName: 'português do Brasil',
+        langName: 'Português do Brasil',
         langDigraph: 'pt-BR',
         countryDigraph: 'BR',
         icon: 'flag flag-br'
