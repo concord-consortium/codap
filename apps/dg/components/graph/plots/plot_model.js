@@ -751,6 +751,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        * @param iSelectedCases? {{}[]}
        */
       animateSelectionBackToStart: function (iAttrIDs, iDeltas, iSelectedCases) {
+        if(iDeltas.every(function(iDelta) { return iDelta === 0;}))
+          return;
         if (SC.none(this.caseValueAnimator))
           this.caseValueAnimator = DG.CaseValueAnimator.create();
         else  // We must end the animation before setting animator properties
