@@ -816,6 +816,17 @@ DG.DataDisplayController = DG.ComponentController.extend(
             name: 'axis.attributeChange',
             undoString: 'DG.Undo.axisAttributeChange',
             redoString: 'DG.Redo.axisAttributeChange',
+            executeNotification: {
+              action: 'notify',
+              resource: 'component',
+              values: {
+                operation: 'attributeChange',
+                type: 'DG.GraphView',
+                id: this.getPath('model.id'),
+                attributeName: tNewItem.get('title'),
+                axisOrientation: tAxisOrientation
+              }
+            },
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
