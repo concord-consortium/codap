@@ -17,6 +17,23 @@
 // ==========================================================================
 
 // noinspection SpellCheckingInspection
+function serializeItem(dataSet, item) {
+  if (!item) {
+    return;
+  }
+  var ret = {};
+  var values = {};
+  var baseCollectionID = dataSet.getPath('baseCollection.id');
+  var attrs = dataSet.get('attrs');
+  attrs.forEach(function (attr) {
+    var value = item.getValue(attr.id, baseCollectionID);
+    values[attr.name] = value != null ? value : "";
+  });
+  ret.values = values;
+  ret.id = item.id;
+  return ret;
+}
+
 /** @class
  *
  * The DataInteractivePhoneHandler handles inbound messages for the Data Interactive
@@ -199,22 +216,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
        */
       resolveResources: function (resourceSelector, action) {
-        function serializeItem(dataSet, item) {
-          if (!item) {
-            return;
-          }
-          var ret = {};
-          var values = {};
-          var baseCollectionID = dataSet.getPath('baseCollection.id');
-          var attrs = dataSet.get('attrs');
-          attrs.forEach(function (attr) {
-            var value = item.getValue(attr.id, baseCollectionID);
-            values[attr.name] = value != null ? value : "";
-          });
-          ret.values = values;
-          ret.id = item.id;
-          return ret;
-        }
         function resolveContext(selector, myContext) {
           var document = DG.currDocumentController();
           var context;
@@ -350,10 +351,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (resourceSelector.itemSearch) {
           dataSet = result.dataContext && result.dataContext.get('dataSet');
-          var items = dataSet && dataSet.getItemsBySearch(resourceSelector.itemSearch);
-          result.itemSearch = items && items.map(function (item) {
-                                        return serializeItem(dataSet, item);
-                                      });
+          result.itemSearch = dataSet && dataSet.getItemsBySearch(
+              resourceSelector.itemSearch) ;
         }
 
         if (resourceSelector.itemByCaseID) {
@@ -1418,11 +1417,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleItemSearch: {
         get: function (iResources) {
+          var dataContext = iResources.dataContext;
+          var dataSet = dataContext && dataContext.get('dataSet');
+
           var success = (iResources.itemSearch != null),
               items = [];
 
           if (success) {
-            items = iResources.itemSearch;
+            items = iResources.itemSearch && iResources.itemSearch.map(function (item) {
+              return serializeItem(dataSet, item);
+            });
           }
           return {
             success: success,
