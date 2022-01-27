@@ -515,6 +515,7 @@ DG.BivariateStatsFn = DG.ParentCaseAggregate.extend({
 DG.BivariateSemiAggregateFn = DG.BivariateStatsFn.extend({
 
   requiredArgs: {min: 2, max: 2},
+  yCanBeNonNumeric: false,
 
   // For bivariate functions there must be two numeric values
   filterCase: function(iContext, iEvalContext, iInstance) {
@@ -527,7 +528,7 @@ DG.BivariateSemiAggregateFn = DG.BivariateStatsFn.extend({
     var tBaseResult = sc_super(),
         tX = getValue(0),
         tY = getValue(1);
-    return tBaseResult && DG.isNumeric(tX) && DG.isNumeric(tY);
+    return tBaseResult && DG.isNumeric(tX) && (DG.isNumeric(tY) || this.yCanBeNonNumeric);
   },
 
   preEvaluate: function(iContext, iEvalContext, iInstance) {

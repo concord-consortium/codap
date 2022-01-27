@@ -89,6 +89,8 @@ DG.functionRegistry.registerAggregates((function () {
 
     linRegrPredicted: DG.BivariateSemiAggregateFn.create({
 
+      yCanBeNonNumeric: true, // so that we can get predicted values for x's without y's
+
       secondPassEvalCase: function (iContext, iEvalContext, iInstance, iCacheID) {
         var xFn = iInstance.argFns[0],
             tSlope = iInstance.caches[iCacheID].slope,
