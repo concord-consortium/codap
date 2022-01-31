@@ -37482,7 +37482,7 @@ var CloudFileManagerClient = /** @class */ (function () {
         }
         // initialize the cloudContentFactory with all data we want in the envelope
         provider_interface_1.cloudContentFactory.setEnvelopeMetadata({
-            cfmVersion: '1.5.3',
+            cfmVersion: '1.5.5',
             appName: this.appOptions.appName || "",
             appVersion: this.appOptions.appVersion || "",
             appBuildNum: this.appOptions.appBuildNum || ""
@@ -38129,6 +38129,10 @@ var CloudFileManagerClient = /** @class */ (function () {
                 sharedContent.addMetadata(sharingMetadata_1);
                 var currentContent = _this._createOrUpdateCurrentContent(stringContent, _this.state.metadata);
                 sharedContent.set('docName', currentContent.get('docName'));
+                // save the current name at the top level so it is displayed when the shared file is loaded
+                if (_this.state.metadata) {
+                    sharedContent.getClientContent().name = _this.state.metadata.name;
+                }
                 if (shared) {
                     currentContent.remove('isUnshared');
                 }
@@ -38274,8 +38278,7 @@ var CloudFileManagerClient = /** @class */ (function () {
             }
             else {
                 if (metadata) {
-                    metadata.name = newName;
-                    metadata.filename = newName;
+                    metadata.rename(newName);
                 }
                 else {
                     metadata = new provider_interface_1.CloudMetadata({
@@ -38385,25 +38388,20 @@ var CloudFileManagerClient = /** @class */ (function () {
         var _this = this;
         var _a;
         if (callback) {
-            if (!this.state.dirty) {
-                return callback(newLangCode);
-            }
-            else {
-                var postSave_1 = function (err) {
-                    if (err) {
-                        _this.alert(err);
-                        return _this.confirm(translate_1.default('~CONFIRM.CHANGE_LANGUAGE'), function () { return callback(newLangCode); });
-                    }
-                    else {
-                        return callback(newLangCode);
-                    }
-                };
-                if (((_a = this.state.metadata) === null || _a === void 0 ? void 0 : _a.provider) || this.autoProvider(provider_interface_1.ECapabilities.save)) {
-                    return this.save(function (err) { return postSave_1(err); });
+            var postSave_1 = function (err) {
+                if (err) {
+                    _this.alert(err);
+                    return _this.confirm(translate_1.default('~CONFIRM.CHANGE_LANGUAGE'), function () { return callback(newLangCode); });
                 }
                 else {
-                    return this.saveTempFile(postSave_1);
+                    return callback(newLangCode);
                 }
+            };
+            if ((_a = this.state.metadata) === null || _a === void 0 ? void 0 : _a.provider.can(provider_interface_1.ECapabilities.save)) {
+                return this.save(function (err) { return postSave_1(err); });
+            }
+            else {
+                return this.saveTempFile(postSave_1);
             }
         }
     };
@@ -38413,10 +38411,8 @@ var CloudFileManagerClient = /** @class */ (function () {
     CloudFileManagerClient.prototype.hideBlockingModal = function () {
         return this._ui.hideBlockingModal();
     };
-    CloudFileManagerClient.prototype.getCurrentUrl = function (queryString) {
-        var suffix = (queryString != null) ? "?" + queryString : "";
-        // Check browser support for document.location.origin (& window.location.origin)
-        return "" + document.location.origin + document.location.pathname + suffix;
+    CloudFileManagerClient.prototype.getCurrentUrl = function (hashString) {
+        return "" + window.location.origin + window.location.pathname + window.location.search + (hashString || "");
     };
     // Takes an array of strings representing url parameters to be removed from the URL.
     // Removes the specified parameters from the URL and then uses the history API's
@@ -41584,7 +41580,7 @@ var CloudContentFactory = /** @class */ (function () {
     function CloudContentFactory() {
         this.envelopeMetadata = {
             // replaced by version number at build time
-            cfmVersion: '1.5.3',
+            cfmVersion: '1.5.5',
             appName: '',
             appVersion: '',
             appBuildNum: ''
