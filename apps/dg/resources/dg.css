@@ -1729,3 +1729,8 @@ img.flag {
 {
     text-transform:none;
 }
+
+.dg.resize-handle {
+	background-image: static_url('images/se_corner_handle.svg');
+	cursor: se-resize;
+}

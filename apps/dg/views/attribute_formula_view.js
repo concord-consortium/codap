@@ -38,7 +38,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
 
   contentView: SC.View.extend({
     classNames: 'dg-formula-dialog',
-    childViews: 'attrName equalsLabel formula operandPopup functionPopup apply cancel'.w(),
+    childViews: 'attrName equalsLabel formula operandPopup functionPopup apply cancel resizeHandle'.w(),
       attrName: SC.TextFieldView.design({
         layout: { top: 5, left: 5, right: 25, height:24 },
         value: '',
@@ -55,13 +55,13 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         value: "="
       }),
       formula: DG.FormulaRichEditView.design({
-        layout: { top: 34, left: 5, right: 5, height:72 },
+        layout: { top: 34, left: 5, right: 5, bottom:74 },
         value: '',
         isTextArea: true,
         spellCheckEnabled: false,
         hint: '',
         leftAccessoryView: SC.LabelView.create( {
-                    layout: { left: 1, width: 55, height:70, top: 1 },
+                    layout: { left: 1, width: 55, bottom:1, top: 1 },
                     value: 'DG.AttrFormView.formulaPrompt', // "Formula:",
                     backgroundColor: 'lightgray',
                     localize: true
@@ -69,7 +69,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         classNames: 'dg-formula-dialog-input-field'
       }),
       operandPopup: SC.PopupButtonView.extend({
-        layout: { top: 112, left: 5, width: 140, height: 24 },
+        layout: { bottom: 44, left: 5, width: 140, height: 24 },
         localize: true,
         title: 'DG.AttrFormView.operandMenuTitle',
         menu: SC.MenuPane.extend({
@@ -92,7 +92,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         })
       }),
       functionPopup: SC.PopupButtonView.extend({
-        layout: { top: 112, left: 150, width: 170, height: 24 },
+        layout: { bottom: 44, left: 150, width: 170, height: 24 },
         localize: true,
         title: 'DG.AttrFormView.functionMenuTitle',
         mouseDown: function() {
@@ -118,7 +118,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         }
       }),
       apply: SC.ButtonView.design({
-        layout: { bottom:5, right: 5, height:24, width: 90 },
+        layout: { bottom:5, right: 25, height:24, width: 90 },
         titleMinWidth: 0,
         title: 'DG.AttrFormView.applyBtnTitle', // "Apply"
         target: null,
@@ -130,7 +130,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
 
       }),
       cancel: SC.ButtonView.design({
-        layout: { bottom:5, right: 115, height:24, width: 90 },
+        layout: { bottom:5, right: 135, height:24, width: 90 },
         titleMinWidth: 0,
         title: 'DG.AttrFormView.cancelBtnTitle',  // "Cancel"
         target: null,
@@ -140,6 +140,61 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         isCancel: true,
         classNames: 'dg-formula-dialog-cancel'
 
+      }),
+      resizeHandle: SC.View.extend({
+        classNames: ['resize-handle'],
+        layout: { right: 0, bottom: 0, width: 20, height: 20},
+
+        render: function (context) {
+          context.begin().addClass('handle-image').end();
+        },
+
+        mouseDown: function (evt) {
+          // Cache the initial vertical offset and parent height.
+          var parentView = this.get('parentView'),
+              wrapperView = parentView.get('parentView'),
+              frame = parentView.get('borderFrame');
+
+          // Indicate that we are resizing.
+          wrapperView.beginLiveResize();
+
+          this._initialX = evt.clientX;
+          this._initialY = evt.clientY;
+          this._initialWidth = frame.width;
+          this._initialHeight = frame.height;
+
+          return true;
+        },
+
+        mouseDragged: function (evt) {
+          var parentView = this.get('parentView'),
+              width, height,
+              offsetX, offsetY;
+
+          offsetX = evt.clientX - this._initialX;
+          offsetY = evt.clientY - this._initialY;
+          // Parent view is centered, so we double the offset to keep the dragger under the mouse (for aesthetic purposes - the view would
+          // continue to get the events even if the mouse is no longer over it, as RootResponder routes subsequent mouse events to the view
+          // which handled mouseDown).
+          width = Math.max(400, this._initialWidth + offsetX);
+          height = Math.max(180, this._initialHeight + offsetY);
+          parentView.adjust({width: width, height: height});
+        },
+
+        mouseUp: function (evt) {
+          var parentView = this.get('parentView'),
+              wrapperView = parentView.get('parentView');
+
+          // Indicate that we are resizing.
+          wrapperView.endLiveResize();
+
+          // Clean up.
+          delete this._initialX;
+          delete this._initialY;
+          parentView.set('transitionAdjust', SC.View.SMOOTH_ADJUST);
+
+          return true;
+        }
       })
   }),
 
