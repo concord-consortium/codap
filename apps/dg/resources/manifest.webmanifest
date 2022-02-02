@@ -9,31 +9,31 @@
   "lang": "en-US",
   "description": "A tool for exploratory data analysis.",
   "icons": [{
-    "src": "images/codap_logo_32.png",
+    "src": "../source/resources/images/codap_logo_32.png",
     "sizes": "32x32",
     "type": "image/png"
   },{
-    "src": "images/codap_logo_48.png",
+    "src": "../source/resources/images/codap_logo_48.png",
     "sizes": "48x48",
     "type": "image/png"
   },{
-    "src": "images/codap_logo_72.png",
+    "src": "../source/resources/images/codap_logo_72.png",
     "sizes": "72x72",
     "type": "image/png"
   },{
-    "src": "images/codap_logo_96.png",
+    "src": "../source/resources/images/codap_logo_96.png",
     "sizes": "96x96",
     "type": "image/png"
   },{
-    "src": "images/codap_logo_128.png",
+    "src": "../source/resources/images/codap_logo_128.png",
     "sizes": "128x128",
     "type": "image/png"
   },{
-    "src": "images/codap_logo_144.png",
+    "src": "../source/resources/images/codap_logo_144.png",
     "sizes": "144x144",
     "type": "image/png"
   },{
-    "src": "images/codap_logo_512.png",
+    "src": "../source/resources/images/codap_logo_512.png",
     "sizes": "512x512",
     "type": "image/png"
   }]
