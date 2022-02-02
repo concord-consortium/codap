@@ -782,7 +782,6 @@ DG.ComponentView = SC.View.extend(
 
 DG.ComponentView._createComponent = function (iParams) {
   var tComponentClass = iParams.componentClass.constructor;
-  SC.Benchmark.start('createComponent: ' + tComponentClass);
 
   var tMakeItVisible = (iParams.layout.isVisible === undefined) || iParams.layout.isVisible,
       tIsResizable = iParams.isResizable,
@@ -810,8 +809,6 @@ DG.ComponentView._createComponent = function (iParams) {
   if (!SC.none(iParams.isVisible))
     tComponentView.set('isVisible', iParams.isVisible);
 
-  SC.Benchmark.end('createComponent: ' + tComponentClass);
-  SC.Benchmark.log('createComponent: ' + tComponentClass);
   return tComponentView;
 };
 

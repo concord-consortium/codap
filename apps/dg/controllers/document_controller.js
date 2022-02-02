@@ -1107,7 +1107,6 @@ DG.DocumentController = SC.Object.extend(
           _component: null,
           isUndoable: !isInitialization,
           execute: function () {
-            SC.Benchmark.start('addGraph');
             var tContextIds = DG.DataContext.contextIDs(null),
                 tController = DG.GraphController.create();
 
@@ -1145,8 +1144,6 @@ DG.DocumentController = SC.Object.extend(
             this.executeNotification.values.id = this.undoNotification.values.id = tView.getPath('controller.model.id');
 
 
-            SC.Benchmark.end('addGraph');
-            SC.Benchmark.log('addGraph');
           },
           undo: function () {
             var view = DG.currDocumentController().componentControllersMap[this._component.get('id')].get('view');
