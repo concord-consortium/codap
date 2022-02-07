@@ -106,33 +106,14 @@ ssh $CODAP_SERVER "sudo deployCODAP codap_build_${BUILD_NUM}.zip"
 read -p 'Have copied and deployed? ' ANSWER
 checkAnswer
 
-echo '8. Build embedded mode directory image'
-npm run build:embedded
-mv codap_embeddedCODAP.zip codap_embeddedCODAP_${BUILD_NUM}.zip
-
-read -p 'Have embedded mode image? ' ANSWER
-checkAnswer
-
-echo '9. copy embeddedMode image to codap-server: '
-scp codap_embeddedCODAP_${BUILD_NUM}.zip ${CODAP_SERVER}:
-
-read -p 'Have copied embedded mode image? ' ANSWER
-checkAnswer
-
-echo '10. on codap-server deploy embeddedMode image to release directory: '
-ssh ${CODAP_SERVER} "sudo deployEmbeddedCODAP codap_embeddedCODAP_${BUILD_NUM}.zip"
-
-read -p 'Have deployed embedded mode image? ' ANSWER
-checkAnswer
-
 set -v
-# 11. notify qa (manual step)
-# 12. in pt, group release stories at top of current (including stories marked delivered and stories believed to be deliverable) (manual: difficult to script)
-# 13. in pt, make sure all release stories are marked qa-test or qa-confirm (partially scripted)
-# 14. in pt, make sure all delivered feature stories are accepted by the right acceptor. (manual: difficult to script)
-# 15. qa: perform smoke test (manual and scripted)
-# 16. qa: verify bug fixes and features (manual)
-# 17. qa: move ‘latest’ symlink (unknown: scriptable)
-# 18. write release notes (partly scripted)
+# 8. notify qa (manual step)
+# 9. in pt, group release stories at top of current (including stories marked delivered and stories believed to be deliverable) (manual: difficult to script)
+# 10. in pt, make sure all release stories are marked qa-test or qa-confirm (partially scripted)
+# 11. in pt, make sure all delivered feature stories are accepted by the right acceptor. (manual: difficult to script)
+# 12. qa: perform smoke test (manual and scripted)
+# 13. qa: verify bug fixes and features (manual)
+# 14. qa: move ‘latest’ symlink (unknown: scriptable)
+# 15. write release notes (partly scripted)
 set +v
 # 
