@@ -21,7 +21,8 @@ config :dg,
 # Production build (e.g. sc-build, make deploy) configuration
 mode :production do
   config :dg,
-         :enable_google_analytics => true
+         :enable_google_analytics => true,
+         :enable_config_file => true
 end
 
 # Debug build (e.g. sc-server) configuration
