@@ -308,7 +308,9 @@ if (typeof Slick === "undefined") {
       $container
           .empty()
           .css("overflow", "hidden")
-          .css("outline", 0)
+          // cc: begin upgrade jquery
+          .css("outline", "0")
+          // cc: end upgrade jquery
           .addClass(uid)
           .addClass("ui-widget");
 
@@ -372,9 +374,11 @@ if (typeof Slick === "undefined") {
         if (!options.enableTextSelectionOnCells) {
           // disable text selection in grid cells except in input and textarea elements
           // (this is IE-specific, because selectstart event will only fire in IE)
-          $viewport.bind("selectstart.ui", function (event) {
+          // cc: begin upgrade jquery
+          $viewport.on("selectstart.ui", function (event) {
             return $(event.target).is("input,textarea");
           });
+          // cc: end upgrade jquery
         }
 
         updateColumnCaches();
@@ -384,37 +388,39 @@ if (typeof Slick === "undefined") {
         resizeCanvas();
         bindAncestorScrollEvents();
 
+        // cc: begin upgrade jquery
         $container
-            .bind("resize.slickgrid", resizeCanvas);
+            .on("resize.slickgrid", resizeCanvas);
         $viewport
-            .bind("scroll", handleScroll);
+            .on("scroll", handleScroll);
         $headerScroller
-            .bind("contextmenu", handleHeaderContextMenu)
-            .bind("click", handleHeaderClick)
-            .delegate(".slick-header-column", "mouseenter", handleHeaderMouseEnter)
-            .delegate(".slick-header-column", "mouseleave", handleHeaderMouseLeave)
-            .bind("draginit", handleHeaderDragInit)
-            .bind("dragstart", handleHeaderDragStart)
+            .on("contextmenu", handleHeaderContextMenu)
+            .on("click", handleHeaderClick)
+            .on("mouseenter", ".slick-header-column", handleHeaderMouseEnter)
+            .on("mouseleave", ".slick-header-column", handleHeaderMouseLeave)
+            .on("draginit", handleHeaderDragInit)
+            .on("dragstart", handleHeaderDragStart)
             // [CC Change] Configure the default distance (pixels) to recognize drag
             // On Windows/Chrome drag started too soon.
-            .bind("drag", {distance: 5}, handleHeaderDrag)
+            .on("drag", {distance: 5}, handleHeaderDrag)
             // End [CC Change]
-            .bind("dragend", handleHeaderDragEnd);
+            .on("dragend", handleHeaderDragEnd);
         $headerRowScroller
-            .bind("scroll", handleHeaderRowScroll);
+            .on("scroll", handleHeaderRowScroll);
         $focusSink.add($focusSink2)
-            .bind("keydown", handleKeyDown);
+            .on("keydown", handleKeyDown);
         $canvas
-            .bind("keydown", handleKeyDown)
-            .bind("click", handleClick)
-            .bind("dblclick", handleDblClick)
-            .bind("contextmenu", handleContextMenu)
-            .bind("draginit", {touch: false}, handleDragInit)
-            .bind("dragstart", {distance: 3}, handleDragStart)
-            .bind("drag", handleDrag)
-            .bind("dragend", handleDragEnd)
-            .delegate(".slick-cell", "mouseenter", handleMouseEnter)
-            .delegate(".slick-cell", "mouseleave", handleMouseLeave);
+            .on("keydown", handleKeyDown)
+            .on("click", handleClick)
+            .on("dblclick", handleDblClick)
+            .on("contextmenu", handleContextMenu)
+            .on("draginit", {touch: false}, handleDragInit)
+            .on("dragstart", {distance: 3}, handleDragStart)
+            .on("drag", handleDrag)
+            .on("dragend", handleDragEnd)
+            .on("mouseenter", ".slick-cell", handleMouseEnter)
+            .on("mouseleave", ".slick-cell", handleMouseLeave);
+        // cc: end upgrade jquery
       }
     }
 
@@ -511,12 +517,14 @@ if (typeof Slick === "undefined") {
 
     function disableSelection($target) {
       if ($target && $target.jquery) {
+        // cc: begin upgrade jquery
         $target
             .attr("unselectable", "on")
             .css("MozUserSelect", "none")
-            .bind("selectstart.ui", function () {
+            .on("selectstart.ui", function () {
               return false;
             }); // from jquery:ui.core.js 1.7.2
+        // cc: end upgrade jquery
       }
     }
 
@@ -552,7 +560,9 @@ if (typeof Slick === "undefined") {
           } else {
             $boundAncestors = $boundAncestors.add($elem);
           }
-          $elem.bind("scroll." + uid, handleActiveCellPositionChange);
+          // cc: begin upgrade jquery
+          $elem.on("scroll." + uid, handleActiveCellPositionChange);
+          // cc: end upgrade jquery
         }
       }
     }
@@ -561,7 +571,9 @@ if (typeof Slick === "undefined") {
       if (!$boundAncestors) {
         return;
       }
-      $boundAncestors.unbind("scroll." + uid);
+      // cc: begin upgrade jquery
+      $boundAncestors.off("scroll." + uid);
+      // cc: end upgrade jquery
       $boundAncestors = null;
     }
 
@@ -689,7 +701,9 @@ if (typeof Slick === "undefined") {
     }
 
     function setupColumnSort() {
-      $headers.click(function (e) {
+      // cc: begin upgrade jquery
+      $headers.on('click', function (e) {
+        // cc: end upgrade jquery
         // temporary workaround for a bug in jQuery 1.7.1 (http://bugs.jquery.com/ticket/11328)
         e.metaKey = e.metaKey || e.ctrlKey;
 
@@ -822,7 +836,9 @@ if (typeof Slick === "undefined") {
             // it isn't entirely overlapped/hidden by the divider view.
             .css({ width: 'ontouchstart' in window ? 16 : (i === lastResizable ? 10 : 8) })
             // [\KCPT]
-            .bind("dragstart touchstart", function (e, dd) {
+            // cc: begin upgrade jquery
+            .on("dragstart touchstart", function (e, dd) {
+              // cc: end upgrade jquery
               if (!getEditorLock().commitCurrentEdit()) {
                 return false;
               }
@@ -881,7 +897,9 @@ if (typeof Slick === "undefined") {
               maxPageX = pageX + Math.min(shrinkLeewayOnRight, stretchLeewayOnLeft);
               minPageX = pageX - Math.min(shrinkLeewayOnLeft, stretchLeewayOnRight);
             })
-            .bind("drag touchmove", function (e, dd) {
+            // cc: begin upgrade jquery
+            .on("drag touchmove", function (e, dd) {
+              // cc: end upgrade jquery
               var actualMinWidth, d = Math.min(maxPageX, Math.max(minPageX, e.pageX)) - pageX, x;
               if (d < 0) { // shrink column
                 x = d;
@@ -956,7 +974,9 @@ if (typeof Slick === "undefined") {
                 trigger(self.onColumnResizing, {});
               }
             })
-            .bind("dragend touchend", function (e, dd) {
+            // cc: begin upgrade jquery
+            .on("dragend touchend", function (e, dd) {
+              // cc: end upgrade jquery
               var newWidth;
               $(this).parent().removeClass("slick-header-column-active");
               for (j = 0; j < columnElements.length; j++) {
@@ -972,7 +992,9 @@ if (typeof Slick === "undefined") {
               trigger(self.onColumnsResized, {});
             })
             // Don't propagate clicks to parent
-            .bind("click", function (e) { e.stopPropagation(); });
+            // cc: begin upgrade jquery
+            .on("click", function (e) { e.stopPropagation(); });
+            // cc: end upgrade jquery
       });
     }
 
@@ -1094,10 +1116,14 @@ if (typeof Slick === "undefined") {
       }
 
       unbindAncestorScrollEvents();
-      $container.unbind(".slickgrid");
+      // cc: begin upgrade jquery
+      $container.off(".slickgrid");
+      // cc: end upgrade jquery
       removeCssRules();
 
-      $canvas.unbind("draginit dragstart dragend drag");
+      // cc: begin upgrade jquery
+      $canvas.off("draginit dragstart dragend drag");
+      // cc: end upgrade jquery
       $container.empty().removeClass(uid);
     }
 

@@ -100,17 +100,19 @@
       _grid.setColumns(_grid.getColumns());
 
       // Hide the menu on outside click.
-      $(document.body).bind("mousedown", handleBodyMouseDown);
-      $(document.body).bind("touchstart", handleBodyMouseDown);
-      $(document.body).bind("keydown", handleBodyKeyDown);
+      // cc: bind->on
+      $(document.body).on("mousedown", handleBodyMouseDown);
+      $(document.body).on("touchstart", handleBodyMouseDown);
+      $(document.body).on("keydown", handleBodyKeyDown);
     }
 
 
     function destroy() {
       _handler.unsubscribeAll();
-      $(document.body).unbind("mousedown", handleBodyMouseDown);
-      $(document.body).unbind("touchstart", handleBodyMouseDown);
-      $(document.body).unbind("keydown", handleBodyKeyDown);
+      // cc: unbind->off
+      $(document.body).off("mousedown", handleBodyMouseDown);
+      $(document.body).off("touchstart", handleBodyMouseDown);
+      $(document.body).off("keydown", handleBodyKeyDown);
     }
 
 
@@ -167,10 +169,10 @@
         $el.appendTo(args.node);
 
         if (options.buttonIsCell) {
-          $(args.node).bind("click", showMenu);
+          $(args.node).on("click", showMenu);
         }
         else {
-          $el.bind("click", showMenu);
+          $el.on("click", showMenu);
         }
       }
     }
@@ -218,7 +220,7 @@
           .data("command", item.command || '')
           .data("column", columnDef)
           .data("item", item)
-          .bind("click", handleMenuItemClick)
+          .on("click", handleMenuItemClick)
           .appendTo($menu);
 
         if (item.disabled) {
