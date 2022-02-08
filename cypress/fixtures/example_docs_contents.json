@@ -79,7 +79,7 @@
             "tiles":
                 { 
                     "table": 1,
-                    "graph": 1,
+                    "graph": 2,
                     "map": 0,
                     "guide": 1,
                     "webview":0,

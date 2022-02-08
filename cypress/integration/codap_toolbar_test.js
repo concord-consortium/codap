@@ -29,7 +29,7 @@ context('codap toolbar', ()=>{
         cy.get('button').contains("Create New Document").click();
     })
     it('will open a new table', ()=>{
-        codap.openTile('table','new')
+        codap.openTile('table','-- new --')
         table.getCaseTableTile().should('be.visible');
     })
     it('will open a graph', ()=>{
@@ -82,14 +82,14 @@ context('codap toolbar', ()=>{
         codap.singleDialogEntry(url);
         //need to verify iframe with webpage
         // cy.wait(7000);
-        cy.wait(1500);
+        cy.wait(5000);
         cy.getWebviewIframe().find('.concord-logo').should('be.visible')
         codap.closeTile('option', 'Web Page'); //close the tile because it interferes with later tests
     })
     it('will open Help tile', ()=>{
         var helpURL = "https://codap.concord.org/help"
         codap.openTile('help', 'Help Pages')
-        cy.wait(1500);
+        cy.wait(5000);
         //verify iframe of helpURL is showing and has #page-title contains "CODAP Help"
         cy.getWebviewIframe().find('#page-title').should('contain', 'CODAP Help')
         codap.closeTile('help', 'Help with CODAP'); //close the tile because it interferes with later tests

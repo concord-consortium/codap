@@ -33,7 +33,7 @@ context('attribute types', () => {
       table.getCell("2", "2", 0).should('contain', '48');
     })
     it('verify date', () => {
-      table.getCell("3", "3", 0).should('contain', 'Aug 7, 2017 12:01');
+      table.getCell("3", "3", 0).should('contain', '8/7/2017, 12:01 PM');
     })
     it('verify boolean', () => {
       table.getCell("4", "4", 0).should('contain', 'false');
@@ -45,6 +45,7 @@ context('attribute types', () => {
       table.getCell("6", "6", 0).find('span').should('have.class', 'dg-color-table-cell');
     })
     it('verify bounds', () => {
+      cy.wait(1500);
       table.getCell("8", "8", 0).find('span').should('have.class', 'dg-boundary-thumb');
     })
     it('verify invalid type', () => {

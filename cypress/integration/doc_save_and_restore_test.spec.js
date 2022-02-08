@@ -47,6 +47,7 @@ context('Tile variety', () => {
   })
 
   it('verify web page restore', () => {
+    cy.wait(5000)
     cy.getWebviewIframe(2).find('.logo').should('exist')
   })
   it('verify text box restore', () => {

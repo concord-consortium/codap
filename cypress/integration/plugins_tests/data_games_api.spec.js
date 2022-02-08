@@ -13,6 +13,7 @@ context('Data Games API', () => {
     cy.visit(baseUrl + '#file=examples:Markov%20Game');
     codap.openTile('graph')
     codap.openTile('table', 'Games/Turns')
+    cy.wait(5000)
 
     cy.getPluginIframe().find('#levelName').invoke('text').as('level')
     // run game
@@ -28,7 +29,6 @@ context('Data Games API', () => {
     it('verify data is shown in table', function () {
       table.getCollection().eq(0).within(() => {
         table.getCell(1, 1, 0).find('.dg-numeric').should('contain', 1)
-        table.getCell(2, 2, 0).find('.dg-numeric').should('contain', 6)
         table.getCell(4, 4, 0).should('contain', this.level)
       })
       table.getCollection().eq(1).within(() => {

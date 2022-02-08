@@ -12,6 +12,7 @@ context("Lab interactives", function () {
   before(function () {
     cy.visit(baseUrl + '#file=examples:Parachute%20Model');
     //run model
+    cy.wait(10000);
     cy.getPluginIframe().find('.ui-slider-handle').eq(0).invoke('text').as('mass')
     cy.getPluginIframe().find('.ui-slider-handle').eq(1).invoke('text').as('parachuteSize')
     cy.getPluginIframe().find('button.start').click();
