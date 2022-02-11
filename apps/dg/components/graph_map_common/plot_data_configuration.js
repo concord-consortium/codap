@@ -71,6 +71,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
               return !iAttr.get('hidden');
             });
         tCaptionAttributeDescription.setCases(tCases);
+        tCaptionAttributeDescription.set('attribute', null);  // Kludge to force recomputing of attribute type
         tCaptionAttributeDescription.set('attribute', tLeftMostAttrNotHidden);
       },
 
