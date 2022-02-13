@@ -1068,16 +1068,18 @@ DG.GraphModel = DG.DataLayerModel.extend(
           iPlot.addObserver('isBarHeightComputed', this, this.swapComputedBarChartType);
           if (iPlot.constructor === DG.BarChartModel)
             iPlot.addObserver('breakdownType', this, this.propagateBreakdownType);
-          // fallthrough intentional
+          /* falls through */
         case DG.DotChartModel:
           iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
           break;
         case DG.BinnedPlotModel:
           iPlot.addObserver('dotsAreFused', this, this.dotsAreFusedDidChange);
-          // fallthrough intentional
+          /* falls through */
         case DG.DotPlotModel:
         case DG.LinePlotModel:
           iPlot.addObserver('displayAsBinned', this, this.changePlotModelType);
+          if( iPlot.constructor === DG.DotPlotModel)
+            iPlot.addObserver('showMeasureLabels', this, this.propagateShowMeasuresLabels);
           break;
       }
     },
@@ -1094,16 +1096,18 @@ DG.GraphModel = DG.DataLayerModel.extend(
           iPlot.removeObserver('isBarHeightComputed', this, this.swapComputedBarChartType);
           if (iPlot.constructor === DG.BarChartModel)
             iPlot.removeObserver('breakdownType', this, this.propagateBreakdownType);
-          // fallthrough intentional
+          /* falls through */
         case DG.DotChartModel:
           iPlot.removeObserver('displayAsBarChart', this, this.swapChartType);
           break;
         case DG.BinnedPlotModel:
           iPlot.removeObserver('dotsAreFused', this, this.dotsAreFusedDidChange);
-          // fallthrough intentional
+          /* falls through */
         case DG.DotPlotModel:
         case DG.LinePlotModel:
           iPlot.removeObserver('displayAsBinned', this, this.changePlotModelType);
+          if( iPlot.constructor === DG.DotPlotModel)
+            iPlot.removeObserver('showMeasureLabels', this, this.propagateShowMeasuresLabels);
           break;
       }
     },
@@ -1345,6 +1349,20 @@ DG.GraphModel = DG.DataLayerModel.extend(
         });
       }
       this.getPath('plot.secondaryAxisModel').setLowerAndUpperBounds(0, tNewBound, true /* with animation */);
+    },
+
+    /**
+     * The root plot's showMeasureLabels flag has changed. Propagate this change to split plots if any.
+     */
+    propagateShowMeasuresLabels: function() {
+      var tShowing = this.getPath('plot.showMeasureLabels');
+      if( this.get('isSplit')) {
+        this.forEachSplitPlotElementDo( function( iPlotArray, iRow, iCol) {
+          if( iRow !== 0 || iCol !== 0) {
+            iPlotArray[0].set('showMeasureLabels', tShowing);
+          }
+        });
+      }
     },
 
     /**
