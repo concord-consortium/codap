@@ -31,6 +31,13 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
       return {
 
         drawTicks: function ()       {
+
+          function formatter( iNum) {
+            return DG.MathUtilities.notAYear(iNum) ?
+                Intl.NumberFormat(tLanguage, {maximumFractionDigits: tFracDigits}).format(iNum) :
+                tFormat( iNum);
+          }
+
           var tPaper = this.get('paper'),
               tElementsToClear = this.get('elementsToClear'),
               tLower = this.get('lowerBound'),
@@ -43,7 +50,8 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
               tLabelString,
               tMaxNumberExtent = DG.RenderingUtilities.kDefaultFontHeight,
               tFracDigits = (tTickGap < 1) ? Math.ceil( Math.abs( Math.log( tTickGap) / Math.LN10)) : 0,
-              tFormat = DG.Format.number().group("").fractionDigits( 0, tFracDigits)
+              tFormat = DG.Format.number().group("").fractionDigits( 0, tFracDigits),
+              tLanguage = DG.get('currentLanguage')
               ;
           /* Return the frequency of drawing value labels that will not cause collisions.
             A returned value of 1 means draw every value label, 2 means draw every other,
@@ -71,7 +79,7 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
                     tickPixel = this.dataToCoordinate( spot + iOffset),
                     tTextExtent;
 
-                tLabelString = tFormat( spot);
+                tLabelString = formatter( spot);
 
                 tTextExtent = DG.RenderingUtilities.textExtentOnCanvas( tPaper, tLabelString);
 
@@ -93,7 +101,7 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
                   case DG.GraphTypes.EOrientation.kHorizontal:
                     // By pretending half the width is a bit greater than it is, we leave
                     // room between
-                    tHalfWidth = 5 * tTextExtent.x / 8;
+                    tHalfWidth = 5.5 * tTextExtent.x / 8;
 
                     // Only draw label if we aren't going to collide with the previous number
                     if (firstTime || (Math.abs( tickPixel - lastPixelUsed)  > tHalfWidth)) {
@@ -136,7 +144,7 @@ DG.NumericAxisViewHelper = DG.AxisViewHelper.extend(
 
           this.forEachTickDo( function( iSpot, iTickPixel) {
             var tNum, tLabelExtent, tWidth, tHeight;
-            tLabelString = tFormat( iSpot);
+            tLabelString = formatter(iSpot);
             tNum = tPaper.text( 0, 0, tLabelString)
                 .addClass('dg-axis-tick-label');
             tElementsToClear.push( tNum);
