@@ -1928,6 +1928,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
         case 'resetCollections':
         case 'moveAttribute':   // Will only get here if the move is from one collection to another
           this.dataDidChange( null, null, iChange);
+          this.get('dataConfiguration').updateCaptionAttribute();
           break;
         case 'updateCases':
         case 'dependentCases':
