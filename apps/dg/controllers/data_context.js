@@ -1864,7 +1864,7 @@ DG.DataContext = SC.Object.extend((function () // closure
             });
           });
 
-          if (fromCollection.get('attrs').length === 0) {
+          if (fromCollection.get('attrs').filter(function (attr) {return !attr.get('hidden'); }).length === 0) {
             fromCollectionProperties = {
               parent: fromCollection.parent,
               name: fromCollection.get('name'),
