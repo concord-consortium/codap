@@ -110,6 +110,15 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             // new array to capture adapter order
             newAdapters = [];
 
+        /**
+         *
+         * @param {DG.Collection} iCollectionRecord
+         */
+        function hasDisplayableAttributes(iCollectionRecord) {
+          var attrs = iCollectionRecord.get('attrs');
+          return !!attrs.find(function (attr) {return !attr.get('hidden');});
+        }
+
         // Utility function for finding or creating (if necessary) an appropriate
         // adapter for the specified collection.
         var guaranteeAdapterForCollectionRecord = function( iCollectionRecord) {
@@ -134,7 +143,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
           newAdapters.push(adapter);
         }.bind(this);
 
-        collectionRecords.forEach( guaranteeAdapterForCollectionRecord);
+        collectionRecords
+            .filter(function (cr) { return hasDisplayableAttributes(cr); })
+            .forEach( guaranteeAdapterForCollectionRecord);
         this.set('caseTableAdapters', newAdapters);
       },
 
@@ -426,6 +437,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             break;
           case 'hideAttributes':
           case 'unhideAttributes':
+            this.dataContextDidChange(iChange);
+            this.attributesDidChange(iChange);
+            break;
           case 'updateAttributes':
             this.attributesDidChange(iChange);
             break;
@@ -515,7 +529,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         this.attributesDidChange( iChange);
       },
       doMoveAttributes: function (iChange) {
-        this.attributesDidChange( iChange);
+        this.dataContextDidChange( iChange);
       },
       doResetCollections: function (iChange) {
         function processAdapter(iAdapter) {
