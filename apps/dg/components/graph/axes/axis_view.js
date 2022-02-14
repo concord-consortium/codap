@@ -269,8 +269,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
             tChangeHappened = (iLabel !== tNode.get('text'));
             tNode.setIfChanged('text', iLabel);
-            tNode.setIfChanged('description', this_.get('model').getLabelDescription(iIndex) +
-                '—' + 'DG.AxisView.labelTooltip'.loc(('DG.AxisView.' + this_.orientation).loc()));
 
             tLabelCount++;
           });
@@ -371,6 +369,14 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 return { node: iNode, extent: tExtent };
               }),
               tPosition = tIsVertical ? ((tDrawHeight + tTotalLength) / 2) : ((tDrawWidth - tTotalLength) / 2);
+          // It seems redundant to go through this every time we display, but we've had trouble getting the descriptions
+          //  to be set consistently.
+          tNodes.forEach(function( iNode, iIndex) {
+            var tDescription = this.get('model').getLabelDescription(iIndex) +
+                '—' + 'DG.AxisView.labelTooltip'.loc(('DG.AxisView.' + this.orientation).loc());
+            iNode._textElement.attr('title', tDescription);
+          }.bind(this));
+
           tLayout.forEach(function (iLayout) {
             var tNode = iLayout.node,
                 tLabelExtent = { x: iLayout.extent.width, y: iLayout.extent.height },

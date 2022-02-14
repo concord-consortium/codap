@@ -50,7 +50,7 @@ DG.LabelNode = SC.Object.extend(
       init: function() {
 
         this._textElement = this.paper.text(0, 0, '')
-            .attr( { 'text-anchor': this.anchor });
+            .attr( 'text-anchor', this.anchor);
         DG.RenderingUtilities.rotateText(this._textElement, this.rotation, 0, 0);
         this.numColorsChanged();
       },
@@ -117,7 +117,7 @@ DG.LabelNode = SC.Object.extend(
       }.observes('text'),
 
       descriptionChanged: function() {
-        this._textElement.attr({title: this.description});
+        this._textElement.attr('title', this.description);
       }.observes('description'),
 
       locChanged: function() {
