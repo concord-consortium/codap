@@ -134,6 +134,8 @@ DG.DragBorderView = SC.View.extend(
                 }
               },
               undo: function () {
+                if( !tViewToDrag)
+                  return; // got nulled out because redo wasn't possible
                 var layout = SC.clone(this._oldLayout);
                 if (tViewToDrag.isMinimized()) {
                   this._oldHeight = this._oldLayout.height;
@@ -160,23 +162,29 @@ DG.DragBorderView = SC.View.extend(
                 var layout = SC.clone(this._oldLayout);
                 var documentController = DG.currDocumentController();
                 var component = documentController.componentControllersMap[tComponentID];
-                tViewToDrag = component.get('view');
-                if (tViewToDrag.isMinimized()) {
-                  layout.height = 25;
+                if(component) {
+                  tViewToDrag = component.get('view');
+                  if (tViewToDrag.isMinimized()) {
+                    layout.height = 25;
+                  }
+                  tViewToDrag.animate(layout,
+                      {duration: 0.4, timing: 'ease-in-out'},
+                      function () {
+                        tViewToDrag._view_layer.style.transition = "";
+                        this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                        tContainer.updateFrame();
+                      }.bind(this));
+                  if (DG.KEEP_IN_BOUNDS_PREF) {
+                    tViewToDrag.configureViewBoundsLayout({
+                      height: layout.height,
+                      width: layout.width,
+                      x: layout.left,
+                      y: layout.top
+                    });
+                  }
                 }
-                tViewToDrag.animate(layout,
-                    {duration: 0.4, timing: 'ease-in-out'},
-                    function () {
-                      tViewToDrag._view_layer.style.transition = "";
-                      this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
-                      tContainer.updateFrame();
-                    }.bind(this));
-                if (DG.KEEP_IN_BOUNDS_PREF) {
-                  tViewToDrag.configureViewBoundsLayout({height:layout.height,
-                                             width:layout.width,
-                                             x:layout.left,
-                                             y:layout.top});
-                }
+                else  // Probably trying to work with a component that has been-recreated. Bail.
+                  tViewToDrag = null; // So undo will be a no-op
               }
             }));
           }
