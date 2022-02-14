@@ -126,14 +126,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       numberFormatter = function (cellValue, type, precision) {
-        function notAYear(num) {
-          // if a number is not an integer, if it less than 0 (we don't handle BC)
-          // or greater than 10,000 we assume it does not represent a year.
-          return (Math.round(num)!== num ||
-                  num < 0 ||
-                  num > 10000
-          );
-        }
         var value = DG.isNumeric(cellValue)
                 ? DG.getNumeric(cellValue)
                 : DG.MathUtilities.extractNumeric(cellValue),
@@ -142,7 +134,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
         if (value != null && value !== '') {
           // if numeric and doesn't look like its a year format with grouped separators
-          if (type === DG.Attribute.TYPE_NUMERIC && notAYear(value)) {
+          if (type === DG.Attribute.TYPE_NUMERIC && DG.MathUtilities.notAYear(value)) {
             formattedValue = Intl.NumberFormat(DG.get('currentLanguage'),
                 {maximumFractionDigits: roundDigits}).format(value);
           } else {

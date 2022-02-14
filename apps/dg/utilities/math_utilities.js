@@ -550,7 +550,16 @@ DG.MathUtilities = {
     else tBase = 5;
 
     return Math.max( tPower * tBase, Number.MIN_VALUE);
-  }
+  },
+
+  // if a number is not an integer, if it less than 0 (we don't handle BC)
+  // or greater than 10,000 we assume it does not represent a year.
+  notAYear: function(num) {
+    return (Math.round(num)!== num ||
+      num < 0 ||
+      num > 10000
+  );
+}
 
 
 };
