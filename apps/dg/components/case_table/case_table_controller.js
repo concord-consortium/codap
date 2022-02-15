@@ -529,7 +529,7 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
         this.attributesDidChange( iChange);
       },
       doMoveAttributes: function (iChange) {
-        this.dataContextDidChange( iChange);
+        this.attributesDidChange( iChange);
       },
       doResetCollections: function (iChange) {
         function processAdapter(iAdapter) {
