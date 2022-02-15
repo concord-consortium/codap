@@ -46,8 +46,8 @@ DG.Drag = SC.Drag.extend({
     // compute the ghost offset from the original start location
     // When CODAP is in an iFrame on a touch device, clientX/Y is not present, so
     // we substitute layer/Y instead.
-    var loc = SC.none( evt.clientX) ? {x: evt.layerX || 0, y: evt.layerY || 0 } :
-        { x: evt.clientX, y: evt.clientY};
+    var loc = SC.none( evt.clientX) ? {x: evt.layerX, y: evt.layerY } :
+        { x: evt.clientX, y: evt.clientY };
     this.set('location', loc);
 
     if (this.get('sourceIsDraggable')) {

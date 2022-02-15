@@ -341,9 +341,8 @@ drag = $special.drag = {
 	},
 	
 	// toggles text selection attributes ON (true) or OFF (false)
-	textselect: function( bool ){
-		// cc: unbind -> off, bind -> on
-		$( document )[ bool ? "off" : "on" ]("selectstart", drag.dontstart )
+	textselect: function( bool ){ 
+		$( document )[ bool ? "unbind" : "bind" ]("selectstart", drag.dontstart )
 			.css("MozUserSelect", bool ? "" : "none" );
 		// .attr("unselectable", bool ? "off" : "on" )
 		document.unselectable = bool ? "off" : "on"; 
