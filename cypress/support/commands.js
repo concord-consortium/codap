@@ -44,6 +44,7 @@ addMatchImageSnapshotCommand({ //need to fine tune threshholds
   failureThresholdType: 'percent', // percent of image or number of pixels
   customDiffConfig: { threshold: 0.5 }, // threshold for each pixel
   capture: 'viewport', // capture viewport in screenshot
+  customDiffDir: "cypress/snapshots-diff",
   allowSizeMismatch: true
 })
 
