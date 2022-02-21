@@ -740,9 +740,10 @@ DG.DocumentController = SC.Object.extend(
       },
 
       /**
-       [DEPRECATED] Returns the default DG.CollectionClient and default X and Y attributes to plot for
-       development purposes. Should eventually be removed once the game is able to specify appropriate
-       defaults, and clients get them from the DG.GameContext directly.
+       The client is a GraphDataConfiguration that wants to know what data context to use to
+       display points in a case plot when no attributes have yet been assigned. If there is
+       exactly one data context we use it. If there is exactly one data context that has a case table
+       or case card, we use it. Otherwise we use the default with null for all properties.
        @returns  {Object}  An Object whose properties specify usable defaults, e.g.
        {Object.collectionClient} {DG.CollectionClient} Default collection to use
        {Object.parentCollectionClient} {DG.CollectionClient} Default parent collection
@@ -752,15 +753,19 @@ DG.DocumentController = SC.Object.extend(
        {Object.plotYAttrIsNumeric}  {Boolean}  Whether the default Y axis attribute is numeric
        */
       collectionDefaults: function () {
-        var gameContext,
-            defaults;
-        if (this.get('contexts').length === 1) {
-          gameContext = this.get('contexts')[0];
-          defaults = gameContext && gameContext.collectionDefaults();
-        } else {
-          defaults = DG.DataContext.collectionDefaults();
+        var tContexts = this.get('contexts'),
+            tUsableContext = null;
+        if( tContexts.length === 1)
+          tUsableContext = tContexts[0];
+        else {
+          tContexts = tContexts.filter(function( iContext) {
+            var tView = this.tableCardRegistry.getViewForContext(iContext);
+            return tView.get('isVisible');
+          }.bind(this));
+          if( tContexts.length === 1)
+            tUsableContext = tContexts[0];
         }
-        return defaults;
+        return (tUsableContext && tUsableContext.collectionDefaults()) || DG.DataContext.collectionDefaults();
       },
 
       /**
