@@ -630,6 +630,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
       }.property(),
 
       /**
+       * We look at x, y and y2 attributes that are present. If there is an x-attribute but the case
+       * has no x-value, we exclude the case. If there is a y-attribute, no y2-attribute and no y-value, we
+       * exclude the case. If there is an x-attribute, y-attribute and y-2 attribute, we exclude the
+       * case if there is neither a y-attribute nor a y-2 attribute.
        @property { {DG.PlotUtilities.PlotCaseArray} that behaves like an SC.Array of DG.Case }
        */
       cases: function () {
@@ -638,7 +642,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
               tHidden = this.get('hiddenCases'),
               tNotHidden,
               tResult = [],
-              tVarIDs = [],
+              tAttrIDs,
               tAttributesByPlace = this.get('attributesByPlace') || [];
           if (tCases) {
             // We subtract the hidden cases so that they are not known about by the graph
@@ -647,26 +651,17 @@ DG.PlotDataConfiguration = SC.Object.extend(
                   return iCase ? iCase.get('id') : null;
                 });
 
-            // Only include cases that have values of x and y attributes (if such exist)
-            // TODO: Do the right thing for plots that use a y2 attribute.
-            [DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY].forEach(function (iPlace) {
-              if (tAttributesByPlace[iPlace]) {
-                tAttributesByPlace[iPlace].forEach(function (iDescription) {
-                  var tAttrID = iDescription.get('attributeID');
-                  if (!SC.none(tAttrID))
-                    tVarIDs.push(tAttrID);
-                });
-              }
-            });
+            tAttrIDs = {
+              x: tAttributesByPlace[DG.GraphTypes.EPlace.eX].get('attributeID'),
+              y: tAttributesByPlace[DG.GraphTypes.EPlace.eY].get('attributeID'),
+              y2: tAttributesByPlace[DG.GraphTypes.EPlace.eY2].get('attributeID'),
+            };
 
-            // We don't return cases that are missing a value for an x or y attribute
             tNotHidden.forEach(function (iCase) {
-              var tValid = true;
-              tVarIDs.forEach(function (iID) {
-                if (!iCase.hasValue(iID))
-                  tValid = false;
-              });
-              if (tValid)
+              var tXIsValid = SC.none(tAttrIDs.x) || iCase.hasValue(tAttrIDs.x),
+                  tYIsValid = SC.none(tAttrIDs.y) || iCase.hasValue(tAttrIDs.y) ||
+                      (!SC.none(tAttrIDs.y2) && iCase.hasValue(tAttrIDs.y2));
+              if (tXIsValid && tYIsValid)
                 tResult.push(iCase);
             });
 
