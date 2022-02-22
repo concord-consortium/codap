@@ -760,7 +760,7 @@ DG.DocumentController = SC.Object.extend(
         else {
           tContexts = tContexts.filter(function( iContext) {
             var tView = this.tableCardRegistry.getViewForContext(iContext);
-            return tView.get('isVisible');
+            return tView && tView.get('isVisible');
           }.bind(this));
           if( tContexts.length === 1)
             tUsableContext = tContexts[0];
