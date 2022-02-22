@@ -1739,18 +1739,24 @@ DG.DocumentController = SC.Object.extend(
                           dataContext: iCardComponentView.getPath('controller.dataContext'),
                           useLayout: true // use layout for position
                         }),
-                        tTableLayout = tTableComponentView.get('savedLayout') || {width: 500, height: 200};
+                        tTableLayout = tTableComponentView.get('savedLayout') || {width: 500, height: 200},
+                        tAnimatableLayout = {
+                          left: tTableLayout.left,
+                          top: tTableLayout.top,
+                          width: tTableLayout.width,
+                          height: tTableLayout.height
+                        };
                     tTableComponentView.setPath('model.cannotClose', tCannotClose);
                     tTableComponentView.set('layout', tTableInitialLayout);
                     tTableComponentView.set('isVisible', true);
-                    tTableLayout.height++;
-                    tTableComponentView.animate(tTableLayout, {duration: 0.3, timing: 'ease-in-out'},
+                    tAnimatableLayout.height++;
+                    tTableComponentView.animate(tAnimatableLayout, {duration: 0.3, timing: 'ease-in-out'},
                         function () {
                           SC.run(function () {
                             tTableComponentView.select();
-                            tTableLayout.height--;
+                            tAnimatableLayout.height--;
                             tTableComponentView.adjust('height',
-                                tTableLayout.height);
+                                tAnimatableLayout.height);
                             this.invokeNext(function () {
                               tTableComponentView.get(
                                   'contentView').scrollSelectionToView();

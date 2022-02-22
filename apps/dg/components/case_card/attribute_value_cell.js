@@ -1,7 +1,7 @@
 sc_require('models/attribute_model');
 sc_require('models/case_model');
 sc_require('react/dg-react');
-/* global createReactFC, PropTypes, ReactDOMFactories, tinycolor */
+/* global React, createReactFC, PropTypes, ReactDOMFactories, tinycolor */
 
 DG.React.ready(function () {
   var img = ReactDOMFactories.img,
@@ -50,25 +50,55 @@ DG.React.ready(function () {
 
     var checkboxFormatter = function (cellValue) {
 
-      function handleChange() {
+      function handleChange(iEvent) {
+        var newValue = iEvent.target.checked,
+            newState = newValue ? 'checked' : 'unchecked';
         var tChange = {
           operation: 'updateCases',
           cases: [props.displayCase],
           caseIDs: [props.displayCase.get('id')],
           attributeIDs: [tAttr.get('id')],
-          values: [[!booleanValue]]
+          values: [[newValue]]
         };
         props.dataContext.applyChange(tChange);
-        props.forceUpdateCallback();
+        setTriState(newState);
       }
 
-      cellValue = (typeof cellValue === 'string') ? cellValue.toLowerCase() : cellValue;
-      var readOnly = (tAttr && (tAttr.formula || !tAttr.editable)),
-          booleanValue = cellValue && cellValue !== 'false';
-      return span({className: 'dg-checkbox-cell dg-wants-mouse dg-wants-touch',},
+      React.useEffect(function() {
+        var newState;
+        newCellValue = (typeof cellValue === 'string') ? cellValue.toLowerCase() : cellValue;
+        if( newCellValue && newCellValue !== 'false') {
+          newState = 'checked';
+          checkRef.current.checked = true;
+          checkRef.current.indeterminate = false;
+        }
+        else if(newCellValue === false) {
+          newState = 'unchecked';
+          checkRef.current.checked = false;
+          checkRef.current.indeterminate = false;
+        }
+        else {
+          newState = 'indeterminate';
+          checkRef.current.checked = false;
+          checkRef.current.indeterminate = true;
+        }
+        setTriState(newState);
+      }, [cellValue]);
+
+      var newCellValue,
+          readOnly = (tAttr && (tAttr.formula || !tAttr.editable)),
+          checkRef = React.useRef();
+
+      var triStateState = React.useState('indeterminate'),
+          triState = triStateState[0],
+          setTriState = triStateState[1];
+
+
+      return span({
+            className: 'dg-checkbox-cell dg-wants-mouse dg-wants-touch',},
           input({
-            type: 'checkbox', checked: booleanValue, disabled: readOnly,
-            onChange: handleChange
+            type: 'checkbox', disabled: readOnly,
+            onChange: handleChange, ref: checkRef
           }));
     };
 

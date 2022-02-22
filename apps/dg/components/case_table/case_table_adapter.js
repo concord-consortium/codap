@@ -218,14 +218,30 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       checkboxFormatter = function (cellValue, caseTableAdapter, colInfo) {
+
         cellValue = (typeof cellValue === 'string')? cellValue.toLowerCase(): cellValue;
         var attr = colInfo.attribute;
         var readOnly = (attr && (attr.formula || !attr.editable));
         var valueString = (cellValue && cellValue !== 'false')? ' checked': '';
-        var disabledString = readOnly? ' disabled': '';
+        var disabledString = readOnly ? ' disabled': '';
 
         return '<span class="dg-checkbox-cell dg-wants-mouse dg-wants-touch"><input type="checkbox" title="' +
             cellValue + '"' + valueString + disabledString + '/></span>';
+      },
+
+      /**
+       * Called when attribute has type "checkbox". For the given cellNode determine whether the attribute's
+       * value is neither true nor false. If so, set the node's indeterminate property to true.
+       * @param cellNode
+       * @param row
+       * @param dataContext
+       * @param colDef
+       */
+      formatIndeterminate = function(cellNode, row, iCase, colDef) {
+        var value = iCase.item && String(iCase.item.values[Number(colDef.attribute.get('id'))]),
+            isIndeterminate = value !== 'true' && value !== 'false';
+        if( isIndeterminate && cellNode && cellNode.children && cellNode.children[0] && cellNode.children[0].children)
+          cellNode.children[0].children[0].indeterminate = true;
       },
 
       tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
@@ -606,6 +622,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             attrName = iAttribute.get('name'),
             hasFormula = iAttribute.hasFormula(),
             hasDeletedFormula = iAttribute.hasDeletedFormula(),
+            isCheckbox = iAttribute.get('type') === 'checkbox',
             columnInfo = {
               context: context,
               collection: collection,
@@ -619,6 +636,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               cssClass: hasFormula? 'dg-formula-column': undefined,
               toolTip: DG.CaseDisplayUtils.getTooltipForAttribute( iAttribute),
               formatter: cellFormatter.bind(this),
+              asyncPostRender: isCheckbox ? formatIndeterminate : null,
               tooltipFormatter: tooltipFormatter,
               width: this.getPreferredColumnWidth(iAttribute.get('id')),
               minWidth: kMinDataColumnWidth,
@@ -795,6 +813,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                 editable: true, // user-editable cells for columns with an 'editable' property only
                 enableAddRow: false, // don't add an extra blank row at the end
                 asyncEditorLoading: false,
+                enableAsyncPostRender: true,
                 autoEdit: false, // double click to edit an 'editable' attribute's cell
                 editCommandHandler: function( iItem, iColumn, iEditCommand) {
                                       // Called after the cell edit has been deactivated
