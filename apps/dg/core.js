@@ -535,6 +535,12 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-es'
       },
       {
+        langName: 'فارسی',
+        langDigraph: 'fa',
+        countryDigraph: 'IR',
+        icon: 'flag flag-ir'
+      },
+      {
         langName: 'Ελληνικά',
         langDigraph: 'el',
         countryDigraph: 'GR',
