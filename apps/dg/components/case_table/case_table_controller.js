@@ -441,12 +441,14 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             this.attributesDidChange(iChange);
             break;
           case 'updateAttributes':
+            this.dataContextDidChange(iChange);
             this.attributesDidChange(iChange);
             break;
           case 'deleteAttributes':
             this.doDeleteAttributes(iChange);
             break;
           case 'moveAttribute':
+            this.dataContextDidChange(iChange);
             this.doMoveAttributes(iChange);
             break;
           case 'resetCollections':
