@@ -44,11 +44,11 @@ DG.ColorUtilities = {
   kBrightnessTableMaxK: 0.75,  // Blue is darkest
 
   // standard colors
-  kNoAttribCaseColor: {colorString: '#A6CAF0'},    //tp_CColor tp_CColorGradient::kNoVarCaseColor = kcp_kSkyBlueColor;
+  kNoAttribCaseColor: '#A6CAF0',    //tp_CColor tp_CColorGradient::kNoVarCaseColor = kcp_kSkyBlueColor;
   //kNoAttribCaseSelectedColor : { colorString: 'red' } //tp_CColor tp_CColorGradient::kNoVarCaseSelectedColor = kcp_kRedColor;
   //kNoAttribFocusedCaseColor : { colorString: 'yellow' } // tp_CColor tp_CColorGradient::kNoVarFocusedCaseColor  = kcp_kYellowColor;
-  kMissingValueCaseColor: {colorString: '#A0A0A0'}, //tp_CColor tp_CColorGradient::kMissingValueCaseColor = kcp_kDarkGrayColor;
-  kMapMissingValueCaseColor: {colorString: '#ffffff01'}, //tp_CColor tp_CColorGradient::kMissingValueCaseColor = kcp_kDarkGrayColor;
+  kMissingValueCaseColor: '#A0A0A0', //tp_CColor tp_CColorGradient::kMissingValueCaseColor = kcp_kDarkGrayColor;
+  kMapMissingValueCaseColor: '#ffffff01', //tp_CColor tp_CColorGradient::kMissingValueCaseColor = kcp_kDarkGrayColor;
   // kDefaultBorderColor: {colorString: 'black'},     // tp_CColor tp_CColorGradient::kDefaultBorderColor = kcp_kBlackColor;
   // tp_CColor tp_CColorGradient::kHasVarFocusedCaseBorderColor = kcp_kBlueColor;
 
@@ -87,7 +87,7 @@ DG.ColorUtilities = {
   },
 
   isRGB: function( iColor) {
-    return iColor && iColor.r !== null && iColor.g !== null && iColor.b !== null;
+    return iColor && !SC.none(iColor.r) && !SC.none(iColor.g) && !SC.none(iColor.b);
   },
 
   /**
@@ -118,7 +118,7 @@ DG.ColorUtilities = {
   },
 
   isHSB: function( iColor) {
-    return iColor && iColor.h !== null && iColor.s !== null && iColor.b !== null;
+    return iColor && !SC.none(iColor.h) && !SC.none(iColor.s) && !SC.none(iColor.b);
   },
 
   /* --------- Notes on updating of DG case icon colors.
@@ -141,7 +141,7 @@ DG.ColorUtilities = {
    */
   calcAttributeColorFromIndex: function (attribIndex, attribCount) {
     if( attribIndex === 0)
-      return { colorString: DG.PlotUtilities.kDefaultPointColor};
+      return DG.PlotUtilities.kDefaultPointColor;
     else if(attribIndex < 0 || attribIndex >= attribCount)
       return this.kNoAttribCaseColor;
     else
