@@ -454,6 +454,7 @@ DG.appController = SC.Object.create((function () // closure
         layout: {
           isVisible: false
         },
+        document: DG.currDocumentController(),
         componentStorage: {
           currentGameName: iName,
           currentGameUrl: DG.get('pluginURL') + iPath,
