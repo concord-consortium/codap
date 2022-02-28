@@ -800,7 +800,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           buttonIsCell: true, buttonImage: static_url("images/down.gif")
         });
         this._slickGrid.registerPlugin(this.headerMenu);
-        this.$('.slick-viewport').addClass('dg-wants-touch');
+        this.$('.slick-viewport').addClass('dg-wants-touch').addClass('dg-wants-wheel');
 
         this.headerMenu.onBeforeMenuShow.subscribe(function (e, args) {
           hierTableView.hideHeaderMenus();
