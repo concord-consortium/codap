@@ -125,7 +125,7 @@ return {
 
   getFirstParentAttribute: function() {
     var dataContext = this.getPath('dataConfiguration.dataContext'),
-        collectionClient = dataContext.getCollectionAtIndex(0),
+        collectionClient = dataContext && dataContext.getCollectionAtIndex(0),
         attrs = collectionClient && collectionClient.getPath('collection.attrs');
     return attrs && attrs[0];
   },

@@ -238,10 +238,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
        * @param colDef
        */
       formatIndeterminate = function(cellNode, row, iCase, colDef) {
+        var tInput = cellNode && cellNode.querySelector('input');
         var value = iCase.item && String(iCase.item.values[Number(colDef.attribute.get('id'))]),
             isIndeterminate = value !== 'true' && value !== 'false';
-        if( isIndeterminate && cellNode && cellNode.children && cellNode.children[0] && cellNode.children[0].children)
-          cellNode.children[0].children[0].indeterminate = true;
+        if( isIndeterminate && tInput)
+          tInput.indeterminate = true;
       },
 
       tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
