@@ -48,7 +48,7 @@ DG.React.ready(function () {
       return ['', 'false', 'true', false, true, null].includes(v) || v === undefined;
     }
 
-    var checkboxFormatter = function (cellValue) {
+    var CheckboxFormatter = function (cellValue) {
 
       function handleChange(iEvent) {
         var newValue = iEvent.target.checked,
@@ -64,38 +64,35 @@ DG.React.ready(function () {
         setTriState(newState);
       }
 
-      React.useEffect(function() {
-        var newState;
-        newCellValue = (typeof cellValue === 'string') ? cellValue.toLowerCase() : cellValue;
-        if( newCellValue && newCellValue !== 'false') {
+      React.useEffect(function () {
+        var newState,
+            newCellValue = (typeof cellValue === 'string') ? cellValue.toLowerCase() : cellValue;
+        if (newCellValue && newCellValue !== 'false') {
           newState = 'checked';
           checkRef.current.checked = true;
           checkRef.current.indeterminate = false;
-        }
-        else if(newCellValue === false) {
+        } else if (newCellValue === false) {
           newState = 'unchecked';
           checkRef.current.checked = false;
           checkRef.current.indeterminate = false;
-        }
-        else {
+        } else {
           newState = 'indeterminate';
           checkRef.current.checked = false;
           checkRef.current.indeterminate = true;
         }
         setTriState(newState);
-      }, [cellValue]);
+      }, [cellValue, setTriState]);
 
-      var newCellValue,
-          readOnly = (tAttr && (tAttr.formula || !tAttr.editable)),
+      var readOnly = (tAttr && (tAttr.formula || !tAttr.editable)),
           checkRef = React.useRef();
 
       var triStateState = React.useState('indeterminate'),
-          triState = triStateState[0],
           setTriState = triStateState[1];
 
 
       return span({
-            className: 'dg-checkbox-cell dg-wants-mouse dg-wants-touch',},
+            className: 'dg-checkbox-cell dg-wants-mouse dg-wants-touch',
+          },
           input({
             type: 'checkbox', disabled: readOnly,
             onChange: handleChange, ref: checkRef
@@ -152,7 +149,7 @@ DG.React.ready(function () {
       }
     } else if (tType === DG.Attribute.TYPE_CHECKBOX
         && isBoolean(tValue) && !props.summaryCases) {
-      tCheckboxField = checkboxFormatter(tValue, this);
+      tCheckboxField = CheckboxFormatter(tValue, this); // jshint ignore:line
     } else if (tType === 'boundary') {
       var tResult = 'a boundary',
           tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tValue),
