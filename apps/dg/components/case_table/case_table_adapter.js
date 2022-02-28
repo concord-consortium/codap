@@ -114,7 +114,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           }
 
         } catch (ex) {
-          DG.logWarn('Error in cell formatter: ' + ex);
+          DG.logWarn('Error in cell formatter: ' + ex + '/row,col,value/' + [rowIndex,colIndex,cellValue].join() + '/');
           result = 'error';
         }
         return result;
