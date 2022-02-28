@@ -1643,8 +1643,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
             tNewPlot = tPlotClass.create(tProperties);
             tXAxis.setLinkToPlotIfDesired( tNewPlot);
             tYAxis.setLinkToPlotIfDesired( tNewPlot);
+            tNewPlot.installAdornmentModelsFrom(tRootPlot);
             if( tPlotIndex === 0) {
-              tNewPlot.installAdornmentModelsFrom(tRootPlot);
               tRootPlot.addSibling(tNewPlot);
               tNewPlot.set('enableMeasuresForSelection', this_.get('enableMeasuresForSelection'));
             }
