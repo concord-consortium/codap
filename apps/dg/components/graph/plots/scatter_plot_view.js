@@ -39,7 +39,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
       /** @property {DG.ConnectingLineAdornment} */
       connectingLineAdorn: null,
 
-      numPlotsOrIndexChanged: function() {
+      numPlotsOrIndexChanged: function () {
         // update connecting lines
         if (this.connectingLineAdorn) {
           this.connectingLineChanged();
@@ -89,20 +89,20 @@ DG.ScatterPlotView = DG.PlotView.extend(
        */
       isFirstPlot: true,
 
-      isFirstPlotChanged: function() {
-        if( this.isFirstPlot) {
-          if( SC.isArray( this._myPlottedElements)) {
+      isFirstPlotChanged: function () {
+        if (this.isFirstPlot) {
+          if (SC.isArray(this._myPlottedElements)) {
             var tLayerManager = this.get('layerManager');
-            this._myPlottedElements.forEach( function( iElement) {
-              tLayerManager.removeElement( iElement);
+            this._myPlottedElements.forEach(function (iElement) {
+              tLayerManager.removeElement(iElement);
               iElement.remove();
             });
             this._myPlottedElements = [];
           }
         }
-        this.get('plottedElements').forEach( function( iElement, iIndex) {
-          this.assignElementAttributes( iElement, iIndex);
-        }.bind( this));
+        this.get('plottedElements').forEach(function (iElement, iIndex) {
+          this.assignElementAttributes(iElement, iIndex);
+        }.bind(this));
       }.observes('isFirstPlot'),
 
       /**
@@ -121,10 +121,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
           tAdorn.updateToModel();
       },
 
-      init: function() {
+      init: function () {
         sc_super();
         var tModel = this.get('model');
-        if( tModel && tModel.getAdornmentModel('connectingLine'))
+        if (tModel && tModel.getAdornmentModel('connectingLine'))
           this.connectingLineChanged();
       },
 
@@ -145,9 +145,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
         if (tFunctionEditView) {
           this.get('parentView').removeChild(tFunctionEditView);
         }
-        if( SC.isArray( this._myPlottedElements)) {
-          this._myPlottedElements.forEach( function( iElement) {
-            tLayerManager.removeElement( iElement);
+        if (SC.isArray(this._myPlottedElements)) {
+          this._myPlottedElements.forEach(function (iElement) {
+            tLayerManager.removeElement(iElement);
             iElement.remove();
           });
           this._myPlottedElements = [];
@@ -175,7 +175,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
        Observation function called when data values added/removed.
        */
       dataDidChange: function () {
-        if( !this.getPath('model.dataConfiguration'))
+        if (!this.getPath('model.dataConfiguration'))
           return; // happens during destroy of plot
         sc_super();
 
@@ -208,7 +208,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
 
         this.updateAdornments();
 
-        this.rescaleOnParentCaseCompletion( tCases);
+        this.rescaleOnParentCaseCompletion(tCases);
 
         sc_super();
       },
@@ -216,24 +216,24 @@ DG.ScatterPlotView = DG.PlotView.extend(
       /**
        * Connecting line adornment, if any, will need updating
        */
-      handleUpdateConnectingLine: function() {
-        if( this.connectingLineAdorn && this.connectingLineAdorn.wantVisible()) {
+      handleUpdateConnectingLine: function () {
+        if (this.connectingLineAdorn && this.connectingLineAdorn.wantVisible()) {
           this.connectingLineAdorn.invalidateModel();
-          this.connectingLineAdorn.updateToModel( true /* animate */);
+          this.connectingLineAdorn.updateToModel(true /* animate */);
         }
       },
 
       /**
        * Connecting line adornment, if any, will need updating
        */
-      handleMoveAttribute: function() {
+      handleMoveAttribute: function () {
         this.handleUpdateConnectingLine();
       },
 
-       /**
+      /**
        * Connecting line adornment, if any, will need updating
        */
-      handleMoveCases: function() {
+      handleMoveCases: function () {
         sc_super();
         this.handleUpdateConnectingLine();
       },
@@ -286,9 +286,13 @@ DG.ScatterPlotView = DG.PlotView.extend(
         // show or hide if needed, then update if shown.
         if (this.showHidePlottedElement(tCircle, tIsMissingCase, iIndex)) {
           var tAttrs = {
-            cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement(tCircle),
+            cx: tCoordX,
+            cy: tCoordY,
+            r: this.radiusForCircleElement(tCircle),
             fill: iRC.calcCaseColorString(iCase),
-            stroke: iRC.calcStrokeColorString( iCase), 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency
+            stroke: iRC.calcStrokeColorString(iCase),
+            'fill-opacity': iRC.transparency,
+            'stroke-opacity': iRC.strokeTransparency
           };
           this.updatePlottedElement(tCircle, tAttrs, iAnimate, iCallback);
           return {cx: tCoordX, cy: tCoordY, r: this._pointRadius};
@@ -338,7 +342,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         }
 
         function returnCaseValuesToStart(iCaseIndex, iStartWorldCoords) {
-          if( !SC.none(iStartWorldCoords.x) && !SC.none(iStartWorldCoords.y)) {
+          if (!SC.none(iStartWorldCoords.x) && !SC.none(iStartWorldCoords.y)) {
             var tCase = this_.getPath('model.cases').unorderedAt(iCaseIndex),
                 tVarIDs = getVarIDs(),
                 tDeltaX = tCase.getForcedNumericValue(tVarIDs.x) - iStartWorldCoords.x,
@@ -405,7 +409,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   }, this);
                 },
                 function (x, y) { // begin
-                  if( tIsDragging)
+                  if (tIsDragging)
                     return;
                   var tCase = this_.getPath('model.cases').unorderedAt(this.index),
                       tVarIDs = getVarIDs();
@@ -423,7 +427,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   tInitialTransform = null;
                   returnCaseValuesToStart(this.index, {x: this.wx, y: this.wy});
                   tIsDragging = false;
-                  delete this.ox; delete this.oy; delete this.wx; delete this.wy;
+                  delete this.ox;
+                  delete this.oy;
+                  delete this.wx;
+                  delete this.wy;
                   this_.hideDataTip();
                 });
         return iElement;
@@ -475,27 +482,29 @@ DG.ScatterPlotView = DG.PlotView.extend(
               });
             }
             tCasesForLine.forEach(function (iCase) {
-              var tWorldX = iCase.getForcedNumericValue(tXVarID),
-                  tWorldY = iCase.getForcedNumericValue(tYVarID),
-                  tPtX = tXAxisView.dataToCoordinate(tWorldX),
-                  tPtY = tYAxisView.dataToCoordinate(tWorldY),
-                  tLineY = tYAxisView.dataToCoordinate(tSlope * tWorldX + tIntercept),
-                  tLineX = tPtX + tPtY - tLineY,
-                  tX = Math.min(tPtX, tLineX),
-                  tY = Math.min(tPtY, tLineY),
-                  tSide = Math.abs(tLineY - tPtY),
-                  tRectString = DG.RenderingUtilities.pathForFrame({
-                    x: tX, y: tY,
-                    width: tSide, height: tSide
-                  }),
-                  tRect = tPaper.path(tRectString)
-                      .attr({stroke: iColor});
-              if (tAnimateShow) {
-                tRect.attr({'stroke-opacity': 0})
-                    .animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+              if(iCase.hasValue(tXVarID) && iCase.hasValue(tYVarID)) {
+                var tWorldX = iCase.getForcedNumericValue(tXVarID),
+                    tWorldY = iCase.getForcedNumericValue(tYVarID),
+                    tPtX = tXAxisView.dataToCoordinate(tWorldX),
+                    tPtY = tYAxisView.dataToCoordinate(tWorldY),
+                    tLineY = tYAxisView.dataToCoordinate(tSlope * tWorldX + tIntercept),
+                    tLineX = tPtX + tPtY - tLineY,
+                    tX = Math.min(tPtX, tLineX),
+                    tY = Math.min(tPtY, tLineY),
+                    tSide = Math.abs(tLineY - tPtY),
+                    tRectString = DG.RenderingUtilities.pathForFrame({
+                      x: tX, y: tY,
+                      width: tSide, height: tSide
+                    }),
+                    tRect = tPaper.path(tRectString)
+                        .attr({stroke: iColor});
+                if (tAnimateShow) {
+                  tRect.attr({'stroke-opacity': 0})
+                      .animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+                }
+                this_._squares.push(tRect);
+                tAdornmentLayer.push(tRect);
               }
-              this_._squares.push(tRect);
-              tAdornmentLayer.push(tRect);
             });
           }
 
@@ -513,8 +522,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   function () {
                     tLayerManager.removeElement(iElement, kRemoveFromPaper);
                   });
-            }
-            else
+            } else
               tLayerManager.removeElement(iElement, kRemoveFromPaper);
           });
           this_._squares = [];
@@ -570,7 +578,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         sc_super();
         var tConnectingLineAdorn = this.get('connectingLineAdorn');
         if (tConnectingLineAdorn && tConnectingLineAdorn.wantVisible()) {
-          if(this.getPath('model.dataConfiguration.displayOnlySelected')) {
+          if (this.getPath('model.dataConfiguration.displayOnlySelected')) {
             tConnectingLineAdorn.get('model').setComputingNeeded();
           }
           this.connectingLineAdorn.updateSelection();
@@ -590,8 +598,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             tMovablePtAdorn.set('parentView', this);
             tMovablePtAdorn.set('model', tMovablePoint);
             tMovablePtAdorn.set('paperSource', this.get('paperSource'));
-          }
-          else {
+          } else {
             tMovablePtAdorn = DG.MovablePointAdornment.create({
               parentView: this, model: tMovablePoint, paperSource: this.get('paperSource')
             });
@@ -599,8 +606,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             this.set('movablePointAdorn', tMovablePtAdorn);
           }
           this.movablePointAdorn.updateVisibility();
-        }
-        else if( tMovablePtAdorn) {
+        } else if (tMovablePtAdorn) {
           // No model, so get rid of it
           tMovablePtAdorn.destroy();
           this.set('movablePointAdorn', null);
@@ -620,8 +626,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             tMovableLineAdorn.set('parentView', this);
             tMovableLineAdorn.set('model', tMovableLine);
             tMovableLineAdorn.set('paperSource', this.get('paperSource'));
-          }
-          else {
+          } else {
             tMovableLineAdorn = DG.MovableLineAdornment.create({
               parentView: this, model: tMovableLine, paperSource: this.get('paperSource'),
               layerName: DG.LayerNames.kAdornments
@@ -630,7 +635,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             this.set('movableLineAdorn', tMovableLineAdorn);
           }
           tMovableLineAdorn.updateVisibility();
-        } else if( tMovableLineAdorn) {
+        } else if (tMovableLineAdorn) {
           // No model, so get rid of it
           tMovableLineAdorn.destroy();
           this.set('movableLineAdorn', null);
@@ -661,8 +666,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             this.set('multipleLSRLsAdorn', tMultipleLSRLsAdorn);
           }
           tMultipleLSRLsAdorn.updateVisibility();
-        }
-        else if( tMultipleLSRLsAdorn) {
+        } else if (tMultipleLSRLsAdorn) {
           // No model, so get rid of it
           tMultipleLSRLsAdorn.destroy();
           this.set('multipleLSRLsAdorn', null);
@@ -691,7 +695,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
               var tLegendCollection = this.getPath('model.dataConfiguration.legendAttributeDescription.attribute.collection'),
                   tXCollection = this.getPath('model.dataConfiguration.xAttributeDescription.attribute.collection'),
                   tYCollection = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.collection');
-              return !SC.none( tLegendCollection) && tLegendCollection.get('id') !== tXCollection.get('id') &&
+              return !SC.none(tLegendCollection) && tLegendCollection.get('id') !== tXCollection.get('id') &&
                   tLegendCollection.get('id') !== tYCollection.get('id');
             }.bind(this),
 
@@ -703,7 +707,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
             tAdornModel = tPlotModel && tPlotModel.getAdornmentModel('connectingLine'),
             tAdorn = this.get('connectingLineAdorn'),
             tLineColorFunc = hasGrouping() || !isOneOfMany() ? this.getPointColor : this.getAttributeColor;
-        if( tAdornModel) {
+        if (tAdornModel) {
           if (tAdorn) {
             tAdorn.set('parentView', this);
             tAdorn.set('model', tAdornModel);
@@ -718,7 +722,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
           }
           tAdornModel.set('getLineColorFunc', tLineColorFunc.bind(this));
           tAdornModel.setComputingNeeded();
-        } else if( tAdorn) {
+        } else if (tAdorn) {
           // No model, so get rid of it
           tAdorn.destroy();
           this.set('connectingLineAdorn', null);
@@ -777,12 +781,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
             this.set('functionAdorn', tPlottedFunctionAdorn);
           }
           tPlottedFunctionAdorn.updateVisibility();
-        }
-        else if (tPlottedFunctionAdorn) {
+        } else if (tPlottedFunctionAdorn) {
           // No model, so get rid of it
           tPlottedFunctionAdorn.destroy();
           this.set('functionAdorn', null);
-          if( tFunctionEditView)
+          if (tFunctionEditView)
             tFunctionEditView.set('isVisible', false);
         }
 
