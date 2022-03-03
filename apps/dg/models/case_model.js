@@ -221,6 +221,10 @@ DG.Case = DG.BaseModel.extend((function() {
         value = Number(this._cachedDate[iAttrID]);
         valType = "number";
       }
+      else if (attrType === 'numeric') {
+        value = DG.MathUtilities.extractNumeric(value);
+        valType = "number";
+      }
       if( oOptInfo) {
         oOptInfo.type = valType;
         // Note: we don't consider non-primitive types (e.g. objects, arrays, etc.)
