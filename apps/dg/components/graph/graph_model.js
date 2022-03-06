@@ -1664,6 +1664,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
           }
         }
       });
+      this.propagateShowMeasuresLabels();
       this.rescaleAxesFromData( true, false);
     },
 
