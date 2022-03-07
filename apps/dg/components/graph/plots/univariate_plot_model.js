@@ -131,7 +131,7 @@ DG.UnivariatePlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
       invalidateComputationContext: function() {
         this._cachedComputationContext = null;
-      },
+      }.observes('primaryAxisModel', 'secondaryAxisModel', 'primaryVarID', 'secondaryVarID', 'legendVarID' ),
 
       doForOneCase: function( iCase, iIndex, iCC, iDoF) {
         var tPrimaryVal = iCase.getValue( iCC.primaryVarID),
