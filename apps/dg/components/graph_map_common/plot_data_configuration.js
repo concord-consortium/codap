@@ -652,9 +652,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
                 });
 
             tAttrIDs = {
-              x: tAttributesByPlace[DG.GraphTypes.EPlace.eX].get('attributeID'),
-              y: tAttributesByPlace[DG.GraphTypes.EPlace.eY].get('attributeID'),
-              y2: tAttributesByPlace[DG.GraphTypes.EPlace.eY2].get('attributeID'),
+              x: tAttributesByPlace[DG.GraphTypes.EPlace.eX][0].get('attributeID'),
+              y: tAttributesByPlace[DG.GraphTypes.EPlace.eY][0].get('attributeID'),
+              y2: tAttributesByPlace[DG.GraphTypes.EPlace.eY2][0].get('attributeID'),
             };
 
             tNotHidden.forEach(function (iCase) {

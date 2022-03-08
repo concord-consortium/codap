@@ -239,8 +239,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
        */
       formatIndeterminate = function(cellNode, row, iCase, colDef) {
         var tInput = cellNode && cellNode.querySelector('input');
-        var value = iCase.item && String(iCase.item.values[Number(colDef.attribute.get('id'))]),
-            isIndeterminate = value !== 'true' && value !== 'false';
+        var value = iCase.getValue(colDef.attribute.get('id')) ,
+                // iCase.item && String(iCase.item.values[Number(colDef.attribute.get('id'))]),
+            isIndeterminate = ![true, 'true', false, 'false'].includes(value) ;
         if( isIndeterminate && tInput)
           tInput.indeterminate = true;
       },
