@@ -637,6 +637,13 @@ DG.PlotDataConfiguration = SC.Object.extend(
        @property { {DG.PlotUtilities.PlotCaseArray} that behaves like an SC.Array of DG.Case }
        */
       cases: function () {
+
+        function getID(iKey) {
+          var tPlace = DG.GraphTypes.EPlace[iKey];
+          return tAttributesByPlace && tAttributesByPlace[tPlace] && tAttributesByPlace[tPlace][0] &&
+              tAttributesByPlace[tPlace][0].get('id');
+        }
+
         if (SC.none(this._casesCache)) {
           var tCases = this.get('displayOnlySelected') ? this.get('selection') : this.get('allCases'),
               tHidden = this.get('hiddenCases'),
@@ -652,9 +659,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
                 });
 
             tAttrIDs = {
-              x: tAttributesByPlace[DG.GraphTypes.EPlace.eX][0].get('attributeID'),
-              y: tAttributesByPlace[DG.GraphTypes.EPlace.eY][0].get('attributeID'),
-              y2: tAttributesByPlace[DG.GraphTypes.EPlace.eY2][0].get('attributeID'),
+              x: getID('eX'),
+              y: getID('eY'),
+              y2: getID('eY2')
             };
 
             tNotHidden.forEach(function (iCase) {
