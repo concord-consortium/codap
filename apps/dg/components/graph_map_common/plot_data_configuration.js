@@ -637,6 +637,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
        @property { {DG.PlotUtilities.PlotCaseArray} that behaves like an SC.Array of DG.Case }
        */
       cases: function () {
+        var tAttributesByPlace = this.get('attributesByPlace') || [];
 
         function getID(iKey) {
           var tPlace = DG.GraphTypes.EPlace[iKey];
@@ -649,8 +650,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
               tHidden = this.get('hiddenCases'),
               tNotHidden,
               tResult = [],
-              tAttrIDs,
-              tAttributesByPlace = this.get('attributesByPlace') || [];
+              tAttrIDs;
           if (tCases) {
             // We subtract the hidden cases so that they are not known about by the graph
             tNotHidden = DG.ArrayUtils.subtract(tCases, tHidden,
