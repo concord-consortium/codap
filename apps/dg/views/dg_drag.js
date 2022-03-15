@@ -36,6 +36,9 @@ DG.Drag = SC.Drag.extend({
         that are not visible.
    */
   startDrag: function () {
+    // Deselect all components so inspector panes won't get in the way
+    DG.mainPage.docView.select();
+
     if (this.get('sourceIsDraggable')) {
       // create the ghost view
       this._createGhostView();
