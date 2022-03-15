@@ -642,7 +642,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
         function getID(iKey) {
           var tPlace = DG.GraphTypes.EPlace[iKey];
           return tAttributesByPlace && tAttributesByPlace[tPlace] && tAttributesByPlace[tPlace][0] &&
-              tAttributesByPlace[tPlace][0].get('id');
+              tAttributesByPlace[tPlace][0].getPath('attribute.id');
         }
 
         if (SC.none(this._casesCache)) {

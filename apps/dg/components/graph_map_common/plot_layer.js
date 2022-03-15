@@ -982,11 +982,14 @@ DG.PlotLayer = SC.Object.extend(DG.Destroyable,
        * @return {Number} radius of circle for each case, as a positive integer.
        */
       calcPointRadius: function () {
+        var tModel = this.get('model');
+        if( !tModel)
+          return; // Can happen during undo
         // Search for a point size in [min-max] range, where the point size is a power of logbase that is close to the data length.
         // This step function avoids excessive plot resizing with every change in number of cases.
-        var tDataConfiguration = this.getPath('model.dataConfiguration'),
+        var tDataConfiguration = tModel.get('dataConfiguration'),
             tDataLength = tDataConfiguration ? tDataConfiguration.getCaseCount() : 0,
-            tMultiplierFunc = this.get('model').getPointSizeMultiplier,
+            tMultiplierFunc = tModel.getPointSizeMultiplier,
             tMultiplier = tMultiplierFunc ? tMultiplierFunc.call(this.get('model')) : 1,
             tRadius = DG.PlotUtilities.kPointRadiusMax,
             tMinSize = DG.PlotUtilities.kPointRadiusMin,

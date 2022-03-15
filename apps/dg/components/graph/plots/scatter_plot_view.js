@@ -448,7 +448,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
        We may clear and draw everything from scratch if required.
        */
       drawData: function drawData() {
-        if (this.getPath('model.isAnimating'))
+        // Note that only the 'first plot' view animates but it shares its model with other plots
+        if (this.getPath('model.isAnimating') && this.get('isFirstPlot'))
           return; // Points are animating to new position
 
         if (!SC.none(this.get('transferredElementCoordinates'))) {
