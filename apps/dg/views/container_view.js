@@ -406,8 +406,132 @@ DG.ContainerView = SC.View.extend(
         var scrollView = this.get('containingScrollView');
         var visibleTop = scrollView.get('verticalScrollOffset');
         return visibleTop;
-      }.property()
+      }.property(),
 
+      /**
+       * This is a drop target.
+       * @type {boolean}
+       */
+      isDropTarget: YES,
+
+      isDropEnabled: YES,
+
+      computeDragOperations: function( iDrag) {
+        this.extractDragInfo( iDrag);
+        if( this.get('isDropEnabled'))
+          return SC.DRAG_LINK;
+        else
+          return SC.DRAG_NONE;
+      },
+
+      showDropHint: function (iDrag) {
+        // var gv = iDrag && iDrag.get('ghostView');
+        // if (gv) {
+        //   gv.get('classNames').pushObject('dg-container-drop-target-highlight');
+        // }
+        // else {
+        //   DG.log('no ghostview');
+        // }
+        var gvEl = document.querySelector('.sc-ghost-view');
+        if (gvEl) {
+          gvEl.classList.add('dg-container-drop-target-highlight');
+        }
+      },
+
+      hideDropHint: function (iDrag) {
+        // var gv = iDrag && iDrag.get('ghostView');
+        // if (gv) {
+        //   var ix = gv.get('classNames').removeObject('dg-container-drop-target-highlight');
+        //   // if (ix >= 0) {
+        //   //   gv.get('classNames').splice(ix, 1);
+        //   // }
+        // }
+        // else {
+        //   DG.log('no ghostview');
+        // }
+        var gvEl = document.querySelector('.sc-ghost-view');
+        if (gvEl) {
+          gvEl.classList.remove('dg-container-drop-target-highlight');
+        }
+      },
+
+      isDragEntered: false,
+
+      /**
+       * @type {DG.Attribute|null}
+       */
+      dragAttribute: null,
+
+      /**
+       * Whether drag is in progress
+       * @type {boolean}
+       */
+      isDragInProgress: false,
+
+      extractDragInfo: function( iDrag) {
+        if (iDrag && iDrag.data ) {
+          this.set('dragAttribute', iDrag.data.attribute);
+        }
+      },
+
+      /**
+       * @param {SC.Drag} iDrag The current drag object.
+       */
+      dragStarted: function( iDrag) {
+        this.extractDragInfo(iDrag);
+        if (this.get('isDropEnabled')) {
+          this.set('isDragInProgress', true);
+        }
+      },
+
+      dragEnded: function () {
+        this.set('dragAttribute', null);
+        this.set('isDragInProgress', false);
+      },
+
+      dragEntered: function( iDragObject, iEvent) {
+        if (this.get('isDropEnabled')) {
+          this.showDropHint(iDragObject);
+        }
+      },
+
+      dragExited: function( iDragObject, iEvent) {
+        this.hideDropHint(iDragObject);
+      },
+
+      acceptDragOperation: function() {
+        return this.get('isDropEnabled');
+      },
+
+      performDragOperation:function ( iDragObject, iDragOp ) {
+        this.hideDropHint(iDragObject);
+        var context = iDragObject.data.context;
+        var attr = iDragObject.data.attribute;
+        var location = DG.ViewUtilities.windowToViewCoordinates(iDragObject.location, this);
+        this.createGraphComponent(location, context, attr);
+      },
+
+      /**
+       *
+       * @param location {{x:number, y:number}} view coordinates
+       * @param dataContext {DG.DataContext}
+       * @param attr {DG.Attribute}
+       */
+      createGraphComponent: function (location, dataContext, attr) {
+        var doc = DG.currDocumentController();
+        var props = {
+          type: 'DG.GraphView',
+          document: doc,
+          componentStorage: {
+            dataContext: dataContext,
+            xAttributeName: attr.get('name'),
+          },
+          layout: {left: location.x-13, top: location.y-13, width: 300, height: 300}
+        };
+        var component = doc.createComponentAndView(
+            DG.Component.createComponent(props), null, {initiatedViaCommand: true});
+        this.select(component);
+      }
     };  // object returned closure
   }()) // function closure
 );
