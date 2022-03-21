@@ -641,6 +641,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
 
         function getID(iKey) {
           var tPlace = DG.GraphTypes.EPlace[iKey];
+          // Make sure we can make our way to the id
           return tAttributesByPlace && tAttributesByPlace[tPlace] && tAttributesByPlace[tPlace][0] &&
               tAttributesByPlace[tPlace][0].getPath('attribute.id');
         }
