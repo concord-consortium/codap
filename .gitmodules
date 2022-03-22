@@ -1,6 +1,3 @@
 [submodule "frameworks/sproutcore"]
 	path = frameworks/sproutcore
 	url = https://github.com/concord-consortium/codap-sproutcore.git
-[submodule "frameworks/iframe-phone"]
-	path = frameworks/iframe-phone
-	url = https://github.com/concord-consortium/iframe-phone.git
