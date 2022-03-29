@@ -412,7 +412,7 @@ DG.ContainerView = SC.View.extend(
        * This is a drop target.
        * @type {boolean}
        */
-      isDropTarget: NO,
+      isDropTarget: YES,
 
       isDropEnabled: YES,
 
