@@ -79,7 +79,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
         tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
         tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor,
         tStrokeSameAsFill = tModel.get('strokeSameAsFill'),
-        tIsNumeric = tLegendDesc.get('isNumeric'),
+        tIsNumeric = tLegendDesc && tLegendDesc.get('isNumeric'),
         tQuantileValues = (tLegendDesc && tIsNumeric) ?
             DG.MathUtilities.nQuantileValues(
                 tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
