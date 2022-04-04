@@ -139,6 +139,9 @@ DG.DateUtilities.createDate = function(/* iArgs */) {
   // convert from seconds to milliseconds
   if ((args.length === 2) && DG.DateUtilities.defaultToEpochSecs(args[1]))
     args[1] = Number(args[1]) * 1000;
+  else {  // We have a value < 5000.
+    args[2] = 0;  // This will force the constructor to treat args[1] as a year
+  }
 
   // Call Date constructor with specified arguments
   // cf. http://stackoverflow.com/a/8843181
