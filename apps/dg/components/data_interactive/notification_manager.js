@@ -86,14 +86,18 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
     sendNotification: function (message, callback) {
       var activeChannels = findActiveChannels(DG.currDocumentController());
       activeChannels.forEach(function (channel) {
-        channel.sendMessage(message, callback);
+        if (channel.sendMessage) {
+          channel.sendMessage(message, callback);
+        }
       });
     },
 
     sendChannelNotification: function (gameController, message, callback) {
       var channel = gameController.get('activeChannel');
       if (channel) {
-        channel.sendMessage(message, callback);
+        if (channel.sendMessage) {
+          channel.sendMessage(message, callback);
+        }
       } else {
         DG.logWarn("NotificationManager.sendChannelNotification to unknown plugin");
       }
