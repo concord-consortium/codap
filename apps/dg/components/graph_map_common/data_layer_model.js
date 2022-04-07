@@ -278,6 +278,10 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
         tContext.addObserver('changeCount', this, 'handleDataContextNotification');
     }.observes('dataContext'),
 
+    childmostCollectionTitle: function() {
+      return this.getPath('dataConfiguration.childmostCollection.title');
+    }.property(),
+
     /**
       Delete the currently selected cases.
       Passes the request on to the data context to do the heavy lifting.

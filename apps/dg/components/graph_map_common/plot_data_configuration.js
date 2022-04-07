@@ -176,6 +176,19 @@ DG.PlotDataConfiguration = SC.Object.extend(
         return this.getPath('collectionClient.name');
       }.property('dataContext'),
 
+      /** of the collections belonging to the attributes, return the one that is "childmost"
+       * @property: DG.Collection
+       */
+      childmostCollection: function() {
+        var tChildMost = null;
+        this.get('attributesByPlace').forEach(function(iAttrDescs) {
+          var tCollection = iAttrDescs.length > 0 && iAttrDescs[0].getPath('collectionClient.collection');
+          if( tCollection && (!tChildMost || tCollection.isDescendantOf(tChildMost)))
+            tChildMost = tCollection;
+        });
+        return tChildMost || this.getPath('collectionClient.collection');
+      }.property(),
+
       /**
        @property { DG.AttributePlacementDescription }
        */
