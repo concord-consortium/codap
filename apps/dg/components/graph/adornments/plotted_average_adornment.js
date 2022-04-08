@@ -480,10 +480,12 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend( DG.LineLab
                 tNew = this_.getPath('model.equationCoordsArray')[tEqViewIndex];
               }.bind(this),
               undo: function () {
-                this_.get('model.equationCoordsArray')[tEqViewIndex] = tOriginal;
+                this_.getPath('model.equationCoordsArray')[tEqViewIndex] = tOriginal;
+                this_.updateEquation(tEqViewIndex);
               }.bind(this),
               redo: function () {
-                this_.get('model.equationCoordsArray')[tEqViewIndex] = tNew;
+                this_.getPath('model.equationCoordsArray')[tEqViewIndex] = tNew;
+                this_.updateEquation(tEqViewIndex);
               }.bind(this)
             }));
           }
