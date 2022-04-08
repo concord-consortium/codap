@@ -506,11 +506,11 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend( DG.LineLab
               this.get('paperSource').appendChild(tEquationView);
               this.equationViews.push(tEquationView);
             }
-            for (var index = 0; index < this.equationViews.length; index++) {
-              this.updateEquation(index);
-            }
             while (this.equationViews.length > tNumValues) {
               this.equationViews.pop().destroy();
+            }
+            for (var index = 0; index < this.equationViews.length; index++) {
+              this.updateEquation(index);
             }
           }
         },
