@@ -136,13 +136,14 @@ DG.DateUtilities.createDate = function(/* iArgs */) {
   if (args.length === 2 && typeof args[1] === 'string' && isNaN(args[1])) {
     return DG.DateUtilities.dateParser.parseDate(args[1], true);
   }
-  // convert from seconds to milliseconds
-  if ((args.length === 2) && DG.DateUtilities.defaultToEpochSecs(args[1]))
-    args[1] = Number(args[1]) * 1000;
-  else {  // We have a value < 5000.
-    args[2] = 0;  // This will force the constructor to treat args[1] as a year
-  }
 
+  if ((args.length === 2)) {  // We have either seconds since 1970 or a year
+    if (DG.DateUtilities.defaultToEpochSecs(args[1]))
+      args[1] = Number(args[1]) * 1000;// convert from seconds to milliseconds
+    else {  // We have a value < 5000.
+      args[2] = 0;  // This will force the constructor to treat args[1] as a year
+    }
+  }
   // Call Date constructor with specified arguments
   // cf. http://stackoverflow.com/a/8843181
   /* jshint -W058 */

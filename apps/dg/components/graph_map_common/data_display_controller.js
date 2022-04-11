@@ -99,6 +99,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
           sc_super();
         },
 
+        childmostCollectionTitle: function() {
+          return this.getPath('dataDisplayModel.childmostCollectionTitle');
+        }.property(),
+
+        setComponentTitleByChildmostCollection: function() {
+          if( !this.getPath('model.userSetTitle'))
+            this.setPath('model.title', this.get('childmostCollectionTitle'));
+        },
+
       /** Submenu items for copying/exporting component images */
       createImageExportMenuItems: function() {
         var tIsMapView = this.getPath('model.type') === 'DG.MapView',
@@ -867,16 +876,19 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 // remove or change attribute
                 tNewItem.itemAction.apply(tNewItem.target, tNewItem.args);
               }
+              controller.setComponentTitleByChildmostCollection();
               this.log = tNewItem.log || 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
             },
             undo: function () {
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
+              controller.setComponentTitleByChildmostCollection();
             },
             redo: function () {
               this._controller().restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
+              this._controller().setComponentTitleByChildmostCollection();
             }
           }));
         },
@@ -926,16 +938,19 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     attributes: [iDragData.attribute]
                   });
               controller.get('view').select();
+              controller.setComponentTitleByChildmostCollection();
 
               this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
             },
             undo: function () {
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
+              controller.setComponentTitleByChildmostCollection();
             },
             redo: function () {
               controller.restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
+              controller.setComponentTitleByChildmostCollection();
             }
           }));
         },

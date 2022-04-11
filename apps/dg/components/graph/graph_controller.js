@@ -521,14 +521,17 @@ DG.GraphController = DG.DataDisplayController.extend(
                   '{ "orientation": "%@", "attribute": "%@" }'
                       .fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
               controller.get('view').select();
+              controller.setComponentTitleByChildmostCollection();
             },
             undo: function () {
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
+              controller.setComponentTitleByChildmostCollection();
             },
             redo: function () {
               this._controller().restoreComponentStorage(this._afterStorage);
+              this._controller().setComponentTitleByChildmostCollection();
               this._afterStorage = null;
             }
           }));

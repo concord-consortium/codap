@@ -60,7 +60,7 @@ DG.EquationView = SC.LabelView.extend(
       show: function (iViewLocation, iEquation) {
         if(!isFinite(iViewLocation.x) || !isFinite(iViewLocation.y))
           return; // Can happen during transitions
-        this.get('layer').innerHTML = iEquation;
+        this.set('value', iEquation);
 
         SC.run(function () {
           this.adjust({left: iViewLocation.x, top: iViewLocation.y});
