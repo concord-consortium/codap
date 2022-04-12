@@ -1376,6 +1376,19 @@ DG.DataContext = SC.Object.extend((function () // closure
       return {success: true};
     },
 
+    /**
+     * This is really a misleadingly named method. Should be guaranteeAttributes.
+     * It is used to create attributes if the attributes don't exist or update
+     * their properties, if they do.
+     *
+     * It may be used in an undo. Undo of formula create expects different
+     * behavior from from normal formula delete. Normal formula delete overwrites
+     * underlying data. Undo should not.
+     *
+     * @param iChange
+     *
+     * @return {{attrIDs: *[], success: boolean, attrs: *[]}}
+     */
     doCreateAttributes: function (iChange) {
       var collectionClient = typeof iChange.collection === "string"
           ? this.getCollectionByName(iChange.collection)
@@ -1396,7 +1409,8 @@ DG.DataContext = SC.Object.extend((function () // closure
         // User-created attributes default to editable
         if (!hadAttribute)
           attrProps.editable = true;
-        attribute = collectionClient.guaranteeAttribute(attrProps);
+
+        attribute = collectionClient.guaranteeAttribute(attrProps, iChange.isUndo);
         if (!SC.none(iChange.position)) {
           _this.moveAttribute(attribute, collectionClient, iChange.position);
         }

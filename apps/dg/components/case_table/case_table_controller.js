@@ -831,7 +831,8 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
                 tChange = {
                             operation: 'createAttributes',
                             collection: tCollection,
-                            attrPropsArray: [{ name: tAttributeName, formula: tAttrFormula }]
+                            attrPropsArray: [{ name: tAttributeName, formula: tAttrFormula }],
+                            isUndo: true
                           };
               }
               tResult = tContext && tContext.applyChange( tChange);

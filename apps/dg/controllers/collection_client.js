@@ -312,9 +312,12 @@ DG.CollectionClient = SC.Object.extend(
   /**
     Returns the attribute which matches the specified properties, creating it if it doesn't already exist.
     @param    {Object}        iProperties -- Initial property values
+    @param    {boolean}       isUndo -- optional param: whether this call is
+                                part of an undo
     @returns  {DG.Attribute}  The matching or newly-created DG.Attribute object
+
    */
-  guaranteeAttribute: function( iProperties) {
+  guaranteeAttribute: function( iProperties, isUndo) {
 
     var tAttribute = null;
 
@@ -339,7 +342,7 @@ DG.CollectionClient = SC.Object.extend(
           // we used to ban formula changes if editable flag not set.
           // Now, data interactive is considered to preempt the setting
           // in the document.
-          this.setAttributeFormula( tAttribute, iProperties.formula);
+          this.setAttributeFormula( tAttribute, iProperties.formula, isUndo);
         }
         // copy the attribute colors
         if (!SC.none( iProperties.categoryMap)) {
@@ -367,12 +370,16 @@ DG.CollectionClient = SC.Object.extend(
     If a formula is removed, computed values become editable ones.
     @param  {DG.Attribute}    iAttribute -- The attribute whose formula is to be set.
     @param  {String}          iFormula -- The formula to set for the attribute
+    @param  {boolean}         isUndo -- whether call is part of an undo. If so
+                                        and the operation removes a formula, we
+                                        do not overwrite existing values with
+                                        formula values.
    */
-  setAttributeFormula: function( iAttribute, iFormula) {
+  setAttributeFormula: function( iAttribute, iFormula, isUndo) {
     var attrID = iAttribute && iAttribute.get('id'),
         didHaveFormula = iAttribute.get('hasFormula'),
         willHaveFormula = !SC.empty( iFormula),
-        preserveComputedValues = didHaveFormula && !willHaveFormula,
+        preserveComputedValues = didHaveFormula && !willHaveFormula && !isUndo,
         preservedValues = [];
 
     // Preserve computed values if necessary
