@@ -90,6 +90,7 @@ DG.MapController = DG.DataDisplayController.extend(
           tChanges.forEach( function( iChange) {
             switch (iChange.operation) {
               case 'updateAttributes':
+              case 'createAttributes':
                 tMeaningfulChange = true;
                 break;
             }
