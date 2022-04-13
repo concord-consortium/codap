@@ -28,6 +28,7 @@ class TableTileObject{
 
     addNewAttribute(collection){
         //Have to find the appropriate collection
+        cy.get('.dg-case-table-component-view .dg-titlebar').click();
         this.getAddNewAttributePlusIcon(collection).click();
     }
     getCollection(){

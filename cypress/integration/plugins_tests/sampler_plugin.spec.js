@@ -17,7 +17,8 @@ describe('Sampler plugin', function () {
     //run sampler
     cy.getPluginIframe().find('#repeat').clear().type("1{enter}")
     cy.getPluginIframe().find('#speed').type(3 + "{enter}")
-    cy.getPluginIframe().find('#run').click()
+    cy.wait(3000)
+    cy.getPluginIframe().find('#run').click({force: true})
     codap.getTableTile().should('be.visible');
   })
   it('verify data is shown in table', function () {

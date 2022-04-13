@@ -1735,20 +1735,3 @@ img.flag {
 	cursor: se-resize;
 }
 
-.sc-ghost-view.dg-container-drop-target-highlight {
-	overflow: visible;
-	background: transparent;
-}
-
-.sc-ghost-view.dg-container-drop-target-highlight::after {
-    content: ' ';
-	border-weight: medium;
-	border-color: gray;
-	border-style: dotted;
-	border-radius: 5px;
-	background: transparent;
-	position: absolute;
-	width: 300px;
-	height: 300px;
-	z-index: 10000;
-}
