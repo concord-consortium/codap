@@ -1814,7 +1814,17 @@ DG.DataContext = SC.Object.extend((function () // closure
     _moveAttributeBetweenCollections: function (iAttr, fromCollection, toCollectionClient, position) {
       var dataContext = this;
       var allCollections = this.collections;
+      var fromCollectionProperties = {
+        parent: fromCollection.parent,
+        id: fromCollection.get('id'),
+        name: fromCollection.get('name'),
+        title: fromCollection.get('title'),
+        context: fromCollection.get('context'),
+        children: [fromCollection.children && fromCollection.children[0]]
+      };
       var toCollection = toCollectionClient.get('collection');
+      DG.log('Moving attribute, ' + iAttr.get('name') + ', from "' +
+          fromCollection.get('name') + '" to "' + toCollectionClient.get('name') + '"');
       var originalPosition = fromCollection.get('attrs').findIndex(function (attr) {
         return attr === iAttr;
       });
@@ -1854,7 +1864,6 @@ DG.DataContext = SC.Object.extend((function () // closure
         },
         undo: function () {
           var toCollection = iAttr.collection;
-          var fromCollectionProperties;
           var newCollection;
           iAttr = toCollection.removeAttribute(iAttr);
           if (toCollection.get('attrs').length === 0) {
@@ -1878,27 +1887,16 @@ DG.DataContext = SC.Object.extend((function () // closure
             });
           });
 
-          if (fromCollection.get('attrs').filter(function (attr) {return !attr.get('hidden'); }).length === 0) {
-            fromCollectionProperties = {
-              parent: fromCollection.parent,
-              name: fromCollection.get('name'),
-              title: fromCollection.get('title'),
-              context: fromCollection.get('context'),
-              children: [fromCollection.children && fromCollection.children[0]]
-            };
-            newCollection = dataContext.createCollection(fromCollectionProperties);
-            dataContext.applyChange({
-              operation: 'createCollection',
-              collection: fromCollection,
-              isComplete: true
-            });
-            newCollection.get('collection').addAttribute(iAttr, 0);
-          } else {
-            fromCollection.addAttribute(iAttr, originalPosition);
-          }
+          newCollection = dataContext.guaranteeCollection(fromCollectionProperties);
+          dataContext.applyChange({
+            operation: 'createCollection',
+            collection: fromCollection,
+            isComplete: true
+          });
+          newCollection.get('collection').addAttribute(iAttr, originalPosition);
           var casesAffectedByUndo = dataContext.regenerateCollectionCases([fromCollection, toCollection]);
           dataContext.invalidateAttrsOfCollections(casesAffectedByUndo.collections);
-        },
+        }.bind(this),
         redo: function () {
           this.execute();
           // notify
