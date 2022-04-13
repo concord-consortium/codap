@@ -54,6 +54,9 @@ class CodapObject{
     getTableTileTitle(){
         return cy.get('.dg-case-table-component-view .dg-titlebar')
     }
+    getGraphTileTitle(){
+        return cy.get('.dg-graph-view').siblings('.dg-titlebar').children('.dg-titleview');
+    }
     dragAttributeToGraph(source,target){
         // table.getAttributeHeader(source)
         //     .trigger('mousedown', {which:1})
