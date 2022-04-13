@@ -1822,6 +1822,7 @@ DG.DataContext = SC.Object.extend((function () // closure
         context: fromCollection.get('context'),
         children: [fromCollection.children && fromCollection.children[0]]
       };
+      var attrID = iAttr.get('id');
       var toCollection = toCollectionClient.get('collection');
       DG.log('Moving attribute, ' + iAttr.get('name') + ', from "' +
           fromCollection.get('name') + '" to "' + toCollectionClient.get('name') + '"');
@@ -1863,9 +1864,10 @@ DG.DataContext = SC.Object.extend((function () // closure
           iAttr.endPropertyChanges();
         },
         undo: function () {
-          var toCollection = iAttr.collection;
+          var tAttr = DG.Attribute.getAttributeByID(attrID);
+          var toCollection = tAttr.collection;
           var newCollection;
-          iAttr = toCollection.removeAttribute(iAttr);
+          toCollection.removeAttribute(tAttr);
           if (toCollection.get('attrs').length === 0) {
             dataContext.destroyCollection(toCollection);
             dataContext.applyChange({
@@ -1893,9 +1895,13 @@ DG.DataContext = SC.Object.extend((function () // closure
             collection: fromCollection,
             isComplete: true
           });
-          newCollection.get('collection').addAttribute(iAttr, originalPosition);
+          newCollection.get('collection').addAttribute(tAttr, originalPosition);
           var casesAffectedByUndo = dataContext.regenerateCollectionCases([fromCollection, toCollection]);
           dataContext.invalidateAttrsOfCollections(casesAffectedByUndo.collections);
+          dataContext.applyChange({
+            operation: 'resetCollections',
+            isComplete: true
+          });
         }.bind(this),
         redo: function () {
           this.execute();
