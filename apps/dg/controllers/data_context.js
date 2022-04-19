@@ -2450,7 +2450,8 @@ DG.DataContext = SC.Object.extend((function () // closure
           'type',
           'unit',
           'precision',
-          'editible'
+          'editable',
+          'formula'
         ].map(function (property) {
           var value = attr.get(property);
           if (value != null && value !== '' && (defaults[property] !== value)) {
