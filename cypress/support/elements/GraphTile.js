@@ -121,6 +121,13 @@ class GraphTile {
     clickRulerTool(){
         cy.get('.dg-display-values').click();
     }
+    //Graph Eye Icon Palette
+    clickEyeTool() {
+        cy.get('.moonicon-icon-hideShow').click();
+    }
+    clickShowParentVisibilityToggles() {
+        cy.get('.dg-display-hideshow-popup .sc-menu-item a').contains('Show Parent Visibility Toggles').parent().click();
+    }
     turnOnRulerTool(tool) {
         cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20});
     }
@@ -134,7 +141,7 @@ class GraphTile {
         return cy.get('.dg-graph-view svg [stroke-width="5"]')
     }
     hoverMeanLine(){
-        return cy.get('.dg-graph-view svg path[stroke="#ffffff"]').first().trigger("mouseover")
+        return cy.get('.dg-graph-view svg path[stroke="#ffffff"]').first().click({ force: true })
     }
     getGraphAdornmentText(){
         return cy.get('.dg-graph-adornment tspan').last().text()

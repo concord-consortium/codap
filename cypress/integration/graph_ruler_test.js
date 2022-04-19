@@ -289,9 +289,11 @@ context('will test graph ruler functions', ()=>{
             cy.wait(1000)
             graph.getCountAdorn().should('have.length',hash[1].length)
         })
-    afterEach(()=>{
-        codap.closeTile('graph','Table C');
-    })
+        afterEach(()=>{
+            codap.getGraphTileTitle().invoke('text').then((title) => {
+                codap.closeTile('graph', title);
+            });
+        })
     })
 })
 

@@ -745,7 +745,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
           if (tCases) {
             tCases.forEach(function (iCase) {
               var tValue = iCase.getForcedNumericValue(tAttrID);
-              if (isFinite(tValue)) {
+              if (DG.MathUtilities.isNumeric(tValue)) {
                 tValues.push(tValue);
               }
             });
