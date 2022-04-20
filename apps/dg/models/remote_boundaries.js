@@ -141,7 +141,15 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
       dataType: 'json',
       success: function (boundarySpecs, status, jqXHR) {
         DG.activeDocument.remoteBoundaries = [];
+        var boundaryID = 100000000;
         boundarySpecs.forEach(function (spec) {
+          // in an abundance of caution, make sure the ID is unassigned.
+          var obj = DG.store.find(boundaryID);
+          while (obj) {
+            boundaryID++;
+            obj = DG.store.find(boundaryID);
+          }
+          spec.guid = boundaryID++;
           var url = spec.url;
           if (!(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//'))) {
             spec.url = baseURL + url;

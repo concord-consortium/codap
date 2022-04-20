@@ -113,7 +113,7 @@ DG.Document.createDocument = function( iProperties) {
 
   /* A store must exist to create a document */
   DG.store = DG.ModelStore.create( {
-    // _idCount: SC.none( iProperties.idCount) ? 0 : iProperties.idCount
+    _idCount: SC.none( iProperties.idCount) ? 0 : iProperties.idCount
   });
   tDocument =  DG.Document.create(tProperties);
 
