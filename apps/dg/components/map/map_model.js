@@ -624,6 +624,9 @@ DG.MapModel = SC.Object.extend(
 
         restoreStorage: function (iStorage) {
           if (iStorage.mapModelStorage) {
+            // The following two 'new' properties cause the base map to respond
+            this.set('newCenter', iStorage.mapModelStorage.center);
+            this.set('newZoom', iStorage.mapModelStorage.zoom);
             this.set('center', iStorage.mapModelStorage.center);
             this.set('zoom', iStorage.mapModelStorage.zoom);
             this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);

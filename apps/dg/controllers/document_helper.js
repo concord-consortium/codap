@@ -655,10 +655,12 @@ DG.DocumentHelper = SC.Object.extend(
 
         reinstateSelection();
 
+        // The 500ms timeout here gives the document time to settle down.
+        // Especially any changes to center and zoom of a map
         setTimeout( function() {
           DG.UndoHistory.clearUndoRedoHistory();
           notifyDocumentChange('updateDocumentEnded');
-        }, 200);
+        }, 500);
 
 
         return tResult;
