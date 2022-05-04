@@ -1008,19 +1008,36 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      * the indicated position (an index) in the current collection.
      *
      * @param {DG.Attribute} attr
-     * @param {number} position
+     * @param {number} position: position in the case table. This will correspond
+     *          to the position in the collection when there are no hidden
+     *          attributes. If there are hidden attributes we must adjust for this.
      */
     requestMoveAttribute: function (attr, position) {
       var tContext = this.get('dataContext'),
-          tCollection = this.get('collection'),
+          tCollection = tContext && this.get('collection'),
+          tAttrs = tCollection && tCollection.getPath('collection.attrs'),
+          tAttrIndex = 0,
           tChange = {
             operation: 'moveAttribute',
             attr: attr,
             toCollection: tCollection,
             fromCollection: attr.get('collection'),
-            // subtract one for index column, which doesn't correspond to an attribute
-            position: position > 0 ? position - 1 : 0
+            position: null
           };
+      if (!tAttrs) {
+        return;
+      }
+      // subtract one for index column, which doesn't correspond to an attribute
+      position -= 1;
+      // have position in case table, find position in collection's attribute
+      // list.
+      while (position > 0 && tAttrs[tAttrIndex]) {
+        if (!tAttrs[tAttrIndex].hidden) {
+          position--;
+        }
+        tAttrIndex++;
+      }
+      tChange.position = tAttrIndex;
       tContext.applyChange(tChange);
     },
 
