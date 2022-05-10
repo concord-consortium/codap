@@ -53,6 +53,26 @@ DG.GameView = DG.WebView.extend(
       webView: SC.WebView.extend({
         classNames: ['dg-web-view-frame'],
 
+        // we modify the SC.WebView rendering to allow geolocation
+        render: function(context, firstTime) {
+          var src = this.get('value') || '',
+              iframe;
+
+          if (firstTime) {
+            context.push('<iframe allow="geolocation" src="' + src +
+                '" style="position: absolute; width: 100%; height: 100%; border: 0; margin: 0; padding: 0;"></iframe>');
+          }
+          else if(src!==this._lastSrc) {
+            iframe = this.$('iframe');
+            // clear out the previous src, to force a reload
+            iframe.attr('src', 'javascript:;');
+            iframe.attr('src', src);
+          }
+
+          this._lastSrc = src;
+        },
+
+
         // append language string to url as a query parameter
         value: function () {
           function parseUrl( url ) {
