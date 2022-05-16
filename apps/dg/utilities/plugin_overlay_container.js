@@ -141,8 +141,7 @@ DG.PluginOverlayContainer = SC.View.extend({
 
           if (x >= iFrameRect.left && x <= iFrameRect.right && y >= iFrameRect.top && y <= iFrameRect.bottom) {
             curDoc.notificationManager.sendChannelNotification(this.gameController,
-                formatDragData('drop', iDrag.data, {x: x-iFrameRect.left, y: y - iFrameRect.top}),
-                '*');
+                formatDragData('drop', iDrag.data, {x: x-iFrameRect.left, y: y - iFrameRect.top}));
           }
           return SC.DRAG_LINK;
         },
