@@ -194,6 +194,7 @@ html, body {
     color: black;
     font-size: 11px !important;
     cursor: pointer;
+    overflow: visible;
 }
 
 .dg-icon-button-blip {
