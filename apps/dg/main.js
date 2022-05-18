@@ -711,6 +711,7 @@ DG.main = function main() {
 
   function cfmConnect(iCloudFileManager) {
     var presaveChangeCount;
+    var disableDirtySync = false;
     DG.cfm = iCloudFileManager;
 
     if (DG.cfm) {
@@ -738,7 +739,7 @@ DG.main = function main() {
             cfmSharedMetadata;
 
         function syncDocumentDirtyState() {
-          DG.cfmClient && DG.cfmClient.dirty(DG.currDocumentController().get('hasUnsavedChanges'));
+          !disableDirtySync && DG.cfmClient && DG.cfmClient.dirty(DG.currDocumentController().get('hasUnsavedChanges'));
         }
 
         function normalizeDocumentName(name) {
@@ -867,6 +868,9 @@ DG.main = function main() {
                                                   ? $.extend(true, {}, sharedMetadata)
                                                   : {};
 
+                        // disable the dirty sync while the existing document is unloaded
+                        // and the new document is loaded
+                        disableDirtySync = true;
                         DG.appController.closeDocument();
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
@@ -874,6 +878,7 @@ DG.main = function main() {
                         DG.set('showUserEntryView', false);
                         // acknowledge successful open; return shared metadata
                         event.callback(null, cfmSharedMetadata);
+                        disableDirtySync = false;
                       });
                     },  // then() error handler
                     function(iReason) {
@@ -884,6 +889,7 @@ DG.main = function main() {
                       // document, then close the file.
                       event.state.dirty = false;
                       DG.cfmClient.closeFile();
+                      disableDirtySync = false;
                     }
                   );
               });
