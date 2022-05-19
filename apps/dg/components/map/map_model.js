@@ -93,23 +93,22 @@ DG.MapModel = SC.Object.extend(
                 tMapLayerModel.invalidate();
               }.bind(this),
 
-              contextAndAttributesAlreadyPresent = function() {
-                return this.get('mapLayerModels').some( function( iLayerModel) {
+              contextAndAttributesAlreadyPresent = function () {
+                return this.get('mapLayerModels').some(function (iLayerModel) {
                   var tDataConfig = iLayerModel.get('dataConfiguration'),
                       tExistingContext = tDataConfig.get('dataContext'),
                       tExistingLatID = tDataConfig.get('latAttributeID'),
                       tExistingLongID = tDataConfig.get('longAttributeID'),
                       tExistingPolygonID = tDataConfig.get('polygonAttributeID');
-                  if( iContext === tExistingContext) {
-                    var tProposedLatID = tLatName && iCollection.getAttributeByName( tLatName).get('id'),
-                        tProposedLongID = tLongName && iCollection.getAttributeByName( tLongName).get('id'),
-                        tProposedPolygonID = tPolygonName && iCollection.getAttributeByName( tPolygonName).get('id');
+                  if (iContext === tExistingContext) {
+                    var tProposedLatID = tLatName && iCollection.getAttributeByName(tLatName).get('id'),
+                        tProposedLongID = tLongName && iCollection.getAttributeByName(tLongName).get('id'),
+                        tProposedPolygonID = tPolygonName && iCollection.getAttributeByName(tPolygonName).get('id');
                     return (tExistingLatID === tProposedLatID && tExistingLongID === tProposedLongID) ||
                         tExistingPolygonID === tProposedPolygonID;
-                  }
-                  else return false;
+                  } else return false;
                 });
-              }.bind( this);
+              }.bind(this);
 
           function pickOutName(iKNames) {
             return tAttrNames.find(function (iAttrName, iIndex) {
@@ -153,15 +152,32 @@ DG.MapModel = SC.Object.extend(
           return tLayerWasAdded;
         },
 
-        _processDocumentContexts: function() {
+        _processDocumentContexts: function () {
           var tLayerWasAdded = false;
           DG.currDocumentController().get('contexts').forEach(function (iContext) {
             iContext.get('collections').forEach(function (iCollection) {
-              if( this._addLayersForCollection(iContext, iCollection))
+              if (this._addLayersForCollection(iContext, iCollection))
                 tLayerWasAdded = true;
             }.bind(this));
           }.bind(this));
           return tLayerWasAdded;
+        },
+
+        /**
+         * Called during init. If we have been given a context and a legendAttributeName, we attempt
+         * to add a legend. Then we can delete the two temporary properties.
+         * @private
+         */
+        _processPossibleLegend: function () {
+          var tContext = this.get('context'),
+              tAttributeName = this.get('legendAttributeName');
+          if( tContext && tAttributeName) {
+            var tAttribute = tContext.getAttributeByName(tAttributeName),
+                tCollClient = tContext.getCollectionForAttribute(tAttribute);
+            this.changeAttributeForLegend(tContext, {attribute: tAttribute, collection: tCollClient});
+          }
+          delete this.context;
+          delete this.legendAttributeName;
         },
 
         /**
@@ -174,17 +190,19 @@ DG.MapModel = SC.Object.extend(
 
           var layerWasAdded = this._processDocumentContexts();
 
+          this._processPossibleLegend();
+
           this.set('center', kDefaultLocation); //
           this.set('zoom', 1);  // Reasonable default
           if (!layerWasAdded) {
             if (navigator.geolocation && navigator.geolocation.getCurrentPosition) {
               navigator.geolocation.getCurrentPosition(
-                  function(pos) {
+                  function (pos) {
                     var coords = pos.coords;
                     this.set('newCenter', [coords.latitude, coords.longitude]);
                     this.set('newZoom', 8);
                   }.bind(this)
-                );
+              );
             }
           }
           this.set('baseMapLayerName', 'Topographic');
@@ -193,8 +211,8 @@ DG.MapModel = SC.Object.extend(
 
         destroy: function () {
           this.get('mapLayerModels').forEach(function (iLayerModel) {
-            this.destroyMapLayer( iLayerModel);
-          }.bind( this));
+            this.destroyMapLayer(iLayerModel);
+          }.bind(this));
           this.set('mapLayerModels', null);
           sc_super();
         },
@@ -204,7 +222,7 @@ DG.MapModel = SC.Object.extend(
          * being deleted.
          * @param iLayerModel
          */
-        destroyMapLayer: function(iLayerModel) {
+        destroyMapLayer: function (iLayerModel) {
           iLayerModel.removeObserver('somethingIsSelectable', this, this.somethingIsSelectableDidChange);
           iLayerModel.removeObserver('gridIsVisible', this, this.gridIsVisibleDidChange);
           iLayerModel.removeObserver('attributeRemoved', this, this.removeMapLayerModel);
@@ -224,25 +242,25 @@ DG.MapModel = SC.Object.extend(
          * For any newly encountered contexts, check to see if each contains map attributes and, if so,
          *  add a layer for each.
          */
-        adaptToNewOrRemovedContexts: function() {
+        adaptToNewOrRemovedContexts: function () {
           var tDocumentContexts = DG.currDocumentController().get('contexts'),
               tLayerModelsToRemove = [],
               tLayerModelWasAdded = false,
               tLayerModels = this.get('mapLayerModels');
-          tLayerModels.forEach( function( iLayerModel) {
+          tLayerModels.forEach(function (iLayerModel) {
             var tLayerContext = iLayerModel.getPath('dataConfiguration.dataContext');
-            if( tLayerContext && tDocumentContexts.indexOf( tLayerContext) < 0) {
+            if (tLayerContext && tDocumentContexts.indexOf(tLayerContext) < 0) {
               // Previously valid context has gone away
-              tLayerModelsToRemove.push( iLayerModel);
+              tLayerModelsToRemove.push(iLayerModel);
             }
           });
-          tLayerModelsToRemove.forEach( function( iLayerModel) {
-            this.destroyMapLayer( iLayerModel);
-            var tIndex = tLayerModels.indexOf( iLayerModel);
-            tLayerModels.splice( tIndex, 1);
+          tLayerModelsToRemove.forEach(function (iLayerModel) {
+            this.destroyMapLayer(iLayerModel);
+            var tIndex = tLayerModels.indexOf(iLayerModel);
+            tLayerModels.splice(tIndex, 1);
           }.bind(this));
           tLayerModelWasAdded = this._processDocumentContexts();
-          if( tLayerModelsToRemove.length > 0 || tLayerModelWasAdded)
+          if (tLayerModelsToRemove.length > 0 || tLayerModelWasAdded)
             this.notifyPropertyChange('mapLayerModelsChange');
         },
 
@@ -260,11 +278,11 @@ DG.MapModel = SC.Object.extend(
          * can update
          * @param iMapLayerModel {DG.MapLayerModel}
          */
-        removeMapLayerModel: function(iMapLayerModel) {
+        removeMapLayerModel: function (iMapLayerModel) {
           var tMapLayerModels = this.get('mapLayerModels'),
-              tIndex = tMapLayerModels.indexOf( iMapLayerModel);
-          tMapLayerModels.splice( tIndex, 1);
-          this.destroyMapLayer( iMapLayerModel);
+              tIndex = tMapLayerModels.indexOf(iMapLayerModel);
+          tMapLayerModels.splice(tIndex, 1);
+          this.destroyMapLayer(iMapLayerModel);
           this.notifyPropertyChange('mapLayerModelsChange');
         },
 
@@ -273,9 +291,9 @@ DG.MapModel = SC.Object.extend(
          * We ask the layer model whether the attributes assigned to it still work. If not,
          * @param iMapLayerModel {DG.MapLayerModel}
          */
-        handleAttributeUpdated: function( iMapLayerModel) {
-          if( !iMapLayerModel.hasValidMapAttributes())
-            this.removeMapLayerModel( iMapLayerModel);
+        handleAttributeUpdated: function (iMapLayerModel) {
+          if (!iMapLayerModel.hasValidMapAttributes())
+            this.removeMapLayerModel(iMapLayerModel);
         },
 
         /** create a menu item that removes the attribute on the given legend */
@@ -333,18 +351,18 @@ DG.MapModel = SC.Object.extend(
         },
 
         someLayerReturnsTrue: function (iPropName) {
-          var tResult =  this.get('mapLayerModels').some(function (iLayerModel) {
+          var tResult = this.get('mapLayerModels').some(function (iLayerModel) {
             var tLayerResult = iLayerModel.get(iPropName);
             return tLayerResult;
           });
           return tResult;
         },
 
-        somethingIsSelectable: function() {
+        somethingIsSelectable: function () {
           return this.someLayerReturnsTrue('somethingIsSelectable');
         }.property(),
-        somethingIsSelectableDidChange: function() {
-          this.notifyPropertyChange( 'somethingIsSelectable');
+        somethingIsSelectableDidChange: function () {
+          this.notifyPropertyChange('somethingIsSelectable');
         },
 
         /**
@@ -352,17 +370,17 @@ DG.MapModel = SC.Object.extend(
          * @property {Number}
          */
         gridMultiplier: 1,
-        gridMultiplerDidChange: function() {
-          this.get('mapLayerModels').forEach( function( iLayerModel) {
+        gridMultiplerDidChange: function () {
+          this.get('mapLayerModels').forEach(function (iLayerModel) {
             iLayerModel.setPath('gridModel.gridMultiplier', this.get('gridMultiplier'));
-          }.bind( this));
-        }.observes( 'gridMultiplier'),
+          }.bind(this));
+        }.observes('gridMultiplier'),
 
-        gridIsVisible: function() {
+        gridIsVisible: function () {
           return this.someLayerReturnsTrue('gridIsVisible');
         }.property(),
-        gridIsVisibleDidChange: function() {
-          this.notifyPropertyChange( 'gridIsVisible');
+        gridIsVisibleDidChange: function () {
+          this.notifyPropertyChange('gridIsVisible');
         },
 
         /**
@@ -453,9 +471,9 @@ DG.MapModel = SC.Object.extend(
 
         _observedDataConfiguration: null,
 
-        firstDataConfiguration: function() {
+        firstDataConfiguration: function () {
           var tMapLayerModels = this.get('mapLayerModels');
-          if( tMapLayerModels.length > 0)
+          if (tMapLayerModels.length > 0)
             return tMapLayerModels[0].get('dataConfiguration');
           else return null;
         }.property(),
@@ -469,34 +487,36 @@ DG.MapModel = SC.Object.extend(
         }.property(),
 
         createHideShowSelectionMenuItems: function () {
-          var getSelectionSpecs = function() {
-                var tSpecs =  { numSelected: 0,
-                         numUnSelected: 0,
-                         numHidden: 0,
-                         selectionData: [/*{
+          var getSelectionSpecs = function () {
+            var tSpecs = {
+              numSelected: 0,
+              numUnSelected: 0,
+              numHidden: 0,
+              selectionData: [/*{
                            dataConfig: null,
                            cases: null,
                            selected: null
-                         }*/]};
-                this.get('mapLayerModels').forEach( function( iLayerModel) {
-                  var tConfig = iLayerModel.get('dataConfiguration');
-                  if( !tSpecs.selectionData.find( function(iSpec) {
-                    return iSpec.dataConfig === tConfig;
-                  })) {
-                    var tData = {
-                      dataConfig: tConfig,
-                      cases: tConfig.get('cases').toArray(),
-                      selected: tConfig.get('selection').toArray(),
-                      hidden: tConfig.get('hiddenCases').toArray()
-                    };
-                    tSpecs.numSelected += tData.selected.length;
-                    tSpecs.numUnSelected += (tData.cases.length - tData.selected.length);
-                    tSpecs.numHidden += tData.hidden.length;
-                    tSpecs.selectionData.push( tData);
-                  }
-                });
-                return tSpecs;
-              }.bind( this);
+                         }*/]
+            };
+            this.get('mapLayerModels').forEach(function (iLayerModel) {
+              var tConfig = iLayerModel.get('dataConfiguration');
+              if (!tSpecs.selectionData.find(function (iSpec) {
+                return iSpec.dataConfig === tConfig;
+              })) {
+                var tData = {
+                  dataConfig: tConfig,
+                  cases: tConfig.get('cases').toArray(),
+                  selected: tConfig.get('selection').toArray(),
+                  hidden: tConfig.get('hiddenCases').toArray()
+                };
+                tSpecs.numSelected += tData.selected.length;
+                tSpecs.numUnSelected += (tData.cases.length - tData.selected.length);
+                tSpecs.numHidden += tData.hidden.length;
+                tSpecs.selectionData.push(tData);
+              }
+            });
+            return tSpecs;
+          }.bind(this);
 
           var tSelectionSpecs = getSelectionSpecs(),
               tSomethingIsSelected = tSelectionSpecs.numSelected > 0,
@@ -519,15 +539,15 @@ DG.MapModel = SC.Object.extend(
                   type: 'DG.MapView'
                 }
               },
-              execute: function() {
+              execute: function () {
                 this._undoData = tSelectionSpecs;
-                tSelectionSpecs.selectionData.forEach( function( iData) {
-                  iData.dataConfig.hideCases( iData.selected);
+                tSelectionSpecs.selectionData.forEach(function (iData) {
+                  iData.dataConfig.hideCases(iData.selected);
                 });
               },
-              undo: function() {
-                this._undoData.selectionData.forEach( function( iData) {
-                  iData.dataConfig.showCases( iData.selected);
+              undo: function () {
+                this._undoData.selectionData.forEach(function (iData) {
+                  iData.dataConfig.showCases(iData.selected);
                 });
               }
             }));
@@ -547,17 +567,17 @@ DG.MapModel = SC.Object.extend(
                   type: 'DG.MapView'
                 }
               },
-              execute: function() {
+              execute: function () {
                 this._undoData = tSelectionSpecs;
-                tSelectionSpecs.selectionData.forEach( function( iData) {
-                  var tUnselected = DG.ArrayUtils.subtract( iData.cases, iData.selected,
-                      function( iCase) {
+                tSelectionSpecs.selectionData.forEach(function (iData) {
+                  var tUnselected = DG.ArrayUtils.subtract(iData.cases, iData.selected,
+                      function (iCase) {
                         return iCase.get('id');
                       });
-                  iData.dataConfig.hideCases( tUnselected );
+                  iData.dataConfig.hideCases(tUnselected);
                 });
               },
-              undo: function() {
+              undo: function () {
                 this._undoData.selectionData.forEach(function (iData) {
                   var tUnselected = DG.ArrayUtils.subtract(iData.cases, iData.selected,
                       function (iCase) {
@@ -583,15 +603,15 @@ DG.MapModel = SC.Object.extend(
                   type: 'DG.MapView'
                 }
               },
-              execute: function() {
+              execute: function () {
                 this._undoData = tSelectionSpecs;
-                tSelectionSpecs.selectionData.forEach( function( iData) {
+                tSelectionSpecs.selectionData.forEach(function (iData) {
                   iData.dataConfig.showAllCases();
                 });
               },
-              undo: function() {
-                this._undoData.selectionData.forEach( function( iData) {
-                  iData.dataConfig.hideCases( iData.hidden);
+              undo: function () {
+                this._undoData.selectionData.forEach(function (iData) {
+                  iData.dataConfig.hideCases(iData.hidden);
                 });
               }
             }));
@@ -600,12 +620,14 @@ DG.MapModel = SC.Object.extend(
           return [
             // Note that these 'built' string keys will have to be specially handled by any
             // minifier we use
-            { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
+            {
+              title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
               target: this, action: hideSelectedCases },
             { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
               target: this, action: hideUnselectedCases },
             { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
-              target: this, action: showAllCases }
+              target: this, action: showAllCases
+            }
           ];
         },
 
@@ -630,11 +652,11 @@ DG.MapModel = SC.Object.extend(
             this.set('center', iStorage.mapModelStorage.center);
             this.set('zoom', iStorage.mapModelStorage.zoom);
             this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
-            if( !SC.none(iStorage.mapModelStorage.gridMultiplier))
+            if (!SC.none(iStorage.mapModelStorage.gridMultiplier))
               this.set('gridMultiplier', iStorage.mapModelStorage.gridMultiplier);
             this.set('centerAndZoomBeingRestored', true);
             this.get('mapLayerModels').forEach(function (iLayerModel, iIndex) {
-              if(iStorage.mapModelStorage.layerModels && iIndex < iStorage.mapModelStorage.layerModels.length) {
+              if (iStorage.mapModelStorage.layerModels && iIndex < iStorage.mapModelStorage.layerModels.length) {
                 var tLayerStorage = SC.isArray(iStorage.mapModelStorage.layerModels) ?
                     iStorage.mapModelStorage.layerModels[iIndex] : iStorage;
                 iLayerModel.restoreStorage(tLayerStorage);

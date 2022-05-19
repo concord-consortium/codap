@@ -520,7 +520,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
           this._casesCache = null;  // because setting a new attribute and collection client can require recomputation of cases
           tDescription.setCases(this.get('cases'));
           if (!SC.none(iAttrRefs)) {
-            iAttrRefs.attributes.forEach(function (iAttribute) {
+            var tAttributes = iAttrRefs.attributes || [iAttrRefs.attribute];
+            tAttributes.forEach(function (iAttribute) {
               tDescription.addAttribute(iAttribute);
             });
           }

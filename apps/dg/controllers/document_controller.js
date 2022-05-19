@@ -101,7 +101,7 @@ DG.DocumentController = SC.Object.extend(
 
       setInBoundsScaling: function (sF, sX, sY) {
         if (!this._inBoundsScaling) {
-          this._inBoundsScaling = {scaleFactor:sF, scaleBoundsX:sX, scaleBoundsY:sY};
+          this._inBoundsScaling = {scaleFactor: sF, scaleBoundsX: sX, scaleBoundsY: sY};
         } else {
           this.setInBoundsScaleFactor(sF);
           this.setInBoundsScaleBounds(sX, sY);
@@ -247,12 +247,12 @@ DG.DocumentController = SC.Object.extend(
       }.observes('*content.name'),
 
       setPageTitle: function () {
-        if (( DG.get('componentMode') === 'yes') || ( DG.get('embeddedMode') === 'yes')) {
+        if ((DG.get('componentMode') === 'yes') || (DG.get('embeddedMode') === 'yes')) {
           return;
         }
         var name = this.get('documentName');
         if (SC.empty(name)) {
-            name = 'DG.Document.defaultDocumentName'.loc();
+          name = 'DG.Document.defaultDocumentName'.loc();
         }
         var nameString = 'DG.main.page.title'.loc(name, DG.USER_APPNAME);
         $('title').text(nameString);
@@ -264,8 +264,7 @@ DG.DocumentController = SC.Object.extend(
               sharedMetadata = $.extend(true, {}, iSharedMetadata);
           if (contentMetadata != null) {
             contentMetadata.shared = sharedMetadata;
-          }
-          else {
+          } else {
             this.setPath('content.metadata', {shared: sharedMetadata});
           }
           // Currently, Concord Document Store requires '_permissions' at top-level
@@ -364,7 +363,7 @@ DG.DocumentController = SC.Object.extend(
           this.set('ready', false);
           this.set('content', iDocument);
 
-          if(DG.mainPage.mainPane.hideInspectorPicker)  // undefined if not fully initialized yet
+          if (DG.mainPage.mainPane.hideInspectorPicker)  // undefined if not fully initialized yet
             DG.mainPage.mainPane.hideInspectorPicker(); // we don't want it showing for new doc
           DG.Component.clearContentMap();
           this.componentControllersMap = {};
@@ -656,12 +655,12 @@ DG.DocumentController = SC.Object.extend(
        parent container size.
        Computed when we add, delete, move, resize component.
        @param iNewPos: a new position that will be included in the component
-                       list once the component creation is complete
+       list once the component creation is complete
        */
       computeScaleBounds: function (iNewPos) {
         var components = this.get('components');
         if (components) {
-          var scaleBounds = {x:0, y:0},
+          var scaleBounds = {x: 0, y: 0},
               storedScaleFactor = this.get('inBoundsScaling').scaleFactor,
               scaleFactor = storedScaleFactor ? storedScaleFactor : 1;
           // Only compute new bounds if scaleFactor = 1, the max value.
@@ -687,7 +686,7 @@ DG.DocumentController = SC.Object.extend(
                         (iComponent.layout.height != null))) {
 
                   // Include the inspector size in scaleBounds calculation
-                  var tInspectorDimensions = { width: 0, height : 0 };
+                  var tInspectorDimensions = {width: 0, height: 0};
                   var controller = DG.currDocumentController().componentControllersMap[iComponent.get('id')];
                   if (controller) {
                     var view = controller.get('view');
@@ -755,14 +754,14 @@ DG.DocumentController = SC.Object.extend(
       collectionDefaults: function () {
         var tContexts = this.get('contexts'),
             tUsableContext = null;
-        if( tContexts.length === 1)
+        if (tContexts.length === 1)
           tUsableContext = tContexts[0];
         else {
-          tContexts = tContexts.filter(function( iContext) {
+          tContexts = tContexts.filter(function (iContext) {
             var tView = this.tableCardRegistry.getViewForContext(iContext);
             return tView && tView.get('isVisible');
           }.bind(this));
-          if( tContexts.length === 1)
+          if (tContexts.length === 1)
             tUsableContext = tContexts[0];
         }
         return (tUsableContext && tUsableContext.collectionDefaults()) || DG.DataContext.collectionDefaults();
@@ -804,7 +803,7 @@ DG.DocumentController = SC.Object.extend(
           if (!SC.none(this.content))
             tComponentProperties.document = this.content;
           tComponent = DG.Component.createComponent(tComponentProperties);
-          if( !SC.none( iParams.isResizable))
+          if (!SC.none(iParams.isResizable))
             tComponent.set('isResizable', iParams.isResizable);
         } else {
           this.registerComponent(tComponent);
@@ -853,7 +852,7 @@ DG.DocumentController = SC.Object.extend(
           var tRestoredTitle = iComponent.getPath('componentStorage.title');
           var tRestoredName = iComponent.getPath('componentStorage.name');
           iComponent.set('title', tRestoredTitle || tRestoredName);
-          if( tRestoredName)
+          if (tRestoredName)
             iComponent.set('name', tRestoredName);
           if (DG.isStandaloneComponent(iComponent.get('name') || iComponent.get('title'), iComponent.get('type'))) {
             tParams.useLayout = true;
@@ -873,8 +872,7 @@ DG.DocumentController = SC.Object.extend(
           if (defaultFirstResponder) {
             if (defaultFirstResponder.beginEditing) {
               defaultFirstResponder.beginEditing();
-            }
-            else if (defaultFirstResponder.becomeFirstResponder) {
+            } else if (defaultFirstResponder.becomeFirstResponder) {
               defaultFirstResponder.becomeFirstResponder();
             }
           }
@@ -911,7 +909,7 @@ DG.DocumentController = SC.Object.extend(
               width: 300, height: 200
             },
             tLayout = iComponent && iComponent.layout,
-            tIsVisible = tLayout && !SC.none(tLayout.isVisible)?tLayout.isVisible:true,
+            tIsVisible = tLayout && !SC.none(tLayout.isVisible) ? tLayout.isVisible : true,
             // if we are restoring a component from a document then it will have
             // a position in the hierarchy
             tIsRestoredComponent = tLayout && tLayout.zIndex,
@@ -919,7 +917,7 @@ DG.DocumentController = SC.Object.extend(
             storedGameUrl = iComponent && iComponent.getPath('componentStorage.currentGameUrl'),
             tGameUrl = DG.finalGameUrl(storedGameUrl),
             tGameName = (iComponent && iComponent.getPath(
-                'componentStorage.currentGameName')) ||
+                    'componentStorage.currentGameName')) ||
                 getNameFromURL(tGameUrl) ||
                 'Unknown Game',
             tView;
@@ -968,7 +966,7 @@ DG.DocumentController = SC.Object.extend(
             });
             if (!tIsVisible) {
               tView.set('isVisible', false);
-            } else if (!tIsRestoredComponent){
+            } else if (!tIsRestoredComponent) {
               tView.select();
             }
             this._component = tController.get('model');
@@ -1028,7 +1026,7 @@ DG.DocumentController = SC.Object.extend(
             contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
             defaultLayout: {width: 500, height: 200},
             useLayout: iProperties.useLayout,
-            position: iComponent? iComponent.position: iProperties.position
+            position: iComponent ? iComponent.position : iProperties.position
           };
           caseTableView = this.createComponentView(component, props);
           if (iComponent && iComponent.layout && !iComponent.layout.isVisible) {
@@ -1119,8 +1117,7 @@ DG.DocumentController = SC.Object.extend(
                 DG.ObjectMap.length(tContextIds) === 1) {
               tController.set('dataContext',
                   this_.getContextByID(tContextIds[0]));
-            }
-            else if (iStorage && iStorage.dataContext) {
+            } else if (iStorage && iStorage.dataContext) {
               tController.set('dataContext', iStorage.dataContext);
             }
             tView = this_.createComponentView(iComponent, {
@@ -1209,7 +1206,10 @@ DG.DocumentController = SC.Object.extend(
           executeNotification: DG.UndoHistory.makeComponentNotification('create', 'map'),
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'map'),
           execute: function () {
-            var tMapModel = DG.MapModel.create(),
+            var tMapModel = DG.MapModel.create({
+                  legendAttributeName: iComponent.componentStorage.legendAttributeName,
+                  context: iComponent.componentStorage.context
+                }),
                 tMapController = DG.MapController.create();
 
             // map as component
@@ -1251,8 +1251,8 @@ DG.DocumentController = SC.Object.extend(
             this._global = this._global ||
                 (iComponent && iComponent.componentStorage &&
                     DG.store.find(DG.GlobalValue, DG.ArchiveUtils.getLinkID(iComponent.componentStorage, 'model'))) ||
-                docController.createGlobalValue({ name: globalName });
-            if( !DG.globalsController.getGlobalValueByID(Number(this._global.get('id')))) {
+                docController.createGlobalValue({name: globalName});
+            if (!DG.globalsController.getGlobalValueByID(Number(this._global.get('id')))) {
               DG.globalsController.registerGlobalValue(this._global);
             }
 
@@ -1264,7 +1264,7 @@ DG.DocumentController = SC.Object.extend(
                   contentProperties: {id: this._componentId, model: tSliderModel},
                   defaultLayout: {width: 300, height: 98},
                   position: iComponent && iComponent.position,
-                  isResizable: { width: true, height: false}
+                  isResizable: {width: true, height: false}
                 }
             );
             this._componentId = tView.getPath('controller.model.id');
@@ -1289,7 +1289,7 @@ DG.DocumentController = SC.Object.extend(
               defaultLayout: {},
               position: iComponent && iComponent.position,
               title: 'DG.DocumentController.calculatorTitle'.loc(), // "Calculator"
-              isResizable: { width: false, height: false}
+              isResizable: {width: false, height: false}
             }
         );
         this._singletonViews.calcView = tView;
@@ -1299,8 +1299,8 @@ DG.DocumentController = SC.Object.extend(
       addCaseCard: function (iParentView, iLayout, iContext, iComponent, iTitle) {
 
         function findPreexistingCaseCardComponentView() {
-          return DG.mainPage.getPath('docView.childViews').find( function( iChildView) {
-            return iChildView.contentIsInstanceOf && iChildView.contentIsInstanceOf( DG.CaseCardView) &&
+          return DG.mainPage.getPath('docView.childViews').find(function (iChildView) {
+            return iChildView.contentIsInstanceOf && iChildView.contentIsInstanceOf(DG.CaseCardView) &&
                 iChildView.getPath('contentView.context') === iContext;
           });
         }
@@ -1325,15 +1325,14 @@ DG.DocumentController = SC.Object.extend(
           });
           tComponent.set('content', DG.CaseCardModel.create({context: iContext}));
           tComponent.set('title', tTitle);
-        }
-        else {
+        } else {
           // restoring component
           var tRestoredTitle = tComponent.getPath('componentStorage.title'),
               tRestoredName = tComponent.getPath('componentStorage.name');
           tRestoredLayout = tComponent.get('layout');
           tComponent.set('content', DG.CaseCardModel.create({context: iContext}));
           tComponent.set('title', tRestoredTitle || tRestoredName);
-          if( tRestoredName)
+          if (tRestoredName)
             tComponent.set('name', tRestoredName);
           tController.set('model', tComponent);
           this.componentControllersMap[tComponent.get('id')] = tController;
@@ -1348,7 +1347,7 @@ DG.DocumentController = SC.Object.extend(
             tContentView = DG.CaseCardView.create({
               classNames: 'dg-opaque'.w() /*dg-scrollable'.w()*/,
               model: tComponent.get('content'),
-              isSelectedCallback: function() {
+              isSelectedCallback: function () {
                 return tComponentView.get('isSelected');
               }
             });
@@ -1686,11 +1685,11 @@ DG.DocumentController = SC.Object.extend(
         // animate case table to default card width, then animate to closed height,
         // then toggle to case card and animate to final position
         iTableComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'});
-        this.invokeLater(function() {
+        this.invokeLater(function () {
           iTableComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
               {duration: 0.3, timing: 'ease-in-out'});
         }, 300);
-        this.invokeLater(function() {
+        this.invokeLater(function () {
           iTableComponentView.set('isVisible', false);
           tTableLayout.isVisible = false;
           // restore position of invisible component, so it will come back to the right place.
@@ -1702,7 +1701,9 @@ DG.DocumentController = SC.Object.extend(
           tCardComponentView.setPath('model.cannotClose', tCannotClose);
           tCardComponentView.set('layout', tCardInitialLayout);
           var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
-          if (!tCardComponentView.get('savedLayout')) { tCardComponentView.set('savedLayout', tCardLayout);}
+          if (!tCardComponentView.get('savedLayout')) {
+            tCardComponentView.set('savedLayout', tCardLayout);
+          }
           tCardComponentView.set('isVisible', true);
 
           tCardComponentView.select();
@@ -1735,10 +1736,10 @@ DG.DocumentController = SC.Object.extend(
                     iCardComponentView.set('layout', tCardLayout);
                     iCardComponentView.setPath('model.content.isActive', false);
                     var tTableComponentView = this.tableCardRegistry.getTableView(tContext) ||
-                        this.addCaseTable(iCardComponentView.get('parentView'), null, {
-                          dataContext: iCardComponentView.getPath('controller.dataContext'),
-                          useLayout: true // use layout for position
-                        }),
+                            this.addCaseTable(iCardComponentView.get('parentView'), null, {
+                              dataContext: iCardComponentView.getPath('controller.dataContext'),
+                              useLayout: true // use layout for position
+                            }),
                         tTableLayout = tTableComponentView.get('savedLayout') || {width: 500, height: 200},
                         tAnimatableLayout = {
                           left: tTableLayout.left,
@@ -1851,7 +1852,7 @@ DG.DocumentController = SC.Object.extend(
         // remove dataContexts
         this.contexts = [];
 
-        if (this.notificationManager)  {
+        if (this.notificationManager) {
           this.notificationManager.destroy();
           this.notificationManager = null;
         }
@@ -1905,8 +1906,7 @@ DG.DocumentController = SC.Object.extend(
           delete this.componentControllersMap[tComponentID];
           if (tController.get('shouldDestroyOnComponentDestroy')) {
             tController.destroy();
-          }
-          else {
+          } else {
             tController.set('model', null);
             tController.set('view', null);
           }
@@ -2136,9 +2136,9 @@ DG.dirtyCurrentDocument = function (changedObject, retainUndo) {
     update();
   }
 
-/* For a while in building the StoryBuilder/MomentBar plugin, we were sending our document to subscribers every
-    time the document was dirtied. We may again encounter this need, so we leave this code commented out.
-  if (DG.currDocumentController().notificationManager)
-    DG.currDocumentController().notificationManager.sendDocumentToSubscribers();
-*/
+  /* For a while in building the StoryBuilder/MomentBar plugin, we were sending our document to subscribers every
+      time the document was dirtied. We may again encounter this need, so we leave this code commented out.
+    if (DG.currDocumentController().notificationManager)
+      DG.currDocumentController().notificationManager.sendDocumentToSubscribers();
+  */
 };
