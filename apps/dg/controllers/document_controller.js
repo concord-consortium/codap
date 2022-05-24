@@ -1206,10 +1206,11 @@ DG.DocumentController = SC.Object.extend(
           executeNotification: DG.UndoHistory.makeComponentNotification('create', 'map'),
           undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'map'),
           execute: function () {
-            var tMapModel = DG.MapModel.create({
-                  legendAttributeName: iComponent.componentStorage.legendAttributeName,
-                  context: iComponent.componentStorage.context
-                }),
+            var tProperties = (iComponent && iComponent.componentStorage) ? {
+                      legendAttributeName: iComponent.componentStorage.legendAttributeName,
+                      context: iComponent.componentStorage.context
+                    } : {},
+                tMapModel = DG.MapModel.create(tProperties),
                 tMapController = DG.MapController.create();
 
             // map as component
