@@ -23,7 +23,7 @@
  */
 DG.MapConstants =
     {
-      kLatNames: ['latitude', 'lat', 'latitud', 'breitengrad', '緯度'],
-      kLongNames: ['longitude', 'long', 'lng', 'lon', 'longitud', 'längengrad', '経度'],
-      kPolygonNames: ['boundary', 'boundaries', 'polygon', 'polygons', 'grenze', '境界']
+      kLatNames: ['latitude', 'lat', 'latitud', 'breitengrad', '緯度','عرض جغرافیایی'],
+      kLongNames: ['longitude', 'long', 'lng', 'lon', 'longitud', 'längengrad', '経度', 'طول جغرافیایی'],
+      kPolygonNames: ['boundary', 'boundaries', 'polygon', 'polygons', 'grenze', '境界','مرز']
     };
