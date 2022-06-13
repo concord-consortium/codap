@@ -28,9 +28,12 @@ function checkAnswer() {
 CODAP_HOME=${CODAP_HOME:-${HOME}/codap}
 CODAP_DATA_HOME=${CODAP_DATA_HOME:-${CODAP_HOME}/../codap-data}
 CODAP_DATA_INTERACTIVE_HOME=${CODAP_DATA_INTERACTIVE_HOME:-${CODAP_HOME}/../codap-data-interactives}
+CODAP_TRANSFORMERS_HOME=${CODAP_TRANSFORMERS_HOME:-${CODAP_HOME}/../codap-transformers}
+STORY_BUILDER_HOME=${STORY_BUILDER_HOME:-${CODAP_HOME}/../story-builder}
 
 # expected codap build branch
 EXP_CODAP_BRANCH=${EXP_CODAP_BRANCH:-master}
+EXP_TRANSFORMERS_BRANCH=${EXP_TRANSFORMERS_BRANCH:-main}
 
 #echo HOME: $CODAP_HOME
 #set -e
@@ -53,8 +56,14 @@ rm -rf tmp
 echo '    * npm packages are up to date'
 npm install
 echo '    * extension directories clean'
-./bin/check_clean_codeline "$CODAP_DATA_HOME" "$EXP_CODAP_BRANCH" || error "Extn codeline check failed: $CODAP_DATA_HOME"
-./bin/check_clean_codeline "$CODAP_DATA_INTERACTIVE_HOME" "$EXP_CODAP_BRANCH" || error "Extn codeline check failed: $CODAP_DATA_INTERACTIVE_HOME"
+./bin/check_clean_codeline "$CODAP_DATA_HOME" "$EXP_CODAP_BRANCH" || 
+    error "Extn codeline check failed: $CODAP_DATA_HOME"
+./bin/check_clean_codeline "$CODAP_DATA_INTERACTIVE_HOME" "$EXP_CODAP_BRANCH" ||
+    error "Extn codeline check failed: $CODAP_DATA_INTERACTIVE_HOME"
+./bin/check_clean_codeline "$CODAP_TRANSFORMERS_HOME" "$EXP_TRANSFORMERS_BRANCH" ||
+    error "Extn codeline check failed: $CODAP_TRANSFORMERS_HOME"
+./bin/check_clean_codeline "$STORY_BUILDER_HOME" "$EXP_CODAP_BRANCH" ||
+    error "Extn codeline check failed: $STORY_BUILDER_HOME"
 ./bin/recordExtnVersions
 echo '    * nothing checked out, and in master: “git st”'
 [ "$CODAP_BRANCH" != "$EXP_CODAP_BRANCH" ] && error 'branch is not master'
