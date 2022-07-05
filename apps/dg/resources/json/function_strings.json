@@ -435,7 +435,7 @@
     "examples": [
       "isBoolean(true) returns true",
       "isBoolean(3+4=7) returns true",
-      "isBoolean(3+4=6) returns false",
+      "isBoolean(3+4=6) returns true",
       "isBoolean(\"a\"+\"b\"=\"ab\") returns true"
     ]
   },
