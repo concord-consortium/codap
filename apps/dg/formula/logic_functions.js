@@ -34,13 +34,16 @@ DG.functionRegistry.registerFunctions((function() {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryLogic',
       evalFn: function(x) {
         return SC.empty(x) ? '' :
-            !(x === false || x === 'false' || x === 0 || x === '0');
+            !(x === false || (typeof x === 'string' && x.toLowerCase() === 'false') || x === 0 || x === '0');
       }
     },
 
     'isBoolean': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryLogic',
       evalFn: function(x) {
+        if (typeof x === 'string') {
+          x = x.toLowerCase();
+        }
         return [true, false, 'true', 'false'].indexOf(x) >=0;
       }
     },
