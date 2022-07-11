@@ -309,18 +309,18 @@ DG.GraphModel = DG.DataLayerModel.extend(
           return DG.AxisModel;
       }
 
-      var configureAttributeDescription = function (iKey) {
+      var configureAttributeDescription = function (iKey, iDataContext) {
             var tAttributeName = this.get(iKey + 'AttributeName'),
                 tAttribute,
-                tDefaults = DG.currDocumentController().collectionDefaults(),
+                tDefaults = iDataContext?iDataContext.collectionDefaults():DG.currDocumentController().collectionDefaults(),
                 tCollectionClient = tDefaults.collectionClient;
             if (tAttributeName) {
               delete this[iKey + 'AttributeName'];  // Because that was how it was passed in
-              tAttribute = tDataContext ? tDataContext.getAttributeByName(tAttributeName) :
+              tAttribute = iDataContext ? iDataContext.getAttributeByName(tAttributeName) :
                   (tCollectionClient ? tCollectionClient.getAttributeByName(tAttributeName) : null);
               if (tAttribute) {
-                if (tDataContext && !tCollectionClient)
-                  tCollectionClient = tDataContext.getCollectionForAttribute(tAttribute);
+                if (iDataContext && !tCollectionClient)
+                  tCollectionClient = iDataContext.getCollectionForAttribute(tAttribute);
                 this.get('dataConfiguration').setAttributeAndCollectionClient(iKey + 'AttributeDescription',
                     {collection: tCollectionClient, attributes: [tAttribute]});
               }
@@ -370,6 +370,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       var extraYAttributes = getExtraYAttributes(this);
       if( tDataContext) {
         this.setPath('dataConfiguration.initialDataContext');
+        this.setPath('dataConfiguration.dataContext', tDataContext);
         delete this.initialDataContext;  // It was passed in this way, but it's not one of our legitimate properties
       }
 
@@ -379,7 +380,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.axisCoordinator = DG.AxisCoordinator.create();
 
       ['x', 'y', 'y2', 'legend', 'right', 'top'].forEach(function (iKey) {
-        configureAttributeDescription(iKey);
+        configureAttributeDescription(iKey, tDataContext);
         if( ['x', 'y', 'y2'].indexOf( iKey) >= 0) {
           var tDescription = this.getPath(
               'dataConfiguration.' + (iKey + 'AttributeDescription')),
