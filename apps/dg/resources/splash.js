@@ -17,25 +17,49 @@
 // ==========================================================================
 
 var splashPanel;
+var kHeight = 200, kPadding = 20, kRatio = 1936 / 649;
 
 DG.splash = SC.Object.create({
 
   isShowing: false,
 
-  showSplash: function () {
-    if (DG.Browser.isCompatibleBrowser() && !this.get('isShowing') &&  DG.get('componentMode') !== 'yes' && DG.get('hideSplashScreen') !== 'yes') {
-      var kHeight = 200,
-          kPadding = 20,
-          kRatio = 1936 / 649;
+  showSplash: function (hideSplashImage, timeOut) {
+    if (hideSplashImage && DG.get('componentMode') !== 'yes') {
+      if (this.get('isShowing')) {
+        DG.splash.hideSplash();
+      }
       splashPanel = SC.PanelPane.create({
         classNames: ['dg-splash'],
-        layout: {width: kRatio * kHeight + 2 * kPadding, height: kHeight + 2 * kPadding, centerX: 0, centerY: 0},
+        layout: {width: 0, height: 0, left: -20, top: 0},
+        contentView: null,
+        close: function () {
+          this.timer && this.timer.invalidate();
+          this.destroy();
+          DG.splash.set('isShowing', false);
+        },
+        timer: null,
+        init: function () {
+          if (timeOut) {
+            this.timer = SC.Timer.schedule({
+              interval: timeOut, action: DG.splash.hideSplash, target: this
+            });
+          }
+        }
+      }).append();
+      this.set('isShowing', true);
+    } else if (DG.Browser.isCompatibleBrowser()
+          && !this.get('isShowing')
+          && DG.get('componentMode') !== 'yes'
+          && DG.get('hideSplashScreen') !== 'yes') {
+      splashPanel = SC.PanelPane.create({
+        classNames: ['dg-splash'],
+        layout: { width: kRatio * kHeight + 2 * kPadding, height: kHeight + 2 * kPadding, centerX: 0, centerY: 0},
         contentView: SC.View.extend({
           childViews: 'splash spinner'.w(),
           backgroundColor: '#FFF',
 
           splash: SC.ImageView.extend({
-            layout: { left: kPadding, right: kPadding, top: kPadding, bottom: kPadding },
+            layout: { left: kPadding, right: kPadding, top: kPadding, bottom: kPadding},
             value: DG.get('splashURL'),
             click: function () {
               DG.splash.hideSplash();
@@ -50,11 +74,11 @@ DG.splash = SC.Object.create({
             init: function () {
               sc_super();
               var _this = this;
-              window.setTimeout(function() {
+              window.setTimeout(function () {
                 _this.set('isVisible', YES);
               }, 2000);
             },
-            layout: { centerX: 0, bottom: kPadding+6, height: 32, width: 32 },
+            layout: {centerX: 0, bottom: kPadding + 6, height: 32, width: 32},
             value: static_url('images/spinner.gif'),
             canLoadInBackground: YES,
             useCanvas: NO,
@@ -62,12 +86,12 @@ DG.splash = SC.Object.create({
           })
         }),
         acceptsKeyPane: true,
-        close: function() {
+        close: function () {
           this.destroy();
           DG.splash.set('isShowing', false);
         }
       }).append();
-      splashPanel.contentView.becomeFirstResponder();
+      splashPanel.contentView && splashPanel.contentView.becomeFirstResponder();
       this.set('isShowing', true);
     }
   },

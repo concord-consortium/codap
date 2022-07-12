@@ -607,12 +607,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               extension: extension
             };
           }
-          function handleRequest (request) {
+          function handleRequest (request, props) {
+            var kTimeout = 60000;// one minute
+            var cursorMode = false;
             if (request === 'openGuideConfiguration') {
               DG.currDocumentController().configureGuide();
             }
             else if (request === 'indicateBusy') {
-              DG.splash.showSplash();
+              cursorMode = (props.cursorMode && props.cursorMode !== 'false');
+              DG.splash.showSplash(cursorMode, cursorMode?kTimeout:undefined);
             }
             else if (request === 'indicateIdle') {
               DG.splash.hideSplash();
@@ -639,7 +642,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           }
           if (iValues.request) {
-            result = handleRequest(iValues.request);
+            result = handleRequest(iValues.request, iValues);
           }
           return result;
         },

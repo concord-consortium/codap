@@ -1736,3 +1736,7 @@ img.flag {
 	cursor: se-resize;
 }
 
+.sc-pane.sc-modal.for-sc-panel {
+  cursor: wait;
+}
+
