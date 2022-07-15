@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "target": "es2018",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "strict": true,
+    "types": [],
+    "jsx": "react",
+    "lib": ["dom", "dom.iterable", "es2018"]
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}

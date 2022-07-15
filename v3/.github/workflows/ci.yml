@@ -1,0 +1,84 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  build_test:
+    name: Build and Run Jest Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - name: Install Dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Run Tests
+        run: npm run test:coverage -- --runInBand
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: jest
+  cypress:
+    runs-on: ubuntu-latest
+    strategy:
+      # when one test fails, DO NOT cancel the other
+      # containers, because this will kill Cypress processes
+      # leaving the Dashboard hanging ...
+      # https://github.com/cypress-io/github-action/issues/48
+      fail-fast: false
+      matrix:
+        # run 3 copies of the current job in parallel
+        containers: [1, 2, 3]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: cypress-io/github-action@v2
+        with:
+          start: npm start
+          wait-on: 'http://localhost:8080'
+          # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
+          record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
+          # only do parallel if we have a record key
+          parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
+        env:
+          # pass the Dashboard record key as an environment variable
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # pass GitHub token to allow accurately detecting a build vs a re-run build
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # turn on code coverage when running npm start
+          # so far we've been using a webpack coverage-istanbul-loader for this
+          # but there has been work on using the code coverage support in the browser directly, 
+          # which should be much faster
+          CODE_COVERAGE: true
+          # Also turn on the code coverage tasks in cypress itself, these are disabled
+          # by default.
+          CYPRESS_coverage: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: cypress
+  s3-deploy:
+    name: S3 Deploy
+    needs:
+      - build_test
+      - cypress
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - name: Setup Ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+      - name: Install Dependencies
+        run: |
+          gem install s3_website -v 3.4.0
+          npm ci
+      - name: Build
+        run: npm run build
+      - name: Deploy
+        run: ./s3_deploy.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
