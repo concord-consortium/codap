@@ -1,6 +1,9 @@
 name: Continuous Integration
 
-on: push
+on:
+  push:
+    paths-ignore: # don't run this workflow if it only contains v3 changes
+      - 'v3/**'   # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-excluding-paths
 
 jobs:
   build_test:
