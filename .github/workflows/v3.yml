@@ -1,19 +1,26 @@
 name: Continuous Integration
 
-on: push
+on:
+  push:
+    paths: ['v3/**']
 
 jobs:
   build_test:
     name: Build and Run Jest Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: snow-actions/sparse-checkout@v1.1.0
+        with:
+          patterns: v3
       - uses: actions/setup-node@v2
       - name: Install Dependencies
+        working-directory: v3
         run: npm ci
       - name: Build
+        working-directory: v3
         run: npm run build
       - name: Run Tests
+        working-directory: v3
         run: npm run test:coverage -- --runInBand
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
@@ -35,6 +42,7 @@ jobs:
         uses: actions/checkout@v2
       - uses: cypress-io/github-action@v2
         with:
+          working-directory: v3
           start: npm start
           wait-on: 'http://localhost:8080'
           # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
@@ -48,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # turn on code coverage when running npm start
           # so far we've been using a webpack coverage-istanbul-loader for this
-          # but there has been work on using the code coverage support in the browser directly, 
+          # but there has been work on using the code coverage support in the browser directly,
           # which should be much faster
           CODE_COVERAGE: true
           # Also turn on the code coverage tasks in cypress itself, these are disabled
@@ -72,13 +80,16 @@ jobs:
         with:
           ruby-version: '2.7'
       - name: Install Dependencies
+        working-directory: v3
         run: |
           gem install s3_website -v 3.4.0
           npm ci
       - name: Build
+        working-directory: v3
         run: npm run build
       - name: Deploy
+        working-directory: v3
         run: ./s3_deploy.sh
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.V3_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.V3_AWS_SECRET_ACCESS_KEY }}
