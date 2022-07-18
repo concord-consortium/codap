@@ -10,7 +10,7 @@ install:
 - travis_retry bundle install
 - travis_retry gem install s3_website
 - travis_retry pip install awscli --upgrade --user
-- travis_retry npm ci
+- travis_retry npm ci --legacy-peer-deps
 - travis_retry
 script:
 - git clone https://github.com/concord-consortium/codap-data.git ../codap-data
