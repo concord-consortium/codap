@@ -5,4 +5,4 @@ module.exports = {
     "object-curly-spacing": ["error", "always"],
     "react/jsx-curly-spacing": ["error", { "when": "never", "children": { "when": "always" } }],
   }
-};
+}

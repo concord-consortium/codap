@@ -6,4 +6,4 @@ module.exports = {
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-debugger": "error"
     }
-};
+}

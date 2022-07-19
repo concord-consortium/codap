@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 
 interface IProps {
   text: string;
@@ -6,4 +6,4 @@ interface IProps {
 
 export const Text: React.FC<IProps> = ({ text }) => (
   <div>{ text }</div>
-);
+)

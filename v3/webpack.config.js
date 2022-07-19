@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const ESLintPlugin = require('eslint-webpack-plugin');
-const os = require('os');
+const path = require('path')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const ESLintPlugin = require('eslint-webpack-plugin')
+const os = require('os')
 
 module.exports = (env, argv) => {
-  const devMode = argv.mode !== 'production';
+  const devMode = argv.mode !== 'production'
 
   return {
     context: __dirname, // to automatically find tsconfig.json
@@ -137,5 +137,5 @@ module.exports = (env, argv) => {
       }),
       new CleanWebpackPlugin(),
     ]
-  };
-};
+  }
+}
