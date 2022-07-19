@@ -86,7 +86,7 @@
     "caniuse-lite": "^1.0.30001366",
     "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^6.7.1",
-    "cypress": "^9.7.0",
+    "cypress": "^10.3.1",
     "eslint": "^8.19.0",
     "eslint-config-react": "^1.1.7",
     "eslint-import-resolver-typescript": "^3.2.5",
