@@ -10,7 +10,7 @@ Starting in 2012 CODAP became the data analysis environment for [Concord Consort
 
 In April, 2014, CODAP received NSF funding as a [project in its own right](https://concord.org/projects/codap) with the goal of developing a platform that can be used by developers of online curriculum materials that engage learners with data. Initial collaborations are: continuing work with InquirySpace and new work with [OceanTracks](http://oceantracks.org) at [EDC](http://www.edc.org) and [Terra Populus](http://www.terrapop.org) at the [Minnesota Population Center](https://www.pop.umn.edu/index.php). CODAP's success depends on the extent to which a community of developers embraces it as a way to bring dynamic, interactive data science tools to classroom (and other) learning. This work resulted in CODAP Version 2 which, by 2022 was being used by ~40K unique "28-day-active-users" in over 70 countries (stats from Google Analytics).
 
-July 2022 saw the beginning of the development of CODAP Version 3, a complete reimplementation of CODAP using modern web development tools such as React, Typescript, MobX State Tree and D3. The goal of version 3 is that while the underlying software is completely new, the application features and user interface are largely unchanged so that users' transition to version 3 is as seamless as possible.
+July 2022 saw the beginning of the development of CODAP Version 3, a complete reimplementation of CODAP using modern web development tools such as React, TypeScript, MobX State Tree and D3. The goal of version 3 is that while the underlying software is completely new, the application features and user interface are largely unchanged so that users' transition to version 3 is as seamless as possible.
 
 ### What CODAP Looks Like
 
@@ -30,8 +30,8 @@ or [The MIT License (MIT)](https://opensource.org/licenses/MIT). CODAP was initi
 
 ### Initial steps
 
-1. Clone this repo and `cd` into it
-2. Run `npm install` to pull dependencies
+1. Clone [this repo](https://github.com/concord-consortium/codap) and `cd` into its `v3` directory
+2. Run `npm install` to install dependencies
 3. Run `npm start` to run `webpack-dev-server` in development mode with hot module replacement
 
 #### Run using HTTPS
@@ -62,17 +62,11 @@ You *do not* need to build to deploy the code, that is automatic.  See more info
 
 ## Deployment
 
-Follow the instructions in this
-[Guide](https://docs.google.com/document/d/1EacCSUhaHXaL8ll8xjcd4svyguEO-ipf5aF980-_q8E)
-to setup an S3 & Cloudfront distribution that can be used with Github actions.
-See also `s3_deploy.sh`, and `./github/ci.yml`.
+Production releases to S3 are based on the contents of the `/dist` folder and are built automatically by GitHub Actions for each branch pushed to GitHub and each merge into the `v3-production` branch.
 
-Production releases to S3 are based on the contents of the /dist folder and are built automatically by GitHub Actions
-for each branch pushed to GitHub and each merge into production.
+Merges into the `v3-production` branch are deployed to the root at http://codap3.concord.org.
 
-Merges into production are deployed to http://starter-projects.concord.org.
-
-Other branches are deployed to http://starter-projects.concord.org/branch/<name>.
+Other branches are deployed to http://codap3.concord.org/branch/{branch-name}/.
 
 To deploy a production release:
 
@@ -82,15 +76,20 @@ To deploy a production release:
 4. Run `npm run build`
 5. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`
 6. Create `release-<version>` branch and commit changes, push to GitHub, create PR and merge
-7. Checkout master and pull
-8. Checkout production
+7. Checkout `master` and pull
+8. Checkout `v3-production`
 9. Run `git merge master --no-ff`
-10. Push production to GitHub
-11. Use https://github.com/concord-consortium/starter-projects/releases to create a new release tag
+10. Push `v3-production` to GitHub
+11. Use https://github.com/concord-consortium/codap/releases to create a new release tag
 
 ### Testing
-
-Run `npm test` to run jest tests. Run `npm run test:full` to run jest and Cypress tests.
+- run `npm run lint` to lint the source files
+- run `npm run lint:fix` to lint the source files and fix correctable issues
+- run `npm run test` to run the jest tests
+- run `npm run test -- a-particular.test` to run a particular test
+- run `npm run test:coverage` to run the jest tests and print out coverage statistics for the tested files
+- run `npm start` in one terminal and `npm run test:cypress` to run the cypress tests locally against a headless browser
+- run `npm start` in one terminal and `npm run test:cypress:open` to run the cypress tests against an actual browser with the ability to debug, etc.
 
 ##### Cypress Run Options
 
@@ -115,4 +114,3 @@ Inside of your `package.json` file:
 Starter Projects are Copyright 2018 (c) by the Concord Consortium and is distributed under the [MIT license](http://www.opensource.org/licenses/MIT).
 
 See license.md for the complete license text.
-
