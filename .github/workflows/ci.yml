@@ -1,9 +1,10 @@
-name: Continuous Integration
+name: Continuous Integration (CODAP v2)
 
 on:
   push:
     paths-ignore: # don't run this workflow if it only contains v3 changes
       - 'v3/**'   # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-excluding-paths
+      - '.github/workflows/v3.yml'
 
 jobs:
   build_test:
