@@ -1,0 +1,130 @@
+{
+  "name": "codap3",
+  "version": "0.0.1",
+  "description": "Common Online Data Analysis Platform v3",
+  "main": "index.js",
+  "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
+  "jest": {
+    "preset": "ts-jest/presets/js-with-ts",
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/test/setupTests.ts"
+    ],
+    "testEnvironment": "jsdom",
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/cypress/"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "src/utilities/test-utils.ts"
+    ],
+    "moduleNameMapper": {
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
+      "\\.(css|less|sass)$": "identity-obj-proxy"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
+  },
+  "scripts": {
+    "start": "webpack serve --no-https",
+    "start:secure": "webpack serve",
+    "start:secure:no-certs": "webpack serve --no-https-request-cert",
+    "build": "npm-run-all lint:build build:webpack",
+    "build:webpack": "webpack --mode production",
+    "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "lint:build": "eslint -c \".eslintrc.build.js\" \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "lint:fix": "eslint --fix \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "lint:style": "eslint -c \".eslintrc.style.js\" \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "lint:style:fix": "eslint -c \".eslintrc.style.js\" \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "test": "jest",
+    "test:all": "npm-run-all build test start",
+    "test:coverage": "jest --coverage",
+    "test:debug": "node --nolazy --inspect-brk ./node_modules/.bin/jest --runInBand --no-cache",
+    "test:watch": "jest --watch",
+    "test:coverage:watch": "jest --coverage --watchAll",
+    "test:cypress": "cypress run",
+    "test:cypress:open": "cypress open",
+    "test:coverage:cypress:open": "cypress open --env coverage=true",
+    "test:full": "npm-run-all test test:cypress"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/concord-consortium/codap.git"
+  },
+  "author": "Concord Consortium",
+  "license": "MIT",
+  "homepage": "https://github.com/concord-consortium/codap#readme",
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "all": true,
+    "report-dir": "coverage-cypress"
+  },
+  "devDependencies": {
+    "@cypress/code-coverage": "^3.10.0",
+    "@cypress/webpack-preprocessor": "^5.12.0",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@jsdevtools/coverage-istanbul-loader": "^3.0.5",
+    "@svgr/webpack": "^6.3.0",
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^12.1.5",
+    "@testing-library/react-hooks": "^8.0.1",
+    "@types/jest": "^28.1.6",
+    "@types/react": "^17.0.47",
+    "@types/react-dom": "^17.0.17",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
+    "autoprefixer": "^10.4.7",
+    "caniuse-lite": "^1.0.30001367",
+    "clean-webpack-plugin": "^4.0.0",
+    "css-loader": "^6.7.1",
+    "cypress": "^10.3.1",
+    "eslint": "^8.20.0",
+    "eslint-config-react": "^1.1.7",
+    "eslint-import-resolver-typescript": "^3.3.0",
+    "eslint-plugin-chai-friendly": "^0.7.2",
+    "eslint-plugin-cypress": "^2.12.1",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jest": "^26.6.0",
+    "eslint-plugin-json": "^3.1.0",
+    "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-testing-library": "^5.5.1",
+    "eslint-webpack-plugin": "^3.2.0",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "identity-obj-proxy": "^3.0.0",
+    "istanbul-lib-coverage": "^3.2.0",
+    "jest": "^28.1.3",
+    "jest-environment-jsdom": "^28.1.3",
+    "mini-css-extract-plugin": "^2.6.1",
+    "npm-run-all": "^4.1.5",
+    "postcss-loader": "^7.0.1",
+    "sass": "^1.53.0",
+    "sass-loader": "^13.0.2",
+    "script-loader": "^0.7.2",
+    "style-loader": "^3.3.1",
+    "ts-jest": "^28.0.7",
+    "ts-loader": "^9.3.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4",
+    "wait-on": "^6.0.1",
+    "webpack": "^5.73.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "tslib": "^2.4.0"
+  }
+}

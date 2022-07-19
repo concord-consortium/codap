@@ -1,0 +1,8 @@
+{
+  "standard.enable": false,
+  "jshint.options": {
+    "esversion": 6,
+    "node": true
+  },
+  "typescript.tsdk": "./node_modules/typescript/lib"
+}
