@@ -1,5 +1,5 @@
 import { useState } from "react"
-import t from "../utils/translation/translate"
+import t from "../utilities/translation/translate"
 
 export const useSampleText = () => {
   // `useState` is unnecessary here. But it's used so this function works like a real hook and requires special testing.

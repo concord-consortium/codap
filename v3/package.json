@@ -6,13 +6,14 @@
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
   "jest": {
     "preset": "ts-jest/presets/js-with-ts",
+    "resolver": "<rootDir>/src/test/jest-resolver.js",
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(escape-string-regexp|nanoid)/)"
+    ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/test/setupTests.ts"
     ],
     "testEnvironment": "jsdom",
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "testPathIgnorePatterns": [
       "/node_modules/",
@@ -78,6 +79,7 @@
     "@testing-library/react": "^12.1.5",
     "@testing-library/react-hooks": "^8.0.1",
     "@types/jest": "^28.1.6",
+    "@types/lodash": "^4.14.182",
     "@types/papaparse": "^5.3.2",
     "@types/react": "^17.0.47",
     "@types/react-dom": "^17.0.17",
@@ -124,9 +126,15 @@
     "webpack-dev-server": "^4.9.3"
   },
   "dependencies": {
+    "escape-string-regexp": "^5.0.0",
+    "expr-eval": "^2.0.2",
+    "lodash": "^4.17.21",
+    "mobx-state-tree": "^5.1.5",
+    "nanoid": "^4.0.0",
     "papaparse": "^5.3.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "ulid": "^2.3.0"
   }
 }
