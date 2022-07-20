@@ -10,7 +10,7 @@ S3_BUCKET_PREFIX='codap3/'
 # AWS CloudFront distribution domain
 DISTRIBUTION_DOMAIN='codap3.concord.org'
 # name of branch to deploy to root of site
-ROOT_BRANCH='production'
+ROOT_BRANCH='v3-production'
 # Bucket to deploy to, typically this is 'model-resources', but some projects
 # have their own buckets
 S3_BUCKET='models-resources'
