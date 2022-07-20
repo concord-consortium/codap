@@ -447,6 +447,8 @@
     "DG.Redo.data.deleteCases": "Redo deleting cases",
     "DG.Undo.component.close": "Undo closing component",
     "DG.Redo.component.close": "Redo closing component",
+    "DG.Undo.component.componentTitleChange": "Undo changing the component title",
+    "DG.Redo.component.componentTitleChange": "Redo changing the component title",
     "DG.Undo.component.minimize": "Undo minimizing component",
     "DG.Redo.component.minimize": "Redo minimizing component",
     "DG.Undo.dataContext.moveAttribute": "Undo moving case table attribute",

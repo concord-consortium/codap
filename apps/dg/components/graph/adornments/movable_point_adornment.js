@@ -129,7 +129,7 @@ DG.MovablePointAdornment = DG.PlotAdornment.extend(
                   action: 'notify',
                   resource: 'component',
                   values: {
-                    operation: 'drag movable poin',
+                    operation: 'drag movable point',
                     type: 'DG.GraphView'
                   }
                 },
