@@ -93,7 +93,7 @@ module.exports = {
   },
   overrides: [
     { // rules specific to Jest tests
-      files: ["src/**/*.test.*"],
+      files: ["src/**/*.test.*", "src/test/**"],
       env: {
         node: true,
         jest: true
@@ -105,7 +105,9 @@ module.exports = {
         // require() can be useful in mocking
         "@typescript-eslint/no-require-imports": "off",
         "@typescript-eslint/no-var-requires": "off",
-        "jest/no-done-callback": "off"
+        "jest/no-disabled-tests": "off",
+        "jest/no-done-callback": "off",
+        "jest/no-focused-tests": "off"  // enabled in .eslintrc.build.js
       }
     },
     { // rules specific to Cypress tests
