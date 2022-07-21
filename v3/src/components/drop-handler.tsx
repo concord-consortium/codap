@@ -7,17 +7,13 @@ export const DropHandler = () => {
 
   useEffect(function installListeners() {
     function dragOverHandler(event: DragEvent) {
-      console.log('File(s) in drop zone')
-
       // Prevent default behavior (Prevent file from being opened)
       event.preventDefault()
     }
 
     function dropHandler(event: DragEvent) {
-      console.log('File(s) dropped')
 
       function finishUp(results: any, aFile: any) {
-        console.log("Parsing complete:", results, aFile)
         const attributes = Object.keys(results.data[0])
         setOutputText(`Parsed ${aFile.name}
         with ${results.data.length} cases and
@@ -59,7 +55,6 @@ export const DropHandler = () => {
 
     const currRef = drop.current
     if (drop.current) {
-      console.log('Adding listeners')
       drop.current.addEventListener('dragover', dragOverHandler)
       drop.current.addEventListener('drop', dropHandler)
     }
