@@ -56,7 +56,7 @@ module.exports = {
     "import/no-cycle": "warn",
     "import/no-extraneous-dependencies": "warn",
     "import/no-useless-path-segments": "warn",
-    "jsx-quotes": ["error", "prefer-double"],
+    // "jsx-quotes": ["error", "prefer-double"],
     "max-len": ["warn", { code: 120, ignoreUrls: true }],
     "no-bitwise": "error",
     "no-debugger": "off",
@@ -79,7 +79,7 @@ module.exports = {
     "prefer-regex-literals": "error",
     "prefer-rest-params": "error",
     "prefer-spread": "error",
-    "quotes": ["error", "double", { allowTemplateLiterals: true, avoidEscape: true }],
+    // "quotes": ["error", "double", { allowTemplateLiterals: true, avoidEscape: true }],
     "radix": "error",
     "react/jsx-closing-tag-location": "error",
     "react/jsx-handler-names": "off",
@@ -137,7 +137,7 @@ module.exports = {
       rules: {
         "@typescript-eslint/no-require-imports": "off",
         "@typescript-eslint/no-var-requires": "off",
-        "quotes": ["error", "single", { allowTemplateLiterals: true, avoidEscape: true }],
+        // "quotes": ["error", "single", { allowTemplateLiterals: true, avoidEscape: true }],
       }
     }
   ]
