@@ -5,7 +5,7 @@ context("Test the overall app", () => {
 
   describe("Desktop functionalities", () => {
     it("renders with text", () => {
-      cy.get(".app").should("have.text", "Hello CODAP3!")
+      cy.get(".app").should("contain.text", "Hello CODAP3!")
     })
   })
 })
