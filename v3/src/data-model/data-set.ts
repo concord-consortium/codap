@@ -154,6 +154,9 @@ export const DataSet = types.model("DataSet", {
   transactionCount: 0
 }))
 .extend(self => {
+  /*
+   * private closure
+   */
   const attrIDMap: { [index: string]: IAttribute } = {},
         // map from attribute names to attribute IDs
         attrNameMap: { [index: string]: string } = {},
@@ -263,6 +266,9 @@ export const DataSet = types.model("DataSet", {
   }
 
   return {
+    /*
+     * public views
+     */
     views: {
       attrIDFromName,
       attrFromID(id: string) {
@@ -374,6 +380,9 @@ export const DataSet = types.model("DataSet", {
         return derived
       }
     },
+    /*
+     * public actions
+     */
     actions: {
       afterCreate() {
         const context: IEnvContext = getEnv(self),
@@ -395,7 +404,7 @@ export const DataSet = types.model("DataSet", {
         // adding the ids in middleware makes them available as action arguments
         // to derived DataSets.
         if (!srcDataSet) {
-          disposers.addCaseIdsMiddleware = addMiddleware(self, (call, next) => {
+          disposers.addIdsMiddleware = addMiddleware(self, (call, next) => {
             if (call.name === "addAttribute") {
               const { id = uniqueId(), ...others } = call.args[0] as IAttributeSnapshot
               call.args[0] = { id, ...others }
@@ -596,4 +605,4 @@ export const DataSet = types.model("DataSet", {
     }
   }
 })
-export type IDataSet = Instance<typeof DataSet>
+export interface IDataSet extends Instance<typeof DataSet> {}

@@ -193,5 +193,5 @@ export const Attribute = types.model("Attribute", {
     }
   }
 }))
-export type IAttribute = Instance<typeof Attribute>
-export type IAttributeSnapshot = SnapshotIn<typeof Attribute>
+export interface IAttribute extends Instance<typeof Attribute> {}
+export interface IAttributeSnapshot extends SnapshotIn<typeof Attribute> {}
