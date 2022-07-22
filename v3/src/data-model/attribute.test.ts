@@ -11,7 +11,7 @@ describe("Attribute", () => {
     process.env.NODE_ENV = origNodeEnv
   })
 
-  test.skip("Value conversions", () => {
+  test("Value conversions", () => {
     expect(importValueToString(null as any)).toBe("")
     expect(importValueToString(undefined)).toBe("")
     expect(importValueToString(0)).toBe("0")

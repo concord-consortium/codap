@@ -25,7 +25,7 @@
     ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      "\\.(css|less|sass)$": "identity-obj-proxy"
+      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
     },
     "moduleFileExtensions": [
       "ts",
@@ -129,6 +129,8 @@
     "escape-string-regexp": "^5.0.0",
     "expr-eval": "^2.0.2",
     "lodash": "^4.17.21",
+    "mobx": "^6.6.1",
+    "mobx-react-lite": "^3.4.0",
     "mobx-state-tree": "^5.1.5",
     "nanoid": "^4.0.0",
     "papaparse": "^5.3.2",
