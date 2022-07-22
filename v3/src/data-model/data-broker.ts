@@ -62,4 +62,5 @@ export class DataBroker {
   }
 }
 
-export const gDataBroker = new DataBroker()
+// for MVP we only support a single DataSet
+export const gDataBroker = new DataBroker({ allowMultiple: false })
