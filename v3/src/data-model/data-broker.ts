@@ -13,7 +13,7 @@ interface IDataBrokerOptions {
 }
 export class DataBroker {
   @observable dataSets = new Map<string, IDataSet>()
-  @observable readonly allowMultiple: boolean
+  readonly allowMultiple: boolean
 
   constructor(options?: IDataBrokerOptions) {
     const { allowMultiple = true } = options || {}
