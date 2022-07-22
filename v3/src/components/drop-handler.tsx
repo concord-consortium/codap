@@ -1,9 +1,13 @@
-import React, {useEffect, useRef, useState} from "react"
-import {parse} from 'papaparse'
+import React, {useEffect, useRef} from "react"
+import {parse, ParseResult} from 'papaparse'
 
-export const DropHandler = () => {
-  const drop = useRef<HTMLDivElement>(null),
-    [outputText, setOutputText] = useState('No data')
+type RowType = Record<string, string>
+
+interface IProps {
+  onImportData: (data: Array<RowType>, name?: string) => void
+}
+export const DropHandler = ({ onImportData }: IProps) => {
+  const drop = useRef<HTMLDivElement>(null)
 
   useEffect(function installListeners() {
     function dragOverHandler(event: DragEvent) {
@@ -13,13 +17,8 @@ export const DropHandler = () => {
 
     function dropHandler(event: DragEvent) {
 
-      function finishUp(results: any, aFile: any) {
-        const attributes = Object.keys(results.data[0])
-        setOutputText(`Parsed ${aFile.name}
-        with ${results.data.length} cases and
-        the following attributes: 
-        
-        ${attributes.join(', ')}`)
+      function finishUp(results: ParseResult<RowType>, aFile: any) {
+        onImportData?.(results.data, aFile.name)
       }
 
       // Prevent default behavior (Prevent file from being opened)
@@ -65,13 +64,10 @@ export const DropHandler = () => {
         currRef.removeEventListener('drop', dropHandler)
       }
     }
-  }, [])
+  }, [onImportData])
 
   return (
     <div className={'drop-handler'} ref={drop}>
-      <div className='output-text'>
-        {outputText}
-      </div>
     </div>
   )
 }
