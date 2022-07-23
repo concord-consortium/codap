@@ -30,6 +30,7 @@ export const App = () => {
   return (
     <div className="app" data-testid="app">
       <Container>
+        {/* each top-level child will be wrapped in a CodapComponent */}
         <DataSummary/>
         <div className="hello-codap3">
           <div>

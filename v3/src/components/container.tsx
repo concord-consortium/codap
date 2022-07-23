@@ -1,5 +1,6 @@
 import React from "react"
 import { CodapComponent } from "./codap-component"
+import { gDataBroker } from "../data-model/data-broker"
 
 import "./container.scss"
 
@@ -8,9 +9,10 @@ export const Container: React.FC<IProps> = ({ children }) => {
   const childArray = Array.isArray(children) ? children : [children]
   return (
     <div className="codap-container">
+      {/* wrap each child in a CodapContainer component */}
       {[0, 1, 2, 3].map(i => {
         return (
-          <CodapComponent key={`component-${i}`}>
+          <CodapComponent key={`component-${i}`} broker={gDataBroker}>
             {i < childArray.length
               ? childArray[i]
               : <div className="component-placeholder">{`Placeholder ${i + 1}`}</div>}

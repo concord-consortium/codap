@@ -1,11 +1,14 @@
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { gDataBroker } from "../data-model/data-broker"
+import { DataBroker } from "../data-model/data-broker"
 
 import "./data-summary.scss"
 
-export const DataSummary = observer(() => {
-  const data = gDataBroker.last
+interface IProps {
+  broker?: DataBroker;
+}
+export const DataSummary = observer(({ broker }: IProps) => {
+  const data = broker?.last
   const summary = data
                     ? [
                       `Parsed "${data.name}" with ${data.cases.length} case(s) and attributes:`,
