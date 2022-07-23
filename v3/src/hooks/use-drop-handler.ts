@@ -1,12 +1,13 @@
 import { parse, ParseResult } from "papaparse"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 type RowType = Record<string, string>
 
 export const useDropHandler = (selector: string, onImportData: (data: Array<RowType>, name?: string) => void) => {
+  const eltRef = useRef<HTMLElement | null>(null)
 
   useEffect(function installListeners() {
-    const elt: HTMLElement | null = document.querySelector(selector)
+    eltRef.current = document.querySelector(selector)
 
     function dragOverHandler(event: DragEvent) {
       // Prevent default behavior (Prevent file from being opened)
@@ -50,12 +51,15 @@ export const useDropHandler = (selector: string, onImportData: (data: Array<RowT
       }
     }
 
-    elt?.addEventListener('dragover', dragOverHandler)
-    elt?.addEventListener('drop', dropHandler)
+    eltRef.current?.addEventListener('dragover', dragOverHandler)
+    eltRef.current?.addEventListener('drop', dropHandler)
 
     return () => {
-      elt?.removeEventListener('dragover', dragOverHandler)
-      elt?.removeEventListener('drop', dropHandler)
+      eltRef.current?.removeEventListener('dragover', dragOverHandler)
+      eltRef.current?.removeEventListener('drop', dropHandler)
     }
   }, [onImportData, selector])
+
+  // return element to which listeners were attached; useful for tests
+  return eltRef.current
 }
