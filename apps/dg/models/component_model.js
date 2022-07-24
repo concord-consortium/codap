@@ -218,21 +218,37 @@ DG.Component = DG.BaseModel.extend(
       },
 
       toArchive: function () {
+
+        function populateLayout( iLayout) {
+          // The problem is that we can get here with only some of the layout parameters we need defined.
+          // Particularly we can get here without right and/or bottom.
+          // We correct that unusal situation heuristically
+          iLayout.left = iLayout.left || 0;
+          iLayout.top = iLayout.top || 0;
+          iLayout.width = iLayout.width || 300;
+          iLayout.height = iLayout.height || 300;
+          iLayout.right = iLayout.right || iLayout.left + iLayout.width;
+          iLayout.bottom = iLayout.bottom || iLayout.top + iLayout.height;
+          return iLayout;
+        }
+
         var obj = {},
             tStorage = this.get('componentStorage'),
-            tCannotClose = this.get('cannotClose');
+            tCannotClose = this.get('cannotClose'),
+            tPopulatedLayout;
         if( tStorage) {
           tStorage.title = this.get('title') || tStorage.title;
           tStorage.name = tStorage.name || this.get('name');
           tStorage.userSetTitle = tStorage.userSetTitle || this.get('userSetTitle');
           tStorage.cannotClose = SC.none(tCannotClose)? tStorage.cannotClose: tCannotClose;
         }
+        tPopulatedLayout = populateLayout( this.layout);
         obj = {
           type: this.type,
           guid: this.id,
           id: this.id,
           componentStorage: tStorage,
-          layout: this.layout,
+          layout: tPopulatedLayout,
           savedHeight: this.get('savedHeight')
         };
         return obj;
