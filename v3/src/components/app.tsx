@@ -1,10 +1,11 @@
 import React from "react"
+import { Container } from "./container"
 import { DataSummary } from "./data-summary"
 import { gDataBroker } from "../data-model/data-broker"
 import { DataSet, toCanonical } from "../data-model/data-set"
 import { Text } from "./text"
+import { useDropHandler } from "../hooks/use-drop-handler"
 import { useSampleText } from "../hooks/use-sample-text"
-import {DropHandler} from "./drop-handler"
 import Icon from "../assets/concord.png"
 
 import "./app.scss"
@@ -23,13 +24,22 @@ export function handleImportData(data: Array<Record<string, string>>, fName?: st
 
 export const App = () => {
   const sampleText = useSampleText()
+
+  useDropHandler("#app", handleImportData)
+
   return (
     <div className="app" data-testid="app">
-      <DataSummary/>
-      <img src={Icon}/>
-      <Text text={sampleText} />
-      <p>Drag a CSV file into this window to get some data.</p>
-      <DropHandler onImportData={handleImportData}></DropHandler>
+      <Container>
+        {/* each top-level child will be wrapped in a CodapComponent */}
+        <DataSummary/>
+        <div className="hello-codap3">
+          <div>
+            <img src={Icon}/>
+            <Text text={sampleText} />
+            <p>Drag a CSV file into this window to get some data.</p>
+          </div>
+        </div>
+      </Container>
     </div>
   )
 }
