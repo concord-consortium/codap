@@ -338,7 +338,7 @@ DG.CollectionClient = SC.Object.extend(
       if ( tAttribute) {
         // Attribute already exists:
         // copy the formula property, if there is one.
-        if( iProperties.formula !== undefined) {
+        if( iProperties.formula !== undefined || isUndo) {
           // we used to ban formula changes if editable flag not set.
           // Now, data interactive is considered to preempt the setting
           // in the document.
