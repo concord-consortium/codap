@@ -912,5 +912,7 @@ SC.stringsFor("nn", {
     "DG.plugin.Importer.large-file-msg": "The imported file, \"%@\" has %@ rows. With more than %@ rows CODAP performance may be sluggish. You can work with a sample of the data at least at first, replacing it with the full dataset later.",
     "DG.plugin.Importer.error-codap-connection": "Error sending data to CODAP",
     "DG.plugin.Importer.error-upload": "Could not import this file -- %@",
-    "DG.plugin.Importer.import-message": "Preparing to import %@ rows into \"%@\" from a table with %@ attributes: %@%@"
+    "DG.plugin.Importer.import-message": "Preparing to import %@ rows into \"%@\" from a table with %@ attributes: %@%@",
+    "DG.Undo.component.componentTitleChange": "Undo changing the component title",
+    "DG.Redo.component.componentTitleChange": "Redo changing the component title"
 });
