@@ -11,7 +11,7 @@ describe("DataSummary component", () => {
   })
 
   it("should summarize data once added", () => {
-    render(<DataSummary/>)
+    render(<DataSummary broker={gDataBroker}/>)
     expect(screen.getByText("No data")).toBeInTheDocument()
 
     const ds = DataSet.create({ name: "foo" })

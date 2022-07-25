@@ -1,15 +1,14 @@
-import React, {useEffect, useRef} from "react"
-import {parse, ParseResult} from 'papaparse'
+import { parse, ParseResult } from "papaparse"
+import { useEffect, useRef } from "react"
 
 type RowType = Record<string, string>
 
-interface IProps {
-  onImportData: (data: Array<RowType>, name?: string) => void
-}
-export const DropHandler = ({ onImportData }: IProps) => {
-  const drop = useRef<HTMLDivElement>(null)
+export const useDropHandler = (selector: string, onImportData: (data: Array<RowType>, name?: string) => void) => {
+  const eltRef = useRef<HTMLElement | null>(null)
 
   useEffect(function installListeners() {
+    eltRef.current = document.querySelector(selector)
+
     function dragOverHandler(event: DragEvent) {
       // Prevent default behavior (Prevent file from being opened)
       event.preventDefault()
@@ -52,22 +51,15 @@ export const DropHandler = ({ onImportData }: IProps) => {
       }
     }
 
-    const currRef = drop.current
-    if (drop.current) {
-      drop.current.addEventListener('dragover', dragOverHandler)
-      drop.current.addEventListener('drop', dropHandler)
-    }
+    eltRef.current?.addEventListener('dragover', dragOverHandler)
+    eltRef.current?.addEventListener('drop', dropHandler)
 
     return () => {
-      if (currRef) {
-        currRef.removeEventListener('dragover', dragOverHandler)
-        currRef.removeEventListener('drop', dropHandler)
-      }
+      eltRef.current?.removeEventListener('dragover', dragOverHandler)
+      eltRef.current?.removeEventListener('drop', dropHandler)
     }
-  }, [onImportData])
+  }, [onImportData, selector])
 
-  return (
-    <div className={'drop-handler'} ref={drop}>
-    </div>
-  )
+  // return element to which listeners were attached; useful for tests
+  return eltRef.current
 }
