@@ -2395,6 +2395,10 @@ DG.DataContext = SC.Object.extend((function () // closure
      * @return {String} Case data in tab-delimited string format
      */
     exportCaseData: function (iWhichCollection) {
+      /* Replace newlines w/ space, quote commas */
+      function encodeString(str) {
+        return (typeof str === 'string')? str.replace(/\n/g, '&NewLine;').replace(/,/g, '&comma;'): str;
+      }
       // Encode str as per RFC 4180.
       // If str contains double quotes, convert to two double quotes
       // If str contains commas or double quotes, wrap in double quotes.
@@ -2432,13 +2436,13 @@ DG.DataContext = SC.Object.extend((function () // closure
       });
       attribIDs = attributes.map(function(attr) {return attr.id; });
 
-      rows.push('# name: ' + this.get('name'));
+      rows.push('# name: ' + encodeString(this.get('name')));
       // Create comment annotations documenting metadata and attribute properties
       if (metadata) {
         Object.entries(metadata).forEach(function(entry) {
           var key = entry[0];
           var value = entry[1];
-          rows.push('# ' + key + ': ' + value);
+          rows.push('# ' + key + ': ' + encodeString(value));
         });
       }
 
@@ -2459,7 +2463,7 @@ DG.DataContext = SC.Object.extend((function () // closure
         ].map(function (property) {
           var value = attr.get(property);
           if (value != null && value !== '' && (defaults[property] !== value)) {
-            return property + ': ' + value;
+            return property + ': ' + encodeString(value);
           } else {
             return '';
           }
