@@ -20,15 +20,16 @@ class MockCanvas2DContext {
 }
 
 // mock document.createElement to return a "canvas" element that returns our mock 2D context
-const mockCreateElement = jest.spyOn(document, "createElement").mockImplementation(() => ({
-  getContext: () => {
-    console.log("mockCreateElement.getContext")
-    return new MockCanvas2DContext()
-  }
-} as any as HTMLCanvasElement))
+const origCreateElement = document.createElement
+const mockCreateElement = jest.spyOn(document, "createElement").mockImplementation((tag: string, ...args: any[]) => (
+  tag === "canvas"
+    ? { getContext: () => new MockCanvas2DContext() } as any as HTMLCanvasElement
+    : origCreateElement.call(document, tag, ...args)
+))
 
+import { renderHook } from "@testing-library/react-hooks"
 import { defaultFont } from "../components/constants"
-import { measureText } from "./use-measure-text"
+import { measureText, useMeasureText } from "./use-measure-text"
 
 describe("measureText", () => {
   const testText = "test text"
@@ -62,5 +63,12 @@ describe("measureText", () => {
     expect(measureText(testText)).toEqual(measureText(testText))
     // both results were cached by previous tests
     expect(mockMeasureText).toHaveBeenCalledTimes(0)
+  })
+})
+
+describe("useMeasureText", () => {
+  it("measures text when called as a hook", () => {
+    const { result } = renderHook(() => useMeasureText())
+    expect(result.current("word")).toBe(14)
   })
 })
