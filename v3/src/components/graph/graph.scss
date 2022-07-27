@@ -1,0 +1,149 @@
+.plot {
+  width: 100%;
+  height: 100%;
+  background-color: aliceblue;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  margin: 25px;
+}
+
+.axis {
+  background-color: white;
+}
+
+.plot text {
+  fill: black;
+  font: 10px sans-serif;
+}
+
+.dotArea {
+  background: white;
+}
+
+.background {
+  fill: white;
+}
+
+.dot {
+  fill: rgba(232, 147, 118, 0.85);
+  stroke: white;
+  cursor: pointer;
+}
+
+.dot-highlighted {
+  fill: steelblue;
+}
+
+// Axis classes
+.dragRect {
+  fill: #e38e71;
+  fill-opacity: 0.01;
+  cursor: grab;
+}
+
+.dragging {
+  cursor: grabbing!important;
+}
+
+.h-translate {
+  cursor: grab;
+}
+
+.h-upper-dilate {
+  cursor: url("../../assets/RightDilate.png") 8 8, grab;
+}
+
+.h-lower-dilate {
+  cursor: url("../../assets/LeftDilate.png") 8 8, grab;
+}
+
+.v-translate {
+  cursor: url("../../assets/TranslateY.png") 8 8, grab;
+}
+
+.v-upper-dilate {
+  cursor: url("../../assets/UpDilate.png") 8 8, grab;
+}
+
+.v-lower-dilate {
+  cursor: url("../../assets/DownDilate.png") 8 8, grab;
+}
+
+// Marquee classes
+.marquee {
+  fill: none;
+  stroke-width: 2;
+  stroke: gray;
+  stroke-dasharray: 5;
+}
+
+.marqueeBack {
+  fill: none;
+  stroke-width: 2;
+  stroke: white;
+}
+
+// Movable line classes
+.movable-line {
+  stroke: chocolate;
+  stroke-width: 2px;
+}
+
+.movable-line-cover {
+  stroke: rgba(210, 105, 30, 0.01);
+  stroke-width: 8px;
+}
+
+.movable-line-lower-cover {
+  cursor: url("../../assets/LinePivotBotLeft.png") 8 8, grab;
+}
+
+.movable-line-middle-cover {
+  cursor: url("../../assets/LineSlide.png") 8 8, grab;
+}
+
+.movable-line-upper-cover {
+  cursor: url("../../assets/LinePivotTopRight.png") 8 8, grab;
+}
+
+.equationContainer {
+  position: absolute;
+  background-color: rgba(255, 255, 0, 0.6);
+}
+
+.equation {
+}
+
+.movable-value-container {
+  position: absolute;
+  background-color: rgba(0, 0, 255, 0.3);
+}
+
+.movable-value-label {
+  text-align: center;
+  position: absolute;
+}
+
+.movable-value {
+  stroke: blue;
+  stroke-width: 2px;
+}
+
+.movable-value-cover {
+  stroke: rgba(210, 105, 30, 0.01);
+  stroke-width: 8px;
+  cursor: url("../../assets/LinePivotBotLeft.png") 8 8, grab;
+}
+
+.movable-value-cover:hover {
+  stroke: rgba(210, 105, 30, 0.5);
+}
+
+.plot-choice {
+  bottom: 10px;
+  right: 10px;
+  position: sticky;
+}
