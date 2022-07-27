@@ -118,6 +118,12 @@ module.exports = (env, argv) => {
     },
     resolve: {
       extensions: [ '.ts', '.tsx', '.js' ],
+      fallback: {
+        // required for react-data-grid/React 17
+        // cf. https://github.com/adazzle/react-data-grid/issues/2787#issuecomment-1071978035
+        'react/jsx-runtime': 'react/jsx-runtime.js',
+        'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+      },
     },
     stats: {
       // suppress "export not found" warnings about re-exported types

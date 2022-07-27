@@ -1,4 +1,5 @@
 import React from "react"
+import { CaseTable } from "./case-table/case-table"
 import { Container } from "./container"
 import { DataSummary } from "./data-summary"
 import { gDataBroker } from "../data-model/data-broker"
@@ -39,6 +40,7 @@ export const App = () => {
             <p>Drag a CSV file into this window to get some data.</p>
           </div>
         </div>
+        <CaseTable />
       </Container>
     </div>
   )
