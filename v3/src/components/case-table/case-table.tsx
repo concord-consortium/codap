@@ -25,6 +25,8 @@ export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
   // cell formatter/renderer
   const formatter = useCallback(({ column, row }: TFormatterProps) => {
     const value = data?.getValue(row.__id__, column.key) ?? ""
+    // for now we just render the raw string value; eventually,
+    // we can support other formats here (dates, colors, etc.)
     return <span>{value}</span>
   }, [data])
 
@@ -33,7 +35,7 @@ export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
     ? data.attributes.map(({ id, name }) => ({
         key: id,
         name,
-        // auto-size each column to fit its maximum string
+        // auto-size each column; remove (CODAP 2) or adjust heuristic when user-resizing is supported
         width: Math.max(kDefaultColumnWidth, (maxWidths[id]?.width || 0) + kCellPadding),
         formatter
       }))

@@ -3,6 +3,7 @@ import { IDataSet } from "../data-model/data-set"
 import { measureText } from "./use-measure-text"
 
 interface IWidthEntry {
+  // track case with longest string to enable more efficient change handling down the road
   caseId: string
   width: number
 }
