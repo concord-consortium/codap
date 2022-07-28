@@ -149,6 +149,8 @@ export const DataSet = types.model("DataSet", {
   name: types.maybe(types.string),
   attributes: types.array(Attribute),
   cases: types.array(CaseID),
+  // MST doesn't have a types.set
+  selection: types.map(types.string)
 })
 .volatile(self => ({
   transactionCount: 0
@@ -335,6 +337,9 @@ export const DataSet = types.model("DataSet", {
           cases.push(getCaseAtIndex(i, options))
         }
         return cases
+      },
+      isCaseSelected(caseId: string) {
+        return self.selection.has(caseId)
       },
       get isInTransaction() {
         return self.transactionCount > 0
@@ -601,6 +606,31 @@ export const DataSet = types.model("DataSet", {
             }
           }
         })
+      },
+
+      selectAll(select = true) {
+        if (select) {
+          self.cases.forEach(({__id__}) => self.selection.set(__id__, __id__))
+        }
+        else {
+          self.selection.clear()
+        }
+      },
+
+      selectCases(caseIds: string[], select = true) {
+        caseIds.forEach(id => {
+          if (select) {
+            self.selection.set(id, id)
+          }
+          else {
+            self.selection.delete(id)
+          }
+        })
+      },
+
+      setSelectedCases(caseIds: string[]) {
+        this.selectAll(false)
+        this.selectCases(caseIds)
       }
     }
   }
