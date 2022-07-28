@@ -144,6 +144,7 @@
     "react-resize-detector": "^7.1.2",
     "rtree": "^1.4.2",
     "tslib": "^2.4.0",
-    "ulid": "^2.3.0"
+    "ulid": "^2.3.0",
+    "use-memo-one": "^1.1.2"
   }
 }
