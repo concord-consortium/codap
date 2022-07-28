@@ -90,13 +90,12 @@ export const Graph = observer(({broker}: IProps) => {
             .attr('cy', (d: { y: number }) => y(d.y))
             .selection()
             .append('title')
-            .text((d: any) => `(${float(d.x)}, ${float(d.y)}, id: ${d.id}`)
         },
         (update) => {
           update.classed('dot-highlighted',
             (d: { selected: boolean }) => (d.selected))
             .select('title')
-            .text((d: any) => `(${float(d.x)}, id: ${d.id}`)
+            .text((d: any) => `(${float(d.x)}, ${float(d.y)}, id: ${d.id})`)
         },
         (exit) => {
           exit.transition()
@@ -107,7 +106,7 @@ export const Graph = observer(({broker}: IProps) => {
   }, [data, float, highlightCounter])
 
   return (
-    <div className='plot' ref={plotRef}>
+    <div className='plot' ref={plotRef}  graph-testid="graph">
       <svg className='graph-svg' ref={svgRef}>
         {plotType === 'scatterplot' ?
           <Axis svgRef={svgRef}
