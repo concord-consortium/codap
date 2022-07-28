@@ -22,6 +22,7 @@ export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
 
   return (
     <div className="case-table" data-testid="case-table">
+      {/* @ts-expect-error columns strictFunctionTypes: false */}
       <DataGrid className="rdg-light" columns={columns} rows={rows} rowKeyGetter={rowKey} />
     </div>
   )
