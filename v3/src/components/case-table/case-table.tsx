@@ -1,14 +1,10 @@
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useMemo } from "react"
-import DataGrid, { Column, FormatterProps } from "react-data-grid"
+import React from "react"
+import DataGrid from "react-data-grid"
 import { DataBroker } from "../../data-model/data-broker"
-import { IDataSet } from "../../data-model/data-set"
+import { useColumns } from "./use-columns"
 
 import "./case-table.scss"
-
-type TRow = IDataSet["cases"][0]
-type TColumn = Column<TRow>
-type TFormatterProps = FormatterProps<TRow>
 
 interface IProps {
   broker?: DataBroker
@@ -16,23 +12,8 @@ interface IProps {
 export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
   const data = broker?.last
 
-  // cell formatter/renderer
-  const formatter = useCallback(({ column, row }: TFormatterProps) => {
-    const value = data?.getValue(row.__id__, column.key) ?? ""
-    // for now we just render the raw string value; eventually,
-    // we can support other formats here (dates, colors, etc.)
-    return <span>{value}</span>
-  }, [data])
+  const columns = useColumns(data)
 
-  // column definitions
-  const columns: TColumn[] = useMemo(() => data
-    ? data.attributes.map(({ id, name }) => ({
-        key: id,
-        name,
-        resizable: true,
-        formatter
-      }))
-    : [], [data, formatter])
   if (!data) return null
 
   // row definitions
