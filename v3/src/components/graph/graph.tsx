@@ -78,8 +78,7 @@ export const Graph = observer(({broker}: IProps) => {
       .selectAll('circle')
       .data(data, keyFunc)
       .join(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error void => Selection
         (enter) => {
           enter.append('circle')
             .attr('class', 'dot')
@@ -203,4 +202,3 @@ export const Graph = observer(({broker}: IProps) => {
 })
 
 // (Graph as any).whyDidYouRender = {logOnDifferentValues: true, customName: 'Graph'}
-

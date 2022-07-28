@@ -13,9 +13,8 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
     axisRef = useRef(null),
     titleRef = useRef(null),
     [min, max] = scale?.range() || [0, 1],
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    bbox: { x: number, y: number, width: number, height: number } = axisRef?.current?.getBBox()
+    // @ts-expect-error getBBox
+    bbox: { x: number, y: number, width: number, height: number } = axisRef?.current?.getBBox?.()
 
   const axis = orientation === 'bottom' ? axisBottom : axisLeft
 
@@ -87,8 +86,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
     if (axisRef?.current) {
       const theAxis = select(axisRef.current)
         .attr("transform", props.axisProps.transform)
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error null => SVGSVGElement
         .call(axis(scale))
 
       // Add three rects in which the user can drag to dilate or translate the scale
@@ -116,8 +114,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
         .selectAll('.dragRect')
         .data(numbering)// data signify lower, middle, upper rectangles
         .join(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
+          // @ts-expect-error void => Selection
           (enter) => {
             enter.append('rect')
               .attr('class', (d) => `dragRect ${classPrefix}-${classPostfixes[d]}`)
@@ -150,8 +147,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
       .selectAll('text.axis-title')
       .data([1])
       .join(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error void => Selection
         (enter) => {
           enter.append('text')
             .attr('class', 'axis-title')
@@ -175,4 +171,3 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
     </g>
   )
 }
-

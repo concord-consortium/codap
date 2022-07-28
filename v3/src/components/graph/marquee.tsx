@@ -12,8 +12,7 @@ export const Marquee = (props: {
     select(marqueeRef.current).selectAll('rect')
       .data([1,2])
       .join(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error void => Selection
         (enter) => {
           enter.append('rect')
             .attr('class', (d:number)=> d === 1 ? 'marqueeBack' : 'marquee')
@@ -33,4 +32,3 @@ export const Marquee = (props: {
     </g>
   )
 }
-

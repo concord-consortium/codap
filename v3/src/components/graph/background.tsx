@@ -18,8 +18,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
           }
         selectionTree.insert(rect, element.__data__.id)
       })
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error fromJSON
     return selectionTree
   },
 
@@ -58,8 +57,6 @@ export const Background = (props: {
     currentlySelectedCaseIDs = useRef<number[]>([]),
 
     onDragStart = useCallback((event: MouseEvent) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       selectionTree.current = prepareTree('.dotArea', 'circle')
       // todo: extract translation from transform
       startX.current = event.x - 60
@@ -91,8 +88,6 @@ export const Background = (props: {
           newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
           newDeselection: number[] = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect),
           deselectionSet = new Set(newDeselection)
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.concat(newSelection)
         currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.filter(anID => {
           return !deselectionSet.has(anID)
@@ -120,8 +115,7 @@ export const Background = (props: {
       .selectAll('rect')
       .data([1])
       .join(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error void => Selection
         (enter) => {
           enter.append('rect')
             .attr('class', 'background')
@@ -144,4 +138,3 @@ export const Background = (props: {
     </g>
   )
 }
-
