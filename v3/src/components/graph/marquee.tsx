@@ -31,6 +31,10 @@ export const Marquee = ({marqueeRect: {x, y, width, height}}: IProps) => {
   }, [height, width, x, y])
 
   return (
+    /**
+     * Todo: Is the nesting necessary or could it just be:
+     *  <g ref={marqueeRef}/>
+     */
     <g>
       <g ref={marqueeRef}/>
     </g>

@@ -10,6 +10,7 @@ export type axisProps = {
   setCounter: React.Dispatch<React.SetStateAction<number>>
 }
 
+// Todo: worldData brings to mind census data for me. Perhaps screenData or viewData?
 export type worldData = {
   x: number, y: number, selected: boolean, id: number
 }

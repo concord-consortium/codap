@@ -26,6 +26,7 @@ export const useDragHandlers = (target: any, { start, drag, end }: IDragHandlers
   }, [target, start, drag, end])
 }
 
+// Todo: Any function with more than a few arguments should probably take an object instead.
 export const useGetData = (broker: DataBroker, dataRef: React.MutableRefObject<worldData[]>,
                            xNameRef: React.MutableRefObject<string>, yNameRef: React.MutableRefObject<string>,
                            xAxis: ScaleLinear<number, number, never>, yAxis: ScaleLinear<number, number, never>,

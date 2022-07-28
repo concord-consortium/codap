@@ -23,6 +23,11 @@
   background: white;
 }
 
+/**
+todo: Generally, .scss should be as close to its code as possible, which generally means associated with particular components
+where possible, and often nested within each other which minimizes the chances of global conflicts. That way, if the
+case table also wants to use .background as a class name the two definitions won't conflict with each other.
+ */
 .background {
   fill: white;
 }

@@ -25,6 +25,7 @@ export const MovableValue = (props: {
       }
 
       function refreshValueLabel() {
+        // Todo: Derive the 60
         const screenX = x(value) + 60,
           screenY = Number(valueRef.current?.getBoundingClientRect().top) - 12,
           string = valueLabelString(value)
@@ -48,6 +49,7 @@ export const MovableValue = (props: {
 
   const
     dragValue = useCallback((event: MouseEvent) => {
+      // Todo: Derive the 60
       setValue(x.invert(event.x - 60))
     }, [x, setValue])
 

@@ -90,6 +90,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
         .call(axis(scale))
 
       // Add three rects in which the user can drag to dilate or translate the scale
+      // Todo: When there's an axis model, it should be able to some of these distinctions internal to the model.
       const tLength = props.axisProps.length || 0,
         classPrefix = orientation === 'bottom' ? 'h' : 'v',
         numbering = orientation === 'bottom' ? [0, 1, 2] : [2, 1, 0],
