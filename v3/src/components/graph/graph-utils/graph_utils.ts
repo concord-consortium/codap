@@ -37,7 +37,7 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
     tY1 = tLogicalBounds.bottom
     tY2 = tLogicalBounds.top
   }
-    // Things can get hairy for nearly horizontal or nearly vertical lines.
+  // Things can get hairy for nearly horizontal or nearly vertical lines.
   // This conditional takes care of that.
   else if (Math.abs(iSlope) > 1) {
     tY1 = tLogicalBounds.bottom
@@ -138,8 +138,8 @@ export function rectangleIntersect(iA: rTreeRect, iB: rTreeRect) {
 /**
  * Returns an array of zero, one, or more rectangles that represent the
  * remainder of the first rectangle after the intersection with the second
- * rectangle is removed. If the rectangle do not intersect, then the whole of
- * the firs rectangle is returned.
+ * rectangle is removed. If the rectangles do not intersect, then the whole of
+ * the first rectangle is returned.
  *
  */
 export function rectangleSubtract(iA: rTreeRect, iB: rTreeRect) {
@@ -186,5 +186,3 @@ export function rectToTreeRect( rect:Rect) {
     h: rect.height
   }
 }
-
-

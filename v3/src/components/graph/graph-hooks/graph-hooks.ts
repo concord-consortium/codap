@@ -1,28 +1,29 @@
 /**
  * Graph Custom Hooks
  */
+import {extent, ScaleLinear} from "d3"
 import {useEffect} from "react"
+import {IAttribute} from "../../../data-model/attribute"
 import {DataBroker} from "../../../data-model/data-broker"
 import {worldData} from "../graphing-types"
-import {extent, ScaleLinear} from "d3"
-import {IAttribute} from "../../../data-model/attribute"
 
-export const useAddListeners = (target: any, callbacks: {
-  dragStart: (event: MouseEvent) => void,
-  drag: (event: MouseEvent) => void,
+interface IDragHandlers {
+  start: (event: MouseEvent) => void
+  drag: (event: MouseEvent) => void
   end: (event: MouseEvent) => void
-}) => {
+}
+export const useDragHandlers = (target: any, { start, drag, end }: IDragHandlers) => {
   useEffect(() => {
-    target.addEventListener('mousedown', callbacks.dragStart)
-    target.addEventListener('mousemove', callbacks.drag)
-    target.addEventListener('mouseup', callbacks.end)
+    target.addEventListener('mousedown', start)
+    target.addEventListener('mousemove', drag)
+    target.addEventListener('mouseup', end)
     // On cleanup, remove event listeners
     return () => {
-      target.removeEventListener('mousedown', callbacks.dragStart)
-      target.removeEventListener('mousemove', callbacks.drag)
-      target.removeEventListener('mouseup', callbacks.end)
+      target.removeEventListener('mousedown', start)
+      target.removeEventListener('mousemove', drag)
+      target.removeEventListener('mouseup', end)
     }
-  }, [target, callbacks.dragStart, callbacks.drag, callbacks.end])
+  }, [target, start, drag, end])
 }
 
 export const useGetData = (broker: DataBroker, dataRef: React.MutableRefObject<worldData[]>,
@@ -76,4 +77,3 @@ export const useGetData = (broker: DataBroker, dataRef: React.MutableRefObject<w
     }
   }, [broker?.last, dataRef, setCounter, xAxis, yAxis, xNameRef, yNameRef])
 }
-

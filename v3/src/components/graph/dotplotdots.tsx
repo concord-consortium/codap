@@ -1,7 +1,7 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {max, range, select} from "d3"
 import {plotProps, transitionDuration, worldData, defaultRadius, defaultDiameter, dragRadius} from "./graphing-types"
-import {useAddListeners} from "./graph-hooks/graph-hooks"
+import {useDragHandlers} from "./graph-hooks/graph-hooks"
 
 
 export const DotPlotDots = memo(function DotPlotDots(props: {
@@ -102,7 +102,7 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
       setRefreshCounter(prevCounter => ++prevCounter)
     }, [dragID, setData])
 
-  useAddListeners(window, {dragStart: onDragStart, drag: onDrag, end: onDragEnd})
+  useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
 
@@ -184,4 +184,3 @@ if (DotPlotDots) {
   (DotPlotDots as any).whyDidYouRender = {logOnDifferentValues: true, customName: 'DotPlotDots'}
 }
 */
-

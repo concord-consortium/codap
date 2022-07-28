@@ -11,14 +11,11 @@ export const MovableValue = (props: {
   yScale: ScaleLinear<number, number>
 }) => {
   const { xScale: x, yScale: y, value, setValue, transform} = props,
-    valueRef = useRef() as React.RefObject<SVGSVGElement>,
-    xMin = x.domain()[0],
-    xMax = x.domain()[1],
-    xRangeMin = x.range()[0],
-    xRangeMax = x.range()[1],
-    top = y.range()[1],
-    bottom = y.range()[0],
-    [valueObject, setValueObject] = useState<{ [index: string]: any }>({
+    valueRef = useRef<SVGSVGElement>(null),
+    [xMin, xMax] = x.domain(),
+    [xRangeMin, xRangeMax] = x.range(),
+    [bottom, top] = y.range(),
+    [valueObject, setValueObject] = useState<Record<string, any>>({
       line: null, cover: null, valueLabel: null
     })
   // Refresh the line
@@ -60,7 +57,7 @@ export const MovableValue = (props: {
   }, [valueObject, dragValue])
 
   // Make the line and its cover segments just once
-  useEffect(function creatElements() {
+  useEffect(function createElements() {
     const selection = select(valueRef.current),
       newValueObject: any = {}
     newValueObject.line = selection.append('line')
@@ -89,4 +86,3 @@ export const MovableValue = (props: {
     </g>
   )
 }
-

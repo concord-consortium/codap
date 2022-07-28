@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
+import RTree from 'rtree'
 import {clearSelection, selectCasesWithIDs} from "./graph-utils/data_utils"
 import {Rect, plotProps, worldData, rTreeRect} from "./graphing-types"
 import {rectangleSubtract, rectNormalize} from "./graph-utils/graph_utils"
-import RTree from 'rtree'
 
 
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {

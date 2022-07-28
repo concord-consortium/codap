@@ -1,6 +1,6 @@
+import React from "react"
 import {worldData, Rect} from "../graphing-types"
 import {between} from "./math_utils"
-import React from "react"
 
 /**
  * Utility routines having to do with data
@@ -35,4 +35,3 @@ export function selectCasesWithIDs(  iData:worldData[], ids:number[]) {
   })
   return iData
 }
-

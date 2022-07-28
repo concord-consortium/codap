@@ -1,14 +1,18 @@
 import React, {useEffect, useRef} from "react"
 import {select} from "d3"
 
-
-export const Marquee = (props: {
-  marqueeRect: {x: number, y: number, width: number, height: number}
-}) => {
-  const marqueeRef = useRef() as React.RefObject<SVGSVGElement>
+interface IProps {
+  marqueeRect: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+}
+export const Marquee = ({marqueeRect: {x, y, width, height}}: IProps) => {
+  const marqueeRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
-    const dragRect = props.marqueeRect
     select(marqueeRef.current).selectAll('rect')
       .data([1,2])
       .join(
@@ -18,13 +22,13 @@ export const Marquee = (props: {
             .attr('class', (d:number)=> d === 1 ? 'marqueeBack' : 'marquee')
         },
         (update) => {
-          update.attr('x', dragRect.width < 0 ? dragRect.x + dragRect.width : dragRect.x)
-            .attr('y', dragRect.height < 0 ? dragRect.y + dragRect.height : dragRect.y)
-            .attr('width', Math.abs(dragRect.width))
-            .attr('height', Math.abs(dragRect.height))
+          update.attr('x', width < 0 ? x + width : x)
+            .attr('y', height < 0 ? y + height : y)
+            .attr('width', Math.abs(width))
+            .attr('height', Math.abs(height))
         }
       )
-  }, [props.marqueeRect])
+  }, [height, width, x, y])
 
   return (
     <g>

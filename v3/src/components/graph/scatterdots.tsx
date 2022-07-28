@@ -1,8 +1,7 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {select} from "d3"
 import {plotProps, transitionDuration, worldData} from "./graphing-types"
-import {useAddListeners} from "./graph-hooks/graph-hooks"
-
+import {useDragHandlers} from "./graph-hooks/graph-hooks"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps,
@@ -113,21 +112,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
       }
     }, [dragID, setData])
 
-  useAddListeners(window, {dragStart: onDragStart, drag: onDrag, end: onDragEnd})
-
-  useEffect(function addListeners() {
-    // console.log('In addListeners')
-    // add event listeners just once
-    addEventListener('mousedown', onDragStart)
-    addEventListener('mousemove', onDrag)
-    addEventListener('mouseup', onDragEnd)
-    // On cleanup, remove event listeners
-    return () => {
-      removeEventListener('mousedown', onDragStart)
-      removeEventListener('mousemove', onDrag)
-      removeEventListener('mouseup', onDragEnd)
-    }
-  }, [onDragStart, onDrag, onDragEnd])
+  useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
       const

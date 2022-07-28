@@ -90,7 +90,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
         .call(axis(scale))
 
       // Add three rects in which the user can drag to dilate or translate the scale
-      const tLength = props.axisProps.length !== undefined ? props.axisProps.length : 0,
+      const tLength = props.axisProps.length || 0,
         classPrefix = orientation === 'bottom' ? 'h' : 'v',
         numbering = orientation === 'bottom' ? [0, 1, 2] : [2, 1, 0],
         classPostfixes = orientation === 'bottom' ? ['lower-dilate', 'translate', 'upper-dilate'] :

@@ -1,10 +1,10 @@
+import {format, scaleLinear, select} from "d3"
+import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import "./graph.scss"
-import {format, scaleLinear, select} from "d3"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, worldData, useCurrent} from "./graphing-types"
+import {plotProps, worldData} from "./graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -13,8 +13,10 @@ import {MovableLine} from "./movable-line"
 import {MovableValue} from "./movable-value"
 */
 import {DataBroker} from "../../data-model/data-broker"
-import {observer} from "mobx-react-lite"
 import {useGetData} from "./graph-hooks/graph-hooks"
+import { useCurrent } from "../../hooks/use-current"
+
+import "./graph.scss"
 
 interface IProps {
   broker?: DataBroker;
@@ -48,9 +50,9 @@ export const Graph = observer(({broker}: IProps) => {
     [highlightCounter, setHighlightCounter] = useState(0),
 
     keyFunc = (d: worldData) => d.id,
-    svgRef = useRef() as React.RefObject<SVGSVGElement>,
-    plotAreaSVGRef = useRef() as React.RefObject<SVGSVGElement>,
-    dotsRef = useRef() as React.RefObject<SVGSVGElement>,
+    svgRef = useRef<SVGSVGElement>(null),
+    plotAreaSVGRef = useRef<SVGSVGElement>(null),
+    dotsRef = useRef<SVGSVGElement>(null),
     [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})//,
 /*
     [movableLine, setMovableLine] = useState(

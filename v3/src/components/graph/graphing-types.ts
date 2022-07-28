@@ -1,5 +1,4 @@
 import {ScaleLinear} from "d3"
-import {useRef} from "react"
 
 export type axisProps = {
   orientation: 'bottom' | 'left' | 'right' | 'top',
@@ -36,10 +35,3 @@ export const transitionDuration = 1000,
   defaultRadius = 5,
   defaultDiameter = 2 * defaultRadius,
   dragRadius = 10
-
-export function useCurrent<T>(value: T) {
-  const ref = useRef(value)
-  ref.current = value
-  return ref
-}
-

@@ -4,13 +4,13 @@ import {Container} from "./container"
 import {DataSummary} from "./data-summary"
 import {gDataBroker} from "../data-model/data-broker"
 import {DataSet, toCanonical} from "../data-model/data-set"
+import {Graph} from "./graph/graph"
 import {Text} from "./text"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import {useSampleText} from "../hooks/use-sample-text"
 import Icon from "../assets/concord.png"
 
 import "./app.scss"
-import {Graph} from "./graph/graph"
 
 export function handleImportData(data: Array<Record<string, string>>, fName?: string) {
   const ds = DataSet.create({name: fName})
