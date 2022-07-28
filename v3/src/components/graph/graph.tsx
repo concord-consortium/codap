@@ -34,7 +34,7 @@ export const Graph = observer(({broker}: IProps) => {
     importedDataRef = useRef<worldData[]>([]),
     xAttributeNameRef = useRef(''),
     yAttributeNameRef = useRef(''),
-    {width, height, ref: plotRef} = useResizeDetector(),
+    {width, height, ref: plotRef} = useResizeDetector({ refreshMode: "debounce", refreshRate: 200 }),
     plotWidth = 0.8 * (width || 300),
     plotWidthRef = useCurrent(plotWidth),
     plotHeight = 0.8 * (height || 500),
