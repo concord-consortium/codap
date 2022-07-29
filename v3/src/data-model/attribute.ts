@@ -43,12 +43,15 @@ export function importValueToString(value: IValueType) {
   return value == null ? "" : typeof value === "string" ? value : JSON.stringify(value)
 }
 
+export const attributeTypes = ["categorical", "numeric", "date", "qualitative", "boundary", "checkbox"] as const
+export type AttributeType = typeof attributeTypes[number]
+
 export const Attribute = types.model("Attribute", {
   id: types.optional(types.identifier, () => uniqueId()),
   clientKey: "",
   sourceID: types.maybe(types.string),
   name: types.string,
-  userType: types.maybe(types.enumeration(["numeric", "nominal"])),
+  userType: types.maybe(types.enumeration([...attributeTypes])),
   hidden: false,
   units: "",
   formula: types.optional(Formula, () => Formula.create()),
@@ -148,7 +151,7 @@ export const Attribute = types.model("Attribute", {
   setUnits(units: string) {
     self.units = units
   },
-  setUserType(type: typeof self.userType) {
+  setUserType(type: AttributeType) {
     self.userType = type
   },
   clearFormula() {
