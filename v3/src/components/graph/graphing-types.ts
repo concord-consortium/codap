@@ -11,8 +11,8 @@ export type axisProps = {
 }
 
 // The name 'worldData' here is meant to imply the data comes from the real world context rather than screen
-export type worldData = {
-  x: number, y: number, selected: boolean, id: number
+export type idData = {
+  id: string
 }
 
 export type Rect = {

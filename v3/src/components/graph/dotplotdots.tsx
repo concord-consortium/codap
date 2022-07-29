@@ -1,22 +1,26 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {max, range, select} from "d3"
-import {plotProps, transitionDuration, worldData, defaultRadius, defaultDiameter, dragRadius} from "./graphing-types"
+import {plotProps, transitionDuration, idData, defaultRadius, defaultDiameter, dragRadius} from "./graphing-types"
 import {useDragHandlers} from "./graph-hooks/graph-hooks"
+import {IDataSet} from "../../data-model/data-set"
+import {observer} from "mobx-react-lite"
+import {autorun} from "mobx"
 
 
-export const DotPlotDots = memo(function DotPlotDots(props: {
+export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dots: plotProps,
   plotWidth: number,
   plotHeight: number,
   xMin: number,
   xMax: number,
-  data: worldData[],
-  setData: React.Dispatch<React.SetStateAction<worldData[]>>
+  dataSet?: IDataSet,
+  data: idData[],
+  setData: React.Dispatch<React.SetStateAction<idData[]>>
   setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {
-      data, setData, dotsRef, plotWidth, plotHeight, setHighlightCounter, xMax, xMin,
+      data, setData, dotsRef, plotWidth, plotHeight, xMax, xMin, dataSet,
       dots: {xScale, yScale}
     } = props,
     [dragID, setDragID] = useState(-1),
@@ -24,19 +28,22 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
     currPos = useRef({x: 0}),
     target = useRef<any>(),
     [firstTime, setFirstTime] = useState<boolean | null>(true),
-    selectedDataObjects = useRef<{ [index: number]: { x: number } }>({}),
+    selectedDataObjects = useRef<{ [index: string]: { x: number } }>({}),
     [forceRefreshCounter, setForceRefreshCounter]=useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
 
-      const selectPoint = (iData: worldData[]) => {
+      const selectPoint = (iData: idData[]) => {
         iData.forEach((datum) => {
           if (datum.id === tItsID && !datum.selected) {
+            (datum.id != null) && dataSet?.selectCases([datum.id])
+/*
             datum.selected = true
             setHighlightCounter(prevCounter => ++prevCounter)
+*/
           }
         })
-        return iData
+        // return iData
       }
 
       if (firstTime) {
@@ -44,20 +51,20 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
       }
       // target.current = event.target as SVGSVGElement
       target.current = select(event.target as SVGSVGElement)
-      const tItsID = Number(target.current.property('id'))
+      const tItsID = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         target.current.transition()
           .attr('r', dragRadius)
         setDragID(() => tItsID)
         currPos.current = {x: event.clientX}
-        setData(selectPoint(data))
+        selectPoint(data)
       }
       data.forEach(datum => {
         if (datum.selected) {
           selectedDataObjects.current[datum.id] = {x: datum.x}
         }
       })
-    }, [data, firstTime, setData, setHighlightCounter]),
+    }, [dataSet, data, firstTime/*, setData, setHighlightCounter*/]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID >= 0) {
@@ -109,9 +116,9 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
       function computeBinPlacements() {
         const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
           binWidth = plotWidth / (numBins - 1),
-          bins: number[][] = range(numBins).map(() => [])
+          bins: string[][] = range(numBins).map(() => [])
 
-        data.forEach((d: worldData) => {
+        data.forEach((d: idData) => {
           const numerator = Number(xScale?.(d.x)),
             bin = Math.ceil(numerator / binWidth)
           if (bin >= 0 && bin < numBins) {
@@ -131,14 +138,14 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
       const
         yHeight = Number(yScale?.range()[0]),
         dotsSvgElement = dotsRef.current,
-        binMap: { [id: number]: { yIndex: number } } = {},
+        binMap: { [id: string]: { yIndex: number } } = {},
         tTransitionDuration = firstTime ? transitionDuration : 0
       let overlap = 0
       computeBinPlacements()
 
       const selection = select(dotsSvgElement).selectAll('circle')
         .classed('dot-highlighted',
-          (d: { selected: boolean }) => (d.selected))
+          (d: { id: string }) => !!(dataSet?.isCaseSelected( d.id)))
       if (tTransitionDuration > 0) {
         selection
           .transition()
@@ -163,9 +170,17 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
         .selectAll('.dot-highlighted')
         .raise()
 
-    }, [firstTime, dotsRef, data, xScale, yScale, xMin, xMax,
+    }, [firstTime, dotsRef, data, xScale, yScale, xMin, xMax, dataSet,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
   )
+
+    useEffect(() => {
+      const disposer = autorun(() => {
+        dataSet?.selection.forEach(() => {/* just chillin... */})
+        setRefreshCounter(count => ++count)
+      })
+      return () => disposer()
+    }, [dataSet?.selection])
 
   /**
    * In the initial refreshPoints there are no circles. We call this once to force a refreshPoints in which
@@ -178,7 +193,7 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
   return (
     <div></div>
   )
-})
+}))
 /*
 if (DotPlotDots) {
   (DotPlotDots as any).whyDidYouRender = {logOnDifferentValues: true, customName: 'DotPlotDots'}

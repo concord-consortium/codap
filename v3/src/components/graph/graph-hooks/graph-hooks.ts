@@ -5,15 +5,15 @@ import {extent, ScaleLinear} from "d3"
 import {useEffect} from "react"
 import {IAttribute} from "../../../data-model/attribute"
 import {DataBroker} from "../../../data-model/data-broker"
-import {worldData} from "../graphing-types"
+import {idData} from "../graphing-types"
+import {autorun} from "mobx"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
   drag: (event: MouseEvent) => void
   end: (event: MouseEvent) => void
 }
-
-export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) => {
+export const useDragHandlers = (target: any, { start, drag, end }: IDragHandlers) => {
   useEffect(() => {
     target.addEventListener('mousedown', start)
     target.addEventListener('mousemove', drag)
@@ -29,7 +29,7 @@ export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) 
 
 export interface IUseGetDataProps {
   broker: DataBroker,
-  dataRef: React.MutableRefObject<worldData[]>,
+  dataRef: React.MutableRefObject<idData[]>,
   xNameRef: React.MutableRefObject<string>,
   yNameRef: React.MutableRefObject<string>,
   xAxis: ScaleLinear<number, number, never>,
@@ -44,11 +44,12 @@ export const useGetData = (props: IUseGetDataProps) => {
     const result = {xAttrIndex: -1, yAttrIndex: -1}
     let index = 0
     while (result.yAttrIndex < 0 && index < attrsToSearch.length) {
-      const foundNumeric = attrsToSearch[index].numValues.find(value => isFinite(value))
-      if (foundNumeric) {
-        if (result.xAttrIndex < 0) {
+      const foundNumeric = attrsToSearch[index].numValues.find(value=>isFinite(value))
+      if( foundNumeric) {
+        if(result.xAttrIndex < 0) {
           result.xAttrIndex = index
-        } else {
+        }
+        else {
           result.yAttrIndex = index
         }
       }
@@ -63,25 +64,28 @@ export const useGetData = (props: IUseGetDataProps) => {
         attributes = dataSet?.attributes,
         {xAttrIndex, yAttrIndex} = findNumericAttrIndices(attributes || []),
         xAttribute = attributes?.[xAttrIndex],
-        xValues = xAttribute?.numValues,
         yAttribute = attributes?.[yAttrIndex],
-        yValues = yAttribute?.numValues
+        cases = dataSet?.cases,
+        xValues:number[] = [],
+        yValues:number[] = []
       dataRef.current.length = 0
-      xValues?.forEach((aValue, index) => {
-        dataRef.current.push({
-          x: aValue,
-          y: yValues?.[index] || 0,
-          id: index,
-          selected: false
+      if( cases.length > 0) {
+        cases.forEach(aCase => {
+          dataRef.current.push({
+            id: aCase.__id__,
+          })
+          xValues.push(Number(dataSet.getNumeric(aCase.__id__, xAttribute.id)))
+          yValues.push(Number(dataSet.getNumeric(aCase.__id__, yAttribute.id)))
         })
-      })
-      xNameRef.current = xAttribute?.name || ''
-      yNameRef.current = yAttribute?.name || ''
-      if (dataRef.current.length > 0) {
-        xAxis.domain(extent(dataRef.current, d => d.x) as [number, number]).nice()
-        yAxis.domain(extent(dataRef.current, d => d.y) as [number, number]).nice()
+        xNameRef.current = xAttribute?.name || ''
+        yNameRef.current = yAttribute?.name || ''
+        if (dataRef.current.length > 0) {
+          xAxis.domain(extent(xValues, d => d) as [number, number]).nice()
+          yAxis.domain(extent(yValues, d => d) as [number, number]).nice()
+        }
       }
       setCounter((prevCounter: number) => ++prevCounter)
     }
   }, [broker?.last, dataRef, setCounter, xAxis, yAxis, xNameRef, yNameRef])
+
 }

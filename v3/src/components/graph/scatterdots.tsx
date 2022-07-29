@@ -1,6 +1,6 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {select} from "d3"
-import {plotProps, transitionDuration, worldData} from "./graphing-types"
+import {plotProps, transitionDuration, idData} from "./graphing-types"
 import {useDragHandlers} from "./graph-hooks/graph-hooks"
 
 export const ScatterDots = memo(function ScatterDots(props: {
@@ -12,8 +12,8 @@ export const ScatterDots = memo(function ScatterDots(props: {
   yMin: number,
   yMax: number,
   // counterProps: counterProps,
-  data: worldData[],
-  setData: React.Dispatch<React.SetStateAction<worldData[]>>
+  data: idData[],
+  setData: React.Dispatch<React.SetStateAction<idData[]>>
   setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
@@ -28,12 +28,12 @@ export const ScatterDots = memo(function ScatterDots(props: {
     plotWidth = props.plotWidth,
     plotHeight = props.plotHeight,
     [firstTime, setFirstTime] = useState<boolean | null>(true),
-    selectedDataObjects = useRef<{ [index: number]: { x: number, y: number } }>({}),
+    selectedDataObjects = useRef<{ [index: string]: { x: number, y: number } }>({}),
     [forceRefreshCounter, setForceRefreshCounter]=useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
 
-      const selectPoint = (iData: worldData[]) => {
+      const selectPoint = (iData: idData[]) => {
         iData.forEach((datum) => {
           if (datum.id === tItsID && !datum.selected) {
             datum.selected = true
@@ -47,7 +47,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
         setFirstTime(false) // We don't want to animate points until end of drag
       }
       target.current = select(event.target as SVGSVGElement)
-      const tItsID = Number(target.current.property('id'))
+      const tItsID = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         target.current.transition()
           .attr('r', dragRadius)

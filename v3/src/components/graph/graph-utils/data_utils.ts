@@ -1,12 +1,12 @@
 import React from "react"
-import {worldData, Rect} from "../graphing-types"
+import {idData, Rect} from "../graphing-types"
 import {between} from "./math_utils"
 
 /**
  * Utility routines having to do with data
  */
 
-export function selectCasesInWorldRect( iData:worldData[], iWorldRect:Rect) {
+export function selectCasesInWorldRect(iData:idData[], iWorldRect:Rect) {
   const tRight = iWorldRect.x + iWorldRect.width,
     tBottom = iWorldRect.y - iWorldRect.height
   return iData.map((d)=>{
@@ -15,7 +15,7 @@ export function selectCasesInWorldRect( iData:worldData[], iWorldRect:Rect) {
   })
 }
 
-export function clearSelection( iData:worldData[], setHighlightCounter:React.Dispatch<React.SetStateAction<number>>) {
+export function clearSelection(iData:idData[], setHighlightCounter:React.Dispatch<React.SetStateAction<number>>) {
   let changedSelection = false
   iData.forEach((d)=>{
     if( d.selected) {
@@ -29,7 +29,7 @@ export function clearSelection( iData:worldData[], setHighlightCounter:React.Dis
   return iData
 }
 
-export function selectCasesWithIDs(  iData:worldData[], ids:number[]) {
+export function selectCasesWithIDs(iData:idData[], ids:string[]) {
   iData.forEach((d)=>{
     d.selected = ids.includes(d.id)
   })

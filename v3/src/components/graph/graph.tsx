@@ -4,7 +4,7 @@ import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, worldData} from "./graphing-types"
+import {plotProps, idData} from "./graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -31,7 +31,7 @@ const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
 
 export const Graph = observer(({broker}: IProps) => {
   const
-    importedDataRef = useRef<worldData[]>([]),
+    importedDataRef = useRef<idData[]>([]),
     xAttributeNameRef = useRef(''),
     yAttributeNameRef = useRef(''),
     {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
@@ -47,7 +47,7 @@ export const Graph = observer(({broker}: IProps) => {
     [counter, setCounter] = useState(0),
     [highlightCounter, setHighlightCounter] = useState(0),
 
-    keyFunc = (d: worldData) => d.id,
+    keyFunc = (d: idData) => d.id,
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     dotsRef = useRef<SVGSVGElement>(null),
@@ -136,7 +136,7 @@ export const Graph = observer(({broker}: IProps) => {
                 }
               }
         />
-        <Background dots={dotsProps} data={data} setData={setData}
+        <Background dots={dotsProps} dataSet={broker?.last} data={data} setData={setData}
                     marquee={{rect: marqueeRect, setRect: setMarqueeRect}}
                     setHighlightCounter={setHighlightCounter}/>
         <svg ref={plotAreaSVGRef} className='dotArea'>
@@ -159,6 +159,7 @@ export const Graph = observer(({broker}: IProps) => {
                 :
                 <DotPlotDots
                   dots={dotsProps}
+                  dataSet={broker?.last}
                   xMin={x.domain()[0]}
                   xMax={x.domain()[1]}
                   plotWidth={x.range()[1] - x.range()[0]}
