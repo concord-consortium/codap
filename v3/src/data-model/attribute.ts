@@ -48,6 +48,7 @@ export const Attribute = types.model("Attribute", {
   clientKey: "",
   sourceID: types.maybe(types.string),
   name: types.string,
+  userType: types.maybe(types.enumeration(["numeric", "nominal"])),
   hidden: false,
   units: "",
   formula: types.optional(Formula, () => Formula.create()),
@@ -76,6 +77,9 @@ export const Attribute = types.model("Attribute", {
     if (value == null || value === "") return NaN
     if (typeof value === "string") return parseFloat(value)
     return Number(value)
+  },
+  get numericCount() {
+    return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }
 }))
 .actions(self => ({
@@ -114,6 +118,12 @@ export const Attribute = types.model("Attribute", {
   get length() {
     return self.strValues.length
   },
+  get type() {
+    if (self.userType) return self.userType
+    if (self.numValues.length === 0) return
+    // only infer numeric if all values are numeric (CODAP2)
+    return self.numericCount === self.numValues.length ? "numeric" : "nominal"
+  },
   value(index: number) {
     return self.strValues[index]
   },
@@ -137,6 +147,9 @@ export const Attribute = types.model("Attribute", {
   },
   setUnits(units: string) {
     self.units = units
+  },
+  setUserType(type: typeof self.userType) {
+    self.userType = type
   },
   clearFormula() {
     self.formula.setDisplay()
