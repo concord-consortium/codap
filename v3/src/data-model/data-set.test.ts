@@ -422,6 +422,25 @@ test("Canonical case functionality", () => {
   destroy(dataset)
 })
 
+test("DataSet case selection", () => {
+  const ds = DataSet.create({ name: "data" })
+  ds.addCases([{__id__: "c1"}, {__id__: "c2"}, {__id__: "c3"}, {__id__: "c4"}, {__id__: "c5"}])
+  expect(ds.cases.length).toBe(5)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
+  ds.selectCases(["c1", "c4"])
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
+  ds.selectAll(false)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
+  ds.selectAll(true)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
+  ds.selectCases(["c1", "c4"], false)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, true, true, false, true])
+  ds.setSelectedCases(["c1", "c4"])
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
+  ds.selectAll()
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
+})
+
 test("Derived DataSet functionality", () => {
   const dataset = DataSet.create({ name: "data" })
 
