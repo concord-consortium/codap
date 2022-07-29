@@ -106,7 +106,7 @@ export const Graph = observer(({broker}: IProps) => {
   }, [data, float, highlightCounter])
 
   return (
-    <div className='plot' ref={plotRef}  graph-testid="graph">
+    <div className='plot' ref={plotRef}  data-testid="graph">
       <svg className='graph-svg' ref={svgRef}>
         {plotType === 'scatterplot' ?
           <Axis svgRef={svgRef}
