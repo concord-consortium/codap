@@ -8,13 +8,11 @@ import {plotProps, worldData} from "./graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
-/*
 import {MovableLine} from "./movable-line"
 import {MovableValue} from "./movable-value"
-*/
 import {DataBroker} from "../../data-model/data-broker"
 import {useGetData} from "./graph-hooks/graph-hooks"
-import { useCurrent } from "../../hooks/use-current"
+import {useCurrent} from "../../hooks/use-current"
 
 import "./graph.scss"
 
@@ -36,7 +34,7 @@ export const Graph = observer(({broker}: IProps) => {
     importedDataRef = useRef<worldData[]>([]),
     xAttributeNameRef = useRef(''),
     yAttributeNameRef = useRef(''),
-    {width, height, ref: plotRef} = useResizeDetector({ refreshMode: "debounce", refreshRate: 200 }),
+    {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
     plotWidth = 0.8 * (width || 300),
     plotWidthRef = useCurrent(plotWidth),
     plotHeight = 0.8 * (height || 500),
@@ -44,7 +42,7 @@ export const Graph = observer(({broker}: IProps) => {
     defaultRadius = 5,
     float = format('.1f'),
 
-    [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
+    [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('dotplot'),
     [data, setData] = useState(importedDataRef.current),
     [counter, setCounter] = useState(0),
     [highlightCounter, setHighlightCounter] = useState(0),
@@ -53,18 +51,19 @@ export const Graph = observer(({broker}: IProps) => {
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     dotsRef = useRef<SVGSVGElement>(null),
-    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})//,
-/*
+    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0}),
     [movableLine, setMovableLine] = useState(
       // {slope:Number.POSITIVE_INFINITY, intercept: 40})
       {slope: 2 / 3, intercept: 10}),
     [movableValue, setMovableValue] = useState(x.domain()[0] + (x.domain()[1] - x.domain()[0]) / 3)
-*/
 
   x.range([0, plotWidthRef.current])
   y.range([plotHeightRef.current, 0])
 
-  broker && useGetData(broker, importedDataRef, xAttributeNameRef, yAttributeNameRef, x, y, setCounter)
+  broker && useGetData({
+    broker, dataRef: importedDataRef,
+    xNameRef: xAttributeNameRef, yNameRef: yAttributeNameRef, xAxis: x, yAxis: y, setCounter
+  })
 
   useEffect(function setupPlotArea() {
     select(plotAreaSVGRef.current)
@@ -106,7 +105,7 @@ export const Graph = observer(({broker}: IProps) => {
   }, [data, float, highlightCounter])
 
   return (
-    <div className='plot' ref={plotRef}  data-testid="graph">
+    <div className='plot' ref={plotRef} data-testid="graph">
       <svg className='graph-svg' ref={svgRef}>
         {plotType === 'scatterplot' ?
           <Axis svgRef={svgRef}
@@ -173,7 +172,6 @@ export const Graph = observer(({broker}: IProps) => {
           </svg>
           <Marquee marqueeRect={marqueeRect}/>
         </svg>
-{/*
         {plotType === 'scatterplot' ?
           <MovableLine
             transform={`translate(${margin.left}, 0)`}
@@ -188,7 +186,6 @@ export const Graph = observer(({broker}: IProps) => {
                         xScale={x}
                         yScale={y}/>
         }
-*/}
       </svg>
       <button
         className='plot-choice'

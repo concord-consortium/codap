@@ -57,9 +57,9 @@ export const Background = (props: {
     currentlySelectedCaseIDs = useRef<number[]>([]),
 
     onDragStart = useCallback((event: MouseEvent) => {
+      const leftEdge = ref.current?.getBBox().x
       selectionTree.current = prepareTree('.dotArea', 'circle')
-      // todo: extract translation from transform
-      startX.current = event.x - 60
+      startX.current = event.x - (leftEdge || 0)
       startY.current = event.y
       width.current = 0
       height.current = 0

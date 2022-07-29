@@ -12,7 +12,8 @@ interface IDragHandlers {
   drag: (event: MouseEvent) => void
   end: (event: MouseEvent) => void
 }
-export const useDragHandlers = (target: any, { start, drag, end }: IDragHandlers) => {
+
+export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) => {
   useEffect(() => {
     target.addEventListener('mousedown', start)
     target.addEventListener('mousemove', drag)
@@ -26,22 +27,28 @@ export const useDragHandlers = (target: any, { start, drag, end }: IDragHandlers
   }, [target, start, drag, end])
 }
 
-// Todo: Any function with more than a few arguments should probably take an object instead.
-export const useGetData = (broker: DataBroker, dataRef: React.MutableRefObject<worldData[]>,
-                           xNameRef: React.MutableRefObject<string>, yNameRef: React.MutableRefObject<string>,
-                           xAxis: ScaleLinear<number, number, never>, yAxis: ScaleLinear<number, number, never>,
-                           setCounter: any) => {
+export interface IUseGetDataProps {
+  broker: DataBroker,
+  dataRef: React.MutableRefObject<worldData[]>,
+  xNameRef: React.MutableRefObject<string>,
+  yNameRef: React.MutableRefObject<string>,
+  xAxis: ScaleLinear<number, number, never>,
+  yAxis: ScaleLinear<number, number, never>,
+  setCounter: any
+}
+
+export const useGetData = (props: IUseGetDataProps) => {
+  const {broker, dataRef, xNameRef, yNameRef, xAxis, yAxis, setCounter} = props
 
   const findNumericAttrIndices = (attrsToSearch: IAttribute[]): { xAttrIndex: number, yAttrIndex: number } => {
     const result = {xAttrIndex: -1, yAttrIndex: -1}
     let index = 0
     while (result.yAttrIndex < 0 && index < attrsToSearch.length) {
-      const foundNumeric = attrsToSearch[index].numValues.find(value=>isFinite(value))
-      if( foundNumeric) {
-        if(result.xAttrIndex < 0) {
+      const foundNumeric = attrsToSearch[index].numValues.find(value => isFinite(value))
+      if (foundNumeric) {
+        if (result.xAttrIndex < 0) {
           result.xAttrIndex = index
-        }
-        else {
+        } else {
           result.yAttrIndex = index
         }
       }

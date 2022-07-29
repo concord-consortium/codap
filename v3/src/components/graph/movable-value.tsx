@@ -10,7 +10,7 @@ export const MovableValue = (props: {
   xScale: ScaleLinear<number, number>
   yScale: ScaleLinear<number, number>
 }) => {
-  const { xScale: x, yScale: y, value, setValue, transform} = props,
+  const {xScale: x, yScale: y, value, setValue, transform} = props,
     valueRef = useRef<SVGSVGElement>(null),
     [xMin, xMax] = x.domain(),
     [xRangeMin, xRangeMax] = x.range(),
@@ -25,8 +25,8 @@ export const MovableValue = (props: {
       }
 
       function refreshValueLabel() {
-        // Todo: Derive the 60
-        const screenX = x(value) + 60,
+        const leftEdge = valueRef.current?.parentElement?.getBoundingClientRect().left,
+          screenX = x(value) + (leftEdge || 0),
           screenY = Number(valueRef.current?.getBoundingClientRect().top) - 12,
           string = valueLabelString(value)
         select('div.movable-value-label')
@@ -37,7 +37,7 @@ export const MovableValue = (props: {
 
       [valueObject.line, valueObject.cover].forEach(aLine => {
         aLine
-          .attr('transform', transform)
+          // .attr('transform', transform)
           .attr('x1', x(value))
           .attr('y1', top)
           .attr('x2', x(value))
@@ -64,8 +64,10 @@ export const MovableValue = (props: {
       newValueObject: any = {}
     newValueObject.line = selection.append('line')
       .attr('class', 'movable-value')
+      .attr('transform', transform)
     newValueObject.cover = selection.append('line')
       .attr('class', 'movable-value-cover')
+      .attr('transform', transform)
     newValueObject.valueLabel = select('.plot').append('div')
       .attr('class', 'movable-value-container')
       .attr('class', 'movable-value-label')
@@ -80,11 +82,9 @@ export const MovableValue = (props: {
         .duration(1000)
         .remove()
     }
-  }, [])
+  }, [transform])
 
   return (
-    <g>
-      <g ref={valueRef}/>
-    </g>
+    <g ref={valueRef}/>
   )
 }
