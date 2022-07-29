@@ -8,20 +8,6 @@ interface IUseColumnsProps {
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
 
-  // const handleClick = useCallback((caseId: string, evt: React.MouseEvent) => {
-  //   onIndexClick?.(caseId, evt)
-  // }, [onIndexClick])
-
-  // // index cell formatter/renderer
-  // const indexFormatter = useCallback(({ row }: TFormatterProps) => {
-  //   const index = data?.caseIndexFromID(row.__id__)
-  //   return (
-  //     <div className="codap-index-content" onClick={e => handleClick(row.__id__, e) }>
-  //       {index != null ? `${index + 1}` : ""}
-  //     </div>
-  //   )
-  // }, [data, handleClick])
-
   // cell formatter/renderer
   const cellFormatter = useCallback(({ column, row }: TFormatterProps) => {
     const value = data?.getValue(row.__id__, column.key) ?? ""
@@ -29,16 +15,6 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // we can support other formats here (dates, colors, etc.)
     return <span>{value}</span>
   }, [data])
-
-  // // index column definition
-  // const indexColumn: TColumn = useMemo(() => ({
-  //   key: "__index__",
-  //   name: "index",
-  //   minWidth: 52,
-  //   width: 52,
-  //   cellClass: "codap-index-cell",
-  //   formatter: indexFormatter
-  // }), [indexFormatter])
 
   // column definitions
   const columns: TColumn[] = useMemo(() => data
