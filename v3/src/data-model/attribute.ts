@@ -81,6 +81,9 @@ export const Attribute = types.model("Attribute", {
     if (typeof value === "string") return parseFloat(value)
     return Number(value)
   },
+  get emptyCount() {
+    return self.strValues.reduce((prev, current) => current === "" ? ++prev : prev, 0)
+  },
   get numericCount() {
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }
@@ -124,8 +127,8 @@ export const Attribute = types.model("Attribute", {
   get type() {
     if (self.userType) return self.userType
     if (self.numValues.length === 0) return
-    // only infer numeric if all values are numeric (CODAP2)
-    return self.numericCount === self.numValues.length ? "numeric" : "nominal"
+    // only infer numeric if all non-empty values are numeric (CODAP2)
+    return self.numericCount === self.numValues.length - self.emptyCount ? "numeric" : "categorical"
   },
   value(index: number) {
     return self.strValues[index]
