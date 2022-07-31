@@ -136,6 +136,10 @@ describe("Attribute", () => {
     expect(attribute.numericCount).toBe(6)
     expect(attribute.type).toBe("numeric")
 
+    // undefined/empty values are ignored when determining type
+    attribute.setValue(2, undefined)
+    expect(attribute.type).toBe("numeric")
+
     attribute.removeValues(2)
     expect(attribute.length).toBe(5)
     expect(attribute.value(2)).toBe("1")
@@ -154,7 +158,7 @@ describe("Attribute", () => {
     expect(attribute.value(3)).toBe("a")
     expect(attribute.isNumeric(3)).toBe(false)
     expect(attribute.numeric(3)).toBeNaN()
-    expect(attribute.type).toBe("nominal")
+    expect(attribute.type).toBe("categorical")
 
     attribute.setUserType("numeric")
     expect(attribute.type).toBe("numeric")
