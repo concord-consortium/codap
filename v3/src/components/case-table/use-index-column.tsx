@@ -1,26 +1,28 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { IDataSet } from "../../data-model/data-set"
-import { TColumn, TFormatterProps } from "./case-table-types"
+import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
+import { ColumnHeader } from "./column-header"
 
 interface IHookProps {
   data?: IDataSet
-  onIndexClick?: (caseId: string, evt: React.MouseEvent) => void
+  onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const useIndexColumn = ({ data, onIndexClick }: IHookProps) => {
+export const useIndexColumn = ({ data, onClick }: IHookProps) => {
   // formatter/renderer
   const formatter = useCallback(({ row: { __id__ } }: TFormatterProps) => {
     const index = data?.caseIndexFromID(__id__)
     return (
-      <IndexCell caseId={__id__} index={index} onIndexClick={onIndexClick} />
+      <IndexCell caseId={__id__} index={index} onClick={onClick} />
     )
-  }, [data, onIndexClick])
+  }, [data, onClick])
 
   // column definition
   const indexColumn: TColumn = useMemo(() => ({
-    key: "__index__",
+    key: kIndexColumnKey,
     name: "index",
     minWidth: 52,
     width: 52,
+    headerRenderer: ColumnHeader,
     cellClass: "codap-index-cell",
     formatter
   }), [formatter])
@@ -31,11 +33,15 @@ export const useIndexColumn = ({ data, onIndexClick }: IHookProps) => {
 interface ICellProps {
   caseId: string
   index?: number
-  onIndexClick?: (caseId: string, evt: React.MouseEvent) => void
+  onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const IndexCell = ({ caseId, index, onIndexClick }: ICellProps) => {
+export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
 
-  const cellRef = useRef<HTMLDivElement>(null)
+  const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
+
+  const setNodeRef = (elt: HTMLDivElement | null) => {
+    setCellElt(elt)
+  }
 
   /*
     To its credit, ReactDataGrid puts appropriate aria role tags on every cell in the grid.
@@ -46,7 +52,7 @@ export const IndexCell = ({ caseId, index, onIndexClick }: ICellProps) => {
     we can fix it ourselves by post-processing the role attribute for our parent.
    */
   useEffect(() => {
-    const parent = cellRef.current?.parentElement
+    const parent = cellElt?.parentElement
     if (parent?.classList.contains("rdg-cell") && parent?.getAttribute("role") === "gridcell") {
       parent.setAttribute("role", "rowheader")
     }
@@ -54,8 +60,8 @@ export const IndexCell = ({ caseId, index, onIndexClick }: ICellProps) => {
   })
 
   return (
-    <div ref={cellRef} className="codap-index-content" data-testid="codap-index-content"
-      onClick={e => onIndexClick?.(caseId, e) }>
+    <div ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content"
+      onClick={e => onClick?.(caseId, e) }>
       {index != null ? `${index + 1}` : ""}
     </div>
   )

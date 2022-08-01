@@ -130,6 +130,7 @@
     "webpack-dev-server": "^4.9.3"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.0.5",
     "d3": "^7.6.1",
     "escape-string-regexp": "^5.0.0",
     "expr-eval": "^2.0.2",

@@ -22,6 +22,7 @@ describe("DataSummary component", () => {
     expect(screen.queryByText("No data")).not.toBeInTheDocument()
     expect(screen.getByText(`Parsed "foo"`, { exact: false })).toBeInTheDocument()
     expect(screen.getByText("1 case(s)", { exact: false })).toBeInTheDocument()
-    expect(screen.getByText("a, b", { exact: false })).toBeInTheDocument()
+    expect(screen.getAllByText("a")).toBeTruthy()
+    expect(screen.getAllByText("b")).toBeTruthy()
   })
 })
