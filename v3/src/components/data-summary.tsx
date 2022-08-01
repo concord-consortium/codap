@@ -18,8 +18,8 @@ export const DataSummary = observer(({ broker }: IProps) => {
 
   const [selectedAttribute, setSelectedAttribute] = useState<IAttribute | undefined>()
 
-  const handleDrop = (attribute: IAttribute) => {
-    setSelectedAttribute(attribute)
+  const handleDrop = (attributeId: string) => {
+    setSelectedAttribute(data?.attrFromID(attributeId))
   }
 
   return (
@@ -57,10 +57,10 @@ const DraggableAttribute = ({ attribute, isOverlay = false }: IDraggableAttribut
 
 interface ISummaryDropTargetProps {
   attribute?: IAttribute
-  onDrop?: (attribute: IAttribute) => void
+  onDrop?: (attributeId: string) => void
 }
 const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
-  const data: any = { accepts: ["attribute"], onDrop: (active: Active) => onDrop?.(active.data?.current?.attribute)}
+  const data: any = { accepts: ["attribute"], onDrop: (active: Active) => onDrop?.(active.data?.current?.attributeId)}
   const { isOver, setNodeRef } = useDroppable({ id: "summary-inspector-drop", data })
   return (
     <>
