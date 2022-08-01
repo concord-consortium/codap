@@ -82,6 +82,8 @@ describe("Attribute", () => {
 
     attribute.setUnits("m")
     expect(attribute.units).toBe("m")
+    expect(attribute.numericCount).toBe(0)
+    expect(attribute.type).toBeUndefined()
 
     attribute.addValue("1")
     expect(attribute.length).toBe(1)
@@ -94,6 +96,7 @@ describe("Attribute", () => {
     expect(attribute.value(2)).toBe("3")
     expect(attribute.numeric(1)).toBe(2)
     expect(attribute.numeric(2)).toBe(3)
+    expect(attribute.numericCount).toBe(3)
 
     attribute.addValue(0, 0)
     expect(attribute.length).toBe(4)
@@ -130,6 +133,12 @@ describe("Attribute", () => {
     expect(attribute.value(1)).toBe("2")
     expect(attribute.numeric(0)).toBe(0)
     expect(attribute.numeric(1)).toBe(2)
+    expect(attribute.numericCount).toBe(6)
+    expect(attribute.type).toBe("numeric")
+
+    // undefined/empty values are ignored when determining type
+    attribute.setValue(2, undefined)
+    expect(attribute.type).toBe("numeric")
 
     attribute.removeValues(2)
     expect(attribute.length).toBe(5)
@@ -149,6 +158,10 @@ describe("Attribute", () => {
     expect(attribute.value(3)).toBe("a")
     expect(attribute.isNumeric(3)).toBe(false)
     expect(attribute.numeric(3)).toBeNaN()
+    expect(attribute.type).toBe("categorical")
+
+    attribute.setUserType("numeric")
+    expect(attribute.type).toBe("numeric")
 
     attribute.addValue()
     expect(attribute.value(5)).toBe("")
@@ -168,7 +181,7 @@ describe("Attribute", () => {
     x.postSerialize()
     expect(getSnapshot(x).values).toBeUndefined()
 
-    const y = Attribute.create({ name: "y", values: undefined })
+    const y = Attribute.create({ name: "y" })
     expect(y.values).toBeUndefined()
     expect(y.strValues.length).toBe(0)
     expect(getSnapshot(y).values).toBeUndefined()

@@ -149,15 +149,24 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[0].name).toBe("num")
   expect(dataset.attributes[1].name).toBe("str")
   // move second attribute before the first
-  dataset.moveAttribute(strAttrID, numAttrID)
+  dataset.moveAttribute(strAttrID, { before: numAttrID })
   expect(dataset.attributes[0].name).toBe("str")
   expect(dataset.attributes[1].name).toBe("num")
-  strAttr = dataset.attrFromName("str")
-  expect(strAttr?.id).toBe(strAttrID)
+  // move first attribute after the second
+  dataset.moveAttribute(strAttrID, { after: numAttrID })
+  expect(dataset.attributes[0].name).toBe("num")
+  expect(dataset.attributes[1].name).toBe("str")
+  // move attribute to bugus location moves it to end
+  dataset.moveAttribute(numAttrID, { after: "bogus" })
+  expect(dataset.attributes[0].name).toBe("str")
+  expect(dataset.attributes[1].name).toBe("num")
   // moving a non-existent attribute is a no-op
   dataset.moveAttribute("")
   expect(dataset.attributes[0].name).toBe("str")
   expect(dataset.attributes[1].name).toBe("num")
+
+  strAttr = dataset.attrFromName("str")
+  expect(strAttr?.id).toBe(strAttrID)
 
   // validate attribute indices
   dataset.attributes.forEach((attr, index) => {
@@ -420,6 +429,25 @@ test("Canonical case functionality", () => {
   dataset.removeCases([""])
   expect(dataset.cases.length).toBe(2)
   destroy(dataset)
+})
+
+test("DataSet case selection", () => {
+  const ds = DataSet.create({ name: "data" })
+  ds.addCases([{__id__: "c1"}, {__id__: "c2"}, {__id__: "c3"}, {__id__: "c4"}, {__id__: "c5"}])
+  expect(ds.cases.length).toBe(5)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
+  ds.selectCases(["c1", "c4"])
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
+  ds.selectAll(false)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
+  ds.selectAll(true)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
+  ds.selectCases(["c1", "c4"], false)
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, true, true, false, true])
+  ds.setSelectedCases(["c1", "c4"])
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
+  ds.selectAll()
+  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
 })
 
 test("Derived DataSet functionality", () => {

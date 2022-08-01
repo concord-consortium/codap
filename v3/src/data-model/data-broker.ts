@@ -60,6 +60,11 @@ export class DataBroker {
   removeDataSet(id: string) {
     this.dataSets.delete(id)
   }
+
+  @action
+  clear() {
+    this.dataSets.clear()
+  }
 }
 
 // for MVP we only support a single DataSet

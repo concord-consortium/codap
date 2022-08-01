@@ -36,7 +36,7 @@
 
 import { findIndex } from "lodash"
 import {
-  addMiddleware, applyAction, getEnv, getSnapshot, Instance, ISerializedActionCall, onAction, types
+  addMiddleware, applyAction, getEnv, Instance, ISerializedActionCall, onAction, types
 } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot, IValueType } from "./attribute"
 import { uniqueId, uniqueOrderedId } from "../utilities/js-utils"
@@ -74,6 +74,11 @@ export interface IAddCaseOptions {
   // id(s) of case(s) before which to insert new cases
   // if not specified, new cases are appended
   before?: string | string[];
+}
+
+export interface IMoveAttributeOptions {
+  before?: string;  // id of attribute before which the moved attribute should be placed
+  after?: string;   // id of attribute after which the moved attribute should be placed
 }
 
 export interface IDerivationSpec {
@@ -149,6 +154,8 @@ export const DataSet = types.model("DataSet", {
   name: types.maybe(types.string),
   attributes: types.array(Attribute),
   cases: types.array(CaseID),
+  // MST doesn't have a types.set
+  selection: types.map(types.string)
 })
 .volatile(self => ({
   transactionCount: 0
@@ -335,6 +342,9 @@ export const DataSet = types.model("DataSet", {
           cases.push(getCaseAtIndex(i, options))
         }
         return cases
+      },
+      isCaseSelected(caseId: string) {
+        return self.selection.has(caseId)
       },
       get isInTransaction() {
         return self.transactionCount > 0
@@ -549,20 +559,20 @@ export const DataSet = types.model("DataSet", {
         }
       },
 
-      moveAttribute(attributeID: string, beforeID?: string) {
-        const srcAttrIndex = attrIndexFromID(attributeID)
-        if (srcAttrIndex != null) {
-          const snapshot = getSnapshot(self.attributes[srcAttrIndex])
-          self.attributes.splice(srcAttrIndex, 1)
-          let dstAttrIndex = beforeID ? attrIndexFromID(beforeID) : undefined
-          if (dstAttrIndex != null) {
-            self.attributes.splice(dstAttrIndex, 0, snapshot as IAttribute)
-          }
-          else {
-            self.attributes.push(snapshot as IAttribute)
-            dstAttrIndex = self.attributes.length - 1
-          }
-          attrIDMap[attributeID] = self.attributes[dstAttrIndex]
+      moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
+        const beforeAttrIndex = options?.before ? attrIndexFromID(options.before) : undefined
+        const afterAttrIndex = options?.after ? attrIndexFromID(options.after) : undefined
+        if (attrIDMap[attributeID]) {
+          const dstOrder: Record<string, number> = {}
+          self.attributes.forEach((attr, i) => dstOrder[attr.id] = i)
+          // assign the moved attribute an "index" value corresponding to its destination
+          dstOrder[attributeID] = beforeAttrIndex != null
+                                    ? beforeAttrIndex - 0.5
+                                    : afterAttrIndex != null
+                                        ? afterAttrIndex + 0.5
+                                        : self.attributes.length
+          // sort the attributes by the adjusted "indices"
+          self.attributes.sort((a, b) => dstOrder[a.id] - dstOrder[b.id])
         }
       },
 
@@ -601,6 +611,31 @@ export const DataSet = types.model("DataSet", {
             }
           }
         })
+      },
+
+      selectAll(select = true) {
+        if (select) {
+          self.cases.forEach(({__id__}) => self.selection.set(__id__, __id__))
+        }
+        else {
+          self.selection.clear()
+        }
+      },
+
+      selectCases(caseIds: string[], select = true) {
+        caseIds.forEach(id => {
+          if (select) {
+            self.selection.set(id, id)
+          }
+          else {
+            self.selection.delete(id)
+          }
+        })
+      },
+
+      setSelectedCases(caseIds: string[]) {
+        this.selectAll(false)
+        this.selectCases(caseIds)
       }
     }
   }

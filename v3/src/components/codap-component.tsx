@@ -1,6 +1,8 @@
 import React, { Children, cloneElement, ReactElement } from "react"
 import { DataBroker } from "../data-model/data-broker"
 
+import "./codap-component.scss"
+
 interface IProps {
   broker: DataBroker;
 }

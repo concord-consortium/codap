@@ -43,11 +43,15 @@ export function importValueToString(value: IValueType) {
   return value == null ? "" : typeof value === "string" ? value : JSON.stringify(value)
 }
 
+export const attributeTypes = ["categorical", "numeric", "date", "qualitative", "boundary", "checkbox"] as const
+export type AttributeType = typeof attributeTypes[number]
+
 export const Attribute = types.model("Attribute", {
   id: types.optional(types.identifier, () => uniqueId()),
   clientKey: "",
   sourceID: types.maybe(types.string),
   name: types.string,
+  userType: types.maybe(types.enumeration([...attributeTypes])),
   hidden: false,
   units: "",
   formula: types.optional(Formula, () => Formula.create()),
@@ -76,6 +80,12 @@ export const Attribute = types.model("Attribute", {
     if (value == null || value === "") return NaN
     if (typeof value === "string") return parseFloat(value)
     return Number(value)
+  },
+  get emptyCount() {
+    return self.strValues.reduce((prev, current) => current === "" ? ++prev : prev, 0)
+  },
+  get numericCount() {
+    return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }
 }))
 .actions(self => ({
@@ -114,6 +124,12 @@ export const Attribute = types.model("Attribute", {
   get length() {
     return self.strValues.length
   },
+  get type() {
+    if (self.userType) return self.userType
+    if (self.numValues.length === 0) return
+    // only infer numeric if all non-empty values are numeric (CODAP2)
+    return self.numericCount === self.numValues.length - self.emptyCount ? "numeric" : "categorical"
+  },
   value(index: number) {
     return self.strValues[index]
   },
@@ -137,6 +153,9 @@ export const Attribute = types.model("Attribute", {
   },
   setUnits(units: string) {
     self.units = units
+  },
+  setUserType(type: AttributeType) {
+    self.userType = type
   },
   clearFormula() {
     self.formula.setDisplay()
