@@ -1,18 +1,24 @@
+import { useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback } from "react"
 import DataGrid from "react-data-grid"
+import { AttributeDragOverlay } from "./attribute-drag-overlay"
 import { DataBroker } from "../../data-model/data-broker"
+import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useColumns } from "./use-columns"
+import { useIndexColumn } from "./use-index-column"
 import { useSelectedRows } from "./use-selected-rows"
 
 import "./case-table.scss"
-import { useIndexColumn } from "./use-index-column"
 
 interface IProps {
   broker?: DataBroker
 }
 export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
   const data = broker?.last
+
+  const { active } = useDndContext()
+  const { setNodeRef } = useDroppable({ id: "case-table-drop", data: { accepts: ["attribute"] } })
 
   const [selectedRows, setSelectedRows] = useSelectedRows(data)
 
@@ -29,7 +35,7 @@ export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
     }
   }, [data])
 
-  const indexColumn = useIndexColumn({ data, onIndexClick: handleIndexClick })
+  const indexColumn = useIndexColumn({ data, onClick: handleIndexClick })
   const columns = useColumns({ data, indexColumn })
 
   if (!data) return null
@@ -39,10 +45,13 @@ export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
   const rowKey = (row: typeof rows[0]) => row.__id__
 
   return (
-    <div className="case-table" data-testid="case-table">
-      {/* @ts-expect-error columns strictFunctionTypes: false */}
-      <DataGrid className="rdg-light" columns={columns} rows={rows} rowKeyGetter={rowKey}
-        selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} />
-    </div>
+    <DataSetContext.Provider value={data}>
+      <div ref={setNodeRef} className="case-table" data-testid="case-table">
+        {/* @ts-expect-error columns strictFunctionTypes: false */}
+        <DataGrid className="rdg-light" columns={columns} rows={rows} rowKeyGetter={rowKey}
+          selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} />
+        <AttributeDragOverlay activeDragAttrId={`${active?.id}`} column={active?.data?.current?.column} />
+      </div>
+    </DataSetContext.Provider>
   )
 })

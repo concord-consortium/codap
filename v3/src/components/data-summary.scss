@@ -1,6 +1,39 @@
 .data-summary {
+  position: relative;
   width: 100%;
   height: 100%;
   background-color: aliceblue;
   padding: 5px;
+
+  .summary-inspector-drop {
+    position: absolute;
+    left: 10px;
+    bottom: 20px;
+    border: 1px solid gray;
+    padding: 5px 10px;
+    background: #eee;
+
+    &.over {
+      background: #ccc;
+    }
+  }
+
+  .summary-attribute-info {
+    position: absolute;
+    left: 180px;
+    bottom: 5px;
+    padding: 5px;
+  }
+}
+
+.draggable-attribute {
+  display: inline-block;
+  border: 1px solid gray;
+  padding: 3px;
+  margin: 3px;
+  background: #eee;
+
+  &.overlay {
+    opacity: 50%;
+  }
 }

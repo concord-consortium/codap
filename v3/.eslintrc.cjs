@@ -83,7 +83,7 @@ module.exports = {
     "radix": "error",
     "react/jsx-closing-tag-location": "error",
     "react/jsx-handler-names": "off",
-    "react/jsx-no-useless-fragment": "error",
+    "react/jsx-no-useless-fragment": "off",
     "react/no-access-state-in-setstate": "error",
     "react/no-danger": "error",
     "react/no-unsafe": ["off", { checkAliases: true }],
