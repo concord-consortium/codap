@@ -2,7 +2,7 @@
  * Graph Custom Hooks
  */
 import {extent, ScaleLinear} from "d3"
-import {useEffect} from "react"
+import React, {useEffect} from "react"
 import {IAttribute} from "../../../data-model/attribute"
 import {DataBroker} from "../../../data-model/data-broker"
 import {InternalizedData} from "../graphing-types"
@@ -60,37 +60,42 @@ export const useGetData = (props: IUseGetDataProps) => {
 
   useEffect(() => {
     if (broker?.last) {
-      const dataSet = broker?.last,
-        attributes = dataSet?.attributes,
-        {xAttrId, yAttrId} = findNumericAttrIds(attributes || []),
-        xValues = dataSet.attrFromID(xAttrId).numValues,
-        yValues = dataSet.attrFromID(yAttrId).numValues
+      const worldDataSet = broker?.last,
+        attributes = worldDataSet?.attributes,
+        {xAttrId, yAttrId} = findNumericAttrIds(attributes || [])
+      if (xAttrId === '' || yAttrId === '') {
+        return
+      }
+      const xValues = worldDataSet.attrFromID(xAttrId).numValues,
+        yValues = worldDataSet.attrFromID(yAttrId).numValues
       dataRef.current.xAttributeID = xAttrId
       dataRef.current.yAttributeID = yAttrId
-      dataRef.current.cases = dataSet.cases.map(aCase=>aCase.__id__)
-      xNameRef.current = dataSet.attrFromID(xAttrId).name || ''
-      yNameRef.current = dataSet.attrFromID(yAttrId).name || ''
+      dataRef.current.cases = worldDataSet.cases.map(aCase => aCase.__id__)
+        .filter(anID => {
+          return isFinite(Number(worldDataSet?.getNumeric(anID, xAttrId))) &&
+            isFinite(Number(worldDataSet?.getNumeric(anID, yAttrId)))
+        })
+      xNameRef.current = worldDataSet.attrFromID(xAttrId).name || ''
+      yNameRef.current = worldDataSet.attrFromID(yAttrId).name || ''
       if (dataRef.current.cases.length > 0) {
         xAxis.domain(extent(xValues, d => d) as [number, number]).nice()
         yAxis.domain(extent(yValues, d => d) as [number, number]).nice()
       }
       setCounter((prevCounter: number) => ++prevCounter)
-      // console.log('dataRef.current =', dataRef.current)
     }
   }, [broker?.last, dataRef, setCounter, xAxis, yAxis, xNameRef, yNameRef])
 
 }
 
-export const useSelection =(dataSet: IDataSet | undefined,
-                            setRefreshCounter: React.Dispatch<React.SetStateAction<number>>) =>
-{
+export const useSelection = (worldDataRef: React.MutableRefObject<IDataSet | undefined>,
+                             setRefreshCounter: React.Dispatch<React.SetStateAction<number>>) => {
   useEffect(() => {
     const disposer = autorun(() => {
-      dataSet?.selection.forEach(() => {/* just chillin... */
+      worldDataRef.current?.selection.forEach(() => {/* just chillin... */
       })
       setRefreshCounter(count => ++count)
     })
     return () => disposer()
-  }, [dataSet?.selection, setRefreshCounter])
+  }, [worldDataRef, worldDataRef.current?.selection, setRefreshCounter])
 }
 

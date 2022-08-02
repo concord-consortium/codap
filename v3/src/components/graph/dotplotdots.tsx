@@ -20,13 +20,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   plotHeight: number,
   xMin: number,
   xMax: number,
-  dataSet?: IDataSet,
+  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
   graphDataRef: React.MutableRefObject<InternalizedData>,
-  setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {
-      dataSet, graphDataRef, dotsRef, plotWidth, plotHeight, xMax, xMin,
+      worldDataRef, graphDataRef, dotsRef, plotWidth, plotHeight, xMax, xMin,
       dots: {xScale, yScale}
     } = props,
     [dragID, setDragID] = useState(''),
@@ -50,15 +49,15 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           .attr('r', dragRadius)
         setDragID(() => tItsID)
         currPos.current = {x: event.clientX}
-        dataSet?.selectCases([tItsID])
+        worldDataRef.current?.selectCases([tItsID])
         // Record the current values so we can change them during the drag and restore them when done
-        dataSet?.selection.forEach(anID => {
+        worldDataRef.current?.selection.forEach(anID => {
           selectedDataObjects.current[anID] = {
-            x: dataSet?.getNumeric(anID, xAttrID) ?? 0
+            x: worldDataRef.current?.getNumeric(anID, xAttrID) ?? 0
           }
         })
       }
-    }, [firstTime, setFirstTime, dataSet, graphDataRef]),
+    }, [firstTime, setFirstTime, worldDataRef, graphDataRef]),
 
     onDrag = useCallback((event: MouseEvent) => {
       const xAttrID = graphDataRef.current.xAttributeID
@@ -68,14 +67,14 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         currPos.current = newPos
         if (dx !== 0) {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0))
-          dataSet?.selection.forEach(anID => {
-            const currX = dataSet.getNumeric(anID, xAttrID)
-            dataSet?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
+          worldDataRef.current?.selection.forEach(anID => {
+            const currX = worldDataRef.current?.getNumeric(anID, xAttrID)
+            worldDataRef.current?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
           })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
       }
-    }, [currPos, dragID, xScale, dataSet, graphDataRef]),
+    }, [currPos, dragID, xScale, worldDataRef, graphDataRef]),
 
     onDragEnd = useCallback(() => {
       const xAttrID = graphDataRef.current.xAttributeID
@@ -87,12 +86,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         setDragID(() => '')
         target.current = null
       }
-      dataSet?.selection.forEach(anID => {
-        dataSet?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
+      worldDataRef.current?.selection.forEach(anID => {
+        worldDataRef.current?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
       })
       setFirstTime(true)  // So points will animate back to original positions
       setRefreshCounter(prevCounter => ++prevCounter)
-    }, [dragID, dataSet, graphDataRef])
+    }, [dragID, worldDataRef, graphDataRef])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -105,7 +104,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           bins: string[][] = range(numBins + 1).map(() => [])
 
         graphDataRef.current.cases.forEach((anID) => {
-          const numerator = xScale?.(dataSet?.getNumeric(anID, xAttrID) ?? -1),
+          const numerator = xScale?.(worldDataRef.current?.getNumeric(anID, xAttrID) ?? -1),
             bin = Math.ceil((numerator ?? 0) / binWidth)
           if (bin >= 0 && bin <= numBins) {
             bins[bin].push(anID)
@@ -131,7 +130,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
 
       const selection = select(dotsSvgElement).selectAll('circle')
         .classed('dot-highlighted',
-          (anID:string ) => !!(dataSet?.isCaseSelected(anID)))
+          (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
       if (tTransitionDuration > 0) {
         selection
           .transition()
@@ -139,19 +138,19 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           .on('end', () => {
             setFirstTime(false)
           })
-          .attr('cx', (anID:string) => getScreenCoord(dataSet, anID, xAttrID, xScale))
+          .attr('cx', (anID:string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale))
           .attr('cy', (anID: string) => computeYCoord(binMap[anID]))
           .attr('r', defaultRadius)
       } else {
         selection
-          .attr('cx', (anID: string) => getScreenCoord(dataSet, anID, xAttrID, xScale))
+          .attr('cx', (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale))
           .attr('cy', (anID: string) => computeYCoord(binMap[anID]))
       }
       select(dotsSvgElement)
         .selectAll('.dot-highlighted')
         .raise()
 
-    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, graphDataRef, dataSet,
+    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, graphDataRef, worldDataRef,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
   )
 
@@ -163,7 +162,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     setForceRefreshCounter(prevCounter => ++prevCounter)
   }, [])
 
-  useSelection(dataSet, setRefreshCounter)
+  useSelection(worldDataRef, setRefreshCounter)
 
   return (
     <svg/>

@@ -24,6 +24,7 @@ interface IProps {
 const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
   x = scaleLinear().domain([0, 10]),
   y = scaleLinear().domain([0, 10]),
+  float = format('.1f'),
   dotsProps: plotProps = {
     xScale: x,
     yScale: y,
@@ -37,6 +38,7 @@ export const Graph = observer(({broker}: IProps) => {
       yAttributeID: '',
       cases: []
     }),
+    worldDataRef = useRef(broker?.last),
     xAttributeNameRef = useRef(''),
     yAttributeNameRef = useRef(''),
     {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
@@ -45,11 +47,10 @@ export const Graph = observer(({broker}: IProps) => {
     plotHeight = 0.8 * (height || 500),
     plotHeightRef = useCurrent(plotHeight),
     defaultRadius = 5,
-    float = format('.1f'),
 
     [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('dotplot'),
     [counter, setCounter] = useState(0),
-    [highlightCounter, setHighlightCounter] = useState(0),
+    [, setHighlightCounter] = useState(0),
 
     keyFunc = (d: string) => d,
     svgRef = useRef<SVGSVGElement>(null),
@@ -65,67 +66,55 @@ export const Graph = observer(({broker}: IProps) => {
   y.range([plotHeightRef.current, 0])
 
   if (broker) {
-
-    const dataSet = broker.last
-
+    worldDataRef.current = broker.last
     useGetData({
       broker, dataRef: graphDataRef,
       xNameRef: xAttributeNameRef, yNameRef: yAttributeNameRef, xAxis: x, yAxis: y, setCounter
     })
-
-    useEffect(function setupPlotArea() {
-      select(plotAreaSVGRef.current)
-        // .attr('transform', props.plotProps.transform)
-        .attr('x', x.range()[0] + 60)
-        .attr('y', 0)
-        .attr('width', plotWidth)
-      // .attr('height', plotHeightRef)
-    }, [plotWidth])
-
-    useEffect(function createCircles() {
-      const xID = graphDataRef.current.xAttributeID,
-        yID = graphDataRef.current.yAttributeID
-      select(dotsRef.current)
-        .selectAll('circle')
-        .data(graphDataRef.current.cases, keyFunc)
-        .join(
-          // @ts-expect-error void => Selection
-          (enter) => {
-            enter.append('circle')
-              .attr('class', 'dot')
-              .attr("r", defaultRadius)
-              .property('id', (anID) => anID)
-              .attr('cx', (anID) => {
-                return getScreenCoord(dataSet, anID, xID, x)
-              })
-              .attr('cy', (anID: string) => {
-                  return getScreenCoord(dataSet, anID, yID, y)
-                }
-              )
-              .selection()
-              .append('title')
-          },
-          (update) => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            update.classed('dot-highlighted', (anID: string) => {
-              return dataSet?.isCaseSelected(anID)
-            })
-              .select('title')
-              .text((anID: string) => {
-                const xVal = dataSet?.getNumeric(anID, xID) ?? 0,
-                  yVal = dataSet?.getNumeric(anID, yID) ?? 0
-                return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
-              })
-          },
-          (exit) => {
-            exit.transition()
-              .attr('r', 0)
-              .remove()
-          }
-        )
-    }, [float, dataSet, highlightCounter])
   }
+
+  useEffect(function setupPlotArea() {
+    select(plotAreaSVGRef.current)
+      // .attr('transform', props.plotProps.transform)
+      .attr('x', x.range()[0] + 60)
+      .attr('y', 0)
+      .attr('width', plotWidth)
+    // .attr('height', plotHeightRef)
+  }, [plotWidth])
+
+  useEffect(function createCircles() {
+    const xID = graphDataRef.current.xAttributeID,
+      yID = graphDataRef.current.yAttributeID
+
+    select(dotsRef.current).selectAll('circle').remove()
+
+    select(dotsRef.current)
+      .selectAll('circle')
+      .data(graphDataRef.current.cases, keyFunc)
+      .join(
+        // @ts-expect-error void => Selection
+        (enter) => {
+          enter.append('circle')
+            .attr('class', 'dot')
+            .attr("r", defaultRadius)
+            .property('id', (anID: string) => anID)
+            .attr('cx', (anID: string) => {
+              return getScreenCoord(worldDataRef.current, anID, xID, x)
+            })
+            .attr('cy', (anID: string) => {
+                return getScreenCoord(worldDataRef.current, anID, yID, y)
+              }
+            )
+            .selection()
+            .append('title')
+            .text((anID: string) => {
+              const xVal = worldDataRef.current?.getNumeric(anID, xID) ?? 0,
+                yVal = worldDataRef.current?.getNumeric(anID, yID) ?? 0
+              return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
+            })
+        }
+      )
+  }, [broker?.last])
 
   return (
     <div className='plot' ref={plotRef} data-testid="graph">
@@ -159,7 +148,7 @@ export const Graph = observer(({broker}: IProps) => {
                 }
               }
         />
-        <Background dots={dotsProps} dataSet={broker?.last} dataRef={graphDataRef}
+        <Background dots={dotsProps} worldDataRef={worldDataRef} dataRef={graphDataRef}
                     marquee={{rect: marqueeRect, setRect: setMarqueeRect}}
                     setHighlightCounter={setHighlightCounter}/>
         <svg ref={plotAreaSVGRef} className='dotArea'>
@@ -174,7 +163,7 @@ export const Graph = observer(({broker}: IProps) => {
                   yMax={y.domain()[0]}
                   plotWidth={x.range()[1] - x.range()[0]}
                   plotHeight={y.range()[0] - y.range()[1]}
-                  dataSet={broker?.last}
+                  worldDataRef={worldDataRef}
                   dataRef={graphDataRef}
                   dotsRef={dotsRef}
                 />
@@ -185,9 +174,8 @@ export const Graph = observer(({broker}: IProps) => {
                   xMax={x.domain()[1]}
                   plotWidth={x.range()[1] - x.range()[0]}
                   plotHeight={y.range()[0] - y.range()[1]}
-                  dataSet={broker?.last}
+                  worldDataRef={worldDataRef}
                   graphDataRef={graphDataRef}
-                  setHighlightCounter={setHighlightCounter}
                   dotsRef={dotsRef}
                 />)
             }

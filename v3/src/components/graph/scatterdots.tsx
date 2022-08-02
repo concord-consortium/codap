@@ -12,11 +12,11 @@ export const ScatterDots = memo(function ScatterDots(props: {
   xMax: number,
   yMin: number,
   yMax: number,
-  dataSet?: IDataSet,
+  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
   dataRef: React.MutableRefObject<InternalizedData>,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
-  const {dataSet, dataRef, dotsRef, plotProps: {xScale, yScale}, xMax, xMin, yMax, yMin} = props,
+  const {worldDataRef, dataRef, dotsRef, plotProps: {xScale, yScale}, xMax, xMin, yMax, yMin} = props,
     defaultRadius = 5,
     dragRadius = 10,
     [dragID, setDragID] = useState(''),
@@ -43,16 +43,16 @@ export const ScatterDots = memo(function ScatterDots(props: {
         setDragID(() => tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
-        dataSet?.selectCases([tItsID])
+        worldDataRef.current?.selectCases([tItsID])
         // Record the current values so we can change them during the drag and restore them when done
-        dataSet?.selection.forEach(anID => {
+        worldDataRef.current?.selection.forEach(anID => {
           selectedDataObjects.current[anID] = {
-            x: dataSet?.getNumeric(anID, xAttrID) ?? 0,
-            y: dataSet?.getNumeric(anID, yAttrID) ?? 0
+            x: worldDataRef.current?.getNumeric(anID, xAttrID) ?? 0,
+            y: worldDataRef.current?.getNumeric(anID, yAttrID) ?? 0
           }
         })
       }
-    }, [firstTime, setFirstTime, xAttrID, yAttrID, dataSet]),
+    }, [firstTime, setFirstTime, xAttrID, yAttrID, worldDataRef]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
@@ -63,16 +63,16 @@ export const ScatterDots = memo(function ScatterDots(props: {
         if (dx !== 0 || dy !== 0) {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0)),
             deltaY = Number(yScale?.invert(dy)) - Number(yScale?.invert(0))
-          dataSet?.selection.forEach(anID => {
-            const currX = dataSet.getNumeric(anID, xAttrID),
-              currY = dataSet.getNumeric(anID, yAttrID)
-            dataSet?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
-            dataSet?.setValue(anID, yAttrID, Number(currY ?? 0) + deltaY)
+          worldDataRef.current?.selection.forEach(anID => {
+            const currX = worldDataRef.current?.getNumeric(anID, xAttrID),
+              currY = worldDataRef.current?.getNumeric(anID, yAttrID)
+            worldDataRef.current?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
+            worldDataRef.current?.setValue(anID, yAttrID, Number(currY ?? 0) + deltaY)
           })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
       }
-    }, [dragID, xScale, yScale, setRefreshCounter, xAttrID, yAttrID, dataSet]),
+    }, [dragID, xScale, yScale, setRefreshCounter, xAttrID, yAttrID, worldDataRef]),
 
     onDragEnd = useCallback(() => {
       if (dragID !== '') {
@@ -83,21 +83,21 @@ export const ScatterDots = memo(function ScatterDots(props: {
         setDragID(() => '')
         target.current = null
 
-        dataSet?.selection.forEach(anID => {
-          dataSet?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
-          dataSet?.setValue(anID, yAttrID, selectedDataObjects.current[anID].y)
+        worldDataRef.current?.selection.forEach(anID => {
+          worldDataRef.current?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
+          worldDataRef.current?.setValue(anID, yAttrID, selectedDataObjects.current[anID].y)
         })
         setFirstTime(true) // So points will animate back to original positions
         setRefreshCounter(prevCounter => ++prevCounter)
       }
-    }, [dragID, xAttrID, yAttrID, dataSet])
+    }, [dragID, xAttrID, yAttrID, worldDataRef])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
 
     const getScreenCoord = (id: string, attrID: string, scale?: ScaleLinear<number, number>) => {
-      return Number(scale?.(Number(dataSet?.getNumeric(id, attrID))))
+      return Number(scale?.(Number(worldDataRef.current?.getNumeric(id, attrID))))
     }
 
       const
@@ -105,7 +105,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
         tTransitionDuration = firstTime ? transitionDuration : 0,
         selection = select(dotsSvgElement).selectAll('circle')
           .classed('dot-highlighted',
-            (d: { id: string }) => !!(dataSet?.isCaseSelected(d.id)))
+            (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
       if (tTransitionDuration > 0) {
         selection
           .transition()
@@ -126,7 +126,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
         .raise()
     }, [firstTime, dotsRef, xScale, yScale,
       xMin, xMax, yMin, yMax,
-      plotWidth, plotHeight, refreshCounter, forceRefreshCounter, xAttrID, yAttrID, dataSet]
+      plotWidth, plotHeight, refreshCounter, forceRefreshCounter, xAttrID, yAttrID, worldDataRef]
   )
 
   /**
@@ -137,7 +137,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
     setForceRefreshCounter(prevCounter => prevCounter)
   }, [])
 
-  useSelection(dataSet, setRefreshCounter)
+  useSelection(worldDataRef, setRefreshCounter)
 
   return (
     <svg/>

@@ -16,7 +16,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
             y: Number(element.cy.baseVal.value),
             w: 1, h: 1
           }
-        selectionTree.insert(rect, element.__data__.id)
+        selectionTree.insert(rect, element.__data__)
       })
     // @ts-expect-error fromJSON
     return selectionTree
@@ -34,7 +34,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
 
 export const Background = (props: {
   dots: plotProps,
-  dataSet?: IDataSet,
+  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
   dataRef:  React.MutableRefObject<InternalizedData>,
   marquee: {
     rect: Rect,
@@ -42,7 +42,7 @@ export const Background = (props: {
   }
   setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
 }) => {
-  const {dataSet, setHighlightCounter, dots: {xScale, yScale}} = props,
+  const {worldDataRef, setHighlightCounter, dots: {xScale, yScale}} = props,
     ref = useRef() as React.RefObject<SVGSVGElement>,
     plotX = Number(xScale?.range()[0]),
     plotY = Number(yScale?.range()[1]),
@@ -86,15 +86,15 @@ export const Background = (props: {
             h: height.current
           }),
           newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
-          newDeselection: string[] = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect),
+          newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect),
           deselectionSet = new Set(newDeselection)
         currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.concat(newSelection)
         currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.filter(anID => {
           return !deselectionSet.has(anID)
         })
-        dataSet?.setSelectedCases(currentlySelectedCaseIDs.current)
+        worldDataRef.current?.setSelectedCases(currentlySelectedCaseIDs.current)
       }
-    }, [height, props, dataSet, width]),
+    }, [height, props, worldDataRef, width]),
 
     onDragEnd = useCallback(() => {
       props.marquee.setRect({x: 0, y: 0, width: 0, height: 0})
@@ -108,7 +108,7 @@ export const Background = (props: {
         .on("end", onDragEnd),
       groupElement = ref.current
     select(groupElement).on('click', () => {
-      dataSet?.selectAll(false)
+      worldDataRef.current?.selectAll(false)
     })
 
     select(groupElement)
@@ -129,7 +129,7 @@ export const Background = (props: {
             .attr('y', plotY)
         }
       )
-  }, [dataSet, props, props.dots.transform, props.dots, props.marquee, setHighlightCounter,
+  }, [worldDataRef, props, props.dots.transform, props.dots, props.marquee, setHighlightCounter,
     xScale, yScale, plotX, plotY, plotWidth, plotHeight, height, width, startX, startY, onDrag, onDragStart, onDragEnd])
 
   return (
