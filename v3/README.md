@@ -26,13 +26,16 @@ or [The MIT License (MIT)](https://opensource.org/licenses/MIT). CODAP was initi
 
 ---
 
-# Developer instructions
+## Developer instructions
+
+CODAP v3 is being developed alongside CODAP v2 in the same [codap](https://github.com/concord-consortium/codap) repository. During this period of active development on both versions, `master` continues to be the master/main branch for v2 development while `main` is the master/main branch for v3 development.
 
 ### Initial steps
 
 1. Clone [this repo](https://github.com/concord-consortium/codap) and `cd` into its `v3` directory
-2. Run `npm install` to install dependencies
-3. Run `npm start` to run `webpack-dev-server` in development mode with hot module replacement
+2. Checkout the `main` branch
+3. Run `npm install` to install dependencies
+4. Run `npm start` to run `webpack-dev-server` in development mode with hot module replacement
 
 #### Run using HTTPS
 
@@ -60,13 +63,17 @@ You *do not* need to build to deploy the code, that is automatic.  See more info
    To ensure that you are open a TypeScript file in VSC and then click on the version number next to
    `TypeScript React` in the status bar and select 'Use Workspace Version' in the popup menu.
 
+### Development
+
+V3 pull requests should target the `main` branch and should apply the `v3` label. V2 pull requests should target the `master` branch and apply the `v2` label.
+
 ## Deployment
 
 Production releases to S3 are based on the contents of the `/dist` folder and are built automatically by GitHub Actions for each branch pushed to GitHub and each merge into the `v3-production` branch.
 
 Merges into the `v3-production` branch are deployed to the root at http://codap3.concord.org.
 
-Other branches are deployed to http://codap3.concord.org/branch/{branch-name}/.
+Other branches are deployed to https://codap3.concord.org/branch/{branch-name}/, e.g. https://codap3.concord.org/branch/main/ for the `main` branch. Note that the trailing slash is required. For arcane reasons leaving off the slash results in a redirect to an invalid url. ¯\_(ツ)_/¯
 
 To deploy a production release:
 
@@ -111,6 +118,6 @@ Inside of your `package.json` file:
 
 ## License
 
-Starter Projects are Copyright 2018 (c) by the Concord Consortium and is distributed under the [MIT license](http://www.opensource.org/licenses/MIT).
+Starter Projects are Copyright 2022 (c) by the Concord Consortium and is distributed under the [MIT license](http://www.opensource.org/licenses/MIT).
 
 See license.md for the complete license text.
