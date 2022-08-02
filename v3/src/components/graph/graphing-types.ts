@@ -10,9 +10,11 @@ export type axisProps = {
   setCounter: React.Dispatch<React.SetStateAction<number>>
 }
 
-// The name 'worldData' here is meant to imply the data comes from the real world context rather than screen
-export type idData = {
-  id: string
+// One element of the data array assigned to the points
+export type InternalizedData = {
+  xAttributeID: string,
+  yAttributeID: string,
+  cases:string[]
 }
 
 export type Rect = {

@@ -1,6 +1,7 @@
-import {format} from "d3"
+import {format, ScaleLinear} from "d3"
 import {Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
+import {IDataSet} from "../../../data-model/data-set"
 
 /**
  * Utility routines having to do with graph entities
@@ -20,7 +21,7 @@ export function ptInRect(pt: Point, iRect: Rect) {
 //  iSlope and iIntercept intersects the rectangle defined by the upper and lower
 //  bounds of the two axes.
 export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
-                                    xDomain: number[], yDomain: number[]): {
+                                     xDomain: number[], yDomain: number[]): {
   pt1: Point,
   pt2: Point
 } {
@@ -37,7 +38,7 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
     tY1 = tLogicalBounds.bottom
     tY2 = tLogicalBounds.top
   }
-  // Things can get hairy for nearly horizontal or nearly vertical lines.
+    // Things can get hairy for nearly horizontal or nearly vertical lines.
   // This conditional takes care of that.
   else if (Math.abs(iSlope) > 1) {
     tY1 = tLogicalBounds.bottom
@@ -178,7 +179,7 @@ export function rectangleSubtract(iA: rTreeRect, iB: rTreeRect) {
   return result
 }
 
-export function rectToTreeRect( rect:Rect) {
+export function rectToTreeRect(rect: Rect) {
   return {
     x: rect.x,
     y: rect.y,
@@ -186,3 +187,15 @@ export function rectToTreeRect( rect:Rect) {
     h: rect.height
   }
 }
+
+export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
+                               attrID: string, scale?: ScaleLinear<number, number>) {
+  const value = Number(dataSet?.getNumeric(id, attrID)),
+    screenCoord = Number(scale?.(value))
+/*
+  console.log(
+    `datasetID = ${dataSet?.id}; attrID = ${attrID}; caseID = ${id}; value = ${value}; screenCoord = ${screenCoord}`)
+*/
+  return screenCoord
+}
+

@@ -4,7 +4,7 @@ import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, idData} from "./graphing-types"
+import {plotProps, InternalizedData} from "./graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -13,6 +13,7 @@ import {MovableValue} from "./movable-value"
 import {DataBroker} from "../../data-model/data-broker"
 import {useGetData} from "./graph-hooks/graph-hooks"
 import {useCurrent} from "../../hooks/use-current"
+import {getScreenCoord} from "./graph-utils/graph_utils"
 
 import "./graph.scss"
 
@@ -31,7 +32,11 @@ const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
 
 export const Graph = observer(({broker}: IProps) => {
   const
-    importedDataRef = useRef<idData[]>([]),
+    graphDataRef = useRef<InternalizedData>({
+      xAttributeID: '',
+      yAttributeID: '',
+      cases: []
+    }),
     xAttributeNameRef = useRef(''),
     yAttributeNameRef = useRef(''),
     {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
@@ -43,11 +48,10 @@ export const Graph = observer(({broker}: IProps) => {
     float = format('.1f'),
 
     [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('dotplot'),
-    [data, setData] = useState(importedDataRef.current),
     [counter, setCounter] = useState(0),
     [highlightCounter, setHighlightCounter] = useState(0),
 
-    keyFunc = (d: idData) => d.id,
+    keyFunc = (d: string) => d,
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     dotsRef = useRef<SVGSVGElement>(null),
@@ -60,49 +64,68 @@ export const Graph = observer(({broker}: IProps) => {
   x.range([0, plotWidthRef.current])
   y.range([plotHeightRef.current, 0])
 
-  broker && useGetData({
-    broker, dataRef: importedDataRef,
-    xNameRef: xAttributeNameRef, yNameRef: yAttributeNameRef, xAxis: x, yAxis: y, setCounter
-  })
+  if (broker) {
 
-  useEffect(function setupPlotArea() {
-    select(plotAreaSVGRef.current)
-      // .attr('transform', props.plotProps.transform)
-      .attr('x', x.range()[0] + 60)
-      .attr('y', 0)
-      .attr('width', plotWidth)
-    // .attr('height', plotHeightRef)
-  }, [plotWidth])
+    const dataSet = broker.last
 
-  useEffect(function createCircles() {
-    select(dotsRef.current)
-      .selectAll('circle')
-      .data(data, keyFunc)
-      .join(
-        // @ts-expect-error void => Selection
-        (enter) => {
-          enter.append('circle')
-            .attr('class', 'dot')
-            .attr("r", defaultRadius)
-            .property('id', (d: any) => d.id)
-            .attr('cx', (d: { x: number }) => x(d.x))
-            .attr('cy', (d: { y: number }) => y(d.y))
-            .selection()
-            .append('title')
-        },
-        (update) => {
-          update.classed('dot-highlighted',
-            (d: { selected: boolean }) => (d.selected))
-            .select('title')
-            .text((d: any) => `(${float(d.x)}, ${float(d.y)}, id: ${d.id})`)
-        },
-        (exit) => {
-          exit.transition()
-            .attr('r', 0)
-            .remove()
-        }
-      )
-  }, [data, float, highlightCounter])
+    useGetData({
+      broker, dataRef: graphDataRef,
+      xNameRef: xAttributeNameRef, yNameRef: yAttributeNameRef, xAxis: x, yAxis: y, setCounter
+    })
+
+    useEffect(function setupPlotArea() {
+      select(plotAreaSVGRef.current)
+        // .attr('transform', props.plotProps.transform)
+        .attr('x', x.range()[0] + 60)
+        .attr('y', 0)
+        .attr('width', plotWidth)
+      // .attr('height', plotHeightRef)
+    }, [plotWidth])
+
+    useEffect(function createCircles() {
+      const xID = graphDataRef.current.xAttributeID,
+        yID = graphDataRef.current.yAttributeID
+      select(dotsRef.current)
+        .selectAll('circle')
+        .data(graphDataRef.current.cases, keyFunc)
+        .join(
+          // @ts-expect-error void => Selection
+          (enter) => {
+            enter.append('circle')
+              .attr('class', 'dot')
+              .attr("r", defaultRadius)
+              .property('id', (anID) => anID)
+              .attr('cx', (anID) => {
+                return getScreenCoord(dataSet, anID, xID, x)
+              })
+              .attr('cy', (anID: string) => {
+                  return getScreenCoord(dataSet, anID, yID, y)
+                }
+              )
+              .selection()
+              .append('title')
+          },
+          (update) => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            update.classed('dot-highlighted', (anID: string) => {
+              return dataSet?.isCaseSelected(anID)
+            })
+              .select('title')
+              .text((anID: string) => {
+                const xVal = dataSet?.getNumeric(anID, xID) ?? 0,
+                  yVal = dataSet?.getNumeric(anID, yID) ?? 0
+                return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
+              })
+          },
+          (exit) => {
+            exit.transition()
+              .attr('r', 0)
+              .remove()
+          }
+        )
+    }, [float, dataSet, highlightCounter])
+  }
 
   return (
     <div className='plot' ref={plotRef} data-testid="graph">
@@ -136,7 +159,7 @@ export const Graph = observer(({broker}: IProps) => {
                 }
               }
         />
-        <Background dots={dotsProps} dataSet={broker?.last} data={data} setData={setData}
+        <Background dots={dotsProps} dataSet={broker?.last} dataRef={graphDataRef}
                     marquee={{rect: marqueeRect, setRect: setMarqueeRect}}
                     setHighlightCounter={setHighlightCounter}/>
         <svg ref={plotAreaSVGRef} className='dotArea'>
@@ -151,21 +174,19 @@ export const Graph = observer(({broker}: IProps) => {
                   yMax={y.domain()[0]}
                   plotWidth={x.range()[1] - x.range()[0]}
                   plotHeight={y.range()[0] - y.range()[1]}
-                  data={data}
-                  setData={setData}
-                  setHighlightCounter={setHighlightCounter}
+                  dataSet={broker?.last}
+                  dataRef={graphDataRef}
                   dotsRef={dotsRef}
                 />
                 :
                 <DotPlotDots
                   dots={dotsProps}
-                  dataSet={broker?.last}
                   xMin={x.domain()[0]}
                   xMax={x.domain()[1]}
                   plotWidth={x.range()[1] - x.range()[0]}
                   plotHeight={y.range()[0] - y.range()[1]}
-                  data={data}
-                  setData={setData}
+                  dataSet={broker?.last}
+                  graphDataRef={graphDataRef}
                   setHighlightCounter={setHighlightCounter}
                   dotsRef={dotsRef}
                 />)

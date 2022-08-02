@@ -1,7 +1,8 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
-import {select} from "d3"
-import {plotProps, transitionDuration, idData} from "./graphing-types"
-import {useDragHandlers} from "./graph-hooks/graph-hooks"
+import {ScaleLinear, select} from "d3"
+import {plotProps, transitionDuration, InternalizedData} from "./graphing-types"
+import {useDragHandlers, useSelection} from "./graph-hooks/graph-hooks"
+import {IDataSet} from "../../data-model/data-set"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps,
@@ -11,61 +12,50 @@ export const ScatterDots = memo(function ScatterDots(props: {
   xMax: number,
   yMin: number,
   yMax: number,
-  // counterProps: counterProps,
-  data: idData[],
-  setData: React.Dispatch<React.SetStateAction<idData[]>>
-  setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
+  dataSet?: IDataSet,
+  dataRef: React.MutableRefObject<InternalizedData>,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
-  const {data, setData, dotsRef, plotProps: {xScale, yScale}, xMax, xMin, yMax, yMin} = props,
+  const {dataSet, dataRef, dotsRef, plotProps: {xScale, yScale}, xMax, xMin, yMax, yMin} = props,
     defaultRadius = 5,
     dragRadius = 10,
-    [dragID, setDragID] = useState(-1),
+    [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
-    setHighlightCounter = props.setHighlightCounter,
     [refreshCounter, setRefreshCounter] = useState(0),
     plotWidth = props.plotWidth,
     plotHeight = props.plotHeight,
     [firstTime, setFirstTime] = useState<boolean | null>(true),
+    xAttrID = dataRef.current.xAttributeID,
+    yAttrID = dataRef.current.yAttributeID,
     selectedDataObjects = useRef<{ [index: string]: { x: number, y: number } }>({}),
-    [forceRefreshCounter, setForceRefreshCounter]=useState(0)
+    [forceRefreshCounter, setForceRefreshCounter] = useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
-
-      const selectPoint = (iData: idData[]) => {
-        iData.forEach((datum) => {
-          if (datum.id === tItsID && !datum.selected) {
-            datum.selected = true
-            setHighlightCounter(prevCounter => ++prevCounter)
-          }
-        })
-        return iData
-      }
-
       if (firstTime) {
         setFirstTime(false) // We don't want to animate points until end of drag
       }
       target.current = select(event.target as SVGSVGElement)
-      const tItsID = target.current.property('id')
+      const tItsID: string = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         target.current.transition()
           .attr('r', dragRadius)
         setDragID(() => tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
-        setData(selectPoint(data))
-      }
-      data.forEach(datum => {
-        if (datum.selected) {
-          selectedDataObjects.current[datum.id] = {x: datum.x, y: datum.y}
-        }
-      })
 
-      target.current.classed('dragging', true)
-    }, [setData, data, setHighlightCounter, firstTime, setFirstTime]),
+        dataSet?.selectCases([tItsID])
+        // Record the current values so we can change them during the drag and restore them when done
+        dataSet?.selection.forEach(anID => {
+          selectedDataObjects.current[anID] = {
+            x: dataSet?.getNumeric(anID, xAttrID) ?? 0,
+            y: dataSet?.getNumeric(anID, yAttrID) ?? 0
+          }
+        })
+      }
+    }, [firstTime, setFirstTime, xAttrID, yAttrID, dataSet]),
 
     onDrag = useCallback((event: MouseEvent) => {
-      if (dragID >= 0) {
+      if (dragID !== '') {
         const newPos = {x: event.clientX, y: event.clientY},
           dx = newPos.x - currPos.current.x,
           dy = newPos.y - currPos.current.y
@@ -73,55 +63,49 @@ export const ScatterDots = memo(function ScatterDots(props: {
         if (dx !== 0 || dy !== 0) {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0)),
             deltaY = Number(yScale?.invert(dy)) - Number(yScale?.invert(0))
-          setData((prevData) => {
-              prevData.forEach(datum => {
-                if (datum.selected) {
-                  datum.x += deltaX
-                  datum.y += deltaY
-                }
-              })
-              return prevData
-            }
-          )
+          dataSet?.selection.forEach(anID => {
+            const currX = dataSet.getNumeric(anID, xAttrID),
+              currY = dataSet.getNumeric(anID, yAttrID)
+            dataSet?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
+            dataSet?.setValue(anID, yAttrID, Number(currY ?? 0) + deltaY)
+          })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
       }
-    }, [setData, dragID, xScale, yScale, setRefreshCounter]),
+    }, [dragID, xScale, yScale, setRefreshCounter, xAttrID, yAttrID, dataSet]),
 
     onDragEnd = useCallback(() => {
-      if (dragID >= 0) {
+      if (dragID !== '') {
         target.current
           .classed('dragging', false)
           .transition()
           .attr('r', defaultRadius)
-        setDragID(() => -1)
+        setDragID(() => '')
         target.current = null
 
-        setData(prevData => {
-          prevData.forEach(datum => {
-            const sDatum = selectedDataObjects.current[datum.id]
-            if (sDatum) {
-              datum.x = sDatum.x
-              datum.y = sDatum.y
-            }
-          })
-          return prevData
+        dataSet?.selection.forEach(anID => {
+          dataSet?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
+          dataSet?.setValue(anID, yAttrID, selectedDataObjects.current[anID].y)
         })
         setFirstTime(true) // So points will animate back to original positions
         setRefreshCounter(prevCounter => ++prevCounter)
       }
-    }, [dragID, setData])
+    }, [dragID, xAttrID, yAttrID, dataSet])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
+
+    const getScreenCoord = (id: string, attrID: string, scale?: ScaleLinear<number, number>) => {
+      return Number(scale?.(Number(dataSet?.getNumeric(id, attrID))))
+    }
+
       const
         dotsSvgElement = dotsRef.current,
-        tTransitionDuration = firstTime ? transitionDuration : 0
-
-      const selection = select(dotsSvgElement).selectAll('circle')
-        .classed('dot-highlighted',
-          (d: { selected: boolean }) => (d.selected))
+        tTransitionDuration = firstTime ? transitionDuration : 0,
+        selection = select(dotsSvgElement).selectAll('circle')
+          .classed('dot-highlighted',
+            (d: { id: string }) => !!(dataSet?.isCaseSelected(d.id)))
       if (tTransitionDuration > 0) {
         selection
           .transition()
@@ -129,41 +113,34 @@ export const ScatterDots = memo(function ScatterDots(props: {
           .on('end', () => {
             setFirstTime(false)
           })
-          .attr('cx', (d: { x: number }) => {
-            return Number(xScale?.(d.x))
-          })
-          .attr('cy', (d: { y?: any }) => {
-            return Number(yScale?.(d.y))
-          })
+          .attr('cx', (anID: string) => getScreenCoord(anID, xAttrID, xScale))
+          .attr('cy', (anID: string) => getScreenCoord(anID, yAttrID, yScale))
           .attr('r', defaultRadius)
       } else if (selection.size() > 0) {
         selection
-          .attr('cx', (d: { x: number }) => {
-            return Number(xScale?.(d.x))
-          })
-          .attr('cy', (d: { y?: any }) => {
-            return Number(yScale?.(d.y))
-          })
+          .attr('cx', (anID: string) => getScreenCoord(anID, xAttrID, xScale))
+          .attr('cy', (anID: string) => getScreenCoord(anID, yAttrID, yScale))
       }
       select(dotsSvgElement)
         .selectAll('.dot-highlighted')
         .raise()
-    }, [firstTime, dotsRef, data, xScale, yScale,
+    }, [firstTime, dotsRef, xScale, yScale,
       xMin, xMax, yMin, yMax,
-      plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
+      plotWidth, plotHeight, refreshCounter, forceRefreshCounter, xAttrID, yAttrID, dataSet]
   )
 
   /**
    * In the initial refreshPoints there are no circles. We call this once to force a refreshPoints in which
    * there are circles.
    */
-  useEffect(function forceRefresh(){
-    setForceRefreshCounter(prevCounter=>prevCounter)
-  },[])
+  useEffect(function forceRefresh() {
+    setForceRefreshCounter(prevCounter => prevCounter)
+  }, [])
+
+  useSelection(dataSet, setRefreshCounter)
 
   return (
-    <svg>
-    </svg>
+    <svg/>
   )
 })
 // (ScatterDots as any).whyDidYouRender = true

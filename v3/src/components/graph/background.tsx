@@ -1,8 +1,7 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {selectCasesWithIDs} from "./graph-utils/data_utils"
-import {Rect, plotProps, idData, rTreeRect} from "./graphing-types"
+import {Rect, plotProps, InternalizedData, rTreeRect} from "./graphing-types"
 import {rectangleSubtract, rectNormalize} from "./graph-utils/graph_utils"
 import {IDataSet} from "../../data-model/data-set"
 
@@ -10,7 +9,7 @@ import {IDataSet} from "../../data-model/data-set"
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
     select(areaSelector).selectAll(circleSelector)
-      .each((datum: idData, index, groups) => {
+      .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
           rect = {
             x: Number(element.cx.baseVal.value),
@@ -36,8 +35,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
 export const Background = (props: {
   dots: plotProps,
   dataSet?: IDataSet,
-  data: idData[],
-  setData: React.Dispatch<React.SetStateAction<idData[]>>
+  dataRef:  React.MutableRefObject<InternalizedData>,
   marquee: {
     rect: Rect,
     setRect: React.Dispatch<React.SetStateAction<Rect>>
@@ -94,9 +92,9 @@ export const Background = (props: {
         currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.filter(anID => {
           return !deselectionSet.has(anID)
         })
-        props.setData(selectCasesWithIDs(props.data, currentlySelectedCaseIDs.current))
+        dataSet?.setSelectedCases(currentlySelectedCaseIDs.current)
       }
-    }, [height, props, /*startX, startY,*/ width/*, xScale, yScale*/]),
+    }, [height, props, dataSet, width]),
 
     onDragEnd = useCallback(() => {
       props.marquee.setRect({x: 0, y: 0, width: 0, height: 0})
@@ -131,7 +129,7 @@ export const Background = (props: {
             .attr('y', plotY)
         }
       )
-  }, [dataSet, props, props.dots.transform, props.dots, props.marquee, props.data, props.setData, setHighlightCounter,
+  }, [dataSet, props, props.dots.transform, props.dots, props.marquee, setHighlightCounter,
     xScale, yScale, plotX, plotY, plotWidth, plotHeight, height, width, startX, startY, onDrag, onDragStart, onDragEnd])
 
   return (
