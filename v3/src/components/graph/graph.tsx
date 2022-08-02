@@ -4,7 +4,7 @@ import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, InternalizedData} from "./graphing-types"
+import {plotProps, InternalizedData, defaultRadius} from "./graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -46,7 +46,6 @@ export const Graph = observer(({broker}: IProps) => {
     plotWidthRef = useCurrent(plotWidth),
     plotHeight = 0.8 * (height || 500),
     plotHeightRef = useCurrent(plotHeight),
-    defaultRadius = 5,
 
     [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
     [counter, setCounter] = useState(0),

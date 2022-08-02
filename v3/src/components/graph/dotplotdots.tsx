@@ -1,17 +1,11 @@
 import {max, range, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
-import {
-  plotProps,
-  transitionDuration,
-  InternalizedData,
-  defaultRadius,
-  defaultDiameter,
-  dragRadius
-} from "./graphing-types"
+import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius}
+  from "./graphing-types"
 import {useDragHandlers, useSelection} from "./graph-hooks/graph-hooks"
 import {IDataSet} from "../../data-model/data-set"
-import {getScreenCoord} from "./graph-utils/graph_utils"
+import {getScreenCoord, setPointCoordinates} from "./graph-utils/graph_utils"
 
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
@@ -20,7 +14,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   plotHeight: number,
   xMin: number,
   xMax: number,
-  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
+  worldDataRef: React.MutableRefObject<IDataSet | undefined>,
   graphDataRef: React.MutableRefObject<InternalizedData>,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
@@ -96,7 +90,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
-    const xAttrID = graphDataRef.current.xAttributeID
+      const xAttrID = graphDataRef.current.xAttributeID
 
       function computeBinPlacements() {
         const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
@@ -122,34 +116,14 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
 
       const
         yHeight = Number(yScale?.range()[0]),
-        dotsSvgElement = dotsRef.current,
-        binMap: { [id: string]: { yIndex: number } } = {},
-        tTransitionDuration = firstTime ? transitionDuration : 0
+        binMap: { [id: string]: { yIndex: number } } = {}
       let overlap = 0
       computeBinPlacements()
 
-      const selection = select(dotsSvgElement).selectAll('circle')
-        .classed('dot-highlighted',
-          (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
-      if (tTransitionDuration > 0) {
-        selection
-          .transition()
-          .duration(tTransitionDuration)
-          .on('end', () => {
-            setFirstTime(false)
-          })
-          .attr('cx', (anID:string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale))
-          .attr('cy', (anID: string) => computeYCoord(binMap[anID]))
-          .attr('r', defaultRadius)
-      } else {
-        selection
-          .attr('cx', (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale))
-          .attr('cy', (anID: string) => computeYCoord(binMap[anID]))
-      }
-      select(dotsSvgElement)
-        .selectAll('.dot-highlighted')
-        .raise()
+      const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
+        getScreenY = (anID: string) => computeYCoord(binMap[anID])
 
+      setPointCoordinates({dotsRef, worldDataRef, firstTime, setFirstTime, getScreenX, getScreenY})
     }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, graphDataRef, worldDataRef,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
   )
