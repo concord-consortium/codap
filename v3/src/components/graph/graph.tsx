@@ -48,7 +48,7 @@ export const Graph = observer(({broker}: IProps) => {
     plotHeightRef = useCurrent(plotHeight),
     defaultRadius = 5,
 
-    [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('dotplot'),
+    [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
     [counter, setCounter] = useState(0),
     [, setHighlightCounter] = useState(0),
 
