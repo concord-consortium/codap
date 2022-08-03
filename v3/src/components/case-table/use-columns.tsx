@@ -2,6 +2,7 @@ import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
 import { IDataSet } from "../../data-model/data-set"
 import { TColumn, TFormatterProps } from "./case-table-types"
+import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
 
 interface IUseColumnsProps {
@@ -35,7 +36,9 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
               headerCellClass: "codap-column-header",
               headerRenderer: ColumnHeader,
               cellClass: "codap-data-cell",
-              formatter: CellFormatter
+              formatter: CellFormatter,
+              editor: CellTextEditor,
+              editorOptions: { editOnClick: true }
             }))
         ]
         : []
