@@ -1,10 +1,14 @@
 import { IDataSet } from "../../data-model/data-set"
-import { CalculatedColumn, Column, FormatterProps, HeaderRendererProps } from "react-data-grid"
+import {
+  CalculatedColumn, Column, EditorProps, FormatterProps, HeaderRendererProps, RowsChangeData
+} from "react-data-grid"
 
 export type TRow = IDataSet["cases"][number]
-export type TColumn = Column<TRow>
-export type TCalculatedColumn = CalculatedColumn<TRow>
-export type TFormatterProps = FormatterProps<TRow>
-export type THeaderRendererProps = HeaderRendererProps<TRow>
+export interface TRowsChangeData extends RowsChangeData<TRow> {}
+export interface TColumn extends Column<TRow> {}
+export interface TCalculatedColumn extends CalculatedColumn<TRow> {}
+export interface TEditorProps extends EditorProps<TRow> {}
+export interface TFormatterProps extends FormatterProps<TRow> {}
+export interface THeaderRendererProps extends HeaderRendererProps<TRow> {}
 
 export const kIndexColumnKey = "__index__"

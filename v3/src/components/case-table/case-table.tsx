@@ -3,7 +3,9 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback } from "react"
 import DataGrid from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
+import { TRow, TRowsChangeData } from "./case-table-types"
 import { DataBroker } from "../../data-model/data-broker"
+import { ICase } from "../../data-model/data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
@@ -44,12 +46,17 @@ export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
   const rows = data.cases
   const rowKey = (row: typeof rows[0]) => row.__id__
 
+  const handleRowsChange: any = (_rows: TRow[], _data: TRowsChangeData) => {
+    const caseValues = _data.indexes.map(index => _rows[index] as ICase)
+    data.setCaseValues(caseValues)
+  }
+
   return (
     <DataSetContext.Provider value={data}>
       <div ref={setNodeRef} className="case-table" data-testid="case-table">
         {/* @ts-expect-error columns strictFunctionTypes: false */}
         <DataGrid className="rdg-light" columns={columns} rows={rows} rowKeyGetter={rowKey}
-          selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} />
+          selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onRowsChange={handleRowsChange}/>
         <AttributeDragOverlay activeDragAttrId={`${active?.id}`} column={active?.data?.current?.column} />
       </div>
     </DataSetContext.Provider>
