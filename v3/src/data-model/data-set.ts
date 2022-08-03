@@ -590,6 +590,14 @@ export const DataSet = types.model("DataSet", {
         })
       },
 
+      setValue(caseID: string, attributeID: string, value:IValueType) {
+        const attr = attrIDMap[attributeID],
+          index = caseIDMap[caseID]
+        if(attr && (index != null)) {
+          attr.setValue(index, value)
+        }
+      },
+
       setCaseValues(cases: ICase[]) {
         cases.forEach((caseValues) => {
           setCaseValues(caseValues)

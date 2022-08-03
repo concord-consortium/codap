@@ -2,17 +2,20 @@
  * Graph Custom Hooks
  */
 import {extent, ScaleLinear} from "d3"
-import {useEffect} from "react"
+import {autorun} from "mobx"
+import React, {useEffect} from "react"
 import {IAttribute} from "../../../data-model/attribute"
 import {DataBroker} from "../../../data-model/data-broker"
-import {worldData} from "../graphing-types"
+import {InternalizedData} from "../graphing-types"
+import {IDataSet} from "../../../data-model/data-set"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
   drag: (event: MouseEvent) => void
   end: (event: MouseEvent) => void
 }
-export const useDragHandlers = (target: any, { start, drag, end }: IDragHandlers) => {
+
+export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) => {
   useEffect(() => {
     target.addEventListener('mousedown', start)
     target.addEventListener('mousemove', drag)
@@ -26,55 +29,73 @@ export const useDragHandlers = (target: any, { start, drag, end }: IDragHandlers
   }, [target, start, drag, end])
 }
 
-// Todo: Any function with more than a few arguments should probably take an object instead.
-export const useGetData = (broker: DataBroker, dataRef: React.MutableRefObject<worldData[]>,
-                           xNameRef: React.MutableRefObject<string>, yNameRef: React.MutableRefObject<string>,
-                           xAxis: ScaleLinear<number, number, never>, yAxis: ScaleLinear<number, number, never>,
-                           setCounter: any) => {
+export interface IUseGetDataProps {
+  broker?: DataBroker,
+  dataRef: React.MutableRefObject<InternalizedData>,
+  xNameRef: React.MutableRefObject<string>,
+  yNameRef: React.MutableRefObject<string>,
+  xAxis: ScaleLinear<number, number>,
+  yAxis: ScaleLinear<number, number>,
+  setCounter: any
+}
 
-  const findNumericAttrIndices = (attrsToSearch: IAttribute[]): { xAttrIndex: number, yAttrIndex: number } => {
-    const result = {xAttrIndex: -1, yAttrIndex: -1}
-    let index = 0
-    while (result.yAttrIndex < 0 && index < attrsToSearch.length) {
-      const foundNumeric = attrsToSearch[index].numValues.find(value=>isFinite(value))
-      if( foundNumeric) {
-        if(result.xAttrIndex < 0) {
-          result.xAttrIndex = index
-        }
-        else {
-          result.yAttrIndex = index
+export const useGetData = (props: IUseGetDataProps) => {
+  const {broker, dataRef, xNameRef, yNameRef, xAxis, yAxis, setCounter} = props
+
+  const findNumericAttrIds = (attrsToSearch: IAttribute[]): { xAttrId: string, yAttrId: string } => {
+    const result = {xAttrId: '', yAttrId: ''}
+    for (const iAttr of attrsToSearch) {
+      if (iAttr.type === 'numeric') {
+        if (result.xAttrId === '') {
+          result.xAttrId = iAttr.id
+        } else if (result.yAttrId === '') {
+          result.yAttrId = iAttr.id
+        } else {
+          break
         }
       }
-      index++
     }
     return result
   }
 
   useEffect(() => {
     if (broker?.last) {
-      const dataSet = broker?.last,
-        attributes = dataSet?.attributes,
-        {xAttrIndex, yAttrIndex} = findNumericAttrIndices(attributes || []),
-        xAttribute = attributes?.[xAttrIndex],
-        xValues = xAttribute?.numValues,
-        yAttribute = attributes?.[yAttrIndex],
-        yValues = yAttribute?.numValues
-      dataRef.current.length = 0
-      xValues?.forEach((aValue, index) => {
-        dataRef.current.push({
-          x: aValue,
-          y: yValues?.[index] || 0,
-          id: index,
-          selected: false
+      const worldDataSet = broker?.last,
+        attributes = worldDataSet?.attributes,
+        {xAttrId, yAttrId} = findNumericAttrIds(attributes || [])
+      if (xAttrId === '' || yAttrId === '') {
+        return
+      }
+      const xValues = worldDataSet.attrFromID(xAttrId).numValues,
+        yValues = worldDataSet.attrFromID(yAttrId).numValues
+      dataRef.current.xAttributeID = xAttrId
+      dataRef.current.yAttributeID = yAttrId
+      dataRef.current.cases = worldDataSet.cases.map(aCase => aCase.__id__)
+        .filter(anID => {
+          return isFinite(Number(worldDataSet?.getNumeric(anID, xAttrId))) &&
+            isFinite(Number(worldDataSet?.getNumeric(anID, yAttrId)))
         })
-      })
-      xNameRef.current = xAttribute?.name || ''
-      yNameRef.current = yAttribute?.name || ''
-      if (dataRef.current.length > 0) {
-        xAxis.domain(extent(dataRef.current, d => d.x) as [number, number]).nice()
-        yAxis.domain(extent(dataRef.current, d => d.y) as [number, number]).nice()
+      xNameRef.current = worldDataSet.attrFromID(xAttrId).name || ''
+      yNameRef.current = worldDataSet.attrFromID(yAttrId).name || ''
+      if (dataRef.current.cases.length > 0) {
+        xAxis.domain(extent(xValues, d => d) as [number, number]).nice()
+        yAxis.domain(extent(yValues, d => d) as [number, number]).nice()
       }
       setCounter((prevCounter: number) => ++prevCounter)
     }
   }, [broker?.last, dataRef, setCounter, xAxis, yAxis, xNameRef, yNameRef])
+
 }
+
+export const useSelection = (worldDataRef: React.MutableRefObject<IDataSet | undefined>,
+                             setRefreshCounter: React.Dispatch<React.SetStateAction<number>>) => {
+  useEffect(() => {
+    const disposer = autorun(() => {
+      worldDataRef.current?.selection.forEach(() => {/* just chillin... */
+      })
+      setRefreshCounter(count => ++count)
+    })
+    return () => disposer()
+  }, [worldDataRef, worldDataRef.current?.selection, setRefreshCounter])
+}
+

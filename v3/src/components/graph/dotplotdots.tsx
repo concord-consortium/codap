@@ -1,122 +1,114 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {max, range, select} from "d3"
-import {plotProps, transitionDuration, worldData, defaultRadius, defaultDiameter, dragRadius} from "./graphing-types"
-import {useDragHandlers} from "./graph-hooks/graph-hooks"
+import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {observer} from "mobx-react-lite"
+import {
+  plotProps,
+  transitionDuration,
+  InternalizedData,
+  defaultRadius,
+  defaultDiameter,
+  dragRadius
+} from "./graphing-types"
+import {useDragHandlers, useSelection} from "./graph-hooks/graph-hooks"
+import {IDataSet} from "../../data-model/data-set"
+import {getScreenCoord} from "./graph-utils/graph_utils"
 
 
-export const DotPlotDots = memo(function DotPlotDots(props: {
+export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dots: plotProps,
   plotWidth: number,
   plotHeight: number,
   xMin: number,
   xMax: number,
-  data: worldData[],
-  setData: React.Dispatch<React.SetStateAction<worldData[]>>
-  setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
+  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
+  graphDataRef: React.MutableRefObject<InternalizedData>,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {
-      data, setData, dotsRef, plotWidth, plotHeight, setHighlightCounter, xMax, xMin,
+      worldDataRef, graphDataRef, dotsRef, plotWidth, plotHeight, xMax, xMin,
       dots: {xScale, yScale}
     } = props,
-    [dragID, setDragID] = useState(-1),
+    [dragID, setDragID] = useState<string>(),
     [refreshCounter, setRefreshCounter] = useState(0),
     currPos = useRef({x: 0}),
     target = useRef<any>(),
     [firstTime, setFirstTime] = useState<boolean | null>(true),
-    selectedDataObjects = useRef<{ [index: number]: { x: number } }>({}),
-    [forceRefreshCounter, setForceRefreshCounter]=useState(0)
+    selectedDataObjects = useRef<Record<string, { x: number }>>({}),
+    [forceRefreshCounter, setForceRefreshCounter] = useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
-
-      const selectPoint = (iData: worldData[]) => {
-        iData.forEach((datum) => {
-          if (datum.id === tItsID && !datum.selected) {
-            datum.selected = true
-            setHighlightCounter(prevCounter => ++prevCounter)
-          }
-        })
-        return iData
-      }
 
       if (firstTime) {
         setFirstTime(false) // We never want to animate points on drag
       }
-      // target.current = event.target as SVGSVGElement
+      const xAttrID = graphDataRef.current.xAttributeID
       target.current = select(event.target as SVGSVGElement)
-      const tItsID = Number(target.current.property('id'))
+      const tItsID: string = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         target.current.transition()
           .attr('r', dragRadius)
         setDragID(() => tItsID)
         currPos.current = {x: event.clientX}
-        setData(selectPoint(data))
+        worldDataRef.current?.selectCases([tItsID])
+        // Record the current values so we can change them during the drag and restore them when done
+        worldDataRef.current?.selection.forEach(anID => {
+          selectedDataObjects.current[anID] = {
+            x: worldDataRef.current?.getNumeric(anID, xAttrID) ?? NaN
+          }
+        })
       }
-      data.forEach(datum => {
-        if (datum.selected) {
-          selectedDataObjects.current[datum.id] = {x: datum.x}
-        }
-      })
-    }, [data, firstTime, setData, setHighlightCounter]),
+    }, [firstTime, setFirstTime, worldDataRef, graphDataRef]),
 
     onDrag = useCallback((event: MouseEvent) => {
-      if (dragID >= 0) {
+      const xAttrID = graphDataRef.current.xAttributeID
+      if (dragID) {
         const newPos = {x: event.clientX},
           dx = newPos.x - currPos.current.x
         currPos.current = newPos
         if (dx !== 0) {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0))
-          props.setData((prevData) => {
-              prevData.forEach(datum => {
-                if (datum.selected) {
-                  datum.x += deltaX
-                }
-              })
-              return prevData
-            }
-          )
+          worldDataRef.current?.selection.forEach(anID => {
+            const currX = worldDataRef.current?.getNumeric(anID, xAttrID)
+            worldDataRef.current?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
+          })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
       }
-    }, [props, currPos, dragID, xScale]),
+    }, [currPos, dragID, xScale, worldDataRef, graphDataRef]),
 
     onDragEnd = useCallback(() => {
-      if (dragID >= 0) {
+      const xAttrID = graphDataRef.current.xAttributeID
+      if (dragID) {
         target.current
           .classed('dragging', false)
           .transition()
           .attr('r', defaultRadius)
-        setDragID(() => -1)
+        setDragID(undefined)
         target.current = null
       }
-      setData(prevData => {
-        prevData.forEach(datum => {
-          const sDatum = selectedDataObjects.current[datum.id]
-          if (sDatum) {
-            datum.x = sDatum.x
-          }
-        })
-        return prevData
+      worldDataRef.current?.selection.forEach(anID => {
+        worldDataRef.current?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
       })
       setFirstTime(true)  // So points will animate back to original positions
       setRefreshCounter(prevCounter => ++prevCounter)
-    }, [dragID, setData])
+    }, [dragID, worldDataRef, graphDataRef])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
+    const xAttrID = graphDataRef.current.xAttributeID
 
       function computeBinPlacements() {
         const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
           binWidth = plotWidth / (numBins - 1),
-          bins: number[][] = range(numBins).map(() => [])
+          bins: string[][] = range(numBins + 1).map(() => [])
 
-        data.forEach((d: worldData) => {
-          const numerator = Number(xScale?.(d.x)),
-            bin = Math.ceil(numerator / binWidth)
-          if (bin >= 0 && bin < numBins) {
-            bins[bin].push(d.id)
-            binMap[d.id] = {yIndex: bins[bin].length}
+        graphDataRef.current.cases.forEach((anID) => {
+          const numerator = xScale?.(worldDataRef.current?.getNumeric(anID, xAttrID) ?? -1),
+            bin = Math.ceil((numerator ?? 0) / binWidth)
+          if (bin >= 0 && bin <= numBins) {
+            bins[bin].push(anID)
+            binMap[anID] = {yIndex: bins[bin].length}
           }
         })
         const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
@@ -131,14 +123,14 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
       const
         yHeight = Number(yScale?.range()[0]),
         dotsSvgElement = dotsRef.current,
-        binMap: { [id: number]: { yIndex: number } } = {},
+        binMap: { [id: string]: { yIndex: number } } = {},
         tTransitionDuration = firstTime ? transitionDuration : 0
       let overlap = 0
       computeBinPlacements()
 
       const selection = select(dotsSvgElement).selectAll('circle')
         .classed('dot-highlighted',
-          (d: { selected: boolean }) => (d.selected))
+          (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
       if (tTransitionDuration > 0) {
         selection
           .transition()
@@ -146,24 +138,19 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
           .on('end', () => {
             setFirstTime(false)
           })
-          .attr('cx', (d: { x: number }) => Number(xScale?.(d.x)))
-          .attr('cy', (d: { id: number }) => {
-            return computeYCoord(binMap[d.id])
-          })
+          .attr('cx', (anID:string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale))
+          .attr('cy', (anID: string) => computeYCoord(binMap[anID]))
           .attr('r', defaultRadius)
       } else {
         selection
-          .attr('cx', (d: { x: number }) => Number(xScale?.(d.x)))
-          .attr('cy', (d: { id: number }) => {
-              return computeYCoord(binMap[d.id])
-            }
-          )
+          .attr('cx', (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale))
+          .attr('cy', (anID: string) => computeYCoord(binMap[anID]))
       }
       select(dotsSvgElement)
         .selectAll('.dot-highlighted')
         .raise()
 
-    }, [firstTime, dotsRef, data, xScale, yScale, xMin, xMax,
+    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, graphDataRef, worldDataRef,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
   )
 
@@ -171,14 +158,16 @@ export const DotPlotDots = memo(function DotPlotDots(props: {
    * In the initial refreshPoints there are no circles. We call this once to force a refreshPoints in which
    * there are circles.
    */
-  useEffect(function forceRefresh(){
-    setForceRefreshCounter(prevCounter=>++prevCounter)
-  },[])
+  useEffect(function forceRefresh() {
+    setForceRefreshCounter(prevCounter => ++prevCounter)
+  }, [])
+
+  useSelection(worldDataRef, setRefreshCounter)
 
   return (
-    <div></div>
+    <svg/>
   )
-})
+}))
 /*
 if (DotPlotDots) {
   (DotPlotDots as any).whyDidYouRender = {logOnDifferentValues: true, customName: 'DotPlotDots'}

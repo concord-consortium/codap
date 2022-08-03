@@ -1,6 +1,6 @@
 import {ScaleLinear} from "d3"
 
-export type axisProps = {
+export interface axisProps {
   orientation: 'bottom' | 'left' | 'right' | 'top',
   scaleLinear: ScaleLinear<number, number>,
   transform: string,
@@ -10,24 +10,26 @@ export type axisProps = {
   setCounter: React.Dispatch<React.SetStateAction<number>>
 }
 
-// Todo: worldData brings to mind census data for me. Perhaps screenData or viewData?
-export type worldData = {
-  x: number, y: number, selected: boolean, id: number
+// One element of the data array assigned to the points
+export interface InternalizedData {
+  xAttributeID: string,
+  yAttributeID: string,
+  cases:string[]
 }
 
-export type Rect = {
+export interface Rect {
   x: number, y: number, width: number, height: number
 }
 
-export type rTreeRect = { x: number, y: number, w: number, h: number }
+export interface rTreeRect { x: number, y: number, w: number, h: number }
 
-export type plotProps = {
+export interface plotProps {
   xScale?: ScaleLinear<number, number>,
   yScale?: ScaleLinear<number, number>,
   transform: string
 }
 
-export type counterProps = {
+export interface counterProps {
   counter:number,
   setCounter: React.Dispatch<React.SetStateAction<number>>
 }

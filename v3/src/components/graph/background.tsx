@@ -1,22 +1,22 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {clearSelection, selectCasesWithIDs} from "./graph-utils/data_utils"
-import {Rect, plotProps, worldData, rTreeRect} from "./graphing-types"
+import {Rect, plotProps, InternalizedData, rTreeRect} from "./graphing-types"
 import {rectangleSubtract, rectNormalize} from "./graph-utils/graph_utils"
+import {IDataSet} from "../../data-model/data-set"
 
 
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
     select(areaSelector).selectAll(circleSelector)
-      .each((datum: worldData, index, groups) => {
+      .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
           rect = {
             x: Number(element.cx.baseVal.value),
             y: Number(element.cy.baseVal.value),
             w: 1, h: 1
           }
-        selectionTree.insert(rect, element.__data__.id)
+        selectionTree.insert(rect, element.__data__)
       })
     // @ts-expect-error fromJSON
     return selectionTree
@@ -24,7 +24,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
 
   getCasesForDelta = (tree: any, newRect: rTreeRect, prevRect: rTreeRect) => {
     const diffRects = rectangleSubtract(newRect, prevRect)
-    let caseIDs: number[] = []
+    let caseIDs: string[] = []
     diffRects.forEach(aRect => {
       const newlyFoundIDs = tree.search(aRect)
       caseIDs = caseIDs.concat(newlyFoundIDs)
@@ -34,15 +34,15 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
 
 export const Background = (props: {
   dots: plotProps,
-  data: worldData[],
-  setData: React.Dispatch<React.SetStateAction<worldData[]>>
+  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
+  dataRef:  React.MutableRefObject<InternalizedData>,
   marquee: {
     rect: Rect,
     setRect: React.Dispatch<React.SetStateAction<Rect>>
   }
   setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
 }) => {
-  const {setHighlightCounter, dots: {xScale, yScale}} = props,
+  const {worldDataRef, setHighlightCounter, dots: {xScale, yScale}} = props,
     ref = useRef() as React.RefObject<SVGSVGElement>,
     plotX = Number(xScale?.range()[0]),
     plotY = Number(yScale?.range()[1]),
@@ -54,12 +54,12 @@ export const Background = (props: {
     height = useRef(0),
     selectionTree = useRef<typeof RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>(),
-    currentlySelectedCaseIDs = useRef<number[]>([]),
+    currentlySelectedCaseIDs = useRef<string[]>([]),
 
     onDragStart = useCallback((event: MouseEvent) => {
+      const leftEdge = ref.current?.getBBox().x
       selectionTree.current = prepareTree('.dotArea', 'circle')
-      // todo: extract translation from transform
-      startX.current = event.x - 60
+      startX.current = event.x - (leftEdge || 0)
       startY.current = event.y
       width.current = 0
       height.current = 0
@@ -86,15 +86,15 @@ export const Background = (props: {
             h: height.current
           }),
           newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
-          newDeselection: number[] = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect),
+          newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect),
           deselectionSet = new Set(newDeselection)
         currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.concat(newSelection)
         currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.filter(anID => {
           return !deselectionSet.has(anID)
         })
-        props.setData(selectCasesWithIDs(props.data, currentlySelectedCaseIDs.current))
+        worldDataRef.current?.setSelectedCases(currentlySelectedCaseIDs.current)
       }
-    }, [height, props, /*startX, startY,*/ width/*, xScale, yScale*/]),
+    }, [height, props, worldDataRef, width]),
 
     onDragEnd = useCallback(() => {
       props.marquee.setRect({x: 0, y: 0, width: 0, height: 0})
@@ -108,7 +108,7 @@ export const Background = (props: {
         .on("end", onDragEnd),
       groupElement = ref.current
     select(groupElement).on('click', () => {
-      props.setData(clearSelection(props.data, setHighlightCounter))
+      worldDataRef.current?.selectAll(false)
     })
 
     select(groupElement)
@@ -129,7 +129,7 @@ export const Background = (props: {
             .attr('y', plotY)
         }
       )
-  }, [props, props.dots.transform, props.dots, props.marquee, props.data, props.setData, setHighlightCounter,
+  }, [worldDataRef, props, props.dots.transform, props.dots, props.marquee, setHighlightCounter,
     xScale, yScale, plotX, plotY, plotWidth, plotHeight, height, width, startX, startY, onDrag, onDragStart, onDragEnd])
 
   return (
