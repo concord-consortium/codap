@@ -1,5 +1,6 @@
-import {format, ScaleLinear} from "d3"
-import {Rect, rTreeRect} from "../graphing-types"
+import {format, ScaleLinear, select} from "d3"
+import React from "react"
+import {defaultRadius, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 
@@ -192,10 +193,43 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
                                attrID: string, scale?: ScaleLinear<number, number>) {
   const value = Number(dataSet?.getNumeric(id, attrID)),
     screenCoord = Number(scale?.(value))
-/*
-  console.log(
-    `datasetID = ${dataSet?.id}; attrID = ${attrID}; caseID = ${id}; value = ${value}; screenCoord = ${screenCoord}`)
-*/
   return screenCoord
 }
 
+export interface IUseRefreshPointsProps {
+  dotsRef:  React.RefObject<SVGSVGElement>
+  worldDataRef: React.RefObject<IDataSet | undefined>
+  getScreenX:((anID:string)=>number)
+  getScreenY:((anID:string)=>number)
+  firstTime:boolean | null,
+  setFirstTime: React.Dispatch<React.SetStateAction<boolean | null>>
+}
+
+export function setPointCoordinates(props: IUseRefreshPointsProps) {
+
+  const
+    { dotsRef, worldDataRef, getScreenX, getScreenY, firstTime, setFirstTime} = props,
+    dotsSvgElement = dotsRef.current,
+    tTransitionDuration = firstTime ? transitionDuration : 0,
+    selection = select(dotsSvgElement).selectAll('circle')
+      .classed('dot-highlighted',
+        (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
+  if (tTransitionDuration > 0) {
+    selection
+      .transition()
+      .duration(tTransitionDuration)
+      .on('end', () => {
+        setFirstTime(false)
+      })
+      .attr('cx', (anID: string) => getScreenX(anID))
+      .attr('cy', (anID: string) => getScreenY(anID))
+      .attr('r', defaultRadius)
+  } else if (selection.size() > 0) {
+    selection
+      .attr('cx', (anID: string) => getScreenX(anID))
+      .attr('cy', (anID: string) => getScreenY(anID))
+  }
+  select(dotsSvgElement)
+    .selectAll('.dot-highlighted')
+    .raise()
+}

@@ -1,8 +1,9 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
-import {ScaleLinear, select} from "d3"
-import {plotProps, transitionDuration, InternalizedData} from "./graphing-types"
+import {select} from "d3"
+import {plotProps, InternalizedData, defaultRadius, dragRadius} from "./graphing-types"
 import {useDragHandlers, useSelection} from "./graph-hooks/graph-hooks"
 import {IDataSet} from "../../data-model/data-set"
+import {getScreenCoord, setPointCoordinates} from "./graph-utils/graph_utils"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps,
@@ -17,8 +18,6 @@ export const ScatterDots = memo(function ScatterDots(props: {
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {worldDataRef, dataRef, dotsRef, plotProps: {xScale, yScale}, xMax, xMin, yMax, yMin} = props,
-    defaultRadius = 5,
-    dragRadius = 10,
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
@@ -104,34 +103,10 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
   useEffect(function refreshPoints() {
 
-      const getScreenCoord = (id: string, attrID: string, scale?: ScaleLinear<number, number>) => {
-        return Number(scale?.(Number(worldDataRef.current?.getNumeric(id, attrID))))
-      }
+      const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
+        getScreenY = (anID: string) => getScreenCoord(worldDataRef.current, anID, yAttrID, yScale)
 
-      const
-        dotsSvgElement = dotsRef.current,
-        tTransitionDuration = firstTime ? transitionDuration : 0,
-        selection = select(dotsSvgElement).selectAll('circle')
-          .classed('dot-highlighted',
-            (anID: string) => !!(worldDataRef.current?.isCaseSelected(anID)))
-      if (tTransitionDuration > 0) {
-        selection
-          .transition()
-          .duration(tTransitionDuration)
-          .on('end', () => {
-            setFirstTime(false)
-          })
-          .attr('cx', (anID: string) => getScreenCoord(anID, xAttrID, xScale))
-          .attr('cy', (anID: string) => getScreenCoord(anID, yAttrID, yScale))
-          .attr('r', defaultRadius)
-      } else if (selection.size() > 0) {
-        selection
-          .attr('cx', (anID: string) => getScreenCoord(anID, xAttrID, xScale))
-          .attr('cy', (anID: string) => getScreenCoord(anID, yAttrID, yScale))
-      }
-      select(dotsSvgElement)
-        .selectAll('.dot-highlighted')
-        .raise()
+      setPointCoordinates({dotsRef, worldDataRef, firstTime, setFirstTime, getScreenX, getScreenY})
     }, [firstTime, dotsRef, xScale, yScale,
       xMin, xMax, yMin, yMax,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter, xAttrID, yAttrID, worldDataRef]

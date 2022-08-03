@@ -48,7 +48,7 @@ export const useGetData = (props: IUseGetDataProps) => {
       if (iAttr.type === 'numeric') {
         if (result.xAttrId === '') {
           result.xAttrId = iAttr.id
-        } else if (result.yAttrId === '') {
+        }else if (result.yAttrId === '') {
           result.yAttrId = iAttr.id
         } else {
           break
