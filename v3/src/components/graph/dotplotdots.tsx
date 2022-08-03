@@ -1,5 +1,6 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {max, range, select} from "d3"
+import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {observer} from "mobx-react-lite"
 import {
   plotProps,
   transitionDuration,
@@ -10,7 +11,6 @@ import {
 } from "./graphing-types"
 import {useDragHandlers, useSelection} from "./graph-hooks/graph-hooks"
 import {IDataSet} from "../../data-model/data-set"
-import {observer} from "mobx-react-lite"
 import {getScreenCoord} from "./graph-utils/graph_utils"
 
 
@@ -28,12 +28,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
       worldDataRef, graphDataRef, dotsRef, plotWidth, plotHeight, xMax, xMin,
       dots: {xScale, yScale}
     } = props,
-    [dragID, setDragID] = useState(''),
+    [dragID, setDragID] = useState<string>(),
     [refreshCounter, setRefreshCounter] = useState(0),
     currPos = useRef({x: 0}),
     target = useRef<any>(),
     [firstTime, setFirstTime] = useState<boolean | null>(true),
-    selectedDataObjects = useRef<{ [index: string]: { x: number } }>({}),
+    selectedDataObjects = useRef<Record<string, { x: number }>>({}),
     [forceRefreshCounter, setForceRefreshCounter] = useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
@@ -53,7 +53,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         // Record the current values so we can change them during the drag and restore them when done
         worldDataRef.current?.selection.forEach(anID => {
           selectedDataObjects.current[anID] = {
-            x: worldDataRef.current?.getNumeric(anID, xAttrID) ?? 0
+            x: worldDataRef.current?.getNumeric(anID, xAttrID) ?? NaN
           }
         })
       }
@@ -61,7 +61,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
 
     onDrag = useCallback((event: MouseEvent) => {
       const xAttrID = graphDataRef.current.xAttributeID
-      if (dragID !== '') {
+      if (dragID) {
         const newPos = {x: event.clientX},
           dx = newPos.x - currPos.current.x
         currPos.current = newPos
@@ -78,12 +78,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
 
     onDragEnd = useCallback(() => {
       const xAttrID = graphDataRef.current.xAttributeID
-      if (dragID !== '') {
+      if (dragID) {
         target.current
           .classed('dragging', false)
           .transition()
           .attr('r', defaultRadius)
-        setDragID(() => '')
+        setDragID(undefined)
         target.current = null
       }
       worldDataRef.current?.selection.forEach(anID => {

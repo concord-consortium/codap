@@ -65,13 +65,11 @@ export const Graph = observer(({broker}: IProps) => {
   x.range([0, plotWidthRef.current])
   y.range([plotHeightRef.current, 0])
 
-  if (broker) {
-    worldDataRef.current = broker.last
-    useGetData({
-      broker, dataRef: graphDataRef,
-      xNameRef: xAttributeNameRef, yNameRef: yAttributeNameRef, xAxis: x, yAxis: y, setCounter
-    })
-  }
+  worldDataRef.current = broker?.last
+  useGetData({
+    broker, dataRef: graphDataRef,
+    xNameRef: xAttributeNameRef, yNameRef: yAttributeNameRef, xAxis: x, yAxis: y, setCounter
+  })
 
   useEffect(function setupPlotArea() {
     select(plotAreaSVGRef.current)
@@ -98,13 +96,8 @@ export const Graph = observer(({broker}: IProps) => {
             .attr('class', 'dot')
             .attr("r", defaultRadius)
             .property('id', (anID: string) => anID)
-            .attr('cx', (anID: string) => {
-              return getScreenCoord(worldDataRef.current, anID, xID, x)
-            })
-            .attr('cy', (anID: string) => {
-                return getScreenCoord(worldDataRef.current, anID, yID, y)
-              }
-            )
+            .attr('cx', (anID: string) => getScreenCoord(worldDataRef.current, anID, xID, x))
+            .attr('cy', (anID: string) => getScreenCoord(worldDataRef.current, anID, yID, y))
             .selection()
             .append('title')
             .text((anID: string) => {

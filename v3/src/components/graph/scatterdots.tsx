@@ -12,7 +12,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
   xMax: number,
   yMin: number,
   yMax: number,
-  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
+  worldDataRef: React.MutableRefObject<IDataSet | undefined>,
   dataRef: React.MutableRefObject<InternalizedData>,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
@@ -64,10 +64,15 @@ export const ScatterDots = memo(function ScatterDots(props: {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0)),
             deltaY = Number(yScale?.invert(dy)) - Number(yScale?.invert(0))
           worldDataRef.current?.selection.forEach(anID => {
-            const currX = worldDataRef.current?.getNumeric(anID, xAttrID),
-              currY = worldDataRef.current?.getNumeric(anID, yAttrID)
-            worldDataRef.current?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
-            worldDataRef.current?.setValue(anID, yAttrID, Number(currY ?? 0) + deltaY)
+            const currX = Number(worldDataRef.current?.getNumeric(anID, xAttrID)),
+              currY = Number(worldDataRef.current?.getNumeric(anID, yAttrID))
+            if (isFinite(currX) && isFinite(currY)) {
+              worldDataRef.current?.setCaseValues([{
+                __id__: anID,
+                [xAttrID]: currX + deltaX,
+                [yAttrID]: currY + deltaY
+              }])
+            }
           })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
@@ -84,8 +89,11 @@ export const ScatterDots = memo(function ScatterDots(props: {
         target.current = null
 
         worldDataRef.current?.selection.forEach(anID => {
-          worldDataRef.current?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
-          worldDataRef.current?.setValue(anID, yAttrID, selectedDataObjects.current[anID].y)
+          worldDataRef.current?.setCaseValues([{
+            __id__: anID,
+            [xAttrID]: selectedDataObjects.current[anID].x,
+            [yAttrID]: selectedDataObjects.current[anID].y
+          }])
         })
         setFirstTime(true) // So points will animate back to original positions
         setRefreshCounter(prevCounter => ++prevCounter)
@@ -96,16 +104,16 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
   useEffect(function refreshPoints() {
 
-    const getScreenCoord = (id: string, attrID: string, scale?: ScaleLinear<number, number>) => {
-      return Number(scale?.(Number(worldDataRef.current?.getNumeric(id, attrID))))
-    }
+      const getScreenCoord = (id: string, attrID: string, scale?: ScaleLinear<number, number>) => {
+        return Number(scale?.(Number(worldDataRef.current?.getNumeric(id, attrID))))
+      }
 
       const
         dotsSvgElement = dotsRef.current,
         tTransitionDuration = firstTime ? transitionDuration : 0,
         selection = select(dotsSvgElement).selectAll('circle')
           .classed('dot-highlighted',
-            (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
+            (anID: string) => !!(worldDataRef.current?.isCaseSelected(anID)))
       if (tTransitionDuration > 0) {
         selection
           .transition()

@@ -2,11 +2,11 @@
  * Graph Custom Hooks
  */
 import {extent, ScaleLinear} from "d3"
+import {autorun} from "mobx"
 import React, {useEffect} from "react"
 import {IAttribute} from "../../../data-model/attribute"
 import {DataBroker} from "../../../data-model/data-broker"
 import {InternalizedData} from "../graphing-types"
-import {autorun} from "mobx"
 import {IDataSet} from "../../../data-model/data-set"
 
 interface IDragHandlers {
@@ -30,7 +30,7 @@ export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) 
 }
 
 export interface IUseGetDataProps {
-  broker: DataBroker,
+  broker?: DataBroker,
   dataRef: React.MutableRefObject<InternalizedData>,
   xNameRef: React.MutableRefObject<string>,
   yNameRef: React.MutableRefObject<string>,
