@@ -34,6 +34,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TE
 
   return (
     <input
+      data-testid="cell-text-editor"
       className={textEditorClassName}
       ref={autoFocusAndSelect}
       value={valueRef.current}
