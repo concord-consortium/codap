@@ -15,11 +15,11 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   xMin: number,
   xMax: number,
   worldDataRef: React.MutableRefObject<IDataSet | undefined>,
-  graphDataRef: React.MutableRefObject<InternalizedData>,
+  graphData: InternalizedData,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {
-      worldDataRef, graphDataRef, dotsRef, plotWidth, plotHeight, xMax, xMin,
+      worldDataRef, graphData, dotsRef, plotWidth, plotHeight, xMax, xMin,
       dots: {xScale, yScale}
     } = props,
     [dragID, setDragID] = useState<string>(),
@@ -35,7 +35,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
       if (firstTime) {
         setFirstTime(false) // We never want to animate points on drag
       }
-      const xAttrID = graphDataRef.current.xAttributeID
+      const xAttrID = graphData.xAttributeID
       target.current = select(event.target as SVGSVGElement)
       const tItsID: string = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
@@ -51,10 +51,10 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           }
         })
       }
-    }, [firstTime, setFirstTime, worldDataRef, graphDataRef]),
+    }, [firstTime, setFirstTime, worldDataRef, graphData.xAttributeID]),
 
     onDrag = useCallback((event: MouseEvent) => {
-      const xAttrID = graphDataRef.current.xAttributeID
+      const xAttrID = graphData.xAttributeID
       if (dragID) {
         const newPos = {x: event.clientX},
           dx = newPos.x - currPos.current.x
@@ -68,10 +68,10 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           setRefreshCounter(prevCounter => ++prevCounter)
         }
       }
-    }, [currPos, dragID, xScale, worldDataRef, graphDataRef]),
+    }, [currPos, dragID, xScale, worldDataRef, graphData.xAttributeID]),
 
     onDragEnd = useCallback(() => {
-      const xAttrID = graphDataRef.current.xAttributeID
+      const xAttrID = graphData.xAttributeID
       if (dragID) {
         target.current
           .classed('dragging', false)
@@ -85,19 +85,19 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
       })
       setFirstTime(true)  // So points will animate back to original positions
       setRefreshCounter(prevCounter => ++prevCounter)
-    }, [dragID, worldDataRef, graphDataRef])
+    }, [dragID, worldDataRef, graphData.xAttributeID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
-      const xAttrID = graphDataRef.current.xAttributeID
+      const xAttrID = graphData.xAttributeID
 
       function computeBinPlacements() {
         const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
           binWidth = plotWidth / (numBins - 1),
           bins: string[][] = range(numBins + 1).map(() => [])
 
-        graphDataRef.current.cases.forEach((anID) => {
+        graphData.cases.forEach((anID) => {
           const numerator = xScale?.(worldDataRef.current?.getNumeric(anID, xAttrID) ?? -1),
             bin = Math.ceil((numerator ?? 0) / binWidth)
           if (bin >= 0 && bin <= numBins) {
@@ -124,7 +124,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         getScreenY = (anID: string) => computeYCoord(binMap[anID])
 
       setPointCoordinates({dotsRef, worldDataRef, firstTime, setFirstTime, getScreenX, getScreenY})
-    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, graphDataRef, worldDataRef,
+    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, worldDataRef, graphData.xAttributeID, graphData.cases,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
   )
 

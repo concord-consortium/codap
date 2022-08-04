@@ -12,9 +12,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
   const {axisProps: {scaleLinear: scale, orientation, label, counter, setCounter}} = props,
     axisRef = useRef(null),
     titleRef = useRef(null),
-    [min, max] = scale?.range() || [0, 1],
-    // @ts-expect-error getBBox
-    bbox: { x: number, y: number, width: number, height: number } = axisRef?.current?.getBBox?.()
+    [min, max] = scale?.range() || [0, 1]
 
   const axis = orientation === 'bottom' ? axisBottom : axisLeft
 
@@ -107,10 +105,9 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
           drag()  // upper
             .on("start", onDilateStart)
             .on("drag", onUpperDilateDrag)
-            .on("end", onDragEnd)]
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      // bbox = axisRef.current.getBBox()
+            .on("end", onDragEnd)],
+        // @ts-expect-error getBBox
+        bbox = axisRef?.current?.getBBox?.()
       theAxis
         .selectAll('.dragRect')
         .data(numbering)// data signify lower, middle, upper rectangles
@@ -133,17 +130,27 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
       numbering.forEach((behaviorIndex, axisIndex) => {
         theAxis.select(`.dragRect.${classPrefix}-${classPostfixes[axisIndex]}`).call(dragBehavior[behaviorIndex])
       })
+      theAxis.selectAll('.dragRect').raise()
     }
   }, [props.axisProps.transform, axis, scale, min, max, counter, setCounter,
-    props.axisProps.length, orientation, bbox?.x, bbox?.y, bbox?.width, bbox?.height])
+    props.axisProps.length, orientation])
 
   // Title
   useEffect(function setup() {
     const
       range = scale.range(),
-      tX = Math.abs(range[0] - range[1]) / 2 * (orientation === 'left' ? -1 : 1),
-      tY = orientation === 'bottom' ? bbox?.height + 10 : bbox?.x - 5,
-      tRotation = orientation === 'bottom' ? '' : 'rotate(-90)'
+      // @ts-expect-error getBBox
+      bbox = axisRef?.current?.getBBox?.(),
+      tX = (orientation === 'left') ? bbox?.x - 10 : Math.abs(range[0] - range[1]) / 2,
+      tY = (orientation === 'bottom') ? bbox?.y + bbox?.height + 15 : Math.abs(range[0] - range[1]) / 2,
+      // tY = orientation === 'bottom' ? bbox?.height + 15 : bbox?.x - 10,
+      tRotation = orientation === 'bottom' ? '' : `rotate(-90,${tX},${tY})`
+/*
+    if(orientation==='left') {
+      console.log(
+        `tX = ${tX}; tY = ${tY}; bbox = x: ${bbox.x}, y: ${bbox.y}, width: ${bbox.width}, height: ${bbox.height}`)
+    }
+*/
     select(titleRef.current)
       .selectAll('text.axis-title')
       .data([1])
@@ -156,14 +163,13 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
         },
         (update) => {
           update
-            .attr('transform', props.axisProps.transform + ' ' + tRotation)
             .attr('x', tX)
             .attr('y', tY)
+            .attr('transform', props.axisProps.transform + ' ' + tRotation)
             .text(label || 'Unnamed')
         })
 
-  }, [bbox?.x, bbox?.y, bbox?.width, bbox?.height,
-    label, scale, props.axisProps.transform, orientation])
+  }, [ label, scale, props.axisProps.transform, orientation, counter])
 
   return (
     <g>

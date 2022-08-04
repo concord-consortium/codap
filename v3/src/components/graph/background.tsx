@@ -34,8 +34,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
 
 export const Background = (props: {
   dots: plotProps,
-  worldDataRef:  React.MutableRefObject<IDataSet | undefined>,
-  dataRef:  React.MutableRefObject<InternalizedData>,
+  worldDataRef: React.MutableRefObject<IDataSet | undefined>,
   marquee: {
     rect: Rect,
     setRect: React.Dispatch<React.SetStateAction<Rect>>
@@ -133,8 +132,6 @@ export const Background = (props: {
     xScale, yScale, plotX, plotY, plotWidth, plotHeight, height, width, startX, startY, onDrag, onDragStart, onDragEnd])
 
   return (
-    <g>
-      <g ref={ref}/>
-    </g>
+    <g ref={ref}/>
   )
 }
