@@ -6,9 +6,10 @@ import { useEffect } from "react"
 import { useMemo } from "use-memo-one"
 
 const AxisModel = types.model("AxisModel", {
+  type: types.enumeration(["Cell", "CellLinear", "Count"]),
   orientation: types.enumeration(["horizontal", "vertical"]),
-  min: types.number,
-  max: types.number
+  min: types.maybe(types.number),
+  max: types.maybe(types.number)
 })
 .actions(self => ({
   setDomain(min: number, max: number) {
@@ -29,7 +30,7 @@ function useLinearScale({ axis, extent }: IUseLinearScaleProps) {
   useEffect(() => {
     const disposer = autorun(() => {
       const { min, max } = axis
-      scale.domain([min, max])
+      scale.domain([min ?? NaN, max ?? NaN])
     })
     return () => disposer()
   }, [axis, scale])
@@ -45,8 +46,8 @@ function useLinearScale({ axis, extent }: IUseLinearScaleProps) {
 }
 
 describe("useLinearScale", () => {
-  const xAxis = AxisModel.create({ orientation: "horizontal", min: 0, max: 10 })
-  const yAxis = AxisModel.create({ orientation: "vertical", min: 0, max: 10 })
+  const xAxis = AxisModel.create({ type: "CellLinear", orientation: "horizontal", min: 0, max: 10 })
+  const yAxis = AxisModel.create({ type: "CellLinear", orientation: "vertical", min: 0, max: 10 })
 
   it("should update the domain when the axis model changes", () => {
     const { result } = renderHook(() => useLinearScale({ axis: xAxis, extent: 100 }))
