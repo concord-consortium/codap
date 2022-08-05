@@ -63,8 +63,25 @@ module.exports = (env, argv) => {
           ]
         },
         {
-          test: /\.(png|woff|woff2|eot|ttf)$/,
+          test: /\.(csv)$/,
           type: 'asset',
+          generator: {
+            filename: 'assets/data/[name].[contenthash:6][ext]'
+          }
+        },
+        {
+          test: /\.(woff|woff2|eot|ttf)$/,
+          type: 'asset',
+          generator: {
+            filename: 'assets/fonts/[name].[contenthash:6][ext]'
+          }
+        },
+        {
+          test: /\.(png)$/,
+          type: 'asset',
+          generator: {
+            filename: 'assets/images/[name].[contenthash:6][ext]'
+          }
         },
         { // disable svgo optimization for files ending in .nosvgo.svg
           test: /\.nosvgo\.svg$/i,

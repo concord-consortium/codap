@@ -10,8 +10,9 @@ import {Text} from "./text"
 import { dndDetectCollision } from "./dnd-detect-collision"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import {useSampleText} from "../hooks/use-sample-text"
-import { importMammals } from "../sample-data/mammals"
 import Icon from "../assets/concord.png"
+import { importSample, sampleData, SampleType } from "../sample-data"
+import { urlParams } from "../utilities/url-params"
 
 import "./app.scss"
 
@@ -45,9 +46,8 @@ export const App = () => {
 
   useEffect(() => {
     if (gDataBroker.dataSets.size === 0) {
-      if (window.location.search.includes("mammals")) {
-        handleImportData(importMammals(), "mammals")
-      }
+      const sample = sampleData.find(name => urlParams.sample === name)
+      sample && importSample(sample as SampleType, handleImportData)
     }
   }, [])
 
