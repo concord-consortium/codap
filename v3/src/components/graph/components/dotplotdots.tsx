@@ -1,7 +1,7 @@
 import {max, range, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
-import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius}
+import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius, transitionDuration}
   from "../graphing-types"
 import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
 import {IDataSet} from "../../../data-model/data-set"
@@ -63,7 +63,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0))
           worldDataRef.current?.selection.forEach(anID => {
             const currX = worldDataRef.current?.getNumeric(anID, xAttrID)
-            worldDataRef.current?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
+            const newX = currX != null ? currX + deltaX : undefined
+            worldDataRef.current?.setCaseValues([{ __id__: anID , [xAttrID]: newX }])
           })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
@@ -81,7 +82,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         target.current = null
       }
       worldDataRef.current?.selection.forEach(anID => {
-        worldDataRef.current?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
+        worldDataRef.current?.
+          setCaseValues([{ __id__: anID , [xAttrID]: selectedDataObjects.current[anID].x }])
       })
       setFirstTime(true)  // So points will animate back to original positions
       setRefreshCounter(prevCounter => ++prevCounter)
@@ -121,10 +123,20 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
       computeBinPlacements()
 
       const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
-        getScreenY = (anID: string) => computeYCoord(binMap[anID])
+        getScreenY = (anID: string) => computeYCoord(binMap[anID]),
+        duration = firstTime ? transitionDuration : 0,
+        onComplete = () => {
+          setFirstTime(false)
+          worldDataRef.current?.selection.forEach(anID => {
+            worldDataRef.current?.setCaseValues([{
+              __id__: anID,
+              [xAttrID]: selectedDataObjects.current[anID].x
+            }])
+          })
+        }
 
-      setPointCoordinates({dotsRef, worldDataRef, firstTime, setFirstTime, getScreenX, getScreenY})
-    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, worldDataRef, graphData.xAttributeID, graphData.cases,
+      setPointCoordinates({dotsRef, worldDataRef, getScreenX, getScreenY, duration, onComplete})
+    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, graphDataRef, worldDataRef,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
   )
 

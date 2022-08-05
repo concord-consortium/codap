@@ -1,6 +1,6 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {select} from "d3"
-import {plotProps, InternalizedData, defaultRadius, dragRadius} from "../graphing-types"
+import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
 import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
 import {IDataSet} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
@@ -102,13 +102,22 @@ export const ScatterDots = memo(function ScatterDots(props: {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
+    const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
+      getScreenY = (anID: string) => getScreenCoord(worldDataRef.current, anID, yAttrID, yScale),
+      duration = firstTime ? transitionDuration : 0,
+      onComplete = () => {
+        setFirstTime(false)
+        worldDataRef.current?.selection.forEach(anID => {
+          worldDataRef.current?.setCaseValues([{
+            __id__: anID,
+            [xAttrID]: selectedDataObjects.current[anID].x,
+            [yAttrID]: selectedDataObjects.current[anID].y
+          }])
+        })
+      }
 
-      const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
-        getScreenY = (anID: string) => getScreenCoord(worldDataRef.current, anID, yAttrID, yScale)
-
-      setPointCoordinates({dotsRef, worldDataRef, firstTime, setFirstTime, getScreenX, getScreenY})
-    }, [firstTime, dotsRef, xScale, yScale,
-      xMin, xMax, yMin, yMax,
+    setPointCoordinates({dotsRef, worldDataRef, getScreenX, getScreenY, duration, onComplete})
+  }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, yMin, yMax,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter, xAttrID, yAttrID, worldDataRef]
   )
 

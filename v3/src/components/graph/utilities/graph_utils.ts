@@ -1,6 +1,6 @@
 import {format, ScaleLinear, select} from "d3"
 import React from "react"
-import {defaultRadius, Rect, rTreeRect, transitionDuration} from "../graphing-types"
+import {defaultRadius, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 
@@ -201,26 +201,22 @@ export interface IUseRefreshPointsProps {
   worldDataRef: React.RefObject<IDataSet | undefined>
   getScreenX:((anID:string)=>number)
   getScreenY:((anID:string)=>number)
-  firstTime:boolean | null,
-  setFirstTime: React.Dispatch<React.SetStateAction<boolean | null>>
+  duration?: number
+  onComplete?: () => void
 }
 
 export function setPointCoordinates(props: IUseRefreshPointsProps) {
-
   const
-    { dotsRef, worldDataRef, getScreenX, getScreenY, firstTime, setFirstTime} = props,
+    { dotsRef, worldDataRef, getScreenX, getScreenY, duration = 0, onComplete } = props,
     dotsSvgElement = dotsRef.current,
-    tTransitionDuration = firstTime ? transitionDuration : 0,
     selection = select(dotsSvgElement).selectAll('circle')
       .classed('graph-dot-highlighted',
-        (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
-  if (tTransitionDuration > 0) {
+        (anID:string) => !!(worldDataRef.current?.isCaseSelected(anID)))
+  if (duration > 0) {
     selection
       .transition()
-      .duration(tTransitionDuration)
-      .on('end', () => {
-        setFirstTime(false)
-      })
+      .duration(duration)
+      .on('end', () => onComplete?.())
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
       .attr('r', defaultRadius)

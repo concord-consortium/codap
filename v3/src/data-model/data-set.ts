@@ -392,6 +392,11 @@ export const DataSet = types.model("DataSet", {
     },
     /*
      * public actions
+     *
+     * These actions are used to identify potentially undoable actions and to trigger responses via
+     * onAction handlers, etc. As such, responder convenience is prioritized over caller convenience.
+     * For instance, rather than separate APIs for setting a single case value, setting a single case,
+     * and setting multiple cases, there's a single function for setting multiple cases.
      */
     actions: {
       afterCreate() {
@@ -588,14 +593,6 @@ export const DataSet = types.model("DataSet", {
           })
           insertCaseIDAtIndex(__id__, beforeIndex)
         })
-      },
-
-      setValue(caseID: string, attributeID: string, value:IValueType) {
-        const attr = attrIDMap[attributeID],
-          index = caseIDMap[caseID]
-        if(attr && (index != null)) {
-          attr.setValue(index, value)
-        }
       },
 
       setCaseValues(cases: ICase[]) {

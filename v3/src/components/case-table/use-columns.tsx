@@ -1,9 +1,23 @@
+import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
+import { kDefaultFormatStr } from "../../data-model/attribute"
 import { IDataSet } from "../../data-model/data-set"
 import { TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
+
+// cache d3 number formatters so we don't have to generate them on every render
+const formatters = new Map<string, (n: number) => string>()
+
+export const getFormatter = (formatStr: string) => {
+  let formatter = formatters.get(formatStr)
+  if (formatStr && !formatter) {
+    formatter = format(formatStr)
+    formatters.set(formatStr, formatter)
+  }
+  return formatter
+}
 
 interface IUseColumnsProps {
   data?: IDataSet
@@ -15,8 +29,12 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
 
   // cell formatter/renderer
   const CellFormatter = useCallback(({ column, row }: TFormatterProps) => {
-    const value = data?.getValue(row.__id__, column.key) ?? ""
-    // for now we just render the raw string value; eventually,
+    const formatStr = data?.attrFromID(column.key)?.format || kDefaultFormatStr
+    const formatter = getFormatter(formatStr)
+    const str = data?.getValue(row.__id__, column.key) ?? ""
+    const num = data?.getNumeric(row.__id__, column.key) ?? NaN
+    const value = isFinite(num) && formatter ? formatter(num) : str
+    // for now we just render numbers and raw string values; eventually,
     // we can support other formats here (dates, colors, etc.)
     return <>{value}</>
   }, [data])

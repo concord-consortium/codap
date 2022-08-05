@@ -1,9 +1,9 @@
-import { IDataSet } from "../../data-model/data-set"
 import {
   CalculatedColumn, Column, EditorProps, FormatterProps, HeaderRendererProps, RowsChangeData
 } from "react-data-grid"
+import { ICase } from "../../data-model/data-set"
 
-export type TRow = IDataSet["cases"][number]
+export interface TRow extends ICase {}
 export interface TRowsChangeData extends RowsChangeData<TRow> {}
 export interface TColumn extends Column<TRow> {}
 export interface TCalculatedColumn extends CalculatedColumn<TRow> {}
