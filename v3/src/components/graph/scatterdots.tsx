@@ -14,10 +14,10 @@ export const ScatterDots = memo(function ScatterDots(props: {
   yMin: number,
   yMax: number,
   worldDataRef: React.MutableRefObject<IDataSet | undefined>,
-  dataRef: React.MutableRefObject<InternalizedData>,
+  graphData: InternalizedData,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
-  const {worldDataRef, dataRef, dotsRef, plotProps: {xScale, yScale}, xMax, xMin, yMax, yMin} = props,
+  const {worldDataRef, graphData, dotsRef, plotProps: {xScale, yScale}, xMax, xMin, yMax, yMin} = props,
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
@@ -25,8 +25,8 @@ export const ScatterDots = memo(function ScatterDots(props: {
     plotWidth = props.plotWidth,
     plotHeight = props.plotHeight,
     [firstTime, setFirstTime] = useState<boolean | null>(true),
-    xAttrID = dataRef.current.xAttributeID,
-    yAttrID = dataRef.current.yAttributeID,
+    xAttrID = graphData.xAttributeID,
+    yAttrID = graphData.yAttributeID,
     selectedDataObjects = useRef<{ [index: string]: { x: number, y: number } }>({}),
     [forceRefreshCounter, setForceRefreshCounter] = useState(0)
 

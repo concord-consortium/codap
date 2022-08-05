@@ -3,7 +3,7 @@
  */
 import {extent, ScaleLinear} from "d3"
 import {autorun} from "mobx"
-import React, {useEffect} from "react"
+import React, {useEffect, useRef} from "react"
 import {IAttribute} from "../../../data-model/attribute"
 import {DataBroker} from "../../../data-model/data-broker"
 import {InternalizedData} from "../graphing-types"
@@ -31,16 +31,20 @@ export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) 
 
 export interface IUseGetDataProps {
   broker?: DataBroker,
-  dataRef: React.MutableRefObject<InternalizedData>,
-  xNameRef: React.MutableRefObject<string>,
-  yNameRef: React.MutableRefObject<string>,
   xAxis: ScaleLinear<number, number>,
   yAxis: ScaleLinear<number, number>,
   setCounter: any
 }
 
 export const useGetData = (props: IUseGetDataProps) => {
-  const {broker, dataRef, xNameRef, yNameRef, xAxis, yAxis, setCounter} = props
+  const {broker, xAxis, yAxis, setCounter} = props,
+    dataRef = useRef<InternalizedData>({
+      xAttributeID: '',
+      yAttributeID: '',
+      cases: []
+    }),
+    xNameRef = useRef(''),
+    yNameRef = useRef('')
 
   const findNumericAttrIds = (attrsToSearch: IAttribute[]): { xAttrId: string, yAttrId: string } => {
     const result = {xAttrId: '', yAttrId: ''}
@@ -84,7 +88,7 @@ export const useGetData = (props: IUseGetDataProps) => {
       setCounter((prevCounter: number) => ++prevCounter)
     }
   }, [broker?.last, dataRef, setCounter, xAxis, yAxis, xNameRef, yNameRef])
-
+  return { xName: xNameRef.current, yName: yNameRef.current, data: dataRef.current }
 }
 
 export const useSelection = (worldDataRef: React.MutableRefObject<IDataSet | undefined>,

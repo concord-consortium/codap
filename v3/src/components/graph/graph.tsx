@@ -4,7 +4,7 @@ import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, InternalizedData, defaultRadius} from "./graphing-types"
+import {plotProps, defaultRadius} from "./graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -33,20 +33,14 @@ const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
 
 export const Graph = observer(({broker}: IProps) => {
   const
-    graphDataRef = useRef<InternalizedData>({
-      xAttributeID: '',
-      yAttributeID: '',
-      cases: []
-    }),
     worldDataRef = useRef(broker?.last),
-    xAttributeNameRef = useRef(''),
-    yAttributeNameRef = useRef(''),
     {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
     plotWidth = 0.8 * (width || 300),
     plotWidthRef = useCurrent(plotWidth),
     plotHeight = 0.8 * (height || 500),
     plotHeightRef = useCurrent(plotHeight),
-
+    [movableLine, setMovableLine] = useState({slope: 1, intercept: 0}),
+    [movableValue, setMovableValue] = useState(2),
     [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
     [counter, setCounter] = useState(0),
     [, setHighlightCounter] = useState(0),
@@ -55,20 +49,18 @@ export const Graph = observer(({broker}: IProps) => {
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     dotsRef = useRef<SVGSVGElement>(null),
-    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0}),
-    [movableLine, setMovableLine] = useState(
-      // {slope:Number.POSITIVE_INFINITY, intercept: 40})
-      {slope: 2 / 3, intercept: 10}),
-    [movableValue, setMovableValue] = useState(x.domain()[0] + (x.domain()[1] - x.domain()[0]) / 3)
+    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})
 
   x.range([0, plotWidthRef.current])
   y.range([plotHeightRef.current, 0])
 
   worldDataRef.current = broker?.last
-  useGetData({
-    broker, dataRef: graphDataRef,
-    xNameRef: xAttributeNameRef, yNameRef: yAttributeNameRef, xAxis: x, yAxis: y, setCounter
-  })
+  const {xName, yName, data: graphData } = useGetData({ broker, xAxis: x, yAxis: y, setCounter })
+
+  // todo: This is a kludge. Find a better way. Without this, the y-axis doesn't update label and drag rects
+  useEffect(() => {
+    setTimeout(() => setCounter(count => ++count))
+  }, [plotType])
 
   useEffect(function setupPlotArea() {
     select(plotAreaSVGRef.current)
@@ -80,14 +72,14 @@ export const Graph = observer(({broker}: IProps) => {
   }, [plotWidth])
 
   useEffect(function createCircles() {
-    const xID = graphDataRef.current.xAttributeID,
-      yID = graphDataRef.current.yAttributeID
+    const xID = graphData.xAttributeID,
+      yID = graphData.yAttributeID
 
     select(dotsRef.current).selectAll('circle').remove()
 
     select(dotsRef.current)
       .selectAll('circle')
-      .data(graphDataRef.current.cases, keyFunc)
+      .data(graphData.cases, keyFunc)
       .join(
         // @ts-expect-error void => Selection
         (enter) => {
@@ -106,6 +98,13 @@ export const Graph = observer(({broker}: IProps) => {
             })
         }
       )
+  }, [broker?.last, graphData.cases, graphData.xAttributeID, graphData.yAttributeID])
+
+  useEffect(function initMovables() {
+    const xDomainDelta = x.domain()[1] - x.domain()[0],
+      yDomainDelta = y.domain()[1] - y.domain()[0]
+    setMovableValue(x.domain()[0] + xDomainDelta / 3)
+    setMovableLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
   }, [broker?.last])
 
   return (
@@ -119,7 +118,7 @@ export const Graph = observer(({broker}: IProps) => {
                     scaleLinear: y,
                     transform: `translate(${margin.left - 1}, 0)`,
                     length: plotHeightRef.current,
-                    label: yAttributeNameRef.current,
+                    label: yName,
                     counter,
                     setCounter
                   }
@@ -134,13 +133,13 @@ export const Graph = observer(({broker}: IProps) => {
                   scaleLinear: x,
                   transform: `translate(${margin.left}, ${plotHeightRef.current})`,
                   length: plotWidth,
-                  label: xAttributeNameRef.current,
+                  label: xName,
                   counter,
                   setCounter
                 }
               }
         />
-        <Background dots={dotsProps} worldDataRef={worldDataRef} dataRef={graphDataRef}
+        <Background dots={dotsProps} worldDataRef={worldDataRef}
                     marquee={{rect: marqueeRect, setRect: setMarqueeRect}}
                     setHighlightCounter={setHighlightCounter}/>
         <svg ref={plotAreaSVGRef} className='dotArea'>
@@ -156,7 +155,7 @@ export const Graph = observer(({broker}: IProps) => {
                   plotWidth={x.range()[1] - x.range()[0]}
                   plotHeight={y.range()[0] - y.range()[1]}
                   worldDataRef={worldDataRef}
-                  dataRef={graphDataRef}
+                  graphData={graphData}
                   dotsRef={dotsRef}
                 />
                 :
@@ -167,7 +166,7 @@ export const Graph = observer(({broker}: IProps) => {
                   plotWidth={x.range()[1] - x.range()[0]}
                   plotHeight={y.range()[0] - y.range()[1]}
                   worldDataRef={worldDataRef}
-                  graphDataRef={graphDataRef}
+                  graphData={graphData}
                   dotsRef={dotsRef}
                 />)
             }
