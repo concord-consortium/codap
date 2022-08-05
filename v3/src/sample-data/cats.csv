@@ -1,0 +1,102 @@
+Name,Gender,Age,Weight,BodyLength,TailLength,EyeColor,PadColor,Tail_Body_Ratio
+Bits,male,0.2,13,20,13,yellowish,brown,0.65
+Speedy,male,0.2,3.5,15,8,yellowish,pink,0.53
+Ginger,female,0.2,2,11,6.5,yellowish,pink,0.59
+Grey Girl,female,0.2,1.5,13,9.5,yellowish,mixed,0.73
+Sasha,female,0.2,2,11,6.5,yellowish,pink,0.59
+Blue,female,0.3,2,17,8,green,gray,0.47
+Boots,male,0.3,3,15.5,9,brown,black,0.58
+Fire Smoke,female,0.3,2.5,13,7,green,pink,0.54
+Seymour,male,0.3,1.5,13,9,yellowish,mixed,0.69
+Simon,male,0.3,2,16,8.5,green,mixed,0.53
+Ting,female,0.3,2.5,12,6,green,mixed,0.5
+Tom,male,0.3,3,14.5,7.5,green,gray,0.52
+Black Foot,male,0.3,1.5,15,7,yellowish,gray,0.47
+Booty,male,0.3,1.5,14,7.5,yellowish,pink,0.54
+Smoky,male,0.5,1.5,12,7,gray,gray,0.58
+Bradley,male,0.6,11,25,13,yellowish,mixed,0.52
+Nancy Blue,female,0.6,5,14,8.5,blue,gray,0.61
+Bubba,male,0.8,8,19,10,blue,pink,0.53
+Blacky,female,1,5,18,12,yellowish,mixed,0.67
+Chubbs,male,1,7,22,11,green,pink,0.5
+Duffy,male,1,9,17,10,yellowish,black,0.59
+Gabriel,male,1,7,14,10,blue,white,0.71
+Pip,male,1,9,17,12,yellowish,pink,0.71
+Tabby,male,1,10,20,10.5,green,black,0.53
+Joto,male,1,6.5,14,1.5,yellowish,pink,0.11
+Fuzzy,female,1.3,2,13,8,green,pink,0.62
+Chessis,female,1.5,6,19.5,10,green,brown,0.51
+Kahlua,male,1.5,15,13,9,blue,brown,0.69
+Kiki,female,1.5,6,21,9,green,black,0.43
+Pink Lady,female,1.5,6.5,15,11,yellowish,pink,0.73
+Tabby,female,1.5,7,18,10.5,green,black,0.58
+Koshoshio,male,1.6,10,19,2,green,pink,0.11
+Augustus,male,2,10,21,11,yellowish,mixed,0.52
+Chelsea,female,2,9,17,8,yellowish,black,0.47
+Jinglebob,male,2,18.5,26,12,blue,pink,0.46
+Pepper,male,2,12,17,9,yellowish,pink,0.53
+Precious,female,2,12,18.5,10.5,green,pink,0.57
+Feather,male,2.5,13,18,12,green,pink,0.67
+Smokey,female,2.5,8,21,9.5,green,black,0.45
+Boggie,male,3,10,27,10,green,pink,0.37
+Gray Kitty,female,3,9,15,8.5,green,gray,0.57
+Harmony,male,3,12,24,11,yellowish,black,0.46
+Priscilla,female,3,8.5,23,11,green,mixed,0.48
+Ralph,male,3,9,23,11,yellowish,black,0.48
+Sassy,female,3,8,23,12,yellowish,gray,0.52
+Samantha,female,3,8,27,12,blue,black,0.44
+Shiver,male,3,12,23,10,yellowish,pink,0.43
+Sparky,male,3,12,18,8,blue,pink,0.44
+Taint,male,3,11,14,11,green,pink,0.79
+Boo,male,3.5,10.75,19.5,11.5,yellowish,brown,0.59
+Diva,female,3.5,11,20,12,green,pink,0.6
+Hanna,female,4,5,12,6,yellowish,black,0.5
+Bob,female,4,12,21,13,green,black,0.62
+Cookie,female,4,9,20,11,yellowish,black,0.55
+Emma,female,4,9.25,18,12,yellowish,pink,0.67
+Emmie,female,4,7,18,8,green,black,0.44
+Gizmo,male,4,10,23,11,yellowish,black,0.48
+Lady Jane,female,4,8.5,19,11,yellowish,gray,0.58
+Lucky,male,4,5,19,12,green,pink,0.63
+Prissy,female,4,9,22,10,green,pink,0.45
+Sophie,male,4,12,18,10,green,black,0.56
+Magnum,male,4,8,19,10,green,pink,0.53
+Tigger,female,4,8,17,10,yellowish,brown,0.59
+Treasure,female,4,8,19,10,green,pink,0.53
+Amanda,female,4.5,9.75,17,11,blue,gray,0.65
+Matilda,female,4.5,9,19,12,yellowish,pink,0.63
+Ethel,female,5,8,19,12,green,black,0.63
+Fluffy,female,5,10,20,12,green,pink,0.6
+Poupon,female,5,16,17.5,10.5,green,mixed,0.6
+K.C.,male,5,16,24,12,yellowish,black,0.5
+Lucy,female,5,10,21,11,green,pink,0.52
+Oddfuzz,male,5,18,21,9,yellowish,pink,0.43
+Peebles,female,5,9,17,11,green,black,0.65
+Tiger,female,5,13,19,11,green,pink,0.58
+Wally,male,5,10,18,12,green,mixed,0.67
+Ravena,female,6,14,23,12,yellowish,mixed,0.52
+Simon,male,6,13,21,11,green,black,0.52
+Scooter,male,7,16,21,10,yellowish,black,0.48
+Smudge,male,7,12,21,10.5,green,pink,0.5
+Wiley,female,7,10,16,8,yellowish,mixed,0.5
+Gracie,female,8,12,15,12,green,pink,0.8
+Melissa,female,8,11,21,11,yellowish,pink,0.52
+Smokey,male,8,10,22,10,green,gray,0.45
+Weary,male,8,15,17,12,green,pink,0.71
+Cricket,female,10,8,22,9,green,black,0.41
+Elizabeth,female,10,9,16,8.5,green,pink,0.53
+Lady,female,10,8.5,17,13,yellowish,black,0.76
+Mercedes,female,10,14,22,12,green,pink,0.55
+Midnight,female,10,18,21,9,green,pink,0.43
+Momma Kat,female,10,6,13.5,7.5,green,mixed,0.56
+Millie,female,10.5,5,26.5,10,blue,black,0.38
+Charcoal,male,11,12,21,13,yellowish,black,0.62
+Miss Moppet,female,11,12,14,12,green,mixed,0.86
+George,male,12,14.5,21,12,green,black,0.57
+Grey Boy,male,13,12,18,12,yellowish,pink,0.67
+Mittens,female,14,10.5,17,10,yellowish,pink,0.59
+Peau de Soie,female,15,7,16,13,green,pink,0.81
+Molly,female,15.5,10,17,10,yellowish,gray,0.59
+Strawberry,female,16,14.5,21,10,green,black,0.48
+,,,,,,,,
+Alexander,male,18,11,21,11,green,black,0.52
