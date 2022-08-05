@@ -126,13 +126,6 @@ export const ScatterDots = memo(function ScatterDots(props: {
         onComplete = firstTime ? () => {
           prf.measure("Graph.refreshPoints[onComplete]", () => {
             setFirstTime(false)
-            // worldDataRef.current?.selection.forEach(anID => {
-            //   worldDataRef.current?.setCaseValues([{
-            //     __id__: anID,
-            //     [xAttrID]: selectedDataObjects.current[anID].x,
-            //     [yAttrID]: selectedDataObjects.current[anID].y
-            //   }])
-            // })
           })
         } : undefined
 
