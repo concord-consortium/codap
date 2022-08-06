@@ -1,3 +1,4 @@
+declare module "*.csv";
 declare module "*.png";
 declare module "*.svg";
 

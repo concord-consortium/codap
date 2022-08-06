@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import React from "react"
 import { gDataBroker } from "../data-model/data-broker"
+import { setUrlParams } from "../utilities/url-params"
 import { App, handleImportData } from "./app"
 
 // used by case table
@@ -9,24 +10,8 @@ jest.mock("../hooks/use-measure-text", () => ({
 }))
 
 describe("App component", () => {
-  const originalLocation = window.location
-
-  const mockWindowLocation = (newLocation: Location | URL) => {
-    delete (window as any).location
-    window.location = newLocation as Location
-  }
-
-  const setLocation = (url: string) => {
-    mockWindowLocation(new URL(url))
-  }
-
-  const setQueryParams = (params?: string) => {
-    setLocation(`https://concord.org${params ? `?${params}` : ""}`)
-  }
-
-  afterEach(() => {
+  beforeEach(() => {
     gDataBroker.clear()
-    mockWindowLocation(originalLocation)
   })
 
   it("should import data into a DataSet and into the DataBroker", () => {
@@ -45,7 +30,7 @@ describe("App component", () => {
   })
 
   it("should render the App component with mammals data", () => {
-    setQueryParams("mammals")
+    setUrlParams("?sample=mammals")
     render(<App/>)
     expect(screen.getByTestId("app")).toBeInTheDocument()
   })
