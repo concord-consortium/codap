@@ -4,16 +4,16 @@ import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, defaultRadius} from "./graphing-types"
+import {plotProps, defaultRadius} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
-import {MovableLine} from "./movable-line"
-import {MovableValue} from "./movable-value"
-import {DataBroker} from "../../data-model/data-broker"
-import {useGetData} from "./graph-hooks/graph-hooks"
-import {useCurrent} from "../../hooks/use-current"
-import {getScreenCoord} from "./graph-utils/graph_utils"
+import {MovableLine} from "../adornments/movable-line"
+import {MovableValue} from "../adornments/movable-value"
+import {DataBroker} from "../../../data-model/data-broker"
+import {useGetData} from "../hooks/graph-hooks"
+import {useCurrent} from "../../../hooks/use-current"
+import {getScreenCoord} from "../graph-utils/graph_utils"
 
 import "./graph.scss"
 
@@ -84,7 +84,7 @@ export const Graph = observer(({broker}: IProps) => {
         // @ts-expect-error void => Selection
         (enter) => {
           enter.append('circle')
-            .attr('class', 'dot')
+            .attr('class', 'graph-dot')
             .attr("r", defaultRadius)
             .property('id', (anID: string) => anID)
             .attr('cx', (anID: string) => getScreenCoord(worldDataRef.current, anID, xID, x))
@@ -108,7 +108,7 @@ export const Graph = observer(({broker}: IProps) => {
   }, [broker?.last])
 
   return (
-    <div className='plot' ref={plotRef} data-testid="graph">
+    <div className='graph-plot' ref={plotRef} data-testid="graph">
       <svg className='graph-svg' ref={svgRef}>
         {plotType === 'scatterplot' ?
           <Axis svgRef={svgRef}
@@ -142,7 +142,7 @@ export const Graph = observer(({broker}: IProps) => {
         <Background dots={dotsProps} worldDataRef={worldDataRef}
                     marquee={{rect: marqueeRect, setRect: setMarqueeRect}}
                     setHighlightCounter={setHighlightCounter}/>
-        <svg ref={plotAreaSVGRef} className='dotArea'>
+        <svg ref={plotAreaSVGRef} className='graph-dot-area'>
           <svg ref={dotsRef}>
             {
               (plotType === 'scatterplot' ?
@@ -189,7 +189,7 @@ export const Graph = observer(({broker}: IProps) => {
         }
       </svg>
       <button
-        className='plot-choice'
+        className='graph-plot-choice'
         onClick={() => {
           setPlotType((prevType) => prevType === 'scatterplot' ? 'dotplot' : 'scatterplot')
         }}

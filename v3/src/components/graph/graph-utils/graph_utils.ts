@@ -212,7 +212,7 @@ export function setPointCoordinates(props: IUseRefreshPointsProps) {
     dotsSvgElement = dotsRef.current,
     tTransitionDuration = firstTime ? transitionDuration : 0,
     selection = select(dotsSvgElement).selectAll('circle')
-      .classed('dot-highlighted',
+      .classed('graph-dot-highlighted',
         (anID:string ) => !!(worldDataRef.current?.isCaseSelected(anID)))
   if (tTransitionDuration > 0) {
     selection

@@ -1,7 +1,7 @@
 import { scaleLinear, scaleLog } from "d3"
 import { autorun } from "mobx"
 import { useEffect, useMemo } from "react"
-import { INumericAxisModel } from "../axis-model"
+import { INumericAxisModel } from "./axis-model"
 
 interface IProps {
   axis: INumericAxisModel

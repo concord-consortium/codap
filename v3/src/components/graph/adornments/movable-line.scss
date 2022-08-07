@@ -1,0 +1,30 @@
+.movable-line {
+  stroke: chocolate;
+  stroke-width: 2px;
+}
+
+.movable-line-cover {
+  stroke: rgba(210, 105, 30, 0.01);
+  stroke-width: 8px;
+}
+
+.movable-line-lower-cover {
+  cursor: url("../../../assets/LinePivotBotLeft.png") 8 8, grab;
+}
+
+.movable-line-middle-cover {
+  cursor: url("../../../assets/LineSlide.png") 8 8, grab;
+}
+
+.movable-line-upper-cover {
+  cursor: url("../../../assets/LinePivotTopRight.png") 8 8, grab;
+}
+
+.movable-line-equation-container {
+  position: absolute;
+  background-color: rgba(255, 255, 0, 0.6);
+}
+
+.movable-line-equation {
+}
+

@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {Rect, plotProps, InternalizedData, rTreeRect} from "./graphing-types"
-import {rectangleSubtract, rectNormalize} from "./graph-utils/graph_utils"
-import {IDataSet} from "../../data-model/data-set"
+import {Rect, plotProps, InternalizedData, rTreeRect} from "../graphing-types"
+import {rectangleSubtract, rectNormalize} from "../graph-utils/graph_utils"
+import {IDataSet} from "../../../data-model/data-set"
 
 
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
@@ -117,7 +117,7 @@ export const Background = (props: {
         // @ts-expect-error void => Selection
         (enter) => {
           enter.append('rect')
-            .attr('class', 'background')
+            .attr('class', 'graph-background')
             .attr('transform', props.dots.transform)
             .call(dragBehavior)
         },

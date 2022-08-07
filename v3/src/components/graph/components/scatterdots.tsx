@@ -1,9 +1,9 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {select} from "d3"
-import {plotProps, InternalizedData, defaultRadius, dragRadius} from "./graphing-types"
-import {useDragHandlers, useSelection} from "./graph-hooks/graph-hooks"
-import {IDataSet} from "../../data-model/data-set"
-import {getScreenCoord, setPointCoordinates} from "./graph-utils/graph_utils"
+import {plotProps, InternalizedData, defaultRadius, dragRadius} from "../graphing-types"
+import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
+import {IDataSet} from "../../../data-model/data-set"
+import {getScreenCoord, setPointCoordinates} from "../graph-utils/graph_utils"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps,

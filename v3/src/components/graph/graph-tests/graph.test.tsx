@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import React from "react"
 import { DataBroker } from "../../../data-model/data-broker"
 import { DataSet, toCanonical } from "../../../data-model/data-set"
-import {Graph} from "../graph"
+import {Graph} from "../components/graph"
 
 describe("Graph", () => {
   let broker: DataBroker

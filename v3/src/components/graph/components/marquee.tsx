@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from "react"
 import {select} from "d3"
+import "./marquee.scss"
 
 interface IProps {
   marqueeRect: {
@@ -20,7 +21,7 @@ export const Marquee = ({marqueeRect: {x, y, width, height}}: IProps) => {
         // @ts-expect-error void => Selection
         (enter) => {
           enter.append('rect')
-            .attr('class', (d: number) => d === 1 ? 'marqueeBack' : 'marquee')
+            .attr('class', (d: number) => d === 1 ? 'marquee-back' : 'marquee')
         },
         (update) => {
           update.attr('x', width < 0 ? x + width : x)

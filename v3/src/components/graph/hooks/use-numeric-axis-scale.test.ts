@@ -1,5 +1,5 @@
 import { renderHook } from "@testing-library/react-hooks"
-import { NumericAxisModel } from "../axis-model"
+import { NumericAxisModel } from "./axis-model"
 import { useNumericAxisScale } from "./use-numeric-axis-scale"
 
 const d3 = jest.requireActual("d3")
