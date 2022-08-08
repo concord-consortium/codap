@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, ScaleLinear, select} from "d3"
-import {CPLine, equationString, lineToAxisIntercepts} from "../graph-utils/graph_utils"
+import {CPLine, equationString, lineToAxisIntercepts} from "../utilities/graph_utils"
 import "./movable-line.scss"
 
 

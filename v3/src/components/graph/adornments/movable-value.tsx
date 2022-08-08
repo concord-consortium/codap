@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, ScaleLinear, select} from "d3"
-import {valueLabelString} from "../graph-utils/graph_utils"
+import {valueLabelString} from "../utilities/graph_utils"
 import "./movable-value.scss"
 
 

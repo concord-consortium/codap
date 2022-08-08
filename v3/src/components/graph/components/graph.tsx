@@ -13,7 +13,7 @@ import {MovableValue} from "../adornments/movable-value"
 import {DataBroker} from "../../../data-model/data-broker"
 import {useGetData} from "../hooks/graph-hooks"
 import {useCurrent} from "../../../hooks/use-current"
-import {getScreenCoord} from "../graph-utils/graph_utils"
+import {getScreenCoord} from "../utilities/graph_utils"
 
 import "./graph.scss"
 

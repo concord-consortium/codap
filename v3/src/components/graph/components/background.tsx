@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
 import {Rect, plotProps, InternalizedData, rTreeRect} from "../graphing-types"
-import {rectangleSubtract, rectNormalize} from "../graph-utils/graph_utils"
+import {rectangleSubtract, rectNormalize} from "../utilities/graph_utils"
 import {IDataSet} from "../../../data-model/data-set"
 
 
