@@ -4,6 +4,7 @@ import {observer} from "mobx-react-lite"
 import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius, transitionDuration}
   from "../graphing-types"
 import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
+import { appState } from "../../app-state"
 import {IDataSet} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
 
@@ -19,7 +20,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {
-      worldDataRef, graphData, dotsRef, plotWidth, plotHeight, xMax, xMin,
+      worldDataRef, graphData, dotsRef, plotWidth,
       dots: {xScale, yScale}
     } = props,
     [dragID, setDragID] = useState<string>(),
@@ -31,7 +32,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     [forceRefreshCounter, setForceRefreshCounter] = useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
-
+      appState.beginPerformance()
       if (firstTime) {
         setFirstTime(false) // We never want to animate points on drag
       }
@@ -87,6 +88,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
       })
       setFirstTime(true)  // So points will animate back to original positions
       setRefreshCounter(prevCounter => ++prevCounter)
+      appState.endPerformance()
     }, [dragID, worldDataRef, graphData.xAttributeID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
@@ -136,8 +138,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         }
 
       setPointCoordinates({dotsRef, worldDataRef, getScreenX, getScreenY, duration, onComplete})
-    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, graphDataRef, worldDataRef,
-      plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
+    }, [firstTime, dotsRef, xScale, yScale, worldDataRef, plotWidth,
+        refreshCounter, forceRefreshCounter, graphData.xAttributeID, graphData.cases]
   )
 
   /**

@@ -35,9 +35,7 @@
  */
 
 import { findIndex } from "lodash"
-import {
-  addMiddleware, applyAction, getEnv, Instance, ISerializedActionCall, onAction, types
-} from "mobx-state-tree"
+import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot, IValueType } from "./attribute"
 import { uniqueId, uniqueOrderedId } from "../utilities/js-utils"
 
@@ -154,11 +152,19 @@ export const DataSet = types.model("DataSet", {
   name: types.maybe(types.string),
   attributes: types.array(Attribute),
   cases: types.array(CaseID),
-  // MST doesn't have a types.set
-  selection: types.map(types.string)
+  // for serialization only, not for dynamic selection tracking
+  snapSelection: types.array(types.string)
 })
 .volatile(self => ({
-  transactionCount: 0
+  transactionCount: 0,
+  selection: new Set<string>(),
+  cachingCount: 0,
+  caseCache: new Map<string, ICase>()
+}))
+.views(self => ({
+  get isCaching() {
+    return self.cachingCount > 0
+  }
 }))
 .extend(self => {
   /*
@@ -170,37 +176,12 @@ export const DataSet = types.model("DataSet", {
         // map from case IDs to indices
         caseIDMap: { [index: string]: number } = {},
         disposers: { [index: string]: () => void } = {}
-  let inFlightActions = 0
-
-  function derive(name?: string) {
-    return { id: uniqueId(), sourceID: self.id, name: name || self.name, attributes: [], cases: [] }
-  }
 
   const attrIDFromName = (name: string) => attrNameMap[name]
 
   function attrIndexFromID(id: string) {
     const index = findIndex(self.attributes, (attr) => attr.id === id )
     return index >= 0 ? index : undefined
-  }
-
-  function mapBeforeID(srcDataSet: IDataSet, beforeID?: string) {
-    let id: string | undefined = beforeID
-    // find the corresponding case in the derived DataSet
-    while (id && (caseIDMap[id] == null)) {
-      id = srcDataSet.nextCaseID(id)
-    }
-    return id
-  }
-
-  function mapBeforeIDArg(beforeID?: string | string[]) {
-    const context: IEnvContext = getEnv(self),
-          { srcDataSet } = context
-    if (Array.isArray(beforeID)) {
-      return beforeID.map((id) => mapBeforeID(srcDataSet, id))
-    }
-    else {
-      return mapBeforeID(srcDataSet, beforeID)
-    }
   }
 
   function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
@@ -263,21 +244,11 @@ export const DataSet = types.model("DataSet", {
     }
   }
 
-  function delayApplyActions(actions: ISerializedActionCall[]) {
-    ++inFlightActions
-    setTimeout(() => {
-      if (--inFlightActions <= 0) {
-        applyAction(self, actions)
-      }
-    })
-  }
-
   return {
     /*
      * public views
      */
     views: {
-      attrIDFromName,
       attrFromID(id: string) {
         return attrIDMap[id]
       },
@@ -285,9 +256,8 @@ export const DataSet = types.model("DataSet", {
         const id = attrNameMap[name]
         return id ? attrIDMap[id] : undefined
       },
-      attrIndexFromID(id: string) {
-        return attrIndexFromID(id)
-      },
+      attrIDFromName,
+      attrIndexFromID,
       caseIndexFromID(id: string) {
         return caseIDMap[id]
       },
@@ -301,22 +271,26 @@ export const DataSet = types.model("DataSet", {
         return nextCase?.__id__
       },
       getValue(caseID: string, attributeID: string) {
-        const attr = attrIDMap[attributeID],
-              index = caseIDMap[caseID]
-        return attr && (index != null) ? attr.value(index) : undefined
+        return this.getValueAtIndex(caseIDMap[caseID], attributeID)
       },
       getValueAtIndex(index: number, attributeID: string) {
-        const attr = attrIDMap[attributeID]
-        return attr && (index != null) ? attr.value(index) : undefined
+        const attr = attrIDMap[attributeID],
+              caseID = self.cases[index]?.__id__,
+              cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
+        return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
+                ? cachedCase[attributeID]
+                : attr && (index != null) ? attr.value(index) : undefined
       },
       getNumeric(caseID: string, attributeID: string) {
-        const attr = attrIDMap[attributeID],
-              index = caseIDMap[caseID]
-        return attr && (index != null) ? attr.numeric(index) : undefined
+        return this.getNumericAtIndex(caseIDMap[caseID], attributeID)
       },
       getNumericAtIndex(index: number, attributeID: string) {
-        const attr = attrIDMap[attributeID]
-        return attr && (index != null) ? attr.numeric(index) : undefined
+        const attr = attrIDMap[attributeID],
+              caseID = self.cases[index]?.__id__,
+              cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
+        return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
+                ? cachedCase[attributeID]
+                : attr && (index != null) ? attr.numeric(index) : undefined
       },
       getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
         return getCase(caseID, options)
@@ -348,46 +322,6 @@ export const DataSet = types.model("DataSet", {
       },
       get isInTransaction() {
         return self.transactionCount > 0
-      },
-      get isSynchronizing() {
-        return inFlightActions > 0
-      },
-      onSynchronized() {
-        if (inFlightActions <= 0) {
-          return Promise.resolve(self)
-        }
-        return new Promise((resolve, reject) => {
-          function waitForSync() {
-            if (inFlightActions <= 0) {
-              resolve(self)
-            }
-            else {
-              setTimeout(waitForSync)
-            }
-          }
-          waitForSync()
-        })
-      },
-      derive(name?: string, derivationSpec?: IDerivationSpec) {
-        const context = { srcDataSet: self, derivationSpec }
-        const derived = DataSet.create(derive(name), context)
-        const attrIDs = derivationSpec?.attributeIDs ||
-                          self.attributes.map(attr => attr.id),
-              filter = derivationSpec?.filter
-        attrIDs.forEach((attrID) => {
-          const attribute = attrIDMap[attrID]
-          if (attribute) {
-            derived.addAttribute(attribute.derive())
-          }
-        })
-        self.cases.forEach((aCaseID) => {
-          const inCase = getCase(aCaseID.__id__),
-                outCase = filter && inCase ? filter(attrIDFromName, inCase) : inCase
-          if (outCase) {
-            derived.addCases([outCase])
-          }
-        })
-        return derived
       }
     },
     /*
@@ -401,8 +335,7 @@ export const DataSet = types.model("DataSet", {
     actions: {
       afterCreate() {
         const context: IEnvContext = getEnv(self),
-              { srcDataSet, derivationSpec = {} } = context,
-              { attributeIDs, filter, synchronize } = derivationSpec
+              { srcDataSet, } = context
 
         // build attrIDMap
         self.attributes.forEach(attr => {
@@ -433,90 +366,6 @@ export const DataSet = types.model("DataSet", {
             next(call)
           })
         }
-
-        // set up onAction handler to perform synchronization with source
-        if (srcDataSet && synchronize) {
-          disposers.srcDataSetOnAction = onAction(srcDataSet, (action) => {
-            const actions = []
-            let newAction
-            switch (action.name) {
-              case "addAttribute":
-                // ignore new attributes if we have a subset of attributes
-                if (!attributeIDs) {
-                  actions.push(action)
-                }
-                break
-              case "addCases": {
-                const [srcCasesAdded, srcOptions] = action.args as [ICase[], IAddCaseOptions],
-                      // only add new cases if they pass the filter
-                      dstCasesToAdd = srcCasesAdded && filter
-                                        ? srcCasesAdded.filter(filter.bind(null, attrIDFromName))
-                                        : srcCasesAdded,
-                      // map beforeIDs from src to dst
-                      dstBeforeID = srcOptions && mapBeforeIDArg(srcOptions.before),
-                      // adjust arguments for the updated action
-                      dstCasesArgs = [dstCasesToAdd, { before: dstBeforeID }]
-                // only add the new cases if they pass our filter
-                if (dstCasesToAdd.length) {
-                  newAction = { name: action.name, path: "", args: dstCasesArgs }
-                  actions.push(newAction)
-                }
-                break
-              }
-              case "setCaseValues": {
-                const actionCases = action.args?.[0],
-                      casesToAdd: ICase[] = [],
-                      beforeIDs: Array<string | undefined> = [],
-                      casesToRemove: string[] = [],
-                      casesToUpdate: ICase[] = []
-                actionCases.forEach((aCase: ICase) => {
-                  const caseID = aCase.__id__
-                  const srcCase = caseID && srcDataSet.getCase(caseID)
-                  if (caseID && srcCase) {
-                    const filteredCase = filter ? filter(attrIDFromName, srcCase) : srcCase,
-                          wasIncluded = caseIDMap[caseID] != null
-                    // identify cases that now pass the filter after change
-                    if (filteredCase && !wasIncluded) {
-                      casesToAdd.push(aCase)
-                      // determine beforeIDs so that cases end up in correct locations
-                      const srcBeforeID = srcDataSet.nextCaseID(caseID),
-                            dstBeforeID = mapBeforeID(srcDataSet, srcBeforeID)
-                      beforeIDs.push(dstBeforeID)
-                    }
-                    // identify cases that no longer pass the filter after change
-                    else if (!filteredCase && wasIncluded) {
-                      casesToRemove.push(caseID)
-                    }
-                    else if (wasIncluded) {
-                      casesToUpdate.push(aCase)
-                    }
-                  }
-                })
-                // modify existing cases
-                if (casesToUpdate.length) {
-                  actions.push({ ...action, args: [casesToUpdate] })
-                }
-                // add cases that now pass the filter
-                if (casesToAdd.length) {
-                  actions.push({ name: "addCases", path: "", args: [casesToAdd, { before: beforeIDs }] })
-                }
-                // remove cases that no longer pass the filter
-                if (casesToRemove.length) {
-                  actions.push({ name: "removeCases", path: "", args: [casesToRemove] })
-                }
-                break
-              }
-              // other actions can be applied as is
-              default:
-                actions.push(action)
-                break
-            }
-            if (actions.length) {
-              delayApplyActions(actions)
-            }
-          // attachAfter: if true, listener is called after action has been applied
-          }, true)
-        }
       },
       beforeDestroy() {
         Object.keys(disposers).forEach((key: string) => disposers[key]())
@@ -526,6 +375,14 @@ export const DataSet = types.model("DataSet", {
       },
       endTransaction() {
         --self.transactionCount
+      },
+      // should be called before retrieving snapshot (pre-serialization)
+      prepareSnapshot() {
+        self.attributes.forEach(attr => attr.prepareSnapshot())
+      },
+      // should be called after retrieving snapshot (post-serialization)
+      completeSnapshot() {
+        self.attributes.forEach(attr => attr.completeSnapshot())
       },
       setName(name: string) {
         self.name = name
@@ -596,9 +453,23 @@ export const DataSet = types.model("DataSet", {
       },
 
       setCaseValues(cases: ICase[]) {
-        cases.forEach((caseValues) => {
-          setCaseValues(caseValues)
-        })
+        if (self.isCaching) {
+          // update the cases in the cache
+          cases.forEach(aCase => {
+            const cached = self.caseCache.get(aCase.__id__)
+            if (!cached) {
+              self.caseCache.set(aCase.__id__, { ...aCase })
+            }
+            else {
+              Object.assign(cached, aCase)
+            }
+          })
+        }
+        else {
+          cases.forEach((caseValues) => {
+            setCaseValues(caseValues)
+          })
+        }
       },
 
       removeCases(caseIDs: string[]) {
@@ -620,7 +491,7 @@ export const DataSet = types.model("DataSet", {
 
       selectAll(select = true) {
         if (select) {
-          self.cases.forEach(({__id__}) => self.selection.set(__id__, __id__))
+          self.cases.forEach(({__id__}) => self.selection.add(__id__))
         }
         else {
           self.selection.clear()
@@ -630,7 +501,7 @@ export const DataSet = types.model("DataSet", {
       selectCases(caseIds: string[], select = true) {
         caseIds.forEach(id => {
           if (select) {
-            self.selection.set(id, id)
+            self.selection.add(id)
           }
           else {
             self.selection.delete(id)
@@ -645,4 +516,21 @@ export const DataSet = types.model("DataSet", {
     }
   }
 })
+.actions(self => ({
+  clearCache() {
+    self.caseCache.clear()
+  },
+  commitCache() {
+    self.setCaseValues(Array.from(self.caseCache.values()))
+  },
+  beginCaching() {
+    ++self.cachingCount
+  },
+  endCaching(commitCache = false) {
+    commitCache && this.commitCache()
+    this.clearCache()
+    --self.cachingCount
+  }
+}))
+
 export interface IDataSet extends Instance<typeof DataSet> {}

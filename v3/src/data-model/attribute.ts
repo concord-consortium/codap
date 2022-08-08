@@ -35,7 +35,7 @@ import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Formula } from "./formula"
 import { uniqueId } from "../utilities/js-utils"
 
-export const kDefaultFormatStr = ".2~f"
+export const kDefaultFormatStr = ".3~f"
 
 const isDevelopment = () => process.env.NODE_ENV !== "production"
 
@@ -112,12 +112,14 @@ export const Attribute = types.model("Attribute", {
       self.strValues = self.values
     }
   },
-  preSerialize() {
+  // should be called before retrieving snapshot (i.e. before serialization)
+  prepareSnapshot() {
     if (isDevelopment()) {
       self.values = [...self.strValues]
     }
   },
-  postSerialize() {
+  // should be called after retrieving snapshot (i.e. after serialization)
+  completeSnapshot() {
     if (isDevelopment()) {
       self.values = undefined
     }

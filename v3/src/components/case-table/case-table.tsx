@@ -10,6 +10,7 @@ import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
+import { prf } from "../../utilities/profiler"
 
 import "./case-table.scss"
 
@@ -17,43 +18,45 @@ interface IProps {
   broker?: DataBroker
 }
 export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
-  const data = broker?.last
+  return prf.measure("Table.render", () => {
+    const data = broker?.last
 
-  const { active } = useDndContext()
-  const { setNodeRef } = useDroppable({ id: "case-table-drop", data: { accepts: ["attribute"] } })
+    const { active } = useDndContext()
+    const { setNodeRef } = useDroppable({ id: "case-table-drop", data: { accepts: ["attribute"] } })
 
-  const [selectedRows, setSelectedRows] = useSelectedRows(data)
+    const [selectedRows, setSelectedRows] = useSelectedRows(data)
 
-  const handleIndexClick = useCallback((caseId: string, evt: React.MouseEvent) => {
-    // for now, all modifiers result in disjoint selection
-    // shift-key range selection requires last-click anchor logic
-    const isExtending = evt.altKey || evt.ctrlKey || evt.metaKey || evt.shiftKey
-    const isCaseSelected = data?.isCaseSelected(caseId)
-    if (isExtending) {
-      data?.selectCases([caseId], !isCaseSelected)
-    }
-    else if (!isCaseSelected) {
-      data?.setSelectedCases([caseId])
-    }
-  }, [data])
+    const handleIndexClick = useCallback((caseId: string, evt: React.MouseEvent) => {
+      // for now, all modifiers result in disjoint selection
+      // shift-key range selection requires last-click anchor logic
+      const isExtending = evt.altKey || evt.ctrlKey || evt.metaKey || evt.shiftKey
+      const isCaseSelected = data?.isCaseSelected(caseId)
+      if (isExtending) {
+        data?.selectCases([caseId], !isCaseSelected)
+      }
+      else if (!isCaseSelected) {
+        data?.setSelectedCases([caseId])
+      }
+    }, [data])
 
-  // columns
-  const indexColumn = useIndexColumn({ data, onClick: handleIndexClick })
-  const columns = useColumns({ data, indexColumn })
+    // columns
+    const indexColumn = useIndexColumn({ data, onClick: handleIndexClick })
+    const columns = useColumns({ data, indexColumn })
 
-  // rows
-  const { rows, handleRowsChange } = useRows(data)
-  const rowKey = (row: TRow) => row.__id__
+    // rows
+    const { rows, handleRowsChange } = useRows(data)
+    const rowKey = (row: TRow) => row.__id__
 
-  if (!data) return null
+    if (!data) return null
 
-  return (
-    <DataSetContext.Provider value={data}>
-      <div ref={setNodeRef} className="case-table" data-testid="case-table">
-        <DataGrid className="rdg-light" columns={columns} rows={rows} rowKeyGetter={rowKey}
-          selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onRowsChange={handleRowsChange}/>
-        <AttributeDragOverlay activeDragAttrId={`${active?.id}`} column={active?.data?.current?.column} />
-      </div>
-    </DataSetContext.Provider>
-  )
+    return (
+      <DataSetContext.Provider value={data}>
+        <div ref={setNodeRef} className="case-table" data-testid="case-table">
+          <DataGrid className="rdg-light" columns={columns} rows={rows} rowKeyGetter={rowKey}
+            selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows} onRowsChange={handleRowsChange}/>
+          <AttributeDragOverlay activeDragAttrId={`${active?.id}`} column={active?.data?.current?.column} />
+        </div>
+      </DataSetContext.Provider>
+    )
+  })
 })

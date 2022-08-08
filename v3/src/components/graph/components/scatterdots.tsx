@@ -2,8 +2,10 @@ import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {select} from "d3"
 import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
 import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
-import {IDataSet} from "../../../data-model/data-set"
+import { appState } from "../../app-state"
+import {ICase, IDataSet} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
+import { prf } from "../../../utilities/profiler"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps,
@@ -31,6 +33,9 @@ export const ScatterDots = memo(function ScatterDots(props: {
     [forceRefreshCounter, setForceRefreshCounter] = useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
+    prf.measure("Graph.dragDotsStart", () => {
+      appState.beginPerformance()
+      worldDataRef.current?.beginCaching()
       if (firstTime) {
         setFirstTime(false) // We don't want to animate points until end of drag
       }
@@ -51,9 +56,11 @@ export const ScatterDots = memo(function ScatterDots(props: {
           }
         })
       }
-    }, [firstTime, setFirstTime, xAttrID, yAttrID, worldDataRef]),
+    })
+  }, [firstTime, setFirstTime, xAttrID, yAttrID, worldDataRef]),
 
-    onDrag = useCallback((event: MouseEvent) => {
+  onDrag = useCallback((event: MouseEvent) => {
+    prf.measure("Graph.dragDots", () => {
       if (dragID !== '') {
         const newPos = {x: event.clientX, y: event.clientY},
           dx = newPos.x - currPos.current.x,
@@ -61,24 +68,29 @@ export const ScatterDots = memo(function ScatterDots(props: {
         currPos.current = newPos
         if (dx !== 0 || dy !== 0) {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0)),
-            deltaY = Number(yScale?.invert(dy)) - Number(yScale?.invert(0))
+            deltaY = Number(yScale?.invert(dy)) - Number(yScale?.invert(0)),
+            caseValues: ICase[] = []
           worldDataRef.current?.selection.forEach(anID => {
             const currX = Number(worldDataRef.current?.getNumeric(anID, xAttrID)),
               currY = Number(worldDataRef.current?.getNumeric(anID, yAttrID))
             if (isFinite(currX) && isFinite(currY)) {
-              worldDataRef.current?.setCaseValues([{
+              // console.log("ScatterDots.onDrag [setCaseValues]")
+              caseValues.push({
                 __id__: anID,
                 [xAttrID]: currX + deltaX,
                 [yAttrID]: currY + deltaY
-              }])
+              })
             }
           })
+          caseValues.length && worldDataRef.current?.setCaseValues(caseValues)
           setRefreshCounter(prevCounter => ++prevCounter)
         }
       }
-    }, [dragID, xScale, yScale, setRefreshCounter, xAttrID, yAttrID, worldDataRef]),
+    })
+  }, [dragID, xScale, yScale, setRefreshCounter, xAttrID, yAttrID, worldDataRef]),
 
-    onDragEnd = useCallback(() => {
+  onDragEnd = useCallback(() => {
+    prf.measure("Graph.dragDotsEnd", () => {
       if (dragID !== '') {
         target.current
           .classed('dragging', false)
@@ -87,36 +99,45 @@ export const ScatterDots = memo(function ScatterDots(props: {
         setDragID(() => '')
         target.current = null
 
+        const caseValues: ICase[] = []
         worldDataRef.current?.selection.forEach(anID => {
-          worldDataRef.current?.setCaseValues([{
+          caseValues.push({
             __id__: anID,
             [xAttrID]: selectedDataObjects.current[anID].x,
             [yAttrID]: selectedDataObjects.current[anID].y
-          }])
+          })
         })
+        caseValues.length && worldDataRef.current?.setCaseValues(caseValues)
         setFirstTime(true) // So points will animate back to original positions
         setRefreshCounter(prevCounter => ++prevCounter)
       }
-    }, [dragID, xAttrID, yAttrID, worldDataRef])
+      worldDataRef.current?.endCaching()
+      appState.endPerformance()
+    })
+  }, [dragID, xAttrID, yAttrID, worldDataRef])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useEffect(function refreshPoints() {
-    const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
-      getScreenY = (anID: string) => getScreenCoord(worldDataRef.current, anID, yAttrID, yScale),
-      duration = firstTime ? transitionDuration : 0,
-      onComplete = () => {
-        setFirstTime(false)
-        worldDataRef.current?.selection.forEach(anID => {
-          worldDataRef.current?.setCaseValues([{
-            __id__: anID,
-            [xAttrID]: selectedDataObjects.current[anID].x,
-            [yAttrID]: selectedDataObjects.current[anID].y
-          }])
-        })
-      }
+    prf.measure("Graph.refreshPoints", () => {
+      const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
+        getScreenY = (anID: string) => getScreenCoord(worldDataRef.current, anID, yAttrID, yScale),
+        duration = firstTime ? transitionDuration : 0,
+        onComplete = firstTime ? () => {
+          prf.measure("Graph.refreshPoints[onComplete]", () => {
+            setFirstTime(false)
+            // worldDataRef.current?.selection.forEach(anID => {
+            //   worldDataRef.current?.setCaseValues([{
+            //     __id__: anID,
+            //     [xAttrID]: selectedDataObjects.current[anID].x,
+            //     [yAttrID]: selectedDataObjects.current[anID].y
+            //   }])
+            // })
+          })
+        } : undefined
 
-    setPointCoordinates({dotsRef, worldDataRef, getScreenX, getScreenY, duration, onComplete})
+      setPointCoordinates({dotsRef, worldDataRef, getScreenX, getScreenY, duration, onComplete})
+    })
   }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, yMin, yMax,
       plotWidth, plotHeight, refreshCounter, forceRefreshCounter, xAttrID, yAttrID, worldDataRef]
   )
@@ -126,7 +147,9 @@ export const ScatterDots = memo(function ScatterDots(props: {
    * there are circles.
    */
   useEffect(function forceRefresh() {
-    setForceRefreshCounter(prevCounter => prevCounter)
+    prf.measure("Graph.forceRefresh", () => {
+      setForceRefreshCounter(prevCounter => prevCounter)
+    })
   }, [])
 
   useSelection(worldDataRef, setRefreshCounter)

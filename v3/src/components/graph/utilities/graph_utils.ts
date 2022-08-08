@@ -3,6 +3,7 @@ import React from "react"
 import {defaultRadius, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
+import { prf } from "../../../utilities/profiler"
 
 /**
  * Utility routines having to do with graph entities
@@ -206,26 +207,34 @@ export interface IUseRefreshPointsProps {
 }
 
 export function setPointCoordinates(props: IUseRefreshPointsProps) {
-  const
-    { dotsRef, worldDataRef, getScreenX, getScreenY, duration = 0, onComplete } = props,
-    dotsSvgElement = dotsRef.current,
-    selection = select(dotsSvgElement).selectAll('circle')
-      .classed('graph-dot-highlighted',
-        (anID:string) => !!(worldDataRef.current?.isCaseSelected(anID)))
-  if (duration > 0) {
-    selection
-      .transition()
-      .duration(duration)
-      .on('end', () => onComplete?.())
-      .attr('cx', (anID: string) => getScreenX(anID))
-      .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', defaultRadius)
-  } else if (selection.size() > 0) {
-    selection
-      .attr('cx', (anID: string) => getScreenX(anID))
-      .attr('cy', (anID: string) => getScreenY(anID))
-  }
-  select(dotsSvgElement)
-    .selectAll('.dot-highlighted')
-    .raise()
+  prf.measure("Graph.setPointCoordinates", () => {
+    prf.begin("Graph.setPointCoordinates[selection]")
+    const
+      { dotsRef, worldDataRef, getScreenX, getScreenY, duration = 0, onComplete } = props,
+      dotsSvgElement = dotsRef.current,
+      selection = select(dotsSvgElement).selectAll('circle')
+        .classed('graph-dot-highlighted',
+          (anID:string) => !!(worldDataRef.current?.isCaseSelected(anID)))
+    prf.end("Graph.setPointCoordinates[selection]")
+    prf.measure("Graph.setPointCoordinates[position]", () => {
+      if (duration > 0) {
+        selection
+          .transition()
+          .duration(duration)
+          .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
+          .attr('cx', (anID: string) => getScreenX(anID))
+          .attr('cy', (anID: string) => getScreenY(anID))
+          .attr('r', defaultRadius)
+      } else if (selection.size() > 0) {
+        selection
+          .attr('cx', (anID: string) => getScreenX(anID))
+          .attr('cy', (anID: string) => getScreenY(anID))
+      }
+    })
+    prf.measure("Graph.setPointCoordinates[raise]", () => {
+      select(dotsSvgElement)
+        .selectAll('.graph-dot-highlighted')
+        .raise()
+    })
+  })
 }

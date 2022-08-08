@@ -3,8 +3,9 @@ import {drag, select} from "d3"
 import RTree from 'rtree'
 import {Rect, plotProps, InternalizedData, rTreeRect} from "../graphing-types"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph_utils"
+import { appState } from "../../app-state"
 import {IDataSet} from "../../../data-model/data-set"
-
+import { prf } from "../../../utilities/profiler"
 
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
@@ -56,8 +57,9 @@ export const Background = (props: {
     currentlySelectedCaseIDs = useRef<string[]>([]),
 
     onDragStart = useCallback((event: MouseEvent) => {
+      appState.beginPerformance()
       const leftEdge = ref.current?.getBBox().x
-      selectionTree.current = prepareTree('.dotArea', 'circle')
+      selectionTree.current = prepareTree('.graph-dot-area', 'circle')
       startX.current = event.x - (leftEdge || 0)
       startY.current = event.y
       width.current = 0
@@ -67,37 +69,42 @@ export const Background = (props: {
     }, [props.marquee]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
-      if (event.dx !== 0 || event.dy !== 0) {
-        previousMarqueeRect.current = rectNormalize(
-          {x: startX.current, y: startY.current, w: width.current, h: height.current})
-        width.current = width.current + event.dx
-        height.current = height.current + event.dy
-        props.marquee.setRect(prevRect => {
-          return {
-            x: prevRect.x, y: prevRect.y,
-            width: prevRect.width + event.dx,
-            height: prevRect.height + event.dy
-          }
-        })
-        const currentRect = rectNormalize({
-            x: startX.current, y: startY.current,
-            w: width.current,
-            h: height.current
-          }),
-          newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
-          newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect),
-          deselectionSet = new Set(newDeselection)
-        currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.concat(newSelection)
-        currentlySelectedCaseIDs.current = currentlySelectedCaseIDs.current.filter(anID => {
-          return !deselectionSet.has(anID)
-        })
-        worldDataRef.current?.setSelectedCases(currentlySelectedCaseIDs.current)
-      }
+      prf.measure("Graph.dragMarquee", () => {
+        if (event.dx !== 0 || event.dy !== 0) {
+          previousMarqueeRect.current = rectNormalize(
+            {x: startX.current, y: startY.current, w: width.current, h: height.current})
+          width.current = width.current + event.dx
+          height.current = height.current + event.dy
+          prf.measure("Graph.dragMarquee[setRect]", () => {
+            props.marquee.setRect(prevRect => {
+              return {
+                x: prevRect.x, y: prevRect.y,
+                width: prevRect.width + event.dx,
+                height: prevRect.height + event.dy
+              }
+            })
+          })
+          prf.begin("Graph.dragMarquee[diff]")
+          const currentRect = rectNormalize({
+              x: startX.current, y: startY.current,
+              w: width.current,
+              h: height.current
+            }),
+            newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
+            newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
+          prf.end("Graph.dragMarquee[diff]")
+          prf.begin("Graph.dragMarquee[selectCases]")
+          newSelection.length && worldDataRef.current?.selectCases(newSelection, true)
+          newDeselection.length && worldDataRef.current?.selectCases(newDeselection, false)
+          prf.end("Graph.dragMarquee[selectCases]")
+        }
+      })
     }, [height, props, worldDataRef, width]),
 
     onDragEnd = useCallback(() => {
       props.marquee.setRect({x: 0, y: 0, width: 0, height: 0})
       selectionTree.current = null
+      appState.endPerformance()
     }, [props.marquee])
 
   useEffect(() => {
@@ -107,7 +114,9 @@ export const Background = (props: {
         .on("end", onDragEnd),
       groupElement = ref.current
     select(groupElement).on('click', () => {
+      prf.begin("Graph.background[useEffect-selectAll]")
       worldDataRef.current?.selectAll(false)
+      prf.end("Graph.background[useEffect-selectAll]")
     })
 
     select(groupElement)

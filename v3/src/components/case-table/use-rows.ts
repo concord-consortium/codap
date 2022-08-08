@@ -1,6 +1,12 @@
+import { format } from "d3"
+import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { kDefaultFormatStr } from "../../data-model/attribute"
 import { ICase, IDataSet } from "../../data-model/data-set"
+import { AddCasesAction, RemoveCasesAction, SetCaseValuesAction } from "../../data-model/data-set-actions"
+import { prf } from "../../utilities/profiler"
+import { appState } from "../app-state"
 import { TRow, TRowsChangeData } from "./case-table-types"
 
 export const useRows = (data?: IDataSet) => {
@@ -15,51 +21,100 @@ export const useRows = (data?: IDataSet) => {
     data?.cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
   }, [data?.cases, rowCache])
 
-  const setRowsFromCache = useCallback(() => {
-    // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
-    // If constructing the rows array from scratch ever becomes a performance issue,
-    // we could maintain two arrays and alternate between them, for instance.
-    setRows(data?.cases.map(({ __id__ }) => rowCache.get(__id__)).filter(c => !!c) as ICase[] || [])
+  const syncRowsToRdg = useCallback(() => {
+    prf.measure("Table.useRows[syncRowsToRdg]", () => {
+      // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
+      const newRows = prf.measure("Table.useRows[syncRowsToRdg-copy]", () => {
+        return data?.cases.map(({ __id__ }) => rowCache.get(__id__)).filter(c => !!c) as ICase[]
+      })
+      prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
+        setRows(newRows || [])
+      })
+    })
   }, [data?.cases, rowCache])
+
+  const syncRowsToDom = useCallback(() => {
+    prf.measure("Table.useRows[syncRowsToDom]", () => {
+      const grid = document.querySelector(".rdg")
+      const domRows = grid?.querySelectorAll(".rdg-row")
+      domRows?.forEach(row => {
+        const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
+        const caseId = data?.caseIDFromIndex(rowIndex)
+        const cells = row.querySelectorAll(".rdg-cell")
+        cells.forEach(cell => {
+          const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
+          const attr = data?.attributes[colIndex]
+          if (data && caseId && attr) {
+            const strValue = data.getValue(caseId, attr.id)
+            const numValue = data.getNumeric(caseId, attr.id)
+            const formatStr = attr.format || kDefaultFormatStr
+            const formatted = isFinite(numValue) ? format(formatStr)(numValue) : strValue
+            cell.textContent = formatted
+          }
+        })
+      })
+    })
+  }, [data])
+
+  useEffect(() => {
+    const disposer = reaction(() => appState.appMode, mode => {
+      prf.measure("Table.useRows[appModeReaction]", () => {
+        if (mode === "normal") {
+          // sync row selection with RDG/React upon return to normal
+          syncRowsToRdg()
+        }
+      })
+    })
+    return () => disposer()
+  }, [syncRowsToRdg])
 
   useEffect(() => {
     // initialize the cache
     resetRowCache()
-    setRowsFromCache()
+    syncRowsToRdg()
 
     // update the cache on changes
     const disposer = data && onAction(data, action => {
-      let updateRows = true
+      prf.measure("Table.useRows[onAction]", () => {
+        let updateRows = true
 
-      switch(action.name) {
-        case "addAttribute":
-        case "removeAttribute":
-        case "setFormat":
-          // render all rows
-          resetRowCache()
-          break
-        case "addCases":
-        case "setCaseValues": {
-          // update cache entries for each affected case
-          const cases = action.args?.[0] as ICase[] || []
-          cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
-          break
+        switch(action.name) {
+          case "addAttribute":
+          case "removeAttribute":
+          case "setFormat":
+            // render all rows
+            resetRowCache()
+            break
+          case "addCases":
+          case "setCaseValues": {
+            // update cache entries for each affected case
+            const cases = (action as AddCasesAction | SetCaseValuesAction).args[0] || []
+            cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
+            break
+          }
+          case "removeCases": {
+            // remove affected cases from cache
+            const caseIds = (action as RemoveCasesAction).args[0] || []
+            caseIds.forEach(id => rowCache.delete(id))
+            break
+          }
+          default:
+            updateRows = false
+            break
         }
-        case "removeCases": {
-          // remove affected cases from cache
-          const caseIds = action.args?.[0] as string[] || []
-          caseIds.forEach(id => rowCache.delete(id))
-          break
-        }
-        default:
-          updateRows = false
-          break
-      }
 
-      updateRows && setRowsFromCache()
-    })
+        if (updateRows) {
+          if (appState.appMode === "performance") {
+            syncRowsToDom()
+          }
+          else {
+            syncRowsToRdg()
+          }
+        }
+      })
+    }, true)
     return () => disposer?.()
-  }, [data, resetRowCache, rowCache, setRowsFromCache])
+  }, [data, resetRowCache, rowCache, syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset

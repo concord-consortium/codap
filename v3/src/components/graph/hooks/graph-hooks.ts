@@ -2,12 +2,14 @@
  * Graph Custom Hooks
  */
 import {extent, ScaleLinear} from "d3"
-import {autorun} from "mobx"
+import { onAction } from "mobx-state-tree"
 import React, {useEffect, useRef} from "react"
 import {IAttribute} from "../../../data-model/attribute"
 import {DataBroker} from "../../../data-model/data-broker"
 import {InternalizedData} from "../graphing-types"
 import {IDataSet} from "../../../data-model/data-set"
+import { isSelectionAction } from "../../../data-model/data-set-actions"
+import { prf } from "../../../utilities/profiler"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -94,12 +96,13 @@ export const useGetData = (props: IUseGetDataProps) => {
 export const useSelection = (worldDataRef: React.MutableRefObject<IDataSet | undefined>,
                              setRefreshCounter: React.Dispatch<React.SetStateAction<number>>) => {
   useEffect(() => {
-    const disposer = autorun(() => {
-      worldDataRef.current?.selection.forEach(() => {/* just chillin... */
+    const disposer = worldDataRef.current && onAction(worldDataRef.current, action => {
+      prf.measure("Graph.useSelection[onAction]", () => {
+        if (isSelectionAction(action)) {
+          setRefreshCounter(count => ++count)
+        }
       })
-      setRefreshCounter(count => ++count)
-    })
-    return () => disposer()
+    }, true)
+    return () => disposer?.()
   }, [worldDataRef, worldDataRef.current?.selection, setRefreshCounter])
 }
-
