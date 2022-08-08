@@ -2,10 +2,10 @@ import {max, range, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
 import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius}
-  from "./graphing-types"
-import {useDragHandlers, useSelection} from "./graph-hooks/graph-hooks"
-import {IDataSet} from "../../data-model/data-set"
-import {getScreenCoord, setPointCoordinates} from "./graph-utils/graph_utils"
+  from "../graphing-types"
+import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
+import {IDataSet} from "../../../data-model/data-set"
+import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
 
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {

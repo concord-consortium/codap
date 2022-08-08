@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, ScaleLinear, select} from "d3"
-import {CPLine, equationString, lineToAxisIntercepts} from "./graph-utils/graph_utils"
+import {CPLine, equationString, lineToAxisIntercepts} from "../utilities/graph_utils"
+import "./movable-line.scss"
 
 
 export const MovableLine = (props: {
@@ -42,7 +43,7 @@ export const MovableLine = (props: {
           screenX = x((pointsOnAxes.pt1.x + pointsOnAxes.pt2.x) / 2) + Number(boundingRect?.left),
           screenY = y((pointsOnAxes.pt1.y + pointsOnAxes.pt2.y) / 2) + Number(boundingRect?.top),
           string = equationString(slope, intercept)
-        select('div.equationContainer')
+        select('div.movable-line-equation-container')
           .style('left', `${screenX}px`)
           .style('top', `${screenY}px`)
           .html(string)
@@ -154,10 +155,11 @@ export const MovableLine = (props: {
       .attr('class', 'movable-line-cover movable-line-middle-cover')
     newLineObject.upper = selection.append('line')
       .attr('class', 'movable-line-cover movable-line-upper-cover')
-    const equationDiv = select('.plot').append('div').attr('class', 'equationContainer')
+    const equationDiv = select('.graph-plot').append('div')
+      .attr('class', 'movable-line-equation-container')
     newLineObject.equation = equationDiv
       .append('p')
-      .attr('class', 'equation')
+      .attr('class', 'movable-line-equation')
     setLineObject(newLineObject)
 
     return () => {

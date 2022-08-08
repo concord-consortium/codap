@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, ScaleLinear, select} from "d3"
-import {valueLabelString} from "./graph-utils/graph_utils"
+import {valueLabelString} from "../utilities/graph_utils"
+import "./movable-value.scss"
 
 
 export const MovableValue = (props: {
@@ -68,7 +69,7 @@ export const MovableValue = (props: {
     newValueObject.cover = selection.append('line')
       .attr('class', 'movable-value-cover')
       .attr('transform', transform)
-    newValueObject.valueLabel = select('.plot').append('div')
+    newValueObject.valueLabel = select('.graph-plot').append('div')
       .attr('class', 'movable-value-container')
       .attr('class', 'movable-value-label')
     setValueObject(newValueObject)

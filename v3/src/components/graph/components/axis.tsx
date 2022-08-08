@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from "react"
 import {axisBottom, axisLeft, drag, select} from "d3"
-import {axisProps} from "./graphing-types"
+import {axisProps} from "../graphing-types"
 
 const axisDragHints = ['Drag to change axis lower bound',
   'Drag to translate the axis',

@@ -1,0 +1,41 @@
+.graph-plot {
+  width: 100%;
+  height: 100%;
+  background-color: aliceblue;
+
+
+  svg {
+    width: 100%;
+    height: 100%;
+    margin: 25px;
+  }
+
+  text {
+    fill: black;
+    font: 12px sans-serif;
+  }
+}
+
+.graph-dot-area {
+  background: white;
+}
+
+.graph-background {
+  fill: white;
+}
+
+.graph-dot {
+  fill: rgba(232, 147, 118, 0.85);
+  stroke: white;
+  cursor: pointer;
+}
+
+.graph-dot-highlighted {
+  fill: steelblue;
+}
+
+.graph-plot-choice {
+  bottom: 10px;
+  right: 10px;
+  position: sticky;
+}
