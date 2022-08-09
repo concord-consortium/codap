@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from "react"
 import {axisBottom, axisLeft, drag, select} from "d3"
 import {axisProps} from "../graphing-types"
+import "./axis.scss"
 
 const axisDragHints = ['Drag to change axis lower bound',
   'Drag to translate the axis',
@@ -16,7 +17,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
 
   const axis = orientation === 'bottom' ? axisBottom : axisLeft
 
-  useEffect(function refresh() {
+  useEffect(function createAndRefresh() {
     let scaleAtStart: any = null,
       lowerAtStart: number,
       upperAtStart: number,
@@ -135,8 +136,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
   }, [props.axisProps.transform, axis, scale, min, max, counter, setCounter,
     props.axisProps.length, orientation])
 
-  // Title
-  useEffect(function setup() {
+  useEffect(function setupTitle() {
     const
       range = scale.range(),
       // @ts-expect-error getBBox
@@ -145,12 +145,6 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
       tY = (orientation === 'bottom') ? bbox?.y + bbox?.height + 15 : Math.abs(range[0] - range[1]) / 2,
       // tY = orientation === 'bottom' ? bbox?.height + 15 : bbox?.x - 10,
       tRotation = orientation === 'bottom' ? '' : `rotate(-90,${tX},${tY})`
-/*
-    if(orientation==='left') {
-      console.log(
-        `tX = ${tX}; tY = ${tY}; bbox = x: ${bbox.x}, y: ${bbox.y}, width: ${bbox.width}, height: ${bbox.height}`)
-    }
-*/
     select(titleRef.current)
       .selectAll('text.axis-title')
       .data([1])

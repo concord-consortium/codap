@@ -2,16 +2,17 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, ScaleLinear, select} from "d3"
 import {valueLabelString} from "../utilities/graph_utils"
 import "./movable-value.scss"
+import {IMovableValueModel} from "./adornment-models"
+import {autorun} from "mobx"
 
 
 export const MovableValue = (props: {
   transform: string
-  value: number
-  setValue: React.Dispatch<React.SetStateAction<number>>
+  model: IMovableValueModel
   xScale: ScaleLinear<number, number>
   yScale: ScaleLinear<number, number>
 }) => {
-  const {xScale: x, yScale: y, value, setValue, transform} = props,
+  const {xScale: x, yScale: y, model, transform} = props,
     valueRef = useRef<SVGSVGElement>(null),
     [xMin, xMax] = x.domain(),
     [xRangeMin, xRangeMax] = x.range(),
@@ -19,40 +20,44 @@ export const MovableValue = (props: {
     [valueObject, setValueObject] = useState<Record<string, any>>({
       line: null, cover: null, valueLabel: null
     })
-  // Refresh the line
+
+  // Refresh the value
   useEffect(function refresh() {
-      if (!valueObject.line) {
-        return
-      }
+      const disposer = autorun(() => {
+        if (!valueObject.line) {
+          return
+        }
+        const value = model.value
 
-      function refreshValueLabel() {
-        const leftEdge = valueRef.current?.parentElement?.getBoundingClientRect().left,
-          screenX = x(value) + (leftEdge || 0),
-          screenY = Number(valueRef.current?.getBoundingClientRect().top) - 12,
-          string = valueLabelString(value)
-        select('div.movable-value-label')
-          .style('left', `${screenX}px`)
-          .style('top', `${screenY}px`)
-          .html(string)
-      }
-
-      [valueObject.line, valueObject.cover].forEach(aLine => {
-        aLine
-          // .attr('transform', transform)
-          .attr('x1', x(value))
-          .attr('y1', top)
-          .attr('x2', x(value))
-          .attr('y2', bottom)
+        function refreshValueLabel() {
+          const leftEdge = valueRef.current?.parentElement?.getBoundingClientRect().left,
+            screenX = x(value) + (leftEdge || 0),
+            screenY = Number(valueRef.current?.getBoundingClientRect().top) - 12,
+            string = valueLabelString(value)
+          select('div.movable-value-label')
+            .style('left', `${screenX}px`)
+            .style('top', `${screenY}px`)
+            .html(string)
+        }
+        [valueObject.line, valueObject.cover].forEach(aLine => {
+          aLine
+            // .attr('transform', transform)
+            .attr('x1', x(value))
+            .attr('y1', top)
+            .attr('x2', x(value))
+            .attr('y2', bottom)
+        })
+        refreshValueLabel()
       })
-      refreshValueLabel()
-    }, [valueObject, transform, x, value, bottom, top, xMin, xMax, xRangeMin, xRangeMax]
+      return () => disposer()
+    }, [valueObject, bottom, model, top, x, xMin, xMax, xRangeMin, xRangeMax]
   )
 
   const
     dragValue = useCallback((event: MouseEvent) => {
       // Todo: Derive the 60
-      setValue(x.invert(event.x - 60))
-    }, [x, setValue])
+      model.setValue(x.invert(event.x - 60))
+    }, [model, x])
 
   // Add the behavior to the line cover
   useEffect(function addBehaviors() {

@@ -8,6 +8,7 @@ import {plotProps, defaultRadius} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
+import { MovableLineModel, MovableValueModel} from "../adornments/adornment-models"
 import {MovableLine} from "../adornments/movable-line"
 import {MovableValue} from "../adornments/movable-value"
 import {DataBroker} from "../../../data-model/data-broker"
@@ -30,7 +31,9 @@ const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
     xScale: x,
     yScale: y,
     transform: `translate(${margin.left}, 0)`
-  }
+  },
+  movableLineModel = MovableLineModel.create({intercept: 0, slope: 1}),
+  movableValueModel = MovableValueModel.create({value: 0})
 
 export const Graph = observer(({broker}: IProps) => {
   return prf.measure("Graph.render", () => {
@@ -57,7 +60,7 @@ export const Graph = observer(({broker}: IProps) => {
     y.range([plotHeightRef.current, 0])
 
     worldDataRef.current = broker?.last
-    const {xName, yName, data: graphData } = useGetData({ broker, xAxis: x, yAxis: y, setCounter })
+    const {xName, yName, data: graphData} = useGetData({ broker, xAxis: x, yAxis: y, setCounter })
 
     // todo: This is a kludge. Find a better way. Without this, the y-axis doesn't update label and drag rects
     useEffect(() => {
