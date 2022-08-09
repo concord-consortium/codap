@@ -58,7 +58,7 @@ export const Graph = observer(({broker}: IProps) => {
     y.range([plotHeightRef.current, 0])
 
     worldDataRef.current = broker?.last
-    const {xName, yName, data: graphData} = useGetData({ broker, xAxis: x, yAxis: y, setCounter })
+  const {xName, yName, data: graphData} = useGetData({broker, xAxis: x, yAxis: y, setCounter})
 
     // todo: This is a kludge. Find a better way. Without this, the y-axis doesn't update label and drag rects
     useEffect(() => {
