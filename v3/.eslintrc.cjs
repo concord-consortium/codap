@@ -53,6 +53,7 @@ module.exports = {
     "eol-last": "warn",
     "eqeqeq": ["error", "smart"],
     "eslint-comments/no-unused-disable": "off",   // enabled in .eslintrc.build.js
+    "func-call-spacing": ["warn", "never"],
     "import/no-cycle": "warn",
     "import/no-extraneous-dependencies": "warn",
     "import/no-useless-path-segments": "warn",

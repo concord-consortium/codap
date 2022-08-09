@@ -8,7 +8,8 @@ import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
 
 // cache d3 number formatters so we don't have to generate them on every render
-const formatters = new Map<string, (n: number) => string>()
+type TNumberFormatter = (n: number) => string
+const formatters = new Map<string, TNumberFormatter>()
 
 export const getFormatter = (formatStr: string) => {
   let formatter = formatters.get(formatStr)
@@ -55,8 +56,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
               headerRenderer: ColumnHeader,
               cellClass: "codap-data-cell",
               formatter: CellFormatter,
-              editor: CellTextEditor,
-              editorOptions: { editOnClick: true }
+              editor: CellTextEditor
             }))
         ]
         : []
