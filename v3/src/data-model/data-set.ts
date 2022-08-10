@@ -527,9 +527,10 @@ export const DataSet = types.model("DataSet", {
     ++self.cachingCount
   },
   endCaching(commitCache = false) {
-    commitCache && this.commitCache()
-    this.clearCache()
-    --self.cachingCount
+    if (--self.cachingCount === 0) {
+      commitCache && this.commitCache()
+      this.clearCache()
+    }
   }
 }))
 
