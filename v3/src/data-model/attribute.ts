@@ -35,6 +35,8 @@ import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Formula } from "./formula"
 import { uniqueId } from "../utilities/js-utils"
 
+export const kDefaultFormatStr = ".3~f"
+
 const isDevelopment = () => process.env.NODE_ENV !== "production"
 
 export type IValueType = string | number | boolean | undefined
@@ -52,6 +54,7 @@ export const Attribute = types.model("Attribute", {
   sourceID: types.maybe(types.string),
   name: types.string,
   userType: types.maybe(types.enumeration([...attributeTypes])),
+  userFormat: types.maybe(types.string),
   hidden: false,
   units: "",
   formula: types.optional(Formula, () => Formula.create()),
@@ -109,12 +112,14 @@ export const Attribute = types.model("Attribute", {
       self.strValues = self.values
     }
   },
-  preSerialize() {
+  // should be called before retrieving snapshot (i.e. before serialization)
+  prepareSnapshot() {
     if (isDevelopment()) {
       self.values = [...self.strValues]
     }
   },
-  postSerialize() {
+  // should be called after retrieving snapshot (i.e. after serialization)
+  completeSnapshot() {
     if (isDevelopment()) {
       self.values = undefined
     }
@@ -129,6 +134,9 @@ export const Attribute = types.model("Attribute", {
     if (self.numValues.length === 0) return
     // only infer numeric if all non-empty values are numeric (CODAP2)
     return self.numericCount === self.numValues.length - self.emptyCount ? "numeric" : "categorical"
+  },
+  get format() {
+    return self.userFormat || kDefaultFormatStr
   },
   value(index: number) {
     return self.strValues[index]
@@ -156,6 +164,9 @@ export const Attribute = types.model("Attribute", {
   },
   setUserType(type: AttributeType) {
     self.userType = type
+  },
+  setUserFormat(format: string) {
+    self.userFormat = format
   },
   clearFormula() {
     self.formula.setDisplay()

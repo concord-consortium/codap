@@ -24,6 +24,15 @@
     bottom: 5px;
     padding: 5px;
   }
+
+  .profiler-button {
+    position: absolute;
+    right: 10px;
+    bottom: 20px;
+    border: 1px solid gray;
+    padding: 5px 10px;
+    background: #eee;
+  }
 }
 
 .draggable-attribute {

@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IAttribute } from "../data-model/attribute"
 import { DataBroker } from "../data-model/data-broker"
+import { prf } from "../utilities/profiler"
 
 import "./data-summary.scss"
 
@@ -31,6 +32,7 @@ export const DataSummary = observer(({ broker }: IProps) => {
         ))}
       </div>
       {data && <SummaryDropTarget attribute={selectedAttribute} onDrop={handleDrop}/>}
+      {data && <ProfilerButton />}
       <DragOverlay dropAnimation={null}>
         {data && active
           ? <DraggableAttribute attribute={data?.attrFromID(`${active.id}`)} isOverlay={true}/>
@@ -73,5 +75,28 @@ const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
         </div>
       }
     </>
+  )
+}
+
+const ProfilerButton = () => {
+  const [isProfiling, setIsProfiling] = useState(prf.isProfiling)
+
+  const handleClick = () => {
+    if (prf.isProfiling) {
+      prf.endProfiling()
+      setIsProfiling(false)
+      prf.report()
+    }
+    else {
+      prf.clear()
+      prf.beginProfiling()
+      setIsProfiling(true)
+    }
+  }
+
+  return (
+    <div className={`profiler-button`} onClick={handleClick} >
+      {isProfiling ? "Stop Profiling" : "Start Profiling"}
+    </div>
   )
 }

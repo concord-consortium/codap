@@ -1,9 +1,10 @@
 import {max, range, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
-import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius}
+import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius, transitionDuration}
   from "../graphing-types"
 import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
+import { appState } from "../../app-state"
 import {IDataSet} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
 
@@ -19,7 +20,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {
-      worldDataRef, graphData, dotsRef, plotWidth, plotHeight, xMax, xMin,
+      worldDataRef, graphData, dotsRef, plotWidth,
       dots: {xScale, yScale}
     } = props,
     [dragID, setDragID] = useState<string>(),
@@ -31,7 +32,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     [forceRefreshCounter, setForceRefreshCounter] = useState(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
-
+      appState.beginPerformance()
       if (firstTime) {
         setFirstTime(false) // We never want to animate points on drag
       }
@@ -63,7 +64,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0))
           worldDataRef.current?.selection.forEach(anID => {
             const currX = worldDataRef.current?.getNumeric(anID, xAttrID)
-            worldDataRef.current?.setValue(anID, xAttrID, Number(currX ?? 0) + deltaX)
+            const newX = currX != null ? currX + deltaX : undefined
+            worldDataRef.current?.setCaseValues([{ __id__: anID , [xAttrID]: newX }])
           })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
@@ -81,10 +83,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         target.current = null
       }
       worldDataRef.current?.selection.forEach(anID => {
-        worldDataRef.current?.setValue(anID, xAttrID, selectedDataObjects.current[anID].x)
+        worldDataRef.current?.
+          setCaseValues([{ __id__: anID , [xAttrID]: selectedDataObjects.current[anID].x }])
       })
       setFirstTime(true)  // So points will animate back to original positions
       setRefreshCounter(prevCounter => ++prevCounter)
+      appState.endPerformance()
     }, [dragID, worldDataRef, graphData.xAttributeID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
@@ -121,11 +125,21 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
       computeBinPlacements()
 
       const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
-        getScreenY = (anID: string) => computeYCoord(binMap[anID])
+        getScreenY = (anID: string) => computeYCoord(binMap[anID]),
+        duration = firstTime ? transitionDuration : 0,
+        onComplete = () => {
+          setFirstTime(false)
+          worldDataRef.current?.selection.forEach(anID => {
+            worldDataRef.current?.setCaseValues([{
+              __id__: anID,
+              [xAttrID]: selectedDataObjects.current[anID].x
+            }])
+          })
+        }
 
-      setPointCoordinates({dotsRef, worldDataRef, firstTime, setFirstTime, getScreenX, getScreenY})
-    }, [firstTime, dotsRef, xScale, yScale, xMin, xMax, worldDataRef, graphData.xAttributeID, graphData.cases,
-      plotWidth, plotHeight, refreshCounter, forceRefreshCounter]
+      setPointCoordinates({dotsRef, worldDataRef, getScreenX, getScreenY, duration, onComplete})
+    }, [firstTime, dotsRef, xScale, yScale, worldDataRef, plotWidth,
+        refreshCounter, forceRefreshCounter, graphData.xAttributeID, graphData.cases]
   )
 
   /**
