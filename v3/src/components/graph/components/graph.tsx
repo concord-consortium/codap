@@ -1,4 +1,4 @@
-import {format, scaleLinear, select} from "d3"
+import {format, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
@@ -11,8 +11,10 @@ import {Marquee} from "./marquee"
 import { MovableLineModel, MovableValueModel} from "../adornments/adornment-models"
 import {MovableLine} from "../adornments/movable-line"
 import {MovableValue} from "../adornments/movable-value"
+import {NumericAxisModel} from "../models/axis-model"
 import {DataBroker} from "../../../data-model/data-broker"
 import {useGetData} from "../hooks/graph-hooks"
+import {useNumericScale} from "../hooks/use-numeric-scale"
 import {useCurrent} from "../../../hooks/use-current"
 import {getScreenCoord} from "../utilities/graph_utils"
 import { prf } from "../../../utilities/profiler"
@@ -24,16 +26,11 @@ interface IProps {
 }
 
 const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
-  x = scaleLinear().domain([0, 10]),
-  y = scaleLinear().domain([0, 10]),
   float = format('.1f'),
-  dotsProps: plotProps = {
-    xScale: x,
-    yScale: y,
-    transform: `translate(${margin.left}, 0)`
-  },
   movableLineModel = MovableLineModel.create({intercept: 0, slope: 1}),
-  movableValueModel = MovableValueModel.create({value: 0})
+  movableValueModel = MovableValueModel.create({value: 0}),
+  xAxisModel = NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
+  yAxisModel = NumericAxisModel.create({place: 'left', min: 0, max: 10})
 
 export const Graph = observer(({broker}: IProps) => {
   return prf.measure("Graph.render", () => {

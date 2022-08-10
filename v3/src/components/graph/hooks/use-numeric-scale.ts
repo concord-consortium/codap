@@ -1,30 +1,30 @@
 import { scaleLinear, scaleLog } from "d3"
 import { autorun } from "mobx"
 import { useEffect, useMemo } from "react"
-import { INumericAxisModel } from "./axis-model"
+import { INumericAxisModel } from "../models/axis-model"
 
 interface IProps {
-  axis: INumericAxisModel
+  axisModel: INumericAxisModel
   extent: number
 }
-export function useNumericAxisScale({ axis, extent }: IProps) {
-  const scale = useMemo(() => axis.scale === "log" ? scaleLog() : scaleLinear(), [axis.scale])
+export function useNumericScale({ axisModel, extent }: IProps) {
+  const scale = useMemo(() => axisModel.scale === "log" ? scaleLog() : scaleLinear(), [axisModel.scale])
 
   // update domain when axis model changes
   useEffect(() => {
     const disposer = autorun(() => {
-      const { min, max } = axis
+      const { min, max } = axisModel
       scale.domain([min, max])
     })
     return () => disposer()
-  }, [axis, scale])
+  }, [axisModel, scale])
 
   // update range when extent changes
   useEffect(() => {
-    const { orientation } = axis
+    const { orientation } = axisModel
     const range = orientation === "vertical" ? [extent, 0] : [0, extent]
     scale.range(range)
-  }, [axis, extent, scale])
+  }, [axisModel, extent, scale])
 
   return scale
 }

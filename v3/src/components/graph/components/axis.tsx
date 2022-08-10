@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from "react"
 import {axisBottom, axisLeft, drag, select} from "d3"
 import {axisProps} from "../graphing-types"
 import "./axis.scss"
+import {useNumericAxis} from "../hooks/use-numeric-axis"
 
 const axisDragHints = ['Drag to change axis lower bound',
   'Drag to translate the axis',
@@ -10,12 +11,14 @@ const axisDragHints = ['Drag to change axis lower bound',
 type D3Handler = (this: Element, event: any, d: any) => void
 
 export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps: axisProps }) => {
-  const {axisProps: {scaleLinear: scale, orientation, label, counter, setCounter}} = props,
+  const {axisProps: {model, scaleLinear: scale, length, transform, label}} = props,
     axisRef = useRef(null),
     titleRef = useRef(null),
-    [min, max] = scale?.range() || [0, 1]
+    orientation = model.place
 
   const axis = orientation === 'bottom' ? axisBottom : axisLeft
+
+  useNumericAxis({ axisModel: model, scale, axisRef})
 
   useEffect(function createAndRefresh() {
     let scaleAtStart: any = null,
@@ -42,28 +45,24 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
       onLowerDilateDrag = (event: { x: number, y: number, dx: number, dy: number }) => {
         const delta = -(orientation === 'bottom' ? event.dx : event.dy)
         if (dragging && delta !== 0) {
-          setCounter(count => ++count)
           const
             x2 = orientation === 'bottom' ? scaleAtStart.invert(event.x) : scaleAtStart.invert(event.y),
             ratio = (upperAtStart - x2) / (upperAtStart - dilationAnchorCoord),
             newRange = (upperAtStart - lowerAtStart) / ratio,
             newLowerBound = upperAtStart - newRange
-          scale?.domain([newLowerBound, upperAtStart])
+          model.setDomain(newLowerBound, upperAtStart)
         }
       },
 
       onDragTranslate = (event: { dx: number; dy: number }) => {
         const delta = -(orientation === 'bottom' ? event.dx : event.dy)
         if (delta !== 0) {
-          const scaleDomain = scale?.domain() || [0, 1],
-            worldDelta = Number(scale?.invert(delta)) - Number(scale?.invert(0))
-          setCounter(count => ++count)
-          scale?.domain([scaleDomain[0] + worldDelta, scaleDomain[1] + worldDelta])
+          const worldDelta = Number(scale?.invert(delta)) - Number(scale?.invert(0))
+          model.setDomain(model.min + worldDelta, model.max + worldDelta)
         }
       },
 
       onUpperDilateDrag = (event: { x: number, y: number, dx: number, dy: number }) => {
-        setCounter(count => ++count)
         const delta = (orientation === 'bottom' ? event.dx : event.dy)
         if (dragging && delta !== 0) {
           const
@@ -71,7 +70,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
             ratio = (x2 - lowerAtStart) / (dilationAnchorCoord - lowerAtStart),
             newRange = (upperAtStart - lowerAtStart) / ratio,
             newUpperBound = lowerAtStart + newRange
-          scale?.domain([lowerAtStart, newUpperBound])
+          model.setDomain(lowerAtStart, newUpperBound)
         }
       },
 
@@ -83,14 +82,12 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
       }
 
     if (axisRef?.current) {
-      const theAxis = select(axisRef.current)
-        .attr("transform", props.axisProps.transform)
-        // @ts-expect-error null => SVGSVGElement
-        .call(axis(scale))
+      const axisSelection = select(axisRef.current)
+        .attr("transform", transform)
 
       // Add three rects in which the user can drag to dilate or translate the scale
       // Todo: When there's an axis model, it should be able to some of these distinctions internal to the model.
-      const tLength = props.axisProps.length || 0,
+      const tLength = length || 0,
         classPrefix = orientation === 'bottom' ? 'h' : 'v',
         numbering = orientation === 'bottom' ? [0, 1, 2] : [2, 1, 0],
         classPostfixes = orientation === 'bottom' ? ['lower-dilate', 'translate', 'upper-dilate'] :
@@ -109,7 +106,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
             .on("end", onDragEnd)],
         // @ts-expect-error getBBox
         bbox = axisRef?.current?.getBBox?.()
-      theAxis
+      axisSelection
         .selectAll('.dragRect')
         .data(numbering)// data signify lower, middle, upper rectangles
         .join(
@@ -129,12 +126,11 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
           }
         )
       numbering.forEach((behaviorIndex, axisIndex) => {
-        theAxis.select(`.dragRect.${classPrefix}-${classPostfixes[axisIndex]}`).call(dragBehavior[behaviorIndex])
+        axisSelection.select(`.dragRect.${classPrefix}-${classPostfixes[axisIndex]}`).call(dragBehavior[behaviorIndex])
       })
-      theAxis.selectAll('.dragRect').raise()
+      axisSelection.selectAll('.dragRect').raise()
     }
-  }, [props.axisProps.transform, axis, scale, min, max, counter, setCounter,
-    props.axisProps.length, orientation])
+  }, [model, transform, axis, scale, length, orientation])
 
   useEffect(function setupTitle() {
     const
@@ -159,11 +155,11 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
           update
             .attr('x', tX)
             .attr('y', tY)
-            .attr('transform', props.axisProps.transform + ' ' + tRotation)
+            .attr('transform', transform + ' ' + tRotation)
             .text(label || 'Unnamed')
         })
 
-  }, [ label, scale, props.axisProps.transform, orientation, counter])
+  }, [label, scale, transform, orientation])
 
   return (
     <g>

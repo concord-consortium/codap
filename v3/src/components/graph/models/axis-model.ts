@@ -28,6 +28,11 @@ export const NumericAxisModel = AxisModel
     min: types.number,
     max: types.number
   })
+  .views(self => ({
+    get domain() {
+      return [self.min, self.max] as const
+    }
+  }))
   .actions(self => ({
     setScale(scale: ScaleType) {
       self.scale = scale

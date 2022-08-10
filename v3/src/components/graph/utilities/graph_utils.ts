@@ -199,7 +199,7 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 
 export interface IUseRefreshPointsProps {
   dotsRef:  React.RefObject<SVGSVGElement>
-  worldDataRef: React.RefObject<IDataSet | undefined>
+  dataset?: IDataSet
   getScreenX:((anID:string)=>number)
   getScreenY:((anID:string)=>number)
   duration?: number

@@ -40,9 +40,8 @@ export const Background = (props: {
     rect: Rect,
     setRect: React.Dispatch<React.SetStateAction<Rect>>
   }
-  setHighlightCounter: React.Dispatch<React.SetStateAction<number>>
 }) => {
-  const {worldDataRef, setHighlightCounter, dots: {xScale, yScale}} = props,
+  const {worldDataRef, dots: {xScale, yScale}} = props,
     ref = useRef() as React.RefObject<SVGSVGElement>,
     plotX = Number(xScale?.range()[0]),
     plotY = Number(yScale?.range()[1]),
@@ -137,7 +136,7 @@ export const Background = (props: {
             .attr('y', plotY)
         }
       )
-  }, [worldDataRef, props, props.dots.transform, props.dots, props.marquee, setHighlightCounter,
+  }, [worldDataRef, props, props.dots.transform, props.dots, props.marquee,
     xScale, yScale, plotX, plotY, plotWidth, plotHeight, height, width, startX, startY, onDrag, onDragStart, onDragEnd])
 
   return (

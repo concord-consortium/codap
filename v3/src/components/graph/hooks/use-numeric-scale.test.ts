@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react-hooks"
-import { NumericAxisModel } from "./axis-model"
-import { useNumericAxisScale } from "./use-numeric-axis-scale"
+import { NumericAxisModel } from "../models/axis-model"
+import { useNumericScale } from "./use-numeric-axis-scale"
 
 const d3 = jest.requireActual("d3")
 const mockScaleLinear = jest.fn((...args: any[]) => d3.scaleLinear(...args))
@@ -20,7 +20,7 @@ describe("useNumericAxisScale", () => {
   })
 
   it("should update the domain when the axis model changes", () => {
-    const { result } = renderHook(() => useNumericAxisScale({ axis: xAxis, extent: 100 }))
+    const { result } = renderHook(() => useNumericScale({ axisModel: xAxis, extent: 100 }))
     expect(result.current.domain()).toEqual([0, 10])
     expect(result.current.range()).toEqual([0, 100])
     xAxis.setDomain(0, 100)
@@ -33,7 +33,7 @@ describe("useNumericAxisScale", () => {
 
   it("should update the range when the extent changes", () => {
     let width = 100
-    const { rerender, result } = renderHook(() => useNumericAxisScale({ axis: xAxis, extent: width }))
+    const { rerender, result } = renderHook(() => useNumericScale({ axisModel: xAxis, extent: width }))
     expect(result.current.range()).toEqual([0, 100])
     width = 1000
     rerender()
@@ -45,7 +45,7 @@ describe("useNumericAxisScale", () => {
 
   it("should reverse the range for the vertical axis", () => {
     let height = 100
-    const { rerender, result } = renderHook(() => useNumericAxisScale({ axis: yAxis, extent: height }))
+    const { rerender, result } = renderHook(() => useNumericScale({ axisModel: yAxis, extent: height }))
     expect(result.current.domain()).toEqual([0, 10])
     expect(result.current.range()).toEqual([100, 0])
     yAxis.setDomain(0, 50)
@@ -63,7 +63,7 @@ describe("useNumericAxisScale", () => {
   })
 
   it("should support logarithmic axes", () => {
-    const { rerender, result } = renderHook(() => useNumericAxisScale({ axis: xAxis, extent: 100 }))
+    const { rerender, result } = renderHook(() => useNumericScale({ axisModel: xAxis, extent: 100 }))
     expect(result.current.domain()).toEqual([0, 100])
     expect(result.current.range()).toEqual([0, 100])
     xAxis.setScale("log")

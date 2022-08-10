@@ -1,18 +1,19 @@
-import {max, range, select} from "d3"
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {select} from "d3"
+import React, {memo, useCallback, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
 import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius, transitionDuration}
   from "../graphing-types"
 import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
 import { appState } from "../../app-state"
 import {IDataSet} from "../../../data-model/data-set"
-import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
+import {useDotPlotDots} from "../hooks/use-dot-plot-dots"
+import {INumericAxisModel} from "../models/axis-model"
 
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dots: plotProps,
+  axisModel: INumericAxisModel,
   plotWidth: number,
-  plotHeight: number,
   xMin: number,
   xMax: number,
   worldDataRef: React.MutableRefObject<IDataSet | undefined>,
@@ -20,16 +21,14 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
   const {
-      worldDataRef, graphData, dotsRef, plotWidth,
-      dots: {xScale, yScale}
+      worldDataRef, graphData, dotsRef, axisModel, dots: {xScale, yScale}
     } = props,
     [dragID, setDragID] = useState<string>(),
-    [refreshCounter, setRefreshCounter] = useState(0),
+    [, setRefreshCounter] = useState(0),
     currPos = useRef({x: 0}),
     target = useRef<any>(),
     [firstTime, setFirstTime] = useState<boolean | null>(true),
-    selectedDataObjects = useRef<Record<string, { x: number }>>({}),
-    [forceRefreshCounter, setForceRefreshCounter] = useState(0)
+    selectedDataObjects = useRef<Record<string, { x: number }>>({})
 
   const onDragStart = useCallback((event: MouseEvent) => {
       appState.beginPerformance()
@@ -151,6 +150,16 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   }, [])
 
   useSelection(worldDataRef, setRefreshCounter)
+
+  useDotPlotDots({
+    axisModel,
+    attributeID: graphData.xAttributeID,
+    xScale, yScale,
+    dataset: worldDataRef.current,
+    cases: graphData.cases,
+    dotsRef,
+    firstTime: [firstTime, setFirstTime]
+  })
 
   return (
     <svg/>

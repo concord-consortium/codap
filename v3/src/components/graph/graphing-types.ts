@@ -1,13 +1,12 @@
 import {ScaleLinear} from "d3"
+import {INumericAxisModel} from "./models/axis-model"
 
 export interface axisProps {
-  orientation: 'bottom' | 'left' | 'right' | 'top',
+  model: INumericAxisModel,
   scaleLinear: ScaleLinear<number, number>,
   transform: string,
   length: number | undefined,
-  label: string | undefined,
-  counter:number,
-  setCounter: React.Dispatch<React.SetStateAction<number>>
+  label: string | undefined
 }
 
 // One element of the data array assigned to the points
