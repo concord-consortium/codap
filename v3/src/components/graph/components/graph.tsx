@@ -44,8 +44,6 @@ export const Graph = observer(({broker}: IProps) => {
       plotWidthRef = useCurrent(plotWidth),
       plotHeight = 0.8 * (height || 500),
       plotHeightRef = useCurrent(plotHeight),
-      [movableLine, setMovableLine] = useState({slope: 1, intercept: 0}),
-      [movableValue, setMovableValue] = useState(2),
       [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
       [counter, setCounter] = useState(0),
       [, setHighlightCounter] = useState(0),
@@ -108,8 +106,8 @@ export const Graph = observer(({broker}: IProps) => {
     useEffect(function initMovables() {
       const xDomainDelta = x.domain()[1] - x.domain()[0],
         yDomainDelta = y.domain()[1] - y.domain()[0]
-      setMovableValue(x.domain()[0] + xDomainDelta / 3)
-      setMovableLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
+      movableLineModel.setLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
+      movableValueModel.setValue(x.domain()[0] + xDomainDelta / 3)
     }, [])
 
     return (
@@ -181,14 +179,12 @@ export const Graph = observer(({broker}: IProps) => {
           {plotType === 'scatterplot' ?
             <MovableLine
               transform={`translate(${margin.left}, 0)`}
-              line={movableLine}
-              setLine={setMovableLine}
+              model={movableLineModel}
               xScale={x}
               yScale={y}/>
             :
             <MovableValue transform={`translate(${margin.left}, 0)`}
-                          value={movableValue}
-                          setValue={setMovableValue}
+                          model={movableValueModel}
                           xScale={x}
                           yScale={y}/>
           }
