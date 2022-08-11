@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react-hooks"
 import { NumericAxisModel } from "../models/axis-model"
-import { useNumericScale } from "./use-numeric-axis-scale"
+import { useNumericScale } from "./use-numeric-scale"
 
 const d3 = jest.requireActual("d3")
 const mockScaleLinear = jest.fn((...args: any[]) => d3.scaleLinear(...args))
