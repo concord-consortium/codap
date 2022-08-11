@@ -1,5 +1,5 @@
 /*
-  Adornment models are strictly MST. The keep track of the user modifications of the defaults.
+  Adornment models are strictly MST. They keep track of the user modifications of the defaults.
  */
 
 import {Instance, types} from "mobx-state-tree"
@@ -10,6 +10,11 @@ export const PointModel = types.model("Point", {
   x: types.optional( types.number,NaN),
   y: types.optional( types.number,NaN)
 })
+  .views(self=>({
+    isValid() {
+      return isFinite(self.x) && isFinite(self.y)
+    }
+  }))
   .actions(self => ({
     set(aPt:Point | undefined) {
       if(aPt) {

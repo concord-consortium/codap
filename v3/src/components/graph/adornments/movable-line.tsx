@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import {autorun} from "mobx"
 import {drag, ScaleLinear, select} from "d3"
 import {equationString, lineToAxisIntercepts} from "../utilities/graph_utils"
-import "./movable-line.scss"
 import {IMovableLineModel} from "./adornment-models"
-import {autorun} from "mobx"
+import "./movable-line.scss"
 
 
 export const MovableLine = (props: {
@@ -99,7 +99,7 @@ export const MovableLine = (props: {
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
         const newPivot1 = {x: x.invert(event.x - 60), y: y.invert(event.y)},
-          pivot2 = isFinite(model.pivot2.x) ? model.pivot2 : pointsOnAxes.current.pt2
+          pivot2 = model.pivot2.isValid() ? model.pivot2 : pointsOnAxes.current.pt2
         if (Math.abs(x(newPivot1.x) - x(pivot2.x)) < kTolerance) { // vertical
           newPivot1.x = pivot2.x
           isVertical = true
