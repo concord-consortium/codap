@@ -1,10 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, ScaleLinear, select} from "d3"
+import {autorun} from "mobx"
+import {IMovableValueModel} from "./adornment-models"
 import {valueLabelString} from "../utilities/graph_utils"
 import "./movable-value.scss"
-import {IMovableValueModel} from "./adornment-models"
-import {autorun} from "mobx"
-
 
 export const MovableValue = (props: {
   transform: string
