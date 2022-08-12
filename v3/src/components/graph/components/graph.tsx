@@ -8,6 +8,7 @@ import {plotProps, defaultRadius} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
+import { MovableLineModel, MovableValueModel} from "../adornments/adornment-models"
 import {MovableLine} from "../adornments/movable-line"
 import {MovableValue} from "../adornments/movable-value"
 import {DataBroker} from "../../../data-model/data-broker"
@@ -30,7 +31,9 @@ const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
     xScale: x,
     yScale: y,
     transform: `translate(${margin.left}, 0)`
-  }
+  },
+  movableLineModel = MovableLineModel.create({intercept: 0, slope: 1}),
+  movableValueModel = MovableValueModel.create({value: 0})
 
 export const Graph = observer(({broker}: IProps) => {
   return prf.measure("Graph.render", () => {
@@ -41,8 +44,6 @@ export const Graph = observer(({broker}: IProps) => {
       plotWidthRef = useCurrent(plotWidth),
       plotHeight = 0.8 * (height || 500),
       plotHeightRef = useCurrent(plotHeight),
-      [movableLine, setMovableLine] = useState({slope: 1, intercept: 0}),
-      [movableValue, setMovableValue] = useState(2),
       [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
       [counter, setCounter] = useState(0),
       [, setHighlightCounter] = useState(0),
@@ -57,7 +58,7 @@ export const Graph = observer(({broker}: IProps) => {
     y.range([plotHeightRef.current, 0])
 
     worldDataRef.current = broker?.last
-    const {xName, yName, data: graphData } = useGetData({ broker, xAxis: x, yAxis: y, setCounter })
+    const {xName, yName, data: graphData} = useGetData({ broker, xAxis: x, yAxis: y, setCounter })
 
     // todo: This is a kludge. Find a better way. Without this, the y-axis doesn't update label and drag rects
     useEffect(() => {
@@ -105,8 +106,8 @@ export const Graph = observer(({broker}: IProps) => {
     useEffect(function initMovables() {
       const xDomainDelta = x.domain()[1] - x.domain()[0],
         yDomainDelta = y.domain()[1] - y.domain()[0]
-      setMovableValue(x.domain()[0] + xDomainDelta / 3)
-      setMovableLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
+      movableLineModel.setLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
+      movableValueModel.setValue(x.domain()[0] + xDomainDelta / 3)
     }, [])
 
     return (
@@ -178,14 +179,12 @@ export const Graph = observer(({broker}: IProps) => {
           {plotType === 'scatterplot' ?
             <MovableLine
               transform={`translate(${margin.left}, 0)`}
-              line={movableLine}
-              setLine={setMovableLine}
+              model={movableLineModel}
               xScale={x}
               yScale={y}/>
             :
             <MovableValue transform={`translate(${margin.left}, 0)`}
-                          value={movableValue}
-                          setValue={setMovableValue}
+                          model={movableValueModel}
                           xScale={x}
                           yScale={y}/>
           }
