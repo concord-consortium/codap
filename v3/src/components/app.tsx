@@ -5,7 +5,7 @@ import {Container} from "./container"
 import {DataSummary} from "./data-summary"
 import {gDataBroker} from "../data-model/data-broker"
 import {DataSet, toCanonical} from "../data-model/data-set"
-import {Graph} from "./graph/components/graph"
+import { GraphComponent } from "./graph/components/graph-component"
 import {Text} from "./text"
 import { dndDetectCollision } from "./dnd-detect-collision"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -68,7 +68,7 @@ export const App = () => {
             </div>
           </div>
           <CaseTable />
-          <Graph></Graph>
+          <GraphComponent></GraphComponent>
         </Container>
       </div>
     </DndContext>

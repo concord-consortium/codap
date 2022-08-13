@@ -1,28 +1,25 @@
 import {select} from "d3"
-import React, {memo, useCallback, useRef, useState} from "react"
+import React, {memo, useCallback, useContext, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
-import {plotProps, InternalizedData, defaultRadius, defaultDiameter, dragRadius, transitionDuration}
+import {plotProps, InternalizedData, defaultRadius, dragRadius}
   from "../graphing-types"
-import {useDragHandlers, useSelection} from "../hooks/graph-hooks"
+import {useDragHandlers} from "../hooks/graph-hooks"
 import { appState } from "../../app-state"
 import {IDataSet} from "../../../data-model/data-set"
 import {useDotPlotDots} from "../hooks/use-dot-plot-dots"
 import {INumericAxisModel} from "../models/axis-model"
-
+import { GraphLayoutContext } from "../models/graph-layout"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dots: plotProps,
   axisModel: INumericAxisModel,
-  plotWidth: number,
-  xMin: number,
-  xMax: number,
   worldDataRef: React.MutableRefObject<IDataSet | undefined>,
   graphData: InternalizedData,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
-  const {
-      worldDataRef, graphData, dotsRef, axisModel, dots: {xScale, yScale}
-    } = props,
+  const { worldDataRef, graphData, dotsRef, axisModel } = props,
+    layout = useContext(GraphLayoutContext),
+    xScale = layout.axisScale(axisModel.place),
     [dragID, setDragID] = useState<string>(),
     [, setRefreshCounter] = useState(0),
     currPos = useRef({x: 0}),
@@ -92,69 +89,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
-  useEffect(function refreshPoints() {
-      const xAttrID = graphData.xAttributeID
-
-      function computeBinPlacements() {
-        const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
-          binWidth = plotWidth / (numBins - 1),
-          bins: string[][] = range(numBins + 1).map(() => [])
-
-        graphData.cases.forEach((anID) => {
-          const numerator = xScale?.(worldDataRef.current?.getNumeric(anID, xAttrID) ?? -1),
-            bin = Math.ceil((numerator ?? 0) / binWidth)
-          if (bin >= 0 && bin <= numBins) {
-            bins[bin].push(anID)
-            binMap[anID] = {yIndex: bins[bin].length}
-          }
-        })
-        const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
-          excessHeight = Math.max(0, maxInBin - Math.floor(yHeight / defaultDiameter)) * defaultDiameter
-        overlap = excessHeight / maxInBin
-      }
-
-      const computeYCoord = (binContents: { yIndex: number }) => {
-        return binContents ? yHeight - defaultRadius / 2 - binContents.yIndex * (defaultDiameter - overlap) : 0
-      }
-
-      const
-        yHeight = Number(yScale?.range()[0]),
-        binMap: { [id: string]: { yIndex: number } } = {}
-      let overlap = 0
-      computeBinPlacements()
-
-      const getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
-        getScreenY = (anID: string) => computeYCoord(binMap[anID]),
-        duration = firstTime ? transitionDuration : 0,
-        onComplete = () => {
-          setFirstTime(false)
-          worldDataRef.current?.selection.forEach(anID => {
-            worldDataRef.current?.setCaseValues([{
-              __id__: anID,
-              [xAttrID]: selectedDataObjects.current[anID].x
-            }])
-          })
-        }
-
-      setPointCoordinates({dotsRef, worldDataRef, getScreenX, getScreenY, duration, onComplete})
-    }, [firstTime, dotsRef, xScale, yScale, worldDataRef, plotWidth,
-        refreshCounter, forceRefreshCounter, graphData.xAttributeID, graphData.cases]
-  )
-
-  /**
-   * In the initial refreshPoints there are no circles. We call this once to force a refreshPoints in which
-   * there are circles.
-   */
-  useEffect(function forceRefresh() {
-    setForceRefreshCounter(prevCounter => ++prevCounter)
-  }, [])
-
-  useSelection(worldDataRef, setRefreshCounter)
-
   useDotPlotDots({
     axisModel,
     attributeID: graphData.xAttributeID,
-    xScale, yScale,
     dataset: worldDataRef.current,
     cases: graphData.cases,
     dotsRef,

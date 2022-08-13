@@ -1,11 +1,8 @@
-import {ScaleLinear} from "d3"
 import {INumericAxisModel} from "./models/axis-model"
 
-export interface axisProps {
+export interface AxisProps {
   model: INumericAxisModel,
-  scaleLinear: ScaleLinear<number, number>,
   transform: string,
-  length: number | undefined,
   label: string | undefined
 }
 
@@ -23,8 +20,6 @@ export interface Rect {
 export interface rTreeRect { x: number, y: number, w: number, h: number }
 
 export interface plotProps {
-  xScale?: ScaleLinear<number, number>,
-  yScale?: ScaleLinear<number, number>,
   transform: string
 }
 

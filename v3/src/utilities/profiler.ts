@@ -82,6 +82,8 @@ class Profiler {
   totalTime = 0
   profile = new Map<string, ComponentRecord>()
 
+  logging = false
+
   get isProfiling() {
     return this.profilingCount > 0
   }
@@ -97,6 +99,8 @@ class Profiler {
   }
 
   begin(path: string) {
+    // eslint-disable-next-line no-console
+    if (this.logging) console.log(path)
     if (!this.isProfiling) return
     const [component, part] = path.split(".")
     let componentEntry = this.profile.get(component)

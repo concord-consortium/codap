@@ -1,26 +1,28 @@
-import {defaultDiameter, defaultRadius} from "../graphing-types"
-import {max, range, ScaleLinear} from "d3"
+import {max, range} from "d3"
+import {reaction} from "mobx"
+import {defaultDiameter, defaultRadius, transitionDuration} from "../graphing-types"
+import { GraphLayoutContext } from "../models/graph-layout"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
 import {IDataSet} from "../../../data-model/data-set"
-import {useCallback, useEffect} from "react"
-import {reaction} from "mobx"
+import {useCallback, useContext, useEffect} from "react"
 import {INumericAxisModel} from "../models/axis-model"
 import {onAction} from "mobx-state-tree"
+import { prf } from "../../../utilities/profiler"
 
 export interface IUseDotPlotDots {
   axisModel: INumericAxisModel
   attributeID: string
-  xScale?: ScaleLinear<number, number>
-  yScale?: ScaleLinear<number, number>
   dataset?: IDataSet
   cases: string[]
   dotsRef: React.RefObject<SVGSVGElement>
   firstTime: [boolean | null, React.Dispatch<React.SetStateAction<boolean | null>>]
 }
 
-
 export const useDotPlotDots = (props: IUseDotPlotDots) => {
-  const {axisModel, attributeID, xScale, yScale, dataset, cases, dotsRef, firstTime: [firstTime, setFirstTime]} = props
+  const {axisModel, attributeID, dataset, cases, dotsRef, firstTime: [firstTime, setFirstTime]} = props
+  const layout = useContext(GraphLayoutContext)
+  const xScale = layout.axisScale(axisModel.place)
+  const yScale = layout.axisScale("left")
 
   const refreshPoints = useCallback(()=> {
     const [rangeMin, rangeMax] = xScale?.range() || [],
@@ -55,9 +57,15 @@ export const useDotPlotDots = (props: IUseDotPlotDots) => {
     computeBinPlacements()
 
     const getScreenX = (anID: string) => getScreenCoord(dataset, anID, attributeID, xScale),
-      getScreenY = (anID: string) => computeYCoord(binMap[anID])
+      getScreenY = (anID: string) => computeYCoord(binMap[anID]),
+      duration = firstTime ? transitionDuration : 0,
+      onComplete = firstTime ? () => {
+        prf.measure("Graph.refreshPoints[onComplete]", () => {
+          setFirstTime(false)
+        })
+      } : undefined
 
-    setPointCoordinates({dotsRef, dataset, firstTime, setFirstTime, getScreenX, getScreenY})
+    setPointCoordinates({dotsRef, getScreenX, getScreenY, duration, onComplete})
   },[attributeID, cases, dataset, dotsRef, firstTime, setFirstTime, xScale, yScale])
 
   useEffect( function pointsEffect() {
@@ -76,4 +84,3 @@ export const useDotPlotDots = (props: IUseDotPlotDots) => {
     }
   },[refreshPoints, axisModel.domain, dataset])
 }
-

@@ -1,7 +1,8 @@
-import React, {useCallback, useEffect, useRef} from "react"
+import React, {useCallback, useContext, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
 import {Rect, plotProps, InternalizedData, rTreeRect} from "../graphing-types"
+import { GraphLayoutContext } from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph_utils"
 import { appState } from "../../app-state"
 import {IDataSet} from "../../../data-model/data-set"
@@ -41,12 +42,14 @@ export const Background = (props: {
     setRect: React.Dispatch<React.SetStateAction<Rect>>
   }
 }) => {
-  const {worldDataRef, dots: {xScale, yScale}} = props,
+  const {worldDataRef} = props,
+    layout = useContext(GraphLayoutContext),
+    { plotWidth, plotHeight } = layout,
+    xScale = layout.axisScale("bottom"),
+    yScale = layout.axisScale("left"),
     ref = useRef() as React.RefObject<SVGSVGElement>,
     plotX = Number(xScale?.range()[0]),
     plotY = Number(yScale?.range()[1]),
-    plotWidth = Number(xScale?.range()[1]) - plotX,
-    plotHeight = Number(yScale?.range()[0]) - plotY,
     startX = useRef(0),
     startY = useRef(0),
     width = useRef(0),

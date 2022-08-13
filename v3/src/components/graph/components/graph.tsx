@@ -1,6 +1,6 @@
 import {format, select} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useEffect, useRef, useState} from "react"
+import React, {useContext, useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {Axis} from "./axis"
 import {Background} from "./background"
@@ -12,10 +12,9 @@ import { MovableLineModel, MovableValueModel} from "../adornments/adornment-mode
 import {MovableLine} from "../adornments/movable-line"
 import {MovableValue} from "../adornments/movable-value"
 import {NumericAxisModel} from "../models/axis-model"
+import { GraphLayoutContext } from "../models/graph-layout"
 import {DataBroker} from "../../../data-model/data-broker"
 import {useGetData} from "../hooks/graph-hooks"
-import {useNumericScale} from "../hooks/use-numeric-scale"
-import {useCurrent} from "../../../hooks/use-current"
 import {getScreenCoord} from "../utilities/graph_utils"
 import { prf } from "../../../utilities/profiler"
 
@@ -25,8 +24,7 @@ interface IProps {
   broker?: DataBroker;
 }
 
-const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
-  float = format('.1f'),
+const float = format('.3~f'),
   movableLineModel = MovableLineModel.create({intercept: 0, slope: 1}),
   movableValueModel = MovableValueModel.create({value: 0}),
   xAxisModel = NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
@@ -35,15 +33,17 @@ const margin = ({top: 10, right: 30, bottom: 30, left: 60}),
 export const Graph = observer(({broker}: IProps) => {
   return prf.measure("Graph.render", () => {
     const
+      layout = useContext(GraphLayoutContext),
+      { margin } = layout,
+      x = layout.axisScale("bottom"),
+      y = layout.axisScale("left"),
+      [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
+
       worldDataRef = useRef(broker?.last),
       {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
-      plotWidth = 0.8 * (width || 300),
-      plotWidthRef = useCurrent(plotWidth),
-      plotHeight = 0.8 * (height || 500),
-      plotHeightRef = useCurrent(plotHeight),
-      [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
-      [counter, setCounter] = useState(0),
-      [, setHighlightCounter] = useState(0),
+      dotsProps: plotProps = {
+        transform: `translate(${margin.left}, 0)`
+      },
 
       keyFunc = (d: string) => d,
       svgRef = useRef<SVGSVGElement>(null),
@@ -51,25 +51,21 @@ export const Graph = observer(({broker}: IProps) => {
       dotsRef = useRef<SVGSVGElement>(null),
       [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})
 
-    x.range([0, plotWidthRef.current])
-    y.range([plotHeightRef.current, 0])
+    useEffect(() => {
+      (width != null) && (height != null) && layout.setGraphExtent(width, height)
+    }, [width, height, layout])
 
     worldDataRef.current = broker?.last
-  const {xName, yName, data: graphData} = useGetData({broker, xAxis: x, yAxis: y, setCounter})
-
-    // todo: This is a kludge. Find a better way. Without this, the y-axis doesn't update label and drag rects
-    useEffect(() => {
-      setTimeout(() => setCounter(count => ++count))
-    }, [plotType])
+    const {xName, yName, data: graphData} = useGetData({broker, xAxis: xAxisModel, yAxis: yAxisModel})
 
     useEffect(function setupPlotArea() {
       select(plotAreaSVGRef.current)
         // .attr('transform', props.plotProps.transform)
-        .attr('x', x.range()[0] + 60)
+        .attr('x', x.range()[0] + margin.left)
         .attr('y', 0)
-        .attr('width', plotWidth)
-      // .attr('height', plotHeightRef)
-    }, [plotWidth])
+        .attr('width', layout.plotWidth)
+        .attr('height', layout.plotHeight)
+    }, [layout.plotHeight, layout.plotWidth, margin.left, x])
 
     useEffect(function createCircles() {
       const xID = graphData.xAttributeID,
@@ -98,14 +94,14 @@ export const Graph = observer(({broker}: IProps) => {
               })
           }
         )
-    }, [graphData.cases, graphData.xAttributeID, graphData.yAttributeID])
+    }, [graphData.cases, graphData.xAttributeID, graphData.yAttributeID, x, y])
 
     useEffect(function initMovables() {
       const xDomainDelta = x.domain()[1] - x.domain()[0],
         yDomainDelta = y.domain()[1] - y.domain()[0]
       movableLineModel.setLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
       movableValueModel.setValue(x.domain()[0] + xDomainDelta / 3)
-    }, [])
+    }, [x, y])
 
     return (
       <div className='graph-plot' ref={plotRef} data-testid="graph">
@@ -114,13 +110,9 @@ export const Graph = observer(({broker}: IProps) => {
             <Axis svgRef={svgRef}
                   axisProps={
                     {
-                      orientation: 'left',
-                      scaleLinear: y,
+                      model: yAxisModel,
                       transform: `translate(${margin.left - 1}, 0)`,
-                      length: plotHeightRef.current,
-                      label: yName,
-                      counter,
-                      setCounter
+                      label: yName
                     }
                   }
             />
@@ -129,42 +121,30 @@ export const Graph = observer(({broker}: IProps) => {
           <Axis svgRef={svgRef}
                 axisProps={
                   {
-                    orientation: 'bottom',
-                    scaleLinear: x,
-                    transform: `translate(${margin.left}, ${plotHeightRef.current})`,
-                    length: plotWidth,
-                    label: xName,
-                    counter,
-                    setCounter
+                    model: xAxisModel,
+                    transform: `translate(${margin.left}, ${layout.plotHeight})`,
+                    label: xName
                   }
                 }
           />
           <Background dots={dotsProps} worldDataRef={worldDataRef}
-                      marquee={{rect: marqueeRect, setRect: setMarqueeRect}}
-                      setHighlightCounter={setHighlightCounter}/>
+                      marquee={{rect: marqueeRect, setRect: setMarqueeRect}} />
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
             <svg ref={dotsRef}>
               {
                 (plotType === 'scatterplot' ?
                   <ScatterDots
                     plotProps={dotsProps}
-                    xMin={x.domain()[0]}
-                    xMax={x.domain()[1]}
-                    yMin={y.domain()[1]}
-                    yMax={y.domain()[0]}
-                    plotWidth={x.range()[1] - x.range()[0]}
-                    plotHeight={y.range()[0] - y.range()[1]}
                     worldDataRef={worldDataRef}
                     graphData={graphData}
                     dotsRef={dotsRef}
+                    xAxis={xAxisModel}
+                    yAxis={yAxisModel}
                   />
                   :
                   <DotPlotDots
                     dots={dotsProps}
-                    xMin={x.domain()[0]}
-                    xMax={x.domain()[1]}
-                    plotWidth={x.range()[1] - x.range()[0]}
-                    plotHeight={y.range()[0] - y.range()[1]}
+                    axisModel = {xAxisModel}
                     worldDataRef={worldDataRef}
                     graphData={graphData}
                     dotsRef={dotsRef}
@@ -176,14 +156,13 @@ export const Graph = observer(({broker}: IProps) => {
           {plotType === 'scatterplot' ?
             <MovableLine
               transform={`translate(${margin.left}, 0)`}
-              model={movableLineModel}
-              xScale={x}
-              yScale={y}/>
+              xAxis={xAxisModel}
+              yAxis={yAxisModel}
+              model={movableLineModel} />
             :
-            <MovableValue transform={`translate(${margin.left}, 0)`}
-                          model={movableValueModel}
-                          xScale={x}
-                          yScale={y}/>
+            <MovableValue model={movableValueModel}
+                          axis={xAxisModel}
+                          transform={`translate(${margin.left}, 0)`} />
           }
         </svg>
         <button
