@@ -1,9 +1,9 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {IMovableValueModel} from "./adornment-models"
 import { INumericAxisModel } from "../models/axis-model"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import {valueLabelString} from "../utilities/graph_utils"
 import "./movable-value.scss"
 
@@ -13,7 +13,7 @@ export const MovableValue = (props: {
   transform: string
 }) => {
   const {model, axis, transform} = props,
-    layout = useContext(GraphLayoutContext),
+    layout = useGraphLayoutContext(),
     { margin } = layout,
     x = layout.axisScale("bottom"),
     y = layout.axisScale("left"),

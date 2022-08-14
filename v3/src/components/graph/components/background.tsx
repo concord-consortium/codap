@@ -1,11 +1,12 @@
-import React, {useCallback, useContext, useEffect, useRef} from "react"
+import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
 import {Rect, plotProps, InternalizedData, rTreeRect} from "../graphing-types"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph_utils"
 import { appState } from "../../app-state"
-import {IDataSet} from "../../../data-model/data-set"
+import { useCurrent } from "../../../hooks/use-current"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { prf } from "../../../utilities/profiler"
 
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
@@ -36,14 +37,14 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
 
 export const Background = (props: {
   dots: plotProps,
-  worldDataRef: React.MutableRefObject<IDataSet | undefined>,
   marquee: {
     rect: Rect,
     setRect: React.Dispatch<React.SetStateAction<Rect>>
   }
 }) => {
-  const {worldDataRef} = props,
-    layout = useContext(GraphLayoutContext),
+  const { dots, marquee: { setRect: setMarqueeRect }} = props,
+    dataset = useCurrent(useDataSetContext()),
+    layout = useGraphLayoutContext(),
     { plotWidth, plotHeight } = layout,
     xScale = layout.axisScale("bottom"),
     yScale = layout.axisScale("left"),
@@ -60,15 +61,15 @@ export const Background = (props: {
 
     onDragStart = useCallback((event: MouseEvent) => {
       appState.beginPerformance()
-      const leftEdge = ref.current?.getBBox().x
+      const leftEdge = ref.current?.getBBox().x ?? 0
       selectionTree.current = prepareTree('.graph-dot-area', 'circle')
-      startX.current = event.x - (leftEdge || 0)
+      startX.current = event.x - leftEdge
       startY.current = event.y
       width.current = 0
       height.current = 0
-      props.marquee.setRect({x: event.x - 60, y: event.y, width: 0, height: 0})
+      setMarqueeRect({x: event.x - leftEdge, y: event.y, width: 0, height: 0})
       currentlySelectedCaseIDs.current = []
-    }, [props.marquee]),
+    }, [setMarqueeRect]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       prf.measure("Graph.dragMarquee", () => {
@@ -78,7 +79,7 @@ export const Background = (props: {
           width.current = width.current + event.dx
           height.current = height.current + event.dy
           prf.measure("Graph.dragMarquee[setRect]", () => {
-            props.marquee.setRect(prevRect => {
+            setMarqueeRect(prevRect => {
               return {
                 x: prevRect.x, y: prevRect.y,
                 width: prevRect.width + event.dx,
@@ -96,18 +97,18 @@ export const Background = (props: {
             newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
           prf.end("Graph.dragMarquee[diff]")
           prf.begin("Graph.dragMarquee[selectCases]")
-          newSelection.length && worldDataRef.current?.selectCases(newSelection, true)
-          newDeselection.length && worldDataRef.current?.selectCases(newDeselection, false)
+          newSelection.length && dataset.current?.selectCases(newSelection, true)
+          newDeselection.length && dataset.current?.selectCases(newDeselection, false)
           prf.end("Graph.dragMarquee[selectCases]")
         }
       })
-    }, [height, props, worldDataRef, width]),
+    }, [dataset, setMarqueeRect]),
 
     onDragEnd = useCallback(() => {
-      props.marquee.setRect({x: 0, y: 0, width: 0, height: 0})
+      setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
       selectionTree.current = null
       appState.endPerformance()
-    }, [props.marquee])
+    }, [setMarqueeRect])
 
   useEffect(() => {
     const dragBehavior = drag()
@@ -117,7 +118,7 @@ export const Background = (props: {
       groupElement = ref.current
     select(groupElement).on('click', () => {
       prf.begin("Graph.background[useEffect-selectAll]")
-      worldDataRef.current?.selectAll(false)
+      dataset.current?.selectAll(false)
       prf.end("Graph.background[useEffect-selectAll]")
     })
 
@@ -129,7 +130,7 @@ export const Background = (props: {
         (enter) => {
           enter.append('rect')
             .attr('class', 'graph-background')
-            .attr('transform', props.dots.transform)
+            .attr('transform', dots.transform)
             .call(dragBehavior)
         },
         (update) => {
@@ -139,8 +140,7 @@ export const Background = (props: {
             .attr('y', plotY)
         }
       )
-  }, [worldDataRef, props, props.dots.transform, props.dots, props.marquee,
-    xScale, yScale, plotX, plotY, plotWidth, plotHeight, height, width, startX, startY, onDrag, onDragStart, onDragEnd])
+  }, [dataset, onDrag, onDragEnd, onDragStart, plotHeight, plotWidth, plotX, plotY, dots.transform])
 
   return (
     <g ref={ref}/>

@@ -1,24 +1,24 @@
 import {select} from "d3"
-import React, {memo, useCallback, useContext, useRef, useState} from "react"
+import React, {memo, useCallback, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
 import {plotProps, InternalizedData, defaultRadius, dragRadius}
   from "../graphing-types"
 import {useDragHandlers} from "../hooks/graph-hooks"
 import { appState } from "../../app-state"
-import {IDataSet} from "../../../data-model/data-set"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import {useDotPlotDots} from "../hooks/use-dot-plot-dots"
 import {INumericAxisModel} from "../models/axis-model"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   dots: plotProps,
   axisModel: INumericAxisModel,
-  worldDataRef: React.MutableRefObject<IDataSet | undefined>,
   graphData: InternalizedData,
   dotsRef: React.RefObject<SVGSVGElement>
 }) {
-  const { worldDataRef, graphData, dotsRef, axisModel } = props,
-    layout = useContext(GraphLayoutContext),
+  const { graphData, dotsRef, axisModel } = props,
+    dataset = useDataSetContext(),
+    layout = useGraphLayoutContext(),
     xScale = layout.axisScale(axisModel.place),
     [dragID, setDragID] = useState<string>(),
     [, setRefreshCounter] = useState(0),
@@ -40,15 +40,15 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           .attr('r', dragRadius)
         setDragID(() => tItsID)
         currPos.current = {x: event.clientX}
-        worldDataRef.current?.selectCases([tItsID])
+        dataset?.selectCases([tItsID])
         // Record the current values so we can change them during the drag and restore them when done
-        worldDataRef.current?.selection.forEach(anID => {
+        dataset?.selection.forEach(anID => {
           selectedDataObjects.current[anID] = {
-            x: worldDataRef.current?.getNumeric(anID, xAttrID) ?? NaN
+            x: dataset?.getNumeric(anID, xAttrID) ?? NaN
           }
         })
       }
-    }, [firstTime, setFirstTime, worldDataRef, graphData.xAttributeID]),
+    }, [dataset, firstTime, graphData.xAttributeID]),
 
     onDrag = useCallback((event: MouseEvent) => {
       const xAttrID = graphData.xAttributeID
@@ -58,15 +58,15 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         currPos.current = newPos
         if (dx !== 0) {
           const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0))
-          worldDataRef.current?.selection.forEach(anID => {
-            const currX = worldDataRef.current?.getNumeric(anID, xAttrID)
+          dataset?.selection.forEach(anID => {
+            const currX = dataset?.getNumeric(anID, xAttrID)
             const newX = currX != null ? currX + deltaX : undefined
-            worldDataRef.current?.setCaseValues([{ __id__: anID , [xAttrID]: newX }])
+            dataset?.setCaseValues([{ __id__: anID , [xAttrID]: newX }])
           })
           setRefreshCounter(prevCounter => ++prevCounter)
         }
       }
-    }, [currPos, dragID, xScale, worldDataRef, graphData.xAttributeID]),
+    }, [dataset, dragID, graphData.xAttributeID, xScale]),
 
     onDragEnd = useCallback(() => {
       const xAttrID = graphData.xAttributeID
@@ -78,21 +78,21 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         setDragID(undefined)
         target.current = null
       }
-      worldDataRef.current?.selection.forEach(anID => {
-        worldDataRef.current?.
+      dataset?.selection.forEach(anID => {
+        dataset?.
           setCaseValues([{ __id__: anID , [xAttrID]: selectedDataObjects.current[anID].x }])
       })
       setFirstTime(true)  // So points will animate back to original positions
       setRefreshCounter(prevCounter => ++prevCounter)
       appState.endPerformance()
-    }, [dragID, worldDataRef, graphData.xAttributeID])
+    }, [dataset, dragID, graphData.xAttributeID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   useDotPlotDots({
     axisModel,
     attributeID: graphData.xAttributeID,
-    dataset: worldDataRef.current,
+    dataset,
     cases: graphData.cases,
     dotsRef,
     firstTime: [firstTime, setFirstTime]

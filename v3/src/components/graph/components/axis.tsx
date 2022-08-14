@@ -1,8 +1,8 @@
-import React, {useContext, useEffect, useRef} from "react"
+import React, {useEffect, useRef} from "react"
 import {axisBottom, axisLeft, drag, select} from "d3"
 import {AxisProps} from "../graphing-types"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import { prf } from "../../../utilities/profiler"
 import "./axis.scss"
 
@@ -14,7 +14,7 @@ type D3Handler = (this: Element, event: any, d: any) => void
 
 export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps: AxisProps }) => {
   const {axisProps: {model, transform, label}} = props,
-    layout = useContext(GraphLayoutContext),
+    layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),
     length = layout.axisLength(model.place),
     axisRef = useRef(null),

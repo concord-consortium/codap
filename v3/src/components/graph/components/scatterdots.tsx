@@ -1,27 +1,28 @@
 import {select} from "d3"
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
-import React, {memo, useCallback, useContext, useEffect, useRef, useState} from "react"
+import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import { appState } from "../../app-state"
 import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
 import {useDragHandlers} from "../hooks/graph-hooks"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import { INumericAxisModel } from "../models/axis-model"
-import {ICase, IDataSet} from "../../../data-model/data-set"
+import {ICase} from "../../../data-model/data-set"
 import { isSelectionAction, isSetCaseValuesAction } from "../../../data-model/data-set-actions"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 import { prf } from "../../../utilities/profiler"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps
-  worldDataRef: React.MutableRefObject<IDataSet | undefined>
   graphData: InternalizedData
   dotsRef: React.RefObject<SVGSVGElement>
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
 }) {
-  const {worldDataRef, graphData, dotsRef, xAxis, yAxis} = props,
-    layout = useContext(GraphLayoutContext),
+  const {graphData, dotsRef, xAxis, yAxis} = props,
+    dataset = useDataSetContext(),
+    layout = useGraphLayoutContext(),
     xScale = layout.axisScale("bottom"),
     yScale = layout.axisScale("left"),
     [dragID, setDragID] = useState(''),
@@ -36,7 +37,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
   const onDragStart = useCallback((event: MouseEvent) => {
     prf.measure("Graph.onDragStart", () => {
       appState.beginPerformance()
-      worldDataRef.current?.beginCaching()
+      dataset?.beginCaching()
       firstTime.current = false // We don't want to animate points until end of drag
       didDrag.current = false
       target.current = select(event.target as SVGSVGElement)
@@ -47,17 +48,17 @@ export const ScatterDots = memo(function ScatterDots(props: {
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
-        worldDataRef.current?.selectCases([tItsID])
+        dataset?.selectCases([tItsID])
         // Record the current values so we can change them during the drag and restore them when done
-        worldDataRef.current?.selection.forEach(anID => {
+        dataset?.selection.forEach(anID => {
           selectedDataObjects.current[anID] = {
-            x: worldDataRef.current?.getNumeric(anID, xAttrID) ?? 0,
-            y: worldDataRef.current?.getNumeric(anID, yAttrID) ?? 0
+            x: dataset?.getNumeric(anID, xAttrID) ?? 0,
+            y: dataset?.getNumeric(anID, yAttrID) ?? 0
           }
         })
       }
     })
-  }, [firstTime, xAttrID, yAttrID, worldDataRef]),
+  }, [dataset, xAttrID, yAttrID]),
 
   onDrag = useCallback((event: MouseEvent) => {
     prf.measure("Graph.onDrag", () => {
@@ -71,9 +72,9 @@ export const ScatterDots = memo(function ScatterDots(props: {
           const deltaX = Number(xScale.invert(dx)) - Number(xScale.invert(0)),
             deltaY = Number(yScale.invert(dy)) - Number(yScale.invert(0)),
             caseValues: ICase[] = []
-          worldDataRef.current?.selection.forEach(anID => {
-            const currX = Number(worldDataRef.current?.getNumeric(anID, xAttrID)),
-              currY = Number(worldDataRef.current?.getNumeric(anID, yAttrID))
+          dataset?.selection.forEach(anID => {
+            const currX = Number(dataset?.getNumeric(anID, xAttrID)),
+              currY = Number(dataset?.getNumeric(anID, yAttrID))
             if (isFinite(currX) && isFinite(currY)) {
               caseValues.push({
                 __id__: anID,
@@ -82,11 +83,11 @@ export const ScatterDots = memo(function ScatterDots(props: {
               })
             }
           })
-          caseValues.length && worldDataRef.current?.setCaseValues(caseValues)
+          caseValues.length && dataset?.setCaseValues(caseValues)
         }
       }
     })
-  }, [dragID, xScale, yScale, xAttrID, yAttrID, worldDataRef]),
+  }, [dataset, dragID, xAttrID, xScale, yAttrID, yScale]),
 
   onDragEnd = useCallback(() => {
     prf.measure("Graph.onDragEnd", () => {
@@ -100,36 +101,36 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
         if (didDrag.current) {
           const caseValues: ICase[] = []
-          worldDataRef.current?.selection.forEach(anID => {
+          dataset?.selection.forEach(anID => {
             caseValues.push({
               __id__: anID,
               [xAttrID]: selectedDataObjects.current[anID].x,
               [yAttrID]: selectedDataObjects.current[anID].y
             })
           })
-          caseValues.length && worldDataRef.current?.setCaseValues(caseValues)
+          caseValues.length && dataset?.setCaseValues(caseValues)
           firstTime.current = true // So points will animate back to original positions
         }
       }
       didDrag.current = false
-      worldDataRef.current?.endCaching()
+      dataset?.endCaching()
       appState.endPerformance()
     })
-  }, [dragID, xAttrID, yAttrID, worldDataRef])
+  }, [dataset, dragID, xAttrID, yAttrID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     prf.measure("Graph.ScatterDots[refreshPointSelection]", () => {
-      setPointSelection({ dotsRef, dataset: worldDataRef.current })
+      setPointSelection({ dotsRef, dataset })
     })
-  }, [dotsRef, worldDataRef])
+  }, [dataset, dotsRef])
 
   const refreshPointPositions = useCallback(() => {
     prf.measure("Graph.ScatterDots[refreshPointPositions]", () => {
       const selectedOnly = appState.appMode === "performance",
-        getScreenX = (anID: string) => getScreenCoord(worldDataRef.current, anID, xAttrID, xScale),
-        getScreenY = (anID: string) => getScreenCoord(worldDataRef.current, anID, yAttrID, yScale),
+        getScreenX = (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale),
+        getScreenY = (anID: string) => getScreenCoord(dataset, anID, yAttrID, yScale),
         duration = firstTime.current ? transitionDuration : 0,
         onComplete = firstTime.current ? () => {
           prf.measure("Graph.ScatterDots[refreshPointPositions]", () => {
@@ -139,7 +140,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
       setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
     })
-  }, [dotsRef, worldDataRef, xAttrID, xScale, yAttrID, yScale])
+  }, [dataset, dotsRef, xAttrID, xScale, yAttrID, yScale])
 
   // respond to axis domain changes (e.g. axis dragging)
   useEffect(() => {
@@ -169,7 +170,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
   // respond to selection and value changes
   useEffect(() => {
-    const disposer = worldDataRef.current && onAction(worldDataRef.current, action => {
+    const disposer = dataset && onAction(dataset, action => {
       if (isSelectionAction(action)) {
         refreshPointSelection()
       }
@@ -178,7 +179,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
       }
     }, true)
     return () => disposer?.()
-  }, [refreshPointPositions, refreshPointSelection, worldDataRef])
+  }, [dataset, refreshPointPositions, refreshPointSelection])
 
   return (
     <svg/>

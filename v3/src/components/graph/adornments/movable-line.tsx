@@ -1,8 +1,8 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {drag, select} from "d3"
 import { INumericAxisModel } from "../models/axis-model"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph_utils"
 import {IMovableLineModel} from "./adornment-models"
 import "./movable-line.scss"
@@ -14,7 +14,7 @@ export const MovableLine = (props: {
   transform: string
 }) => {
   const {model, xAxis, yAxis, transform} = props,
-    layout = useContext(GraphLayoutContext),
+    layout = useGraphLayoutContext(),
     x = layout.axisScale("bottom"),
     y = layout.axisScale("left"),
     kTolerance = 4, // pixels to snap to horizontal or vertical

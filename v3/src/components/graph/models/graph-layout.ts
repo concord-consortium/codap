@@ -1,6 +1,6 @@
 import { ScaleContinuousNumeric, scaleLinear } from "d3"
 import { action, computed, makeObservable, observable } from "mobx"
-import { createContext } from "react"
+import { createContext, useContext } from "react"
 import { AxisPlace, AxisPlaces } from "./axis-model"
 
 export type ScaleBaseType = ScaleContinuousNumeric<number, number>
@@ -66,3 +66,5 @@ export class GraphLayout {
 }
 
 export const GraphLayoutContext = createContext(new GraphLayout())
+
+export const useGraphLayoutContext = () => useContext(GraphLayoutContext)

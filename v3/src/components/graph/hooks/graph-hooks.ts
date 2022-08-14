@@ -2,12 +2,12 @@
  * Graph Custom Hooks
  */
 import {extent} from "d3"
-import {useContext, useEffect, useMemo} from "react"
+import {useEffect, useMemo} from "react"
 import {IAttribute} from "../../../data-model/attribute"
-import {DataBroker} from "../../../data-model/data-broker"
 import { INumericAxisModel } from "../models/axis-model"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import {InternalizedData} from "../graphing-types"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -30,13 +30,13 @@ export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) 
 }
 
 export interface IUseGetDataProps {
-  broker?: DataBroker
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
 }
 export const useGetData = (props: IUseGetDataProps) => {
-  const {broker, xAxis, yAxis} = props,
-    layout = useContext(GraphLayoutContext),
+  const {xAxis, yAxis} = props,
+    dataset = useDataSetContext(),
+    layout = useGraphLayoutContext(),
     xScale = layout.axisScale("bottom"),
     yScale = layout.axisScale("left")
 
@@ -62,25 +62,25 @@ export const useGetData = (props: IUseGetDataProps) => {
       }
     }
 
-    if (broker?.last) {
-      const worldDataSet = broker?.last,
-        attributes = worldDataSet?.attributes
+    if (dataset) {
+      const
+        attributes = dataset?.attributes
 
       findNumericAttrIds(attributes || [])
       if (xAttrId === '' || yAttrId === '') {
         return { xName, yName, data }
       }
 
-      const xValues = worldDataSet.attrFromID(xAttrId).numValues,
-        yValues = worldDataSet.attrFromID(yAttrId).numValues
+      const xValues = dataset.attrFromID(xAttrId).numValues,
+        yValues = dataset.attrFromID(yAttrId).numValues
       data.xAttributeID = xAttrId
       data.yAttributeID = yAttrId
-      xName = broker?.last?.attrFromID(data.xAttributeID)?.name || ''
-      yName = broker?.last?.attrFromID(data.yAttributeID)?.name || ''
-      data.cases = worldDataSet.cases.map(aCase => aCase.__id__)
+      xName = dataset.attrFromID(data.xAttributeID)?.name || ''
+      yName = dataset.attrFromID(data.yAttributeID)?.name || ''
+      data.cases = dataset.cases.map(aCase => aCase.__id__)
         .filter(anID => {
-          return isFinite(Number(worldDataSet?.getNumeric(anID, xAttrId))) &&
-            isFinite(Number(worldDataSet?.getNumeric(anID, yAttrId)))
+          return isFinite(Number(dataset.getNumeric(anID, xAttrId))) &&
+            isFinite(Number(dataset.getNumeric(anID, yAttrId)))
         })
       if (data.cases.length > 0) {
         xScale.domain(extent(xValues, d => d) as [number, number]).nice()
@@ -93,7 +93,7 @@ export const useGetData = (props: IUseGetDataProps) => {
       }
     }
     return { xName, yName, data }
-  }, [broker?.last, xAxis, xScale, yAxis, yScale])
+  }, [dataset, xAxis, xScale, yAxis, yScale])
 
   return result
 }

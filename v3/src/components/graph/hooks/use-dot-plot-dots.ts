@@ -1,12 +1,12 @@
 import {max, range} from "d3"
 import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
+import {useCallback, useEffect} from "react"
 import {defaultDiameter, defaultRadius, transitionDuration} from "../graphing-types"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph_utils"
 import {IDataSet} from "../../../data-model/data-set"
-import {useCallback, useContext, useEffect} from "react"
 import {INumericAxisModel} from "../models/axis-model"
-import {onAction} from "mobx-state-tree"
 import { prf } from "../../../utilities/profiler"
 
 export interface IUseDotPlotDots {
@@ -20,7 +20,7 @@ export interface IUseDotPlotDots {
 
 export const useDotPlotDots = (props: IUseDotPlotDots) => {
   const {axisModel, attributeID, dataset, cases, dotsRef, firstTime: [firstTime, setFirstTime]} = props
-  const layout = useContext(GraphLayoutContext)
+  const layout = useGraphLayoutContext()
   const xScale = layout.axisScale(axisModel.place)
   const yScale = layout.axisScale("left")
 

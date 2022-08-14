@@ -1,8 +1,8 @@
 import {axisBottom, axisLeft, scaleLinear, scaleLog, select} from "d3"
 import {autorun, reaction} from "mobx"
-import React, {useCallback, useContext, useEffect} from "react"
+import React, {useCallback, useEffect} from "react"
 import {INumericAxisModel} from "../models/axis-model"
-import { GraphLayoutContext } from "../models/graph-layout"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import { prf } from "../../../utilities/profiler"
 
 export interface IUseNumericAxis {
@@ -10,7 +10,7 @@ export interface IUseNumericAxis {
   axisRef:  React.MutableRefObject<any>
 }
 export const useNumericAxis = ({ axisModel, axisRef }: IUseNumericAxis) => {
-  const layout = useContext(GraphLayoutContext)
+  const layout = useGraphLayoutContext()
   const scale = layout.axisScale(axisModel.place)
   const axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft
 

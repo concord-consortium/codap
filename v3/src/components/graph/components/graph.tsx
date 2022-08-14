@@ -1,6 +1,6 @@
 import {format, select} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useContext, useEffect, useRef, useState} from "react"
+import React, {useEffect, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {Axis} from "./axis"
 import {Background} from "./background"
@@ -12,17 +12,16 @@ import { MovableLineModel, MovableValueModel} from "../adornments/adornment-mode
 import {MovableLine} from "../adornments/movable-line"
 import {MovableValue} from "../adornments/movable-value"
 import {NumericAxisModel} from "../models/axis-model"
-import { GraphLayoutContext } from "../models/graph-layout"
-import {DataBroker} from "../../../data-model/data-broker"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import {useGetData} from "../hooks/graph-hooks"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import {getScreenCoord} from "../utilities/graph_utils"
 import { prf } from "../../../utilities/profiler"
 
 import "./graph.scss"
 
-interface IProps {
-  broker?: DataBroker;
-}
+// interface IProps {
+// }
 
 const float = format('.3~f'),
   movableLineModel = MovableLineModel.create({intercept: 0, slope: 1}),
@@ -30,16 +29,16 @@ const float = format('.3~f'),
   xAxisModel = NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
   yAxisModel = NumericAxisModel.create({place: 'left', min: 0, max: 10})
 
-export const Graph = observer(({broker}: IProps) => {
+export const Graph = observer(() => {
   return prf.measure("Graph.render", () => {
     const
-      layout = useContext(GraphLayoutContext),
+      dataset = useDataSetContext(),
+      layout = useGraphLayoutContext(),
       { margin } = layout,
       x = layout.axisScale("bottom"),
       y = layout.axisScale("left"),
       [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
 
-      worldDataRef = useRef(broker?.last),
       {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
       dotsProps: plotProps = {
         transform: `translate(${margin.left}, 0)`
@@ -55,8 +54,7 @@ export const Graph = observer(({broker}: IProps) => {
       (width != null) && (height != null) && layout.setGraphExtent(width, height)
     }, [width, height, layout])
 
-    worldDataRef.current = broker?.last
-    const {xName, yName, data: graphData} = useGetData({broker, xAxis: xAxisModel, yAxis: yAxisModel})
+    const {xName, yName, data: graphData} = useGetData({xAxis: xAxisModel, yAxis: yAxisModel})
 
     useEffect(function setupPlotArea() {
       select(plotAreaSVGRef.current)
@@ -68,14 +66,13 @@ export const Graph = observer(({broker}: IProps) => {
     }, [layout.plotHeight, layout.plotWidth, margin.left, x])
 
     useEffect(function createCircles() {
-      const xID = graphData.xAttributeID,
-        yID = graphData.yAttributeID
+      const { xAttributeID: xID, yAttributeID: yID, cases } = graphData
 
       select(dotsRef.current).selectAll('circle').remove()
 
       select(dotsRef.current)
         .selectAll('circle')
-        .data(graphData.cases, keyFunc)
+        .data(cases, keyFunc)
         .join(
           // @ts-expect-error void => Selection
           (enter) => {
@@ -83,18 +80,18 @@ export const Graph = observer(({broker}: IProps) => {
               .attr('class', 'graph-dot')
               .attr("r", defaultRadius)
               .property('id', (anID: string) => anID)
-              .attr('cx', (anID: string) => getScreenCoord(worldDataRef.current, anID, xID, x))
-              .attr('cy', (anID: string) => getScreenCoord(worldDataRef.current, anID, yID, y))
+              .attr('cx', (anID: string) => getScreenCoord(dataset, anID, xID, x))
+              .attr('cy', (anID: string) => getScreenCoord(dataset, anID, yID, y))
               .selection()
               .append('title')
               .text((anID: string) => {
-                const xVal = worldDataRef.current?.getNumeric(anID, xID) ?? 0,
-                  yVal = worldDataRef.current?.getNumeric(anID, yID) ?? 0
+                const xVal = dataset?.getNumeric(anID, xID) ?? 0,
+                  yVal = dataset?.getNumeric(anID, yID) ?? 0
                 return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
               })
           }
         )
-    }, [graphData.cases, graphData.xAttributeID, graphData.yAttributeID, x, y])
+    }, [dataset, graphData, x, y])
 
     useEffect(function initMovables() {
       const xDomainDelta = x.domain()[1] - x.domain()[0],
@@ -127,15 +124,13 @@ export const Graph = observer(({broker}: IProps) => {
                   }
                 }
           />
-          <Background dots={dotsProps} worldDataRef={worldDataRef}
-                      marquee={{rect: marqueeRect, setRect: setMarqueeRect}} />
+          <Background dots={dotsProps} marquee={{rect: marqueeRect, setRect: setMarqueeRect}} />
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
             <svg ref={dotsRef}>
               {
                 (plotType === 'scatterplot' ?
                   <ScatterDots
                     plotProps={dotsProps}
-                    worldDataRef={worldDataRef}
                     graphData={graphData}
                     dotsRef={dotsRef}
                     xAxis={xAxisModel}
@@ -145,7 +140,6 @@ export const Graph = observer(({broker}: IProps) => {
                   <DotPlotDots
                     dots={dotsProps}
                     axisModel = {xAxisModel}
-                    worldDataRef={worldDataRef}
                     graphData={graphData}
                     dotsRef={dotsRef}
                   />)
