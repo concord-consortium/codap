@@ -8,11 +8,11 @@ import {plotProps, defaultRadius} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
-import { MovableLineModel, MovableValueModel} from "../adornments/adornment-models"
 import {MovableLine} from "../adornments/movable-line"
 import {MovableValue} from "../adornments/movable-value"
-import {NumericAxisModel} from "../models/axis-model"
+import { INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
+import { IGraphModel } from "../models/graph-model"
 import {useGetData} from "../hooks/graph-hooks"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
@@ -21,18 +21,18 @@ import { prf } from "../../../utilities/profiler"
 
 import "./graph.scss"
 
-// interface IProps {
-// }
+interface IProps {
+  model: IGraphModel
+}
 
-const float = format('.3~f'),
-  movableLineModel = MovableLineModel.create({intercept: 0, slope: 1}),
-  movableValueModel = MovableValueModel.create({value: 0}),
-  xAxisModel = NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
-  yAxisModel = NumericAxisModel.create({place: 'left', min: 0, max: 10})
+const float = format('.3~f')
 
-export const Graph = observer(() => {
+export const Graph = observer(({ model: graphModel }: IProps) => {
   return prf.measure("Graph.render", () => {
     const
+      xAxisModel = graphModel.getAxis("bottom") as INumericAxisModel,
+      yAxisModel = graphModel.getAxis("left") as INumericAxisModel,
+      { movableLine: movableLineModel, movableValue: movableValueModel } = graphModel,
       instanceId = useInstanceIdContext(),
       dataset = useDataSetContext(),
       layout = useGraphLayoutContext(),
@@ -100,7 +100,7 @@ export const Graph = observer(() => {
         yDomainDelta = y.domain()[1] - y.domain()[0]
       movableLineModel.setLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
       movableValueModel.setValue(x.domain()[0] + xDomainDelta / 3)
-    }, [x, y])
+    }, [movableLineModel, movableValueModel, x, y])
 
     return (
       <div className='graph-plot' ref={plotRef} data-testid="graph">
