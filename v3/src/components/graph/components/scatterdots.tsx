@@ -6,6 +6,7 @@ import { appState } from "../../app-state"
 import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
 import {useDragHandlers} from "../hooks/graph-hooks"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import { INumericAxisModel } from "../models/axis-model"
 import {ICase} from "../../../data-model/data-set"
@@ -21,6 +22,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
   yAxis: INumericAxisModel
 }) {
   const {graphData, dotsRef, xAxis, yAxis} = props,
+    instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     xScale = layout.axisScale("bottom"),
@@ -48,7 +50,8 @@ export const ScatterDots = memo(function ScatterDots(props: {
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
-        dataset?.selectCases([tItsID])
+        const [ , caseId] = tItsID.split("_")
+        dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
         dataset?.selection.forEach(anID => {
           selectedDataObjects.current[anID] = {
@@ -126,9 +129,9 @@ export const ScatterDots = memo(function ScatterDots(props: {
     })
   }, [dataset, dotsRef])
 
-  const refreshPointPositions = useCallback(() => {
-    prf.measure("Graph.ScatterDots[refreshPointPositions]", () => {
-      const selectedOnly = appState.appMode === "performance",
+  const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
+    prf.measure("Graph.ScatterDots[refreshPointPositionsD3]", () => {
+      const
         getScreenX = (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale),
         getScreenY = (anID: string) => getScreenCoord(dataset, anID, yAttrID, yScale),
         duration = firstTime.current ? transitionDuration : 0,
@@ -142,14 +145,46 @@ export const ScatterDots = memo(function ScatterDots(props: {
     })
   }, [dataset, dotsRef, xAttrID, xScale, yAttrID, yScale])
 
+  const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
+    prf.measure("Graph.ScatterDots[refreshPointPositionsSVG]", () => {
+      const updateDot = (caseId: string) => {
+        const dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
+        if (dot) {
+          const dotSvg = dot as SVGCircleElement
+          const x = getScreenCoord(dataset, caseId, xAttrID, xScale)
+          const y = getScreenCoord(dataset, caseId, yAttrID, yScale)
+          if (isFinite(x) && isFinite(y)) {
+            dotSvg.setAttribute("cx", `${x}`)
+            dotSvg.setAttribute("cy", `${y}`)
+          }
+        }
+      }
+      if (selectedOnly) {
+        dataset?.selection.forEach(caseId => updateDot(caseId))
+      }
+      else {
+        dataset?.cases.forEach(({ __id__ }) => updateDot(__id__))
+      }
+    })
+  }, [dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
+
+  const refreshPointPositions = useCallback((selectedOnly: boolean) => {
+    if (appState.isPerformanceMode) {
+      refreshPointPositionsSVG(selectedOnly)
+    }
+    else {
+      refreshPointPositionsD3(selectedOnly)
+    }
+  }, [refreshPointPositionsD3, refreshPointPositionsSVG])
+
   // respond to axis domain changes (e.g. axis dragging)
   useEffect(() => {
-    refreshPointPositions()
+    refreshPointPositions(false)
     const disposer = reaction(
       () => [xAxis.domain, yAxis.domain],
       domains => {
         firstTime.current = false // don't animate response to axis changes
-        refreshPointPositions()
+        refreshPointPositions(false)
       }
     )
     return () => disposer()
@@ -157,12 +192,12 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
-    refreshPointPositions()
+    refreshPointPositions(false)
     const disposer = reaction(
       () => [layout.axisLength(xAxis.place), layout.axisLength(yAxis.place)],
       ranges => {
         firstTime.current = false // don't animate response to axis changes
-        refreshPointPositions()
+        refreshPointPositions(false)
       }
     )
     return () => disposer()
@@ -175,7 +210,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
         refreshPointSelection()
       }
       else if (isSetCaseValuesAction(action)) {
-        refreshPointPositions()
+        refreshPointPositions(true)
       }
     }, true)
     return () => disposer?.()

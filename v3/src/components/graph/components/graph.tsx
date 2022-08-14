@@ -15,6 +15,7 @@ import {NumericAxisModel} from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import {useGetData} from "../hooks/graph-hooks"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import {getScreenCoord} from "../utilities/graph_utils"
 import { prf } from "../../../utilities/profiler"
 
@@ -32,6 +33,7 @@ const float = format('.3~f'),
 export const Graph = observer(() => {
   return prf.measure("Graph.render", () => {
     const
+      instanceId = useInstanceIdContext(),
       dataset = useDataSetContext(),
       layout = useGraphLayoutContext(),
       { margin } = layout,
@@ -79,7 +81,7 @@ export const Graph = observer(() => {
             enter.append('circle')
               .attr('class', 'graph-dot')
               .attr("r", defaultRadius)
-              .property('id', (anID: string) => anID)
+              .property('id', (anID: string) => `${instanceId}_${anID}`)
               .attr('cx', (anID: string) => getScreenCoord(dataset, anID, xID, x))
               .attr('cy', (anID: string) => getScreenCoord(dataset, anID, yID, y))
               .selection()
@@ -91,7 +93,7 @@ export const Graph = observer(() => {
               })
           }
         )
-    }, [dataset, graphData, x, y])
+    }, [dataset, graphData, instanceId, x, y])
 
     useEffect(function initMovables() {
       const xDomainDelta = x.domain()[1] - x.domain()[0],

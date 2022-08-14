@@ -152,13 +152,14 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
     })
   }, [model, transform, axis, scale, orientation, length])
 
+  const [xMin, xMax] = scale.range()
+  const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
     const
-      range = scale.range(),
       // @ts-expect-error getBBox
       bbox = axisRef?.current?.getBBox?.(),
-      tX = (orientation === 'left') ? bbox?.x - 10 : Math.abs(range[0] - range[1]) / 2,
-      tY = (orientation === 'bottom') ? bbox?.y + bbox?.height + 15 : Math.abs(range[0] - range[1]) / 2,
+      tX = (orientation === 'left') ? bbox?.x - 10 : halfRange,
+      tY = (orientation === 'bottom') ? bbox?.y + bbox?.height + 15 : halfRange,
       // tY = orientation === 'bottom' ? bbox?.height + 15 : bbox?.x - 10,
       tRotation = orientation === 'bottom' ? '' : `rotate(-90,${tX},${tY})`
     select(titleRef.current)
@@ -179,7 +180,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
             .text(label || 'Unnamed')
         })
 
-  }, [label, scale, transform, orientation])
+  }, [halfRange, label, orientation, transform])
 
   return (
     <g>
