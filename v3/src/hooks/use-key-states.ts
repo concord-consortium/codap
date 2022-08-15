@@ -8,9 +8,12 @@ export const useKeyStates = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => keysDown.add(e.key)
     const handleKeyUp = (e: KeyboardEvent) => keysDown.delete(e.key)
-    const updateKey = (key: string, e: MouseEvent) => e.shiftKey ? keysDown.add(key) : keysDown.delete(key)
+    const updateKey = (key: string, isDown: boolean) => isDown ? keysDown.add(key) : keysDown.delete(key)
     const handleMouseEvent = (e: MouseEvent) => {
-      ["Shift", "Alt", "Meta", "Control"].forEach(key => updateKey(key, e))
+      const keys: Record<string, boolean> = {
+        Shift: e.shiftKey, Alt: e.altKey, Meta: e.metaKey, Control: e.ctrlKey
+      }
+      Object.keys(keys).forEach(key => updateKey(key, keys[key]))
     }
     window.addEventListener("keydown", handleKeyDown , { capture: true })
     window.addEventListener("keyup", handleKeyUp, { capture: true })

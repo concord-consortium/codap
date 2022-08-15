@@ -93,7 +93,7 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
 
-  const handleRowClick = ({ __id__: caseId }: TRow) => {
+  const handleRowClick = useCallback(({ __id__: caseId }: TRow) => {
     const isCaseSelected = data?.isCaseSelected(caseId)
     const isExtending = isKeyDown("Shift") || isKeyDown("Alt") || isKeyDown("Meta")
     if (isKeyDown("Shift") && anchorCase.current) {
@@ -119,7 +119,7 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
       data?.setSelectedCases([caseId])
       anchorCase.current = caseId
     }
-  }
+  }, [data])
 
   return { selectedRows, setSelectedRows, handleRowClick }
 }

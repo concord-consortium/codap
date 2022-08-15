@@ -60,7 +60,8 @@ describe("useRowScrolling", () => {
       rafMock.triggerNext(startTime + 250 - rafMock.time)
       expect(rafMock.mockRequest).toHaveBeenCalledTimes(5)
       expect(rafMock.queue.size).toBe(1)
-      expect(mockGridElt.scrollTop).toBe(18)
+      expect(mockGridElt.scrollTop).toBeGreaterThan(15)
+      expect(mockGridElt.scrollTop).toBeLessThan(20)
       // trigger completion
       rafMock.triggerNext(startTime + 600)
       expect(rafMock.mockRequest).toHaveBeenCalledTimes(5)
