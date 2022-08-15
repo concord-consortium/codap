@@ -1,25 +1,27 @@
 import {axisBottom, axisLeft, scaleLinear, scaleLog, select} from "d3"
 import {autorun, reaction} from "mobx"
-import React, {useCallback, useEffect} from "react"
+import {useCallback, useEffect} from "react"
 import {INumericAxisModel} from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import { prf } from "../../../utilities/profiler"
 
 export interface IUseNumericAxis {
   axisModel: INumericAxisModel
-  axisRef:  React.MutableRefObject<any>
+  axisElt:  SVGGElement | null
 }
-export const useNumericAxis = ({ axisModel, axisRef }: IUseNumericAxis) => {
+export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
   const layout = useGraphLayoutContext()
   const scale = layout.axisScale(axisModel.place)
   const axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft
 
   const refreshAxis = useCallback(() => {
     prf.measure("Graph.useNumericAxis[refreshAxisCallback]", () => {
-      select(axisRef.current)
-        .call(axisFunc(scale))
+      if (axisElt) {
+        select(axisElt)
+          .call(axisFunc(scale))
+      }
     })
-  }, [axisRef, axisFunc, scale])
+  }, [axisElt, axisFunc, scale])
 
   // update d3 scale and axis when scale type changes
   useEffect(()=> {

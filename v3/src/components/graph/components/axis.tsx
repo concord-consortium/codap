@@ -17,13 +17,13 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),
     length = layout.axisLength(model.place),
-    axisRef = useRef(null),
-    titleRef = useRef(null),
+    axisRef = useRef<SVGGElement | null>(null),
+    titleRef = useRef<SVGGElement | null>(null),
     orientation = model.place
 
   const axis = orientation === 'bottom' ? axisBottom : axisLeft
 
-  useNumericAxis({ axisModel: model, axisRef })
+  useNumericAxis({ axisModel: model, axisElt: axisRef.current })
 
   useEffect(function createAndRefresh() {
     let scaleAtStart: any = null,
@@ -122,7 +122,6 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
               .on("start", onDilateStart)
               .on("drag", onUpperDilateDrag)
               .on("end", onDragEnd)],
-          // @ts-expect-error getBBox
           bbox = axisRef?.current?.getBBox?.()
         axisSelection
           .selectAll('.dragRect')
@@ -156,10 +155,9 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
     const
-      // @ts-expect-error getBBox
       bbox = axisRef?.current?.getBBox?.(),
-      tX = (orientation === 'left') ? bbox?.x - 10 : halfRange,
-      tY = (orientation === 'bottom') ? bbox?.y + bbox?.height + 15 : halfRange,
+      tX = (orientation === 'left') ? (bbox?.x ?? 0) - 10 : halfRange,
+      tY = (orientation === 'bottom') ? (bbox?.y ?? 0) + (bbox?.height ?? 30) + 15 : halfRange,
       // tY = orientation === 'bottom' ? bbox?.height + 15 : bbox?.x - 10,
       tRotation = orientation === 'bottom' ? '' : `rotate(-90,${tX},${tY})`
     select(titleRef.current)
