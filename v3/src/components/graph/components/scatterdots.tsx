@@ -94,6 +94,9 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
   onDragEnd = useCallback(() => {
     prf.measure("Graph.onDragEnd", () => {
+      dataset?.endCaching()
+      appState.endPerformance()
+
       if (dragID !== '') {
         target.current
           .classed('dragging', false)
@@ -111,13 +114,11 @@ export const ScatterDots = memo(function ScatterDots(props: {
               [yAttrID]: selectedDataObjects.current[anID].y
             })
           })
-          caseValues.length && dataset?.setCaseValues(caseValues)
           firstTime.current = true // So points will animate back to original positions
+          caseValues.length && dataset?.setCaseValues(caseValues)
+          didDrag.current = false
         }
       }
-      didDrag.current = false
-      dataset?.endCaching()
-      appState.endPerformance()
     })
   }, [dataset, dragID, xAttrID, yAttrID])
 
