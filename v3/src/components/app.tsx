@@ -9,6 +9,7 @@ import {Graph} from "./graph/components/graph"
 import {Text} from "./text"
 import { dndDetectCollision } from "./dnd-detect-collision"
 import {useDropHandler} from "../hooks/use-drop-handler"
+import { useKeyStates } from "../hooks/use-key-states"
 import {useSampleText} from "../hooks/use-sample-text"
 import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
@@ -30,6 +31,8 @@ export function handleImportData(data: Array<Record<string, string>>, fName?: st
 
 export const App = () => {
   const sampleText = useSampleText()
+
+  useKeyStates()
 
   useDropHandler("#app", handleImportData)
 

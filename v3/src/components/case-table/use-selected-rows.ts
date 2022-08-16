@@ -3,12 +3,22 @@ import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { appState } from "../app-state"
 import { IDataSet } from "../../data-model/data-set"
-import { isSelectionAction } from "../../data-model/data-set-actions"
+import { isPartialSelectionAction, isSelectionAction } from "../../data-model/data-set-actions"
 import { prf } from "../../utilities/profiler"
+import { isKeyDown } from "../../hooks/use-key-states"
+import { TRow } from "./case-table-types"
+import { DataGridHandle } from "react-data-grid"
+import { useRowScrolling } from "./use-row-scrolling"
 
-export const useSelectedRows = (data?: IDataSet) => {
+interface UseSelectedRows {
+  data?: IDataSet
+  gridRef: React.RefObject<DataGridHandle | null>
+}
+export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
   const [selectedRows, _setSelectedRows] = useState<ReadonlySet<string>>(() => new Set())
   const syncCount = useRef(0)
+
+  const { scrollClosestRowIntoView } = useRowScrolling(gridRef.current?.element)
 
   // sync table changes to the DataSet model
   const setSelectedRows = useCallback((rowSet: ReadonlySet<string>) => {
@@ -68,11 +78,48 @@ export const useSelectedRows = (data?: IDataSet) => {
           else {
             syncRowSelectionToRdg()
           }
+          if (isPartialSelectionAction(action)) {
+            const caseIds = action.args[0]
+            const caseIndices = caseIds.map(id => data?.caseIndexFromID(id)).filter(index => index != null)
+            const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
+            isSelecting && caseIndices.length && scrollClosestRowIntoView(caseIndices)
+          }
         }
       })
     }, true)
     return () => disposer?.()
-  }, [data, syncRowSelectionToDom, syncRowSelectionToRdg])
+  }, [data, scrollClosestRowIntoView, syncRowSelectionToDom, syncRowSelectionToRdg])
 
-  return [selectedRows, setSelectedRows] as const
+  // anchor row for shift-selection
+  const anchorCase = useRef<string | null>(null)
+
+  const handleRowClick = useCallback(({ __id__: caseId }: TRow) => {
+    const isCaseSelected = data?.isCaseSelected(caseId)
+    const isExtending = isKeyDown("Shift") || isKeyDown("Alt") || isKeyDown("Meta")
+    if (isKeyDown("Shift") && anchorCase.current) {
+      const targetIndex = data?.caseIndexFromID(caseId)
+      const anchorIndex = data?.caseIndexFromID(anchorCase.current)
+      const casesToSelect: string[] = []
+      if (targetIndex != null && anchorIndex != null) {
+        const start = Math.min(anchorIndex, targetIndex)
+        const end = Math.max(anchorIndex, targetIndex)
+        for (let i = start; i <= end; ++i) {
+          const id = data?.cases[i].__id__
+          id && casesToSelect.push(id)
+          data?.selectCases(casesToSelect, true)
+        }
+      }
+      anchorCase.current = caseId
+    }
+    else if (isExtending) {
+      data?.selectCases([caseId], !isCaseSelected)
+      anchorCase.current = !isCaseSelected ? caseId : null
+    }
+    else if (!isCaseSelected) {
+      data?.setSelectedCases([caseId])
+      anchorCase.current = caseId
+    }
+  }, [data])
+
+  return { selectedRows, setSelectedRows, handleRowClick }
 }
