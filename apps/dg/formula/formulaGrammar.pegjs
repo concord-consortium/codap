@@ -240,7 +240,9 @@ OrToken         = "or"               !IdentifierPart { return "||"; }
                 / "OR"               !IdentifierPart { return "||"; }
 
 FalseToken      = "false"            !IdentifierPart
+                / "FALSE"
 TrueToken       = "true"             !IdentifierPart
+				/ "TRUE"
 
 /*
  * Unicode Character Categories

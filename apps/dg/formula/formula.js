@@ -643,8 +643,38 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
     return iContext.evaluateFunction( iNode.name.name, args);
   }
 
+  function getOperatorType(op) {
+    switch (op) {
+      case '^':
+      case '*':
+      case '/':
+      case '%':
+      case '-':
+        return 'numeric';
+      case '+':
+        return 'num/str';
+      case '<':
+      case '>':
+      case '<=':
+      case '>=':
+      case '==':
+      case '!=':
+        return 'any';
+      case '&&':
+      case '||':
+      case '!':
+        return 'boolean';
+      default:
+        return 'any';
+    }
+  }
+
+  function coerceToType(type, values) {
+
+  }
   function visitUnaryExpression( iNode) {
     var value = visit( iNode.expression);
+
     switch( iNode.operator) {
     case '+': return +value;
     case '-': return -value;
