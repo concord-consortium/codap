@@ -1,13 +1,9 @@
-import {ScaleLinear} from "d3"
+import {INumericAxisModel} from "./models/axis-model"
 
-export interface axisProps {
-  orientation: 'bottom' | 'left' | 'right' | 'top',
-  scaleLinear: ScaleLinear<number, number>,
+export interface AxisProps {
+  model: INumericAxisModel,
   transform: string,
-  length: number | undefined,
-  label: string | undefined,
-  counter:number,
-  setCounter: React.Dispatch<React.SetStateAction<number>>
+  label: string | undefined
 }
 
 // One element of the data array assigned to the points
@@ -24,8 +20,6 @@ export interface Rect {
 export interface rTreeRect { x: number, y: number, w: number, h: number }
 
 export interface plotProps {
-  xScale?: ScaleLinear<number, number>,
-  yScale?: ScaleLinear<number, number>,
   transform: string
 }
 

@@ -77,3 +77,5 @@ export const MovableLineModel = Adornment
   }))
 export interface IMovableLineModel extends Instance<typeof MovableLineModel> {}
 
+export const AdornmentModelUnion = types.union(MovableValueModel, MovableLineModel)
+export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel

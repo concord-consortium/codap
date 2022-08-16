@@ -48,7 +48,7 @@ export const useRows = (data?: IDataSet) => {
             const strValue = data.getValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
             const formatStr = attr.format || kDefaultFormatStr
-            const formatted = isFinite(numValue) ? format(formatStr)(numValue) : strValue
+            const formatted = (numValue != null) && isFinite(numValue) ? format(formatStr)(numValue) : strValue
             cell.textContent = formatted
           }
         })

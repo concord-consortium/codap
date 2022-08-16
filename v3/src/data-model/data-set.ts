@@ -281,7 +281,7 @@ export const DataSet = types.model("DataSet", {
                 ? cachedCase[attributeID]
                 : attr && (index != null) ? attr.value(index) : undefined
       },
-      getNumeric(caseID: string, attributeID: string) {
+      getNumeric(caseID: string, attributeID: string): number | undefined {
         return this.getNumericAtIndex(caseIDMap[caseID], attributeID)
       },
       getNumericAtIndex(index: number, attributeID: string) {
@@ -289,7 +289,7 @@ export const DataSet = types.model("DataSet", {
               caseID = self.cases[index]?.__id__,
               cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
         return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
-                ? cachedCase[attributeID]
+                ? Number(cachedCase[attributeID])
                 : attr && (index != null) ? attr.numeric(index) : undefined
       },
       getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {

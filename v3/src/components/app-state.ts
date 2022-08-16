@@ -34,6 +34,10 @@ class AppState {
     return this.isPerformanceEnabled && (this.appModeCount > 0) ? "performance" : "normal"
   }
 
+  get isPerformanceMode() {
+    return this.appMode === "performance"
+  }
+
   @action
   beginPerformance() {
     ++this.appModeCount

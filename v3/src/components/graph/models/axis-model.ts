@@ -20,6 +20,14 @@ export interface IAxisModel extends Instance<typeof AxisModel> {}
 export const ScaleTypes = ["linear", "log"] as const
 export type ScaleType = typeof ScaleTypes[number]
 
+export const CategoricalAxisModel = AxisModel
+  .named("CategoricalAxisModel")
+  .props({
+    type: "categorical",
+    // ¯\_(ツ)_/¯
+  })
+export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
+
 export const NumericAxisModel = AxisModel
   .named("NumericAxisModel")
   .props({
@@ -28,6 +36,11 @@ export const NumericAxisModel = AxisModel
     min: types.number,
     max: types.number
   })
+  .views(self => ({
+    get domain() {
+      return [self.min, self.max] as const
+    }
+  }))
   .actions(self => ({
     setScale(scale: ScaleType) {
       self.scale = scale
@@ -38,3 +51,6 @@ export const NumericAxisModel = AxisModel
     }
   }))
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
+
+export const AxisModelUnion = types.union(CategoricalAxisModel, NumericAxisModel)
+export type IAxisModelUnion = ICategoricalAxisModel | INumericAxisModel

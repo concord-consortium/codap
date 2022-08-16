@@ -1,8 +1,9 @@
-import {format, ScaleLinear, select} from "d3"
+import {format, select} from "d3"
 import React from "react"
 import {defaultRadius, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
+import { ScaleBaseType } from "../models/graph-layout"
 import { prf } from "../../../utilities/profiler"
 
 /**
@@ -22,12 +23,9 @@ export function ptInRect(pt: Point, iRect: Rect) {
 //  Return the two points in logical coordinates where the line with the given
 //  iSlope and iIntercept intersects the rectangle defined by the upper and lower
 //  bounds of the two axes.
+export interface IAxisIntercepts { pt1: Point, pt2: Point }
 export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
-                                     xDomain: number[], yDomain: number[]): {
-  pt1: Point,
-  pt2: Point
-} {
-
+                                     xDomain: readonly number[], yDomain: readonly number[]): IAxisIntercepts {
   let tX1, tY1, tX2, tY2
   const tLogicalBounds = {
     left: xDomain[0],
@@ -191,30 +189,48 @@ export function rectToTreeRect(rect: Rect) {
 }
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
-                               attrID: string, scale?: ScaleLinear<number, number>) {
-  const value = Number(dataSet?.getNumeric(id, attrID)),
-    screenCoord = Number(scale?.(value))
-  return screenCoord
+                               attrID: string, scale: ScaleBaseType) {
+  const value = dataSet?.getNumeric(id, attrID)
+  return value != null ? Math.round(100 * scale(value)) / 100 : NaN
 }
 
-export interface IUseRefreshPointsProps {
+export interface ISetPointSelection {
   dotsRef:  React.RefObject<SVGSVGElement>
-  worldDataRef: React.RefObject<IDataSet | undefined>
+  dataset?: IDataSet
+}
+export function setPointSelection(props: ISetPointSelection) {
+  prf.measure("Graph.setPointSelection", () => {
+    prf.begin("Graph.setPointSelection[selection]")
+    const
+      { dotsRef, dataset } = props,
+      dotsSvgElement = dotsRef.current,
+      dots = select(dotsSvgElement)
+      dots.selectAll('circle')
+        .classed('graph-dot-highlighted',
+          (anID:string) => !!(dataset?.isCaseSelected(anID)))
+    prf.end("Graph.setPointSelection[selection]")
+    prf.measure("Graph.setPointSelection[raise]", () => {
+      dots.selectAll('.graph-dot-highlighted')
+        .raise()
+    })
+  })
+}
+
+export interface ISetPointCoordinates {
+  dotsRef:  React.RefObject<SVGSVGElement>
+  selectedOnly?: boolean
   getScreenX:((anID:string)=>number)
   getScreenY:((anID:string)=>number)
   duration?: number
   onComplete?: () => void
 }
-
-export function setPointCoordinates(props: IUseRefreshPointsProps) {
+export function setPointCoordinates(props: ISetPointCoordinates) {
   prf.measure("Graph.setPointCoordinates", () => {
     prf.begin("Graph.setPointCoordinates[selection]")
     const
-      { dotsRef, worldDataRef, getScreenX, getScreenY, duration = 0, onComplete } = props,
+      { dotsRef, selectedOnly = false, getScreenX, getScreenY, duration = 0, onComplete } = props,
       dotsSvgElement = dotsRef.current,
-      selection = select(dotsSvgElement).selectAll('circle')
-        .classed('graph-dot-highlighted',
-          (anID:string) => !!(worldDataRef.current?.isCaseSelected(anID)))
+      selection = select(dotsSvgElement).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
     prf.end("Graph.setPointCoordinates[selection]")
     prf.measure("Graph.setPointCoordinates[position]", () => {
       if (duration > 0) {
@@ -230,11 +246,6 @@ export function setPointCoordinates(props: IUseRefreshPointsProps) {
           .attr('cx', (anID: string) => getScreenX(anID))
           .attr('cy', (anID: string) => getScreenY(anID))
       }
-    })
-    prf.measure("Graph.setPointCoordinates[raise]", () => {
-      select(dotsSvgElement)
-        .selectAll('.graph-dot-highlighted')
-        .raise()
     })
   })
 }
