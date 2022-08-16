@@ -744,6 +744,7 @@ DG.DocumentController = SC.Object.extend(
        exactly one data context we use it. If there is exactly one data context that has a case table
        or case card, we use it. Otherwise we use the default with null for all properties.
        @returns  {Object}  An Object whose properties specify usable defaults, e.g.
+       {Object.dataContext} {DG.DataContext} Default data context to use
        {Object.collectionClient} {DG.CollectionClient} Default collection to use
        {Object.parentCollectionClient} {DG.CollectionClient} Default parent collection
        {Object.plotXAttr}  {DG.Attribute}  The attribute to plot on the X axis by default
@@ -764,7 +765,9 @@ DG.DocumentController = SC.Object.extend(
           if (tContexts.length === 1)
             tUsableContext = tContexts[0];
         }
-        return (tUsableContext && tUsableContext.collectionDefaults()) || DG.DataContext.collectionDefaults();
+        var tObject = (tUsableContext && tUsableContext.collectionDefaults()) || DG.DataContext.collectionDefaults();
+        tObject.dataContext = tUsableContext;
+        return tObject;
       },
 
       /**

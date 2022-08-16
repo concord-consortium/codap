@@ -169,6 +169,8 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     this.attributeDescriptionForPlace('legend', attributeDescriptions.legend, DG.GraphTypes.EPlace.eLegend);
     this.attributeDescriptionForPlace('topSplit', attributeDescriptions.top, DG.GraphTypes.EPlace.eTopSplit);
     this.attributeDescriptionForPlace('right', attributeDescriptions.right, DG.GraphTypes.EPlace.eRightSplit);
+
+    this.set('dataContext', tDefaults.dataContext);
   },
 
   destroy: function () {
