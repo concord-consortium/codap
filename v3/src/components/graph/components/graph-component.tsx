@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useEffect } from "react"
+import { useResizeDetector } from "react-resize-detector"
 import { useMemo } from "use-memo-one"
 import { DataBroker } from "../../../data-model/data-broker"
 import { DataSetContext } from "../../../hooks/use-data-set-context"
@@ -25,12 +26,17 @@ interface IProps {
 export const GraphComponent = observer(({ broker }: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
+  const { width, height, ref: graphRef } = useResizeDetector({ refreshMode: "debounce", refreshRate: 200 })
+
+  useEffect(() => {
+    (width != null) && (height != null) && layout.setGraphExtent(width, height)
+  }, [width, height, layout])
 
   return (
     <DataSetContext.Provider value={broker?.last}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel}/>
+          <Graph model={defaultGraphModel} graphRef={graphRef}/>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>
     </DataSetContext.Provider>

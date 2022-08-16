@@ -1,7 +1,6 @@
 import {format, select} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useEffect, useRef, useState} from "react"
-import {useResizeDetector} from "react-resize-detector"
+import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
 import {plotProps, defaultRadius} from "../graphing-types"
@@ -23,11 +22,12 @@ import "./graph.scss"
 
 interface IProps {
   model: IGraphModel
+  graphRef: MutableRefObject<HTMLDivElement>
 }
 
 const float = format('.3~f')
 
-export const Graph = observer(({ model: graphModel }: IProps) => {
+export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
   return prf.measure("Graph.render", () => {
     const
       xAxisModel = graphModel.getAxis("bottom") as INumericAxisModel,
@@ -41,7 +41,6 @@ export const Graph = observer(({ model: graphModel }: IProps) => {
       y = layout.axisScale("left"),
       [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
 
-      {width, height, ref: plotRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200}),
       dotsProps: plotProps = {
         transform: `translate(${margin.left}, 0)`
       },
@@ -51,10 +50,6 @@ export const Graph = observer(({ model: graphModel }: IProps) => {
       plotAreaSVGRef = useRef<SVGSVGElement>(null),
       dotsRef = useRef<SVGSVGElement>(null),
       [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})
-
-    useEffect(() => {
-      (width != null) && (height != null) && layout.setGraphExtent(width, height)
-    }, [width, height, layout])
 
     const {xName, yName, data: graphData} = useGetData({xAxis: xAxisModel, yAxis: yAxisModel})
 
@@ -103,7 +98,7 @@ export const Graph = observer(({ model: graphModel }: IProps) => {
     }, [movableLineModel, movableValueModel, x, y])
 
     return (
-      <div className='graph-plot' ref={plotRef} data-testid="graph">
+      <div className='graph-plot' ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           {plotType === 'scatterplot' ?
             <Axis svgRef={svgRef}

@@ -24,17 +24,6 @@ export const MovableLine = (props: {
     }),
     pointsOnAxes = useRef<IAxisIntercepts>()
 
-  // refresh the `pointsOnAxes`
-  useEffect(() => {
-    const disposer = autorun(() => {
-      const { slope, intercept } = model
-      const { domain: xDomain } = xAxis
-      const { domain: yDomain } = yAxis
-      pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
-    })
-    return () => disposer()
-  })
-
   // Refresh the line
   useEffect(function refresh() {
       const disposer = autorun(() => {

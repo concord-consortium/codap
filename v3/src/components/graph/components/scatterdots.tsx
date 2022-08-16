@@ -211,7 +211,8 @@ export const ScatterDots = memo(function ScatterDots(props: {
         refreshPointSelection()
       }
       else if (isSetCaseValuesAction(action)) {
-        refreshPointPositions(true)
+        // assumes that if we're caching then only selected cases are being updated
+        refreshPointPositions(dataset.isCaching)
       }
     }, true)
     return () => disposer?.()
