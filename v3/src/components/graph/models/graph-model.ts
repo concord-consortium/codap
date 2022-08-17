@@ -7,7 +7,7 @@ export const GraphModel = types
   .model("GraphModel", {
     // keys are AxisPlaces
     axes: types.map(types.maybe(AxisModelUnion)),
-    plotType: types.enumeration(PlotTypes as any),
+    plotType: types.enumeration(PlotTypes.slice()),
     // keys are adornment ids
     adornments: types.map(AdornmentModelUnion),
     // will eventually move into adornments map

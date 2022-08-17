@@ -99,7 +99,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
     return (
       <div className='graph-plot' ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
-          {plotType === 'scatterplot' ?
+          {plotType === 'scatterPlot' ?
             <Axis svgRef={svgRef}
                   axisProps={
                     {
@@ -124,7 +124,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
             <svg ref={dotsRef}>
               {
-                (plotType === 'scatterplot' ?
+                (plotType === 'scatterPlot' ?
                   <ScatterDots
                     plotProps={dotsProps}
                     graphData={graphData}
@@ -143,7 +143,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
             </svg>
             <Marquee marqueeRect={marqueeRect}/>
           </svg>
-          {plotType === 'scatterplot' ?
+          {plotType === 'scatterPlot' ?
             <MovableLine
               transform={`translate(${margin.left}, 0)`}
               xAxis={xAxisModel}

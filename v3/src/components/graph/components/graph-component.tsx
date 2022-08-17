@@ -17,7 +17,7 @@ const defaultGraphModel = GraphModel.create({
     bottom: NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
     left: NumericAxisModel.create({place: 'left', min: 0, max: 10})
   },
-  plotType: "scatterplot",
+  plotType: "scatterPlot",
   movableValue: MovableValueModel.create({value: 0}),
   movableLine: MovableLineModel.create({intercept: 0, slope: 1})
 })
@@ -44,10 +44,10 @@ export const GraphComponent = observer(({ broker }: IProps) => {
             size="xs"
             onClick={() => {
               const currPlotType = defaultGraphModel.plotType
-              defaultGraphModel.setPlotType(currPlotType === 'scatterplot' ? 'dotplot' : 'scatterplot')
+              defaultGraphModel.setPlotType(currPlotType === 'scatterPlot' ? 'dotPlot' : 'scatterPlot')
             }}
           >
-            {defaultGraphModel.plotType === 'scatterplot' ? 'Dot' : 'Scatter'} Plot
+            {defaultGraphModel.plotType === 'scatterPlot' ? 'Dot' : 'Scatter'} Plot
           </Button>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>

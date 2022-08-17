@@ -2,7 +2,8 @@ import { extendTheme } from '@chakra-ui/react'
 
 export const theme = extendTheme({
   fonts: {
-    body: "Lato, sans-serif"
+    // CODAP v2 default font stack
+    body: "Montserrat, sans-serif"
   },
   components: {
     Button: {
