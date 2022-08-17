@@ -370,6 +370,17 @@ LeftHandSideExpression
 UnaryExpression
   = LeftHandSideExpression
   / operator:UnaryOperator __ expression:UnaryExpression {
+  	  if (operator === '!') {
+  	    return {
+  	    	type:       "UnaryExpression",
+			operator:   operator,
+			expression: {
+				type: "FunctionCall",
+				name: {type: "FunctionCall", name: "boolean"},
+				args: [expression]
+			}
+  	    }
+  	  }
       return {
         type:       "UnaryExpression",
         operator:   operator,
@@ -493,8 +504,16 @@ LogicalANDExpression
         result = {
           type:     "BinaryExpression",
           operator: tail[i][1],
-          left:     result,
-          right:    tail[i][3]
+          left:     {
+          				type: "FunctionCall",
+          				name: {type: "FunctionCall", name: "boolean"},
+          				args: [result]
+          			},
+          right:    {
+                        type: "FunctionCall",
+          				name: {type: "FunctionCall", name: "boolean"},
+                        args: [tail[i][3]]
+			         }
         };
       }
       return result;
@@ -512,8 +531,16 @@ LogicalORExpression
         result = {
           type:     "BinaryExpression",
           operator: tail[i][1],
-          left:     result,
-          right:    tail[i][3]
+          left:     {
+						type: "FunctionCall",
+          				name: {type: "FunctionCall", name: "boolean"},
+						args: [result]
+					},
+          right:    {
+						type: "FunctionCall",
+          				name: {type: "FunctionCall", name: "boolean"},
+						args: [tail[i][3]]
+					 }
         };
       }
       return result;
