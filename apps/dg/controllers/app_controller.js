@@ -212,7 +212,6 @@ DG.appController = SC.Object.create((function () // closure
             var tComponent = DG.Component.createComponent({
               type: "DG.GameView",
               document: doc.get('content') ,
-              layout: pluginDef.dimensions,
               componentStorage: {
                 currentGameName: pluginDef.title,
                 currentGameUrl: pluginDef.url,
