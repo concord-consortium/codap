@@ -3,8 +3,9 @@ import React from "react"
 import {defaultRadius, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
-import { ScaleBaseType } from "../models/graph-layout"
-import { prf } from "../../../utilities/profiler"
+import {ScaleBaseType} from "../models/graph-layout"
+import {prf} from "../../../utilities/profiler"
+import {isInteger} from "lodash"
 
 /**
  * Utility routines having to do with graph entities
@@ -20,10 +21,69 @@ export function ptInRect(pt: Point, iRect: Rect) {
   return between(pt.x, iRect.x, tRight) && (pt.y !== undefined ? between(pt.y, iRect.y, tBottom) : false)
 }
 
+/**
+ * This function closely follows V2's CellLinearAxisModel:_computeBoundsAndTickGap
+ */
+export function computeNiceNumericBounds(min: number, max: number): { min: number, max: number } {
+
+  function computeTickGap(iMin: number, iMax: number) {
+    const range = (iMin >= iMax) ? Math.abs(iMin) : iMax - iMin,
+      gap = range / 5
+    if (gap === 0) {
+      return 1
+    }
+    // We move to base 10 so we can get rid of the power of ten.
+    const logTrial = Math.log(gap) / Math.LN10,
+      floor = Math.floor(logTrial),
+      power = Math.pow(10.0, floor)
+
+    // Whatever is left is in the range 1 to 10. Choose desired number
+    let base = Math.pow(10.0, logTrial - floor)
+
+    if (base < 2) base = 1
+    else if (base < 5) base = 2
+    else base = 5
+
+    return Math.max(power * base, Number.MIN_VALUE)
+  }
+
+  const kAddend = 5,  // amount to extend scale
+    kFactor = 2.5,
+    bounds = {min, max}
+  if (min === max && min === 0) {
+    bounds.min = -10
+    bounds.max = 10
+  } else if (min === max && isInteger(min)) {
+    bounds.min -= kAddend
+    bounds.max += kAddend
+  } else if (min === max) {
+    bounds.min = bounds.min + 0.1 * Math.abs(bounds.min)
+    bounds.max = bounds.max - 0.1 * Math.abs(bounds.max)
+  } else if (min > 0 && max > 0 && min <= max / kFactor) {  // Snap to zero
+    bounds.min = 0
+  } else if (min < 0 && max < 0 && max >= min / kFactor) {  // Snap to zero
+    bounds.max = 0
+  }
+  const tickGap = computeTickGap( bounds.min, bounds.max)
+  if( tickGap !== 0) {
+    bounds.min = (Math.floor( bounds.min / tickGap) - 0.5) * tickGap
+    bounds.max = (Math.floor( bounds.max / tickGap) + 1.5) * tickGap
+  }
+  else {
+    bounds.min -= 1
+    bounds.max += 1
+  }
+  return bounds
+}
+
 //  Return the two points in logical coordinates where the line with the given
 //  iSlope and iIntercept intersects the rectangle defined by the upper and lower
 //  bounds of the two axes.
-export interface IAxisIntercepts { pt1: Point, pt2: Point }
+export interface IAxisIntercepts {
+  pt1: Point,
+  pt2: Point
+}
+
 export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
                                      xDomain: readonly number[], yDomain: readonly number[]): IAxisIntercepts {
   let tX1, tY1, tX2, tY2
@@ -195,19 +255,20 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 }
 
 export interface ISetPointSelection {
-  dotsRef:  React.RefObject<SVGSVGElement>
+  dotsRef: React.RefObject<SVGSVGElement>
   dataset?: IDataSet
 }
+
 export function setPointSelection(props: ISetPointSelection) {
   prf.measure("Graph.setPointSelection", () => {
     prf.begin("Graph.setPointSelection[selection]")
     const
-      { dotsRef, dataset } = props,
+      {dotsRef, dataset} = props,
       dotsSvgElement = dotsRef.current,
       dots = select(dotsSvgElement)
-      dots.selectAll('circle')
-        .classed('graph-dot-highlighted',
-          (anID:string) => !!(dataset?.isCaseSelected(anID)))
+    dots.selectAll('circle')
+      .classed('graph-dot-highlighted',
+        (anID: string) => !!(dataset?.isCaseSelected(anID)))
     prf.end("Graph.setPointSelection[selection]")
     prf.measure("Graph.setPointSelection[raise]", () => {
       dots.selectAll('.graph-dot-highlighted')
@@ -217,18 +278,19 @@ export function setPointSelection(props: ISetPointSelection) {
 }
 
 export interface ISetPointCoordinates {
-  dotsRef:  React.RefObject<SVGSVGElement>
+  dotsRef: React.RefObject<SVGSVGElement>
   selectedOnly?: boolean
-  getScreenX:((anID:string)=>number)
-  getScreenY:((anID:string)=>number)
+  getScreenX: ((anID: string) => number)
+  getScreenY: ((anID: string) => number)
   duration?: number
   onComplete?: () => void
 }
+
 export function setPointCoordinates(props: ISetPointCoordinates) {
   prf.measure("Graph.setPointCoordinates", () => {
     prf.begin("Graph.setPointCoordinates[selection]")
     const
-      { dotsRef, selectedOnly = false, getScreenX, getScreenY, duration = 0, onComplete } = props,
+      {dotsRef, selectedOnly = false, getScreenX, getScreenY, duration = 0, onComplete} = props,
       dotsSvgElement = dotsRef.current,
       selection = select(dotsSvgElement).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
     prf.end("Graph.setPointCoordinates[selection]")
