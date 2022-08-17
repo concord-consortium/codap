@@ -4,5 +4,18 @@ html, body {
 }
 
 body {
+  /* Remove outline for non-keyboard :focus */
+  *:focus:not(:focus-visible) {
+    box-shadow: none !important;
+  }
+
+  /* Show outline for keyboard :focus-visible */
+  .chakra-button {
+    &:focus-visible {
+      // chakra uses box-shadow for focus highlight rather than outline
+      box-shadow: var(--chakra-shadows-outline) !important;
+    }
+  }
+
   user-select: none;
 }
