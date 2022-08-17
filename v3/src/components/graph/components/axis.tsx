@@ -1,5 +1,5 @@
-import React, {useEffect, useRef} from "react"
-import {axisBottom, axisLeft, drag, select} from "d3"
+import React, {useEffect, useRef, useState} from "react"
+import {drag, select} from "d3"
 import {AxisProps} from "../graphing-types"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
 import { useGraphLayoutContext } from "../models/graph-layout"
@@ -17,13 +17,11 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),
     length = layout.axisLength(model.place),
-    axisRef = useRef<SVGGElement | null>(null),
+    [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
     orientation = model.place
 
-  const axis = orientation === 'bottom' ? axisBottom : axisLeft
-
-  useNumericAxis({ axisModel: model, axisElt: axisRef.current })
+  useNumericAxis({ axisModel: model, axisElt })
 
   useEffect(function createAndRefresh() {
     let scaleAtStart: any = null,
@@ -99,8 +97,8 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
       }
 
     prf.measure("Graph.Axis[createAndRefresh]", () => {
-      if (axisRef?.current) {
-        const axisSelection = select(axisRef.current)
+      if (axisElt) {
+        const axisSelection = select(axisElt)
           .attr("transform", transform)
 
         // Add three rects in which the user can drag to dilate or translate the scale
@@ -122,7 +120,7 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
               .on("start", onDilateStart)
               .on("drag", onUpperDilateDrag)
               .on("end", onDragEnd)],
-          bbox = axisRef?.current?.getBBox?.()
+          bbox = axisElt?.getBBox?.()
         axisSelection
           .selectAll('.dragRect')
           .data(numbering)// data signify lower, middle, upper rectangles
@@ -149,13 +147,13 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
         axisSelection.selectAll('.dragRect').raise()
       }
     })
-  }, [model, transform, axis, scale, orientation, length])
+  }, [axisElt, length, model, orientation, scale, transform])
 
   const [xMin, xMax] = scale.range()
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
     const
-      bbox = axisRef?.current?.getBBox?.(),
+      bbox = axisElt?.getBBox?.(),
       tX = (orientation === 'left') ? (bbox?.x ?? 0) - 10 : halfRange,
       tY = (orientation === 'bottom') ? (bbox?.y ?? 0) + (bbox?.height ?? 30) + 15 : halfRange,
       // tY = orientation === 'bottom' ? bbox?.height + 15 : bbox?.x - 10,
@@ -178,11 +176,11 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
             .text(label || 'Unnamed')
         })
 
-  }, [halfRange, label, orientation, transform])
+  }, [axisElt, halfRange, label, orientation, transform])
 
   return (
     <g>
-      <g className='axis' ref={axisRef}/>
+      <g className='axis' ref={elt => setAxisElt(elt)}/>
       <g ref={titleRef}/>
     </g>
   )

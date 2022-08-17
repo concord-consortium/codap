@@ -1,3 +1,4 @@
+import { Button } from '@chakra-ui/react'
 import { observer } from "mobx-react-lite"
 import React, { useEffect } from "react"
 import { useResizeDetector } from "react-resize-detector"
@@ -16,6 +17,7 @@ const defaultGraphModel = GraphModel.create({
     bottom: NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
     left: NumericAxisModel.create({place: 'left', min: 0, max: 10})
   },
+  plotType: "scatterplot",
   movableValue: MovableValueModel.create({value: 0}),
   movableLine: MovableLineModel.create({intercept: 0, slope: 1})
 })
@@ -37,6 +39,16 @@ export const GraphComponent = observer(({ broker }: IProps) => {
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <Graph model={defaultGraphModel} graphRef={graphRef}/>
+          <Button
+            className='graph-plot-choice'
+            size="xs"
+            onClick={() => {
+              const currPlotType = defaultGraphModel.plotType
+              defaultGraphModel.setPlotType(currPlotType === 'scatterplot' ? 'dotplot' : 'scatterplot')
+            }}
+          >
+            {defaultGraphModel.plotType === 'scatterplot' ? 'Dot' : 'Scatter'} Plot
+          </Button>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>
     </DataSetContext.Provider>

@@ -32,14 +32,13 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
     const
       xAxisModel = graphModel.getAxis("bottom") as INumericAxisModel,
       yAxisModel = graphModel.getAxis("left") as INumericAxisModel,
-      { movableLine: movableLineModel, movableValue: movableValueModel } = graphModel,
+      { plotType, movableLine: movableLineModel, movableValue: movableValueModel } = graphModel,
       instanceId = useInstanceIdContext(),
       dataset = useDataSetContext(),
       layout = useGraphLayoutContext(),
       { margin } = layout,
       x = layout.axisScale("bottom"),
       y = layout.axisScale("left"),
-      [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
 
       dotsProps: plotProps = {
         transform: `translate(${margin.left}, 0)`
@@ -156,14 +155,6 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
                           transform={`translate(${margin.left}, 0)`} />
           }
         </svg>
-        <button
-          className='graph-plot-choice'
-          onClick={() => {
-            setPlotType((prevType) => prevType === 'scatterplot' ? 'dotplot' : 'scatterplot')
-          }}
-        >
-          {plotType === 'scatterplot' ? 'Dot' : 'Scatter'} Plot
-        </button>
       </div>
     )
   })

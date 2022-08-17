@@ -1,3 +1,4 @@
+import { Button } from '@chakra-ui/react'
 import { Active, DragOverlay, useDndContext, useDraggable, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
@@ -71,7 +72,7 @@ const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
       </div>
       {attribute &&
         <div className="summary-attribute-info">
-          <p><b>{`${attribute.name}`}</b> is a <i>{`${attribute.type}`}</i> attribute.</p>
+          <p><b>{`${attribute.name}`}</b> is <i>{`${attribute.type}`}</i></p>
         </div>
       }
     </>
@@ -95,8 +96,8 @@ const ProfilerButton = () => {
   }
 
   return (
-    <div className={`profiler-button`} onClick={handleClick} >
+    <Button className={`profiler-button`} onClick={handleClick} size="sm" >
       {isProfiling ? "Stop Profiling" : "Start Profiling"}
-    </div>
+    </Button>
   )
 }
