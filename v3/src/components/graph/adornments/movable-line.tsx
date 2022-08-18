@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {drag, select} from "d3"
-import { INumericAxisModel } from "../models/axis-model"
-import { useGraphLayoutContext } from "../models/graph-layout"
+import {INumericAxisModel} from "../models/axis-model"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph_utils"
 import {IMovableLineModel} from "./adornment-models"
 import "./movable-line.scss"
@@ -15,8 +15,10 @@ export const MovableLine = (props: {
 }) => {
   const {model, xAxis, yAxis, transform} = props,
     layout = useGraphLayoutContext(),
-    x = layout.axisScale("bottom"),
-    y = layout.axisScale("left"),
+    xScale = layout.axisScale("bottom"),
+    xRange = xScale.range(),
+    yScale = layout.axisScale("left"),
+    yRange = yScale.range(),
     kTolerance = 4, // pixels to snap to horizontal or vertical
     lineRef = useRef() as React.RefObject<SVGSVGElement>,
     [lineObject, setLineObject] = useState<{ [index: string]: any }>({
@@ -30,9 +32,9 @@ export const MovableLine = (props: {
         if (!lineObject.line) {
           return
         }
-        const { slope, intercept} = model
-        const { domain: xDomain } = xAxis
-        const { domain: yDomain } = yAxis
+        const {slope, intercept} = model
+        const {domain: xDomain} = xAxis
+        const {domain: yDomain} = yAxis
         pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
         function fixEndPoints(iLine: any, index: number) {
@@ -46,9 +48,9 @@ export const MovableLine = (props: {
 
         function refreshEquation() {
           if (!pointsOnAxes.current) return
-          const boundingRect = lineRef.current?.getBoundingClientRect(),
-            screenX = x((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) + Number(boundingRect?.left),
-            screenY = y((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) + Number(boundingRect?.top),
+          const
+            screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2),
+            screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2),
             string = equationString(slope, intercept)
           select('div.movable-line-equation-container')
             .style('left', `${screenX}px`)
@@ -59,12 +61,12 @@ export const MovableLine = (props: {
         const
           pixelPtsOnAxes = {
             pt1: {
-              x: x(pointsOnAxes.current.pt1.x),
-              y: y(pointsOnAxes.current.pt1.y)
+              x: xScale(pointsOnAxes.current.pt1.x),
+              y: yScale(pointsOnAxes.current.pt1.y)
             },
             pt2: {
-              x: x(pointsOnAxes.current.pt2.x),
-              y: y(pointsOnAxes.current.pt2.y)
+              x: xScale(pointsOnAxes.current.pt2.x),
+              y: yScale(pointsOnAxes.current.pt2.y)
             }
           },
           breakPt1 = {
@@ -89,51 +91,51 @@ export const MovableLine = (props: {
         refreshEquation()
       })
       return () => disposer()
-    }, [pointsOnAxes, lineObject, transform, x, y, model, xAxis, yAxis]
+    }, [pointsOnAxes, lineObject, transform, xScale, yScale, model, xAxis, yAxis, xRange, yRange]
   )
 
   const
     continueTranslate = useCallback((event: MouseEvent) => {
-      const tWorldX = x.invert(event.x - 60),
-        tWorldY = y.invert(event.y)
+      const tWorldX = xScale.invert(event.x - 60),
+        tWorldY = yScale.invert(event.y)
       model.setLine({slope: model.slope, intercept: tWorldY - model.slope * tWorldX})
-    }, [model, x, y]),
+    }, [model, xScale, yScale]),
 
     continueRotation1 = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (!pointsOnAxes.current) return
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
-        const newPivot1 = {x: x.invert(event.x - 60), y: y.invert(event.y)},
+        const newPivot1 = {x: xScale.invert(event.x - 60), y: yScale.invert(event.y)},
           pivot2 = model.pivot2.isValid() ? model.pivot2 : pointsOnAxes.current.pt2
-        if (Math.abs(x(newPivot1.x) - x(pivot2.x)) < kTolerance) { // vertical
+        if (Math.abs(xScale(newPivot1.x) - xScale(pivot2.x)) < kTolerance) { // vertical
           newPivot1.x = pivot2.x
           isVertical = true
-        } else if (Math.abs(y(newPivot1.y) - y(pivot2.y)) < kTolerance) { // horizontal
+        } else if (Math.abs(yScale(newPivot1.y) - yScale(pivot2.y)) < kTolerance) { // horizontal
           newPivot1.y = pivot2.y
         }
         const newSlope = isVertical ? Number.POSITIVE_INFINITY : (pivot2.y - newPivot1.y) / (pivot2.x - newPivot1.x),
           newIntercept = isVertical ? pivot2.x : (newPivot1.y - newSlope * newPivot1.x)
         model.setLine({slope: newSlope, intercept: newIntercept, pivot1: newPivot1, pivot2})
       }
-    }, [model, x, y]),
+    }, [model, xScale, yScale]),
 
     continueRotation2 = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (!pointsOnAxes.current) return
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
-        const newPivot2 = {x: x.invert(event.x - 60), y: y.invert(event.y)},
+        const newPivot2 = {x: xScale.invert(event.x - 60), y: yScale.invert(event.y)},
           pivot1 = model.pivot1.isValid() ? model.pivot1 : pointsOnAxes.current.pt1
-        if (Math.abs(x(newPivot2.x) - x(pivot1.x)) < kTolerance) { // vertical
+        if (Math.abs(xScale(newPivot2.x) - xScale(pivot1.x)) < kTolerance) { // vertical
           newPivot2.x = pivot1.x
           isVertical = true
-        } else if (Math.abs(y(newPivot2.y) - y(pivot1.y)) < kTolerance) {  // horizontal
+        } else if (Math.abs(yScale(newPivot2.y) - yScale(pivot1.y)) < kTolerance) {  // horizontal
           newPivot2.y = pivot1.y
         }
         const newSlope = isVertical ? Number.POSITIVE_INFINITY : (newPivot2.y - pivot1.y) / (newPivot2.x - pivot1.x),
           newIntercept = isVertical ? pivot1.x : (newPivot2.y - newSlope * newPivot2.x)
         model.setLine({slope: newSlope, intercept: newIntercept, pivot1, pivot2: newPivot2})
       }
-    }, [model, x, y])
+    }, [model, xScale, yScale])
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
@@ -174,9 +176,9 @@ export const MovableLine = (props: {
         .transition()
         .duration(1000)
         .style('opacity', 0)
-      equationDiv.transition()
-        .duration(1000)
-        .remove()
+        .end().then(() => {
+          equationDiv.remove()
+        })
     }
   }, [])
 

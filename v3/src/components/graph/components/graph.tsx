@@ -94,7 +94,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
         yDomainDelta = yScale.domain()[1] - yScale.domain()[0]
       movableLineModel.setLine({intercept: yScale.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
       movableValueModel.setValue(xScale.domain()[0] + xDomainDelta / 3)
-    }, [movableLineModel, movableValueModel, xScale, yScale])
+    }, [movableLineModel, movableValueModel, xScale, yScale, graphData.xAttributeID, graphData.yAttributeID])
 
     return (
       <div className='graph-plot' ref={graphRef} data-testid="graph">
