@@ -32,14 +32,13 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
     const
       xAxisModel = graphModel.getAxis("bottom") as INumericAxisModel,
       yAxisModel = graphModel.getAxis("left") as INumericAxisModel,
-      { movableLine: movableLineModel, movableValue: movableValueModel } = graphModel,
+      { plotType, movableLine: movableLineModel, movableValue: movableValueModel } = graphModel,
       instanceId = useInstanceIdContext(),
       dataset = useDataSetContext(),
       layout = useGraphLayoutContext(),
       { margin } = layout,
       x = layout.axisScale("bottom"),
       y = layout.axisScale("left"),
-      [plotType, setPlotType] = useState<'scatterplot' | 'dotplot'>('scatterplot'),
 
       dotsProps: plotProps = {
         transform: `translate(${margin.left}, 0)`
@@ -100,7 +99,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
     return (
       <div className='graph-plot' ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
-          {plotType === 'scatterplot' ?
+          {plotType === 'scatterPlot' ?
             <Axis svgRef={svgRef}
                   axisProps={
                     {
@@ -125,7 +124,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
             <svg ref={dotsRef}>
               {
-                (plotType === 'scatterplot' ?
+                (plotType === 'scatterPlot' ?
                   <ScatterDots
                     plotProps={dotsProps}
                     graphData={graphData}
@@ -144,7 +143,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
             </svg>
             <Marquee marqueeRect={marqueeRect}/>
           </svg>
-          {plotType === 'scatterplot' ?
+          {plotType === 'scatterPlot' ?
             <MovableLine
               transform={`translate(${margin.left}, 0)`}
               xAxis={xAxisModel}
@@ -156,14 +155,6 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
                           transform={`translate(${margin.left}, 0)`} />
           }
         </svg>
-        <button
-          className='graph-plot-choice'
-          onClick={() => {
-            setPlotType((prevType) => prevType === 'scatterplot' ? 'dotplot' : 'scatterplot')
-          }}
-        >
-          {plotType === 'scatterplot' ? 'Dot' : 'Scatter'} Plot
-        </button>
       </div>
     )
   })

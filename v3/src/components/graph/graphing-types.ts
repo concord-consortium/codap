@@ -32,3 +32,6 @@ export const transitionDuration = 1000,
   defaultRadius = 5,
   defaultDiameter = 2 * defaultRadius,
   dragRadius = 10
+
+export const PlotTypes = ["dotPlot", "scatterPlot"] as const
+export type PlotType = typeof PlotTypes[number]
