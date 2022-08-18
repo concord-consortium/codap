@@ -1,11 +1,12 @@
-import {format, select} from "d3"
+import {extent, format, select} from "d3"
+import {isInteger} from "lodash"
 import React from "react"
 import {defaultRadius, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 import {ScaleBaseType} from "../models/graph-layout"
 import {prf} from "../../../utilities/profiler"
-import {isInteger} from "lodash"
+import {INumericAxisModel} from "../models/axis-model"
 
 /**
  * Utility routines having to do with graph entities
@@ -74,6 +75,12 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
     bounds.max += 1
   }
   return bounds
+}
+
+export function setNiceAxisDomainFromValues(values: number[], axis: INumericAxisModel) {
+  const valueExtent = extent(values, d => d) as [number, number],
+    niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
+  axis.setDomain(niceBounds.min, niceBounds.max)
 }
 
 //  Return the two points in logical coordinates where the line with the given
