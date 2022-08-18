@@ -37,8 +37,8 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
       dataset = useDataSetContext(),
       layout = useGraphLayoutContext(),
       { margin } = layout,
-      x = layout.axisScale("bottom"),
-      y = layout.axisScale("left"),
+      xScale = layout.axisScale("bottom"),
+      yScale = layout.axisScale("left"),
 
       dotsProps: plotProps = {
         transform: `translate(${margin.left}, 0)`
@@ -55,11 +55,11 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
     useEffect(function setupPlotArea() {
       select(plotAreaSVGRef.current)
         // .attr('transform', props.plotProps.transform)
-        .attr('x', x.range()[0] + margin.left)
+        .attr('x', xScale.range()[0] + margin.left)
         .attr('y', 0)
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
-    }, [layout.plotHeight, layout.plotWidth, margin.left, x])
+    }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
 
     useEffect(function createCircles() {
       const { xAttributeID: xID, yAttributeID: yID, cases } = graphData
@@ -76,8 +76,8 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
               .attr('class', 'graph-dot')
               .attr("r", defaultRadius)
               .property('id', (anID: string) => `${instanceId}_${anID}`)
-              .attr('cx', (anID: string) => getScreenCoord(dataset, anID, xID, x))
-              .attr('cy', (anID: string) => getScreenCoord(dataset, anID, yID, y))
+              .attr('cx', (anID: string) => getScreenCoord(dataset, anID, xID, xScale))
+              .attr('cy', (anID: string) => getScreenCoord(dataset, anID, yID, yScale))
               .selection()
               .append('title')
               .text((anID: string) => {
@@ -87,14 +87,14 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
               })
           }
         )
-    }, [dataset, graphData, instanceId, x, y])
+    }, [dataset, graphData, instanceId, xScale, yScale])
 
     useEffect(function initMovables() {
-      const xDomainDelta = x.domain()[1] - x.domain()[0],
-        yDomainDelta = y.domain()[1] - y.domain()[0]
-      movableLineModel.setLine({intercept: y.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
-      movableValueModel.setValue(x.domain()[0] + xDomainDelta / 3)
-    }, [movableLineModel, movableValueModel, x, y])
+      const xDomainDelta = xScale.domain()[1] - xScale.domain()[0],
+        yDomainDelta = yScale.domain()[1] - yScale.domain()[0]
+      movableLineModel.setLine({intercept: yScale.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta})
+      movableValueModel.setValue(xScale.domain()[0] + xDomainDelta / 3)
+    }, [movableLineModel, movableValueModel, xScale, yScale])
 
     return (
       <div className='graph-plot' ref={graphRef} data-testid="graph">
