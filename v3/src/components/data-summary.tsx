@@ -1,9 +1,10 @@
 import { Button } from '@chakra-ui/react'
-import { Active, DragOverlay, useDndContext, useDraggable, useDroppable } from "@dnd-kit/core"
+import { Active, DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IAttribute } from "../data-model/attribute"
 import { DataBroker } from "../data-model/data-broker"
+import { getDragAttributeId, IDropData, IUseDraggableAttribute, useDraggableAttribute } from '../hooks/use-drag-drop'
 import { prf } from "../utilities/profiler"
 
 import "./data-summary.scss"
@@ -14,6 +15,7 @@ interface IProps {
 export const DataSummary = observer(({ broker }: IProps) => {
   const data = broker?.last
   const { active } = useDndContext()
+  const dragAttributeID = getDragAttributeId(active)
 
   // used to determine when a dragged attribute is over the summary component
   const { setNodeRef } = useDroppable({ id: "summary-component-drop", data: { accepts: ["attribute"] } })
@@ -35,8 +37,8 @@ export const DataSummary = observer(({ broker }: IProps) => {
       {data && <SummaryDropTarget attribute={selectedAttribute} onDrop={handleDrop}/>}
       {data && <ProfilerButton />}
       <DragOverlay dropAnimation={null}>
-        {data && active
-          ? <DraggableAttribute attribute={data?.attrFromID(`${active.id}`)} isOverlay={true}/>
+        {data && dragAttributeID
+          ? <DraggableAttribute attribute={data.attrFromID(dragAttributeID)} isOverlay={true}/>
           : null}
       </DragOverlay>
     </div>
@@ -48,8 +50,8 @@ interface IDraggableAttributeProps {
   isOverlay?: boolean;
 }
 const DraggableAttribute = ({ attribute, isOverlay = false }: IDraggableAttributeProps) => {
-  const data: any = { type: "attribute", attributeId: attribute.id }
-  const { attributes, listeners, setNodeRef } = useDraggable({ id: attribute.id, data })
+  const draggableOptions: IUseDraggableAttribute = { prefix: "summary", attributeId: attribute.id }
+  const { attributes, listeners, setNodeRef } = useDraggableAttribute(draggableOptions)
   const overlayClass = isOverlay ? "overlay" : ""
   return (
     <div ref={setNodeRef} className={`draggable-attribute ${overlayClass}`} {...attributes} {...listeners}>
@@ -63,7 +65,8 @@ interface ISummaryDropTargetProps {
   onDrop?: (attributeId: string) => void
 }
 const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
-  const data: any = { accepts: ["attribute"], onDrop: (active: Active) => onDrop?.(active.data?.current?.attributeId)}
+  const data: IDropData = { accepts: ["attribute"],
+                            onDrop: (active: Active) => onDrop?.(active.data?.current?.attributeId) }
   const { isOver, setNodeRef } = useDroppable({ id: "summary-inspector-drop", data })
   return (
     <>

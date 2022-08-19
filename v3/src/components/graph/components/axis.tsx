@@ -1,7 +1,11 @@
-import React, {useEffect, useRef, useState} from "react"
+import { Active } from "@dnd-kit/core"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
-import {AxisProps} from "../graphing-types"
+import { DroppableSvg } from "./droppable-svg"
+import { getDragAttributeId, IDropData } from "../../../hooks/use-drag-drop"
+import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
+import { AxisPlace, INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import { prf } from "../../../utilities/profiler"
 import "./axis.scss"
@@ -12,16 +16,39 @@ const axisDragHints = ['Drag to change axis lower bound',
 
 type D3Handler = (this: Element, event: any, d: any) => void
 
-export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps: AxisProps }) => {
-  const {axisProps: {model, transform, label}} = props,
+interface IProps {
+  model: INumericAxisModel
+  transform: string
+  label: string | undefined
+  onDropAttribute: (place: AxisPlace, attrId: string) => void
+}
+export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
+  const
+    instanceId = useInstanceIdContext(),
+    droppableId = `${instanceId}-${model.place}-axis`,
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),
     length = layout.axisLength(model.place),
+    graphRef = useRef<HTMLDivElement | null>(null),
+    wrapperRef = useRef<SVGGElement | null>(null),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
     orientation = model.place
 
+  useEffect(() => {
+    graphRef.current = axisElt?.closest(".graph-plot") ?? null
+  }, [axisElt])
+
   useNumericAxis({ axisModel: model, axisElt })
+
+  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
+
+  const handleDrop = useCallback((active: Active) => {
+    const droppedAttrId = active.data?.current?.attributeId
+    droppedAttrId && onDropAttribute(model.place, droppedAttrId)
+  }, [model.place, onDropAttribute])
+
+  const data: IDropData = { accepts: ["attribute"], onDrop: (active: Active) => handleDrop(active)}
 
   useEffect(function createAndRefresh() {
     let scaleAtStart: any = null,
@@ -179,9 +206,14 @@ export const Axis = (props: { svgRef: React.RefObject<SVGSVGElement>, axisProps:
   }, [axisElt, halfRange, label, orientation, transform])
 
   return (
-    <g>
-      <g className='axis' ref={elt => setAxisElt(elt)}/>
-      <g ref={titleRef}/>
-    </g>
+    <>
+      <g className='axis-wrapper' ref={wrapperRef}>
+        <g className='axis' ref={elt => setAxisElt(elt)}/>
+        <g ref={titleRef}/>
+      </g>
+      {graphRef.current && wrapperRef.current &&
+        <DroppableSvg className={`${model.place}`} dropId={droppableId} dropData={data}
+          portal={graphRef.current} target={wrapperRef.current} onIsActive={handleIsActive} />}
+    </>
   )
 }

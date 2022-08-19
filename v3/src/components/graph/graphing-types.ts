@@ -1,11 +1,3 @@
-import {INumericAxisModel} from "./models/axis-model"
-
-export interface AxisProps {
-  model: INumericAxisModel,
-  transform: string,
-  label: string | undefined
-}
-
 // One element of the data array assigned to the points
 export interface InternalizedData {
   xAttributeID: string,
