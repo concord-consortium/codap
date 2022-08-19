@@ -15,11 +15,11 @@ export interface IUseDotPlotDots {
   dataset?: IDataSet
   cases: string[]
   dotsRef: React.RefObject<SVGSVGElement>
-  firstTime: [boolean | null, React.Dispatch<React.SetStateAction<boolean | null>>]
+  firstTime:  React.MutableRefObject<boolean>
 }
 
 export const useDotPlotDots = (props: IUseDotPlotDots) => {
-  const {axisModel, attributeID, dataset, cases, dotsRef, firstTime: [firstTime, setFirstTime]} = props
+  const {axisModel, attributeID, dataset, cases, dotsRef, firstTime} = props
   const layout = useGraphLayoutContext()
   const xScale = layout.axisScale(axisModel.place)
   const yScale = layout.axisScale("left")
@@ -58,15 +58,15 @@ export const useDotPlotDots = (props: IUseDotPlotDots) => {
 
     const getScreenX = (anID: string) => getScreenCoord(dataset, anID, attributeID, xScale),
       getScreenY = (anID: string) => computeYCoord(binMap[anID]),
-      duration = firstTime ? transitionDuration : 0,
-      onComplete = firstTime ? () => {
+      duration = firstTime.current ? transitionDuration : 0,
+      onComplete = firstTime.current ? () => {
         prf.measure("Graph.refreshPoints[onComplete]", () => {
-          setFirstTime(false)
+          firstTime.current = false
         })
       } : undefined
 
     setPointCoordinates({dotsRef, getScreenX, getScreenY, duration, onComplete})
-  },[attributeID, cases, dataset, dotsRef, firstTime, setFirstTime, xScale, yScale])
+  },[attributeID, cases, dataset, dotsRef, firstTime, xScale, yScale])
 
   useEffect( function pointsEffect() {
     refreshPoints()
