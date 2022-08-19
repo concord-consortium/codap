@@ -15,10 +15,10 @@ export const MovableValue = (props: {
   const {model, axis, transform} = props,
     layout = useGraphLayoutContext(),
     { margin } = layout,
-    x = layout.axisScale("bottom"),
-    y = layout.axisScale("left"),
+    xScale = layout.axisScale("bottom"),
+    yScale = layout.axisScale("left"),
     valueRef = useRef<SVGSVGElement>(null),
-    [bottom, top] = y.range(),
+    [bottom, top] = yScale.range(),
     [valueObject, setValueObject] = useState<Record<string, any>>({
       line: null, cover: null, valueLabel: null
     })
@@ -29,24 +29,22 @@ export const MovableValue = (props: {
 
     [line, cover].forEach(aLine => {
       aLine
-        // .attr('transform', transform)
-        .attr('x1', x(value))
+        .attr('x1', xScale(value))
         .attr('y1', top)
-        .attr('x2', x(value))
+        .attr('x2', xScale(value))
         .attr('y2', bottom)
     })
-  }, [bottom, top, valueObject, x])
+  }, [bottom, top, valueObject, xScale])
 
   const refreshValueLabel = useCallback((value: number) => {
-    const leftEdge = valueRef.current?.parentElement?.getBoundingClientRect().left,
-      screenX = x(value) + (leftEdge || 0),
-      screenY = Number(valueRef.current?.getBoundingClientRect().top) - 12,
+    const leftEdge = margin.left,
+      screenX = xScale(value) + (leftEdge || 0),
       string = valueLabelString(value)
     select('div.movable-value-label')
       .style('left', `${screenX}px`)
-      .style('top', `${screenY}px`)
+      .style('top', 0)
       .html(string)
-  }, [x])
+  }, [xScale, margin.left])
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
@@ -76,8 +74,8 @@ export const MovableValue = (props: {
 
   const
     dragValue = useCallback((event: MouseEvent) => {
-      model.setValue(x.invert(event.x - margin.left))
-    }, [margin.left, model, x])
+      model.setValue(xScale.invert(event.x - margin.left))
+    }, [margin.left, model, xScale])
 
   // Add the behavior to the line cover
   useEffect(function addBehaviors() {
@@ -95,7 +93,6 @@ export const MovableValue = (props: {
       .attr('class', 'movable-value-cover')
       .attr('transform', transform)
     newValueObject.valueLabel = select('.graph-plot').append('div')
-      .attr('class', 'movable-value-container')
       .attr('class', 'movable-value-label')
     setValueObject(newValueObject)
 
@@ -104,9 +101,9 @@ export const MovableValue = (props: {
         .transition()
         .duration(1000)
         .style('opacity', 0)
-      newValueObject.valueLabel.transition()
-        .duration(1000)
-        .remove()
+        .end().then(() => {
+        newValueObject.valueLabel.remove()
+      })
     }
   }, [transform])
 
