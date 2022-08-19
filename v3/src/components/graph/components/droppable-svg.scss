@@ -1,0 +1,13 @@
+.droppable-svg {
+  position: absolute;
+  background: transparent;
+  pointer-events: none;
+  opacity: 50%;
+  // patterned after CODAP v2 drag-highlight
+  &.active {
+    border: 5px solid rgb(255, 216, 102);
+  }
+  &.over {
+    background: yellow;
+  }
+}

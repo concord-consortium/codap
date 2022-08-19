@@ -1,11 +1,3 @@
-import {INumericAxisModel} from "./models/axis-model"
-
-export interface AxisProps {
-  model: INumericAxisModel,
-  transform: string,
-  label: string | undefined
-}
-
 // One element of the data array assigned to the points
 export interface InternalizedData {
   xAttributeID: string,
@@ -35,3 +27,6 @@ export const transitionDuration = 1000,
 
 export const PlotTypes = ["dotPlot", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
+
+export const kGraphClass = "graph-plot"
+export const kGraphClassSelector = `.${kGraphClass}`

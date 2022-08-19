@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {IMovableValueModel} from "./adornment-models"
+import { kGraphClassSelector } from "../graphing-types"
 import { INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import {valueLabelString} from "../utilities/graph_utils"
@@ -92,7 +93,7 @@ export const MovableValue = (props: {
     newValueObject.cover = selection.append('line')
       .attr('class', 'movable-value-cover')
       .attr('transform', transform)
-    newValueObject.valueLabel = select('.graph-plot').append('div')
+    newValueObject.valueLabel = select(kGraphClassSelector).append('div')
       .attr('class', 'movable-value-label')
     setValueObject(newValueObject)
 

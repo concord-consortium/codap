@@ -1,15 +1,16 @@
+import { useToast } from "@chakra-ui/react"
 import {format, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, defaultRadius} from "../graphing-types"
+import {defaultRadius, kGraphClass, plotProps} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
 import {MovableLine} from "../adornments/movable-line"
 import {MovableValue} from "../adornments/movable-value"
-import { INumericAxisModel } from "../models/axis-model"
+import { AxisPlace, INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import { IGraphModel } from "../models/graph-model"
 import {useGetData} from "../hooks/graph-hooks"
@@ -96,29 +97,30 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
       movableValueModel.setValue(xScale.domain()[0] + xDomainDelta / 3)
     }, [movableLineModel, movableValueModel, xScale, yScale, graphData.xAttributeID, graphData.yAttributeID])
 
+    const toast = useToast()
+    const handleDropAttribute = (place: AxisPlace, attrId: string) => {
+      const attrName = dataset?.attrFromID(attrId)?.name
+      toast({
+        position: "top-right",
+        title: "Attribute dropped",
+        description: `The attribute ${attrName || attrId} was dropped on the ${place} axis!`,
+        status: "success"
+      })
+    }
+
     return (
-      <div className='graph-plot' ref={graphRef} data-testid="graph">
+      <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           {plotType === 'scatterPlot' ?
-            <Axis svgRef={svgRef}
-                  axisProps={
-                    {
-                      model: yAxisModel,
-                      transform: `translate(${margin.left - 1}, 0)`,
-                      label: yName
-                    }
-                  }
+            <Axis model={yAxisModel} label={yName}
+                  transform={`translate(${margin.left - 1}, 0)`}
+                  onDropAttribute={handleDropAttribute}
             />
-            : ''
+            : null
           }
-          <Axis svgRef={svgRef}
-                axisProps={
-                  {
-                    model: xAxisModel,
-                    transform: `translate(${margin.left}, ${layout.plotHeight})`,
-                    label: xName
-                  }
-                }
+          <Axis model={xAxisModel} label={xName}
+                transform={`translate(${margin.left}, ${layout.plotHeight})`}
+                onDropAttribute={handleDropAttribute}
           />
           <Background dots={dotsProps} marquee={{rect: marqueeRect, setRect: setMarqueeRect}} />
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
