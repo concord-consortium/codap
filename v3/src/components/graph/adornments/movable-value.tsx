@@ -37,7 +37,7 @@ export const MovableValue = (props: {
   }, [bottom, top, valueObject, xScale])
 
   const refreshValueLabel = useCallback((value: number) => {
-    const leftEdge = margin.left,/*valueRef.current?.parentElement?.getBoundingClientRect().left,*/
+    const leftEdge = margin.left,
       screenX = xScale(value) + (leftEdge || 0),
       string = valueLabelString(value)
     select('div.movable-value-label')
