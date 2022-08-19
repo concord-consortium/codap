@@ -444,6 +444,29 @@ DG.Formula.lessThanOrEqual = function(iOperand1, iOperand2) {
   return DG.Formula.stringFinisher(result, iOperand1, iOperand2, '<=');
 };
 
+
+DG.Formula.equals = function(iOperand1, iOperand2) {
+  var boolMap = {
+    'true': true,
+    'TRUE': true,
+    'false' : false,
+    'FALSE' : false
+  };
+  var result = DG.Formula.arithmeticStarter( iOperand1, iOperand2);
+
+  if( (result instanceof Error) || typeof result !== 'object')
+    return result;
+
+  // if one or the other operand is boolean cast them both to boolean.
+  if (iOperand1 === true || iOperand1 === false || iOperand2 === true || iOperand2 === false) {
+    iOperand1 = boolMap[iOperand1] != null? boolMap[iOperand1]: iOperand1;
+    iOperand2 = boolMap[iOperand2] != null? boolMap[iOperand2]: iOperand2;
+  }
+
+  // eslint-disable-next-line eqeqeq
+  return iOperand1 == iOperand2;
+};
+
 /**
   Binary operator function which handles types by our rules rather than JavaScript's.
   Numbers and values interpretable as numeric (e.g. booleans, some strings)
@@ -576,6 +599,10 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
         return 'DG.Formula.lessThanOrEqual(' + leftTerm + ',' + rightTerm + ')';
       case '>=':
         return 'DG.Formula.lessThanOrEqual(' + rightTerm + ',' + leftTerm + ')';
+      case '==':
+        return 'DG.Formula.equals(' + leftTerm + ',' + rightTerm + ')';
+      case '!=':
+        return '!DG.Formula.equals(' + leftTerm + ',' + rightTerm + ')';
     }
 
     // Convert standard binary operators to calls to DG.Formula.binaryOperator()
@@ -643,35 +670,6 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
     return iContext.evaluateFunction( iNode.name.name, args);
   }
 
-  function getOperatorType(op) {
-    switch (op) {
-      case '^':
-      case '*':
-      case '/':
-      case '%':
-      case '-':
-        return 'numeric';
-      case '+':
-        return 'num/str';
-      case '<':
-      case '>':
-      case '<=':
-      case '>=':
-      case '==':
-      case '!=':
-        return 'any';
-      case '&&':
-      case '||':
-      case '!':
-        return 'boolean';
-      default:
-        return 'any';
-    }
-  }
-
-  function coerceToType(type, values) {
-
-  }
   function visitUnaryExpression( iNode) {
     var value = visit( iNode.expression);
 
