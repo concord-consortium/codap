@@ -1,30 +1,15 @@
-s3_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
-s3_secret: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
-s3_bucket: models-resources
-s3_key_prefix: codap-dev
+s3_bucket: <%= ENV['S3_BUCKET'] %>
+# only add the s3_key_prefix if there is one
+<% if ENV['S3_BUCKET_PREFIX'] != '' %>
+# Everywhere else the s3 prefix needs a trailing slash
+# However s3_website config doesn't need one
+s3_key_prefix: <%= ENV['S3_BUCKET_PREFIX'].sub(/\\/$/, '') %>
+<% end %>
 s3_endpoint: us-east-1
 gzip: true
 
-cloudfront_distribution_id: E6OL76123FRO6
-cloudfront_invalidate_root: true
-cloudfront_wildcard_invalidation: true
-
-<% if ENV['TRAVIS_BRANCH'] == 'master' %>
-# in this case we are going to deploy this branch to the top level of the domain
-# so we need to ignore the version and branch folders
-ignore_on_server: ^codap-dev/(version/|branch/)
-<% else %>
-# in this case we are going to deploy this code to a subfolder of either the branch
-# or version folder. So ignore everything except this folder.
-ignore_on_server: ^(?!codap-dev/<%= Regexp.escape(ENV['DEPLOY_DIR']) %>/)
-<% end %>
+ignore_on_server: <%= ENV['IGNORE_ON_SERVER'] %>
 max_age:
-  "codap-dev/*": 600 # 10 minutes
-  "codap-dev/version/*": 31536000 # 1 year
-  "codap-dev/branch/*": 0
-
-cloudfront_distribution_config:
-  aliases:
-    quantity: 1
-    items:
-      - codap-dev.concord.org
+  "<%= ENV['S3_BUCKET_PREFIX'] %>*": 600 # 10 minutes
+  "<%= ENV['S3_BUCKET_PREFIX'] %>version/*": 31536000 # 1 year
+  "<%= ENV['S3_BUCKET_PREFIX'] %>branch/*": 0
