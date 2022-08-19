@@ -65,8 +65,11 @@ interface ISummaryDropTargetProps {
   onDrop?: (attributeId: string) => void
 }
 const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
-  const data: IDropData = { accepts: ["attribute"],
-                            onDrop: (active: Active) => onDrop?.(active.data?.current?.attributeId) }
+  const handleDrop = (active: Active) => {
+    const dragAttributeID = getDragAttributeId(active)
+    dragAttributeID && onDrop?.(dragAttributeID)
+  }
+  const data: IDropData = { accepts: ["attribute"], onDrop: handleDrop }
   const { isOver, setNodeRef } = useDroppable({ id: "summary-inspector-drop", data })
   return (
     <>

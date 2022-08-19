@@ -27,3 +27,6 @@ export const transitionDuration = 1000,
 
 export const PlotTypes = ["dotPlot", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
+
+export const kGraphClass = "graph-plot"
+export const kGraphClassSelector = `.${kGraphClass}`

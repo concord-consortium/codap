@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {drag, select} from "d3"
+import { kGraphClassSelector } from "../graphing-types"
 import {INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph_utils"
@@ -164,7 +165,7 @@ export const MovableLine = (props: {
       .attr('class', 'movable-line-cover movable-line-middle-cover')
     newLineObject.upper = selection.append('line')
       .attr('class', 'movable-line-cover movable-line-upper-cover')
-    const equationDiv = select('.graph-plot').append('div')
+    const equationDiv = select(kGraphClassSelector).append('div')
       .attr('class', 'movable-line-equation-container')
     newLineObject.equation = equationDiv
       .append('p')

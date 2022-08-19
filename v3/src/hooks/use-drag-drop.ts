@@ -13,7 +13,7 @@ export interface IDropData {
   onDrop?: (active: Active) => void
 }
 
-export interface IDragAttributeData {
+export interface IDragAttributeData extends IDragData {
   type: "attribute"
   attributeId: string
 }

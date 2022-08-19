@@ -2,6 +2,7 @@ import { Active } from "@dnd-kit/core"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
 import { DroppableSvg } from "./droppable-svg"
+import { kGraphClassSelector } from "../graphing-types"
 import { getDragAttributeId, IDropData } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
@@ -36,7 +37,7 @@ export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
     orientation = model.place
 
   useEffect(() => {
-    graphRef.current = axisElt?.closest(".graph-plot") ?? null
+    graphRef.current = axisElt?.closest(kGraphClassSelector) ?? null
   }, [axisElt])
 
   useNumericAxis({ axisModel: model, axisElt })
@@ -48,7 +49,7 @@ export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
     droppedAttrId && onDropAttribute(model.place, droppedAttrId)
   }, [model.place, onDropAttribute])
 
-  const data: IDropData = { accepts: ["attribute"], onDrop: (active: Active) => handleDrop(active)}
+  const data: IDropData = { accepts: ["attribute"], onDrop: handleDrop }
 
   useEffect(function createAndRefresh() {
     let scaleAtStart: any = null,

@@ -4,7 +4,7 @@ import {observer} from "mobx-react-lite"
 import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {plotProps, defaultRadius} from "../graphing-types"
+import {defaultRadius, kGraphClass, plotProps} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -101,7 +101,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
     const handleDropAttribute = (place: AxisPlace, attrId: string) => {
       const attrName = dataset?.attrFromID(attrId)?.name
       toast({
-        position: "top",
+        position: "top-right",
         title: "Attribute dropped",
         description: `The attribute ${attrName || attrId} was dropped on the ${place} axis!`,
         status: "success"
@@ -109,7 +109,7 @@ export const Graph = observer(({ model: graphModel, graphRef }: IProps) => {
     }
 
     return (
-      <div className='graph-plot' ref={graphRef} data-testid="graph">
+      <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           {plotType === 'scatterPlot' ?
             <Axis model={yAxisModel} label={yName}
