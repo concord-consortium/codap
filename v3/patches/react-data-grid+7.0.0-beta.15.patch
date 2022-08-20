@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
+index 6243032..0d4f76e 100644
+--- a/node_modules/react-data-grid/lib/bundle.cjs
++++ b/node_modules/react-data-grid/lib/bundle.cjs
+@@ -3043,6 +3043,7 @@ exports.checkboxFormatter = checkboxFormatter;
+ exports.default = DataGrid$1;
+ exports.headerRenderer = headerRenderer;
+ exports.textEditor = textEditor;
++exports.textEditorClassname = textEditorClassname; // [CC]
+ exports.toggleGroupFormatter = toggleGroupFormatter;
+ exports.useRowSelection = useRowSelection;
+ exports.valueFormatter = valueFormatter;
+diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
+index 211bd4f..afaca6a 100644
+--- a/node_modules/react-data-grid/lib/bundle.js
++++ b/node_modules/react-data-grid/lib/bundle.js
+@@ -3029,5 +3029,6 @@ function textEditor({
+   });
+ }
+ 
+-export { DataGridDefaultComponentsProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, textEditor, toggleGroupFormatter, useRowSelection, valueFormatter };
++// [CC] (patch-package) export textEditorClassname
++export { DataGridDefaultComponentsProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, textEditor, textEditorClassname, toggleGroupFormatter, useRowSelection, valueFormatter };
+ //# sourceMappingURL=bundle.js.map
+diff --git a/node_modules/react-data-grid/lib/index.d.ts b/node_modules/react-data-grid/lib/index.d.ts
+index 4b0555b..b9e05db 100644
+--- a/node_modules/react-data-grid/lib/index.d.ts
++++ b/node_modules/react-data-grid/lib/index.d.ts
+@@ -346,6 +346,8 @@ export declare interface SummaryFormatterProps<TSummaryRow, TRow = unknown> {
+     isCellSelected: boolean;
+ }
+ 
++export declare const textEditorClassname: string; // [CC]
++
+ export declare function textEditor<TRow, TSummaryRow>({ row, column, onRowChange, onClose }: EditorProps<TRow, TSummaryRow>): JSX.Element;
+ 
+ export declare function ToggleGroup<R, SR>({ groupKey, isExpanded, isCellSelected, toggleGroup }: GroupFormatterProps<R, SR>): JSX.Element;

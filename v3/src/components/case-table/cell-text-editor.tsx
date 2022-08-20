@@ -1,5 +1,5 @@
 import React, { useRef } from "react"
-import { textEditorClassCC } from "react-data-grid"
+import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TEditorProps } from "./case-table-types"
 
@@ -13,9 +13,8 @@ import { TEditorProps } from "./case-table-types"
   `rdg-text-editor`), RDG ties its internal CSS to the dynamically generated class names.
   Therefore, to preserve the prior behavior we must give our instances of these components the
   same classes as the components they're replacing, including the dynamically generated classes.
-  To enable this, patch-package has been used to export the internal class string.
+  To enable this, patch-package has been used to export the `textEditorClassname` string.
  */
-export const textEditorClassName = `rdg-text-editor ${textEditorClassCC}`
 
 function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.focus()
@@ -35,7 +34,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TE
   return (
     <input
       data-testid="cell-text-editor"
-      className={textEditorClassName}
+      className={textEditorClassname}
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
