@@ -1,18 +1,18 @@
 import {select} from "d3"
-import { reaction } from "mobx"
-import { onAction } from "mobx-state-tree"
+import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
-import { appState } from "../../app-state"
+import {appState} from "../../app-state"
 import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
 import {useDragHandlers} from "../hooks/graph-hooks"
-import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
-import { useGraphLayoutContext } from "../models/graph-layout"
-import { INumericAxisModel } from "../models/axis-model"
+import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {useGraphLayoutContext} from "../models/graph-layout"
+import {INumericAxisModel} from "../models/axis-model"
 import {ICase} from "../../../data-model/data-set"
-import { isSelectionAction, isSetCaseValuesAction } from "../../../data-model/data-set-actions"
+import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
-import { prf } from "../../../utilities/profiler"
+import {prf} from "../../../utilities/profiler"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps
@@ -37,96 +37,96 @@ export const ScatterDots = memo(function ScatterDots(props: {
     selectedDataObjects = useRef<{ [index: string]: { x: number, y: number } }>({})
 
   const onDragStart = useCallback((event: MouseEvent) => {
-    prf.measure("Graph.onDragStart", () => {
-      appState.beginPerformance()
-      dataset?.beginCaching()
-      firstTime.current = false // We don't want to animate points until end of drag
-      didDrag.current = false
-      target.current = select(event.target as SVGSVGElement)
-      const tItsID: string = target.current.property('id')
-      if (target.current.node()?.nodeName === 'circle') {
-        target.current.transition()
-          .attr('r', dragRadius)
-        setDragID(tItsID)
-        currPos.current = {x: event.clientX, y: event.clientY}
+      prf.measure("Graph.onDragStart", () => {
+        appState.beginPerformance()
+        dataset?.beginCaching()
+        firstTime.current = false // We don't want to animate points until end of drag
+        didDrag.current = false
+        target.current = select(event.target as SVGSVGElement)
+        const tItsID: string = target.current.property('id')
+        if (target.current.node()?.nodeName === 'circle') {
+          target.current.transition()
+            .attr('r', dragRadius)
+          setDragID(tItsID)
+          currPos.current = {x: event.clientX, y: event.clientY}
 
-        const [ , caseId] = tItsID.split("_")
-        dataset?.selectCases([caseId])
-        // Record the current values so we can change them during the drag and restore them when done
-        dataset?.selection.forEach(anID => {
-          selectedDataObjects.current[anID] = {
-            x: dataset?.getNumeric(anID, xAttrID) ?? 0,
-            y: dataset?.getNumeric(anID, yAttrID) ?? 0
-          }
-        })
-      }
-    })
-  }, [dataset, xAttrID, yAttrID]),
-
-  onDrag = useCallback((event: MouseEvent) => {
-    prf.measure("Graph.onDrag", () => {
-      if (dragID !== '') {
-        const newPos = {x: event.clientX, y: event.clientY},
-          dx = newPos.x - currPos.current.x,
-          dy = newPos.y - currPos.current.y
-        currPos.current = newPos
-        if (dx !== 0 || dy !== 0) {
-          didDrag.current = true
-          const deltaX = Number(xScale.invert(dx)) - Number(xScale.invert(0)),
-            deltaY = Number(yScale.invert(dy)) - Number(yScale.invert(0)),
-            caseValues: ICase[] = []
+          const [, caseId] = tItsID.split("_")
+          dataset?.selectCases([caseId])
+          // Record the current values so we can change them during the drag and restore them when done
           dataset?.selection.forEach(anID => {
-            const currX = Number(dataset?.getNumeric(anID, xAttrID)),
-              currY = Number(dataset?.getNumeric(anID, yAttrID))
-            if (isFinite(currX) && isFinite(currY)) {
-              caseValues.push({
-                __id__: anID,
-                [xAttrID]: currX + deltaX,
-                [yAttrID]: currY + deltaY
-              })
+            selectedDataObjects.current[anID] = {
+              x: dataset?.getNumeric(anID, xAttrID) ?? 0,
+              y: dataset?.getNumeric(anID, yAttrID) ?? 0
             }
           })
-          caseValues.length && dataset?.setCaseValues(caseValues)
         }
-      }
-    })
-  }, [dataset, dragID, xAttrID, xScale, yAttrID, yScale]),
+      })
+    }, [dataset, xAttrID, yAttrID]),
 
-  onDragEnd = useCallback(() => {
-    prf.measure("Graph.onDragEnd", () => {
-      dataset?.endCaching()
-      appState.endPerformance()
-
-      if (dragID !== '') {
-        target.current
-          .classed('dragging', false)
-          .transition()
-          .attr('r', defaultRadius)
-        setDragID(() => '')
-        target.current = null
-
-        if (didDrag.current) {
-          const caseValues: ICase[] = []
-          dataset?.selection.forEach(anID => {
-            caseValues.push({
-              __id__: anID,
-              [xAttrID]: selectedDataObjects.current[anID].x,
-              [yAttrID]: selectedDataObjects.current[anID].y
+    onDrag = useCallback((event: MouseEvent) => {
+      prf.measure("Graph.onDrag", () => {
+        if (dragID !== '') {
+          const newPos = {x: event.clientX, y: event.clientY},
+            dx = newPos.x - currPos.current.x,
+            dy = newPos.y - currPos.current.y
+          currPos.current = newPos
+          if (dx !== 0 || dy !== 0) {
+            didDrag.current = true
+            const deltaX = Number(xScale.invert(dx)) - Number(xScale.invert(0)),
+              deltaY = Number(yScale.invert(dy)) - Number(yScale.invert(0)),
+              caseValues: ICase[] = []
+            dataset?.selection.forEach(anID => {
+              const currX = Number(dataset?.getNumeric(anID, xAttrID)),
+                currY = Number(dataset?.getNumeric(anID, yAttrID))
+              if (isFinite(currX) && isFinite(currY)) {
+                caseValues.push({
+                  __id__: anID,
+                  [xAttrID]: currX + deltaX,
+                  [yAttrID]: currY + deltaY
+                })
+              }
             })
-          })
-          firstTime.current = true // So points will animate back to original positions
-          caseValues.length && dataset?.setCaseValues(caseValues)
-          didDrag.current = false
+            caseValues.length && dataset?.setCaseValues(caseValues)
+          }
         }
-      }
-    })
-  }, [dataset, dragID, xAttrID, yAttrID])
+      })
+    }, [dataset, dragID, xAttrID, xScale, yAttrID, yScale]),
+
+    onDragEnd = useCallback(() => {
+      prf.measure("Graph.onDragEnd", () => {
+        dataset?.endCaching()
+        appState.endPerformance()
+
+        if (dragID !== '') {
+          target.current
+            .classed('dragging', false)
+            .transition()
+            .attr('r', defaultRadius)
+          setDragID(() => '')
+          target.current = null
+
+          if (didDrag.current) {
+            const caseValues: ICase[] = []
+            dataset?.selection.forEach(anID => {
+              caseValues.push({
+                __id__: anID,
+                [xAttrID]: selectedDataObjects.current[anID].x,
+                [yAttrID]: selectedDataObjects.current[anID].y
+              })
+            })
+            firstTime.current = true // So points will animate back to original positions
+            caseValues.length && dataset?.setCaseValues(caseValues)
+            didDrag.current = false
+          }
+        }
+      })
+    }, [dataset, dragID, xAttrID, yAttrID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     prf.measure("Graph.ScatterDots[refreshPointSelection]", () => {
-      setPointSelection({ dotsRef, dataset })
+      setPointSelection({dotsRef, dataset})
     })
   }, [dataset, dotsRef])
 
@@ -137,9 +137,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
         getScreenY = (anID: string) => getScreenCoord(dataset, anID, yAttrID, yScale),
         duration = firstTime.current ? transitionDuration : 0,
         onComplete = firstTime.current ? () => {
-          prf.measure("Graph.ScatterDots[refreshPointPositions]", () => {
-            firstTime.current = false
-          })
+          firstTime.current = false
         } : undefined
 
       setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
@@ -162,9 +160,8 @@ export const ScatterDots = memo(function ScatterDots(props: {
       }
       if (selectedOnly) {
         dataset?.selection.forEach(caseId => updateDot(caseId))
-      }
-      else {
-        dataset?.cases.forEach(({ __id__ }) => updateDot(__id__))
+      } else {
+        dataset?.cases.forEach(({__id__}) => updateDot(__id__))
       }
     })
   }, [dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
@@ -172,8 +169,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (appState.isPerformanceMode) {
       refreshPointPositionsSVG(selectedOnly)
-    }
-    else {
+    } else {
       refreshPointPositionsD3(selectedOnly)
     }
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
@@ -209,8 +205,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
     const disposer = dataset && onAction(dataset, action => {
       if (isSelectionAction(action)) {
         refreshPointSelection()
-      }
-      else if (isSetCaseValuesAction(action)) {
+      } else if (isSetCaseValuesAction(action)) {
         // assumes that if we're caching then only selected cases are being updated
         refreshPointPositions(dataset.isCaching)
       }
