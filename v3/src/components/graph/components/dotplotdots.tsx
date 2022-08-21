@@ -1,6 +1,8 @@
 import {max, range, select} from "d3"
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
 import {observer} from "mobx-react-lite"
+import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration, defaultDiameter}
   from "../graphing-types"
 import {useDragHandlers} from "../hooks/graph-hooks"
@@ -11,8 +13,6 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
 import {prf} from "../../../utilities/profiler"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
-import {reaction} from "mobx"
-import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
@@ -27,8 +27,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     place = axisModel.place,
     countPlace = place === 'left' ? 'bottom' : 'left',
     xScale = layout.axisScale(place),
-    [rangeMin, rangeMax] = xScale?.range() || [],
-    plotWidth = Math.abs(rangeMax ?? 0 - rangeMin ?? 0),
+    {plotWidth} = layout,
     yScale = layout.axisScale(countPlace),
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0}),
@@ -55,8 +54,11 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
         dataset?.selection.forEach(anID => {
-          selectedDataObjects.current[anID] = {
-            x: dataset?.getNumeric(anID, xAttrID) ?? 0
+          const itsValue = dataset?.getNumeric(anID, xAttrID)
+          if (itsValue != null) {
+            selectedDataObjects.current[anID] = {
+              x: itsValue
+            }
           }
         })
       }
@@ -94,7 +96,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           .classed('dragging', false)
           .transition()
           .attr('r', defaultRadius)
-        setDragID(() => '')
+        setDragID('')
         target.current = null
 
         if (didDrag.current) {
@@ -121,7 +123,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   }, [dataset, dotsRef])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    prf.measure("Graph.ScatterDots[refreshPointPositionsD3]", () => {
+    prf.measure("Graph.DotPlotDots[refreshPointPositions]", () => {
       const
         yHeight = Number(yScale?.range()[0]),
         binMap: { [id: string]: { yIndex: number } } = {}
@@ -132,7 +134,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           binWidth = plotWidth / (numBins - 1),
           bins: string[][] = range(numBins + 1).map(() => [])
 
-        dataset?.cases.forEach(({ __id__ }) => {
+        dataset?.cases.forEach(({__id__}) => {
           const numerator = xScale?.(dataset?.getNumeric(__id__, xAttrID) ?? -1),
             bin = Math.ceil((numerator ?? 0) / binWidth)
           if (bin >= 0 && bin <= numBins) {
@@ -155,9 +157,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
         getScreenY = (anID: string) => computeYCoord(binMap[anID]),
         duration = firstTime.current ? transitionDuration : 0,
         onComplete = firstTime.current ? () => {
-          prf.measure("Graph.ScatterDots[refreshPointPositions]", () => {
-            firstTime.current = false
-          })
+          firstTime.current = false
         } : undefined
 
       setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
