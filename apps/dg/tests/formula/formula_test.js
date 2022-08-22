@@ -239,7 +239,20 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("add(1,2)", formulaContext), 3, "compile context function with arguments");
   equals( buildAndEval("a", formulaContext), 0, "compile context variable");
 
-  //console.profileEnd();
+  equals(buildAndEval("false = true"), false, "booleans in equals expressions");
+  equals(buildAndEval("'false' = true"), false, "string booleans in equals expressions");
+  equals(buildAndEval("'true' = true"), true, "string booleans in equals expressions");
+  equals(buildAndEval("false or true"), true, "or expression");
+  equals(buildAndEval("false and true"), false, "and expression");
+  equals(buildAndEval("! (false and true)"), true, "not expression");
+  equals(buildAndEval("'TRUE' and true"), true, "string TRUE in and expression");
+  equals(buildAndEval("!('false' or (1 = 2))"), true, "string false in or expression");
+  equals(buildAndEval("'FALSE'?1:2"), 2, "string boolean in first term of ternary expression");
+  equals(buildAndEval("'true'?1:2"), 1, "string boolean in first term of ternary expression");
+  equals(buildAndEval("if('TRUE',1,2)"), 1, "string boolean in first argument of if function");
+  equals(buildAndEval("if('false',1,2)"), 2, "string boolean in first argument of if function");
+
+//console.profileEnd();
   //ok(false, "End-of-tests sentinel: All other tests processed to completion!");
 });
 

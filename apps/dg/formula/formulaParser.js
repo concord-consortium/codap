@@ -201,7 +201,7 @@ DG.formulaParser = /*
             },
             peg$c38 = "0",
             peg$c39 = peg$literalExpectation("0", false),
-            peg$c40 = function(digit, digits) { return digit + digits; },
+            peg$c40 = function(digit, digits) { return digits?digit + digits:digit; },
             peg$c41 = function(digits) { return digits.join(""); },
             peg$c42 = /^[0-9]/,
             peg$c43 = peg$classExpectation([["0", "9"]], false, false),
@@ -223,7 +223,7 @@ DG.formulaParser = /*
             peg$c57 = "'",
             peg$c58 = peg$literalExpectation("'", false),
             peg$c59 = function(parts) {
-              return parts[1];
+              return parts[1] || "";
             },
             peg$c60 = function(char_) { return char_;     },
             peg$c61 = /^['"\\bfnrtv]/,
@@ -467,7 +467,11 @@ DG.formulaParser = /*
             peg$c173 = function(condition, trueExpression, falseExpression) {
               return {
                 type:            "ConditionalExpression",
-                condition:       condition,
+                condition:       {
+                  type: "FunctionCall",
+                  name: {type: "FunctionCall", name: "boolean"},
+                  args: [condition]
+                },
                 trueExpression:  trueExpression,
                 falseExpression: falseExpression
               };

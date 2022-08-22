@@ -170,8 +170,17 @@ DG.functionRegistry.registerFunctions((function() {
     'if': {
       minArgs: 2, maxArgs: 3, category: 'DG.Formula.FuncCategoryOther',
       evalFn: function(condition, trueValue, falseValue) {
+        function toBoolean(x) {
+          var boolMap = {
+            'true': true,
+            'TRUE': true,
+            'false' : false,
+            'FALSE' : false
+          };
+          return boolMap[x] != null?boolMap[x]: !!x;
+        }
         if (SC.empty(condition)) return '';
-        return condition
+        return toBoolean(condition)
                 ? (trueValue != null ? trueValue : '')
                 : (falseValue != null ? falseValue : '');
       }

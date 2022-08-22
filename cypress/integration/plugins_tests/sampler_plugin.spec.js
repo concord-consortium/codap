@@ -25,7 +25,7 @@ describe('Sampler plugin', function () {
     cy.wait(8000)
     table.getCollection().eq(0).within(() => {
       table.getCell(0, 0, 0).find('.dg-numeric').should('contain', 1)
-      table.getCell(1, 1, 0).should('contain', "mixer")
+      table.getCell(1, 1, 0).should('contain', "Mixer")
       table.getCell(2,2,0).find('.dg-numeric').should('contain',5)
     })
     table.getCollection().eq(1).within(function () {

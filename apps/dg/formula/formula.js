@@ -710,10 +710,10 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
         return DG.Formula.lessThanOrEqual(right, left);
       case '==':
       case '===':
-        return left === right;
+        return DG.Formula.equals(left, right);
       case '!=':
       case '!==':
-        return left !== right;
+        return !DG.Formula.equals(left, right);
       case '&&':
         return left && right;
       case '||':

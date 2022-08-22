@@ -149,7 +149,7 @@ DecimalLiteral
     }
 
 DecimalIntegerLiteral
-  = "0" / digit:NonZeroDigit digits:DecimalDigits? { return digit + digits; }
+  = "0" / digit:NonZeroDigit digits:DecimalDigits? { return digits?digit + digits:digit; }
 
 DecimalDigits
   = digits:DecimalDigit+ { return digits.join(""); }
@@ -176,7 +176,7 @@ HexDigit
 
 StringLiteral "string"
   = parts:('"' DoubleStringCharacters? '"' / "'" SingleStringCharacters? "'") {
-      return parts[1];
+      return parts[1] || "";
     }
 
 DoubleStringCharacters
@@ -556,7 +556,11 @@ ConditionalExpression
     ":" __ falseExpression:Expression {
       return {
         type:            "ConditionalExpression",
-        condition:       condition,
+        condition:       {
+							type: "FunctionCall",
+							name: {type: "FunctionCall", name: "boolean"},
+							args: [condition]
+						 },
         trueExpression:  trueExpression,
         falseExpression: falseExpression
       };

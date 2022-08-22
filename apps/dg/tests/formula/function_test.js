@@ -258,7 +258,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("asin(0)"), 0, "asin() -- arcsine");
   equals( buildAndEval("atan(0)"), 0, "atan() -- arctangent");
   equals( buildAndEval("atan2(0,1)"), 0, "atan2() -- arctangent (two arguments)");
-  
+
   //console.profileEnd();
   //ok(false, "End-of-tests sentinel: All other tests processed to completion!");
 });
