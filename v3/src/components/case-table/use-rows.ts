@@ -12,7 +12,7 @@ import { TRow, TRowsChangeData } from "./case-table-types"
 export const useRows = (data?: IDataSet) => {
   // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
   // Therefore, we cache each case object and update it when appropriate.
-  const rowCache = useMemo(() => new Map<string, ICase>(), [])
+  const rowCache = useMemo(() => new Map<string, TRow>(), [])
   const [rows, setRows] = useState<TRow[]>([])
 
   // reload the cache, e.g. on change of DataSet
@@ -20,6 +20,12 @@ export const useRows = (data?: IDataSet) => {
     rowCache.clear()
     data?.cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
   }, [data?.cases, rowCache])
+
+  const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
+    const entry = rowCache.get(caseId)
+    if (entry && !entry.__domAttrs__) entry.__domAttrs__ = new Set<string>()
+    entry?.__domAttrs__?.add(attrId)
+  }, [rowCache])
 
   const syncRowsToRdg = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToRdg]", () => {
@@ -44,17 +50,19 @@ export const useRows = (data?: IDataSet) => {
         cells.forEach(cell => {
           const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
           const attr = data?.attributes[colIndex]
+          const cellSpan = cell.querySelector(".cell-span")
           if (data && caseId && attr) {
             const strValue = data.getValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
             const formatStr = attr.format || kDefaultFormatStr
-            const formatted = (numValue != null) && isFinite(numValue) ? format(formatStr)(numValue) : strValue
-            cell.textContent = formatted
+            const formatted = (numValue != null) && isFinite(numValue) ? format(formatStr)(numValue) : strValue;
+            (cellSpan || cell).textContent = formatted
+            setCachedDomAttr(caseId, attr.id)
           }
         })
       })
     })
-  }, [data])
+  }, [data, setCachedDomAttr])
 
   useEffect(() => {
     const disposer = reaction(() => appState.appMode, mode => {
