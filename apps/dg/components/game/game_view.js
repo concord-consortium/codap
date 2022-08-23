@@ -59,7 +59,7 @@ DG.GameView = DG.WebView.extend(
               iframe;
 
           if (firstTime) {
-            context.push('<iframe allow="geolocation" src="' + src +
+            context.push('<iframe allow="geolocation; microphone; camera; bluetooth; clipboard-read; clipboard-write" src="' + src +
                 '" style="position: absolute; width: 100%; height: 100%; border: 0; margin: 0; padding: 0;"></iframe>');
           }
           else if(src!==this._lastSrc) {
