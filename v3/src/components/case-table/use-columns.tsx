@@ -35,9 +35,13 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     const str = data?.getValue(row.__id__, column.key) ?? ""
     const num = data?.getNumeric(row.__id__, column.key) ?? NaN
     const value = isFinite(num) && formatter ? formatter(num) : str
+    // if this is the first React render after performance rendering, add a
+    // random key to force React to render the contents for synchronization
+    const key = row.__domAttrs__?.has(column.key) ? Math.random() : undefined
+    row.__domAttrs__?.delete(column.key)
     // for now we just render numbers and raw string values; eventually,
     // we can support other formats here (dates, colors, etc.)
-    return <>{value}</>
+    return <span className="cell-span" key={key}>{value}</span>
   }, [data])
 
   useEffect(() => {
