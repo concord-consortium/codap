@@ -3,8 +3,16 @@ import { defineConfig } from 'cypress'
 export default defineConfig({
   video: false,
   fixturesFolder: false,
-  projectId: 'r9de4a',
+  projectId: 'msrfxa',
   defaultCommandTimeout: 8000,
+  viewportWidth: 1400,
+  viewportHeight: 1000,
+  modifyObstructiveCode:false,
+  chromeWebSecurity:false,
+  retries: {
+    runMode: 2,
+    openMode: 0
+  },
   env: {
     coverage: false,
   },
