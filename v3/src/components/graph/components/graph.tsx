@@ -156,8 +156,8 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
                     xAttrID={xAttrID}
                     yAttrID={yAttrID}
                     dotsRef={dotsRef}
-                    xAxis={xAxisModel}
-                    yAxis={yAxisModel}
+                    xAxisModel={xAxisModel}
+                    yAxisModel={yAxisModel}
                     animationIsOn={animationIsOn}
                   />
                   :

@@ -2,6 +2,12 @@
  * Graph Custom Hooks
  */
 import {useEffect} from "react"
+import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
+import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
+import {IDataSet} from "../../../data-model/data-set"
+import {INumericAxisModel} from "../models/axis-model"
+import {GraphLayout} from "../models/graph-layout"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -23,3 +29,62 @@ export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) 
   }, [target, start, drag, end])
 }
 
+export interface IPlotResponderProps {
+  dataset:IDataSet | undefined
+  xAxisModel?:INumericAxisModel
+  yAxisModel?:INumericAxisModel
+  xAttrID?: string
+  yAttrID?: string
+  layout: GraphLayout
+  refreshPointPositions:(selectedOnly: boolean) => void
+  refreshPointSelection: () => void
+  animationIsOn:  React.MutableRefObject<boolean>
+}
+
+export const usePlotResponders = (props: IPlotResponderProps) => {
+  const { dataset, xAttrID, yAttrID, xAxisModel, yAxisModel, animationIsOn,
+    refreshPointPositions, refreshPointSelection, layout } = props
+
+  // respond to axis domain changes (e.g. axis dragging)
+  useEffect(() => {
+    refreshPointPositions(false)
+    const disposer = reaction(
+      () => [xAxisModel?.domain, yAxisModel?.domain],
+      domains => {
+        refreshPointPositions(false)
+      }
+    )
+    return () => disposer()
+  }, [refreshPointPositions, xAxisModel?.domain, yAxisModel?.domain])
+
+  // respond to axis range changes (e.g. component resizing)
+  useEffect(() => {
+    refreshPointPositions(false)
+    const disposer = reaction(
+      () => [layout.axisLength('left'), layout.axisLength('bottom')],
+      ranges => {
+        refreshPointPositions(false)
+      }
+    )
+    return () => disposer()
+  }, [layout, refreshPointPositions])
+
+  // respond to selection and value changes
+  useEffect(() => {
+    const disposer = dataset && onAction(dataset, action => {
+      if (isSelectionAction(action)) {
+        refreshPointSelection()
+      } else if (isSetCaseValuesAction(action)) {
+        // assumes that if we're caching then only selected cases are being updated
+        refreshPointPositions(dataset.isCaching)
+      }
+    }, true)
+    return () => disposer?.()
+  }, [dataset, refreshPointPositions, refreshPointSelection])
+
+  // respond to x attribute id change
+  useEffect(() => {
+    animationIsOn.current = true
+    refreshPointPositions(false)
+  }, [refreshPointPositions, xAttrID, yAttrID, animationIsOn])
+}

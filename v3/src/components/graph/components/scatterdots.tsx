@@ -1,16 +1,13 @@
 import {select} from "d3"
-import {reaction} from "mobx"
-import {onAction} from "mobx-state-tree"
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
 import {plotProps, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
-import {useDragHandlers} from "../hooks/graph-hooks"
+import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {INumericAxisModel} from "../models/axis-model"
 import {ICase} from "../../../data-model/data-set"
-import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 import {prf} from "../../../utilities/profiler"
 
@@ -19,11 +16,11 @@ export const ScatterDots = memo(function ScatterDots(props: {
   xAttrID: string
   yAttrID: string
   dotsRef: React.RefObject<SVGSVGElement>
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
+  xAxisModel: INumericAxisModel
+  yAxisModel: INumericAxisModel
   animationIsOn: React.MutableRefObject<boolean>
 }) {
-  const {xAttrID, yAttrID, dotsRef, xAxis, yAxis, animationIsOn} = props,
+  const {xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, animationIsOn} = props,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -173,48 +170,10 @@ export const ScatterDots = memo(function ScatterDots(props: {
     }
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
-  // respond to axis domain changes (e.g. axis dragging)
-  useEffect(() => {
-    refreshPointPositions(false)
-    const disposer = reaction(
-      () => [xAxis.domain, yAxis.domain],
-      domains => {
-        refreshPointPositions(false)
-      }
-    )
-    return () => disposer()
-  }, [refreshPointPositions, xAxis, yAxis, animationIsOn])
-
-  // respond to axis range changes (e.g. component resizing)
-  useEffect(() => {
-    refreshPointPositions(false)
-    const disposer = reaction(
-      () => [layout.axisLength(xAxis.place), layout.axisLength(yAxis.place)],
-      ranges => {
-        refreshPointPositions(false)
-      }
-    )
-    return () => disposer()
-  }, [layout, refreshPointPositions, xAxis, yAxis, animationIsOn])
-
-  // respond to x or y attribute id changes
-  useEffect(() => {
-    animationIsOn.current = true
-    refreshPointPositions(false)
-  }, [refreshPointPositions, xAttrID, yAttrID, animationIsOn])
-
-  // respond to selection and value changes
-  useEffect(() => {
-    const disposer = dataset && onAction(dataset, action => {
-      if (isSelectionAction(action)) {
-        refreshPointSelection()
-      } else if (isSetCaseValuesAction(action)) {
-        // assumes that if we're caching then only selected cases are being updated
-        refreshPointPositions(dataset.isCaching)
-      }
-    }, true)
-    return () => disposer?.()
-  }, [dataset, refreshPointPositions, refreshPointSelection])
+  usePlotResponders( {
+    dataset, xAxisModel, yAxisModel, xAttrID, yAttrID, layout,
+    refreshPointPositions, refreshPointSelection, animationIsOn
+  })
 
   return (
     <svg/>
