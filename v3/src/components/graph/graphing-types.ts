@@ -5,6 +5,10 @@ export interface InternalizedData {
   cases:string[]
 }
 
+export type Point = { x: number, y: number }
+export type CPLine = { slope: number, intercept: number, pivot1?: Point, pivot2?: Point }
+export const kNullPoint = {x: -999, y: -999}
+
 export interface Rect {
   x: number, y: number, width: number, height: number
 }

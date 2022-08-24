@@ -3,7 +3,7 @@ import {reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
-import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration, defaultDiameter}
+import {defaultRadius, dragRadius, transitionDuration, defaultDiameter}
   from "../graphing-types"
 import {useDragHandlers} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
@@ -16,12 +16,12 @@ import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utiliti
 import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
-  dots: plotProps,
+  xAttrID: string
   axisModel: INumericAxisModel,
-  graphData: InternalizedData,
   dotsRef: React.RefObject<SVGSVGElement>
+  animationIsOn: React.MutableRefObject<boolean>
 }) {
-  const {graphData, dotsRef, axisModel} = props,
+  const {xAttrID, dotsRef, axisModel, animationIsOn} = props,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     place = axisModel.place,
@@ -33,18 +33,16 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     currPos = useRef({x: 0}),
     didDrag = useRef(false),
     target = useRef<any>(),
-    firstTime = useRef(true),
-    xAttrID = graphData.xAttributeID,
     selectedDataObjects = useRef<Record<string, { x: number }>>({})
 
   const onDragStart = useCallback((event: MouseEvent) => {
-      appState.beginPerformance()
       dataset?.beginCaching()
-      firstTime.current = false // We don't want to animate points until end of drag
       didDrag.current = false
       target.current = select(event.target as SVGSVGElement)
       const tItsID: string = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
+        animationIsOn.current = false // We don't want to animate points until end of drag
+        appState.beginPerformance()
         target.current.transition()
           .attr('r', dragRadius)
         setDragID(() => tItsID)
@@ -62,7 +60,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           }
         })
       }
-    }, [dataset, xAttrID]),
+    }, [dataset, xAttrID, animationIsOn]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
@@ -107,12 +105,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
               [xAttrID]: selectedDataObjects.current[anID].x
             })
           })
-          firstTime.current = true // So points will animate back to original positions
+          animationIsOn.current = true // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues)
           didDrag.current = false
         }
       }
-    }, [dataset, dragID, xAttrID])
+    }, [dataset, dragID, xAttrID, animationIsOn])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -155,14 +153,14 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           return binContents ? yHeight - defaultRadius / 2 - binContents.yIndex * (defaultDiameter - overlap) : 0
         },
         getScreenY = (anID: string) => computeYCoord(binMap[anID]),
-        duration = firstTime.current ? transitionDuration : 0,
-        onComplete = firstTime.current ? () => {
-          firstTime.current = false
+        duration = animationIsOn.current ? transitionDuration : 0,
+        onComplete = animationIsOn.current ? () => {
+          animationIsOn.current = false
         } : undefined
 
       setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
     })
-  }, [dataset, dotsRef, xAttrID, xScale, yScale, plotWidth])
+  }, [dataset, dotsRef, xAttrID, xScale, yScale, plotWidth, animationIsOn])
 
   // respond to axis domain changes (e.g. axis dragging)
   useEffect(() => {
@@ -170,7 +168,6 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     const disposer = reaction(
       () => [axisModel.domain],
       domains => {
-        firstTime.current = false // don't animate response to axis changes
         refreshPointPositions(false)
       }
     )
@@ -183,7 +180,6 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     const disposer = reaction(
       () => [layout.axisLength(place), layout.axisLength(countPlace)],
       ranges => {
-        firstTime.current = false // don't animate response to axis changes
         refreshPointPositions(false)
       }
     )
@@ -202,6 +198,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     }, true)
     return () => disposer?.()
   }, [dataset, refreshPointPositions, refreshPointSelection])
+
+  // respond to x attribute id change
+  useEffect(() => {
+    animationIsOn.current = true
+    refreshPointPositions(false)
+  }, [refreshPointPositions, xAttrID, animationIsOn])
 
   return (
     <svg/>

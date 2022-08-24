@@ -14,10 +14,11 @@ export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
   const scale = layout.axisScale(axisModel.place)
   const axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft
 
-  const refreshAxis = useCallback(() => {
+  const refreshAxis = useCallback((duration = 0) => {
     prf.measure("Graph.useNumericAxis[refreshAxisCallback]", () => {
       if (axisElt) {
         select(axisElt)
+          .transition().duration(duration)
           .call(axisFunc(scale))
       }
     })
