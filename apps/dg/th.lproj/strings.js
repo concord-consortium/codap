@@ -1038,7 +1038,6 @@ SC.stringsFor("th", {
     "DG.plugin.Sampler.dataset.attr-value": "value",
     "DG.plugin.Sampler.dataset.col-experiments": "experiments",
     "DG.plugin.Sampler.dataset.col-samples": "samples",
-    "DG.plugin.Sampler.dataset.col-values": "values",
     "DG.plugin.sampler.experiment.description": "%@1 containing %@2 %@3%@4(%@5)",
     "DG.plugin.sampler.experiment.no-description": "hidden!",
     "DG.plugin.sampler.experiment.description-mixer-item-kind": "items",
@@ -1046,5 +1045,6 @@ SC.stringsFor("th", {
     "DG.plugin.sampler.experiment.description-collector-item-kind": "cases",
     "DG.plugin.sampler.experiment.description-collector-phrase": " from %@1 ",
     "DG.plugin.sampler.experiment.description-replacement-phrase": "with replacement",
-    "DG.plugin.sampler.experiment.description-no-replacement-phrase": "without replacement"
+    "DG.plugin.sampler.experiment.description-no-replacement-phrase": "without replacement",
+    "DG.plugin.Sampler.dataset.col-items": "items"
 });

@@ -1176,7 +1176,7 @@ SC.stringsFor("en", {
     "DG.plugin.Sampler.dataset.attr-value": "value",
     "DG.plugin.Sampler.dataset.col-experiments": "experiments",
     "DG.plugin.Sampler.dataset.col-samples": "samples",
-    "DG.plugin.Sampler.dataset.col-values": "values",
+    "DG.plugin.Sampler.dataset.col-items": "items",
     "DG.plugin.sampler.experiment.description": "%@1 containing %@2 %@3%@4(%@5)",
     "DG.plugin.sampler.experiment.no-description": "hidden!",
     "DG.plugin.sampler.experiment.description-mixer-item-kind": "items",
