@@ -1,5 +1,4 @@
 import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
-import { Button } from '@chakra-ui/react'
 import React, { useEffect } from "react"
 import { CaseTable } from "./case-table/case-table"
 import {Container} from "./container"
@@ -48,7 +47,7 @@ export const App = () => {
     }
   }
 
-  function handleNewTable() {
+  function createNewTable() {
     const newData = [{AttributeName: ""}]
     const ds = DataSet.create({name: "New Dataset"})
     ds.addAttribute({name: "AttributeName"})
@@ -59,7 +58,11 @@ export const App = () => {
   useEffect(() => {
     if (gDataBroker.dataSets.size === 0) {
       const sample = sampleData.find(name => urlParams.sample === name)
-      sample && importSample(sample as SampleType, handleImportData)
+      if (sample) {
+        importSample(sample as SampleType, handleImportData)
+      } else {
+        createNewTable()
+      }
     }
   }, [])
 
@@ -77,7 +80,6 @@ export const App = () => {
                 <p>Drag a CSV file into this window to get some data.</p>
               </div>
             </div>
-            <Button className="add-new-table-button" onClick={handleNewTable}>Add new table</Button>
           </>
           <CaseTable />
           <GraphComponent></GraphComponent>
