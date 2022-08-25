@@ -63,12 +63,11 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   } else if (min < 0 && max < 0 && max >= min / kFactor) {  // Snap to zero
     bounds.max = 0
   }
-  const tickGap = computeTickGap( bounds.min, bounds.max)
-  if( tickGap !== 0) {
-    bounds.min = (Math.floor( bounds.min / tickGap) - 0.5) * tickGap
-    bounds.max = (Math.floor( bounds.max / tickGap) + 1.5) * tickGap
-  }
-  else {
+  const tickGap = computeTickGap(bounds.min, bounds.max)
+  if (tickGap !== 0) {
+    bounds.min = (Math.floor(bounds.min / tickGap) - 0.5) * tickGap
+    bounds.max = (Math.floor(bounds.max / tickGap) + 1.5) * tickGap
+  } else {
     bounds.min -= 1
     bounds.max += 1
   }
@@ -369,4 +368,32 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       }
     })
   })
+}
+
+export function refreshAxisDragRects(axisElt: SVGGElement | null, orientation: AxisPlace, length:number | null) {
+  if( axisElt) {
+    const
+      bbox = axisElt?.getBBox?.(),
+      axisSelection = select(axisElt),
+      numbering = orientation === 'bottom' ? [0, 1, 2] : [2, 1, 0]
+    if( length !== null) {
+      axisSelection.selectAll('.dragRect')
+        .data(numbering)// data signify lower, middle, upper rectangles
+        .join(
+          // @ts-expect-error void => Selection
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          (enter) => {
+          },
+          (update) => {
+            update
+              .attr('x', (d) => bbox?.x + (orientation === 'bottom' ? (d * length / 3) : 0))
+              .attr('y', (d) => bbox?.y + (orientation === 'bottom' ? 0 : (d * length / 3)))
+              .attr('width', () => (orientation === 'bottom' ? length / 3 : bbox?.width))
+              .attr('height', () => (orientation === 'bottom' ? bbox?.height : length / 3))
+          }
+        )
+      axisSelection.selectAll('.dragRect').raise()
+    }
+  }
+
 }
