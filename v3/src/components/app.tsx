@@ -72,15 +72,13 @@ export const App = () => {
         <Container>
           {/* each top-level child will be wrapped in a CodapComponent */}
           <DataSummary/>
-          <>
-            <div className="hello-codap3">
-              <div>
-                <img src={Icon}/>
-                <Text text={sampleText}/>
-                <p>Drag a CSV file into this window to get some data.</p>
-              </div>
+          <div className="hello-codap3">
+            <div>
+              <img src={Icon}/>
+              <Text text={sampleText}/>
+              <p>Drag a CSV file into this window to get some data.</p>
             </div>
-          </>
+          </div>
           <CaseTable />
           <GraphComponent></GraphComponent>
         </Container>
