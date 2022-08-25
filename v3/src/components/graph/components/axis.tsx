@@ -9,6 +9,7 @@ import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
 import { AxisPlace, INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
+import {refreshAxisDragRects} from "../utilities/graph_utils"
 import { prf } from "../../../utilities/profiler"
 import "./axis.scss"
 
@@ -130,7 +131,7 @@ export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps)
 
         // Add three rects in which the user can drag to dilate or translate the scale
         // Todo: When there's an axis model, it should be able to some of these distinctions internal to the model.
-        const tLength = length || 0,
+        const
           classPrefix = orientation === 'bottom' ? 'h' : 'v',
           numbering = orientation === 'bottom' ? [0, 1, 2] : [2, 1, 0],
           classPostfixes = orientation === 'bottom' ? ['lower-dilate', 'translate', 'upper-dilate'] :
@@ -146,8 +147,7 @@ export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps)
             drag()  // upper
               .on("start", onDilateStart)
               .on("drag", onUpperDilateDrag)
-              .on("end", onDragEnd)],
-          bbox = axisElt?.getBBox?.()
+              .on("end", onDragEnd)]
         axisSelection
           .selectAll('.dragRect')
           .data(numbering)// data signify lower, middle, upper rectangles
@@ -158,21 +158,14 @@ export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps)
                 .attr('class', (d) => `dragRect ${classPrefix}-${classPostfixes[d]}`)
                 .append('title')
                 .text((d: number) => axisDragHints[numbering[d]])
-            },
-            (update) => {
-              update
-                .attr('x', (d) => bbox?.x + (orientation === 'bottom' ? (d * tLength / 3) : 0))
-                .attr('y', (d) => bbox?.y + (orientation === 'bottom' ? 0 : (d * tLength / 3)))
-                .attr('width', () => (orientation === 'bottom' ? tLength / 3 : bbox?.width))
-                .attr('height', () => (orientation === 'bottom' ? bbox?.height : tLength / 3))
             }
           )
         numbering.forEach((behaviorIndex, axisIndex) => {
           axisSelection.select(`.dragRect.${classPrefix}-${classPostfixes[axisIndex]}`)
             .call(dragBehavior[behaviorIndex])
         })
-        axisSelection.selectAll('.dragRect').raise()
       }
+      refreshAxisDragRects(axisElt, orientation, length)
     })
   }, [axisElt, length, model, orientation, scale, transform])
 
