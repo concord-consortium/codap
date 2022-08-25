@@ -1,4 +1,5 @@
 import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
+import { Button } from '@chakra-ui/react'
 import React, { useEffect } from "react"
 import { CaseTable } from "./case-table/case-table"
 import {Container} from "./container"
@@ -47,6 +48,14 @@ export const App = () => {
     }
   }
 
+  function handleNewTable() {
+    const newData = [{AttributeName: ""}]
+    const ds = DataSet.create({name: "New Dataset"})
+    ds.addAttribute({name: "AttributeName"})
+    ds.addCases(toCanonical(ds, newData))
+    gDataBroker.addDataSet(ds)
+  }
+
   useEffect(() => {
     if (gDataBroker.dataSets.size === 0) {
       const sample = sampleData.find(name => urlParams.sample === name)
@@ -60,13 +69,16 @@ export const App = () => {
         <Container>
           {/* each top-level child will be wrapped in a CodapComponent */}
           <DataSummary/>
-          <div className="hello-codap3">
-            <div>
-              <img src={Icon}/>
-              <Text text={sampleText}/>
-              <p>Drag a CSV file into this window to get some data.</p>
+          <>
+            <div className="hello-codap3">
+              <div>
+                <img src={Icon}/>
+                <Text text={sampleText}/>
+                <p>Drag a CSV file into this window to get some data.</p>
+              </div>
             </div>
-          </div>
+            <Button className="add-new-table-button" onClick={handleNewTable}>Add new table</Button>
+          </>
           <CaseTable />
           <GraphComponent></GraphComponent>
         </Container>
