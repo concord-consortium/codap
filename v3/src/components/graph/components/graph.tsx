@@ -1,11 +1,11 @@
 import {useToast} from "@chakra-ui/react"
-import {format, select} from "d3"
+import {select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
-import React, {MutableRefObject, useEffect, useRef, useState} from "react"
+import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {defaultRadius, kGraphClass, plotProps} from "../graphing-types"
+import {kGraphClass, plotProps} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -16,7 +16,12 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {getScreenCoord, pullOutNumericAttributesInNewDataset, setNiceDomain} from "../utilities/graph_utils"
+import {
+  filterCases,
+  matchCirclesToData,
+  pullOutNumericAttributesInNewDataset,
+  setNiceDomain
+} from "../utilities/graph_utils"
 import {prf} from "../../../utilities/profiler"
 
 import "./graph.scss"
@@ -24,14 +29,14 @@ import "./graph.scss"
 interface IProps {
   model: IGraphModel
   graphRef: MutableRefObject<HTMLDivElement>
-  animationIsOn: MutableRefObject<boolean>
+  enableAnimation: MutableRefObject<boolean>
 }
 
-const float = format('.3~f')
 
-export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IProps) => {
+export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: IProps) => {
   return prf.measure("Graph.render", () => {
     const
+      casesRef = useRef(graphModel.cases),
       xAxisModel = graphModel.getAxis("bottom") as INumericAxisModel,
       yAxisModel = graphModel.getAxis("left") as INumericAxisModel,
       {plotType, movableLine: movableLineModel, movableValue: movableValueModel} = graphModel,
@@ -46,7 +51,7 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
         transform: `translate(${margin.left}, 0)`
       },
 
-      keyFunc = (d: string) => d,
+      keyFunc = useCallback((d: string) => d, []),
       svgRef = useRef<SVGSVGElement>(null),
       plotAreaSVGRef = useRef<SVGSVGElement>(null),
       dotsRef = useRef<SVGSVGElement>(null),
@@ -60,8 +65,9 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
 
     const
       xAttrID = graphModel.getAttributeID('bottom'),
-      yAttrID = graphModel.getAttributeID('left'),
-      cases = graphModel.cases
+      yAttrID = graphModel.getAttributeID('left')
+
+    casesRef.current = graphModel.cases
 
     useEffect(function setupPlotArea() {
       select(plotAreaSVGRef.current)
@@ -72,31 +78,19 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
         .attr('height', layout.plotHeight)
     }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
 
-    useEffect(function createCircles() {
+    const callMatchCirclesToData = useCallback(()=> {
+      matchCirclesToData({
+        caseIDs: casesRef.current, dataset,
+        dotsElement: dotsRef.current,
+        enableAnimation, keyFunc, instanceId, xAttrID, yAttrID, xScale, yScale
+      })
+    },[dataset, keyFunc, instanceId, xAttrID, yAttrID, xScale, yScale])
 
-      animationIsOn.current = true
-      select(dotsRef.current)
-        .selectAll('circle')
-        .data(cases, keyFunc)
-        .join(
-          // @ts-expect-error void => Selection
-          (enter) => {
-            enter.append('circle')
-              .attr('class', 'graph-dot')
-              .attr("r", defaultRadius)
-              .property('id', (anID: string) => `${instanceId}_${anID}`)
-              .attr('cx', (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale))
-              .attr('cy', (anID: string) => getScreenCoord(dataset, anID, yAttrID, yScale))
-              .selection()
-              .append('title')
-              .text((anID: string) => {
-                const xVal = dataset?.getNumeric(anID, xAttrID) ?? 0,
-                  yVal = dataset?.getNumeric(anID, yAttrID) ?? 0
-                return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
-              })
-          }
-        )
-    }, [dataset, instanceId, xScale, yScale, cases, xAttrID, yAttrID])
+    useEffect(function createCircles() {
+      prf.measure("Graph.createCircles", () => {
+        callMatchCirclesToData()
+      })
+    }, [dataset, instanceId, xScale, yScale, casesRef, xAttrID, yAttrID, callMatchCirclesToData])
 
     useEffect(function initMovables() {
       const xDomainDelta = xScale.domain()[1] - xScale.domain()[0],
@@ -116,20 +110,26 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
       })
       graphModel.setAttributeID(place, attrId)
     }
+
     // respond to assignment of new attribute ID
-    useEffect(() => {
+    useEffect(function installAttributeIdAction() {
       const disposer = graphModel && onAction(graphModel, action => {
         if (action.name === 'setAttributeID') {
           const place = action.args?.[0],
             attrID = action.args?.[1],
-            values = dataset?.attrFromID(attrID).numValues,
-            axisModel = place === 'bottom' ? xAxisModel : yAxisModel
+            axisModel = place === 'bottom' ? xAxisModel : yAxisModel,
+            attrIDs = plotType === 'dotPlot' ? [attrID] :
+              [attrID, place === 'bottom' ? graphModel.getAttributeID('left') : graphModel.getAttributeID('bottom')]
+          enableAnimation.current = true
+          casesRef.current = filterCases(dataset, graphModel, attrIDs)
+          callMatchCirclesToData()
+
+          const values = casesRef.current.map(anID => dataset?.getNumeric(anID, attrID)) as number[]
           setNiceDomain(values || [], layout.axisScale(place), axisModel)
-          animationIsOn.current = true
         }
       }, true)
       return () => disposer?.()
-    }, [dataset, layout, xAxisModel, yAxisModel])
+    }, [dataset, layout, xAxisModel, yAxisModel, plotType, callMatchCirclesToData])
 
     return (
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
@@ -157,14 +157,15 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
                     dotsRef={dotsRef}
                     xAxisModel={xAxisModel}
                     yAxisModel={yAxisModel}
-                    animationIsOn={animationIsOn}
+                    enableAnimation={enableAnimation}
                   />
                   :
                   <DotPlotDots
+                    casesRef={casesRef}
                     axisModel={xAxisModel}
                     xAttrID={xAttrID}
                     dotsRef={dotsRef}
-                    enableAnimation={animationIsOn}
+                    enableAnimation={enableAnimation}
                   />)
               }
             </svg>

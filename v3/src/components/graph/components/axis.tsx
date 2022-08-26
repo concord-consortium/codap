@@ -62,6 +62,7 @@ export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps)
         prf.measure("Graph.Axis[onDragStart]", () => {
           select(this as Element)
             .classed('dragging', true)
+          model.setTransitionDuration(0)
         })
       },
 
@@ -75,6 +76,7 @@ export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps)
           dilationAnchorCoord = Number(orientation === 'bottom' ? scale?.invert(event.x) : scale?.invert(event.y))
           dragging = true
         })
+        model.setTransitionDuration(0)
       },
 
       onLowerDilateDrag = (event: { x: number, y: number, dx: number, dy: number }) => {
