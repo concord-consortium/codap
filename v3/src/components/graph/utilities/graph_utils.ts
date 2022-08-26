@@ -81,7 +81,7 @@ export function setNiceDomain(values: number[], scale: ScaleBaseType, axis: INum
   axis.setDomain(niceBounds.min, niceBounds.max)
 }
 
-export interface IUseGetDataProps {
+export interface IPullOutNumericAttributesProps {
   dataset: IDataSet
   layout: GraphLayout
   xAxis: INumericAxisModel
@@ -89,7 +89,7 @@ export interface IUseGetDataProps {
   graphModel: IGraphModel
 }
 
-export const pullOutNumericAttributesInNewDataset = (props: IUseGetDataProps) => {
+export const pullOutNumericAttributesInNewDataset = (props: IPullOutNumericAttributesProps) => {
   const {dataset, layout, xAxis, yAxis, graphModel} = props,
     xScale = layout.axisScale("bottom"),
     yScale = layout.axisScale("left")

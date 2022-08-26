@@ -1,11 +1,7 @@
-// import {boolean, string} from "mobx-state-tree/dist/types/primitives"
 import {Instance, types} from "mobx-state-tree"
 import { AdornmentModelUnion, MovableLineModel, MovableValueModel } from "../adornments/adornment-models"
 import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
 import { PlotType, PlotTypes } from "../graphing-types"
-// import {uniqueId} from "../../../utilities/js-utils"
-// import {gDataBroker} from "../../../data-model/data-broker"
-// import {IDataSet} from "../../../data-model/data-set"
 
 export const PlotAttributeRoles = ["primary", "secondary", "legend", "verticalSplit", "horizontalSplit"] as const
 // export type PlotAttributeRole = typeof PlotAttributeRoles[number]
@@ -31,7 +27,7 @@ export const GraphModel = types
       return self.axes.get(place)
     },
     getAttributeID(place: AxisPlace) {
-      return self.attributeIDs.get(place)??''
+      return self.attributeIDs.get(place) ?? ''
     }
   }))
   .actions(self => ({

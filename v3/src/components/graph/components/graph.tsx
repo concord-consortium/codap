@@ -74,7 +74,6 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
 
     useEffect(function createCircles() {
 
-      // select(dotsRef.current).selectAll('circle').remove()
       animationIsOn.current = true
       select(dotsRef.current)
         .selectAll('circle')
@@ -125,7 +124,7 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
             attrID = action.args?.[1],
             values = dataset?.attrFromID(attrID).numValues,
             axisModel = place === 'bottom' ? xAxisModel : yAxisModel
-          setNiceDomain(values ? values : [], layout.axisScale(place), axisModel)
+          setNiceDomain(values || [], layout.axisScale(place), axisModel)
           animationIsOn.current = true
         }
       }, true)
@@ -165,7 +164,7 @@ export const Graph = observer(({model: graphModel, graphRef, animationIsOn}: IPr
                     axisModel={xAxisModel}
                     xAttrID={xAttrID}
                     dotsRef={dotsRef}
-                    animationIsOn={animationIsOn}
+                    enableAnimation={animationIsOn}
                   />)
               }
             </svg>

@@ -38,11 +38,11 @@ export interface IPlotResponderProps {
   layout: GraphLayout
   refreshPointPositions:(selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  animationIsOn:  React.MutableRefObject<boolean>
+  enableAnimation:  React.MutableRefObject<boolean>
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const { dataset, xAttrID, yAttrID, xAxisModel, yAxisModel, animationIsOn,
+  const { dataset, xAttrID, yAttrID, xAxisModel, yAxisModel, enableAnimation,
     refreshPointPositions, refreshPointSelection, layout } = props
 
   // respond to axis domain changes (e.g. axis dragging)
@@ -82,9 +82,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return () => disposer?.()
   }, [dataset, refreshPointPositions, refreshPointSelection])
 
-  // respond to x attribute id change
+  // respond to x or y attribute id change
   useEffect(() => {
-    animationIsOn.current = true
+    enableAnimation.current = true
     refreshPointPositions(false)
-  }, [refreshPointPositions, xAttrID, yAttrID, animationIsOn])
+  }, [refreshPointPositions, xAttrID, yAttrID, enableAnimation])
 }

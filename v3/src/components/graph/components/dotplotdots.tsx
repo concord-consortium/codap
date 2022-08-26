@@ -16,9 +16,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   xAttrID: string
   axisModel: INumericAxisModel,
   dotsRef: React.RefObject<SVGSVGElement>
-  animationIsOn: React.MutableRefObject<boolean>
+  enableAnimation: React.MutableRefObject<boolean>
 }) {
-  const {xAttrID, dotsRef, axisModel, animationIsOn} = props,
+  const {xAttrID, dotsRef, axisModel, enableAnimation} = props,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     place = axisModel.place,
@@ -38,7 +38,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
       target.current = select(event.target as SVGSVGElement)
       const tItsID: string = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
-        animationIsOn.current = false // We don't want to animate points until end of drag
+        enableAnimation.current = false // We don't want to animate points until end of drag
         appState.beginPerformance()
         target.current.transition()
           .attr('r', dragRadius)
@@ -57,7 +57,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           }
         })
       }
-    }, [dataset, xAttrID, animationIsOn]),
+    }, [dataset, xAttrID, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
@@ -102,12 +102,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
               [xAttrID]: selectedDataObjects.current[anID].x
             })
           })
-          animationIsOn.current = true // So points will animate back to original positions
+          enableAnimation.current = true // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues)
           didDrag.current = false
         }
       }
-    }, [dataset, dragID, xAttrID, animationIsOn])
+    }, [dataset, dragID, xAttrID, enableAnimation])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -150,18 +150,18 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           return binContents ? yHeight - defaultRadius / 2 - binContents.yIndex * (defaultDiameter - overlap) : 0
         },
         getScreenY = (anID: string) => computeYCoord(binMap[anID]),
-        duration = animationIsOn.current ? transitionDuration : 0,
-        onComplete = animationIsOn.current ? () => {
-          animationIsOn.current = false
+        duration = enableAnimation.current ? transitionDuration : 0,
+        onComplete = enableAnimation.current ? () => {
+          enableAnimation.current = false
         } : undefined
 
       setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
     })
-  }, [dataset, dotsRef, xAttrID, xScale, yScale, plotWidth, animationIsOn])
+  }, [dataset, dotsRef, xAttrID, xScale, yScale, plotWidth, enableAnimation])
 
   usePlotResponders( {
     dataset, xAxisModel: axisModel, xAttrID, layout,
-    refreshPointPositions, refreshPointSelection, animationIsOn
+    refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (

@@ -148,7 +148,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
           const dotSvg = dot as SVGCircleElement
           const x = getScreenCoord(dataset, caseId, xAttrID, xScale)
           const y = getScreenCoord(dataset, caseId, yAttrID, yScale)
-          if (x !== null && isFinite(x) && y !== null && isFinite(y)) {
+          if (x != null && isFinite(x) && y != null && isFinite(y)) {
             dotSvg.setAttribute("cx", `${x}`)
             dotSvg.setAttribute("cy", `${y}`)
           }
@@ -172,7 +172,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
 
   usePlotResponders( {
     dataset, xAxisModel, yAxisModel, xAttrID, yAttrID, layout,
-    refreshPointPositions, refreshPointSelection, animationIsOn
+    refreshPointPositions, refreshPointSelection, enableAnimation: animationIsOn
   })
 
   return (
