@@ -30,15 +30,15 @@ export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),
     length = layout.axisLength(model.place),
-    graphRef = useRef<HTMLDivElement | null>(null),
-    wrapperRef = useRef<SVGGElement | null>(null),
+    [graphElt, setGraphElt] = useState<HTMLDivElement | null>(null),
+    [wrapperElt, setWrapperElt] = useState<SVGGElement | null>(null),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
     orientation = model.place
 
   useEffect(() => {
-    graphRef.current = axisElt?.closest(kGraphClassSelector) ?? null
-  }, [axisElt])
+    setGraphElt(axisElt?.closest(kGraphClassSelector) as HTMLDivElement ?? null)
+  }, [axisElt, graphElt])
 
   useNumericAxis({ axisModel: model, axisElt })
 
@@ -208,13 +208,12 @@ export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
 
   return (
     <>
-      <g className='axis-wrapper' ref={wrapperRef}>
+      <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
         <g className='axis' ref={elt => setAxisElt(elt)}/>
         <g ref={titleRef}/>
       </g>
-      {graphRef.current && wrapperRef.current &&
-        <DroppableSvg className={`${model.place}`} dropId={droppableId} dropData={data}
-          portal={graphRef.current} target={wrapperRef.current} onIsActive={handleIsActive} />}
+      <DroppableSvg className={`${model.place}`} dropId={droppableId} dropData={data}
+                    portal={graphElt} target={wrapperElt} onIsActive={handleIsActive} />
     </>
   )
 }
