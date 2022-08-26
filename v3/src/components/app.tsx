@@ -47,10 +47,22 @@ export const App = () => {
     }
   }
 
+  function createNewStarterDataset() {
+    const newData = [{AttributeName: ""}]
+    const ds = DataSet.create({name: "New Dataset"})
+    ds.addAttribute({name: "AttributeName"})
+    ds.addCases(toCanonical(ds, newData))
+    gDataBroker.addDataSet(ds)
+  }
+
   useEffect(() => {
     if (gDataBroker.dataSets.size === 0) {
       const sample = sampleData.find(name => urlParams.sample === name)
-      sample && importSample(sample as SampleType, handleImportData)
+      if (sample) {
+        importSample(sample as SampleType, handleImportData)
+      } else {
+        createNewStarterDataset()
+      }
     }
   }, [])
 
