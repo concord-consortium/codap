@@ -47,7 +47,7 @@ export const App = () => {
     }
   }
 
-  function createNewTable() {
+  function createNewStarterDataset() {
     const newData = [{AttributeName: ""}]
     const ds = DataSet.create({name: "New Dataset"})
     ds.addAttribute({name: "AttributeName"})
@@ -61,7 +61,7 @@ export const App = () => {
       if (sample) {
         importSample(sample as SampleType, handleImportData)
       } else {
-        createNewTable()
+        createNewStarterDataset()
       }
     }
   }, [])
