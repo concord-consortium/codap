@@ -39,7 +39,7 @@ export const DroppableSvg = ({ className, portal, target, dropId, dropData, onIs
                                 ? { left, top, width: targetBounds.width, height: targetBounds.height }
                                 : {}
   const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`
-  return portal && createPortal(
+  return portal && target && createPortal(
     <div ref={setNodeRef} className={classes} style={style} />,
     portal
   )
