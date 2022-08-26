@@ -14,15 +14,16 @@ export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
   const scale = layout.axisScale(axisModel.place)
   const axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft
 
-  const refreshAxis = useCallback((duration = 0) => {
+  const refreshAxis = useCallback(() => {
     prf.measure("Graph.useNumericAxis[refreshAxisCallback]", () => {
       if (axisElt) {
         select(axisElt)
-          .transition().duration(duration)
+          .transition().duration(axisModel.transitionDuration)
           .call(axisFunc(scale))
+        // axisModel.setTransitionDuration(0)
       }
     })
-  }, [axisElt, axisFunc, scale])
+  }, [axisElt, axisFunc, scale, axisModel])
 
   // update d3 scale and axis when scale type changes
   useEffect(()=> {
