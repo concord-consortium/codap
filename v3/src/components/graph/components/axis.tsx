@@ -6,9 +6,10 @@ import { kGraphClassSelector } from "../graphing-types"
 import { getDragAttributeId, IDropData } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
+import { prf } from "../../../utilities/profiler"
 import { AxisPlace, INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import { prf } from "../../../utilities/profiler"
+import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import "./axis.scss"
 
 const axisDragHints = ['Drag to change axis lower bound',
@@ -18,14 +19,16 @@ const axisDragHints = ['Drag to change axis lower bound',
 type D3Handler = (this: Element, event: any, d: any) => void
 
 interface IProps {
+  attributeID: string,
   model: INumericAxisModel
   transform: string
-  label: string | undefined
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
-export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
+export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps) => {
   const
     instanceId = useInstanceIdContext(),
+    dataset = useDataSetContext(),
+    label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${model.place}-axis`,
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),

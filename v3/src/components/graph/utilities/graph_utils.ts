@@ -1,19 +1,18 @@
-import {format, select} from "d3"
+import {extent, format, select} from "d3"
+import {isInteger} from "lodash"
 import React from "react"
-import {defaultRadius, Rect, rTreeRect} from "../graphing-types"
+import {defaultRadius, Point, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
-import {ScaleBaseType} from "../models/graph-layout"
+import {GraphLayout, ScaleBaseType} from "../models/graph-layout"
 import {prf} from "../../../utilities/profiler"
-import {isInteger} from "lodash"
+import {INumericAxisModel} from "../models/axis-model"
+import {IGraphModel} from "../models/graph-model"
+import {IAttribute} from "../../../data-model/attribute"
 
 /**
  * Utility routines having to do with graph entities
  */
-
-export type Point = { x: number, y: number }
-export type CPLine = { slope: number, intercept: number, pivot1?: Point, pivot2?: Point }
-export const kNullPoint = {x: -999, y: -999}
 
 export function ptInRect(pt: Point, iRect: Rect) {
   const tRight = iRect.x + iRect.width,
@@ -75,6 +74,66 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   }
   return bounds
 }
+
+export function setNiceDomain(values: number[], scale: ScaleBaseType, axis: INumericAxisModel) {
+  const valueExtent = extent(values, d => d) as [number, number],
+    niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
+  axis.setDomain(niceBounds.min, niceBounds.max)
+}
+
+export interface IPullOutNumericAttributesProps {
+  dataset: IDataSet
+  layout: GraphLayout
+  xAxis: INumericAxisModel
+  yAxis: INumericAxisModel
+  graphModel: IGraphModel
+}
+
+export const pullOutNumericAttributesInNewDataset = (props: IPullOutNumericAttributesProps) => {
+  const {dataset, layout, xAxis, yAxis, graphModel} = props,
+    xScale = layout.axisScale("bottom"),
+    yScale = layout.axisScale("left")
+
+    let xAttrId = '', yAttrId = ''
+
+    const findNumericAttrIds = (attrsToSearch: IAttribute[]) => {
+      for (const iAttr of attrsToSearch) {
+        if (iAttr.type === 'numeric') {
+          if (xAttrId === '') {
+            xAttrId = iAttr.id
+          } else if (yAttrId === '') {
+            yAttrId = iAttr.id
+          } else {
+            break
+          }
+        }
+      }
+    }
+
+    if(dataset) {
+      const attributes = dataset?.attributes
+
+      findNumericAttrIds(attributes || [])
+
+      if (xAttrId !== '' && yAttrId !== '') {
+
+        const xValues = dataset.attrFromID(xAttrId).numValues,
+          yValues = dataset.attrFromID(yAttrId).numValues
+        graphModel.setAttributeID('bottom', xAttrId)
+        graphModel.setAttributeID('left', yAttrId)
+        graphModel.setCases(dataset.cases.map(aCase => aCase.__id__)
+          .filter(anID => {
+            return isFinite(Number(dataset.getNumeric(anID, xAttrId))) &&
+              isFinite(Number(dataset.getNumeric(anID, yAttrId)))
+          }))
+        if (graphModel.cases.length > 0) {
+          setNiceDomain(xValues, xScale, xAxis)
+          setNiceDomain(yValues, yScale, yAxis)
+        }
+      }
+    }
+}
+
 
 //  Return the two points in logical coordinates where the line with the given
 //  iSlope and iIntercept intersects the rectangle defined by the upper and lower
@@ -251,7 +310,7 @@ export function rectToTreeRect(rect: Rect) {
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
                                attrID: string, scale: ScaleBaseType) {
   const value = dataSet?.getNumeric(id, attrID)
-  return value != null ? Math.round(100 * scale(value)) / 100 : NaN
+  return value != null && !isNaN(value) ? Math.round(100 * scale(value)) / 100 : null
 }
 
 export interface ISetPointSelection {
@@ -280,8 +339,8 @@ export function setPointSelection(props: ISetPointSelection) {
 export interface ISetPointCoordinates {
   dotsRef: React.RefObject<SVGSVGElement>
   selectedOnly?: boolean
-  getScreenX: ((anID: string) => number)
-  getScreenY: ((anID: string) => number)
+  getScreenX: ((anID: string) => number | null)
+  getScreenY: ((anID: string) => number | null)
   duration?: number
   onComplete?: () => void
 }

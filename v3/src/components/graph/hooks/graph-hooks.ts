@@ -1,14 +1,13 @@
 /**
  * Graph Custom Hooks
  */
-import {extent} from "d3"
-import {useEffect, useMemo} from "react"
-import {IAttribute} from "../../../data-model/attribute"
+import {useEffect} from "react"
+import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
+import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
+import {IDataSet} from "../../../data-model/data-set"
 import {INumericAxisModel} from "../models/axis-model"
-import {ScaleBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {InternalizedData} from "../graphing-types"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {computeNiceNumericBounds} from "../utilities/graph_utils"
+import {GraphLayout} from "../models/graph-layout"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -30,75 +29,62 @@ export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) 
   }, [target, start, drag, end])
 }
 
-export interface IUseGetDataProps {
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
+export interface IPlotResponderProps {
+  dataset:IDataSet | undefined
+  xAxisModel?:INumericAxisModel
+  yAxisModel?:INumericAxisModel
+  xAttrID?: string
+  yAttrID?: string
+  layout: GraphLayout
+  refreshPointPositions:(selectedOnly: boolean) => void
+  refreshPointSelection: () => void
+  enableAnimation:  React.MutableRefObject<boolean>
 }
 
-export const useGetData = (props: IUseGetDataProps) => {
-  const {xAxis, yAxis} = props,
-    dataset = useDataSetContext(),
-    layout = useGraphLayoutContext(),
-    xScale = layout.axisScale("bottom"),
-    yScale = layout.axisScale("left")
+export const usePlotResponders = (props: IPlotResponderProps) => {
+  const { dataset, xAttrID, yAttrID, xAxisModel, yAxisModel, enableAnimation,
+    refreshPointPositions, refreshPointSelection, layout } = props
 
-  const result = useMemo(() => {
-    let xAttrId = '', yAttrId = '', xName = '', yName = ''
-    const data: InternalizedData = {
-      xAttributeID: '',
-      yAttributeID: '',
-      cases: []
-    }
-
-    const findNumericAttrIds = (attrsToSearch: IAttribute[]) => {
-        for (const iAttr of attrsToSearch) {
-          if (iAttr.type === 'numeric') {
-            if (xAttrId === '') {
-              xAttrId = iAttr.id
-            } else if (yAttrId === '') {
-              yAttrId = iAttr.id
-            } else {
-              break
-            }
-          }
-        }
-      },
-
-      setNiceDomain = (values: number[], scale: ScaleBaseType, axis: INumericAxisModel) => {
-        const valueExtent = extent(values, d => d) as [number, number],
-          niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
-        scale.domain([niceBounds.min, niceBounds.max])
-        const [min, max] = scale.domain()
-        axis.setDomain(min, max)
+  // respond to axis domain changes (e.g. axis dragging)
+  useEffect(() => {
+    refreshPointPositions(false)
+    const disposer = reaction(
+      () => [xAxisModel?.domain, yAxisModel?.domain],
+      domains => {
+        refreshPointPositions(false)
       }
+    )
+    return () => disposer()
+  }, [refreshPointPositions, xAxisModel?.domain, yAxisModel?.domain])
 
-    if (dataset) {
-      const
-        attributes = dataset?.attributes
-
-      findNumericAttrIds(attributes || [])
-      if (xAttrId === '' || yAttrId === '') {
-        return {xName, yName, data}
+  // respond to axis range changes (e.g. component resizing)
+  useEffect(() => {
+    refreshPointPositions(false)
+    const disposer = reaction(
+      () => [layout.axisLength('left'), layout.axisLength('bottom')],
+      ranges => {
+        refreshPointPositions(false)
       }
+    )
+    return () => disposer()
+  }, [layout, refreshPointPositions])
 
-      const xValues = dataset.attrFromID(xAttrId).numValues,
-        yValues = dataset.attrFromID(yAttrId).numValues
-      data.xAttributeID = xAttrId
-      data.yAttributeID = yAttrId
-      xName = dataset.attrFromID(data.xAttributeID)?.name || ''
-      yName = dataset.attrFromID(data.yAttributeID)?.name || ''
-      data.cases = dataset.cases.map(aCase => aCase.__id__)
-        .filter(anID => {
-          return isFinite(Number(dataset.getNumeric(anID, xAttrId))) &&
-            isFinite(Number(dataset.getNumeric(anID, yAttrId)))
-        })
-      if (data.cases.length > 0) {
-        setNiceDomain(xValues, xScale, xAxis)
-        setNiceDomain(yValues, yScale, yAxis)
+  // respond to selection and value changes
+  useEffect(() => {
+    const disposer = dataset && onAction(dataset, action => {
+      if (isSelectionAction(action)) {
+        refreshPointSelection()
+      } else if (isSetCaseValuesAction(action)) {
+        // assumes that if we're caching then only selected cases are being updated
+        refreshPointPositions(dataset.isCaching)
       }
-    }
-    return {xName, yName, data}
-  }, [dataset, xAxis, xScale, yAxis, yScale])
+    }, true)
+    return () => disposer?.()
+  }, [dataset, refreshPointPositions, refreshPointSelection])
 
-  return result
+  // respond to x or y attribute id change
+  useEffect(() => {
+    enableAnimation.current = true
+    refreshPointPositions(false)
+  }, [refreshPointPositions, xAttrID, yAttrID, enableAnimation])
 }
