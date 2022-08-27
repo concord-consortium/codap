@@ -14,11 +14,13 @@ interface IDataBrokerOptions {
 export class DataBroker {
   @observable dataSets = new Map<string, IDataSet>()
   readonly allowMultiple: boolean
+  selectedDataSetId: string
 
   constructor(options?: IDataBrokerOptions) {
     const { allowMultiple = true } = options || {}
     makeObservable(this)
     this.allowMultiple = allowMultiple
+    this.selectedDataSetId = ""
   }
 
   get length() {
@@ -40,7 +42,12 @@ export class DataBroker {
       ({ id, name, attributes: attributes.length, cases: cases.length }))
   }
 
+  get selectedDataSet(): IDataSet | undefined {
+    return this.getDataSet(this.selectedDataSetId)
+  }
+
   getDataSet(id: string): IDataSet | undefined {
+    console.log("in getDataSet", id)
     return this.dataSets.get(id)
   }
 
@@ -48,6 +55,11 @@ export class DataBroker {
     for (const ds of this.dataSets.values()) {
       if (ds.name === name) return ds
     }
+  }
+
+  setSelectedDataSetId(id:string) {
+    console.log("in setSelectedDataSetId", id)
+    this.selectedDataSetId = id
   }
 
   @action
@@ -67,5 +79,4 @@ export class DataBroker {
   }
 }
 
-// for MVP we only support a single DataSet
-export const gDataBroker = new DataBroker({ allowMultiple: false })
+export const gDataBroker = new DataBroker({ allowMultiple: true })

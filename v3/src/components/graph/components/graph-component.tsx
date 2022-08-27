@@ -35,7 +35,7 @@ export const GraphComponent = observer(({ broker }: IProps) => {
   }, [width, height, layout])
 
   return (
-    <DataSetContext.Provider value={broker?.last}>
+    <DataSetContext.Provider value={broker?.selectedDataSet || broker?.last}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <Graph model={defaultGraphModel} graphRef={graphRef}/>

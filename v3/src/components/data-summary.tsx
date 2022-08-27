@@ -1,9 +1,10 @@
-import { Button } from '@chakra-ui/react'
+import { Button, Select } from '@chakra-ui/react'
 import { Active, DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IAttribute } from "../data-model/attribute"
 import { DataBroker } from "../data-model/data-broker"
+// import { IDataSet } from '../data-model/data-set'
 import { getDragAttributeId, IDropData, IUseDraggableAttribute, useDraggableAttribute } from '../hooks/use-drag-drop'
 import { prf } from "../utilities/profiler"
 
@@ -13,7 +14,11 @@ interface IProps {
   broker?: DataBroker;
 }
 export const DataSummary = observer(({ broker }: IProps) => {
-  const data = broker?.last
+""
+  const [selectedDataSetId, setSelectedDataSetId] = useState("")
+  console.log("selecteDataSet", broker?.selectedDataSet)
+  const data = broker?.selectedDataSet || broker?.last
+
   const { active } = useDndContext()
   const dragAttributeID = getDragAttributeId(active)
 
@@ -26,6 +31,31 @@ export const DataSummary = observer(({ broker }: IProps) => {
     setSelectedAttribute(data?.attrFromID(attributeId))
   }
 
+  const handleDataSetSelection = (evt: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedDataSetId(evt.target.value)
+    broker?.setSelectedDataSetId(evt.target.value)
+  }
+
+  const DataSelectPopup = () => {
+    const dataSetSummaries = broker?.summaries
+    const renderOption = (name: string, id: string) => {
+      return <option key={name} value={id}>{name}</option>
+    }
+
+    if (dataSetSummaries) {
+      return (
+        <Select onChange={handleDataSetSelection} value={selectedDataSetId}>
+          { dataSetSummaries?.map(summary => {
+              return renderOption(summary.name || `DataSet ${summary.id}`, summary.id)
+            })
+          }
+        </Select>
+      )
+    } else {
+      return null
+    }
+  }
+
   return (
     <div ref={setNodeRef} className="data-summary">
       <p>{data ? `Parsed "${data.name}" with ${data.cases.length} case(s) and attributes:` : "No data"}</p>
@@ -34,6 +64,7 @@ export const DataSummary = observer(({ broker }: IProps) => {
           <DraggableAttribute key={attr.id} attribute={attr} />
         ))}
       </div>
+      {data && <DataSelectPopup />}
       {data && <SummaryDropTarget attribute={selectedAttribute} onDrop={handleDrop}/>}
       {data && <ProfilerButton />}
       <DragOverlay dropAnimation={null}>
