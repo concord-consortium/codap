@@ -535,6 +535,10 @@ DG.CollectionClient = SC.Object.extend(
     return cases;
   },
 
+  caseCount: function () {
+    return this.getCaseCount();
+  }.property(),
+
   /**
     Returns the number of cases in the collection.
     @returns  {Number}    The number of cases in the collection
@@ -542,6 +546,29 @@ DG.CollectionClient = SC.Object.extend(
   getCaseCount: function() {
     return this.casesController.get('length');
   },
+
+  nonemptyCaseCount: function () {
+    return this.getNonemptyCaseCount();
+  }.property('*casesController'),
+
+  getNonemptyCaseCount: function() {
+    if (this.collection.children && this.collection.children.length) {
+      return this.casesController.get('length');
+    } else {
+      return this.casesController.reduce(function (ct, myCase){
+        if (!myCase.get('isEmpty')) {
+          return ct + 1;
+        } else {
+          return ct;
+        }
+      }, 0);
+    }
+  },
+
+  caseCountDidChange: function () {
+    DG.log('cc: caseCountDidChange');
+    this.notifyPropertyChange('caseCount');
+  }.observes('*casesController', 'casesController.length'),
 
   /**
     Returns the case at the specified index within the collection.

@@ -106,22 +106,30 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           value: function () {
             var collectionName = this.getPath('refView.collectionName');
             var caseCount = this.getPath('refView.caseCount');
+            var nonemptyCaseCount = this.getPath('refView.nonemptyCaseCount');
+            var noEmpties = (caseCount === nonemptyCaseCount);
             var hasChildTable = !!this.getPath('refView.childTable');
             var setAsideCount = hasChildTable ? 0 : this.getPath(
                 'refView.dataContext.setAsideCount');
-            if (hasChildTable || (setAsideCount === 0)) {
+            if (hasChildTable || (noEmpties && !setAsideCount) ) {
               return 'DG.TableController.collectionTitleText'.loc(collectionName,
                   caseCount);
-            } else {
+            } else if (noEmpties && setAsideCount) {
               return 'DG.TableController.collectionTitleTextWithSetAside'.loc(
                   collectionName, caseCount, setAsideCount);
+            } else if (!noEmpties && !setAsideCount) {
+              return 'DG.TableController.collectionTitleText-nonempty'.loc(
+                  collectionName, nonemptyCaseCount, setAsideCount);
+            } else {
+                return 'DG.TableController.collectionTitleTextWithSetAside-nonempty'.loc(
+                    collectionName, nonemptyCaseCount, setAsideCount);
             }
           }.property(),
 
           valueDidChange: function (l) {
             this.notifyPropertyChange('value');
             this.set('toolTip', this.get('value'));
-          }.observes('*refView.collectionName', '*refView.caseCount'),
+          }.observes('*refView.collectionName', '*refView.caseCount', '*refView.nonemptyCaseCount', '*refView.dataContext.setAsideCount'),
 
           toolTip: '',
 
@@ -448,12 +456,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * @return {number}
      */
     caseCount: function () {
-      return this.getPath('gridAdapter.collection.casesController.length');
+      return this.getPath('gridAdapter.collection.caseCount');
+    }.property(),
+
+    nonemptyCaseCount: function () {
+      return this.getPath('gridAdapter.collection.nonemptyCaseCount');
     }.property(),
 
     caseCountDidChange: function () {
       this.notifyPropertyChange('caseCount');
-    }.observes('*gridAdapter.collection.casesController.length'),
+    }.observes('*gridAdapter.collection.caseCount'),
+
+    nonemptyCaseCountDidChange: function () {
+      this.notifyPropertyChange('nonemptyCaseCount');
+    }.observes('*gridAdapter.collection.nonemptyCaseCount'),
 
     /**
      The adapter used for adapting the case data for use in SlickGrid.
@@ -1329,6 +1345,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           this.restoreEditStateWhenReady(editState);
         }
       }
+      this.caseCountDidChange();
       this.setPath('gridAdapter.lastRefresh', new Date());
     },
 
