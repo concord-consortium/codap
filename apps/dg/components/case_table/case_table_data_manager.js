@@ -143,7 +143,7 @@ DG.CaseTableDataManager = SC.Object.extend({
     }
     var myCase = this.getItem(row);
     if (myCase && (myCase instanceof DG.Case)) {
-      if (myCase.collection.get('id') !== this.collection.get('id')) {
+      if (myCase.collection.get('id') !== this.collection.get('id') ) {
         return {
           cssClasses: 'dg-collapsed-row',
           columns: {
@@ -153,8 +153,11 @@ DG.CaseTableDataManager = SC.Object.extend({
           },
           formatter: function (row, cell, cellValue, colInfo, rowItem) {
             var caseCount = this.subcaseCount(this._rowCaseMap[row]);
+            var nonemptyCaseCount = this.subcaseCount(this._rowCaseMap[row], true);
             var setName = this.context.getCaseNameForCount(this.collection, caseCount);
-            return '%@ %@'.loc(caseCount, setName);
+            return caseCount-nonemptyCaseCount?
+                "DG.CaseTable.closedGroup.summary-nonempty".loc(nonemptyCaseCount, setName):
+                "DG.CaseTable.closedGroup.summary".loc(caseCount, setName);
           }.bind(this)
         };
       }
@@ -540,13 +543,15 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @param iCase
    * @returns {number}
    */
-  subcaseCount: function (iCase) {
+  subcaseCount: function (iCase, deductEmpty) {
     var count = 0;
     if (iCase.collection.id === this.collection.get('id')) {
       count = 1;
     } else {
       iCase.children.forEach(function (myCase) {
-        count += this.subcaseCount(myCase);
+        if (!deductEmpty || !myCase.get('isEmpty')) {
+          count += this.subcaseCount(myCase);
+        }
       }.bind(this));
     }
     return count;
