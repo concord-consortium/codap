@@ -4,7 +4,7 @@ import { CaseTable } from "./case-table/case-table"
 import {Container} from "./container"
 import {DataSummary} from "./data-summary"
 import {gDataBroker} from "../data-model/data-broker"
-import {DataSet, toCanonical} from "../data-model/data-set"
+import {DataSet, IDataSet, toCanonical} from "../data-model/data-set"
 import { GraphComponent } from "./graph/components/graph-component"
 import {Text} from "./text"
 import { dndDetectCollision } from "./dnd-detect-collision"
@@ -14,19 +14,18 @@ import {useSampleText} from "../hooks/use-sample-text"
 import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
+import { CodapV2Document } from "../v2/codap-v2-document"
 
 import "./app.scss"
 
-export function handleImportData(data: Array<Record<string, string>>, fName?: string) {
-  const ds = DataSet.create({name: fName})
-  // add attributes
-  for (const pName in data[0]) {
-    ds.addAttribute({name: pName})
-  }
-  // add cases
-  ds.addCases(toCanonical(ds, data))
+export function handleImportDataSet(data: IDataSet) {
   // add data set
-  gDataBroker.addDataSet(ds)
+  gDataBroker.addDataSet(data)
+}
+
+export function handleImportDocument(document: CodapV2Document) {
+  // add data sets
+  document.datasets.forEach(data => gDataBroker.addDataSet(data))
 }
 
 export const App = () => {
@@ -34,7 +33,11 @@ export const App = () => {
 
   useKeyStates()
 
-  useDropHandler("#app", handleImportData)
+  useDropHandler({
+    selector: "#app",
+    onImportDataSet: handleImportDataSet,
+    onImportDocument: handleImportDocument
+  })
 
   function handleDragStart(evt: DragStartEvent) {
     // console.log("DnDKit [handleDragStart]")
@@ -59,7 +62,7 @@ export const App = () => {
     if (gDataBroker.dataSets.size === 0) {
       const sample = sampleData.find(name => urlParams.sample === name)
       if (sample) {
-        importSample(sample as SampleType, handleImportData)
+        importSample(sample as SampleType, handleImportDataSet)
       } else {
         createNewStarterDataset()
       }

@@ -34,7 +34,6 @@
   of people on the planet for whom that reference makes any sense.
  */
 
-import { findIndex } from "lodash"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot, IValueType } from "./attribute"
 import { uniqueId, uniqueOrderedId } from "../utilities/js-utils"
@@ -180,7 +179,7 @@ export const DataSet = types.model("DataSet", {
   const attrIDFromName = (name: string) => attrNameMap[name]
 
   function attrIndexFromID(id: string) {
-    const index = findIndex(self.attributes, (attr) => attr.id === id )
+    const index = self.attributes.findIndex(attr => attr.id === id )
     return index >= 0 ? index : undefined
   }
 
