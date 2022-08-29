@@ -158,6 +158,11 @@ DG.CaseTableDataManager = SC.Object.extend({
           }.bind(this)
         };
       }
+      else if (myCase.get('isEmpty')) {
+        return {
+          cssClasses: 'dg-empty-case-row'
+        };
+      }
     }
     else {
       return computeProtoRowMetadata(this.adapter.gridColumns);
