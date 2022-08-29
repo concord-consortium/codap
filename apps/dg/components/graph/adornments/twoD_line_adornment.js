@@ -306,7 +306,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       });
       this.get('paperSource').appendChild(this.equation);
       // Tune up the line rendering a bit
-      this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
+      this.lineSeg.node.setAttribute('shape-rendering', 'geometricPrecision');
 
       this.myElements = [this.lineSeg, this.coverSeg];
       tDataTipLayer.push(this.coverSeg);

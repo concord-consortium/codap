@@ -263,7 +263,7 @@ DG.DotChartView = DG.ChartView.extend(
             .attr({
               cursor: "pointer", cx: -1000, cy: -1000
             });
-        tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
+        tCircle.node.setAttribute('shape-rendering', 'geometricPrecision');
         return this.assignElementAttributes(tCircle, iIndex, iAnimate);
       },
 

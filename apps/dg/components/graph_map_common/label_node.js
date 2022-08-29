@@ -39,7 +39,7 @@ DG.LabelNode = SC.Object.extend(
       _circleElement: null,
       _textElement: null,
       kCircleRadius: 6,
-      anchor: 'center',
+      anchor: 'middle',
       touchEndHandler: null,
       getPointColor: null,  // May be set by creator to an accessor function
 

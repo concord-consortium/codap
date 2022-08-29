@@ -355,7 +355,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       createElement: function (iCase, iIndex, iAnimate) {
         var tCircle = this.get('paper').circle(-100, -100, this._pointRadius);
         tCircle['case'] = iCase;
-        tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
+        tCircle.node.setAttribute('shape-rendering', 'geometricPrecision');
         return tCircle;
       },
 

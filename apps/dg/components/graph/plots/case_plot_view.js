@@ -188,7 +188,7 @@ DG.CasePlotView = DG.PlotView.extend(
                   .attr({cursor: "pointer"})
                   .addClass(DG.PlotUtilities.kDotClassName);
           tCircle.index = iIndex;
-          tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
+          tCircle.node.setAttribute('shape-rendering', 'geometricPrecision');
           addHandlers(this, tCircle);
           return tCircle;
         },
@@ -247,7 +247,7 @@ DG.CasePlotView = DG.PlotView.extend(
                     tLayer.push(iElement);
                     iElement.addClass(DG.PlotUtilities.kDotClassName);
                     iElement.index = tStart + iIndex;
-                    iElement.node.setAttribute('shape-rendering', 'geometric-precision');
+                    iElement.node.setAttribute('shape-rendering', 'geometricPrecision');
                     return true;
                   });
                   addHandlers(this_, tPointSet);

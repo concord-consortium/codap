@@ -181,7 +181,7 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
               fill: DG.PlotUtilities.kDefaultPointColor,
               stroke: 'none'
             });
-        tRect.node.setAttribute('shape-rendering', 'geometric-precision');
+        tRect.node.setAttribute('shape-rendering', 'geometricPrecision');
         /*
                 if (iAnimate)
                   DG.PlotUtilities.doCreateRectAnimation(tRect);

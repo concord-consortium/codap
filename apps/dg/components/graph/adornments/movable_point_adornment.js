@@ -161,13 +161,13 @@ DG.MovablePointAdornment = DG.PlotAdornment.extend(
             .hover( overScope, outScope);
         this.point.animatable = true;
         // Tune up the point rendering a bit
-        this.point.node.setAttribute('shape-rendering', 'geometric-precision');
+        this.point.node.setAttribute('shape-rendering', 'geometricPrecision');
 
         this.shadow = tPaper.circle(0, 0, this.defaultRadius)
             .attr({ 'stroke-width': 2, stroke: 'darkgray', 'stroke-opacity': 0});
         this.shadow.animatable = true;
         // Tune up the shadow rendering a bit
-        this.shadow.node.setAttribute('shape-rendering', 'geometric-precision');
+        this.shadow.node.setAttribute('shape-rendering', 'geometricPrecision');
 
         this.myElements = [ this.shadow, this.point ];
         this.myElements.forEach(function (iElement) {
