@@ -1,5 +1,5 @@
 import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
-import React, { useEffect } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { CaseTable } from "./case-table/case-table"
 import {Container} from "./container"
 import {DataSummary} from "./data-summary"
@@ -23,19 +23,26 @@ export function handleImportDataSet(data: IDataSet) {
   gDataBroker.addDataSet(data)
 }
 
-export function handleImportDocument(document: CodapV2Document) {
-  // add data sets
-  document.datasets.forEach(data => gDataBroker.addDataSet(data))
-}
-
 export const App = () => {
   const sampleText = useSampleText()
+  const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
 
   useKeyStates()
 
+  const _handleImportDataSet = useCallback((data: IDataSet) => {
+    handleImportDataSet(data)
+    setV2Document(undefined)
+  }, [])
+
+  const handleImportDocument = useCallback((document: CodapV2Document) => {
+    // add data sets
+    document.datasets.forEach(data => gDataBroker.addDataSet(data))
+    setV2Document(document)
+  }, [])
+
   useDropHandler({
     selector: "#app",
-    onImportDataSet: handleImportDataSet,
+    onImportDataSet: _handleImportDataSet,
     onImportDocument: handleImportDocument
   })
 
@@ -74,7 +81,7 @@ export const App = () => {
       <div className="app" data-testid="app">
         <Container>
           {/* each top-level child will be wrapped in a CodapComponent */}
-          <DataSummary/>
+          <DataSummary v2Document={v2Document} />
           <div className="hello-codap3">
             <div>
               <img src={Icon}/>

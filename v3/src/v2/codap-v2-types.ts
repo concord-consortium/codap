@@ -23,9 +23,10 @@ export interface ICodapV2Attribute {
 }
 
 export interface ICodapV2Case {
-  id: number
+  id?: number
   guid: number
-  itemID: number
+  itemID?: number
+  parent?: number
   values: Record<string, number | string>
 }
 
@@ -50,7 +51,7 @@ export interface ICodapV2Collection {
     setOfCasesWithArticle: string
   }
   name: string
-  // parent: parentID,
+  parent?: number
   title: string
   type: 'DG.Collection'
 }
