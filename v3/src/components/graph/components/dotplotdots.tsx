@@ -160,7 +160,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     })
   }, [dataset, casesRef, dotsRef, xAttrID, xScale, yScale, plotWidth, enableAnimation])
 
-  usePlotResponders( {
+  usePlotResponders({
     dataset, xAxisModel: axisModel, xAttrID, layout,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })

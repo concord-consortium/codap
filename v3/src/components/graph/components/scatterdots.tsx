@@ -1,7 +1,7 @@
 import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
-import {plotProps, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
+import {defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -12,7 +12,7 @@ import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utiliti
 import {prf} from "../../../utilities/profiler"
 
 export const ScatterDots = memo(function ScatterDots(props: {
-  plotProps: plotProps
+  casesRef: React.MutableRefObject<string[]>
   xAttrID: string
   yAttrID: string
   dotsRef: React.RefObject<SVGSVGElement>
@@ -20,7 +20,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
   yAxisModel: INumericAxisModel
   enableAnimation: React.MutableRefObject<boolean>
 }) {
-  const {xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props,
+  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -157,10 +157,10 @@ export const ScatterDots = memo(function ScatterDots(props: {
       if (selectedOnly) {
         dataset?.selection.forEach(caseId => updateDot(caseId))
       } else {
-        dataset?.cases.forEach(({__id__}) => updateDot(__id__))
+        casesRef.current.forEach((anID) => updateDot(anID))
       }
     })
-  }, [dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
+  }, [casesRef, dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (appState.isPerformanceMode) {

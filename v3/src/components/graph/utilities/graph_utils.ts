@@ -96,7 +96,7 @@ export interface IMatchCirclesProps {
 }
 export function matchCirclesToData( props: IMatchCirclesProps) {
   const {caseIDs, dataset, enableAnimation, keyFunc, instanceId, dotsElement,
-    xAttrID, yAttrID, xScale, yScale} = props
+    xAttrID, yAttrID/*, xScale, yScale*/} = props
   const float = format('.3~f')
   enableAnimation.current = true
   select(dotsElement)
@@ -109,8 +109,6 @@ export function matchCirclesToData( props: IMatchCirclesProps) {
           .attr('class', 'graph-dot')
           .attr("r", defaultRadius)
           .property('id', (anID: string) => `${instanceId}_${anID}`)
-          .attr('cx', (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale))
-          .attr('cy', (anID: string) => getScreenCoord(dataset, anID, yAttrID, yScale))
           .selection()
           .append('title')
           .text((anID: string) => {

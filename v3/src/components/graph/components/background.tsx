@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {Rect, plotProps, InternalizedData, rTreeRect} from "../graphing-types"
+import {Rect, InternalizedData, rTreeRect} from "../graphing-types"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph_utils"
 import { appState } from "../../app-state"
@@ -36,13 +36,13 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
   }
 
 export const Background = (props: {
-  dots: plotProps,
+  transform: string,
   marquee: {
     rect: Rect,
     setRect: React.Dispatch<React.SetStateAction<Rect>>
   }
 }) => {
-  const { dots, marquee: { setRect: setMarqueeRect }} = props,
+  const { transform, marquee: { setRect: setMarqueeRect }} = props,
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     { plotWidth, plotHeight } = layout,
@@ -130,7 +130,7 @@ export const Background = (props: {
         (enter) => {
           enter.append('rect')
             .attr('class', 'graph-background')
-            .attr('transform', dots.transform)
+            .attr('transform', transform)
             .call(dragBehavior)
         },
         (update) => {
@@ -140,7 +140,7 @@ export const Background = (props: {
             .attr('y', plotY)
         }
       )
-  }, [dataset, onDrag, onDragEnd, onDragStart, plotHeight, plotWidth, plotX, plotY, dots.transform])
+  }, [dataset, onDrag, onDragEnd, onDragStart, plotHeight, plotWidth, plotX, plotY, transform])
 
   return (
     <g ref={ref}/>
