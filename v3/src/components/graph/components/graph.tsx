@@ -5,7 +5,7 @@ import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {kGraphClass, plotProps} from "../graphing-types"
+import {kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "./marquee"
@@ -46,10 +46,7 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
       {margin} = layout,
       xScale = layout.axisScale("bottom"),
       yScale = layout.axisScale("left"),
-
-      dotsProps: plotProps = {
-        transform: `translate(${margin.left}, 0)`
-      },
+      transform = `translate(${margin.left}, 0)`,
 
       keyFunc = useCallback((d: string) => d, []),
       svgRef = useRef<SVGSVGElement>(null),
@@ -60,6 +57,7 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
     useEffect(function makeUseOfDataset() {
       if (dataset) {
         pullOutNumericAttributesInNewDataset({dataset, layout, xAxis: xAxisModel, yAxis: yAxisModel, graphModel})
+        casesRef.current = graphModel.cases
       }
     }, [dataset, layout, xAxisModel, yAxisModel])
 
@@ -71,7 +69,6 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
 
     useEffect(function setupPlotArea() {
       select(plotAreaSVGRef.current)
-        // .attr('transform', props.plotProps.transform)
         .attr('x', xScale.range()[0] + margin.left)
         .attr('y', 0)
         .attr('width', layout.plotWidth)
@@ -145,13 +142,13 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 onDropAttribute={handleDropAttribute}
           />
-          <Background dots={dotsProps} marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
+          <Background transform={transform} marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
             <svg ref={dotsRef}>
               {
                 (plotType === 'scatterPlot' ?
                   <ScatterDots
-                    plotProps={dotsProps}
+                    casesRef={casesRef}
                     xAttrID={xAttrID}
                     yAttrID={yAttrID}
                     dotsRef={dotsRef}
