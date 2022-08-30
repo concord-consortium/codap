@@ -1062,6 +1062,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           tDeleteSingle = tSelectionCount === 1,
           tDataItem = this._slickGrid.getDataItem(iCell.row),
           isProtoCase = tDataItem && tDataItem._isProtoCase,
+          isEmptyCase = tDataItem && tDataItem.get('isEmpty'),
           tItems = [{
               title: 'DG.CaseTable.indexMenu.moveEntryRow',
               localize: true,
@@ -1090,7 +1091,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             layout: {width: 200, height: 150},
             items: tItems
           });
-      if (tIsEnabled) {
+      if (tIsEnabled && !isEmptyCase) {
         this._caseIndexMenuCell = SC.copy(iCell);
         tMenu.popup(iEvent.target);
       }
