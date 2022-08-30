@@ -53,7 +53,6 @@ export const Attribute = types.model("Attribute", {
   clientKey: "",
   sourceID: types.maybe(types.string),
   name: types.string,
-  level: 0, // hierarchical level: 0 = child/leaf
   userType: types.maybe(types.enumeration([...attributeTypes])),
   userFormat: types.maybe(types.string),
   hidden: false,
@@ -82,7 +81,6 @@ export const Attribute = types.model("Attribute", {
   },
   toNumeric(value: string) {
     if (value == null || value === "") return NaN
-    if (typeof value === "string") return parseFloat(value)
     return Number(value)
   },
   get emptyCount() {

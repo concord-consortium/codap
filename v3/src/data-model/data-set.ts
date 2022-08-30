@@ -36,6 +36,7 @@
 
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot, IValueType } from "./attribute"
+import { CollectionModel, ICollectionModelSnapshot } from "./collection"
 import { uniqueId, uniqueOrderedId } from "../utilities/js-utils"
 
 export const newCaseId = uniqueOrderedId
@@ -149,6 +150,7 @@ export const DataSet = types.model("DataSet", {
   id: types.optional(types.identifier, () => uniqueId()),
   sourceID: types.maybe(types.string),
   name: types.maybe(types.string),
+  collections: types.array(CollectionModel),
   attributes: types.array(Attribute),
   cases: types.array(CaseID),
   // for serialization only, not for dynamic selection tracking
@@ -385,6 +387,9 @@ export const DataSet = types.model("DataSet", {
       },
       setName(name: string) {
         self.name = name
+      },
+      addCollection(snapshot: ICollectionModelSnapshot) {
+        self.collections.push(CollectionModel.create(snapshot))
       },
       addAttribute(snapshot: IAttributeSnapshot, beforeID?: string) {
         let beforeIndex = beforeID ? attrIndexFromID(beforeID) ?? -1 : -1

@@ -50,7 +50,7 @@ export class CodapV2Document {
     contexts?.forEach(context => {
       const { guid, type, document, name, collections } = context
       if (document && this.guidMap[document]?.type !== "DG.Document") {
-        console.warn("CodapV2Document.registerContexts: context with invalid guid:", context.document)
+        console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
       }
       this.guidMap[guid] = { type, object: context }
       this.data[guid] = DataSet.create({ name })
@@ -66,6 +66,8 @@ export class CodapV2Document {
 
       // assumes hierarchical collection are in order parent => child
       const level = collections.length - index - 1
+      const attributes = attrs.map(attr => data.attrFromName(attr.name)?.id).filter(id => !!id)
+      data.addCollection({ attributes })
       this.registerAttributes(data, attrs, level)
       this.registerCases(data, cases, level)
     })
@@ -75,7 +77,7 @@ export class CodapV2Document {
     attributes?.forEach(attr => {
       const { guid, name, type, formula } = attr
       this.guidMap[guid] = { type: type || "DG.Attribute", object: attr }
-      data.addAttribute({ name, level, formula })
+      data.addAttribute({ name, formula })
     })
   }
 
@@ -85,20 +87,11 @@ export class CodapV2Document {
       this.guidMap[guid] = { type: "DG.Case", object: _case }
       // only add child/leaf cases
       if (level === 0) {
-        const caseValues = toCanonical(data, values)
+        let caseValues = toCanonical(data, values)
         // look up parent case attributes and add them to caseValues
-        data.attributes.forEach(attr => {
-          if (attr.level > 0) {
-            let parentCase: ICodapV2Case | undefined
-            do {
-              parentCase = this.getParentCase(_case)
-              if (parentCase && Object.prototype.hasOwnProperty.call(parentCase.values, attr.name)) {
-                caseValues[attr.id] = parentCase.values[attr.name]
-                break
-              }
-            } while (parentCase)
-          }
-        })
+        for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
+          caseValues = { ...(parentCase.values ? toCanonical(data, parentCase.values) : undefined), ...caseValues }
+        }
         data.addCases([caseValues])
       }
     })

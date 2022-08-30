@@ -31,12 +31,9 @@ export interface ICodapV2Case {
 }
 
 export interface ICodapV2Collection {
-  areParentChildLinksConfigured: boolean
-  attrs: []
-  cases: []
+  attrs: ICodapV2Attribute[]
+  cases: ICodapV2Case[]
   caseName: string | null
-  childAttrName: string | null
-  collapseChildren: boolean | null
   defaults?: {
     xAttr: string
     yAttr: string
@@ -85,7 +82,13 @@ export interface ICodapV2TableStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
   }
-  attributeWidths: number[]
+  attributeWidths: Array<{
+    _links_: {
+      attr: IGuidLink<"DG.Attribute">
+    }
+    width: number
+  }>
+  title: string
 }
 
 export interface ICodapV2PlotModel {
