@@ -14,13 +14,12 @@ interface IDataBrokerOptions {
 export class DataBroker {
   @observable dataSets = new Map<string, IDataSet>()
   readonly allowMultiple: boolean
-  selectedDataSetId: string
+  @observable selectedDataSetId = ""
 
   constructor(options?: IDataBrokerOptions) {
     const { allowMultiple = true } = options || {}
     makeObservable(this)
     this.allowMultiple = allowMultiple
-    this.selectedDataSetId = ""
   }
 
   get length() {
@@ -42,12 +41,10 @@ export class DataBroker {
       ({ id, name, attributes: attributes.length, cases: cases.length }))
   }
 
-  get selectedDataSet(): IDataSet | undefined {
+  getSelectedDataSet(): IDataSet | undefined {
     return this.getDataSet(this.selectedDataSetId)
   }
-
   getDataSet(id: string): IDataSet | undefined {
-    console.log("in getDataSet", id)
     return this.dataSets.get(id)
   }
 
@@ -57,15 +54,16 @@ export class DataBroker {
     }
   }
 
+  @action
   setSelectedDataSetId(id:string) {
-    console.log("in setSelectedDataSetId", id)
-    this.selectedDataSetId = id
+    this.selectedDataSetId = id || this.last?.id || ""
   }
 
   @action
   addDataSet(ds: IDataSet) {
     !this.allowMultiple && this.dataSets.clear()
     this.dataSets.set(ds.id, ds)
+    this.setSelectedDataSetId(ds.id)
   }
 
   @action

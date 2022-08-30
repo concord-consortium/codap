@@ -29,13 +29,14 @@ export const GraphComponent = observer(({ broker }: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
   const { width, height, ref: graphRef } = useResizeDetector({ refreshMode: "debounce", refreshRate: 200 })
+  const data = broker?.getSelectedDataSet() || broker?.last
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
   }, [width, height, layout])
 
   return (
-    <DataSetContext.Provider value={broker?.selectedDataSet || broker?.last}>
+    <DataSetContext.Provider value={data}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <Graph model={defaultGraphModel} graphRef={graphRef}/>

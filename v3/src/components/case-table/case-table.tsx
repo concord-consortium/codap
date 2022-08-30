@@ -19,7 +19,7 @@ interface IProps {
 }
 export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
   return prf.measure("Table.render", () => {
-    const data = broker?.selectedDataSet || broker?.last
+    const data = broker?.getSelectedDataSet() || broker?.last
 
     const gridRef = useRef<DataGridHandle>(null)
     const { active } = useDndContext()

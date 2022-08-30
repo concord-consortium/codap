@@ -14,10 +14,7 @@ interface IProps {
   broker?: DataBroker;
 }
 export const DataSummary = observer(({ broker }: IProps) => {
-""
-  const [selectedDataSetId, setSelectedDataSetId] = useState("")
-  console.log("selecteDataSet", broker?.selectedDataSet)
-  const data = broker?.selectedDataSet || broker?.last
+  const data = broker?.getSelectedDataSet() || broker?.last
 
   const { active } = useDndContext()
   const dragAttributeID = getDragAttributeId(active)
@@ -32,7 +29,6 @@ export const DataSummary = observer(({ broker }: IProps) => {
   }
 
   const handleDataSetSelection = (evt: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedDataSetId(evt.target.value)
     broker?.setSelectedDataSetId(evt.target.value)
   }
 
@@ -44,7 +40,7 @@ export const DataSummary = observer(({ broker }: IProps) => {
 
     if (dataSetSummaries) {
       return (
-        <Select onChange={handleDataSetSelection} value={selectedDataSetId}>
+        <Select onChange={handleDataSetSelection} value={data?.id}>
           { dataSetSummaries?.map(summary => {
               return renderOption(summary.name || `DataSet ${summary.id}`, summary.id)
             })
