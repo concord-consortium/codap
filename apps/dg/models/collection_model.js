@@ -496,7 +496,9 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       }
 
       if (caseShouldBeAddedAtEnd(parentID, this.parent, this.lastCase())) {
-        this.caseIDToGroupedIndexMap[caseID] = caseCounts[parentID]++;
+        if (!iCase.isEmpty()) {
+          this.caseIDToGroupedIndexMap[caseID] = caseCounts[parentID]++;
+        }
         caseIDToIndexMap[caseID] = this.cases.length;
         this.cases.pushObject(iCase);
         this.notifyPropertyChange('caseIDToIndexMap');
@@ -778,7 +780,9 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
             var caseID = iCase.get('id'), parentID = iCase.getPath('parent.id');
             if (SC.none(caseIndices[parentID]))
               caseIndices[parentID] = 0;
-            groupedMap[caseID] = caseIndices[parentID]++;
+            if (!iCase.isEmpty()) {
+              groupedMap[caseID] = caseIndices[parentID]++;
+            }
             map[caseID] = ix;
           }
         });
