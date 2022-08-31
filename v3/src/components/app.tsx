@@ -1,3 +1,4 @@
+import { ChakraProvider, extendTheme } from "@chakra-ui/react"
 import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import React, { useCallback, useEffect, useState } from "react"
 import { CaseTable } from "./case-table/case-table"
@@ -15,6 +16,7 @@ import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
+import appTheme from "./app-theme.json"
 
 import "./app.scss"
 
@@ -26,6 +28,8 @@ export function handleImportDataSet(data: IDataSet) {
 export const App = () => {
   const sampleText = useSampleText()
   const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
+
+  const theme = extendTheme(appTheme)
 
   useKeyStates()
 
@@ -77,22 +81,24 @@ export const App = () => {
   }, [])
 
   return (
-    <DndContext collisionDetection={dndDetectCollision} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="app" data-testid="app">
-        <Container>
-          {/* each top-level child will be wrapped in a CodapComponent */}
-          <DataSummary v2Document={v2Document} />
-          <div className="hello-codap3">
-            <div>
-              <img src={Icon}/>
-              <Text text={sampleText}/>
-              <p>Drag a CSV file into this window to get some data.</p>
+    <ChakraProvider theme={theme}>
+      <DndContext collisionDetection={dndDetectCollision} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="app" data-testid="app">
+          <Container>
+            {/* each top-level child will be wrapped in a CodapComponent */}
+            <DataSummary v2Document={v2Document} />
+            <div className="hello-codap3">
+              <div>
+                <img src={Icon}/>
+                <Text text={sampleText}/>
+                <p>Drag a CSV file into this window to get some data.</p>
+              </div>
             </div>
-          </div>
-          <CaseTable />
-          <GraphComponent></GraphComponent>
-        </Container>
-      </div>
-    </DndContext>
+            <CaseTable />
+            <GraphComponent></GraphComponent>
+          </Container>
+        </div>
+      </DndContext>
+    </ChakraProvider>
   )
 }

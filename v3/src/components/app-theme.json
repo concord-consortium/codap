@@ -1,0 +1,14 @@
+{
+  "fonts": {
+    "fontFamily": " 'MuseoSans-500', sans-serif",
+    "componentTitle": {
+      "size": 12
+    }
+  },
+  "colors": {
+    "componentTitle": {
+      "focused": "#177991",
+      "default": "#72bfca"
+    }
+  }
+}
