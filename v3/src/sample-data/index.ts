@@ -1,5 +1,5 @@
-import { parse } from "papaparse"
-
+import { IDataSet } from "../data-model/data-set"
+import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../utilities/csv-import"
 import abaloneCsv from "./abalone.csv"
 import catsCsv from "./cats.csv"
 import coastersCsv from "./roller-coasters.csv"
@@ -15,9 +15,10 @@ const sampleMap: Record<SampleType, string> = {
   mammals: mammalsCsv
 }
 
-type OnImportType = (data: Array<Record<string, string>>, fName?: string) => void
-
-export function importSample(sample: SampleType, onImport: OnImportType) {
+export function importSample(sample: SampleType, onImportDataSet: (data: IDataSet) => void) {
   const dataUrl = sampleMap[sample]
-  parse(dataUrl, { download: true, header: true, complete: ({ data }: any) => onImport(data, sample) })
+  downloadCsvFile(dataUrl, (results: CsvParseResult) => {
+    const ds = convertParsedCsvToDataSet(results, sample)
+    ds && onImportDataSet(ds)
+  })
 }
