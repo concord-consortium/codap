@@ -15,6 +15,7 @@ import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
+import pkg from "../../package.json"
 
 import "./app.scss"
 
@@ -83,6 +84,9 @@ export const App = () => {
           {/* each top-level child will be wrapped in a CodapComponent */}
           <DataSummary v2Document={v2Document} />
           <div className="hello-codap3">
+            <div className="version-build-number">
+              <span>{pkg.version}</span>
+            </div>
             <div>
               <img src={Icon}/>
               <Text text={sampleText}/>
