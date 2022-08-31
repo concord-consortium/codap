@@ -81,7 +81,6 @@ export const Attribute = types.model("Attribute", {
   },
   toNumeric(value: string) {
     if (value == null || value === "") return NaN
-    if (typeof value === "string") return parseFloat(value)
     return Number(value)
   },
   get emptyCount() {

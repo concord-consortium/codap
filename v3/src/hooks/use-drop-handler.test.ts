@@ -1,5 +1,7 @@
 import { fireEvent } from "@testing-library/react"
 import { renderHook } from "@testing-library/react-hooks"
+import { getType } from "mobx-state-tree"
+import { DataSet, IDataSet } from "../data-model/data-set"
 import { useDropHandler } from "./use-drop-handler"
 
 const mockData = [{ a: 1, b: 2 }, { a: 3, b: 4 }]
@@ -20,7 +22,7 @@ describe("useDropHandler", () => {
       clear: () => null,
       "0": {
         kind: "file",
-        getAsFile: () => ({})
+        getAsFile: () => ({ name: mockFilename })
       }
     }
   }
@@ -31,14 +33,16 @@ describe("useDropHandler", () => {
 
   it("ignores drops with invalid selector", () => {
     const handler = jest.fn()
-    const { rerender, result } = renderHook(() => useDropHandler("foo", handler))
+    const params = { selector: "foo", onImportDataSet: handler, onImportDocument: handler }
+    const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeFalsy()
   })
 
   it("ignores drops without DataTransfer", () => {
     const handler = jest.fn()
-    const { rerender, result } = renderHook(() => useDropHandler("body", handler))
+    const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
+    const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
     fireEvent.dragOver(result.current!)
@@ -49,19 +53,22 @@ describe("useDropHandler", () => {
 
   it("handles drops with items", () => {
     const handler = jest.fn()
-    const { rerender, result } = renderHook(() => useDropHandler("body", handler))
+    const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
+    const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
     fireEvent.dragOver(result.current!)
     expect(handler).not.toHaveBeenCalled()
     fireEvent.drop(result.current!, { dataTransfer: mockDataTransferWithItems })
     expect(handler).toHaveBeenCalled()
-    expect(handler.mock.calls[0]).toEqual([mockData, mockFilename])
+    const dsArg = handler.mock.calls[0][0] as IDataSet
+    expect(getType(dsArg)).toEqual(DataSet)
   })
 
   it("ignores drops without items", () => {
     const handler = jest.fn()
-    const { rerender, result } = renderHook(() => useDropHandler("body", handler))
+    const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
+    const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
     fireEvent.dragOver(result.current!)
