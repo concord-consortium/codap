@@ -6,9 +6,10 @@ import { kGraphClassSelector } from "../graphing-types"
 import { getDragAttributeId, IDropData } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
+import { prf } from "../../../utilities/profiler"
 import { AxisPlace, INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import { prf } from "../../../utilities/profiler"
+import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import "./axis.scss"
 
 const axisDragHints = ['Drag to change axis lower bound',
@@ -18,27 +19,29 @@ const axisDragHints = ['Drag to change axis lower bound',
 type D3Handler = (this: Element, event: any, d: any) => void
 
 interface IProps {
+  attributeID: string,
   model: INumericAxisModel
   transform: string
-  label: string | undefined
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
-export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
+export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps) => {
   const
     instanceId = useInstanceIdContext(),
+    dataset = useDataSetContext(),
+    label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${model.place}-axis`,
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),
     length = layout.axisLength(model.place),
-    graphRef = useRef<HTMLDivElement | null>(null),
-    wrapperRef = useRef<SVGGElement | null>(null),
+    [graphElt, setGraphElt] = useState<HTMLDivElement | null>(null),
+    [wrapperElt, setWrapperElt] = useState<SVGGElement | null>(null),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
     orientation = model.place
 
   useEffect(() => {
-    graphRef.current = axisElt?.closest(kGraphClassSelector) ?? null
-  }, [axisElt])
+    setGraphElt(axisElt?.closest(kGraphClassSelector) as HTMLDivElement ?? null)
+  }, [axisElt, graphElt])
 
   useNumericAxis({ axisModel: model, axisElt })
 
@@ -208,13 +211,12 @@ export const Axis = ({ model, transform, label, onDropAttribute }: IProps) => {
 
   return (
     <>
-      <g className='axis-wrapper' ref={wrapperRef}>
+      <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
         <g className='axis' ref={elt => setAxisElt(elt)}/>
         <g ref={titleRef}/>
       </g>
-      {graphRef.current && wrapperRef.current &&
-        <DroppableSvg className={`${model.place}`} dropId={droppableId} dropData={data}
-          portal={graphRef.current} target={wrapperRef.current} onIsActive={handleIsActive} />}
+      <DroppableSvg className={`${model.place}`} dropId={droppableId} dropData={data}
+                    portal={graphElt} target={wrapperElt} onIsActive={handleIsActive} />
     </>
   )
 }

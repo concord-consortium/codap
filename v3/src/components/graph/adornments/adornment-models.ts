@@ -4,7 +4,7 @@
 
 import {Instance, types} from "mobx-state-tree"
 import {uniqueId} from "../../../utilities/js-utils"
-import {Point} from "../utilities/graph_utils"
+import {Point} from "../graphing-types"
 
 export const PointModel = types.model("Point", {
   x: types.optional( types.number,NaN),

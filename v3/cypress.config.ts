@@ -7,7 +7,7 @@ export default defineConfig({
   defaultCommandTimeout: 8000,
   viewportWidth: 1400,
   viewportHeight: 1000,
-  modifyObstructiveCode:false,
+  modifyObstructiveCode: false,
   chromeWebSecurity:false,
   retries: {
     runMode: 2,

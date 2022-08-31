@@ -7,13 +7,15 @@ import { DataBroker } from "../data-model/data-broker"
 // import { IDataSet } from '../data-model/data-set'
 import { getDragAttributeId, IDropData, IUseDraggableAttribute, useDraggableAttribute } from '../hooks/use-drag-drop'
 import { prf } from "../utilities/profiler"
+import { CodapV2Document } from '../v2/codap-v2-document'
 
 import "./data-summary.scss"
 
 interface IProps {
-  broker?: DataBroker;
+  broker?: DataBroker
+  v2Document?: CodapV2Document
 }
-export const DataSummary = observer(({ broker }: IProps) => {
+export const DataSummary = observer(({ broker, v2Document }: IProps) => {
   const data = broker?.getSelectedDataSet() || broker?.last
 
   const { active } = useDndContext()
@@ -52,10 +54,21 @@ export const DataSummary = observer(({ broker }: IProps) => {
     }
   }
 
+  const componentTypes = v2Document?.components.map(component => component.type)
+  const componentList = componentTypes?.join(", ")
+
+
   return (
     <div ref={setNodeRef} className="data-summary">
-      <p>{data ? `Parsed "${data.name}" with ${data.cases.length} case(s) and attributes:` : "No data"}</p>
+      <p>{data ? `Parsed "${data.name}" with ${data.cases.length} case(s) and...` : "No data"}</p>
+      {componentList &&
+        <div className="data-components">
+          <div className="data-components-title"><b>Components</b></div>
+          <p>{componentList}</p>
+        </div>
+      }
       <div className="data-attributes">
+        <div className="data-attributes-title"><b>Attributes</b></div>
         {data?.attributes.map(attr => (
           <DraggableAttribute key={attr.id} attribute={attr} />
         ))}

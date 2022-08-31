@@ -1,16 +1,16 @@
-import { Button } from '@chakra-ui/react'
-import { observer } from "mobx-react-lite"
-import React, { useEffect } from "react"
-import { useResizeDetector } from "react-resize-detector"
-import { useMemo } from "use-memo-one"
-import { DataBroker } from "../../../data-model/data-broker"
-import { DataSetContext } from "../../../hooks/use-data-set-context"
-import { InstanceIdContext, useNextInstanceId } from "../../../hooks/use-instance-id-context"
-import { MovableLineModel, MovableValueModel } from "../adornments/adornment-models"
-import { NumericAxisModel } from "../models/axis-model"
-import { GraphLayout, GraphLayoutContext } from "../models/graph-layout"
-import { GraphModel } from "../models/graph-model"
-import { Graph } from "./graph"
+import {Button} from '@chakra-ui/react'
+import {observer} from "mobx-react-lite"
+import React, {useEffect, useRef} from "react"
+import {useResizeDetector} from "react-resize-detector"
+import {useMemo} from "use-memo-one"
+import {DataBroker} from "../../../data-model/data-broker"
+import {DataSetContext} from "../../../hooks/use-data-set-context"
+import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
+import {MovableLineModel, MovableValueModel} from "../adornments/adornment-models"
+import {NumericAxisModel} from "../models/axis-model"
+import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
+import {GraphModel} from "../models/graph-model"
+import {Graph} from "./graph"
 
 const defaultGraphModel = GraphModel.create({
   axes: {
@@ -25,10 +25,12 @@ const defaultGraphModel = GraphModel.create({
 interface IProps {
   broker?: DataBroker;
 }
-export const GraphComponent = observer(({ broker }: IProps) => {
+
+export const GraphComponent = observer(({broker}: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
-  const { width, height, ref: graphRef } = useResizeDetector({ refreshMode: "debounce", refreshRate: 200 })
+  const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
+  const animationIsOn = useRef(true)
   const data = broker?.getSelectedDataSet() || broker?.last
 
   useEffect(() => {
@@ -39,12 +41,13 @@ export const GraphComponent = observer(({ broker }: IProps) => {
     <DataSetContext.Provider value={data}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel} graphRef={graphRef}/>
+          <Graph model={defaultGraphModel} graphRef={graphRef} animationIsOn={animationIsOn}/>
           <Button
             className='graph-plot-choice'
             size="xs"
             onClick={() => {
               const currPlotType = defaultGraphModel.plotType
+              animationIsOn.current = true
               defaultGraphModel.setPlotType(currPlotType === 'scatterPlot' ? 'dotPlot' : 'scatterPlot')
             }}
           >

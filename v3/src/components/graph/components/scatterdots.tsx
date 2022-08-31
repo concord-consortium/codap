@@ -1,27 +1,26 @@
 import {select} from "d3"
-import {reaction} from "mobx"
-import {onAction} from "mobx-state-tree"
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
-import {plotProps, InternalizedData, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
-import {useDragHandlers} from "../hooks/graph-hooks"
+import {plotProps, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
+import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {INumericAxisModel} from "../models/axis-model"
 import {ICase} from "../../../data-model/data-set"
-import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 import {prf} from "../../../utilities/profiler"
 
 export const ScatterDots = memo(function ScatterDots(props: {
   plotProps: plotProps
-  graphData: InternalizedData
+  xAttrID: string
+  yAttrID: string
   dotsRef: React.RefObject<SVGSVGElement>
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
+  xAxisModel: INumericAxisModel
+  yAxisModel: INumericAxisModel
+  animationIsOn: React.MutableRefObject<boolean>
 }) {
-  const {graphData, dotsRef, xAxis, yAxis} = props,
+  const {xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, animationIsOn} = props,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -31,20 +30,17 @@ export const ScatterDots = memo(function ScatterDots(props: {
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),
     target = useRef<any>(),
-    firstTime = useRef(true),
-    xAttrID = graphData.xAttributeID,
-    yAttrID = graphData.yAttributeID,
     selectedDataObjects = useRef<{ [index: string]: { x: number, y: number } }>({})
 
   const onDragStart = useCallback((event: MouseEvent) => {
       prf.measure("Graph.onDragStart", () => {
-        appState.beginPerformance()
         dataset?.beginCaching()
-        firstTime.current = false // We don't want to animate points until end of drag
+        animationIsOn.current = false // We don't want to animate points until end of drag
         didDrag.current = false
         target.current = select(event.target as SVGSVGElement)
         const tItsID: string = target.current.property('id')
         if (target.current.node()?.nodeName === 'circle') {
+          appState.beginPerformance()
           target.current.transition()
             .attr('r', dragRadius)
           setDragID(tItsID)
@@ -61,7 +57,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
           })
         }
       })
-    }, [dataset, xAttrID, yAttrID]),
+    }, [dataset, xAttrID, yAttrID, animationIsOn]),
 
     onDrag = useCallback((event: MouseEvent) => {
       prf.measure("Graph.onDrag", () => {
@@ -114,13 +110,13 @@ export const ScatterDots = memo(function ScatterDots(props: {
                 [yAttrID]: selectedDataObjects.current[anID].y
               })
             })
-            firstTime.current = true // So points will animate back to original positions
+            animationIsOn.current = true // So points will animate back to original positions
             caseValues.length && dataset?.setCaseValues(caseValues)
             didDrag.current = false
           }
         }
       })
-    }, [dataset, dragID, xAttrID, yAttrID])
+    }, [dataset, dragID, xAttrID, yAttrID, animationIsOn])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -135,14 +131,14 @@ export const ScatterDots = memo(function ScatterDots(props: {
       const
         getScreenX = (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale),
         getScreenY = (anID: string) => getScreenCoord(dataset, anID, yAttrID, yScale),
-        duration = firstTime.current ? transitionDuration : 0,
-        onComplete = firstTime.current ? () => {
-          firstTime.current = false
+        duration = animationIsOn.current ? transitionDuration : 0,
+        onComplete = animationIsOn.current ? () => {
+          animationIsOn.current = false
         } : undefined
 
       setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
     })
-  }, [dataset, dotsRef, xAttrID, xScale, yAttrID, yScale])
+  }, [dataset, dotsRef, xAttrID, xScale, yAttrID, yScale, animationIsOn])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     prf.measure("Graph.ScatterDots[refreshPointPositionsSVG]", () => {
@@ -152,7 +148,7 @@ export const ScatterDots = memo(function ScatterDots(props: {
           const dotSvg = dot as SVGCircleElement
           const x = getScreenCoord(dataset, caseId, xAttrID, xScale)
           const y = getScreenCoord(dataset, caseId, yAttrID, yScale)
-          if (isFinite(x) && isFinite(y)) {
+          if (x != null && isFinite(x) && y != null && isFinite(y)) {
             dotSvg.setAttribute("cx", `${x}`)
             dotSvg.setAttribute("cy", `${y}`)
           }
@@ -174,44 +170,10 @@ export const ScatterDots = memo(function ScatterDots(props: {
     }
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
-  // respond to axis domain changes (e.g. axis dragging)
-  useEffect(() => {
-    refreshPointPositions(false)
-    const disposer = reaction(
-      () => [xAxis.domain, yAxis.domain],
-      domains => {
-        firstTime.current = false // don't animate response to axis changes
-        refreshPointPositions(false)
-      }
-    )
-    return () => disposer()
-  }, [refreshPointPositions, xAxis, yAxis])
-
-  // respond to axis range changes (e.g. component resizing)
-  useEffect(() => {
-    refreshPointPositions(false)
-    const disposer = reaction(
-      () => [layout.axisLength(xAxis.place), layout.axisLength(yAxis.place)],
-      ranges => {
-        firstTime.current = false // don't animate response to axis changes
-        refreshPointPositions(false)
-      }
-    )
-    return () => disposer()
-  }, [layout, refreshPointPositions, xAxis, yAxis])
-
-  // respond to selection and value changes
-  useEffect(() => {
-    const disposer = dataset && onAction(dataset, action => {
-      if (isSelectionAction(action)) {
-        refreshPointSelection()
-      } else if (isSetCaseValuesAction(action)) {
-        // assumes that if we're caching then only selected cases are being updated
-        refreshPointPositions(dataset.isCaching)
-      }
-    }, true)
-    return () => disposer?.()
-  }, [dataset, refreshPointPositions, refreshPointSelection])
+  usePlotResponders( {
+    dataset, xAxisModel, yAxisModel, xAttrID, yAttrID, layout,
+    refreshPointPositions, refreshPointSelection, enableAnimation: animationIsOn
+  })
 
   return (
     <svg/>

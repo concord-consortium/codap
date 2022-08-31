@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react"
 import React from "react"
 import { gDataBroker } from "../data-model/data-broker"
+import { convertParsedCsvToDataSet } from "../utilities/csv-import"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
-import { App, handleImportData } from "./app"
+import { App, handleImportDataSet } from "./app"
 
 // used by case table
 jest.mock("../hooks/use-measure-text", () => ({
@@ -16,7 +17,8 @@ describe("App component", () => {
   })
 
   it("should import data into a DataSet and into the DataBroker", () => {
-    handleImportData([{ a: "a1", b: "b1" }, { a: "a2", b: "b2" }], "test")
+    const data = convertParsedCsvToDataSet({ data: [{ a: "a1", b: "b1" }, { a: "a2", b: "b2" }] } as any, "test")
+    handleImportDataSet(data)
     expect(gDataBroker.length).toBe(1)
     expect(gDataBroker.first?.name).toBe("test")
     const ds = gDataBroker.getDataSetByName("test")

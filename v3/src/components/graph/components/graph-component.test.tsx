@@ -35,7 +35,7 @@ describe("Graph", () => {
     // expect(screen.getByText('yVariable')).toBeInTheDocument()
   })
 
-  it("can switch to dot plot", async () => {
+  it.skip("can switch to dot plot", async () => {
     const user = userEvent.setup()
     const data = DataSet.create()
     data.addAttribute({ name: "xVariable" })
