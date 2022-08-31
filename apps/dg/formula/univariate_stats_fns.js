@@ -55,9 +55,9 @@ return {
         return sc_super();
       }
 
-      // if no argument, just count child cases
+      // if no argument, count non-empty child cases
       var childCases = iEvalContext._case_ && iEvalContext._case_.get('children');
-      return childCases ? childCases.get('length') : 0;
+      return childCases ? childCases.filter(function(c) {return !c.isEmpty();}).length : 0;
     },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
