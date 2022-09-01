@@ -41,7 +41,7 @@ export class DataBroker {
       ({ id, name, attributes: attributes.length, cases: cases.length }))
   }
 
-  getSelectedDataSet(): IDataSet | undefined {
+  get selectedDataSet(): IDataSet | undefined {
     return this.getDataSet(this.selectedDataSetId)
   }
   getDataSet(id: string): IDataSet | undefined {

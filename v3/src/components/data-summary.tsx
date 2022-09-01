@@ -4,7 +4,6 @@ import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IAttribute } from "../data-model/attribute"
 import { DataBroker } from "../data-model/data-broker"
-// import { IDataSet } from '../data-model/data-set'
 import { getDragAttributeId, IDropData, IUseDraggableAttribute, useDraggableAttribute } from '../hooks/use-drag-drop'
 import { prf } from "../utilities/profiler"
 import { CodapV2Document } from '../v2/codap-v2-document'
@@ -16,7 +15,7 @@ interface IProps {
   v2Document?: CodapV2Document
 }
 export const DataSummary = observer(({ broker, v2Document }: IProps) => {
-  const data = broker?.getSelectedDataSet() || broker?.last
+  const data = broker?.selectedDataSet || broker?.last
 
   const { active } = useDndContext()
   const dragAttributeID = getDragAttributeId(active)
@@ -49,9 +48,9 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
           }
         </Select>
       )
-    } else {
-      return null
     }
+
+    return null
   }
 
   const componentTypes = v2Document?.components.map(component => component.type)

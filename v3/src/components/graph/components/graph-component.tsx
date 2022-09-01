@@ -31,7 +31,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
   const animationIsOn = useRef(true)
-  const data = broker?.getSelectedDataSet() || broker?.last
+  const data = broker?.selectedDataSet || broker?.last
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
