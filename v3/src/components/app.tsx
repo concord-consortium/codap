@@ -85,7 +85,7 @@ export const App = () => {
           <DataSummary v2Document={v2Document} />
           <div className="hello-codap3">
             <div className="version-build-number">
-              <span>{pkg.version}</span>
+              <span>v{pkg.version}</span>
             </div>
             <div>
               <img src={Icon}/>
