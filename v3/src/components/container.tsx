@@ -1,10 +1,12 @@
-import React from "react"
+import React, { ReactNode } from "react"
 import { CodapComponent } from "./codap-component"
 import { gDataBroker } from "../data-model/data-broker"
 
 import "./container.scss"
 
-interface IProps {}
+interface IProps {
+  children: ReactNode
+}
 export const Container: React.FC<IProps> = ({ children }) => {
   const childArray = Array.isArray(children) ? children : [children]
   return (

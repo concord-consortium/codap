@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import React from "react"
 import { gDataBroker } from "../data-model/data-broker"
 import { DataSet, toCanonical } from "../data-model/data-set"
@@ -18,7 +18,9 @@ describe("DataSummary component", () => {
     ds.addAttribute({ name: "a" })
     ds.addAttribute({ name: "b" })
     ds.addCases(toCanonical(ds, [{ a: 1, b: 1 }]))
-    gDataBroker.addDataSet(ds)
+    act(() => {
+      gDataBroker.addDataSet(ds)
+    })
     expect(screen.queryByText("No data")).not.toBeInTheDocument()
     expect(screen.getByText(`Parsed "foo"`, { exact: false })).toBeInTheDocument()
     expect(screen.getByText("1 case(s)", { exact: false })).toBeInTheDocument()
