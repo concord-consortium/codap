@@ -19,19 +19,25 @@ export const useAxisBoundsProvider = (place: AxisPlace) => {
 
   useEffect(() => {
     // track the bounds of the graph and axis elements
-    const observer = wrapperElt && new ResizeObserver(() => {
-      const graphBounds = graphElt?.getBoundingClientRect()
-      const axisBounds = wrapperElt?.getBoundingClientRect()
-      if (graphBounds && axisBounds) {
-        layout.setAxisBounds(place, {
-          left: axisBounds.left - graphBounds.left,
-          top: axisBounds.top - graphBounds.top,
-          width: axisBounds.width,
-          height: axisBounds.height
-        })
-      }
-    })
-    wrapperElt && observer?.observe(wrapperElt)
+    let observer: ResizeObserver
+    if (wrapperElt) {
+      observer = new ResizeObserver(() => {
+        const graphBounds = graphElt?.getBoundingClientRect()
+        const axisBounds = wrapperElt.getBoundingClientRect()
+        if (graphBounds && axisBounds) {
+          layout.setAxisBounds(place, {
+            left: axisBounds.left - graphBounds.left,
+            top: axisBounds.top - graphBounds.top,
+            width: axisBounds.width,
+            height: axisBounds.height
+          })
+        }
+      })
+      observer.observe(wrapperElt)
+    }
+    else {
+      layout.setAxisBounds(place, undefined)
+    }
 
     return () => observer?.disconnect()
   }, [graphElt, layout, place, wrapperElt])
