@@ -1,10 +1,11 @@
-import React, { Children, cloneElement, ReactElement } from "react"
+import React, { Children, cloneElement, ReactElement, ReactNode } from "react"
 import { DataBroker } from "../data-model/data-broker"
 
 import "./codap-component.scss"
 
 interface IProps {
-  broker: DataBroker;
+  broker: DataBroker
+  children?: ReactNode
 }
 export const CodapComponent: React.FC<IProps> = ({ broker, children }) => {
   return (

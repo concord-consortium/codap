@@ -27,7 +27,7 @@ const mockCreateElement = jest.spyOn(document, "createElement").mockImplementati
     : origCreateElement.call(document, tag, ...args)
 ))
 
-import { renderHook } from "@testing-library/react-hooks"
+import { renderHook } from "@testing-library/react"
 import { defaultFont } from "../components/constants"
 import { measureText, useMeasureText } from "./use-measure-text"
 

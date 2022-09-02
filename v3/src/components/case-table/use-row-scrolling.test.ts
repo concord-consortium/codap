@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react-hooks"
+import { renderHook } from "@testing-library/react"
 import { MockAnimationFrame } from "../../test/mock-animation-frame"
 import { useRowScrolling } from "./use-row-scrolling"
 
