@@ -6,7 +6,7 @@ import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 import {GraphLayout, ScaleBaseType} from "../models/graph-layout"
 import {prf} from "../../../utilities/profiler"
-import {INumericAxisModel, AxisPlace} from "../models/axis-model"
+import {INumericAxisModel} from "../models/axis-model"
 import {IGraphModel} from "../models/graph-model"
 import {IAttribute} from "../../../data-model/attribute"
 
@@ -413,32 +413,4 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       }
     })
   })
-}
-
-export function refreshAxisDragRects(axisElt: SVGGElement | null, orientation: AxisPlace, length: number | null) {
-  if (axisElt) {
-    const
-      bbox = axisElt?.getBBox?.(),
-      axisSelection = select(axisElt),
-      numbering = orientation === 'bottom' ? [0, 1, 2] : [2, 1, 0]
-    if (length !== null) {
-      axisSelection.selectAll('.dragRect')
-        .data(numbering)// data signify lower, middle, upper rectangles
-        .join(
-          // @ts-expect-error void => Selection
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          (enter) => {
-          },
-          (update) => {
-            update
-              .attr('x', (d) => bbox?.x + (orientation === 'bottom' ? (d * length / 3) : 0))
-              .attr('y', (d) => bbox?.y + (orientation === 'bottom' ? 0 : (d * length / 3)))
-              .attr('width', () => (orientation === 'bottom' ? length / 3 : bbox?.width))
-              .attr('height', () => (orientation === 'bottom' ? bbox?.height : length / 3))
-          }
-        )
-      axisSelection.selectAll('.dragRect').raise()
-    }
-  }
-
 }
