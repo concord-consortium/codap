@@ -8,8 +8,9 @@ import { prf } from "../../../utilities/profiler"
 export interface IUseNumericAxis {
   axisModel: INumericAxisModel
   axisElt:  SVGGElement | null
+  axisWrapperElt: SVGGElement | null
 }
-export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
+export const useNumericAxis = ({ axisModel, axisElt, axisWrapperElt }: IUseNumericAxis) => {
   const layout = useGraphLayoutContext()
   const scale = layout.axisScale(axisModel.place)
   const axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft
@@ -20,7 +21,6 @@ export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
         select(axisElt)
           .transition().duration(axisModel.transitionDuration)
           .call(axisFunc(scale))
-        // axisModel.setTransitionDuration(0)
       }
     })
   }, [axisElt, axisFunc, scale, axisModel])
@@ -71,4 +71,5 @@ export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
       return () => disposer()
     })
   }, [axisModel, layout, refreshAxis, scale])
+
 }
