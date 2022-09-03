@@ -33,16 +33,8 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
 
   // Find the parent CODAP component to display the index menu above the grid
   useEffect(() => {
-    if (cellElt && !codapComponentElt) {
-      let parent: HTMLElement | null
-      for (parent = cellElt; parent; parent = parent.parentElement) {
-        if (parent.classList.contains("codap-component")) {
-          setCodapComponentElt(parent)
-          break
-        }
-      }
-    }
-  }, [cellElt, codapComponentElt])
+    setCodapComponentElt(cellElt?.closest(".codap-component") as HTMLDivElement ?? null)
+  }, [cellElt])
 
   const handleRenameAttribute = () => {
     alert("Rename")
