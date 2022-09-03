@@ -1,3 +1,4 @@
+import { Tooltip } from "@chakra-ui/react"
 import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
@@ -41,7 +42,14 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     row.__domAttrs__?.delete(column.key)
     // for now we just render numbers and raw string values; eventually,
     // we can support other formats here (dates, colors, etc.)
-    return <span className="cell-span" key={key}>{value}</span>
+    return (
+      <>
+        <Tooltip label={value} h="20px" fontSize="12px" color="white"
+          openDelay={1000} placement="bottom" bottom="10px" left="15px">
+          <span className="cell-span" key={key}>{value}</span>
+        </Tooltip>
+      </>
+    )
   }, [data])
 
   useEffect(() => {
