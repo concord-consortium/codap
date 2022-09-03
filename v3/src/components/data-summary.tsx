@@ -1,4 +1,4 @@
-import { Button } from '@chakra-ui/react'
+import { Button, Select } from '@chakra-ui/react'
 import { Active, DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
@@ -15,7 +15,8 @@ interface IProps {
   v2Document?: CodapV2Document
 }
 export const DataSummary = observer(({ broker, v2Document }: IProps) => {
-  const data = broker?.last
+  const data = broker?.selectedDataSet || broker?.last
+
   const { active } = useDndContext()
   const dragAttributeID = getDragAttributeId(active)
 
@@ -28,8 +29,33 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
     setSelectedAttribute(data?.attrFromID(attributeId))
   }
 
+  const handleDataSetSelection = (evt: React.ChangeEvent<HTMLSelectElement>) => {
+    broker?.setSelectedDataSetId(evt.target.value)
+  }
+
+  const DataSelectPopup = () => {
+    const dataSetSummaries = broker?.summaries
+    const renderOption = (name: string, id: string) => {
+      return <option key={name} value={id}>{name}</option>
+    }
+
+    if (dataSetSummaries) {
+      return (
+        <Select onChange={handleDataSetSelection} value={data?.id}>
+          { dataSetSummaries?.map(summary => {
+              return renderOption(summary.name || `DataSet ${summary.id}`, summary.id)
+            })
+          }
+        </Select>
+      )
+    }
+
+    return null
+  }
+
   const componentTypes = v2Document?.components.map(component => component.type)
   const componentList = componentTypes?.join(", ")
+
 
   return (
     <div ref={setNodeRef} className="data-summary">
@@ -46,6 +72,7 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
           <DraggableAttribute key={attr.id} attribute={attr} />
         ))}
       </div>
+      {data && <DataSelectPopup />}
       {data && <SummaryDropTarget attribute={selectedAttribute} onDrop={handleDrop}/>}
       {data && <ProfilerButton />}
       <DragOverlay dropAnimation={null}>
