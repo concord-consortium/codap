@@ -97,7 +97,7 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
         <MenuList>
           <MenuItem onClick={handleMoveDataRow}>Move Data Entry Row Here</MenuItem>
           <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
-          <MenuItem onClick={handleInsertCases}>Insert Cases</MenuItem>
+          <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
           <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
         </MenuList>
       ), codapComponentElt)}
