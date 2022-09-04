@@ -15,7 +15,7 @@ export const useAxisBoundsProvider = (place: AxisPlace) => {
 
   useEffect(() => {
     setGraphElt(wrapperElt?.closest(kGraphClassSelector) as HTMLDivElement ?? null)
-  }, [wrapperElt, graphElt])
+  }, [wrapperElt])
 
   useEffect(() => {
     // track the bounds of the graph and axis elements

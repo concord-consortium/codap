@@ -18,7 +18,9 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
   const data = broker?.selectedDataSet || broker?.last
 
   const { active } = useDndContext()
+  const isSummaryDrag = active && `${active.id}`.startsWith("summary")
   const dragAttributeID = getDragAttributeId(active)
+  const dragAttribute = dragAttributeID ? data?.attrFromID(dragAttributeID) : undefined
 
   // used to determine when a dragged attribute is over the summary component
   const { setNodeRef } = useDroppable({ id: "summary-component-drop", data: { accepts: ["attribute"] } })
@@ -56,7 +58,6 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
   const componentTypes = v2Document?.components.map(component => component.type)
   const componentList = componentTypes?.join(", ")
 
-
   return (
     <div ref={setNodeRef} className="data-summary">
       <p>{data ? `Parsed "${data.name}" with ${data.cases.length} case(s) and...` : "No data"}</p>
@@ -76,8 +77,8 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
       {data && <SummaryDropTarget attribute={selectedAttribute} onDrop={handleDrop}/>}
       {data && <ProfilerButton />}
       <DragOverlay dropAnimation={null}>
-        {data && dragAttributeID
-          ? <DraggableAttribute attribute={data.attrFromID(dragAttributeID)} isOverlay={true}/>
+        {data && isSummaryDrag && dragAttribute
+          ? <OverlayAttribute attribute={dragAttribute} />
           : null}
       </DragOverlay>
     </div>
@@ -86,14 +87,19 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
 
 interface IDraggableAttributeProps {
   attribute: IAttribute
-  isOverlay?: boolean;
 }
-const DraggableAttribute = ({ attribute, isOverlay = false }: IDraggableAttributeProps) => {
+const DraggableAttribute = ({ attribute }: IDraggableAttributeProps) => {
   const draggableOptions: IUseDraggableAttribute = { prefix: "summary", attributeId: attribute.id }
   const { attributes, listeners, setNodeRef } = useDraggableAttribute(draggableOptions)
-  const overlayClass = isOverlay ? "overlay" : ""
   return (
-    <div ref={setNodeRef} className={`draggable-attribute ${overlayClass}`} {...attributes} {...listeners}>
+    <div ref={setNodeRef} className="draggable-attribute" {...attributes} {...listeners}>
+      {attribute.name}
+    </div>
+  )
+}
+const OverlayAttribute = ({ attribute }: IDraggableAttributeProps) => {
+  return (
+    <div className={`draggable-attribute overlay`} >
       {attribute.name}
     </div>
   )

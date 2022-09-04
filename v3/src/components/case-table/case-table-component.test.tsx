@@ -4,7 +4,7 @@ import React from "react"
 import { DataBroker } from "../../data-model/data-broker"
 import { DataSet, toCanonical } from "../../data-model/data-set"
 import { useKeyStates } from "../../hooks/use-key-states"
-import { CaseTable } from "./case-table"
+import { CaseTableComponent } from "./case-table-component"
 
 // used by case table
 jest.mock("../../hooks/use-measure-text", () => ({
@@ -23,12 +23,12 @@ describe("Case Table", () => {
   })
 
   it("renders nothing with no broker", () => {
-    render(<CaseTable />)
+    render(<CaseTableComponent />)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
   it("renders nothing with empty broker", () => {
-    render(<CaseTable broker={broker} />)
+    render(<CaseTableComponent broker={broker} />)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
@@ -38,7 +38,7 @@ describe("Case Table", () => {
     data.addAttribute({ name: "b" })
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
-    render(<CaseTable broker={broker} />)
+    render(<CaseTableComponent broker={broker} />)
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
@@ -52,20 +52,20 @@ describe("Case Table", () => {
     const { rerender } = render((
       <>
         <UseKeyStatesWrapper/>
-        <CaseTable broker={broker} />
+        <CaseTableComponent broker={broker} />
       </>
     ))
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
     const indexCells = screen.getAllByRole("rowheader")
     expect(indexCells.length).toBe(2)
-    const indexContents =screen.getAllByTestId("codap-index-content")
+    const indexContents = screen.getAllByTestId("codap-index-content")
     expect(indexContents.length).toBe(2)
     expect(data.selection.size).toBe(0)
     await user.click(indexContents[0])
     rerender((
       <>
         <UseKeyStatesWrapper/>
-        <CaseTable broker={broker} />
+        <CaseTableComponent broker={broker} />
       </>
     ))
     expect(data.selection.size).toBe(1)

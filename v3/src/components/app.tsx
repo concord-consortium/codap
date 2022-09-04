@@ -1,13 +1,12 @@
-import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import React, { useCallback, useEffect, useState } from "react"
-import { CaseTable } from "./case-table/case-table"
+import { CaseTableComponent } from "./case-table/case-table-component"
+import { CodapDndContext } from "./codap-dnd-context"
 import {Container} from "./container"
 import {DataSummary} from "./data-summary"
 import {gDataBroker} from "../data-model/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../data-model/data-set"
 import { GraphComponent } from "./graph/components/graph-component"
 import {Text} from "./text"
-import { dndDetectCollision } from "./dnd-detect-collision"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import {useSampleText} from "../hooks/use-sample-text"
@@ -46,17 +45,6 @@ export const App = () => {
     onImportDocument: handleImportDocument
   })
 
-  function handleDragStart(evt: DragStartEvent) {
-    // console.log("DnDKit [handleDragStart]")
-  }
-
-  function handleDragEnd(evt: DragEndEvent) {
-    const {active, over} = evt
-    if (over?.data?.current?.accepts.includes(active?.data?.current?.type)) {
-      over.data.current.onDrop(active)
-    }
-  }
-
   function createNewStarterDataset() {
     const newData = [{AttributeName: ""}]
     const ds = DataSet.create({name: "New Dataset"})
@@ -77,7 +65,7 @@ export const App = () => {
   }, [])
 
   return (
-    <DndContext collisionDetection={dndDetectCollision} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <CodapDndContext>
       <div className="app" data-testid="app">
         <Container>
           {/* each top-level child will be wrapped in a CodapComponent */}
@@ -89,10 +77,10 @@ export const App = () => {
               <p>Drag a CSV file into this window to get some data.</p>
             </div>
           </div>
-          <CaseTable />
-          <GraphComponent></GraphComponent>
+          <CaseTableComponent/>
+          <GraphComponent/>
         </Container>
       </div>
-    </DndContext>
+    </CodapDndContext>
   )
 }

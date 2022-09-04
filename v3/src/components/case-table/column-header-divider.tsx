@@ -42,12 +42,12 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
 
   // compute the divider position relative to the `case-table` element
   const kDividerWidth = 7
-  const kDividerOffset = 8 - Math.floor(kDividerWidth / 2)
+  const kDividerOffset = Math.floor(kDividerWidth / 2)
   const style: CSSProperties = tableBounds && cellBounds
                   ? {
                       top: cellBounds.top - tableBounds.top,
                       height: cellBounds.height,
-                      left: cellBounds.right - tableBounds.left + kDividerOffset,
+                      left: cellBounds.right - tableBounds.left - kDividerOffset - 1,
                       width: kDividerWidth
                     }
                   : {}
