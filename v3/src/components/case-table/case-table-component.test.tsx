@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import React from "react"
 import { DataBroker } from "../../data-model/data-broker"
 import { DataSet, toCanonical } from "../../data-model/data-set"
-import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useKeyStates } from "../../hooks/use-key-states"
 import { CaseTableComponent } from "./case-table-component"
 
