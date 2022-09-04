@@ -1,29 +1,30 @@
-import { useDndContext, useDroppable } from "@dnd-kit/core"
+import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
 import { TRow } from "./case-table-types"
-import { DataBroker } from "../../data-model/data-broker"
-import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
 
 import "./case-table.scss"
 
 interface IProps {
-  broker?: DataBroker
+  setNodeRef: (element: HTMLElement | null) => void
 }
-export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
+export const CaseTable = observer(({ setNodeRef }: IProps) => {
+  const instanceId = useInstanceIdContext() || "case-table"
+  const data = useDataSetContext()
   return prf.measure("Table.render", () => {
-    const data = broker?.selectedDataSet || broker?.last
 
     const gridRef = useRef<DataGridHandle>(null)
     const { active } = useDndContext()
-    const { setNodeRef } = useDroppable({ id: "case-table-drop", data: { accepts: ["attribute"] } })
+    const overlayDragId = active && `${active.id}`.startsWith(instanceId) ? `${active.id}` : undefined
 
     const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ data, gridRef })
 
@@ -42,15 +43,13 @@ export const CaseTable: React.FC<IProps> = observer(({ broker }) => {
     if (!data) return null
 
     return (
-      <DataSetContext.Provider value={data}>
-        <div ref={setNodeRef} className="case-table" data-testid="case-table">
-          <DataGrid ref={gridRef} className="rdg-light"
-            columns={columns} rows={rows} rowKeyGetter={rowKey}
-            selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-            onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
-          <AttributeDragOverlay activeDragAttrId={`${active?.id}`} column={active?.data?.current?.column} />
-        </div>
-      </DataSetContext.Provider>
+      <div ref={setNodeRef} className="case-table" data-testid="case-table">
+        <DataGrid ref={gridRef} className="rdg-light"
+          columns={columns} rows={rows} rowKeyGetter={rowKey}
+          selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+          onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+        <AttributeDragOverlay activeDragId={overlayDragId} />
+      </div>
     )
   })
 })

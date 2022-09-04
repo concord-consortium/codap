@@ -1,6 +1,8 @@
-import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
+import {
+  DndContext, DragEndEvent, DragStartEvent, KeyboardSensor, PointerSensor, useSensor, useSensors
+} from "@dnd-kit/core"
 import React, { useCallback, useEffect, useState } from "react"
-import { CaseTable } from "./case-table/case-table"
+import { CaseTableComponent } from "./case-table/case-table-component"
 import {Container} from "./container"
 import {DataSummary} from "./data-summary"
 import {gDataBroker} from "../data-model/data-broker"
@@ -53,7 +55,7 @@ export const App = () => {
   function handleDragEnd(evt: DragEndEvent) {
     const {active, over} = evt
     if (over?.data?.current?.accepts.includes(active?.data?.current?.type)) {
-      over.data.current.onDrop(active)
+      over.data.current.onDrop?.(active)
     }
   }
 
@@ -76,8 +78,14 @@ export const App = () => {
     }
   }, [])
 
+  const sensors = useSensors(
+                    // pointer must move three pixels before starting a drag
+                    useSensor(PointerSensor, { activationConstraint: { distance: 3 }}),
+                    useSensor(KeyboardSensor))
+
   return (
-    <DndContext collisionDetection={dndDetectCollision} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext collisionDetection={dndDetectCollision} sensors={sensors}
+                onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="app" data-testid="app">
         <Container>
           {/* each top-level child will be wrapped in a CodapComponent */}
@@ -89,8 +97,8 @@ export const App = () => {
               <p>Drag a CSV file into this window to get some data.</p>
             </div>
           </div>
-          <CaseTable />
-          <GraphComponent></GraphComponent>
+          <CaseTableComponent/>
+          <GraphComponent/>
         </Container>
       </div>
     </DndContext>

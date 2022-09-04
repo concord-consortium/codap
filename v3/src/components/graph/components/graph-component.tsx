@@ -1,4 +1,5 @@
 import {Button} from '@chakra-ui/react'
+import { useDroppable } from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
@@ -36,6 +37,10 @@ export const GraphComponent = observer(({broker}: IProps) => {
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
   }, [width, height, layout])
+
+  // used to determine when a dragged attribute is over the graph component
+  const { setNodeRef } = useDroppable({ id: `${instanceId}-component-drop`, data: { accepts: ["attribute"] } })
+  setNodeRef(graphRef.current)
 
   return (
     <DataSetContext.Provider value={data}>
