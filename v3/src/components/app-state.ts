@@ -15,16 +15,19 @@ class AppState {
   private appModeCount = 0
 
   // enables/disables performance mode globally, e.g. for a/b testing
+  @observable
   private isPerformanceEnabled = true
 
   constructor() {
     makeObservable(this)
   }
 
+  @action
   enablePerformance() {
     this.isPerformanceEnabled = true
   }
 
+  @action
   disablePerformance() {
     this.isPerformanceEnabled = false
   }
@@ -34,6 +37,7 @@ class AppState {
     return this.isPerformanceEnabled && (this.appModeCount > 0) ? "performance" : "normal"
   }
 
+  @computed
   get isPerformanceMode() {
     return this.appMode === "performance"
   }
