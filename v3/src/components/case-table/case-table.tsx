@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useRef } from "react"
+import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
 import { TRow } from "./case-table-types"
@@ -28,12 +28,8 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
 
     const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ data, gridRef })
 
-    const handleIndexClick = useCallback((caseId: string, evt: React.MouseEvent) => {
-      // TODO: put up a menu, for instance
-    }, [])
-
     // columns
-    const indexColumn = useIndexColumn({ data, onClick: handleIndexClick })
+    const indexColumn = useIndexColumn({ data })
     const columns = useColumns({ data, indexColumn })
 
     // rows
