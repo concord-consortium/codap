@@ -52,11 +52,6 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
   const [xMin, xMax] = scale.range()
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
-    const
-      bbox = axisElt?.getBBox?.(),
-      tX = (place === 'left') ? (bbox?.x ?? 0) - 10 : halfRange,
-      tY = (place === 'bottom') ? (bbox?.y ?? 0) + (bbox?.height ?? 30) + 15 : halfRange,
-      tRotation = place === 'bottom' ? '' : `rotate(-90,${tX},${tY})`
     select(titleRef.current)
       .selectAll('text.axis-title')
       .data([1])
@@ -66,13 +61,6 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
           enter.append('text')
             .attr('class', 'axis-title')
             .attr('text-anchor', 'middle')
-        },
-        (update) => {
-          update
-            .attr('x', tX)
-            .attr('y', tY)
-            .attr('transform', transform + ' ' + tRotation)
-            .text(label || 'Unnamed')
         })
 
   }, [axisElt, halfRange, label, place, transform])
