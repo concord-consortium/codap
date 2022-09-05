@@ -40,7 +40,7 @@ export const EditableComponentTitle: React.FC<IProps> = observer(({componentTitl
   return (
     <Input style={titleInputStyle} value={editingTitle} data-testid="editable-component-title" size="sm"
       onClick={handleClick} onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
-      onBlur={()=>handleClose(true)} />
+      onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()} />
   )
 })
 

@@ -1,8 +1,8 @@
 import React, { Children, cloneElement, ReactElement, useState } from "react"
 import { DataBroker } from "../data-model/data-broker"
+import { EditableComponentTitle } from "./editable-component-title"
 
 import "./codap-component.scss"
-import { EditableComponentTitle } from "./editable-component-title"
 
 interface IProps {
   broker: DataBroker;
