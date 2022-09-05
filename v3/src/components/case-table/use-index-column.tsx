@@ -1,20 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { createPortal } from "react-dom"
+import { Menu, MenuButton } from "@chakra-ui/react"
 import { IDataSet } from "../../data-model/data-set"
 import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
+import { IndexMenuList } from "./index-menu-list"
 
 interface IHookProps {
   data?: IDataSet
-  onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const useIndexColumn = ({ data, onClick }: IHookProps) => {
+export const useIndexColumn = ({ data }: IHookProps) => {
   // formatter/renderer
   const formatter = useCallback(({ row: { __id__ } }: TFormatterProps) => {
     const index = data?.caseIndexFromID(__id__)
     return (
-      <IndexCell caseId={__id__} index={index} onClick={onClick} />
+      <IndexCell caseId={__id__} index={index} />
     )
-  }, [data, onClick])
+  }, [data])
 
   // column definition
   const indexColumn: TColumn = useMemo(() => ({
@@ -36,10 +38,9 @@ interface ICellProps {
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
 export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
-
   const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
-
-  const setNodeRef = (elt: HTMLDivElement | null) => {
+  const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
+  const setNodeRef = (elt: HTMLButtonElement | null) => {
     setCellElt(elt)
   }
 
@@ -59,10 +60,17 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
     // no dependencies means we'll check/fix it after every render
   })
 
+  // Find the parent CODAP component to display the index menu above the grid
+  useEffect(() => {
+    setCodapComponentElt(cellElt?.closest(".codap-component") as HTMLDivElement ?? null)
+  }, [cellElt])
+
   return (
-    <div ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content"
-      onClick={e => onClick?.(caseId, e) }>
-      {index != null ? `${index + 1}` : ""}
-    </div>
+    <Menu isLazy>
+      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content">
+        {index != null ? `${index + 1}` : ""}
+      </MenuButton>
+      {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
+    </Menu>
   )
 }
