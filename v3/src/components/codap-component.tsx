@@ -1,5 +1,6 @@
-import React, { Children, cloneElement, ReactElement, ReactNode } from "react"
+import React, { Children, cloneElement, ReactElement, ReactNode, useState } from "react"
 import { DataBroker } from "../data-model/data-broker"
+import { EditableComponentTitle } from "./editable-component-title"
 
 import "./codap-component.scss"
 
@@ -8,8 +9,16 @@ interface IProps {
   children?: ReactNode
 }
 export const CodapComponent: React.FC<IProps> = ({ broker, children }) => {
+  const [componentTitle, setComponentTitle] = useState("")
+
+  const handleTitleChange = (title?: string) => {
+    title && setComponentTitle(title)
+  }
+
   return (
     <div className="codap-component">
+      <EditableComponentTitle componentTitle={componentTitle}
+            onEndEdit={handleTitleChange} />
       {/* inject broker prop into children */}
       {Children.map(children, child => cloneElement(child as ReactElement, { broker }))}
     </div>
