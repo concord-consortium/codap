@@ -1,4 +1,4 @@
-import { Button } from '@chakra-ui/react'
+import { Button, Select } from '@chakra-ui/react'
 import { Active, DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
@@ -15,9 +15,12 @@ interface IProps {
   v2Document?: CodapV2Document
 }
 export const DataSummary = observer(({ broker, v2Document }: IProps) => {
-  const data = broker?.last
+  const data = broker?.selectedDataSet || broker?.last
+
   const { active } = useDndContext()
+  const isSummaryDrag = active && `${active.id}`.startsWith("summary")
   const dragAttributeID = getDragAttributeId(active)
+  const dragAttribute = dragAttributeID ? data?.attrFromID(dragAttributeID) : undefined
 
   // used to determine when a dragged attribute is over the summary component
   const { setNodeRef } = useDroppable({ id: "summary-component-drop", data: { accepts: ["attribute"] } })
@@ -26,6 +29,30 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
 
   const handleDrop = (attributeId: string) => {
     setSelectedAttribute(data?.attrFromID(attributeId))
+  }
+
+  const handleDataSetSelection = (evt: React.ChangeEvent<HTMLSelectElement>) => {
+    broker?.setSelectedDataSetId(evt.target.value)
+  }
+
+  const DataSelectPopup = () => {
+    const dataSetSummaries = broker?.summaries
+    const renderOption = (name: string, id: string) => {
+      return <option key={name} value={id}>{name}</option>
+    }
+
+    if (dataSetSummaries) {
+      return (
+        <Select onChange={handleDataSetSelection} value={data?.id}>
+          { dataSetSummaries?.map(summary => {
+              return renderOption(summary.name || `DataSet ${summary.id}`, summary.id)
+            })
+          }
+        </Select>
+      )
+    }
+
+    return null
   }
 
   const componentTypes = v2Document?.components.map(component => component.type)
@@ -46,11 +73,12 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
           <DraggableAttribute key={attr.id} attribute={attr} />
         ))}
       </div>
+      {data && <DataSelectPopup />}
       {data && <SummaryDropTarget attribute={selectedAttribute} onDrop={handleDrop}/>}
       {data && <ProfilerButton />}
       <DragOverlay dropAnimation={null}>
-        {data && dragAttributeID
-          ? <DraggableAttribute attribute={data.attrFromID(dragAttributeID)} isOverlay={true}/>
+        {data && isSummaryDrag && dragAttribute
+          ? <OverlayAttribute attribute={dragAttribute} />
           : null}
       </DragOverlay>
     </div>
@@ -59,14 +87,19 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
 
 interface IDraggableAttributeProps {
   attribute: IAttribute
-  isOverlay?: boolean;
 }
-const DraggableAttribute = ({ attribute, isOverlay = false }: IDraggableAttributeProps) => {
+const DraggableAttribute = ({ attribute }: IDraggableAttributeProps) => {
   const draggableOptions: IUseDraggableAttribute = { prefix: "summary", attributeId: attribute.id }
   const { attributes, listeners, setNodeRef } = useDraggableAttribute(draggableOptions)
-  const overlayClass = isOverlay ? "overlay" : ""
   return (
-    <div ref={setNodeRef} className={`draggable-attribute ${overlayClass}`} {...attributes} {...listeners}>
+    <div ref={setNodeRef} className="draggable-attribute" {...attributes} {...listeners}>
+      {attribute.name}
+    </div>
+  )
+}
+const OverlayAttribute = ({ attribute }: IDraggableAttributeProps) => {
+  return (
+    <div className={`draggable-attribute overlay`} >
       {attribute.name}
     </div>
   )

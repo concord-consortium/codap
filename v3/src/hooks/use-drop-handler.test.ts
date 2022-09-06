@@ -1,5 +1,4 @@
-import { fireEvent } from "@testing-library/react"
-import { renderHook } from "@testing-library/react-hooks"
+import { fireEvent, renderHook } from "@testing-library/react"
 import { getType } from "mobx-state-tree"
 import { DataSet, IDataSet } from "../data-model/data-set"
 import { useDropHandler } from "./use-drop-handler"

@@ -1,17 +1,25 @@
+import { DragOverlay, useDndContext } from "@dnd-kit/core"
 import React from "react"
-import { TColumn } from "./case-table-types"
-import { ColumnHeader } from "./column-header"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { getDragAttributeId } from "../../hooks/use-drag-drop"
+
+import "./attribute-drag-overlay.scss"
 
 interface IProps {
-  activeDragAttrId?: string
-  column: TColumn
+  activeDragId?: string
 }
-export const AttributeDragOverlay = ({ activeDragAttrId, column }: IProps) => {
+export const AttributeDragOverlay = ({ activeDragId }: IProps) => {
+  const data = useDataSetContext()
+  const { active } = useDndContext()
+  const dragAttrId = activeDragId ? getDragAttributeId(active) : undefined
+  const attr = dragAttrId ? data?.attrFromID(dragAttrId) : undefined
   return (
-    activeDragAttrId
-      ? <div className="attribute-drag-overlay">
-          <ColumnHeader {...{ column } as any} />
-        </div>
-      : null
+    <DragOverlay dropAnimation={null}>
+      {dragAttrId
+        ? <div className="attribute-drag-overlay">
+            {attr?.name}
+          </div>
+        : null}
+    </DragOverlay>
   )
 }

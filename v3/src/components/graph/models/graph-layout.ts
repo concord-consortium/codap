@@ -10,14 +10,21 @@ export const kDefaultGraphHeight = 360
 export const kDefaultPlotWidth = 0.8 * kDefaultGraphWidth
 export const kDefaultPlotHeight = 0.8 * kDefaultGraphHeight
 
+export interface Bounds {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
 export class GraphLayout {
   @observable graphWidth = kDefaultGraphWidth
   @observable graphHeight = kDefaultGraphHeight
   @observable margin = ({ top: 10, right: 30, bottom: 30, left: 60 })
-  axisScales: Map<AxisPlace, ScaleBaseType>
+  @observable axisBounds: Map<AxisPlace, Bounds> = new Map()
+  axisScales: Map<AxisPlace, ScaleBaseType> = new Map()
 
   constructor() {
-    this.axisScales = new Map()
     AxisPlaces.forEach(place => this.axisScales.set(place, scaleLinear()))
     makeObservable(this)
   }
@@ -40,6 +47,19 @@ export class GraphLayout {
 
   axisLength(place: AxisPlace) {
     return this.isVertical(place) ? this.plotHeight : this.plotWidth
+  }
+
+  getAxisBounds(place: AxisPlace) {
+    return this.axisBounds.get(place)
+  }
+
+  @action setAxisBounds(place: AxisPlace, bounds: Bounds | undefined) {
+    if (bounds) {
+      this.axisBounds.set(place, bounds)
+    }
+    else {
+      this.axisBounds.delete(place)
+    }
   }
 
   axisScale(place: AxisPlace) {

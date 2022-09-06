@@ -1,15 +1,15 @@
 import { Active } from "@dnd-kit/core"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
-import { DroppableSvg } from "./droppable-svg"
-import { kGraphClassSelector } from "../graphing-types"
+import { DroppableAxis } from "./droppable-axis"
+import { useAxisBoundsProvider } from "../hooks/use-axis-bounds"
+import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import { getDragAttributeId, IDropData } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import {useNumericAxis} from "../hooks/use-numeric-axis"
-import { prf } from "../../../utilities/profiler"
 import { AxisPlace, INumericAxisModel } from "../models/axis-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import { prf } from "../../../utilities/profiler"
 import "./axis.scss"
 
 const axisDragHints = ['Drag to change axis lower bound',
@@ -33,15 +33,11 @@ export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps)
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(model.place),
     length = layout.axisLength(model.place),
-    [graphElt, setGraphElt] = useState<HTMLDivElement | null>(null),
-    [wrapperElt, setWrapperElt] = useState<SVGGElement | null>(null),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
     orientation = model.place
 
-  useEffect(() => {
-    setGraphElt(axisElt?.closest(kGraphClassSelector) as HTMLDivElement ?? null)
-  }, [axisElt, graphElt])
+  const { graphElt, wrapperElt, setWrapperElt } = useAxisBoundsProvider(model.place)
 
   useNumericAxis({ axisModel: model, axisElt })
 
@@ -215,7 +211,7 @@ export const Axis = ({ attributeID, model, transform, onDropAttribute }: IProps)
         <g className='axis' ref={elt => setAxisElt(elt)}/>
         <g ref={titleRef}/>
       </g>
-      <DroppableSvg className={`${model.place}`} dropId={droppableId} dropData={data}
+      <DroppableAxis place={`${model.place}`} dropId={droppableId} dropData={data}
                     portal={graphElt} target={wrapperElt} onIsActive={handleIsActive} />
     </>
   )
