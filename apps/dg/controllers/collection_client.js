@@ -566,7 +566,6 @@ DG.CollectionClient = SC.Object.extend(
   },
 
   caseCountDidChange: function () {
-    DG.log('cc: caseCountDidChange');
     this.notifyPropertyChange('caseCount');
   }.observes('*casesController', 'casesController.length'),
 

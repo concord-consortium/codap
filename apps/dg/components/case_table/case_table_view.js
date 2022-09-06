@@ -1346,6 +1346,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           this.restoreEditStateWhenReady(editState);
         }
       }
+      // hack: force collection title to be reevaluated
       this.caseCountDidChange();
       this.setPath('gridAdapter.lastRefresh', new Date());
     },

@@ -154,8 +154,11 @@ DG.CaseTableDataManager = SC.Object.extend({
           formatter: function (row, cell, cellValue, colInfo, rowItem) {
             var caseCount = this.subcaseCount(this._rowCaseMap[row]);
             var nonemptyCaseCount = this.subcaseCount(this._rowCaseMap[row], true);
-            var setName = this.context.getCaseNameForCount(this.collection, caseCount);
-            return caseCount-nonemptyCaseCount?
+            var hasEmptyCases = !!(caseCount-nonemptyCaseCount);
+            var setName = hasEmptyCases
+                ?this.context.getCaseNameForCount(this.collection, nonemptyCaseCount)
+                :this.context.getCaseNameForCount(this.collection, caseCount);
+            return hasEmptyCases?
                 "DG.CaseTable.closedGroup.summary-nonempty".loc(nonemptyCaseCount, setName):
                 "DG.CaseTable.closedGroup.summary".loc(caseCount, setName);
           }.bind(this)

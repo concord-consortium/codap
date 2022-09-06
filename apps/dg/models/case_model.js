@@ -382,8 +382,7 @@ DG.Case = DG.BaseModel.extend((function() {
     /**
      * A case is considered empty iff
      *   1. it is in the rightmost collection,
-     *   2. it has no formula attributes,
-     *   3. all attribute values are the empty string
+     *   2. all attribute values are empty
      */
     isEmpty: function () {
       var collection = this.get('collection');
@@ -393,7 +392,7 @@ DG.Case = DG.BaseModel.extend((function() {
           collection.get('children').length === 0;
       empty = empty && attrs && !attrs.find(function (attr) {
         // has value and not from a formula
-        return this.hasValue(attr.id) && (attr.get('formula') != null);
+        return this.hasValue(attr.id);
       }.bind(this));
       return empty;
     }.property()
