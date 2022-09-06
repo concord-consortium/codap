@@ -36,7 +36,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         <Tooltip label={column?.name ||"attribute"} h="20px" fontSize="12px" color="white"
             openDelay={1000} placement="bottom" bottom="15px" left="15px"
             isDisabled={dragging} closeOnClick={true}>
-          <MenuButton className="codap-index-content" data-testid="codap-index-content"
+          <MenuButton className="codap-attribute-button" data-testid="codap-attribute-button"
               onFocus={e => e.preventDefault()}>
             {column?.name}
           </MenuButton>
