@@ -622,8 +622,8 @@ SC.stringsFor("en", {
     "DG.TableController.setScoreDlg.formulaHint": "Type a formula for computing values of this attribute",
     "DG.TableController.newAttributeTooltip": "Add a new attribute to this table",
     "DG.TableController.collectionTitleText": "%@1 (%@2 cases)", /* %@1 replaced with case table title, %@2 replaced with case count */
-    "DG.TableController.collectionTitleText-nonempty": "%@1 (%@2 nonempty cases)", /* %@1 replaced with case table title, %@2 replaced with case count */
     "DG.TableController.collectionTitleTextWithSetAside": "%@1 (%@2 cases, %@3 set aside)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with set-aside count */
+    "DG.TableController.collectionTitleText-nonempty": "%@1 (%@2 nonempty cases)", /* %@1 replaced with case table title, %@2 replaced with case count */
     "DG.TableController.collectionTitleTextWithSetAside-nonempty": "%@1 (%@2 nonempty cases, %@3 set aside)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with set-aside count */
 
     "DG.TableController.attributeEditor.title": "Attribute Properties",
@@ -836,6 +836,8 @@ SC.stringsFor("en", {
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
     "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
+    "DG.DataDisplayMenu.exportPngImage": "Export PNG Image...",
+    "DG.DataDisplayMenu.exportSvgImage": "Export SVG Image...",
     "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
     "DG.DataDisplayMenu.addBackgroundImage": "Add Background Image",
     "DG.DataDisplayMenu.lockImageToAxes": "Lock Background Image to Axes",

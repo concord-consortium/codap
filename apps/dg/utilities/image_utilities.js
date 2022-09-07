@@ -18,9 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global Promise */
+/* global Promise:true */
 DG.ImageUtilities = (function () {
-  return {
 
     /**
      * Converts an SVG scene into a png image.
@@ -30,9 +29,10 @@ DG.ImageUtilities = (function () {
      * @param width {number}
      * @param height {number}
      * @param asDataURL {boolean} true - image returned as data URI, otherwise as blob
+     * @param title {string}
      * @return {Promise} The promise of an image.
      */
-    captureSVGElementsToImage: function (rootEl, width, height, title, asDataURL) {
+    function captureSVGElementsToImage (rootEl, width, height, title, asDataURL) {
 
       function getCSSText() {
         var text = [], ix, jx;
@@ -63,7 +63,7 @@ DG.ImageUtilities = (function () {
         // because we are no longer in this namespace. So, we remove.
         svgData = svgData.replace(
             new RegExp('url\\(\'[^#]*#', 'g'), 'url(\'#');
-        // The use of unescape and encodeURIComponent are part of a well-
+        // The use of unescape and encodeURIComponent are part of a well
         // known hack work around btoa's handling of unicode characters.
         // see, eg:
         // http://ecmanaut.blogspot.com/2006/07/encoding-decoding-utf8-in-javascript.html
@@ -76,7 +76,7 @@ DG.ImageUtilities = (function () {
        * the DOM.
        * @param {number} width
        * @param {number} height
-       * @returns {Canvas}
+       * @returns {canvas}
        */
       function makeCanvasEl(width, height) {
         var canvas = $("<canvas>").prop({width: width, height: height})[0];
@@ -88,8 +88,8 @@ DG.ImageUtilities = (function () {
 
       /**
        * Add an image to the canvas at the specified location.
-       * @param {Canvas} canvas DOM Element
-       * @param {img} image DOM Element
+       * @param {canvas} canvas DOM Element
+       * @param {object} image DOM Element
        * @param {number} x
        * @param {number} y
        * @param {number} width
@@ -193,7 +193,7 @@ DG.ImageUtilities = (function () {
             }
           );
         } else if (elType === 'img') {
-          // add an img to the canvas only if it has the crossorigin attribute.
+          // add an img to the canvas only if it has the cross-origin attribute.
           // otherwise we will taint the canvas
           if (!SC.none(job.el.getAttribute('crossorigin'))) {
             addImageToCanvas(canvas, job.el, job.l, job.t, job.w, job.h);
@@ -244,5 +244,77 @@ DG.ImageUtilities = (function () {
       return null;
 
     }
+
+  function makeBaseEl(width, height) {
+    var el = document.createElement('svg');
+    el.setAttribute('width', width);
+    el.setAttribute('height', height);
+    el.setAttribute('xmlns',"http://www.w3.org/2000/svg");
+    el.innerHTML = `<rect width=${width-1} height=${height-1} stroke="#888" fill="#fff"/>`;
+    return el;
+  }
+
+  function getElementPosition(el, rootEl) {
+    var x = 0, y = 0;
+    var p = el;
+    while (p && p !== p.parentElement && p !== rootEl) {
+      x += p.offsetLeft || 0;
+      y += p.offsetTop || 0;
+      p = p.parentElement;
+    }
+    return {x: x, y: y};
+  }
+
+  function svgText(titleText, centerX, centerY) {
+      var el = document.createElement('text');
+      el.setAttribute('x', centerX);
+      el.setAttribute('y', centerY);
+      el.setAttribute('font-family', 'MuseoSans-500,arial');
+      el.setAttribute('font-size', '14px');
+      el.setAttribute('stroke', 'none');
+      el.setAttribute('fill', '#888');
+      el.setAttribute('text-anchor', 'middle');
+      el.innerText = titleText;
+      return el;
+  }
+
+  function svgLine(fromX, fromY, toX, toY) {
+    var el = document.createElement('path');
+    el.setAttribute('d', 'M' + fromX + ' ' + fromY + ' L' + toX + ' ' + toY);
+    el.setAttribute('stroke', '#888');
+    el.setAttribute('fill', '#888');
+    return el;
+  }
+  function captureGraphToSVG(rootEl, width, height, title) {
+    //var elements = rootEl.querySelectorAll('div.dg-plot-view,div:not(.sc-hidden)>svg');
+    if (title) {
+      height = height + 20;
+    }
+    var elements = rootEl.querySelectorAll('div:not(.sc-hidden)>svg');
+    var newSVG = makeBaseEl(width, height + (title?20:0));
+    elements.forEach(function(el) {
+      if (el.children) {
+        var pos = getElementPosition(el, rootEl);
+        var clone = el.cloneNode(true);
+        clone.setAttribute('x', pos.x);
+        clone.setAttribute('y', pos.y);
+        clone.setAttribute('width', el.width.baseVal.value);
+        clone.setAttribute('height', el.height.baseVal.value);
+
+        if (el.tagName.toLowerCase() === 'svg') {
+          newSVG.append(clone);
+        }
+      }
+    });
+    if (title) {
+      newSVG.append(svgLine(0, height-20, width, height-20));
+      newSVG.append(svgText(title, width/2, height));
+    }
+    return newSVG.outerHTML;
+  }
+
+  return {
+    captureSVGElementsToImage: captureSVGElementsToImage,
+    captureGraphToSVG: captureGraphToSVG
   };
 }());

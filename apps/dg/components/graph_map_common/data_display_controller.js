@@ -134,8 +134,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
         return tBackgroundItems.concat([
           { title: ('DG.DataDisplayMenu.copyAsImage'), isEnabled: (SC.browser.name !== SC.BROWSER.safari),
             target: this, action: 'copyAsImage' },
-          { title: ('DG.DataDisplayMenu.exportImage'), isEnabled: true,
-            target: this, action: 'makePngImage' }
+          { title: ('DG.DataDisplayMenu.exportPngImage'), isEnabled: true,
+            target: this, action: 'makePngImage' },
+          { title: ('DG.DataDisplayMenu.exportSvgImage'), isEnabled: true,
+            target: this, action: 'makeSvgImage' }
         ]);
       },
 
@@ -955,23 +957,31 @@ DG.DataDisplayController = DG.ComponentController.extend(
           }));
         },
 
-        convertToImage: function (rootEl, width, height, title) {
+        convertToImage: function (imageType, rootEl, width, height, title) {
 
-          function saveImage(pngObject) {
+          function saveImage(dataUrl, extension, mime) {
             var reader = new FileReader();
             reader.addEventListener("loadend", function() {
               var data = reader.result.split(",").pop();  // get rid of base64 header
-              DG.exportFile(data, "png", "image/png");
+              DG.exportFile(data, extension, mime);
             });
-            reader.readAsDataURL(pngObject);
+            reader.readAsDataURL(dataUrl);
           }
 
-          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height, title)
-            .then(function (blob) {
-              saveImage(blob);
-            }, function (msg) {
-              DG.log(msg);
-            });
+          if (imageType === 'png') {
+            DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height,
+                title)
+                .then(function (blob) {
+                  saveImage(blob, "png", "image/png");
+                }, function (msg) {
+                  DG.log(msg);
+                });
+          }
+          else if (imageType === 'svg') {
+            DG.exportFile(/*new Blob([*/
+                  DG.ImageUtilities.captureGraphToSVG(rootEl, width, height, title)/*])*/,
+              'svg', 'text/plain');
+          }
         },
 
         openDrawToolWithImage: function (rootEl, width, height, title) {
@@ -992,7 +1002,16 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var width = graphView.getPath('frame.width');
           var height = graphView.getPath('frame.height');
           var title = componentView.get('title');
-          this.convertToImage(graphView.get('layer'), width, height, title);
+          this.convertToImage('png', graphView.get('layer'), width, height, title);
+        },
+
+        makeSvgImage: function () {
+          var componentView = this.get('view');
+          var graphView = componentView && componentView.get('contentView');
+          var width = graphView.getPath('frame.width');
+          var height = graphView.getPath('frame.height');
+          var title = componentView.get('title');
+          this.convertToImage('svg', graphView.get('layer'), width, height, title);
         },
 
         copyAsImage: function () {

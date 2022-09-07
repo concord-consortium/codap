@@ -836,6 +836,8 @@
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
     "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
+    "DG.DataDisplayMenu.exportPngImage": "Export PNG Image...",
+    "DG.DataDisplayMenu.exportSvgImage": "Export SVG Image...",
     "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
     "DG.DataDisplayMenu.addBackgroundImage": "Add Background Image",
     "DG.DataDisplayMenu.lockImageToAxes": "Lock Background Image to Axes",
