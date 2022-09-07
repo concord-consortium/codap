@@ -74,11 +74,12 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: number[], scale: ScaleBaseType, axis: INumericAxisModel) {
+export function setNiceDomain(values: number[], scale: ScaleBaseType | undefined, axis: INumericAxisModel) {
   const valueExtent = extent(values, d => d) as [number, number],
     niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
   axis.setTransitionDuration(1000)
   axis.setDomain(niceBounds.min, niceBounds.max)
+  scale?.domain([niceBounds.min, niceBounds.max])  // We can't rely on useNumericAxis hook because of the transition
 }
 
 type KeyFunc = (d:string) => string
@@ -167,13 +168,13 @@ export const pullOutNumericAttributesInNewDataset = (props: IPullOutNumericAttri
 
       const xValues = dataset.attrFromID(xAttrId).numValues,
         yValues = dataset.attrFromID(yAttrId).numValues
-      graphModel.setAttributeID('bottom', xAttrId)
-      graphModel.setAttributeID('left', yAttrId)
       filterCases(dataset, graphModel, graphModel.plotType === 'scatterPlot' ?[xAttrId, yAttrId] : [xAttrId])
       if (graphModel.cases.length > 0) {
         setNiceDomain(xValues, xScale, xAxis)
         setNiceDomain(yValues, yScale, yAxis)
       }
+      graphModel.setAttributeID('bottom', xAttrId)
+      graphModel.setAttributeID('left', yAttrId)
     }
   }
 }
