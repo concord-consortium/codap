@@ -1,4 +1,3 @@
-import {Button} from '@chakra-ui/react'
 import { useDroppable } from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
@@ -7,20 +6,17 @@ import {useMemo} from "use-memo-one"
 import {DataBroker} from "../../../data-model/data-broker"
 import {DataSetContext} from "../../../hooks/use-data-set-context"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
-import {MovableLineModel, MovableValueModel} from "../adornments/adornment-models"
-import {NumericAxisModel} from "../models/axis-model"
+import {EmptyAxisModel} from "../models/axis-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 
 const defaultGraphModel = GraphModel.create({
   axes: {
-    bottom: NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
-    left: NumericAxisModel.create({place: 'left', min: 0, max: 10})
+    bottom: EmptyAxisModel.create({place: 'bottom'}),
+    left: EmptyAxisModel.create({place: 'left'})
   },
-  plotType: "dotPlot",
-  movableValue: MovableValueModel.create({value: 0}),
-  movableLine: MovableLineModel.create({intercept: 0, slope: 1})
+  plotType: "emptyPlot",
 })
 
 interface IProps {
@@ -47,17 +43,6 @@ export const GraphComponent = observer(({broker}: IProps) => {
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <Graph model={defaultGraphModel} graphRef={graphRef} enableAnimation={enableAnimation}/>
-          <Button
-            className='graph-plot-choice'
-            size="xs"
-            onClick={() => {
-              const currPlotType = defaultGraphModel.plotType
-              enableAnimation.current = true
-              defaultGraphModel.setPlotType(currPlotType === 'scatterPlot' ? 'dotPlot' : 'scatterPlot')
-            }}
-          >
-            {defaultGraphModel.plotType === 'scatterPlot' ? 'Dot' : 'Scatter'} Plot
-          </Button>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>
     </DataSetContext.Provider>

@@ -7,9 +7,8 @@ import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {INumericAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
-import {prf} from "../../../utilities/profiler"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
@@ -24,7 +23,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
     layout = useGraphLayoutContext(),
     place = axisModel.place,
     countPlace = place === 'left' ? 'bottom' : 'left',
-    xScale = layout.axisScale(place),
+    xScale = layout.axisScale(place) as ScaleNumericBaseType,
     {plotWidth} = layout,
     yScale = layout.axisScale(countPlace),
     [dragID, setDragID] = useState(''),
@@ -113,51 +112,47 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    prf.measure("Graph.DotPlotDots[refreshPointSelection]", () => {
-      setPointSelection({dotsRef, dataset})
-    })
+    setPointSelection({dotsRef, dataset})
   }, [dataset, dotsRef])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    prf.measure("Graph.DotPlotDots[refreshPointPositions]", () => {
-      const
-        yHeight = Number(yScale?.range()[0]),
-        binMap: { [id: string]: { yIndex: number } } = {}
-      let overlap = 0
+    const
+      yHeight = Number(yScale?.range()[0]),
+      binMap: { [id: string]: { yIndex: number } } = {}
+    let overlap = 0
 
-      function computeBinPlacements() {
-        const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
-          binWidth = plotWidth / (numBins - 1),
-          bins: string[][] = range(numBins + 1).map(() => [])
+    function computeBinPlacements() {
+      const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
+        binWidth = plotWidth / (numBins - 1),
+        bins: string[][] = range(numBins + 1).map(() => [])
 
-        casesRef.current.forEach((anID) => {
-          const numerator = xScale?.(dataset?.getNumeric(anID, xAttrID) ?? -1),
-            bin = Math.ceil((numerator ?? 0) / binWidth)
-          if (bin >= 0 && bin <= numBins) {
-            bins[bin].push(anID)
-            binMap[anID] = {yIndex: bins[bin].length}
-          }
-        })
-        const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
-          excessHeight = Math.max(0, maxInBin - Math.floor(yHeight / defaultDiameter)) * defaultDiameter
-        overlap = excessHeight / maxInBin
-      }
+      casesRef.current.forEach((anID) => {
+        const numerator = xScale?.(dataset?.getNumeric(anID, xAttrID) ?? -1),
+          bin = Math.ceil((numerator ?? 0) / binWidth)
+        if (bin >= 0 && bin <= numBins) {
+          bins[bin].push(anID)
+          binMap[anID] = {yIndex: bins[bin].length}
+        }
+      })
+      const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
+        excessHeight = Math.max(0, maxInBin - Math.floor(yHeight / defaultDiameter)) * defaultDiameter
+      overlap = excessHeight / maxInBin
+    }
 
-      computeBinPlacements()
+    computeBinPlacements()
 
-      const
-        getScreenX = (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale),
-        computeYCoord = (binContents: { yIndex: number }) => {
-          return binContents ? yHeight - defaultRadius / 2 - binContents.yIndex * (defaultDiameter - overlap) : 0
-        },
-        getScreenY = (anID: string) => computeYCoord(binMap[anID]),
-        duration = enableAnimation.current ? transitionDuration : 0,
-        onComplete = enableAnimation.current ? () => {
-          enableAnimation.current = false
-        } : undefined
+    const
+      getScreenX = (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale),
+      computeYCoord = (binContents: { yIndex: number }) => {
+        return binContents ? yHeight - defaultRadius / 2 - binContents.yIndex * (defaultDiameter - overlap) : 0
+      },
+      getScreenY = (anID: string) => computeYCoord(binMap[anID]),
+      duration = enableAnimation.current ? transitionDuration : 0,
+      onComplete = enableAnimation.current ? () => {
+        enableAnimation.current = false
+      } : undefined
 
-      setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
-    })
+    setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
   }, [dataset, casesRef, dotsRef, xAttrID, xScale, yScale, plotWidth, enableAnimation])
 
   usePlotResponders({

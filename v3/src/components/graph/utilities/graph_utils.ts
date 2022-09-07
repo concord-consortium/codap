@@ -4,11 +4,9 @@ import React from "react"
 import {defaultRadius, Point, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
-import {GraphLayout, ScaleBaseType} from "../models/graph-layout"
-import {prf} from "../../../utilities/profiler"
-import {INumericAxisModel} from "../models/axis-model"
+import {GraphLayout, ScaleNumericBaseType} from "../models/graph-layout"
+import {IAxisModel, ICategoricalAxisModel, INumericAxisModel} from "../models/axis-model"
 import {IGraphModel} from "../models/graph-model"
-import {IAttribute} from "../../../data-model/attribute"
 
 /**
  * Utility routines having to do with graph entities
@@ -74,51 +72,17 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: number[], scale: ScaleBaseType | undefined, axis: INumericAxisModel) {
-  const valueExtent = extent(values, d => d) as [number, number],
-    niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
-  axis.setTransitionDuration(1000)
-  axis.setDomain(niceBounds.min, niceBounds.max)
-  scale?.domain([niceBounds.min, niceBounds.max])  // We can't rely on useNumericAxis hook because of the transition
-}
-
-type KeyFunc = (d:string) => string
-export interface IMatchCirclesProps {
-  caseIDs:string[]
-  dataset: IDataSet | undefined
-  dotsElement: SVGGElement | null
-  enableAnimation: React.MutableRefObject<boolean>
-  keyFunc: KeyFunc
-  instanceId:string | undefined
-  xAttrID: string
-  yAttrID: string
-  xScale: ScaleBaseType
-  yScale: ScaleBaseType
-}
-export function matchCirclesToData( props: IMatchCirclesProps) {
-  const {caseIDs, dataset, enableAnimation, keyFunc, instanceId, dotsElement,
-    xAttrID, yAttrID/*, xScale, yScale*/} = props
-  const float = format('.3~f')
-  enableAnimation.current = true
-  select(dotsElement)
-    .selectAll('circle')
-    .data(caseIDs, keyFunc)
-    .join(
-      // @ts-expect-error void => Selection
-      (enter) => {
-        enter.append('circle')
-          .attr('class', 'graph-dot')
-          .attr("r", defaultRadius)
-          .property('id', (anID: string) => `${instanceId}_${anID}`)
-          .selection()
-          .append('title')
-          .text((anID: string) => {
-            const xVal = dataset?.getNumeric(anID, xAttrID) ?? 0,
-              yVal = dataset?.getNumeric(anID, yAttrID) ?? 0
-            return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
-          })
-      }
-    )
+export function setNiceDomain(values: (string | number)[], axisModel: IAxisModel) {
+  if (axisModel.isNumeric) {
+    const numericAxisModel = axisModel as INumericAxisModel,
+      valueExtent = extent(values, d => Number(d)) as unknown as [number, number],
+      niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
+    numericAxisModel.setDomain(niceBounds.min, niceBounds.max)
+  } else {
+    const categoricalAxisModel = axisModel as ICategoricalAxisModel,
+      categoriesArray = Array.from(new Set(values)).map(cat => String(cat))
+    categoricalAxisModel.setCategories(categoriesArray)
+  }
 }
 
 export interface IPullOutNumericAttributesProps {
@@ -353,7 +317,7 @@ export function rectToTreeRect(rect: Rect) {
 }
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
-                               attrID: string, scale: ScaleBaseType) {
+                               attrID: string, scale: ScaleNumericBaseType) {
   const value = dataSet?.getNumeric(id, attrID)
   return value != null && !isNaN(value) ? Math.round(100 * scale(value)) / 100 : null
 }
@@ -364,21 +328,13 @@ export interface ISetPointSelection {
 }
 
 export function setPointSelection(props: ISetPointSelection) {
-  prf.measure("Graph.setPointSelection", () => {
-    prf.begin("Graph.setPointSelection[selection]")
-    const
-      {dotsRef, dataset} = props,
-      dotsSvgElement = dotsRef.current,
-      dots = select(dotsSvgElement)
-    dots.selectAll('circle')
-      .classed('graph-dot-highlighted',
-        (anID: string) => !!(dataset?.isCaseSelected(anID)))
-    prf.end("Graph.setPointSelection[selection]")
-    prf.measure("Graph.setPointSelection[raise]", () => {
-      dots.selectAll('.graph-dot-highlighted')
-        .raise()
-    })
-  })
+  const
+    {dotsRef, dataset} = props,
+    dotsSvgElement = dotsRef.current,
+    dots = select(dotsSvgElement)
+  dots.selectAll('circle')
+    .classed('graph-dot-highlighted',
+      (anID: string) => !!(dataset?.isCaseSelected(anID)))
 }
 
 export interface ISetPointCoordinates {
@@ -391,27 +347,21 @@ export interface ISetPointCoordinates {
 }
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
-  prf.measure("Graph.setPointCoordinates", () => {
-    prf.begin("Graph.setPointCoordinates[selection]")
-    const
-      {dotsRef, selectedOnly = false, getScreenX, getScreenY, duration = 0, onComplete} = props,
-      dotsSvgElement = dotsRef.current,
-      selection = select(dotsSvgElement).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
-    prf.end("Graph.setPointCoordinates[selection]")
-    prf.measure("Graph.setPointCoordinates[position]", () => {
-      if (duration > 0) {
-        selection
-          .transition()
-          .duration(duration)
-          .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
-          .attr('cx', (anID: string) => getScreenX(anID))
-          .attr('cy', (anID: string) => getScreenY(anID))
-          .attr('r', defaultRadius)
-      } else if (selection.size() > 0) {
-        selection
-          .attr('cx', (anID: string) => getScreenX(anID))
-          .attr('cy', (anID: string) => getScreenY(anID))
-      }
-    })
-  })
+  const
+    {dotsRef, selectedOnly = false, getScreenX, getScreenY, duration = 0, onComplete} = props,
+    dotsSvgElement = dotsRef.current,
+    selection = select(dotsSvgElement).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
+  if (duration > 0) {
+    selection
+      .transition()
+      .duration(duration)
+      .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
+      .attr('cx', (anID: string) => getScreenX(anID))
+      .attr('cy', (anID: string) => getScreenY(anID))
+      .attr('r', defaultRadius)
+  } else if (selection.size() > 0) {
+    selection
+      .attr('cx', (anID: string) => getScreenX(anID))
+      .attr('cy', (anID: string) => getScreenY(anID))
+  }
 }

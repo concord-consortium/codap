@@ -1,23 +1,27 @@
 import {useToast} from "@chakra-ui/react"
-import {select} from "d3"
+import {format, scaleBand, scaleLinear, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {kGraphClass} from "../graphing-types"
+import {defaultRadius, kGraphClass, plotProps, PlotType} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
+import {CaseDots} from "./casedots"
+import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
-import {MovableLine} from "../adornments/movable-line"
-import {MovableValue} from "../adornments/movable-value"
-import {AxisPlace, INumericAxisModel} from "../models/axis-model"
+import {
+  AxisPlace,
+  CategoricalAxisModel,
+  IAxisModel, ICategoricalAxisModel,
+  INumericAxisModel,
+  NumericAxisModel
+} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {pullOutNumericAttributesInNewDataset} from "../utilities/graph_utils"
-import {useGraphModel} from "../hooks/use-graph-model"
-import {useMovables} from "../hooks/use-movables"
+import {setNiceDomain} from "../utilities/graph_utils"
 
 import "./graph.scss"
 
@@ -28,11 +32,10 @@ interface IProps {
 }
 
 export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: IProps) => {
-  const
-    casesRef = useRef(graphModel.cases),
-    xAxisModel = graphModel.getAxis("bottom") as INumericAxisModel,
-    yAxisModel = graphModel.getAxis("left") as INumericAxisModel,
-    {plotType, movableLine: movableLineModel, movableValue: movableValueModel} = graphModel,
+  constcasesRef = useRef(graphModel.cases),
+    xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
+    yAxisModel = graphModel.getAxis("left") as IAxisModel,
+    {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -40,36 +43,54 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
     xScale = layout.axisScale("bottom"),
     transform = `translate(${margin.left}, 0)`,
 
+
+
     keyFunc = useCallback((d: string) => d, []),
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     dotsRef = useRef<SVGSVGElement>(null),
     [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})
 
-  useEffect(function makeUseOfDataset() {
-    if (dataset) {
-      pullOutNumericAttributesInNewDataset({dataset, layout, xAxis: xAxisModel, yAxis: yAxisModel, graphModel})
-      casesRef.current = graphModel.cases
-    }
-  }, [dataset, layout, xAxisModel, yAxisModel, graphModel])
-
   const
     xAttrID = graphModel.getAttributeID('bottom'),
     yAttrID = graphModel.getAttributeID('left')
 
-  casesRef.current = graphModel.cases
-
-  useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, keyFunc, instanceId})
-
   useEffect(function setupPlotArea() {
-    select(plotAreaSVGRef.current)
-      .attr('x', xScale.range()[0] + margin.left)
-      .attr('y', 0)
-      .attr('width', layout.plotWidth)
-      .attr('height', layout.plotHeight)
+    if (xScale && xScale?.range().length > 0) {
+      select(plotAreaSVGRef.current)
+        .attr('x', xScale?.range()[0] + margin.left)
+        .attr('y', 0)
+        .attr('width', layout.plotWidth)
+        .attr('height', layout.plotHeight)
+    }
   }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
 
-  useMovables({graphModel, movableValueModel, movableLineModel})
+  useEffect(() => {
+    graphModel.setCases(dataset ? dataset?.cases.map(aCase => aCase.__id__) : [])
+  }, [dataset, graphModel])
+
+  useEffect(function createCircles() {
+    enableAnimation.current = true
+    select(dotsRef.current)
+      .selectAll('circle')
+      .data(graphModel.cases, keyFunc)
+      .join(
+        // @ts-expect-error void => Selection
+        (enter) => {
+          enter.append('circle')
+            .attr('class', 'graph-dot')
+            .attr("r", defaultRadius)
+            .property('id', (anID: string) => `${instanceId}_${anID}`)
+            .selection()
+            .append('title')
+            .text((anID: string) => {
+              const xVal = dataset?.getNumeric(anID, xAttrID) ?? 0,
+                yVal = dataset?.getNumeric(anID, yAttrID) ?? 0
+              return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
+            })
+        }
+      )
+  }, [dataset, instanceId, xScale, yScale, xAttrID, yAttrID, enableAnimation, graphModel.cases])
 
   const toast = useToast()
   const handleDropAttribute = (place: AxisPlace, attrId: string) => {
@@ -82,58 +103,117 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
     })
     graphModel.setAttributeID(place, attrId)
   }
+  // respond to assignment of new attribute ID
+  useEffect(function handleNewAttributeID() {
+    const disposer = graphModel && onAction(graphModel, action => {
+      if (action.name === 'setAttributeID') {
+        const place: AxisPlace = action.args?.[0],
+          otherPlace = place === 'bottom' ? 'left' : 'bottom',
+          attrID = action.args?.[1],
+          attribute = dataset?.attrFromID(attrID),
+          type = attribute?.type ?? 'empty',
+          axisModel = graphModel.getAxis(place),
+          currentAxisType = axisModel?.type,
+          otherAxisType = graphModel.getAxis(otherPlace)?.type,
+          plotChoices = {
+            empty: {empty: 'casePlot', numeric: 'dotPlot', categorical: 'dotChart'},
+            numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
+            categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
+          }
+        if (type === 'numeric') {
+          if (currentAxisType !== type) {
+            const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
+            graphModel.setAxis(place, newAxisModel as INumericAxisModel)
+            layout.setAxisScale(place, scaleLinear())
+            setNiceDomain(attribute?.numValues || [], newAxisModel)
+          } else {
+            setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
+          }
+        } else if (type === 'categorical') {
+          const categories = Array.from(new Set(attribute?.strValues))
+          if (currentAxisType !== type) {
+            const newAxisModel = CategoricalAxisModel.create({place, categories})
+            graphModel.setAxis(place, newAxisModel as ICategoricalAxisModel)
+            layout.setAxisScale(place, scaleBand())
+          }
+          layout.axisScale(place)?.domain(categories)
+        }
+        // todo: Kirk, better way to do this?
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        graphModel.setPlotType(plotChoices[type][otherAxisType] as PlotType)
+        enableAnimation.current = true
+      }
+    }, true)
+    return () => disposer?.()
+  }, [dataset, layout, xAxisModel, yAxisModel, enableAnimation, graphModel])
+
+  const getPlotComponent = () => {
+    let plotComponent: JSX.Element | null = null
+    switch (plotType) {
+      case 'emptyPlot':
+        plotComponent = (
+          <CaseDots
+            plotProps={dotsProps}
+            dotsRef={dotsRef}
+            enableAnimation={enableAnimation}
+          />)
+        break
+      case 'dotChart':
+        plotComponent = (
+          <ChartDots
+            plotProps={dotsProps}
+            xAttrID={xAttrID}
+            dotsRef={dotsRef}
+            enableAnimation={enableAnimation}
+          />)
+        break
+      case 'scatterPlot':
+        plotComponent = (
+          <ScatterDots
+            plotProps={dotsProps}
+            xAttrID={xAttrID}
+            yAttrID={yAttrID}
+            dotsRef={dotsRef}
+            xAxisModel={xAxisModel as INumericAxisModel}
+            yAxisModel={yAxisModel as INumericAxisModel}
+            enableAnimation={enableAnimation}
+          />
+        )
+        break
+      case 'dotPlot':
+        plotComponent = (
+          <DotPlotDots
+            axisModel={xAxisModel as INumericAxisModel}
+            xAttrID={xAttrID}
+            dotsRef={dotsRef}
+            enableAnimation={enableAnimation}
+          />
+        )
+        break
+      default:
+    }
+    return plotComponent
+  }
 
   return (
     <div className={kGraphClass} ref={graphRef} data-testid="graph">
       <svg className='graph-svg' ref={svgRef}>
-        {plotType === 'scatterPlot' ?
-          <Axis model={yAxisModel} attributeID={yAttrID}
-                transform={`translate(${margin.left - 1}, 0)`}
-                onDropAttribute={handleDropAttribute}
-          />
-          : null
-        }
+        <Axis model={yAxisModel} attributeID={yAttrID}
+              transform={`translate(${margin.left - 1}, 0)`}
+              onDropAttribute={handleDropAttribute}
+        />
         <Axis model={xAxisModel} attributeID={xAttrID}
               transform={`translate(${margin.left}, ${layout.plotHeight})`}
               onDropAttribute={handleDropAttribute}
         />
-        <Background transform={transform} marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
+        <Background dots={dotsProps} marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
         <svg ref={plotAreaSVGRef} className='graph-dot-area'>
           <svg ref={dotsRef}>
-            {
-              (plotType === 'scatterPlot' ?
-                <ScatterDots
-                  casesRef={casesRef}
-                  xAttrID={xAttrID}
-                  yAttrID={yAttrID}
-                  dotsRef={dotsRef}
-                  xAxisModel={xAxisModel}
-                  yAxisModel={yAxisModel}
-                  enableAnimation={enableAnimation}
-                />
-                :
-                <DotPlotDots
-                  casesRef={casesRef}
-                  axisModel={xAxisModel}
-                  xAttrID={xAttrID}
-                  dotsRef={dotsRef}
-                  enableAnimation={enableAnimation}
-                />)
-            }
+            {getPlotComponent()}
           </svg>
           <Marquee marqueeRect={marqueeRect}/>
         </svg>
-        {plotType === 'scatterPlot' ?
-          <MovableLine
-            transform={`translate(${margin.left}, 0)`}
-            xAxis={xAxisModel}
-            yAxis={yAxisModel}
-            model={movableLineModel}/>
-          :
-          <MovableValue model={movableValueModel}
-                        axis={xAxisModel}
-                        transform={`translate(${margin.left}, 0)`}/>
-        }
       </svg>
     </div>
   )

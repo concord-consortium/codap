@@ -6,15 +6,15 @@ import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {useNumericAxis} from "../hooks/use-numeric-axis"
-import {AxisPlace, INumericAxisModel} from "../models/axis-model"
+import {useAxis} from "../hooks/use-axis"
+import {AxisPlace, IAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import "./axis.scss"
 
 interface IProps {
   attributeID: string,
-  model: INumericAxisModel
+  model: IAxisModel
   transform: string
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
@@ -33,7 +33,7 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(model.place)
 
-  useNumericAxis({axisModel: model, axisElt, axisWrapperElt: wrapperElt})
+  useAxis({axisModel: model, axisElt, axisWrapperElt: wrapperElt})
 
   useEffect(function setupTransform() {
       axisElt && select(axisElt)
