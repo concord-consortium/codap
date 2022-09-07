@@ -978,8 +978,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 });
           }
           else if (imageType === 'svg') {
-            DG.exportFile(/*new Blob([*/
-                  DG.ImageUtilities.captureGraphToSVG(rootEl, width, height, title)/*])*/,
+            DG.exportFile(
+                  DG.ImageUtilities.captureGraphToSVG(rootEl, width, height, title),
               'svg', 'text/plain');
           }
         },
