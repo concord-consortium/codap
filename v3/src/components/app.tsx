@@ -15,6 +15,7 @@ import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import pkg from "../../package.json"
+import build from "../../build_num.json"
 
 import "./app.scss"
 
@@ -73,7 +74,7 @@ export const App = () => {
           <DataSummary v2Document={v2Document} />
           <div className="hello-codap3">
             <div className="version-build-number">
-              <span>v{pkg.version}</span>
+              <span>v{pkg.version}-build-{build.buildNumber}</span>
             </div>
             <div>
               <img src={Icon}/>
