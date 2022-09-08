@@ -11,7 +11,10 @@ interface IProps {
 export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
   const toast = useToast()
 
-  const handleRenameAttribute = () => {
+  const handleRenameAttribute = (e: any) => {
+    console.log("in handleRename")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Rename ${column.name}`,
@@ -21,7 +24,10 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleFitWidth = () => {
+  const handleFitWidth = (e: any) => {
+    console.log("in handleFitWidth")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Fit Width ${column.name}`,
@@ -31,7 +37,10 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleEditAttributeProps  = () => {
+  const handleEditAttributeProps  = (e: any) => {
+    console.log("in handleEditAt")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Edit Attribute ${column.name}`,
@@ -41,7 +50,10 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleEditFormula = () => {
+  const handleEditFormula = (e: any) => {
+    console.log("in handleEditFormula")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Edit Fomula ${column.name}`,
@@ -51,7 +63,10 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleDeleteFormula = () => {
+  const handleDeleteFormula = (e: any) => {
+    console.log("in handleDelete")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Delete Formula ${column.name}`,
@@ -61,7 +76,10 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleRerandomize = () => {
+  const handleRerandomize = (e: any) => {
+    console.log("in handleRerandomize")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Rerandomize ${column.name}`,
@@ -71,7 +89,10 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleSortAscending = () => {
+  const handleSortAscending = (e: any) => {
+    console.log("in handleSortAsc")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Sort Ascending ${column.name}`,
@@ -81,7 +102,10 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleSortDescending = () => {
+  const handleSortDescending = (e: any) => {
+    console.log("in handleSortDesc")
+
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Sort Descending ${column.name}`,
@@ -91,7 +115,9 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleHideAttribute = () => {
+  const handleHideAttribute = (e: any) => {
+    console.log("in handleHide")
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Hide Attribute ${column.name}`,
@@ -101,7 +127,9 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
 
-  const handleDeleteAttribute = () => {
+  const handleDeleteAttribute = (e: any) => {
+    console.log("in handleDelete")
+    e.preventDefault()
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Delete Attribute ${column.name}`,
