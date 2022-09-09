@@ -1,11 +1,13 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
+import { IDataSet } from "../../data-model/data-set"
 
 interface IProps {
   caseId: string
   index?: number
+  data?: IDataSet
 }
-export const IndexMenuList = ({caseId, index}: IProps) => {
+export const IndexMenuList = ({data, caseId, index}: IProps) => {
   const toast = useToast()
   const handleMoveEntryRow = () => {
     toast({
@@ -38,6 +40,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
   }
 
   const handleDeleteCase = () => {
+    data?.removeCases([caseId])
     toast({
       title: 'Menu item clicked',
       description: `You clicked on Delete Case on index=${index} id=${caseId}`,
