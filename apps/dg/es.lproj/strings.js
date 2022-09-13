@@ -1017,7 +1017,6 @@ SC.stringsFor("es", {
     "DG.plugin.Sampler.about.paragraph3.2": ". It was developed by ",
     "DG.plugin.Sampler.about.paragraph3.3": " a part of the ",
     "DG.plugin.Sampler.about.paragraph3.4": "with support by the National Science Foundation under Grant No. DUE <span style=\"color:red;\">1625713</span> awarded to North Carolina State University.",
-    "DG.plugin.Sampler.about.paragraph3.5": " ",
     "DG.plugin.Sampler.about.paragraph3.6": " Any opinions, findings, and conclusions or recommendations in this material are those of the principal investigators and do not necessarily reflect the views of the National Science Foundation.",
     "DG.plugin.Sampler.about.tinkerPlots-link-text": "TinkerPlots",
     "DG.plugin.Sampler.about.concord-link-text": "Concord Consortium",
@@ -1065,5 +1064,6 @@ SC.stringsFor("es", {
     "DG.plugin.Choosy.title": "Choosy",
     "DG.plugin.Choosy.description": "Organize and simplify datasets with many attributes.",
     "DG.plugin.Transformers.title": "Transformers",
-    "DG.plugin.Transformers.description": "Transform datasets with a collection of powerful tools."
+    "DG.plugin.Transformers.description": "Transform datasets with a collection of powerful tools.",
+    "DG.plugin.Sampler.top-bar.pause": "PAUSE"
 });
