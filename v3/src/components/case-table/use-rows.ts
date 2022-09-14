@@ -34,6 +34,7 @@ export const useRows = (data?: IDataSet) => {
         return data?.cases.map(({ __id__ }) => rowCache.get(__id__)).filter(c => !!c) as ICase[]
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
+        console.log("newRows", newRows)
         setRows(newRows || [])
       })
     })
@@ -98,6 +99,7 @@ export const useRows = (data?: IDataSet) => {
             // update cache entries for each affected case
             const cases = (action as AddCasesAction | SetCaseValuesAction).args[0] || []
             cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
+            resetRowCache()
             break
           }
           case "removeCases": {
