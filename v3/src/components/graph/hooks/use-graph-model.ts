@@ -42,7 +42,7 @@ export function useGraphModel(props:IProps) {
     prf.measure("Graph.createCircles", () => {
       callMatchCirclesToData()
     })
-  }, [dataset, instanceId, xScale, yScale, casesRef, xAttrID, yAttrID, callMatchCirclesToData])
+  }, [callMatchCirclesToData])
 
   // respond to assignment of new attribute ID
   useEffect(function installAttributeIdAction() {

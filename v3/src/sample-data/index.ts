@@ -13,8 +13,8 @@ const sampleMap: Record<SampleType, string> = {
   abalone: abaloneCsv,
   cats: catsCsv,
   coasters: coastersCsv,
-  mammals: mammalsCsv,
-  four: fourCsv
+  four: fourCsv,
+  mammals: mammalsCsv
 }
 
 export function importSample(sample: SampleType, onImportDataSet: (data: IDataSet) => void) {
