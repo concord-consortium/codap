@@ -1,6 +1,6 @@
-import { Tooltip, Menu, MenuButton, useDisclosure } from "@chakra-ui/react"
+import { Tooltip, Menu, MenuButton } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { THeaderRendererProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
@@ -30,50 +30,22 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     setCodapComponentElt(contentElt?.closest(".codap-component") as HTMLDivElement ?? null)
   }, [contentElt])
 
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const [isHovering, setIsHovering] = useState(false)
-  const hoveringTimeout = useRef<number | undefined>(undefined)
-  const hovering = useRef<boolean>(false)
-  const cancelHoveringDelay = () => {
-    setIsHovering(false)
-    hovering.current = false
-    window.clearTimeout(hoveringTimeout.current)
-    hoveringTimeout.current = undefined
-  }
-  const handleOnOpen = useCallback((): void => {
-    onOpen()
-    cancelHoveringDelay()
-  }, [onOpen])
-  const handleButtonEnter = () => {
-    if (!hoveringTimeout.current && !isOpen) {
-      hovering.current = true
-      hoveringTimeout.current = window.setTimeout(() => {
-        hoveringTimeout.current = undefined
-        if (hovering.current) {
-          setIsHovering(true)
-        }
-        hovering.current = false
-      }, 1000)
-    }
-  }
-  const handleButtonLeave = () => {
-    cancelHoveringDelay()
-  }
-
   return (
     <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-      <Menu isLazy isOpen={isOpen} onOpen={handleOnOpen} onClose={onClose}>
+      <Menu isLazy>
         <Tooltip label={column?.name ||"attribute"} h="20px" fontSize="12px" color="white"
             openDelay={1000} closeDelay={5} placement="bottom" bottom="15px" left="15px"
             isDisabled={dragging} closeOnMouseDown={true}>
-          <MenuButton className="codap-attribute-button" data-testid={`codap-attribute-button ${column?.name}`}
-              onMouseEnter={handleButtonEnter} onMouseLeave={handleButtonLeave}>
-            {column?.name}
+          <MenuButton className="codap-attribute-button"
+              data-testid={`codap-attribute-button ${column?.name}`}>
+            <div className="codap-column-header-content" ref={setCellRef}>
+              {column?.name}
+            </div>
           </MenuButton>
         </Tooltip>
         {codapComponentElt && createPortal((
-          <AttributeMenuList column={column} />
-        ), codapComponentElt)}
+            <AttributeMenuList column={column} />
+          ), codapComponentElt)}
       </Menu>
       {column &&
         <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
