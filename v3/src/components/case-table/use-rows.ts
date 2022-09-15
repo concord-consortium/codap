@@ -34,7 +34,6 @@ export const useRows = (data?: IDataSet) => {
         return data?.cases.map(({ __id__ }) => rowCache.get(__id__)).filter(c => !!c) as ICase[]
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
-        console.log("newRows", newRows)
         setRows(newRows || [])
       })
     })
