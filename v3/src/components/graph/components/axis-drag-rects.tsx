@@ -24,7 +24,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(place)
 
-  useEffect(function creatRects() {
+  useEffect(function createRects() {
     let scaleAtStart: any = null,
       lowerAtStart: number,
       upperAtStart: number,

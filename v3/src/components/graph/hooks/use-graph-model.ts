@@ -48,8 +48,7 @@ export function useGraphModel(props:IProps) {
   useEffect(function installAttributeIdAction() {
     const disposer = graphModel && onAction(graphModel, action => {
       if (action.name === 'setAttributeID') {
-        const place = action.args?.[0],
-          attrID = action.args?.[1],
+        const [place, attrID] = action.args || [],
           axisModel = place === 'bottom' ? xAxisModel : yAxisModel,
           attrIDs = plotType === 'dotPlot' ? [attrID] :
             [attrID, place === 'bottom' ? graphModel.getAttributeID('left') : graphModel.getAttributeID('bottom')]
