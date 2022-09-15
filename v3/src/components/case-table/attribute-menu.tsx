@@ -1,5 +1,5 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
-import React from "react"
+import React, { forwardRef } from "react"
 import { CalculatedColumn } from "react-data-grid"
 import { TRow } from "./case-table-types"
 
@@ -8,7 +8,8 @@ interface IProps {
   column: CalculatedColumn<TRow, unknown>;
 }
 
-export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
+// eslint-disable-next-line react/display-name
+export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({disableToolTips, column}, ref) => {
   const toast = useToast()
 
   const handleRenameAttribute = (e: any) => {
@@ -56,7 +57,7 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     e.preventDefault()
     toast({
       title: 'Menu item clicked',
-      description: `You clicked on Edit Fomula ${column.name}`,
+      description: `You clicked on Edit Formula ${column.name}`,
       status: 'success',
       duration: 5000,
       isClosable: true,
@@ -139,7 +140,7 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
     })
   }
   return (
-    <MenuList>
+    <MenuList ref={ref}>
       <MenuItem onClick={handleRenameAttribute}>Rename</MenuItem>
       <MenuItem onClick={handleFitWidth}>Fit width to content</MenuItem>
       <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>
@@ -152,4 +153,4 @@ export const AttributeMenuList = ({disableToolTips, column}: IProps) => {
       <MenuItem onClick={handleDeleteAttribute}>Delete Attribute</MenuItem>
     </MenuList>
   )
-}
+})
