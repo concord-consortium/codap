@@ -13,12 +13,13 @@ import {prf} from "../../../utilities/profiler"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: {
+  casesRef: React.MutableRefObject<string[]>
   xAttrID: string
   axisModel: INumericAxisModel,
   dotsRef: React.RefObject<SVGSVGElement>
   enableAnimation: React.MutableRefObject<boolean>
 }) {
-  const {xAttrID, dotsRef, axisModel, enableAnimation} = props,
+  const {casesRef, xAttrID, dotsRef, axisModel, enableAnimation} = props,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     place = axisModel.place,
@@ -129,12 +130,12 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
           binWidth = plotWidth / (numBins - 1),
           bins: string[][] = range(numBins + 1).map(() => [])
 
-        dataset?.cases.forEach(({__id__}) => {
-          const numerator = xScale?.(dataset?.getNumeric(__id__, xAttrID) ?? -1),
+        casesRef.current.forEach((anID) => {
+          const numerator = xScale?.(dataset?.getNumeric(anID, xAttrID) ?? -1),
             bin = Math.ceil((numerator ?? 0) / binWidth)
           if (bin >= 0 && bin <= numBins) {
-            bins[bin].push(__id__)
-            binMap[__id__] = {yIndex: bins[bin].length}
+            bins[bin].push(anID)
+            binMap[anID] = {yIndex: bins[bin].length}
           }
         })
         const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
@@ -157,9 +158,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: {
 
       setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
     })
-  }, [dataset, dotsRef, xAttrID, xScale, yScale, plotWidth, enableAnimation])
+  }, [dataset, casesRef, dotsRef, xAttrID, xScale, yScale, plotWidth, enableAnimation])
 
-  usePlotResponders( {
+  usePlotResponders({
     dataset, xAxisModel: axisModel, xAttrID, layout,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })

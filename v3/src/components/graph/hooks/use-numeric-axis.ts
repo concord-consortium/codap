@@ -8,21 +8,22 @@ import { prf } from "../../../utilities/profiler"
 export interface IUseNumericAxis {
   axisModel: INumericAxisModel
   axisElt:  SVGGElement | null
+  axisWrapperElt: SVGGElement | null
 }
-export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
+export const useNumericAxis = ({ axisModel, axisElt, axisWrapperElt }: IUseNumericAxis) => {
   const layout = useGraphLayoutContext()
   const scale = layout.axisScale(axisModel.place)
   const axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft
 
-  const refreshAxis = useCallback((duration = 0) => {
+  const refreshAxis = useCallback(() => {
     prf.measure("Graph.useNumericAxis[refreshAxisCallback]", () => {
       if (axisElt) {
         select(axisElt)
-          .transition().duration(duration)
+          .transition().duration(axisModel.transitionDuration)
           .call(axisFunc(scale))
       }
     })
-  }, [axisElt, axisFunc, scale])
+  }, [axisElt, axisFunc, scale, axisModel])
 
   // update d3 scale and axis when scale type changes
   useEffect(()=> {
@@ -70,4 +71,5 @@ export const useNumericAxis = ({ axisModel, axisElt }: IUseNumericAxis) => {
       return () => disposer()
     })
   }, [axisModel, layout, refreshAxis, scale])
+
 }
