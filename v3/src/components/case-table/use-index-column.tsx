@@ -14,7 +14,7 @@ export const useIndexColumn = ({ data }: IHookProps) => {
   const formatter = useCallback(({ row: { __id__ } }: TFormatterProps) => {
     const index = data?.caseIndexFromID(__id__)
     return (
-      <IndexCell caseId={__id__} index={index} />
+      <IndexCell data={data} caseId={__id__} index={index} />
     )
   }, [data])
 
@@ -35,9 +35,10 @@ export const useIndexColumn = ({ data }: IHookProps) => {
 interface ICellProps {
   caseId: string
   index?: number
+  data?: IDataSet
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
+export const IndexCell = ({ caseId, index, data, onClick }: ICellProps) => {
   const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
   const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
   const setNodeRef = (elt: HTMLButtonElement | null) => {
@@ -70,7 +71,7 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
       <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content">
         {index != null ? `${index + 1}` : ""}
       </MenuButton>
-      {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
+      {codapComponentElt && createPortal(<IndexMenuList data={data} caseId={caseId} index={index}/>, codapComponentElt)}
     </Menu>
   )
 }

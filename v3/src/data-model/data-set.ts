@@ -72,6 +72,14 @@ export interface IAddCaseOptions {
   // id(s) of case(s) before which to insert new cases
   // if not specified, new cases are appended
   before?: string | string[];
+  after?: string | string[];
+}
+
+export interface IMoveCaseOptions {
+  // id(s) of case(s) before which to insert new cases
+  // if not specified, new cases are appended
+  before?: string | string[];
+  after?: string | string[];
 }
 
 export interface IMoveAttributeOptions {
@@ -209,6 +217,13 @@ export const DataSet = types.model("DataSet", {
     return Array.isArray(beforeID)
             ? caseIDMap[beforeID[index]]
             : caseIDMap[beforeID]
+  }
+
+  function afterIndexForInsert(index: number, afterID?: string | string[]) {
+    if (!afterID) { return self.cases.length }
+    return Array.isArray(afterID)
+            ? caseIDMap[afterID[index + 1]]
+            : caseIDMap[afterID] + 1
   }
 
   function insertCaseIDAtIndex(id: string, beforeIndex: number) {
@@ -443,16 +458,17 @@ export const DataSet = types.model("DataSet", {
       },
 
       addCases(cases: ICaseCreation[], options?: IAddCaseOptions) {
-        const { before } = options || {}
+        const { before, after } = options || {}
         cases.forEach((aCase, index) => {
           // shouldn't ever have to assign an id here since the middleware should do so
           const { __id__ = newCaseId() } = aCase
-          const beforeIndex = beforeIndexForInsert(index, before)
+          const insertPosition = after ?  afterIndexForInsert(index, after) : beforeIndexForInsert(index, before)
+          // const beforeIndex = beforeIndexForInsert(index, before)
           self.attributes.forEach((attr: IAttribute) => {
             const value = aCase[attr.id]
-            attr.addValue(value != null ? value : undefined, beforeIndex)
+            attr.addValue(value != null ? value : undefined, insertPosition)
           })
-          insertCaseIDAtIndex(__id__, beforeIndex)
+          insertCaseIDAtIndex(__id__, insertPosition)
         })
       },
 
