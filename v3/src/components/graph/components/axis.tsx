@@ -7,8 +7,8 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, IAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import "./axis.scss"
 
@@ -33,7 +33,7 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(model.place)
 
-  useAxis({axisModel: model, axisElt, axisWrapperElt: wrapperElt})
+  useAxis({axisModel: model, axisElt})
 
   useEffect(function setupTransform() {
       axisElt && select(axisElt)
@@ -49,7 +49,7 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
 
-  const [xMin, xMax] = scale.range()
+  const [xMin, xMax] = (scale as ScaleNumericBaseType).range()
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
     select(titleRef.current)
@@ -103,7 +103,7 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
         <g className='axis' ref={elt => setAxisElt(elt)}/>
         <g ref={titleRef}/>
       </g>
-      <AxisDragRects axisModel={model} axisWrapperElt={wrapperElt}/>
+      <AxisDragRects axisModel={model as INumericAxisModel} axisWrapperElt={wrapperElt}/>
       <DroppableAxis place={`${model.place}`} dropId={droppableId} dropData={data}
                      portal={graphElt} target={wrapperElt} onIsActive={handleIsActive}/>
     </>

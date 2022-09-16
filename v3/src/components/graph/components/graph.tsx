@@ -1,22 +1,19 @@
 import {useToast} from "@chakra-ui/react"
 import {format, scaleBand, scaleLinear, select} from "d3"
 import {observer} from "mobx-react-lite"
+import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {defaultRadius, kGraphClass, plotProps, PlotType} from "../graphing-types"
+import {defaultRadius, kGraphClass, PlotType} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
-import {
-  AxisPlace,
-  CategoricalAxisModel,
-  IAxisModel, ICategoricalAxisModel,
-  INumericAxisModel,
-  NumericAxisModel
+import {AxisPlace, CategoricalAxisModel, IAxisModel, ICategoricalAxisModel, INumericAxisModel, NumericAxisModel
 } from "../models/axis-model"
+import {useGraphModel} from "../hooks/use-graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -32,7 +29,7 @@ interface IProps {
 }
 
 export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: IProps) => {
-  constcasesRef = useRef(graphModel.cases),
+  const casesRef = useRef(graphModel.cases),
     xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
     yAxisModel = graphModel.getAxis("left") as IAxisModel,
     {plotType} = graphModel,
@@ -42,9 +39,6 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
     {margin} = layout,
     xScale = layout.axisScale("bottom"),
     transform = `translate(${margin.left}, 0)`,
-
-
-
     keyFunc = useCallback((d: string) => d, []),
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
@@ -54,6 +48,8 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
   const
     xAttrID = graphModel.getAttributeID('bottom'),
     yAttrID = graphModel.getAttributeID('left')
+
+  useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, keyFunc, instanceId})
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {
@@ -71,6 +67,7 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
 
   useEffect(function createCircles() {
     enableAnimation.current = true
+    const float = format('.3~f')
     select(dotsRef.current)
       .selectAll('circle')
       .data(graphModel.cases, keyFunc)
@@ -90,7 +87,7 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
             })
         }
       )
-  }, [dataset, instanceId, xScale, yScale, xAttrID, yAttrID, enableAnimation, graphModel.cases])
+  }, [dataset, instanceId, keyFunc, xScale, xAttrID, yAttrID, enableAnimation, graphModel.cases])
 
   const toast = useToast()
   const handleDropAttribute = (place: AxisPlace, attrId: string) => {
@@ -154,7 +151,6 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
       case 'emptyPlot':
         plotComponent = (
           <CaseDots
-            plotProps={dotsProps}
             dotsRef={dotsRef}
             enableAnimation={enableAnimation}
           />)
@@ -162,7 +158,6 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
       case 'dotChart':
         plotComponent = (
           <ChartDots
-            plotProps={dotsProps}
             xAttrID={xAttrID}
             dotsRef={dotsRef}
             enableAnimation={enableAnimation}
@@ -171,7 +166,7 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
       case 'scatterPlot':
         plotComponent = (
           <ScatterDots
-            plotProps={dotsProps}
+            casesRef={casesRef}
             xAttrID={xAttrID}
             yAttrID={yAttrID}
             dotsRef={dotsRef}
@@ -184,6 +179,7 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
       case 'dotPlot':
         plotComponent = (
           <DotPlotDots
+            casesRef={casesRef}
             axisModel={xAxisModel as INumericAxisModel}
             xAttrID={xAttrID}
             dotsRef={dotsRef}
@@ -207,7 +203,9 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
               transform={`translate(${margin.left}, ${layout.plotHeight})`}
               onDropAttribute={handleDropAttribute}
         />
-        <Background dots={dotsProps} marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
+        <Background
+        transform={transform}
+          marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
         <svg ref={plotAreaSVGRef} className='graph-dot-area'>
           <svg ref={dotsRef}>
             {getPlotComponent()}

@@ -1,6 +1,6 @@
 import {ScaleBand, select} from "d3"
 import React, {memo, useCallback} from "react"
-import {plotProps, defaultRadius, transitionDuration} from "../graphing-types"
+import {defaultRadius, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -8,7 +8,6 @@ import {ScaleType, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph_utils"
 
 export const ChartDots = memo(function ChartDots(props: {
-  plotProps: plotProps
   xAttrID: string,
   dotsRef: React.RefObject<SVGSVGElement>
   enableAnimation: React.MutableRefObject<boolean>

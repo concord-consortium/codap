@@ -1,6 +1,6 @@
 import {randomUniform, select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {plotProps, defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
+import {defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -8,7 +8,6 @@ import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layou
 import {setPointSelection} from "../utilities/graph_utils"
 
 export const CaseDots = memo(function CaseDots(props: {
-  plotProps: plotProps
   dotsRef: React.RefObject<SVGSVGElement>
   enableAnimation: React.MutableRefObject<boolean>
 }) {

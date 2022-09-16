@@ -4,7 +4,7 @@ import React from "react"
 import {defaultRadius, Point, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
-import {GraphLayout, ScaleNumericBaseType} from "../models/graph-layout"
+import {ScaleNumericBaseType} from "../models/graph-layout"
 import {IAxisModel, ICategoricalAxisModel, INumericAxisModel} from "../models/axis-model"
 import {IGraphModel} from "../models/graph-model"
 
@@ -85,12 +85,41 @@ export function setNiceDomain(values: (string | number)[], axisModel: IAxisModel
   }
 }
 
-export interface IPullOutNumericAttributesProps {
-  dataset: IDataSet
-  layout: GraphLayout
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-  graphModel: IGraphModel
+type KeyFunc = (d:string) => string
+export interface IMatchCirclesProps {
+  caseIDs:string[]
+  dataset: IDataSet | undefined
+  dotsElement: SVGGElement | null
+  enableAnimation: React.MutableRefObject<boolean>
+  keyFunc: KeyFunc
+  instanceId:string | undefined
+  xAttrID: string
+  yAttrID: string
+}
+export function matchCirclesToData( props: IMatchCirclesProps) {
+  const {caseIDs, dataset, enableAnimation, keyFunc, instanceId, dotsElement,
+    xAttrID, yAttrID/*, xScale, yScale*/} = props
+  const float = format('.3~f')
+  enableAnimation.current = true
+  select(dotsElement)
+    .selectAll('circle')
+    .data(caseIDs, keyFunc)
+    .join(
+      // @ts-expect-error void => Selection
+      (enter) => {
+        enter.append('circle')
+          .attr('class', 'graph-dot')
+          .attr("r", defaultRadius)
+          .property('id', (anID: string) => `${instanceId}_${anID}`)
+          .selection()
+          .append('title')
+          .text((anID: string) => {
+            const xVal = dataset?.getNumeric(anID, xAttrID) ?? 0,
+              yVal = dataset?.getNumeric(anID, yAttrID) ?? 0
+            return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
+          })
+      }
+    )
 }
 
 export const filterCases = (dataset: IDataSet | undefined, graphModel: IGraphModel, attributeIDs: string[])=>{
@@ -101,48 +130,6 @@ export const filterCases = (dataset: IDataSet | undefined, graphModel: IGraphMod
   dataset && graphModel.setCases(filteredCases)
   return filteredCases
 }
-
-export const pullOutNumericAttributesInNewDataset = (props: IPullOutNumericAttributesProps) => {
-  const {dataset, layout, xAxis, yAxis, graphModel} = props,
-    xScale = layout.axisScale("bottom"),
-    yScale = layout.axisScale("left")
-
-  let xAttrId = '', yAttrId = ''
-
-  const findNumericAttrIds = (attrsToSearch: IAttribute[]) => {
-    for (const iAttr of attrsToSearch) {
-      if (iAttr.type === 'numeric') {
-        if (xAttrId === '') {
-          xAttrId = iAttr.id
-        } else if (yAttrId === '') {
-          yAttrId = iAttr.id
-        } else {
-          break
-        }
-      }
-    }
-  }
-
-  if (dataset) {
-    const attributes = dataset?.attributes
-
-    findNumericAttrIds(attributes || [])
-
-    if (xAttrId !== '' && yAttrId !== '') {
-
-      const xValues = dataset.attrFromID(xAttrId).numValues,
-        yValues = dataset.attrFromID(yAttrId).numValues
-      filterCases(dataset, graphModel, graphModel.plotType === 'scatterPlot' ?[xAttrId, yAttrId] : [xAttrId])
-      if (graphModel.cases.length > 0) {
-        setNiceDomain(xValues, xScale, xAxis)
-        setNiceDomain(yValues, yScale, yAxis)
-      }
-      graphModel.setAttributeID('bottom', xAttrId)
-      graphModel.setAttributeID('left', yAttrId)
-    }
-  }
-}
-
 
 //  Return the two points in logical coordinates where the line with the given
 //  iSlope and iIntercept intersects the rectangle defined by the upper and lower

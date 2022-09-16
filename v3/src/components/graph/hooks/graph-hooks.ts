@@ -71,15 +71,17 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   // respond to selection and value changes
   useEffect(() => {
-    const disposer = dataset && onAction(dataset, action => {
-      if (isSelectionAction(action)) {
-        refreshPointSelection()
-      } else if (isSetCaseValuesAction(action)) {
-        // assumes that if we're caching then only selected cases are being updated
-        refreshPointPositions(dataset.isCaching)
-      }
-    }, true)
-    return () => disposer?.()
+    if(dataset) {
+      const disposer = onAction(dataset, action => {
+        if (isSelectionAction(action)) {
+          refreshPointSelection()
+        } else if (isSetCaseValuesAction(action)) {
+          // assumes that if we're caching then only selected cases are being updated
+          refreshPointPositions(dataset.isCaching)
+        }
+      }, true)
+      return () => disposer()
+    }
   }, [dataset, refreshPointPositions, refreshPointSelection])
 
   // respond to x or y attribute id change
