@@ -18,6 +18,18 @@
       }
     }
 
+    .rdg-row-even {
+      .codap-index-cell {
+        background-color: #EEFEE3;
+      }
+    }
+    .rdg-row-odd {
+      background: #fafafa;
+      .codap-index-cell {
+        background-color: #D3E9C8;
+      }
+    }
+
     .rdg-cell {
       &.codap-index-cell {
         text-align: center;
