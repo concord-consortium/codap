@@ -71,7 +71,7 @@ export const IndexCell = ({ data, caseId, index, onClick }: ICellProps) => {
       <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content">
         {index != null ? `${index + 1}` : ""}
       </MenuButton>
-      {codapComponentElt && createPortal(<IndexMenuList data={data} caseId={caseId} index={index}/>, codapComponentElt)}
+      {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
     </Menu>
   )
 }
