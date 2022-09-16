@@ -18,7 +18,7 @@ const defaultGraphModel = GraphModel.create({
     bottom: NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
     left: NumericAxisModel.create({place: 'left', min: 0, max: 10})
   },
-  plotType: "scatterPlot",
+  plotType: "dotPlot",
   movableValue: MovableValueModel.create({value: 0}),
   movableLine: MovableLineModel.create({intercept: 0, slope: 1})
 })
@@ -31,7 +31,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
-  const animationIsOn = useRef(true)
+  const enableAnimation = useRef(true)
   const data = broker?.selectedDataSet || broker?.last
 
   useEffect(() => {
@@ -46,13 +46,13 @@ export const GraphComponent = observer(({broker}: IProps) => {
     <DataSetContext.Provider value={data}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel} graphRef={graphRef} animationIsOn={animationIsOn}/>
+          <Graph model={defaultGraphModel} graphRef={graphRef} enableAnimation={enableAnimation}/>
           <Button
             className='graph-plot-choice'
             size="xs"
             onClick={() => {
               const currPlotType = defaultGraphModel.plotType
-              animationIsOn.current = true
+              enableAnimation.current = true
               defaultGraphModel.setPlotType(currPlotType === 'scatterPlot' ? 'dotPlot' : 'scatterPlot')
             }}
           >

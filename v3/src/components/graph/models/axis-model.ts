@@ -9,12 +9,20 @@ export const AxisModel = types.model("AxisModel", {
   type: types.optional(types.string, () => {throw "type must be overridden"}),
   place: types.enumeration([...AxisPlaces])
 })
+  .volatile(self => ({
+    transitionDuration: 0
+  }))
 .views(self => ({
   get orientation(): AxisOrientation {
     return self.place === "left" || self.place === "right"
             ? "vertical" : "horizontal"
   }
 }))
+  .actions(self => ({
+    setTransitionDuration(duration:number) {
+      self.transitionDuration = duration
+    }
+  }))
 export interface IAxisModel extends Instance<typeof AxisModel> {}
 
 export const ScaleTypes = ["linear", "log"] as const

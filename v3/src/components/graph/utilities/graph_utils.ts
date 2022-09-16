@@ -63,22 +63,62 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   } else if (min < 0 && max < 0 && max >= min / kFactor) {  // Snap to zero
     bounds.max = 0
   }
-  const tickGap = computeTickGap( bounds.min, bounds.max)
-  if( tickGap !== 0) {
-    bounds.min = (Math.floor( bounds.min / tickGap) - 0.5) * tickGap
-    bounds.max = (Math.floor( bounds.max / tickGap) + 1.5) * tickGap
-  }
-  else {
+  const tickGap = computeTickGap(bounds.min, bounds.max)
+  if (tickGap !== 0) {
+    bounds.min = (Math.floor(bounds.min / tickGap) - 0.5) * tickGap
+    bounds.max = (Math.floor(bounds.max / tickGap) + 1.5) * tickGap
+  } else {
     bounds.min -= 1
     bounds.max += 1
   }
   return bounds
 }
 
-export function setNiceDomain(values: number[], scale: ScaleBaseType, axis: INumericAxisModel) {
+export function setNiceDomain(values: number[], scale: ScaleBaseType | undefined, axis: INumericAxisModel) {
   const valueExtent = extent(values, d => d) as [number, number],
     niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
+  axis.setTransitionDuration(1000)
   axis.setDomain(niceBounds.min, niceBounds.max)
+  scale?.domain([niceBounds.min, niceBounds.max])  // We can't rely on useNumericAxis hook because of the transition
+}
+
+type KeyFunc = (d:string) => string
+export interface IMatchCirclesProps {
+  caseIDs:string[]
+  dataset: IDataSet | undefined
+  dotsElement: SVGGElement | null
+  enableAnimation: React.MutableRefObject<boolean>
+  keyFunc: KeyFunc
+  instanceId:string | undefined
+  xAttrID: string
+  yAttrID: string
+  xScale: ScaleBaseType
+  yScale: ScaleBaseType
+}
+export function matchCirclesToData( props: IMatchCirclesProps) {
+  const {caseIDs, dataset, enableAnimation, keyFunc, instanceId, dotsElement,
+    xAttrID, yAttrID/*, xScale, yScale*/} = props
+  const float = format('.3~f')
+  enableAnimation.current = true
+  select(dotsElement)
+    .selectAll('circle')
+    .data(caseIDs, keyFunc)
+    .join(
+      // @ts-expect-error void => Selection
+      (enter) => {
+        enter.append('circle')
+          .attr('class', 'graph-dot')
+          .attr("r", defaultRadius)
+          .property('id', (anID: string) => `${instanceId}_${anID}`)
+          .selection()
+          .append('title')
+          .text((anID: string) => {
+            const xVal = dataset?.getNumeric(anID, xAttrID) ?? 0,
+              yVal = dataset?.getNumeric(anID, yAttrID) ?? 0
+            return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
+          })
+      }
+    )
 }
 
 export interface IPullOutNumericAttributesProps {
@@ -89,49 +129,54 @@ export interface IPullOutNumericAttributesProps {
   graphModel: IGraphModel
 }
 
+export const filterCases = (dataset: IDataSet | undefined, graphModel: IGraphModel, attributeIDs: string[])=>{
+  const filteredCases = dataset ? dataset.cases.map(aCase => aCase.__id__)
+    .filter(anID => {
+      return attributeIDs.every(attrID => isFinite(Number(dataset.getNumeric(anID, attrID))))
+    }) : []
+  dataset && graphModel.setCases(filteredCases)
+  return filteredCases
+}
+
 export const pullOutNumericAttributesInNewDataset = (props: IPullOutNumericAttributesProps) => {
   const {dataset, layout, xAxis, yAxis, graphModel} = props,
     xScale = layout.axisScale("bottom"),
     yScale = layout.axisScale("left")
 
-    let xAttrId = '', yAttrId = ''
+  let xAttrId = '', yAttrId = ''
 
-    const findNumericAttrIds = (attrsToSearch: IAttribute[]) => {
-      for (const iAttr of attrsToSearch) {
-        if (iAttr.type === 'numeric') {
-          if (xAttrId === '') {
-            xAttrId = iAttr.id
-          } else if (yAttrId === '') {
-            yAttrId = iAttr.id
-          } else {
-            break
-          }
+  const findNumericAttrIds = (attrsToSearch: IAttribute[]) => {
+    for (const iAttr of attrsToSearch) {
+      if (iAttr.type === 'numeric') {
+        if (xAttrId === '') {
+          xAttrId = iAttr.id
+        } else if (yAttrId === '') {
+          yAttrId = iAttr.id
+        } else {
+          break
         }
       }
     }
+  }
 
-    if(dataset) {
-      const attributes = dataset?.attributes
+  if (dataset) {
+    const attributes = dataset?.attributes
 
-      findNumericAttrIds(attributes || [])
+    findNumericAttrIds(attributes || [])
 
-      if (xAttrId !== '' && yAttrId !== '') {
+    if (xAttrId !== '' && yAttrId !== '') {
 
-        const xValues = dataset.attrFromID(xAttrId).numValues,
-          yValues = dataset.attrFromID(yAttrId).numValues
-        graphModel.setAttributeID('bottom', xAttrId)
-        graphModel.setAttributeID('left', yAttrId)
-        graphModel.setCases(dataset.cases.map(aCase => aCase.__id__)
-          .filter(anID => {
-            return isFinite(Number(dataset.getNumeric(anID, xAttrId))) &&
-              isFinite(Number(dataset.getNumeric(anID, yAttrId)))
-          }))
-        if (graphModel.cases.length > 0) {
-          setNiceDomain(xValues, xScale, xAxis)
-          setNiceDomain(yValues, yScale, yAxis)
-        }
+      const xValues = dataset.attrFromID(xAttrId).numValues,
+        yValues = dataset.attrFromID(yAttrId).numValues
+      filterCases(dataset, graphModel, graphModel.plotType === 'scatterPlot' ?[xAttrId, yAttrId] : [xAttrId])
+      if (graphModel.cases.length > 0) {
+        setNiceDomain(xValues, xScale, xAxis)
+        setNiceDomain(yValues, yScale, yAxis)
       }
+      graphModel.setAttributeID('bottom', xAttrId)
+      graphModel.setAttributeID('left', yAttrId)
     }
+  }
 }
 
 
