@@ -1,12 +1,11 @@
 import {extent, format, select} from "d3"
-import {isInteger} from "lodash"
 import React from "react"
+import {isInteger} from "lodash"
 import {defaultRadius, Point, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 import {ScaleNumericBaseType} from "../models/graph-layout"
 import {IAxisModel, ICategoricalAxisModel, INumericAxisModel} from "../models/axis-model"
-import {IGraphModel} from "../models/graph-model"
 
 /**
  * Utility routines having to do with graph entities
@@ -97,8 +96,7 @@ export interface IMatchCirclesProps {
   yAttrID: string
 }
 export function matchCirclesToData( props: IMatchCirclesProps) {
-  const {caseIDs, dataset, enableAnimation, keyFunc, instanceId, dotsElement,
-    xAttrID, yAttrID/*, xScale, yScale*/} = props
+  const {caseIDs, dataset, enableAnimation, keyFunc, instanceId, dotsElement, xAttrID, yAttrID} = props
   const float = format('.3~f')
   enableAnimation.current = true
   select(dotsElement)
@@ -122,12 +120,19 @@ export function matchCirclesToData( props: IMatchCirclesProps) {
     )
 }
 
-export const filterCases = (dataset: IDataSet | undefined, graphModel: IGraphModel, attributeIDs: string[])=>{
-  const filteredCases = dataset ? dataset.cases.map(aCase => aCase.__id__)
+export const filterCases = (dataset: IDataSet | undefined, attributeIDs: string[])=>{
+  const attributeIdTests = attributeIDs.map(attrID => {
+    const attribute = dataset?.attrFromID(attrID),
+      isNumeric = attribute?.type === 'numeric'
+    return { attrID, test: isNumeric ?
+        (caseID:string, attributeID:string) => isFinite(Number(dataset?.getNumeric(caseID, attributeID))) :
+        (caseID:string, attributeID:string) => dataset?.getValue(caseID, attributeID) !== ''
+    }
+  }),
+    filteredCases = dataset ? dataset.cases.map(aCase => aCase.__id__)
     .filter(anID => {
-      return attributeIDs.every(attrID => isFinite(Number(dataset.getNumeric(anID, attrID))))
+      return attributeIdTests.every(({attrID, test}) => attrID === '' || test(anID, attrID))
     }) : []
-  dataset && graphModel.setCases(filteredCases)
   return filteredCases
 }
 

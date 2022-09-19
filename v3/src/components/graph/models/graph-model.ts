@@ -2,7 +2,7 @@ import {Instance, types} from "mobx-state-tree"
 import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
 import {PlotType, PlotTypes} from "../graphing-types"
 
-export const PlotAttributeRoles = ["primary", "secondary", "legend", "verticalSplit", "horizontalSplit"] as const
+// export const PlotAttributeRoles = ["primary", "secondary", "legend", "verticalSplit", "horizontalSplit"] as const
 // export type PlotAttributeRole = typeof PlotAttributeRoles[number]
 
 export const GraphModel = types

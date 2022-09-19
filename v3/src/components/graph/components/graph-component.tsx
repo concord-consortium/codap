@@ -16,7 +16,7 @@ const defaultGraphModel = GraphModel.create({
     bottom: EmptyAxisModel.create({place: 'bottom'}),
     left: EmptyAxisModel.create({place: 'left'})
   },
-  plotType: "emptyPlot",
+  plotType: "casePlot",
 })
 
 interface IProps {

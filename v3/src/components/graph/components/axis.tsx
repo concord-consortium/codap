@@ -88,7 +88,7 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
                 .attr('x', tX)
                 .attr('y', tY)
                 .attr('transform', transform + ' ' + tRotation)
-                .text(label || 'Unnamed')
+                .text(label || 'Click here or drag an attribute here')
             })
       })
       observer.observe(axisElt)

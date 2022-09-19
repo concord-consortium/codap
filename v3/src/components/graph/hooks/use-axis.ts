@@ -71,5 +71,5 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
       }
     )
     return () => disposer()
-  }, [axisModel, layout, refreshAxis, scale])
+  }, [axisModel, layout, refreshAxis])
 }

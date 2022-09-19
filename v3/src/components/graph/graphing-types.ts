@@ -25,7 +25,7 @@ export const transitionDuration = 1000,
   defaultDiameter = 2 * defaultRadius,
   dragRadius = 10
 
-export const PlotTypes = ["emptyPlot", "dotPlot", 'dotChart', "scatterPlot"] as const
+export const PlotTypes = ["casePlot", "dotPlot", 'dotChart', "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
 export const kGraphClass = "graph-plot"

@@ -1,11 +1,11 @@
 import {useToast} from "@chakra-ui/react"
-import {format, scaleBand, scaleLinear, select} from "d3"
+import {scaleBand, scaleLinear, select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {defaultRadius, kGraphClass, PlotType} from "../graphing-types"
+import {kGraphClass, PlotType} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -18,7 +18,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {setNiceDomain} from "../utilities/graph_utils"
+import {filterCases, setNiceDomain} from "../utilities/graph_utils"
 
 import "./graph.scss"
 
@@ -29,12 +29,12 @@ interface IProps {
 }
 
 export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: IProps) => {
-  const casesRef = useRef(graphModel.cases),
-    xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
+  const xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
     yAxisModel = graphModel.getAxis("left") as IAxisModel,
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
+    casesRef = useRef<string[]>([]),
     layout = useGraphLayoutContext(),
     {margin} = layout,
     xScale = layout.axisScale("bottom"),
@@ -43,11 +43,11 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     dotsRef = useRef<SVGSVGElement>(null),
-    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})
-
-  const
+    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0}),
     xAttrID = graphModel.getAttributeID('bottom'),
     yAttrID = graphModel.getAttributeID('left')
+
+  casesRef.current = filterCases(dataset, [xAttrID, yAttrID])
 
   useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, keyFunc, instanceId})
 
@@ -60,34 +60,6 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
         .attr('height', layout.plotHeight)
     }
   }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
-
-  useEffect(() => {
-    graphModel.setCases(dataset ? dataset?.cases.map(aCase => aCase.__id__) : [])
-  }, [dataset, graphModel])
-
-  useEffect(function createCircles() {
-    enableAnimation.current = true
-    const float = format('.3~f')
-    select(dotsRef.current)
-      .selectAll('circle')
-      .data(graphModel.cases, keyFunc)
-      .join(
-        // @ts-expect-error void => Selection
-        (enter) => {
-          enter.append('circle')
-            .attr('class', 'graph-dot')
-            .attr("r", defaultRadius)
-            .property('id', (anID: string) => `${instanceId}_${anID}`)
-            .selection()
-            .append('title')
-            .text((anID: string) => {
-              const xVal = dataset?.getNumeric(anID, xAttrID) ?? 0,
-                yVal = dataset?.getNumeric(anID, yAttrID) ?? 0
-              return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
-            })
-        }
-      )
-  }, [dataset, instanceId, keyFunc, xScale, xAttrID, yAttrID, enableAnimation, graphModel.cases])
 
   const toast = useToast()
   const handleDropAttribute = (place: AxisPlace, attrId: string) => {
@@ -104,21 +76,31 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAction(graphModel, action => {
       if (action.name === 'setAttributeID') {
+        enableAnimation.current = true
+
         const place: AxisPlace = action.args?.[0],
-          otherPlace = place === 'bottom' ? 'left' : 'bottom',
           attrID = action.args?.[1],
           attribute = dataset?.attrFromID(attrID),
-          type = attribute?.type ?? 'empty',
+          attributeType = attribute?.type ?? 'empty',
+          otherPlace = place === 'bottom' ? 'left' : 'bottom',
+          otherAttrID = graphModel.getAttributeID(otherPlace),
+          otherAttribute = dataset?.attrFromID(otherAttrID),
+          otherAttributeType = otherAttribute?.type ?? 'empty',
           axisModel = graphModel.getAxis(place),
           currentAxisType = axisModel?.type,
-          otherAxisType = graphModel.getAxis(otherPlace)?.type,
-          plotChoices = {
+          plotChoices:{[index:string]:{[index:string]:PlotType}} = {
             empty: {empty: 'casePlot', numeric: 'dotPlot', categorical: 'dotChart'},
             numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
             categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
-          }
-        if (type === 'numeric') {
-          if (currentAxisType !== type) {
+          },
+          attrIDs:string[] = []
+        attributeType !== 'empty' && attrIDs.push(attrID)
+        otherAttributeType !== 'empty' && attrIDs.push(otherAttrID)
+        graphModel.setCases(filterCases(dataset, attrIDs))
+        // todo: Kirk, better way to do this?
+        graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
+        if (attributeType === 'numeric') {
+          if (currentAxisType !== attributeType) {
             const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
             graphModel.setAxis(place, newAxisModel as INumericAxisModel)
             layout.setAxisScale(place, scaleLinear())
@@ -126,20 +108,15 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
           } else {
             setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
           }
-        } else if (type === 'categorical') {
+        } else if (attributeType === 'categorical') {
           const categories = Array.from(new Set(attribute?.strValues))
-          if (currentAxisType !== type) {
+          if (currentAxisType !== attributeType) {
             const newAxisModel = CategoricalAxisModel.create({place, categories})
             graphModel.setAxis(place, newAxisModel as ICategoricalAxisModel)
             layout.setAxisScale(place, scaleBand())
           }
           layout.axisScale(place)?.domain(categories)
         }
-        // todo: Kirk, better way to do this?
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        graphModel.setPlotType(plotChoices[type][otherAxisType] as PlotType)
-        enableAnimation.current = true
       }
     }, true)
     return () => disposer?.()
@@ -148,7 +125,7 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
   const getPlotComponent = () => {
     let plotComponent: JSX.Element | null = null
     switch (plotType) {
-      case 'emptyPlot':
+      case 'casePlot':
         plotComponent = (
           <CaseDots
             dotsRef={dotsRef}
