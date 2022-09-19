@@ -1,13 +1,13 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
-import { IDataSet } from "../../data-model/data-set"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 
 interface IProps {
   caseId: string
   index?: number
-  data?: IDataSet
 }
-export const IndexMenuList = ({data, caseId, index}: IProps) => {
+export const IndexMenuList = ({caseId, index}: IProps) => {
+  const data = useDataSetContext()
   const toast = useToast()
   const handleMoveEntryRow = () => {
     toast({
