@@ -1017,6 +1017,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues, iMetadata) {
+          // If we're not given any values, then abort. This is to avoid
+          // spurious case table scrolling
+          if( SC.isArray(iValues) && iValues.length === 0)
+            return {success: true };
           return DG.appController.documentArchiver.createAttribute(iResources, iValues, iMetadata, this.get('id'));
         },
         update: function (iResources, iValues, iMetadata) {
@@ -1686,13 +1690,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             return context.getCaseByID(caseID);
           }).filter(function (iCase) {return !!iCase; });
         }
-        return context.applyChange({
-          operation: 'selectCases',
-          collection: collection,
-          cases: cases,
-          select: true,
-          extend: extend,
-          requester: this.get('id')
+          return context.applyChange({
+            operation: 'selectCases',
+            collection: collection,
+            cases: cases,
+            select: true,
+            extend: extend,
+            requester: this.get('id')
         });
       },
 
