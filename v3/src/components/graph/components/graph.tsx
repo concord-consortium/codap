@@ -11,7 +11,8 @@ import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
-import {AxisPlace, CategoricalAxisModel, IAxisModel, ICategoricalAxisModel, INumericAxisModel, NumericAxisModel
+import {
+  AxisPlace, CategoricalAxisModel, IAxisModel, ICategoricalAxisModel, INumericAxisModel, NumericAxisModel
 } from "../models/axis-model"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
@@ -88,12 +89,12 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
           otherAttributeType = otherAttribute?.type ?? 'empty',
           axisModel = graphModel.getAxis(place),
           currentAxisType = axisModel?.type,
-          plotChoices:{[index:string]:{[index:string]:PlotType}} = {
+          plotChoices: { [index: string]: { [index: string]: PlotType } } = {
             empty: {empty: 'casePlot', numeric: 'dotPlot', categorical: 'dotChart'},
             numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
             categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
           },
-          attrIDs:string[] = []
+          attrIDs: string[] = []
         attributeType !== 'empty' && attrIDs.push(attrID)
         otherAttributeType !== 'empty' && attrIDs.push(otherAttrID)
         graphModel.setCases(filterCases(dataset, attrIDs))
@@ -172,16 +173,16 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
   return (
     <div className={kGraphClass} ref={graphRef} data-testid="graph">
       <svg className='graph-svg' ref={svgRef}>
-        <Axis model={yAxisModel} attributeID={yAttrID}
+        <Axis axisModel={yAxisModel} attributeID={yAttrID}
               transform={`translate(${margin.left - 1}, 0)`}
               onDropAttribute={handleDropAttribute}
         />
-        <Axis model={xAxisModel} attributeID={xAttrID}
+        <Axis axisModel={xAxisModel} attributeID={xAttrID}
               transform={`translate(${margin.left}, ${layout.plotHeight})`}
               onDropAttribute={handleDropAttribute}
         />
         <Background
-        transform={transform}
+          transform={transform}
           marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
         <svg ref={plotAreaSVGRef} className='graph-dot-area'>
           <svg ref={dotsRef}>

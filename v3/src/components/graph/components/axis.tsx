@@ -14,26 +14,26 @@ import "./axis.scss"
 
 interface IProps {
   attributeID: string,
-  model: IAxisModel
+  axisModel: IAxisModel
   transform: string
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
 
-export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     label = dataset?.attrFromID(attributeID)?.name,
-    droppableId = `${instanceId}-${model.place}-axis`,
+    droppableId = `${instanceId}-${axisModel.place}-axis`,
     layout = useGraphLayoutContext(),
-    scale = layout.axisScale(model.place),
+    scale = layout.axisScale(axisModel.place),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
-    place = model.place
+    place = axisModel.place
 
-  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(model.place)
+  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(axisModel.place)
 
-  useAxis({axisModel: model, axisElt})
+  useAxis({axisModel, axisElt})
 
   useEffect(function setupTransform() {
       axisElt && select(axisElt)
@@ -44,8 +44,8 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
 
   const handleDrop = useCallback((active: Active) => {
     const droppedAttrId = active.data?.current?.attributeId
-    droppedAttrId && onDropAttribute(model.place, droppedAttrId)
-  }, [model.place, onDropAttribute])
+    droppedAttrId && onDropAttribute(axisModel.place, droppedAttrId)
+  }, [axisModel.place, onDropAttribute])
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
 
@@ -103,8 +103,8 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
         <g className='axis' ref={elt => setAxisElt(elt)}/>
         <g ref={titleRef}/>
       </g>
-      <AxisDragRects axisModel={model as INumericAxisModel} axisWrapperElt={wrapperElt}/>
-      <DroppableAxis place={`${model.place}`} dropId={droppableId} dropData={data}
+      <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/>
+      <DroppableAxis place={`${axisModel.place}`} dropId={droppableId} dropData={data}
                      portal={graphElt} target={wrapperElt} onIsActive={handleIsActive}/>
     </>
   )

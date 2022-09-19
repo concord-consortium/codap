@@ -13,7 +13,8 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     scale = layout.axisScale(axisModel.place),
     axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft,
-    isNumeric = axisModel.isNumeric
+    isNumeric = axisModel.isNumeric,
+    place = axisModel.place
 
   const refreshAxis = useCallback((duration = 0) => {
     if (axisElt && scale) {
@@ -29,15 +30,15 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
   useEffect(() => {
     const disposer = reaction(
       () => {
-        const {place, scale: scaleType} = axisModel
-        return {place, scaleType}
+        const {place: aPlace, scale: scaleType} = axisModel
+        return {place: aPlace, scaleType}
       },
-      ({place, scaleType}) => {
+      ({place: aPlace, scaleType}) => {
         const newScale =
           scaleType === 'log' ? scaleLog() :
             scaleType === 'linear' ? scaleLinear() :
               scaleOrdinal()
-        layout.setAxisScale(place, newScale)
+        layout.setAxisScale(aPlace, newScale)
         refreshAxis()
       }
     )
@@ -63,7 +64,6 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
   useEffect(() => {
     const disposer = reaction(
       () => {
-        const {place} = axisModel
         return layout.axisLength(place)
       },
       () => {
@@ -71,5 +71,6 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
       }
     )
     return () => disposer()
-  }, [axisModel, layout, refreshAxis])
+  }, [axisModel, layout, refreshAxis, place])
+
 }

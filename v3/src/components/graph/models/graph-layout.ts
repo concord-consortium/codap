@@ -68,6 +68,7 @@ export class GraphLayout {
   }
 
   @action setAxisScale(place: AxisPlace, scale: ScaleType) {
+    scale.range(this.isVertical(place) ? [this.plotHeight, 0] : [0, this.plotWidth])
     this.axisScales.set(place, scale)
   }
 
