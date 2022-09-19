@@ -128,7 +128,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0642',
+    BUILD_NUM: '0643',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -533,6 +533,12 @@ DG = SC.Application.create((function () // closure
         langDigraph: 'es',
         countryDigraph: 'ES',
         icon: 'flag flag-es'
+      },
+      {
+        langName: 'فارسی',
+        langDigraph: 'fa',
+        countryDigraph: 'IR',
+        icon: 'flag flag-ir'
       },
       {
         langName: 'Ελληνικά',

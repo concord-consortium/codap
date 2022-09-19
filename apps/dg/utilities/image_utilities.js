@@ -250,7 +250,8 @@ DG.ImageUtilities = (function () {
     el.setAttribute('width', width);
     el.setAttribute('height', height);
     el.setAttribute('xmlns',"http://www.w3.org/2000/svg");
-    el.innerHTML = `<rect width=${width-1} height=${height-1} stroke="#888" fill="#fff"/>`;
+    el.innerHTML = '<rect width=' + (width-1) + ' height=' + (height-1) +
+        ' stroke="#888" fill="#fff"/>';
     return el;
   }
 

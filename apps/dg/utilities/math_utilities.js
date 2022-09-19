@@ -557,7 +557,7 @@ DG.MathUtilities = {
   notAYear: function(num) {
     return (Math.round(num)!== num ||
       num < 0 ||
-      num > 10000
+      num >= 10000
   );
 }
 

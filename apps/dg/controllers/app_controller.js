@@ -333,10 +333,10 @@ DG.appController = SC.Object.create((function () // closure
       var items = pluginMetadata? pluginMetadata.map(function (pluginData) {
         return {
           localize: true,
-          title: pluginData.title,
+          title: pluginData["title-string"]?pluginData["title-string"].loc():pluginData.title,
           url: baseURL + pluginData.path,
           target: this,
-          toolTip: pluginData.description,
+          toolTip: pluginData["description-string"]?pluginData["description-string"].loc():pluginData.description,
           dgAction: 'openPlugin',
           dimensions: {
             width: pluginData.width || 400,
