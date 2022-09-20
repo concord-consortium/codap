@@ -90,9 +90,7 @@ export const useRows = (data?: IDataSet) => {
           let lowestIndex = index || data.cases.length
           const casesToUpdate = []
           for (let i=0; i<cases.length; ++i) {
-            lowestIndex = data.caseIndexFromID(cases[i].__id__) < lowestIndex
-              ? data.caseIndexFromID(cases[i].__id__)
-              : lowestIndex
+            lowestIndex = Math.min(lowestIndex, data.caseIndexFromID(cases[i].__id__))
           }
           for (let j=lowestIndex; j < data.cases.length; ++j) {
             casesToUpdate.push(data.cases[j])
@@ -109,7 +107,7 @@ export const useRows = (data?: IDataSet) => {
             break
           case "addCases": {
             const cases = (action as AddCasesAction).args[0] || []
-            // update cach only for entires after the added cases
+            // update cache only for entires after the added cases
             const casesToUpdate = getCasesToUpdate(cases)
             casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
             break
@@ -123,12 +121,10 @@ export const useRows = (data?: IDataSet) => {
           case "removeCases": {
             // remove affected cases from cache and update cache after deleted case
             const caseIds = (action as RemoveCasesAction).args[0] || []
-            caseIds.forEach(id => {
-              const caseToDeleteIndex = data.caseIndexFromID(id)
-              rowCache.delete(id)
-              const casesToUpdate = getCasesToUpdate([], caseToDeleteIndex)
-              casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
-            })
+            const lowestIndex = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => !!index))
+            caseIds.forEach(id => rowCache.delete(id))
+            const casesToUpdate = getCasesToUpdate([], lowestIndex)
+            casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
             break
           }
           default:
