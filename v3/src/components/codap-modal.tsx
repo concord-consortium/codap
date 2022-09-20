@@ -32,11 +32,10 @@ interface IProps<IContentProps> {
 export const CodapModal = <IContentProps,>({ isOpen, onClose,
   className, Icon, title, Content, contentProps, hasCloseButton, buttons, onCustomClose
 }: IProps<IContentProps>) => {
-
-return (
-    <Modal isOpen={isOpen} onClose={onClose} >
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
     <ModalOverlay />
-    <ModalContent w="250">
+    <ModalContent>
       <ModalHeader h="30" className="codap-modal-header" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container">
           {Icon && <Icon />}

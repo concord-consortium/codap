@@ -18,24 +18,20 @@ export const IndexMenuList = ({caseId, index, data}: IProps) => {
   const InsertCasesModalContent = () => {
     const initialRef = useRef(null)
     return (
-      <>
-        <FormControl display="flex" flexDirection="row">
-          <FormLabel># cases to insert:</FormLabel>
-          <Input size="xs" w="75" ref={initialRef} placeholder="1"
-                  value={numCasesToInsert} onFocus={(e) => e.target.select()}
-                  onChange={event => setNumCasesToInsert(parseInt(event.target.value, 10))}
-          />
-        </FormControl>
-        <FormControl display="flex" flexDirection="row">
-          <FormLabel>location</FormLabel>
-          <RadioGroup onChange={setInsertPosition} value={insertPosition}>
-            <HStack>
-              <Radio value="before">before</Radio>
-              <Radio value="after">after</Radio>
-            </HStack>
-          </RadioGroup>
-        </FormControl>
-      </>
+      <FormControl display="flex" flexDirection="row">
+        <FormLabel># cases to insert:</FormLabel>
+        <Input size="xs" w="75" ref={initialRef} placeholder="1"
+                value={numCasesToInsert} onFocus={(e) => e.target.select()}
+                onChange={event => setNumCasesToInsert(parseInt(event.target.value, 10))}
+        />
+        <FormLabel>location</FormLabel>
+        <RadioGroup onChange={setInsertPosition} value={insertPosition}>
+          <HStack>
+            <Radio value="before">before</Radio>
+            <Radio value="after">after</Radio>
+          </HStack>
+        </RadioGroup>
+      </FormControl>
     )
   }
 
@@ -90,6 +86,7 @@ export const IndexMenuList = ({caseId, index, data}: IProps) => {
     }
     data?.addCases(casesToAdd, {[insertPosition]: caseId})
   }
+
   return (
     <>
       <MenuList>
