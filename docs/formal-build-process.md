@@ -5,7 +5,9 @@ assembling and deploying a CODAP build on the CODAP server. It is not a document
 to describe how to create a runnable local instance of CODAP for development.
 
 * Prerequisites
-  * Build person should have an account: `codap-server.concord.org`
+  * The build person should have an account on `codap-server.concord.org`.
+  * The build person should have an API Key for the CODAP Project on the Po 
+    Editor (translation repository) site, `https://poeditor.com/`.
 * What is assembled for the build?
     * CODAP
     * CFM (Cloud File Manager)
@@ -24,20 +26,31 @@ to describe how to create a runnable local instance of CODAP for development.
     * `npm install` should have been run on all codelines (and 
        `package.json`-bearing subdirectories in the codap-data-interactives codeline)
 * Non-automated part: checking on readiness
-    * Check on stories in progress
+    * Check on stories in progress: are there any uncommitted?
     * Check on CFM changes (CFM changes should have a story, but they don’t always)
+      * If there are CFM Changes, in the CODAP codeline, run `npm run build:cfm`. 
+        Test and commit changes to the CODAP codeline.
     * Check on strings file changes
         * in codap directory: `npm run strings:update`
         * then, `git status`. If the codeline is no longer clean, there have been changes
-        * if there are changes, they need to be propagated to plugins (TBD)
+        * if there are changes, they need to be propagated to plugins. Run 
+          `npm run strings:pull:plugins`. This, of course, may dirty one or more of the
+          plugin directories, which will have to be committed.
+    * Assess whether plugin version number is updated or needs to be updated. 
+      That is to say assess whether there have been changes since the plugin 
+      build number was last changed.
+      * If there have been, in the codap-data-interactives codeline run 
+        `npm run std:update-build-number`.
     * Check on extension changes
         * in codap directory: `npm run record:ext`
             * this step records the git hashes for dependent directories in codap files.
         * then `git status`. If the codeline is no longer clean, there have been 
           changes. Commit them.
-    * Assess whether plugin version number is updated
 * Automated part
-    * in codap directory, `bin/do-full-build-process`
+    * in codap directory, run `bin/do-full-build-process`. This script is 
+      intended to be monitored by the build engineer and gives has a sequence of
+      points where the build engineer needs to indicate readiness to continue. It
+      front-loads the tasks that are most likely to fail such as linting the codeline.
     * monitor for errors and answer ‘y’ at each point, if none.
 * Release notes
   * The release notes are committed to the file, `Release-Notes.md` in the Git Hub wiki.
