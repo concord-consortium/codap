@@ -65,6 +65,7 @@
     "strings:build": "./bin/strings-build.sh",
     "strings:pull:usage": "echo Usage: `npm run strings:pull -- -a <poeditor_api_key>`",
     "strings:pull": "./bin/strings-pull-project.sh",
+    "strings:pull:plugins": "./bin/strings-pull-plugins",
     "strings:push:usage": "echo Usage: `npm run strings:push -- -a <poeditor_api_key>`",
     "strings:push": "./bin/strings-push-project.sh",
     "strings:update": "npm-run-all strings:build strings:push strings:pull",
