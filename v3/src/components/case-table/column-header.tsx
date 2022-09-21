@@ -1,4 +1,4 @@
-import { Tooltip, Menu, MenuButton } from "@chakra-ui/react"
+import { Tooltip, Menu, MenuButton, Input } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import React, { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
@@ -22,6 +22,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
   const isMenuOpen = useRef(false)
   const menuListElt = useRef<HTMLDivElement>(null)
+  const [isEditingAttrName, setIsEditingAttrName] = useState(false)
+  const [editingAttrName, setEditingAttrName] = useState(column.name as string)
+  const [attributeName, setAttributeName] = useState(column.name as string)
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
 
@@ -60,26 +63,63 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     return () => codapComponent?.removeEventListener("click", handleClick)
   }, [contentElt])
 
+  const handleAttrChange = (title?: string) => {
+    title && setAttributeName(title)
+  }
+  const handleAttrNameClick = () => {
+    if (!isEditingAttrName) {
+      setEditingAttrName(column.name as string)
+      setIsEditingAttrName(true)
+    }
+  }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const { key } = e
+    switch (key) {
+      case "Escape":
+        handleClose(false)
+        break
+      case "Enter":
+      case "Tab":
+        handleClose(true)
+        e.currentTarget.blur()
+        break
+    }
+  }
+  const handleClose = (accept: boolean) => {
+    const trimTitle = editingAttrName?.trim()
+    handleAttrChange?.(accept && trimTitle ? trimTitle : undefined)
+    setIsEditingAttrName(false)
+    setEditingAttrName(trimTitle)
+  }
+  const handleRenameAttribute = () => {
+    setIsEditingAttrName(true)
+  }
   return (
     <Menu isLazy>
       {({ isOpen }) => {
         isMenuOpen.current = isOpen
         return (
           <>
-            <Tooltip label={column?.name ||"attribute"} h="20px" fontSize="12px" color="white"
+            <Tooltip label={attributeName ||"attribute"} h="20px" fontSize="12px" color="white"
                 openDelay={1000} placement="bottom" bottom="15px" left="15px"
                 isDisabled={dragging} closeOnMouseDown={true}>
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-                <MenuButton className="codap-attribute-button"
-                    data-testid={`codap-attribute-button ${column?.name}`}>
-                  {column?.name}
-                </MenuButton>
+                { isEditingAttrName
+                  ? <Input value={editingAttrName} data-testid={`${attributeName}-input`} size="xs"
+                      onClick={handleAttrNameClick} onChange={event => setEditingAttrName(event.target.value)}
+                      onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
+                    />
+                  : <MenuButton className="codap-attribute-button"
+                      data-testid={`codap-attribute-button ${attributeName}`}>
+                        {attributeName}
+                    </MenuButton>
+                }
                 {column &&
                   <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
               </div>
             </Tooltip>
             {codapComponentElt && createPortal((
-              <AttributeMenuList ref={menuListElt} column={column}/>
+              <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}/>
             ), codapComponentElt)}
           </>
         )
