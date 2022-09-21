@@ -75,13 +75,6 @@ export interface IAddCaseOptions {
   after?: string | string[];
 }
 
-export interface IMoveCaseOptions {
-  // id(s) of case(s) before which to insert new cases
-  // if not specified, new cases are appended
-  before?: string | string[];
-  after?: string | string[];
-}
-
 export interface IMoveAttributeOptions {
   before?: string;  // id of attribute before which the moved attribute should be placed
   after?: string;   // id of attribute after which the moved attribute should be placed
@@ -222,7 +215,7 @@ export const DataSet = types.model("DataSet", {
   function afterIndexForInsert(index: number, afterID?: string | string[]) {
     if (!afterID) { return self.cases.length }
     return Array.isArray(afterID)
-            ? caseIDMap[afterID[index + 1]]
+            ? caseIDMap[afterID[index]] + 1
             : caseIDMap[afterID] + 1
   }
 
@@ -462,8 +455,7 @@ export const DataSet = types.model("DataSet", {
         cases.forEach((aCase, index) => {
           // shouldn't ever have to assign an id here since the middleware should do so
           const { __id__ = newCaseId() } = aCase
-          const insertPosition = after ?  afterIndexForInsert(index, after) : beforeIndexForInsert(index, before)
-          // const beforeIndex = beforeIndexForInsert(index, before)
+          const insertPosition = after ? afterIndexForInsert(index, after) : beforeIndexForInsert(index, before)
           self.attributes.forEach((attr: IAttribute) => {
             const value = aCase[attr.id]
             attr.addValue(value != null ? value : undefined, insertPosition)

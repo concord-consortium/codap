@@ -1,18 +1,17 @@
-import { FormControl, FormLabel, HStack, MenuItem, MenuList,
-  NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
-  NumberInputStepper, Radio, RadioGroup, useDisclosure, useToast } from "@chakra-ui/react"
-import React, { useRef, useState } from "react"
-import { IDataSet } from "../../data-model/data-set"
+import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
+import React, { useState } from "react"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
+import { InsertCasesModalContent } from "./insert-cases-modal"
 
 interface IProps {
   caseId: string
   index?: number
-  data?: IDataSet
 }
 
-export const IndexMenuList = ({caseId, index, data}: IProps) => {
+export const IndexMenuList = ({caseId, index}: IProps) => {
   const toast = useToast()
+  const data = useDataSetContext()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [numCasesToInsert, setNumCasesToInsert] = useState(1)
   const [insertPosition, setInsertPosition] = useState("after")
@@ -21,8 +20,8 @@ export const IndexMenuList = ({caseId, index, data}: IProps) => {
     setInsertPosition(value)
   }
 
-  const handleNumCasesToInsertChange = (value: any) => {
-    setNumCasesToInsert(value)
+  const handleNumCasesToInsertChange = (value: string) => {
+    setNumCasesToInsert(parseInt(value, 10))
   }
 
   const handleMoveEntryRow = () => {
@@ -96,45 +95,6 @@ export const IndexMenuList = ({caseId, index, data}: IProps) => {
                           onChangeInsertPosition: handleInsertPositionChange}}
           buttons={[{ label: "Cancel", onClick: onClose },{ label: "Insert Cases", onClick: insertCases }]}
       />
-    </>
-
-  )
-}
-
-interface IInsertCasesModalProps {
-  numCasesToInsert: number
-  insertPosition: string
-  onChangeNumCasesToInsert: (value: any) => void
-  onChangeInsertPosition: (value: any) => void
-}
-
-export const InsertCasesModalContent: React.FC<IInsertCasesModalProps> =
-  ({numCasesToInsert, insertPosition, onChangeNumCasesToInsert, onChangeInsertPosition}: IInsertCasesModalProps) => {
-  const initialRef = useRef(null)
-
-  return (
-    <>
-      <FormControl display="flex" flexDirection="column">
-        <FormLabel display="flex" flexDirection="row"># cases to insert:
-          <NumberInput size="xs" w="75" min={0} ml={5} defaultValue={1}
-                      value={numCasesToInsert} onFocus={(e) => e.target.select()}
-                      onChange={(value: any) => onChangeNumCasesToInsert(value)}>
-            <NumberInputField ref={initialRef} placeholder="Number of cases" />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
-        </FormLabel>
-        <FormLabel display="flex" flexDirection="row">location
-          <RadioGroup onChange={value => onChangeInsertPosition(value)} value={insertPosition} ml={5}>
-            <HStack>
-              <Radio value="before">before</Radio>
-              <Radio value="after">after</Radio>
-            </HStack>
-          </RadioGroup>
-        </FormLabel>
-      </FormControl>
     </>
   )
 }
