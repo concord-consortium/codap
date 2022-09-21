@@ -70,7 +70,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                 openDelay={1000} placement="bottom" bottom="15px" left="15px"
                 isDisabled={dragging} closeOnMouseDown={true}>
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-                <MenuButton className="codap-attribute-button"
+                <MenuButton className="codap-attribute-button" disabled={column?.name==="index"}
                     data-testid={`codap-attribute-button ${column?.name}`}>
                   {column?.name}
                 </MenuButton>
