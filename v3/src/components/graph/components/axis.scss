@@ -5,37 +5,40 @@
   .axis-title {
   }
 
-  .dragRect {
-    fill: #e38e71;
-    fill-opacity: 0.01;
-    cursor: grab;
-  }
+}
 
-  .dragging {
+.dragRect {
+  fill: #e38e71;
+  fill-opacity: 0.01;
+  cursor: grab;
+
+  &.dragging {
     cursor: grabbing !important;
   }
 
-  .h-translate {
+  &.h-translate {
     cursor: grab;
   }
 
-  .h-upper-dilate {
+  &.h-upper-dilate {
     cursor: url("../../../assets/RightDilate.png") 8 8, grab;
   }
 
-  .h-lower-dilate {
+  &.h-lower-dilate {
     cursor: url("../../../assets/LeftDilate.png") 8 8, grab;
   }
 
-  .v-translate {
+  &.v-translate {
     cursor: url("../../../assets/TranslateY.png") 8 8, grab;
   }
 
-  .v-upper-dilate {
+  &.v-upper-dilate {
     cursor: url("../../../assets/UpDilate.png") 8 8, grab;
   }
 
-  .v-lower-dilate {
+  &.v-lower-dilate {
     cursor: url("../../../assets/DownDilate.png") 8 8, grab;
   }
+
 }
+

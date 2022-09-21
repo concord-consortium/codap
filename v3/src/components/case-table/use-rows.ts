@@ -86,6 +86,18 @@ export const useRows = (data?: IDataSet) => {
       prf.measure("Table.useRows[onAction]", () => {
         let updateRows = true
 
+        const getCasesToUpdate = (cases: ICase[], index?: number) => {
+          let lowestIndex = index || data.cases.length
+          const casesToUpdate = []
+          for (let i=0; i<cases.length; ++i) {
+            lowestIndex = Math.min(lowestIndex, data.caseIndexFromID(cases[i].__id__))
+          }
+          for (let j=lowestIndex; j < data.cases.length; ++j) {
+            casesToUpdate.push(data.cases[j])
+          }
+          return casesToUpdate
+        }
+
         switch(action.name) {
           case "addAttribute":
           case "removeAttribute":
@@ -93,18 +105,27 @@ export const useRows = (data?: IDataSet) => {
             // render all rows
             resetRowCache()
             break
-          case "addCases":
+          case "addCases": {
+            const cases = (action as AddCasesAction).args[0] || []
+            // update cache only for entires after the added cases
+            const casesToUpdate = getCasesToUpdate(cases)
+            casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
+            break
+          }
           case "setCaseValues": {
             // update cache entries for each affected case
-            const cases = (action as AddCasesAction | SetCaseValuesAction).args[0] || []
+            const cases = (action as SetCaseValuesAction).args[0] || []
             cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
             resetRowCache()
             break
           }
           case "removeCases": {
-            // remove affected cases from cache
+            // remove affected cases from cache and update cache after deleted case
             const caseIds = (action as RemoveCasesAction).args[0] || []
+            const lowestIndex = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => !!index))
             caseIds.forEach(id => rowCache.delete(id))
+            const casesToUpdate = getCasesToUpdate([], lowestIndex)
+            casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
             break
           }
           default:

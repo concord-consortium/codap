@@ -24,41 +24,18 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     setNumCasesToInsert(parseInt(value, 10))
   }
 
-  const handleMoveEntryRow = () => {
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on Move Data Row on index=${index}  id=${caseId}`,
-      status: 'success',
-      duration: 9000,
-      isClosable: true,
-    })
-  }
-
   const handleInsertCase = () => {
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on Insert Case on index=${index} id=${caseId}`,
-      status: 'success',
-      duration: 9000,
-      isClosable: true,
-    })
+    data?.addCases([{}], {before: caseId})
   }
 
   const handleInsertCases = () => {
     onOpen()
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on Insert Cases on index=${index} id=${caseId}`,
-      status: 'success',
-      duration: 9000,
-      isClosable: true,
-    })
   }
-
-  const handleDeleteCase = () => {
+            
+  const handleMenuItemClick = (menuItem: string) => {
     toast({
       title: 'Menu item clicked',
-      description: `You clicked on Delete Case on index=${index} id=${caseId}`,
+      description: `You clicked on ${menuItem} on index=${index} id=${caseId}`,
       status: 'success',
       duration: 9000,
       isClosable: true,
@@ -75,13 +52,14 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     }
     data?.addCases(casesToAdd, {[insertPosition]: caseId})
   }
+  
   return (
     <>
       <MenuList>
-        <MenuItem onClick={handleMoveEntryRow}>Move Data Entry Row Here</MenuItem>
+        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>Move Data Entry Row Here</MenuItem>
         <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
         <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
-        <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
+        <MenuItem onClick={()=>handleMenuItemClick("Delete Case")}>Delete Case</MenuItem>
       </MenuList>
       <CodapModal
           isOpen={isOpen}
