@@ -5,7 +5,7 @@ import {defaultRadius, Point, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 import {ScaleNumericBaseType} from "../models/graph-layout"
-import {IAxisModel, ICategoricalAxisModel, INumericAxisModel} from "../models/axis-model"
+import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 
 /**
  * Utility routines having to do with graph entities
@@ -77,10 +77,6 @@ export function setNiceDomain(values: (string | number)[], axisModel: IAxisModel
       valueExtent = extent(values, d => Number(d)) as unknown as [number, number],
       niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
     numericAxisModel.setDomain(niceBounds.min, niceBounds.max)
-  } else {
-    const categoricalAxisModel = axisModel as ICategoricalAxisModel,
-      categoriesArray = Array.from(new Set(values)).map(cat => String(cat))
-    categoricalAxisModel.setCategories(categoriesArray)
   }
 }
 

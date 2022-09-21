@@ -9,6 +9,7 @@ import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-
 import {EmptyAxisModel} from "../models/axis-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
+import {GraphController} from "../models/graph-controller"
 import {Graph} from "./graph"
 
 const defaultGraphModel = GraphModel.create({
@@ -29,6 +30,9 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
   const enableAnimation = useRef(true)
   const data = broker?.selectedDataSet || broker?.last
+  const graphController = useMemo(
+    () => new GraphController({graphModel: defaultGraphModel, dataset: data, graphLayout: layout}),
+    [data, layout])
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
@@ -42,7 +46,10 @@ export const GraphComponent = observer(({broker}: IProps) => {
     <DataSetContext.Provider value={data}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel} graphRef={graphRef} enableAnimation={enableAnimation}/>
+          <Graph model={defaultGraphModel}
+                 graphController = {graphController}
+                 graphRef={graphRef}
+                 enableAnimation={enableAnimation}/>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>
     </DataSetContext.Provider>

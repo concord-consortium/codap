@@ -1,24 +1,15 @@
 import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
-import {defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
+import {defaultRadius, dragRadius, PlotProps, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {INumericAxisModel} from "../models/axis-model"
 import {ICase} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 
-export const ScatterDots = memo(function ScatterDots(props: {
-  casesRef: React.MutableRefObject<string[]>
-  xAttrID: string
-  yAttrID: string
-  dotsRef: React.RefObject<SVGSVGElement>
-  xAxisModel: INumericAxisModel
-  yAxisModel: INumericAxisModel
-  enableAnimation: React.MutableRefObject<boolean>
-}) {
+export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
   const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),

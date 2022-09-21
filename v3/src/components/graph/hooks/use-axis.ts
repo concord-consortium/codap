@@ -73,4 +73,7 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
     return () => disposer()
   }, [axisModel, layout, refreshAxis, place])
 
+  // Whenever the axis renders, we also need to render the d3 axis
+  useEffect(() => refreshAxis())
+
 }

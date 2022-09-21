@@ -1,3 +1,16 @@
+import React from "react"
+import {INumericAxisModel} from "./models/axis-model"
+
+export interface PlotProps {
+  casesRef: React.MutableRefObject<string[]>
+  xAttrID: string
+  yAttrID: string
+  dotsRef: React.RefObject<SVGSVGElement>
+  xAxisModel: INumericAxisModel
+  yAxisModel: INumericAxisModel
+  enableAnimation: React.MutableRefObject<boolean>
+}
+
 // One element of the data array assigned to the points
 export interface InternalizedData {
   xAttributeID: string,

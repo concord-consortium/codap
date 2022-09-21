@@ -1,24 +1,17 @@
 import {max, range, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {defaultRadius, dragRadius, transitionDuration, defaultDiameter}
+import {defaultRadius, dragRadius, transitionDuration, defaultDiameter, PlotProps}
   from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 
-export const DotPlotDots = memo(observer(function DotPlotDots(props: {
-  casesRef: React.MutableRefObject<string[]>
-  xAttrID: string
-  axisModel: INumericAxisModel,
-  dotsRef: React.RefObject<SVGSVGElement>
-  enableAnimation: React.MutableRefObject<boolean>
-}) {
-  const {casesRef, xAttrID, dotsRef, axisModel, enableAnimation} = props,
+export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) {
+  const {casesRef, xAttrID, dotsRef, xAxisModel: axisModel, enableAnimation} = props,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     place = axisModel.place,

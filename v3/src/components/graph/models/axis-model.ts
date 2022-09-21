@@ -1,4 +1,4 @@
-import {cast, Instance, types} from "mobx-state-tree"
+import {Instance, types} from "mobx-state-tree"
 
 export const AxisPlaces = ["bottom", "left", "right", "top"] as const
 export type AxisPlace = typeof AxisPlaces[number]
@@ -48,14 +48,8 @@ export const CategoricalAxisModel = AxisModel
   .named("CategoricalAxisModel")
   .props({
     type: "categorical",
-    scale: "ordinal",
-    categories: types.array(types.string) // Order is important
+    scale: "ordinal"
   })
-  .actions(self => ({
-    setCategories(categories:string[]) {
-      self.categories = cast(categories)
-    }
-  }))
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
 
 export const NumericAxisModel = AxisModel
