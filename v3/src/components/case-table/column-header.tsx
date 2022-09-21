@@ -7,6 +7,7 @@ import { ColumnHeaderDivider } from "./column-header-divider"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { AttributeMenuList } from "./attribute-menu"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 
 const isClickInElement = (click: MouseEvent, elt: HTMLElement | null) => {
   const bounds = elt?.getBoundingClientRect()
@@ -16,6 +17,7 @@ const isClickInElement = (click: MouseEvent, elt: HTMLElement | null) => {
 
 export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) => {
   const { active } = useDndContext()
+  const data = useDataSetContext()
   const instanceId = useInstanceIdContext() || "table"
   const [contentElt, setContentElt] = useState<HTMLElement | null>(null)
   const cellElt = contentElt?.parentElement || null
@@ -27,6 +29,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const [attributeName, setAttributeName] = useState(column.name as string)
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
+  let attrId = ""
 
   const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
@@ -89,10 +92,12 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     const trimTitle = editingAttrName?.trim()
     handleAttrChange?.(accept && trimTitle ? trimTitle : undefined)
     setIsEditingAttrName(false)
-    setEditingAttrName(trimTitle)
+    data?.setAttributeName(attrId, trimTitle)
   }
   const handleRenameAttribute = () => {
     setIsEditingAttrName(true)
+    setEditingAttrName(attributeName)
+    attrId = data?.attrIDFromName(attributeName) || ""
   }
   return (
     <Menu isLazy>
