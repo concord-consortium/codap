@@ -15,10 +15,6 @@ export interface Rect {
 
 export interface rTreeRect { x: number, y: number, w: number, h: number }
 
-export interface plotProps {
-  transform: string
-}
-
 export interface counterProps {
   counter:number,
   setCounter: React.Dispatch<React.SetStateAction<number>>

@@ -16,7 +16,7 @@ export const PointModel = types.model("Point", {
     }
   }))
   .actions(self => ({
-    set(aPt:Point | undefined) {
+    set(aPt:Point) {
       if(aPt) {
         self.x = aPt.x
         self.y = aPt.y
@@ -65,8 +65,8 @@ export const MovableLineModel = Adornment
     setLine(aLine: {intercept:number, slope:number, pivot1?:Point, pivot2?:Point}) {
       self.intercept = aLine.intercept
       self.slope = aLine.slope
-      self.pivot1.set(aLine.pivot1)
-      self.pivot2.set(aLine.pivot2)
+        self.pivot1.set(aLine.pivot1 ?? kInfinitePoint)
+        self.pivot2.set(aLine.pivot2 ?? kInfinitePoint)
     },
     setPivot1(aPoint: Point) {
       self.pivot1.set(aPoint)

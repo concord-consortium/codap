@@ -10,28 +10,30 @@ describe("useNumericAxis", () => {
   let layout: GraphLayout
   let axisModel: INumericAxisModel
   let axisElt: SVGGElement
+  let axisWrapperElt: SVGGElement
 
   beforeEach(() => {
     layout = new GraphLayout()
     axisModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     axisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    axisWrapperElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
   })
 
   it("renders a simple horizontal axis", () => {
-    renderHook(() => useNumericAxis({ axisModel, axisElt }))
+    renderHook(() => useNumericAxis({ axisModel, axisElt, axisWrapperElt }))
     expect(axisElt.querySelector(".axis")).toBeDefined()
     expect(axisElt.querySelector(".tick")).toBeDefined()
   })
 
   it("renders a simple vertical axis", () => {
     axisModel = NumericAxisModel.create({ place: "left", min: 0, max: 10 })
-    renderHook(() => useNumericAxis({ axisModel, axisElt }))
+    renderHook(() => useNumericAxis({ axisModel, axisElt, axisWrapperElt }))
     expect(axisElt.querySelector(".axis")).toBeDefined()
     expect(axisElt.querySelector(".tick")).toBeDefined()
   })
 
   it("updates scale when axis domain changes", () => {
-    renderHook(() => useNumericAxis({ axisModel, axisElt }), {
+    renderHook(() => useNumericAxis({ axisModel, axisElt, axisWrapperElt }), {
       wrapper: ({ children }) => (
         <GraphLayoutContext.Provider value={layout}>
           {children}
@@ -43,7 +45,7 @@ describe("useNumericAxis", () => {
   })
 
   it("updates scale when axis range changes", () => {
-    renderHook(() => useNumericAxis({ axisModel, axisElt }), {
+    renderHook(() => useNumericAxis({ axisModel, axisElt, axisWrapperElt }), {
       wrapper: ({ children }) => (
         <GraphLayoutContext.Provider value={layout}>
           {children}
@@ -55,7 +57,7 @@ describe("useNumericAxis", () => {
   })
 
   it("can switch between linear/log axes", () => {
-    renderHook(() => useNumericAxis({ axisModel, axisElt }))
+    renderHook(() => useNumericAxis({ axisModel, axisElt, axisWrapperElt }))
     axisModel.setScale("log")
     expect(axisElt.querySelector(".axis")).toBeDefined()
     expect(axisElt.querySelector(".tick")).toBeDefined()

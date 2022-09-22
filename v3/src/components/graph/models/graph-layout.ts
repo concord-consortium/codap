@@ -6,7 +6,7 @@ import { AxisPlace, AxisPlaces } from "./axis-model"
 export type ScaleBaseType = ScaleContinuousNumeric<number, number>
 
 export const kDefaultGraphWidth = 480
-export const kDefaultGraphHeight = 360
+export const kDefaultGraphHeight = 0
 export const kDefaultPlotWidth = 0.8 * kDefaultGraphWidth
 export const kDefaultPlotHeight = 0.8 * kDefaultGraphHeight
 
