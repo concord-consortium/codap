@@ -2,7 +2,7 @@ import { Tooltip, Menu, MenuButton } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import React, { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { THeaderRendererProps } from "./case-table-types"
+import { kIndexColumnKey, THeaderRendererProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -70,7 +70,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                 openDelay={1000} placement="bottom" bottom="15px" left="15px"
                 isDisabled={dragging} closeOnMouseDown={true}>
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-                <MenuButton className="codap-attribute-button" disabled={column?.name==="index"}
+                <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
                     data-testid={`codap-attribute-button ${column?.name}`}>
                   {column?.name}
                 </MenuButton>
