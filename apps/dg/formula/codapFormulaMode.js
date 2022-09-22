@@ -10,8 +10,8 @@ CodeMirror.defineSimpleMode("codapFormula", {
   start: [
     // The regex matches the token, the token property contains the type
     {regex: /(?:"(?:[^\\]|\\.)*?(?:"|$))|(?:'(?:[^\\]|\\.)*?(?:'|$))/, token: "string"},
-    {regex: /true|false/, token: "atom"},
-    {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
+    //{regex: /true|false/, token: "atom"},
+    {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?|true|false|pi|e|π/i, token: "number"},
     {regex: /[-+\/*=<>!^]+/, token: "operator"},
     {regex: DG.Formula.functionRegExp, token: "function"},
     {regex: DG.Formula.identifierRegExp, token: "variable"},
