@@ -107,4 +107,3 @@ export const CaseDots = memo(function CaseDots(props: {
     <></>
   )
 })
-// (ScatterDots as any).whyDidYouRender = true

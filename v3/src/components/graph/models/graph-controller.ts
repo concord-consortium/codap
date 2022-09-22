@@ -102,6 +102,10 @@ export class GraphController {
     }
 
   }
+  
+  setDotsRef(dotsRef:React.RefObject<SVGSVGElement>) {
+    this.dotsRef = dotsRef
+}
 
   setDotsRef(dotsRef:React.RefObject<SVGSVGElement>) {
     this.dotsRef = dotsRef

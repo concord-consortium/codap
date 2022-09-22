@@ -157,8 +157,3 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
     <svg/>
   )
 }))
-/*
-if (DotPlotDots) {
-  (DotPlotDots as any).whyDidYouRender = {logOnDifferentValues: true, customName: 'DotPlotDots'}
-}
-*/

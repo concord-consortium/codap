@@ -142,4 +142,3 @@ export const Graph = observer((
   )
 })
 
-// (Graph as any).whyDidYouRender = {logOnDifferentValues: true, customName: 'Graph'}

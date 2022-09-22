@@ -157,4 +157,3 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
     <svg/>
   )
 })
-// (ScatterDots as any).whyDidYouRender = true

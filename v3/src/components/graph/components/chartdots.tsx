@@ -119,4 +119,3 @@ export const ChartDots = memo(function ChartDots(props: {
     <></>
   )
 })
-// (ScatterDots as any).whyDidYouRender = true
