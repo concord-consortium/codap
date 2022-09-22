@@ -230,7 +230,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.getNumericAtIndex(0, numAttrID)).toBe(3)
   expect(dataset.getValueAtIndex(0, numAttrID)).toBe("3")
 
-  // add multiple new cases
+  // add multiple new cases before specified case
   dataset.addCases(toCanonical(dataset, [{ str: "a", num: 1 }, { str: "b", num: 2 }]), { before: caseC3ID })
   const caseA1ID = dataset.cases[0].__id__,
         caseB2ID = dataset.cases[1].__id__
@@ -263,6 +263,29 @@ test("DataSet basic functionality", () => {
     const caseIndex = dataset.caseIndexFromID(aCase.__id__)
     expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
+
+   // add multiple new cases after specified case
+   dataset.addCases(toCanonical(dataset, [{ str: "j", num: 1 }, { str: "k", num: 2 }]), { after: caseC3ID })
+   const caseJ1ID = dataset.cases[4].__id__,
+         caseK2ID = dataset.cases[3].__id__
+   expect(dataset.cases.length).toBe(7)
+   expect(dataset.attributes[0].value(4)).toBe("j")
+   expect(dataset.attributes[1].value(4)).toBe("1")
+   expect(dataset.attributes[0].value(3)).toBe("k")
+   expect(dataset.attributes[1].value(3)).toBe("2")
+   expect(dataset.getValue(caseJ1ID, "foo")).toBeUndefined()
+   expect(dataset.getValue("foo", "bar")).toBeUndefined()
+   expect(dataset.getCase(caseJ1ID, { canonical: false })).toEqual({ __id__: caseJ1ID, str: "j", num: 1 })
+   expect(dataset.getCase(caseK2ID, { canonical: false })).toEqual({ __id__: caseK2ID, str: "k", num: 2 })
+   expect(dataset.getCase(caseJ1ID, { canonical: true }))
+     .toEqual({ __id__: caseJ1ID, [strAttrID]: "j", [numAttrID]: 1 })
+   expect(dataset.getCase(caseK2ID, { canonical: true }))
+     .toEqual({ __id__: caseK2ID, [strAttrID]: "k", [numAttrID]: 2 })
+   expect(dataset.getCases([caseJ1ID, caseK2ID], { canonical: true }))
+     .toEqual([{ __id__: caseJ1ID, [strAttrID]: "j", [numAttrID]: 1 },
+               { __id__: caseK2ID, [strAttrID]: "k", [numAttrID]: 2 }])
+   expect(dataset.getCasesAtIndex().length).toBe(7)
+   expect(dataset.getCasesAtIndex(4).length).toBe(3)
 
   // setCaseValues
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, str: "A", num: 10 }]))
@@ -303,16 +326,16 @@ test("DataSet basic functionality", () => {
   expect(copy.cases.length).toBe(dataset.cases.length)
 
   dataset.removeCases([nullCaseID])
-  expect(dataset.cases.length).toBe(4)
+  expect(dataset.cases.length).toBe(6)
   dataset.removeCases([caseA1ID, caseB2ID])
-  expect(dataset.cases.length).toBe(2)
+  expect(dataset.cases.length).toBe(4)
   // validate that caseIDMap is correct
   dataset.cases.forEach((aCase: ICaseID) => {
     const caseIndex = dataset.caseIndexFromID(aCase.__id__)
     expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
   dataset.removeCases([""])
-  expect(dataset.cases.length).toBe(2)
+  expect(dataset.cases.length).toBe(4)
   destroy(dataset)
 })
 
