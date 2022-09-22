@@ -1,6 +1,7 @@
 import React, { forwardRef } from "react"
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import { CalculatedColumn } from "react-data-grid"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties"
 
@@ -11,6 +12,7 @@ interface IProps {
 // eslint-disable-next-line react/display-name
 export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column}, ref) => {
   const toast = useToast()
+  const data = useDataSetContext()
   const {isOpen, onOpen, onClose} = useDisclosure()
 
   const handleMenuItemClick = (menuItem: string) => {
@@ -21,6 +23,10 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column}, r
       duration: 5000,
       isClosable: true,
     })
+  }
+  const handleDeleteAttribute = () => {
+    const attrId = data?.attrIDFromName(column.name as string)
+    attrId && data?.removeAttribute(attrId)
   }
 
   const handleEditAttributeProps  = (e: any) => {
@@ -46,7 +52,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column}, r
         <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
         <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
         <MenuItem onClick={()=>handleMenuItemClick("Hide Attribute")}>Hide Attribute</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Delete Attribute")}>Delete Attribute</MenuItem>
+        <MenuItem onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
       </MenuList>
       <EditAttributePropertiesModal ref={ref} isOpen={isOpen} onClose={onClose}/>
     </>
