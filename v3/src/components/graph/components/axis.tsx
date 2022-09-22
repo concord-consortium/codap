@@ -1,5 +1,5 @@
 import {Active} from "@dnd-kit/core"
-import React, {useCallback, useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
@@ -11,6 +11,7 @@ import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import "./axis.scss"
+import {usePrevious} from "../hooks/use-previous";
 
 interface IProps {
   attributeID: string,
@@ -19,14 +20,18 @@ interface IProps {
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
 
+let componentId = 0
+
 export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProps) => {
   const
+    _componentId = useMemo(() => ++componentId, []),
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${axisModel.place}-axis`,
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(axisModel.place),
+    prevScale = usePrevious(scale),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
     place = axisModel.place
@@ -97,6 +102,7 @@ export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProp
     return () => observer?.disconnect()
   }, [axisElt, place, halfRange, label, transform])
 
+  console.log("axis:", _componentId, "place:", place, "domain:", scale?.domain(), "sameScale:", scale === prevScale)
   return (
     <>
       <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>

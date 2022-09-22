@@ -1,6 +1,6 @@
 import {MutableRefObject, RefObject, useCallback, useEffect} from "react"
 import {onAction} from "mobx-state-tree"
-import {filterCases, matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
+import {matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {INumericAxisModel} from "../models/axis-model"
@@ -10,14 +10,13 @@ interface IProps {
   enableAnimation: MutableRefObject<boolean>
   casesRef:  MutableRefObject<string[]>
   dotsRef: RefObject<SVGSVGElement>
-  instanceId: string | undefined,
-  keyFunc: (d: string) => string
+  instanceId: string | undefined
 }
 
 
 
 export function useGraphModel(props:IProps) {
-  const {graphModel, enableAnimation, casesRef, dotsRef, keyFunc, instanceId} = props,
+  const {graphModel, enableAnimation, casesRef, dotsRef, instanceId} = props,
     yAxisModel = graphModel.getAxis('left'),
     xAttrID = graphModel.getAttributeID('bottom'),
     yAttrID = graphModel.getAttributeID('left'),
@@ -27,9 +26,9 @@ export function useGraphModel(props:IProps) {
     matchCirclesToData({
       caseIDs: casesRef.current, dataset,
       dotsElement: dotsRef.current,
-      enableAnimation, keyFunc, instanceId, xAttrID, yAttrID
+      enableAnimation, instanceId, xAttrID, yAttrID
     })
-  }, [dataset, keyFunc, instanceId, xAttrID, yAttrID, casesRef, dotsRef, enableAnimation])
+  }, [dataset, instanceId, xAttrID, yAttrID, casesRef, dotsRef, enableAnimation])
 
   useEffect(function createCircles() {
       callMatchCirclesToData()
@@ -56,11 +55,13 @@ export function useGraphModel(props:IProps) {
   useEffect(function installPlotTypeAction() {
     const disposer = onAction(graphModel, action => {
       if (action.name === 'setPlotType') {
-        const newPlotType = action.args?.[0],
-          attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]
+        const newPlotType = action.args?.[0]/*,
+          attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]*/
         enableAnimation.current = true
+/*
         casesRef.current = filterCases(dataset, attrIDs)
         callMatchCirclesToData()
+*/
         // In case the y-values have changed we rescale
         if( newPlotType === 'scatterPlot') {
           const values = casesRef.current.map(anID => dataset?.getNumeric(anID, yAttrID)) as number[]

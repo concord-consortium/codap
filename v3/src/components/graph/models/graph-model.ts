@@ -2,8 +2,12 @@ import {Instance, types} from "mobx-state-tree"
 import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
 import {PlotType, PlotTypes} from "../graphing-types"
 
-// export const PlotAttributeRoles = ["primary", "secondary", "legend", "verticalSplit", "horizontalSplit"] as const
-// export type PlotAttributeRole = typeof PlotAttributeRoles[number]
+export interface GraphProperties {
+  axes: {[key:string]:IAxisModelUnion}
+  plotType: PlotType
+  attributeIDs: {[key:string]:string}
+  cases: string[]
+}
 
 export const GraphModel = types
   .model("GraphModel", {
@@ -36,6 +40,17 @@ export const GraphModel = types
     },
     setCases(cases: string[]) {
       self.cases = cases
+    },
+    setGraphProperties( props: GraphProperties) {
+      Object.keys( props.axes).forEach(aKey => {
+        // Why doesn't self.setAxis work here?
+        self.axes.set(aKey, props.axes[aKey])
+      })
+      self.plotType = props.plotType
+      Object.keys(props.attributeIDs).forEach(aKey => {
+        self.attributeIDs.set(aKey, props.attributeIDs[aKey])
+      })
+      self.cases = props.cases
     }
   }))
 

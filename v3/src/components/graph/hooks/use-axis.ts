@@ -17,14 +17,14 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
     place = axisModel.place
 
   const refreshAxis = useCallback((duration = 0) => {
-    if (axisElt && scale) {
+    if (axisElt) {
       select(axisElt)
         .transition().duration(duration)
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        .call(axisFunc(scale))
+        .call(axisFunc(layout.axisScale(axisModel.place)))
     }
-  }, [axisElt, axisFunc, scale])
+  }, [axisElt, axisFunc, axisModel, layout])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -74,6 +74,8 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
   }, [axisModel, layout, refreshAxis, place])
 
   // Whenever the axis renders, we also need to render the d3 axis
-  useEffect(() => refreshAxis())
+  useEffect(() => {
+    refreshAxis()
+  })
 
 }

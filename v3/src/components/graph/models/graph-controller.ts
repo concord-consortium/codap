@@ -1,3 +1,5 @@
+import React from "react"
+import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
 import {IDataSet} from "../../../data-model/data-set"
@@ -10,36 +12,53 @@ import {
   NumericAxisModel
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
-import {filterCases, setNiceDomain} from "../utilities/graph_utils"
-import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
+import {filterCases, matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
 
 export interface IGraphControllerProps {
   graphModel: IGraphModel
-  graphLayout: GraphLayout
+  layout: GraphLayout
   dataset: IDataSet | undefined
+  casesRef: React.MutableRefObject<string[]>
+  enableAnimation:  React.MutableRefObject<boolean>
+  instanceId:string
+  dotsRef:React.RefObject<SVGSVGElement>
 }
 
 export class GraphController {
   graphModel: IGraphModel
   layout: GraphLayout
   dataset: IDataSet | undefined
+  casesRef: React.MutableRefObject<string[]>
+  enableAnimation:  React.MutableRefObject<boolean>
+  instanceId:string
+  dotsRef:React.RefObject<SVGSVGElement>
+
 
   constructor(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
-    this.layout = props.graphLayout
+    this.layout = props.layout
     this.dataset = props.dataset
+    this.casesRef = props.casesRef
+    this.instanceId = props.instanceId
+    this.enableAnimation = props.enableAnimation
+    this.dotsRef = props.dotsRef
     // Presumably a new dataset is now being used. So we have to set things up for an empty graph
     this.initializeGraph()
   }
 
   initializeGraph() {
-    const {graphModel, dataset, layout} = this
-    graphModel.setAxis('bottom', EmptyAxisModel.create({place:'bottom'}))
-    graphModel.setAxis('left', EmptyAxisModel.create({place:'left'}))
-    graphModel.setCases(filterCases(dataset, []))
-    graphModel.setPlotType('casePlot')
+    const {graphModel, dataset, layout, casesRef, dotsRef, enableAnimation, instanceId} = this
+    casesRef.current = filterCases(dataset, [])
+    if( dotsRef) {
+      matchCirclesToData({caseIDs: casesRef.current, dataset, dotsElement: dotsRef.current,
+       enableAnimation, instanceId, xAttrID: '', yAttrID: ''})
+    }
     layout.setAxisScale('bottom', scaleOrdinal())
     layout.setAxisScale('left', scaleOrdinal())
+    graphModel.setGraphProperties({
+      axes: {bottom: EmptyAxisModel.create({place: 'bottom'}), left: EmptyAxisModel.create({place: 'left'})},
+      plotType: 'casePlot', attributeIDs: { bottom: '', left: ''}, cases: casesRef.current
+    })
   }
 
   handleAttributeAssignment(place: AxisPlace, attrID:string) {
@@ -83,6 +102,10 @@ export class GraphController {
     }
 
   }
+  
+  setDotsRef(dotsRef:React.RefObject<SVGSVGElement>) {
+    this.dotsRef = dotsRef
+}
 
 }
 

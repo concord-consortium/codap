@@ -2,7 +2,7 @@ import {useToast} from "@chakra-ui/react"
 import {select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
-import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
+import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
 import {kGraphClass} from "../graphing-types"
@@ -27,10 +27,11 @@ interface IProps {
   model: IGraphModel
   graphRef: MutableRefObject<HTMLDivElement>
   enableAnimation: MutableRefObject<boolean>
+  dotsRef: React.RefObject<SVGSVGElement>
 }
 
 export const Graph = observer((
-  {graphController, model: graphModel, graphRef, enableAnimation}: IProps) => {
+  {graphController, model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
   const xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
     yAxisModel = graphModel.getAxis("left") as IAxisModel,
     {plotType} = graphModel,
@@ -41,17 +42,15 @@ export const Graph = observer((
     {margin} = layout,
     xScale = layout.axisScale("bottom"),
     transform = `translate(${margin.left}, 0)`,
-    keyFunc = useCallback((d: string) => d, []),
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
-    dotsRef = useRef<SVGSVGElement>(null),
     [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0}),
     xAttrID = graphModel.getAttributeID('bottom'),
     yAttrID = graphModel.getAttributeID('left')
 
   casesRef.current = filterCases(dataset, [xAttrID, yAttrID])
 
-  useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, keyFunc, instanceId})
+  useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, instanceId})
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {
@@ -87,6 +86,11 @@ export const Graph = observer((
     }, true)
     return () => disposer?.()
   }, [graphController, dataset, layout, xAxisModel, yAxisModel, enableAnimation, graphModel])
+
+  // We only need to make the following connection once
+  useEffect(function passDotsRefToController() {
+    graphController.setDotsRef(dotsRef)
+  })
 
   const getPlotComponent = () => {
     const plotProps = {

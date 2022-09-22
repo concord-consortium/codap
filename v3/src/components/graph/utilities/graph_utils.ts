@@ -80,20 +80,20 @@ export function setNiceDomain(values: (string | number)[], axisModel: IAxisModel
   }
 }
 
-type KeyFunc = (d:string) => string
 export interface IMatchCirclesProps {
-  caseIDs:string[]
+  caseIDs: string[]
   dataset: IDataSet | undefined
   dotsElement: SVGGElement | null
   enableAnimation: React.MutableRefObject<boolean>
-  keyFunc: KeyFunc
-  instanceId:string | undefined
+  instanceId: string | undefined
   xAttrID: string
   yAttrID: string
 }
-export function matchCirclesToData( props: IMatchCirclesProps) {
-  const {caseIDs, dataset, enableAnimation, keyFunc, instanceId, dotsElement, xAttrID, yAttrID} = props
-  const float = format('.3~f')
+
+export function matchCirclesToData(props: IMatchCirclesProps) {
+  const {caseIDs, dataset, enableAnimation, instanceId, dotsElement, xAttrID, yAttrID} = props,
+    float = format('.3~f'),
+    keyFunc = (d: string) => d
   enableAnimation.current = true
   select(dotsElement)
     .selectAll('circle')
@@ -116,19 +116,20 @@ export function matchCirclesToData( props: IMatchCirclesProps) {
     )
 }
 
-export const filterCases = (dataset: IDataSet | undefined, attributeIDs: string[])=>{
+export const filterCases = (dataset: IDataSet | undefined, attributeIDs: string[]) => {
   const attributeIdTests = attributeIDs.map(attrID => {
-    const attribute = dataset?.attrFromID(attrID),
-      isNumeric = attribute?.type === 'numeric'
-    return { attrID, test: isNumeric ?
-        (caseID:string, attributeID:string) => isFinite(Number(dataset?.getNumeric(caseID, attributeID))) :
-        (caseID:string, attributeID:string) => dataset?.getValue(caseID, attributeID) !== ''
-    }
-  }),
+      const attribute = dataset?.attrFromID(attrID),
+        isNumeric = attribute?.type === 'numeric'
+      return {
+        attrID, test: isNumeric ?
+          (caseID: string, attributeID: string) => isFinite(Number(dataset?.getNumeric(caseID, attributeID))) :
+          (caseID: string, attributeID: string) => dataset?.getValue(caseID, attributeID) !== ''
+      }
+    }),
     filteredCases = dataset ? dataset.cases.map(aCase => aCase.__id__)
-    .filter(anID => {
-      return attributeIdTests.every(({attrID, test}) => attrID === '' || test(anID, attrID))
-    }) : []
+      .filter(anID => {
+        return attributeIdTests.every(({attrID, test}) => attrID === '' || test(anID, attrID))
+      }) : []
   return filteredCases
 }
 
