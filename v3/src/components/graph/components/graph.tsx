@@ -2,7 +2,7 @@ import {useToast} from "@chakra-ui/react"
 import {select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
-import React, {MutableRefObject, useEffect, useRef, useState} from "react"
+import React, {MutableRefObject, useEffect, useRef} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
 import {kGraphClass} from "../graphing-types"
@@ -18,9 +18,10 @@ import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {filterCases} from "../utilities/graph_utils"
+import {GraphController} from "../models/graph-controller"
+import {MarqueeState} from "../models/marquee-state"
 
 import "./graph.scss"
-import {GraphController} from "../models/graph-controller"
 
 interface IProps {
   graphController: GraphController
@@ -29,6 +30,8 @@ interface IProps {
   enableAnimation: MutableRefObject<boolean>
   dotsRef: React.RefObject<SVGSVGElement>
 }
+
+const marqueeState = new MarqueeState()
 
 export const Graph = observer((
   {graphController, model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
@@ -44,7 +47,6 @@ export const Graph = observer((
     transform = `translate(${margin.left}, 0)`,
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
-    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0}),
     xAttrID = graphModel.getAttributeID('bottom'),
     yAttrID = graphModel.getAttributeID('left')
 
@@ -130,12 +132,12 @@ export const Graph = observer((
         />
         <Background
           transform={transform}
-          marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
+          marqueeState={marqueeState}/>
         <svg ref={plotAreaSVGRef} className='graph-dot-area'>
           <svg ref={dotsRef}>
             {getPlotComponent()}
           </svg>
-          <Marquee marqueeRect={marqueeRect}/>
+          <Marquee marqueeState={marqueeState}/>
         </svg>
       </svg>
     </div>

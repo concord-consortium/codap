@@ -1,20 +1,15 @@
 import React, {useEffect, useRef} from "react"
+import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import "./marquee.scss"
+import {MarqueeState} from "../models/marquee-state"
 
-interface IProps {
-  marqueeRect: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
-}
-
-export const Marquee = ({marqueeRect: {x, y, width, height}}: IProps) => {
-  const marqueeRef = useRef<SVGSVGElement>(null)
+export const Marquee = observer((props:{marqueeState: MarqueeState}) => {
+  const marqueeRef = useRef<SVGSVGElement>(null),
+    marqueeRect = props.marqueeState.marqueeRect
 
   useEffect(() => {
+    const { x, y, width, height } = marqueeRect
     select(marqueeRef.current).selectAll('rect')
       .data([1, 2])
       .join(
@@ -30,9 +25,9 @@ export const Marquee = ({marqueeRect: {x, y, width, height}}: IProps) => {
             .attr('height', Math.abs(height))
         }
       )
-  }, [height, width, x, y])
+  }, [marqueeRect])
 
   return (
     <g ref={marqueeRef}/>
   )
-}
+})

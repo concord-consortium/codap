@@ -1,12 +1,13 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {Rect, InternalizedData, rTreeRect} from "../graphing-types"
+import {InternalizedData, rTreeRect} from "../graphing-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph_utils"
 import {appState} from "../../app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {MarqueeState} from "../models/marquee-state"
 
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
@@ -36,12 +37,9 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
 
 export const Background = (props: {
   transform: string,
-  marquee: {
-    rect: Rect,
-    setRect: React.Dispatch<React.SetStateAction<Rect>>
-  }
+  marqueeState: MarqueeState
 }) => {
-  const {transform, marquee: {setRect: setMarqueeRect}} = props,
+  const {transform, marqueeState} = props,
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     {plotWidth, plotHeight} = layout,
@@ -66,9 +64,9 @@ export const Background = (props: {
       startY.current = event.y
       width.current = 0
       height.current = 0
-      setMarqueeRect({x: event.x - leftEdge, y: event.y, width: 0, height: 0})
+      marqueeState.setMarqueeRect({x: event.x - leftEdge, y: event.y, width: 0, height: 0})
       currentlySelectedCaseIDs.current = []
-    }, [setMarqueeRect]),
+    }, [marqueeState]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -76,13 +74,12 @@ export const Background = (props: {
           {x: startX.current, y: startY.current, w: width.current, h: height.current})
         width.current = width.current + event.dx
         height.current = height.current + event.dy
-        setMarqueeRect(prevRect => {
-          return {
-            x: prevRect.x, y: prevRect.y,
-            width: prevRect.width + event.dx,
-            height: prevRect.height + event.dy
-          }
-        })
+        const currectRect = marqueeState.marqueeRect
+        marqueeState.setMarqueeRect( {
+            x: currectRect.x, y: currectRect.y,
+            width: currectRect.width + event.dx,
+            height: currectRect.height + event.dy
+          })
         const currentRect = rectNormalize({
             x: startX.current, y: startY.current,
             w: width.current,
@@ -93,13 +90,13 @@ export const Background = (props: {
         newSelection.length && dataset.current?.selectCases(newSelection, true)
         newDeselection.length && dataset.current?.selectCases(newDeselection, false)
       }
-    }, [dataset, setMarqueeRect]),
+    }, [dataset, marqueeState]),
 
     onDragEnd = useCallback(() => {
-      setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
+      marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
       selectionTree.current = null
       appState.endPerformance()
-    }, [setMarqueeRect])
+    }, [marqueeState])
 
   useEffect(() => {
     const dragBehavior = drag()
