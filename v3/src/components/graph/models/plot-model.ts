@@ -1,6 +1,6 @@
-import {Instance, types} from "mobx-state-tree";
-import {uniqueId} from "../../../utilities/js-utils";
-import {IDataSet} from "../../../data-model/data-set";
+import {Instance, types} from "mobx-state-tree"
+import {uniqueId} from "../../../utilities/js-utils"
+import {IDataSet} from "../../../data-model/data-set"
 
 
 export const PlotModel = types

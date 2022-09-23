@@ -18,6 +18,11 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
 
   const refreshAxis = useCallback((duration = 0) => {
     if (axisElt) {
+      // When switching from one axis type to another, e.g. a categorical axis to an
+      // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.
+      // To avoid that, we manually remove the ticks before initializing the axis.
+      const ticks = axisElt?.querySelectorAll(".tick")
+      ticks.forEach(tick => tick.parentElement?.removeChild(tick))
       select(axisElt)
         .transition().duration(duration)
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

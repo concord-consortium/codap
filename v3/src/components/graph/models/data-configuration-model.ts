@@ -27,23 +27,23 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     // Return case IDs for cases that are appropriate for this configuration
-    get cases() {
-      const isValidNumeric = (caseID:string, attrID:string) => {
-        return isFinite(Number(self.dataset?.getNumeric(caseID, attrID)))
-      },
-        isValidCategorical = (caseID:string, attrID:string) => {
-          // eslint-disable-next-line eqeqeq
-        return self.dataset?.getValue(caseID, attrID) != undefined
-      }
-      const attrTests:{attrID:string, test:(caseID:string, attrID:string) => boolean}[] = []
-      for (const role in self.attributeDescriptions) {
+    // get cases() {
+    //   const isValidNumeric = (caseID:string, attrID:string) => {
+    //     return isFinite(Number(self.dataset?.getNumeric(caseID, attrID)))
+    //   },
+    //     isValidCategorical = (caseID:string, attrID:string) => {
+    //       // eslint-disable-next-line eqeqeq
+    //     return self.dataset?.getValue(caseID, attrID) != undefined
+    //   }
+    //   const attrTests:{attrID:string, test:(caseID:string, attrID:string) => boolean}[] = []
+    //   for (const role in self.attributeDescriptions) {
 
-      }
-      return self.dataset?.cases.map(aCase => aCase.__id__)
-        .filter(anID=>{
+    //   }
+    //   return self.dataset?.cases.map(aCase => aCase.__id__)
+    //     .filter(anID=>{
 
-        })
-    }
+    //     })
+    // }
   }))
   .actions(self => ({
     setDataset(dataset: IDataSet) {
@@ -51,4 +51,3 @@ export const DataConfigurationModel = types
     }
   }))
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {}
-
