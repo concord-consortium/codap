@@ -7,8 +7,6 @@ import { InsertCasesModalContent } from "./insert-cases-modal"
 interface IProps {
   caseId: string
   index?: number
-  data?: IDataSet
-}
 }
 
 export const IndexMenuList = ({caseId, index}: IProps) => {
@@ -33,7 +31,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
   const handleInsertCases = () => {
     onOpen()
   }
-            
+
   const handleMenuItemClick = (menuItem: string) => {
     toast({
       title: 'Menu item clicked',
@@ -54,7 +52,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     }
     data?.addCases(casesToAdd, {[insertPosition]: caseId})
   }
-  
+
   return (
     <>
       <MenuList>

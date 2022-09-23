@@ -1,7 +1,7 @@
 import { Modal,
   ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Button } from "@chakra-ui/react"
-import React from "react"
+import React, { forwardRef, useEffect } from "react"
 
 import "./codap-modal.scss"
 
@@ -29,14 +29,33 @@ interface IProps<TContentProps> {
   buttons: IModalButton[]
   onCustomClose?: () => void
 }
-export const CodapModal = <IContentProps,>({ isOpen, onClose,
+
+const isClickInElement = (click: MouseEvent, elt: HTMLElement | null) => {
+  const bounds = elt?.getBoundingClientRect()
+  return !!bounds && (bounds.left <= click.clientX) && (click.clientX <= bounds.right) &&
+                      (bounds.top <= click.clientY) && (click.clientY <= bounds.bottom)
+}
+// eslint-disable-next-line react/display-name
+export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
   className, Icon, title, Content, contentProps, hasCloseButton, buttons, onCustomClose
-}: IProps<IContentProps>) => {
+}: IProps<IContentProps>, ref: React.LegacyRef<HTMLElement> | undefined) => {
+  const codapModalContent = document.getElementsByClassName("codap-modal-content")[0]
+console.log(codapModalContent)
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      console.log(e)
+      const items = codapModalContent?.querySelectorAll("button")
+      const clickedItem = Array.from(items || []).find(item => isClickInElement(e, item))
+      clickedItem?.dispatchEvent(new MouseEvent(e.type, e))
+    }
+    codapModalContent?.addEventListener("click", handleClick)
+    return () => codapModalContent?.removeEventListener("click", handleClick)
+  }, [codapModalContent])
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} >
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent ref={ref} className="codap-modal-content">
         <ModalHeader h="30" className="codap-modal-header" data-testid="codap-modal-header">
           <div className="codap-modal-icon-container">
             {Icon && <Icon />}
@@ -60,4 +79,4 @@ export const CodapModal = <IContentProps,>({ isOpen, onClose,
       </ModalContent>
     </Modal>
   )
-}
+})

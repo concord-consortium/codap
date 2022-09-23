@@ -4,13 +4,15 @@ import { CalculatedColumn } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties"
+import { createPortal } from "react-dom"
 
 interface IProps {
   column: CalculatedColumn<TRow, unknown>
+  codapComponentElt: HTMLElement
 }
 
 // eslint-disable-next-line react/display-name
-export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column}, ref) => {
+export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column, codapComponentElt}, ref) => {
   const toast = useToast()
   const data = useDataSetContext()
   const {isOpen, onOpen, onClose} = useDisclosure()
@@ -29,15 +31,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column}, r
     attrId && data?.removeAttribute(attrId)
   }
 
-  const handleEditAttributeProps  = (e: any) => {
+  const handleEditAttributeProps  = () => {
     onOpen()
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on Edit Attribute ${column.name}`,
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
-    })
   }
 
   return (
@@ -52,9 +47,11 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column}, r
         <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
         <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
         <MenuItem onClick={()=>handleMenuItemClick("Hide Attribute")}>Hide Attribute</MenuItem>
-        <MenuItem onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
+        <MenuItem onClick={handleDeleteAttribute}>Delete Attribute</MenuItem>
       </MenuList>
-      <EditAttributePropertiesModal ref={ref} isOpen={isOpen} onClose={onClose}/>
+      {codapComponentElt && createPortal((
+        <EditAttributePropertiesModal ref={ref} isOpen={isOpen} onClose={onClose}/>
+      ), codapComponentElt)}
     </>
   )
 })

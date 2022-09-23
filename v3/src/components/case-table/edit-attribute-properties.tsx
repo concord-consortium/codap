@@ -1,9 +1,9 @@
-import { FormControl, FormLabel, forwardRef, HStack, Input, Radio, RadioGroup, Select, Textarea }
+import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea }
   from "@chakra-ui/react"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useRef, useState, forwardRef } from "react"
 import { CodapModal } from "../codap-modal"
 
-export const EditAttributePorpertiesModalContent = forwardRef((ref) => {
+export const EditAttributePorpertiesModalContent = () => {
   const [attributeName, setAttributeName] = useState("attribute")
   const [description, setDescription] = useState("")
   const [unit, setUnit] = useState("")
@@ -14,7 +14,7 @@ export const EditAttributePorpertiesModalContent = forwardRef((ref) => {
   const descriptionRef = useRef(null)
   const unitRef = useRef(null)
   const editableRef = useRef(null)
-  console.log("editable:", editable)
+
   return (
     <FormControl display="flex" flexDirection="column" w={350}>
       <FormLabel display="flex" flexDirection="row">name:
@@ -56,31 +56,28 @@ export const EditAttributePorpertiesModalContent = forwardRef((ref) => {
       </FormLabel>
     </FormControl>
   )
-})
-
+}
 
 interface IProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export const EditAttributePropertiesModal = forwardRef(({isOpen, onClose}: IProps, ref) => {
+// eslint-disable-next-line react/display-name
+export const EditAttributePropertiesModal = forwardRef(({isOpen, onClose}: IProps,
+    ref: any) => {
   const editProperties = () => {
     onClose()
   }
 
-  const handleClick = () => {
-    console.log()
-  }
-
   return (
     <CodapModal
+      ref={ref}
       isOpen={isOpen}
       onClose={onClose}
       title="Attribute Properties"
       hasCloseButton={true}
       Content={EditAttributePorpertiesModalContent}
-      contentProps={{ref}}
       buttons={[{ label: "Cancel", onClick: onClose },{ label: "Apply", onClick: editProperties}]}
     />
   )

@@ -79,7 +79,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
               </div>
             </Tooltip>
             {codapComponentElt && createPortal((
-              <AttributeMenuList ref={menuListElt} column={column}/>
+              <AttributeMenuList ref={menuListElt} column={column} codapComponentElt={codapComponentElt}/>
             ), codapComponentElt)}
           </>
         )
