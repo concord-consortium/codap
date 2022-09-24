@@ -103,8 +103,8 @@ export const Graph = observer((
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...plotProps}/>,
         dotChart: <ChartDots {...plotProps}/>,
-        scatterPlot: <ScatterDots {...plotProps}/>,
-        dotPlot: <DotPlotDots {...plotProps}/>
+        dotPlot: <DotPlotDots {...plotProps}/>,
+        scatterPlot: <ScatterDots {...plotProps}/>
       }
     return typeToPlotComponentMap[plotType]
   }

@@ -11,19 +11,22 @@ import {ICase} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) {
-  const {casesRef, xAttrID, dotsRef, xAxisModel: axisModel, enableAnimation} = props,
+  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    place = axisModel.place,
-    countPlace = place === 'left' ? 'bottom' : 'left',
-    xScale = layout.axisScale(place) as ScaleNumericBaseType,
-    {plotWidth} = layout,
-    yScale = layout.axisScale(countPlace),
+    xAttributeType = dataset?.attrFromID(xAttrID)?.type,
+    // yAttributeType = dataset?.attrFromID(yAttrID)?.type,
+    primaryPlace = xAttributeType === 'numeric' ? 'bottom' : 'left',
+    primaryAttributeID = primaryPlace === 'left' ? yAttrID : xAttrID,
+    secondaryPlace = primaryPlace === 'left' ? 'bottom' : 'left',
+    primaryScale = layout.axisScale(primaryPlace) as ScaleNumericBaseType,
+    primaryLength = layout.axisLength(primaryPlace),
+    secondaryScale = layout.axisScale(secondaryPlace),
     [dragID, setDragID] = useState(''),
-    currPos = useRef({x: 0}),
+    currPos = useRef(0),
     didDrag = useRef(false),
     target = useRef<any>(),
-    selectedDataObjects = useRef<Record<string, { x: number }>>({})
+    selectedDataObjects = useRef<Record<string, number>>({})
 
   const onDragStart = useCallback((event: MouseEvent) => {
       dataset?.beginCaching()
@@ -36,44 +39,42 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
         target.current.transition()
           .attr('r', dragRadius)
         setDragID(() => tItsID)
-        currPos.current = {x: event.clientX}
+        currPos.current = primaryPlace === 'bottom' ? event.clientX : event.clientY
 
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
         dataset?.selection.forEach(anID => {
-          const itsValue = dataset?.getNumeric(anID, xAttrID)
+          const itsValue = dataset?.getNumeric(anID, primaryAttributeID)
           if (itsValue != null) {
-            selectedDataObjects.current[anID] = {
-              x: itsValue
-            }
+            selectedDataObjects.current[anID] = itsValue
           }
         })
       }
-    }, [dataset, xAttrID, enableAnimation]),
+    }, [dataset, primaryPlace, primaryAttributeID, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
-        const newPos = {x: event.clientX},
-          dx = newPos.x - currPos.current.x
+        const newPos = primaryPlace === 'bottom' ? event.clientX : event.clientY,
+          deltaPixels = newPos - currPos.current
         currPos.current = newPos
-        if (dx !== 0) {
+        if (deltaPixels !== 0) {
           didDrag.current = true
-          const deltaX = Number(xScale?.invert(dx)) - Number(xScale?.invert(0)),
+          const delta = Number(primaryScale?.invert(deltaPixels)) - Number(primaryScale?.invert(0)),
             caseValues: ICase[] = []
           dataset?.selection.forEach(anID => {
-            const currX = Number(dataset?.getNumeric(anID, xAttrID))
-            if (isFinite(currX)) {
+            const currValue = Number(dataset?.getNumeric(anID, primaryAttributeID))
+            if (isFinite(currValue)) {
               caseValues.push({
                 __id__: anID,
-                [xAttrID]: currX + deltaX
+                [primaryAttributeID]: currValue + delta
               })
             }
           })
           caseValues.length && dataset?.setCaseValues(caseValues)
         }
       }
-    }, [dataset, dragID, xAttrID, xScale]),
+    }, [dataset, dragID, primaryAttributeID, primaryScale, primaryPlace]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -92,7 +93,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
           dataset?.selection.forEach(anID => {
             caseValues.push({
               __id__: anID,
-              [xAttrID]: selectedDataObjects.current[anID].x
+              [primaryAttributeID]: selectedDataObjects.current[anID]
             })
           })
           enableAnimation.current = true // So points will animate back to original positions
@@ -100,7 +101,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
           didDrag.current = false
         }
       }
-    }, [dataset, dragID, xAttrID, enableAnimation])
+    }, [dataset, dragID, enableAnimation, primaryAttributeID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -110,46 +111,53 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
-      yHeight = Number(yScale?.range()[0]),
-      binMap: { [id: string]: { yIndex: number } } = {}
+      secondaryRangeIndex = primaryPlace === 'bottom' ? 0 : 1,
+      secondaryHeight = Number(secondaryScale?.range()[secondaryRangeIndex]),
+      secondarySign = primaryPlace === 'bottom' ? -1 : 1,
+      baseCoord = primaryPlace === 'bottom' ? secondaryHeight : 0,
+      binMap: { [id: string]: { secondaryIndex: number } } = {}
     let overlap = 0
 
     function computeBinPlacements() {
-      const numBins = Math.ceil(plotWidth / defaultDiameter) + 1,
-        binWidth = plotWidth / (numBins - 1),
+      const numBins = Math.ceil(primaryLength / defaultDiameter) + 1,
+        binWidth = primaryLength / (numBins - 1),
         bins: string[][] = range(numBins + 1).map(() => [])
 
       casesRef.current.forEach((anID) => {
-        const numerator = xScale?.(dataset?.getNumeric(anID, xAttrID) ?? -1),
+        const numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttributeID) ?? -1),
           bin = Math.ceil((numerator ?? 0) / binWidth)
         if (bin >= 0 && bin <= numBins) {
+          binMap[anID] = {secondaryIndex: bins[bin].length}
           bins[bin].push(anID)
-          binMap[anID] = {yIndex: bins[bin].length}
         }
       })
       const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
-        excessHeight = Math.max(0, maxInBin - Math.floor(yHeight / defaultDiameter)) * defaultDiameter
+        excessHeight = Math.max(0, maxInBin - Math.floor(secondaryHeight / defaultDiameter)) * defaultDiameter
       overlap = excessHeight / maxInBin
     }
 
     computeBinPlacements()
 
     const
-      getScreenX = (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale),
-      computeYCoord = (binContents: { yIndex: number }) => {
-        return binContents ? yHeight - defaultRadius / 2 - binContents.yIndex * (defaultDiameter - overlap) : 0
+      getPrimaryScreenCoord = (anID: string) => getScreenCoord(dataset, anID, primaryAttributeID, primaryScale),
+      computeSecondaryCoord = (binContents: { secondaryIndex: number }) => {
+        return binContents ?
+          baseCoord + secondarySign * (defaultRadius / 2 + binContents.secondaryIndex * (defaultDiameter - overlap)) : 0
       },
-      getScreenY = (anID: string) => computeYCoord(binMap[anID]),
+      getSecondaryScreenCoord = (anID: string) => computeSecondaryCoord(binMap[anID]),
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
-      } : undefined
+      } : undefined,
+      getScreenX = (primaryPlace === 'left') ? getSecondaryScreenCoord : getPrimaryScreenCoord,
+      getScreenY = (primaryPlace === 'left') ? getPrimaryScreenCoord : getSecondaryScreenCoord
 
     setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
-  }, [dataset, casesRef, dotsRef, xAttrID, xScale, yScale, plotWidth, enableAnimation])
+  }, [dataset, casesRef, dotsRef, primaryAttributeID, primaryScale, primaryPlace,
+    secondaryScale, primaryLength, enableAnimation])
 
   usePlotResponders({
-    dataset, xAxisModel: axisModel, xAttrID, layout,
+    dataset, xAxisModel, yAxisModel, xAttrID, layout,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
