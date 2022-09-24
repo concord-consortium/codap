@@ -99,24 +99,14 @@ export const Graph = observer((
       casesRef, xAttrID, yAttrID, dotsRef, enableAnimation,
       xAxisModel: xAxisModel as INumericAxisModel,
       yAxisModel: yAxisModel as INumericAxisModel
-    }
-    let plotComponent: JSX.Element | null = null
-    switch (plotType) {
-      case 'casePlot':
-        plotComponent = (<CaseDots {...plotProps} />)
-        break
-      case 'dotChart':
-        plotComponent = (<ChartDots {...plotProps} />)
-        break
-      case 'scatterPlot':
-        plotComponent = (<ScatterDots {...plotProps} />)
-        break
-      case 'dotPlot':
-        plotComponent = (<DotPlotDots {...plotProps} />)
-        break
-      default:
-    }
-    return plotComponent
+    },
+      typeToPlotComponentMap = {
+        casePlot: <CaseDots {...plotProps}/>,
+        dotChart: <ChartDots {...plotProps}/>,
+        scatterPlot: <ScatterDots {...plotProps}/>,
+        dotPlot: <DotPlotDots {...plotProps}/>
+      }
+    return typeToPlotComponentMap[plotType]
   }
 
   return (

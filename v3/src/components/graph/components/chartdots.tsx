@@ -1,5 +1,5 @@
 import {ScaleBand, select} from "d3"
-import React, {memo, useCallback, useRef} from "react"
+import React, {memo, useCallback, useEffect, useRef} from "react"
 import {defaultRadius, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -110,6 +110,17 @@ export const ChartDots = memo(function ChartDots(props: {
       })
   }, [dotsRef, enableAnimation, xScale, yScale, dataset, xAttrID, casesRef,
     layout, categories, categoriesMapRef, computeMaxOverAllCells])
+
+  useEffect(()=>{
+    select(dotsRef.current).on('click', (event) => {
+      const element = select(event.target as SVGSVGElement)
+      if (element.node()?.nodeName === 'circle') {
+        const tItsID: string = element.property('id')
+        const [, caseId] = tItsID.split("_")
+        dataset?.selectCases([caseId])
+      }
+    })
+  })
 
   usePlotResponders({
     dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation

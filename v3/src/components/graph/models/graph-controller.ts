@@ -80,7 +80,7 @@ export class GraphController {
     attributeType !== 'empty' && attrIDs.push(attrID)
     otherAttributeType !== 'empty' && attrIDs.push(otherAttrID)
     graphModel.setCases(filterCases(dataset, attrIDs))
-    // todo: Kirk, better way to do this?
+    // todo: Kirk, bette way to do this?
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {
@@ -92,7 +92,9 @@ export class GraphController {
         setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
       }
     } else if (attributeType === 'categorical') {
-      const categories = Array.from(new Set(attribute?.strValues))
+      const setOfValues = new Set(attribute?.strValues)
+      setOfValues.delete('')  // To eliminate category for empty values
+      const categories = Array.from(setOfValues)
       if (currentAxisType !== attributeType) {
         const newAxisModel = CategoricalAxisModel.create({place})
         graphModel.setAxis(place, newAxisModel as ICategoricalAxisModel)
