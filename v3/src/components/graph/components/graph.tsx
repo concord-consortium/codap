@@ -5,7 +5,7 @@ import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {kGraphClass} from "../graphing-types"
+import {defaultRadius, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -17,7 +17,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {filterCases} from "../utilities/graph_utils"
+import {filterCases, getPointTipText} from "../utilities/graph_utils"
 import {GraphController} from "../models/graph-controller"
 import {MarqueeState} from "../models/marquee-state"
 
@@ -94,42 +94,72 @@ export const Graph = observer((
     graphController.setDotsRef(dotsRef)
   }, [dotsRef, graphController])
 
-  const getPlotComponent = () => {
-    const plotProps = {
-      casesRef, xAttrID, yAttrID, dotsRef, enableAnimation,
-      xAxisModel, yAxisModel
-    },
-      typeToPlotComponentMap = {
-        casePlot: <CaseDots {...plotProps}/>,
-        dotChart: <ChartDots {...plotProps}/>,
-        dotPlot: <DotPlotDots {...plotProps}/>,
-        scatterPlot: <ScatterDots {...plotProps}/>
-      }
-    return typeToPlotComponentMap[plotType]
+  // MouseOver events, if over an element, brings up hover text
+  function showDataTip(event: MouseEvent) {
+    const existing = select(dotsRef.current).selectAll('.graph-data-tip')
+    existing.remove()
+
+    const
+      target = select(event.target as SVGSVGElement)
+    if (target.node()?.nodeName === 'circle' && dataset) {
+      const [, caseID] = target.property('id').split("_"),
+        attrIDs = Array.from(graphModel.attributeIDs.values()).filter(anID => anID !== ''),
+        tipText = getPointTipText(dataset, caseID, attrIDs),
+        x = Number(target.attr('cx')) + defaultRadius,
+        y = Number(target.attr('cy')) + defaultRadius
+      select(dotsRef.current)
+        .append('text')
+        .attr('class', 'graph-data-tip')
+        .style('fill', 'yellow')
+        .attr('x', x)
+        .attr('y', y)
+        .text(tipText)
+    }
   }
 
-  return (
-    <div className={kGraphClass} ref={graphRef} data-testid="graph">
-      <svg className='graph-svg' ref={svgRef}>
-        <Axis axisModel={yAxisModel} attributeID={yAttrID}
-              transform={`translate(${margin.left - 1}, 0)`}
-              onDropAttribute={handleDropAttribute}
-        />
-        <Axis axisModel={xAxisModel} attributeID={xAttrID}
-              transform={`translate(${margin.left}, ${layout.plotHeight})`}
-              onDropAttribute={handleDropAttribute}
-        />
-        <Background
-          transform={transform}
-          marqueeState={marqueeState}/>
-        <svg ref={plotAreaSVGRef} className='graph-dot-area'>
-          <svg ref={dotsRef}>
-            {getPlotComponent()}
+    useEffect(function setupMouseOverListener() {
+      select(dotsRef.current)
+        .on('mouseover', showDataTip)
+    })
+
+    const getPlotComponent = () => {
+      const plotProps = {
+          casesRef, xAttrID, yAttrID, dotsRef, enableAnimation,
+          xAxisModel,
+          yAxisModel
+        },
+        typeToPlotComponentMap = {
+          casePlot: <CaseDots {...plotProps}/>,
+          dotChart: <ChartDots {...plotProps}/>,
+          dotPlot: <DotPlotDots {...plotProps}/>,
+          scatterPlot: <ScatterDots {...plotProps}/>
+        }
+      return typeToPlotComponentMap[plotType]
+    }
+
+    return (
+      <div className={kGraphClass} ref={graphRef} data-testid="graph">
+        <svg className='graph-svg' ref={svgRef}>
+          <Axis axisModel={yAxisModel} attributeID={yAttrID}
+                transform={`translate(${margin.left - 1}, 0)`}
+                onDropAttribute={handleDropAttribute}
+          />
+          <Axis axisModel={xAxisModel} attributeID={xAttrID}
+                transform={`translate(${margin.left}, ${layout.plotHeight})`}
+                onDropAttribute={handleDropAttribute}
+          />
+          <Background
+            transform={transform}
+            marqueeState={marqueeState}/>
+          <svg ref={plotAreaSVGRef} className='graph-dot-area'>
+            <svg ref={dotsRef}>
+              {getPlotComponent()}
+            </svg>
+            <Marquee marqueeState={marqueeState}/>
           </svg>
-          <Marquee marqueeState={marqueeState}/>
         </svg>
-      </svg>
-    </div>
-  )
-})
+      </div>
+    )
+  }
+)
 

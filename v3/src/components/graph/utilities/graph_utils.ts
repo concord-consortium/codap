@@ -79,19 +79,27 @@ export function setNiceDomain(values: number[], axisModel: IAxisModel) {
   }
 }
 
+export function getPointTipText(dataset: IDataSet, caseID: string, attributeIDs: string[]) {
+  const float = format('.3~f')
+  return (attributeIDs.map(attrID => {
+    const attribute = dataset?.attrFromID(attrID),
+      name = attribute?.name,
+      isNumeric = attribute?.type === 'numeric',
+      value = isNumeric ? float(dataset?.getNumeric(caseID, attrID) ?? 0) :
+        dataset?.getValue(caseID, attrID)
+    return `${name}: ${value}`
+  })).join('\n')
+}
+
 export interface IMatchCirclesProps {
   caseIDs: string[]
-  dataset: IDataSet | undefined
   dotsElement: SVGGElement | null
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string | undefined
-  xAttrID: string
-  yAttrID: string
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const {caseIDs, dataset, enableAnimation, instanceId, dotsElement, xAttrID, yAttrID} = props,
-    float = format('.3~f'),
+  const {caseIDs, enableAnimation, instanceId, dotsElement} = props,
     keyFunc = (d: string) => d
   enableAnimation.current = true
   select(dotsElement)
@@ -106,11 +114,6 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .property('id', (anID: string) => `${instanceId}_${anID}`)
           .selection()
           .append('title')
-          .text((anID: string) => {
-            const xVal = dataset?.getNumeric(anID, xAttrID) ?? 0,
-              yVal = dataset?.getNumeric(anID, yAttrID) ?? 0
-            return `(${float(xVal)}, ${float(yVal)}, id: ${anID})`
-          })
       }
     )
 }
