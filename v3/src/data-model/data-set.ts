@@ -422,6 +422,11 @@ export const DataSet = types.model("DataSet", {
         }
       },
 
+      hideAttribute(attributeID: string) {
+        const attrToHide = self.attributes.find(attr => attr.id === attributeID)
+        attrToHide?.setHidden(true)
+      },
+
       removeAttribute(attributeID: string) {
         const attrIndex = attrIndexFromID(attributeID),
               attribute = attributeID ? attrIDMap[attributeID] : undefined,

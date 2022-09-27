@@ -23,6 +23,10 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({disableToo
       isClosable: true,
     })
   }
+  const handleHideAttribute = () => {
+    const attrId = data?.attrIDFromName(column.name as string)
+    attrId && data?.hideAttribute(attrId)
+  }
   const handleDeleteAttribute = () => {
     const attrId = data?.attrIDFromName(column.name as string)
     attrId && data?.removeAttribute(attrId)
@@ -38,7 +42,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({disableToo
       <MenuItem onClick={()=>handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Hide Attribute")}>Hide Attribute</MenuItem>
+      <MenuItem onClick={handleHideAttribute}>Hide Attribute</MenuItem>
       <MenuItem onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
     </MenuList>
   )
