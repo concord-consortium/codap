@@ -6,8 +6,8 @@ to describe how to create a runnable local instance of CODAP for development.
 
 * Prerequisites
   * The build person should have an account on `codap-server.concord.org`.
-  * The build person should have an API Key for the CODAP Project on the Po 
-    Editor (translation repository) site, `https://poeditor.com/`.
+  * The build person should have an API Key from 1Password for the CODAP Project 
+    on the Po Editor (translation repository) site, `https://poeditor.com/`. 
 * What is assembled for the build?
     * CODAP
     * CFM (Cloud File Manager)
@@ -16,13 +16,20 @@ to describe how to create a runnable local instance of CODAP for development.
     * Boundary files
 * Setting Up Build Directories
     * The following Concord Consortium sourcecode repositories must be present, 
-      synced with origin, clean, and on the `master` branch.
+      synced with origin, clean, and on the `master` branch. 
         * codap
         * cloud-file-manager
         * codap-data
         * codap-data-interactives
         * codap-transformers
         * story-builder
+    * The CODAP instance should be runnable locally: see 
+       https://github.com/concord-consortium/codap/wiki/Developer-Guide
+    * In the codap-data-interactives respository, run `npm install` in the 
+      following subdirectories:
+        * TP-Sampler 
+        * eepsmedia/plugins/scrambler
+        * DrawTool
     * `npm install` should have been run on all codelines (and 
        `package.json`-bearing subdirectories in the codap-data-interactives codeline)
 * Non-automated part: checking on readiness
