@@ -73,5 +73,9 @@ export const NumericAxisModel = AxisModel
   }))
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
 
+export function isNumericAxisModel(axisModel: IAxisModel): axisModel is INumericAxisModel {
+  return axisModel.isNumeric
+}
+
 export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
 export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel
