@@ -1,22 +1,23 @@
 import {ScaleBand, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef} from "react"
-import {defaultRadius, transitionDuration} from "../graphing-types"
+import {PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleType, useGraphLayoutContext} from "../models/graph-layout"
-import {setPointSelection} from "../utilities/graph_utils"
+import {computedPointRadius, setPointSelection} from "../utilities/graph_utils"
+import {IGraphModel} from "../models/graph-model"
 
-export const ChartDots = memo(function ChartDots(props: {
-  casesRef: React.MutableRefObject<string[]>,
-  xAttrID: string,
-  yAttrID: string,
-  dotsRef: React.RefObject<SVGSVGElement>
-  enableAnimation: React.MutableRefObject<boolean>
-}) {
+interface IProps {
+  graphModel:IGraphModel
+  plotProps:PlotProps
+}
 
-  const {casesRef, dotsRef, enableAnimation, xAttrID, yAttrID} = props,
+export const ChartDots = memo(function ChartDots(props: IProps) {
+  const {casesRef, dotsRef, enableAnimation, xAttrID, yAttrID} = props.plotProps,
+    graphModel = props.graphModel,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
+    pointSizeMultiplier = graphModel.pointSizeMultiplier,
     xAttributeType = dataset?.attrFromID(xAttrID)?.type,
     // yAttributeType = dataset?.attrFromID(yAttrID)?.type,
     primaryPlace = xAttributeType === 'categorical' ? 'bottom' : 'left',
@@ -46,10 +47,11 @@ export const ChartDots = memo(function ChartDots(props: {
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
+      numPoints = select(dotsRef.current).selectAll('.graph-dot').size(),
+      pointDiameter = 2 * computedPointRadius(numPoints, pointSizeMultiplier),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
-      cellWidth = primaryScale.bandwidth(),
-      pointDiameter = 2 * defaultRadius
+      cellWidth = primaryScale.bandwidth()
 
     const computeCellParams = () => {
         categories.forEach((cat, i) => {
@@ -113,7 +115,8 @@ export const ChartDots = memo(function ChartDots(props: {
           return NaN
         }
       })
-  }, [dotsRef, enableAnimation, primaryScale, secondaryScale, dataset, casesRef, primaryPlace, secondaryPlace,
+  }, [dotsRef, pointSizeMultiplier, enableAnimation, primaryScale,
+    secondaryScale, dataset, casesRef, primaryPlace, secondaryPlace,
     layout, categories, categoriesMapRef, computeMaxOverAllCells, primaryAttributeID])
 
   useEffect(()=>{

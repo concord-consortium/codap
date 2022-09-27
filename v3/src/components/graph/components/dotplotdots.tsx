@@ -1,19 +1,26 @@
 import {max, range, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {defaultRadius, dragRadius, transitionDuration, defaultDiameter, PlotProps}
+import {defaultRadius, dragRadius, transitionDuration, PlotProps}
   from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
-import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
+import {computedPointRadius, getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
+import {IGraphModel} from "../models/graph-model"
 
-export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) {
-  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props,
+interface IProps {
+  graphModel:IGraphModel
+  plotProps:PlotProps
+}
+export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
+  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props.plotProps,
+    graphModel = props.graphModel,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
+    pointSizeMultiplier = graphModel.pointSizeMultiplier,
     xAttributeType = dataset?.attrFromID(xAttrID)?.type,
     // yAttributeType = dataset?.attrFromID(yAttrID)?.type,
     primaryPlace = xAttributeType === 'numeric' ? 'bottom' : 'left',
@@ -111,6 +118,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
+      numPoints = select(dotsRef.current).selectAll('.graph-dot').size(),
+      pointDiameter = 2 * computedPointRadius(numPoints, pointSizeMultiplier),
       secondaryRangeIndex = primaryPlace === 'bottom' ? 0 : 1,
       secondaryHeight = Number(secondaryScale?.range()[secondaryRangeIndex]),
       secondarySign = primaryPlace === 'bottom' ? -1 : 1,
@@ -119,7 +128,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
     let overlap = 0
 
     function computeBinPlacements() {
-      const numBins = Math.ceil(primaryLength / defaultDiameter) + 1,
+      const numBins = Math.ceil(primaryLength / pointDiameter) + 1,
         binWidth = primaryLength / (numBins - 1),
         bins: string[][] = range(numBins + 1).map(() => [])
 
@@ -132,7 +141,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
         }
       })
       const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
-        excessHeight = Math.max(0, maxInBin - Math.floor(secondaryHeight / defaultDiameter)) * defaultDiameter
+        excessHeight = Math.max(0, maxInBin - Math.floor(secondaryHeight / pointDiameter)) * pointDiameter
       overlap = excessHeight / maxInBin
     }
 
@@ -142,7 +151,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
       getPrimaryScreenCoord = (anID: string) => getScreenCoord(dataset, anID, primaryAttributeID, primaryScale),
       computeSecondaryCoord = (binContents: { secondaryIndex: number }) => {
         return binContents ?
-          baseCoord + secondarySign * (defaultRadius / 2 + binContents.secondaryIndex * (defaultDiameter - overlap)) : 0
+          baseCoord + secondarySign * (pointDiameter / 2 + binContents.secondaryIndex * (pointDiameter - overlap)) : 0
       },
       getSecondaryScreenCoord = (anID: string) => computeSecondaryCoord(binMap[anID]),
       duration = enableAnimation.current ? transitionDuration : 0,
@@ -152,8 +161,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
       getScreenX = (primaryPlace === 'left') ? getSecondaryScreenCoord : getPrimaryScreenCoord,
       getScreenY = (primaryPlace === 'left') ? getPrimaryScreenCoord : getSecondaryScreenCoord
 
-    setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
-  }, [dataset, casesRef, dotsRef, primaryAttributeID, primaryScale, primaryPlace,
+    setPointCoordinates({dotsRef, selectedOnly, pointSizeMultiplier, getScreenX, getScreenY, duration, onComplete})
+  }, [dataset, casesRef, dotsRef, pointSizeMultiplier, primaryAttributeID, primaryScale, primaryPlace,
     secondaryScale, primaryLength, enableAnimation])
 
   usePlotResponders({

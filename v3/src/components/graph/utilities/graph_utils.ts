@@ -1,7 +1,15 @@
 import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {defaultRadius, Point, Rect, rTreeRect} from "../graphing-types"
+import {
+  defaultRadius,
+  Point,
+  pointRadiusLogBase,
+  pointRadiusMax,
+  pointRadiusMin,
+  Rect,
+  rTreeRect
+} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 import {ScaleNumericBaseType} from "../models/graph-layout"
@@ -80,15 +88,17 @@ export function setNiceDomain(values: number[], axisModel: IAxisModel) {
 }
 
 export function getPointTipText(dataset: IDataSet, caseID: string, attributeIDs: string[]) {
-  const float = format('.3~f')
-  return (attributeIDs.map(attrID => {
-    const attribute = dataset?.attrFromID(attrID),
-      name = attribute?.name,
-      isNumeric = attribute?.type === 'numeric',
-      value = isNumeric ? float(dataset?.getNumeric(caseID, attrID) ?? 0) :
-        dataset?.getValue(caseID, attrID)
-    return `${name}: ${value}`
-  })).join('\n')
+  const float = format('.3~f'),
+    attrArray = (attributeIDs.map(attrID => {
+      const attribute = dataset?.attrFromID(attrID),
+        name = attribute?.name,
+        isNumeric = attribute?.type === 'numeric',
+        value = isNumeric ? float(dataset?.getNumeric(caseID, attrID) ?? 0) :
+          dataset?.getValue(caseID, attrID)
+      return `${name}: ${value}`
+    }))
+  // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
+  return Array.from(new Set(attrArray)).join('<br>')
 }
 
 export interface IMatchCirclesProps {
@@ -113,7 +123,6 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .attr("r", defaultRadius)
           .property('id', (anID: string) => `${instanceId}_${anID}`)
           .selection()
-          .append('title')
       }
     )
 }
@@ -328,9 +337,21 @@ export function setPointSelection(props: ISetPointSelection) {
       (anID: string) => !!(dataset?.isCaseSelected(anID)))
 }
 
+export const computedPointRadius = (numPoints: number, pointSizeMultiplier: number) => {
+  let r = pointRadiusMax
+  // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
+  for (let i = pointRadiusLogBase; i <= numPoints; i = i * pointRadiusLogBase) {
+    --r
+    if (r <= pointRadiusMin) break
+  }
+  const result = r * pointSizeMultiplier
+  return result < 1 ? 0 : result
+}
+
 export interface ISetPointCoordinates {
   dotsRef: React.RefObject<SVGSVGElement>
   selectedOnly?: boolean
+  pointSizeMultiplier: number
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string) => number | null)
   duration?: number
@@ -338,10 +359,11 @@ export interface ISetPointCoordinates {
 }
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
+
   const
-    {dotsRef, selectedOnly = false, getScreenX, getScreenY, duration = 0, onComplete} = props,
-    dotsSvgElement = dotsRef.current,
-    selection = select(dotsSvgElement).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
+    {dotsRef, selectedOnly = false, pointSizeMultiplier, getScreenX, getScreenY, duration = 0, onComplete} = props,
+    radius = computedPointRadius(select(dotsRef.current).selectAll('.graph-dot').size(), pointSizeMultiplier),
+    selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
   if (duration > 0) {
     selection
       .transition()
@@ -349,10 +371,11 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', defaultRadius)
+      .attr('r', radius)
   } else if (selection.size() > 0) {
     selection
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
+      .attr('r', radius)
   }
 }
