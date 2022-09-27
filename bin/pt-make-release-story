@@ -9,6 +9,7 @@
 #
 PROGNAME=`basename $0`
 DIRNAME=`dirname $0`
+PATH=./node_modules/node-jq/bin/:$PATH
 
 function usage(){
   echo usage: $PROGNAME build_label 1>&2

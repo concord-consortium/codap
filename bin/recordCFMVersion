@@ -5,6 +5,7 @@
 PROGNAME=$(basename "$0")
 DIRNAME=$(dirname "$0")
 OUTFILE="./cfm-version.txt"
+PATH=./node_modules/node-jq/bin/:$PATH
 
 function err_exit() {
   echo "$PROGNAME: error: $1" 1>&2;
