@@ -24,11 +24,11 @@ export function useGraphModel(props:IProps) {
 
   const callMatchCirclesToData = useCallback(() => {
     matchCirclesToData({
-      caseIDs: casesRef.current, dataset,
+      caseIDs: casesRef.current,
       dotsElement: dotsRef.current,
-      enableAnimation, instanceId, xAttrID, yAttrID
+      enableAnimation, instanceId
     })
-  }, [dataset, instanceId, xAttrID, yAttrID, casesRef, dotsRef, enableAnimation])
+  }, [instanceId, casesRef, dotsRef, enableAnimation])
 
   useEffect(function createCircles() {
       callMatchCirclesToData()

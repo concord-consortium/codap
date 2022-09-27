@@ -16,6 +16,7 @@ export const GraphModel = types
     plotType: types.enumeration(PlotTypes.slice()),
     // keys are AxisPlaces
     attributeIDs: types.map(types.string),
+    pointSizeMultiplier: 1
   })
   .volatile(self => ({
     cases: [] as string[]
@@ -40,6 +41,9 @@ export const GraphModel = types
     },
     setCases(cases: string[]) {
       self.cases = cases
+    },
+    setPointSizeMultiplier(multiplier:number) {
+      self.pointSizeMultiplier = multiplier
     },
     setGraphProperties( props: GraphProperties) {
       Object.keys( props.axes).forEach(aKey => {

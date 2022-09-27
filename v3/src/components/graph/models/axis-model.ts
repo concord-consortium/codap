@@ -1,6 +1,6 @@
 import {Instance, types} from "mobx-state-tree"
 
-export const AxisPlaces = ["bottom", "left", "right", "top"] as const
+export const AxisPlaces = ["bottom", "left", "right", "top", "caption"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 
 export type AxisOrientation = "horizontal" | "vertical"

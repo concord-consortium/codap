@@ -5,16 +5,22 @@ import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {setPointSelection} from "../utilities/graph_utils"
+import {computedPointRadius, setPointSelection} from "../utilities/graph_utils"
+import {IGraphModel} from "../models/graph-model"
 
 export const CaseDots = memo(function CaseDots(props: {
-  dotsRef: React.RefObject<SVGSVGElement>
-  enableAnimation: React.MutableRefObject<boolean>
+  graphModel: IGraphModel
+  plotProps: {
+    dotsRef: React.RefObject<SVGSVGElement>
+    enableAnimation: React.MutableRefObject<boolean>
+  }
 }) {
   useInstanceIdContext()
-  const {dotsRef, enableAnimation} = props,
+  const {dotsRef, enableAnimation} = props.plotProps,
+    graphModel = props.graphModel,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
+    pointSizeMultiplier = graphModel.pointSizeMultiplier,
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
@@ -80,6 +86,8 @@ export const CaseDots = memo(function CaseDots(props: {
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
+      numPoints = select(dotsRef.current).selectAll('.graph-dot').size(),
+      pointRadius = computedPointRadius(numPoints, pointSizeMultiplier),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
@@ -97,7 +105,8 @@ export const CaseDots = memo(function CaseDots(props: {
       .attr('cy', (anID: string) => {
         return yMax + defaultRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * defaultRadius)
       })
-  }, [dotsRef, enableAnimation, xScale, yScale])
+      .attr('r', pointRadius)
+  }, [dotsRef, pointSizeMultiplier, enableAnimation, xScale, yScale])
 
   usePlotResponders({
     dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation

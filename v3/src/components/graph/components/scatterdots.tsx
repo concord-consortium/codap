@@ -8,11 +8,19 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
+import {IGraphModel} from "../models/graph-model"
 
-export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
-  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props,
+interface IProps {
+  graphModel:IGraphModel
+  plotProps:PlotProps
+}
+
+export const ScatterDots = memo(function ScatterDots(props: IProps) {
+  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props.plotProps,
+    graphModel = props.graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
+    pointSizeMultiplier = graphModel.pointSizeMultiplier,
     layout = useGraphLayoutContext(),
     xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left") as ScaleNumericBaseType,
@@ -117,8 +125,8 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
         enableAnimation.current = false
       } : undefined
 
-    setPointCoordinates({dotsRef, selectedOnly, getScreenX, getScreenY, duration, onComplete})
-  }, [dataset, dotsRef, xAttrID, xScale, yAttrID, yScale, enableAnimation])
+    setPointCoordinates({dotsRef, pointSizeMultiplier, selectedOnly, getScreenX, getScreenY, duration, onComplete})
+  }, [dataset, dotsRef, pointSizeMultiplier, xAttrID, xScale, yAttrID, yScale, enableAnimation])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const updateDot = (caseId: string) => {

@@ -47,17 +47,23 @@ export class GraphController {
   }
 
   initializeGraph() {
+
+    const getCaptionID = () => {
+      return dataset?.attributes[0]?.id || ''
+    }
+
     const {graphModel, dataset, layout, casesRef, dotsRef, enableAnimation, instanceId} = this
     casesRef.current = filterCases(dataset, [])
     if( dotsRef) {
-      matchCirclesToData({caseIDs: casesRef.current, dataset, dotsElement: dotsRef.current,
-       enableAnimation, instanceId, xAttrID: '', yAttrID: ''})
+      matchCirclesToData({caseIDs: casesRef.current, dotsElement: dotsRef.current,
+       enableAnimation, instanceId})
     }
     layout.setAxisScale('bottom', scaleOrdinal())
     layout.setAxisScale('left', scaleOrdinal())
     graphModel.setGraphProperties({
       axes: {bottom: EmptyAxisModel.create({place: 'bottom'}), left: EmptyAxisModel.create({place: 'left'})},
-      plotType: 'casePlot', attributeIDs: { bottom: '', left: ''}, cases: casesRef.current
+      plotType: 'casePlot', attributeIDs: { bottom: '', left: '', caption: getCaptionID() || ''},
+      cases: casesRef.current
     })
   }
 
