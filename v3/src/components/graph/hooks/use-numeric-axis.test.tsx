@@ -10,13 +10,11 @@ describe("useNumericAxis", () => {
   let layout: GraphLayout
   let axisModel: INumericAxisModel
   let axisElt: SVGGElement
-  let axisWrapperElt: SVGGElement
 
   beforeEach(() => {
     layout = new GraphLayout()
     axisModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     axisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
-    axisWrapperElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
   })
 
   it("renders a simple horizontal axis", () => {

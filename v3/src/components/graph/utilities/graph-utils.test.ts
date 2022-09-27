@@ -58,7 +58,7 @@ describe("lineToAxisIntercepts", () => {
     const xDomain = [0, 1],
       yDomain = [0, 1],
       rect = {x: 0, y: 1, width: 1, height: 1},
-      result = lineToAxisIntercepts(1, -2, [0, 1], [0, 1])
+      result = lineToAxisIntercepts(1, -2, xDomain, yDomain)
     expect(ptInRect(result.pt1, rect) || ptInRect(result.pt2, rect))
       .toBe(false)
   })
@@ -66,7 +66,7 @@ describe("lineToAxisIntercepts", () => {
 })
 
 describe("getScreenCoord", () => {
-  it("The screen coord for attribute a of the first case on a scale with domain [0, 100] and range [20,200] should be ???", () => {
+  it("The screen coord with domain [0, 100] and range [20,200] should be ???", () => {
     const dataset = DataSet.create({name: "data"})
     dataset.addAttribute({name: "a"})
     dataset.addCases(toCanonical(dataset, [{a: 3}]))
@@ -80,6 +80,4 @@ describe("getScreenCoord", () => {
     expect(coord2).toBeCloseTo(20 + 0.97 * 180, 5)
   })
 
-
 })
-
