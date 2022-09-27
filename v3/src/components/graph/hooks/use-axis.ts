@@ -25,8 +25,7 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
       ticks.forEach(tick => tick.parentElement?.removeChild(tick))
       select(axisElt)
         .transition().duration(duration)
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error scale type
         .call(axisFunc(layout.axisScale(axisModel.place)))
     }
   }, [axisElt, axisFunc, axisModel, layout])

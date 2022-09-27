@@ -1,13 +1,13 @@
 import React from "react"
-import {INumericAxisModel} from "./models/axis-model"
+import {IAxisModel} from "./models/axis-model"
 
 export interface PlotProps {
   casesRef: React.MutableRefObject<string[]>
   xAttrID: string
   yAttrID: string
   dotsRef: React.RefObject<SVGSVGElement>
-  xAxisModel: INumericAxisModel
-  yAxisModel: INumericAxisModel
+  xAxisModel: IAxisModel
+  yAxisModel: IAxisModel
   enableAnimation: React.MutableRefObject<boolean>
 }
 
@@ -38,7 +38,7 @@ export const transitionDuration = 1000,
   defaultDiameter = 2 * defaultRadius,
   dragRadius = 10
 
-export const PlotTypes = ["casePlot", "dotPlot", 'dotChart', "scatterPlot"] as const
+export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
 export const kGraphClass = "graph-plot"

@@ -71,7 +71,7 @@ export class GraphController {
       otherAttributeType = otherAttribute?.type ?? 'empty',
       axisModel = graphModel.getAxis(place),
       currentAxisType = axisModel?.type,
-      plotChoices: { [index: string]: { [index: string]: PlotType } } = {
+      plotChoices: Record<string, Record<string, PlotType>> = {
         empty: {empty: 'casePlot', numeric: 'dotPlot', categorical: 'dotChart'},
         numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
         categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
@@ -80,7 +80,6 @@ export class GraphController {
     attributeType !== 'empty' && attrIDs.push(attrID)
     otherAttributeType !== 'empty' && attrIDs.push(otherAttrID)
     graphModel.setCases(filterCases(dataset, attrIDs))
-    // todo: Kirk, bette way to do this?
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {

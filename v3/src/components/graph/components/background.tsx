@@ -74,11 +74,11 @@ export const Background = (props: {
           {x: startX.current, y: startY.current, w: width.current, h: height.current})
         width.current = width.current + event.dx
         height.current = height.current + event.dy
-        const currectRect = marqueeState.marqueeRect
+        const marqueeRect = marqueeState.marqueeRect
         marqueeState.setMarqueeRect( {
-            x: currectRect.x, y: currectRect.y,
-            width: currectRect.width + event.dx,
-            height: currectRect.height + event.dy
+            x: marqueeRect.x, y: marqueeRect.y,
+            width: marqueeRect.width + event.dx,
+            height: marqueeRect.height + event.dy
           })
         const currentRect = rectNormalize({
             x: startX.current, y: startY.current,

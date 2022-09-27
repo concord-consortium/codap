@@ -71,12 +71,11 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: (string | number)[], axisModel: IAxisModel) {
-  if (axisModel.isNumeric) {
-    const numericAxisModel = axisModel as INumericAxisModel,
-      valueExtent = extent(values, d => Number(d)) as unknown as [number, number],
-      niceBounds = computeNiceNumericBounds(valueExtent[0], valueExtent[1])
-    numericAxisModel.setDomain(niceBounds.min, niceBounds.max)
+export function setNiceDomain(values: number[], axisModel: IAxisModel) {
+  if (axisModel.type === 'numeric') {
+    const [minValue, maxValue] = extent(values, d => d) as [number, number]
+    const {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue);
+    (axisModel as INumericAxisModel).setDomain(niceMin, niceMax)
   }
 }
 

@@ -3,7 +3,6 @@ import React, {memo, useCallback, useEffect, useRef} from "react"
 import {defaultRadius, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleType, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph_utils"
 
@@ -15,7 +14,6 @@ export const ChartDots = memo(function ChartDots(props: {
   enableAnimation: React.MutableRefObject<boolean>
 }) {
 
-  useInstanceIdContext()
   const {casesRef, dotsRef, enableAnimation, xAttrID, yAttrID} = props,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -24,25 +22,22 @@ export const ChartDots = memo(function ChartDots(props: {
     primaryPlace = xAttributeType === 'categorical' ? 'bottom' : 'left',
     primaryAttributeID = primaryPlace === 'left' ? yAttrID : xAttrID,
     secondaryPlace = primaryPlace === 'left' ? 'bottom' : 'left',
-    primaryScale = layout.axisScale(primaryPlace) as ScaleType,
+    primaryScale = layout.axisScale(primaryPlace) as ScaleBand<string>,
     secondaryScale = layout.axisScale(secondaryPlace) as ScaleType,
     attribute = dataset?.attrFromID(primaryAttributeID),
     categories = Array.from(new Set(attribute?.strValues)),
-    categoriesMapRef = useRef< { [index: string]: { cell: number, numSoFar: number } }>({})
+    categoriesMapRef = useRef<Record<string, { cell: number, numSoFar: number }>>({})
 
   const computeMaxOverAllCells = useCallback(() => {
     const values = attribute?.strValues,
-      bins: { [index: string]: number } = {}
+      bins: Record<string, number> = {}
     values?.forEach(aValue => {
       if (bins[aValue] === undefined) {
         bins[aValue] = 0
       }
       bins[aValue]++
     })
-    return Number((Object.keys(bins) as Array<keyof typeof bins>).reduce((max: number, aKey) => {
-      max = Math.max(max, bins[aKey])
-      return max
-    }, 0))
+    return Object.keys(bins).reduce((max, aKey) => Math.max(max, bins[aKey]), 0)
   }, [attribute])
 
   const refreshPointSelection = useCallback(() => {
@@ -53,7 +48,7 @@ export const ChartDots = memo(function ChartDots(props: {
     const
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
-      cellWidth = (primaryScale as ScaleBand<string>).bandwidth(),
+      cellWidth = primaryScale.bandwidth(),
       pointDiameter = 2 * defaultRadius
 
     const computeCellParams = () => {

@@ -34,23 +34,6 @@ export function useGraphModel(props:IProps) {
       callMatchCirclesToData()
   }, [callMatchCirclesToData])
 
-  // respond to assignment of new attribute ID
-/*
-  useEffect(function installAttributeIdAction() {
-    const disposer = onAction(graphModel, action => {
-      if (action.name === 'setAttributeID') {
-        const [place, attrID] = action.args || [],
-          attrIDs = plotType === 'dotPlot' ? [attrID] :
-            [attrID, place === 'bottom' ? graphModel.getAttributeID('left') : graphModel.getAttributeID('bottom')]
-        enableAnimation.current = true
-        casesRef.current = filterCases(dataset, graphModel, attrIDs)
-        callMatchCirclesToData()
-      }
-    }, true)
-    return () => disposer()
-  }, [dataset, plotType, callMatchCirclesToData, casesRef, enableAnimation, graphModel])
-*/
-
   // respond to change in plotType
   useEffect(function installPlotTypeAction() {
     const disposer = onAction(graphModel, action => {
@@ -58,10 +41,6 @@ export function useGraphModel(props:IProps) {
         const newPlotType = action.args?.[0]/*,
           attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]*/
         enableAnimation.current = true
-/*
-        casesRef.current = filterCases(dataset, attrIDs)
-        callMatchCirclesToData()
-*/
         // In case the y-values have changed we rescale
         if( newPlotType === 'scatterPlot') {
           const values = casesRef.current.map(anID => dataset?.getNumeric(anID, yAttrID)) as number[]

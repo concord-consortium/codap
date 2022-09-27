@@ -19,7 +19,7 @@ export const MovableValue = (props: {
     xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left"),
     valueRef = useRef<SVGSVGElement>(null),
-    [bottom, top] = yScale ? yScale.range() : [0, 1],
+    [bottom, top] = yScale?.range() || [0, 1],
     [valueObject, setValueObject] = useState<Record<string, any>>({
       line: null, cover: null, valueLabel: null
     })

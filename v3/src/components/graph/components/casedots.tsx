@@ -22,7 +22,7 @@ export const CaseDots = memo(function CaseDots(props: {
     yScale = layout.axisScale('left') as ScaleNumericBaseType
 
   const uniform = randomUniform(),
-    randomPointsRef = useRef<{ [index: string]: { x: number, y: number } }>({})
+    randomPointsRef = useRef<Record<string, { x: number, y: number }>>({})
   dataset?.cases.forEach(({__id__}) => {
     randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
   })

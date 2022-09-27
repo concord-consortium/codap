@@ -56,7 +56,7 @@ export const NumericAxisModel = AxisModel
   .named("NumericAxisModel")
   .props({
     type: "numeric",
-    scale: 'linear',
+    scale: types.optional(types.enumeration([...ScaleTypes]), "linear"),
     min: types.number,
     max: types.number
   })

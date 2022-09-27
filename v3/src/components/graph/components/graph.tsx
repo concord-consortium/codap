@@ -11,7 +11,7 @@ import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
-import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, IAxisModel} from "../models/axis-model"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
@@ -92,13 +92,12 @@ export const Graph = observer((
   // We only need to make the following connection once
   useEffect(function passDotsRefToController() {
     graphController.setDotsRef(dotsRef)
-  })
+  }, [dotsRef, graphController])
 
   const getPlotComponent = () => {
     const plotProps = {
       casesRef, xAttrID, yAttrID, dotsRef, enableAnimation,
-      xAxisModel: xAxisModel as INumericAxisModel,
-      yAxisModel: yAxisModel as INumericAxisModel
+      xAxisModel, yAxisModel
     },
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...plotProps}/>,

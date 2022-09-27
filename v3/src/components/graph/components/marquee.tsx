@@ -1,8 +1,8 @@
 import React, {useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {select} from "d3"
-import "./marquee.scss"
 import {MarqueeState} from "../models/marquee-state"
+import "./marquee.scss"
 
 export const Marquee = observer((props:{marqueeState: MarqueeState}) => {
   const marqueeRef = useRef<SVGSVGElement>(null),

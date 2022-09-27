@@ -3,7 +3,7 @@ import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
 import {PlotType, PlotTypes} from "../graphing-types"
 
 export interface GraphProperties {
-  axes: {[key:string]:IAxisModelUnion}
+  axes: Record<string, IAxisModelUnion>
   plotType: PlotType
   attributeIDs: {[key:string]:string}
   cases: string[]
@@ -43,8 +43,7 @@ export const GraphModel = types
     },
     setGraphProperties( props: GraphProperties) {
       Object.keys( props.axes).forEach(aKey => {
-        // Why doesn't self.setAxis work here?
-        self.axes.set(aKey, props.axes[aKey])
+        this.setAxis(aKey, props.axes[aKey])
       })
       self.plotType = props.plotType
       Object.keys(props.attributeIDs).forEach(aKey => {

@@ -8,7 +8,7 @@ import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
 import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import "./axis.scss"
 
@@ -36,9 +36,9 @@ export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProp
   useAxis({axisModel, axisElt})
 
   useEffect(function setupTransform() {
-      axisElt && select(axisElt)
-        .attr("transform", transform)
-    }, [axisElt, transform])
+    axisElt && select(axisElt)
+      .attr("transform", transform)
+  }, [axisElt, transform])
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
@@ -49,7 +49,7 @@ export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProp
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
 
-  const [xMin, xMax] = (scale as ScaleNumericBaseType).range()
+  const [xMin, xMax] = scale?.range() || [0, 100]
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
     select(titleRef.current)
@@ -103,7 +103,8 @@ export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProp
         <g className='axis' ref={elt => setAxisElt(elt)}/>
         <g ref={titleRef}/>
       </g>
-      <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/>
+      {axisModel.type === 'numeric' ?
+        <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
       <DroppableAxis place={`${axisModel.place}`} dropId={droppableId} dropData={data}
                      portal={graphElt} target={wrapperElt} onIsActive={handleIsActive}/>
     </>
