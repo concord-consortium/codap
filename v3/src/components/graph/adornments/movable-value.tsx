@@ -4,7 +4,7 @@ import {autorun, reaction} from "mobx"
 import {IMovableValueModel} from "./adornment-models"
 import { kGraphClassSelector } from "../graphing-types"
 import { INumericAxisModel } from "../models/axis-model"
-import { useGraphLayoutContext } from "../models/graph-layout"
+import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {valueLabelString} from "../utilities/graph_utils"
 import "./movable-value.scss"
 
@@ -16,10 +16,10 @@ export const MovableValue = (props: {
   const {model, axis, transform} = props,
     layout = useGraphLayoutContext(),
     { margin } = layout,
-    xScale = layout.axisScale("bottom"),
+    xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left"),
     valueRef = useRef<SVGSVGElement>(null),
-    [bottom, top] = yScale.range(),
+    [bottom, top] = yScale?.range() || [0, 1],
     [valueObject, setValueObject] = useState<Record<string, any>>({
       line: null, cover: null, valueLabel: null
     })

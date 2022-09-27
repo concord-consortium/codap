@@ -1,75 +1,68 @@
 import {useToast} from "@chakra-ui/react"
 import {select} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
+import {onAction} from "mobx-state-tree"
+import React, {MutableRefObject, useEffect, useRef} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
 import {kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
+import {CaseDots} from "./casedots"
+import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
-import {MovableLine} from "../adornments/movable-line"
-import {MovableValue} from "../adornments/movable-value"
-import {AxisPlace, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, IAxisModel} from "../models/axis-model"
+import {useGraphModel} from "../hooks/use-graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {pullOutNumericAttributesInNewDataset} from "../utilities/graph_utils"
-import {useGraphModel} from "../hooks/use-graph-model"
-import {useMovables} from "../hooks/use-movables"
+import {filterCases} from "../utilities/graph_utils"
+import {GraphController} from "../models/graph-controller"
+import {MarqueeState} from "../models/marquee-state"
 
 import "./graph.scss"
 
 interface IProps {
+  graphController: GraphController
   model: IGraphModel
   graphRef: MutableRefObject<HTMLDivElement>
   enableAnimation: MutableRefObject<boolean>
+  dotsRef: React.RefObject<SVGSVGElement>
 }
 
-export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: IProps) => {
-  const
-    casesRef = useRef(graphModel.cases),
-    xAxisModel = graphModel.getAxis("bottom") as INumericAxisModel,
-    yAxisModel = graphModel.getAxis("left") as INumericAxisModel,
-    {plotType, movableLine: movableLineModel, movableValue: movableValueModel} = graphModel,
+const marqueeState = new MarqueeState()
+
+export const Graph = observer((
+  {graphController, model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
+  const xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
+    yAxisModel = graphModel.getAxis("left") as IAxisModel,
+    {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
+    casesRef = useRef<string[]>([]),
     layout = useGraphLayoutContext(),
     {margin} = layout,
     xScale = layout.axisScale("bottom"),
     transform = `translate(${margin.left}, 0)`,
-
-    keyFunc = useCallback((d: string) => d, []),
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
-    dotsRef = useRef<SVGSVGElement>(null),
-    [marqueeRect, setMarqueeRect] = useState({x: 0, y: 0, width: 0, height: 0})
-
-  useEffect(function makeUseOfDataset() {
-    if (dataset) {
-      pullOutNumericAttributesInNewDataset({dataset, layout, xAxis: xAxisModel, yAxis: yAxisModel, graphModel})
-      casesRef.current = graphModel.cases
-    }
-  }, [dataset, layout, xAxisModel, yAxisModel, graphModel])
-
-  const
     xAttrID = graphModel.getAttributeID('bottom'),
     yAttrID = graphModel.getAttributeID('left')
 
-  casesRef.current = graphModel.cases
+  casesRef.current = filterCases(dataset, [xAttrID, yAttrID])
 
-  useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, keyFunc, instanceId})
+  useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, instanceId})
 
   useEffect(function setupPlotArea() {
-    select(plotAreaSVGRef.current)
-      .attr('x', xScale.range()[0] + margin.left)
-      .attr('y', 0)
-      .attr('width', layout.plotWidth)
-      .attr('height', layout.plotHeight)
+    if (xScale && xScale?.range().length > 0) {
+      select(plotAreaSVGRef.current)
+        .attr('x', xScale?.range()[0] + margin.left)
+        .attr('y', 0)
+        .attr('width', layout.plotWidth)
+        .attr('height', layout.plotHeight)
+    }
   }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
-
-  useMovables({graphModel, movableValueModel, movableLineModel})
 
   const toast = useToast()
   const handleDropAttribute = (place: AxisPlace, attrId: string) => {
@@ -82,61 +75,61 @@ export const Graph = observer(({model: graphModel, graphRef, enableAnimation}: I
     })
     graphModel.setAttributeID(place, attrId)
   }
+  // respond to assignment of new attribute ID
+  useEffect(function handleNewAttributeID() {
+    const disposer = graphModel && onAction(graphModel, action => {
+      if (action.name === 'setAttributeID') {
+        const place: AxisPlace = action.args?.[0],
+          attrID = action.args?.[1]
+        enableAnimation.current = true
+        graphController.handleAttributeAssignment(place, attrID)
+        casesRef.current = graphModel.cases
+      }
+    }, true)
+    return () => disposer?.()
+  }, [graphController, dataset, layout, xAxisModel, yAxisModel, enableAnimation, graphModel])
+
+  // We only need to make the following connection once
+  useEffect(function passDotsRefToController() {
+    graphController.setDotsRef(dotsRef)
+  }, [dotsRef, graphController])
+
+  const getPlotComponent = () => {
+    const plotProps = {
+      casesRef, xAttrID, yAttrID, dotsRef, enableAnimation,
+      xAxisModel, yAxisModel
+    },
+      typeToPlotComponentMap = {
+        casePlot: <CaseDots {...plotProps}/>,
+        dotChart: <ChartDots {...plotProps}/>,
+        dotPlot: <DotPlotDots {...plotProps}/>,
+        scatterPlot: <ScatterDots {...plotProps}/>
+      }
+    return typeToPlotComponentMap[plotType]
+  }
 
   return (
     <div className={kGraphClass} ref={graphRef} data-testid="graph">
       <svg className='graph-svg' ref={svgRef}>
-        {plotType === 'scatterPlot' ?
-          <Axis model={yAxisModel} attributeID={yAttrID}
-                transform={`translate(${margin.left - 1}, 0)`}
-                onDropAttribute={handleDropAttribute}
-          />
-          : null
-        }
-        <Axis model={xAxisModel} attributeID={xAttrID}
+        <Axis axisModel={yAxisModel} attributeID={yAttrID}
+              transform={`translate(${margin.left - 1}, 0)`}
+              onDropAttribute={handleDropAttribute}
+        />
+        <Axis axisModel={xAxisModel} attributeID={xAttrID}
               transform={`translate(${margin.left}, ${layout.plotHeight})`}
               onDropAttribute={handleDropAttribute}
         />
-        <Background transform={transform} marquee={{rect: marqueeRect, setRect: setMarqueeRect}}/>
+        <Background
+          transform={transform}
+          marqueeState={marqueeState}/>
         <svg ref={plotAreaSVGRef} className='graph-dot-area'>
           <svg ref={dotsRef}>
-            {
-              (plotType === 'scatterPlot' ?
-                <ScatterDots
-                  casesRef={casesRef}
-                  xAttrID={xAttrID}
-                  yAttrID={yAttrID}
-                  dotsRef={dotsRef}
-                  xAxisModel={xAxisModel}
-                  yAxisModel={yAxisModel}
-                  enableAnimation={enableAnimation}
-                />
-                :
-                <DotPlotDots
-                  casesRef={casesRef}
-                  axisModel={xAxisModel}
-                  xAttrID={xAttrID}
-                  dotsRef={dotsRef}
-                  enableAnimation={enableAnimation}
-                />)
-            }
+            {getPlotComponent()}
           </svg>
-          <Marquee marqueeRect={marqueeRect}/>
+          <Marquee marqueeState={marqueeState}/>
         </svg>
-        {plotType === 'scatterPlot' ?
-          <MovableLine
-            transform={`translate(${margin.left}, 0)`}
-            xAxis={xAxisModel}
-            yAxis={yAxisModel}
-            model={movableLineModel}/>
-          :
-          <MovableValue model={movableValueModel}
-                        axis={xAxisModel}
-                        transform={`translate(${margin.left}, 0)`}/>
-        }
       </svg>
     </div>
   )
 })
 
-// (Graph as any).whyDidYouRender = {logOnDifferentValues: true, customName: 'Graph'}

@@ -1,3 +1,16 @@
+import React from "react"
+import {IAxisModel} from "./models/axis-model"
+
+export interface PlotProps {
+  casesRef: React.MutableRefObject<string[]>
+  xAttrID: string
+  yAttrID: string
+  dotsRef: React.RefObject<SVGSVGElement>
+  xAxisModel: IAxisModel
+  yAxisModel: IAxisModel
+  enableAnimation: React.MutableRefObject<boolean>
+}
+
 // One element of the data array assigned to the points
 export interface InternalizedData {
   xAttributeID: string,
@@ -25,7 +38,7 @@ export const transitionDuration = 1000,
   defaultDiameter = 2 * defaultRadius,
   dragRadius = 10
 
-export const PlotTypes = ["dotPlot", "scatterPlot"] as const
+export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
 export const kGraphClass = "graph-plot"
