@@ -8,7 +8,6 @@ DIRNAME=$(dirname "$0")
 EXTN_DIRS="../codap-data-interactives
            ../codap-data
            ../codap-transformers
-           ../codap-google-sheets-importer-public
            ../story-builder"
 
 for t in $EXTN_DIRS; do
