@@ -1,7 +1,16 @@
 import {Instance, types} from "mobx-state-tree"
+import { GraphAttrPlace } from "./data-configuration-model"
 
-export const AxisPlaces = ["bottom", "left", "right", "top", "caption"] as const
+export const AxisPlaces = ["bottom", "left", "right", "top"] as const
 export type AxisPlace = typeof AxisPlaces[number]
+
+export const attrPlaceToAxisPlace: Partial<Record<GraphAttrPlace, AxisPlace>> = {
+  x: "bottom",
+  y: "left",
+  y2: "right",
+  rightSplit: "right",
+  topSplit: "top"
+}
 
 export type AxisOrientation = "horizontal" | "vertical"
 

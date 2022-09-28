@@ -12,11 +12,12 @@ import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
-import {AxisPlace, IAxisModel} from "../models/axis-model"
-import {useGraphModel} from "../hooks/use-graph-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
-import {IGraphModel} from "../models/graph-model"
+import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {useGraphModel} from "../hooks/use-graph-model"
+import {AxisPlace, IAxisModel, attrPlaceToAxisPlace} from "../models/axis-model"
+import {useGraphLayoutContext} from "../models/graph-layout"
+import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {filterCases, getPointTipText} from "../utilities/graph_utils"
 import {GraphController} from "../models/graph-controller"
@@ -52,12 +53,12 @@ export const Graph = observer((
       transform = `translate(${margin.left}, 0)`,
       svgRef = useRef<SVGSVGElement>(null),
       plotAreaSVGRef = useRef<SVGSVGElement>(null),
-      xAttrID = graphModel.getAttributeID('bottom'),
-      yAttrID = graphModel.getAttributeID('left')
+      xAttrID = graphModel.getAttributeID('x'),
+      yAttrID = graphModel.getAttributeID('y')
 
     casesRef.current = filterCases(dataset, [xAttrID, yAttrID])
 
-    useGraphModel({dotsRef, casesRef, graphModel, enableAnimation, instanceId})
+    useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
     useEffect(function setupPlotArea() {
       if (xScale && xScale?.range().length > 0) {
@@ -71,6 +72,8 @@ export const Graph = observer((
 
     const toast = useToast()
     const handleDropAttribute = (place: AxisPlace, attrId: string) => {
+    // TODO: will need to be more sophisticated
+    const attrPlace = place === "left" ? "y" : "x"
       const attrName = dataset?.attrFromID(attrId)?.name
       toast({
         position: "top-right",
@@ -78,17 +81,16 @@ export const Graph = observer((
         description: `The attribute ${attrName || attrId} was dropped on the ${place} axis!`,
         status: "success"
       })
-      graphModel.setAttributeID(place, attrId)
+      graphModel.setAttributeID(attrPlace, attrId)
     }
     // respond to assignment of new attribute ID
     useEffect(function handleNewAttributeID() {
       const disposer = graphModel && onAction(graphModel, action => {
-        if (action.name === 'setAttributeID') {
-          const place: AxisPlace = action.args?.[0],
-            attrID = action.args?.[1]
+        if (isSetAttributeIDAction(action)) {
+          const [place, attrID] = action.args,
+            axisPlace = attrPlaceToAxisPlace[place]
           enableAnimation.current = true
-          graphController.handleAttributeAssignment(place, attrID)
-          casesRef.current = graphModel.cases
+          axisPlace && graphController.handleAttributeAssignment(axisPlace, attrID)
         }
       }, true)
       return () => disposer?.()
@@ -105,7 +107,7 @@ export const Graph = observer((
         target = select(event.target as SVGSVGElement)
       if (target.node()?.nodeName === 'circle' && dataset) {
         const [, caseID] = target.property('id').split("_"),
-          attrIDs = Array.from(graphModel.attributeIDs.values()).filter(anID => anID !== ''),
+          attrIDs = graphModel.config.uniqueTipAttributes,
           tipText = getPointTipText(dataset, caseID, attrIDs)
         dataTip.show(tipText, event.target)
       }
@@ -137,28 +139,28 @@ export const Graph = observer((
     }
 
     return (
-      <div className={kGraphClass} ref={graphRef} data-testid="graph">
-        <svg className='graph-svg' ref={svgRef}>
-          <Axis axisModel={yAxisModel} attributeID={yAttrID}
-                transform={`translate(${margin.left - 1}, 0)`}
-                onDropAttribute={handleDropAttribute}
-          />
-          <Axis axisModel={xAxisModel} attributeID={xAttrID}
-                transform={`translate(${margin.left}, ${layout.plotHeight})`}
-                onDropAttribute={handleDropAttribute}
-          />
-          <Background
-            transform={transform}
-            marqueeState={marqueeState}/>
-          <svg ref={plotAreaSVGRef} className='graph-dot-area'>
-            <svg ref={dotsRef}>
-              {getPlotComponent()}
+      <DataConfigurationContext.Provider value={graphModel.config}>
+        <div className={kGraphClass} ref={graphRef} data-testid="graph">
+          <svg className='graph-svg' ref={svgRef}>
+            <Axis axisModel={yAxisModel} attributeID={yAttrID}
+                  transform={`translate(${margin.left - 1}, 0)`}
+                  onDropAttribute={handleDropAttribute}
+            />
+            <Axis axisModel={xAxisModel} attributeID={xAttrID}
+                  transform={`translate(${margin.left}, ${layout.plotHeight})`}
+                  onDropAttribute={handleDropAttribute}
+            />
+            <Background
+              transform={transform}
+              marqueeState={marqueeState}/>
+            <svg ref={plotAreaSVGRef} className='graph-dot-area'>
+              <svg ref={dotsRef}>
+                {getPlotComponent()}
+              </svg>
+              <Marquee marqueeState={marqueeState}/>
             </svg>
-            <Marquee marqueeState={marqueeState}/>
           </svg>
-        </svg>
-      </div>
+        </div>
+      </DataConfigurationContext.Provider>
     )
-  }
-)
-
+})

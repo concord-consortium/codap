@@ -1,61 +1,60 @@
-import {Instance, types} from "mobx-state-tree"
+import {Instance, ISerializedActionCall, types} from "mobx-state-tree"
 import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
 import {PlotType, PlotTypes} from "../graphing-types"
+import {DataConfigurationModel, GraphAttrPlace, IDataConfigurationModel} from "./data-configuration-model"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
   plotType: PlotType
-  attributeIDs: {[key:string]:string}
-  cases: string[]
+  config: IDataConfigurationModel
 }
 
 export const GraphModel = types
   .model("GraphModel", {
     // keys are AxisPlaces
     axes: types.map(types.maybe(AxisModelUnion)),
-    plotType: types.enumeration(PlotTypes.slice()),
-    // keys are AxisPlaces
-    attributeIDs: types.map(types.string),
+    plotType: types.enumeration([...PlotTypes]),
+    config: DataConfigurationModel,
     pointSizeMultiplier: 1
   })
-  .volatile(self => ({
-    cases: [] as string[]
-  }))
   .views(self => ({
     getAxis(place: AxisPlace) {
       return self.axes.get(place)
     },
-    getAttributeID(place: AxisPlace) {
-      return self.attributeIDs.get(place) ?? ''
+    getAttributeID(place: GraphAttrPlace) {
+      return self.config.attributeID(place) ?? ''
     }
   }))
   .actions(self => ({
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
     },
-    setAttributeID(place: AxisPlace, id: string) {
-      self.attributeIDs.set(place, id)
+    setAttributeID(place: GraphAttrPlace, id: string) {
+      self.config.setAttribute(place, { attributeID: id })
     },
     setPlotType(type: PlotType) {
       self.plotType = type
     },
-    setCases(cases: string[]) {
-      self.cases = cases
-    },
     setPointSizeMultiplier(multiplier:number) {
       self.pointSizeMultiplier = multiplier
     },
-    setGraphProperties( props: GraphProperties) {
-      Object.keys( props.axes).forEach(aKey => {
+    setGraphProperties(props: GraphProperties) {
+      (Object.keys(props.axes) as AxisPlace[]).forEach(aKey => {
         this.setAxis(aKey, props.axes[aKey])
       })
       self.plotType = props.plotType
-      Object.keys(props.attributeIDs).forEach(aKey => {
-        self.attributeIDs.set(aKey, props.attributeIDs[aKey])
-      })
-      self.cases = props.cases
+      self.config = props.config
     }
   }))
+
+export interface SetAttributeIDAction extends ISerializedActionCall {
+  name: "setAttributeID"
+  args: [GraphAttrPlace, string]
+}
+
+export function isSetAttributeIDAction(action: ISerializedActionCall): action is SetAttributeIDAction {
+  return action.name === "setAttributeID"
+}
 
 export interface IGraphModel extends Instance<typeof GraphModel> {
 }
