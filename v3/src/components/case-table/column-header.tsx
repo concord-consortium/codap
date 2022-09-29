@@ -24,9 +24,8 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
   const isMenuOpen = useRef(false)
   const menuListElt = useRef<HTMLDivElement>(null)
-  const [isEditingAttrName, setIsEditingAttrName] = useState(false)
-  const columnNameStr = column.name as string
-  const [editingAttrName, setEditingAttrName] = useState(columnNameStr)
+  const [editingAttrId, setEditingAttrId] = useState("")
+  const [editingAttrName, setEditingAttrName] = useState("")
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
 
@@ -80,16 +79,16 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     }
   }
   const handleClose = (accept: boolean) => {
-    const attrId = data?.attrIDFromName(columnNameStr)
     const trimTitle = editingAttrName?.trim()
-    if (accept) {
-      attrId && data?.setAttributeName(attrId, trimTitle)
+    if (accept && editingAttrId && trimTitle) {
+      data?.setAttributeName(editingAttrId, trimTitle)
     }
-    setIsEditingAttrName(false)
+    setEditingAttrId("")
+    setEditingAttrName("")
   }
   const handleRenameAttribute = () => {
-    setIsEditingAttrName(true)
-    setEditingAttrName(columnNameStr)
+    setEditingAttrId(column.key)
+    setEditingAttrName(column.name as string)
   }
   return (
     <Menu isLazy>
@@ -97,12 +96,12 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         isMenuOpen.current = isOpen
         return (
           <>
-            <Tooltip label={columnNameStr || "attribute"} h="20px" fontSize="12px" color="white"
+            <Tooltip label={column.name || "attribute"} h="20px" fontSize="12px" color="white"
                 openDelay={1000} placement="bottom" bottom="15px" left="15px"
-                isDisabled={dragging} closeOnMouseDown={true}>
+                isDisabled={dragging || editingAttrId === column.key} closeOnMouseDown={true}>
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-                { isEditingAttrName
-                  ? <Input value={editingAttrName} data-testid={`${columnNameStr}-input`} size="xs" autoFocus={true}
+                { editingAttrId
+                  ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
                       onChange={event => setEditingAttrName(event.target.value)}
                       onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
                     />
