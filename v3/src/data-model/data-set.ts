@@ -422,9 +422,8 @@ export const DataSet = types.model("DataSet", {
         }
       },
 
-      hideAttribute(attributeID: string) {
-        const attrToHide = self.attributes.find(attr => attr.id === attributeID)
-        attrToHide?.setHidden(true)
+      showAllAttributes() {
+        self.attributes.forEach(attr => attr.setHidden(false))
       },
 
       removeAttribute(attributeID: string) {
