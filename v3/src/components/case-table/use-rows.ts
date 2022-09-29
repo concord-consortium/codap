@@ -116,6 +116,7 @@ export const useRows = (data?: IDataSet) => {
             // update cache entries for each affected case
             const cases = (action as SetCaseValuesAction).args[0] || []
             cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
+            resetRowCache()
             break
           }
           case "removeCases": {

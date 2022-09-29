@@ -6,50 +6,50 @@ import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {useNumericAxis} from "../hooks/use-numeric-axis"
-import {AxisPlace, INumericAxisModel} from "../models/axis-model"
+import {useAxis} from "../hooks/use-axis"
+import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import "./axis.scss"
 
 interface IProps {
   attributeID: string,
-  model: INumericAxisModel
+  axisModel: IAxisModel
   transform: string
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
 
-export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     label = dataset?.attrFromID(attributeID)?.name,
-    droppableId = `${instanceId}-${model.place}-axis`,
+    droppableId = `${instanceId}-${axisModel.place}-axis`,
     layout = useGraphLayoutContext(),
-    scale = layout.axisScale(model.place),
+    scale = layout.axisScale(axisModel.place),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null),
-    place = model.place
+    place = axisModel.place
 
-  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(model.place)
+  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(axisModel.place)
 
-  useNumericAxis({axisModel: model, axisElt, axisWrapperElt: wrapperElt})
+  useAxis({axisModel, axisElt})
 
   useEffect(function setupTransform() {
-      axisElt && select(axisElt)
-        .attr("transform", transform)
-    }, [axisElt, transform])
+    axisElt && select(axisElt)
+      .attr("transform", transform)
+  }, [axisElt, transform])
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
   const handleDrop = useCallback((active: Active) => {
     const droppedAttrId = active.data?.current?.attributeId
-    droppedAttrId && onDropAttribute(model.place, droppedAttrId)
-  }, [model.place, onDropAttribute])
+    droppedAttrId && onDropAttribute(axisModel.place, droppedAttrId)
+  }, [axisModel.place, onDropAttribute])
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
 
-  const [xMin, xMax] = scale.range()
+  const [xMin, xMax] = scale?.range() || [0, 100]
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
     select(titleRef.current)
@@ -88,7 +88,7 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
                 .attr('x', tX)
                 .attr('y', tY)
                 .attr('transform', transform + ' ' + tRotation)
-                .text(label || 'Unnamed')
+                .text(label || 'Click here or drag an attribute here')
             })
       })
       observer.observe(axisElt)
@@ -103,8 +103,9 @@ export const Axis = ({attributeID, model, transform, onDropAttribute}: IProps) =
         <g className='axis' ref={elt => setAxisElt(elt)}/>
         <g ref={titleRef}/>
       </g>
-      <AxisDragRects axisModel={model} axisWrapperElt={wrapperElt}/>
-      <DroppableAxis place={`${model.place}`} dropId={droppableId} dropData={data}
+      {axisModel.type === 'numeric' ?
+        <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
+      <DroppableAxis place={`${axisModel.place}`} dropId={droppableId} dropData={data}
                      portal={graphElt} target={wrapperElt} onIsActive={handleIsActive}/>
     </>
   )

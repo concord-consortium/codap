@@ -1,10 +1,13 @@
 import {Instance, types} from "mobx-state-tree"
-import { AdornmentModelUnion, MovableLineModel, MovableValueModel } from "../adornments/adornment-models"
 import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
-import { PlotType, PlotTypes } from "../graphing-types"
+import {PlotType, PlotTypes} from "../graphing-types"
 
-export const PlotAttributeRoles = ["primary", "secondary", "legend", "verticalSplit", "horizontalSplit"] as const
-// export type PlotAttributeRole = typeof PlotAttributeRoles[number]
+export interface GraphProperties {
+  axes: Record<string, IAxisModelUnion>
+  plotType: PlotType
+  attributeIDs: {[key:string]:string}
+  cases: string[]
+}
 
 export const GraphModel = types
   .model("GraphModel", {
@@ -13,11 +16,7 @@ export const GraphModel = types
     plotType: types.enumeration(PlotTypes.slice()),
     // keys are AxisPlaces
     attributeIDs: types.map(types.string),
-    // keys are adornment ids
-    adornments: types.map(AdornmentModelUnion),
-    // will eventually move into adornments map
-    movableValue: MovableValueModel,
-    movableLine: MovableLineModel
+    pointSizeMultiplier: 1
   })
   .volatile(self => ({
     cases: [] as string[]
@@ -42,66 +41,21 @@ export const GraphModel = types
     },
     setCases(cases: string[]) {
       self.cases = cases
+    },
+    setPointSizeMultiplier(multiplier:number) {
+      self.pointSizeMultiplier = multiplier
+    },
+    setGraphProperties( props: GraphProperties) {
+      Object.keys( props.axes).forEach(aKey => {
+        this.setAxis(aKey, props.axes[aKey])
+      })
+      self.plotType = props.plotType
+      Object.keys(props.attributeIDs).forEach(aKey => {
+        self.attributeIDs.set(aKey, props.attributeIDs[aKey])
+      })
+      self.cases = props.cases
     }
   }))
-export interface IGraphModel extends Instance<typeof GraphModel> {}
 
-//----------------------------------------
-/*
-export type Color = string
-export const MstColor = types.string
-
-export type BackgroundLockInfo = {
-  locked: true,
-  xAxisLowerBound: number,
-  xAxisUpperBound: number,
-  yAxisLowerBound: number,
-  yAxisUpperBound: number
+export interface IGraphModel extends Instance<typeof GraphModel> {
 }
-
-export const NumberToggleModel = types
-  .model('NumberToggleModel', {
-
-})
-
-export const PlotModel = types
-  .model('PlotModel', {
-    // may not need this id
-    id: types.optional(types.identifier, () => uniqueId()),
-    // keys are PlotAttributeRoles
-    attributeIDs: types.map(types.string),
-    // keys are PlotAttributeRoles
-    axisIDs: types.map(types.string)
-  })
-  .volatile(self=>({
-    dataset: undefined as IDataSet | undefined
-  }))
-  .views(self =>  ({
-    get cases() {
-      return self.dataset?.cases
-    }
-  })
-    .actions(self=>({
-
-    })))
-
-export const NewGraphModel = types
-  .model('GraphModel', {
-    id: types.optional(types.identifier, () => uniqueId()),
-    // keys are AxisPlaces
-    axes: types.map(types.maybe(AxisModelUnion)),
-    // todo: 3 dimensional, not 2
-    plots: types.array(types.array(types.maybe(PlotModelUnion))),
-    // Visual properties
-    isTransparent: false,
-    plotBackgroundColor: 'white', // types.optional(types.union(types.string,types.number), 'white')
-    plotBackgroundOpacity: 1,
-    // We'll have a document-level store of images as dataURLs and here we have IDs to them
-    plotBackgroundImageID: types.optional(types.identifier, ''),
-    // todo: how to use this type?
-    plotBackgroundLockInfo: types.frozen< BackgroundLockInfo>(),
-    numberToggleModel: types.optional(types.union(NumberToggleModel, null))
-  })
-  .volatile(self => ({
-  }))
-*/

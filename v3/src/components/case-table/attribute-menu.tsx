@@ -1,6 +1,7 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React, { forwardRef } from "react"
 import { CalculatedColumn } from "react-data-grid"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 
 interface IProps {
@@ -11,6 +12,7 @@ interface IProps {
 // eslint-disable-next-line react/display-name
 export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAttribute, column}, ref) => {
   const toast = useToast()
+  const data = useDataSetContext()
 
   const handleMenuItemClick = (menuItem: string) => {
     toast({
@@ -20,6 +22,10 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAt
       duration: 5000,
       isClosable: true,
     })
+  }
+  const handleDeleteAttribute = () => {
+    const attrId = data?.attrIDFromName(column.name as string)
+    attrId && data?.removeAttribute(attrId)
   }
 
   return (
@@ -33,7 +39,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAt
       <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Hide Attribute")}>Hide Attribute</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Delete Attribute")}>Delete Attribute</MenuItem>
+      <MenuItem onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
     </MenuList>
   )
 })
