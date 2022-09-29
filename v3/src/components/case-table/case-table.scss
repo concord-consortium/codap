@@ -1,7 +1,9 @@
+@import "../vars.scss";
+
 .case-table {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: calc(100% - $title-bar-height);
 
   .rdg {
     width: 100%;
@@ -14,6 +16,7 @@
         .codap-column-header-content {
           width: 100%;
           height: 100%;
+          font-weight: bold !important;
 
           input {
             height: calc(100% - 6px)
@@ -33,7 +36,9 @@
       }
     }
     .rdg-row-odd {
-      background: #fafafa;
+      &[aria-selected=false] {
+        background: #fafafa;
+      }
       .codap-index-cell {
         background-color: #D3E9C8;
       }

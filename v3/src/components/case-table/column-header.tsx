@@ -2,7 +2,7 @@ import { Tooltip, Menu, MenuButton, Input } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import React, { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { THeaderRendererProps } from "./case-table-types"
+import { kIndexColumnKey, THeaderRendererProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -105,9 +105,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                       variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
                       onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
                     />
-                  : <MenuButton className="codap-attribute-button"
-                      data-testid={`codap-attribute-button ${column.name}`}>
-                        {column.name}
+                  : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
+                        fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
+                      {column?.name}
                     </MenuButton>
                 }
                 {column &&
