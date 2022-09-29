@@ -32,7 +32,7 @@ export const ToolShelf = () => {
     {
       ariaLabel: 'Make a table',
       icon: TableIcon,
-      iconLabel: 'Tables▼',
+      iconLabel: 'Tables …',
       buttonHint: 'Open a table for each dataset',
       handler: tableHandler
     },
@@ -74,7 +74,7 @@ export const ToolShelf = () => {
     {
       ariaLabel: 'Choose a plugin',
       icon: PluginsIcon,
-      iconLabel: 'Plugins▼',
+      iconLabel: 'Plugins …',
       buttonHint: 'Add a plugin to the document',
       handler: pluginsHandler
     }
