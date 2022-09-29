@@ -25,11 +25,10 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const isMenuOpen = useRef(false)
   const menuListElt = useRef<HTMLDivElement>(null)
   const [isEditingAttrName, setIsEditingAttrName] = useState(false)
-  const [editingAttrName, setEditingAttrName] = useState(column.name as string)
-  const [attributeName, setAttributeName] = useState(column.name as string)
+  const columnNameStr = column.name as string
+  const [editingAttrName, setEditingAttrName] = useState(columnNameStr)
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
-  let attrId = ""
 
   const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
@@ -66,17 +65,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     return () => codapComponent?.removeEventListener("click", handleClick)
   }, [contentElt])
 
-  const handleAttrChange = (title?: string) => {
-    title && setAttributeName(title)
-  }
-  const handleAttrNameClick = () => {
-    if (!isEditingAttrName) {
-      setEditingAttrName(column.name as string)
-      setIsEditingAttrName(true)
-    }
-  }
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
+    e.stopPropagation()
     switch (key) {
       case "Escape":
         handleClose(false)
@@ -89,15 +80,16 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     }
   }
   const handleClose = (accept: boolean) => {
+    const attrId = data?.attrIDFromName(columnNameStr)
     const trimTitle = editingAttrName?.trim()
-    handleAttrChange?.(accept && trimTitle ? trimTitle : undefined)
+    if (accept) {
+      attrId && data?.setAttributeName(attrId, trimTitle)
+    }
     setIsEditingAttrName(false)
-    data?.setAttributeName(attrId, trimTitle)
   }
   const handleRenameAttribute = () => {
     setIsEditingAttrName(true)
-    setEditingAttrName(attributeName)
-    attrId = data?.attrIDFromName(attributeName) || ""
+    setEditingAttrName(columnNameStr)
   }
   return (
     <Menu isLazy>
@@ -105,18 +97,18 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         isMenuOpen.current = isOpen
         return (
           <>
-            <Tooltip label={attributeName ||"attribute"} h="20px" fontSize="12px" color="white"
+            <Tooltip label={columnNameStr || "attribute"} h="20px" fontSize="12px" color="white"
                 openDelay={1000} placement="bottom" bottom="15px" left="15px"
                 isDisabled={dragging} closeOnMouseDown={true}>
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
                 { isEditingAttrName
-                  ? <Input value={editingAttrName} data-testid={`${attributeName}-input`} size="xs"
-                      onClick={handleAttrNameClick} onChange={event => setEditingAttrName(event.target.value)}
+                  ? <Input value={editingAttrName} data-testid={`${columnNameStr}-input`} size="xs" autoFocus={true}
+                      onChange={event => setEditingAttrName(event.target.value)}
                       onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
                     />
                   : <MenuButton className="codap-attribute-button"
-                      data-testid={`codap-attribute-button ${attributeName}`}>
-                        {attributeName}
+                      data-testid={`codap-attribute-button ${column.name}`}>
+                        {column.name}
                     </MenuButton>
                 }
                 {column &&

@@ -411,6 +411,7 @@ export const DataSet = types.model("DataSet", {
         const attribute = attributeID && attrIDMap[attributeID]
         if (attribute) {
           attribute.setName(name)
+          attrNameMap[name] = attributeID
         }
       },
 
