@@ -2,9 +2,6 @@ import React from "react"
 import {IAxisModel} from "./models/axis-model"
 
 export interface PlotProps {
-  casesRef: React.MutableRefObject<string[]>
-  xAttrID: string
-  yAttrID: string
   dotsRef: React.RefObject<SVGSVGElement>
   xAxisModel: IAxisModel
   yAxisModel: IAxisModel

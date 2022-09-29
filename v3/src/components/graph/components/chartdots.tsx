@@ -2,6 +2,7 @@ import {ScaleBand, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef} from "react"
 import {PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/graph-hooks"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleType, useGraphLayoutContext} from "../models/graph-layout"
 import {computedPointRadius, setPointSelection} from "../utilities/graph_utils"
@@ -13,19 +14,21 @@ interface IProps {
 }
 
 export const ChartDots = memo(function ChartDots(props: IProps) {
-  const {casesRef, dotsRef, enableAnimation, xAttrID, yAttrID} = props.plotProps,
-    graphModel = props.graphModel,
+  const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
+    dataConfig = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     pointSizeMultiplier = graphModel.pointSizeMultiplier,
-    xAttributeType = dataset?.attrFromID(xAttrID)?.type,
+    xAttrID = dataConfig?.attributeID('x'),
+    xAttributeType = dataConfig?.attributeType('x'),
+    yAttrID = dataConfig?.attributeID('y'),
     // yAttributeType = dataset?.attrFromID(yAttrID)?.type,
     primaryPlace = xAttributeType === 'categorical' ? 'bottom' : 'left',
     primaryAttributeID = primaryPlace === 'left' ? yAttrID : xAttrID,
     secondaryPlace = primaryPlace === 'left' ? 'bottom' : 'left',
     primaryScale = layout.axisScale(primaryPlace) as ScaleBand<string>,
     secondaryScale = layout.axisScale(secondaryPlace) as ScaleType,
-    attribute = dataset?.attrFromID(primaryAttributeID),
+    attribute = primaryAttributeID && dataset?.attrFromID(primaryAttributeID) || undefined,
     categories = Array.from(new Set(attribute?.strValues)),
     categoriesMapRef = useRef<Record<string, { cell: number, numSoFar: number }>>({})
 
@@ -72,8 +75,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
       cellParams = computeCellParams(),
 
       buildMapOfIndicesByCase = () => {
-        const indices: { [index: string]: { cell: number, row: number, column: number } } = {}
-        casesRef.current.forEach(anID => {
+        const indices: Record<string, { cell: number, row: number, column: number }> = {}
+        primaryAttributeID && dataConfig?.cases.forEach(anID => {
           const cat = dataset?.getValue(anID, primaryAttributeID),
             cell = categoriesMapRef.current[cat].cell,
             numInCell = categoriesMapRef.current[cat].numSoFar++,
@@ -115,9 +118,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
           return NaN
         }
       })
-  }, [dotsRef, pointSizeMultiplier, enableAnimation, primaryScale,
-    secondaryScale, dataset, casesRef, primaryPlace, secondaryPlace,
-    layout, categories, categoriesMapRef, computeMaxOverAllCells, primaryAttributeID])
+  }, [categories, computeMaxOverAllCells, dataConfig?.cases, dataset, dotsRef, enableAnimation, layout,
+      pointSizeMultiplier, primaryAttributeID, primaryPlace, primaryScale, secondaryPlace, secondaryScale])
 
   useEffect(()=>{
     select(dotsRef.current).on('click', (event) => {
