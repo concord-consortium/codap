@@ -79,7 +79,7 @@ export class FilteredCases {
       const filteredCasesDidChange = cases.some(aCase => {
         // compare the pre-/post-change filter state of the affected cases
         const wasIncluded = this.prevCaseIdSet.has(aCase.__id__)
-        const nowIncluded = this.hasCaseId(aCase.__id__)
+        const nowIncluded = !this.filter || this.filter(this.source, aCase.__id__)
         return nowIncluded !== wasIncluded
       })
       // if any cases changed filter state, invalidate the cached results

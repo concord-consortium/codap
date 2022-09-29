@@ -64,7 +64,6 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
   useEffect(() => {
     setCodapComponentElt(cellElt?.closest(".codap-component") as HTMLDivElement ?? null)
   }, [cellElt])
-
   return (
     <Menu isLazy>
       <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content">

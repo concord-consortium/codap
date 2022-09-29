@@ -2,6 +2,7 @@ import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
+import { DataConfigurationModel } from "./data-configuration-model"
 import {IDataSet} from "../../../data-model/data-set"
 import {
   AxisPlace,
@@ -12,13 +13,12 @@ import {
   NumericAxisModel
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
-import {filterCases, matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
+import {matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
 
 export interface IGraphControllerProps {
   graphModel: IGraphModel
   layout: GraphLayout
   dataset: IDataSet | undefined
-  casesRef: React.MutableRefObject<string[]>
   enableAnimation:  React.MutableRefObject<boolean>
   instanceId:string
   dotsRef:React.RefObject<SVGSVGElement>
@@ -28,7 +28,6 @@ export class GraphController {
   graphModel: IGraphModel
   layout: GraphLayout
   dataset: IDataSet | undefined
-  casesRef: React.MutableRefObject<string[]>
   enableAnimation:  React.MutableRefObject<boolean>
   instanceId:string
   dotsRef:React.RefObject<SVGSVGElement>
@@ -38,7 +37,6 @@ export class GraphController {
     this.graphModel = props.graphModel
     this.layout = props.layout
     this.dataset = props.dataset
-    this.casesRef = props.casesRef
     this.instanceId = props.instanceId
     this.enableAnimation = props.enableAnimation
     this.dotsRef = props.dotsRef
@@ -47,23 +45,16 @@ export class GraphController {
   }
 
   initializeGraph() {
-
-    const getCaptionID = () => {
-      return dataset?.attributes[0]?.id || ''
-    }
-
-    const {graphModel, dataset, layout, casesRef, dotsRef, enableAnimation, instanceId} = this
-    casesRef.current = filterCases(dataset, [])
-    if( dotsRef) {
-      matchCirclesToData({caseIDs: casesRef.current, dotsElement: dotsRef.current,
+    const {graphModel, layout, dotsRef, enableAnimation, instanceId} = this
+    if(dotsRef) {
+      matchCirclesToData({caseIDs: graphModel.config.cases, dotsElement: dotsRef.current,
        enableAnimation, instanceId})
     }
     layout.setAxisScale('bottom', scaleOrdinal())
     layout.setAxisScale('left', scaleOrdinal())
     graphModel.setGraphProperties({
       axes: {bottom: EmptyAxisModel.create({place: 'bottom'}), left: EmptyAxisModel.create({place: 'left'})},
-      plotType: 'casePlot', attributeIDs: { bottom: '', left: '', caption: getCaptionID() || ''},
-      cases: casesRef.current
+      plotType: 'casePlot', config: DataConfigurationModel.create()
     })
   }
 
@@ -71,7 +62,7 @@ export class GraphController {
     const {dataset, graphModel, layout } = this,
       attribute = dataset?.attrFromID(attrID),
       attributeType = attribute?.type ?? 'empty',
-      otherPlace = place === 'bottom' ? 'left' : 'bottom',
+      otherPlace = place === 'bottom' ? 'y' : 'x',
       otherAttrID = graphModel.getAttributeID(otherPlace),
       otherAttribute = dataset?.attrFromID(otherAttrID),
       otherAttributeType = otherAttribute?.type ?? 'empty',
@@ -85,7 +76,6 @@ export class GraphController {
       attrIDs: string[] = []
     attributeType !== 'empty' && attrIDs.push(attrID)
     otherAttributeType !== 'empty' && attrIDs.push(otherAttrID)
-    graphModel.setCases(filterCases(dataset, attrIDs))
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {
@@ -109,7 +99,7 @@ export class GraphController {
     }
 
   }
-  
+
   setDotsRef(dotsRef:React.RefObject<SVGSVGElement>) {
     this.dotsRef = dotsRef
 }
