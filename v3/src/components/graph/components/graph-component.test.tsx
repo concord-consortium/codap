@@ -5,7 +5,7 @@ import { DataBroker } from "../../../data-model/data-broker"
 import { DataSet, toCanonical } from "../../../data-model/data-set"
 import { GraphComponent } from "./graph-component"
 
-describe("Graph", () => {
+describe.skip("Graph", () => {
   let broker: DataBroker
   beforeEach(() => {
     broker = new DataBroker()
