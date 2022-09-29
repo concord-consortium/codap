@@ -3,7 +3,7 @@ import { defineConfig } from 'cypress'
 export default defineConfig({
   video: false,
   fixturesFolder: false,
-  projectId: 'r9de4a',
+  projectId: 'msrfxa',
   defaultCommandTimeout: 8000,
   env: {
     coverage: false,
