@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { CaseTableComponent } from "./case-table/case-table-component"
 import { CodapDndContext } from "./codap-dnd-context"
+import { ToolShelf } from "./tool-shelf/tool-shelf"
 import {Container} from "./container"
 import {DataSummary} from "./data-summary"
 import {gDataBroker} from "../data-model/data-broker"
@@ -69,6 +70,7 @@ export const App = () => {
   return (
     <CodapDndContext>
       <div className="app" data-testid="app">
+        <ToolShelf/>
         <Container>
           {/* each top-level child will be wrapped in a CodapComponent */}
           <DataSummary v2Document={v2Document} />

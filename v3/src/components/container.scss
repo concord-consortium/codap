@@ -1,6 +1,8 @@
+@import "../components/vars";
+
 .codap-container {
   width: 100%;
-  height: 100%;
+  height: calc(100% - $tool-shelf-height);
   display: grid;
   grid-template-columns: 50% 50%;
   grid-template-rows: 50% 50%;
