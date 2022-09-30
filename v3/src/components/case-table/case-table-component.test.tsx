@@ -58,7 +58,7 @@ describe("Case Table", () => {
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
     const indexCells = screen.getAllByRole("rowheader")
     expect(indexCells.length).toBe(2)
-    const indexContents = screen.getAllByTestId("codap-index-content")
+    const indexContents = screen.getAllByTestId("codap-index-content-button")
     expect(indexContents.length).toBe(2)
     expect(data.selection.size).toBe(0)
     await user.click(indexContents[0])
