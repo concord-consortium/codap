@@ -2,6 +2,8 @@ import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { Input } from "@chakra-ui/react"
 
+import "./editable-component-title.scss"
+
 interface IProps {
   className?: string
   componentTitle: string
@@ -36,11 +38,9 @@ export const EditableComponentTitle: React.FC<IProps> = observer(({componentTitl
     onEndEdit?.(accept && trimTitle ? trimTitle : undefined)
     setIsEditing(false)
   }
-  const titleInputStyle = {height: 25, backgroundColor: "#177991", color: "white", textAlign: "center" as const}
   return (
-    <Input style={titleInputStyle} value={editingTitle} data-testid="editable-component-title" size="sm"
+    <Input className="editable-component-title" value={editingTitle} data-testid="editable-component-title" size="sm"
       onClick={handleClick} onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
       onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()} />
   )
 })
-

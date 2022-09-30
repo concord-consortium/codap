@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react"
+import { kDefaultRowHeight } from "./case-table-types"
 
 interface IActiveScroll {
   startPos: number
@@ -14,7 +15,7 @@ interface ScrollOptions {
   throttle: number
 }
 
-export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowHeight = 35) {
+export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowHeight = kDefaultRowHeight) {
 
   const activeScroll = useRef<IActiveScroll>({ startPos: 0, endPos: 0, startTime: 0 })
   const rafRequestId = useRef(0)
@@ -72,19 +73,22 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowH
   const scrollRowIntoView = useCallback((rowIndex: number, options?: ScrollOptions) => {
     if (!gridElt) return
     const gridBounds = gridElt.getBoundingClientRect()
-    const visibleRows = gridBounds.height / rowHeight
+    const kColumnHeaderRows = 1
+    const visibleRows = gridBounds.height / rowHeight - kColumnHeaderRows
     const rowTop = getRowTop(rowIndex)
     const rowBottom = getRowTop(rowIndex + 1)
     const viewTop = gridElt.scrollTop
-    const viewBottom = viewTop + gridBounds.height
+    // exclude column header row from visibility considerations
+    const viewBottom = viewTop + gridBounds.height - kDefaultRowHeight
     // is row already visible?
     if (rowTop >= viewTop && rowBottom <= viewBottom) return
-    // scroll up?
+    // is row above visible rows?
     if (rowTop < viewTop) {
       scrollToRow(Math.max(0, rowIndex - 1), options)
     }
+    // is row below visible rows
     else if (rowBottom > viewBottom) {
-      scrollToRow(Math.max(0, Math.floor(rowIndex - visibleRows) + 3), options)
+      scrollToRow(Math.max(0, rowIndex - visibleRows + 2), options)
     }
   }, [getRowTop, gridElt, rowHeight, scrollToRow])
 
@@ -107,8 +111,8 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowH
           distance = viewTop - rowTop
         }
       }
-      if (rowTop > viewBottom) {
-        if (rowTop - viewBottom < distance) {
+      if (rowBottom > viewBottom) {
+        if (rowBottom - viewBottom < distance) {
           closestRow = rowIndex
           distance = rowTop - viewBottom
         }
