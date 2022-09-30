@@ -60,9 +60,10 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         ? [
             indexColumn,
             // attribute column definitions
-            ...data.attributes.map(({ id, name }) => ({
+            ...data.attributes.map(({ id, name, hidden }) => ({
               key: id,
               name,
+              hidden,
               resizable: true,
               headerCellClass: "codap-column-header",
               headerRenderer: ColumnHeader,
@@ -70,6 +71,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
               formatter: CellFormatter,
               editor: CellTextEditor
             }))
+            .filter(col => !col.hidden)
         ]
         : []
       setColumns(_columns)
