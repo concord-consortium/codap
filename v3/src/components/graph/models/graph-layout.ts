@@ -1,9 +1,10 @@
-import { ScaleContinuousNumeric, scaleLinear } from "d3"
+import {ScaleBand, ScaleContinuousNumeric, ScaleOrdinal, scaleOrdinal} from "d3"
 import { action, computed, makeObservable, observable } from "mobx"
 import { createContext, useContext } from "react"
 import { AxisPlace, AxisPlaces } from "./axis-model"
 
-export type ScaleBaseType = ScaleContinuousNumeric<number, number>
+export type ScaleNumericBaseType = ScaleContinuousNumeric<number, number>
+export type ScaleType = ScaleContinuousNumeric<number, number> | ScaleOrdinal<string, any> | ScaleBand<string>
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 0
@@ -22,10 +23,10 @@ export class GraphLayout {
   @observable graphHeight = kDefaultGraphHeight
   @observable margin = ({ top: 10, right: 30, bottom: 30, left: 60 })
   @observable axisBounds: Map<AxisPlace, Bounds> = new Map()
-  axisScales: Map<AxisPlace, ScaleBaseType> = new Map()
+  axisScales: Map<AxisPlace, ScaleType> = new Map()
 
   constructor() {
-    AxisPlaces.forEach(place => this.axisScales.set(place, scaleLinear()))
+    AxisPlaces.forEach(place => this.axisScales.set(place, scaleOrdinal()))
     makeObservable(this)
   }
 
@@ -63,10 +64,11 @@ export class GraphLayout {
   }
 
   axisScale(place: AxisPlace) {
-    return this.axisScales.get(place) as ScaleBaseType
+    return this.axisScales.get(place)
   }
 
-  @action setAxisScale(place: AxisPlace, scale: ScaleBaseType) {
+  @action setAxisScale(place: AxisPlace, scale: ScaleType) {
+    scale.range(this.isVertical(place) ? [this.plotHeight, 0] : [0, this.plotWidth])
     this.axisScales.set(place, scale)
   }
 
@@ -77,7 +79,7 @@ export class GraphLayout {
     // update d3 scale ranges before updating graph properties
     AxisPlaces.forEach(place => {
       const range = this.isVertical(place) ? [plotHeight, 0] : [0, plotWidth]
-      this.axisScale(place).range(range)
+      this.axisScale(place)?.range(range)
     })
 
     this.graphWidth = width

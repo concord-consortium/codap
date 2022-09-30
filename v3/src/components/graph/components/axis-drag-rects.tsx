@@ -3,7 +3,7 @@ import React, {useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import {reaction} from "mobx"
 import {INumericAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 
 import "./axis.scss"
 
@@ -22,7 +22,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
     layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place)
+    scale = layout.axisScale(place) as ScaleNumericBaseType
 
   useEffect(function createRects() {
     let scaleAtStart: any = null,

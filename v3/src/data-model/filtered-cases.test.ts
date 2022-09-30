@@ -1,3 +1,4 @@
+import { reaction } from "mobx"
 import { DataSet, IDataSet, toCanonical } from "./data-set"
 import { FilteredCases } from "./filtered-cases"
 
@@ -63,6 +64,28 @@ describe("DerivedDataSet", () => {
     expect(filtered.caseIds.length).toBe(1)
     expect(filtered.caseIds).toEqual(["c3"])
     expect(filtered.hasCaseId("c1")).toBe(false)
+
+    filtered.destroy()
+  })
+
+  it("triggers observers on value changes which change filtering", () => {
+    const filtered = new FilteredCases(data,
+      (_data, caseId) => isFinite(_data.getNumeric(caseId, "xId") ?? NaN) &&
+                         isFinite(_data.getNumeric(caseId, "yId") ?? NaN))
+
+    const trigger = jest.fn()
+    reaction(() => filtered.caseIds, () => trigger())
+    expect(trigger).toHaveBeenCalledTimes(0)
+
+    data.setCaseValues([{ __id__: "c3", xId: 3 }])
+    expect(trigger).toHaveBeenCalledTimes(1)
+    expect(filtered.caseIds.length).toBe(2)
+    expect(filtered.caseIds).toEqual(["c1", "c3"])
+
+    data.setCaseValues([{ __id__: "c1", xId: "" }])
+    expect(filtered.caseIds.length).toBe(1)
+    expect(filtered.caseIds).toEqual(["c3"])
+    expect(trigger).toHaveBeenCalledTimes(2)
 
     filtered.destroy()
   })
