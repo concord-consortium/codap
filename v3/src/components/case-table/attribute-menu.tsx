@@ -5,12 +5,12 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 
 interface IProps {
-  disableToolTips?: (show: boolean) => void
   column: CalculatedColumn<TRow, unknown>
+  onRenameAttribute: () => void
 }
 
 // eslint-disable-next-line react/display-name
-export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({disableToolTips, column}, ref) => {
+export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAttribute, column}, ref) => {
   const toast = useToast()
   const data = useDataSetContext()
 
@@ -30,7 +30,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({disableToo
 
   return (
     <MenuList ref={ref}>
-      <MenuItem onClick={()=>handleMenuItemClick("Rename")}>Rename</MenuItem>
+      <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Edit Attribute Properties")}>Edit Attribute Properties...</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
