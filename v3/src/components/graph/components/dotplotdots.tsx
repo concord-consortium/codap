@@ -5,6 +5,7 @@ import {defaultRadius, dragRadius, transitionDuration, PlotProps}
   from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
@@ -16,12 +17,14 @@ interface IProps {
   plotProps:PlotProps
 }
 export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
-  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props.plotProps,
-    graphModel = props.graphModel,
+  const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
+    dataConfig = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     pointSizeMultiplier = graphModel.pointSizeMultiplier,
-    xAttributeType = dataset?.attrFromID(xAttrID)?.type,
+    xAttrID = dataConfig?.attributeID('x'),
+    xAttributeType = dataConfig?.attributeType('x'),
+    yAttrID = dataConfig?.attributeID('y'),
     // yAttributeType = dataset?.attrFromID(yAttrID)?.type,
     primaryPlace = xAttributeType === 'numeric' ? 'bottom' : 'left',
     primaryAttributeID = primaryPlace === 'left' ? yAttrID : xAttrID,
@@ -52,7 +55,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
         dataset?.selection.forEach(anID => {
-          const itsValue = dataset?.getNumeric(anID, primaryAttributeID)
+          const itsValue = primaryAttributeID && dataset?.getNumeric(anID, primaryAttributeID) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
@@ -69,13 +72,10 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
           didDrag.current = true
           const delta = Number(primaryScale?.invert(deltaPixels)) - Number(primaryScale?.invert(0)),
             caseValues: ICase[] = []
-          dataset?.selection.forEach(anID => {
+          primaryAttributeID && dataset?.selection.forEach(anID => {
             const currValue = Number(dataset?.getNumeric(anID, primaryAttributeID))
             if (isFinite(currValue)) {
-              caseValues.push({
-                __id__: anID,
-                [primaryAttributeID]: currValue + delta
-              })
+              caseValues.push({ __id__: anID, [primaryAttributeID]: currValue + delta })
             }
           })
           caseValues.length && dataset?.setCaseValues(caseValues)
@@ -97,7 +97,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
 
         if (didDrag.current) {
           const caseValues: ICase[] = []
-          dataset?.selection.forEach(anID => {
+          primaryAttributeID && dataset?.selection.forEach(anID => {
             caseValues.push({
               __id__: anID,
               [primaryAttributeID]: selectedDataObjects.current[anID]
@@ -132,7 +132,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         binWidth = primaryLength / (numBins - 1),
         bins: string[][] = range(numBins + 1).map(() => [])
 
-      casesRef.current.forEach((anID) => {
+      primaryAttributeID && dataConfig?.cases.forEach((anID) => {
         const numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttributeID) ?? -1),
           bin = Math.ceil((numerator ?? 0) / binWidth)
         if (bin >= 0 && bin <= numBins) {
@@ -148,7 +148,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
     computeBinPlacements()
 
     const
-      getPrimaryScreenCoord = (anID: string) => getScreenCoord(dataset, anID, primaryAttributeID, primaryScale),
+      getPrimaryScreenCoord = (anID: string) => primaryAttributeID
+        ? getScreenCoord(dataset, anID, primaryAttributeID, primaryScale)
+        : null,
       computeSecondaryCoord = (binContents: { secondaryIndex: number }) => {
         return binContents ?
           baseCoord + secondarySign * (pointDiameter / 2 + binContents.secondaryIndex * (pointDiameter - overlap)) : 0
@@ -162,8 +164,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
       getScreenY = (primaryPlace === 'left') ? getPrimaryScreenCoord : getSecondaryScreenCoord
 
     setPointCoordinates({dotsRef, selectedOnly, pointSizeMultiplier, getScreenX, getScreenY, duration, onComplete})
-  }, [dataset, casesRef, dotsRef, pointSizeMultiplier, primaryAttributeID, primaryScale, primaryPlace,
-    secondaryScale, primaryLength, enableAnimation])
+  }, [dataConfig?.cases, dataset, dotsRef, enableAnimation, pointSizeMultiplier,
+      primaryAttributeID, primaryLength, primaryPlace, primaryScale, secondaryScale])
 
   usePlotResponders({
     dataset, xAxisModel, yAxisModel, xAttrID, layout,

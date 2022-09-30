@@ -418,8 +418,14 @@ export const DataSet = types.model("DataSet", {
       setAttributeName(attributeID: string, name: string) {
         const attribute = attributeID && attrIDMap[attributeID]
         if (attribute) {
+          delete attrNameMap[attribute.name]
           attribute.setName(name)
+          attrNameMap[name] = attributeID
         }
+      },
+
+      showAllAttributes() {
+        self.attributes.forEach(attr => attr.setHidden(false))
       },
 
       removeAttribute(attributeID: string) {

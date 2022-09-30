@@ -8,7 +8,6 @@ import {INumericAxisModel} from "../models/axis-model"
 interface IProps {
   graphModel: IGraphModel
   enableAnimation: MutableRefObject<boolean>
-  casesRef:  MutableRefObject<string[]>
   dotsRef: RefObject<SVGSVGElement>
   instanceId: string | undefined
 }
@@ -16,19 +15,20 @@ interface IProps {
 
 
 export function useGraphModel(props:IProps) {
-  const {graphModel, enableAnimation, casesRef, dotsRef, instanceId} = props,
+  const {graphModel, enableAnimation, dotsRef, instanceId} = props,
+    dataConfig = graphModel.config,
     yAxisModel = graphModel.getAxis('left'),
-    xAttrID = graphModel.getAttributeID('bottom'),
-    yAttrID = graphModel.getAttributeID('left'),
+    // xAttrID = graphModel.getAttributeID('x'),
+    yAttrID = graphModel.getAttributeID('y'),
     dataset = useDataSetContext()
 
   const callMatchCirclesToData = useCallback(() => {
     matchCirclesToData({
-      caseIDs: casesRef.current,
+      caseIDs: dataConfig.cases,
       dotsElement: dotsRef.current,
       enableAnimation, instanceId
     })
-  }, [instanceId, casesRef, dotsRef, enableAnimation])
+  }, [dataConfig.cases, dotsRef, enableAnimation, instanceId])
 
   useEffect(function createCircles() {
       callMatchCirclesToData()
@@ -43,13 +43,12 @@ export function useGraphModel(props:IProps) {
         enableAnimation.current = true
         // In case the y-values have changed we rescale
         if( newPlotType === 'scatterPlot') {
-          const values = casesRef.current.map(anID => dataset?.getNumeric(anID, yAttrID)) as number[]
+          const values = dataConfig.cases.map(anID => dataset?.getNumeric(anID, yAttrID)) as number[]
           setNiceDomain(values || [], yAxisModel as INumericAxisModel)
         }
       }
     }, true)
     return () => disposer()
-  }, [dataset, callMatchCirclesToData, casesRef, enableAnimation, graphModel, xAttrID, yAttrID, yAxisModel])
+  }, [dataConfig.cases, dataset, enableAnimation, graphModel, yAttrID, yAxisModel])
 
 }
-

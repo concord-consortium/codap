@@ -3,6 +3,7 @@ import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
 import {defaultRadius, dragRadius, PlotProps, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
@@ -16,12 +17,14 @@ interface IProps {
 }
 
 export const ScatterDots = memo(function ScatterDots(props: IProps) {
-  const {casesRef, xAttrID, yAttrID, dotsRef, xAxisModel, yAxisModel, enableAnimation} = props.plotProps,
-    graphModel = props.graphModel,
+  const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
     instanceId = useInstanceIdContext(),
+    dataConfig = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     pointSizeMultiplier = graphModel.pointSizeMultiplier,
     layout = useGraphLayoutContext(),
+    xAttrID = dataConfig?.attributeID('x'),
+    yAttrID = dataConfig?.attributeID('y'),
     xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left") as ScaleNumericBaseType,
     [dragID, setDragID] = useState(''),
@@ -46,7 +49,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
-        dataset?.selection.forEach(anID => {
+        xAttrID && yAttrID && dataset?.selection.forEach(anID => {
           selectedDataObjects.current[anID] = {
             x: dataset?.getNumeric(anID, xAttrID) ?? 0,
             y: dataset?.getNumeric(anID, yAttrID) ?? 0
@@ -66,7 +69,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           const deltaX = Number(xScale.invert(dx)) - Number(xScale.invert(0)),
             deltaY = Number(yScale.invert(dy)) - Number(yScale.invert(0)),
             caseValues: ICase[] = []
-          dataset?.selection.forEach(anID => {
+          xAttrID && yAttrID && dataset?.selection.forEach(anID => {
             const currX = Number(dataset?.getNumeric(anID, xAttrID)),
               currY = Number(dataset?.getNumeric(anID, yAttrID))
             if (isFinite(currX) && isFinite(currY)) {
@@ -96,7 +99,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
 
         if (didDrag.current) {
           const caseValues: ICase[] = []
-          dataset?.selection.forEach(anID => {
+          xAttrID && yAttrID && dataset?.selection.forEach(anID => {
             caseValues.push({
               __id__: anID,
               [xAttrID]: selectedDataObjects.current[anID].x,
@@ -118,8 +121,8 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
 
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
     const
-      getScreenX = (anID: string) => getScreenCoord(dataset, anID, xAttrID, xScale),
-      getScreenY = (anID: string) => getScreenCoord(dataset, anID, yAttrID, yScale),
+      getScreenX = (anID: string) => xAttrID ? getScreenCoord(dataset, anID, xAttrID, xScale) : null,
+      getScreenY = (anID: string) => yAttrID ? getScreenCoord(dataset, anID, yAttrID, yScale) : null,
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
@@ -133,8 +136,8 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
       const dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
       if (dot) {
         const dotSvg = dot as SVGCircleElement
-        const x = getScreenCoord(dataset, caseId, xAttrID, xScale)
-        const y = getScreenCoord(dataset, caseId, yAttrID, yScale)
+        const x = xAttrID ? getScreenCoord(dataset, caseId, xAttrID, xScale) : null
+        const y = yAttrID ? getScreenCoord(dataset, caseId, yAttrID, yScale) : null
         if (x != null && isFinite(x) && y != null && isFinite(y)) {
           dotSvg.setAttribute("cx", `${x}`)
           dotSvg.setAttribute("cy", `${y}`)
@@ -144,9 +147,9 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     if (selectedOnly) {
       dataset?.selection.forEach(caseId => updateDot(caseId))
     } else {
-      casesRef.current.forEach((anID) => updateDot(anID))
+      dataConfig?.cases.forEach(anID => updateDot(anID))
     }
-  }, [casesRef, dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
+  }, [dataConfig?.cases, dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (appState.isPerformanceMode) {
