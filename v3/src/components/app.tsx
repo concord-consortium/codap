@@ -16,7 +16,7 @@ import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import pkg from "../../package.json"
-import build from "../../build_num.json"
+import build from "../../build_number.json"
 
 import "./app.scss"
 
