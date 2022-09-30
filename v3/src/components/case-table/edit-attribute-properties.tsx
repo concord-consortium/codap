@@ -1,10 +1,19 @@
 import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea }
   from "@chakra-ui/react"
 import React, { useRef, useState, forwardRef } from "react"
+import { CalculatedColumn } from "react-data-grid"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
+import { TRow } from "./case-table-types"
 
-export const EditAttributePorpertiesModalContent = () => {
-  const [attributeName, setAttributeName] = useState("attribute")
+interface IEditAttributePorpertiesModalContentProps {
+  column:  CalculatedColumn<TRow, unknown>
+}
+
+export const EditAttributePorpertiesModalContent = ({column}: IEditAttributePorpertiesModalContentProps) => {
+  const data = useDataSetContext()
+  const columnNameStr = column.name as string
+  const [attributeName, setAttributeName] = useState(columnNameStr || "attribute")
   const [description, setDescription] = useState("")
   const [unit, setUnit] = useState("")
   const [type, setType] = useState("")
@@ -59,12 +68,13 @@ export const EditAttributePorpertiesModalContent = () => {
 }
 
 interface IProps {
+  column: CalculatedColumn<TRow, unknown>
   isOpen: boolean
   onClose: () => void
 }
 
 // eslint-disable-next-line react/display-name
-export const EditAttributePropertiesModal = forwardRef(({isOpen, onClose}: IProps,
+export const EditAttributePropertiesModal = forwardRef(({column, isOpen, onClose}: IProps,
     ref: any) => {
   const editProperties = () => {
     onClose()
@@ -78,6 +88,7 @@ export const EditAttributePropertiesModal = forwardRef(({isOpen, onClose}: IProp
       title="Attribute Properties"
       hasCloseButton={true}
       Content={EditAttributePorpertiesModalContent}
+      contentProps={{column}}
       buttons={[{ label: "Cancel", onClick: onClose },{ label: "Apply", onClick: editProperties}]}
     />
   )

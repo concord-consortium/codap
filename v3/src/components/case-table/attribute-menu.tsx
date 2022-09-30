@@ -50,7 +50,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column, co
         <MenuItem onClick={handleDeleteAttribute}>Delete Attribute</MenuItem>
       </MenuList>
       {codapComponentElt && createPortal((
-        <EditAttributePropertiesModal ref={ref} isOpen={isOpen} onClose={onClose}/>
+        <EditAttributePropertiesModal ref={ref} column={column} isOpen={isOpen} onClose={onClose}/>
       ), codapComponentElt)}
     </>
   )
