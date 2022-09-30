@@ -61,6 +61,7 @@ export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProp
           enter.append('text')
             .attr('class', 'axis-title')
             .attr('text-anchor', 'middle')
+            .attr('data-testid', `axis-title-${place}`)
         })
 
   }, [axisElt, halfRange, label, place, transform])
@@ -100,7 +101,7 @@ export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProp
   return (
     <>
       <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
-        <g className='axis' ref={elt => setAxisElt(elt)}/>
+        <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
         <g ref={titleRef}/>
       </g>
       {axisModel.type === 'numeric' ?

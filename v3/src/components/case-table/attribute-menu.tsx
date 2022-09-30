@@ -36,7 +36,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAt
   }
 
   return (
-    <MenuList ref={ref}>
+    <MenuList ref={ref} data-testid="attribute-menu-list">
       <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Edit Attribute Properties")}>Edit Attribute Properties...</MenuItem>

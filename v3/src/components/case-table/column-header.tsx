@@ -97,7 +97,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         return (
           <>
             <Tooltip label={column.name || "attribute"} h="20px" fontSize="12px" color="white"
-                openDelay={1000} placement="bottom" bottom="15px" left="15px"
+                openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
                 isDisabled={dragging || editingAttrId === column.key} closeOnMouseDown={true}>
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
                 { editingAttrId

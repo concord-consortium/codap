@@ -35,6 +35,7 @@ interface IProps {
 
 const marqueeState = new MarqueeState(),
   dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
+    .attr('data-testid', 'graph-point-data-tip')
     .html((d: string) => {
       return "<p>" + d + "</p>"
     })
