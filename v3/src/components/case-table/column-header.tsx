@@ -102,7 +102,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
                 { editingAttrId
                   ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
-                      onChange={event => setEditingAttrName(event.target.value)}
+                      variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
                       onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
                     />
                   : <MenuButton className="codap-attribute-button"
