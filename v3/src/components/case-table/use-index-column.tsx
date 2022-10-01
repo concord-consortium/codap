@@ -66,7 +66,7 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
   }, [cellElt])
   return (
     <Menu isLazy>
-      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content">
+      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button">
         {index != null ? `${index + 1}` : ""}
       </MenuButton>
       {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}

@@ -34,7 +34,7 @@ export const CodapModal = <IContentProps,>({ isOpen, onClose,
 }: IProps<IContentProps>) => {
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} >
+    <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader h="30" className="codap-modal-header" data-testid="codap-modal-header">
@@ -42,7 +42,7 @@ export const CodapModal = <IContentProps,>({ isOpen, onClose,
             {Icon && <Icon />}
           </div>
           <div className="codap-header-title">{title}</div>
-          {hasCloseButton && <ModalCloseButton onClick={onClose}/>}
+          {hasCloseButton && <ModalCloseButton onClick={onClose} data-testid="modal-close-button"/>}
         </ModalHeader>
         <ModalBody>
           <Content {...contentProps} />
@@ -51,7 +51,7 @@ export const CodapModal = <IContentProps,>({ isOpen, onClose,
           {buttons.map((b: any, i)=>{
             const key = `${i}-${b.className}`
             return (
-              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={b.label}>
+              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}>
                 {b.label}
               </Button>
             )

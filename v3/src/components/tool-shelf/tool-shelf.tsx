@@ -90,10 +90,11 @@ export const ToolShelf = () => {
               key={aDesc.iconLabel}
               bg='white'
               onClick={aDesc.handler}
+              data-testid={`tool-shelf-button-${aDesc.iconLabel}`}
             >
               <VStack className='button-stack'>
                 {<aDesc.icon height='25px'/>}
-                <Tag className='tool-shelf-span' bg='white'>{aDesc.iconLabel}</Tag>
+                <Tag className='tool-shelf-tool-label' bg='white'>{aDesc.iconLabel}</Tag>
               </VStack>
             </Box>)
         })}
