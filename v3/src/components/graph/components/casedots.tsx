@@ -1,6 +1,6 @@
 import {randomUniform, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
-import {hoverRadiusFactor, pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
+import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -23,6 +23,7 @@ export const CaseDots = memo(function CaseDots(props: {
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
+    dragPointRadius = graphModel.getPointRadius('hover-drag'),
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
@@ -42,14 +43,14 @@ export const CaseDots = memo(function CaseDots(props: {
       const tItsID: string = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         target.current.transition()
-          .attr('r', pointRadius * hoverRadiusFactor)
+          .attr('r', dragPointRadius)
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
       }
-    }, [pointRadius, dataset, enableAnimation]),
+    }, [dragPointRadius, dataset, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
