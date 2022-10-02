@@ -1,7 +1,7 @@
 import {max, range, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {defaultRadius, dragRadius, transitionDuration, PlotProps}
+import {transitionDuration, PlotProps}
   from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
@@ -9,7 +9,7 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
-import {computedPointRadius, getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
+import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 import {IGraphModel} from "../models/graph-model"
 
 interface IProps {
@@ -21,7 +21,6 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
     dataConfig = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    pointSizeMultiplier = graphModel.pointSizeMultiplier,
     xAttrID = dataConfig?.attributeID('x'),
     xAttributeType = dataConfig?.attributeType('x'),
     yAttrID = dataConfig?.attributeID('y'),
@@ -36,7 +35,11 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
     currPos = useRef(0),
     didDrag = useRef(false),
     target = useRef<any>(),
-    selectedDataObjects = useRef<Record<string, number>>({})
+    selectedDataObjects = useRef<Record<string, number>>({}),
+    pointRadius = graphModel.getPointRadius(),
+    selectedPointRadius = graphModel.getPointRadius('select'),
+    dragPointRadius = graphModel.getPointRadius('hover-drag')
+
 
   const onDragStart = useCallback((event: MouseEvent) => {
       dataset?.beginCaching()
@@ -47,7 +50,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         enableAnimation.current = false // We don't want to animate points until end of drag
         appState.beginPerformance()
         target.current.transition()
-          .attr('r', dragRadius)
+          .attr('r', dragPointRadius)
         setDragID(() => tItsID)
         currPos.current = primaryPlace === 'bottom' ? event.clientX : event.clientY
 
@@ -61,7 +64,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
           }
         })
       }
-    }, [dataset, primaryPlace, primaryAttributeID, enableAnimation]),
+    }, [dataset, dragPointRadius, primaryPlace, primaryAttributeID, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
@@ -91,7 +94,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         target.current
           .classed('dragging', false)
           .transition()
-          .attr('r', defaultRadius)
+          .attr('r', selectedPointRadius)
         setDragID('')
         target.current = null
 
@@ -108,18 +111,18 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
           didDrag.current = false
         }
       }
-    }, [dataset, dragID, enableAnimation, primaryAttributeID])
+    }, [dataset, selectedPointRadius, dragID, enableAnimation, primaryAttributeID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({dotsRef, dataset})
-  }, [dataset, dotsRef])
+    setPointSelection({dotsRef, dataset, pointRadius: graphModel.getPointRadius(),
+      selectedPointRadius: graphModel.getPointRadius('select')})
+  }, [dataset, dotsRef, graphModel])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
-      numPoints = select(dotsRef.current).selectAll('.graph-dot').size(),
-      pointDiameter = 2 * computedPointRadius(numPoints, pointSizeMultiplier),
+      pointDiameter = 2 * pointRadius,
       secondaryRangeIndex = primaryPlace === 'bottom' ? 0 : 1,
       secondaryHeight = Number(secondaryScale?.range()[secondaryRangeIndex]),
       secondarySign = primaryPlace === 'bottom' ? -1 : 1,
@@ -163,8 +166,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
       getScreenX = (primaryPlace === 'left') ? getSecondaryScreenCoord : getPrimaryScreenCoord,
       getScreenY = (primaryPlace === 'left') ? getPrimaryScreenCoord : getSecondaryScreenCoord
 
-    setPointCoordinates({dotsRef, selectedOnly, pointSizeMultiplier, getScreenX, getScreenY, duration, onComplete})
-  }, [dataConfig?.cases, dataset, dotsRef, enableAnimation, pointSizeMultiplier,
+    setPointCoordinates({dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
+      getScreenX, getScreenY, duration, onComplete})},
+    [dataConfig?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
       primaryAttributeID, primaryLength, primaryPlace, primaryScale, secondaryScale])
 
   usePlotResponders({

@@ -5,7 +5,7 @@ import {usePlotResponders} from "../hooks/graph-hooks"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleType, useGraphLayoutContext} from "../models/graph-layout"
-import {computedPointRadius, setPointSelection} from "../utilities/graph_utils"
+import {setPointSelection} from "../utilities/graph_utils"
 import {IGraphModel} from "../models/graph-model"
 
 interface IProps {
@@ -18,7 +18,6 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
     dataConfig = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    pointSizeMultiplier = graphModel.pointSizeMultiplier,
     xAttrID = dataConfig?.attributeID('x'),
     xAttributeType = dataConfig?.attributeType('x'),
     yAttrID = dataConfig?.attributeID('y'),
@@ -45,13 +44,13 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   }, [attribute])
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({dotsRef, dataset})
-  }, [dataset, dotsRef])
+    setPointSelection({dotsRef, dataset, pointRadius: graphModel.getPointRadius(),
+      selectedPointRadius: graphModel.getPointRadius('select')})
+  }, [dataset, dotsRef, graphModel])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
-      numPoints = select(dotsRef.current).selectAll('.graph-dot').size(),
-      pointDiameter = 2 * computedPointRadius(numPoints, pointSizeMultiplier),
+      pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
       cellWidth = primaryScale.bandwidth()
@@ -118,8 +117,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
           return NaN
         }
       })
-  }, [categories, computeMaxOverAllCells, dataConfig?.cases, dataset, dotsRef, enableAnimation, layout,
-      pointSizeMultiplier, primaryAttributeID, primaryPlace, primaryScale, secondaryPlace, secondaryScale])
+  }, [graphModel, categories, computeMaxOverAllCells, dataConfig?.cases, dataset, dotsRef, enableAnimation, layout,
+      primaryAttributeID, primaryPlace, primaryScale, secondaryPlace, secondaryScale])
 
   useEffect(()=>{
     select(dotsRef.current).on('click', (event) => {

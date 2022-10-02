@@ -2,7 +2,7 @@ import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
-import { DataConfigurationModel } from "./data-configuration-model"
+import {DataConfigurationModel, IDataConfigurationModel} from "./data-configuration-model"
 import {IDataSet} from "../../../data-model/data-set"
 import {
   AxisPlace,
@@ -28,6 +28,7 @@ export class GraphController {
   graphModel: IGraphModel
   layout: GraphLayout
   dataset: IDataSet | undefined
+  dataConfig: IDataConfigurationModel
   enableAnimation:  React.MutableRefObject<boolean>
   instanceId:string
   dotsRef:React.RefObject<SVGSVGElement>
@@ -37,6 +38,7 @@ export class GraphController {
     this.graphModel = props.graphModel
     this.layout = props.layout
     this.dataset = props.dataset
+    this.dataConfig = props.graphModel.config
     this.instanceId = props.instanceId
     this.enableAnimation = props.enableAnimation
     this.dotsRef = props.dotsRef
@@ -45,10 +47,10 @@ export class GraphController {
   }
 
   initializeGraph() {
-    const {graphModel, layout, dotsRef, enableAnimation, instanceId} = this
-    if(dotsRef) {
-      matchCirclesToData({caseIDs: graphModel.config.cases, dotsElement: dotsRef.current,
-       enableAnimation, instanceId})
+    const {graphModel, dataConfig, layout, dotsRef, enableAnimation, instanceId} = this
+    if(dotsRef.current) {
+      matchCirclesToData({caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
+       pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId})
     }
     layout.setAxisScale('bottom', scaleOrdinal())
     layout.setAxisScale('left', scaleOrdinal())

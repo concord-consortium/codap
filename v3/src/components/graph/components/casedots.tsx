@@ -1,11 +1,11 @@
 import {randomUniform, select} from "d3"
-import React, {memo, useCallback, useRef, useState} from "react"
-import {defaultRadius, dragRadius, transitionDuration} from "../graphing-types"
+import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {hoverRadiusFactor, pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {computedPointRadius, setPointSelection} from "../utilities/graph_utils"
+import {setPointSelection} from "../utilities/graph_utils"
 import {IGraphModel} from "../models/graph-model"
 
 export const CaseDots = memo(function CaseDots(props: {
@@ -20,18 +20,21 @@ export const CaseDots = memo(function CaseDots(props: {
     graphModel = props.graphModel,
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    pointSizeMultiplier = graphModel.pointSizeMultiplier,
+    randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
+    pointRadius = graphModel.getPointRadius(),
+    selectedPointRadius = graphModel.getPointRadius('select'),
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
     xScale = layout.axisScale('bottom') as ScaleNumericBaseType,
     yScale = layout.axisScale('left') as ScaleNumericBaseType
 
-  const uniform = randomUniform(),
-    randomPointsRef = useRef<Record<string, { x: number, y: number }>>({})
-  dataset?.cases.forEach(({__id__}) => {
-    randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
-  })
+  useEffect(function initDistribution() {
+    const uniform = randomUniform()
+    dataset?.cases.forEach(({__id__}) => {
+      randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
+    })
+  }, [dataset?.cases])
 
   const onDragStart = useCallback((event: MouseEvent) => {
       enableAnimation.current = false // We don't want to animate points until end of drag
@@ -39,14 +42,14 @@ export const CaseDots = memo(function CaseDots(props: {
       const tItsID: string = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         target.current.transition()
-          .attr('r', dragRadius)
+          .attr('r', pointRadius * hoverRadiusFactor)
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
       }
-    }, [dataset, enableAnimation]),
+    }, [pointRadius, dataset, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
@@ -72,22 +75,20 @@ export const CaseDots = memo(function CaseDots(props: {
         target.current
           .classed('dragging', false)
           .transition()
-          .attr('r', defaultRadius)
+          .attr('r', selectedPointRadius)
         setDragID(() => '')
         target.current = null
       }
-    }, [dragID])
+    }, [selectedPointRadius, dragID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({dotsRef, dataset})
-  }, [dataset, dotsRef])
+    setPointSelection({dotsRef, dataset, pointRadius, selectedPointRadius})
+  }, [dataset, dotsRef, pointRadius, selectedPointRadius])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
-      numPoints = select(dotsRef.current).selectAll('.graph-dot').size(),
-      pointRadius = computedPointRadius(numPoints, pointSizeMultiplier),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
@@ -100,13 +101,13 @@ export const CaseDots = memo(function CaseDots(props: {
       .duration(duration)
       .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
       .attr('cx', (anID: string) => {
-        return xMin + defaultRadius + randomPointsRef.current[anID].x * (xMax - xMin - 2 * defaultRadius)
+        return xMin + pointRadius + randomPointsRef.current[anID].x * (xMax - xMin - 2 * pointRadius)
       })
       .attr('cy', (anID: string) => {
-        return yMax + defaultRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * defaultRadius)
+        return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
-      .attr('r', pointRadius)
-  }, [dotsRef, pointSizeMultiplier, enableAnimation, xScale, yScale])
+      .attr('r', (anID:string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
+  }, [dataset, pointRadius, dotsRef, enableAnimation, xScale, yScale])
 
   usePlotResponders({
     dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation

@@ -31,11 +31,11 @@ export interface counterProps {
 }
 
 export const transitionDuration = 1000,
-  defaultRadius = 5,
-  dragRadius = 10,
   pointRadiusMax = 10,
   pointRadiusMin = 3,
-  pointRadiusLogBase = 2.0 // reduce point radius from max by log of (num. cases) base (LogBase).
+  pointRadiusLogBase = 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
+  pointRadiusSelectionAddend = 1,
+  hoverRadiusFactor = 1.5
 
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
