@@ -107,6 +107,11 @@ export const DataConfigurationModel = types
         self.attributeDescriptions.delete(place)
       }
       self.filteredCases?.invalidateCases()
+    },
+    setPrimaryPlace( aPlace: GraphAttrPlace) {
+      if( aPlace === 'x' || aPlace === 'y') {
+        self.primaryPlace = aPlace
+      }
     }
   }))
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {}

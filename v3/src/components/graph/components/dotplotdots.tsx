@@ -1,4 +1,4 @@
-import {max, range, select} from "d3"
+import {max, range, ScaleBand, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {transitionDuration, PlotProps}
@@ -11,26 +11,28 @@ import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layou
 import {ICase} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
 import {IGraphModel} from "../models/graph-model"
+import {attrPlaceToAxisPlace} from "../models/axis-model"
 
 interface IProps {
-  graphModel:IGraphModel
-  plotProps:PlotProps
+  graphModel: IGraphModel
+  plotProps: PlotProps
 }
-export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
+
+export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
   const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
     dataConfig = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    xAttrID = dataConfig?.attributeID('x'),
-    xAttributeType = dataConfig?.attributeType('x'),
-    yAttrID = dataConfig?.attributeID('y'),
-    // yAttributeType = dataset?.attrFromID(yAttrID)?.type,
-    primaryPlace = xAttributeType === 'numeric' ? 'bottom' : 'left',
-    primaryAttributeID = primaryPlace === 'left' ? yAttrID : xAttrID,
-    secondaryPlace = primaryPlace === 'left' ? 'bottom' : 'left',
-    primaryScale = layout.axisScale(primaryPlace) as ScaleNumericBaseType,
-    primaryLength = layout.axisLength(primaryPlace),
-    secondaryScale = layout.axisScale(secondaryPlace),
+    primaryAttrPlace = dataConfig?.primaryPlace ?? 'x',
+    primaryAxisPlace = attrPlaceToAxisPlace[primaryAttrPlace] ?? 'bottom',
+    primaryIsBottom = primaryAxisPlace === 'bottom',
+    primaryAttrID = dataConfig?.attributeID(primaryAttrPlace),
+    secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
+    secondaryAxisPlace = attrPlaceToAxisPlace[secondaryAttrPlace] ?? 'left',
+    secondaryAttrID = dataConfig?.attributeID(secondaryAttrPlace),
+    primaryScale = layout.axisScale(primaryAxisPlace) as ScaleNumericBaseType,
+    primaryLength = layout.axisLength(primaryAxisPlace),
+    secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>,
     [dragID, setDragID] = useState(''),
     currPos = useRef(0),
     didDrag = useRef(false),
@@ -52,24 +54,24 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         target.current.transition()
           .attr('r', dragPointRadius)
         setDragID(() => tItsID)
-        currPos.current = primaryPlace === 'bottom' ? event.clientX : event.clientY
+        currPos.current = primaryIsBottom ? event.clientX : event.clientY
 
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
         const { selection } = dataConfig || {}
         selection?.forEach(anID => {
-          const itsValue = primaryAttributeID && dataset?.getNumeric(anID, primaryAttributeID) || undefined
+          const itsValue = primaryAttrID && dataset?.getNumeric(anID, primaryAttrID) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
         })
       }
-    }, [dataConfig, dataset, dragPointRadius, primaryPlace, primaryAttributeID, enableAnimation]),
+    }, [dataConfig, dataset, dragPointRadius, primaryAttrID, primaryIsBottom, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
-        const newPos = primaryPlace === 'bottom' ? event.clientX : event.clientY,
+        const newPos = primaryIsBottom ? event.clientX : event.clientY,
           deltaPixels = newPos - currPos.current
         currPos.current = newPos
         if (deltaPixels !== 0) {
@@ -77,16 +79,16 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
           const delta = Number(primaryScale?.invert(deltaPixels)) - Number(primaryScale?.invert(0)),
             caseValues: ICase[] = [],
             { selection } = dataConfig || {}
-          primaryAttributeID && selection?.forEach(anID => {
-            const currValue = Number(dataset?.getNumeric(anID, primaryAttributeID))
+          primaryAttrID && selection?.forEach(anID => {
+            const currValue = Number(dataset?.getNumeric(anID, primaryAttrID))
             if (isFinite(currValue)) {
-              caseValues.push({ __id__: anID, [primaryAttributeID]: currValue + delta })
+              caseValues.push({__id__: anID, [primaryAttrID]: currValue + delta})
             }
           })
           caseValues.length && dataset?.setCaseValues(caseValues)
         }
       }
-    }, [dataConfig, dataset, dragID, primaryAttributeID, primaryPlace, primaryScale]),
+    }, [dataset, dragID, primaryAttrID, primaryScale, primaryIsBottom]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -102,11 +104,11 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
 
         if (didDrag.current) {
           const caseValues: ICase[] = [],
-                { selection } = dataConfig || {}
-          primaryAttributeID && selection?.forEach(anID => {
+            { selection } = dataConfig || {}
+          primaryAttrID && selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
-              [primaryAttributeID]: selectedDataObjects.current[anID]
+              [primaryAttrID]: selectedDataObjects.current[anID]
             })
           })
           enableAnimation.current = true // So points will animate back to original positions
@@ -114,68 +116,88 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
           didDrag.current = false
         }
       }
-    }, [dataConfig, dataset, selectedPointRadius, dragID, enableAnimation, primaryAttributeID])
+    }, [dataConfig, dataset, selectedPointRadius, dragID, enableAnimation, primaryAttrID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({dotsRef, dataset, pointRadius: graphModel.getPointRadius(),
-      selectedPointRadius: graphModel.getPointRadius('select')})
+    setPointSelection({
+      dotsRef, dataset, pointRadius: graphModel.getPointRadius(),
+      selectedPointRadius: graphModel.getPointRadius('select')
+    })
   }, [dataset, dotsRef, graphModel])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    const
-      pointDiameter = 2 * pointRadius,
-      secondaryRangeIndex = primaryPlace === 'bottom' ? 0 : 1,
-      secondaryHeight = Number(secondaryScale?.range()[secondaryRangeIndex]),
-      secondarySign = primaryPlace === 'bottom' ? -1 : 1,
-      baseCoord = primaryPlace === 'bottom' ? secondaryHeight : 0,
-      binMap: { [id: string]: { secondaryIndex: number } } = {}
-    let overlap = 0
+      const
+        pointDiameter = 2 * pointRadius,
+        secondaryRangeIndex = primaryIsBottom ? 0 : 1,
+        secondaryMax = Number(secondaryScale?.range()[secondaryRangeIndex]),
+        secondaryExtent = Math.abs(Number(secondaryScale?.range()[0] - secondaryScale?.range()[1])),
+        secondaryBandwidth = secondaryScale.bandwidth ? secondaryScale.bandwidth() : secondaryExtent,
+        secondarySign = primaryIsBottom ? -1 : 1,
+        baseCoord = primaryIsBottom ? secondaryMax : 0,
+        binMap: Record<string, { category: string, indexInBin: number }> = {}
+      let overlap = 0
 
-    function computeBinPlacements() {
-      const numBins = Math.ceil(primaryLength / pointDiameter) + 1,
-        binWidth = primaryLength / (numBins - 1),
-        bins: string[][] = range(numBins + 1).map(() => [])
+      function computeBinPlacements() {
+        const numBins = Math.ceil(primaryLength / pointDiameter) + 1,
+          binWidth = primaryLength / (numBins - 1),
+          bins: Record<string, string[][]> = {} // range(numBins + 1).map(() => [])
 
-      primaryAttributeID && dataConfig?.cases.forEach((anID) => {
-        const numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttributeID) ?? -1),
-          bin = Math.ceil((numerator ?? 0) / binWidth)
-        if (bin >= 0 && bin <= numBins) {
-          binMap[anID] = {secondaryIndex: bins[bin].length}
-          bins[bin].push(anID)
+        primaryAttrID && dataConfig?.cases.forEach((anID) => {
+          const numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttrID) ?? -1),
+            bin = Math.ceil((numerator ?? 0) / binWidth),
+            category = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__'
+          if (!bins[category]) {
+            bins[category] = range(numBins + 1).map(() => [])
+          }
+          if (bin >= 0 && bin <= numBins) {
+            binMap[anID] = {category, indexInBin: bins[category][bin].length}
+            bins[category][bin].push(anID)
+          }
+        })
+        const maxInBin = Object.values(bins).reduce((prevMax, aBinArray) => {
+            return Math.max(prevMax, max(aBinArray, (b => b.length)) || 0) + 1
+          }, 0),
+          excessHeight = Math.max(0, maxInBin - Math.floor(secondaryMax / pointDiameter)) * pointDiameter
+        overlap = excessHeight / maxInBin
+      }
+
+      computeBinPlacements()
+
+      const computeSecondaryCoord = (category: string, indexInBin: number) => {
+        let catCoord = !!category && category !== '__main__' && secondaryScale ? secondaryScale(category) : 0
+        if(primaryIsBottom) {
+          catCoord = secondaryExtent - secondaryBandwidth - (catCoord ?? 0)
         }
+        return baseCoord + secondarySign * ((catCoord ?? 0) + pointDiameter / 2 +
+          indexInBin * (pointDiameter - overlap))
+      }
+
+      const
+        getPrimaryScreenCoord = (anID: string) => {
+          return primaryAttrID ? getScreenCoord(dataset, anID, primaryAttrID, primaryScale) : null
+        },
+        getSecondaryScreenCoord = (anID: string) => {
+          return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : NaN
+        },
+        duration = enableAnimation.current ? transitionDuration : 0,
+        onComplete = enableAnimation.current ? () => {
+          enableAnimation.current = false
+        } : undefined,
+        getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
+        getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
+
+      setPointCoordinates({
+        dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
+        getScreenX, getScreenY, duration, onComplete
       })
-      const maxInBin = (max(bins, (b => b.length)) || 0) + 1,
-        excessHeight = Math.max(0, maxInBin - Math.floor(secondaryHeight / pointDiameter)) * pointDiameter
-      overlap = excessHeight / maxInBin
-    }
-
-    computeBinPlacements()
-
-    const
-      getPrimaryScreenCoord = (anID: string) => primaryAttributeID
-        ? getScreenCoord(dataset, anID, primaryAttributeID, primaryScale)
-        : null,
-      computeSecondaryCoord = (binContents: { secondaryIndex: number }) => {
-        return binContents ?
-          baseCoord + secondarySign * (pointDiameter / 2 + binContents.secondaryIndex * (pointDiameter - overlap)) : 0
-      },
-      getSecondaryScreenCoord = (anID: string) => computeSecondaryCoord(binMap[anID]),
-      duration = enableAnimation.current ? transitionDuration : 0,
-      onComplete = enableAnimation.current ? () => {
-        enableAnimation.current = false
-      } : undefined,
-      getScreenX = (primaryPlace === 'left') ? getSecondaryScreenCoord : getPrimaryScreenCoord,
-      getScreenY = (primaryPlace === 'left') ? getPrimaryScreenCoord : getSecondaryScreenCoord
-
-    setPointCoordinates({dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
-      getScreenX, getScreenY, duration, onComplete})},
+    },
     [dataConfig?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
-      primaryAttributeID, primaryLength, primaryPlace, primaryScale, secondaryScale])
+      primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale])
 
   usePlotResponders({
-    dataset, xAxisModel, yAxisModel, xAttrID, layout,
+    dataset, xAxisModel, yAxisModel, primaryAttrID, secondaryAttrID, layout,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 

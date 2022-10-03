@@ -1,5 +1,5 @@
 import {Instance, types} from "mobx-state-tree"
-import { GraphAttrPlace } from "./data-configuration-model"
+import {GraphAttrPlace} from "./data-configuration-model"
 
 export const AxisPlaces = ["bottom", "left", "right", "top"] as const
 export type AxisPlace = typeof AxisPlaces[number]
@@ -12,9 +12,27 @@ export const attrPlaceToAxisPlace: Partial<Record<GraphAttrPlace, AxisPlace>> = 
   topSplit: "top"
 }
 
+export const axisPlaceToGraphAttrPlace = (place: AxisPlace) => {
+  let attrPlace:GraphAttrPlace
+  switch (place) {
+    case 'bottom':
+      attrPlace = 'x'
+      break
+    case 'left':
+      attrPlace = 'y'
+      break
+    case 'top':
+      attrPlace = 'topSplit'
+      break
+    case 'right':
+      attrPlace = 'y2'  // Todo: how to deal with 'rightSplit'?
+  }
+  return attrPlace
+}
+
 export type AxisOrientation = "horizontal" | "vertical"
 
-export const ScaleTypes = ["linear", "log", "ordinal"] as const
+export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const
 export type IScaleType = typeof ScaleTypes[number]
 
 export const AxisModel = types.model("AxisModel", {
@@ -57,7 +75,7 @@ export const CategoricalAxisModel = AxisModel
   .named("CategoricalAxisModel")
   .props({
     type: "categorical",
-    scale: "ordinal"
+    scale: "band"
   })
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
 
