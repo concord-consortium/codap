@@ -101,6 +101,11 @@ export const DataConfigurationModel = types
       else {
         self.attributeDescriptions.delete(place)
       }
+    },
+    setPrimaryPlace( aPlace: GraphAttrPlace) {
+      if( aPlace === 'x' || aPlace === 'y') {
+        self.primaryPlace = aPlace
+      }
     }
   }))
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {}
