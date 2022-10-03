@@ -38,26 +38,29 @@ export class GraphController {
     this.graphModel = props.graphModel
     this.layout = props.layout
     this.dataset = props.dataset
-    this.dataConfig = props.graphModel.config
+    this.dataConfig = DataConfigurationModel.create()
     this.instanceId = props.instanceId
     this.enableAnimation = props.enableAnimation
     this.dotsRef = props.dotsRef
+    if( this.dataset) {
+      this.dataConfig.setDataset(this.dataset)
+    }
     // Presumably a new dataset is now being used. So we have to set things up for an empty graph
     this.initializeGraph()
   }
 
   initializeGraph() {
     const {graphModel, dataConfig, layout, dotsRef, enableAnimation, instanceId} = this
+    graphModel.setGraphProperties({
+      axes: {bottom: EmptyAxisModel.create({place: 'bottom'}), left: EmptyAxisModel.create({place: 'left'})},
+      plotType: 'casePlot', config: this.dataConfig
+    })
     if(dotsRef.current) {
       matchCirclesToData({caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
        pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId})
     }
     layout.setAxisScale('bottom', scaleOrdinal())
     layout.setAxisScale('left', scaleOrdinal())
-    graphModel.setGraphProperties({
-      axes: {bottom: EmptyAxisModel.create({place: 'bottom'}), left: EmptyAxisModel.create({place: 'left'})},
-      plotType: 'casePlot', config: DataConfigurationModel.create()
-    })
   }
 
   handleAttributeAssignment(place: AxisPlace, attrID:string) {
