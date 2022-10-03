@@ -1,6 +1,13 @@
 import {Instance, ISerializedActionCall, types} from "mobx-state-tree"
 import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
-import {PlotType, PlotTypes} from "../graphing-types"
+import {
+  hoverRadiusFactor,
+  PlotType,
+  PlotTypes,
+  pointRadiusLogBase,
+  pointRadiusMax,
+  pointRadiusMin, pointRadiusSelectionAddend
+} from "../graphing-types"
 import {DataConfigurationModel, GraphAttrPlace, IDataConfigurationModel} from "./data-configuration-model"
 
 export interface GraphProperties {
@@ -23,6 +30,24 @@ export const GraphModel = types
     },
     getAttributeID(place: GraphAttrPlace) {
       return self.config.attributeID(place) ?? ''
+    },
+    getPointRadius(use:'normal' | 'hover-drag' | 'select' = 'normal') {
+      let r = pointRadiusMax
+      const numPoints = self.config.cases.length
+      // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
+      for (let i = pointRadiusLogBase; i <= numPoints; i = i * pointRadiusLogBase) {
+        --r
+        if (r <= pointRadiusMin) break
+      }
+      const result = r * self.pointSizeMultiplier
+      switch (use) {
+        case "normal":
+          return result
+        case "hover-drag":
+          return result * hoverRadiusFactor
+        case "select":
+          return result + pointRadiusSelectionAddend
+      }
     }
   }))
   .actions(self => ({

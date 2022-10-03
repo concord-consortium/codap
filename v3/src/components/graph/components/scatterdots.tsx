@@ -1,7 +1,7 @@
 import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
-import {defaultRadius, dragRadius, PlotProps, transitionDuration} from "../graphing-types"
+import {hoverRadiusFactor, PlotProps, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -21,7 +21,8 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     instanceId = useInstanceIdContext(),
     dataConfig = useDataConfigurationContext(),
     dataset = useDataSetContext(),
-    pointSizeMultiplier = graphModel.pointSizeMultiplier,
+    pointRadius = graphModel.getPointRadius(),
+    selectedPointRadius = graphModel.getPointRadius('select'),
     layout = useGraphLayoutContext(),
     xAttrID = dataConfig?.attributeID('x'),
     yAttrID = dataConfig?.attributeID('y'),
@@ -42,7 +43,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
       if (target.current.node()?.nodeName === 'circle') {
         appState.beginPerformance()
         target.current.transition()
-          .attr('r', dragRadius)
+          .attr('r', pointRadius * hoverRadiusFactor)
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
@@ -56,7 +57,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           }
         })
       }
-    }, [dataset, xAttrID, yAttrID, enableAnimation]),
+    }, [dataset, pointRadius, xAttrID, yAttrID, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
@@ -93,7 +94,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
         target.current
           .classed('dragging', false)
           .transition()
-          .attr('r', defaultRadius)
+          .attr('r', pointRadius)
         setDragID(() => '')
         target.current = null
 
@@ -111,13 +112,13 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           didDrag.current = false
         }
       }
-    }, [dataset, dragID, xAttrID, yAttrID, enableAnimation])
+    }, [dataset, pointRadius, dragID, xAttrID, yAttrID, enableAnimation])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({dotsRef, dataset})
-  }, [dataset, dotsRef])
+    setPointSelection({dotsRef, dataset, pointRadius, selectedPointRadius})
+  }, [dataset, dotsRef, pointRadius, selectedPointRadius])
 
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
     const
@@ -128,8 +129,9 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
         enableAnimation.current = false
       } : undefined
 
-    setPointCoordinates({dotsRef, pointSizeMultiplier, selectedOnly, getScreenX, getScreenY, duration, onComplete})
-  }, [dataset, dotsRef, pointSizeMultiplier, xAttrID, xScale, yAttrID, yScale, enableAnimation])
+    setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, selectedOnly,
+      getScreenX, getScreenY, duration, onComplete})
+  }, [dataset, pointRadius, selectedPointRadius, dotsRef, xAttrID, xScale, yAttrID, yScale, enableAnimation])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const updateDot = (caseId: string) => {

@@ -1,15 +1,7 @@
 import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {
-  defaultRadius,
-  Point,
-  pointRadiusLogBase,
-  pointRadiusMax,
-  pointRadiusMin,
-  Rect,
-  rTreeRect
-} from "../graphing-types"
+import {Point, Rect,  rTreeRect} from "../graphing-types"
 import {between} from "./math_utils"
 import {IDataSet} from "../../../data-model/data-set"
 import {ScaleNumericBaseType} from "../models/graph-layout"
@@ -95,21 +87,22 @@ export function getPointTipText(dataset: IDataSet, caseID: string, attributeIDs:
         isNumeric = attribute?.type === 'numeric',
         value = isNumeric ? float(dataset?.getNumeric(caseID, attrID) ?? 0) :
           dataset?.getValue(caseID, attrID)
-      return `${name}: ${value}`
+      return (value && (isNumeric && isFinite(value)) || (!isNumeric && value !== '')) ? `${name}: ${value}` : ''
     }))
   // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
-  return Array.from(new Set(attrArray)).join('<br>')
+  return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
 }
 
 export interface IMatchCirclesProps {
   caseIDs: string[]
   dotsElement: SVGGElement | null
+  pointRadius:number
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string | undefined
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const {caseIDs, enableAnimation, instanceId, dotsElement} = props,
+  const {caseIDs, enableAnimation, instanceId, dotsElement, pointRadius} = props,
     keyFunc = (d: string) => d
   enableAnimation.current = true
   select(dotsElement)
@@ -120,28 +113,11 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
       (enter) => {
         enter.append('circle')
           .attr('class', 'graph-dot')
-          .attr("r", defaultRadius)
+          .attr('r', pointRadius)
           .property('id', (anID: string) => `${instanceId}_${anID}`)
           .selection()
       }
     )
-}
-
-export const filterCases = (dataset: IDataSet | undefined, attributeIDs: string[]) => {
-  const attributeIdTests = attributeIDs.map(attrID => {
-      const attribute = dataset?.attrFromID(attrID),
-        isNumeric = attribute?.type === 'numeric'
-      return {
-        attrID, test: isNumeric ?
-          (caseID: string, attributeID: string) => isFinite(Number(dataset?.getNumeric(caseID, attributeID))) :
-          (caseID: string, attributeID: string) => dataset?.getValue(caseID, attributeID) !== ''
-      }
-    }),
-    filteredCases = dataset ? dataset.cases.map(aCase => aCase.__id__)
-      .filter(anID => {
-        return attributeIdTests.every(({attrID, test}) => attrID === '' || test(anID, attrID))
-      }) : []
-  return filteredCases
 }
 
 //  Return the two points in logical coordinates where the line with the given
@@ -325,33 +301,29 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 export interface ISetPointSelection {
   dotsRef: React.RefObject<SVGSVGElement>
   dataset?: IDataSet
+  pointRadius:number,
+  selectedPointRadius:number
 }
 
 export function setPointSelection(props: ISetPointSelection) {
   const
-    {dotsRef, dataset} = props,
+    {dotsRef, dataset, pointRadius, selectedPointRadius} = props,
     dotsSvgElement = dotsRef.current,
     dots = select(dotsSvgElement)
   dots.selectAll('circle')
     .classed('graph-dot-highlighted',
       (anID: string) => !!(dataset?.isCaseSelected(anID)))
-}
-
-export const computedPointRadius = (numPoints: number, pointSizeMultiplier: number) => {
-  let r = pointRadiusMax
-  // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
-  for (let i = pointRadiusLogBase; i <= numPoints; i = i * pointRadiusLogBase) {
-    --r
-    if (r <= pointRadiusMin) break
-  }
-  const result = r * pointSizeMultiplier
-  return result < 1 ? 0 : result
+    .attr('r', (anID:string) => dataset?.isCaseSelected(anID) ? selectedPointRadius : pointRadius)
+  dots.selectAll('.graph-dot-highlighted')
+    .raise()
 }
 
 export interface ISetPointCoordinates {
+  dataset?: IDataSet
   dotsRef: React.RefObject<SVGSVGElement>
   selectedOnly?: boolean
-  pointSizeMultiplier: number
+  pointRadius: number
+  selectedPointRadius: number
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string) => number | null)
   duration?: number
@@ -359,10 +331,9 @@ export interface ISetPointCoordinates {
 }
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
-
   const
-    {dotsRef, selectedOnly = false, pointSizeMultiplier, getScreenX, getScreenY, duration = 0, onComplete} = props,
-    radius = computedPointRadius(select(dotsRef.current).selectAll('.graph-dot').size(), pointSizeMultiplier),
+    {dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
+      getScreenX, getScreenY, duration = 0, onComplete} = props,
     selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
   if (duration > 0) {
     selection
@@ -371,11 +342,11 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', radius)
+      .attr('r', (id:string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
   } else if (selection.size() > 0) {
     selection
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', radius)
+      .attr('r', (id:string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
   }
 }

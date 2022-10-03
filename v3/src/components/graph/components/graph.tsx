@@ -6,7 +6,7 @@ import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
-import {kGraphClass} from "../graphing-types"
+import {kGraphClass, transitionDuration} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -19,7 +19,7 @@ import {AxisPlace, IAxisModel, attrPlaceToAxisPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {filterCases, getPointTipText} from "../utilities/graph_utils"
+import {getPointTipText} from "../utilities/graph_utils"
 import {GraphController} from "../models/graph-controller"
 import {MarqueeState} from "../models/marquee-state"
 
@@ -47,6 +47,7 @@ export const Graph = observer((
       {plotType} = graphModel,
       instanceId = useInstanceIdContext(),
       dataset = useDataSetContext(),
+      dataConfig = graphModel.config,
       casesRef = useRef<string[]>([]),
       layout = useGraphLayoutContext(),
       {margin} = layout,
@@ -55,9 +56,11 @@ export const Graph = observer((
       svgRef = useRef<SVGSVGElement>(null),
       plotAreaSVGRef = useRef<SVGSVGElement>(null),
       xAttrID = graphModel.getAttributeID('x'),
-      yAttrID = graphModel.getAttributeID('y')
+      yAttrID = graphModel.getAttributeID('y'),
+      pointRadius = graphModel.getPointRadius(),
+      hoverPointRadius = graphModel.getPointRadius('hover-drag')
 
-    casesRef.current = filterCases(dataset, [xAttrID, yAttrID])
+    casesRef.current = dataConfig?.cases ?? []
 
     useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -103,21 +106,28 @@ export const Graph = observer((
     }, [dotsRef, graphController])
 
     // MouseOver events, if over an element, brings up hover text
-    function showDataTip(event: MouseEvent, d: any) {
+    function showDataTip(event: MouseEvent) {
       const
         target = select(event.target as SVGSVGElement)
       if (target.node()?.nodeName === 'circle' && dataset) {
+        target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
         const [, caseID] = target.property('id').split("_"),
           attrIDs = graphModel.config.uniqueTipAttributes,
           tipText = getPointTipText(dataset, caseID, attrIDs)
-        dataTip.show(tipText, event.target)
+        tipText !== '' && dataTip.show(tipText, event.target)
       }
+    }
+
+    function hideDataTip(event: MouseEvent) {
+      dataTip.hide()
+      select(event.target as SVGSVGElement)
+        .transition().duration(transitionDuration).attr('r', pointRadius)
     }
 
     useEffect(function setupDataTip() {
       select(dotsRef.current)
         .on('mouseover', showDataTip)
-        .on('mouseout', dataTip.hide)
+        .on('mouseout', hideDataTip)
         .call(dataTip)
     })
 
