@@ -158,6 +158,9 @@ export const Attribute = types.model("Attribute", {
   setName(newName: string) {
     self.name = newName
   },
+  setHidden(hidden: boolean) {
+    self.hidden = hidden
+  },
   setUnits(units: string) {
     self.units = units
   },

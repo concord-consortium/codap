@@ -1,0 +1,26 @@
+@import "../vars.scss/";
+
+.tool-shelf {
+  height: $tool-shelf-height;
+  width: 100%;
+  background-color: #ececec;
+  border-bottom: 1px solid #dcdbd8;
+  font-family: 'MuseoSans-500', 'sans-serif';
+  font-size: 11px;
+  box-shadow: 0 0 0 1px #888888!important;
+
+  .button-stack {
+    margin-top: 5px;
+  }
+  .button-stack:hover {
+    border-right: solid 2px #888888;
+    border-bottom: solid 2px #888888;
+  }
+  .button-stack:active {
+    margin-top: 10px;
+  }
+}
+
+.tool-shelf-span {
+  margin-top: 0!important;
+}

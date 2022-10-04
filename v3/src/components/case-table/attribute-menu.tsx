@@ -8,11 +8,11 @@ import { createPortal } from "react-dom"
 
 interface IProps {
   column: CalculatedColumn<TRow, unknown>
-  codapComponentElt: HTMLElement
+  onRenameAttribute: () => void
 }
 
 // eslint-disable-next-line react/display-name
-export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column, codapComponentElt}, ref) => {
+export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAttribute, column}, ref) => {
   const toast = useToast()
   const data = useDataSetContext()
   const {isOpen, onOpen, onClose} = useDisclosure()
@@ -26,6 +26,13 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column, co
       isClosable: true,
     })
   }
+  const handleHideAttribute = () => {
+    const attrId = data?.attrIDFromName(column.name as string)
+    attrId && data?.attrFromID(attrId).setHidden(true)
+  }
+  const handleShowAllAttributes = () => {
+    data?.showAllAttributes()
+  }
   const handleDeleteAttribute = () => {
     const attrId = data?.attrIDFromName(column.name as string)
     attrId && data?.removeAttribute(attrId)
@@ -36,22 +43,19 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({column, co
   }
 
   return (
-    <>
-      <MenuList ref={ref}>
-        <MenuItem onClick={()=>handleMenuItemClick("Rename")}>Rename</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
-        <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Delete Formula")}>Delete Formula (Keeping Values)</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Hide Attribute")}>Hide Attribute</MenuItem>
-        <MenuItem onClick={handleDeleteAttribute}>Delete Attribute</MenuItem>
-      </MenuList>
-      {codapComponentElt && createPortal((
-        <EditAttributePropertiesModal ref={ref} column={column} isOpen={isOpen} onClose={onClose}/>
-      ), codapComponentElt)}
-    </>
+    <MenuList ref={ref} data-testid="attribute-menu-list">
+      <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Edit Attribute Properties")}>Edit Attribute Properties...</MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Delete Formula")}>Delete Formula (Keeping Values)</MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
+      <MenuItem onClick={handleHideAttribute}>Hide Attribute</MenuItem>
+      {/* temporary until table tool palette is implemented */}
+      <MenuItem onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
+      <MenuItem onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
+    </MenuList>
   )
 })

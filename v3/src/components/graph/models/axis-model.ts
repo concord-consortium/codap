@@ -1,13 +1,26 @@
-import { Instance, types } from "mobx-state-tree"
+import {Instance, types} from "mobx-state-tree"
+import { GraphAttrPlace } from "./data-configuration-model"
 
 export const AxisPlaces = ["bottom", "left", "right", "top"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 
+export const attrPlaceToAxisPlace: Partial<Record<GraphAttrPlace, AxisPlace>> = {
+  x: "bottom",
+  y: "left",
+  y2: "right",
+  rightSplit: "right",
+  topSplit: "top"
+}
+
 export type AxisOrientation = "horizontal" | "vertical"
+
+export const ScaleTypes = ["linear", "log", "ordinal"] as const
+export type IScaleType = typeof ScaleTypes[number]
 
 export const AxisModel = types.model("AxisModel", {
   type: types.optional(types.string, () => {throw "type must be overridden"}),
-  place: types.enumeration([...AxisPlaces])
+  place: types.enumeration([...AxisPlaces]),
+  scale: types.optional(types.enumeration([...ScaleTypes]), "ordinal"),
 })
   .volatile(self => ({
     transitionDuration: 0
@@ -16,23 +29,35 @@ export const AxisModel = types.model("AxisModel", {
   get orientation(): AxisOrientation {
     return self.place === "left" || self.place === "right"
             ? "vertical" : "horizontal"
+  },
+  get isNumeric() {
+    return ["linear", "log"].includes(self.scale)
   }
 }))
   .actions(self => ({
+    setScale(scale: IScaleType) {
+      self.scale = scale
+    },
     setTransitionDuration(duration:number) {
       self.transitionDuration = duration
     }
   }))
 export interface IAxisModel extends Instance<typeof AxisModel> {}
 
-export const ScaleTypes = ["linear", "log"] as const
-export type ScaleType = typeof ScaleTypes[number]
+export const EmptyAxisModel = AxisModel
+  .named("EmptyAxisModel")
+  .props({
+    type: "empty",
+    min: 0,
+    max: 0
+  })
+export interface IEmptyAxisModel extends Instance<typeof CategoricalAxisModel> {}
 
 export const CategoricalAxisModel = AxisModel
   .named("CategoricalAxisModel")
   .props({
     type: "categorical",
-    // ¯\_(ツ)_/¯
+    scale: "ordinal"
   })
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
 
@@ -50,9 +75,6 @@ export const NumericAxisModel = AxisModel
     }
   }))
   .actions(self => ({
-    setScale(scale: ScaleType) {
-      self.scale = scale
-    },
     setDomain(min: number, max: number) {
       self.min = min
       self.max = max
@@ -60,5 +82,9 @@ export const NumericAxisModel = AxisModel
   }))
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
 
-export const AxisModelUnion = types.union(CategoricalAxisModel, NumericAxisModel)
-export type IAxisModelUnion = ICategoricalAxisModel | INumericAxisModel
+export function isNumericAxisModel(axisModel: IAxisModel): axisModel is INumericAxisModel {
+  return axisModel.isNumeric
+}
+
+export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
+export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel

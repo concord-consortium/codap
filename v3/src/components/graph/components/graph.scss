@@ -25,17 +25,24 @@
 }
 
 .graph-dot {
-  fill: rgba(232, 147, 118, 0.85);
+  fill: rgba(230, 128, 91);
   stroke: white;
   cursor: pointer;
+  stroke-opacity: 0.4;
+  fill-opacity: 0.85;
 }
 
 .graph-dot-highlighted {
   fill: steelblue;
 }
 
-.graph-plot-choice {
-  position: absolute !important;
-  bottom: 5px;
-  left: 5px;
+.graph-d3-tip {
+  font-size: small;
+  line-height: 1.2;
+  padding: 5px;
+  pointer-events: none !important;
+  color: #203d5d;
+  box-shadow: 0 4px 20px 4px rgba(0, 20, 60, .1), 0 4px 80px -8px rgba(0, 20, 60, .2);
+  background-color: rgba(251, 251, 176, 0.7);
+  border-radius: 4px;
 }

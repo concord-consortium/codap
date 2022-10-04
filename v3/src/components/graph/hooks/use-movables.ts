@@ -1,6 +1,6 @@
 import {useCallback, useEffect} from "react"
 import {IGraphModel} from "../models/graph-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {IMovableLineModel, IMovableValueModel} from "../adornments/adornment-models"
 import {onAction} from "mobx-state-tree"
 
@@ -13,8 +13,8 @@ interface IProps {
 export function useMovables(props: IProps) {
   const {graphModel, movableValueModel, movableLineModel} = props,
     layout = useGraphLayoutContext(),
-    xScale = layout.axisScale('bottom'),
-    yScale = layout.axisScale('left')
+    xScale = layout.axisScale('bottom') as ScaleNumericBaseType,
+    yScale = layout.axisScale('left') as ScaleNumericBaseType
 
   const updateMovables = useCallback(() => {
     const xDomainDelta = xScale.domain()[1] - xScale.domain()[0],

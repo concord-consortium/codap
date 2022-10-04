@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
-import { TRow } from "./case-table-types"
+import { kIndexColumnKey, TRow } from "./case-table-types"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
@@ -24,7 +24,8 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
 
     const gridRef = useRef<DataGridHandle>(null)
     const { active } = useDndContext()
-    const overlayDragId = active && `${active.id}`.startsWith(instanceId) ? `${active.id}` : undefined
+    const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
+                            ? `${active.id}` : undefined
 
     const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ data, gridRef })
 

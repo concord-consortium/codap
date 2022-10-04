@@ -1,26 +1,25 @@
-import {Button} from '@chakra-ui/react'
-import { useDroppable } from '@dnd-kit/core'
+import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import React, {useEffect, useRef} from "react"
+import { getSnapshot } from "mobx-state-tree"
+import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import {useMemo} from "use-memo-one"
 import {DataBroker} from "../../../data-model/data-broker"
 import {DataSetContext} from "../../../hooks/use-data-set-context"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
-import {MovableLineModel, MovableValueModel} from "../adornments/adornment-models"
-import {NumericAxisModel} from "../models/axis-model"
+import {EmptyAxisModel} from "../models/axis-model"
+import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
+import {GraphController} from "../models/graph-controller"
 import {Graph} from "./graph"
 
 const defaultGraphModel = GraphModel.create({
   axes: {
-    bottom: NumericAxisModel.create({place: 'bottom', min: 0, max: 10}),
-    left: NumericAxisModel.create({place: 'left', min: 0, max: 10})
+    bottom: EmptyAxisModel.create({place: 'bottom'}),
+    left: EmptyAxisModel.create({place: 'left'})
   },
-  plotType: "dotPlot",
-  movableValue: MovableValueModel.create({value: 0}),
-  movableLine: MovableLineModel.create({intercept: 0, slope: 1})
+  plotType: "casePlot",
+  config: getSnapshot(DataConfigurationModel.create())
 })
 
 interface IProps {
@@ -32,32 +31,39 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
   const enableAnimation = useRef(true)
-  const data = broker?.selectedDataSet || broker?.last
+  const dataset = broker?.selectedDataSet || broker?.last
+  const dotsRef = useRef<SVGSVGElement>(null)
+
+  const
+    graphController = useMemo(
+      () => new GraphController({
+        graphModel: defaultGraphModel,
+        dataset, layout, enableAnimation, instanceId, dotsRef
+      }),
+      [dataset, layout, instanceId])
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
   }, [width, height, layout])
 
+  useEffect(() => {
+    dataset && defaultGraphModel.config.setDataset(dataset)
+  }, [dataset])
+
   // used to determine when a dragged attribute is over the graph component
-  const { setNodeRef } = useDroppable({ id: `${instanceId}-component-drop`, data: { accepts: ["attribute"] } })
+  const {setNodeRef} = useDroppable({id: `${instanceId}-component-drop`, data: {accepts: ["attribute"]}})
   setNodeRef(graphRef.current)
 
   return (
-    <DataSetContext.Provider value={data}>
+    <DataSetContext.Provider value={dataset}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel} graphRef={graphRef} enableAnimation={enableAnimation}/>
-          <Button
-            className='graph-plot-choice'
-            size="xs"
-            onClick={() => {
-              const currPlotType = defaultGraphModel.plotType
-              enableAnimation.current = true
-              defaultGraphModel.setPlotType(currPlotType === 'scatterPlot' ? 'dotPlot' : 'scatterPlot')
-            }}
-          >
-            {defaultGraphModel.plotType === 'scatterPlot' ? 'Dot' : 'Scatter'} Plot
-          </Button>
+          <Graph model={defaultGraphModel}
+                 graphController={graphController}
+                 graphRef={graphRef}
+                 enableAnimation={enableAnimation}
+                 dotsRef={dotsRef}
+          />
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>
     </DataSetContext.Provider>

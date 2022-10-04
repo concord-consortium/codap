@@ -1,3 +1,13 @@
+import React from "react"
+import {IAxisModel} from "./models/axis-model"
+
+export interface PlotProps {
+  dotsRef: React.RefObject<SVGSVGElement>
+  xAxisModel: IAxisModel
+  yAxisModel: IAxisModel
+  enableAnimation: React.MutableRefObject<boolean>
+}
+
 // One element of the data array assigned to the points
 export interface InternalizedData {
   xAttributeID: string,
@@ -21,11 +31,13 @@ export interface counterProps {
 }
 
 export const transitionDuration = 1000,
-  defaultRadius = 5,
-  defaultDiameter = 2 * defaultRadius,
-  dragRadius = 10
+  pointRadiusMax = 10,
+  pointRadiusMin = 3,
+  pointRadiusLogBase = 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
+  pointRadiusSelectionAddend = 1,
+  hoverRadiusFactor = 1.5
 
-export const PlotTypes = ["dotPlot", "scatterPlot"] as const
+export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
 export const kGraphClass = "graph-plot"

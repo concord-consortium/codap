@@ -110,7 +110,7 @@ describe("useRowScrolling", () => {
        result.current.scrollRowIntoView(1)
       rafMock.triggerAll()
       expect(mockGridElt.scrollTop).toBe(0)
-      result.current.scrollRowIntoView(9)
+      result.current.scrollRowIntoView(8)
       rafMock.triggerAll()
       expect(mockGridElt.scrollTop).toBe(0)
     })

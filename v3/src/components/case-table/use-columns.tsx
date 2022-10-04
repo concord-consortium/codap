@@ -44,7 +44,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // we can support other formats here (dates, colors, etc.)
     return (
       <>
-        <Tooltip label={value} h="20px" fontSize="12px" color="white"
+        <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
           openDelay={1000} placement="bottom" bottom="10px" left="15px">
           <span className="cell-span" key={key}>{value}</span>
         </Tooltip>
@@ -60,9 +60,10 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         ? [
             indexColumn,
             // attribute column definitions
-            ...data.attributes.map(({ id, name }) => ({
+            ...data.attributes.map(({ id, name, hidden }) => ({
               key: id,
               name,
+              hidden,
               resizable: true,
               headerCellClass: "codap-column-header",
               headerRenderer: ColumnHeader,
@@ -70,6 +71,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
               formatter: CellFormatter,
               editor: CellTextEditor
             }))
+            .filter(col => !col.hidden)
         ]
         : []
       setColumns(_columns)

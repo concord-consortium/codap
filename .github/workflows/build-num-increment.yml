@@ -22,4 +22,4 @@ jobs:
           target_file: 'build_number.json'
           prefix: 'buildNumber":'
           suffix: '}'
-          commit_message: 'Increment the build number to '
+          commit_message: 'Increment the build number '

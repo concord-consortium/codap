@@ -42,6 +42,10 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     })
   }
 
+  const handleDeleteCase = () => {
+    data?.removeCases([caseId])
+  }
+
   const insertCases = () => {
     onClose()
     const casesToAdd = []
@@ -55,11 +59,11 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
 
   return (
     <>
-      <MenuList>
+      <MenuList data-testid="index-menu-list">
         <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>Move Data Entry Row Here</MenuItem>
         <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
         <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
-        <MenuItem onClick={()=>handleMenuItemClick("Delete Case")}>Delete Case</MenuItem>
+        <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
       </MenuList>
       <CodapModal
           isOpen={isOpen}
