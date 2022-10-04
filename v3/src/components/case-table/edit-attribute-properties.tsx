@@ -1,62 +1,68 @@
-import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea }
+import { FormControl, FormLabel, HStack, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
+  NumberInputField, NumberInputStepper, Radio, RadioGroup, Select, Textarea }
   from "@chakra-ui/react"
-import React, { useRef, useState, forwardRef } from "react"
+import React, { useEffect, useState } from "react"
 import { CalculatedColumn } from "react-data-grid"
+import { AttributeType, attributeTypes, IAttribute } from "../../data-model/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
 import { TRow } from "./case-table-types"
 
 interface IEditAttributePorpertiesModalContentProps {
-  column:  CalculatedColumn<TRow, unknown>
+  attribute: IAttribute;
+  attributeName: string;
+  description: string;
+  unit: string;
+  precision: string;
+  attrType: AttributeType;
+  editable: string;
+  setAttributeName: (name: string) => void;
+  setDescription: (description: string) => void;
+  setUnit: (unit: string) => void;
+  setAttrType: (type: AttributeType) => void;
+  setEditable: (editable: string) => void;
+  onPrecisionChange: (precision: string) => void;
 }
 
-export const EditAttributePorpertiesModalContent = ({column}: IEditAttributePorpertiesModalContentProps) => {
-  const data = useDataSetContext()
-  const columnNameStr = column.name as string
-  const [attributeName, setAttributeName] = useState(columnNameStr || "attribute")
-  const [description, setDescription] = useState("")
-  const [unit, setUnit] = useState("")
-  const [type, setType] = useState("")
-  const [editable, setEditable] = useState("true")
-
-  const nameRef = useRef(null)
-  const descriptionRef = useRef(null)
-  const unitRef = useRef(null)
-  const editableRef = useRef(null)
+export const EditAttributePorpertiesModalContent = ({attribute, attributeName, description, unit, precision, attrType,
+    editable, setAttributeName, setDescription, setUnit, setAttrType, setEditable, onPrecisionChange
+  }: IEditAttributePorpertiesModalContentProps) => {
 
   return (
     <FormControl display="flex" flexDirection="column" w={350}>
       <FormLabel display="flex" flexDirection="row">name:
-        <Input size="xs" ml={5} ref={nameRef} placeholder="attribute"
-                value={attributeName} onFocus={(e) => e.target.select()}
-                onChange={event => setAttributeName(event.target.value)}
-        />
+        <Input size="xs" ml={5} placeholder="attribute" value={attributeName} onFocus={(e) => e.target.select()}
+              onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input" />
       </FormLabel>
       <FormLabel>description:
-        <Textarea size="xs" ref={descriptionRef} placeholder="Describe the attribute"
-          value={description} onFocus={(e) => e.target.select()}
-          onChange={event => setDescription(event.target.value)}
-        />
+        <Textarea size="xs" placeholder="Describe the attribute" value={description} onFocus={(e) => e.target.select()}
+          onChange={event => setDescription(event.target.value)} data-testid="attr-description-input"/>
       </FormLabel>
       <FormLabel display="flex" flexDirection="row" mr={5}>type
-        <Select size="xs" onChange={(e)=>setType(e.target.value)} ml={5} value={type}>
-            <option value=""></option>
-            <option value="categorical">categorical</option>
-            <option value="numeric">numeric</option>
-            <option value="date">date</option>
-            <option value="qualitative">qualitative</option>
-            <option value="boundary">boundary</option>
-            <option value="checkbox">checkbox</option>
+        <Select size="xs" ml={5} value={attrType} onChange={(e)=>setAttrType(e.target.value as AttributeType)}>
+          <option value={""}></option>
+          {attributeTypes.map(aType => {
+            return (<option key={aType} value={aType} data-testid="attr-type-option">{aType}</option>)})
+          }
         </Select>
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">unit:
-        <Input size="xs" ref={unitRef} placeholder="unit" ml={5}
-          value={unit} onFocus={(e) => e.target.select()}
-          onChange={event => setUnit(event.target.value)}
-        />
+        <Input size="xs" placeholder="unit" ml={5} value={unit} onFocus={(e) => e.target.select()}
+          onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input" />
+      </FormLabel>
+      <FormLabel display="flex" flexDirection="row">precision:
+        <NumberInput size="xs" min={0} ml={5} data-testid="attr-precision-input"
+          value={parseInt(precision,10)|| 3} onFocus={(e) => e.target.select()}
+          onChange={value => onPrecisionChange(value)} >
+          <NumberInputField placeholder="precision" />
+          <NumberInputStepper>
+            <NumberIncrementStepper data-testid="precision-input-increment-up"/>
+            <NumberDecrementStepper data-testid="precision-input-incement-down"/>
+          </NumberInputStepper>
+        </NumberInput>
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">editable
-        <RadioGroup onChange={setEditable} value={editable} ml={5} ref={editableRef}>
+        <RadioGroup value={editable} ml={5} onChange={(value)=>setEditable(value)} data-testid="attr-editable-radio">
           <HStack>
             <Radio value="true">True</Radio>
             <Radio value="false">False</Radio>
@@ -68,28 +74,63 @@ export const EditAttributePorpertiesModalContent = ({column}: IEditAttributePorp
 }
 
 interface IProps {
-  column: CalculatedColumn<TRow, unknown>
-  isOpen: boolean
-  onClose: () => void
+  column: CalculatedColumn<TRow, unknown>;
+  isOpen: boolean;
+  onClose: () => void;
+  onModalOpen: (open: boolean) => void
 }
 
 // eslint-disable-next-line react/display-name
-export const EditAttributePropertiesModal = forwardRef(({column, isOpen, onClose}: IProps,
+export const EditAttributePropertiesModal = ({column, isOpen, onClose, onModalOpen}: IProps,
     ref: any) => {
+  const data = useDataSetContext()
+  const columnNameStr = column.name as string
+  const attribute = data?.attrFromName(columnNameStr)
+  const [attributeName, setAttributeName] = useState(columnNameStr || "attribute")
+  const [description, setDescription] = useState("")
+  const [unit, setUnit] = useState("")
+  const [precision, setPrecision] = useState(3)
+  const [attrType, setAttrType] = useState<AttributeType>("numeric")
+  const [editable, setEditable] = useState("true")
+
+  useEffect(() => {
+    setAttributeName(columnNameStr)
+  },[columnNameStr])
+
+  const handlePrecisionChange = (value: string) => {
+    setPrecision(parseInt(value, 10))
+  }
+
   const editProperties = () => {
     onClose()
+    onModalOpen(false)
+
+    if (attribute) {
+      attribute.setName(attributeName)
+      attribute.setUserDescription(description)
+      attribute.setUserType(attrType)
+      attribute.setUnits(unit)
+      attribute.setUserFormat(precision.toString())
+      attribute.setUserEditable(editable === "true")
+    }
+  }
+  const closeModal = () => {
+    onClose()
+    onModalOpen(false)
   }
 
   return (
     <CodapModal
-      ref={ref}
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={closeModal}
       title="Attribute Properties"
       hasCloseButton={true}
       Content={EditAttributePorpertiesModalContent}
-      contentProps={{column}}
-      buttons={[{ label: "Cancel", onClick: onClose },{ label: "Apply", onClick: editProperties}]}
+      contentProps={{column, attribute, attributeName, description, unit, precision, attrType, editable,
+        setAttributeName, setDescription, setUnit, setAttrType, setEditable,
+        onPrecisionChange: handlePrecisionChange
+      }}
+      buttons={[{ label: "Cancel", onClick: closeModal },{ label: "Apply", onClick: editProperties}]}
     />
   )
-})
+}

@@ -60,11 +60,13 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         ? [
             indexColumn,
             // attribute column definitions
-            ...data.attributes.map(({ id, name, hidden }) => ({
+            ...data.attributes.map(({ id, name, hidden, units, userFormat }) => ({
               key: id,
               name,
               hidden,
               resizable: true,
+              units,
+              userFormat,
               headerCellClass: "codap-column-header",
               headerRenderer: ColumnHeader,
               cellClass: "codap-data-cell",

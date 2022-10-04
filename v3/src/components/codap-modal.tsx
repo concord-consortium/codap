@@ -1,7 +1,7 @@
 import { Modal,
   ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Button } from "@chakra-ui/react"
-import React, { forwardRef, useEffect } from "react"
+import React, { forwardRef } from "react"
 
 import "./codap-modal.scss"
 
@@ -30,32 +30,10 @@ interface IProps<TContentProps> {
   onCustomClose?: () => void
 }
 
-const isClickInElement = (click: MouseEvent, elt: HTMLElement | null) => {
-  const bounds = elt?.getBoundingClientRect()
-  return !!bounds && (bounds.left <= click.clientX) && (click.clientX <= bounds.right) &&
-                      (bounds.top <= click.clientY) && (click.clientY <= bounds.bottom)
-}
 // eslint-disable-next-line react/display-name
 export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
   className, Icon, title, Content, contentProps, hasCloseButton, buttons, onCustomClose
 }: IProps<IContentProps>, ref: React.LegacyRef<HTMLElement> | undefined) => {
-  const portal = Array.from(document.querySelectorAll(".chakra-portal")).pop()
-  useEffect(() => {
-    const codapModalContent = portal?.querySelector(".codap-modal-content")
-
-    const handleClick = (e: MouseEvent) => {
-      console.log(e)
-      const buttonEls = codapModalContent?.querySelectorAll("button")
-      const radios = codapModalContent?.querySelectorAll("input[type=radio]")
-      const buttonItems = buttonEls && Array.from(buttonEls)
-      const radioItems = radios && Array.from(radios) as HTMLElement[]
-      const clickedItem = Array.from(buttonItems || radioItems || [])
-                            .find(item => isClickInElement(e, item))
-      clickedItem?.dispatchEvent(new MouseEvent(e.type, e))
-    }
-    codapModalContent?.addEventListener("click", handleClick)
-    return () => codapModalContent?.removeEventListener("click", handleClick)
-  }, [portal])
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal">

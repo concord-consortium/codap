@@ -4,21 +4,23 @@ import { CalculatedColumn } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties"
-import { createPortal } from "react-dom"
+import { CaseTablePortal } from "./case-table-portal"
 
 interface IProps {
   column: CalculatedColumn<TRow, unknown>
   onRenameAttribute: () => void
+  onModalOpen: (open: boolean) => void
 }
 
 // eslint-disable-next-line react/display-name
-export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAttribute, column}, ref) => {
+export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
+    ({ column, onRenameAttribute, onModalOpen }, ref) => {
   const toast = useToast()
   const data = useDataSetContext()
-  const {isOpen, onOpen, onClose} = useDisclosure()
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const handleMenuItemClick = (menuItem: string) => {
-      toast({
+    toast({
       title: 'Menu item clicked',
       description: `You clicked on ${menuItem} on ${column.name}`,
       status: 'success',
@@ -38,24 +40,30 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAt
     attrId && data?.removeAttribute(attrId)
   }
 
-  const handleEditAttributeProps  = () => {
+  const handleEditAttributeProps = () => {
     onOpen()
+    onModalOpen(true)
   }
 
   return (
-    <MenuList ref={ref} data-testid="attribute-menu-list">
-      <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Edit Attribute Properties")}>Edit Attribute Properties...</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Delete Formula")}>Delete Formula (Keeping Values)</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
-      <MenuItem onClick={handleHideAttribute}>Hide Attribute</MenuItem>
-      {/* temporary until table tool palette is implemented */}
-      <MenuItem onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
-      <MenuItem onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
-    </MenuList>
+    <>
+      <MenuList ref={ref} data-testid="attribute-menu-list">
+        <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
+        <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Delete Formula")}>Delete Formula (Keeping Values)</MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
+        <MenuItem onClick={handleHideAttribute}>Hide Attribute</MenuItem>
+        {/* temporary until table tool palette is implemented */}
+        <MenuItem onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
+        <MenuItem onClick={() => handleDeleteAttribute()}>Delete Attribute</MenuItem>
+      </MenuList>
+      <CaseTablePortal>
+        <EditAttributePropertiesModal column={column} isOpen={isOpen} onClose={onClose} onModalOpen={onModalOpen} />
+      </CaseTablePortal>
+    </>
   )
 })

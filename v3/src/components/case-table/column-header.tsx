@@ -19,6 +19,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const menuListElt = useRef<HTMLDivElement>(null)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
+  const [modalIsOpen, setModalIsOpen] = useState(false)
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
 
@@ -56,15 +57,29 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     setEditingAttrId(column.key)
     setEditingAttrName(column.name as string)
   }
+
+  const handleModalOpen = (open: boolean) => {
+    setModalIsOpen(open)
+  }
+
+  const hasUnit = () => {
+    if (data?.attrFromID(column.key)?.units) {
+      return ` (${data?.attrFromID(column.key).units})`
+    } else {
+      return ""
+    }
+  }
+
   return (
     <Menu isLazy>
       {({ isOpen }) => {
+        const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
         isMenuOpen.current = isOpen
         return (
           <>
             <Tooltip label={column.name || "attribute"} h="20px" fontSize="12px" color="white"
                 openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
-                isDisabled={dragging || isOpen || editingAttrId === column.key} closeOnMouseDown={true}>
+                isDisabled={disableTooltip} >
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
                 { editingAttrId
                   ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
@@ -73,11 +88,13 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                     />
                   : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
                         fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
-                      {column?.name}
+                      {`${column?.name}${hasUnit()}`}
                     </MenuButton>
                 }
                 <CaseTablePortal>
-                  <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}/>
+                  <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}
+                    onModalOpen={handleModalOpen}
+                  />
                 </CaseTablePortal>
                 {column &&
                   <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
