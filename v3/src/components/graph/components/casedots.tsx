@@ -31,11 +31,12 @@ export const CaseDots = memo(function CaseDots(props: {
     yScale = layout.axisScale('left') as ScaleNumericBaseType
 
   useEffect(function initDistribution() {
+    const { cases } = dataset || {}
     const uniform = randomUniform()
-    dataset?.cases.forEach(({__id__}) => {
+    cases?.forEach(({__id__}) => {
       randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
     })
-  }, [dataset?.cases])
+  }, [dataset])
 
   const onDragStart = useCallback((event: MouseEvent) => {
       enableAnimation.current = false // We don't want to animate points until end of drag
