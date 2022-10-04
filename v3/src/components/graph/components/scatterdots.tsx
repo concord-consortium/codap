@@ -50,14 +50,15 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
-        xAttrID && yAttrID && dataset?.selection.forEach(anID => {
+        const { selection } = dataConfig || {}
+        xAttrID && yAttrID && selection?.forEach(anID => {
           selectedDataObjects.current[anID] = {
             x: dataset?.getNumeric(anID, xAttrID) ?? 0,
             y: dataset?.getNumeric(anID, yAttrID) ?? 0
           }
         })
       }
-    }, [dataset, pointRadius, xAttrID, yAttrID, enableAnimation]),
+    }, [dataConfig, dataset, enableAnimation, pointRadius, xAttrID, yAttrID]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
@@ -69,8 +70,9 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           didDrag.current = true
           const deltaX = Number(xScale.invert(dx)) - Number(xScale.invert(0)),
             deltaY = Number(yScale.invert(dy)) - Number(yScale.invert(0)),
-            caseValues: ICase[] = []
-          xAttrID && yAttrID && dataset?.selection.forEach(anID => {
+            caseValues: ICase[] = [],
+            { selection } = dataConfig || {}
+          xAttrID && yAttrID && selection?.forEach(anID => {
             const currX = Number(dataset?.getNumeric(anID, xAttrID)),
               currY = Number(dataset?.getNumeric(anID, yAttrID))
             if (isFinite(currX) && isFinite(currY)) {
@@ -84,7 +86,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           caseValues.length && dataset?.setCaseValues(caseValues)
         }
       }
-    }, [dataset, dragID, xAttrID, xScale, yAttrID, yScale]),
+    }, [dataConfig, dataset, dragID, xAttrID, xScale, yAttrID, yScale]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -99,8 +101,9 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
         target.current = null
 
         if (didDrag.current) {
-          const caseValues: ICase[] = []
-          xAttrID && yAttrID && dataset?.selection.forEach(anID => {
+          const caseValues: ICase[] = [],
+            { selection } = dataConfig || {}
+          xAttrID && yAttrID && selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
               [xAttrID]: selectedDataObjects.current[anID].x,
@@ -112,7 +115,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           didDrag.current = false
         }
       }
-    }, [dataset, pointRadius, dragID, xAttrID, yAttrID, enableAnimation])
+    }, [dataConfig, dataset, dragID, pointRadius, xAttrID, yAttrID, enableAnimation])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -134,6 +137,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
   }, [dataset, pointRadius, selectedPointRadius, dotsRef, xAttrID, xScale, yAttrID, yScale, enableAnimation])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
+    const { cases, selection } = dataConfig || {}
     const updateDot = (caseId: string) => {
       const dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
       if (dot) {
@@ -147,11 +151,11 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
       }
     }
     if (selectedOnly) {
-      dataset?.selection.forEach(caseId => updateDot(caseId))
+      selection?.forEach(caseId => updateDot(caseId))
     } else {
-      dataConfig?.cases.forEach(anID => updateDot(anID))
+      cases?.forEach(anID => updateDot(anID))
     }
-  }, [dataConfig?.cases, dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
+  }, [dataConfig, dataset, dotsRef, instanceId, xAttrID, xScale, yAttrID, yScale])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (appState.isPerformanceMode) {

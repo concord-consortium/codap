@@ -86,6 +86,11 @@ export const DataConfigurationModel = types
     },
     get cases() {
       return self.filteredCases?.caseIds || []
+    },
+    get selection() {
+      if (!self.dataset || !self.filteredCases) return []
+      const selection = Array.from(self.dataset.selection)
+      return selection.filter(caseId => self.filteredCases?.hasCaseId(caseId))
     }
   }))
   .actions(self => ({
@@ -101,6 +106,7 @@ export const DataConfigurationModel = types
       else {
         self.attributeDescriptions.delete(place)
       }
+      self.filteredCases?.invalidateCases()
     }
   }))
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {}

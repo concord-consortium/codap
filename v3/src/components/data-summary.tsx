@@ -60,7 +60,11 @@ export const DataSummary = observer(({ broker, v2Document }: IProps) => {
 
   return (
     <div ref={setNodeRef} className="data-summary">
-      <p>{data ? `Parsed "${data.name}" with ${data.cases.length} case(s) and...` : "No data"}</p>
+      <p>
+        {data
+          ? `Parsed "${data.name}" with ${data.cases.length} case(s) (${data.selection.size} selected) and...`
+          : "No data"}
+      </p>
       {componentList &&
         <div className="data-components">
           <div className="data-components-title"><b>Components</b></div>

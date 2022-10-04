@@ -34,6 +34,7 @@
   of people on the planet for whom that reference makes any sense.
  */
 
+import { observable } from "mobx"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot, IValueType } from "./attribute"
 import { CollectionModel, ICollectionModelSnapshot } from "./collection"
@@ -159,7 +160,7 @@ export const DataSet = types.model("DataSet", {
 })
 .volatile(self => ({
   transactionCount: 0,
-  selection: new Set<string>(),
+  selection: observable.set<string>(),
   cachingCount: 0,
   caseCache: new Map<string, ICase>()
 }))
