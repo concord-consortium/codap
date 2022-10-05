@@ -103,8 +103,8 @@ export class GraphController {
         setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
       }
     } else if (attributeType === 'categorical') {
-      const setOfValues = new Set(attribute?.strValues)
-      setOfValues.delete('')  // To eliminate category for empty values
+      const setOfValues = new Set(dataConfig.attributeValuesForPlace(graphAttributePlace))
+      setOfValues.delete('')
       const categories = Array.from(setOfValues)
       if (currentAxisType !== attributeType) {
         const newAxisModel = CategoricalAxisModel.create({place: axisPlace})

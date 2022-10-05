@@ -93,6 +93,21 @@ export const DataConfigurationModel = types
       return selection.filter(caseId => self.filteredCases?.hasCaseId(caseId))
     }
   }))
+  .views(self => ({
+    attributeValuesForPlace(place:GraphAttrPlace):string[] {
+      const attrID = self.attributeID(place),
+        dataset = self.dataset
+      return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID))) : []
+    },
+    categorySetForPlace(place:GraphAttrPlace):Set<string> {
+      const result:Set<string> = new Set(this.attributeValuesForPlace(place))
+      result.delete('')
+      if(result.size === 0) {
+        result.add('__main__')
+      }
+      return result
+    }
+  }))
   .actions(self => ({
     setDataset(dataset: IDataSet) {
       self.dataset = dataset
