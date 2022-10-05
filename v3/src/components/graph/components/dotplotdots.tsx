@@ -57,14 +57,15 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
-        dataset?.selection.forEach(anID => {
+        const { selection } = dataConfig || {}
+        selection?.forEach(anID => {
           const itsValue = primaryAttributeID && dataset?.getNumeric(anID, primaryAttributeID) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
         })
       }
-    }, [dataset, dragPointRadius, primaryPlace, primaryAttributeID, enableAnimation]),
+    }, [dataConfig, dataset, dragPointRadius, primaryPlace, primaryAttributeID, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
@@ -74,8 +75,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         if (deltaPixels !== 0) {
           didDrag.current = true
           const delta = Number(primaryScale?.invert(deltaPixels)) - Number(primaryScale?.invert(0)),
-            caseValues: ICase[] = []
-          primaryAttributeID && dataset?.selection.forEach(anID => {
+            caseValues: ICase[] = [],
+            { selection } = dataConfig || {}
+          primaryAttributeID && selection?.forEach(anID => {
             const currValue = Number(dataset?.getNumeric(anID, primaryAttributeID))
             if (isFinite(currValue)) {
               caseValues.push({ __id__: anID, [primaryAttributeID]: currValue + delta })
@@ -84,7 +86,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
           caseValues.length && dataset?.setCaseValues(caseValues)
         }
       }
-    }, [dataset, dragID, primaryAttributeID, primaryScale, primaryPlace]),
+    }, [dataConfig, dataset, dragID, primaryAttributeID, primaryPlace, primaryScale]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -99,8 +101,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
         target.current = null
 
         if (didDrag.current) {
-          const caseValues: ICase[] = []
-          primaryAttributeID && dataset?.selection.forEach(anID => {
+          const caseValues: ICase[] = [],
+                { selection } = dataConfig || {}
+          primaryAttributeID && selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
               [primaryAttributeID]: selectedDataObjects.current[anID]
@@ -111,7 +114,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots( props: IProps) {
           didDrag.current = false
         }
       }
-    }, [dataset, selectedPointRadius, dragID, enableAnimation, primaryAttributeID])
+    }, [dataConfig, dataset, selectedPointRadius, dragID, enableAnimation, primaryAttributeID])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 

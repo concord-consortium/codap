@@ -136,4 +136,25 @@ describe("DataConfigurationModel", () => {
     expect(config.cases).toEqual(["c1", "c2", "c3"])
   })
 
+  it("selection behaves as expected", () => {
+    const config = DataConfigurationModel.create()
+    config.setAttribute("x", { attributeID: "xId" })
+    expect(config.selection.length).toBe(0)
+
+    config.setDataset(data)
+    data.selectAll()
+    expect(config.selection.length).toBe(3)
+
+    config.setAttribute("x", { attributeID: "xId" })
+    expect(config.selection.length).toBe(2)
+
+    const selectionReaction = jest.fn()
+    const disposer = reaction(() => config.selection, () => selectionReaction())
+    expect(selectionReaction).toHaveBeenCalledTimes(0)
+    config.setAttribute("y", { attributeID: "yId" })
+    expect(config.selection.length).toBe(1)
+    expect(selectionReaction).toHaveBeenCalledTimes(1)
+    disposer()
+})
+
 })
