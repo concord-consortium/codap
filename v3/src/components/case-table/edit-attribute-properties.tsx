@@ -13,7 +13,7 @@ interface IEditAttributePorpertiesModalContentProps {
   attributeName: string;
   description: string;
   unit: string;
-  precision: string;
+  precision: number;
   attrType: AttributeType;
   editable: string;
   setAttributeName: (name: string) => void;
@@ -52,7 +52,7 @@ export const EditAttributePorpertiesModalContent = ({attribute, attributeName, d
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">precision:
         <NumberInput size="xs" min={0} ml={5} data-testid="attr-precision-input"
-          value={parseInt(precision,10)|| 3} onFocus={(e) => e.target.select()}
+          value={precision || 3} onFocus={(e) => e.target.select()}
           onChange={value => onPrecisionChange(value)} >
           <NumberInputField placeholder="precision" />
           <NumberInputStepper>
