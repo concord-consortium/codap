@@ -133,7 +133,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         secondaryRangeIndex = primaryIsBottom ? 0 : 1,
         secondaryMax = Number(secondaryScale?.range()[secondaryRangeIndex]),
         secondaryExtent = Math.abs(Number(secondaryScale?.range()[0] - secondaryScale?.range()[1])),
-        secondaryBandwidth = secondaryScale.bandwidth ? secondaryScale.bandwidth() : secondaryExtent,
+        secondaryBandwidth = secondaryScale.bandwidth?.() ?? secondaryExtent,
         secondarySign = primaryIsBottom ? -1 : 1,
         baseCoord = primaryIsBottom ? secondaryMax : 0,
         binMap: Record<string, { category: string, indexInBin: number }> = {}
@@ -142,7 +142,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       function computeBinPlacements() {
         const numBins = Math.ceil(primaryLength / pointDiameter) + 1,
           binWidth = primaryLength / (numBins - 1),
-          bins: Record<string, string[][]> = {} // range(numBins + 1).map(() => [])
+          bins: Record<string, string[][]> = {}
 
         primaryAttrID && dataConfig?.cases.forEach((anID) => {
           const numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttrID) ?? -1),
@@ -157,7 +157,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
           }
         })
         const maxInBin = Object.values(bins).reduce((prevMax, aBinArray) => {
-            return Math.max(prevMax, max(aBinArray, (b => b.length)) || 0) + 1
+            return Math.max(prevMax, max(aBinArray, b => b.length) || 0) + 1
           }, 0),
           excessHeight = Math.max(0, maxInBin - Math.floor(secondaryMax / pointDiameter)) * pointDiameter
         overlap = excessHeight / maxInBin
@@ -166,11 +166,11 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       computeBinPlacements()
 
       const computeSecondaryCoord = (category: string, indexInBin: number) => {
-        let catCoord = !!category && category !== '__main__' && secondaryScale ? secondaryScale(category) : 0
-        if(primaryIsBottom) {
-          catCoord = secondaryExtent - secondaryBandwidth - (catCoord ?? 0)
+        let catCoord = !!category && category !== '__main__' ? secondaryScale?.(category) ?? 0 : 0
+        if (primaryIsBottom) {
+          catCoord = secondaryExtent - secondaryBandwidth - catCoord
         }
-        return baseCoord + secondarySign * ((catCoord ?? 0) + pointDiameter / 2 +
+        return baseCoord + secondarySign * (catCoord + pointDiameter / 2 +
           indexInBin * (pointDiameter - overlap))
       }
 

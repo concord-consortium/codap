@@ -11,7 +11,7 @@ import {
   CategoricalAxisModel,
   ICategoricalAxisModel,
   INumericAxisModel,
-  NumericAxisModel, axisPlaceToGraphAttrPlace
+  NumericAxisModel, axisPlaceToAttrPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
@@ -68,12 +68,12 @@ export class GraphController {
 
   handleAttributeAssignment(axisPlace: AxisPlace, attrID: string) {
     const {dataset, dataConfig, graphModel, layout} = this,
-      attrPlace = axisPlaceToGraphAttrPlace(axisPlace),
+      graphAttributePlace = axisPlaceToAttrPlace[axisPlace],
       attribute = dataset?.attrFromID(attrID),
       attributeType = attribute?.type ?? 'empty',
       otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
-      otherAttrPlace = axisPlaceToGraphAttrPlace(otherAxisPlace),
-      otherAttrID = graphModel.getAttributeID(axisPlaceToGraphAttrPlace(otherAxisPlace)),
+      otherAttrPlace = axisPlaceToAttrPlace[otherAxisPlace],
+      otherAttrID = graphModel.getAttributeID(axisPlaceToAttrPlace[otherAxisPlace]),
       otherAttribute = dataset?.attrFromID(otherAttrID),
       otherAttributeType = otherAttribute?.type ?? 'empty',
       axisModel = graphModel.getAxis(axisPlace),
@@ -83,13 +83,15 @@ export class GraphController {
         numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
         categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
       },
-      graphAttributePlace = axisPlaceToGraphAttrPlace(axisPlace),
-      attrSnapshot: IAttributeDescriptionSnapshot = {attributeID: attrID},
+      attrDescSnapshot: IAttributeDescriptionSnapshot = {attributeID: attrID},
+      // Numeric attributes get priority for primaryPlace when present. First one that is already present
+      // and then the newly assigned one. If there is an already assigned categorical then its place is
+      // the primaryPlace, or, lastly, the newly assigned place
       primaryPlace = otherAttributeType === 'numeric' ? otherAttrPlace :
-        attributeType === 'numeric' ? attrPlace :
-          otherAttributeType !== 'empty' ? otherAttrPlace : attrPlace
+        attributeType === 'numeric' ? graphAttributePlace :
+          otherAttributeType !== 'empty' ? otherAttrPlace : graphAttributePlace
     dataConfig.setPrimaryPlace(primaryPlace)
-    dataConfig.setAttribute(graphAttributePlace, attrSnapshot)
+    dataConfig.setAttribute(graphAttributePlace, attrDescSnapshot)
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {
