@@ -2,14 +2,11 @@ import { FormControl, FormLabel, HStack, Input, NumberDecrementStepper, NumberIn
   NumberInputField, NumberInputStepper, Radio, RadioGroup, Select, Textarea }
   from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
-import { CalculatedColumn } from "react-data-grid"
-import { AttributeType, attributeTypes, IAttribute } from "../../data-model/attribute"
+import { AttributeType, attributeTypes } from "../../data-model/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
-import { TRow } from "./case-table-types"
 
 interface IEditAttributePorpertiesModalContentProps {
-  attribute: IAttribute;
   attributeName: string;
   description: string;
   unit: string;
@@ -24,9 +21,19 @@ interface IEditAttributePorpertiesModalContentProps {
   onPrecisionChange: (precision: string) => void;
 }
 
-export const EditAttributePorpertiesModalContent = ({attribute, attributeName, description, unit, precision, attrType,
+export const EditAttributePorpertiesModalContent = ({attributeName, description, unit, precision, attrType,
     editable, setAttributeName, setDescription, setUnit, setAttrType, setEditable, onPrecisionChange
   }: IEditAttributePorpertiesModalContentProps) => {
+
+  // TODO: Uncomment when NumberInputStepper is re-implemented. Otherwise the clicks where not being
+  //        captured by the stepper elements
+  // const handlePrecisionIncrement = () => {
+  //   onPrecisionChange((precision + 1).toString())
+  // }
+
+  // const handlePrecisionDecrement = () => {
+  //   precision > 0 && onPrecisionChange((precision - 1).toString())
+  // }
 
   return (
     <FormControl display="flex" flexDirection="column" w={350}>
@@ -51,14 +58,18 @@ export const EditAttributePorpertiesModalContent = ({attribute, attributeName, d
           onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input" />
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">precision:
-        <NumberInput size="xs" min={0} ml={5} data-testid="attr-precision-input"
-          value={precision || 3} onFocus={(e) => e.target.select()}
-          onChange={value => onPrecisionChange(value)} >
+        <NumberInput size="xs" min={0} ml={5} data-testid="attr-precision-input" value={precision}
+          onFocus={(e) => e.target.select()} onChange={value => onPrecisionChange(value)} >
           <NumberInputField placeholder="precision" />
-          <NumberInputStepper>
-            <NumberIncrementStepper data-testid="precision-input-increment-up"/>
-            <NumberDecrementStepper data-testid="precision-input-incement-down"/>
-          </NumberInputStepper>
+          {/* TODO: There's a weird behavior in the ui that when you click on the stepper, the number input element
+                    loses focus and the first input element in the modal gets the focus. Seems like the modal is getting
+                    blurred and refocused when you click on the stepper. And when the modal is refocused, it focuses on
+                    the first input element in the modal */}
+          {/* <NumberInputStepper>
+            <NumberIncrementStepper onClick={handlePrecisionIncrement}
+            data-testid="precision-input-increment-up"/>
+            <NumberDecrementStepper onClick={handlePrecisionDecrement} data-testid="precision-input-incement-down"/>
+          </NumberInputStepper> */}
         </NumberInput>
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">editable
@@ -74,19 +85,18 @@ export const EditAttributePorpertiesModalContent = ({attribute, attributeName, d
 }
 
 interface IProps {
-  column: CalculatedColumn<TRow, unknown>;
+  columnName: string
   isOpen: boolean;
   onClose: () => void;
   onModalOpen: (open: boolean) => void
 }
 
 // eslint-disable-next-line react/display-name
-export const EditAttributePropertiesModal = ({column, isOpen, onClose, onModalOpen}: IProps,
+export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onModalOpen}: IProps,
     ref: any) => {
   const data = useDataSetContext()
-  const columnNameStr = column.name as string
-  const attribute = data?.attrFromName(columnNameStr)
-  const [attributeName, setAttributeName] = useState(columnNameStr || "attribute")
+  const attribute = data?.attrFromName(columnName)
+  const [attributeName, setAttributeName] = useState(columnName || "attribute")
   const [description, setDescription] = useState("")
   const [unit, setUnit] = useState("")
   const [precision, setPrecision] = useState(3)
@@ -94,8 +104,8 @@ export const EditAttributePropertiesModal = ({column, isOpen, onClose, onModalOp
   const [editable, setEditable] = useState("true")
 
   useEffect(() => {
-    setAttributeName(columnNameStr)
-  },[columnNameStr])
+    setAttributeName(columnName)
+  },[columnName])
 
   const handlePrecisionChange = (value: string) => {
     setPrecision(parseInt(value, 10))
@@ -126,7 +136,7 @@ export const EditAttributePropertiesModal = ({column, isOpen, onClose, onModalOp
       title="Attribute Properties"
       hasCloseButton={true}
       Content={EditAttributePorpertiesModalContent}
-      contentProps={{column, attribute, attributeName, description, unit, precision, attrType, editable,
+      contentProps={{attributeName, description, unit, precision, attrType, editable,
         setAttributeName, setDescription, setUnit, setAttrType, setEditable,
         onPrecisionChange: handlePrecisionChange
       }}

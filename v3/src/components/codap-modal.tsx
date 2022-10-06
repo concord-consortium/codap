@@ -35,6 +35,17 @@ export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
   className, Icon, title, Content, contentProps, hasCloseButton, buttons, onCustomClose
 }: IProps<IContentProps>, ref: React.LegacyRef<HTMLElement> | undefined) => {
 
+  const handleModalKeydown = (e:React.KeyboardEvent, clickHandler: any) => {
+    const { key } = e
+    e.stopPropagation()
+    switch (key) {
+      case "Space":
+      case "Enter":
+        clickHandler()
+        break
+    }
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal">
       <ModalOverlay />
@@ -53,7 +64,9 @@ export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
           {buttons.map((b: any, i)=>{
             const key = `${i}-${b.className}`
             return (
-              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}>
+              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}
+                onKeyDown={(e)=>handleModalKeydown(e, b.onClick)}
+              >
                 {b.label}
               </Button>
             )

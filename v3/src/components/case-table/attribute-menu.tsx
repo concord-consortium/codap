@@ -4,7 +4,6 @@ import { CalculatedColumn } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties"
-import { CaseTablePortal } from "./case-table-portal"
 
 interface IProps {
   column: CalculatedColumn<TRow, unknown>
@@ -61,9 +60,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
         <MenuItem onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
         <MenuItem onClick={() => handleDeleteAttribute()}>Delete Attribute</MenuItem>
       </MenuList>
-      <CaseTablePortal>
-        <EditAttributePropertiesModal column={column} isOpen={isOpen} onClose={onClose} onModalOpen={onModalOpen} />
-      </CaseTablePortal>
+      <EditAttributePropertiesModal columnName={column.name as string} isOpen={isOpen} onClose={onClose}
+          onModalOpen={onModalOpen} />
     </>
   )
 })
