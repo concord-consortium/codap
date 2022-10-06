@@ -2,7 +2,8 @@ import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
-import {DataConfigurationModel, IDataConfigurationModel} from "./data-configuration-model"
+import {DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
+  from "./data-configuration-model"
 import {IDataSet} from "../../../data-model/data-set"
 import {
   AxisPlace,
@@ -10,7 +11,7 @@ import {
   CategoricalAxisModel,
   ICategoricalAxisModel,
   INumericAxisModel,
-  NumericAxisModel
+  NumericAxisModel, axisPlaceToAttrPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
@@ -19,9 +20,9 @@ export interface IGraphControllerProps {
   graphModel: IGraphModel
   layout: GraphLayout
   dataset: IDataSet | undefined
-  enableAnimation:  React.MutableRefObject<boolean>
-  instanceId:string
-  dotsRef:React.RefObject<SVGSVGElement>
+  enableAnimation: React.MutableRefObject<boolean>
+  instanceId: string
+  dotsRef: React.RefObject<SVGSVGElement>
 }
 
 export class GraphController {
@@ -29,9 +30,9 @@ export class GraphController {
   layout: GraphLayout
   dataset: IDataSet | undefined
   dataConfig: IDataConfigurationModel
-  enableAnimation:  React.MutableRefObject<boolean>
-  instanceId:string
-  dotsRef:React.RefObject<SVGSVGElement>
+  enableAnimation: React.MutableRefObject<boolean>
+  instanceId: string
+  dotsRef: React.RefObject<SVGSVGElement>
 
 
   constructor(props: IGraphControllerProps) {
@@ -42,7 +43,7 @@ export class GraphController {
     this.instanceId = props.instanceId
     this.enableAnimation = props.enableAnimation
     this.dotsRef = props.dotsRef
-    if( this.dataset) {
+    if (this.dataset) {
       this.dataConfig.setDataset(this.dataset)
     }
     // Presumably a new dataset is now being used. So we have to set things up for an empty graph
@@ -55,38 +56,48 @@ export class GraphController {
       axes: {bottom: EmptyAxisModel.create({place: 'bottom'}), left: EmptyAxisModel.create({place: 'left'})},
       plotType: 'casePlot', config: this.dataConfig
     })
-    if(dotsRef.current) {
-      matchCirclesToData({caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
-       pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId})
+    if (dotsRef.current) {
+      matchCirclesToData({
+        caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
+        pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
+      })
     }
     layout.setAxisScale('bottom', scaleOrdinal())
     layout.setAxisScale('left', scaleOrdinal())
   }
 
-  handleAttributeAssignment(place: AxisPlace, attrID:string) {
-    const {dataset, graphModel, layout } = this,
+  handleAttributeAssignment(axisPlace: AxisPlace, attrID: string) {
+    const {dataset, dataConfig, graphModel, layout} = this,
+      graphAttributePlace = axisPlaceToAttrPlace[axisPlace],
       attribute = dataset?.attrFromID(attrID),
       attributeType = attribute?.type ?? 'empty',
-      otherPlace = place === 'bottom' ? 'y' : 'x',
-      otherAttrID = graphModel.getAttributeID(otherPlace),
+      otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
+      otherAttrPlace = axisPlaceToAttrPlace[otherAxisPlace],
+      otherAttrID = graphModel.getAttributeID(axisPlaceToAttrPlace[otherAxisPlace]),
       otherAttribute = dataset?.attrFromID(otherAttrID),
       otherAttributeType = otherAttribute?.type ?? 'empty',
-      axisModel = graphModel.getAxis(place),
+      axisModel = graphModel.getAxis(axisPlace),
       currentAxisType = axisModel?.type,
       plotChoices: Record<string, Record<string, PlotType>> = {
         empty: {empty: 'casePlot', numeric: 'dotPlot', categorical: 'dotChart'},
         numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
         categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
       },
-      attrIDs: string[] = []
-    attributeType !== 'empty' && attrIDs.push(attrID)
-    otherAttributeType !== 'empty' && attrIDs.push(otherAttrID)
+      attrDescSnapshot: IAttributeDescriptionSnapshot = {attributeID: attrID},
+      // Numeric attributes get priority for primaryPlace when present. First one that is already present
+      // and then the newly assigned one. If there is an already assigned categorical then its place is
+      // the primaryPlace, or, lastly, the newly assigned place
+      primaryPlace = otherAttributeType === 'numeric' ? otherAttrPlace :
+        attributeType === 'numeric' ? graphAttributePlace :
+          otherAttributeType !== 'empty' ? otherAttrPlace : graphAttributePlace
+    dataConfig.setPrimaryPlace(primaryPlace)
+    dataConfig.setAttribute(graphAttributePlace, attrDescSnapshot)
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {
-        const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
-        graphModel.setAxis(place, newAxisModel as INumericAxisModel)
-        layout.setAxisScale(place, scaleLinear())
+        const newAxisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
+        graphModel.setAxis(axisPlace, newAxisModel as INumericAxisModel)
+        layout.setAxisScale(axisPlace, scaleLinear())
         setNiceDomain(attribute?.numValues || [], newAxisModel)
       } else {
         setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
@@ -96,17 +107,16 @@ export class GraphController {
       setOfValues.delete('')  // To eliminate category for empty values
       const categories = Array.from(setOfValues)
       if (currentAxisType !== attributeType) {
-        const newAxisModel = CategoricalAxisModel.create({place})
-        graphModel.setAxis(place, newAxisModel as ICategoricalAxisModel)
-        layout.setAxisScale(place, scaleBand())
+        const newAxisModel = CategoricalAxisModel.create({place: axisPlace})
+        graphModel.setAxis(axisPlace, newAxisModel as ICategoricalAxisModel)
+        layout.setAxisScale(axisPlace, scaleBand())
       }
-      layout.axisScale(place)?.domain(categories)
+      layout.axisScale(axisPlace)?.domain(categories)
     }
-
   }
 
-  setDotsRef(dotsRef:React.RefObject<SVGSVGElement>) {
+  setDotsRef(dotsRef: React.RefObject<SVGSVGElement>) {
     this.dotsRef = dotsRef
-}
+  }
 
 }

@@ -157,4 +157,13 @@ describe("DataConfigurationModel", () => {
     disposer()
 })
 
+  it("only allows x and y as primary place", () => {
+    const config = DataConfigurationModel.create()
+    config.setDataset(data)
+    config.setPrimaryPlace('y')
+    expect(config.primaryPlace).toBe("y")
+    config.setPrimaryPlace('caption')
+    expect(config.primaryPlace).toBe("y")
+  })
+
 })

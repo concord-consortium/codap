@@ -12,8 +12,6 @@ interface IProps {
   instanceId: string | undefined
 }
 
-
-
 export function useGraphModel(props:IProps) {
   const {graphModel, enableAnimation, dotsRef, instanceId} = props,
     dataConfig = graphModel.config,
