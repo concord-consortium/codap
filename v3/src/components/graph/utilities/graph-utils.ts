@@ -1,11 +1,17 @@
 import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {Point, Rect,  rTreeRect} from "../graphing-types"
+import {Point, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math-utils"
 import {IDataSet} from "../../../data-model/data-set"
 import {ScaleNumericBaseType} from "../models/graph-layout"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {
+  defaultPointColor,
+  defaultSelectedColor,
+  defaultSelectedStroke,
+  defaultStrokeColor
+} from "../../../utilities/color-utils"
 
 /**
  * Utility routines having to do with graph entities
@@ -96,7 +102,7 @@ export function getPointTipText(dataset: IDataSet, caseID: string, attributeIDs:
 export interface IMatchCirclesProps {
   caseIDs: string[]
   dotsElement: SVGGElement | null
-  pointRadius:number
+  pointRadius: number
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string | undefined
 }
@@ -301,8 +307,8 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 export interface ISetPointSelection {
   dotsRef: React.RefObject<SVGSVGElement>
   dataset?: IDataSet
-  pointRadius:number,
-  selectedPointRadius:number
+  pointRadius: number,
+  selectedPointRadius: number
 }
 
 export function setPointSelection(props: ISetPointSelection) {
@@ -313,8 +319,11 @@ export function setPointSelection(props: ISetPointSelection) {
   dots.selectAll('circle')
     .classed('graph-dot-highlighted',
       (anID: string) => !!(dataset?.isCaseSelected(anID)))
-    .attr('r', (anID:string) => dataset?.isCaseSelected(anID) ? selectedPointRadius : pointRadius)
+    .attr('r', pointRadius)
+    .style('stroke', defaultStrokeColor)
   dots.selectAll('.graph-dot-highlighted')
+    .attr('r', selectedPointRadius)
+    .style('stroke', defaultSelectedStroke)
     .raise()
 }
 
@@ -326,14 +335,25 @@ export interface ISetPointCoordinates {
   selectedPointRadius: number
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string) => number | null)
+  getLegendColor?: ((anID: string) => string)
   duration?: number
   onComplete?: () => void
 }
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
+
+  const lookupLegendColor = (id:string) => {
+    const isSelected = dataset?.isCaseSelected(id),
+      legendColor = getLegendColor ? getLegendColor(id) : ''
+    return legendColor !== '' ? legendColor :
+      isSelected ? defaultSelectedColor : defaultPointColor
+  }
+
   const
-    {dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
-      getScreenX, getScreenY, duration = 0, onComplete} = props,
+    {
+      dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
+      getScreenX, getScreenY, getLegendColor, duration = 0, onComplete
+    } = props,
     selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
   if (duration > 0) {
     selection
@@ -342,11 +362,13 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', (id:string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
+      .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
+      .style('fill', (id: string) => lookupLegendColor(id))
   } else if (selection.size() > 0) {
     selection
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', (id:string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
+      .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
+      .style('fill', (id: string) => lookupLegendColor(id))
   }
 }

@@ -30,6 +30,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
     secondaryAxisPlace = attrPlaceToAxisPlace[secondaryAttrPlace] ?? 'left',
     secondaryAttrID = dataConfig?.attributeID(secondaryAttrPlace),
+    legendAttrID = dataConfig?.attributeID('legend'),
     primaryScale = layout.axisScale(primaryAxisPlace) as ScaleNumericBaseType,
     primaryLength = layout.axisLength(primaryAxisPlace),
     secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>,
@@ -190,7 +191,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
 
       setPointCoordinates({
         dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
-        getScreenX, getScreenY, duration, onComplete
+        getScreenX, getScreenY, getLegendColor: dataConfig?.getLegendColorForCase, duration, onComplete
       })
     },
     [dataConfig?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,

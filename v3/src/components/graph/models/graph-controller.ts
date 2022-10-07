@@ -94,7 +94,9 @@ export class GraphController {
           attrV2ID = (links[aKey] as IGuidLink<"DG.Attribute">).id,
           attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
           attribute = dataset?.attrFromName(attrName),
-          attrID = attribute?.id ?? ''
+          attrID = attribute?.id ?? '',
+          attrSnapshot = {attributeID: attrID}
+        dataConfig.setAttribute(attrPlace, attrSnapshot)
         graphModel.setAttributeID(attrPlace, attrID)
         if (['x', 'y'].includes(attrPlace)) {
           attrTypes[attrPlace] = attribute?.type ?? 'empty'
@@ -160,15 +162,13 @@ export class GraphController {
         setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
       }
     } else if (attributeType === 'categorical') {
-      const setOfValues = new Set(dataConfig.valuesForPlace(graphAttributePlace))
-      setOfValues.delete('')
-      const categories = Array.from(setOfValues)
+      const setOfValues = dataConfig.categorySetForPlace(graphAttributePlace)
       if (currentAxisType !== attributeType) {
         const newAxisModel = CategoricalAxisModel.create({place: axisPlace})
         graphModel.setAxis(axisPlace, newAxisModel as ICategoricalAxisModel)
         layout.setAxisScale(axisPlace, scaleBand())
       }
-      layout.axisScale(axisPlace)?.domain(categories)
+      layout.axisScale(axisPlace)?.domain(setOfValues)
     }
   }
 

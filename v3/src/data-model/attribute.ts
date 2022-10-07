@@ -31,7 +31,7 @@
   more like `math.js` but that decision can be left for another day.
  */
 
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import {IAnyType, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "./formula"
 import { uniqueId } from "../utilities/js-utils"
 
