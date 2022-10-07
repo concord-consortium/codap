@@ -1,6 +1,4 @@
-import { FormControl, FormLabel, HStack, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
-  NumberInputField, NumberInputStepper, Radio, RadioGroup, Select, Textarea }
-  from "@chakra-ui/react"
+import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { AttributeType, attributeTypes } from "../../data-model/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -10,7 +8,7 @@ interface IEditAttributePorpertiesModalContentProps {
   attributeName: string;
   description: string;
   unit: string;
-  precision: number;
+  precision: string;
   attrType: AttributeType;
   editable: string;
   setAttributeName: (name: string) => void;
@@ -18,40 +16,30 @@ interface IEditAttributePorpertiesModalContentProps {
   setUnit: (unit: string) => void;
   setAttrType: (type: AttributeType) => void;
   setEditable: (editable: string) => void;
-  onPrecisionChange: (precision: string) => void;
+  setPrecision: (precision: string) => void;
 }
 
 export const EditAttributePorpertiesModalContent = ({attributeName, description, unit, precision, attrType,
-    editable, setAttributeName, setDescription, setUnit, setAttrType, setEditable, onPrecisionChange
+    editable, setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision,
   }: IEditAttributePorpertiesModalContentProps) => {
-
-  // TODO: Uncomment when NumberInputStepper is re-implemented. Otherwise the clicks where not being
-  //        captured by the stepper elements
-  // const handlePrecisionIncrement = () => {
-  //   onPrecisionChange((precision + 1).toString())
-  // }
-
-  // const handlePrecisionDecrement = () => {
-  //   precision > 0 && onPrecisionChange((precision - 1).toString())
-  // }
 
   return (
     <FormControl display="flex" flexDirection="column" w={350}>
       <FormLabel display="flex" flexDirection="row">name:
         <Input size="xs" ml={5} placeholder="attribute" value={attributeName} onFocus={(e) => e.target.select()}
               onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input"
-              onKeyDown={(e)=>e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
         />
       </FormLabel>
       <FormLabel>description:
         <Textarea size="xs" placeholder="Describe the attribute" value={description} onFocus={(e) => e.target.select()}
           onChange={event => setDescription(event.target.value)} data-testid="attr-description-input"
-          onKeyDown={(e)=>e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         />
       </FormLabel>
       <FormLabel display="flex" flexDirection="row" mr={5}>type
-        <Select size="xs" ml={5} value={attrType} onChange={(e)=>setAttrType(e.target.value as AttributeType)}>
-          <option value={""}></option>
+        <Select size="xs" ml={5} value={attrType} onChange={(e) => setAttrType(e.target.value as AttributeType)}>
+          <option value={"none"}>none</option>
           {attributeTypes.map(aType => {
             return (<option key={aType} value={aType} data-testid="attr-type-option">{aType}</option>)})
           }
@@ -60,30 +48,26 @@ export const EditAttributePorpertiesModalContent = ({attributeName, description,
       <FormLabel display="flex" flexDirection="row">unit:
         <Input size="xs" placeholder="unit" ml={5} value={unit} onFocus={(e) => e.target.select()}
           onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input"
-          onKeyDown={(e)=>e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         />
       </FormLabel>
-      <FormLabel display="flex" flexDirection="row">precision:
-        <NumberInput size="xs" min={0} ml={5} data-testid="attr-precision-input" value={precision}
-          onFocus={(e) => e.target.select()} onChange={value => onPrecisionChange(value)}
-          onKeyDown={(e)=>e.stopPropagation()}
-        >
-          <NumberInputField placeholder="precision" />
-          {/* TODO: There's a weird behavior in the ui that when you click on the stepper, the number input element
-                    loses focus and the first input element in the modal gets the focus. Seems like the modal is getting
-                    blurred and refocused when you click on the stepper. And when the modal is refocused, it focuses on
-                    the first input element in the modal */}
-          {/* <NumberInputStepper>
-            <NumberIncrementStepper onClick={handlePrecisionIncrement}
-            data-testid="precision-input-increment-up"/>
-            <NumberDecrementStepper onClick={handlePrecisionDecrement} data-testid="precision-input-incement-down"/>
-          </NumberInputStepper> */}
-        </NumberInput>
+      <FormLabel display="flex" flexDirection="row" mr={5}>precision:
+        <Select size="xs" ml={5} value={precision} onChange={(e) => setPrecision(e.target.value)}>
+          <option value={""}></option>
+          <option value={"0"} data-testid="attr-precision-option">0</option>
+          <option value={"1"} data-testid="attr-precision-option">1</option>
+          <option value={"2"} data-testid="attr-precision-option">2</option>
+          <option value={"3"} data-testid="attr-precision-option">3</option>
+          <option value={"4"} data-testid="attr-precision-option">4</option>
+          <option value={"5"} data-testid="attr-precision-option">5</option>
+          <option value={"6"} data-testid="attr-precision-option">6</option>
+          <option value={"7"} data-testid="attr-precision-option">7</option>
+          <option value={"8"} data-testid="attr-precision-option">8</option>
+        </Select>
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">editable
-        <RadioGroup value={editable} ml={5} onChange={(value)=>setEditable(value)} data-testid="attr-editable-radio"
-          onKeyDown={(e)=>e.stopPropagation()}
-        >
+        <RadioGroup value={editable} ml={5} onChange={(value) => setEditable(value)} data-testid="attr-editable-radio"
+          onKeyDown={(e) =>e.stopPropagation()}>
           <HStack>
             <Radio value="true">True</Radio>
             <Radio value="false">False</Radio>
@@ -109,34 +93,36 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
   const [attributeName, setAttributeName] = useState(columnName || "attribute")
   const [description, setDescription] = useState("")
   const [unit, setUnit] = useState("")
-  const [precision, setPrecision] = useState(3)
-  const [attrType, setAttrType] = useState<AttributeType>("numeric")
+  const [precision, setPrecision] = useState("")
+  const [attrType, setAttrType] = useState<AttributeType | "none">("none")
   const [editable, setEditable] = useState("true")
 
   useEffect(() => {
     setAttributeName(columnName)
   },[columnName])
 
-  const handlePrecisionChange = (value: string) => {
-    setPrecision(parseInt(value, 10))
-  }
-
   const editProperties = () => {
     onClose()
     onModalOpen(false)
-
+    console.log("precision", precision)
     if (attribute) {
       attribute.setName(attributeName)
       attribute.setUserDescription(description)
-      attribute.setUserType(attrType)
+      attribute.setUserType(attrType === "none" ? undefined : attrType)
       attribute.setUnits(unit)
-      attribute.setUserFormat(precision.toString())
+      attribute.setUserFormat(precision)
       attribute.setUserEditable(editable === "true")
     }
   }
   const closeModal = () => {
     onClose()
     onModalOpen(false)
+    setAttributeName(attribute?.name || "")
+    setDescription(attribute?.userDescription || "")
+    setAttrType(attribute?.userType ? attribute?.userType : "none")
+    setUnit(attribute?.units || "")
+    setPrecision((attribute?.userPrecision)?.toString() || "")
+    setEditable((attribute?.userEditable)?.toString() || "true")
   }
 
   return (
@@ -147,9 +133,7 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
       hasCloseButton={true}
       Content={EditAttributePorpertiesModalContent}
       contentProps={{attributeName, description, unit, precision, attrType, editable,
-        setAttributeName, setDescription, setUnit, setAttrType, setEditable,
-        onPrecisionChange: handlePrecisionChange
-      }}
+        setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision}}
       buttons={[{ label: "Cancel", onClick: closeModal },{ label: "Apply", onClick: editProperties}]}
     />
   )

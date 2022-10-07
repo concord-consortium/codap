@@ -170,7 +170,7 @@ export const Attribute = types.model("Attribute", {
   setUserDescription(description: string) {
     self.userDescription = description
   },
-  setUserType(type: AttributeType) {
+  setUserType(type: AttributeType | undefined) {
     self.userType = type
   },
   setUserFormat(precision: string) {
