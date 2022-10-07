@@ -43,10 +43,13 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     onOpen()
     onModalOpen(true)
   }
+  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
+    e.stopPropagation()
+  }
 
   return (
     <>
-      <MenuList ref={ref} data-testid="attribute-menu-list">
+      <MenuList ref={ref} data-testid="attribute-menu-list" onKeyDown={(e)=>handleMenuKeyDown(e)}>
         <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
         <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>

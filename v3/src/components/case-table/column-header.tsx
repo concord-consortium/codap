@@ -22,6 +22,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const [modalIsOpen, setModalIsOpen] = useState(false)
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
+  const attribute = data?.attrFromID(column.key)
 
   const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
@@ -62,13 +63,8 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     setModalIsOpen(open)
   }
 
-  const hasUnit = () => {
-    if (data?.attrFromID(column.key)?.units) {
-      return ` (${data?.attrFromID(column.key).units})`
-    } else {
-      return ""
-    }
-  }
+  const units = attribute?.units ? ` (${attribute.units})` : ""
+  const description = attribute?.userDescription ? `: ${attribute.userDescription}` : ""
 
   return (
     <Menu isLazy>
@@ -77,7 +73,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         isMenuOpen.current = isOpen
         return (
           <>
-            <Tooltip label={column.name || "attribute"} h="20px" fontSize="12px" color="white"
+            <Tooltip label={`${column.name}${description}` || "attribute"} h="20px" fontSize="12px" color="white"
                 openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
                 isDisabled={disableTooltip} >
               <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
@@ -88,7 +84,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                     />
                   : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
                         fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
-                      {`${column?.name}${hasUnit()}`}
+                      {`${column?.name}${units}`}
                     </MenuButton>
                 }
                 <CaseTablePortal>

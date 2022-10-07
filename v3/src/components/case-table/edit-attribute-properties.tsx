@@ -39,11 +39,15 @@ export const EditAttributePorpertiesModalContent = ({attributeName, description,
     <FormControl display="flex" flexDirection="column" w={350}>
       <FormLabel display="flex" flexDirection="row">name:
         <Input size="xs" ml={5} placeholder="attribute" value={attributeName} onFocus={(e) => e.target.select()}
-              onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input" />
+              onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input"
+              onKeyDown={(e)=>e.stopPropagation()}
+        />
       </FormLabel>
       <FormLabel>description:
         <Textarea size="xs" placeholder="Describe the attribute" value={description} onFocus={(e) => e.target.select()}
-          onChange={event => setDescription(event.target.value)} data-testid="attr-description-input"/>
+          onChange={event => setDescription(event.target.value)} data-testid="attr-description-input"
+          onKeyDown={(e)=>e.stopPropagation()}
+        />
       </FormLabel>
       <FormLabel display="flex" flexDirection="row" mr={5}>type
         <Select size="xs" ml={5} value={attrType} onChange={(e)=>setAttrType(e.target.value as AttributeType)}>
@@ -55,11 +59,15 @@ export const EditAttributePorpertiesModalContent = ({attributeName, description,
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">unit:
         <Input size="xs" placeholder="unit" ml={5} value={unit} onFocus={(e) => e.target.select()}
-          onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input" />
+          onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input"
+          onKeyDown={(e)=>e.stopPropagation()}
+        />
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">precision:
         <NumberInput size="xs" min={0} ml={5} data-testid="attr-precision-input" value={precision}
-          onFocus={(e) => e.target.select()} onChange={value => onPrecisionChange(value)} >
+          onFocus={(e) => e.target.select()} onChange={value => onPrecisionChange(value)}
+          onKeyDown={(e)=>e.stopPropagation()}
+        >
           <NumberInputField placeholder="precision" />
           {/* TODO: There's a weird behavior in the ui that when you click on the stepper, the number input element
                     loses focus and the first input element in the modal gets the focus. Seems like the modal is getting
@@ -73,7 +81,9 @@ export const EditAttributePorpertiesModalContent = ({attributeName, description,
         </NumberInput>
       </FormLabel>
       <FormLabel display="flex" flexDirection="row">editable
-        <RadioGroup value={editable} ml={5} onChange={(value)=>setEditable(value)} data-testid="attr-editable-radio">
+        <RadioGroup value={editable} ml={5} onChange={(value)=>setEditable(value)} data-testid="attr-editable-radio"
+          onKeyDown={(e)=>e.stopPropagation()}
+        >
           <HStack>
             <Radio value="true">True</Radio>
             <Radio value="false">False</Radio>
