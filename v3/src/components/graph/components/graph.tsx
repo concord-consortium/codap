@@ -19,7 +19,7 @@ import {AxisPlace, IAxisModel, attrPlaceToAxisPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {getPointTipText} from "../utilities/graph_utils"
+import {getPointTipText} from "../utilities/graph-utils"
 import {GraphController} from "../models/graph-controller"
 import {MarqueeState} from "../models/marquee-state"
 

@@ -14,7 +14,7 @@ import {
   NumericAxisModel, axisPlaceToAttrPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
-import {matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
+import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 
 export interface IGraphControllerProps {
   graphModel: IGraphModel

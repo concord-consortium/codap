@@ -4,7 +4,7 @@ import {drag, select} from "d3"
 import { kGraphClassSelector } from "../graphing-types"
 import {INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph_utils"
+import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph-utils"
 import {IMovableLineModel} from "./adornment-models"
 import "./movable-line.scss"
 

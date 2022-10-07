@@ -1,6 +1,6 @@
 import {MutableRefObject, RefObject, useCallback, useEffect} from "react"
 import {onAction} from "mobx-state-tree"
-import {matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
+import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {INumericAxisModel} from "../models/axis-model"
