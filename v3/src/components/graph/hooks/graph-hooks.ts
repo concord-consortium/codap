@@ -36,6 +36,7 @@ export interface IPlotResponderProps {
   yAxisModel?:IAxisModel
   primaryAttrID?: string
   secondaryAttrID?: string
+  legendAttrID?: string
   layout: GraphLayout
   refreshPointPositions:(selectedOnly: boolean) => void
   refreshPointSelection: () => void
@@ -43,7 +44,7 @@ export interface IPlotResponderProps {
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const { dataset, primaryAttrID, secondaryAttrID, xAxisModel, yAxisModel, enableAnimation,
+  const { dataset, primaryAttrID, secondaryAttrID, legendAttrID, xAxisModel, yAxisModel, enableAnimation,
     refreshPointPositions, refreshPointSelection, layout } = props,
     xNumeric = xAxisModel as INumericAxisModel,
     yNumeric = yAxisModel as INumericAxisModel,
@@ -88,9 +89,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [dataset, refreshPointsRef, refreshPointSelection])
 
-  // respond to x or y attribute id change
+  // respond to x, y or legend attribute id change
   useEffect(() => {
     enableAnimation.current = true
     refreshPointsRef.current(false)
-  }, [refreshPointsRef, primaryAttrID, secondaryAttrID, enableAnimation])
+  }, [refreshPointsRef, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation])
 }

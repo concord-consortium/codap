@@ -8,6 +8,7 @@ import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layou
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {defaultPointColor} from "../../../utilities/color-utils"
 
 export const CaseDots = memo(function CaseDots(props: {
   graphModel: IGraphModel
@@ -21,6 +22,7 @@ export const CaseDots = memo(function CaseDots(props: {
     graphModel = props.graphModel,
     dataset = useDataSetContext(),
     dataConfiguration = useDataConfigurationContext(),
+    legendAttrID = dataConfiguration?.attributeID('legend'),
     layout = useGraphLayoutContext(),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     pointRadius = graphModel.getPointRadius(),
@@ -33,7 +35,7 @@ export const CaseDots = memo(function CaseDots(props: {
     yScale = layout.axisScale('left') as ScaleNumericBaseType
 
   useEffect(function initDistribution() {
-    const { cases } = dataset || {}
+    const {cases} = dataset || {}
     const uniform = randomUniform()
     cases?.forEach(({__id__}) => {
       randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
@@ -110,11 +112,16 @@ export const CaseDots = memo(function CaseDots(props: {
       .attr('cy', (anID: string) => {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
-      .attr('r', (anID:string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
-  }, [dataset, pointRadius, dotsRef, enableAnimation, xScale, yScale])
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+      .style('fill', (anID: string) => {
+        return legendAttrID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+      })
+      .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
+  }, [dataset, legendAttrID, dataConfiguration, pointRadius, dotsRef, enableAnimation, xScale, yScale])
 
   usePlotResponders({
-    dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation
+    dataset, legendAttrID, layout, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (

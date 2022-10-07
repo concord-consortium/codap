@@ -48,7 +48,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid="attribute-menu-list" lineHeight="none" fontSize="small" onKeyDown={handleMenuKeyDown}>
+      <MenuList ref={ref} data-testid="attribute-menu-list" lineHeight="none" fontSize="small"
+                onKeyDown={handleMenuKeyDown}>
         <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
         <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>

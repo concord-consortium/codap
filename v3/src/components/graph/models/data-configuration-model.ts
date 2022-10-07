@@ -7,9 +7,9 @@ import {uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
 
 export const PrimaryAttrPlaces = ['x', 'y'] as const
-export const TipAttrPlaces = [...PrimaryAttrPlaces, 'caption', 'y2'] as const
+export const TipAttrPlaces = [...PrimaryAttrPlaces, 'legend', 'caption', 'y2'] as const
 export const GraphAttrPlaces = [
-  ...TipAttrPlaces, 'legend', 'polygon', 'topSplit', 'rightSplit'] as const
+  ...TipAttrPlaces, 'polygon', 'topSplit', 'rightSplit'] as const
 export type GraphAttrPlace = typeof GraphAttrPlaces[number]
 
 export const AttributeDescription = types
@@ -132,7 +132,7 @@ export const DataConfigurationModel = types
     get selection() {
       if (!self.dataset || !self.filteredCases) return []
       const selection = Array.from(self.dataset.selection)
-      return selection.filter((caseId:string) => self.filteredCases?.hasCaseId(caseId))
+      return selection.filter((caseId: string) => self.filteredCases?.hasCaseId(caseId))
     }
   }))
   .views(self => (
@@ -140,6 +140,8 @@ export const DataConfigurationModel = types
       valuesForPlace(place: GraphAttrPlace): string[] {
         const attrID = self.attributeID(place),
           dataset = self.dataset,
+          // todo: The following interferes with sorting by legend ID because we're bypassing get cases where the
+          //  sorting happens. But we can't call get cases without introducing infinite loop
           caseIDs = self.filteredCases?.caseIds || []
         return attrID ? caseIDs.map(anID => String(dataset?.getValue(anID, attrID)))
           .filter(aValue => aValue !== '') : []

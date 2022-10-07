@@ -130,6 +130,9 @@ export class GraphController {
   }
 
   handleAttributeAssignment(axisPlace: AxisPlace, attrID: string) {
+    if(['plot', 'legend'].includes( axisPlace)) {
+      return  // Since there is no axis associated with the legend and the plotType will not change, we bail
+    }
     const {dataset, graphModel, layout} = this,
       dataConfig = graphModel.config,
       graphAttributePlace = axisPlaceToAttrPlace[axisPlace],

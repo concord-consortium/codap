@@ -1,7 +1,7 @@
 import {Instance, types} from "mobx-state-tree"
 import {GraphAttrPlace} from "./data-configuration-model"
 
-export const AxisPlaces = ["bottom", "left", "right", "top"] as const
+export const AxisPlaces = ["bottom", "left", "right", "top", "plot", "legend"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 
 export const attrPlaceToAxisPlace: Partial<Record<GraphAttrPlace, AxisPlace>> = {
@@ -9,14 +9,17 @@ export const attrPlaceToAxisPlace: Partial<Record<GraphAttrPlace, AxisPlace>> = 
   y: "left",
   y2: "right",
   rightSplit: "right",
-  topSplit: "top"
+  topSplit: "top",
+  legend: "legend"
 }
 
 export const axisPlaceToAttrPlace: Record<AxisPlace, GraphAttrPlace> = {
   bottom: "x",
   left: "y",
   top: "topSplit",
-  right: "y2"  // Todo: how to deal with 'rightSplit'?
+  right: "y2",  // Todo: how to deal with 'rightSplit'?
+  plot: "legend",
+  legend: "legend"
 }
 
 export type AxisOrientation = "horizontal" | "vertical"

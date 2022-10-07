@@ -8,6 +8,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrPlaceToAxisPlace} from "../models/axis-model"
+import {defaultPointColor} from "../../../utilities/color-utils"
 
 interface IProps {
   graphModel: IGraphModel
@@ -28,6 +29,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
     secondaryAxisPlace = attrPlaceToAxisPlace[secondaryAttrPlace] ?? 'left',
     secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
+    legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = layout.axisScale(primaryAxisPlace) as ScaleBand<string>,
     secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>
 
@@ -148,9 +150,14 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
           return NaN
         }
       })
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      .style('fill', (anID: string) => {
+        return legendAttrID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+      })
   }, [dataConfiguration, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
             enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
-            computeMaxOverAllCells, primaryAttrID, secondaryAttrID, dataset, secondaryScale])
+            computeMaxOverAllCells, primaryAttrID, secondaryAttrID, legendAttrID, dataset, secondaryScale])
 
   useEffect(() => {
     select(dotsRef.current).on('click', (event) => {
@@ -164,7 +171,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   })
 
   usePlotResponders({
-    dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation
+    dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation, primaryAttrID, secondaryAttrID,
+    legendAttrID
   })
 
   return (
