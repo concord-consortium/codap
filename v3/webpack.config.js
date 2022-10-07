@@ -148,10 +148,6 @@ module.exports = (env, argv) => {
         'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
       },
     },
-    stats: {
-      // suppress "export not found" warnings about re-exported types
-      warningsFilter: /export .* was not found in/,
-    },
     plugins: [
       new ESLintPlugin({
         extensions: ['ts', 'tsx', 'js', 'jsx'],
