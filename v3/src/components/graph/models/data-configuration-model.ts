@@ -1,7 +1,9 @@
-import {Instance, SnapshotIn, types} from "mobx-state-tree"
+import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
 import { attributeTypes } from "../../../data-model/attribute"
 import {IDataSet} from "../../../data-model/data-set"
-import { FilteredCases } from "../../../data-model/filtered-cases"
+import { SetCaseValuesAction } from "../../../data-model/data-set-actions"
+import { FilteredCases, IFilteredChangedCases } from "../../../data-model/filtered-cases"
+import { uniqueId } from "../../../utilities/js-utils"
 
 export const PrimaryAttrPlaces = ['x', 'y'] as const
 export const TipAttrPlaces = [...PrimaryAttrPlaces, 'caption', 'y2'] as const
@@ -27,7 +29,9 @@ export const DataConfigurationModel = types
   })
   .volatile(self => ({
     dataset: undefined as IDataSet | undefined,
-    filteredCases: undefined as FilteredCases | undefined
+    actionHandlerDisposer: undefined as (() => void) | undefined,
+    filteredCases: undefined as FilteredCases | undefined,
+    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>()
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -68,6 +72,28 @@ export const DataConfigurationModel = types
         }
       })
     },
+    handleAction(actionCall: ISerializedActionCall) {
+      // forward all actions from dataset except "setCaseValues" which requires intervention
+      if (actionCall.name === "setCaseValues") return
+      self.handlers.forEach(handler => handler(actionCall))
+    },
+    handleSetCaseValues(actionCall: SetCaseValuesAction, cases: IFilteredChangedCases) {
+      // this is called by the FilteredCases object with additional information about
+      // whether the value changes result in adding/removing any cases from the filtered set
+      // a single call to setCaseValues can result in up to three calls to the handlers
+      if (cases.added.length) {
+        const newCases = self.dataset?.getCases(cases.added)
+        self.handlers.forEach(handler => handler({ name: "addCases", args: [newCases] }))
+      }
+      if (cases.removed.length) {
+        self.handlers.forEach(handler => handler({ name: "removeCases", args: [cases.removed] }))
+      }
+      if (cases.changed.length) {
+        const idSet = new Set(cases.changed)
+        const changedCases = actionCall.args[0].filter(aCase => idSet.has(aCase.__id__))
+        self.handlers.forEach(handler => handler({ name: "setCaseValues", args: [changedCases] }))
+      }
+    }
   }))
   .views(self => ({
     get attributes() {
@@ -95,9 +121,17 @@ export const DataConfigurationModel = types
   }))
   .actions(self => ({
     setDataset(dataset: IDataSet) {
+      self.actionHandlerDisposer?.()
       self.dataset = dataset
+      self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
       self.attributeDescriptions.clear()
-      self.filteredCases = new FilteredCases(dataset, self.filterCase)
+      self.filteredCases = new FilteredCases({ source: dataset, filter: self.filterCase,
+                                                onSetCaseValues: self.handleSetCaseValues })
+    },
+    setPrimaryPlace( aPlace: GraphAttrPlace) {
+      if (aPlace === 'x' || aPlace === 'y') {
+        self.primaryPlace = aPlace
+      }
     },
     setAttribute(place: GraphAttrPlace, desc?: IAttributeDescriptionSnapshot) {
       if (desc) {
@@ -108,10 +142,10 @@ export const DataConfigurationModel = types
       }
       self.filteredCases?.invalidateCases()
     },
-    setPrimaryPlace( aPlace: GraphAttrPlace) {
-      if( aPlace === 'x' || aPlace === 'y') {
-        self.primaryPlace = aPlace
-      }
+    onAction(handler: (actionCall: ISerializedActionCall) => void) {
+      const id = uniqueId()
+      self.handlers.set(id, handler)
+      return () => self.handlers.delete(id)
     }
   }))
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {}

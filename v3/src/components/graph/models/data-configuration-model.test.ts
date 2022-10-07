@@ -155,7 +155,31 @@ describe("DataConfigurationModel", () => {
     expect(config.selection.length).toBe(1)
     expect(selectionReaction).toHaveBeenCalledTimes(1)
     disposer()
-})
+  })
+
+  it("calls action listeners when appropriate", () => {
+    const config = DataConfigurationModel.create()
+    config.setDataset(data)
+    config.setAttribute("x", { attributeID: "xId" })
+
+    const handleAction = jest.fn()
+    config.onAction(handleAction)
+
+    data.setCaseValues([{ __id__: "c1", xId: 1.1 }])
+    expect(handleAction).toHaveBeenCalledTimes(1)
+    expect(handleAction.mock.lastCall[0].name).toBe("setCaseValues")
+
+    data.setCaseValues([{ __id__: "c3", xId: 3 }])
+    expect(handleAction).toHaveBeenCalledTimes(2)
+    expect(handleAction.mock.lastCall[0].name).toBe("addCases")
+
+    data.setCaseValues([{ __id__: "c1", xId: "" }])
+    expect(handleAction).toHaveBeenCalledTimes(3)
+    expect(handleAction.mock.lastCall[0].name).toBe("removeCases")
+
+    data.setCaseValues([{ __id__: "c1", xId: 1 }, { __id__: "c2", xId: "" }, { __id__: "c3", xId: 3.3 }])
+    expect(handleAction).toHaveBeenCalledTimes(6)
+  })
 
   it("only allows x and y as primary place", () => {
     const config = DataConfigurationModel.create()
