@@ -166,4 +166,26 @@ describe("DataConfigurationModel", () => {
     expect(config.primaryPlace).toBe("y")
   })
 
+  it("returns an attribute values array and category set that ignore empty values", () => {
+    data.addCases(toCanonical(data,[
+      { __id__: "c4", n: "n1", x: 1, y: 1 },
+      { __id__: "c5", n: "", x: 6, y: 1 },
+      { __id__: "c6", n: "n1", x: 6, y: 6 }]))
+    const config = DataConfigurationModel.create()
+    config.setDataset(data)
+    config.setAttribute("x", { attributeID: "xId" })
+    config.setAttribute("y", { attributeID: "yId" })
+    config.setAttribute("caption", { attributeID: "nId" })
+    expect(config.attributeValuesForPlace("x")).toEqual(["1", "1", "6", "6"])
+    expect(config.attributeValuesForPlace("y")).toEqual(["1", "1", "1", "6"])
+    expect(config.attributeValuesForPlace("caption")).toEqual(["n1", "n1", "n1"])
+    expect(config.categorySetForPlace("x")).toEqual(new Set(["1", "6"]))
+    expect(config.categorySetForPlace("y")).toEqual(new Set(["1", "6"]))
+    expect(config.categorySetForPlace("caption")).toEqual(new Set(["n1"]))
+
+    config.setAttribute("y")
+    expect(config.attributeValuesForPlace("y")).toEqual([])
+    expect(config.categorySetForPlace("y")).toEqual(new Set(["__main__"]))
+  })
+
 })

@@ -97,7 +97,8 @@ export const DataConfigurationModel = types
     attributeValuesForPlace(place:GraphAttrPlace):string[] {
       const attrID = self.attributeID(place),
         dataset = self.dataset
-      return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID))) : []
+      return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID)))
+        .filter(aValue => aValue !== '') : []
     },
     categorySetForPlace(place:GraphAttrPlace):Set<string> {
       const result:Set<string> = new Set(this.attributeValuesForPlace(place))

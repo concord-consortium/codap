@@ -19,6 +19,7 @@ type BinMap = Record<string, Record<string, number>>
 export const ChartDots = memo(function ChartDots(props: IProps) {
   const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
     dataConfig = useDataConfigurationContext(),
+    cases = dataConfig?.cases || [],
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     primaryAttrPlace = dataConfig?.primaryPlace ?? 'x',
@@ -32,7 +33,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
     secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>
 
   const computeMaxOverAllCells = useCallback(() => {
-    const valuePairs = dataConfig?.cases.map(caseID => {
+    const valuePairs = cases.map(caseID => {
         return {
           primary: (primaryAttrID && dataset?.getValue(caseID, primaryAttrID)) ?? '',
           secondary: (secondaryAttrID && dataset?.getValue(caseID, secondaryAttrID)) ?? '__main__'
@@ -53,7 +54,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         return Math.max(vMax, bins[hKey][vKey])
       }, 0))
     }, 0)
-  }, [dataConfig?.cases, dataset, primaryAttrID, secondaryAttrID])
+  }, [cases, dataset, primaryAttrID, secondaryAttrID])
 
   const refreshPointSelection = useCallback(() => {
     setPointSelection({
@@ -103,7 +104,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
 
       buildMapOfIndicesByCase = () => {
         const indices: Record<string, { cell: { h: number, v: number }, row: number, column: number }> = {}
-        primaryAttrID && dataConfig?.cases.forEach(anID => {
+        primaryAttrID && cases.forEach(anID => {
           const hCat = dataset?.getValue(anID, primaryAttrID),
             vCat = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__',
             mapEntry = categoriesMap[hCat][vCat],
