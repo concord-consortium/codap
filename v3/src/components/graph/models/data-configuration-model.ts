@@ -1,14 +1,14 @@
 import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
-import { attributeTypes } from "../../../data-model/attribute"
+import {attributeTypes} from "../../../data-model/attribute"
 import {IDataSet} from "../../../data-model/data-set"
-import { SetCaseValuesAction } from "../../../data-model/data-set-actions"
-import { FilteredCases, IFilteredChangedCases } from "../../../data-model/filtered-cases"
-import { uniqueId } from "../../../utilities/js-utils"
+import {SetCaseValuesAction} from "../../../data-model/data-set-actions"
+import {FilteredCases, IFilteredChangedCases} from "../../../data-model/filtered-cases"
+import {uniqueId} from "../../../utilities/js-utils"
 
 export const PrimaryAttrPlaces = ['x', 'y'] as const
 export const TipAttrPlaces = [...PrimaryAttrPlaces, 'caption', 'y2'] as const
 export const GraphAttrPlaces = [
-              ...TipAttrPlaces, 'legend', 'polygon', 'topSplit', 'rightSplit'] as const
+  ...TipAttrPlaces, 'legend', 'polygon', 'topSplit', 'rightSplit'] as const
 export type GraphAttrPlace = typeof GraphAttrPlaces[number]
 
 export const AttributeDescription = types
@@ -17,11 +17,16 @@ export const AttributeDescription = types
     // user-specified type, e.g. treat as numeric
     type: types.maybe(types.enumeration([...attributeTypes]))
   })
-export interface IAttributeDescription extends Instance<typeof AttributeDescription> {}
-export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof AttributeDescription> {}
+
+export interface IAttributeDescription extends Instance<typeof AttributeDescription> {
+}
+
+export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof AttributeDescription> {
+}
 
 export const DataConfigurationModel = types
   .model('DataConfigurationModel', {
+    id: types.optional(types.identifier, () => uniqueId()),
     // determines stacking direction in categorical-categorical, for instance
     primaryPlace: types.maybe(types.enumeration([...PrimaryAttrPlaces])),
     // keys are GraphAttrPlaces
@@ -31,7 +36,7 @@ export const DataConfigurationModel = types
     dataset: undefined as IDataSet | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
-    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>()
+    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>()
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -60,7 +65,7 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     filterCase(data: IDataSet, caseID: string) {
-      return Array.from(self.attributeDescriptions.entries()).every(([place, { attributeID }]) => {
+      return Array.from(self.attributeDescriptions.entries()).every(([place, {attributeID}]) => {
         // can still plot the case without a caption
         if (place === "caption") return true
         switch (self.attributeType(place as GraphAttrPlace)) {
@@ -83,15 +88,15 @@ export const DataConfigurationModel = types
       // a single call to setCaseValues can result in up to three calls to the handlers
       if (cases.added.length) {
         const newCases = self.dataset?.getCases(cases.added)
-        self.handlers.forEach(handler => handler({ name: "addCases", args: [newCases] }))
+        self.handlers.forEach(handler => handler({name: "addCases", args: [newCases]}))
       }
       if (cases.removed.length) {
-        self.handlers.forEach(handler => handler({ name: "removeCases", args: [cases.removed] }))
+        self.handlers.forEach(handler => handler({name: "removeCases", args: [cases.removed]}))
       }
       if (cases.changed.length) {
         const idSet = new Set(cases.changed)
         const changedCases = actionCall.args[0].filter(aCase => idSet.has(aCase.__id__))
-        self.handlers.forEach(handler => handler({ name: "setCaseValues", args: [changedCases] }))
+        self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
       }
     }
   }))
@@ -104,8 +109,8 @@ export const DataConfigurationModel = types
     },
     get tipAttributes() {
       return TipAttrPlaces
-              .map(place => self.attributeID(place))
-              .filter(id => !!id) as string[]
+        .map(place => self.attributeID(place))
+        .filter(id => !!id) as string[]
     },
     get uniqueTipAttributes() {
       return Array.from(new Set<string>(this.tipAttributes))
@@ -119,32 +124,39 @@ export const DataConfigurationModel = types
       return selection.filter(caseId => self.filteredCases?.hasCaseId(caseId))
     }
   }))
-  .views(self => ({
-    attributeValuesForPlace(place:GraphAttrPlace):string[] {
-      const attrID = self.attributeID(place),
-        dataset = self.dataset
-      return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID)))
-        .filter(aValue => aValue !== '') : []
-    },
-    categorySetForPlace(place:GraphAttrPlace):Set<string> {
-      const result:Set<string> = new Set(this.attributeValuesForPlace(place))
-      result.delete('')
-      if(result.size === 0) {
-        result.add('__main__')
+  .views(self => (
+    {
+      attributeValuesForPlace(place: GraphAttrPlace): string[] {
+        const attrID = self.attributeID(place),
+          dataset = self.dataset
+        return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID)))
+          .filter(aValue => aValue !== '') : []
+      },
+      numAttributeValuesForPlace(place: GraphAttrPlace):number[] {
+        return this.attributeValuesForPlace(place).map((aValue:string) => Number(aValue))
+          .filter((aValue:number) => isFinite(aValue))
+      },
+      categorySetForPlace(place: GraphAttrPlace): Set<string> {
+        const result: Set<string> = new Set(this.attributeValuesForPlace(place))
+        result.delete('')
+        if (result.size === 0) {
+          result.add('__main__')
+        }
+        return result
       }
-      return result
-    }
-  }))
+    }))
   .actions(self => ({
     setDataset(dataset: IDataSet) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
       self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
       self.attributeDescriptions.clear()
-      self.filteredCases = new FilteredCases({ source: dataset, filter: self.filterCase,
-                                                onSetCaseValues: self.handleSetCaseValues })
+      self.filteredCases = new FilteredCases({
+        source: dataset, filter: self.filterCase,
+        onSetCaseValues: self.handleSetCaseValues
+      })
     },
-    setPrimaryPlace( aPlace: GraphAttrPlace) {
+    setPrimaryPlace(aPlace: GraphAttrPlace) {
       if (aPlace === 'x' || aPlace === 'y') {
         self.primaryPlace = aPlace
       }
@@ -152,8 +164,7 @@ export const DataConfigurationModel = types
     setAttribute(place: GraphAttrPlace, desc?: IAttributeDescriptionSnapshot) {
       if (desc) {
         self.attributeDescriptions.set(place, desc)
-      }
-      else {
+      } else {
         self.attributeDescriptions.delete(place)
       }
       self.filteredCases?.invalidateCases()
@@ -164,5 +175,9 @@ export const DataConfigurationModel = types
       return () => self.handlers.delete(id)
     }
   }))
-export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {}
-export interface IDataConfigurationSnapshot extends SnapshotIn<typeof DataConfigurationModel> {}
+
+export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {
+}
+
+export interface IDataConfigurationSnapshot extends SnapshotIn<typeof DataConfigurationModel> {
+}

@@ -12,6 +12,7 @@ import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
 import {GraphController} from "../models/graph-controller"
 import {Graph} from "./graph"
+import {CodapV2Document} from "../../../v2/codap-v2-document"
 
 const defaultGraphModel = GraphModel.create({
   axes: {
@@ -23,10 +24,11 @@ const defaultGraphModel = GraphModel.create({
 })
 
 interface IProps {
-  broker?: DataBroker;
+  broker?: DataBroker
+  v2Document?: CodapV2Document
 }
 
-export const GraphComponent = observer(({broker}: IProps) => {
+export const GraphComponent = observer(({broker, v2Document}: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
@@ -38,7 +40,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
     graphController = useMemo(
       () => new GraphController({
         graphModel: defaultGraphModel,
-        dataset, layout, enableAnimation, instanceId, dotsRef
+        dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
       }),
       [dataset, layout, instanceId])
 
@@ -46,10 +48,12 @@ export const GraphComponent = observer(({broker}: IProps) => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
   }, [width, height, layout])
 
+/*
   useEffect(() => {
     dataset && defaultGraphModel.config.setDataset(dataset)
   }, [dataset])
 
+*/
   // used to determine when a dragged attribute is over the graph component
   const {setNodeRef} = useDroppable({id: `${instanceId}-component-drop`, data: {accepts: ["attribute"]}})
   setNodeRef(graphRef.current)

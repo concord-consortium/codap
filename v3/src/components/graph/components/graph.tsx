@@ -47,8 +47,6 @@ export const Graph = observer((
       {plotType} = graphModel,
       instanceId = useInstanceIdContext(),
       dataset = useDataSetContext(),
-      dataConfig = graphModel.config,
-      casesRef = useRef<string[]>([]),
       layout = useGraphLayoutContext(),
       {margin} = layout,
       xScale = layout.axisScale("bottom"),
@@ -59,8 +57,6 @@ export const Graph = observer((
       yAttrID = graphModel.getAttributeID('y'),
       pointRadius = graphModel.getPointRadius(),
       hoverPointRadius = graphModel.getPointRadius('hover-drag')
-
-    casesRef.current = dataConfig?.cases ?? []
 
     useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -135,7 +131,7 @@ export const Graph = observer((
       const props = {
         graphModel,
       plotProps:{
-        casesRef, xAttrID, yAttrID, dotsRef, enableAnimation,
+        xAttrID, yAttrID, dotsRef, enableAnimation,
           xAxisModel,
           yAxisModel
       }
