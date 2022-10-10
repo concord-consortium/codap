@@ -206,6 +206,8 @@ describe("DataConfigurationModel", () => {
     expect(config.categorySetForPlace("x")).toEqual(new Set(["1", "6"]))
     expect(config.categorySetForPlace("y")).toEqual(new Set(["1", "6"]))
     expect(config.categorySetForPlace("caption")).toEqual(new Set(["n1"]))
+    expect(config.numericValuesForPlace("x")).toEqual([1, 1, 6, 6])
+    expect(config.numericValuesForPlace("caption")).toEqual([])
 
     config.setAttribute("y")
     expect(config.valuesForPlace("y")).toEqual([])
