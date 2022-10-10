@@ -36,7 +36,7 @@ export const DataConfigurationModel = types
     dataset: undefined as IDataSet | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
-    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>()
+    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>()
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -126,18 +126,18 @@ export const DataConfigurationModel = types
   }))
   .views(self => (
     {
-      attributeValuesForPlace(place: GraphAttrPlace): string[] {
+      valuesForPlace(place: GraphAttrPlace): string[] {
         const attrID = self.attributeID(place),
           dataset = self.dataset
         return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID)))
           .filter(aValue => aValue !== '') : []
       },
-      numAttributeValuesForPlace(place: GraphAttrPlace):number[] {
-        return this.attributeValuesForPlace(place).map((aValue:string) => Number(aValue))
+      numericValuesForPlace(place: GraphAttrPlace):number[] {
+        return this.valuesForPlace(place).map((aValue:string) => Number(aValue))
           .filter((aValue:number) => isFinite(aValue))
       },
       categorySetForPlace(place: GraphAttrPlace): Set<string> {
-        const result: Set<string> = new Set(this.attributeValuesForPlace(place))
+        const result: Set<string> = new Set(this.valuesForPlace(place))
         result.delete('')
         if (result.size === 0) {
           result.add('__main__')

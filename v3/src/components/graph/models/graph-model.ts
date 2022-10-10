@@ -9,7 +9,7 @@ import {
   pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
 import {DataConfigurationModel, GraphAttrPlace} from "./data-configuration-model"
-import {uniqueId} from "../../../utilities/js-utils";
+import {uniqueId} from "../../../utilities/js-utils"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>

@@ -87,16 +87,14 @@ export class GraphController {
       storage = firstV2GraphComponent?.componentStorage as ICodapV2GraphStorage,
       links = storage?._links_ || {},
       attrTypes: Record<string, string> = {x: 'empty', y: 'empty', legend: 'empty'}
-    Object.keys(links).forEach(aKey => {
+    Object.keys(links).forEach((aKey: keyof typeof links) => {
       if (['xAttr', 'yAttr', 'legendAttr'].includes(aKey)) {
         const match = aKey.match(/[a-z]+/),
-          attrPlace = (match ? match[0] : 'x') as GraphAttrPlace,
-          attrV2ID = (links[aKey] as unknown as IGuidLink<"DG.Attribute">).id,
+          attrPlace = (match?.[0] ?? 'x') as GraphAttrPlace,
+          attrV2ID = (links[aKey] as IGuidLink<"DG.Attribute">).id,
           attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
           attribute = dataset?.attrFromName(attrName),
-          attrID = attribute?.id ?? '',
-          attrSnapshot = {attributeID: attrID}
-        dataConfig.setAttribute(attrPlace, attrSnapshot)
+          attrID = attribute?.id ?? ''
         graphModel.setAttributeID(attrPlace, attrID)
         if (['x', 'y'].includes(attrPlace)) {
           attrTypes[attrPlace] = attribute?.type ?? 'empty'
@@ -104,8 +102,8 @@ export class GraphController {
       }
     })
     graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y]);
-    ['x', 'y'].forEach(attrPlace => {
-      const axisPlace = attrPlaceToAxisPlace[attrPlace as GraphAttrPlace] as AxisPlace,
+    ['x', 'y'].forEach((attrPlace: GraphAttrPlace) => {
+      const axisPlace = attrPlaceToAxisPlace[attrPlace] as AxisPlace,
         attrType = attrTypes[attrPlace]
       let axisModel
       switch (attrType) {
@@ -113,13 +111,13 @@ export class GraphController {
           axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
           graphModel.setAxis(axisPlace, axisModel)
           layout.setAxisScale(axisPlace, scaleLinear())
-          setNiceDomain(dataConfig.numAttributeValuesForPlace(attrPlace as GraphAttrPlace), axisModel)
+          setNiceDomain(dataConfig.numericValuesForPlace(attrPlace), axisModel)
           break
         case 'categorical':
           axisModel = CategoricalAxisModel.create({place: axisPlace})
           graphModel.setAxis(axisPlace, axisModel)
           layout.setAxisScale(axisPlace,
-            scaleBand().domain(dataConfig.categorySetForPlace(attrPlace as GraphAttrPlace)))
+            scaleBand().domain(dataConfig.categorySetForPlace(attrPlace)))
           break
         default:
           axisModel = EmptyAxisModel.create({place: axisPlace})
@@ -162,7 +160,7 @@ export class GraphController {
         setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
       }
     } else if (attributeType === 'categorical') {
-      const setOfValues = new Set(dataConfig.attributeValuesForPlace(graphAttributePlace))
+      const setOfValues = new Set(dataConfig.valuesForPlace(graphAttributePlace))
       setOfValues.delete('')
       const categories = Array.from(setOfValues)
       if (currentAxisType !== attributeType) {
