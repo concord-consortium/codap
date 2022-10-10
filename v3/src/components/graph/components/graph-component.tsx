@@ -42,18 +42,12 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
         graphModel: defaultGraphModel,
         dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
       }),
-      [dataset, layout, instanceId])
+      [dataset, layout, instanceId, v2Document])
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
   }, [width, height, layout])
 
-/*
-  useEffect(() => {
-    dataset && defaultGraphModel.config.setDataset(dataset)
-  }, [dataset])
-
-*/
   // used to determine when a dragged attribute is over the graph component
   const {setNodeRef} = useDroppable({id: `${instanceId}-component-drop`, data: {accepts: ["attribute"]}})
   setNodeRef(graphRef.current)
