@@ -8,16 +8,17 @@ import {
   pointRadiusMax,
   pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
-import {DataConfigurationModel, GraphAttrPlace, IDataConfigurationModel} from "./data-configuration-model"
+import {DataConfigurationModel, GraphAttrPlace} from "./data-configuration-model"
+import {uniqueId} from "../../../utilities/js-utils"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
   plotType: PlotType
-  config: IDataConfigurationModel
 }
 
 export const GraphModel = types
   .model("GraphModel", {
+    id: types.optional(types.identifier, () => uniqueId()),
     // keys are AxisPlaces
     axes: types.map(types.maybe(AxisModelUnion)),
     plotType: types.enumeration([...PlotTypes]),
@@ -68,7 +69,6 @@ export const GraphModel = types
         this.setAxis(aKey, props.axes[aKey])
       })
       self.plotType = props.plotType
-      self.config = props.config
     }
   }))
 

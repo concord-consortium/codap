@@ -100,6 +100,8 @@ export interface ICodapV2GraphStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
     hiddenCases: any[]
+    xColl: IGuidLink<"DG.Collection">
+    xAttr: IGuidLink<"DG.Attribute">
     yColl: IGuidLink<"DG.Collection">
     yAttr: IGuidLink<"DG.Attribute">
   }
