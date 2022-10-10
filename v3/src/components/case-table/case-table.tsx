@@ -42,8 +42,8 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
     return (
       <div ref={setNodeRef} className="case-table" data-testid="case-table">
         <DataGrid ref={gridRef} className="rdg-light"
-          columns={columns} rows={rows} rowKeyGetter={rowKey}
-          selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+          columns={columns} rows={rows} headerRowHeight={30} rowKeyGetter={rowKey}
+          rowHeight={18} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
         <AttributeDragOverlay activeDragId={overlayDragId} />
       </div>
