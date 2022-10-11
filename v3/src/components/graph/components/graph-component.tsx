@@ -49,7 +49,8 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the graph component
-  const {setNodeRef} = useDroppable({id: `${instanceId}-component-drop`, data: {accepts: ["attribute"]}})
+  const dropId = `${instanceId}-component-drop-overlay`
+  const {setNodeRef} = useDroppable({id: dropId, data: {accepts: ["attribute"]}})
   setNodeRef(graphRef.current)
 
   return (
