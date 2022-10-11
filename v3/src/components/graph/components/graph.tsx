@@ -59,7 +59,9 @@ export const Graph = observer((
       xAttrID = graphModel.getAttributeID('x'),
       yAttrID = graphModel.getAttributeID('y'),
       pointRadius = graphModel.getPointRadius(),
-      hoverPointRadius = graphModel.getPointRadius('hover-drag')
+      hoverPointRadius = graphModel.getPointRadius('hover-drag'),
+      droppableId = `${instanceId}-plot-area-drop`
+
 
     useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -151,7 +153,7 @@ export const Graph = observer((
     const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
     const handleDrop = () => {
-      console.log("handle plot drop!")
+      console.log("droppableId: ", droppableId)
     }
 
     const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
@@ -184,7 +186,7 @@ export const Graph = observer((
               className="droppable-plot"
               portal={graphRef.current}
               target={plotAreaSVGRef.current}
-              dropId="droppable-plot-axis"
+              dropId={droppableId}
               dropData={data}
               onIsActive={handleIsActive}
             />
