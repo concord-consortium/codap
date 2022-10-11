@@ -12,6 +12,7 @@ import {
   defaultSelectedStroke,
   defaultStrokeColor
 } from "../../../utilities/color-utils"
+import {IDataConfigurationModel} from "../models/data-configuration-model"
 
 /**
  * Utility routines having to do with graph entities
@@ -306,24 +307,40 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 
 export interface ISetPointSelection {
   dotsRef: React.RefObject<SVGSVGElement>
-  dataset?: IDataSet
+  dataConfiguration: IDataConfigurationModel
   pointRadius: number,
   selectedPointRadius: number
 }
 
 export function setPointSelection(props: ISetPointSelection) {
   const
-    {dotsRef, dataset, pointRadius, selectedPointRadius} = props,
+    {dotsRef, dataConfiguration, pointRadius, selectedPointRadius} = props,
+    dataset = dataConfiguration.dataset,
     dotsSvgElement = dotsRef.current,
-    dots = select(dotsSvgElement)
+    dots = select(dotsSvgElement),
+    legendID = dataConfiguration.attributeID('legend')
+  // First set the class based on selection
   dots.selectAll('circle')
     .classed('graph-dot-highlighted',
       (anID: string) => !!(dataset?.isCaseSelected(anID)))
+    // Then set properties to defaults w/o selection
     .attr('r', pointRadius)
     .style('stroke', defaultStrokeColor)
-  dots.selectAll('.graph-dot-highlighted')
+    .style('fill', (anID: string) => {
+      return legendID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+    })
+
+  const selectedDots = dots.selectAll('.graph-dot-highlighted')
+  // How we deal with this depends on whether there is a legend or not
+  if (legendID) {
+    selectedDots
+      .style('stroke', defaultSelectedStroke)
+  } else {
+    selectedDots
+      .style('fill', defaultSelectedColor)
+  }
+  selectedDots
     .attr('r', selectedPointRadius)
-    .style('stroke', defaultSelectedStroke)
     .raise()
 }
 
@@ -342,7 +359,7 @@ export interface ISetPointCoordinates {
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
 
-  const lookupLegendColor = (id:string) => {
+  const lookupLegendColor = (id: string) => {
     const isSelected = dataset?.isCaseSelected(id),
       legendColor = getLegendColor ? getLegendColor(id) : ''
     return legendColor !== '' ? legendColor :

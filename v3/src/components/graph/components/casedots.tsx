@@ -7,6 +7,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 
 export const CaseDots = memo(function CaseDots(props: {
   graphModel: IGraphModel
@@ -19,6 +20,7 @@ export const CaseDots = memo(function CaseDots(props: {
   const {dotsRef, enableAnimation} = props.plotProps,
     graphModel = props.graphModel,
     dataset = useDataSetContext(),
+    dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     pointRadius = graphModel.getPointRadius(),
@@ -86,8 +88,8 @@ export const CaseDots = memo(function CaseDots(props: {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({dotsRef, dataset, pointRadius, selectedPointRadius})
-  }, [dataset, dotsRef, pointRadius, selectedPointRadius])
+    dataConfiguration && setPointSelection({dotsRef, dataConfiguration, pointRadius, selectedPointRadius})
+  }, [dataConfiguration, dotsRef, pointRadius, selectedPointRadius])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const

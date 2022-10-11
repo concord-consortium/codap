@@ -1,5 +1,5 @@
 import {ScaleBand, select} from "d3"
-import React, {memo, useCallback, useEffect} from "react"
+import React, {memo, useCallback, useEffect, useMemo} from "react"
 import {PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/graph-hooks"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -18,17 +18,17 @@ type BinMap = Record<string, Record<string, number>>
 
 export const ChartDots = memo(function ChartDots(props: IProps) {
   const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
-    dataConfig = useDataConfigurationContext(),
-    cases = dataConfig?.cases || [],
+    dataConfiguration = useDataConfigurationContext(),
+    cases = useMemo( () => dataConfiguration?.cases || [], [dataConfiguration]),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    primaryAttrPlace = dataConfig?.primaryPlace ?? 'x',
+    primaryAttrPlace = dataConfiguration?.primaryPlace ?? 'x',
     primaryAxisPlace = attrPlaceToAxisPlace[primaryAttrPlace] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrID = dataConfig?.attributeID(primaryAttrPlace),
+    primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace),
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
     secondaryAxisPlace = attrPlaceToAxisPlace[secondaryAttrPlace] ?? 'left',
-    secondaryAttrID = dataConfig?.attributeID(secondaryAttrPlace),
+    secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
     primaryScale = layout.axisScale(primaryAxisPlace) as ScaleBand<string>,
     secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>
 
@@ -57,18 +57,19 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   }, [cases, dataset, primaryAttrID, secondaryAttrID])
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({
-      dotsRef, dataset, pointRadius: graphModel.getPointRadius(),
+    dataConfiguration && setPointSelection({
+      dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataset, dotsRef, graphModel])
+  }, [dataConfiguration, dotsRef, graphModel])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryPlace is the bottom just to help understand the naming
     const
-      primaryCategoriesArray: string[] = dataConfig ? Array.from(dataConfig.categorySetForPlace(primaryAttrPlace)) : [],
-      secondaryCategoriesArray: string[] = dataConfig ?
-        Array.from(dataConfig.categorySetForPlace(secondaryAttrPlace)) : [],
+      primaryCategoriesArray: string[] = dataConfiguration ?
+        Array.from(dataConfiguration.categorySetForPlace(primaryAttrPlace)) : [],
+      secondaryCategoriesArray: string[] = dataConfiguration ?
+        Array.from(dataConfiguration.categorySetForPlace(secondaryAttrPlace)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
@@ -148,7 +149,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
           return NaN
         }
       })
-  }, [dataConfig, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
+  }, [dataConfiguration, cases, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
             enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
             computeMaxOverAllCells, primaryAttrID, secondaryAttrID, dataset, secondaryScale])
 

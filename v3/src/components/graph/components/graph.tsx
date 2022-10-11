@@ -60,9 +60,9 @@ export const Graph = observer((
       xAttrID = graphModel.getAttributeID('x'),
       yAttrID = graphModel.getAttributeID('y'),
       pointRadius = graphModel.getPointRadius(),
+      selectedPointRadius = graphModel.getPointRadius('select'),
       hoverPointRadius = graphModel.getPointRadius('hover-drag'),
       droppableId = `${instanceId}-plot-area-drop`
-
 
     useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -121,9 +121,12 @@ export const Graph = observer((
     }
 
     function hideDataTip(event: MouseEvent) {
+      const [, caseID] = select(event.target as SVGSVGElement).property('id').split("_"),
+        isSelected = dataset?.isCaseSelected(caseID)
       dataTip.hide()
       select(event.target as SVGSVGElement)
-        .transition().duration(transitionDuration).attr('r', pointRadius)
+        .transition().duration(transitionDuration)
+        .attr('r', isSelected ? selectedPointRadius : pointRadius)
     }
 
     useEffect(function setupDataTip() {

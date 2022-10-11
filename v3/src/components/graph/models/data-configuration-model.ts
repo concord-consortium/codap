@@ -4,7 +4,7 @@ import {IDataSet} from "../../../data-model/data-set"
 import {SetCaseValuesAction} from "../../../data-model/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../data-model/filtered-cases"
 import {uniqueId} from "../../../utilities/js-utils"
-import {defaultPointColor, kellyColors, missingColor} from "../../../utilities/color-utils"
+import {kellyColors, missingColor} from "../../../utilities/color-utils"
 
 export const PrimaryAttrPlaces = ['x', 'y'] as const
 export const TipAttrPlaces = [...PrimaryAttrPlaces, 'caption', 'y2'] as const
@@ -37,7 +37,7 @@ export const DataConfigurationModel = types
     dataset: undefined as IDataSet | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
-    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>()
+    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>()
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -119,11 +119,11 @@ export const DataConfigurationModel = types
     get cases() {
       const caseIDs = self.filteredCases?.caseIds || [],
         legendAttrID = self.attributeID('legend')
-      if( legendAttrID) {
+      if (legendAttrID) {
         const categories = Array.from(this.categorySetForPlace('legend'))
-        caseIDs.sort((a:string, b:string) => {
+        caseIDs.sort((a: string, b: string) => {
           const a_Value = self.dataset?.getValue(a, legendAttrID),
-            b_value  = self.dataset?.getValue(b, legendAttrID)
+            b_value = self.dataset?.getValue(b, legendAttrID)
           return categories.indexOf(a_Value) - categories.indexOf(b_value)
         })
       }
@@ -132,7 +132,7 @@ export const DataConfigurationModel = types
     get selection() {
       if (!self.dataset || !self.filteredCases) return []
       const selection = Array.from(self.dataset.selection)
-      return selection.filter(caseId => self.filteredCases?.hasCaseId(caseId))
+      return selection.filter((caseId:string) => self.filteredCases?.hasCaseId(caseId))
     }
   }))
   .views(self => (
