@@ -30,6 +30,11 @@ export interface IUseDraggableAttribute extends Omit<UseDraggableArguments, "id"
   attributeId: string
 }
 export const useDraggableAttribute = ({ prefix, attributeId, ...others }: IUseDraggableAttribute) => {
+  // RDG expects all cells to have tabIndex of -1 except for the selected/active/clicked cell.
+  // For instance, it calls scrollIntoView(gridRef.current?.querySelector('[tabindex="0"]')).
+  // DnDKit sets the tabIndex of draggable elements to 0 by default for keyboard accessibility.
+  // For now we set it to -1 to meet RDG's expectations and we'll worry about keyboard drag later.
+  const attributes = { tabIndex: -1 }
   const data: IDragAttributeData = { type: "attribute", attributeId }
-  return useDraggable({ ...others, id: `${prefix}-${attributeId}`, data })
+  return useDraggable({ ...others, id: `${prefix}-${attributeId}`, attributes, data })
 }

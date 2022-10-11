@@ -11,7 +11,7 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
-
+import styles from "./case-table-shared.scss"
 import "./case-table.scss"
 
 interface IProps {
@@ -42,8 +42,8 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
     return (
       <div ref={setNodeRef} className="case-table" data-testid="case-table">
         <DataGrid ref={gridRef} className="rdg-light"
-          columns={columns} rows={rows} headerRowHeight={30} rowKeyGetter={rowKey}
-          rowHeight={18} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+          columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
+          rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
         <AttributeDragOverlay activeDragId={overlayDragId} />
       </div>

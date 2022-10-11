@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react"
-import { kDefaultRowHeight } from "./case-table-types"
+import styles from "./case-table-shared.scss"
 
 interface IActiveScroll {
   startPos: number
@@ -15,12 +15,24 @@ interface ScrollOptions {
   throttle: number
 }
 
-export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowHeight = kDefaultRowHeight) {
+const getRowTop = (rowIndex: number) => rowIndex >= 1
+                                          ? +styles.headerRowHeight + (rowIndex - 1) * +styles.bodyRowHeight
+                                          : 0
+
+const getRowRange = (rowIndex: number) => [getRowTop(rowIndex), getRowTop(rowIndex + 1)]
+
+const getVisibleRange = (gridElt: HTMLDivElement) => {
+  const gridBounds = gridElt.getBoundingClientRect()
+  const viewTop = gridElt.scrollTop
+  // exclude column header row from visibility considerations
+  const viewBottom = viewTop + gridBounds.height - +styles.headerRowHeight
+  return [viewTop, viewBottom]
+}
+
+export function useRowScrolling(gridElt: HTMLDivElement | null | undefined) {
 
   const activeScroll = useRef<IActiveScroll>({ startPos: 0, endPos: 0, startTime: 0 })
   const rafRequestId = useRef(0)
-
-  const getRowTop = useCallback((rowIndex: number) => rowIndex * rowHeight, [rowHeight])
 
   // smoothly scroll the grid so that the specified row is at the top
   const scrollToRow = useCallback((rowIndex: number, options?: ScrollOptions) => {
@@ -68,18 +80,13 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowH
       rafRequestId.current = 0
     }
     rafRequestId.current = requestAnimationFrame(rafScrollStep)
-  }, [getRowTop, gridElt])
+  }, [gridElt])
 
   const scrollRowIntoView = useCallback((rowIndex: number, options?: ScrollOptions) => {
     if (!gridElt) return
-    const gridBounds = gridElt.getBoundingClientRect()
-    const kColumnHeaderRows = 1
-    const visibleRows = gridBounds.height / rowHeight - kColumnHeaderRows
-    const rowTop = getRowTop(rowIndex)
-    const rowBottom = getRowTop(rowIndex + 1)
-    const viewTop = gridElt.scrollTop
-    // exclude column header row from visibility considerations
-    const viewBottom = viewTop + gridBounds.height - kDefaultRowHeight
+    const [rowTop, rowBottom] = getRowRange(rowIndex)
+    const [viewTop, viewBottom] = getVisibleRange(gridElt)
+    const visibleRows = (viewBottom - viewTop) / +styles.bodyRowHeight
     // is row already visible?
     if (rowTop >= viewTop && rowBottom <= viewBottom) return
     // is row above visible rows?
@@ -90,19 +97,16 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowH
     else if (rowBottom > viewBottom) {
       scrollToRow(Math.max(0, rowIndex - visibleRows + 2), options)
     }
-  }, [getRowTop, gridElt, rowHeight, scrollToRow])
+  }, [gridElt, scrollToRow])
 
   const scrollClosestRowIntoView = useCallback((rowIndices: number[], options?: ScrollOptions) => {
     if (!gridElt) return
-    const gridBounds = gridElt.getBoundingClientRect()
-    const viewTop = gridElt.scrollTop
-    const viewBottom = viewTop + gridBounds.height
+    const [viewTop, viewBottom] = getVisibleRange(gridElt)
     let closestRow = -1
     let distance = Infinity
     for (let i = 0; i < rowIndices.length; ++i) {
       const rowIndex = rowIndices[i]
-      const rowTop = getRowTop(rowIndex)
-      const rowBottom = getRowTop(rowIndex + 1)
+      const [rowTop, rowBottom] = getRowRange(rowIndex)
       // at least one row is already visible, no scroll required
       if (rowTop >= viewTop && rowBottom <= viewBottom) return
       if (rowTop < viewTop) {
@@ -121,7 +125,7 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined, rowH
     if (closestRow >= 0) {
       scrollRowIntoView(closestRow, options)
     }
-  }, [getRowTop, gridElt, scrollRowIntoView])
+  }, [gridElt, scrollRowIntoView])
 
   return { scrollToRow, scrollRowIntoView, scrollClosestRowIntoView }
 }
