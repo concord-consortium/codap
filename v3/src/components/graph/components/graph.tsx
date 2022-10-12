@@ -77,9 +77,10 @@ export const Graph = observer((
     }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
 
     const toast = useToast()
+
     const handleDropAttribute = (place: AxisPlace, attrId: string) => {
-    // TODO: will need to be more sophisticated
-    const attrPlace = place === "left" ? "y" : "x"
+      // TODO: will need to be more sophisticated
+      const attrPlace = place === "left" ? "y" : "x"
       const attrName = dataset?.attrFromID(attrId)?.name
       toast({
         position: "top-right",
@@ -115,7 +116,6 @@ export const Graph = observer((
         const [, caseID] = target.property('id').split("_"),
           attrIDs = graphModel.config.uniqueTipAttributes,
           tipText = getPointTipText(dataset, caseID, attrIDs)
-
           tipText !== '' && dataTip.show(tipText, event.target)
       }
     }
@@ -136,7 +136,7 @@ export const Graph = observer((
     const getPlotComponent = () => {
       const props = {
         graphModel,
-        plotProps:{
+        plotProps: {
         xAttrID, yAttrID, dotsRef, enableAnimation,
           xAxisModel,
           yAxisModel
@@ -153,11 +153,20 @@ export const Graph = observer((
 
     const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
-    const handleDrop = () => {
-      console.log("droppableId: ", droppableId)
+    const handlePlotDropAttribute = (active: Active) => {
+      const dragAttributeID = getDragAttributeId(active)
+      if (dragAttributeID){
+        const attrName = dataset?.attrFromID(dragAttributeID)?.name
+        toast({
+          position: "top-right",
+          title: "Attribute dropped on plot",
+          description: `The attribute ${attrName || dragAttributeID} was dropped on the plot!`,
+          status: "success"
+        })
+      }
     }
 
-    const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
+    const data: IDropData = {accepts: ["attribute"], onDrop: handlePlotDropAttribute}
 
     return (
       <DataConfigurationContext.Provider value={graphModel.config}>
