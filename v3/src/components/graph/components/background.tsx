@@ -68,7 +68,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       height.current = 0
       marqueeState.setMarqueeRect({x: event.x - leftEdge, y: event.y, width: 0, height: 0})
       currentlySelectedCaseIDs.current = []
-    }, [marqueeState]),
+    }, [marqueeState, bgRef]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
