@@ -55,6 +55,7 @@ export const Graph = observer((
       xScale = layout.axisScale("bottom"),
       transform = `translate(${margin.left}, 0)`,
       svgRef = useRef<SVGSVGElement>(null),
+      backgroundSvgRef = useRef<SVGGElement>(null),
       plotAreaSVGRef = useRef<SVGSVGElement>(null),
       xAttrID = graphModel.getAttributeID('x'),
       yAttrID = graphModel.getAttributeID('y'),
@@ -173,6 +174,7 @@ export const Graph = observer((
             <Background
               transform={transform}
               marqueeState={marqueeState}
+              ref={backgroundSvgRef}
             />
 
             <svg ref={plotAreaSVGRef} className='graph-dot-area'>
@@ -185,7 +187,7 @@ export const Graph = observer((
             <DroppableSvg
               className="droppable-plot"
               portal={graphRef.current}
-              target={plotAreaSVGRef.current}
+              target={backgroundSvgRef.current}
               dropId={droppableId}
               dropData={data}
               onIsActive={handleIsActive}
