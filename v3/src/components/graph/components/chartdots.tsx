@@ -5,7 +5,7 @@ import {usePlotResponders} from "../hooks/graph-hooks"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {setPointSelection} from "../utilities/graph_utils"
+import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrPlaceToAxisPlace} from "../models/axis-model"
 

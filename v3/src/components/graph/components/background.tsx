@@ -3,7 +3,7 @@ import {drag, select} from "d3"
 import RTree from 'rtree'
 import {InternalizedData, rTreeRect} from "../graphing-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {rectangleSubtract, rectNormalize} from "../utilities/graph_utils"
+import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"

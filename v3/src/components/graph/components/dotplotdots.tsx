@@ -9,7 +9,7 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../data-model/data-set"
-import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph_utils"
+import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrPlaceToAxisPlace} from "../models/axis-model"
 
