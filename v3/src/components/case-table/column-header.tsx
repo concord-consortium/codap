@@ -19,10 +19,12 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const menuListElt = useRef<HTMLDivElement>(null)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
+  // disable dragging when the column header menu is open
+  const disabled = isMenuOpen.current
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
 
-  const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key }
+  const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key, disabled }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
   const setCellRef = (elt: HTMLDivElement | null) => {
@@ -61,29 +63,27 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
       {({ isOpen }) => {
         isMenuOpen.current = isOpen
         return (
-          <>
-            <Tooltip label={column.name || "attribute"} h="20px" fontSize="12px" color="white"
-                openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
-                isDisabled={dragging || isOpen || editingAttrId === column.key} closeOnMouseDown={true}>
-              <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-                { editingAttrId
-                  ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
-                      variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
-                      onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
-                    />
-                  : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
-                        fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
-                      {column?.name}
-                    </MenuButton>
-                }
-                <CaseTablePortal>
-                  <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}/>
-                </CaseTablePortal>
-                {column &&
-                  <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
-              </div>
-            </Tooltip>
-          </>
+          <Tooltip label={column.name || "attribute"} h="20px" fontSize="12px" color="white"
+              openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
+              isDisabled={dragging || isOpen || editingAttrId === column.key} closeOnMouseDown={true}>
+            <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
+              { editingAttrId
+                ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
+                    variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
+                    onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
+                  />
+                : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
+                      fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
+                    {column?.name}
+                  </MenuButton>
+              }
+              <CaseTablePortal>
+                <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}/>
+              </CaseTablePortal>
+              {column &&
+                <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
+            </div>
+          </Tooltip>
         )
     }}
     </Menu>
