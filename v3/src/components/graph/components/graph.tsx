@@ -1,4 +1,5 @@
 import {useToast} from "@chakra-ui/react"
+import {Active} from "@dnd-kit/core"
 import {select} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import {observer} from "mobx-react-lite"
@@ -22,6 +23,8 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph_utils"
 import {GraphController} from "../models/graph-controller"
 import {MarqueeState} from "../models/marquee-state"
+import {DroppableSvg} from "./droppable-svg"
+import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 
 import "./graph.scss"
 
@@ -52,11 +55,14 @@ export const Graph = observer((
       xScale = layout.axisScale("bottom"),
       transform = `translate(${margin.left}, 0)`,
       svgRef = useRef<SVGSVGElement>(null),
+      backgroundSvgRef = useRef<SVGGElement>(null),
       plotAreaSVGRef = useRef<SVGSVGElement>(null),
       xAttrID = graphModel.getAttributeID('x'),
       yAttrID = graphModel.getAttributeID('y'),
       pointRadius = graphModel.getPointRadius(),
-      hoverPointRadius = graphModel.getPointRadius('hover-drag')
+      hoverPointRadius = graphModel.getPointRadius('hover-drag'),
+      droppableId = `${instanceId}-plot-area-drop`
+
 
     useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -71,9 +77,10 @@ export const Graph = observer((
     }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
 
     const toast = useToast()
+
     const handleDropAttribute = (place: AxisPlace, attrId: string) => {
-    // TODO: will need to be more sophisticated
-    const attrPlace = place === "left" ? "y" : "x"
+      // TODO: will need to be more sophisticated
+      const attrPlace = place === "left" ? "y" : "x"
       const attrName = dataset?.attrFromID(attrId)?.name
       toast({
         position: "top-right",
@@ -103,14 +110,13 @@ export const Graph = observer((
 
     // MouseOver events, if over an element, brings up hover text
     function showDataTip(event: MouseEvent) {
-      const
-        target = select(event.target as SVGSVGElement)
+      const target = select(event.target as SVGSVGElement)
       if (target.node()?.nodeName === 'circle' && dataset) {
         target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
         const [, caseID] = target.property('id').split("_"),
           attrIDs = graphModel.config.uniqueTipAttributes,
           tipText = getPointTipText(dataset, caseID, attrIDs)
-        tipText !== '' && dataTip.show(tipText, event.target)
+          tipText !== '' && dataTip.show(tipText, event.target)
       }
     }
 
@@ -130,20 +136,37 @@ export const Graph = observer((
     const getPlotComponent = () => {
       const props = {
         graphModel,
-      plotProps:{
+        plotProps: {
         xAttrID, yAttrID, dotsRef, enableAnimation,
           xAxisModel,
           yAxisModel
-      }
-    },
-        typeToPlotComponentMap = {
-          casePlot: <CaseDots {...props}/>,
-          dotChart: <ChartDots {...props}/>,
-          dotPlot: <DotPlotDots {...props}/>,
-          scatterPlot: <ScatterDots {...props}/>
         }
+      },
+      typeToPlotComponentMap = {
+        casePlot: <CaseDots {...props}/>,
+        dotChart: <ChartDots {...props}/>,
+        dotPlot: <DotPlotDots {...props}/>,
+        scatterPlot: <ScatterDots {...props}/>
+      }
       return typeToPlotComponentMap[plotType]
     }
+
+    const handleIsActive = (active: Active) => !!getDragAttributeId(active)
+
+    const handlePlotDropAttribute = (active: Active) => {
+      const dragAttributeID = getDragAttributeId(active)
+      if (dragAttributeID){
+        const attrName = dataset?.attrFromID(dragAttributeID)?.name
+        toast({
+          position: "top-right",
+          title: "Attribute dropped on plot",
+          description: `The attribute ${attrName || dragAttributeID} was dropped on the plot!`,
+          status: "success"
+        })
+      }
+    }
+
+    const data: IDropData = {accepts: ["attribute"], onDrop: handlePlotDropAttribute}
 
     return (
       <DataConfigurationContext.Provider value={graphModel.config}>
@@ -159,13 +182,26 @@ export const Graph = observer((
             />
             <Background
               transform={transform}
-              marqueeState={marqueeState}/>
+              marqueeState={marqueeState}
+              ref={backgroundSvgRef}
+            />
+
             <svg ref={plotAreaSVGRef} className='graph-dot-area'>
               <svg ref={dotsRef}>
                 {getPlotComponent()}
               </svg>
               <Marquee marqueeState={marqueeState}/>
             </svg>
+
+            <DroppableSvg
+              className="droppable-plot"
+              portal={graphRef.current}
+              target={backgroundSvgRef.current}
+              dropId={droppableId}
+              dropData={data}
+              onIsActive={handleIsActive}
+            />
+
           </svg>
         </div>
       </DataConfigurationContext.Provider>
