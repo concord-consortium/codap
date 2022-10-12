@@ -1,6 +1,8 @@
 @use "../vars.scss";
 @use "./case-table-shared.scss" as shared;
 
+$table-body-font-size: 8pt;
+
 .case-table {
   position: relative;
   width: 100%;
@@ -10,7 +12,7 @@
     width: 100%;
     height: 100%;
     font-family: 'Montserrat-Regular', sans-serif !important;
-    font-size: 8pt !important;
+    font-size: $table-body-font-size !important;
     color: #222222;
 
     .rdg-header-row {
@@ -40,17 +42,22 @@
       }
     }
 
-    .rdg-row-even {
-      .codap-index-cell {
-        background-color: #EEFEE3;
+    .rdg-row {
+      input.rdg-text-editor {
+        font-size: $table-body-font-size;
       }
-    }
-    .rdg-row-odd {
-      &[aria-selected=false] {
-        background: #fafafa;
+      &.rdg-row-even {
+        .codap-index-cell {
+          background-color: #EEFEE3;
+        }
       }
-      .codap-index-cell {
-        background-color: #D3E9C8;
+      &.rdg-row-odd {
+        &[aria-selected=false] {
+          background: #fafafa;
+        }
+        .codap-index-cell {
+          background-color: #D3E9C8;
+        }
       }
     }
 

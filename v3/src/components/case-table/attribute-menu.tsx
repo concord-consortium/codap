@@ -35,8 +35,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAt
     attrId && data?.removeAttribute(attrId)
   }
 
-  return (
-    <MenuList ref={ref} data-testid="attribute-menu-list">
+  return (  // lineHeight="none" => line-height: 1 in chakra design system
+    <MenuList ref={ref} data-testid="attribute-menu-list" lineHeight="none" fontSize="small">
       <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Edit Attribute Properties")}>Edit Attribute Properties...</MenuItem>
