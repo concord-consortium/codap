@@ -24,6 +24,7 @@ export const useIndexColumn = ({ data }: IHookProps) => {
     name: "index",
     minWidth: 52,
     width: 52,
+    headerCellClass: "codap-column-header",
     headerRenderer: ColumnHeader,
     cellClass: "codap-index-cell",
     formatter
