@@ -14,7 +14,7 @@ import {
   NumericAxisModel, axisPlaceToAttrPlace, attrPlaceToAxisPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
-import {matchCirclesToData, setNiceDomain} from "../utilities/graph_utils"
+import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 import {CodapV2Document} from "../../../v2/codap-v2-document"
 import {ICodapV2GraphStorage, IGuidLink} from "../../../v2/codap-v2-types"
 
