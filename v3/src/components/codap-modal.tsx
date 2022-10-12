@@ -30,7 +30,6 @@ interface IProps<TContentProps> {
   onCustomClose?: () => void
 }
 
-// eslint-disable-next-line react/display-name
 export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
   className, Icon, title, Content, contentProps, hasCloseButton, buttons, onCustomClose
 }: IProps<IContentProps>, ref: React.LegacyRef<HTMLElement> | undefined) => {
@@ -76,3 +75,4 @@ export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
     </Modal>
   )
 })
+CodapModal.displayName = "CodapModal"

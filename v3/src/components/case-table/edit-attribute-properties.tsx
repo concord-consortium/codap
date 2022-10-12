@@ -4,24 +4,24 @@ import { AttributeType, attributeTypes } from "../../data-model/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
 
-interface IEditAttributePorpertiesModalContentProps {
-  attributeName: string;
-  description: string;
-  unit: string;
-  precision: string;
-  attrType: AttributeType;
-  editable: string;
-  setAttributeName: (name: string) => void;
-  setDescription: (description: string) => void;
-  setUnit: (unit: string) => void;
-  setAttrType: (type: AttributeType) => void;
-  setEditable: (editable: string) => void;
-  setPrecision: (precision: string) => void;
+interface IEditAttributePropertiesModalContentProps {
+  attributeName: string
+  description: string
+  unit: string
+  precision: string
+  attrType: AttributeType
+  editable: string
+  setAttributeName: (name: string) => void
+  setDescription: (description: string) => void
+  setUnit: (unit: string) => void
+  setAttrType: (type: AttributeType) => void
+  setEditable: (editable: string) => void
+  setPrecision: (precision: string) => void
 }
 
-export const EditAttributePorpertiesModalContent = ({attributeName, description, unit, precision, attrType,
+export const EditAttributePropertiesModalContent = ({attributeName, description, unit, precision, attrType,
     editable, setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision,
-  }: IEditAttributePorpertiesModalContentProps) => {
+  }: IEditAttributePropertiesModalContentProps) => {
 
   return (
     <FormControl display="flex" flexDirection="column" w={350}>
@@ -80,12 +80,11 @@ export const EditAttributePorpertiesModalContent = ({attributeName, description,
 
 interface IProps {
   columnName: string
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
   onModalOpen: (open: boolean) => void
 }
 
-// eslint-disable-next-line react/display-name
 export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onModalOpen}: IProps,
     ref: any) => {
   const data = useDataSetContext()
@@ -104,13 +103,12 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
   const editProperties = () => {
     onClose()
     onModalOpen(false)
-    console.log("precision", precision)
     if (attribute) {
       attribute.setName(attributeName)
       attribute.setUserDescription(description)
       attribute.setUserType(attrType === "none" ? undefined : attrType)
       attribute.setUnits(unit)
-      attribute.setUserFormat(precision)
+      attribute.setUserPrecision(isFinite(+precision) ? +precision : undefined)
       attribute.setUserEditable(editable === "true")
     }
   }
@@ -131,7 +129,7 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
       onClose={closeModal}
       title="Attribute Properties"
       hasCloseButton={true}
-      Content={EditAttributePorpertiesModalContent}
+      Content={EditAttributePropertiesModalContent}
       contentProps={{attributeName, description, unit, precision, attrType, editable,
         setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision}}
       buttons={[{ label: "Cancel", onClick: closeModal },{ label: "Apply", onClick: editProperties}]}

@@ -14,7 +14,7 @@ export const useIndexColumn = ({ data }: IHookProps) => {
   const formatter = useCallback(({ row: { __id__ } }: TFormatterProps) => {
     const index = data?.caseIndexFromID(__id__)
     return (
-      <IndexCell data={data} caseId={__id__} index={index} />
+      <IndexCell caseId={__id__} index={index} />
     )
   }, [data])
 
@@ -35,10 +35,9 @@ export const useIndexColumn = ({ data }: IHookProps) => {
 interface ICellProps {
   caseId: string
   index?: number
-  data?: IDataSet
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const IndexCell = ({ caseId, index, data, onClick }: ICellProps) => {
+export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
   const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
   const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
   const setNodeRef = (elt: HTMLButtonElement | null) => {

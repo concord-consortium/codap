@@ -55,7 +55,7 @@ export const Attribute = types.model("Attribute", {
   name: types.string,
   userDescription: types.maybe(types.string),
   userType: types.maybe(types.enumeration([...attributeTypes])),
-  userFormat: types.maybe(types.string),
+  // userFormat: types.maybe(types.string),
   units: types.maybe(types.string),
   userPrecision: types.maybe(types.number),
   userEditable: types.maybe(types.boolean),
@@ -138,7 +138,7 @@ export const Attribute = types.model("Attribute", {
     return self.numericCount === self.numValues.length - self.emptyCount ? "numeric" : "categorical"
   },
   get format() {
-    return self.userFormat || kDefaultFormatStr
+    return self.userPrecision != null ? `.${self.userPrecision}~f` : kDefaultFormatStr
   },
   value(index: number) {
     return self.strValues[index]
@@ -173,8 +173,11 @@ export const Attribute = types.model("Attribute", {
   setUserType(type: AttributeType | undefined) {
     self.userType = type
   },
-  setUserFormat(precision: string) {
-    self.userFormat = `.${precision}~f`
+  // setUserFormat(precision: string) {
+  //   self.userFormat = `.${precision}~f`
+  // },
+  setUserPrecision(precision?: number) {
+    self.userPrecision = precision
   },
   setUserEditable(editable: boolean) {
     self.userEditable = editable

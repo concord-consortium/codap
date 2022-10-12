@@ -11,7 +11,6 @@ interface IProps {
   onModalOpen: (open: boolean) => void
 }
 
-// eslint-disable-next-line react/display-name
 export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     ({ column, onRenameAttribute, onModalOpen }, ref) => {
   const toast = useToast()
@@ -68,3 +67,4 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     </>
   )
 })
+AttributeMenuList.displayName = "AttributeMenuList"
