@@ -2,6 +2,11 @@ import { renderHook } from "@testing-library/react"
 import { MockAnimationFrame } from "../../test/mock-animation-frame"
 import { useRowScrolling } from "./use-row-scrolling"
 
+jest.mock("./case-table-shared.scss", () => ({
+  headerRowHeight: "30",
+  bodyRowHeight: "18"
+}))
+
 const mockGetBoundingClientRect = jest.fn().mockImplementation(() => ({ width: 1000, height: 350 }))
 const mockGridElt = {
   scrollTop: 0,
@@ -60,24 +65,13 @@ describe("useRowScrolling", () => {
       rafMock.triggerNext(startTime + 250 - rafMock.time)
       expect(rafMock.mockRequest).toHaveBeenCalledTimes(5)
       expect(rafMock.queue.size).toBe(1)
-      expect(mockGridElt.scrollTop).toBeGreaterThan(15)
-      expect(mockGridElt.scrollTop).toBeLessThan(20)
+      expect(mockGridElt.scrollTop).toBeGreaterThan(12)
+      expect(mockGridElt.scrollTop).toBeLessThan(18)
       // trigger completion
       rafMock.triggerNext(startTime + 600)
       expect(rafMock.mockRequest).toHaveBeenCalledTimes(5)
       expect(rafMock.queue.size).toBe(0)
-      expect(mockGridElt.scrollTop).toBe(35)
-    })
-
-    it("smoothly scrolls with alternate row heights", () => {
-      const { result } = renderHook(() => useRowScrolling(mockGridElt, 30))
-      result.current.scrollToRow(10)
-      expect(rafMock.mockRequest).toHaveBeenCalledTimes(1)
-      expect(rafMock.queue.size).toBe(1)
-      rafMock.triggerAll()
-      expect(rafMock.mockRequest.mock.calls.length).toBeGreaterThan(30)
-      expect(rafMock.queue.size).toBe(0)
-      expect(mockGridElt.scrollTop).toBe(300)
+      expect(mockGridElt.scrollTop).toBe(30)
     })
 
     it("can be redirected before the scroll is complete", () => {
@@ -86,13 +80,15 @@ describe("useRowScrolling", () => {
       rafMock.triggerNext()
       // advance to half-way
       rafMock.triggerNext(250)
-      expect(mockGridElt.scrollTop).toBe(350)
+      expect(mockGridElt.scrollTop).toBeGreaterThan(170)
+      expect(mockGridElt.scrollTop).toBeLessThan(190)
       // issue another request to a different location
       result.current.scrollToRow(100)
       // still only one request queued
       expect(rafMock.queue.size).toBe(1)
       rafMock.triggerAll()
-      expect(mockGridElt.scrollTop).toBe(3500)
+      expect(mockGridElt.scrollTop).toBeGreaterThan(1780)
+      expect(mockGridElt.scrollTop).toBeLessThan(1820)
     })
   })
 
@@ -119,7 +115,7 @@ describe("useRowScrolling", () => {
       const { result } = renderHook(() => useRowScrolling(mockGridElt))
       result.current.scrollRowIntoView(25)
       rafMock.triggerAll()
-      expect(mockGridElt.scrollTop).toBeGreaterThanOrEqual(600)
+      expect(mockGridElt.scrollTop).toBeGreaterThanOrEqual(150)
       result.current.scrollRowIntoView(1)
       rafMock.triggerAll()
       expect(mockGridElt.scrollTop).toBe(0)
@@ -147,11 +143,12 @@ describe("useRowScrolling", () => {
       const { result } = renderHook(() => useRowScrolling(mockGridElt))
       result.current.scrollClosestRowIntoView([22, 100])
       rafMock.triggerAll()
-      expect(mockGridElt.scrollTop).toBeGreaterThan(500)
-      expect(mockGridElt.scrollTop).toBeLessThan(600)
-      result.current.scrollClosestRowIntoView([11, 40])
+      expect(mockGridElt.scrollTop).toBeGreaterThan(100)
+      expect(mockGridElt.scrollTop).toBeLessThan(150)
+      result.current.scrollClosestRowIntoView([5, 30])
       rafMock.triggerAll()
-      expect(mockGridElt.scrollTop).toBe(350)
+      expect(mockGridElt.scrollTop).toBeGreaterThan(75)
+      expect(mockGridElt.scrollTop).toBeLessThan(95)
     })
   })
 })

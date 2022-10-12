@@ -1,21 +1,31 @@
-@import "../vars.scss";
+@use "../vars.scss";
+@use "./case-table-shared.scss" as shared;
 
 .case-table {
   position: relative;
   width: 100%;
-  height: calc(100% - $title-bar-height);
+  height: calc(100% - vars.$title-bar-height);
 
   .rdg {
     width: 100%;
     height: 100%;
+    font-family: 'Montserrat-Regular', sans-serif !important;
+    font-size: 8pt !important;
+    color: #222222;
 
     .rdg-header-row {
+      line-height: 14px !important;
+
       .codap-column-header {
         text-align: center;
+        height: shared.$header-row-height-px !important;
 
         .codap-column-header-content {
           width: 100%;
           height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
           input {
             height: calc(100% - 6px)
@@ -24,6 +34,7 @@
           // chakra menu-button
           button {
             width: 100%;
+            color: #555555 !important;
           }
         }
       }
