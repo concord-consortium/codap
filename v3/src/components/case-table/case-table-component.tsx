@@ -12,8 +12,8 @@ interface IProps {
 export const CaseTableComponent = observer(({ broker }: IProps) => {
   const instanceId = useNextInstanceId("case-table")
   const data = broker?.selectedDataSet || broker?.last
-
-  const { setNodeRef } = useDroppable({ id: `${instanceId}-component-drop`, data: { accepts: ["attribute"] } })
+  const id = `${instanceId}-component-drop-overlay`
+  const { setNodeRef } = useDroppable({ id, data: { accepts: ["attribute"] } })
 
   return (
     <DataSetContext.Provider value={data}>
