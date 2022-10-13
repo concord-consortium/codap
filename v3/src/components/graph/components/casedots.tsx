@@ -5,7 +5,7 @@ import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {setPointSelection} from "../utilities/graph_utils"
+import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 
 export const CaseDots = memo(function CaseDots(props: {

@@ -85,7 +85,7 @@ export const App = () => {
             </div>
           </div>
           <CaseTableComponent/>
-          <GraphComponent/>
+          <GraphComponent v2Document={v2Document}/>
         </Container>
       </div>
     </CodapDndContext>

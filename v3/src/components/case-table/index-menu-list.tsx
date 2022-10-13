@@ -59,7 +59,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
 
   return (
     <>
-      <MenuList className="codap-menu-list" data-testid="index-menu-list">
+      <MenuList data-testid="index-menu-list" lineHeight="none" fontSize="small">
         <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Move Data Entry Row")}>
           Move Data Entry Row Here
         </MenuItem>
