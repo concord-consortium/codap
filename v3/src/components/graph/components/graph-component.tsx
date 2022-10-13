@@ -42,7 +42,9 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
         graphModel: defaultGraphModel,
         dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
       }),
-      [dataset, layout, instanceId, v2Document])
+      [/* dataset, */ layout, instanceId, v2Document])
+      // removing this dependency works, but dots won't load
+      // experiment with putting graphController in a memo as here, but maybe in a ref instead
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
