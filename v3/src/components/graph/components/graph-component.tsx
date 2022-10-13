@@ -36,15 +36,14 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
 
-  const
-    graphController = useMemo(
-      () => new GraphController({
-        graphModel: defaultGraphModel,
-        dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
-      }),
-      [/* dataset, */ layout, instanceId, v2Document])
-      // removing this dependency works, but dots won't load
-      // experiment with putting graphController in a memo as here, but maybe in a ref instead
+  const getNewGraphController = () => {
+    return new GraphController({
+      graphModel: defaultGraphModel,
+      dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
+    })
+  }
+
+  const graphController = useMemo(()=> getNewGraphController(),[dataset, layout, instanceId, v2Document])
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
