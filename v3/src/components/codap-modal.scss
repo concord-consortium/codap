@@ -20,7 +20,8 @@ $header-height: 30px;
     border-left: solid #C1C5C7 1px;
     padding-left: 5px;
     width: calc(100% - $header-height);
-    height: $header-height
+    height: $header-height;
+    font-size: 16px;
   }
 
   button {

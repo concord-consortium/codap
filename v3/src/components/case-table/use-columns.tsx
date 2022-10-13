@@ -2,7 +2,7 @@ import { Tooltip } from "@chakra-ui/react"
 import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
-import { kDefaultFormatStr } from "../../data-model/attribute"
+import { IAttribute, kDefaultFormatStr } from "../../data-model/attribute"
 import { IDataSet } from "../../data-model/data-set"
 import { TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
@@ -43,12 +43,10 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // for now we just render numbers and raw string values; eventually,
     // we can support other formats here (dates, colors, etc.)
     return (
-      <>
-        <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
-          openDelay={1000} placement="bottom" bottom="10px" left="15px">
-          <span className="cell-span" key={key}>{value}</span>
-        </Tooltip>
-      </>
+      <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
+        openDelay={1000} placement="bottom" bottom="10px" left="15px">
+        <span className="cell-span" key={key}>{value}</span>
+      </Tooltip>
     )
   }, [data])
 
@@ -56,14 +54,14 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // rebuild column definitions when referenced properties change
     const disposer = autorun(() => {
       // column definitions
-      const _columns = data
+      const visibleAttrs: IAttribute[] = data?.attributes.filter(attr => !attr.hidden) ?? []
+      const _columns: TColumn[] = data
         ? [
             indexColumn,
             // attribute column definitions
-            ...data.attributes.map(({ id, name, hidden }) => ({
+            ...visibleAttrs.map(({ id, name }) => ({
               key: id,
               name,
-              hidden,
               resizable: true,
               headerCellClass: "codap-column-header",
               headerRenderer: ColumnHeader,
@@ -71,7 +69,6 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
               formatter: CellFormatter,
               editor: CellTextEditor
             }))
-            .filter(col => !col.hidden)
         ]
         : []
       setColumns(_columns)

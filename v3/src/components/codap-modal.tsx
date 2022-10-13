@@ -1,7 +1,7 @@
 import { Modal,
   ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Button } from "@chakra-ui/react"
-import React from "react"
+import React, { forwardRef } from "react"
 
 import "./codap-modal.scss"
 
@@ -29,14 +29,26 @@ interface IProps<TContentProps> {
   buttons: IModalButton[]
   onCustomClose?: () => void
 }
-export const CodapModal = <IContentProps,>({ isOpen, onClose,
+
+export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
   className, Icon, title, Content, contentProps, hasCloseButton, buttons, onCustomClose
-}: IProps<IContentProps>) => {
+}: IProps<IContentProps>, ref: React.LegacyRef<HTMLElement> | undefined) => {
+
+  const handleModalButtonKeydown = (e:React.KeyboardEvent, clickHandler: any) => {
+    const { key } = e
+    e.stopPropagation()
+    switch (key) {
+      case "Space":
+      case "Enter":
+        clickHandler()
+        break
+    }
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal">
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent ref={ref} className="codap-modal-content">
         <ModalHeader h="30" className="codap-modal-header" data-testid="codap-modal-header">
           <div className="codap-modal-icon-container">
             {Icon && <Icon />}
@@ -51,7 +63,9 @@ export const CodapModal = <IContentProps,>({ isOpen, onClose,
           {buttons.map((b: any, i)=>{
             const key = `${i}-${b.className}`
             return (
-              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}>
+              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}
+                onKeyDown={(e)=>handleModalButtonKeydown(e, b.onClick)}
+              >
                 {b.label}
               </Button>
             )
@@ -60,4 +74,5 @@ export const CodapModal = <IContentProps,>({ isOpen, onClose,
       </ModalContent>
     </Modal>
   )
-}
+})
+CodapModal.displayName = "CodapModal"
