@@ -62,21 +62,26 @@ export class GraphController {
   initializeGraph() {
     const {graphModel, layout, dotsRef, enableAnimation, instanceId, v2Document} = this,
       dataConfig = graphModel.config
+
     if (v2Document) {
       this.processV2Document()
-    } else {
-      graphModel.setGraphProperties({
-        axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
+    }
+
+    else {
+      if (!dotsRef.current){
+        graphModel.setGraphProperties({
+          axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
           left: EmptyAxisModel.create({place: 'left'})}, plotType: 'casePlot'
-      })
+        })
+      }
+      if (dotsRef.current) {
+        matchCirclesToData({
+          caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
+          pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
+        })
+      }
       layout.setAxisScale('bottom', scaleOrdinal())
       layout.setAxisScale('left', scaleOrdinal())
-    }
-    if (dotsRef.current) {
-      matchCirclesToData({
-        caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
-        pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
-      })
     }
   }
 
