@@ -36,19 +36,27 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(({onRenameAt
   }
 
   return (
-    <MenuList ref={ref} data-testid="attribute-menu-list">
-      <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Edit Attribute Properties")}>Edit Attribute Properties...</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Delete Formula")}>Delete Formula (Keeping Values)</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
-      <MenuItem onClick={handleHideAttribute}>Hide Attribute</MenuItem>
+    <MenuList className="codap-menu-list" ref={ref} data-testid="attribute-menu-list">
+      <MenuItem className="menu-item" onClick={onRenameAttribute}>Rename</MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Edit Attribute Properties")}>
+        Edit Attribute Properties...
+      </MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Delete Formula")}>
+        Delete Formula (Keeping Values)
+      </MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Sort Ascending")}>
+        Sort Ascending (A→Z, 0→9)
+      </MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Sort Descending")}>
+        Sort Descending (9→0, Z→A)
+      </MenuItem>
+      <MenuItem className="menu-item" onClick={handleHideAttribute}>Hide Attribute</MenuItem>
       {/* temporary until table tool palette is implemented */}
-      <MenuItem onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
-      <MenuItem onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
+      <MenuItem className="menu-item" onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
+      <MenuItem className="menu-item" onClick={()=>handleDeleteAttribute()}>Delete Attribute</MenuItem>
     </MenuList>
   )
 })
