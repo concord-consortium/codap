@@ -67,6 +67,8 @@ export class GraphController {
       this.processV2Document()
     }
     else {
+      // TODO, this may not be the reliable thing to test for AND/OR
+      // we may need to be able to call setGraphProperties when axis' models are in place?
       if (!dotsRef.current){
         graphModel.setGraphProperties({
           axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
@@ -81,6 +83,8 @@ export class GraphController {
       }
       layout.setAxisScale('bottom', scaleOrdinal())
       layout.setAxisScale('left', scaleOrdinal())
+      // TODO the first drop of a numeric attr on an empty axis results in warning:
+      // Unexpected value NaN parsing cy attribute.
     }
   }
 

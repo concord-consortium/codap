@@ -63,7 +63,7 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <Graph model={defaultGraphModel}
-            graphController={graphController.current || getNewGraphController()}
+            graphController={graphController.current}
             graphRef={graphRef}
             enableAnimation={enableAnimation}
             dotsRef={dotsRef}
