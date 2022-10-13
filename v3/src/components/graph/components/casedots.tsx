@@ -1,13 +1,16 @@
 import {randomUniform, select} from "d3"
+import { onAction } from "mobx-state-tree"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
+import { ICase } from "../../../data-model/data-set"
+import { isAddCasesAction } from "../../../data-model/data-set-actions"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {defaultPointColor} from "../../../utilities/color-utils"
 
 export const CaseDots = memo(function CaseDots(props: {
@@ -37,9 +40,22 @@ export const CaseDots = memo(function CaseDots(props: {
   useEffect(function initDistribution() {
     const {cases} = dataset || {}
     const uniform = randomUniform()
-    cases?.forEach(({__id__}) => {
-      randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
-    })
+
+    const initCases = (_cases?: typeof cases | ICase[]) => {
+      _cases?.forEach(({__id__}) => {
+        randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
+      })
+    }
+
+    initCases(cases)
+
+    const disposer = dataset && onAction(dataset, action => {
+      if (isAddCasesAction(action)) {
+        initCases(action.args[0])
+      }
+    }, true)
+
+    return () => disposer?.()
   }, [dataset])
 
   const onDragStart = useCallback((event: MouseEvent) => {
