@@ -65,14 +65,15 @@ export class GraphController {
 
     if (v2Document) {
       this.processV2Document()
-    } else {
+    }
+    else {
       if (!dotsRef.current){
         graphModel.setGraphProperties({
           axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
           left: EmptyAxisModel.create({place: 'left'})}, plotType: 'casePlot'
         })
       }
-      else if (dotsRef.current) {
+      else {
         matchCirclesToData({
           caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
           pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
