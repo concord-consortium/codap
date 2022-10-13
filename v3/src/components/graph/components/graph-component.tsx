@@ -35,6 +35,7 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
   const enableAnimation = useRef(true)
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
+  const graphController = useRef<GraphController>()
 
   const getNewGraphController = () => {
     return new GraphController({
@@ -43,7 +44,10 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
     })
   }
 
-  const graphController = useMemo(()=> getNewGraphController(),[dataset, layout, instanceId, v2Document])
+  useEffect(() => {
+    graphController.current = getNewGraphController()
+  },[dataset, layout, instanceId, v2Document])
+
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
@@ -59,10 +63,10 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <Graph model={defaultGraphModel}
-                 graphController={graphController}
-                 graphRef={graphRef}
-                 enableAnimation={enableAnimation}
-                 dotsRef={dotsRef}
+            graphController={graphController.current || getNewGraphController()}
+            graphRef={graphRef}
+            enableAnimation={enableAnimation}
+            dotsRef={dotsRef}
           />
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>
