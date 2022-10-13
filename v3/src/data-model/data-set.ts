@@ -160,15 +160,29 @@ export const DataSet = types.model("DataSet", {
 })
 .volatile(self => ({
   transactionCount: 0,
-  selection: observable.set<string>(),
-  cachingCount: 0,
-  caseCache: new Map<string, ICase>()
+  selection: observable.set<string>()
 }))
-.views(self => ({
-  get isCaching() {
-    return self.cachingCount > 0
+.views(self => {
+  let cachingCount = 0
+  const caseCache = new Map<string, ICase>()
+  return {
+    get isCaching() {
+      return cachingCount > 0
+    },
+    get caseCache() {
+      return caseCache
+    },
+    clearCache() {
+      caseCache.clear()
+    },
+    beginCaching() {
+      return ++cachingCount
+    },
+    _endCaching() {
+      return --cachingCount
+    }
   }
-}))
+})
 .extend(self => {
   /*
    * private closure
@@ -536,19 +550,13 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .actions(self => ({
-  clearCache() {
-    self.caseCache.clear()
-  },
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))
   },
-  beginCaching() {
-    ++self.cachingCount
-  },
   endCaching(commitCache = false) {
-    if (--self.cachingCount === 0) {
+    if (self._endCaching() === 0) {
       commitCache && this.commitCache()
-      this.clearCache()
+      self.clearCache()
     }
   }
 }))
