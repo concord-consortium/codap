@@ -3,15 +3,33 @@ import { ISerializedActionCall, onAction } from "mobx-state-tree"
 import { IDataSet } from "./data-set"
 import { isSetCaseValuesAction } from "./data-set-actions"
 
+export type FilterFn = (data: IDataSet, caseId: string) => boolean
+
+export interface IFilteredChangedCases {
+  added: string[]   // ids of cases that newly pass the filter
+  changed: string[] // ids of cases whose filter status wasn't changed
+  removed: string[] // ids of cases that no longer pass the filter
+}
+export type OnSetCaseValuesFn = (actionCall: ISerializedActionCall, cases: IFilteredChangedCases) => void
+
+interface IProps {
+  source: IDataSet
+  filter?: FilterFn
+  onSetCaseValues?: OnSetCaseValuesFn
+}
+
 export class FilteredCases {
   private source: IDataSet
-  @observable private filter?: (data: IDataSet, caseId: string) => boolean
+  @observable private filter?: FilterFn
+  private onSetCaseValues?: OnSetCaseValuesFn
+
   private prevCaseIdSet = new Set<string>()
   private onActionDisposers: Array<() => void>
 
-  constructor(source: IDataSet, filter?: (data: IDataSet, caseId: string) => boolean) {
+  constructor({ source, filter, onSetCaseValues }: IProps) {
     this.source = source
     this.filter = filter
+    this.onSetCaseValues = onSetCaseValues
 
     makeObservable(this)
 
@@ -76,16 +94,29 @@ export class FilteredCases {
   private handleAction = (actionCall: ISerializedActionCall) => {
     if (isSetCaseValuesAction(actionCall)) {
       const cases = actionCall.args[0]
-      const filteredCasesDidChange = cases.some(aCase => {
+      const added: string[] = []
+      const changed: string[] = []
+      const removed: string[] = []
+      cases.forEach(aCase => {
         // compare the pre-/post-change filter state of the affected cases
         const wasIncluded = this.prevCaseIdSet.has(aCase.__id__)
         const nowIncluded = !this.filter || this.filter(this.source, aCase.__id__)
-        return nowIncluded !== wasIncluded
+        if (wasIncluded === nowIncluded) {
+          changed.push(aCase.__id__)
+        }
+        else if (nowIncluded) {
+          added.push(aCase.__id__)
+        }
+        else {
+          removed.push(aCase.__id__)
+        }
       })
       // if any cases changed filter state, invalidate the cached results
-      if (filteredCasesDidChange) {
+      if (added.length || removed.length) {
         this.invalidateCases()
       }
+      // let listeners know how the change affects the filtered cases
+      this.onSetCaseValues?.(actionCall, { added, changed, removed })
     }
   }
 }

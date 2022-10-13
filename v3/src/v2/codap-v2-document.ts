@@ -39,6 +39,10 @@ export class CodapV2Document {
     return parentCaseId != null ? this.guidMap[parentCaseId]?.object as ICodapV2Case: undefined
   }
 
+  getAttribute(anID:number) {
+    return this.guidMap[anID]
+  }
+
   registerComponents(components?: CodapV2Component[] | null) {
     components?.forEach(component => {
       const { guid, type, } = component

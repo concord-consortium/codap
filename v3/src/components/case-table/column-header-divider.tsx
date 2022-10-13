@@ -3,6 +3,7 @@ import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IMoveAttributeOptions } from "../../data-model/data-set"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { kIndexColumnKey } from "./case-table-types"
 
 interface IProps {
@@ -10,6 +11,7 @@ interface IProps {
   cellElt: HTMLElement | null
 }
 export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
+  const instanceId = useInstanceIdContext()
   const data = useDataSetContext()
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
   const tableBounds = tableElt?.getBoundingClientRect()
@@ -24,7 +26,8 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   }
 
   const dropData: any = { accepts: ["attribute"], onDrop: handleDrop }
-  const { isOver, setNodeRef: setDropRef } = useDroppable({ id: `table-attribute:${columnKey}`, data: dropData })
+  const id = `${instanceId}-attribute:${columnKey}-drop`
+  const { isOver, setNodeRef: setDropRef } = useDroppable({ id, data: dropData })
 
   // find the `case-table` DOM element; divider must be drawn relative
   // to the `case-table` (via React portal) so it isn't clipped by the cell

@@ -6,6 +6,11 @@ import { DataSet, toCanonical } from "../../data-model/data-set"
 import { useKeyStates } from "../../hooks/use-key-states"
 import { CaseTableComponent } from "./case-table-component"
 
+jest.mock("./case-table-shared.scss", () => ({
+  headerRowHeight: "30",
+  bodyRowHeight: "18"
+}))
+
 // used by case table
 jest.mock("../../hooks/use-measure-text", () => ({
   measureText: (text: string) => text.length * 6

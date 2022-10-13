@@ -16,5 +16,3 @@ export interface THeaderRendererProps extends HeaderRendererProps<TRow> {}
 export interface TRowRendererProps extends RowRendererProps<TRow> {}
 
 export const kIndexColumnKey = "__index__"
-
-export const kDefaultRowHeight = 35

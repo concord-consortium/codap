@@ -59,7 +59,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
 
   return (
     <>
-      <MenuList data-testid="index-menu-list">
+      <MenuList data-testid="index-menu-list" lineHeight="none" fontSize="small">
         <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>Move Data Entry Row Here</MenuItem>
         <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
         <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>

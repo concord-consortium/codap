@@ -136,4 +136,82 @@ describe("DataConfigurationModel", () => {
     expect(config.cases).toEqual(["c1", "c2", "c3"])
   })
 
+  it("selection behaves as expected", () => {
+    const config = DataConfigurationModel.create()
+    config.setAttribute("x", { attributeID: "xId" })
+    expect(config.selection.length).toBe(0)
+
+    config.setDataset(data)
+    data.selectAll()
+    expect(config.selection.length).toBe(3)
+
+    config.setAttribute("x", { attributeID: "xId" })
+    expect(config.selection.length).toBe(2)
+
+    const selectionReaction = jest.fn()
+    const disposer = reaction(() => config.selection, () => selectionReaction())
+    expect(selectionReaction).toHaveBeenCalledTimes(0)
+    config.setAttribute("y", { attributeID: "yId" })
+    expect(config.selection.length).toBe(1)
+    expect(selectionReaction).toHaveBeenCalledTimes(1)
+    disposer()
+  })
+
+  it("calls action listeners when appropriate", () => {
+    const config = DataConfigurationModel.create()
+    config.setDataset(data)
+    config.setAttribute("x", { attributeID: "xId" })
+
+    const handleAction = jest.fn()
+    config.onAction(handleAction)
+
+    data.setCaseValues([{ __id__: "c1", xId: 1.1 }])
+    expect(handleAction).toHaveBeenCalledTimes(1)
+    expect(handleAction.mock.lastCall[0].name).toBe("setCaseValues")
+
+    data.setCaseValues([{ __id__: "c3", xId: 3 }])
+    expect(handleAction).toHaveBeenCalledTimes(2)
+    expect(handleAction.mock.lastCall[0].name).toBe("addCases")
+
+    data.setCaseValues([{ __id__: "c1", xId: "" }])
+    expect(handleAction).toHaveBeenCalledTimes(3)
+    expect(handleAction.mock.lastCall[0].name).toBe("removeCases")
+
+    data.setCaseValues([{ __id__: "c1", xId: 1 }, { __id__: "c2", xId: "" }, { __id__: "c3", xId: 3.3 }])
+    expect(handleAction).toHaveBeenCalledTimes(6)
+  })
+
+  it("only allows x and y as primary place", () => {
+    const config = DataConfigurationModel.create()
+    config.setDataset(data)
+    config.setPrimaryPlace('y')
+    expect(config.primaryPlace).toBe("y")
+    config.setPrimaryPlace('caption')
+    expect(config.primaryPlace).toBe("y")
+  })
+
+  it("returns an attribute values array and category set that ignore empty values", () => {
+    data.addCases(toCanonical(data,[
+      { __id__: "c4", n: "n1", x: 1, y: 1 },
+      { __id__: "c5", n: "", x: 6, y: 1 },
+      { __id__: "c6", n: "n1", x: 6, y: 6 }]))
+    const config = DataConfigurationModel.create()
+    config.setDataset(data)
+    config.setAttribute("x", { attributeID: "xId" })
+    config.setAttribute("y", { attributeID: "yId" })
+    config.setAttribute("caption", { attributeID: "nId" })
+    expect(config.valuesForPlace("x")).toEqual(["1", "1", "6", "6"])
+    expect(config.valuesForPlace("y")).toEqual(["1", "1", "1", "6"])
+    expect(config.valuesForPlace("caption")).toEqual(["n1", "n1", "n1"])
+    expect(config.categorySetForPlace("x")).toEqual(new Set(["1", "6"]))
+    expect(config.categorySetForPlace("y")).toEqual(new Set(["1", "6"]))
+    expect(config.categorySetForPlace("caption")).toEqual(new Set(["n1"]))
+    expect(config.numericValuesForPlace("x")).toEqual([1, 1, 6, 6])
+    expect(config.numericValuesForPlace("caption")).toEqual([])
+
+    config.setAttribute("y")
+    expect(config.valuesForPlace("y")).toEqual([])
+    expect(config.categorySetForPlace("y")).toEqual(new Set(["__main__"]))
+  })
+
 })

@@ -20,11 +20,13 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
   const [modalIsOpen, setModalIsOpen] = useState(false)
+  // disable dragging when the column header menu is open
+  const disabled = isMenuOpen.current
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
   const attribute = data?.attrFromID(column.key)
 
-  const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key }
+  const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key, disabled }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
   const setCellRef = (elt: HTMLDivElement | null) => {
@@ -72,31 +74,29 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
         isMenuOpen.current = isOpen
         return (
-          <>
-            <Tooltip label={`${column.name}${description}` || "attribute"} h="20px" fontSize="12px" color="white"
-                openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
-                isDisabled={disableTooltip} >
-              <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-                { editingAttrId
-                  ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
-                      variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
-                      onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
-                    />
-                  : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
-                        fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
-                      {`${column?.name}${units}`}
-                    </MenuButton>
-                }
-                <CaseTablePortal>
-                  <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}
-                    onModalOpen={handleModalOpen}
+          <Tooltip label={`${column.name}${description}` || "attribute"} h="20px" fontSize="12px" color="white"
+              openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
+              isDisabled={disableTooltip} >
+            <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
+              { editingAttrId
+                ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
+                    variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
+                    onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
                   />
-                </CaseTablePortal>
-                {column &&
-                  <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
-              </div>
-            </Tooltip>
-          </>
+                : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
+                      fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
+                    {`${column?.name}${units}`}
+                  </MenuButton>
+              }
+              <CaseTablePortal>
+                <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}
+                  onModalOpen={handleModalOpen}
+                />
+              </CaseTablePortal>
+              {column &&
+                <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
+            </div>
+          </Tooltip>
         )
     }}
     </Menu>
