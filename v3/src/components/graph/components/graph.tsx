@@ -157,7 +157,7 @@ export const Graph = observer((
 
   const handlePlotDropAttribute = (active: Active) => {
     const dragAttributeID = getDragAttributeId(active)
-    if( dragAttributeID) {
+    if (dragAttributeID) {
       handleDropAttribute('plot', dragAttributeID)
     }
   }
