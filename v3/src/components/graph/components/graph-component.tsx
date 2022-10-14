@@ -1,6 +1,6 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import { getSnapshot } from "mobx-state-tree"
+import {getSnapshot} from "mobx-state-tree"
 import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {DataBroker} from "../../../data-model/data-broker"
@@ -10,10 +10,9 @@ import {EmptyAxisModel} from "../models/axis-model"
 import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
-import {GraphController} from "../models/graph-controller"
 import {Graph} from "./graph"
 import {CodapV2Document} from "../../../v2/codap-v2-document"
-import { useGraphController } from '../hooks/use-graph-controller'
+import {useGraphController} from '../hooks/use-graph-controller'
 
 const defaultGraphModel = GraphModel.create({
   axes: {

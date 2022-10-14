@@ -1,31 +1,14 @@
 import {useRef, useEffect} from "react"
-import { GraphController } from "../models/graph-controller"
-
-export interface IUseGraphController {
-  graphModel: any,
-  dataset: any,
-  layout: any,
-  enableAnimation: any,
-  instanceId: any,
-  dotsRef: any,
-  v2Document: any
-}
+import {GraphController, IGraphControllerProps} from "../models/graph-controller"
 
 export const useGraphController = ({
-  graphModel,
-  dataset,
-  layout,
-  enableAnimation,
-  instanceId,
-  dotsRef,
-  v2Document
-}: IUseGraphController) => {
+  graphModel, dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
+}: IGraphControllerProps) => {
   const graphController = useRef<GraphController>()
 
   const getNewGraphController = () => {
     return new GraphController({
-      graphModel,
-      dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
+      graphModel,dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
     })
   }
 
@@ -35,5 +18,3 @@ export const useGraphController = ({
 
   return graphController
 }
-
-
