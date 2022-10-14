@@ -4,6 +4,7 @@ import {IDataSet} from "../../../data-model/data-set"
 import {SetCaseValuesAction} from "../../../data-model/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../data-model/filtered-cases"
 import {uniqueId} from "../../../utilities/js-utils"
+import {kellyColors, missingColor} from "../../../utilities/color-utils"
 
 export const PrimaryAttrPlaces = ['x', 'y'] as const
 export const TipAttrPlaces = [...PrimaryAttrPlaces, 'caption', 'y2'] as const
@@ -116,33 +117,53 @@ export const DataConfigurationModel = types
       return Array.from(new Set<string>(this.tipAttributes))
     },
     get cases() {
-      return self.filteredCases?.caseIds || []
+      const caseIDs = self.filteredCases?.caseIds || [],
+        legendAttrID = self.attributeID('legend')
+      if (legendAttrID) {
+        const categories = Array.from(this.categorySetForPlace('legend'))
+        caseIDs.sort((a: string, b: string) => {
+          const a_Value = self.dataset?.getValue(a, legendAttrID),
+            b_value = self.dataset?.getValue(b, legendAttrID)
+          return categories.indexOf(a_Value) - categories.indexOf(b_value)
+        })
+      }
+      return caseIDs
     },
     get selection() {
       if (!self.dataset || !self.filteredCases) return []
       const selection = Array.from(self.dataset.selection)
-      return selection.filter(caseId => self.filteredCases?.hasCaseId(caseId))
+      return selection.filter((caseId:string) => self.filteredCases?.hasCaseId(caseId))
     }
   }))
   .views(self => (
     {
       valuesForPlace(place: GraphAttrPlace): string[] {
         const attrID = self.attributeID(place),
-          dataset = self.dataset
-        return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID)))
+          dataset = self.dataset,
+          caseIDs = self.filteredCases?.caseIds || []
+        return attrID ? caseIDs.map(anID => String(dataset?.getValue(anID, attrID)))
           .filter(aValue => aValue !== '') : []
       },
-      numericValuesForPlace(place: GraphAttrPlace):number[] {
-        return this.valuesForPlace(place).map((aValue:string) => Number(aValue))
-          .filter((aValue:number) => isFinite(aValue))
+      numericValuesForPlace(place: GraphAttrPlace): number[] {
+        return this.valuesForPlace(place).map((aValue: string) => Number(aValue))
+          .filter((aValue: number) => isFinite(aValue))
       },
       categorySetForPlace(place: GraphAttrPlace): Set<string> {
-        const result: Set<string> = new Set(this.valuesForPlace(place))
-        result.delete('')
+        const result: Set<string> = new Set(this.valuesForPlace(place).sort())
         if (result.size === 0) {
           result.add('__main__')
         }
         return result
+      }
+    }))
+  .views(self => (
+    {
+      getLegendColorForCase(id: string) {
+        const legendID = self.attributeID('legend'),
+          legendValue = legendID ? self.dataset?.getValue(id, legendID) : null,
+          catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(legendValue)
+        return legendValue === null ? '' :
+          catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
       }
     }))
   .actions(self => ({

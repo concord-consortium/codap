@@ -8,6 +8,7 @@ import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data
 import {IDataSet} from "../../../data-model/data-set"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
+import {useCurrent} from "../../../hooks/use-current"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -45,31 +46,32 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   const { dataset, primaryAttrID, secondaryAttrID, xAxisModel, yAxisModel, enableAnimation,
     refreshPointPositions, refreshPointSelection, layout } = props,
     xNumeric = xAxisModel as INumericAxisModel,
-    yNumeric = yAxisModel as INumericAxisModel
+    yNumeric = yAxisModel as INumericAxisModel,
+    refreshPointsRef = useCurrent(refreshPointPositions)
 
   // respond to axis domain changes (e.g. axis dragging)
   useEffect(() => {
-    refreshPointPositions(false)
+    refreshPointsRef.current(false)
     const disposer = reaction(
       () => [xNumeric?.domain, yNumeric?.domain],
       domains => {
-        refreshPointPositions(false)
+        refreshPointsRef.current(false)
       }
     )
     return () => disposer()
-  }, [refreshPointPositions, xNumeric?.domain, yNumeric?.domain])
+  }, [refreshPointsRef, xNumeric?.domain, yNumeric?.domain])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
-    refreshPointPositions(false)
+    refreshPointsRef.current(false)
     const disposer = reaction(
       () => [layout.axisLength('left'), layout.axisLength('bottom')],
       ranges => {
-        refreshPointPositions(false)
+        refreshPointsRef.current(false)
       }
     )
     return () => disposer()
-  }, [layout, refreshPointPositions])
+  }, [layout, refreshPointsRef])
 
   // respond to selection and value changes
   useEffect(() => {
@@ -79,16 +81,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           refreshPointSelection()
         } else if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
-          refreshPointPositions(dataset.isCaching)
+          refreshPointsRef.current(dataset.isCaching)
         }
       }, true)
       return () => disposer()
     }
-  }, [dataset, refreshPointPositions, refreshPointSelection])
+  }, [dataset, refreshPointsRef, refreshPointSelection])
 
   // respond to x or y attribute id change
   useEffect(() => {
     enableAnimation.current = true
-    refreshPointPositions(false)
-  }, [refreshPointPositions, primaryAttrID, secondaryAttrID, enableAnimation])
+    refreshPointsRef.current(false)
+  }, [refreshPointsRef, primaryAttrID, secondaryAttrID, enableAnimation])
 }
