@@ -130,16 +130,16 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     const
       getScreenX = (anID: string) => primaryAttrID ? getScreenCoord(dataset, anID, primaryAttrID, xScale) : null,
       getScreenY = (anID: string) => secondaryAttrID ? getScreenCoord(dataset, anID, secondaryAttrID, yScale) : null,
-      getLegendColor = dataConfiguration?.getLegendColorForCase,
+      {getLegendColorForCase} = dataConfiguration || {},
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined
 
     setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, selectedOnly,
-      getScreenX, getScreenY, getLegendColor, duration, onComplete})
+      getScreenX, getScreenY, getLegendColor: getLegendColorForCase, duration, onComplete})
   }, [dataset, pointRadius, selectedPointRadius, dotsRef, primaryAttrID, xScale,
-            secondaryAttrID, yScale, enableAnimation, dataConfiguration?.getLegendColorForCase])
+            secondaryAttrID, yScale, enableAnimation, dataConfiguration])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const { cases, selection } = dataConfiguration || {}

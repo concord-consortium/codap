@@ -8,7 +8,7 @@ import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data
 import {IDataSet} from "../../../data-model/data-set"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
-import {useCurrent} from "../../../hooks/use-current";
+import {useCurrent} from "../../../hooks/use-current"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
