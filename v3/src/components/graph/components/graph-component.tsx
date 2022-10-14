@@ -13,6 +13,7 @@ import {GraphModel} from "../models/graph-model"
 import {GraphController} from "../models/graph-controller"
 import {Graph} from "./graph"
 import {CodapV2Document} from "../../../v2/codap-v2-document"
+import { useGraphController } from '../hooks/use-graph-controller'
 
 const defaultGraphModel = GraphModel.create({
   axes: {
@@ -35,19 +36,11 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
   const enableAnimation = useRef(true)
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
-  const graphController = useRef<GraphController>()
 
-  const getNewGraphController = () => {
-    return new GraphController({
-      graphModel: defaultGraphModel,
-      dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
-    })
-  }
-
-  useEffect(() => {
-    graphController.current = getNewGraphController()
-  },[dataset, layout, instanceId, v2Document])
-
+  const graphController = useGraphController({
+    graphModel: defaultGraphModel,
+    dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
+  })
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
