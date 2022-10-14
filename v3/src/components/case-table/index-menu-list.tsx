@@ -59,13 +59,13 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
 
   return (
     <>
-      <MenuList data-testid="index-menu-list" lineHeight="none" fontSize="small">
-        <MenuItem className="menu-item" onClick={()=>handleMenuItemClick("Move Data Entry Row")}>
+      <MenuList data-testid="index-menu-list" >
+        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>
           Move Data Entry Row Here
         </MenuItem>
-        <MenuItem className="menu-item" onClick={handleInsertCase}>Insert Case</MenuItem>
-        <MenuItem className="menu-item" onClick={handleInsertCases}>Insert Cases...</MenuItem>
-        <MenuItem className="menu-item" onClick={handleDeleteCase}>Delete Case</MenuItem>
+        <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
+        <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
+        <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
       </MenuList>
       <CodapModal
           isOpen={isOpen}
