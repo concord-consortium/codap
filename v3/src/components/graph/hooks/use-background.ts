@@ -4,12 +4,12 @@ import {useCallback, useEffect} from "react"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 
-export interface IUseAxis {
+export interface IUseBackground {
   axisModel: IAxisModel
   axisElt: SVGGElement | null
 }
 
-export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
+export const useBackground = ({axisModel, axisElt}: IUseBackground) => {
   const layout = useGraphLayoutContext(),
     scale = layout.axisScale(axisModel.place),
     axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft,
