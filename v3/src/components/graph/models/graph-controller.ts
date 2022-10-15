@@ -2,7 +2,7 @@ import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
-import {GraphAttrPlace, IAttributeDescriptionSnapshot}
+import {GraphAttrRole, IAttributeDescriptionSnapshot}
   from "./data-configuration-model"
 import {IDataSet} from "../../../data-model/data-set"
 import {
@@ -90,7 +90,7 @@ export class GraphController {
     Object.keys(links).forEach((aKey: keyof typeof links) => {
       if (['xAttr', 'yAttr', 'legendAttr'].includes(aKey)) {
         const match = aKey.match(/[a-z]+/),
-          attrPlace = (match?.[0] ?? 'x') as GraphAttrPlace,
+          attrPlace = (match?.[0] ?? 'x') as GraphAttrRole,
           attrV2ID = (links[aKey] as IGuidLink<"DG.Attribute">).id,
           attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
           attribute = dataset?.attrFromName(attrName),
@@ -104,7 +104,7 @@ export class GraphController {
       }
     })
     graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y]);
-    ['x', 'y'].forEach((attrPlace: GraphAttrPlace) => {
+    ['x', 'y'].forEach((attrPlace: GraphAttrRole) => {
       const axisPlace = attrPlaceToAxisPlace[attrPlace] as AxisPlace,
         attrType = attrTypes[attrPlace]
       let axisModel
@@ -130,6 +130,9 @@ export class GraphController {
   }
 
   handleAttributeAssignment(axisPlace: AxisPlace, attrID: string) {
+    if(['plot', 'legend'].includes( axisPlace)) {
+      return  // Since there is no axis associated with the legend and the plotType will not change, we bail
+    }
     const {dataset, graphModel, layout} = this,
       dataConfig = graphModel.config,
       graphAttributePlace = axisPlaceToAttrPlace[axisPlace],
