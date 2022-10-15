@@ -112,8 +112,7 @@ export const CaseDots = memo(function CaseDots(props: {
       .attr('cy', (anID: string) => {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+      // @ts-expect-error anID may be null
       .style('fill', (anID: string) => {
         return legendAttrID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
       })

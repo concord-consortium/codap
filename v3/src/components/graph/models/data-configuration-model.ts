@@ -6,11 +6,11 @@ import {FilteredCases, IFilteredChangedCases} from "../../../data-model/filtered
 import {uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
 
-export const PrimaryAttrPlaces = ['x', 'y'] as const
-export const TipAttrPlaces = [...PrimaryAttrPlaces, 'legend', 'caption', 'y2'] as const
-export const GraphAttrPlaces = [
-  ...TipAttrPlaces, 'polygon', 'topSplit', 'rightSplit'] as const
-export type GraphAttrPlace = typeof GraphAttrPlaces[number]
+export const PrimaryAttrRoles = ['x', 'y'] as const
+export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'y2'] as const
+export const GraphAttrRoles = [
+  ...TipAttrRoles, 'polygon', 'topSplit', 'rightSplit'] as const
+export type GraphAttrRole = typeof GraphAttrRoles[number]
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -29,8 +29,8 @@ export const DataConfigurationModel = types
   .model('DataConfigurationModel', {
     id: types.optional(types.identifier, () => uniqueId()),
     // determines stacking direction in categorical-categorical, for instance
-    primaryPlace: types.maybe(types.enumeration([...PrimaryAttrPlaces])),
-    // keys are GraphAttrPlaces
+    primaryPlace: types.maybe(types.enumeration([...PrimaryAttrRoles])),
+    // keys are GraphAttrRoles
     attributeDescriptions: types.map(AttributeDescription)
   })
   .volatile(self => ({
@@ -45,14 +45,14 @@ export const DataConfigurationModel = types
       // Until we have better support for hierarchical attributes, we just return the left-most attribute.
       return self.dataset?.attributes[0]?.id
     },
-    attributeID(place: GraphAttrPlace) {
+    attributeID(place: GraphAttrRole) {
       let attrID = self.attributeDescriptions.get(place)?.attributeID
       if ((place === "caption") && !attrID) {
         attrID = this.defaultCaptionAttributeID
       }
       return attrID
     },
-    attributeType(place: GraphAttrPlace) {
+    attributeType(place: GraphAttrRole) {
       const desc = self.attributeDescriptions.get(place)
       const attrID = this.attributeID(place)
       const attr = attrID && self.dataset?.attrFromID(attrID)
@@ -61,7 +61,7 @@ export const DataConfigurationModel = types
     get places() {
       const places = new Set<string>(self.attributeDescriptions.keys())
       self.dataset?.attributes.length && places.add("caption")
-      return Array.from(places) as GraphAttrPlace[]
+      return Array.from(places) as GraphAttrRole[]
     }
   }))
   .views(self => ({
@@ -69,7 +69,7 @@ export const DataConfigurationModel = types
       return Array.from(self.attributeDescriptions.entries()).every(([place, {attributeID}]) => {
         // can still plot the case without a caption
         if (place === "caption") return true
-        switch (self.attributeType(place as GraphAttrPlace)) {
+        switch (self.attributeType(place as GraphAttrRole)) {
           case "numeric":
             return isFinite(data.getNumeric(caseID, attributeID) ?? NaN)
           default:
@@ -109,7 +109,7 @@ export const DataConfigurationModel = types
       return Array.from(new Set<string>(this.attributes))
     },
     get tipAttributes() {
-      return TipAttrPlaces
+      return TipAttrRoles
         .map(place => self.attributeID(place))
         .filter(id => !!id) as string[]
     },
@@ -137,7 +137,7 @@ export const DataConfigurationModel = types
   }))
   .views(self => (
     {
-      valuesForPlace(place: GraphAttrPlace): string[] {
+      valuesForPlace(place: GraphAttrRole): string[] {
         const attrID = self.attributeID(place),
           dataset = self.dataset,
           // todo: The following interferes with sorting by legend ID because we're bypassing get cases where the
@@ -146,11 +146,11 @@ export const DataConfigurationModel = types
         return attrID ? caseIDs.map(anID => String(dataset?.getValue(anID, attrID)))
           .filter(aValue => aValue !== '') : []
       },
-      numericValuesForPlace(place: GraphAttrPlace): number[] {
+      numericValuesForPlace(place: GraphAttrRole): number[] {
         return this.valuesForPlace(place).map((aValue: string) => Number(aValue))
           .filter((aValue: number) => isFinite(aValue))
       },
-      categorySetForPlace(place: GraphAttrPlace): Set<string> {
+      categorySetForPlace(place: GraphAttrRole): Set<string> {
         const result: Set<string> = new Set(this.valuesForPlace(place).sort())
         if (result.size === 0) {
           result.add('__main__')
@@ -179,12 +179,12 @@ export const DataConfigurationModel = types
         onSetCaseValues: self.handleSetCaseValues
       })
     },
-    setPrimaryPlace(aPlace: GraphAttrPlace) {
+    setPrimaryPlace(aPlace: GraphAttrRole) {
       if (aPlace === 'x' || aPlace === 'y') {
         self.primaryPlace = aPlace
       }
     },
-    setAttribute(place: GraphAttrPlace, desc?: IAttributeDescriptionSnapshot) {
+    setAttribute(place: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
       if (desc) {
         self.attributeDescriptions.set(place, desc)
       } else {

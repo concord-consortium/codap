@@ -150,8 +150,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
           return NaN
         }
       })
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error anID may be undefined
       .style('fill', (anID: string) => {
         return legendAttrID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
       })

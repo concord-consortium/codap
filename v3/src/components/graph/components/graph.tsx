@@ -16,7 +16,7 @@ import {Marquee} from "./marquee"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {AxisPlace, IAxisModel, attrPlaceToAxisPlace, axisPlaceToAttrPlace} from "../models/axis-model"
+import { IAxisModel, attrPlaceToAxisPlace, GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -78,9 +78,8 @@ export const Graph = observer((
 
   const toast = useToast()
 
-  const handleDropAttribute = (place: AxisPlace, attrId: string) => {
-    // TODO: will need to be more sophisticated
-    const attrPlace = axisPlaceToAttrPlace[place]
+  const handleDropAttribute = (place: GraphPlace, attrId: string) => {
+    const attrPlace = graphPlaceToAttrPlace(place)
     const attrName = dataset?.attrFromID(attrId)?.name
     toast({
       position: "top-right",
