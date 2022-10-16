@@ -16,7 +16,7 @@ import {Marquee} from "./marquee"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import { IAxisModel, attrPlaceToAxisPlace, GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
+import {IAxisModel, attrPlaceToAxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -157,7 +157,7 @@ export const Graph = observer((
 
   const handlePlotDropAttribute = (active: Active) => {
     const dragAttributeID = getDragAttributeId(active)
-    if( dragAttributeID) {
+    if (dragAttributeID) {
       handleDropAttribute('plot', dragAttributeID)
     }
   }
@@ -169,18 +169,20 @@ export const Graph = observer((
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
-              transform={transform}
-              marqueeState={marqueeState}
-              ref={backgroundSvgRef}
-            />
-            <Axis axisModel={yAxisModel} attributeID={yAttrID}
-                  transform={`translate(${margin.left - 1}, 0)`}
-                  onDropAttribute={handleDropAttribute}
-            />
-            <Axis axisModel={xAxisModel} attributeID={xAttrID}
-                  transform={`translate(${margin.left}, ${layout.plotHeight})`}
-                  onDropAttribute={handleDropAttribute}
-            />
+            transform={transform}
+            marqueeState={marqueeState}
+            ref={backgroundSvgRef}
+          />
+          <Axis axisModel={yAxisModel} attributeID={yAttrID}
+                transform={`translate(${margin.left - 1}, 0)`}
+                showGridLines={graphModel.plotType === 'scatterPlot'}
+                onDropAttribute={handleDropAttribute}
+          />
+          <Axis axisModel={xAxisModel} attributeID={xAttrID}
+                transform={`translate(${margin.left}, ${layout.plotHeight})`}
+                showGridLines={graphModel.plotType === 'scatterPlot'}
+                onDropAttribute={handleDropAttribute}
+          />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
             <svg ref={dotsRef}>

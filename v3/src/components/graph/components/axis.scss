@@ -42,14 +42,14 @@
 
 }
 
-.grid line {
+.grid .tick line {
   stroke: lightgrey;
   stroke-opacity: 0.7;
   shape-rendering: crispEdges;
 }
 
-.grid path {
-  stroke: lightgrey;
-  stroke-opacity: 0.7;
+.zero .tick  line {
+  stroke: #444444;
+  stroke-opacity: 0.8;
   shape-rendering: crispEdges;
 }
