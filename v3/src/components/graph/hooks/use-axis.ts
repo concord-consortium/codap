@@ -56,7 +56,7 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
         }
       }
     }
-  }, [axisElt, place, axisFunc, axisModel, layout, showGridLines])
+  }, [axisElt, place, axisFunc, layout, showGridLines, scale])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
