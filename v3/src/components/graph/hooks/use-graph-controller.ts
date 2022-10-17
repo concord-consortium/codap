@@ -25,7 +25,7 @@ export const useGraphController = ({
     graphControllerRef.current = new GraphController({
       graphModel, layout, dataset, enableAnimation, instanceId, dotsRef, v2Document
     })
-  },[dataset, layout, instanceId, v2Document])
+  },[dataset, layout, instanceId, v2Document, dotsRef, enableAnimation, graphModel])
 
   return graphControllerRef
 }
