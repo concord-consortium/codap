@@ -8,6 +8,9 @@ export interface AddCasesAction extends ISerializedActionCall {
   args: [ICase[], IAddCaseOptions | undefined]
 }
 
+export const isAddCasesAction = (action: ISerializedActionCall): action is AddCasesAction =>
+              action.name === "addCases"
+
 export interface SetCaseValuesAction extends ISerializedActionCall {
   name: "setCaseValues"
   args: [ICase[]]

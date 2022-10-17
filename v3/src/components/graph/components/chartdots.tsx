@@ -8,6 +8,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrPlaceToAxisPlace} from "../models/axis-model"
+import {defaultPointColor} from "../../../utilities/color-utils"
 
 interface IProps {
   graphModel: IGraphModel
@@ -18,22 +19,22 @@ type BinMap = Record<string, Record<string, number>>
 
 export const ChartDots = memo(function ChartDots(props: IProps) {
   const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
-    dataConfig = useDataConfigurationContext(),
-    cases = dataConfig?.cases || [],
+    dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    primaryAttrPlace = dataConfig?.primaryPlace ?? 'x',
+    primaryAttrPlace = dataConfiguration?.primaryPlace ?? 'x',
     primaryAxisPlace = attrPlaceToAxisPlace[primaryAttrPlace] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrID = dataConfig?.attributeID(primaryAttrPlace),
+    primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace),
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
     secondaryAxisPlace = attrPlaceToAxisPlace[secondaryAttrPlace] ?? 'left',
-    secondaryAttrID = dataConfig?.attributeID(secondaryAttrPlace),
+    secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
+    legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = layout.axisScale(primaryAxisPlace) as ScaleBand<string>,
     secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>
 
   const computeMaxOverAllCells = useCallback(() => {
-    const valuePairs = cases.map(caseID => {
+    const valuePairs = (dataConfiguration?.cases || []).map(caseID => {
         return {
           primary: (primaryAttrID && dataset?.getValue(caseID, primaryAttrID)) ?? '',
           secondary: (secondaryAttrID && dataset?.getValue(caseID, secondaryAttrID)) ?? '__main__'
@@ -54,21 +55,22 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         return Math.max(vMax, bins[hKey][vKey])
       }, 0))
     }, 0)
-  }, [cases, dataset, primaryAttrID, secondaryAttrID])
+  }, [dataset, dataConfiguration?.cases, primaryAttrID, secondaryAttrID])
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({
-      dotsRef, dataset, pointRadius: graphModel.getPointRadius(),
+    dataConfiguration && setPointSelection({
+      dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataset, dotsRef, graphModel])
+  }, [dataConfiguration, dotsRef, graphModel])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryPlace is the bottom just to help understand the naming
     const
-      primaryCategoriesArray: string[] = dataConfig ? Array.from(dataConfig.categorySetForPlace(primaryAttrPlace)) : [],
-      secondaryCategoriesArray: string[] = dataConfig ?
-        Array.from(dataConfig.categorySetForPlace(secondaryAttrPlace)) : [],
+      primaryCategoriesArray: string[] = dataConfiguration ?
+        Array.from(dataConfiguration.categorySetForPlace(primaryAttrPlace)) : [],
+      secondaryCategoriesArray: string[] = dataConfiguration ?
+        Array.from(dataConfiguration.categorySetForPlace(secondaryAttrPlace)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
@@ -104,7 +106,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
 
       buildMapOfIndicesByCase = () => {
         const indices: Record<string, { cell: { h: number, v: number }, row: number, column: number }> = {}
-        primaryAttrID && cases.forEach(anID => {
+        primaryAttrID && (dataConfiguration?.cases || []).forEach(anID => {
           const hCat = dataset?.getValue(anID, primaryAttrID),
             vCat = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__',
             mapEntry = categoriesMap[hCat][vCat],
@@ -148,9 +150,13 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
           return NaN
         }
       })
-  }, [dataConfig, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
+      // @ts-expect-error anID may be undefined
+      .style('fill', (anID: string) => {
+        return legendAttrID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+      })
+  }, [dataConfiguration, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
             enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
-            computeMaxOverAllCells, primaryAttrID, secondaryAttrID, dataset, secondaryScale])
+            computeMaxOverAllCells, primaryAttrID, secondaryAttrID, legendAttrID, dataset, secondaryScale])
 
   useEffect(() => {
     select(dotsRef.current).on('click', (event) => {
@@ -164,7 +170,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   })
 
   usePlotResponders({
-    dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation
+    dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation, primaryAttrID, secondaryAttrID,
+    legendAttrID
   })
 
   return (

@@ -8,7 +8,7 @@ import {
   pointRadiusMax,
   pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
-import {DataConfigurationModel, GraphAttrPlace} from "./data-configuration-model"
+import {DataConfigurationModel, GraphAttrRole} from "./data-configuration-model"
 import {uniqueId} from "../../../utilities/js-utils"
 
 export interface GraphProperties {
@@ -29,7 +29,7 @@ export const GraphModel = types
     getAxis(place: AxisPlace) {
       return self.axes.get(place)
     },
-    getAttributeID(place: GraphAttrPlace) {
+    getAttributeID(place: GraphAttrRole) {
       return self.config.attributeID(place) ?? ''
     },
     getPointRadius(use:'normal' | 'hover-drag' | 'select' = 'normal') {
@@ -55,7 +55,7 @@ export const GraphModel = types
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
     },
-    setAttributeID(place: GraphAttrPlace, id: string) {
+    setAttributeID(place: GraphAttrRole, id: string) {
       self.config.setAttribute(place, { attributeID: id })
     },
     setPlotType(type: PlotType) {
@@ -74,7 +74,7 @@ export const GraphModel = types
 
 export interface SetAttributeIDAction extends ISerializedActionCall {
   name: "setAttributeID"
-  args: [GraphAttrPlace, string]
+  args: [GraphAttrRole, string]
 }
 
 export function isSetAttributeIDAction(action: ISerializedActionCall): action is SetAttributeIDAction {

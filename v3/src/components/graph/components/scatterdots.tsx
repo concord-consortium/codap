@@ -1,7 +1,7 @@
 import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
-import {hoverRadiusFactor, PlotProps, transitionDuration} from "../graphing-types"
+import {PlotProps, transitionDuration} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -19,38 +19,39 @@ interface IProps {
 export const ScatterDots = memo(function ScatterDots(props: IProps) {
   const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
     instanceId = useInstanceIdContext(),
-    dataConfig = useDataConfigurationContext(),
+    dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
+    dragPointRadius = graphModel.getPointRadius('hover-drag'),
     layout = useGraphLayoutContext(),
-    primaryAttrID = dataConfig?.attributeID('x'),
-    secondaryAttrID = dataConfig?.attributeID('y'),
+    primaryAttrID = dataConfiguration?.attributeID('x'),
+    secondaryAttrID = dataConfiguration?.attributeID('y'),
     xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left") as ScaleNumericBaseType,
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),
     target = useRef<any>(),
-    selectedDataObjects = useRef<{ [index: string]: { x: number, y: number } }>({})
+    selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({})
 
   const onDragStart = useCallback((event: MouseEvent) => {
       dataset?.beginCaching()
       enableAnimation.current = false // We don't want to animate points until end of drag
       didDrag.current = false
       target.current = select(event.target as SVGSVGElement)
-      const tItsID: string = target.current.property('id')
+      const tItsID = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         appState.beginPerformance()
         target.current.transition()
-          .attr('r', pointRadius * hoverRadiusFactor)
+          .attr('r', dragPointRadius)
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
         const [, caseId] = tItsID.split("_")
         dataset?.selectCases([caseId])
         // Record the current values so we can change them during the drag and restore them when done
-        const { selection } = dataConfig || {}
+        const { selection } = dataConfiguration || {}
         primaryAttrID && secondaryAttrID && selection?.forEach(anID => {
           selectedDataObjects.current[anID] = {
             x: dataset?.getNumeric(anID, primaryAttrID) ?? 0,
@@ -58,7 +59,8 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           }
         })
       }
-    }, [dataConfig, dataset, pointRadius, primaryAttrID, secondaryAttrID, enableAnimation]),
+    }, [dataConfiguration, dataset, primaryAttrID, secondaryAttrID, enableAnimation,
+      dragPointRadius]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
@@ -71,7 +73,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           const deltaX = Number(xScale.invert(dx)) - Number(xScale.invert(0)),
             deltaY = Number(yScale.invert(dy)) - Number(yScale.invert(0)),
             caseValues: ICase[] = [],
-            { selection } = dataConfig || {}
+            { selection } = dataConfiguration || {}
           primaryAttrID && secondaryAttrID && selection?.forEach(anID => {
             const currX = Number(dataset?.getNumeric(anID, primaryAttrID)),
               currY = Number(dataset?.getNumeric(anID, secondaryAttrID))
@@ -86,7 +88,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           caseValues.length && dataset?.setCaseValues(caseValues)
         }
       }
-    }, [dataConfig, dataset, dragID, primaryAttrID, xScale, secondaryAttrID, yScale]),
+    }, [dataConfiguration, dataset, dragID, primaryAttrID, xScale, secondaryAttrID, yScale]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -96,13 +98,13 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
         target.current
           .classed('dragging', false)
           .transition()
-          .attr('r', pointRadius)
+          .attr('r', selectedPointRadius)
         setDragID(() => '')
         target.current = null
 
         if (didDrag.current) {
           const caseValues: ICase[] = [],
-            { selection } = dataConfig || {}
+            { selection } = dataConfiguration || {}
           primaryAttrID && secondaryAttrID && selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
@@ -115,30 +117,32 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
           didDrag.current = false
         }
       }
-    }, [dataConfig, dataset, pointRadius, dragID, primaryAttrID, secondaryAttrID, enableAnimation])
+    }, [dataConfiguration, dataset, dragID, primaryAttrID, secondaryAttrID, enableAnimation,
+      selectedPointRadius])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    setPointSelection({dotsRef, dataset, pointRadius, selectedPointRadius})
-  }, [dataset, dotsRef, pointRadius, selectedPointRadius])
+    dataConfiguration && setPointSelection({dotsRef, dataConfiguration, pointRadius, selectedPointRadius})
+  }, [dataConfiguration, dotsRef, pointRadius, selectedPointRadius])
 
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
     const
       getScreenX = (anID: string) => primaryAttrID ? getScreenCoord(dataset, anID, primaryAttrID, xScale) : null,
       getScreenY = (anID: string) => secondaryAttrID ? getScreenCoord(dataset, anID, secondaryAttrID, yScale) : null,
+      {getLegendColorForCase} = dataConfiguration || {},
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined
 
     setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, selectedOnly,
-      getScreenX, getScreenY, duration, onComplete})
+      getScreenX, getScreenY, getLegendColor: getLegendColorForCase, duration, onComplete})
   }, [dataset, pointRadius, selectedPointRadius, dotsRef, primaryAttrID, xScale,
-            secondaryAttrID, yScale, enableAnimation])
+            secondaryAttrID, yScale, enableAnimation, dataConfiguration])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
-    const { cases, selection } = dataConfig || {}
+    const { cases, selection } = dataConfiguration || {}
     const updateDot = (caseId: string) => {
       const dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
       if (dot) {
@@ -156,7 +160,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     } else {
       cases?.forEach(anID => updateDot(anID))
     }
-  }, [dataConfig, dataset, dotsRef, instanceId, primaryAttrID, xScale, secondaryAttrID, yScale])
+  }, [dataConfiguration, dataset, dotsRef, instanceId, primaryAttrID, xScale, secondaryAttrID, yScale])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (appState.isPerformanceMode) {
