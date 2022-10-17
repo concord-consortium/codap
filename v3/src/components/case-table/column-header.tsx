@@ -19,7 +19,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const menuListElt = useRef<HTMLDivElement>(null)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
-  const [modalIsOpen, setModalIsOpen] = useState(false)
+  const [editAttributeModalIsOpen, setEditAttributeModalIsOpen] = useState(false)
+  const [editFormulaModalIsOpen, setEditFormulaModalIsOpen] = useState(false)
+
   // disable dragging when the column header menu is open
   const disabled = isMenuOpen.current
   // disable tooltips when there is an active drag in progress
@@ -61,8 +63,12 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     setEditingAttrName(column.name as string)
   }
 
-  const handleModalOpen = (open: boolean) => {
-    setModalIsOpen(open)
+  const handleEditAttributeModalOpen = (open: boolean) => {
+    setEditAttributeModalIsOpen(open)
+  }
+
+  const handleEditFormulaModalOpen = (open: boolean) => {
+    setEditFormulaModalIsOpen(open)
   }
 
   const units = attribute?.units ? ` (${attribute.units})` : ""
@@ -71,7 +77,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   return (
     <Menu isLazy>
       {({ isOpen }) => {
-        const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
+        const disableTooltip = dragging || isOpen || editAttributeModalIsOpen || editingAttrId === column.key
         isMenuOpen.current = isOpen
         return (
           <Tooltip label={`${column.name}${description}` || "attribute"} h="20px" fontSize="12px" color="white"
@@ -90,7 +96,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
               }
               <CaseTablePortal>
                 <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}
-                  onModalOpen={handleModalOpen}
+                  editFormulaModalIsOpen={editFormulaModalIsOpen}
+                  onEditAttributeModalOpen={handleEditAttributeModalOpen}
+                  onEditFormulaModalOpen={handleEditFormulaModalOpen}
                 />
               </CaseTablePortal>
               {column &&

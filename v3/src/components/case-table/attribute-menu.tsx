@@ -4,15 +4,19 @@ import { CalculatedColumn } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties"
+import { FormulaEditorModal } from "./formula-editor-modal"
 
 interface IProps {
   column: CalculatedColumn<TRow, unknown>
+  editFormulaModalIsOpen: boolean
   onRenameAttribute: () => void
-  onModalOpen: (open: boolean) => void
+  onEditAttributeModalOpen: (open: boolean) => void
+  onEditFormulaModalOpen: (open: boolean) => void
+
 }
 
 export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
-    ({ column, onRenameAttribute, onModalOpen }, ref) => {
+    ({ column, editFormulaModalIsOpen, onRenameAttribute, onEditAttributeModalOpen, onEditFormulaModalOpen }, ref) => {
   const toast = useToast()
   const data = useDataSetContext()
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -40,7 +44,11 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
 
   const handleEditAttributeProps = () => {
     onOpen()
-    onModalOpen(true)
+    onEditAttributeModalOpen(true)
+  }
+
+  const handleEditFormulaProps = () => {
+    onEditFormulaModalOpen(true)
   }
   const handleMenuKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation()
@@ -48,11 +56,11 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid="attribute-menu-list" lineHeight="none" fontSize="small" onKeyDown={handleMenuKeyDown}>
+      <MenuList ref={ref} data-testid="attribute-menu-list" onKeyDown={handleMenuKeyDown}>
         <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
         <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
+        <MenuItem onClick={handleEditFormulaProps}>Edit Formula...</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Delete Formula")}>Delete Formula (Keeping Values)</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
@@ -63,7 +71,9 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
         <MenuItem onClick={() => handleDeleteAttribute()}>Delete Attribute</MenuItem>
       </MenuList>
       <EditAttributePropertiesModal columnName={column.name as string} isOpen={isOpen} onClose={onClose}
-          onModalOpen={onModalOpen} />
+          onModalOpen={onEditAttributeModalOpen} />
+      <FormulaEditorModal columnName={column.name as string} isOpen={editFormulaModalIsOpen} onClose={onClose}
+          onModalOpen={onEditFormulaModalOpen} />
     </>
   )
 })

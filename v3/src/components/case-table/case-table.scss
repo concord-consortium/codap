@@ -86,3 +86,10 @@ $table-body-font-size: 8pt;
     }
   }
 }
+
+.formula-insert-buttons {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
