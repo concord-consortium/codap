@@ -38,7 +38,7 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
 
   const graphController = useGraphController({
     graphModel: defaultGraphModel,
-    dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
+    layout, dataset, enableAnimation, dotsRef, v2Document
   })
 
   useEffect(() => {
