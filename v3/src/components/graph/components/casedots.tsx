@@ -1,13 +1,17 @@
 import {randomUniform, select} from "d3"
+import { onAction } from "mobx-state-tree"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
+import { ICase } from "../../../data-model/data-set"
+import { isAddCasesAction } from "../../../data-model/data-set-actions"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {defaultPointColor} from "../../../utilities/color-utils"
 
 export const CaseDots = memo(function CaseDots(props: {
   graphModel: IGraphModel
@@ -21,6 +25,7 @@ export const CaseDots = memo(function CaseDots(props: {
     graphModel = props.graphModel,
     dataset = useDataSetContext(),
     dataConfiguration = useDataConfigurationContext(),
+    legendAttrID = dataConfiguration?.attributeID('legend'),
     layout = useGraphLayoutContext(),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     pointRadius = graphModel.getPointRadius(),
@@ -33,11 +38,24 @@ export const CaseDots = memo(function CaseDots(props: {
     yScale = layout.axisScale('left') as ScaleNumericBaseType
 
   useEffect(function initDistribution() {
-    const { cases } = dataset || {}
+    const {cases} = dataset || {}
     const uniform = randomUniform()
-    cases?.forEach(({__id__}) => {
-      randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
-    })
+
+    const initCases = (_cases?: typeof cases | ICase[]) => {
+      _cases?.forEach(({__id__}) => {
+        randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
+      })
+    }
+
+    initCases(cases)
+
+    const disposer = dataset && onAction(dataset, action => {
+      if (isAddCasesAction(action)) {
+        initCases(action.args[0])
+      }
+    }, true)
+
+    return () => disposer?.()
   }, [dataset])
 
   const onDragStart = useCallback((event: MouseEvent) => {
@@ -110,11 +128,15 @@ export const CaseDots = memo(function CaseDots(props: {
       .attr('cy', (anID: string) => {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
-      .attr('r', (anID:string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
-  }, [dataset, pointRadius, dotsRef, enableAnimation, xScale, yScale])
+      // @ts-expect-error anID may be null
+      .style('fill', (anID: string) => {
+        return legendAttrID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+      })
+      .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
+  }, [dataset, legendAttrID, dataConfiguration, pointRadius, dotsRef, enableAnimation, xScale, yScale])
 
   usePlotResponders({
-    dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation
+    dataset, legendAttrID, layout, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (

@@ -30,6 +30,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
     secondaryAxisPlace = attrPlaceToAxisPlace[secondaryAttrPlace] ?? 'left',
     secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
+    legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = layout.axisScale(primaryAxisPlace) as ScaleNumericBaseType,
     primaryLength = layout.axisLength(primaryAxisPlace),
     secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>,
@@ -198,7 +199,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       dataConfiguration?.getLegendColorForCase])
 
   usePlotResponders({
-    dataset, xAxisModel, yAxisModel, primaryAttrID, secondaryAttrID, layout,
+    dataset, xAxisModel, yAxisModel, primaryAttrID, secondaryAttrID, legendAttrID, layout,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 

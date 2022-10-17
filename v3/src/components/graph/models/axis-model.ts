@@ -1,10 +1,12 @@
 import {Instance, types} from "mobx-state-tree"
-import {GraphAttrPlace} from "./data-configuration-model"
+import {GraphAttrRole} from "./data-configuration-model"
 
 export const AxisPlaces = ["bottom", "left", "right", "top"] as const
+export const GraphPlaces = [...AxisPlaces, "plot", "legend"] as const
 export type AxisPlace = typeof AxisPlaces[number]
+export type GraphPlace = typeof GraphPlaces[number]
 
-export const attrPlaceToAxisPlace: Partial<Record<GraphAttrPlace, AxisPlace>> = {
+export const attrPlaceToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",
   y: "left",
   y2: "right",
@@ -12,11 +14,15 @@ export const attrPlaceToAxisPlace: Partial<Record<GraphAttrPlace, AxisPlace>> = 
   topSplit: "top"
 }
 
-export const axisPlaceToAttrPlace: Record<AxisPlace, GraphAttrPlace> = {
+export const axisPlaceToAttrPlace: Record<AxisPlace, GraphAttrRole> = {
   bottom: "x",
   left: "y",
   top: "topSplit",
-  right: "y2"  // Todo: how to deal with 'rightSplit'?
+  right: "y2",  // Todo: how to deal with 'rightSplit'?
+}
+
+export const graphPlaceToAttrPlace = (graphPlace:GraphPlace) => {
+  return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrPlace[graphPlace as AxisPlace] : 'legend'
 }
 
 export type AxisOrientation = "horizontal" | "vertical"
