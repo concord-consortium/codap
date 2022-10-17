@@ -12,7 +12,7 @@ $table-body-font-size: 8pt;
     width: 100%;
     height: 100%;
     font-family: 'Montserrat-Regular', sans-serif !important;
-    font-size: 8pt !important;
+    font-size: $table-body-font-size !important;
     color: #222222;
 
     .rdg-row {
@@ -21,7 +21,7 @@ $table-body-font-size: 8pt;
 
         .codap-column-header {
           text-align: center;
-          height: 30px !important;
+          height: shared.$header-row-height-px !important;
 
           .codap-column-header-content {
             width: 100%;
@@ -31,7 +31,7 @@ $table-body-font-size: 8pt;
             justify-content: center;
 
             input {
-              height: calc(100% - 8px)
+              height: calc(100% - 6px)
             }
 
             // chakra menu-button

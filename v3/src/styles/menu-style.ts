@@ -46,24 +46,7 @@ export const Menu = helpers.defineMultiStyleConfig({
       },
     },
   },
-  variants: {
-    // bold: {
-    //   item: {
-    //     fontWeight: 'bold',
-    //   },
-    //   menu: {
-    //     boxShadow: 'xl',
-    //   },
-    // },
-    // colorful: {
-    //   item: {
-    //     color: 'orange.600',
-    //   },
-    //   menu: {
-    //     bg: 'orange.100',
-    //   },
-    // },
-  },
+  variants: {},
   defaultProps: {
     size: "md",
   },

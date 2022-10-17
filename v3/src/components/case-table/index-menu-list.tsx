@@ -77,7 +77,8 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
                           insertPosition,
                           modalWidth: "260px",
                           onChangeNumCasesToInsert: handleNumCasesToInsertChange,
-                          onChangeInsertPosition: handleInsertPositionChange}}
+                          onChangeInsertPosition: handleInsertPositionChange
+                        }}
           buttons={[{ label: "Cancel", onClick: onClose },{ label: "Insert Cases", onClick: insertCases }]}
       />
     </>
