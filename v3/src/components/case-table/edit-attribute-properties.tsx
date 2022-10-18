@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { AttributeType, attributeTypes } from "../../data-model/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
+import { getUniqueAttributeName } from "./utilities"
 
 interface IEditAttributePropertiesModalContentProps {
   attributeName: string
@@ -103,8 +104,9 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
   const editProperties = () => {
     onClose()
     onModalOpen(false)
+    const attrNameToUse = getUniqueAttributeName(attributeName, data)
     if (attribute) {
-      attribute.setName(attributeName)
+      attribute.setName(attrNameToUse)
       attribute.setUserDescription(description)
       attribute.setUserType(attrType === "none" ? undefined : attrType)
       attribute.setUnits(unit)

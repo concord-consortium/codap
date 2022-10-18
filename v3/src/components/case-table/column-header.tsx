@@ -8,6 +8,7 @@ import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-d
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { AttributeMenuList } from "./attribute-menu"
 import { CaseTablePortal } from "./case-table-portal"
+import { getUniqueAttributeName } from "./utilities"
 
 export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) => {
   const { active } = useDndContext()
@@ -44,14 +45,15 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
       case "Enter":
       case "Tab":
         handleClose(true)
-        e.currentTarget.blur()
+        // e.currentTarget.blur()
         break
     }
   }
   const handleClose = (accept: boolean) => {
     const trimTitle = editingAttrName?.trim()
     if (accept && editingAttrId && trimTitle) {
-      data?.setAttributeName(editingAttrId, trimTitle)
+      const attrNameToUse = getUniqueAttributeName(trimTitle, data)
+      data?.setAttributeName(editingAttrId, attrNameToUse)
     }
     setEditingAttrId("")
     setEditingAttrName("")
