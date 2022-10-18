@@ -77,7 +77,8 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   return (
     <Menu isLazy>
       {({ isOpen }) => {
-        const disableTooltip = dragging || isOpen || editAttributeModalIsOpen || editingAttrId === column.key
+        const disableTooltip = dragging || isOpen || editAttributeModalIsOpen || editFormulaModalIsOpen
+                                || editingAttrId === column.key
         isMenuOpen.current = isOpen
         return (
           <Tooltip label={`${column.name}${description}` || "attribute"} h="20px" fontSize="12px" color="white"
