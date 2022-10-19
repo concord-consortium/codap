@@ -11,8 +11,6 @@ import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import {CodapV2Document} from "../../../v2/codap-v2-document"
-import {useGraphController} from '../hooks/use-graph-controller'
 
 const defaultGraphModel = GraphModel.create({
   axes: {
@@ -25,21 +23,15 @@ const defaultGraphModel = GraphModel.create({
 
 interface IProps {
   broker?: DataBroker
-  v2Document?: CodapV2Document
 }
 
-export const GraphComponent = observer(({broker, v2Document}: IProps) => {
+export const GraphComponent = observer(({broker}: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
   const enableAnimation = useRef(true)
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
-
-  const graphController = useGraphController({
-    graphModel: defaultGraphModel,
-    layout, dataset, enableAnimation, dotsRef, v2Document
-  })
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
@@ -55,7 +47,6 @@ export const GraphComponent = observer(({broker, v2Document}: IProps) => {
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <Graph model={defaultGraphModel}
-            graphController={graphController.current}
             graphRef={graphRef}
             enableAnimation={enableAnimation}
             dotsRef={dotsRef}

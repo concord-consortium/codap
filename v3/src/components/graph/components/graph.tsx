@@ -15,13 +15,13 @@ import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {IAxisModel, attrPlaceToAxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph-utils"
-import {GraphController} from "../models/graph-controller"
 import {MarqueeState} from "../models/marquee-state"
 import {DroppableSvg} from "./droppable-svg"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
@@ -29,7 +29,6 @@ import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import "./graph.scss"
 
 interface IProps {
-  graphController: GraphController | undefined // TODO, better approach?
   model: IGraphModel
   graphRef: MutableRefObject<HTMLDivElement>
   enableAnimation: MutableRefObject<boolean>
@@ -44,7 +43,7 @@ const marqueeState = new MarqueeState(),
     })
 
 export const Graph = observer((
-  {graphController, model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
+  {model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
   const xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
     yAxisModel = graphModel.getAxis("left") as IAxisModel,
     {plotType} = graphModel,
@@ -65,6 +64,8 @@ export const Graph = observer((
     droppableId = `${instanceId}-plot-area-drop`
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
+
+  const graphController = useGraphController({ graphModel, enableAnimation, dotsRef })
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {

@@ -5,17 +5,17 @@ import React, { useState } from "react"
 import { IAttribute } from "../data-model/attribute"
 import { DataBroker } from "../data-model/data-broker"
 import { getDragAttributeId, IDropData, IUseDraggableAttribute, useDraggableAttribute } from '../hooks/use-drag-drop'
+import { useV2DocumentContext } from '../hooks/use-v2-document-context'
 import { prf } from "../utilities/profiler"
-import { CodapV2Document } from '../v2/codap-v2-document'
 
 import "./data-summary.scss"
 
 interface IProps {
   broker?: DataBroker
-  v2Document?: CodapV2Document
 }
-export const DataSummary = observer(({ broker, v2Document }: IProps) => {
+export const DataSummary = observer(({ broker }: IProps) => {
   const data = broker?.selectedDataSet || broker?.last
+  const v2Document = useV2DocumentContext()
 
   const { active } = useDndContext()
   const isSummaryDrag = active && `${active.id}`.startsWith("summary")

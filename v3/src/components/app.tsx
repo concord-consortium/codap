@@ -11,6 +11,7 @@ import {Text} from "./text"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import {useSampleText} from "../hooks/use-sample-text"
+import { V2DocumentContext } from "../hooks/use-v2-document-context"
 import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
@@ -69,25 +70,27 @@ export const App = () => {
 
   return (
     <CodapDndContext>
-      <div className="app" data-testid="app">
-        <ToolShelf/>
-        <Container>
-          {/* each top-level child will be wrapped in a CodapComponent */}
-          <DataSummary v2Document={v2Document} />
-          <div className="hello-codap3">
-            <div className="version-build-number">
-              <span>v{pkg.version}-build-{build.buildNumber}</span>
+      <V2DocumentContext.Provider value={v2Document}>
+        <div className="app" data-testid="app">
+          <ToolShelf/>
+          <Container>
+            {/* each top-level child will be wrapped in a CodapComponent */}
+            <DataSummary />
+            <div className="hello-codap3">
+              <div className="version-build-number">
+                <span>v{pkg.version}-build-{build.buildNumber}</span>
+              </div>
+              <div>
+                <img src={Icon}/>
+                <Text text={sampleText}/>
+                <p>Drag a CSV file into this window to get some data.</p>
+              </div>
             </div>
-            <div>
-              <img src={Icon}/>
-              <Text text={sampleText}/>
-              <p>Drag a CSV file into this window to get some data.</p>
-            </div>
-          </div>
-          <CaseTableComponent/>
-          <GraphComponent v2Document={v2Document}/>
-        </Container>
-      </div>
+            <CaseTableComponent/>
+            <GraphComponent />
+          </Container>
+        </div>
+      </V2DocumentContext.Provider>
     </CodapDndContext>
   )
 }
