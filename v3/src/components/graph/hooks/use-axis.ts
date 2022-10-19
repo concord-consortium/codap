@@ -1,34 +1,62 @@
 import {axisBottom, axisLeft, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {useCallback, useEffect} from "react"
-import {IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {between} from "../utilities/math-utils"
 
 export interface IUseAxis {
   axisModel: IAxisModel
   axisElt: SVGGElement | null
+  showGridLines: boolean
 }
 
-export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
+export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     scale = layout.axisScale(axisModel.place),
-    axisFunc = axisModel.place === 'bottom' ? axisBottom : axisLeft,
-    isNumeric = axisModel.isNumeric,
-    place = axisModel.place
+    place = axisModel.place,
+    axisFunc = place === 'bottom' ? axisBottom : axisLeft,
+    isNumeric = axisModel.isNumeric
 
   const refreshAxis = useCallback((duration = 0) => {
+
     if (axisElt) {
       // When switching from one axis type to another, e.g. a categorical axis to an
       // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.
       // To avoid that, we manually remove the ticks before initializing the axis.
-      const ticks = axisElt?.querySelectorAll(".tick")
-      ticks.forEach(tick => tick.parentElement?.removeChild(tick))
+      select(axisElt).selectAll('.tick').remove()
+
       select(axisElt)
         .transition().duration(duration)
         // @ts-expect-error scale type
-        .call(axisFunc(layout.axisScale(axisModel.place)))
+        .call(axisFunc(scale)
+          .tickSizeOuter(0))
+      select(axisElt).selectAll('.zero').remove()
+      select(axisElt).selectAll('.grid').remove()
+
+      if (showGridLines) {
+        const tickLength = layout.axisLength(otherPlace(place)) ?? 0,
+          numericScale = scale as ScaleNumericBaseType
+        select(axisElt).append('g')
+          .attr('class', 'grid')
+          // @ts-expect-error scale type
+          .call(axisFunc(scale)
+            .tickSizeInner(-tickLength))
+        select(axisElt).select('.grid').selectAll('text').remove()
+
+        if( between(0, numericScale.domain()[0], numericScale.domain()[1])) {
+          select(axisElt).append('g')
+            .attr('class', 'zero')
+            .transition().duration(duration)
+            // @ts-expect-error scale type
+            .call(axisFunc(scale)
+              .tickSizeInner(-tickLength)
+              .tickValues([0]))
+          select(axisElt).select('.zero').selectAll('text').remove()
+        }
+      }
     }
-  }, [axisElt, axisFunc, axisModel, layout])
+  }, [axisElt, place, axisFunc, layout, showGridLines, scale])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -77,7 +105,6 @@ export const useAxis = ({axisModel, axisElt}: IUseAxis) => {
     return () => disposer()
   }, [axisModel, layout, refreshAxis, place])
 
-  // Whenever the axis renders, we also need to render the d3 axis
   useEffect(() => {
     refreshAxis()
   })

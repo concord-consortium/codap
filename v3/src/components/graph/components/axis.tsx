@@ -16,10 +16,11 @@ interface IProps {
   attributeID: string,
   axisModel: IAxisModel
   transform: string
+  showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
 
-export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, axisModel, transform, showGridLines, onDropAttribute}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -33,7 +34,7 @@ export const Axis = ({attributeID, axisModel, transform, onDropAttribute}: IProp
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(axisModel.place)
 
-  useAxis({axisModel, axisElt})
+  useAxis({axisModel, axisElt, showGridLines})
 
   useEffect(function setupTransform() {
     axisElt && select(axisElt)

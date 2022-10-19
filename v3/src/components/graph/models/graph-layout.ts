@@ -56,7 +56,14 @@ export class GraphLayout {
 
   @action setAxisBounds(place: AxisPlace, bounds: Bounds | undefined) {
     if (bounds) {
-      this.axisBounds.set(place, bounds)
+      // Don't let the axis bounds overlap the plot
+      const newBounds = {
+        left: bounds.left,
+        top: place === 'left' ? bounds.top : this.axisLength('left'),
+        width: place === 'left' ? this.graphWidth - this.axisLength('bottom') : bounds.width,
+        height: place === 'left' ? bounds.height : this.graphHeight - this.axisLength('left')
+      }
+      this.axisBounds.set(place, newBounds)
     }
     else {
       this.axisBounds.delete(place)

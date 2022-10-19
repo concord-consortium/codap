@@ -169,18 +169,20 @@ export const Graph = observer((
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
-          <Axis axisModel={yAxisModel} attributeID={yAttrID}
-                transform={`translate(${margin.left - 1}, 0)`}
-                onDropAttribute={handleDropAttribute}
-          />
-          <Axis axisModel={xAxisModel} attributeID={xAttrID}
-                transform={`translate(${margin.left}, ${layout.plotHeight})`}
-                onDropAttribute={handleDropAttribute}
-          />
           <Background
             transform={transform}
             marqueeState={marqueeState}
             ref={backgroundSvgRef}
+          />
+          <Axis axisModel={yAxisModel} attributeID={yAttrID}
+                transform={`translate(${margin.left - 1}, 0)`}
+                showGridLines={graphModel.plotType === 'scatterPlot'}
+                onDropAttribute={handleDropAttribute}
+          />
+          <Axis axisModel={xAxisModel} attributeID={xAttrID}
+                transform={`translate(${margin.left}, ${layout.plotHeight})`}
+                showGridLines={graphModel.plotType === 'scatterPlot'}
+                onDropAttribute={handleDropAttribute}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
