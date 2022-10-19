@@ -62,21 +62,29 @@ export class GraphController {
   initializeGraph() {
     const {graphModel, layout, dotsRef, enableAnimation, instanceId, v2Document} = this,
       dataConfig = graphModel.config
+
     if (v2Document) {
       this.processV2Document()
-    } else {
-      graphModel.setGraphProperties({
-        axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
+    }
+    else {
+      // TODO, this may not be the reliable thing to test for AND/OR
+      // we may need to be able to call setGraphProperties when axis' models are in place?
+      if (!dotsRef.current){
+        graphModel.setGraphProperties({
+          axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
           left: EmptyAxisModel.create({place: 'left'})}, plotType: 'casePlot'
-      })
+        })
+      }
+      else {
+        matchCirclesToData({
+          caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
+          pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
+        })
+      }
       layout.setAxisScale('bottom', scaleOrdinal())
       layout.setAxisScale('left', scaleOrdinal())
-    }
-    if (dotsRef.current) {
-      matchCirclesToData({
-        caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
-        pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
-      })
+      // TODO the first drop of a numeric attr on an empty axis results in warning:
+      // Unexpected value NaN parsing cy attribute.
     }
   }
 
