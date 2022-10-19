@@ -28,7 +28,7 @@ export const MovableValue = (props: {
     const { line, cover } = valueObject
     if (!line) return
 
-    [line, cover].forEach(aLine => {
+    ;[line, cover].forEach(aLine => {
       aLine
         .attr('x1', xScale(value))
         .attr('y1', top)
