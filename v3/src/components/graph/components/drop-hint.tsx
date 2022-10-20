@@ -17,7 +17,7 @@ export const DropHint = ({ hintText }: IProps) => {
       const { delta } = event
       const newXPos = delta.x + ae.clientX
       const newYPos = delta.y + ae.clientY
-      if (hintDiv.current){
+      if (hintDiv.current) {
         setHintPos({
           left: newXPos - (hintDiv.current?.clientWidth * .5) - 5,
           top: newYPos - 40

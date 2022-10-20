@@ -89,8 +89,8 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
 export function setNiceDomain(values: number[], axisModel: IAxisModel) {
   if (axisModel.type === 'numeric') {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
-    const {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue);
-    (axisModel as INumericAxisModel).setDomain(niceMin, niceMax)
+    const {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
+    ;(axisModel as INumericAxisModel).setDomain(niceMin, niceMax)
   }
 }
 
@@ -100,8 +100,9 @@ export function getPointTipText(caseID: string, attributeIDs: string[], dataset?
       const attribute = dataset?.attrFromID(attrID),
         name = attribute?.name,
         isNumeric = attribute?.type === 'numeric',
-        value = isNumeric ? float(dataset?.getNumeric(caseID, attrID) ?? 0) :
-          dataset?.getValue(caseID, attrID)
+        value = isNumeric
+          ? float(dataset?.getNumeric(caseID, attrID) ?? 0)
+          : dataset?.getValue(caseID, attrID)
       return (value && (isNumeric && isFinite(value)) || (!isNumeric && value !== '')) ? `${name}: ${value}` : ''
     }))
   // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string

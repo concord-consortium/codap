@@ -7,8 +7,8 @@ import {uniqueId} from "../../../utilities/js-utils"
 import {Point} from "../graphing-types"
 
 export const PointModel = types.model("Point", {
-  x: types.optional( types.number,NaN),
-  y: types.optional( types.number,NaN)
+  x: types.optional(types.number, NaN),
+  y: types.optional(types.number, NaN)
 })
   .views(self=>({
     isValid() {
@@ -17,7 +17,7 @@ export const PointModel = types.model("Point", {
   }))
   .actions(self => ({
     set(aPt:Point) {
-      if(aPt) {
+      if (aPt) {
         self.x = aPt.x
         self.y = aPt.y
       }
@@ -58,8 +58,8 @@ export const MovableLineModel = Adornment
     type: 'line',
     intercept: types.number,
     slope: types.number,
-    pivot1: types.optional( PointModel, kInfinitePoint),
-    pivot2: types.optional( PointModel, kInfinitePoint)
+    pivot1: types.optional(PointModel, kInfinitePoint),
+    pivot2: types.optional(PointModel, kInfinitePoint)
   })
   .actions(self => ({
     setLine(aLine: {intercept:number, slope:number, pivot1?:Point, pivot2?:Point}) {

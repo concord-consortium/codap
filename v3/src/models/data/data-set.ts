@@ -200,7 +200,7 @@ export const DataSet = types.model("DataSet", {
   const attrIDFromName = (name: string) => attrNameMap[name]
 
   function attrIndexFromID(id: string) {
-    const index = self.attributes.findIndex(attr => attr.id === id )
+    const index = self.attributes.findIndex(attr => attr.id === id)
     return index >= 0 ? index : undefined
   }
 
@@ -241,7 +241,7 @@ export const DataSet = types.model("DataSet", {
     // const newCase = { __id__: id, __index__: beforeIndex };
     const newCase = { __id__: id }
     if ((beforeIndex != null) && (beforeIndex < self.cases.length)) {
-      self.cases.splice(beforeIndex, 0, newCase )
+      self.cases.splice(beforeIndex, 0, newCase)
       // increment indices of all subsequent cases
       for (let i = beforeIndex + 1; i < self.cases.length; ++i) {
         const aCase = self.cases[i]

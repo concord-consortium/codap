@@ -5,7 +5,7 @@ import { DataSet, toCanonical } from "./data-set"
 describe("DataBroker", () => {
   let broker = new DataBroker()
   const dsEmpty = DataSet.create({ name: "empty"})
-  const dsCases = DataSet.create( { name: "cases" })
+  const dsCases = DataSet.create({ name: "cases" })
   dsCases.addAttribute({ name: "a" })
   dsCases.addCases(toCanonical(dsCases, [{ a: 1 }, { a: 2 }, { a: 3 }]))
 

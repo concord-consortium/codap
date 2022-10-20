@@ -13,7 +13,7 @@ import { useKeyStates } from "../hooks/use-key-states"
 import {useSampleText} from "../hooks/use-sample-text"
 import { V2DocumentContext } from "../hooks/use-v2-document-context"
 import Icon from "../assets/concord.png"
-import { importSample, sampleData, SampleType } from "../sample-data"
+import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { useCodapSlider } from "./slider/use-slider"
@@ -66,7 +66,7 @@ export const App = () => {
     if (gDataBroker.dataSets.size === 0) {
       const sample = sampleData.find(name => urlParams.sample === name)
       if (sample) {
-        importSample(sample as SampleType, handleImportDataSet)
+        importSample(sample, handleImportDataSet)
       } else {
         createNewStarterDataset()
       }

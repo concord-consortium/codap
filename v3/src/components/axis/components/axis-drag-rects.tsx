@@ -95,8 +95,9 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
       const
         classPrefix = place === 'bottom' ? 'h' : 'v',
         numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0],
-        classPostfixes = place === 'bottom' ? ['lower-dilate', 'translate', 'upper-dilate'] :
-          ['upper-dilate', 'translate', 'lower-dilate'],
+        classPostfixes = place === 'bottom'
+          ? ['lower-dilate', 'translate', 'upper-dilate']
+          : ['upper-dilate', 'translate', 'lower-dilate'],
         dragBehavior = [drag()  // lower
           .on("start", onDilateStart)
           .on("drag", onLowerDilateDrag)
