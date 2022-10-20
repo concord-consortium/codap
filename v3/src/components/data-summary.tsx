@@ -7,6 +7,7 @@ import { DataBroker } from "../data-model/data-broker"
 import { getDragAttributeId, IDropData, IUseDraggableAttribute, useDraggableAttribute } from '../hooks/use-drag-drop'
 import { useV2DocumentContext } from '../hooks/use-v2-document-context'
 import { prf } from "../utilities/profiler"
+import t from "../utilities/translation/translate"
 
 import "./data-summary.scss"
 
@@ -57,13 +58,14 @@ export const DataSummary = observer(({ broker }: IProps) => {
 
   const componentTypes = v2Document?.components.map(component => component.type)
   const componentList = componentTypes?.join(", ")
+  const casesStr = t(data?.cases.length === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
 
   return (
     <div ref={setNodeRef} className="data-summary">
       <p>
         {data
-          ? `Parsed "${data.name}" with ${data.cases.length} case(s) (${data.selection.size} selected) and...`
-          : "No data"}
+          ? t("V3.summary.parseResults", { vars: [data.name, data.cases.length, casesStr, data.selection.size] })
+          : t("V3.summary.noData")}
       </p>
       {componentList &&
         <div className="data-components">
@@ -72,7 +74,7 @@ export const DataSummary = observer(({ broker }: IProps) => {
         </div>
       }
       <div className="data-attributes">
-        <div className="data-attributes-title"><b>Attributes</b></div>
+        <div className="data-attributes-title"><b>{t("V3.summary.attributes")}</b></div>
         {data?.attributes.map(attr => (
           <DraggableAttribute key={attr.id} attribute={attr} />
         ))}
@@ -123,7 +125,7 @@ const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
   return (
     <>
       <div ref={setNodeRef} className={`summary-inspector-drop ${isOver ? "over" : ""}`}>
-        Attribute Inspector
+        {t("V3.summary.attributeInspector")}
       </div>
       {attribute &&
         <div className="summary-attribute-info">
@@ -152,7 +154,7 @@ const ProfilerButton = () => {
 
   return (
     <Button className={`profiler-button`} onClick={handleClick} size="sm" >
-      {isProfiling ? "Stop Profiling" : "Start Profiling"}
+      {isProfiling ? t("V3.summary.stopProfiling") : t("V3.summary.startProfiling")}
     </Button>
   )
 }

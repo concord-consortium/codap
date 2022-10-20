@@ -1,4 +1,5 @@
 declare module "*.csv";
+declare module "*.json5";
 declare module "*.png";
 declare module "*.svg";
 declare module "d3-v6-tip";

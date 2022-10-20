@@ -18,6 +18,7 @@ import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import pkg from "../../package.json"
 import build from "../../build_number.json"
+import t from "../utilities/translation/translate"
 
 import "./app.scss"
 
@@ -83,7 +84,7 @@ export const App = () => {
               <div>
                 <img src={Icon}/>
                 <Text text={sampleText}/>
-                <p>Drag a CSV file into this window to get some data.</p>
+                <p>{t("V3.INTRO.DRAG.CSV")}</p>
               </div>
             </div>
             <CaseTableComponent/>
