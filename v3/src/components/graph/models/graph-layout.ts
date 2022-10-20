@@ -8,6 +8,7 @@ export type ScaleType = ScaleContinuousNumeric<number, number> | ScaleOrdinal<st
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 0
+export const kDefaultLegendHeight = 50
 export const kDefaultPlotWidth = 0.8 * kDefaultGraphWidth
 export const kDefaultPlotHeight = 0.8 * kDefaultGraphHeight
 
@@ -21,6 +22,7 @@ export interface Bounds {
 export class GraphLayout {
   @observable graphWidth = kDefaultGraphWidth
   @observable graphHeight = kDefaultGraphHeight
+  @observable legendHeight = kDefaultLegendHeight
   @observable margin = ({ top: 10, right: 30, bottom: 30, left: 60 })
   @observable axisBounds: Map<AxisPlace, Bounds> = new Map()
   axisScales: Map<AxisPlace, ScaleType> = new Map()
@@ -35,7 +37,7 @@ export class GraphLayout {
   }
 
   @computed get plotHeight() {
-    return 0.8 * this.graphHeight
+    return Math.max(0, 0.8 * this.graphHeight - this.legendHeight)
   }
 
   isHorizontal(place: AxisPlace) {
@@ -66,7 +68,8 @@ export class GraphLayout {
         left: bounds.left,
         top: place === 'bottom' ? this.axisLength('left') : bounds.top,
         width: place === 'left' ? this.graphWidth - this.axisLength('bottom') : bounds.width,
-        height: place === 'bottom' ? this.graphHeight - this.axisLength('left') : bounds.height
+        height: place === 'bottom' ? this.graphHeight - this.axisLength('left') - this.legendHeight :
+          place === 'left' ? this.graphHeight - this.legendHeight : bounds.height
       }
       this.axisBounds.set(place, newBounds)
     }
@@ -86,7 +89,7 @@ export class GraphLayout {
 
   @action setGraphExtent(width: number, height: number) {
     const plotWidth = 0.8 * width
-    const plotHeight = 0.8 * height
+    const plotHeight = 0.8 * height - this.legendHeight
 
     // update d3 scale ranges before updating graph properties
     AxisPlaces.forEach(place => {

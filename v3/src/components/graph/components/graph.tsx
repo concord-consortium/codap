@@ -25,6 +25,7 @@ import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 
 import "./graph.scss"
+import {Legend} from "./legend/legend"
 
 interface IProps {
   model: IGraphModel
@@ -178,7 +179,11 @@ export const Graph = observer((
 
           <DroppablePlot graphElt={graphRef.current} plotElt={backgroundSvgRef.current}
             onDropAttribute={handleDropAttribute}/>
-
+          <Legend
+            graphModel={graphModel}
+            legendAttrID = {graphModel.getAttributeID('legend')}
+            transform={`translate(${margin.left}, ${layout.plotHeight + 40})`}
+          />
         </svg>
       </div>
     </DataConfigurationContext.Provider>
