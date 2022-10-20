@@ -56,12 +56,17 @@ export class GraphLayout {
 
   @action setAxisBounds(place: AxisPlace, bounds: Bounds | undefined) {
     if (bounds) {
-      // Don't let the axis bounds overlap the plot
+      // We allow the axis to draw gridlines for bivariate numeric plots. Unfortunately, the gridlines end up as
+      // part of the axis dom element so that we get in here with bounds that span the entire width or height of
+      // the plot. We tried work arounds to get gridlines that were _not_ part of the axis element with the result
+      // that the gridlines got out of synch with axis tick marks during drag. So we have this inelegant solution
+      // that shouldn't affect the top and right axes when we get them but
+      // todo: check to make sure this still works with top and right axes
       const newBounds = {
         left: bounds.left,
-        top: place === 'left' ? bounds.top : this.axisLength('left'),
+        top: place === 'bottom' ? this.axisLength('left') : bounds.top,
         width: place === 'left' ? this.graphWidth - this.axisLength('bottom') : bounds.width,
-        height: place === 'left' ? bounds.height : this.graphHeight - this.axisLength('left')
+        height: place === 'bottom' ? this.graphHeight - this.axisLength('left') : bounds.height
       }
       this.axisBounds.set(place, newBounds)
     }
