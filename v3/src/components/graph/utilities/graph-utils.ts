@@ -112,7 +112,6 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   const {caseIDs, enableAnimation, instanceId, dotsElement, pointRadius} = props,
     keyFunc = (d: string) => d
   enableAnimation.current = true
-  console.log(`Beginning matchCirclesToData with num circles = ${select(dotsElement).selectAll('circle').size()}`)
   select(dotsElement)
     .selectAll('circle')
     .data(caseIDs, keyFunc)
@@ -126,7 +125,6 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .selection()
       }
     )
-  console.log(`Ending matchCirclesToData with num circles = ${select(dotsElement).selectAll('circle').size()}`)
 }
 
 //  Return the two points in logical coordinates where the line with the given
@@ -374,7 +372,6 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       getScreenX, getScreenY, getLegendColor, duration = 0, onComplete
     } = props,
     selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
-  console.log(`In setPointCoordinates with selection.size() = ${selection.size()}`)
   if (duration > 0) {
     selection
       .transition()

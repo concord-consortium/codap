@@ -1,7 +1,8 @@
 /**
  * Graph Custom Hooks
  */
-import {useEffect} from "react"
+import {debounce} from "lodash"
+import {useCallback, useEffect} from "react"
 import {reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
@@ -50,29 +51,44 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     yNumeric = yAxisModel as INumericAxisModel,
     refreshPointsRef = useCurrent(refreshPointPositions)
 
+  /* This routine is frequently called many times in a row when something about the graph changes that requires
+  * refreshing the plot's point positions. That, by itself, would be a reason to use debounce to ensure that
+  * the actual refreshPointPositions function is only called once. But another, even more important reason is
+  * that there is no guarantee that when callRefreshPointPositions is invoked, the d3 points in the plot
+  * have been synched with the data configuration's notion of which cases are plottable. Delaying the actual
+  * plotting of points until the next event cycle ensures that the data configuration's filter process will
+  * have had a chance to take place. */
+  const callRefreshPointPositions = useCallback((selectedOnly:boolean) => {
+    console.log('in callback')
+    debounce(() => {
+      console.log('in debounce')
+      refreshPointsRef.current(selectedOnly)
+    }, 10)
+  }, [refreshPointsRef])
+
   // respond to axis domain changes (e.g. axis dragging)
   useEffect(() => {
-    refreshPointsRef.current(false)
+    callRefreshPointPositions(false)
     const disposer = reaction(
       () => [xNumeric?.domain, yNumeric?.domain],
       domains => {
-        refreshPointsRef.current(false)
+        callRefreshPointPositions(false)
       }
     )
     return () => disposer()
-  }, [refreshPointsRef, xNumeric?.domain, yNumeric?.domain])
+  }, [callRefreshPointPositions, xNumeric?.domain, yNumeric?.domain])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
-    refreshPointsRef.current(false)
+    callRefreshPointPositions(false)
     const disposer = reaction(
       () => [layout.axisLength('left'), layout.axisLength('bottom')],
       ranges => {
-        refreshPointsRef.current(false)
+        callRefreshPointPositions(false)
       }
     )
     return () => disposer()
-  }, [layout, refreshPointsRef])
+  }, [layout, callRefreshPointPositions])
 
   // respond to selection and value changes
   useEffect(() => {
@@ -82,23 +98,22 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           refreshPointSelection()
         } else if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
-          refreshPointsRef.current(dataset.isCaching)
+          callRefreshPointPositions(dataset.isCaching)
         // TODO: handling of add/remove cases was added specifically for the case plot.
         // Bill has expressed a desire to refactor the case plot to behave more like the
         // other plots, which already handle removal of cases (and perhaps addition of cases?)
         // without this. Should check to see whether this is necessary down the road.
         } else if (["addCases", "removeCases"].includes(action.name)) {
-          // setTimeout to allow initial case representations (e.g. circles) to be created
-          setTimeout(() => refreshPointsRef.current(false))
+          callRefreshPointPositions(false)
         }
       }, true)
       return () => disposer()
     }
-  }, [dataset, refreshPointsRef, refreshPointSelection])
+  }, [dataset, callRefreshPointPositions, refreshPointSelection])
 
   // respond to x, y or legend attribute id change
   useEffect(() => {
     enableAnimation.current = true
-    refreshPointsRef.current(false)
-  }, [refreshPointsRef, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation])
+    callRefreshPointPositions(false)
+  }, [callRefreshPointPositions, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation])
 }
