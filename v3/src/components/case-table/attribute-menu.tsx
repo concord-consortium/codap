@@ -48,8 +48,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid="attribute-menu-list" lineHeight="none"
-                fontSize="small" onKeyDown={handleMenuKeyDown}>
+      <MenuList ref={ref} data-testid="attribute-menu-list" onKeyDown={handleMenuKeyDown}>
         <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
         <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>
@@ -64,8 +63,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
         <MenuItem onClick={() => handleDeleteAttribute()}>Delete Attribute</MenuItem>
       </MenuList>
       <EditAttributePropertiesModal columnName={column.name as string} isOpen={isOpen} onClose={onClose}
-          onModalOpen={onModalOpen} />
+        onModalOpen={onModalOpen} />
     </>
   )
-})
+  })
 AttributeMenuList.displayName = "AttributeMenuList"

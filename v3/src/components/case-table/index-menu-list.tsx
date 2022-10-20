@@ -59,8 +59,10 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
 
   return (
     <>
-      <MenuList data-testid="index-menu-list" lineHeight="none" fontSize="small">
-        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>Move Data Entry Row Here</MenuItem>
+      <MenuList data-testid="index-menu-list" >
+        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>
+          Move Data Entry Row Here
+        </MenuItem>
         <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
         <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
         <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
@@ -71,10 +73,12 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
           title="Insert Cases"
           hasCloseButton={true}
           Content={InsertCasesModalContent}
-          contentProps={{numCasesToInsert,
+          contentProps={{ numCasesToInsert,
                           insertPosition,
+                          modalWidth: "260px",
                           onChangeNumCasesToInsert: handleNumCasesToInsertChange,
-                          onChangeInsertPosition: handleInsertPositionChange}}
+                          onChangeInsertPosition: handleInsertPositionChange
+                        }}
           buttons={[{ label: "Cancel", onClick: onClose },{ label: "Insert Cases", onClick: insertCases }]}
       />
     </>

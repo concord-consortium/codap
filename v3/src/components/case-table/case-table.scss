@@ -86,3 +86,14 @@ $table-body-font-size: 8pt;
     }
   }
 }
+
+.codap-menu-list {
+  width: 190px;
+
+  .menu-item {
+    font-family: 'MuseoSans-500', sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+    padding: 0 5px 0 20px;
+  }
+}
