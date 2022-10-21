@@ -445,7 +445,7 @@ export const DataSet = types.model("DataSet", {
       setAttributeName(attributeID: string, name: string) {
         const attribute = attributeID && attrIDMap[attributeID]
         if (attribute) {
-          const currAttrName =  attribute.name|| null
+          const currAttrName =  attribute.name || null
           const uniqueAttrName = getUniqueAttributeName(name, [currAttrName])
           delete attrNameMap[attribute.name]
           attribute.setName(uniqueAttrName)
