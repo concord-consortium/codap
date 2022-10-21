@@ -92,22 +92,23 @@ export default function translate (key: string, options?: ITranslateOptions) {
   // varPos: position in case of positional variables (e.g. null, null, "1")
   let matchIndex = -1
   function replaceFn(match: string, param: string | null, varName: string | null, varPos: string | null) {
+    const valueStr = (value: VarValue) => value == null ? "" : `${value}`
     ++matchIndex
     if (varName) {
       !Object.prototype.hasOwnProperty.call(namedVars, varName) &&
         console.warn(`translate: no replacement for key "${varName}"`)
-      return `${namedVars[varName] || ""}`
+      return valueStr(namedVars[varName])
     }
     if (varPos) {
       const varIndex = +varPos - 1
       ;(varIndex >= posVars.length) &&
         console.warn(`translate: no replacement for key "${varPos}"`)
-      return `${posVars[varIndex] || ""}`
+      return valueStr(posVars[varIndex])
     }
     if (param === "@") {
       (matchIndex >= posVars.length) &&
         console.warn(`translate: no replacement for key "@" at index ${matchIndex + 1}`)
-      return `${posVars[matchIndex] || ""}`
+      return valueStr(posVars[matchIndex])
     }
     // should only get here for pathological cases (e.g. "%{}")
     console.warn(`translate: no replacement for variable match "${match}"`)

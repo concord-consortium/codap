@@ -21,20 +21,20 @@ describe("English strings", () => {
     expect(t("MISSING")).toBe("MISSING")
   })
   it("supports named replacement strings", () => {
-    expect(t("NAMED", { vars: { foo: "foo", bar: "bar" }})).toBe("Replace foo with bar")
+    expect(t("NAMED", { vars: { foo: "foo", bar: 0 }})).toBe("Replace foo with 0")
   })
   it("supports indexed replacement strings", () => {
-    expect(t("INDEXED", { vars: ["foo", "bar"] })).toBe("Replace foo with bar")
+    expect(t("INDEXED", { vars: ["foo", 0] })).toBe("Replace foo with 0")
   })
   it("supports reversed indexed replacement strings", () => {
-    expect(t("REVERSED", { vars: ["foo", "bar"] })).toBe("Replace bar with foo")
+    expect(t("REVERSED", { vars: ["foo", 0] })).toBe("Replace 0 with foo")
   })
   it("supports positioned replacement strings", () => {
-    expect(t("POSITIONED", { vars: ["foo", "bar"] })).toBe("Replace foo with bar")
+    expect(t("POSITIONED", { vars: ["foo", 0] })).toBe("Replace foo with 0")
   })
   it("warns on empty named replacement strings", () => {
     const spy = jest.spyOn(global.console, "warn").mockImplementation(() => null)
-    expect(t("EMPTY_NAMED", { vars: { foo: "foo", bar: "bar" }})).toBe("Replace foo with ")
+    expect(t("EMPTY_NAMED", { vars: { foo: "foo", bar: 0 }})).toBe("Replace foo with ")
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
