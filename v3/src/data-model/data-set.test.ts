@@ -124,6 +124,18 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[0].name).toBe("str2")
   dataset.setAttributeName(strAttrID, "str")
   expect(dataset.attributes[0].name).toBe("str")
+
+  // unique at tribute name
+  dataset.setAttributeName(strAttrID, "pool")
+  expect(dataset.attributes[0].name).toBe("pool")
+  dataset.addAttribute({ name: "loop" })
+  const loopAttr = dataset.attrFromName("loop")
+  const loopAttrID = dataset.attributes[2].id
+  expect(loopAttr?.name).toBe("loop")
+  dataset.setAttributeName(loopAttrID, "pool")
+  expect(dataset.attributes[2].name).toBe("pool2")
+  dataset.removeAttribute(loopAttrID)
+  dataset.setAttributeName(strAttrID, "str")
   dataset.setAttributeName("foo", "bar")
 
   // add/remove attribute
