@@ -175,11 +175,13 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       }
 
       const
+        // Note that we can get null for either or both of the next two functions. It just means that we have
+        // a circle for the case but we're not plotting it.
         getPrimaryScreenCoord = (anID: string) => {
           return primaryAttrID ? getScreenCoord(dataset, anID, primaryAttrID, primaryScale) : null
         },
         getSecondaryScreenCoord = (anID: string) => {
-          return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : NaN
+          return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : null
         },
         duration = enableAnimation.current ? transitionDuration : 0,
         onComplete = enableAnimation.current ? () => {
