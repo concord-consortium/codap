@@ -102,7 +102,7 @@ export default function translate (key: string, options?: ITranslateOptions) {
       const varIndex = +varPos - 1
       ;(varIndex >= posVars.length) &&
         console.warn(`translate: no replacement for key "${varPos}"`)
-      return `${posVars[+varPos - 1] || ""}`
+      return `${posVars[varIndex] || ""}`
     }
     if (param === "@") {
       (matchIndex >= posVars.length) &&
