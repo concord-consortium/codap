@@ -550,6 +550,17 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .actions(self => ({
+  getUniqueAttributeName(baseName: string, allowNames: (string | null)[]) {
+    let newName = baseName
+    const attrNames = self.attributes.map(function (attr) {
+          return attr.name
+        })
+    let suffix = 1
+    while ((attrNames.indexOf(newName) >= 0) && ((!allowNames || allowNames.indexOf(newName) < 0))) {
+      newName = baseName + (++suffix)
+    }
+    return newName
+  },
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))
   },
