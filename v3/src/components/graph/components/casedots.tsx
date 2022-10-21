@@ -37,27 +37,6 @@ export const CaseDots = memo(function CaseDots(props: {
     xScale = layout.axisScale('bottom') as ScaleNumericBaseType,
     yScale = layout.axisScale('left') as ScaleNumericBaseType
 
-  useEffect(function initDistribution() {
-    const {cases} = dataset || {}
-    const uniform = randomUniform()
-
-    const initCases = (_cases?: typeof cases | ICase[]) => {
-      _cases?.forEach(({__id__}) => {
-        randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
-      })
-    }
-
-    initCases(cases)
-
-    const disposer = dataset && onAction(dataset, action => {
-      if (isAddCasesAction(action)) {
-        initCases(action.args[0])
-      }
-    }, true)
-
-    return () => disposer?.()
-  }, [dataset])
-
   const onDragStart = useCallback((event: MouseEvent) => {
       enableAnimation.current = false // We don't want to animate points until end of drag
       target.current = select(event.target as SVGSVGElement)
@@ -134,6 +113,28 @@ export const CaseDots = memo(function CaseDots(props: {
       })
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
   }, [dataset, legendAttrID, dataConfiguration, pointRadius, dotsRef, enableAnimation, xScale, yScale])
+
+  useEffect(function initDistribution() {
+    const {cases} = dataset || {}
+    const uniform = randomUniform()
+
+    const initCases = (_cases?: typeof cases | ICase[]) => {
+      _cases?.forEach(({__id__}) => {
+        randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
+      })
+    }
+
+    initCases(cases)
+    refreshPointPositions(false)
+
+    const disposer = dataset && onAction(dataset, action => {
+      if (isAddCasesAction(action)) {
+        initCases(action.args[0])
+      }
+    }, true)
+
+    return () => disposer?.()
+  }, [dataset, refreshPointPositions])
 
   usePlotResponders({
     dataset, legendAttrID, layout, refreshPointPositions, refreshPointSelection, enableAnimation

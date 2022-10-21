@@ -17,7 +17,7 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {IAxisModel, attrPlaceToAxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
+import {attrPlaceToAxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -44,9 +44,7 @@ const marqueeState = new MarqueeState(),
 
 export const Graph = observer((
   {model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
-  const xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
-    yAxisModel = graphModel.getAxis("left") as IAxisModel,
-    {plotType} = graphModel,
+  const {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -101,7 +99,7 @@ export const Graph = observer((
       }
     }, true)
     return () => disposer?.()
-  }, [graphController, dataset, layout, xAxisModel, yAxisModel, enableAnimation, graphModel])
+  }, [graphController, dataset, layout, enableAnimation, graphModel])
 
   // We only need to make the following connection once
   useEffect(function passDotsRefToController() {
@@ -140,9 +138,7 @@ export const Graph = observer((
     const props = {
         graphModel,
         plotProps: {
-          xAttrID, yAttrID, dotsRef, enableAnimation,
-          xAxisModel,
-          yAxisModel
+          xAttrID, yAttrID, dotsRef, enableAnimation
         }
       },
       typeToPlotComponentMap = {
@@ -174,12 +170,12 @@ export const Graph = observer((
             marqueeState={marqueeState}
             ref={backgroundSvgRef}
           />
-          <Axis axisModel={yAxisModel} attributeID={yAttrID}
+          <Axis graphModel={graphModel} place={'left'} attributeID={yAttrID}
                 transform={`translate(${margin.left - 1}, 0)`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleDropAttribute}
           />
-          <Axis axisModel={xAxisModel} attributeID={xAttrID}
+          <Axis graphModel={graphModel} place={'bottom'} attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleDropAttribute}

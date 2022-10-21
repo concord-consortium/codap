@@ -6,17 +6,17 @@ import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layou
 import {between} from "../utilities/math-utils"
 
 export interface IUseAxis {
-  axisModel: IAxisModel
+  axisModel?: IAxisModel
   axisElt: SVGGElement | null
   showGridLines: boolean
 }
 
 export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
-    scale = layout.axisScale(axisModel.place),
-    place = axisModel.place,
+    place = axisModel?.place ?? 'bottom',
+    scale = layout.axisScale(place),
     axisFunc = place === 'bottom' ? axisBottom : axisLeft,
-    isNumeric = axisModel.isNumeric
+    isNumeric = axisModel?.isNumeric
 
   const refreshAxis = useCallback((duration = 0) => {
 
@@ -60,21 +60,23 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
-    const disposer = reaction(
-      () => {
-        const {place: aPlace, scale: scaleType} = axisModel
-        return {place: aPlace, scaleType}
-      },
-      ({place: aPlace, scaleType}) => {
-        const newScale =
-          scaleType === 'log' ? scaleLog() :
-            scaleType === 'linear' ? scaleLinear() :
-              scaleOrdinal()
-        layout.setAxisScale(aPlace, newScale)
-        refreshAxis()
-      }
-    )
-    return () => disposer()
+    if( axisModel) {
+      const disposer = reaction(
+        () => {
+          const {place: aPlace, scale: scaleType} = axisModel
+          return {place: aPlace, scaleType}
+        },
+        ({place: aPlace, scaleType}) => {
+          const newScale =
+            scaleType === 'log' ? scaleLog() :
+              scaleType === 'linear' ? scaleLinear() :
+                scaleOrdinal()
+          layout.setAxisScale(aPlace, newScale)
+          refreshAxis()
+        }
+      )
+      return () => disposer()
+    }
   }, [isNumeric, axisModel, layout, refreshAxis])
 
   // update d3 scale and axis when axis domain changes

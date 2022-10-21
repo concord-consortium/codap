@@ -7,32 +7,35 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
+import {IGraphModel} from "../models/graph-model"
+
 import "./axis.scss"
 
 interface IProps {
+  graphModel: IGraphModel
+  place: AxisPlace
   attributeID: string,
-  axisModel: IAxisModel
   transform: string
   showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
 
-export const Axis = ({attributeID, axisModel, transform, showGridLines, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, graphModel, place, transform, showGridLines, onDropAttribute}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
+    axisModel = graphModel.getAxis(place),
     label = dataset?.attrFromID(attributeID)?.name,
-    droppableId = `${instanceId}-${axisModel.place}-axis-drop`,
+    droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = layout.axisScale(axisModel.place),
+    scale = layout.axisScale(place),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
-    titleRef = useRef<SVGGElement | null>(null),
-    place = axisModel.place
+    titleRef = useRef<SVGGElement | null>(null)
 
-  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(axisModel.place)
+  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
   useAxis({axisModel, axisElt, showGridLines})
 
@@ -45,8 +48,8 @@ export const Axis = ({attributeID, axisModel, transform, showGridLines, onDropAt
 
   const handleDrop = useCallback((active: Active) => {
     const droppedAttrId = active.data?.current?.attributeId
-    droppedAttrId && onDropAttribute(axisModel.place, droppedAttrId)
-  }, [axisModel.place, onDropAttribute])
+    droppedAttrId && onDropAttribute(place, droppedAttrId)
+  }, [place, onDropAttribute])
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
 
@@ -105,9 +108,9 @@ export const Axis = ({attributeID, axisModel, transform, showGridLines, onDropAt
         <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
         <g ref={titleRef}/>
       </g>
-      {axisModel.type === 'numeric' ?
+      {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
-      <DroppableAxis place={`${axisModel.place}`} dropId={droppableId} dropData={data}
+      <DroppableAxis place={`${place}`} dropId={droppableId} dropData={data}
                      portal={graphElt} target={wrapperElt} onIsActive={handleIsActive}/>
     </>
   )
