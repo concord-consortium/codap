@@ -1,10 +1,12 @@
 import { format } from "d3"
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { kDefaultFormatStr } from "../../data-model/attribute"
 import { ICase, IDataSet } from "../../data-model/data-set"
-import { AddCasesAction, RemoveCasesAction, SetCaseValuesAction } from "../../data-model/data-set-actions"
+import {
+  AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
+} from "../../data-model/data-set-actions"
 import { prf } from "../../utilities/profiler"
 import { appState } from "../app-state"
 import { TRow, TRowsChangeData } from "./case-table-types"
@@ -76,23 +78,31 @@ export const useRows = (data?: IDataSet) => {
     return () => disposer()
   }, [syncRowsToRdg])
 
+  const lowestIndex = useRef<number>(Infinity)
   useEffect(() => {
     // initialize the cache
     resetRowCache()
     syncRowsToRdg()
 
     // update the cache on changes
-    const disposer = data && onAction(data, action => {
+    const beforeDisposer = data && onAction(data, action => {
+      if (isRemoveCasesAction(action)) {
+        const caseIds = action.args[0]
+        // have to determine the lowest index before the cases are actually removed
+        lowestIndex.current = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => !!index))
+      }
+    }, false)
+    const afterDisposer = data && onAction(data, action => {
       prf.measure("Table.useRows[onAction]", () => {
         let updateRows = true
 
         const getCasesToUpdate = (cases: ICase[], index?: number) => {
-          let lowestIndex = index || data.cases.length
+          lowestIndex.current = index || data.cases.length
           const casesToUpdate = []
           for (let i=0; i<cases.length; ++i) {
-            lowestIndex = Math.min(lowestIndex, data.caseIndexFromID(cases[i].__id__))
+            lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(cases[i].__id__))
           }
-          for (let j=lowestIndex; j < data.cases.length; ++j) {
+          for (let j=lowestIndex.current; j < data.cases.length; ++j) {
             casesToUpdate.push(data.cases[j])
           }
           return casesToUpdate
@@ -122,9 +132,8 @@ export const useRows = (data?: IDataSet) => {
           case "removeCases": {
             // remove affected cases from cache and update cache after deleted case
             const caseIds = (action as RemoveCasesAction).args[0] || []
-            const lowestIndex = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => !!index))
             caseIds.forEach(id => rowCache.delete(id))
-            const casesToUpdate = getCasesToUpdate([], lowestIndex)
+            const casesToUpdate = getCasesToUpdate([], lowestIndex.current)
             casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
             break
           }
@@ -143,7 +152,10 @@ export const useRows = (data?: IDataSet) => {
         }
       })
     }, true)
-    return () => disposer?.()
+    return () => {
+      beforeDisposer?.()
+      afterDisposer?.()
+    }
   }, [data, resetRowCache, rowCache, syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {

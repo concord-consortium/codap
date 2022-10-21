@@ -15,6 +15,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [numCasesToInsert, setNumCasesToInsert] = useState(1)
   const [insertPosition, setInsertPosition] = useState("after")
+  const deleteCasesItemText = data?.selection.size === 1 ? "Delete Case" : "Delete Cases"
 
   const handleInsertPositionChange = (value: any) => {
     setInsertPosition(value)
@@ -42,8 +43,8 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     })
   }
 
-  const handleDeleteCase = () => {
-    data?.removeCases([caseId])
+  const handleDeleteCases = () => {
+    data?.removeCases(Array.from(data.selection))
   }
 
   const insertCases = () => {
@@ -65,7 +66,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
         </MenuItem>
         <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
         <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
-        <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
+        <MenuItem onClick={handleDeleteCases}>{deleteCasesItemText}</MenuItem>
       </MenuList>
       <CodapModal
           isOpen={isOpen}

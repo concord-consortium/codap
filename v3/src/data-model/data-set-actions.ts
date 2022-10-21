@@ -16,13 +16,16 @@ export interface SetCaseValuesAction extends ISerializedActionCall {
   args: [ICase[]]
 }
 
+export const isSetCaseValuesAction = (action: ISerializedActionCall): action is SetCaseValuesAction =>
+              action.name === "setCaseValues"
+
 export interface RemoveCasesAction extends ISerializedActionCall {
   name: "removeCases"
   args: [string[]]
 }
 
-export const isSetCaseValuesAction = (action: ISerializedActionCall): action is SetCaseValuesAction =>
-              action.name === "setCaseValues"
+export const isRemoveCasesAction = (action: ISerializedActionCall): action is RemoveCasesAction =>
+              action.name === "removeCases"
 
 export interface SelectAllAction extends ISerializedActionCall {
   name: "selectAll"
