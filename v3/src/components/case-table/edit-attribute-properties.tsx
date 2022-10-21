@@ -104,10 +104,8 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
   const editProperties = () => {
     onClose()
     onModalOpen(false)
-    const currAttrName = attribute?.name || null
-    const attrNameToUse = data?.getUniqueAttributeName(attributeName, [currAttrName]) || columnName
     if (attribute) {
-      attrId && data?.setAttributeName(attrId, attrNameToUse)
+      attrId && data?.setAttributeName(attrId, attributeName)
       attribute.setUserDescription(description)
       attribute.setUserType(attrType === "none" ? undefined : attrType)
       attribute.setUnits(unit)

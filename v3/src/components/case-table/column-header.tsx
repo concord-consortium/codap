@@ -49,11 +49,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     }
   }
   const handleClose = (accept: boolean) => {
-    const currAttrName = attribute?.name || null
     const trimTitle = editingAttrName?.trim()
     if (accept && editingAttrId && trimTitle) {
-      const attrNameToUse = data?.getUniqueAttributeName(trimTitle, [currAttrName])
-      attrNameToUse && data?.setAttributeName(editingAttrId, attrNameToUse)
+      data?.setAttributeName(editingAttrId, trimTitle)
     }
     setEditingAttrId("")
     setEditingAttrName("")

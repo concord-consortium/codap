@@ -268,6 +268,18 @@ export const DataSet = types.model("DataSet", {
     }
   }
 
+  function getUniqueAttributeName(baseName: string, allowNames: (string | null)[]) {
+    let newName = baseName
+    const attrNames = self.attributes.map(function (attr) {
+          return attr.name
+        })
+    let suffix = 1
+    while ((attrNames.indexOf(newName) >= 0) && ((!allowNames || allowNames.indexOf(newName) < 0))) {
+      newName = baseName + (++suffix)
+    }
+    return newName
+  }
+
   return {
     /*
      * public views
@@ -433,9 +445,11 @@ export const DataSet = types.model("DataSet", {
       setAttributeName(attributeID: string, name: string) {
         const attribute = attributeID && attrIDMap[attributeID]
         if (attribute) {
+          const currAttrName =  attribute.name|| null
+          const uniqueAttrName = getUniqueAttributeName(name, [currAttrName])
           delete attrNameMap[attribute.name]
-          attribute.setName(name)
-          attrNameMap[name] = attributeID
+          attribute.setName(uniqueAttrName)
+          attrNameMap[uniqueAttrName] = attributeID
         }
       },
 
@@ -550,17 +564,6 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .actions(self => ({
-  getUniqueAttributeName(baseName: string, allowNames: (string | null)[]) {
-    let newName = baseName
-    const attrNames = self.attributes.map(function (attr) {
-          return attr.name
-        })
-    let suffix = 1
-    while ((attrNames.indexOf(newName) >= 0) && ((!allowNames || allowNames.indexOf(newName) < 0))) {
-      newName = baseName + (++suffix)
-    }
-    return newName
-  },
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))
   },
