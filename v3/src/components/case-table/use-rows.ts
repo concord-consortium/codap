@@ -89,7 +89,7 @@ export const useRows = (data?: IDataSet) => {
       if (isRemoveCasesAction(action)) {
         const caseIds = action.args[0]
         // have to determine the lowest index before the cases are actually removed
-        lowestIndex.current = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => !!index))
+        lowestIndex.current = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => index != null))
       }
     }, false)
     const afterDisposer = data && onAction(data, action => {
@@ -97,7 +97,7 @@ export const useRows = (data?: IDataSet) => {
         let updateRows = true
 
         const getCasesToUpdate = (cases: ICase[], index?: number) => {
-          lowestIndex.current = index || data.cases.length
+          lowestIndex.current = index != null ? index : data.cases.length
           const casesToUpdate = []
           for (let i=0; i<cases.length; ++i) {
             lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(cases[i].__id__))
