@@ -44,7 +44,6 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
       case "Enter":
       case "Tab":
         handleClose(true)
-        // e.currentTarget.blur()
         break
     }
   }
