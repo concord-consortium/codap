@@ -136,7 +136,7 @@ export const CaseDots = memo(function CaseDots(props: {
   }, [dataset, legendAttrID, dataConfiguration, pointRadius, dotsRef, enableAnimation, xScale, yScale])
 
   usePlotResponders({
-    dataset, legendAttrID, layout, refreshPointPositions, refreshPointSelection, enableAnimation
+    graphModel, dotsRef, legendAttrID, layout, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (
