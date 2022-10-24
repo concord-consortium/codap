@@ -203,7 +203,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       dataConfiguration?.getLegendColorForCase])
 
   usePlotResponders({
-    dataset, xAxisModel, yAxisModel, primaryAttrID, secondaryAttrID, legendAttrID, layout,
+    graphModel, primaryAttrID, secondaryAttrID, legendAttrID, layout, dotsRef,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 

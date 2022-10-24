@@ -12,11 +12,10 @@ interface IProps {
   instanceId: string | undefined
 }
 
-export function useGraphModel(props:IProps) {
+export function useGraphModel(props: IProps) {
   const {graphModel, enableAnimation, dotsRef, instanceId} = props,
     dataConfig = graphModel.config,
     yAxisModel = graphModel.getAxis('left'),
-    // xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y'),
     dataset = useDataSetContext()
 
@@ -30,7 +29,7 @@ export function useGraphModel(props:IProps) {
   }, [dataConfig.cases, graphModel, dotsRef, enableAnimation, instanceId])
 
   useEffect(function createCircles() {
-      callMatchCirclesToData()
+    callMatchCirclesToData()
   }, [callMatchCirclesToData])
 
   // respond to change in plotType
@@ -41,7 +40,7 @@ export function useGraphModel(props:IProps) {
           attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]*/
         enableAnimation.current = true
         // In case the y-values have changed we rescale
-        if( newPlotType === 'scatterPlot') {
+        if (newPlotType === 'scatterPlot') {
           const values = dataConfig.cases.map(anID => dataset?.getNumeric(anID, yAttrID)) as number[]
           setNiceDomain(values || [], yAxisModel as INumericAxisModel)
         }

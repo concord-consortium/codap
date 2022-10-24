@@ -173,7 +173,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
   usePlotResponders({
-    dataset, xAxisModel, yAxisModel, primaryAttrID, secondaryAttrID, layout,
+    graphModel, primaryAttrID, secondaryAttrID, layout, dotsRef,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
