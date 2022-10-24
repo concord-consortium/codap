@@ -7,15 +7,14 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
-import {IGraphModel} from "../models/graph-model"
 
 import "./axis.scss"
 
 interface IProps {
-  graphModel: IGraphModel
+  getAxisModel: any // todo: Figure out how to declare this properly
   place: AxisPlace
   attributeID: string,
   transform: string
@@ -23,11 +22,11 @@ interface IProps {
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
 
-export const Axis = ({attributeID, graphModel, place, transform, showGridLines, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, getAxisModel, place, transform, showGridLines, onDropAttribute}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
-    axisModel = graphModel.getAxis(place),
+    axisModel = getAxisModel(place),
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),

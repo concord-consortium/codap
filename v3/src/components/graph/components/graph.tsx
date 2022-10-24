@@ -170,12 +170,12 @@ export const Graph = observer((
             marqueeState={marqueeState}
             ref={backgroundSvgRef}
           />
-          <Axis graphModel={graphModel} place={'left'} attributeID={yAttrID}
+          <Axis getAxisModel={graphModel.getAxis} place={'left'} attributeID={yAttrID}
                 transform={`translate(${margin.left - 1}, 0)`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleDropAttribute}
           />
-          <Axis graphModel={graphModel} place={'bottom'} attributeID={xAttrID}
+          <Axis getAxisModel={graphModel.getAxis} place={'bottom'} attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleDropAttribute}
