@@ -133,7 +133,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to added or removed cases
   useEffect(function handleAddRemoveCases() {
     const dataConfiguration = graphModel.config
-    const disposer = onAction(dataConfiguration, action => {
+    const disposer = dataConfiguration.onAction(action => {
       if (['addCases', 'removeCases'].includes(action.name)) {
         matchCirclesToData({
           caseIDs: dataConfiguration.cases,
@@ -143,7 +143,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         })
         callRefreshPointPositions(false)
       }
-    }, true)
+    })
     return () => disposer()
   }, [enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
