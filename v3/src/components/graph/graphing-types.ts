@@ -1,10 +1,7 @@
 import React from "react"
-import {IAxisModel} from "./models/axis-model"
 
 export interface PlotProps {
   dotsRef: React.RefObject<SVGSVGElement>
-  xAxisModel: IAxisModel
-  yAxisModel: IAxisModel
   enableAnimation: React.MutableRefObject<boolean>
 }
 

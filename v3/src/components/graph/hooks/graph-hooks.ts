@@ -121,7 +121,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [dataset, callRefreshPointPositions, refreshPointSelection])
 
-  // respond to x, y or legend attribute id change
+  // respond to dataset, x, y or legend attribute id change
   useEffect(() => {
     enableAnimation.current = true
     callRefreshPointPositions(false)
