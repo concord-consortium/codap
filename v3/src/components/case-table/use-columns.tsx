@@ -59,7 +59,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         ? [
             indexColumn,
             // attribute column definitions
-            ...visibleAttrs.map(({ id, name }) => ({
+            ...visibleAttrs.map(({ id, name, userEditable }) => ({
               key: id,
               name,
               resizable: true,
@@ -67,7 +67,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
               headerRenderer: ColumnHeader,
               cellClass: "codap-data-cell",
               formatter: CellFormatter,
-              editor: CellTextEditor
+              editor: userEditable ? CellTextEditor : undefined
             }))
         ]
         : []
