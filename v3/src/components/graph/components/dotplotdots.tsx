@@ -23,8 +23,6 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    xAxisModel = graphModel.getAxis('bottom'),
-    yAxisModel = graphModel.getAxis('left'),
     primaryAttrPlace = dataConfiguration?.primaryPlace ?? 'x',
     primaryAxisPlace = attrPlaceToAxisPlace[primaryAttrPlace] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
