@@ -17,7 +17,7 @@ interface IProps {
 }
 
 export const ScatterDots = memo(function ScatterDots(props: IProps) {
-  const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
+  const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
     instanceId = useInstanceIdContext(),
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),

@@ -19,7 +19,7 @@ interface IProps {
 }
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
-  const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
+  const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),

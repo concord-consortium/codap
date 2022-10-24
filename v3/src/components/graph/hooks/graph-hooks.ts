@@ -10,7 +10,7 @@ import {GraphLayout} from "../models/graph-layout"
 import {useCurrent} from "../../../hooks/use-current"
 import {IGraphModel} from "../models/graph-model"
 import {matchCirclesToData} from "../utilities/graph-utils"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context";
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -145,6 +145,6 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }
     }, true)
     return () => disposer()
-  }, [enableAnimation, graphModel])
+  }, [enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
 }
