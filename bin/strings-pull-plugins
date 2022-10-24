@@ -1,0 +1,9 @@
+#!/bin/sh
+PROGNAME=`basename "$0"`
+
+PLUGIN_PATHS="../codap-data-interactives ../story-builder"
+ARGS=$*
+
+for t in `echo "${PLUGIN_PATHS}"`; do
+  (cd "$t" && npm run strings:pull -- "$ARGS")
+done

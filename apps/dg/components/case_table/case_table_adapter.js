@@ -193,18 +193,25 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       boundaryFormatter = function ( value) {
-        var tResult = 'a boundary',
+        var tResult = '',
             tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(value),
             tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
                 tBoundaryObject.jsonBoundaryObject.properties &&
                 tBoundaryObject.jsonBoundaryObject.properties.THUMB;
+        // we found a thumbnail
         if (tThumb !== null && tThumb !== undefined) {
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' alt='thumb' height='14'></span>";
         }
+        // we found a Boundary object, but it's an error
         else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof  Error)) {
           tResult = errorFormatter(tBoundaryObject.jsonBoundaryObject);
         }
+        // We found a boundary but not a thumbnail
+        else if (tBoundaryObject) {
+          tResult = "A Boundary";
+        }
+        // not an object
         else if( !SC.empty(value)) {
           tResult = value;
         }

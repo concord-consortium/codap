@@ -319,13 +319,15 @@ DG.AttributeFormulaView.buildOperandsMenuAndCompletionData = function(iDataConte
   appendArrayOfNamesToMenu(tGlobalNames, kGlobalsCategory);
   if (kSpecialCategory.name === kConstantsCategory.name)
     appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
-  appendArrayOfNamesToMenu([ "e", "π" ]);
+  appendArrayOfNamesToMenu([ "e", "π", "true", "false" ]);
   tCompletionData.push({ label: "e", value: "e", category: kConstantsCategory });
   tCompletionData.push({ label: "π", value: "π", category: kConstantsCategory,
                           fontFamily: "Symbol,serif", fontSize: "130%" });
   // match against "pi", but render "π"
   tCompletionData.push({ label: "pi", value: "π", category: kConstantsCategory,
                           fontFamily: "Symbol,serif", fontSize: "130%" });
+  tCompletionData.push({ label: "true", value: "true", category: kConstantsCategory });
+  tCompletionData.push({ label: "false", value: "false", category: kConstantsCategory });
 
   appendNamesToCompletionData(DG.functionRegistry.get('namesWithParentheses'), kFunctionsCategory);
 

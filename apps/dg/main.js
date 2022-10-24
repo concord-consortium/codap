@@ -374,9 +374,14 @@ DG.main = function main() {
           appSetsWindowTitle: true, // CODAP takes responsibility for the window title
           wrapFileContent: false,
           mimeType: 'application/json',
-          readableMimeTypes: ['application/x-codap-document'],
+          readableMimeTypes: [
+            'application/x-codap-document',
+            'application/json',
+            'text/csv',
+            'text/tab-separated-values'
+          ],
           extension: 'codap',
-          readableExtensions: ["json", "", "codap"],
+          readableExtensions: ["json", "", "codap", "csv", "txt"],
           enableLaraSharing: true,
           log: function(event, eventData) {
             var params = eventData ? JSON.stringify(eventData) : "";
@@ -553,13 +558,13 @@ DG.main = function main() {
             {
               type: 'DG.GameView',
               document: DG.currDocumentController().content,
+              layout: {
+                isVisible: false
+              },
               componentStorage: {
                 currentGameName: pluginName,
                 currentGameUrl: DG.get('pluginURL') + pluginPath,
-                savedGameState: gameState,
-                layout: {
-                  isVisible: false
-                }
+                savedGameState: gameState
               }
             }
           ],
@@ -571,10 +576,11 @@ DG.main = function main() {
           lang: SC.Locale.currentLanguage
         };
       }
-      function makeCSVDocument(urlString, datasetName) {
+      function makeCSVDocument(contents, urlString, datasetName) {
         var gameState = {
           contentType: 'text/csv',
           url: urlString,
+          text: contents,
           datasetName: datasetName,
           showCaseTable: true
         };
@@ -625,8 +631,7 @@ DG.main = function main() {
         resolve(makeEmptyDocument());
       }
       else if (contentType === 'application/csv') {
-        DG.log('resolving CSV Document');
-        resolve(makeCSVDocument(urlString, datasetName));
+        resolve(makeCSVDocument(iDocContents, urlString, datasetName));
       }
       else if (contentType === 'application/vnd.geo+json') {
         resolve(makeGeoJSONDocument(iDocContents, urlString, datasetName));
@@ -856,6 +861,11 @@ DG.main = function main() {
             setTimeout(function() {
               SC.run(function() {
                 DG.cfmClient.hideBlockingModal();
+                if (event && event.state && event.state.metadata &&
+                    event.state.metadata.provider &&
+                    event.state.metadata.provider.name === 'localFile') {
+                  event.data.metadata.filename = event.state.metadata.providerData.file.name;
+                }
                 resolveDocument(event.data.content, event.data.metadata)
                   .then(
                     function(iDocContents) {

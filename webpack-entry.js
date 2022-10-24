@@ -52,5 +52,5 @@ dayjs  = require('dayjs');
 nanoid = require('nanoid');
 RTree = require('rtree');
 SlateEditor = require('@concord-consortium/slate-editor');
-require('@concord-consortium/slate-editor/build/index.css');
+require('@concord-consortium/slate-editor/dist/index.css');
 RandVarGen = require('random-variate-generators');

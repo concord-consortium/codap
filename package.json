@@ -65,6 +65,7 @@
     "strings:build": "./bin/strings-build.sh",
     "strings:pull:usage": "echo Usage: `npm run strings:pull -- -a <poeditor_api_key>`",
     "strings:pull": "./bin/strings-pull-project.sh",
+    "strings:pull:plugins": "./bin/strings-pull-plugins",
     "strings:push:usage": "echo Usage: `npm run strings:push -- -a <poeditor_api_key>`",
     "strings:push": "./bin/strings-push-project.sh",
     "strings:update": "npm-run-all strings:build strings:push strings:pull",
@@ -112,6 +113,7 @@
     "eslint-plugin-react": "^7.19.0",
     "eslint-plugin-react-hooks": "^2.5.1",
     "mini-css-extract-plugin": "0.9.0",
+    "node-jq": "^2.3.4",
     "npm-run-all": "^4.1.5",
     "opener": "^1.4.3",
     "pegjs": "=0.7.0",
@@ -125,7 +127,7 @@
     "webpack-shell-plugin": "^0.5.0"
   },
   "dependencies": {
-    "@concord-consortium/slate-editor": "^0.7.3",
+    "@concord-consortium/slate-editor": "^0.8.2",
     "codemirror": "^5.58.2",
     "create-react-class": "^15.7.0",
     "dayjs": "^1.8.14",
