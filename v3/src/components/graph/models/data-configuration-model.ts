@@ -195,7 +195,7 @@ export const DataConfigurationModel = types
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
       self.handlers.set(id, handler)
-      return () => self.handlers.delete(id)
+      return () => { self.handlers.delete(id) }
     }
   }))
 
