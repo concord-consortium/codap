@@ -3,7 +3,7 @@ import React from "react"
 import {isInteger} from "lodash"
 import {Point, Rect, rTreeRect} from "../graphing-types"
 import {between} from "./math-utils"
-import {IDataSet} from "../../../data-model/data-set"
+import {IDataSet} from "../../../models/data/data-set"
 import {ScaleNumericBaseType} from "../models/graph-layout"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {

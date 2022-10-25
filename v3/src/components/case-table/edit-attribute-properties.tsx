@@ -1,6 +1,6 @@
 import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
-import { AttributeType, attributeTypes } from "../../data-model/attribute"
+import { AttributeType, attributeTypes } from "../../models/data/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
 

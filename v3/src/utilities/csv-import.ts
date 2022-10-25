@@ -1,5 +1,5 @@
 import { parse, ParseResult } from "papaparse"
-import { DataSet, toCanonical } from "../data-model/data-set"
+import { DataSet, toCanonical } from "../models/data/data-set"
 
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>

@@ -33,7 +33,7 @@
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "./formula"
-import { uniqueId } from "../utilities/js-utils"
+import { uniqueId } from "../../utilities/js-utils"
 
 export const kDefaultFormatStr = ".3~f"
 

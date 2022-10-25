@@ -1,7 +1,7 @@
 import { Active, useDroppable } from "@dnd-kit/core"
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { IMoveAttributeOptions } from "../../data-model/data-set"
+import { IMoveAttributeOptions } from "../../models/data/data-set"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { kIndexColumnKey } from "./case-table-types"

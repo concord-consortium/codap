@@ -1,4 +1,4 @@
-import { DataSet, IDataSet, toCanonical } from "../data-model/data-set"
+import { DataSet, IDataSet, toCanonical } from "../models/data/data-set"
 import {
   CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2Document
 } from "./codap-v2-types"

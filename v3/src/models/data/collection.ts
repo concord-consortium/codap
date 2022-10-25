@@ -1,6 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Attribute } from "./attribute"
-import { uniqueId } from "../utilities/js-utils"
+import { uniqueId } from "../../utilities/js-utils"
 
 export const CollectionLabels = types.model("CollectionLabels", {
   singleCase: "",

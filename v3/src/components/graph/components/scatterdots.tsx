@@ -7,7 +7,7 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {ICase} from "../../../data-model/data-set"
+import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 

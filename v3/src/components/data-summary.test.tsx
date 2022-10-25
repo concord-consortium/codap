@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react"
 import React from "react"
-import { gDataBroker } from "../data-model/data-broker"
-import { DataSet, toCanonical } from "../data-model/data-set"
+import { gDataBroker } from "../models/data/data-broker"
+import { DataSet, toCanonical } from "../models/data/data-set"
 import { DataSummary } from "./data-summary"
 
 describe("DataSummary component", () => {
