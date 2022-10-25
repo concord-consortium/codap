@@ -13,6 +13,7 @@ import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
 import styles from "./case-table-shared.scss"
 import "./case-table.scss"
+import "react-data-grid/lib/styles.css"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
