@@ -160,11 +160,19 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
-      getLegendColorForCase(id: string) {
+      getLegendColorForCase(id: string | undefined) {
         const legendID = self.attributeID('legend'),
-          legendValue = legendID ? self.dataset?.getValue(id, legendID) : null,
+          legendValue = legendID ? self.dataset?.getValue(id ?? '', legendID) : null,
           catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(legendValue)
         return legendValue === null ? '' :
+          catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
+      }
+    }))
+  .views(self => (
+    {
+      getLegendColorForCategory(cat:string) {
+        const catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(cat)
+        return cat === null ? '' :
           catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
       }
     }))

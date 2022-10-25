@@ -107,9 +107,8 @@ export const CaseDots = memo(function CaseDots(props: {
       .attr('cy', (anID: string) => {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
-      // @ts-expect-error anID may be null
       .style('fill', (anID: string) => {
-        return legendAttrID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+        return (legendAttrID && anID) ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
       })
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
   }, [dataset, legendAttrID, dataConfiguration, pointRadius, dotsRef, enableAnimation, xScale, yScale])

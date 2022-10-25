@@ -26,7 +26,7 @@ export const CategoricalLegend = memo(function CategoricalLegend({legendAttrID}:
     categoryData = categories && Array.from(categories).map((cat: string, index) => {
       return {
         category: cat,
-        color: dataConfiguration?.getLegendColorForCase(cat),
+        color: dataConfiguration?.getLegendColorForCategory(cat),
         index,
         column: Math.floor(index / 2),
         row: index % 2
@@ -36,7 +36,7 @@ export const CategoricalLegend = memo(function CategoricalLegend({legendAttrID}:
 
   useEffect(function setup() {
     if (keysRef.current && categoryData) {
-      select(keysRef.current).selectAll('.key')
+      select(keysRef.current).selectAll('rect')
         .data(range(0, numCategories ?? 0), keyFunc)
         .join(
           // @ts-expect-error void => Selection
@@ -48,8 +48,7 @@ export const CategoricalLegend = memo(function CategoricalLegend({legendAttrID}:
               .attr('fill', index => categoryData[index].color || 'white')
           },
           (update) => {
-            update
-              .attr('x', (index) => {
+            update.attr('x', (index) => {
                 const x = categoryData[index].column * 50
                 console.log(`[${index}]: x = ${x}`)
                 return x
