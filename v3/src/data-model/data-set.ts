@@ -268,18 +268,6 @@ export const DataSet = types.model("DataSet", {
     }
   }
 
-  function getUniqueAttributeName(baseName: string, allowNames: (string | null)[]) {
-    let newName = baseName
-    const attrNames = self.attributes.map(function (attr) {
-          return attr.name
-        })
-    let suffix = 1
-    while ((attrNames.indexOf(newName) >= 0) && ((!allowNames || allowNames.indexOf(newName) < 0))) {
-      newName = baseName + (++suffix)
-    }
-    return newName
-  }
-
   return {
     /*
      * public views
@@ -442,14 +430,13 @@ export const DataSet = types.model("DataSet", {
         }
       },
 
-      setAttributeName(attributeID: string, name: string) {
+      setAttributeName(attributeID: string, name: string | (() => string)) {
         const attribute = attributeID && attrIDMap[attributeID]
         if (attribute) {
-          const currAttrName =  attribute.name || null
-          const uniqueAttrName = getUniqueAttributeName(name, [currAttrName])
+          const nameStr = typeof name === "string" ? name : name()
           delete attrNameMap[attribute.name]
-          attribute.setName(uniqueAttrName)
-          attrNameMap[uniqueAttrName] = attributeID
+          attribute.setName(nameStr)
+          attrNameMap[nameStr] = attributeID
         }
       },
 

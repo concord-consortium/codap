@@ -125,7 +125,7 @@ test("DataSet basic functionality", () => {
   dataset.setAttributeName(strAttrID, "str")
   expect(dataset.attributes[0].name).toBe("str")
 
-  // unique at tribute name
+  // unique attribute name
   dataset.setAttributeName(strAttrID, "pool")
   expect(dataset.attributes[0].name).toBe("pool")
   dataset.addAttribute({ name: "loop" })

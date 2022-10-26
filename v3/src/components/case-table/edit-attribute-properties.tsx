@@ -2,6 +2,7 @@ import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Texta
 import React, { useEffect, useState } from "react"
 import { AttributeType, attributeTypes } from "../../data-model/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { uniqueName } from "../../utilities/js-utils"
 import { CodapModal } from "../codap-modal"
 
 interface IEditAttributePropertiesModalContentProps {
@@ -104,8 +105,10 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
   const editProperties = () => {
     onClose()
     onModalOpen(false)
-    if (attribute) {
-      attrId && data?.setAttributeName(attrId, attributeName)
+    if (attribute && attrId) {
+      data?.setAttributeName(attrId, () => uniqueName(attributeName,
+        (aName: string) => (aName === columnName) || !data.attributes.find(attr => aName === attr.name)
+       ))
       attribute.setUserDescription(description)
       attribute.setUserType(attrType === "none" ? undefined : attrType)
       attribute.setUnits(unit)
