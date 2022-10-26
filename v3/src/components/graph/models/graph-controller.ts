@@ -11,7 +11,7 @@ import {
   CategoricalAxisModel,
   ICategoricalAxisModel,
   INumericAxisModel,
-  NumericAxisModel, axisPlaceToAttrPlace, attrPlaceToAxisPlace
+  NumericAxisModel, axisPlaceToAttrPlace, attrRoleToGraphPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
@@ -113,7 +113,7 @@ export class GraphController {
     })
     graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y]);
     ['x', 'y'].forEach((attrPlace: GraphAttrRole) => {
-      const axisPlace = attrPlaceToAxisPlace[attrPlace] as AxisPlace,
+      const axisPlace = attrRoleToGraphPlace[attrPlace] as AxisPlace,
         attrType = attrTypes[attrPlace]
       let axisModel
       switch (attrType) {
@@ -139,6 +139,7 @@ export class GraphController {
 
   handleAttributeAssignment(axisPlace: AxisPlace, attrID: string) {
     if(['plot', 'legend'].includes( axisPlace)) {
+      this.layout.setLegendHeight(50) // todo: temporary!
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
     const {dataset, graphModel, layout} = this,

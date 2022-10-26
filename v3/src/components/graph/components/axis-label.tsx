@@ -1,4 +1,4 @@
-import React, {memo, useEffect, useRef} from "react"
+import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {select} from "d3"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {AxisOrientation} from "../models/axis-model"
@@ -13,9 +13,11 @@ interface IAxisLabelProps {
   attributeIDs:string[]
 }
 
-export const AxisLabel = memo(function AxisLabel({ transform, attributeIDs }: IAxisLabelProps) {
+export const AxisLabel = forwardRef<SVGGElement, IAxisLabelProps>(
+  ({ transform, attributeIDs }:IAxisLabelProps, ref) => {
   const dataConfiguration = useDataConfigurationContext(),
     attrNames = attributeIDs.map(anID => dataConfiguration?.dataset?.attrFromID(anID).name),
+    svgRef = ref as MutableRefObject<SVGGElement | null>,
     labelRef = useRef<any>()
 
   useEffect(function adjustLabel() {
@@ -30,7 +32,7 @@ export const AxisLabel = memo(function AxisLabel({ transform, attributeIDs }: IA
   },[attrNames, transform])
 
   return (
-    <svg className='legend-label'/>
+    <g className='legend-label' ref={svgRef}/>
   )
 })
 AxisLabel.displayName = "AxisLabel"

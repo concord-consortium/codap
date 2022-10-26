@@ -166,11 +166,22 @@ export const DataConfigurationModel = types
           catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(legendValue)
         return legendValue === null ? '' :
           catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
+      },
+      selectCasesForLegendValue(aValue: string, extend = false) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          selection = legendID && self.cases.filter((anID: string) => {
+            return dataset?.getValue(anID, legendID) === aValue
+          })
+        if (selection) {
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
+        }
       }
     }))
   .views(self => (
     {
-      getLegendColorForCategory(cat:string) {
+      getLegendColorForCategory(cat: string) {
         const catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(cat)
         return cat === null ? '' :
           catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
@@ -203,7 +214,9 @@ export const DataConfigurationModel = types
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
       self.handlers.set(id, handler)
-      return () => { self.handlers.delete(id) }
+      return () => {
+        self.handlers.delete(id)
+      }
     }
   }))
 

@@ -8,7 +8,7 @@ export type ScaleType = ScaleContinuousNumeric<number, number> | ScaleOrdinal<st
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 0
-export const kDefaultLegendHeight = 50
+export const kDefaultLegendHeight = 0
 export const kDefaultPlotWidth = 0.8 * kDefaultGraphWidth
 export const kDefaultPlotHeight = 0.8 * kDefaultGraphHeight
 
@@ -66,10 +66,14 @@ export class GraphLayout {
       // todo: check to make sure this still works with top and right axes
       const newBounds = {
         left: bounds.left,
-        top: place === 'bottom' ? this.axisLength('left') : bounds.top,
-        width: place === 'left' ? this.graphWidth - this.axisLength('bottom') : bounds.width,
-        height: place === 'bottom' ? this.graphHeight - this.axisLength('left') - this.legendHeight :
-          place === 'left' ? this.graphHeight - this.legendHeight : bounds.height
+        top: place === 'bottom' ?
+          Math.min(bounds.top, this.axisLength('left')) : bounds.top,
+        width: place === 'left' ?
+          Math.min(bounds.width, this.graphWidth - this.axisLength('bottom')) : bounds.width,
+        height: place === 'bottom' ?
+          Math.min(bounds.height, this.graphHeight - this.axisLength('left') - this.legendHeight) :
+          place === 'left' ?
+            Math.min(bounds.height, this.graphHeight - this.legendHeight) : bounds.height
       }
       this.axisBounds.set(place, newBounds)
     }
@@ -87,18 +91,27 @@ export class GraphLayout {
     this.axisScales.set(place, scale)
   }
 
+  updateScaleRanges(plotWidth:number, plotHeight:number) {
+    AxisPlaces.forEach(place => {
+      const range = this.isVertical(place) ? [plotHeight, 0] : [0, plotWidth]
+      this.axisScale(place)?.range(range)
+    })
+  }
+
   @action setGraphExtent(width: number, height: number) {
     const plotWidth = 0.8 * width
     const plotHeight = 0.8 * height - this.legendHeight
 
     // update d3 scale ranges before updating graph properties
-    AxisPlaces.forEach(place => {
-      const range = this.isVertical(place) ? [plotHeight, 0] : [0, plotWidth]
-      this.axisScale(place)?.range(range)
-    })
+    this.updateScaleRanges(plotWidth, plotHeight)
 
     this.graphWidth = width
     this.graphHeight = height
+  }
+
+  @action setLegendHeight(height:number) {
+    this.updateScaleRanges(this.plotWidth, 0.8 * this.graphHeight - height)
+    this.legendHeight = height
   }
 }
 

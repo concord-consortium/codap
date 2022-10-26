@@ -6,9 +6,10 @@ export const GraphPlaces = [...AxisPlaces, "plot", "legend"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 export type GraphPlace = typeof GraphPlaces[number]
 
-export const attrPlaceToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
+export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
   x: "bottom",
   y: "left",
+  legend: 'legend',
   y2: "right",
   rightSplit: "right",
   topSplit: "top"

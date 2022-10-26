@@ -15,23 +15,26 @@ interface ILegendProps {
 export const Legend = memo(function Legend({legendAttrID, graphModel, transform}: ILegendProps) {
   useInstanceIdContext()
   const dataConfiguration = useDataConfigurationContext(),
-    // legendAttrID = dataConfiguration?.attributeID('legend') ?? '',
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
+    legendLabelRef = useRef<SVGGElement>(null),
     legendRef = useRef() as React.RefObject<SVGSVGElement>
 
-  return (
+  return legendAttrID ? (
     <svg ref={legendRef} className='legend'>
       <AxisLabel
+        ref={legendLabelRef}
         transform = {transform}
         attributeIDs={legendAttrID !== '' ? [legendAttrID] : []}
         orientation='horizontal'
         attributeRole='legend'
       />
       {
-        attrType === 'categorical' ? <CategoricalLegend legendAttrID={legendAttrID}/> :
-          attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}/> : null
+        attrType === 'categorical' ? <CategoricalLegend transform = {transform}
+                                                        legendLabelRef={legendLabelRef}/> :
+          attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}
+                                                  transform = {transform}/> : null
       }
     </svg>
-  )
+  ) : null
 })
 Legend.displayName = "Legend"

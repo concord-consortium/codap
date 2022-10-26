@@ -17,7 +17,7 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {attrPlaceToAxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
+import {attrRoleToGraphPlace, AxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -47,9 +47,10 @@ export const Graph = observer((
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
+    bottomAxisHeight = layout.getAxisBounds('bottom')?.height ?? 0,
     {margin} = layout,
+    legendTransformRef = useRef(''),
     xScale = layout.axisScale("bottom"),
-    transform = `translate(${margin.left}, 0)`,
     svgRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
@@ -61,7 +62,7 @@ export const Graph = observer((
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
-  const graphController = useGraphController({ graphModel, enableAnimation, dotsRef })
+  const graphController = useGraphController({graphModel, enableAnimation, dotsRef})
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {
@@ -71,7 +72,8 @@ export const Graph = observer((
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
     }
-  }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
+    legendTransformRef.current = `translate(${margin.left}, ${layout.plotHeight + bottomAxisHeight})`
+  }, [layout.plotHeight, layout.plotWidth, margin.left, xScale, bottomAxisHeight])
 
   const toast = useToast()
 
@@ -91,7 +93,7 @@ export const Graph = observer((
     const disposer = graphModel && onAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
         const [place, attrID] = action.args,
-          axisPlace = attrPlaceToAxisPlace[place]
+          axisPlace = attrRoleToGraphPlace[place] as AxisPlace
         enableAnimation.current = true
         axisPlace && graphController?.handleAttributeAssignment(axisPlace, attrID)
       }
@@ -148,12 +150,24 @@ export const Graph = observer((
     return typeToPlotComponentMap[plotType]
   }
 
+  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
+
+  const handlePlotDropAttribute = (active: Active) => {
+    const dragAttributeID = getDragAttributeId(active)
+    if (dragAttributeID) {
+      handleDropAttribute('plot', dragAttributeID)
+    }
+  }
+
+  const data: IDropData = {accepts: ["attribute"], onDrop: handlePlotDropAttribute}
+  console.log(`transform = ${legendTransformRef.current}; 
+  plotHeight = ${layout.plotHeight}; bottom = ${bottomAxisHeight}`)
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
-            transform={transform}
+            transform={`translate(${margin.left}, 0)`}
             marqueeState={marqueeState}
             ref={backgroundSvgRef}
           />
@@ -181,8 +195,8 @@ export const Graph = observer((
             onDropAttribute={handleDropAttribute}/>
           <Legend
             graphModel={graphModel}
-            legendAttrID = {graphModel.getAttributeID('legend')}
-            transform={`translate(${margin.left}, ${layout.plotHeight + 40})`}
+            legendAttrID={graphModel.getAttributeID('legend')}
+            transform={legendTransformRef.current}
           />
         </svg>
       </div>

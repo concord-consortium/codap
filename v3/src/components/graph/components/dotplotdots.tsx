@@ -11,7 +11,7 @@ import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layou
 import {ICase} from "../../../data-model/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
-import {attrPlaceToAxisPlace} from "../models/axis-model"
+import {attrRoleToGraphPlace, AxisPlace} from "../models/axis-model"
 
 interface IProps {
   graphModel: IGraphModel
@@ -24,11 +24,11 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     primaryAttrPlace = dataConfiguration?.primaryPlace ?? 'x',
-    primaryAxisPlace = attrPlaceToAxisPlace[primaryAttrPlace] ?? 'bottom',
+    primaryAxisPlace = attrRoleToGraphPlace[primaryAttrPlace] as AxisPlace ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
     primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace),
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
-    secondaryAxisPlace = attrPlaceToAxisPlace[secondaryAttrPlace] ?? 'left',
+    secondaryAxisPlace = attrRoleToGraphPlace[secondaryAttrPlace] as AxisPlace ?? 'left',
     secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
     legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = layout.axisScale(primaryAxisPlace) as ScaleNumericBaseType,
