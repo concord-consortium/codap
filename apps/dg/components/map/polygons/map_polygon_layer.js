@@ -250,8 +250,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
               return iFeature && iFeature.options['case'] === iCase;
             }),
           tIsSelected = tSelection.containsObject( iCase),
-         tFillColor = tIsSelected ? (tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendSelectedBorderColor :
-                                     DG.PlotUtilities.kMapAreaNoLegendSelectedBorderColor) :
+          tFillColor = (tIsSelected && !tHasLegend) ? DG.PlotUtilities.kMapAreaNoLegendSelectedColor :
                       tRC.calcCaseColorString(iCase);
       if (!tFeature)
         return;
