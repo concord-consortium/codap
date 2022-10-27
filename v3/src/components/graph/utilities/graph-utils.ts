@@ -9,8 +9,8 @@ import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {
   defaultPointColor,
   defaultSelectedColor,
-  defaultSelectedStroke,
-  defaultStrokeColor
+  defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
+  defaultStrokeColor, defaultStrokeOpacity, defaultStrokeWidth
 } from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
 
@@ -329,12 +329,16 @@ export function setPointSelection(props: ISetPointSelection) {
     .style('fill', (anID: string) => {
       return legendID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
     })
+    .style('stroke-width', defaultStrokeWidth)
+    .style('stroke-opacity', defaultStrokeOpacity)
 
   const selectedDots = dots.selectAll('.graph-dot-highlighted')
   // How we deal with this depends on whether there is a legend or not
   if (legendID) {
     selectedDots
       .style('stroke', defaultSelectedStroke)
+      .style('stroke-width', defaultSelectedStrokeWidth)
+      .style('stroke-opacity', defaultSelectedStrokeOpacity)
   } else {
     selectedDots
       .style('fill', defaultSelectedColor)
@@ -381,11 +385,21 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       .attr('cy', (anID: string) => getScreenY(anID))
       .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
       .style('fill', (id: string) => lookupLegendColor(id))
+      .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+        defaultSelectedStroke : defaultStrokeColor)
+      .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+        defaultSelectedStrokeWidth : defaultStrokeWidth)
   } else if (selection.size() > 0) {
     selection
       .attr('cx', (anID: string) => getScreenX(anID))
       .attr('cy', (anID: string) => getScreenY(anID))
       .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
       .style('fill', (id: string) => lookupLegendColor(id))
+      .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+        defaultSelectedStroke : defaultStrokeColor)
+      .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+        defaultSelectedStrokeWidth : defaultStrokeWidth)
   }
+  // There can be a selection. Rather than call setPointSelection, we can deal with it here
+
 }
