@@ -63,7 +63,7 @@ export class GraphLayout {
       // that shouldn't affect the top and right axes when we get them but
       // todo: check to make sure this still works with top and right axes
       const newBounds = {
-        left: bounds.left,
+        left: place !== "left" ? bounds.left : bounds.left * (-2),
         top: place === 'bottom' ? this.axisLength('left') : bounds.top,
         width: place === 'left' ? this.graphWidth - this.axisLength('bottom') : bounds.width,
         height: place === 'bottom' ? this.graphHeight - this.axisLength('left') : bounds.height
