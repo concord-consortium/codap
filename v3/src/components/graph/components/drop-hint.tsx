@@ -9,24 +9,25 @@ interface IProps {
 
 export const DropHint = ({ hintText }: IProps) => {
   const hintDiv = useRef<HTMLDivElement>(null)
-  const [hintLeft, setHintLeft] = useState<number>(0)
-  const [hintTop, setHintTop] = useState<number>(0)
+  const [hintPos, setHintPos] = useState<{ left: number, top: number }>({ left: 0, top: 0 })
 
   useDndMonitor({
     onDragMove(event) {
       const ae = event.activatorEvent as PointerEvent
-      const { delta } = event as any
+      const { delta } = event
       const newXPos = delta.x + ae.clientX
       const newYPos = delta.y + ae.clientY
       if (hintDiv.current){
-        setHintLeft(newXPos - (hintDiv.current?.clientWidth * .5) - 5)
-        setHintTop(newYPos - 40)
+        setHintPos({
+          left: newXPos - (hintDiv.current?.clientWidth * .5) - 5,
+          top: newYPos - 40
+        })
       }
     }
   })
 
   return (
-    <div ref={hintDiv} className="drop-hint" style={{top: `${hintTop}px`, left: `${hintLeft}px`}}>
+    <div ref={hintDiv} className="drop-hint" style={{ top: hintPos.top, left: hintPos.left }}>
       {hintText}
     </div>
   )

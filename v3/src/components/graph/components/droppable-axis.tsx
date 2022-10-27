@@ -1,6 +1,6 @@
 import { Active, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties, useState, useEffect } from "react"
+import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { useAxisBounds } from "../hooks/use-axis-bounds"
 import { AxisPlace } from "../models/axis-model"
@@ -19,18 +19,9 @@ interface IProps {
 }
 export const DroppableAxis = observer(({ place, portal, target, dropId, dropData, hintString, onIsActive }: IProps) => {
   const axisBounds = useAxisBounds(place)
-  const [portalBounds, setPortalBounds] = useState<DOMRect | null>(null)
-  const [targetBounds, setTargetBounds] = useState<DOMRect | null>(null)
 
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId, data: dropData })
   const isActive = active && onIsActive?.(active)
-
-  useEffect(() => {
-    const _portalBounds = portal?.getBoundingClientRect()
-    const _targetBounds = target?.getBoundingClientRect()
-    _portalBounds && setPortalBounds(_portalBounds)
-    _targetBounds && setTargetBounds(_targetBounds)
-  }, [portal, target])
 
   // calculate the position of the overlay
   const style: CSSProperties = { ...axisBounds }
@@ -39,11 +30,10 @@ export const DroppableAxis = observer(({ place, portal, target, dropId, dropData
   return portal && target && createPortal(
     <>
       <div ref={setNodeRef} className={classes} style={style} />
-      { isOver && hintString && targetBounds &&
+      { isOver && hintString &&
         <DropHint hintText={hintString} />
       }
     </>,
     portal
   )
 })
-

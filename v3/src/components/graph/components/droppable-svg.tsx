@@ -46,37 +46,10 @@ export const DroppableSvg = ({
   return portal && target && createPortal(
     <>
       <div ref={setNodeRef} className={classes} style={style} />
-      { isOver && hintString && targetBounds &&
+      { isOver && hintString &&
         <DropHint hintText={hintString} />
       }
     </>,
     portal
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,16 +1,23 @@
-import {useState} from "react"
-import {useDndContext, useDndMonitor} from "@dnd-kit/core"
+import {useDndContext} from "@dnd-kit/core"
+import {AttributeType} from "../data-model/attribute"
 import {useDataSetContext} from "./use-data-set-context"
-import {getStringWithSwaps} from "../utilities/tokened-string"
-import {IGraphModel} from "../components/graph/models/graph-model"
+import {getDragAttributeId} from "./use-drag-drop"
+import {useDataConfigurationContext} from "../components/graph/hooks/use-data-configuration-context"
 import {GraphAttrRole} from "../components/graph/models/data-configuration-model"
+import t from "../utilities/translation/translate"
 
 export interface IUseDropHintStringProps {
-  graphModel: IGraphModel
+  role: GraphAttrRole
 }
 
-export function determineBaseString(placeString: string,  dropType: string, existingType: string){
-  const stringMap = {
+interface HintMapEntry {
+  empty: string
+  existing: string
+}
+type HintMap = Partial<Record<GraphAttrRole, Partial<Record<AttributeType, HintMapEntry>>>>
+
+export function determineBaseString(role: GraphAttrRole, dropType?: AttributeType, priorType?: AttributeType){
+  const stringMap: HintMap = {
     x: {
       numeric: {
         empty: "addToEmptyPlace",
@@ -43,51 +50,31 @@ export function determineBaseString(placeString: string,  dropType: string, exis
     }
   }
 
-  const placeParam = placeString as keyof typeof stringMap
-  const typeParam = dropType as keyof typeof stringMap.x
-  const containsParam = existingType === undefined ? "empty" : "existing"
-  const stringKey = stringMap[placeParam][typeParam][containsParam]
-  const baseString = `DG.GraphView.${stringKey}`
-  return baseString
+  const stringKey = dropType && stringMap[role]?.[dropType]?.[priorType ? "existing" : "empty"]
+  return stringKey ? `DG.GraphView.${stringKey}` : undefined
 }
 
-function getAttrRole(droppableInfoArr: string[]){
-  const isPlot = droppableInfoArr.includes("plot"),
-    isAxis = droppableInfoArr.includes("axis"),
-    isLeft = isAxis && droppableInfoArr.includes("left"),
-    foundRole = isPlot ? "legend" : isLeft ? "y" : "x"
-  return foundRole as GraphAttrRole
-}
-
-export const useDropHintString = ({graphModel} : IUseDropHintStringProps) => {
+export const useDropHintString = ({role} : IUseDropHintStringProps) => {
   const dataSet = useDataSetContext(),
-    [overId, setOverId] = useState<string>(""),
+    dataConfig = useDataConfigurationContext(),
     { active } = useDndContext()
 
-  useDndMonitor({
-    onDragOver(event) {
-      const newOverId = event.over?.id ? event.over.id : ''
-      setOverId(newOverId as string)
-    },
-  })
-
   if (dataSet && active?.data.current ) {
-    const droppingAttrId = active.data.current.attributeId,
-      droppingAttrName = dataSet.attrFromID(droppingAttrId).name,
-      droppingAttrType = dataSet.attrFromID(droppingAttrId).type as string
+    const dragAttrId = getDragAttributeId(active),
+      dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId).name : undefined,
+      dragAttrType = dragAttrId? dataSet.attrFromID(dragAttrId).type : undefined
 
-    const droppableInfoArr = (overId as string).split("-"),
-      attrRole = getAttrRole(droppableInfoArr), // -> x | y | legend
-      priorAttrId = graphModel.getAttributeID(attrRole),
-      priorAttrName = dataSet?.attrFromID(priorAttrId)?.name as string,
-      priorAttrType = dataSet?.attrFromID(priorAttrId)?.type as string,
-      baseString = determineBaseString(attrRole, droppingAttrType, priorAttrType)
+    const
+      priorAttrId = dataConfig?.attributeID(role),
+      priorAttrName = priorAttrId ? dataSet?.attrFromID(priorAttrId)?.name : undefined,
+      priorAttrType = priorAttrId ? dataSet?.attrFromID(priorAttrId)?.type : undefined,
+      baseString = determineBaseString(role, dragAttrType, priorAttrType)
 
-    const details = [droppingAttrName]
-    if (priorAttrName && droppingAttrType !== "categorical"){
+    const details = [dragAttrName]
+    if (priorAttrName && dragAttrType !== "categorical") {
       details.unshift(priorAttrName)
     }
 
-    return getStringWithSwaps(baseString, "%@", details)
+    return baseString ? t(baseString, { vars: details }) : undefined
   }
 }
