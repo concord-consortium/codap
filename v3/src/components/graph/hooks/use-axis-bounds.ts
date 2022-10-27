@@ -42,6 +42,7 @@ export const useAxisBoundsProvider = (place: AxisPlace) => {
     return () => observer?.disconnect()
   }, [graphElt, layout, place, wrapperElt])
 
+/*
   useEffect(function respondToLegendHeightChange() {
     const disposer = reaction(
       () => {
@@ -54,6 +55,7 @@ export const useAxisBoundsProvider = (place: AxisPlace) => {
     )
     return () => disposer()
   })
+*/
 
   return {graphElt, wrapperElt, setWrapperElt}
 }

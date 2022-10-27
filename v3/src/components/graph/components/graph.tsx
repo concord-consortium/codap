@@ -150,18 +150,6 @@ export const Graph = observer((
     return typeToPlotComponentMap[plotType]
   }
 
-  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
-
-  const handlePlotDropAttribute = (active: Active) => {
-    const dragAttributeID = getDragAttributeId(active)
-    if (dragAttributeID) {
-      handleDropAttribute('plot', dragAttributeID)
-    }
-  }
-
-  const data: IDropData = {accepts: ["attribute"], onDrop: handlePlotDropAttribute}
-  console.log(`transform = ${legendTransformRef.current}; 
-  plotHeight = ${layout.plotHeight}; bottom = ${bottomAxisHeight}`)
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
