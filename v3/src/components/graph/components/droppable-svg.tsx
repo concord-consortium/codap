@@ -1,6 +1,7 @@
 import { Active, useDroppable } from "@dnd-kit/core"
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
+import { DropHint } from "./drop-hint"
 
 import "./droppable-svg.scss"
 
@@ -11,8 +12,10 @@ interface IProps {
   dropId: string
   dropData: any
   onIsActive?: (active: Active) => boolean
+  hintString?: string
 }
-export const DroppableSvg = ({ className, portal, target, dropId, dropData, onIsActive }: IProps) => {
+export const DroppableSvg = ({
+    className, portal, target, dropId, dropData, onIsActive, hintString }: IProps) => {
   const [portalBounds, setPortalBounds] = useState<DOMRect | null>(null)
   const [targetBounds, setTargetBounds] = useState<DOMRect | null>(null)
 
@@ -39,8 +42,41 @@ export const DroppableSvg = ({ className, portal, target, dropId, dropData, onIs
                                 ? { left, top, width: targetBounds.width, height: targetBounds.height }
                                 : {}
   const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`
+
   return portal && target && createPortal(
-    <div ref={setNodeRef} className={classes} style={style} />,
+    <>
+      <div ref={setNodeRef} className={classes} style={style} />
+      { isOver && hintString && targetBounds &&
+        <DropHint hintText={hintString} />
+      }
+    </>,
     portal
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

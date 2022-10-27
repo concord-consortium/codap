@@ -15,13 +15,14 @@ import "./axis.scss"
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
-  attributeID: string,
+  attributeID: string
   transform: string
   showGridLines: boolean
+  hintString?: string
   onDropAttribute: (place: AxisPlace, attrId: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, getAxisModel, transform, showGridLines, hintString, onDropAttribute}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -109,8 +110,15 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
       </g>
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
-      <DroppableAxis place={`${place}`} dropId={droppableId} dropData={data}
-                     portal={graphElt} target={wrapperElt} onIsActive={handleIsActive}/>
+        <DroppableAxis
+          place={`${place}`}
+          dropId={droppableId}
+          dropData={data}
+          hintString={hintString}
+          portal={graphElt}
+          target={wrapperElt}
+          onIsActive={handleIsActive}
+        />
     </>
   )
 }

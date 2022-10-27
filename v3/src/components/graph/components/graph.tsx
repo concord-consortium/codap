@@ -25,6 +25,7 @@ import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 import {DroppableSvg} from "./droppable-svg"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
+import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 
 import "./graph.scss"
 
@@ -59,7 +60,8 @@ export const Graph = observer((
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
     hoverPointRadius = graphModel.getPointRadius('hover-drag'),
-    droppableId = `${instanceId}-plot-area-drop`
+    droppableId = `${instanceId}-plot-area-drop`,
+    hintText = useDropHintString({graphModel})
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -152,6 +154,8 @@ export const Graph = observer((
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
+
+
   const handlePlotDropAttribute = (active: Active) => {
     const dragAttributeID = getDragAttributeId(active)
     if (dragAttributeID) {
@@ -175,12 +179,14 @@ export const Graph = observer((
                 transform={`translate(${margin.left - 1}, 0)`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleDropAttribute}
+                hintString={hintText}
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleDropAttribute}
+                hintString={hintText}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
@@ -197,6 +203,7 @@ export const Graph = observer((
             dropId={droppableId}
             dropData={data}
             onIsActive={handleIsActive}
+            hintString={hintText}
           />
 
         </svg>

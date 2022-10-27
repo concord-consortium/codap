@@ -1,0 +1,25 @@
+.drop-hint {
+  position:fixed;
+  z-index:500;
+  background-color:#5b616b; // NOTE: http://web-accessibility.carnegiemuseums.org/design/color/
+  padding:5px 11px;
+  font-size:11px;
+  font-weight: bold;
+  color:white;
+  border-radius: 5px;
+  opacity: 100%;
+  animation-duration: .3s;
+  animation-name: fadeSlide;
+  animation-timing-function: ease-out;
+  @keyframes fadeSlide {
+    from {
+      line-height: 0px;
+      opacity: 0%;
+    }
+
+    to {
+      line-height: 12px;
+      opacity: 100%;
+    }
+  }
+}
