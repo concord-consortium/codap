@@ -1,5 +1,4 @@
 import {useToast} from "@chakra-ui/react"
-import {Active} from "@dnd-kit/core"
 import {select} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import {observer} from "mobx-react-lite"
@@ -7,6 +6,7 @@ import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
+import {DroppablePlot} from "./droppable-plot"
 import {kGraphClass, transitionDuration} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
@@ -23,8 +23,6 @@ import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
-import {DroppableSvg} from "./droppable-svg"
-import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 
 import "./graph.scss"
 
@@ -58,8 +56,7 @@ export const Graph = observer((
     yAttrID = graphModel.getAttributeID('y'),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
-    hoverPointRadius = graphModel.getPointRadius('hover-drag'),
-    droppableId = `${instanceId}-plot-area-drop`
+    hoverPointRadius = graphModel.getPointRadius('hover-drag')
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -150,17 +147,6 @@ export const Graph = observer((
     return typeToPlotComponentMap[plotType]
   }
 
-  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
-
-  const handlePlotDropAttribute = (active: Active) => {
-    const dragAttributeID = getDragAttributeId(active)
-    if (dragAttributeID) {
-      handleDropAttribute('plot', dragAttributeID)
-    }
-  }
-
-  const data: IDropData = {accepts: ["attribute"], onDrop: handlePlotDropAttribute}
-
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
@@ -190,14 +176,8 @@ export const Graph = observer((
             <Marquee marqueeState={marqueeState}/>
           </svg>
 
-          <DroppableSvg
-            className="droppable-plot"
-            portal={graphRef.current}
-            target={backgroundSvgRef.current}
-            dropId={droppableId}
-            dropData={data}
-            onIsActive={handleIsActive}
-          />
+          <DroppablePlot graphElt={graphRef.current} plotElt={backgroundSvgRef.current}
+            onDropAttribute={handleDropAttribute}/>
 
         </svg>
       </div>

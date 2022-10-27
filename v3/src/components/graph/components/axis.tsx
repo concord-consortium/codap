@@ -5,9 +5,10 @@ import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
+import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, axisPlaceToAttrPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 
@@ -15,7 +16,7 @@ import "./axis.scss"
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
-  attributeID: string,
+  attributeID: string
   transform: string
   showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
@@ -31,6 +32,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(place),
+    hintString = useDropHintString({ role: axisPlaceToAttrPlace[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
@@ -109,8 +111,15 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
       </g>
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
-      <DroppableAxis place={`${place}`} dropId={droppableId} dropData={data}
-                     portal={graphElt} target={wrapperElt} onIsActive={handleIsActive}/>
+        <DroppableAxis
+          place={`${place}`}
+          dropId={droppableId}
+          dropData={data}
+          hintString={hintString}
+          portal={graphElt}
+          target={wrapperElt}
+          onIsActive={handleIsActive}
+        />
     </>
   )
 }
