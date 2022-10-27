@@ -164,14 +164,9 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
-      getLegendColorForCategory(cat: string) {
+      getLegendColorForCategory(cat: string):string {
         const catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(cat)
         return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
-      },
-      getLegendColorForCase(id?: string) {
-        const legendID = self.attributeID('legend'),
-          legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
-        return legendValue == null ? '' : this.getLegendColorForCategory( legendValue)
       },
       selectCasesForLegendValue(aValue: string, extend = false) {
         const dataset = self.dataset,
@@ -187,6 +182,11 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
+      getLegendColorForCase(id: string):string {
+        const legendID = self.attributeID('legend'),
+          legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
+        return legendValue == null ? '' : self.getLegendColorForCategory( legendValue)
+      },
     }))
   .actions(self => ({
     setDataset(dataset: IDataSet) {

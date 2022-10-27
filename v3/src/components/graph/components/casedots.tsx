@@ -11,7 +11,12 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
-import {defaultPointColor} from "../../../utilities/color-utils"
+import {
+  defaultPointColor,
+  defaultSelectedStroke,
+  defaultSelectedStrokeWidth,
+  defaultStrokeColor, defaultStrokeWidth
+} from "../../../utilities/color-utils"
 
 export const CaseDots = memo(function CaseDots(props: {
   graphModel: IGraphModel
@@ -108,8 +113,12 @@ export const CaseDots = memo(function CaseDots(props: {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
       .style('fill', (anID: string) => {
-        return (legendAttrID && anID) ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+          return legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID) ?? defaultPointColor
       })
+      .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
+        defaultSelectedStroke : defaultStrokeColor)
+      .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
+        defaultSelectedStrokeWidth : defaultStrokeWidth)
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
   }, [dataset, legendAttrID, dataConfiguration, pointRadius, dotsRef, enableAnimation, xScale, yScale])
 
