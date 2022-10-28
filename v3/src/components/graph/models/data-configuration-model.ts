@@ -116,6 +116,10 @@ export const DataConfigurationModel = types
     get uniqueTipAttributes() {
       return Array.from(new Set<string>(this.tipAttributes))
     },
+    get noAttributesAssigned() {
+      // The first attribute is always assigned as 'caption'. So it's really no attributes assigned except for that
+      return this.attributes.length <= 1
+    },
     get cases() {
       const caseIDs = self.filteredCases?.caseIds || [],
         legendAttrID = self.attributeID('legend')
