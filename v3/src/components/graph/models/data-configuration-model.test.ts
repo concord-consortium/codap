@@ -1,5 +1,5 @@
 import { reaction } from "mobx"
-import { DataSet, IDataSet, toCanonical } from "../../../data-model/data-set"
+import { DataSet, IDataSet, toCanonical } from "../../../models/data/data-set"
 import { DataConfigurationModel } from "./data-configuration-model"
 
 describe("DataConfigurationModel", () => {

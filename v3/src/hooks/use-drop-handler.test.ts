@@ -1,6 +1,6 @@
 import { fireEvent, renderHook } from "@testing-library/react"
 import { getType } from "mobx-state-tree"
-import { DataSet, IDataSet } from "../data-model/data-set"
+import { DataSet, IDataSet } from "../models/data/data-set"
 import { useDropHandler } from "./use-drop-handler"
 
 const mockData = [{ a: 1, b: 2 }, { a: 3, b: 4 }]

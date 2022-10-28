@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import { IDataSet } from "../data-model/data-set"
+import { IDataSet } from "../models/data/data-set"
 
 export const DataSetContext = createContext<IDataSet | undefined>(undefined)
 

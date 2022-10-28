@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from '@testing-library/user-event'
 import React from "react"
-import { DataBroker } from "../../data-model/data-broker"
-import { DataSet, toCanonical } from "../../data-model/data-set"
+import { DataBroker } from "../../models/data/data-broker"
+import { DataSet, toCanonical } from "../../models/data/data-set"
 import { useKeyStates } from "../../hooks/use-key-states"
 import { CaseTableComponent } from "./case-table-component"
 

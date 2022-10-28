@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { IDataSet } from "../data-model/data-set"
+import { IDataSet } from "../models/data/data-set"
 import { measureText } from "./use-measure-text"
 
 interface IWidthEntry {

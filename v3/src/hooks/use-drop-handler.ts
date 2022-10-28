@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { IDataSet } from "../data-model/data-set"
+import { IDataSet } from "../models/data/data-set"
 import { convertParsedCsvToDataSet, CsvParseResult, importCsvFile } from "../utilities/csv-import"
 import { safeJsonParse } from "../utilities/js-utils"
 import { CodapV2Document } from "../v2/codap-v2-document"

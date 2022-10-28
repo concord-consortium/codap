@@ -1,5 +1,5 @@
 import React, { Children, cloneElement, ReactElement, ReactNode, useState } from "react"
-import { DataBroker } from "../data-model/data-broker"
+import { DataBroker } from "../models/data/data-broker"
 import { EditableComponentTitle } from "./editable-component-title"
 
 import "./codap-component.scss"

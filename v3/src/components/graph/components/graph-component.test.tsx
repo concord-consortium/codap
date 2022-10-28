@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import React from "react"
-import { DataBroker } from "../../../data-model/data-broker"
-import { DataSet, toCanonical } from "../../../data-model/data-set"
+import { DataBroker } from "../../../models/data/data-broker"
+import { DataSet, toCanonical } from "../../../models/data/data-set"
 import { GraphComponent } from "./graph-component"
 
 describe.skip("Graph", () => {

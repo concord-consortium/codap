@@ -4,7 +4,7 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
-import {isSelectionAction, isSetCaseValuesAction} from "../../../data-model/data-set-actions"
+import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {INumericAxisModel} from "../models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
 import {useCurrent} from "../../../hooks/use-current"

@@ -4,7 +4,7 @@ import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
 import {GraphAttrRole, IAttributeDescriptionSnapshot}
   from "./data-configuration-model"
-import {IDataSet} from "../../../data-model/data-set"
+import {IDataSet} from "../../../models/data/data-set"
 import {
   AxisPlace,
   EmptyAxisModel,
