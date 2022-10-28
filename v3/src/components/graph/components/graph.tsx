@@ -17,15 +17,15 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {attrRoleToGraphPlace, AxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
+import {attrRoleToAxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
+import {Legend} from "./legend/legend"
 
 import "./graph.scss"
-import {Legend} from "./legend/legend"
 
 interface IProps {
   model: IGraphModel
@@ -93,7 +93,7 @@ export const Graph = observer((
     const disposer = graphModel && onAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
         const [place, attrID] = action.args,
-          axisPlace = attrRoleToGraphPlace[place] as AxisPlace
+          axisPlace = attrRoleToAxisPlace[place]
         enableAnimation.current = true
         axisPlace && graphController?.handleAttributeAssignment(axisPlace, attrID)
       }
@@ -180,7 +180,7 @@ export const Graph = observer((
           </svg>
 
           <DroppablePlot graphElt={graphRef.current} plotElt={backgroundSvgRef.current}
-            onDropAttribute={handleDropAttribute}/>
+                         onDropAttribute={handleDropAttribute}/>
           <Legend
             graphModel={graphModel}
             legendAttrID={graphModel.getAttributeID('legend')}

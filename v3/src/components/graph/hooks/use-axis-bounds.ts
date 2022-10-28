@@ -1,4 +1,3 @@
-import {reaction} from "mobx"
 import {useEffect, useState} from "react"
 import {kGraphClassSelector} from "../graphing-types"
 import {AxisPlace} from "../models/axis-model"

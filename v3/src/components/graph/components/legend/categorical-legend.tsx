@@ -32,11 +32,10 @@ const keySize = 15,
   padding = 5
 
 export const CategoricalLegend = memo(function CategoricalLegend(
-    {transform, legendLabelRef}: ICategoricalLegendProps) {
+  {transform, legendLabelRef}: ICategoricalLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
-    categories = dataConfiguration?.categorySetForPlace('legend'),
-    numCategories = categories?.size,
+    categoriesRef = useRef<Set<string> | undefined>(),
     categoryData = useRef<Key[]>([]),
     layoutData = useRef<Layout>({
         maxWidth: 0,
@@ -50,10 +49,12 @@ export const CategoricalLegend = memo(function CategoricalLegend(
     [keysElt, setKeysElt] = useState<SVGGElement | null>(null),
 
     computeLayout = useCallback(() => {
-      const lod: Layout = layoutData.current
+      categoriesRef.current = dataConfiguration?.categorySetForPlace('legend')
+      const numCategories = categoriesRef.current?.size,
+        lod: Layout = layoutData.current
       lod.fullWidth = layout.axisLength('bottom')
       lod.maxWidth = 0
-      categories?.forEach(cat => {
+      categoriesRef.current?.forEach(cat => {
         const text = selection().append('text').attr('y', 500).text(cat),
           width = text.node()?.getBoundingClientRect()?.width
         lod.maxWidth = Math.max(lod.maxWidth, width ?? 0)
@@ -64,7 +65,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       lod.columnWidth = lod.fullWidth / lod.numColumns
       lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
       categoryData.current.length = 0
-      categories && Array.from(categories).forEach((cat: string, index) => {
+      categoriesRef.current && Array.from(categoriesRef.current).forEach((cat: string, index) => {
         categoryData.current.push({
           category: cat,
           color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
@@ -74,17 +75,19 @@ export const CategoricalLegend = memo(function CategoricalLegend(
         })
       })
       layoutData.current = lod
-    }, [layout, categories, numCategories, dataConfiguration]),
+    }, [layout, dataConfiguration]),
 
     refreshKeys = useCallback(() => {
-      const labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
+      categoriesRef.current = dataConfiguration?.categorySetForPlace('legend')
+      const numCategories = categoriesRef.current?.size,
+        labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
       select(keysElt)
         .selectAll('rect')
         .data(range(0, numCategories ?? 0))
         .join(
           // @ts-expect-error void => Selection
           // eslint-disable-next-line @typescript-eslint/no-empty-function
-          (enter) => {
+          () => {
           },
           update => update
             .attr('transform', transform)
@@ -101,7 +104,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
         .join(
           // @ts-expect-error void => Selection
           // eslint-disable-next-line @typescript-eslint/no-empty-function
-          (enter) => {
+          () => {
           },
           update => update
             .text((index: number) => categoryData.current[index].category)
@@ -112,7 +115,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
             .attr('y',
               (index: number) => labelHeight + 1.5 * keySize + categoryData.current[index].row * (keySize + padding))
         )
-    }, [keysElt, numCategories, transform, legendLabelRef])
+    }, [dataConfiguration, keysElt, transform, legendLabelRef])
 
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
@@ -129,6 +132,8 @@ export const CategoricalLegend = memo(function CategoricalLegend(
   }, [layout, computeLayout, refreshKeys])
 
   useEffect(function setup() {
+    categoriesRef.current = dataConfiguration?.categorySetForPlace('legend')
+    const numCategories = categoriesRef.current?.size
     if (keysElt && categoryData.current) {
       select(keysElt)
         .selectAll('rect')
@@ -151,7 +156,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
         )
       refreshKeys()
     }
-  }, [keysElt, categoryData, numCategories, transform, refreshKeys, dataConfiguration])
+  }, [keysElt, categoryData, transform, refreshKeys, dataConfiguration])
 
   return (
     <svg className='categories' ref={elt => setKeysElt(elt)}></svg>

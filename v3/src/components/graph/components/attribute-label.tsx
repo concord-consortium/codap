@@ -6,15 +6,15 @@ import {GraphAttrRole} from "../models/data-configuration-model"
 
 import "./legend/legend.scss"
 
-interface IAxisLabelProps {
+interface IAttributeLabelProps {
   transform: string
   attributeRole: GraphAttrRole
   orientation: AxisOrientation
   attributeIDs:string[]
 }
 
-export const AxisLabel = forwardRef<SVGGElement, IAxisLabelProps>(
-  ({ transform, attributeIDs }:IAxisLabelProps, ref) => {
+export const AttributeLabel = forwardRef<SVGGElement, IAttributeLabelProps>(
+  ({ transform, attributeIDs }:IAttributeLabelProps, ref) => {
   const dataConfiguration = useDataConfigurationContext(),
     attrNames = attributeIDs.map(anID => dataConfiguration?.dataset?.attrFromID(anID).name),
     svgRef = ref as MutableRefObject<SVGGElement | null>,
@@ -35,4 +35,4 @@ export const AxisLabel = forwardRef<SVGGElement, IAxisLabelProps>(
     <g className='legend-label' ref={svgRef}/>
   )
 })
-AxisLabel.displayName = "AxisLabel"
+AttributeLabel.displayName = "AttributeLabel"
