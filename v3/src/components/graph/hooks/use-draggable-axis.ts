@@ -2,6 +2,7 @@ import {useEffect} from "react"
 import {AxisPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {drag, select} from "d3"
 import {ScaleNumericBaseType, ScaleType} from "../models/graph-layout"
+import t from "../../../utilities/translation/translate"
 
 type D3Handler = (this: Element, event: any, d: any) => void
 
@@ -14,9 +15,9 @@ interface IProps {
   scale: ScaleType | undefined
 }
 
-const axisDragHints = ['Drag to change axis lower bound',
-  'Drag to translate the axis',
-  'Drag to change axis upper bound']
+const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
+                        t("DG.CellLinearAxisView.midPanelTooltip"),
+                        t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
 export const useDraggableAxis = ({axisElt, place, transform, length, model, scale}: IProps) => {
 
