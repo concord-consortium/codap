@@ -4,6 +4,7 @@ import { CalculatedColumn } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties"
+import t from "../../utilities/translation/translate"
 
 interface IProps {
   column: CalculatedColumn<TRow, unknown>
@@ -49,18 +50,41 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   return (
     <>
       <MenuList ref={ref} data-testid="attribute-menu-list" onKeyDown={handleMenuKeyDown}>
-        <MenuItem onClick={onRenameAttribute}>Rename</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Fit width")}>Fit width to content</MenuItem>
-        <MenuItem onClick={handleEditAttributeProps}>Edit Attribute Properties...</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Edit Formula")}>Edit Formula...</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Delete Formula")}>Delete Formula (Keeping Values)</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Rerandomize")}>Rerandomize</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Sort Ascending")}>Sort Ascending (A→Z, 0→9)</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Sort Descending")}>Sort Descending (9→0, Z→A)</MenuItem>
-        <MenuItem onClick={handleHideAttribute}>Hide Attribute</MenuItem>
+        <MenuItem onClick={onRenameAttribute}>
+          {t("DG.TableController.headerMenuItems.renameAttribute")}
+        </MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Fit width")}>
+          {t("DG.TableController.headerMenuItems.resizeColumn")}
+        </MenuItem>
+        <MenuItem onClick={handleEditAttributeProps}>
+          {t("DG.TableController.headerMenuItems.editAttribute")}
+        </MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Edit Formula")}>
+          {t("DG.TableController.headerMenuItems.editFormula")}
+        </MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Delete Formula")}>
+          {t("DG.TableController.headerMenuItems.deleteFormula")}
+        </MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Recover Formula")}>
+          {t("DG.TableController.headerMenuItems.recoverFormula")}
+        </MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Rerandomize")}>
+          {t("DG.TableController.headerMenuItems.randomizeAttribute")}
+        </MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Sort Ascending")}>
+          {t("DG.TableController.headerMenuItems.sortAscending")}
+        </MenuItem>
+        <MenuItem onClick={() => handleMenuItemClick("Sort Descending")}>
+          {t("DG.TableController.headerMenuItems.sortDescending")}
+        </MenuItem>
+        <MenuItem onClick={handleHideAttribute}>
+          {t("DG.TableController.headerMenuItems.hideAttribute")}
+        </MenuItem>
         {/* temporary until table tool palette is implemented */}
         <MenuItem onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
-        <MenuItem onClick={() => handleDeleteAttribute()}>Delete Attribute</MenuItem>
+        <MenuItem onClick={() => handleDeleteAttribute()}>
+          {t("DG.TableController.headerMenuItems.deleteAttribute")}
+        </MenuItem>
       </MenuList>
       <EditAttributePropertiesModal columnName={column.name as string} isOpen={isOpen} onClose={onClose}
         onModalOpen={onModalOpen} />

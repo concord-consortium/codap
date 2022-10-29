@@ -1,5 +1,5 @@
 import { GraphAttrRole } from "../components/graph/models/data-configuration-model"
-import { AttributeType } from "../data-model/attribute"
+import { AttributeType } from "../models/data/attribute"
 import {determineBaseString} from "./use-drop-hint-string"
 
 interface Scenario {

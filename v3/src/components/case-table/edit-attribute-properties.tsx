@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { AttributeType, attributeTypes } from "../../models/data/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { CodapModal } from "../codap-modal"
+import t from "../../utilities/translation/translate"
 
 interface IEditAttributePropertiesModalContentProps {
   attributeName: string
@@ -25,33 +26,43 @@ export const EditAttributePropertiesModalContent = ({attributeName, description,
 
   return (
     <FormControl display="flex" flexDirection="column">
-      <FormLabel display="flex" flexDirection="row">name:
+      <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.name")}
         <Input size="xs" ml={5} placeholder="attribute" value={attributeName} onFocus={(e) => e.target.select()}
               onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input"
               onKeyDown={(e) => e.stopPropagation()}
         />
       </FormLabel>
-      <FormLabel>description:
+      <FormLabel>{t("DG.CaseTable.attributeEditor.description")}
         <Textarea size="xs" placeholder="Describe the attribute" value={description} onFocus={(e) => e.target.select()}
           onChange={event => setDescription(event.target.value)} data-testid="attr-description-input"
           onKeyDown={(e) => e.stopPropagation()}
         />
       </FormLabel>
-      <FormLabel display="flex" flexDirection="row" mr={5}>type
+      <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.type")}
         <Select size="xs" ml={5} value={attrType} onChange={(e) => setAttrType(e.target.value as AttributeType)}>
-          <option value={"none"}>none</option>
+          <option value={"none"}></option>
           {attributeTypes.map(aType => {
-            return (<option key={aType} value={aType} data-testid="attr-type-option">{aType}</option>)})
-          }
+            const aTypeStrs = { "categorical": t("DG.CaseTable.attribute.type.categorical"),
+                                "numeric": t("DG.CaseTable.attribute.type.numeric"),
+                                "date": t("DG.CaseTable.attribute.type.date"),
+                                "qualitative": t("DG.CaseTable.attribute.type.qualitative"),
+                                "boundary": t("DG.CaseTable.attribute.type.boundary"),
+                                "checkbox": t("DG.CaseTable.attribute.type.checkbox")
+                              }
+
+            return (<option key={aType} value={aType} data-testid="attr-type-option">
+                      {aTypeStrs[aType]}
+                    </option>)
+          })}
         </Select>
       </FormLabel>
-      <FormLabel display="flex" flexDirection="row">unit:
+      <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.unit")}
         <Input size="xs" placeholder="unit" ml={5} value={unit} onFocus={(e) => e.target.select()}
           onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input"
           onKeyDown={(e) => e.stopPropagation()}
         />
       </FormLabel>
-      <FormLabel display="flex" flexDirection="row" mr={5}>precision:
+      <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.precision")}
         <Select size="xs" ml={5} value={precision} onChange={(e) => setPrecision(e.target.value)}>
           <option value={""}></option>
           <option value={"0"} data-testid="attr-precision-option">0</option>
@@ -65,7 +76,7 @@ export const EditAttributePropertiesModalContent = ({attributeName, description,
           <option value={"8"} data-testid="attr-precision-option">8</option>
         </Select>
       </FormLabel>
-      <FormLabel display="flex" flexDirection="row">editable
+      <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.editable")}
         <RadioGroup value={editable} ml={5} onChange={(value) => setEditable(value)} data-testid="attr-editable-radio"
           onKeyDown={(e) =>e.stopPropagation()}>
           <HStack>
@@ -128,12 +139,16 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
     <CodapModal
       isOpen={isOpen}
       onClose={closeModal}
-      title="Attribute Properties"
+      title={t("DG.TableController.attributeEditor.title")}
       hasCloseButton={true}
       Content={EditAttributePropertiesModalContent}
       contentProps={{attributeName, description, unit, precision, attrType, editable, modalWidth,
         setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision}}
-      buttons={[{ label: "Cancel", onClick: closeModal },{ label: "Apply", onClick: editProperties}]}
+      buttons={[{ label: t("DG.AttrFormView.cancelBtnTitle"),
+                  tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+                  onClick: closeModal },
+                { label: t("DG.AttrFormView.applyBtnTitle"),
+                  onClick: editProperties}]}
     />
   )
 }
