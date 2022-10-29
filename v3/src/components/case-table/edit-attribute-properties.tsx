@@ -42,16 +42,8 @@ export const EditAttributePropertiesModalContent = ({attributeName, description,
         <Select size="xs" ml={5} value={attrType} onChange={(e) => setAttrType(e.target.value as AttributeType)}>
           <option value={"none"}></option>
           {attributeTypes.map(aType => {
-            const aTypeStrs = { "categorical": t("DG.CaseTable.attribute.type.categorical"),
-                                "numeric": t("DG.CaseTable.attribute.type.numeric"),
-                                "date": t("DG.CaseTable.attribute.type.date"),
-                                "qualitative": t("DG.CaseTable.attribute.type.qualitative"),
-                                "boundary": t("DG.CaseTable.attribute.type.boundary"),
-                                "checkbox": t("DG.CaseTable.attribute.type.checkbox")
-                              }
-
             return (<option key={aType} value={aType} data-testid="attr-type-option">
-                      {aTypeStrs[aType]}
+                      {t(`DG.CaseTable.attribute.type.${aType}`)}
                     </option>)
           })}
         </Select>
