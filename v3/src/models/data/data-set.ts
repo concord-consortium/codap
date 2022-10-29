@@ -38,7 +38,7 @@ import { observable } from "mobx"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot, IValueType } from "./attribute"
 import { CollectionModel, ICollectionModelSnapshot } from "./collection"
-import { uniqueId, uniqueOrderedId } from "../utilities/js-utils"
+import { uniqueId, uniqueOrderedId } from "../../utilities/js-utils"
 
 export const newCaseId = uniqueOrderedId
 

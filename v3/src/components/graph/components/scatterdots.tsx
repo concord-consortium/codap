@@ -7,7 +7,7 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {ICase} from "../../../data-model/data-set"
+import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 
@@ -17,7 +17,7 @@ interface IProps {
 }
 
 export const ScatterDots = memo(function ScatterDots(props: IProps) {
-  const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
+  const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
     instanceId = useInstanceIdContext(),
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
@@ -171,7 +171,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
   usePlotResponders({
-    dataset, xAxisModel, yAxisModel, primaryAttrID, secondaryAttrID, layout,
+    graphModel, primaryAttrID, secondaryAttrID, layout, dotsRef,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 

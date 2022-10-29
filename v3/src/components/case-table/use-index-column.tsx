@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { Menu, MenuButton } from "@chakra-ui/react"
-import { IDataSet } from "../../data-model/data-set"
+import { IDataSet } from "../../models/data/data-set"
 import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"

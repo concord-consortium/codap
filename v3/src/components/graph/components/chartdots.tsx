@@ -170,8 +170,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   })
 
   usePlotResponders({
-    dataset, layout, refreshPointPositions, refreshPointSelection, enableAnimation, primaryAttrID, secondaryAttrID,
-    legendAttrID
+    graphModel,layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
+    primaryAttrID, secondaryAttrID, legendAttrID
   })
 
   return (

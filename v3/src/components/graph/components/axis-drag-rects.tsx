@@ -133,12 +133,12 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
       () => {
         return layout.getAxisBounds(place)
       },
-      (bounds) => {
+      (axisBounds) => {
         const
           length = layout.axisLength(place),
           rectSelection = select(rectRef.current),
           numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
-        if (length != null && bounds != null) {
+        if (length != null && axisBounds != null) {
           rectSelection
             .selectAll('.dragRect')
             .data(numbering)// data signify lower, middle, upper rectangles
@@ -149,10 +149,10 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
               },
               (update) => {
                 update
-                  .attr('x', (d) => bounds.left + (place === 'bottom' ? (d * length / 3) : 0))
-                  .attr('y', (d) => bounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                  .attr('width', () => (place === 'bottom' ? length / 3 : bounds.width))
-                  .attr('height', () => (place === 'bottom' ? bounds.height : length / 3))
+                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : 0))
+                  .attr('y', (d) => axisBounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
+                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width))
+                  .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
               }
             )
           rectSelection.selectAll('.dragRect').raise()

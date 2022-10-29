@@ -41,7 +41,7 @@ getCasesForDelta = (tree: any, newRect: rTreeRect, prevRect: rTreeRect) => {
 }
 
 export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
-  const {transform, marqueeState} = props,
+  const {transform, marqueeState } = props,
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     {plotWidth, plotHeight} = layout,

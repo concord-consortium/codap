@@ -33,7 +33,7 @@
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "./formula"
-import { uniqueId } from "../utilities/js-utils"
+import { uniqueId } from "../../utilities/js-utils"
 
 export const kDefaultFormatStr = ".3~f"
 
@@ -58,7 +58,7 @@ export const Attribute = types.model("Attribute", {
   // userFormat: types.maybe(types.string),
   units: types.maybe(types.string),
   userPrecision: types.maybe(types.number),
-  userEditable: types.maybe(types.boolean),
+  userEditable: true,
   hidden: false,
   formula: types.optional(Formula, () => Formula.create()),
   // simple array -- _not_ MST all the way down to the array elements

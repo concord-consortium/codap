@@ -46,10 +46,10 @@ export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal">
+    <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal" size="xs">
       <ModalOverlay />
-      <ModalContent ref={ref} className="codap-modal-content">
-        <ModalHeader h="30" className="codap-modal-header" data-testid="codap-modal-header">
+      <ModalContent ref={ref} className="codap-modal-content" w={contentProps.modalWidth || "400px"}>
+        <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
           <div className="codap-modal-icon-container">
             {Icon && <Icon />}
           </div>

@@ -2,8 +2,8 @@ import { Tooltip } from "@chakra-ui/react"
 import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
-import { IAttribute, kDefaultFormatStr } from "../../data-model/attribute"
-import { IDataSet } from "../../data-model/data-set"
+import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
+import { IDataSet } from "../../models/data/data-set"
 import { TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
@@ -59,7 +59,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         ? [
             indexColumn,
             // attribute column definitions
-            ...visibleAttrs.map(({ id, name }) => ({
+            ...visibleAttrs.map(({ id, name, userEditable }) => ({
               key: id,
               name,
               resizable: true,
@@ -67,7 +67,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
               headerRenderer: ColumnHeader,
               cellClass: "codap-data-cell",
               formatter: CellFormatter,
-              editor: CellTextEditor
+              editor: userEditable ? CellTextEditor : undefined
             }))
         ]
         : []

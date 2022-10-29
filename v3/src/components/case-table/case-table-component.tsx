@@ -1,7 +1,7 @@
 import { useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { DataBroker } from "../../data-model/data-broker"
+import { DataBroker } from "../../models/data/data-broker"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 import { CaseTable } from "./case-table"

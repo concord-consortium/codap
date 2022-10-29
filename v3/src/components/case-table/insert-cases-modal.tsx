@@ -15,8 +15,8 @@ export const InsertCasesModalContent: React.FC<IInsertCasesModalProps> =
 
   return (
     <FormControl display="flex" flexDirection="column">
-      <FormLabel display="flex" flexDirection="row"># cases to insert:
-        <NumberInput size="xs" w="75" min={0} ml={5} defaultValue={1} data-testid="num-case-input"
+      <FormLabel h="20px" display="flex" flexDirection="row" alignItems="center"># cases to insert:
+        <NumberInput size="xs" w="80px" min={0} ml={5} defaultValue={1} data-testid="num-case-input"
                     value={numCasesToInsert} onFocus={(e) => e.target.select()}
                     onChange={value => onChangeNumCasesToInsert(value)}>
           <NumberInputField ref={initialRef} placeholder="Number of cases" />

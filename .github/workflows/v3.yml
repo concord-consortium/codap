@@ -75,25 +75,25 @@ jobs:
     needs:
       - build_test
       - cypress
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
-      - name: Setup Ruby
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: '2.7'
       - name: Install Dependencies
         working-directory: v3
-        run: |
-          gem install s3_website -v 3.4.0
-          npm ci
-      - name: Build
-        working-directory: v3
-        run: npm run build
-      - name: Deploy
-        working-directory: v3
-        run: ./s3_deploy.sh
+        run: npm ci
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.V3_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.V3_AWS_SECRET_ACCESS_KEY }}
+          # skip installing cypress since it isn't needed for just building
+          # This decreases the deploy time quite a bit
+          CYPRESS_INSTALL_BINARY: 0
+      - uses: concord-consortium/s3-deploy-action@v1
+        with:
+          bucket: models-resources
+          prefix: codap3
+          workingDirectory: v3
+          awsAccessKeyId: ${{ secrets.V3_AWS_ACCESS_KEY_ID }}
+          awsSecretAccessKey: ${{ secrets.V3_AWS_SECRET_ACCESS_KEY }}
+          # Parameters to GHActions have to be strings, so a regular yaml array cannot
+          # be used. Instead the `|` turns the following lines into a string
+          topBranches: |
+            ["main"]

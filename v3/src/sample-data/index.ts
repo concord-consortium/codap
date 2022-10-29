@@ -1,4 +1,4 @@
-import { IDataSet } from "../data-model/data-set"
+import { IDataSet } from "../models/data/data-set"
 import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../utilities/csv-import"
 import abaloneCsv from "./abalone.csv"
 import catsCsv from "./cats.csv"

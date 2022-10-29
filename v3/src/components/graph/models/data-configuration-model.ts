@@ -1,8 +1,8 @@
 import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
-import {attributeTypes} from "../../../data-model/attribute"
-import {IDataSet} from "../../../data-model/data-set"
-import {SetCaseValuesAction} from "../../../data-model/data-set-actions"
-import {FilteredCases, IFilteredChangedCases} from "../../../data-model/filtered-cases"
+import {attributeTypes} from "../../../models/data/attribute"
+import {IDataSet} from "../../../models/data/data-set"
+import {SetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
 
@@ -195,7 +195,7 @@ export const DataConfigurationModel = types
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
       self.handlers.set(id, handler)
-      return () => self.handlers.delete(id)
+      return () => { self.handlers.delete(id) }
     }
   }))
 

@@ -50,6 +50,10 @@ module.exports = (env, argv) => {
           exclude: path.join(__dirname, 'node_modules'),
         } : {},
         {
+          test: /\.json5$/,
+          loader: 'json5-loader'
+        },
+        {
           test: /\.(sa|sc|le|c)ss$/i,
           use: [
             devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
@@ -140,7 +144,7 @@ module.exports = (env, argv) => {
       ]
     },
     resolve: {
-      extensions: [ '.ts', '.tsx', '.js' ],
+      extensions: [ '.ts', '.tsx', '.js', 'json5' ],
       fallback: {
         // required for react-data-grid/React 17
         // cf. https://github.com/adazzle/react-data-grid/issues/2787#issuecomment-1071978035

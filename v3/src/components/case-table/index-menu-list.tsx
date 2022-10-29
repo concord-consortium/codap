@@ -15,6 +15,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [numCasesToInsert, setNumCasesToInsert] = useState(1)
   const [insertPosition, setInsertPosition] = useState("after")
+  const deleteCasesItemText = data?.selection.size === 1 ? "Delete Case" : "Delete Cases"
 
   const handleInsertPositionChange = (value: any) => {
     setInsertPosition(value)
@@ -42,8 +43,8 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     })
   }
 
-  const handleDeleteCase = () => {
-    data?.removeCases([caseId])
+  const handleDeleteCases = () => {
+    data?.removeCases(Array.from(data.selection))
   }
 
   const insertCases = () => {
@@ -59,11 +60,13 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
 
   return (
     <>
-      <MenuList data-testid="index-menu-list" lineHeight="none" fontSize="small">
-        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>Move Data Entry Row Here</MenuItem>
+      <MenuList data-testid="index-menu-list" >
+        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>
+          Move Data Entry Row Here
+        </MenuItem>
         <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
         <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
-        <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
+        <MenuItem onClick={handleDeleteCases}>{deleteCasesItemText}</MenuItem>
       </MenuList>
       <CodapModal
           isOpen={isOpen}
@@ -71,10 +74,12 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
           title="Insert Cases"
           hasCloseButton={true}
           Content={InsertCasesModalContent}
-          contentProps={{numCasesToInsert,
+          contentProps={{ numCasesToInsert,
                           insertPosition,
+                          modalWidth: "260px",
                           onChangeNumCasesToInsert: handleNumCasesToInsertChange,
-                          onChangeInsertPosition: handleInsertPositionChange}}
+                          onChangeInsertPosition: handleInsertPositionChange
+                        }}
           buttons={[{ label: "Cancel", onClick: onClose },{ label: "Insert Cases", onClick: insertCases }]}
       />
     </>

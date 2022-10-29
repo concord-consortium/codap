@@ -8,7 +8,7 @@ import {appState} from "../../app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {ICase} from "../../../data-model/data-set"
+import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrPlaceToAxisPlace} from "../models/axis-model"
@@ -19,7 +19,7 @@ interface IProps {
 }
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
-  const {graphModel, plotProps: {dotsRef, xAxisModel, yAxisModel, enableAnimation}} = props,
+  const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -175,11 +175,13 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       }
 
       const
+        // Note that we can get null for either or both of the next two functions. It just means that we have
+        // a circle for the case but we're not plotting it.
         getPrimaryScreenCoord = (anID: string) => {
           return primaryAttrID ? getScreenCoord(dataset, anID, primaryAttrID, primaryScale) : null
         },
         getSecondaryScreenCoord = (anID: string) => {
-          return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : NaN
+          return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : null
         },
         duration = enableAnimation.current ? transitionDuration : 0,
         onComplete = enableAnimation.current ? () => {
@@ -199,7 +201,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       dataConfiguration?.getLegendColorForCase])
 
   usePlotResponders({
-    dataset, xAxisModel, yAxisModel, primaryAttrID, secondaryAttrID, legendAttrID, layout,
+    graphModel, primaryAttrID, secondaryAttrID, legendAttrID, layout, dotsRef,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 

@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react"
 import { CodapComponent } from "./codap-component"
-import { gDataBroker } from "../data-model/data-broker"
+import { gDataBroker } from "../models/data/data-broker"
 
 import "./container.scss"
 

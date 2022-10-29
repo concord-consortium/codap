@@ -25,6 +25,10 @@ export const graphPlaceToAttrPlace = (graphPlace:GraphPlace) => {
   return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrPlace[graphPlace as AxisPlace] : 'legend'
 }
 
+export function otherPlace(aPlace:AxisPlace):AxisPlace {
+  return aPlace === 'bottom' ? 'left' : 'bottom'
+}
+
 export type AxisOrientation = "horizontal" | "vertical"
 
 export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const

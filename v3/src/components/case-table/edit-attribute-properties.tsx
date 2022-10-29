@@ -1,6 +1,6 @@
 import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
-import { AttributeType, attributeTypes } from "../../data-model/attribute"
+import { AttributeType, attributeTypes } from "../../models/data/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { uniqueName } from "../../utilities/js-utils"
 import { CodapModal } from "../codap-modal"
@@ -25,7 +25,7 @@ export const EditAttributePropertiesModalContent = ({attributeName, description,
   }: IEditAttributePropertiesModalContentProps) => {
 
   return (
-    <FormControl display="flex" flexDirection="column" w={350}>
+    <FormControl display="flex" flexDirection="column">
       <FormLabel display="flex" flexDirection="row">name:
         <Input size="xs" ml={5} placeholder="attribute" value={attributeName} onFocus={(e) => e.target.select()}
               onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input"
@@ -97,6 +97,7 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
   const [precision, setPrecision] = useState("")
   const [attrType, setAttrType] = useState<AttributeType | "none">("none")
   const [editable, setEditable] = useState("true")
+  const modalWidth="350px"
 
   useEffect(() => {
     setAttributeName(columnName)
@@ -134,7 +135,7 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
       title="Attribute Properties"
       hasCloseButton={true}
       Content={EditAttributePropertiesModalContent}
-      contentProps={{attributeName, description, unit, precision, attrType, editable,
+      contentProps={{attributeName, description, unit, precision, attrType, editable, modalWidth,
         setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision}}
       buttons={[{ label: "Cancel", onClick: closeModal },{ label: "Apply", onClick: editProperties}]}
     />
