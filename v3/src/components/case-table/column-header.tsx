@@ -1,6 +1,7 @@
 import { Tooltip, Menu, MenuButton, Input } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import React, { useRef, useState } from "react"
+import { uniqueName } from "../../utilities/js-utils"
 import { kIndexColumnKey, THeaderRendererProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -44,14 +45,15 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
       case "Enter":
       case "Tab":
         handleClose(true)
-        e.currentTarget.blur()
         break
     }
   }
   const handleClose = (accept: boolean) => {
     const trimTitle = editingAttrName?.trim()
     if (accept && editingAttrId && trimTitle) {
-      data?.setAttributeName(editingAttrId, trimTitle)
+      data?.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
+        (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
+       ))
     }
     setEditingAttrId("")
     setEditingAttrName("")

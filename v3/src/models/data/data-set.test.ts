@@ -1,5 +1,6 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
+import { uniqueName } from "../../utilities/js-utils"
 import {
   CaseID, DataSet, fromCanonical, ICaseID, toCanonical
 } from "./data-set"
@@ -124,6 +125,23 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[0].name).toBe("str2")
   dataset.setAttributeName(strAttrID, "str")
   expect(dataset.attributes[0].name).toBe("str")
+
+  // non-unique attribute name when string is passed
+  dataset.setAttributeName(strAttrID, "pool")
+  expect(dataset.attributes[0].name).toBe("pool")
+  dataset.addAttribute({ name: "loop" })
+  const loopAttr = dataset.attrFromName("loop")
+  const loopAttrID = dataset.attributes[2].id
+  expect(loopAttr?.name).toBe("loop")
+  dataset.setAttributeName(loopAttrID, "pool")
+  expect(dataset.attributes[2].name).toBe("pool")
+
+  // unique attribute name when function is passed
+  const isValid = (aName: string) => !dataset.attributes.find(attr => aName === attr.name)
+  dataset.setAttributeName(loopAttrID, ()=>uniqueName("pool", isValid))
+  expect(dataset.attributes[2].name).toBe("pool2")
+  dataset.removeAttribute(loopAttrID)
+  dataset.setAttributeName(strAttrID, "str")
   dataset.setAttributeName("foo", "bar")
 
   // add/remove attribute

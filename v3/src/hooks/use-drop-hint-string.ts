@@ -1,5 +1,5 @@
 import {useDndContext} from "@dnd-kit/core"
-import {AttributeType} from "../data-model/attribute"
+import { AttributeType } from "../models/data/attribute"
 import {useDataSetContext} from "./use-data-set-context"
 import {getDragAttributeId} from "./use-drag-drop"
 import {useDataConfigurationContext} from "../components/graph/hooks/use-data-configuration-context"

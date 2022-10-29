@@ -430,12 +430,13 @@ export const DataSet = types.model("DataSet", {
         }
       },
 
-      setAttributeName(attributeID: string, name: string) {
+      setAttributeName(attributeID: string, name: string | (() => string)) {
         const attribute = attributeID && attrIDMap[attributeID]
         if (attribute) {
+          const nameStr = typeof name === "string" ? name : name()
           delete attrNameMap[attribute.name]
-          attribute.setName(name)
-          attrNameMap[name] = attributeID
+          attribute.setName(nameStr)
+          attrNameMap[nameStr] = attributeID
         }
       },
 
