@@ -20,7 +20,7 @@ export function determineBaseString(role: GraphAttrRole, dropType?: AttributeTyp
   const stringMap: HintMap = {
     x: {
       numeric: {
-        empty: "addToEmptyPlace",
+        empty: "addToEmptyX",
         existing: "replaceAttribute"
       },
       categorical: {

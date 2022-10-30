@@ -78,7 +78,8 @@ export const Graph = observer((
   const toast = useToast()
 
   const handleDropAttribute = (place: GraphPlace, attrId: string) => {
-    const attrPlace = graphPlaceToAttrPlace(place)
+    const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
+    const attrPlace = graphPlaceToAttrPlace(computedPlace)
     const attrName = dataset?.attrFromID(attrId)?.name
     toast({
       position: "top-right",
