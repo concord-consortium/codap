@@ -2,7 +2,8 @@
   background-color: white;
 
 
-  .axis-title {
+  axis-title text {
+    fill: blue;
   }
 
 }
@@ -46,10 +47,12 @@
   stroke: lightgrey;
   stroke-opacity: 0.7;
   shape-rendering: crispEdges;
+  pointer-events: none;
 }
 
 .zero .tick line {
   stroke: #444444;
   stroke-opacity: 0.8;
   shape-rendering: crispEdges;
+  pointer-events: none;
 }

@@ -6,12 +6,16 @@ export const GraphPlaces = [...AxisPlaces, "plot", "legend"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 export type GraphPlace = typeof GraphPlaces[number]
 
-export const attrPlaceToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
+export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",
   y: "left",
   y2: "right",
   rightSplit: "right",
   topSplit: "top"
+}
+export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
+  ...attrRoleToAxisPlace,
+  legend: "legend"
 }
 
 export const axisPlaceToAttrPlace: Record<AxisPlace, GraphAttrRole> = {
@@ -21,11 +25,11 @@ export const axisPlaceToAttrPlace: Record<AxisPlace, GraphAttrRole> = {
   right: "y2",  // Todo: how to deal with 'rightSplit'?
 }
 
-export const graphPlaceToAttrPlace = (graphPlace:GraphPlace) => {
+export const graphPlaceToAttrPlace = (graphPlace: GraphPlace) => {
   return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrPlace[graphPlace as AxisPlace] : 'legend'
 }
 
-export function otherPlace(aPlace:AxisPlace):AxisPlace {
+export function otherPlace(aPlace: AxisPlace): AxisPlace {
   return aPlace === 'bottom' ? 'left' : 'bottom'
 }
 
@@ -103,10 +107,9 @@ export const NumericAxisModel = AxisModel
     setDomain(min: number, max: number) {
       // If we're close enough to zero on either end, we snap to it
       const snapFactor = 100
-      if((max > 0) && (Math.abs(min) <= max / snapFactor)) {
+      if ((max > 0) && (Math.abs(min) <= max / snapFactor)) {
         min = 0
-      }
-      else if( (min < 0) && (Math.abs(max) < Math.abs(min / snapFactor)) ) {
+      } else if ((min < 0) && (Math.abs(max) < Math.abs(min / snapFactor))) {
         max = 0
       }
       self.min = min

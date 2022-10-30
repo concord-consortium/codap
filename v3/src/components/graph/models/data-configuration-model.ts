@@ -160,13 +160,29 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
-      getLegendColorForCase(id: string) {
+      getLegendColorForCategory(cat: string) {
+        const catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(cat)
+        return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
+      },
+      getLegendColorForCase(id?: string) {
         const legendID = self.attributeID('legend'),
-          legendValue = legendID ? self.dataset?.getValue(id, legendID) : null,
-          catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(legendValue)
-        return legendValue === null ? '' :
-          catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
+          legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
+        return legendValue == null ? '' : this.getLegendColorForCategory( legendValue)
+      },
+      selectCasesForLegendValue(aValue: string, extend = false) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          selection = legendID && self.cases.filter((anID: string) => {
+            return dataset?.getValue(anID, legendID) === aValue
+          })
+        if (selection) {
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
+        }
       }
+    }))
+  .views(self => (
+    {
     }))
   .actions(self => ({
     setDataset(dataset: IDataSet) {
@@ -195,7 +211,9 @@ export const DataConfigurationModel = types
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
       self.handlers.set(id, handler)
-      return () => { self.handlers.delete(id) }
+      return () => {
+        self.handlers.delete(id)
+      }
     }
   }))
 

@@ -11,7 +11,7 @@ import {
   CategoricalAxisModel,
   ICategoricalAxisModel,
   INumericAxisModel,
-  NumericAxisModel, axisPlaceToAttrPlace, attrPlaceToAxisPlace
+  NumericAxisModel, axisPlaceToAttrPlace, attrRoleToAxisPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
@@ -113,32 +113,35 @@ export class GraphController {
     })
     graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y]);
     ['x', 'y'].forEach((attrPlace: GraphAttrRole) => {
-      const axisPlace = attrPlaceToAxisPlace[attrPlace] as AxisPlace,
+      const axisPlace = attrRoleToAxisPlace[attrPlace],
         attrType = attrTypes[attrPlace]
-      let axisModel
-      switch (attrType) {
-        case 'numeric':
-          axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
-          graphModel.setAxis(axisPlace, axisModel)
-          layout.setAxisScale(axisPlace, scaleLinear())
-          setNiceDomain(dataConfig.numericValuesForPlace(attrPlace), axisModel)
-          break
-        case 'categorical':
-          axisModel = CategoricalAxisModel.create({place: axisPlace})
-          graphModel.setAxis(axisPlace, axisModel)
-          layout.setAxisScale(axisPlace,
-            scaleBand().domain(dataConfig.categorySetForPlace(attrPlace)))
-          break
-        default:
-          axisModel = EmptyAxisModel.create({place: axisPlace})
-          graphModel.setAxis(axisPlace, axisModel)
-          layout.setAxisScale(axisPlace, scaleOrdinal())
+      if(axisPlace) {
+        let axisModel
+        switch (attrType) {
+          case 'numeric':
+            axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
+            graphModel.setAxis(axisPlace, axisModel)
+            layout.setAxisScale(axisPlace, scaleLinear())
+            setNiceDomain(dataConfig.numericValuesForPlace(attrPlace), axisModel)
+            break
+          case 'categorical':
+            axisModel = CategoricalAxisModel.create({place: axisPlace})
+            graphModel.setAxis(axisPlace, axisModel)
+            layout.setAxisScale(axisPlace,
+              scaleBand().domain(dataConfig.categorySetForPlace(attrPlace)))
+            break
+          default:
+            axisModel = EmptyAxisModel.create({place: axisPlace})
+            graphModel.setAxis(axisPlace, axisModel)
+            layout.setAxisScale(axisPlace, scaleOrdinal())
+        }
       }
     })
   }
 
   handleAttributeAssignment(axisPlace: AxisPlace, attrID: string) {
     if(['plot', 'legend'].includes( axisPlace)) {
+      this.layout.setLegendHeight(50) // todo: temporary!
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
     const {dataset, graphModel, layout} = this,

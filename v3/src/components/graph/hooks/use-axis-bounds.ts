@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react"
-import { kGraphClassSelector } from "../graphing-types"
-import { AxisPlace } from "../models/axis-model"
-import { useGraphLayoutContext } from "../models/graph-layout"
+import {useEffect, useState} from "react"
+import {kGraphClassSelector} from "../graphing-types"
+import {AxisPlace} from "../models/axis-model"
+import {useGraphLayoutContext} from "../models/graph-layout"
 
 export const useAxisBounds = (place: AxisPlace) => {
   const layout = useGraphLayoutContext()
@@ -34,13 +34,27 @@ export const useAxisBoundsProvider = (place: AxisPlace) => {
         }
       })
       observer.observe(wrapperElt)
-    }
-    else {
+    } else {
       layout.setAxisBounds(place, undefined)
     }
 
     return () => observer?.disconnect()
   }, [graphElt, layout, place, wrapperElt])
 
-  return { graphElt, wrapperElt, setWrapperElt }
+/*
+  useEffect(function respondToLegendHeightChange() {
+    const disposer = reaction(
+      () => {
+        const {legendHeight} = layout
+        return legendHeight
+      },
+      (legendHeight) => {
+        console.log('legendHeight =',legendHeight)
+      }
+    )
+    return () => disposer()
+  })
+*/
+
+  return {graphElt, wrapperElt, setWrapperElt}
 }
