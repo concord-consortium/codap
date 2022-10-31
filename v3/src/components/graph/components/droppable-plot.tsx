@@ -5,7 +5,7 @@ import { useDropHintString } from "../../../hooks/use-drop-hint-string"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { GraphPlace } from "../models/axis-model"
 import { DroppableSvg } from "./droppable-svg"
-import { useDataConfigurationContext} from "../hooks/use-data-configuration-context";
+import { useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 
 interface IProps {
   graphElt: HTMLDivElement | null

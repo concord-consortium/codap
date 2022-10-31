@@ -62,19 +62,27 @@ export class GraphLayout {
       // part of the axis dom element so that we get in here with bounds that span the entire width or height of
       // the plot. We tried work arounds to get gridlines that were _not_ part of the axis element with the result
       // that the gridlines got out of synch with axis tick marks during drag. So we have this inelegant solution
-      // that shouldn't affect the top and right axes when we get them but
-      // todo: check to make sure this still works with top and right axes
-      const newBounds = {
-        left: bounds.left,
-        top: place === 'bottom' ?
-          Math.min(bounds.top, this.axisLength('left')) : bounds.top,
-        width: place === 'left' ?
-          Math.min(bounds.width, this.graphWidth - this.axisLength('bottom')) : bounds.width,
-        height: place === 'bottom' ?
-          Math.min(bounds.height, this.graphHeight - this.axisLength('left') - this.legendHeight) :
-          place === 'left' ?
-            Math.min(bounds.height, this.graphHeight - this.legendHeight) : bounds.height
+      // that shouldn't affect the top and right axes when we get them but it may be worthwhile to
+      // (TODO) figure out if there's a better way to render gridlines on background (or plot) so this isn't necessary.
+
+      // given state of the graph, we may need to adjust the drop areas' bounds
+      const newBounds = bounds
+
+      if (place === "bottom"){
+        newBounds.height = Math.min(bounds.height, this.graphHeight - this.axisLength('left') - this.legendHeight)
+        newBounds.top = this.plotHeight
       }
+
+      if (place === "left"){
+        newBounds.height = Math.min(bounds.height, this.graphHeight - this.legendHeight)
+        newBounds.left = 0
+        newBounds.width = this.graphWidth - this.plotWidth - this.margin.left - this.margin.right
+        // if gridlines are present, axis will grow to .width + plotWidth, so we recalculate
+        if (bounds.width > this.plotWidth){
+          newBounds.width -= this.plotWidth
+        }
+      }
+
       this.axisBounds.set(place, newBounds)
     }
     else {
