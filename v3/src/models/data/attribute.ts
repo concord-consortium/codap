@@ -34,8 +34,11 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "./formula"
 import { uniqueId } from "../../utilities/js-utils"
+import t from "../../utilities/translation/translate"
+
 
 export const kDefaultFormatStr = ".3~f"
+export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
 
 const isDevelopment = () => process.env.NODE_ENV !== "production"
 
@@ -92,6 +95,7 @@ export const Attribute = types.model("Attribute", {
   get numericCount() {
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }
+  
 }))
 .actions(self => ({
   afterCreate() {

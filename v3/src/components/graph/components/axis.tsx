@@ -11,6 +11,7 @@ import {useAxis} from "../hooks/use-axis"
 import {AxisPlace, axisPlaceToAttrPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
+import t from "../../../utilities/translation/translate"
 
 import "./axis.scss"
 
@@ -94,7 +95,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
                 .attr('x', tX)
                 .attr('y', tY)
                 .attr('transform', transform + ' ' + tRotation)
-                .text(label || 'Click here or drag an attribute here')
+                .text(label || t('DG.AxisView.emptyGraphCue'))
             })
       })
       observer.observe(axisElt)

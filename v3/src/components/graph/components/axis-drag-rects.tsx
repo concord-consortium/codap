@@ -4,7 +4,7 @@ import {drag, select} from "d3"
 import {reaction} from "mobx"
 import {INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-
+import t from "../../../utilities/translation/translate"
 import "./axis.scss"
 
 interface IProps {
@@ -14,9 +14,9 @@ interface IProps {
 
 type D3Handler = (this: Element, event: any, d: any) => void
 
-const axisDragHints = ['Drag to change axis lower bound',
-  'Drag to translate the axis',
-  'Drag to change axis upper bound']
+const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
+                        t("DG.CellLinearAxisView.midPanelTooltip"),
+                        t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
 export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,

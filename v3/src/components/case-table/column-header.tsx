@@ -9,6 +9,7 @@ import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-d
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { AttributeMenuList } from "./attribute-menu"
 import { CaseTablePortal } from "./case-table-portal"
+import { kDefaultAttributeName } from "../../models/data/attribute"
 
 export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) => {
   const { active } = useDndContext()
@@ -76,9 +77,10 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
         isMenuOpen.current = isOpen
         return (
-          <Tooltip label={`${column.name}${description}` || "attribute"} h="20px" fontSize="12px" color="white"
-              openDelay={1000} placement="bottom" bottom="15px" left="15px" data-testid="case-table-attribute-tooltip"
-              isDisabled={disableTooltip} >
+          <Tooltip label={`${column.name} ${description}` || kDefaultAttributeName} h="20px" fontSize="12px"
+              color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
+              data-testid="case-table-attribute-tooltip" isDisabled={disableTooltip}
+          >
             <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
               { editingAttrId
                 ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
@@ -87,7 +89,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                   />
                 : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
                       fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
-                    {`${column?.name}${units}`}
+                    {column.name ? `${column?.name}${units}` : kDefaultAttributeName}
                   </MenuButton>
               }
               <CaseTablePortal>

@@ -1,6 +1,7 @@
 import { Modal,
   ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
-  Button } from "@chakra-ui/react"
+  Button,
+  Tooltip} from "@chakra-ui/react"
 import React, { forwardRef } from "react"
 
 import "./codap-modal.scss"
@@ -8,6 +9,7 @@ import "./codap-modal.scss"
 interface IModalButton {
   className?: string;
   label: string | React.FC<any>;
+  tooltip?: string
   isDefault?: boolean;
   isDisabled?: boolean;
   onClick?: (() => void) | (() => boolean); // close dialog on falsy return value
@@ -63,11 +65,14 @@ export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
           {buttons.map((b: any, i)=>{
             const key = `${i}-${b.className}`
             return (
-              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}
-                onKeyDown={(e)=>handleModalButtonKeydown(e, b.onClick)}
-              >
-                {b.label}
-              </Button>
+              <Tooltip key={key} label={b.tooltip} h="20px" fontSize="12px"
+                color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
+                data-testid="modal-tooltip">
+                <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}
+                  onKeyDown={(e)=>handleModalButtonKeydown(e, b.onClick)}>
+                  {b.label}
+                </Button>
+              </Tooltip>
             )
           })}
         </ModalFooter>

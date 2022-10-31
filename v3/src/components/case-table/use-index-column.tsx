@@ -5,6 +5,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
+import t from "../../utilities/translation/translate"
 
 interface IHookProps {
   data?: IDataSet
@@ -21,7 +22,7 @@ export const useIndexColumn = ({ data }: IHookProps) => {
   // column definition
   const indexColumn: TColumn = useMemo(() => ({
     key: kIndexColumnKey,
-    name: "index",
+    name: t("DG.CaseTable.indexColumnName"),
     minWidth: 52,
     width: 52,
     headerCellClass: "codap-column-header",
