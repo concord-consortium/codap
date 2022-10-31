@@ -15,6 +15,10 @@ export const kellyColors = [
 
 export const defaultPointColor = '#E6805BFF',
   defaultSelectedColor = '#4682B4FF',
+  defaultStrokeWidth = 1,
+  defaultStrokeOpacity = 0.4,
   missingColor = '#888888',
   defaultStrokeColor = '#FFFFFF',
-  defaultSelectedStroke = '#FF0000'
+  defaultSelectedStroke = '#FF0000',
+  defaultSelectedStrokeWidth = 2,
+  defaultSelectedStrokeOpacity = 1
