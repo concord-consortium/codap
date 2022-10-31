@@ -69,11 +69,13 @@ export class GraphLayout {
       const newBounds = bounds
 
       if (place === "bottom"){
+        newBounds.height = Math.min(bounds.height, this.graphHeight - this.axisLength('left') - this.legendHeight)
         newBounds.top = this.plotHeight
       }
 
       if (place === "left" && bounds.width > this.plotWidth){
-         newBounds.width -= this.plotWidth
+        newBounds.height = Math.min(bounds.height, this.graphHeight - this.legendHeight)
+        newBounds.width -= this.plotWidth
       }
 
       this.axisBounds.set(place, newBounds)
