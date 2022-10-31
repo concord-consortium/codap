@@ -151,7 +151,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         }
       })
       .style('fill', (anID: string) => {
-        return legendAttrID && dataConfiguration?.getLegendColorForCase(anID) ?? defaultPointColor
+        return (legendAttrID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
       })
   }, [dataConfiguration, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
             enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,

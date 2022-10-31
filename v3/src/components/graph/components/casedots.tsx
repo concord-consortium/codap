@@ -113,7 +113,7 @@ export const CaseDots = memo(function CaseDots(props: {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
       .style('fill', (anID: string) => {
-          return legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID) ?? defaultPointColor
+          return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
       })
       .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
         defaultSelectedStroke : defaultStrokeColor)
