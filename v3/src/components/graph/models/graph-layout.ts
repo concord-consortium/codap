@@ -1,4 +1,3 @@
-import { ThemeProvider } from "@emotion/react"
 import {ScaleBand, ScaleContinuousNumeric, ScaleOrdinal, scaleOrdinal} from "d3"
 import { action, computed, makeObservable, observable } from "mobx"
 import { createContext, useContext } from "react"
