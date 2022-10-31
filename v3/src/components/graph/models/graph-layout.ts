@@ -62,7 +62,8 @@ export class GraphLayout {
       // part of the axis dom element so that we get in here with bounds that span the entire width or height of
       // the plot. We tried work arounds to get gridlines that were _not_ part of the axis element with the result
       // that the gridlines got out of synch with axis tick marks during drag. So we have this inelegant solution
-      // that shouldn't affect the top and right axes when we get them but
+      // that shouldn't affect the top and right axes when we get them but it may be worthwhile to
+      // (TODO) figure out if there's a better way to render gridlines on background (or plot) so this isn't necessary.
 
       // given state of the graph, we may need to adjust the drop areas' bounds
       const newBounds = bounds
