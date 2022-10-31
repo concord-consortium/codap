@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@emotion/react"
 import {ScaleBand, ScaleContinuousNumeric, ScaleOrdinal, scaleOrdinal} from "d3"
 import { action, computed, makeObservable, observable } from "mobx"
 import { createContext, useContext } from "react"
@@ -63,18 +64,18 @@ export class GraphLayout {
       // the plot. We tried work arounds to get gridlines that were _not_ part of the axis element with the result
       // that the gridlines got out of synch with axis tick marks during drag. So we have this inelegant solution
       // that shouldn't affect the top and right axes when we get them but
-      // todo: check to make sure this still works with top and right axes
-      const newBounds = {
-        left: bounds.left,
-        top: place === 'bottom' ?
-          Math.min(bounds.top, this.axisLength('left')) : bounds.top,
-        width: place === 'left' ?
-          Math.min(bounds.width, this.graphWidth - this.axisLength('bottom')) : bounds.width,
-        height: place === 'bottom' ?
-          Math.min(bounds.height, this.graphHeight - this.axisLength('left') - this.legendHeight) :
-          place === 'left' ?
-            Math.min(bounds.height, this.graphHeight - this.legendHeight) : bounds.height
+
+      // given state of the graph, we may need to adjust the drop areas' bounds
+      const newBounds = bounds
+
+      if (place === "bottom"){
+        newBounds.top = this.plotHeight
       }
+
+      if (place === "left" && bounds.width > this.plotWidth){
+         newBounds.width -= this.plotWidth
+      }
+
       this.axisBounds.set(place, newBounds)
     }
     else {
