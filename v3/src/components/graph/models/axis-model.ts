@@ -18,7 +18,7 @@ export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = 
   legend: "legend"
 }
 
-export const axisPlaceToAttrPlace: Record<AxisPlace, GraphAttrRole> = {
+export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   bottom: "x",
   left: "y",
   top: "topSplit",
@@ -26,7 +26,7 @@ export const axisPlaceToAttrPlace: Record<AxisPlace, GraphAttrRole> = {
 }
 
 export const graphPlaceToAttrPlace = (graphPlace: GraphPlace) => {
-  return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrPlace[graphPlace as AxisPlace] : 'legend'
+  return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrRole[graphPlace as AxisPlace] : 'legend'
 }
 
 export function otherPlace(aPlace: AxisPlace): AxisPlace {

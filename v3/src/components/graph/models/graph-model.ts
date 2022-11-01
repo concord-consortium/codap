@@ -55,8 +55,8 @@ export const GraphModel = types
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
     },
-    setAttributeID(place: GraphAttrRole, id: string) {
-      self.config.setAttribute(place, { attributeID: id })
+    setAttributeID(role: GraphAttrRole, id: string) {
+      self.config.setAttribute(role, { attributeID: id })
     },
     setPlotType(type: PlotType) {
       self.plotType = type
