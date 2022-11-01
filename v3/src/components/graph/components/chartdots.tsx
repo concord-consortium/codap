@@ -22,16 +22,20 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    primaryAttrPlace = dataConfiguration?.primaryPlace ?? 'x',
-    primaryAxisPlace = attrRoleToAxisPlace[primaryAttrPlace] ?? 'bottom',
+    xAttribute = dataConfiguration?.attributeID('x'),
+    yAttribute = dataConfiguration?.attributeID('y')
+  const  primaryAttrPlace = xAttribute ? 'x' :
+      yAttribute ? 'y' : undefined,
+    primaryAxisPlace = primaryAttrPlace ? attrRoleToAxisPlace[primaryAttrPlace] : undefined,
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace),
-    secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
-    secondaryAxisPlace = attrRoleToAxisPlace[secondaryAttrPlace] ?? 'left',
-    secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
+    primaryAttrID = primaryAttrPlace ? dataConfiguration?.attributeID(primaryAttrPlace) : '',
+    secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' :
+      primaryAttrPlace === 'y' ? 'x' : undefined,
+    secondaryAxisPlace = secondaryAttrPlace ? attrRoleToAxisPlace[secondaryAttrPlace] :undefined,
+    secondaryAttrID = secondaryAttrPlace ? dataConfiguration?.attributeID(secondaryAttrPlace) : '',
     legendAttrID = dataConfiguration?.attributeID('legend'),
-    primaryScale = layout.axisScale(primaryAxisPlace) as ScaleBand<string>,
-    secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>
+    primaryScale = primaryAxisPlace ? layout.axisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
+    secondaryScale = secondaryAxisPlace ? layout.axisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
 
   const computeMaxOverAllCells = useCallback(() => {
     const valuePairs = (dataConfiguration?.cases || []).map(caseID => {
@@ -67,16 +71,16 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryPlace is the bottom just to help understand the naming
     const
-      primaryCategoriesArray: string[] = dataConfiguration ?
+      primaryCategoriesArray: string[] = (dataConfiguration && primaryAttrPlace) ?
         Array.from(dataConfiguration.categorySetForPlace(primaryAttrPlace)) : [],
-      secondaryCategoriesArray: string[] = dataConfiguration ?
+      secondaryCategoriesArray: string[] = (dataConfiguration && secondaryAttrPlace) ?
         Array.from(dataConfiguration.categorySetForPlace(secondaryAttrPlace)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
-      primaryCellWidth = primaryScale.bandwidth(),
-      primaryHeight = secondaryScale.bandwidth ? secondaryScale.bandwidth() :
-        layout.axisLength(secondaryAxisPlace),
+      primaryCellWidth = primaryScale?.bandwidth() ?? 0,
+      primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth() :
+        (secondaryAxisPlace ? layout.axisLength(secondaryAxisPlace) : 0),
       categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {}
 
     const computeCellParams = () => {
@@ -141,7 +145,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         }
       })
       .attr(secondaryCenterKey, (anID: string) => {
-        if (cellIndices[anID]) {
+        if (cellIndices[anID] && secondaryScale) {
           const {row} = cellIndices[anID],
             {v} = cellIndices[anID].cell
           return secondaryScale.range()[0] -
