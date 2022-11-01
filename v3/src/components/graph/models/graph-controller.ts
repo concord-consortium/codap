@@ -121,8 +121,8 @@ export class GraphController {
           case 'numeric':
             axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
             graphModel.setAxis(axisPlace, axisModel)
-            layout.setAxisScale(axisPlace, scaleLinear())
             setNiceDomain(dataConfig.numericValuesForPlace(attrPlace), axisModel)
+            layout.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
