@@ -13,6 +13,7 @@
   text {
     fill: black;
     font: 12px sans-serif;
+    cursor: pointer;
   }
 
   rect {
@@ -20,7 +21,12 @@
     stroke: #315B7D;
     cursor: pointer;
   }
+
 }
+  .legend-rect-selected {
+    stroke: black !important;
+    stroke-width: 2px !important;
+  }
 
 .legend-label text {
   fill: blue;
