@@ -37,9 +37,8 @@ export const useIndexColumn = ({ data }: IHookProps) => {
 interface ICellProps {
   caseId: string
   index?: number
-  onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
+export const IndexCell = ({ caseId, index }: ICellProps) => {
   const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
   const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
   const setNodeRef = (elt: HTMLButtonElement | null) => {
@@ -66,9 +65,21 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
   useEffect(() => {
     setCodapComponentElt(cellElt?.closest(".codap-component") as HTMLDivElement ?? null)
   }, [cellElt])
+
+  const handleButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const { key } = e
+    switch (key) {
+      case "ArrowUp":
+      case "ArrowDown":
+        e.preventDefault()
+        break
+    }
+  }
+
   return (
     <Menu isLazy>
-      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button">
+      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button"
+        onKeyDown={handleButtonKeyDown}>
         {index != null ? `${index + 1}` : ""}
       </MenuButton>
       {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
