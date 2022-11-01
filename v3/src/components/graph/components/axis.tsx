@@ -69,8 +69,22 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
             .attr('text-anchor', 'middle')
             .attr('data-testid', `axis-title-${place}`)
         })
+        .on("click", function(d) {
+          console.log("d3 event data: ", d, "attributeID: ", attributeID)
+        })
+
 
   }, [axisElt, halfRange, label, place, transform])
+
+  // TODO remove this once sure you will not need it (if adding listeners via D3 is NOT the way to go)
+  // useEffect(()=>{
+  //   const handleAxisClick = (event: any) => {
+  //     console.log('element clicked and here is event: ', event);
+  //   };
+  //   if (titleRef.current){
+  //     titleRef.current.onclick = handleAxisClick
+  //   }
+  // }, [label])
 
   useEffect(function updateTitlePosition() {
     // track the bounds of the d3 axis element
@@ -108,7 +122,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
     <>
       <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
         <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
-        <g ref={titleRef}/>
+        <g ref={titleRef} />
       </g>
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
