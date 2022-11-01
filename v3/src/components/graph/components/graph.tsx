@@ -17,7 +17,7 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {attrRoleToAxisPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
+import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -93,10 +93,10 @@ export const Graph = observer((
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
-        const [place, attrID] = action.args,
-          axisPlace = attrRoleToAxisPlace[place]
+        const [role, attrID] = action.args,
+          graphPlace = attrRoleToGraphPlace[role]
         enableAnimation.current = true
-        axisPlace && graphController?.handleAttributeAssignment(axisPlace, attrID)
+        graphPlace && graphController?.handleAttributeAssignment(graphPlace, attrID)
       }
     }, true)
     return () => disposer?.()

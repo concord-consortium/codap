@@ -8,7 +8,7 @@ import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, axisPlaceToAttrPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import t from "../../../utilities/translation/translate"
@@ -33,7 +33,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(place),
-    hintString = useDropHintString({ role: axisPlaceToAttrPlace[place] }),
+    hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
