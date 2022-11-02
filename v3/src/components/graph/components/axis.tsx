@@ -1,14 +1,4 @@
 import {Active} from "@dnd-kit/core"
-import {
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuItemOption,
-  MenuGroup,
-  MenuOptionGroup,
-  MenuDivider,
-} from '@chakra-ui/react'
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
@@ -24,7 +14,6 @@ import {AxisDragRects} from "./axis-drag-rects"
 import t from "../../../utilities/translation/translate"
 
 import "./axis.scss"
-import { AxisAttributeMenu } from "./axis-attribute-menu"
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
@@ -84,8 +73,8 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
   }, [axisElt, halfRange, label, place, transform])
 
   const handleAxisTitleClick = (event: any) => {
-    console.log('handleAxisTitleClick(event): ', event);
-  };
+    console.log('handleAxisTitleClick(event): ', event)
+  }
 
   useEffect(()=>{
     if (titleRef.current){

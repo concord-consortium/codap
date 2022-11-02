@@ -1,8 +1,6 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
-import { useDndContext } from "@dnd-kit/core"
 import React, { useRef, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { useGraphModel } from "../hooks/use-graph-model"
 import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
 import { IGraphModel } from "../models/graph-model"
 
@@ -15,20 +13,26 @@ interface IProps {
 }
 
 export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
-  const { active } = useDndContext()
   const data = useDataSetContext()
   const attribute = data?.attrFromID(attrId)
   const attrList = data?.attributes.map(attr => {
     return { name: attr.name, id: attr.id }
   })
 
-  // params will be place: GraphPlace, newAttrId: string
+  // TODO
+  // remove fram graph or from dataset, guessing it is from graph
+  // render properly
+  // treat-as
+
   const handleSelectAttribute = (newAttrId: string) => {
     console.log(`change ${attribute?.name} to ${data?.attrFromID(newAttrId).name}`)
-    // const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
-    // const attrPlace = graphPlaceToAttrPlace(computedPlace)
-    // const attrName = dataset?.attrFromID(attrId)?.name
     graphModel.setAttributeID(graphPlaceToAttrPlace(place), newAttrId)
+  }
+
+  const handleRemoveAttribute = () => {
+    console.log(`remove ${attribute?.name} from ${place}`)
+
+    //graphModel.setAttributeID(graphPlaceToAttrPlace(place), kDefaultAttributeName)
   }
 
   return (
@@ -40,7 +44,7 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
             return <MenuItem onClick={() => handleSelectAttribute(attr.id)} key={attr.id}>{attr.name}</MenuItem>
           })}
           <MenuDivider />
-          <MenuItem>Remove {attribute?.name}</MenuItem>
+          <MenuItem onClick={() => handleRemoveAttribute()}>Remove {attribute?.name}</MenuItem>
           <MenuItem>Treat as {attribute?.type === "numeric" ? "categorical" : "numeric"}</MenuItem>
         </MenuList>
       </Menu>
