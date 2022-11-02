@@ -75,8 +75,6 @@ export class GraphLayout {
 
       if (place === "left"){
         newBounds.height = Math.min(bounds.height, this.graphHeight - this.legendHeight)
-        newBounds.left = 0
-        newBounds.width = this.graphWidth - this.plotWidth - this.margin.left - this.margin.right
         // if gridlines are present, axis will grow to .width + plotWidth, so we recalculate
         if (bounds.width > this.plotWidth){
           newBounds.width -= this.plotWidth

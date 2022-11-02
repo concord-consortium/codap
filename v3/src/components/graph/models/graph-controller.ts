@@ -11,7 +11,7 @@ import {
   CategoricalAxisModel,
   ICategoricalAxisModel,
   INumericAxisModel,
-  NumericAxisModel, axisPlaceToAttrPlace, attrRoleToAxisPlace
+  NumericAxisModel, axisPlaceToAttrRole, attrRoleToAxisPlace, GraphPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
@@ -121,8 +121,8 @@ export class GraphController {
           case 'numeric':
             axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
             graphModel.setAxis(axisPlace, axisModel)
-            layout.setAxisScale(axisPlace, scaleLinear())
             setNiceDomain(dataConfig.numericValuesForPlace(attrPlace), axisModel)
+            layout.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
@@ -139,19 +139,20 @@ export class GraphController {
     })
   }
 
-  handleAttributeAssignment(axisPlace: AxisPlace, attrID: string) {
-    if(['plot', 'legend'].includes( axisPlace)) {
+  handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
+    if(['plot', 'legend'].includes( graphPlace)) {
       this.layout.setLegendHeight(50) // todo: temporary!
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
     const {dataset, graphModel, layout} = this,
       dataConfig = graphModel.config,
-      graphAttributePlace = axisPlaceToAttrPlace[axisPlace],
+      axisPlace = graphPlace as AxisPlace,
+      graphAttributePlace = axisPlaceToAttrRole[axisPlace],
       attribute = dataset?.attrFromID(attrID),
       attributeType = attribute?.type ?? 'empty',
       otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
-      otherAttrPlace = axisPlaceToAttrPlace[otherAxisPlace],
-      otherAttrID = graphModel.getAttributeID(axisPlaceToAttrPlace[otherAxisPlace]),
+      otherAttrPlace = axisPlaceToAttrRole[otherAxisPlace],
+      otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
       otherAttribute = dataset?.attrFromID(otherAttrID),
       otherAttributeType = otherAttribute?.type ?? 'empty',
       axisModel = graphModel.getAxis(axisPlace),
