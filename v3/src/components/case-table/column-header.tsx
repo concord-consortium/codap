@@ -1,6 +1,6 @@
 import { Tooltip, Menu, MenuButton, Input } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { uniqueName } from "../../utilities/js-utils"
 import { kIndexColumnKey, THeaderRendererProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
@@ -36,7 +36,25 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
     setDragNodeRef(elt?.parentElement || null)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const parent = cellElt?.closest(".rdg-cell")
+
+    // During cell navigation, RDG sets the focus to the .rdg-cell. For keyboard invocation
+    // of the column header menu, however, the focus needs to be on the Chakra MenuButton.
+    // Therefore, we intercept attempts to focus the .rdg-cell and focus our content instead.
+
+    const handleFocus = (e: FocusEvent) => {
+      if (e.target === e.currentTarget) {
+        const menuButton = contentElt?.querySelector("button")
+        menuButton?.focus()
+      }
+    }
+
+    parent?.addEventListener("focusin", handleFocus)
+    return () => parent?.removeEventListener("focusin", handleFocus)
+  }, [cellElt, contentElt])
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
     e.stopPropagation()
     switch (key) {
@@ -49,6 +67,14 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         break
     }
   }
+
+    const handleButtonKeyDown = (e: React.KeyboardEvent) => {
+    if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+      // Prevent Chakra from bringing up the menu in favor of cell navigation
+      e.preventDefault()
+    }
+  }
+
   const handleClose = (accept: boolean) => {
     const trimTitle = editingAttrName?.trim()
     if (accept && editingAttrId && trimTitle) {
@@ -85,10 +111,11 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
               { editingAttrId
                 ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
                     variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
-                    onKeyDown={handleKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
                   />
                 : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
-                      fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}>
+                      fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}
+                      onKeyDown={handleButtonKeyDown}>
                     {column.name ? `${column?.name}${units}` : kDefaultAttributeName}
                   </MenuButton>
               }
