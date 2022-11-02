@@ -9,6 +9,7 @@
   justify-content: center;
   color: #242424;
   background-color: #dfdfdf;
+  font-family: "MuseoSans", sans-serif;
 
   .app {
     width: 100%;
@@ -36,4 +37,10 @@
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+@font-face {
+  font-family: "MuseoSans";   /*Can be any text*/
+  src: url("https://use.typekit.net/ckm7htd.css") format("woff"),
+       url("https://use.typekit.net/ckm7htd.css") format("opentype");
 }
