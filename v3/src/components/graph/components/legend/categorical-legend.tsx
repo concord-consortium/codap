@@ -1,13 +1,13 @@
 import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
 import {range, select, selection} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 
 import './legend.scss'
-import {onAction} from "mobx-state-tree";
-import {isSelectionAction, isSetCaseValuesAction} from "../../../../models/data/data-set-actions";
 
 interface ICategoricalLegendProps {
   transform: string,
@@ -96,13 +96,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
             update.select('rect')
               .classed('legend-rect-selected',
                 (index) => {
-                if( dataConfiguration) {
-                  return dataConfiguration &&
-                    dataConfiguration.allCasesForCategorySelected(categoryData.current[index].category)
-                }
-                else {
-                  return false
-                }
+                return dataConfiguration?.allCasesForCategorySelected(categoryData.current[index].category) ?? false
                 })
               .attr('transform', transform)
               .style('fill', (index: number) => categoryData.current[index].color || 'white')
@@ -129,7 +123,8 @@ export const CategoricalLegend = memo(function CategoricalLegend(
         refreshKeys()
       }
     }, true)
-  },[refreshKeys])
+    return disposer
+  },[refreshKeys, dataset])
 
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
