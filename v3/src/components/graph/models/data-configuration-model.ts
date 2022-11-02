@@ -178,6 +178,14 @@ export const DataConfigurationModel = types
           if (extend) dataset?.selectCases(selection)
           else dataset?.setSelectedCases(selection)
         }
+      },
+      allCasesForCategorySelected(cat:string) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          selection = (legendID && self.cases.filter((anID: string) => {
+            return dataset?.getValue(anID, legendID) === cat
+          })) ?? []
+        return selection.length > 0 && (selection as Array<string>).every( anID => dataset?.isCaseSelected(anID))
       }
     }))
   .views(self => (
@@ -186,7 +194,7 @@ export const DataConfigurationModel = types
         const legendID = self.attributeID('legend'),
           legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
         return legendValue == null ? '' : self.getLegendColorForCategory( legendValue)
-      },
+      }
     }))
   .actions(self => ({
     setDataset(dataset: IDataSet) {

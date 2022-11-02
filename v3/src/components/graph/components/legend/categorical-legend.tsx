@@ -1,6 +1,8 @@
 import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
 import {range, select, selection} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
@@ -34,6 +36,7 @@ const keySize = 15,
 export const CategoricalLegend = memo(function CategoricalLegend(
   {transform, legendLabelRef}: ICategoricalLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
+    dataset = dataConfiguration?.dataset,
     layout = useGraphLayoutContext(),
     categoriesRef = useRef<Set<string> | undefined>(),
     categoryData = useRef<Key[]>([]),
@@ -82,40 +85,46 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       const numCategories = categoriesRef.current?.size,
         labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
       select(keysElt)
-        .selectAll('rect')
+        .selectAll('g')
         .data(range(0, numCategories ?? 0))
         .join(
           // @ts-expect-error void => Selection
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           () => {
           },
-          update => update
-            .attr('transform', transform)
-            .style('fill', (index: number) => categoryData.current[index].color || 'white')
-            .attr('x', (index: number) => {
-              return categoryData.current[index].column * layoutData.current.columnWidth
-            })
-            .attr('y',
-              (index: number) => 10 + labelHeight + categoryData.current[index].row * (keySize + padding))
-        )
-
-      select(keysElt).selectAll('text')
-        .data(range(0, numCategories ?? 0))
-        .join(
-          // @ts-expect-error void => Selection
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          () => {
-          },
-          update => update
-            .text((index: number) => categoryData.current[index].category)
-            .attr('transform', transform)
-            .attr('x', (index: number) => {
-              return categoryData.current[index].column * layoutData.current.columnWidth + keySize + 3
-            })
-            .attr('y',
-              (index: number) => labelHeight + 1.5 * keySize + categoryData.current[index].row * (keySize + padding))
+          update => {
+            update.select('rect')
+              .classed('legend-rect-selected',
+                (index) => {
+                return dataConfiguration?.allCasesForCategorySelected(categoryData.current[index].category) ?? false
+                })
+              .attr('transform', transform)
+              .style('fill', (index: number) => categoryData.current[index].color || 'white')
+              .attr('x', (index: number) => {
+                return categoryData.current[index].column * layoutData.current.columnWidth
+              })
+              .attr('y',
+                (index: number) => 10 + labelHeight + categoryData.current[index].row * (keySize + padding))
+            update.select('text')
+              .text((index: number) => categoryData.current[index].category)
+              .attr('transform', transform)
+              .attr('x', (index: number) => {
+                return categoryData.current[index].column * layoutData.current.columnWidth + keySize + 3
+              })
+              .attr('y',
+                (index: number) => labelHeight + 1.5 * keySize + categoryData.current[index].row * (keySize + padding))
+          }
         )
     }, [dataConfiguration, keysElt, transform, legendLabelRef])
+
+  useEffect( function respondToSelectionChange() {
+    const disposer = onAction(dataset, action => {
+      if (isSelectionAction(action)) {
+        refreshKeys()
+      }
+    }, true)
+    return disposer
+  },[refreshKeys, dataset])
 
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
@@ -135,28 +144,37 @@ export const CategoricalLegend = memo(function CategoricalLegend(
     categoriesRef.current = dataConfiguration?.categorySetForPlace('legend')
     const numCategories = categoriesRef.current?.size
     if (keysElt && categoryData.current) {
-      select(keysElt)
-        .selectAll('rect')
+      select(keysElt).selectAll('key').remove() // start fresh
+
+      const keysSelection = select(keysElt)
+        .selectAll('g')
         .data(range(0, numCategories ?? 0))
         .join(
-          enter => enter.append('rect')
+          enter => enter
+            .append('g')
             .attr('class', 'key')
+        )
+      keysSelection.each(function(d, n, group) {
+        const sel = select(this),
+          size = sel.selectAll('rect').size()
+        if(size === 0) {
+          sel.append('rect')
             .attr('width', keySize)
             .attr('height', keySize)
             .on('click',
-              (event, i) => {
+              (event, i: number) => {
                 dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
               })
-        )
-
-      select(keysElt).selectAll('text')
-        .data(range(0, numCategories ?? 0))
-        .join(
-          enter => enter.append('text')
-        )
+          sel.append('text')
+            .on('click',
+              (event, i: number) => {
+                dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+              })
+        }
+      })
       refreshKeys()
     }
-  }, [keysElt, categoryData, transform, refreshKeys, dataConfiguration])
+  }, [keysElt, categoryData, refreshKeys, dataConfiguration])
 
   return (
     <svg className='categories' ref={elt => setKeysElt(elt)}></svg>
