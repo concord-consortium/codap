@@ -24,6 +24,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
+import { AxisAttributeMenu } from "./axis-attribute-menu"
 
 import "./graph.scss"
 
@@ -154,6 +155,10 @@ export const Graph = observer((
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
+        {/* TEMPORARY FOR DEV */}
+        <AxisAttributeMenu attrId={yAttrID}/>
+        <AxisAttributeMenu attrId={xAttrID}/>
+        {/* /TEMPORARY FOR DEV */}
         <svg className='graph-svg' ref={svgRef}>
           <Background
             transform={`translate(${margin.left}, 0)`}

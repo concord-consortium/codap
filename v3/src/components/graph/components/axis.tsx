@@ -1,4 +1,14 @@
 import {Active} from "@dnd-kit/core"
+import {
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuItemOption,
+  MenuGroup,
+  MenuOptionGroup,
+  MenuDivider,
+} from '@chakra-ui/react'
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
@@ -14,6 +24,7 @@ import {AxisDragRects} from "./axis-drag-rects"
 import t from "../../../utilities/translation/translate"
 
 import "./axis.scss"
+import { AxisAttributeMenu } from "./axis-attribute-menu"
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
@@ -69,22 +80,18 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
             .attr('text-anchor', 'middle')
             .attr('data-testid', `axis-title-${place}`)
         })
-        .on("click", function(d) {
-          console.log("d3 event data: ", d, "attributeID: ", attributeID)
-        })
-
 
   }, [axisElt, halfRange, label, place, transform])
 
-  // TODO remove this once sure you will not need it (if adding listeners via D3 is NOT the way to go)
-  // useEffect(()=>{
-  //   const handleAxisClick = (event: any) => {
-  //     console.log('element clicked and here is event: ', event);
-  //   };
-  //   if (titleRef.current){
-  //     titleRef.current.onclick = handleAxisClick
-  //   }
-  // }, [label])
+  const handleAxisClick = (event: any) => {
+    console.log('element clicked and here is event: ', event);
+  };
+
+  useEffect(()=>{
+    if (titleRef.current){
+      titleRef.current.onclick = handleAxisClick
+    }
+  }, [label])
 
   useEffect(function updateTitlePosition() {
     // track the bounds of the d3 axis element
