@@ -83,13 +83,13 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
 
   }, [axisElt, halfRange, label, place, transform])
 
-  const handleAxisClick = (event: any) => {
-    console.log('element clicked and here is event: ', event);
+  const handleAxisTitleClick = (event: any) => {
+    console.log('handleAxisTitleClick(event): ', event);
   };
 
   useEffect(()=>{
     if (titleRef.current){
-      titleRef.current.onclick = handleAxisClick
+      titleRef.current.onclick = handleAxisTitleClick
     }
   }, [label])
 

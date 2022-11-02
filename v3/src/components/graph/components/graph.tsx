@@ -156,8 +156,8 @@ export const Graph = observer((
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
         {/* TEMPORARY FOR DEV */}
-        <AxisAttributeMenu attrId={yAttrID}/>
-        <AxisAttributeMenu attrId={xAttrID}/>
+        <AxisAttributeMenu graphModel={graphModel} attrId={yAttrID} place="left"/>
+        <AxisAttributeMenu graphModel={graphModel} attrId={xAttrID} place="bottom"/>
         {/* /TEMPORARY FOR DEV */}
         <svg className='graph-svg' ref={svgRef}>
           <Background
