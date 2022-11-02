@@ -55,20 +55,47 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
     we can fix it ourselves by post-processing the role attribute for our parent.
    */
   useEffect(() => {
-    const parent = cellElt?.parentElement
-    if (parent?.classList.contains("rdg-cell") && parent?.getAttribute("role") === "gridcell") {
-      parent.setAttribute("role", "rowheader")
+    const parent = cellElt?.closest(".rdg-cell")
+    if (parent?.getAttribute("role") === "gridcell") {
+      parent?.setAttribute("role", "rowheader")
     }
     // no dependencies means we'll check/fix it after every render
   })
+
+  useEffect(() => {
+    const parent = cellElt?.closest(".rdg-cell")
+
+    // During cell navigation, RDG sets the focus to the .rdg-cell. For keyboard invocation
+    // of the index column menu, however, the focus needs to be on the Chakra MenuButton.
+    // Therefore, we intercept attempts to focus the .rdg-cell and focus our content instead.
+
+    const handleFocus = (e: FocusEvent) => {
+      // if the parent was focused, focus the child
+      if (e.target === e.currentTarget) {
+        cellElt?.focus()
+      }
+    }
+
+    parent?.addEventListener("focusin", handleFocus)
+    return () => parent?.removeEventListener("focusin", handleFocus)
+  }, [cellElt])
 
   // Find the parent CODAP component to display the index menu above the grid
   useEffect(() => {
     setCodapComponentElt(cellElt?.closest(".codap-component") as HTMLDivElement ?? null)
   }, [cellElt])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+      // Prevent Chakra from bringing up the menu in favor of cell navigation
+      e.preventDefault()
+    }
+  }
+
   return (
     <Menu isLazy>
-      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button">
+      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button"
+                  onKeyDown={handleKeyDown}>
         {index != null ? `${index + 1}` : ""}
       </MenuButton>
       {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
