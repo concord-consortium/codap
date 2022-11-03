@@ -148,15 +148,14 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
               (enter) => {
               },
               (update) => {
-                // TODO compute width and placement for dragRects
-                // right now hardcoding in 20, 19 below to work on main functionality
-                // console.log({rectSelection}, {layout})
-                const tempFakeTitleWidth = 20
+
+                // TODO remove this when you sure you will not need it
+                const tempKTitleWidth = 0
 
                 update
-                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : tempFakeTitleWidth))
+                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : tempKTitleWidth))
                   .attr('y', (d) => axisBounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width - tempFakeTitleWidth))
+                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width - tempKTitleWidth))
                   .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
               }
             )

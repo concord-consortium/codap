@@ -155,22 +155,24 @@ export const Graph = observer((
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
-        {/* TEMPORARY FOR DEV */}
+
         <AxisAttributeMenu graphModel={graphModel} attrId={yAttrID} place="left"/>
         <AxisAttributeMenu graphModel={graphModel} attrId={xAttrID} place="bottom"/>
-        {/* /TEMPORARY FOR DEV */}
+
         <svg className='graph-svg' ref={svgRef}>
           <Background
             transform={`translate(${margin.left}, 0)`}
             marqueeState={marqueeState}
             ref={backgroundSvgRef}
           />
+
           <Axis getAxisModel={() => graphModel.getAxis('left')}
                 attributeID={yAttrID}
                 transform={`translate(${margin.left - 1}, 0)`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleDropAttribute}
           />
+
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}

@@ -70,9 +70,9 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
             .attr('data-testid', `axis-title-${place}`)
         })
         // example attach handler in D3 (works)
-        .on("click", function(d) {
-          console.log("d3 event data: ", d, "attributeID: ", attributeID)
-        })
+        // .on("click", function(d) {
+        //   console.log("d3 event data: ", d, "attributeID: ", attributeID)
+        // })
 
   }, [axisElt, halfRange, label, place, transform])
 

@@ -1,9 +1,11 @@
-import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast } from "@chakra-ui/react"
-import React, { useRef, useState } from "react"
+import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast, forwardRef } from "@chakra-ui/react"
+import React, { CSSProperties } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
+import { attrRoleToAxisPlace, axisPlaceToAttrRole, GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
 import { IGraphModel } from "../models/graph-model"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import { usePlotResponders } from "../hooks/graph-hooks"
+import { measureText } from "../../../hooks/use-measure-text"
 
 import "./axis-attribute-menu"
 
@@ -20,6 +22,10 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
     return { name: attr.name, id: attr.id }
   })
   const treatAs = attribute?.type === "numeric" ? "categorical" : "numeric"
+  const layout = useGraphLayoutContext()
+  //console.log("calc with layout: ", {layout})
+  const textLength = measureText(attribute?.name as string)
+  const h = layout.plotHeight
   const toast = useToast()
 
   const handleSelectAttribute = (newAttrId: string) => {
@@ -43,13 +49,29 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
     })
   }
 
+  // position chakra menu button over existing axis title
+  // there may be a better way to do this using existing bounds
+  const menuButtonStyles: CSSProperties = {
+    position: "absolute",
+    color: "transparent",
+    rotate: place === "left" ? "270deg" : "0deg",
+    top: (.5 * h) - (.25 * textLength),
+    left: layout.margin.left * -.5,
+    opacity:.05,
+    background: "blue"
+  }
+
   return (
     <div className="axis-attribute-menu">
       <Menu>
-        <MenuButton>{attribute?.name}</MenuButton>
+        <MenuButton style={menuButtonStyles}>{attribute?.name}</MenuButton>
         <MenuList>
           { attrList?.map((attr) => {
-            return <MenuItem onClick={() => handleSelectAttribute(attr.id)} key={attr.id}>{attr.name}</MenuItem>
+            return (
+              <MenuItem onClick={() => handleSelectAttribute(attr.id)} key={attr.id}>
+                {attr.name}
+              </MenuItem>
+            )
           })}
           <MenuDivider />
           <MenuItem onClick={() => handleRemoveAttribute()}>Remove {attribute?.name}</MenuItem>
