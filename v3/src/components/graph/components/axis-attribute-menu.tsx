@@ -5,6 +5,7 @@ import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
 import { IGraphModel } from "../models/graph-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import { measureText } from "../../../hooks/use-measure-text"
+import { GraphController } from "../models/graph-controller"
 // import { usePlotResponders } from "../hooks/graph-hooks"
 
 import "./axis-attribute-menu"
@@ -12,10 +13,10 @@ import "./axis-attribute-menu"
 interface IProps {
   attrId: string
   place: GraphPlace,
-  graphModel: IGraphModel
+  onChangeAttribute: (attrid: string, place: string) => void
 }
 
-export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
+export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps ) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromID(attrId)
   const attrList = data?.attributes.map(attr => {
@@ -26,10 +27,12 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
   const textLength = measureText(attribute?.name as string)
   const toast = useToast()
 
-  const handleSelectAttribute = (newAttrId: string) => {
-    // TODO - accomplish this without bringing in the graphModel
-    graphModel.setAttributeID(graphPlaceToAttrPlace(place), newAttrId)
-  }
+  // const handleSelectAttribute = (newAttrId: string) => {
+  //   console.log(`selected ${newAttrId}`)
+  //   // TODO - accomplish this without bringing in the graphModel
+  //   //graphModel.setAttributeID(graphPlaceToAttrPlace(place), newAttrId)
+
+  // }
 
   const handleRemoveAttribute = () => {
     toast({
@@ -67,7 +70,7 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
         <MenuList>
           { attrList?.map((attr) => {
             return (
-              <MenuItem onClick={() => handleSelectAttribute(attr.id)} key={attr.id}>
+              <MenuItem onClick={() => onChangeAttribute(attr.id, place)} key={attr.id}>
                 {attr.name}
               </MenuItem>
             )

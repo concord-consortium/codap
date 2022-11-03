@@ -17,7 +17,7 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
+import {attrRoleToAxisPlace, attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -78,17 +78,22 @@ export const Graph = observer((
 
   const toast = useToast()
 
+ // should these two functions live on controller?
+  const handleChangeAttribute = (attrId: string, place: GraphPlace ) => {
+    graphModel.setAttributeID(graphPlaceToAttrPlace(place), attrId)
+  }
+
   const handleDropAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrPlace = graphPlaceToAttrPlace(computedPlace)
     const attrName = dataset?.attrFromID(attrId)?.name
-    toast({
-      position: "top-right",
-      title: "Attribute dropped",
-      description: `The attribute ${attrName || attrId} was dropped on the ${place} place!`,
-      status: "success"
-    })
     graphModel.setAttributeID(attrPlace, attrId)
+    // toast({
+    //   position: "top-right",
+    //   title: "Attribute dropped",
+    //   description: `The attribute ${attrName || attrId} was dropped on the ${place} place!`,
+    //   status: "success"
+    // })
   }
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
@@ -156,8 +161,16 @@ export const Graph = observer((
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
 
-        <AxisAttributeMenu graphModel={graphModel} attrId={yAttrID} place="left"/>
-        <AxisAttributeMenu graphModel={graphModel} attrId={xAttrID} place="bottom"/>
+        <AxisAttributeMenu
+          onChangeAttribute={handleChangeAttribute}
+          attrId={yAttrID}
+          place="left"
+        />
+        <AxisAttributeMenu
+          onChangeAttribute={handleChangeAttribute}
+          attrId={xAttrID}
+          place="bottom"
+        />
 
         <svg className='graph-svg' ref={svgRef}>
           <Background
