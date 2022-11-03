@@ -49,7 +49,7 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
   }
 
   // proof-of-concept: position chakra menu button over existing axis title
-  // there may be a better way to do this using existing bounds
+  // calculations might be improved using DOMRect/Bounds
   const menuButtonStyles: CSSProperties = {
     position: "absolute",
     color: "transparent",
