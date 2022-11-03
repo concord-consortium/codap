@@ -49,14 +49,14 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
     })
   }
 
-  // position chakra menu button over existing axis title
+  // proof-of-concept: position chakra menu button over existing axis title
   // there may be a better way to do this using existing bounds
   const menuButtonStyles: CSSProperties = {
     position: "absolute",
     color: "transparent",
     rotate: place === "left" ? "270deg" : "0deg",
-    top: (.5 * h) - (.25 * textLength),
-    left: layout.margin.left * -.5,
+    top: place === "left" ? (.5 * layout.plotHeight) - (.25 * textLength) : layout.plotHeight + 20,
+    left: place === "left" ? layout.margin.left * -.5 : (.5 * layout.plotWidth + layout.margin.left/2),
     opacity:.05,
     background: "blue"
   }
