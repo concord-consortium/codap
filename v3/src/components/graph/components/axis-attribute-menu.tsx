@@ -1,11 +1,11 @@
-import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast, forwardRef } from "@chakra-ui/react"
+import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast } from "@chakra-ui/react"
 import React, { CSSProperties } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { attrRoleToAxisPlace, axisPlaceToAttrRole, GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
+import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
 import { IGraphModel } from "../models/graph-model"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import { usePlotResponders } from "../hooks/graph-hooks"
 import { measureText } from "../../../hooks/use-measure-text"
+// import { usePlotResponders } from "../hooks/graph-hooks"
 
 import "./axis-attribute-menu"
 
@@ -23,12 +23,11 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
   })
   const treatAs = attribute?.type === "numeric" ? "categorical" : "numeric"
   const layout = useGraphLayoutContext()
-  //console.log("calc with layout: ", {layout})
   const textLength = measureText(attribute?.name as string)
-  const h = layout.plotHeight
   const toast = useToast()
 
   const handleSelectAttribute = (newAttrId: string) => {
+    // TODO - accomplish this without bringing in the graphModel
     graphModel.setAttributeID(graphPlaceToAttrPlace(place), newAttrId)
   }
 
@@ -38,7 +37,7 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
       description: `remove ${attribute?.name} from ${place}`,
       status: 'success', duration: 5000, isClosable: true,
     })
-    graphModel.setAttributeID(graphPlaceToAttrPlace(place), "")
+    // TODO - make this actually happen
   }
 
   const handleTreatAs = () => {
