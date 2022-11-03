@@ -51,15 +51,29 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
     })
   }
 
-  // proof-of-concept: position chakra menu button over existing axis title
-  // calculations might be improved using DOMRect/Bounds
+  // Position chakra menu button over existing axis title
+  const { margin, graphHeight, graphWidth, plotHeight, plotWidth } = layout
+  console.log({ graphHeight, graphWidth, plotHeight, plotWidth });
+  console.log(margin.left, margin.right)
+
+  // TODO, recalculate based on actual axis width
+  const determineMenuButtonLeft = () => {
+    if (place === "left"){
+      return layout.margin.left * -.5
+    }
+
+    else {
+      return .5 * layout.plotWidth - (-.2 * layout.margin.left)
+    }
+  }
+
   const menuButtonStyles: CSSProperties = {
     position: "absolute",
     color: "transparent",
     rotate: place === "left" ? "270deg" : "0deg",
-    top: place === "left" ? (.5 * layout.plotHeight) - (.25 * textLength) : layout.plotHeight + 20,
-    left: place === "left" ? layout.margin.left * -.5 : (.5 * layout.plotWidth + layout.margin.left/2),
-    opacity:.05,
+    top: place === "left" ? (.5 * layout.plotHeight) - (.2 * textLength) : layout.plotHeight + 20,
+    left: determineMenuButtonLeft(),
+    opacity:.2,
     background: "blue"
   }
 
