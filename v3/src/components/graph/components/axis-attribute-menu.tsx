@@ -13,7 +13,7 @@ import "./axis-attribute-menu"
 interface IProps {
   attrId: string
   place: GraphPlace,
-  onChangeAttribute: (attrid: string, place: string) => void
+  onChangeAttribute: (place: string, attrid: string) => void
 }
 
 export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps ) => {
@@ -70,13 +70,13 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
         <MenuList>
           { attrList?.map((attr) => {
             return (
-              <MenuItem onClick={() => onChangeAttribute(attr.id, place)} key={attr.id}>
+              <MenuItem onClick={() => onChangeAttribute(place, attr.id)} key={attr.id}>
                 {attr.name}
               </MenuItem>
             )
           })}
           <MenuDivider />
-          <MenuItem onClick={() => handleRemoveAttribute()}>Remove {attribute?.name}</MenuItem>
+          <MenuItem onClick={() => onChangeAttribute(place, "")}>Remove {attribute?.name}</MenuItem>
           <MenuItem onClick={() => handleTreatAs()}>Treat as {treatAs}</MenuItem>
         </MenuList>
       </Menu>

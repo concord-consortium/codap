@@ -76,25 +76,12 @@ export const Graph = observer((
     legendTransformRef.current = `translate(${margin.left}, ${layout.plotHeight + bottomAxisHeight})`
   }, [layout.plotHeight, layout.plotWidth, margin.left, xScale, bottomAxisHeight])
 
-  const toast = useToast()
-
- // should these two functions live on controller?
-  const handleChangeAttribute = (attrId: string, place: GraphPlace ) => {
-    graphModel.setAttributeID(graphPlaceToAttrPlace(place), attrId)
-  }
-
-  const handleDropAttribute = (place: GraphPlace, attrId: string) => {
+  const handleChangeAttribute = (place: GraphPlace, attrId: string ) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrPlace = graphPlaceToAttrPlace(computedPlace)
-    const attrName = dataset?.attrFromID(attrId)?.name
     graphModel.setAttributeID(attrPlace, attrId)
-    // toast({
-    //   position: "top-right",
-    //   title: "Attribute dropped",
-    //   description: `The attribute ${attrName || attrId} was dropped on the ${place} place!`,
-    //   status: "success"
-    // })
   }
+
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAction(graphModel, action => {
@@ -183,14 +170,14 @@ export const Graph = observer((
                 attributeID={yAttrID}
                 transform={`translate(${margin.left - 1}, 0)`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
-                onDropAttribute={handleDropAttribute}
+                onDropAttribute={handleChangeAttribute}
           />
 
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
-                onDropAttribute={handleDropAttribute}
+                onDropAttribute={handleChangeAttribute}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
@@ -201,7 +188,7 @@ export const Graph = observer((
           </svg>
 
           <DroppablePlot graphElt={graphRef.current} plotElt={backgroundSvgRef.current}
-                         onDropAttribute={handleDropAttribute}/>
+                         onDropAttribute={handleChangeAttribute}/>
           <Legend
             graphModel={graphModel}
             legendAttrID={graphModel.getAttributeID('legend')}
