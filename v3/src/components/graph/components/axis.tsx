@@ -69,7 +69,8 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
             .attr('text-anchor', 'middle')
             .attr('data-testid', `axis-title-${place}`)
         })
-        // example attach handler in D3 (works)
+        // option 3 example attach handler in D3 (works)
+        // we would need to use context so that we could manage chakra menu state from here?
         // .on("click", function(d) {
         //   console.log("d3 event data: ", d, "attributeID: ", attributeID)
         // })
