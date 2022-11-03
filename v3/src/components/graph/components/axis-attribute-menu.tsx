@@ -1,8 +1,9 @@
-import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
+import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast } from "@chakra-ui/react"
 import React, { useRef, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
 import { IGraphModel } from "../models/graph-model"
+import { usePlotResponders } from "../hooks/graph-hooks"
 
 import "./axis-attribute-menu"
 
@@ -18,25 +19,32 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
   const attrList = data?.attributes.map(attr => {
     return { name: attr.name, id: attr.id }
   })
-
-  // TODO
-  // remove fram graph or from dataset, guessing it is from graph
-  // render properly
-  // treat-as
+  const treatAs = attribute?.type === "numeric" ? "categorical" : "numeric"
+  const toast = useToast()
 
   const handleSelectAttribute = (newAttrId: string) => {
-    console.log(`change ${attribute?.name} to ${data?.attrFromID(newAttrId).name}`)
     graphModel.setAttributeID(graphPlaceToAttrPlace(place), newAttrId)
   }
 
   const handleRemoveAttribute = () => {
-    console.log(`remove ${attribute?.name} from ${place}`)
+    toast({
+      title: `Remove attribute`,
+      description: `remove ${attribute?.name} from ${place}`,
+      status: 'success', duration: 5000, isClosable: true,
+    })
+    graphModel.setAttributeID(graphPlaceToAttrPlace(place), "")
+  }
 
-    //graphModel.setAttributeID(graphPlaceToAttrPlace(place), kDefaultAttributeName)
+  const handleTreatAs = () => {
+    toast({
+      title: `Treat attribute as`,
+      description:`treat ${attribute?.name} as ${treatAs}`,
+      status: 'success', duration: 5000, isClosable: true,
+    })
   }
 
   return (
-    <div className="axis-attribute-menu" style={{ position: "absolute", background: "#cafada"}}>
+    <div className="axis-attribute-menu">
       <Menu>
         <MenuButton>{attribute?.name}</MenuButton>
         <MenuList>
@@ -45,7 +53,7 @@ export const AxisAttributeMenu = ({ attrId, place, graphModel }: IProps ) => {
           })}
           <MenuDivider />
           <MenuItem onClick={() => handleRemoveAttribute()}>Remove {attribute?.name}</MenuItem>
-          <MenuItem>Treat as {attribute?.type === "numeric" ? "categorical" : "numeric"}</MenuItem>
+          <MenuItem onClick={() => handleTreatAs()}>Treat as {treatAs}</MenuItem>
         </MenuList>
       </Menu>
     </div>
