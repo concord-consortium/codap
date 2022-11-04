@@ -229,18 +229,19 @@ export const DataConfigurationModel = types
         onSetCaseValues: self.handleSetCaseValues
       })
     },
-    setPrimaryPlace(aPlace: GraphAttrRole) {
-      if (aPlace === 'x' || aPlace === 'y') {
-        self.primaryPlace = aPlace
+    setPrimaryRole(role: GraphAttrRole) {
+      if (role === 'x' || role === 'y') {
+        self.primaryPlace = role
       }
     },
-    setAttribute(place: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+    setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
       if (desc) {
-        self.attributeDescriptions.set(place, desc)
+        self.attributeDescriptions.set(role, desc)
       } else {
-        self.attributeDescriptions.delete(place)
+        self.attributeDescriptions.delete(role)
       }
       self.filteredCases?.invalidateCases()
+      self.categorySets.set(role, null)
     },
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()

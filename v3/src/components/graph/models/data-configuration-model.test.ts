@@ -184,9 +184,9 @@ describe("DataConfigurationModel", () => {
   it("only allows x and y as primary place", () => {
     const config = DataConfigurationModel.create()
     config.setDataset(data)
-    config.setPrimaryPlace('y')
+    config.setPrimaryRole('y')
     expect(config.primaryPlace).toBe("y")
-    config.setPrimaryPlace('caption')
+    config.setPrimaryRole('caption')
     expect(config.primaryPlace).toBe("y")
   })
 
