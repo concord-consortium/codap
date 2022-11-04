@@ -8,7 +8,7 @@ interface INumericLegendProps {
 export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumericLegendProps) {
 /*
   const dataConfiguration = useDataConfigurationContext(),
-    values = dataConfiguration?.numericValuesForPlace('legend')
+    values = dataConfiguration?.numericValuesForAttrRole('legend')
 */
 
   return (
