@@ -393,7 +393,7 @@ DG.main = function main() {
               "displayName": "DG.fileMenu.provider.examples.displayName".loc(),
               "urlDisplayName": "examples",
               "src": DG.get('exampleListURL'),
-              alphabetize: true
+              alphabetize: false
             },
             {
               "name": "lara",
