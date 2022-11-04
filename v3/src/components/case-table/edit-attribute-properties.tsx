@@ -40,7 +40,7 @@ export const EditAttributePropertiesModalContent = ({attributeName, description,
         />
       </FormLabel>
       <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.type")}
-        <Select size="xs" ml={5} value={attrType} onChange={(e) => setAttrType(e.target.value as AttributeType)}>
+        <Select size="xs" ml={5} value={attrType} data-testid="attr-type-select" onChange={(e) => setAttrType(e.target.value as AttributeType)}>
           <option value={"none"}></option>
           {attributeTypes.map(aType => {
             return (<option key={aType} value={aType} data-testid="attr-type-option">
@@ -56,7 +56,7 @@ export const EditAttributePropertiesModalContent = ({attributeName, description,
         />
       </FormLabel>
       <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.precision")}
-        <Select size="xs" ml={5} value={precision} onChange={(e) => setPrecision(e.target.value)}>
+        <Select size="xs" ml={5} value={precision} data-testid="attr-precision-select" onChange={(e) => setPrecision(e.target.value)}>
           <option value={""}></option>
           <option value={"0"} data-testid="attr-precision-option">0</option>
           <option value={"1"} data-testid="attr-precision-option">1</option>
