@@ -1,14 +1,12 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast } from "@chakra-ui/react"
-import React, { CSSProperties } from "react"
+import React, { CSSProperties, useEffect, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
 import { Bounds, useGraphLayoutContext } from "../models/graph-layout"
 import { measureText } from "../../../hooks/use-measure-text"
-// import { usePlotResponders } from "../hooks/graph-hooks"
 
 import "./axis-attribute-menu"
-import { useAxisBounds } from "../hooks/use-axis-bounds"
-import { MeasuringFrequency } from "@dnd-kit/core"
+
 
 interface IProps {
   attrId: string
@@ -28,21 +26,10 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
   const foundBounds = layout.getAxisBounds(place as any)
   const toast = useToast()
 
-  // const handleSelectAttribute = (newAttrId: string) => {
-  //   console.log(`selected ${newAttrId}`)
-  //   // TODO - accomplish this without bringing in the graphModel
-  //   //graphModel.setAttributeID(graphPlaceToAttrPlace(place), newAttrId)
+  const foundAxisWidth = layout.getAxisBounds(place as any)?.width
+  console.log("1 FOUND AXIS WIDTH")
 
-  // }
-
-  const handleRemoveAttribute = () => {
-    toast({
-      title: `Remove attribute`,
-      description: `remove ${attribute?.name} from ${place}`,
-      status: 'success', duration: 5000, isClosable: true,
-    })
-    // TODO - make this actually happen
-  }
+  const [menuButtonLeft, setMenuButtonLeft] = useState<CSSProperties>({ left: 0 })
 
   const handleTreatAs = () => {
     toast({
@@ -52,35 +39,30 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
     })
   }
 
-  // Position chakra menu button over existing axis title
-
-
-  const axisMenuButtonLeft = () => {
-    const { margin, graphHeight, graphWidth, plotHeight, plotWidth } = layout
-
+  useEffect(()=>{
     if (foundBounds){
-      const { height, top, width, left } = foundBounds
-
+      console.log("2 recalculating! foundWidth is: ", foundAxisWidth)
+      const { margin } = layout
+      const { width } = foundBounds as Bounds
       if (place === "left"){
-        return (width * .5) - (textLength * .5)
+        // for now, if width of axis is larger than 60, we have a different calculation
+        console.log({width, margin})
+        if (width < 60 ){
+          setMenuButtonLeft({ left: -60 });
+        }
       }
-
       else {
-        return ((width * .5) - (textLength * .5)) + margin.left - 5 //compensate for non-centered text?
+        const calc = (width * .5) - (textLength * .5) + margin.left - 5 //compensate for non-centered text?
+        setMenuButtonLeft({left: calc })
       }
-    } else {
-      return 0
     }
-
-
-  }
+  }, [attrId])
 
   const menuButtonStyles: CSSProperties = {
     position: "absolute",
     color: "transparent",
     rotate: place === "left" ? "270deg" : "0deg",
     top: place === "left" ? (.5 * layout.plotHeight) - (.2 * textLength) : layout.plotHeight + 20,
-    left: axisMenuButtonLeft(),
     opacity:.2,
     background: "blue"
   }
@@ -88,7 +70,7 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
   return (
     <div className="axis-attribute-menu">
       <Menu>
-        <MenuButton style={menuButtonStyles}>{attribute?.name}</MenuButton>
+        <MenuButton style={{...menuButtonStyles, ...menuButtonLeft}}>{attribute?.name}</MenuButton>
         <MenuList>
           { attrList?.map((attr) => {
             return (
