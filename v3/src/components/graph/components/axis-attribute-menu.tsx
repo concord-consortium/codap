@@ -2,13 +2,13 @@ import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast } from "@ch
 import React, { CSSProperties } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
-import { IGraphModel } from "../models/graph-model"
-import { useGraphLayoutContext } from "../models/graph-layout"
+import { Bounds, useGraphLayoutContext } from "../models/graph-layout"
 import { measureText } from "../../../hooks/use-measure-text"
-import { GraphController } from "../models/graph-controller"
 // import { usePlotResponders } from "../hooks/graph-hooks"
 
 import "./axis-attribute-menu"
+import { useAxisBounds } from "../hooks/use-axis-bounds"
+import { MeasuringFrequency } from "@dnd-kit/core"
 
 interface IProps {
   attrId: string
@@ -25,6 +25,7 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
   const treatAs = attribute?.type === "numeric" ? "categorical" : "numeric"
   const layout = useGraphLayoutContext()
   const textLength = measureText(attribute?.name as string)
+  const foundBounds = layout.getAxisBounds(place as any)
   const toast = useToast()
 
   // const handleSelectAttribute = (newAttrId: string) => {
@@ -52,19 +53,26 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
   }
 
   // Position chakra menu button over existing axis title
-  const { margin, graphHeight, graphWidth, plotHeight, plotWidth } = layout
-  console.log({ graphHeight, graphWidth, plotHeight, plotWidth });
-  console.log(margin.left, margin.right)
 
-  // TODO, recalculate based on actual axis width
-  const determineMenuButtonLeft = () => {
-    if (place === "left"){
-      return layout.margin.left * -.5
+
+  const axisMenuButtonLeft = () => {
+    const { margin, graphHeight, graphWidth, plotHeight, plotWidth } = layout
+
+    if (foundBounds){
+      const { height, top, width, left } = foundBounds
+
+      if (place === "left"){
+        return (width * .5) - (textLength * .5)
+      }
+
+      else {
+        return ((width * .5) - (textLength * .5)) + margin.left - 5 //compensate for non-centered text?
+      }
+    } else {
+      return 0
     }
 
-    else {
-      return .5 * layout.plotWidth - (-.2 * layout.margin.left)
-    }
+
   }
 
   const menuButtonStyles: CSSProperties = {
@@ -72,7 +80,7 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
     color: "transparent",
     rotate: place === "left" ? "270deg" : "0deg",
     top: place === "left" ? (.5 * layout.plotHeight) - (.2 * textLength) : layout.plotHeight + 20,
-    left: determineMenuButtonLeft(),
+    left: axisMenuButtonLeft(),
     opacity:.2,
     background: "blue"
   }
