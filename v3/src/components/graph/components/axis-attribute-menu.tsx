@@ -23,6 +23,8 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs 
   const textLength = measureText(attribute?.name as string)
   const [menuButtonLeft, setMenuButtonLeft] = useState<CSSProperties>({ left: 0 })
 
+  // TODO - there must be a better, more functional way to do this
+  // also calculation is still just ok
   useEffect(()=>{
     setTimeout(()=>{
       const foundBounds = layout.getAxisBounds(place as any)
