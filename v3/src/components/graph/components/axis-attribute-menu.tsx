@@ -21,22 +21,25 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs 
   const layout = useGraphLayoutContext()
   const { margin } = layout
   const textLength = measureText(attribute?.name as string)
-  const foundBounds = layout.getAxisBounds(place as any)
-  const axisWidth = foundBounds ? foundBounds.width : 0
   const [menuButtonLeft, setMenuButtonLeft] = useState<CSSProperties>({ left: 0 })
 
   useEffect(()=>{
-    if (foundBounds){
-      if (place === "left"){
-        const lCalc = axisWidth < 60 ? -1 * axisWidth : 0
-        setMenuButtonLeft({ left: lCalc })
-        console.log("I have axisWidth: ", axisWidth, " setting menuButtonLeft to:  ", lCalc)
+    setTimeout(()=>{
+      const foundBounds = layout.getAxisBounds(place as any)
+      console.log("foundbonds left and width: ", foundBounds?.left, foundBounds?.width)
+      const axisWidth = foundBounds ? foundBounds.width : 0
+      if (foundBounds){
+        if (place === "left"){
+          const lCalc = 0 - (.5 * axisWidth)
+          setMenuButtonLeft({ left: lCalc})
+          console.log("I had axisWidth: ", axisWidth, " for attr ", attribute?.name ," and set menuButtonLeft to:  ", lCalc)
+        }
+        else {
+          const bCalc = (axisWidth * .5) - (textLength * .5) + margin.left - 5 //compensate for non-centered text?
+          setMenuButtonLeft({ left: bCalc })
+        }
       }
-      else {
-        const bCalc = (axisWidth * .5) - (textLength * .5) + margin.left - 5 //compensate for non-centered text?
-        setMenuButtonLeft({ left: bCalc })
-      }
-    }
+    }, 100)
   }, [attrId])
 
   const menuButtonStyles: CSSProperties = {
