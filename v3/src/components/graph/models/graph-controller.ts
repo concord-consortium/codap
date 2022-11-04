@@ -121,14 +121,14 @@ export class GraphController {
           case 'numeric':
             axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
             graphModel.setAxis(axisPlace, axisModel)
-            setNiceDomain(dataConfig.numericValuesForPlace(attrPlace), axisModel)
+            setNiceDomain(dataConfig.numericValuesForAttrRole(attrPlace), axisModel)
             layout.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
             graphModel.setAxis(axisPlace, axisModel)
             layout.setAxisScale(axisPlace,
-              scaleBand().domain(dataConfig.categorySetForPlace(attrPlace)))
+              scaleBand().domain(dataConfig.categorySetForAttrRole(attrPlace)))
             break
           default:
             axisModel = EmptyAxisModel.create({place: axisPlace})
@@ -141,7 +141,7 @@ export class GraphController {
 
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
     if(['plot', 'legend'].includes( graphPlace)) {
-      this.layout.setLegendHeight(50) // todo: temporary!
+      this.layout.setLegendHeight(100) // todo: temporary!
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
     const {dataset, graphModel, layout} = this,
@@ -177,7 +177,7 @@ export class GraphController {
         setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
       }
     } else if (attributeType === 'categorical') {
-      const setOfValues = dataConfig.categorySetForPlace(graphAttributePlace)
+      const setOfValues = dataConfig.categorySetForAttrRole(graphAttributePlace)
       if (currentAxisType !== attributeType) {
         const newAxisModel = CategoricalAxisModel.create({place: axisPlace})
         graphModel.setAxis(axisPlace, newAxisModel as ICategoricalAxisModel)
