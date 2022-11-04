@@ -1,20 +1,20 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, useToast } from "@chakra-ui/react"
 import React, { CSSProperties, useEffect, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { GraphPlace, graphPlaceToAttrPlace } from "../models/axis-model"
+import { GraphPlace } from "../models/axis-model"
 import { Bounds, useGraphLayoutContext } from "../models/graph-layout"
 import { measureText } from "../../../hooks/use-measure-text"
 
 import "./axis-attribute-menu"
 
-
 interface IProps {
   attrId: string
   place: GraphPlace,
   onChangeAttribute: (place: string, attrid: string) => void
+  onTreatAs: (place: string, attrid: string, treatAs: string) => void
 }
 
-export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps ) => {
+export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs }: IProps ) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromID(attrId)
   const attrList = data?.attributes.map(attr => {
@@ -30,14 +30,6 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
   console.log("1 FOUND AXIS WIDTH")
 
   const [menuButtonLeft, setMenuButtonLeft] = useState<CSSProperties>({ left: 0 })
-
-  const handleTreatAs = () => {
-    toast({
-      title: `Treat attribute as`,
-      description:`treat ${attribute?.name} as ${treatAs}`,
-      status: 'success', duration: 5000, isClosable: true,
-    })
-  }
 
   useEffect(()=>{
     if (foundBounds){
@@ -81,7 +73,7 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute }: IProps )
           })}
           <MenuDivider />
           <MenuItem onClick={() => onChangeAttribute(place, "")}>Remove {attribute?.name}</MenuItem>
-          <MenuItem onClick={() => handleTreatAs()}>Treat as {treatAs}</MenuItem>
+          <MenuItem onClick={() => onTreatAs(place, attrId, treatAs)}>Treat as {treatAs}</MenuItem>
         </MenuList>
       </Menu>
     </div>

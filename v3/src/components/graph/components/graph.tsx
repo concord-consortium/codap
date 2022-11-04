@@ -1,4 +1,4 @@
-import {useToast} from "@chakra-ui/react"
+import {Toast, useToast} from "@chakra-ui/react"
 import {select} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import {observer} from "mobx-react-lite"
@@ -65,6 +65,8 @@ export const Graph = observer((
 
   const graphController = useGraphController({graphModel, enableAnimation, dotsRef})
 
+  const toast = useToast()
+
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {
       select(plotAreaSVGRef.current)
@@ -77,9 +79,24 @@ export const Graph = observer((
   }, [layout.plotHeight, layout.plotWidth, margin.left, xScale, bottomAxisHeight])
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string ) => {
+    if (attrId === ""){ // when request is to remove the attribute
+      toast({
+        title: `Remove attribute`,
+        description:`remove ${dataset?.attrFromID(graphModel.getAttributeID(graphPlaceToAttrPlace(place))).name} from graph`,
+        status: 'success', duration: 5000, isClosable: true,
+      })
+    }
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrPlace = graphPlaceToAttrPlace(computedPlace)
     graphModel.setAttributeID(attrPlace, attrId)
+  }
+
+  const handleTreatAs = (place: GraphPlace, attrId: string, treatAs: string ) => {
+    toast({
+      title: `Treat attribute as`,
+      description:`treat ${dataset?.attrFromID(attrId).name} as ${treatAs}`,
+      status: 'success', duration: 5000, isClosable: true,
+    })
   }
 
   // respond to assignment of new attribute ID
@@ -150,11 +167,13 @@ export const Graph = observer((
 
         <AxisAttributeMenu
           onChangeAttribute={handleChangeAttribute}
+          onTreatAs={handleTreatAs}
           attrId={yAttrID}
           place="left"
         />
         <AxisAttributeMenu
           onChangeAttribute={handleChangeAttribute}
+          onTreatAs={handleTreatAs}
           attrId={xAttrID}
           place="bottom"
         />
