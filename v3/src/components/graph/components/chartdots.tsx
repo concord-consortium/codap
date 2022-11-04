@@ -72,9 +72,9 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
     // We're pretending that the primaryPlace is the bottom just to help understand the naming
     const
       primaryCategoriesArray: string[] = (dataConfiguration && primaryAttrPlace) ?
-        Array.from(dataConfiguration.categorySetForPlace(primaryAttrPlace)) : [],
+        Array.from(dataConfiguration.categorySetForAttrRole(primaryAttrPlace)) : [],
       secondaryCategoriesArray: string[] = (dataConfiguration && secondaryAttrPlace) ?
-        Array.from(dataConfiguration.categorySetForPlace(secondaryAttrPlace)) : [],
+        Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrPlace)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,

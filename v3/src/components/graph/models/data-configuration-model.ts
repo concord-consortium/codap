@@ -37,7 +37,8 @@ export const DataConfigurationModel = types
     dataset: undefined as IDataSet | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
-    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>()
+    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>(),
+    categorySets: new Map<GraphAttrRole, Set<string> | null>
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -67,8 +68,8 @@ export const DataConfigurationModel = types
   .views(self => ({
     filterCase(data: IDataSet, caseID: string) {
       return Array.from(self.attributeDescriptions.entries()).every(([place, {attributeID}]) => {
-        // can still plot the case without a caption
-        if (place === "caption") return true
+        // can still plot the case without a caption or a legend
+        if (["caption", "legend"].includes( place)) return true
         switch (self.attributeType(place as GraphAttrRole)) {
           case "numeric":
             return isFinite(data.getNumeric(caseID, attributeID) ?? NaN)
@@ -99,6 +100,20 @@ export const DataConfigurationModel = types
         const changedCases = actionCall.args[0].filter(aCase => idSet.has(aCase.__id__))
         self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
       }
+      // Changes to case values require that existing cached categorySets be wiped.
+      // But if we know the ids of the attributes involved, we can determine whether
+      // an attribute that has a cache is involved
+      const attrIDs = actionCall.args[1]
+      if( attrIDs) {
+        self.attributeDescriptions.forEach((value, key) => {
+          if( attrIDs.includes( value.attributeID)) {
+            self.categorySets.set(key as GraphAttrRole, null)
+          }
+        })
+      }
+      else {
+        self.categorySets.clear()
+      }
     }
   }))
   .views(self => ({
@@ -124,7 +139,7 @@ export const DataConfigurationModel = types
       const caseIDs = self.filteredCases?.caseIds || [],
         legendAttrID = self.attributeID('legend')
       if (legendAttrID) {
-        const categories = Array.from(this.categorySetForPlace('legend'))
+        const categories = Array.from(this.categorySetForAttrRole('legend'))
         caseIDs.sort((a: string, b: string) => {
           const a_Value = self.dataset?.getValue(a, legendAttrID),
             b_value = self.dataset?.getValue(b, legendAttrID)
@@ -141,8 +156,8 @@ export const DataConfigurationModel = types
   }))
   .views(self => (
     {
-      valuesForPlace(place: GraphAttrRole): string[] {
-        const attrID = self.attributeID(place),
+      valuesForAttrRole(role: GraphAttrRole): string[] {
+        const attrID = self.attributeID(role),
           dataset = self.dataset,
           // todo: The following interferes with sorting by legend ID because we're bypassing get cases where the
           //  sorting happens. But we can't call get cases without introducing infinite loop
@@ -150,22 +165,29 @@ export const DataConfigurationModel = types
         return attrID ? caseIDs.map(anID => String(dataset?.getValue(anID, attrID)))
           .filter(aValue => aValue !== '') : []
       },
-      numericValuesForPlace(place: GraphAttrRole): number[] {
-        return this.valuesForPlace(place).map((aValue: string) => Number(aValue))
+      numericValuesForAttrRole(role: GraphAttrRole): number[] {
+        return this.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
           .filter((aValue: number) => isFinite(aValue))
       },
-      categorySetForPlace(place: GraphAttrRole): Set<string> {
-        const result: Set<string> = new Set(this.valuesForPlace(place).sort())
-        if (result.size === 0) {
-          result.add('__main__')
+      categorySetForAttrRole(role: GraphAttrRole): Set<string> {
+        const existingSet = self.categorySets.get(role)
+        if( existingSet) {
+          return existingSet
         }
-        return result
+        else {
+          const result: Set<string> = new Set(this.valuesForAttrRole(role).sort())
+          if (result.size === 0) {
+            result.add('__main__')
+          }
+          self.categorySets.set(role, result)
+          return result
+        }
       }
     }))
   .views(self => (
     {
       getLegendColorForCategory(cat: string):string {
-        const catIndex = Array.from(self.categorySetForPlace('legend')).indexOf(cat)
+        const catIndex = Array.from(self.categorySetForAttrRole('legend')).indexOf(cat)
         return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
       },
       selectCasesForLegendValue(aValue: string, extend = false) {
@@ -207,18 +229,19 @@ export const DataConfigurationModel = types
         onSetCaseValues: self.handleSetCaseValues
       })
     },
-    setPrimaryPlace(aPlace: GraphAttrRole) {
-      if (aPlace === 'x' || aPlace === 'y') {
-        self.primaryPlace = aPlace
+    setPrimaryRole(role: GraphAttrRole) {
+      if (role === 'x' || role === 'y') {
+        self.primaryPlace = role
       }
     },
-    setAttribute(place: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+    setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
       if (desc) {
-        self.attributeDescriptions.set(place, desc)
+        self.attributeDescriptions.set(role, desc)
       } else {
-        self.attributeDescriptions.delete(place)
+        self.attributeDescriptions.delete(role)
       }
       self.filteredCases?.invalidateCases()
+      self.categorySets.set(role, null)
     },
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()

@@ -52,7 +52,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
     [keysElt, setKeysElt] = useState<SVGGElement | null>(null),
 
     computeLayout = useCallback(() => {
-      categoriesRef.current = dataConfiguration?.categorySetForPlace('legend')
+      categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
       const numCategories = categoriesRef.current?.size,
         lod: Layout = layoutData.current
       lod.fullWidth = layout.axisLength('bottom')
@@ -81,7 +81,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
     }, [layout, dataConfiguration]),
 
     refreshKeys = useCallback(() => {
-      categoriesRef.current = dataConfiguration?.categorySetForPlace('legend')
+      categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
       const numCategories = categoriesRef.current?.size,
         labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
       select(keysElt)
@@ -141,7 +141,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
   }, [layout, computeLayout, refreshKeys])
 
   useEffect(function setup() {
-    categoriesRef.current = dataConfiguration?.categorySetForPlace('legend')
+    categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
     const numCategories = categoriesRef.current?.size
     if (keysElt && categoryData.current) {
       select(keysElt).selectAll('key').remove() // start fresh

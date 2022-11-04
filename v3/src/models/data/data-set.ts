@@ -486,7 +486,7 @@ export const DataSet = types.model("DataSet", {
         })
       },
 
-      setCaseValues(cases: ICase[]) {
+      setCaseValues(cases: ICase[], affectedAttributes?:string[]) {
         if (self.isCaching) {
           // update the cases in the cache
           cases.forEach(aCase => {

@@ -26,7 +26,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
     primaryAttrPlace = dataConfiguration?.primaryPlace ?? 'x',
     primaryAxisPlace = attrRoleToAxisPlace[primaryAttrPlace] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace),
+    primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace) as string,
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
     secondaryAxisPlace = attrRoleToAxisPlace[secondaryAttrPlace] ?? 'left',
     secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
@@ -62,7 +62,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         // Record the current values so we can change them during the drag and restore them when done
         const { selection } = dataConfiguration || {}
         selection?.forEach(anID => {
-          const itsValue = primaryAttrID && dataset?.getNumeric(anID, primaryAttrID) || undefined
+          const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
@@ -80,13 +80,13 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
           const delta = Number(primaryScale?.invert(deltaPixels)) - Number(primaryScale?.invert(0)),
             caseValues: ICase[] = [],
             { selection } = dataConfiguration || {}
-          primaryAttrID && selection?.forEach(anID => {
+          selection?.forEach(anID => {
             const currValue = Number(dataset?.getNumeric(anID, primaryAttrID))
             if (isFinite(currValue)) {
               caseValues.push({__id__: anID, [primaryAttrID]: currValue + delta})
             }
           })
-          caseValues.length && dataset?.setCaseValues(caseValues)
+          caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID])
         }
       }
     }, [dataset, dragID, primaryAttrID, primaryScale, primaryIsBottom, dataConfiguration]),
@@ -106,7 +106,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         if (didDrag.current) {
           const caseValues: ICase[] = [],
             { selection } = dataConfiguration || {}
-          primaryAttrID && selection?.forEach(anID => {
+          selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
               [primaryAttrID]: selectedDataObjects.current[anID]
@@ -144,7 +144,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
           binWidth = primaryLength / (numBins - 1),
           bins: Record<string, string[][]> = {}
 
-        primaryAttrID && dataConfiguration?.cases.forEach((anID) => {
+        dataConfiguration?.cases.forEach((anID) => {
           const numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttrID) ?? -1),
             bin = Math.ceil((numerator ?? 0) / binWidth),
             category = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__'
@@ -178,7 +178,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         // Note that we can get null for either or both of the next two functions. It just means that we have
         // a circle for the case but we're not plotting it.
         getPrimaryScreenCoord = (anID: string) => {
-          return primaryAttrID ? getScreenCoord(dataset, anID, primaryAttrID, primaryScale) : null
+          return getScreenCoord(dataset, anID, primaryAttrID, primaryScale)
         },
         getSecondaryScreenCoord = (anID: string) => {
           return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : null

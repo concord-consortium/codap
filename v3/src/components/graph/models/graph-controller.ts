@@ -121,14 +121,14 @@ export class GraphController {
           case 'numeric':
             axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
             graphModel.setAxis(axisPlace, axisModel)
-            setNiceDomain(dataConfig.numericValuesForPlace(attrPlace), axisModel)
+            setNiceDomain(dataConfig.numericValuesForAttrRole(attrPlace), axisModel)
             layout.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
             graphModel.setAxis(axisPlace, axisModel)
             layout.setAxisScale(axisPlace,
-              scaleBand().domain(dataConfig.categorySetForPlace(attrPlace)))
+              scaleBand().domain(dataConfig.categorySetForAttrRole(attrPlace)))
             break
           default:
             axisModel = EmptyAxisModel.create({place: axisPlace})
@@ -141,31 +141,31 @@ export class GraphController {
 
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
     if(['plot', 'legend'].includes( graphPlace)) {
-      this.layout.setLegendHeight(50) // todo: temporary!
+      this.layout.setLegendHeight(100) // todo: temporary!
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
     const {dataset, graphModel, layout} = this,
       dataConfig = graphModel.config,
       axisPlace = graphPlace as AxisPlace,
-      graphAttributePlace = axisPlaceToAttrRole[axisPlace],
+      graphAttributeRole = axisPlaceToAttrRole[axisPlace],
       attribute = dataset?.attrFromID(attrID),
       attributeType = attribute?.type ?? 'empty',
       otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
-      otherAttrPlace = axisPlaceToAttrRole[otherAxisPlace],
+      otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
       otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
       otherAttribute = dataset?.attrFromID(otherAttrID),
       otherAttributeType = otherAttribute?.type ?? 'empty',
       axisModel = graphModel.getAxis(axisPlace),
       currentAxisType = axisModel?.type,
       attrDescSnapshot: IAttributeDescriptionSnapshot = {attributeID: attrID},
-      // Numeric attributes get priority for primaryPlace when present. First one that is already present
+      // Numeric attributes get priority for primaryRole when present. First one that is already present
       // and then the newly assigned one. If there is an already assigned categorical then its place is
-      // the primaryPlace, or, lastly, the newly assigned place
-      primaryPlace = otherAttributeType === 'numeric' ? otherAttrPlace :
-        attributeType === 'numeric' ? graphAttributePlace :
-          otherAttributeType !== 'empty' ? otherAttrPlace : graphAttributePlace
-    dataConfig.setPrimaryPlace(primaryPlace)
-    dataConfig.setAttribute(graphAttributePlace, attrDescSnapshot)
+      // the primaryRole, or, lastly, the newly assigned place
+      primaryRole = otherAttributeType === 'numeric' ? otherAttrRole :
+        attributeType === 'numeric' ? graphAttributeRole :
+          otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
+    dataConfig.setPrimaryRole(primaryRole)
+    dataConfig.setAttribute(graphAttributeRole, attrDescSnapshot)
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {
@@ -177,7 +177,7 @@ export class GraphController {
         setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
       }
     } else if (attributeType === 'categorical') {
-      const setOfValues = dataConfig.categorySetForPlace(graphAttributePlace)
+      const setOfValues = dataConfig.categorySetForAttrRole(graphAttributeRole)
       if (currentAxisType !== attributeType) {
         const newAxisModel = CategoricalAxisModel.create({place: axisPlace})
         graphModel.setAxis(axisPlace, newAxisModel as ICategoricalAxisModel)
