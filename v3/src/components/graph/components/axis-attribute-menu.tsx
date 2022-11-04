@@ -17,35 +17,24 @@ interface IProps {
 export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs }: IProps ) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromID(attrId)
-  const attrList = data?.attributes.map(attr => {
-    return { name: attr.name, id: attr.id }
-  })
   const treatAs = attribute?.type === "numeric" ? "categorical" : "numeric"
   const layout = useGraphLayoutContext()
+  const { margin } = layout
   const textLength = measureText(attribute?.name as string)
   const foundBounds = layout.getAxisBounds(place as any)
-  const toast = useToast()
-
-  const foundAxisWidth = layout.getAxisBounds(place as any)?.width
-  console.log("1 FOUND AXIS WIDTH")
-
+  const axisWidth = foundBounds ? foundBounds.width : 0
   const [menuButtonLeft, setMenuButtonLeft] = useState<CSSProperties>({ left: 0 })
 
   useEffect(()=>{
     if (foundBounds){
-      console.log("2 recalculating! foundWidth is: ", foundAxisWidth)
-      const { margin } = layout
-      const { width } = foundBounds as Bounds
       if (place === "left"){
-        // for now, if width of axis is larger than 60, we have a different calculation
-        console.log({width, margin})
-        if (width < 60 ){
-          setMenuButtonLeft({ left: -60 });
-        }
+        const lCalc = axisWidth < 60 ? -1 * axisWidth : 0
+        setMenuButtonLeft({ left: lCalc })
+        console.log("I have axisWidth: ", axisWidth, " setting menuButtonLeft to:  ", lCalc)
       }
       else {
-        const calc = (width * .5) - (textLength * .5) + margin.left - 5 //compensate for non-centered text?
-        setMenuButtonLeft({left: calc })
+        const bCalc = (axisWidth * .5) - (textLength * .5) + margin.left - 5 //compensate for non-centered text?
+        setMenuButtonLeft({ left: bCalc })
       }
     }
   }, [attrId])
@@ -64,7 +53,7 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs 
       <Menu>
         <MenuButton style={{...menuButtonStyles, ...menuButtonLeft}}>{attribute?.name}</MenuButton>
         <MenuList>
-          { attrList?.map((attr) => {
+          { data?.attributes?.map((attr) => {
             return (
               <MenuItem onClick={() => onChangeAttribute(place, attr.id)} key={attr.id}>
                 {attr.name}
