@@ -1,8 +1,8 @@
 import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {InternalizedData, rTreeRect} from "../graphing-types"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {InternalizedData, Point, rTreeRect} from "../graphing-types"
+import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../app-state"
 import {useCurrent} from "../../../hooks/use-current"
@@ -10,18 +10,17 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {MarqueeState} from "../models/marquee-state"
 
 interface IProps {
-  transform: string
   marqueeState: MarqueeState
 }
 
-const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
+const prepareTree = (areaSelector: string, circleSelector: string, offset:Point): typeof RTree => {
   const selectionTree = RTree(10)
   select(areaSelector).selectAll(circleSelector)
     .each((datum: InternalizedData, index, groups) => {
       const element: any = groups[index],
         rect = {
-          x: Number(element.cx.baseVal.value),
-          y: Number(element.cy.baseVal.value),
+          x: Number(element.cx.baseVal.value) + offset.x,
+          y: Number(element.cy.baseVal.value) + offset.y,
           w: 1, h: 1
         }
       selectionTree.insert(rect, element.__data__)
@@ -41,15 +40,14 @@ getCasesForDelta = (tree: any, newRect: rTreeRect, prevRect: rTreeRect) => {
 }
 
 export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
-  const {transform, marqueeState } = props,
+  const {marqueeState } = props,
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
-    {plotWidth, plotHeight} = layout,
-    xScale = layout.axisScale("bottom"),
-    yScale = layout.axisScale("left"),
+    bounds = layout.computedBounds.get('plot') as Bounds,
+    plotWidth = bounds.width,
+    plotHeight = bounds.height,
+    transform = `translate(${bounds.left}, ${bounds.top})`,
     bgRef = ref as MutableRefObject<SVGGElement | null>,
-    plotX = Number(xScale?.range()[0]),
-    plotY = Number(yScale?.range()[1]),
     startX = useRef(0),
     startY = useRef(0),
     width = useRef(0),
@@ -58,18 +56,20 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     previousMarqueeRect = useRef<rTreeRect>(),
 
     onDragStart = useCallback((event:{ x: number; y: number; sourceEvent: {shiftKey: boolean} }) => {
+      const { computedBounds } = layout,
+      plotBounds = computedBounds.get('plot') as Bounds
       appState.beginPerformance()
-      const leftEdge = bgRef.current?.getBBox().x ?? 0
-      selectionTree.current = prepareTree('.graph-dot-area', 'circle')
-      startX.current = event.x - leftEdge
+      selectionTree.current = prepareTree('.graph-dot-area', 'circle',
+        {x: plotBounds.left, y: plotBounds.top})
+      startX.current = event.x
       startY.current = event.y
       width.current = 0
       height.current = 0
       if( !event.sourceEvent.shiftKey) {
         dataset.current?.setSelectedCases([])
       }
-      marqueeState.setMarqueeRect({x: event.x - leftEdge, y: event.y, width: 0, height: 0})
-    }, [dataset, marqueeState, bgRef]),
+      marqueeState.setMarqueeRect({x: event.x, y: event.y, width: 0, height: 0})
+    }, [dataset, marqueeState, layout]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -112,7 +112,6 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         dataset.current?.selectAll(false)
       }
     })
-
     select(groupElement)
       .selectAll('rect')
       .data([1])
@@ -121,17 +120,18 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         (enter) => {
           enter.append('rect')
             .attr('class', 'graph-background')
-            .attr('transform', transform)
             .call(dragBehavior)
         },
         (update) => {
-          update.attr('width', plotWidth)
+          update
+            .attr('transform', transform)
+            .attr('width', plotWidth)
             .attr('height', plotHeight)
-            .attr('x', plotX)
-            .attr('y', plotY)
+            .attr('x', 0)
+            .attr('y', 0)
         }
       )
-  }, [bgRef, dataset, onDrag, onDragEnd, onDragStart, plotHeight, plotWidth, plotX, plotY, transform])
+  }, [bgRef, transform, dataset, onDrag, onDragEnd, onDragStart, plotHeight, plotWidth])
 
   return (
     <g ref={bgRef}/>

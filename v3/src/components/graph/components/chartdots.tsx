@@ -4,7 +4,7 @@ import {PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrRoleToAxisPlace} from "../models/axis-model"
@@ -141,8 +141,11 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
       },
 
       setPoints = () => {
-        const duration = enableAnimation.current ? transitionDuration : 0
+        const duration = enableAnimation.current ? transitionDuration : 0,
+          plotBounds = layout.computedBounds.get('plot') as Bounds,
+          transform = `translate(${plotBounds.left}, ${plotBounds.top})`
         selection
+          .attr('transform', transform)
           .transition()
           .duration(duration)
           .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())

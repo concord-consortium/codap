@@ -27,12 +27,14 @@ export interface counterProps {
   setCounter: React.Dispatch<React.SetStateAction<number>>
 }
 
-export const transitionDuration = 1000,
+export const kTitleBarHeight = 25,
+  transitionDuration = 1000,
   pointRadiusMax = 10,
   pointRadiusMin = 3,
   pointRadiusLogBase = 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
   pointRadiusSelectionAddend = 1,
-  hoverRadiusFactor = 1.5
+  hoverRadiusFactor = 1.5,
+  axisGap = 5
 
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]

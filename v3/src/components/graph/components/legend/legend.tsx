@@ -2,6 +2,7 @@ import React, {memo, useRef} from "react"
 import {Active} from "@dnd-kit/core"
 import {IGraphModel} from "../../models/graph-model"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {Bounds, useGraphLayoutContext} from "../../models/graph-layout"
 import {AttributeLabel} from "../attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
@@ -13,14 +14,14 @@ import {GraphAttrRole} from "../../models/data-configuration-model"
 
 interface ILegendProps {
   graphModel: IGraphModel
-  transform: string
   legendAttrID:string
   graphElt: HTMLDivElement | null
   onDropAttribute: (place: any, attrId: string) => void
 }
 
-export const Legend = memo(function Legend({legendAttrID, transform, graphElt, onDropAttribute }: ILegendProps) {
+export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttribute }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
+    layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendLabelRef = useRef<SVGGElement>(null),
     legendRef = useRef() as React.RefObject<SVGSVGElement>,
@@ -35,6 +36,9 @@ export const Legend = memo(function Legend({legendAttrID, transform, graphElt, o
     const dragAttributeID = getDragAttributeId(active)
     dragAttributeID && onDropAttribute('legend', dragAttributeID)
   })
+
+  const legendBounds = layout.computedBounds.get('legend') as Bounds,
+    transform = `translate(${legendBounds.left}, ${legendBounds.top})`
 
   return legendAttrID ? (
     <>

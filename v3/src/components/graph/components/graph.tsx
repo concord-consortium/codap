@@ -45,8 +45,6 @@ export const Graph = observer((
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     bottomAxisHeight = layout.getAxisBounds('bottom')?.height ?? 0,
-    {margin} = layout,
-    legendTransformRef = useRef(''),
     xScale = layout.axisScale("bottom"),
     svgRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
@@ -61,13 +59,12 @@ export const Graph = observer((
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {
       select(plotAreaSVGRef.current)
-        .attr('x', xScale?.range()[0] + margin.left)
+        .attr('x', xScale?.range()[0])
         .attr('y', 0)
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
     }
-    legendTransformRef.current = `translate(${margin.left}, ${layout.plotHeight + bottomAxisHeight})`
-  }, [layout.plotHeight, layout.plotWidth, margin.left, xScale, bottomAxisHeight])
+  }, [layout.plotHeight, layout.plotWidth, xScale, bottomAxisHeight])
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
@@ -121,14 +118,12 @@ export const Graph = observer((
       <div className={kGraphClass} ref={graphRef} data-testid="graph" onClick={()=>setShowInspector(!showInspector)}>
         <svg className='graph-svg' ref={svgRef}>
           <Background
-            transform={`translate(${margin.left}, 0)`}
             marqueeState={marqueeState}
             ref={backgroundSvgRef}
           />
 
           <Axis getAxisModel={() => graphModel.getAxis('left')}
                 attributeID={yAttrID}
-                transform={`translate(${margin.left - 1}, 0)`}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
@@ -136,7 +131,6 @@ export const Graph = observer((
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
-                transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
@@ -159,7 +153,6 @@ export const Graph = observer((
           <Legend
             graphModel={graphModel}
             legendAttrID={graphModel.getAttributeID('legend')}
-            transform={legendTransformRef.current}
             graphElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
           />

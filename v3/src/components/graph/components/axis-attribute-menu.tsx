@@ -18,7 +18,7 @@ interface IProps {
 export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps ) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
-  const { plotWidth, plotHeight, margin } = useGraphLayoutContext()
+  const { plotWidth, plotHeight } = useGraphLayoutContext()
   const role = place === "left" ? "y" : "x"
   const attrId = dataConfig?.attributeID(role)
   const attribute = attrId ? data?.attrFromID(attrId) : null
@@ -28,7 +28,7 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, on
 
   if (!attrId && place === "bottom"){
     buttonStyles.top = plotHeight + 4
-    buttonStyles.left = ( plotWidth * .5 ) - margin.right - 8 // ~ width of y scale
+    buttonStyles.left = ( plotWidth * .5 ) - 8 // ~ width of y scale
   }
 
   return (
