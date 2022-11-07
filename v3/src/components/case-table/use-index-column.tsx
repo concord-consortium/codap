@@ -25,7 +25,7 @@ export const useIndexColumn = ({ data }: IHookProps) => {
     name: t("DG.CaseTable.indexColumnName"),
     minWidth: 52,
     width: 52,
-    headerCellClass: "codap-column-header",
+    headerCellClass: "codap-column-header index",
     headerRenderer: ColumnHeader,
     cellClass: "codap-index-cell",
     formatter
