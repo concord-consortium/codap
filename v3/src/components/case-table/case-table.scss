@@ -21,6 +21,10 @@ $table-body-font-size: 8pt;
       .codap-column-header {
         text-align: center;
         height: shared.$header-row-height-px !important;
+        &.index {
+          pointer-events: none;
+          cursor: auto;
+        }
 
         .codap-column-header-content {
           width: 100%;
