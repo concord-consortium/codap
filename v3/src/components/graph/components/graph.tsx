@@ -92,7 +92,7 @@ export const Graph = observer((
     graphModel.setAttributeID(attrPlace, attrId)
   }
 
-  const handleTreatAs = (place: GraphPlace, attrId: string, treatAs: string ) => {
+  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: string ) => {
     toast({
       title: `Treat attribute as`,
       description:`treat ${dataset?.attrFromID(attrId).name} at the place ${place} as ${treatAs}`,
@@ -168,13 +168,13 @@ export const Graph = observer((
 
         <AxisAttributeMenu
           onChangeAttribute={handleChangeAttribute}
-          onTreatAs={handleTreatAs}
+          onTreatAs={handleTreatAttrAs}
           attrId={yAttrID}
           place="left"
         />
         <AxisAttributeMenu
           onChangeAttribute={handleChangeAttribute}
-          onTreatAs={handleTreatAs}
+          onTreatAs={handleTreatAttrAs}
           attrId={xAttrID}
           place="bottom"
         />

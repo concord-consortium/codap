@@ -108,7 +108,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
     <>
       <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
         <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
-        <g ref={titleRef} />
+        <g ref={titleRef}/>
       </g>
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}

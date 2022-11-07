@@ -5,8 +5,6 @@ import { AxisPlace, GraphPlace } from "../models/axis-model"
 import { useGraphLayoutContext} from "../models/graph-layout"
 import { measureText } from "../../../hooks/use-measure-text"
 
-import "./axis-attribute-menu"
-
 interface IProps {
   attrId: string
   place: GraphPlace,
