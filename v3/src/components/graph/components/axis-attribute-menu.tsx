@@ -61,7 +61,7 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttr, onTreatAttrAs }
           </MenuItem>
           <MenuItem onClick={() => onTreatAttrAs(place, attrId, treatAs)}>
             {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
-            {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric") }
+            {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
           </MenuItem>
         </MenuList>
       </Menu>
