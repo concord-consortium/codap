@@ -24,7 +24,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
-import { AxisAttributeMenu } from "./axis-attribute-menu"
+import {AxisAttributeMenu} from "./axis-attribute-menu"
 
 import "./graph.scss"
 
