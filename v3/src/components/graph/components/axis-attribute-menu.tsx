@@ -21,39 +21,28 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs 
   const layout = useGraphLayoutContext()
   const { margin } = layout
   const textLength = measureText(attribute?.name || "")
-  const [buttonLeft, setButtonLeft] = useState<CSSProperties>({ left: 0 })
+
+  // TODO - replace with a more reliable calculation or way of placing button
+  const calcLeft = () => {
+    const bounds = layout.getAxisBounds(place as AxisPlace)
+    if (!bounds) return 0;
+    return place === "left" ? -30 : (bounds.width * .5) - (textLength * .5) + margin.left - 5
+  }
 
   const buttonStyles: CSSProperties = {
+    border: "1px dashed blue",  //only for debugging during development
+    opacity: 0.3,               //only for debugging during development
     position: "absolute",
     color: "transparent",
-    background: "blue",
-    opacity: 0.1,
     rotate: place === "left" ? "270deg" : "0deg",
-    top: place === "left" ? (.5 * layout.plotHeight) - (.2 * textLength) : layout.plotHeight + 20
+    top: place === "left" ? (.5 * layout.plotHeight) - (.2 * textLength) : layout.plotHeight + 20,
+    left: calcLeft()
   }
-
-  const calculateButtonLeft = (bounds: Bounds) => {
-    const axisWidth = bounds.width
-    if (place === "left") return { left: 0 - (.5 * axisWidth) }
-    if (place === "bottom") return { left: (axisWidth * .5) - (textLength * .5) + margin.left - 5 }
-  }
-
-  useLayoutEffect(() => {
-    setTimeout(()=>{
-      const foundBounds = layout.getAxisBounds(place as AxisPlace)
-      if (foundBounds){
-        const newLeft = calculateButtonLeft(foundBounds)
-        setButtonLeft(newLeft || { left: 0 })
-      }
-    }, 100)
-  },[attrId])
-
-  const compiledStyles = {...buttonStyles, ...buttonLeft }
 
   return (
     <div className="axis-attribute-menu">
       <Menu>
-        <MenuButton style={{...compiledStyles }}>{attribute?.name}</MenuButton>
+        <MenuButton style={{...buttonStyles }}>{attribute?.name}</MenuButton>
         <MenuList>
           { data?.attributes?.map((attr) => {
             return (

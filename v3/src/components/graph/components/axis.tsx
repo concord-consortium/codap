@@ -69,24 +69,8 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
             .attr('text-anchor', 'middle')
             .attr('data-testid', `axis-title-${place}`)
         })
-        // option 3 example attach handler in D3 (works)
-        // we would need to use context so that we could manage chakra menu state from here?
-        // .on("click", function(d) {
-        //   console.log("d3 event data: ", d, "attributeID: ", attributeID)
-        // })
 
   }, [axisElt, halfRange, label, place, transform])
-
-  // alternative, also works
-  // const handleAxisTitleClick = (event: any) => {
-  //   console.log('handleAxisTitleClick(event): ', event)
-  // }
-
-  // useEffect(()=>{
-  //   if (titleRef.current){
-  //     titleRef.current.onclick = handleAxisTitleClick
-  //   }
-  // }, [label])
 
   useEffect(function updateTitlePosition() {
     // track the bounds of the d3 axis element

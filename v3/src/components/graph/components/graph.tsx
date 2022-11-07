@@ -94,7 +94,7 @@ export const Graph = observer((
   const handleTreatAs = (place: GraphPlace, attrId: string, treatAs: string ) => {
     toast({
       title: `Treat attribute as`,
-      description:`treat ${dataset?.attrFromID(attrId).name} as ${treatAs}`,
+      description:`treat ${dataset?.attrFromID(attrId).name} at the place ${place} as ${treatAs}`,
       status: 'success', duration: 5000, isClosable: true,
     })
   }
