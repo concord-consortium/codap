@@ -167,14 +167,14 @@ export const Graph = observer((
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
 
         <AxisAttributeMenu
-          onChangeAttribute={handleChangeAttribute}
-          onTreatAs={handleTreatAttrAs}
+          onChangeAttr={handleChangeAttribute}
+          onTreatAttrAs={handleTreatAttrAs}
           attrId={yAttrID}
           place="left"
         />
         <AxisAttributeMenu
-          onChangeAttribute={handleChangeAttribute}
-          onTreatAs={handleTreatAttrAs}
+          onChangeAttr={handleChangeAttribute}
+          onTreatAttrAs={handleTreatAttrAs}
           attrId={xAttrID}
           place="bottom"
         />
