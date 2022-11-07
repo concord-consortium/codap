@@ -29,7 +29,7 @@ export const DroppableAxis = observer(({ place, portal, target, dropId, dropData
 
   return portal && target && createPortal(
     <>
-      <div ref={setNodeRef} className={classes} style={style} onClick={()=> console.log("clicked on droppable")}/>
+      <div ref={setNodeRef} className={classes} style={style} />
       { isOver && hintString &&
         <DropHint hintText={hintString} />
       }

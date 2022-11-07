@@ -148,14 +148,10 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
               (enter) => {
               },
               (update) => {
-
-                // TODO remove this when you sure you will not need it
-                const tempKTitleWidth = 0
-
                 update
-                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : tempKTitleWidth))
+                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : 0))
                   .attr('y', (d) => axisBounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width - tempKTitleWidth))
+                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width))
                   .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
               }
             )
