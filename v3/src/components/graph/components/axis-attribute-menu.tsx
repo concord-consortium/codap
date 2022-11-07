@@ -8,11 +8,11 @@ import { measureText } from "../../../hooks/use-measure-text"
 interface IProps {
   attrId: string
   place: GraphPlace,
-  onChangeAttribute: (place: string, attrid: string) => void
-  onTreatAs: (place: string, attrid: string, treatAs: string) => void
+  onChangeAttr: (place: GraphPlace, attrId: string) => void
+  onTreatAttrAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs }: IProps ) => {
+export const AxisAttributeMenu = ({ attrId, place, onChangeAttr, onTreatAttrAs }: IProps ) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromID(attrId)
   const treatAs = attribute?.type === "numeric" ? "categorical" : "numeric"
@@ -44,14 +44,14 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs 
         <MenuList>
           { data?.attributes?.map((attr) => {
             return (
-              <MenuItem onClick={() => onChangeAttribute(place, attr.id)} key={attr.id}>
+              <MenuItem onClick={() => onChangeAttr(place, attr.id)} key={attr.id}>
                 {attr.name}
               </MenuItem>
             )
           })}
           <MenuDivider />
-          <MenuItem onClick={() => onChangeAttribute(place, "")}>Remove {attribute?.name}</MenuItem>
-          <MenuItem onClick={() => onTreatAs(place, attrId, treatAs)}>Treat as {treatAs}</MenuItem>
+          <MenuItem onClick={() => onChangeAttr(place, "")}>Remove {attribute?.name}</MenuItem>
+          <MenuItem onClick={() => onTreatAttrAs(place, attrId, treatAs)}>Treat as {treatAs}</MenuItem>
         </MenuList>
       </Menu>
     </div>
