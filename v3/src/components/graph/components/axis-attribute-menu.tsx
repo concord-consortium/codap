@@ -4,6 +4,7 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { AxisPlace, GraphPlace } from "../models/axis-model"
 import { useGraphLayoutContext} from "../models/graph-layout"
 import { measureText } from "../../../hooks/use-measure-text"
+import t from "../../../utilities/translation/translate"
 
 interface IProps {
   attrId: string
@@ -50,8 +51,18 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttr, onTreatAttrAs }
             )
           })}
           <MenuDivider />
-          <MenuItem onClick={() => onChangeAttr(place, "")}>Remove {attribute?.name}</MenuItem>
-          <MenuItem onClick={() => onTreatAttrAs(place, attrId, treatAs)}>Treat as {treatAs}</MenuItem>
+          <MenuItem onClick={() => onChangeAttr(place, "")}>
+            { place === "left" &&
+              t("DG.DataDisplayMenu.removeAttribute_y", { vars: [ attribute?.name ] })
+            }
+            { place === "bottom" &&
+              t("DG.DataDisplayMenu.removeAttribute_x", { vars: [ attribute?.name ] })
+            }
+          </MenuItem>
+          <MenuItem onClick={() => onTreatAttrAs(place, attrId, treatAs)}>
+            {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
+            {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric") }
+          </MenuItem>
         </MenuList>
       </Menu>
     </div>
