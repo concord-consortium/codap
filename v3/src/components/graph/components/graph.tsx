@@ -1,4 +1,4 @@
-import {Toast, useToast} from "@chakra-ui/react"
+import {useToast} from "@chakra-ui/react"
 import {select} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import {observer} from "mobx-react-lite"
@@ -17,7 +17,7 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {attrRoleToAxisPlace, attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
+import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -80,9 +80,10 @@ export const Graph = observer((
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string ) => {
     if (attrId === ""){ // when request is to remove the attribute
+      const toRemove = dataset?.attrFromID(graphModel.getAttributeID(graphPlaceToAttrPlace(place))).name
       toast({
         title: `Remove attribute`,
-        description:`remove ${dataset?.attrFromID(graphModel.getAttributeID(graphPlaceToAttrPlace(place))).name} from graph`,
+        description:`remove ${toRemove} from graph`,
         status: 'success', duration: 5000, isClosable: true,
       })
     }

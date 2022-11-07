@@ -1,8 +1,8 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
-import React, { CSSProperties, useLayoutEffect, useState } from "react"
+import React, { CSSProperties } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { AxisPlace, GraphPlace } from "../models/axis-model"
-import { useGraphLayoutContext, Bounds} from "../models/graph-layout"
+import { useGraphLayoutContext} from "../models/graph-layout"
 import { measureText } from "../../../hooks/use-measure-text"
 
 import "./axis-attribute-menu"
@@ -25,7 +25,7 @@ export const AxisAttributeMenu = ({ attrId, place, onChangeAttribute, onTreatAs 
   // TODO - replace with a more reliable calculation or way of placing button
   const calcLeft = () => {
     const bounds = layout.getAxisBounds(place as AxisPlace)
-    if (!bounds) return 0;
+    if (!bounds) return 0
     return place === "left" ? -30 : (bounds.width * .5) - (textLength * .5) + margin.left - 5
   }
 
