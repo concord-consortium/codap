@@ -77,18 +77,20 @@ export const Graph = observer((
 
   const toast = useToast()
 
-  const handleDropAttribute = (place: GraphPlace, attrId: string) => {
+  const handleChangeAttribute = (place: GraphPlace, attrId: string ) => {
+    if (attrId === ""){ // when request is to remove the attribute
+      const toRemove = dataset?.attrFromID(graphModel.getAttributeID(graphPlaceToAttrPlace(place))).name
+      toast({
+        title: `Remove attribute`,
+        description:`remove ${toRemove} from graph`,
+        status: 'success', duration: 5000, isClosable: true,
+      })
+    }
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrPlace = graphPlaceToAttrPlace(computedPlace)
-    const attrName = dataset?.attrFromID(attrId)?.name
-    toast({
-      position: "top-right",
-      title: "Attribute dropped",
-      description: `The attribute ${attrName || attrId} was dropped on the ${place} place!`,
-      status: "success"
-    })
     graphModel.setAttributeID(attrPlace, attrId)
   }
+
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAction(graphModel, action => {
@@ -101,6 +103,14 @@ export const Graph = observer((
     }, true)
     return () => disposer?.()
   }, [graphController, dataset, layout, enableAnimation, graphModel])
+
+  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: string ) => {
+    toast({
+      title: `Treat attribute as`,
+      description:`treat ${dataset?.attrFromID(attrId).name} at the place ${place} as ${treatAs}`,
+      status: 'success', duration: 5000, isClosable: true,
+    })
+  }
 
   // We only need to make the following connection once
   useEffect(function passDotsRefToController() {
@@ -164,13 +174,15 @@ export const Graph = observer((
                 attributeID={yAttrID}
                 transform={`translate(${margin.left - 1}, 0)`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
-                onDropAttribute={handleDropAttribute}
+                onDropAttribute={handleChangeAttribute}
+                onTreatAttrAs={handleTreatAttrAs}
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
-                onDropAttribute={handleDropAttribute}
+                onDropAttribute={handleChangeAttribute}
+                onTreatAttrAs={handleTreatAttrAs}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
@@ -181,7 +193,7 @@ export const Graph = observer((
           </svg>
 
           <DroppablePlot graphElt={graphRef.current} plotElt={backgroundSvgRef.current}
-                         onDropAttribute={handleDropAttribute}/>
+                         onDropAttribute={handleChangeAttribute}/>
           <Legend
             graphModel={graphModel}
             legendAttrID={graphModel.getAttributeID('legend')}

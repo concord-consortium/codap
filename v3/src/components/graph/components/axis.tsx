@@ -8,14 +8,15 @@ import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
 import t from "../../../utilities/translation/translate"
+import { createPortal } from "react-dom"
+import { useToast } from "@chakra-ui/react"
 
 import "./axis.scss"
-import { createPortal } from "react-dom"
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
@@ -23,9 +24,10 @@ interface IProps {
   transform: string
   showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
+  onTreatAttrAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDropAttribute, onTreatAttrAs}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -37,7 +39,8 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
     scale = layout.axisScale(place),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
-    titleRef = useRef<SVGGElement | null>(null)
+    titleRef = useRef<SVGGElement | null>(null),
+    toast = useToast()
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
@@ -56,7 +59,6 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
   }, [place, onDropAttribute])
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
-
   const [xMin, xMax] = scale?.range() || [0, 100]
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
@@ -116,7 +118,13 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
       </g>
 
       { graphElt &&
-        createPortal(<AxisAttributeMenu target={titleRef.current} portal={graphElt} place={place} />, graphElt)
+        createPortal(<AxisAttributeMenu
+          target={titleRef.current}
+          portal={graphElt}
+          place={place}
+          onChangeAttr={onDropAttribute}
+          onTreatAttrAs={onTreatAttrAs}
+        />, graphElt)
       }
 
       {axisModel?.type === 'numeric' ?
