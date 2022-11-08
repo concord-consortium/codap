@@ -936,7 +936,9 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
                   });
                 });
                 tAttrSet.forEach(function(iKey) {
-                  changedAttrIDs.push(tCollection.getAttributeByName(iKey).get('id'));
+                  var tAttr = tCollection.getAttributeByName(iKey);
+                  if( tAttr)
+                    changedAttrIDs.push(tAttr.get('id'));
                 });
               }
             else if( !SC.none( iChange.attributeID))
