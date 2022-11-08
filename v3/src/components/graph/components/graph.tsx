@@ -175,14 +175,14 @@ export const Graph = observer((
                 transform={`translate(${margin.left - 1}, 0)`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
-                onTreatAttrAs={handleTreatAttrAs}
+                onTreatAttributeAs={handleTreatAttrAs}
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
-                onTreatAttrAs={handleTreatAttrAs}
+                onTreatAttributeAs={handleTreatAttrAs}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
