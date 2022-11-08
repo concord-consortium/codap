@@ -14,7 +14,6 @@ import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
 import t from "../../../utilities/translation/translate"
 import { createPortal } from "react-dom"
-import { useToast } from "@chakra-ui/react"
 
 import "./axis.scss"
 
@@ -39,8 +38,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
     scale = layout.axisScale(place),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
-    titleRef = useRef<SVGGElement | null>(null),
-    toast = useToast()
+    titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
@@ -104,8 +102,6 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
       })
       observer.observe(axisElt)
     }
-
-    // occurs to me that we could use above to update some state getCLientBoundsRect(axisElt) and then pass that to the menu...
 
     return () => observer?.disconnect()
   }, [axisElt, place, halfRange, label, transform])
