@@ -11,11 +11,11 @@ interface IProps {
   place: GraphPlace,
   target: SVGGElement | null
   portal: HTMLElement | null
-  onChangeAttr: (place: GraphPlace, attrId: string) => void
+  onChangeAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const AxisAttributeMenu = ({ place, target, portal, onChangeAttr, onTreatAttributeAs }: IProps ) => {
+export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps ) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
   const { plotWidth, plotHeight, margin } = useGraphLayoutContext()
@@ -38,7 +38,7 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttr, onTreat
         <MenuList>
           { data?.attributes?.map((attr) => {
             return (
-              <MenuItem onClick={() => onChangeAttr(place, attr.id)} key={attr.id}>
+              <MenuItem onClick={() => onChangeAttribute(place, attr.id)} key={attr.id}>
                 {attr.name}
               </MenuItem>
             )
@@ -46,7 +46,7 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttr, onTreat
           { attribute &&
             <>
               <MenuDivider />
-              <MenuItem onClick={() => onChangeAttr(place, "")}>
+              <MenuItem onClick={() => onChangeAttribute(place, "")}>
                 { place === "left" &&
                   t("DG.DataDisplayMenu.removeAttribute_y", {vars: [attribute?.name]})
                 }

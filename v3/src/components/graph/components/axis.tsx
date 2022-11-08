@@ -119,7 +119,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
           target={titleRef.current}
           portal={graphElt}
           place={place}
-          onChangeAttr={onDropAttribute}
+          onChangeAttribute={onDropAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
         />, graphElt)
       }
