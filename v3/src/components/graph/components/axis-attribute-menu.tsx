@@ -12,10 +12,10 @@ interface IProps {
   target: SVGGElement | null
   portal: HTMLElement | null
   onChangeAttr: (place: GraphPlace, attrId: string) => void
-  onTreatAttrAs: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const AxisAttributeMenu = ({ place, target, portal, onChangeAttr, onTreatAttrAs }: IProps ) => {
+export const AxisAttributeMenu = ({ place, target, portal, onChangeAttr, onTreatAttributeAs }: IProps ) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
   const { plotWidth, plotHeight, margin } = useGraphLayoutContext()
@@ -54,7 +54,7 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttr, onTreat
                   t("DG.DataDisplayMenu.removeAttribute_x", {vars: [attribute?.name]})
                 }
               </MenuItem>
-              <MenuItem onClick={() => onTreatAttrAs(place, attribute?.id, treatAs)}>
+              <MenuItem onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}>
                 {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
                 {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
               </MenuItem>

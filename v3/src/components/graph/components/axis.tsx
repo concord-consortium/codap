@@ -23,10 +23,10 @@ interface IProps {
   transform: string
   showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
-  onTreatAttrAs: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDropAttribute, onTreatAttrAs}: IProps) => {
+export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDropAttribute, onTreatAttributeAs}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -119,7 +119,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
           portal={graphElt}
           place={place}
           onChangeAttr={onDropAttribute}
-          onTreatAttrAs={onTreatAttrAs}
+          onTreatAttributeAs={onTreatAttributeAs}
         />, graphElt)
       }
 
