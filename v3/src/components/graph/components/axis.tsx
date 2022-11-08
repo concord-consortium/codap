@@ -26,7 +26,8 @@ interface IProps {
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDropAttribute, onTreatAttributeAs}: IProps) => {
+export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
+  onDropAttribute, onTreatAttributeAs}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
