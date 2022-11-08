@@ -11,9 +11,11 @@ import {useAxis} from "../hooks/use-axis"
 import {AxisPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
+import {AxisAttributeMenu} from "./axis-attribute-menu"
 import t from "../../../utilities/translation/translate"
 
 import "./axis.scss"
+import { createPortal } from "react-dom"
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
@@ -101,6 +103,8 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
       observer.observe(axisElt)
     }
 
+    // occurs to me that we could use above to update some state getCLientBoundsRect(axisElt) and then pass that to the menu...
+
     return () => observer?.disconnect()
   }, [axisElt, place, halfRange, label, transform])
 
@@ -110,6 +114,11 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
         <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
         <g ref={titleRef}/>
       </g>
+
+      { graphElt &&
+        createPortal(<AxisAttributeMenu target={titleRef.current} portal={graphElt} place={place} />, graphElt)
+      }
+
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
         <DroppableAxis
