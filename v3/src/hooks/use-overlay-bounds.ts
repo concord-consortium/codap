@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
+import { useDataConfigurationContext } from "../components/graph/hooks/use-data-configuration-context"
+import { useGraphLayoutContext } from "../components/graph/models/graph-layout"
 
 interface IProps {
   target: Element | null
   portal?: Element | null
-  graphHeight?: number | null
 }
 interface IBounds {
   left: number
@@ -11,15 +12,16 @@ interface IBounds {
   width: number
   height: number
 }
-export function useOverlayBounds({ target, portal, graphHeight }: IProps) {
+export function useOverlayBounds({ target, portal }: IProps) {
   const [overlayBounds, setOverlayBounds] = useState<IBounds | null>(null)
-
+  const {graphHeight, legendHeight} = useGraphLayoutContext()
+  const { ...all } = useGraphLayoutContext()
+  console.log("ALL!", all)
   useEffect(() => {
     // track the bounds of the target element relative to the portal element
     const observer = target && new ResizeObserver(() => {
       const portalBounds = portal?.getBoundingClientRect()
       const targetBounds = target?.getBoundingClientRect()
-      console.log("useOverlayBounds: ", target)
       if (targetBounds) {
         setOverlayBounds({
           left: targetBounds.x - (portalBounds?.x ?? 0),
@@ -32,7 +34,7 @@ export function useOverlayBounds({ target, portal, graphHeight }: IProps) {
     target && observer?.observe(target)
 
     return () => observer?.disconnect()
-  }, [portal, target, graphHeight])
+  }, [portal, target, graphHeight, legendHeight])
 
   return overlayBounds
 }
