@@ -1,5 +1,6 @@
 import {Active} from "@dnd-kit/core"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import {createPortal} from "react-dom"
 import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
@@ -8,10 +9,12 @@ import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
+import {AxisAttributeMenu} from "./axis-attribute-menu"
 import t from "../../../utilities/translation/translate"
+
 
 import "./axis.scss"
 
@@ -21,9 +24,11 @@ interface IProps {
   transform: string
   showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDropAttribute}: IProps) => {
+export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
+  onDropAttribute, onTreatAttributeAs}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -54,7 +59,6 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
   }, [place, onDropAttribute])
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
-
   const [xMin, xMax] = scale?.range() || [0, 100]
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
@@ -110,6 +114,17 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, onDro
         <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
         <g ref={titleRef}/>
       </g>
+
+      { graphElt &&
+        createPortal(<AxisAttributeMenu
+          target={titleRef.current}
+          portal={graphElt}
+          place={place}
+          onChangeAttribute={onDropAttribute}
+          onTreatAttributeAs={onTreatAttributeAs}
+        />, graphElt)
+      }
+
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
         <DroppableAxis
