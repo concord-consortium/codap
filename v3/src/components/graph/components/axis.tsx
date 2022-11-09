@@ -1,5 +1,6 @@
 import {Active} from "@dnd-kit/core"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import {createPortal} from "react-dom"
 import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
@@ -13,7 +14,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
 import t from "../../../utilities/translation/translate"
-import { createPortal } from "react-dom"
+
 
 import "./axis.scss"
 
