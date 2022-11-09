@@ -26,7 +26,7 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, on
   const overlayBounds = useOverlayBounds({target, portal})
   const buttonStyles: CSSProperties = { position: "absolute", color: "transparent" }
 
-  if (attrId === undefined && place === "bottom"){
+  if (!attrId && place === "bottom"){
     buttonStyles.top = plotHeight + 4
     buttonStyles.left = ( plotWidth * .5 ) - margin.right - 8 // ~ width of y scale
   }

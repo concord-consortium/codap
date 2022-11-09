@@ -78,7 +78,7 @@ export const Graph = observer((
   const toast = useToast()
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string ) => {
-    if (attrId === ""){ // when request is to remove the attribute
+    if (!attrId){ // when request is to remove the attribute
       const toRemove = dataset?.attrFromID(graphModel.getAttributeID(graphPlaceToAttrPlace(place))).name
       toast({
         title: `Remove attribute`,
