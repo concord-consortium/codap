@@ -1,23 +1,46 @@
 import React, {memo, useRef} from "react"
+import { Active } from "@dnd-kit/core"
 import {IGraphModel} from "../../models/graph-model"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {AttributeLabel} from "../attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
+import {DroppableSvg} from "../droppable-svg"
+import { useInstanceIdContext } from "../../../../hooks/use-instance-id-context"
+import { getDragAttributeId, IDropData } from "../../../../hooks/use-drag-drop"
+import { useDropHintString } from "../../../../hooks/use-drop-hint-string"
 
 interface ILegendProps {
   graphModel: IGraphModel
   transform: string
   legendAttrID:string
+  graphElt: HTMLDivElement | null
+  onDropAttribute: (place: any, attrId: string) => void //TODO what sort of a place is the legend?
 }
 
-export const Legend = memo(function Legend({legendAttrID, graphModel, transform}: ILegendProps) {
+export const Legend = memo(function Legend({legendAttrID, graphModel, transform, graphElt, onDropAttribute }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendLabelRef = useRef<SVGGElement>(null),
-    legendRef = useRef() as React.RefObject<SVGSVGElement>
+    legendRef = useRef() as React.RefObject<SVGSVGElement>,
+    instanceId = useInstanceIdContext(),
+    droppableId = `${instanceId}-legend-area-drop`,
+    role = 'legend',
+    hintString = useDropHintString({ role })
+
+  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
+
+  const handleLegendDropAttribute = (active: Active) => {
+    const dragAttributeID = getDragAttributeId(active)
+    if (dragAttributeID) {
+      onDropAttribute('legend', dragAttributeID)
+    }
+  }
+
+  const data: IDropData = {accepts: ["attribute"], onDrop: handleLegendDropAttribute}
 
   return legendAttrID ? (
+    <>
     <svg ref={legendRef} className='legend'>
       <AttributeLabel
         ref={legendLabelRef}
@@ -33,6 +56,17 @@ export const Legend = memo(function Legend({legendAttrID, graphModel, transform}
                                                   transform = {transform}/> : null
       }
     </svg>
+      <DroppableSvg
+        className="droppable-legend"
+        portal={graphElt}
+        target={legendRef.current}
+        dropId={droppableId}
+        dropData={data}
+        onIsActive={handleIsActive}
+        hintString={hintString}
+      />
+    </>
+
   ) : null
 })
 Legend.displayName = "Legend"

@@ -170,6 +170,7 @@ export const Graph = observer((
             marqueeState={marqueeState}
             ref={backgroundSvgRef}
           />
+
           <Axis getAxisModel={() => graphModel.getAxis('left')}
                 attributeID={yAttrID}
                 transform={`translate(${margin.left - 1}, 0)`}
@@ -177,6 +178,7 @@ export const Graph = observer((
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
           />
+
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
@@ -192,12 +194,18 @@ export const Graph = observer((
             <Marquee marqueeState={marqueeState}/>
           </svg>
 
-          <DroppablePlot graphElt={graphRef.current} plotElt={backgroundSvgRef.current}
-                         onDropAttribute={handleChangeAttribute}/>
+          <DroppablePlot
+            graphElt={graphRef.current}
+            plotElt={backgroundSvgRef.current}
+            onDropAttribute={handleChangeAttribute}
+          />
+
           <Legend
             graphModel={graphModel}
             legendAttrID={graphModel.getAttributeID('legend')}
             transform={legendTransformRef.current}
+            graphElt={graphRef.current}
+            onDropAttribute={handleChangeAttribute}
           />
         </svg>
       </div>
