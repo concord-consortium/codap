@@ -2,6 +2,7 @@ import { Active, useDroppable } from "@dnd-kit/core"
 import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
+import { useGraphLayoutContext } from "../models/graph-layout"
 import { DropHint } from "./drop-hint"
 
 import "./droppable-svg.scss"
@@ -19,11 +20,14 @@ export const DroppableSvg = ({
     className, portal, target, dropId, dropData, onIsActive, hintString }: IProps) => {
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId, data: dropData })
   const isActive = active && onIsActive?.(active)
-
-  const overlayBounds = useOverlayBounds({ target, portal })
-
+  const { graphHeight } = useGraphLayoutContext()
+  const overlayBounds = useOverlayBounds({ target, portal, graphHeight })
   const style: CSSProperties = overlayBounds || {}
   const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`
+
+  if (dropId === "graph-1-legend-area-drop"){
+    console.log("DroppableSvg: ", {overlayBounds, active, isOver})
+  }
 
   return portal && target && createPortal(
     <>

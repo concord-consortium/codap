@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 interface IProps {
   target: Element | null
   portal?: Element | null
+  graphHeight?: number | null
 }
 interface IBounds {
   left: number
@@ -10,7 +11,7 @@ interface IBounds {
   width: number
   height: number
 }
-export function useOverlayBounds({ target, portal }: IProps) {
+export function useOverlayBounds({ target, portal, graphHeight }: IProps) {
   const [overlayBounds, setOverlayBounds] = useState<IBounds | null>(null)
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export function useOverlayBounds({ target, portal }: IProps) {
     const observer = target && new ResizeObserver(() => {
       const portalBounds = portal?.getBoundingClientRect()
       const targetBounds = target?.getBoundingClientRect()
+      console.log("useOverlayBounds: ", target)
       if (targetBounds) {
         setOverlayBounds({
           left: targetBounds.x - (portalBounds?.x ?? 0),
@@ -30,7 +32,7 @@ export function useOverlayBounds({ target, portal }: IProps) {
     target && observer?.observe(target)
 
     return () => observer?.disconnect()
-  }, [portal, target])
+  }, [portal, target, graphHeight])
 
   return overlayBounds
 }
