@@ -1,5 +1,5 @@
 import React, {memo, useRef} from "react"
-import { Active } from "@dnd-kit/core"
+import {Active} from "@dnd-kit/core"
 import {IGraphModel} from "../../models/graph-model"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {AttributeLabel} from "../attribute-label"
@@ -9,7 +9,7 @@ import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, IDropData} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
-import { GraphAttrRole } from "../../models/data-configuration-model"
+import {GraphAttrRole} from "../../models/data-configuration-model"
 
 interface ILegendProps {
   graphModel: IGraphModel
