@@ -6,9 +6,9 @@ import {AttributeLabel} from "../attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
 import {DroppableSvg} from "../droppable-svg"
-import { useInstanceIdContext } from "../../../../hooks/use-instance-id-context"
-import { getDragAttributeId, IDropData } from "../../../../hooks/use-drag-drop"
-import { useDropHintString } from "../../../../hooks/use-drop-hint-string"
+import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
+import {getDragAttributeId, IDropData} from "../../../../hooks/use-drag-drop"
+import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 
 interface ILegendProps {
   graphModel: IGraphModel
@@ -26,7 +26,7 @@ export const Legend = memo(function Legend({legendAttrID, transform, graphElt, o
     instanceId = useInstanceIdContext(),
     droppableId = `${instanceId}-legend-area-drop`,
     role = 'legend',
-    hintString = useDropHintString({ role })
+    hintString = useDropHintString({role})
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
