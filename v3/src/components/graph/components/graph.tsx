@@ -178,7 +178,6 @@ export const Graph = observer((
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
           />
-
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
