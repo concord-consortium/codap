@@ -15,10 +15,10 @@ interface ILegendProps {
   transform: string
   legendAttrID:string
   graphElt: HTMLDivElement | null
-  onDropAttribute: (place: any, attrId: string) => void //TODO what sort of a place is the legend?
+  onDropAttribute: (place: any, attrId: string) => void
 }
 
-export const Legend = memo(function Legend({legendAttrID, graphModel, transform, graphElt, onDropAttribute }: ILegendProps) {
+export const Legend = memo(function Legend({legendAttrID, transform, graphElt, onDropAttribute }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendLabelRef = useRef<SVGGElement>(null),
