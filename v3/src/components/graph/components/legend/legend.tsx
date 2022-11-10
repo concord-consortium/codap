@@ -9,6 +9,7 @@ import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, IDropData} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
+import { GraphAttrRole } from "../../models/data-configuration-model"
 
 interface ILegendProps {
   graphModel: IGraphModel
@@ -25,7 +26,7 @@ export const Legend = memo(function Legend({legendAttrID, transform, graphElt, o
     legendRef = useRef() as React.RefObject<SVGSVGElement>,
     instanceId = useInstanceIdContext(),
     droppableId = `${instanceId}-legend-area-drop`,
-    role = 'legend',
+    role = 'legend' as GraphAttrRole,
     hintString = useDropHintString({role})
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
