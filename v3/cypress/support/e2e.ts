@@ -14,7 +14,7 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import "./commands";
+import "./commands"
 
 // Alternatively you can use CommonJS syntax:
 // require("./commands")
@@ -25,11 +25,4 @@ import "@cypress/code-coverage/support"
 // https://github.com/quasarframework/quasar/issues/2233#issuecomment-1006506083
 Cypress.on("uncaught:exception", err => !err.message.includes("ResizeObserver"))
 
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-    // we expect a 3rd party library error with message "list not defined"
-    // and don"t want to fail the test so we return false
-    return false;
-    // we still want to ensure there are no other unexpected
-    // errors, so we let them fail the test
-});
+Cypress.on("uncaught:exception", err => !err.message.includes("not a function"))
