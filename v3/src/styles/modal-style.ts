@@ -1,36 +1,36 @@
 import { createMultiStyleConfigHelpers } from '@chakra-ui/react'
 
 // This function creates a set of function that helps us create multipart component styles.
-const helpers = createMultiStyleConfigHelpers(["menu", "list", "item"])
+const helpers = createMultiStyleConfigHelpers(["modal", "header", "body", "button"])
 
-export const Menu = helpers.defineMultiStyleConfig({
+export const Modal = helpers.defineMultiStyleConfig({
   baseStyle: {
-    menu: {
+    header: {
       font: "MuseoSans', sans-serif",
       boxShadow: "md",
-      rounded: "md",
-      flexDirection: "column",
-      py: "2",
+      // rounded: "md",
+      // flexDirection: "column",
+      // py: "2",
     },
-    list: {
-      minWidth: "100px",
-      padding: "10px 15px"
+    button: {
+      minWidth: "20px",
+      // padding: "10px 15px"
     },
-    item: {
-      padding: "3px 0",
+    body: {
+      // padding: "3px 0",
       fontWeight: "medium",
-      _focus: {
-        bg: "tealLight5"
-      },
-      _active: {
-        bg: "tealLight3",
-        color: "white"
-      }
+      // _focus: {
+      //   bg: "tealLight5"
+      // },
+      // _active: {
+      //   bg: "tealLight3",
+      //   color: "white"
+      // }
     }
   },
   sizes: {
     sm: {
-      item: {
+      button: {
         fontSize: "10px",
         lineHeight: "12px",
         px: 2,
@@ -38,7 +38,7 @@ export const Menu = helpers.defineMultiStyleConfig({
       },
     },
     md: {
-      item: {
+      button: {
         fontSize: "12px",
         lineHeight: "14px",
         px: 3,
