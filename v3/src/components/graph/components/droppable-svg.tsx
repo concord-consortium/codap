@@ -19,10 +19,7 @@ export const DroppableSvg = ({
     className, portal, target, dropId, dropData, onIsActive, hintString }: IProps) => {
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId, data: dropData })
   const isActive = active && onIsActive?.(active)
-
-  const overlayBounds = useOverlayBounds({ target, portal })
-
-  const style: CSSProperties = overlayBounds || {}
+  const style: CSSProperties = useOverlayBounds({ target, portal })
   const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`
 
   return portal && target && createPortal(

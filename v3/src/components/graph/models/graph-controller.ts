@@ -83,8 +83,6 @@ export class GraphController {
       }
       layout.setAxisScale('bottom', scaleOrdinal())
       layout.setAxisScale('left', scaleOrdinal())
-      // TODO the first drop of a numeric attr on an empty axis results in warning:
-      // Unexpected value NaN parsing cy attribute.
     }
   }
 
