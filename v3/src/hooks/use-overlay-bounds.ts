@@ -14,5 +14,5 @@ export function useOverlayBounds({ target, portal }: IProps) {
       height: targetBounds.height
     }
   }
-  return null
+  return {}
 }
