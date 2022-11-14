@@ -1,5 +1,6 @@
 import { extendTheme } from '@chakra-ui/react'
 import { Menu } from './styles/menu-style'
+import { Modal } from './styles/modal-style'
 
 export const theme = extendTheme({
   config: {
@@ -28,6 +29,7 @@ export const theme = extendTheme({
         border: "1px solid gray"
       }
     },
-    Menu
+    Menu,
+    Modal
   }
 })
