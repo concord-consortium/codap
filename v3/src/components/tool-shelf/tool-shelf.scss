@@ -15,27 +15,24 @@
     background-color: white;
     border-right: solid #888888;
     align-items: center;
+    padding: 0 5px;
 
     .toolshelf-button {
       height: 40px;
-      width: 34px;
+      width: 40px;
       margin-top: 5px;
       display: flex;
       flex-direction: column;
       justify-items: center;
       align-items: center;
       margin: 0 5px;
-        &:hover {
-          border-right: solid 2px #888888;
-          border-bottom: solid 2px #888888;
-        }
-        &:active {
-          margin-top: 10px;
-        }
+      &:active {
+        box-shadow: 2px 2px 2px 0px rgb(0, 0, 0, 0.5) !important
+      }
 
       .tool-shelf-tool-label {
-        font-family: 'MuseoSans', sans-serif;
-        font-size: 10px;
+        font-family: "museo-sans", sans-serif;
+        font-size: 11px;
         font-weight: 500;
         padding: 0;
         min-height: 6px;

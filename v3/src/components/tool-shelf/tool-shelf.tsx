@@ -93,6 +93,8 @@ export const ToolShelf = () => {
               onClick={aDesc.handler}
               data-testid={`tool-shelf-button-${aDesc.iconLabel}`}
               className="toolshelf-button"
+              _hover={{ boxShadow: '1px 1px 1px 0px rgba(0, 0, 0, 0.5)' }}
+              // :active styling is in css to override Chakra default
             >
               {<aDesc.icon/>}
               <Tag className='tool-shelf-tool-label'>{aDesc.iconLabel}</Tag>

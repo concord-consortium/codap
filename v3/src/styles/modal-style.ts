@@ -6,26 +6,14 @@ const helpers = createMultiStyleConfigHelpers(["modal", "header", "body", "butto
 export const Modal = helpers.defineMultiStyleConfig({
   baseStyle: {
     header: {
-      font: "MuseoSans', sans-serif",
+      font: "museo-sans', sans-serif",
       boxShadow: "md",
-      // rounded: "md",
-      // flexDirection: "column",
-      // py: "2",
     },
     button: {
       minWidth: "20px",
-      // padding: "10px 15px"
     },
     body: {
-      // padding: "3px 0",
       fontWeight: "medium",
-      // _focus: {
-      //   bg: "tealLight5"
-      // },
-      // _active: {
-      //   bg: "tealLight3",
-      //   color: "white"
-      // }
     }
   },
   sizes: {

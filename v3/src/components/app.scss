@@ -9,7 +9,6 @@
   justify-content: center;
   color: #242424;
   background-color: #dfdfdf;
-  font-family: "MuseoSans", sans-serif;
 
   .app {
     width: 100%;
@@ -39,8 +38,8 @@
   bottom: 0;
 }
 
-@font-face {
-  font-family: "MuseoSans";   /*Can be any text*/
-  src: url("https://use.typekit.net/ckm7htd.css") format("woff"),
-       url("https://use.typekit.net/ckm7htd.css") format("opentype");
-}
+// @font-face {
+//   font-family: "museo-sans";   /*Can be any text*/
+//   src: url("https://use.typekit.net/ckm7htd.css") format("woff"),
+//        url("https://use.typekit.net/ckm7htd.css") format("opentype");
+// }
