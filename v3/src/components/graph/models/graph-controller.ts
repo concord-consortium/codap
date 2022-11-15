@@ -11,7 +11,7 @@ import {
   CategoricalAxisModel,
   ICategoricalAxisModel,
   INumericAxisModel,
-  NumericAxisModel, axisPlaceToAttrRole, attrRoleToAxisPlace, GraphPlace
+  NumericAxisModel, axisPlaceToAttrRole, attrRoleToAxisPlace, GraphPlace, IEmptyAxisModel
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
@@ -182,6 +182,13 @@ export class GraphController {
         layout.setAxisScale(axisPlace, scaleBand())
       }
       layout.axisScale(axisPlace)?.domain(setOfValues)
+    }
+    else {  // attributeType is 'empty'
+      if( currentAxisType !== attributeType) {
+        const newAxisModel = EmptyAxisModel.create({place: axisPlace})
+        graphModel.setAxis(axisPlace, newAxisModel as IEmptyAxisModel)
+        layout.setAxisScale(axisPlace, scaleOrdinal())
+      }
     }
   }
 

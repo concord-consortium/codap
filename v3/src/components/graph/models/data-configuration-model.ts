@@ -235,7 +235,7 @@ export const DataConfigurationModel = types
       }
     },
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
-      if (desc) {
+      if (desc && desc.attributeID !== '') {
         self.attributeDescriptions.set(role, desc)
       } else {
         self.attributeDescriptions.delete(role)
