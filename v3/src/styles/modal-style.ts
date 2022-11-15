@@ -6,7 +6,7 @@ const helpers = createMultiStyleConfigHelpers(["modal", "header", "body", "butto
 export const Modal = helpers.defineMultiStyleConfig({
   baseStyle: {
     header: {
-      font: "museo-sans, sans-serif",
+      font: `"museo-sans", sans-serif`,
       boxShadow: "md",
     },
     button: {
