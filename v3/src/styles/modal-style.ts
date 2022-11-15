@@ -1,12 +1,12 @@
 import { createMultiStyleConfigHelpers } from '@chakra-ui/react'
 
-// This function creates a set of function that helps us create multipart component styles.
+// This function creates a set of functions that help us create multipart component styles.
 const helpers = createMultiStyleConfigHelpers(["modal", "header", "body", "button"])
 
 export const Modal = helpers.defineMultiStyleConfig({
   baseStyle: {
     header: {
-      font: "museo-sans', sans-serif",
+      font: "museo-sans, sans-serif",
       boxShadow: "md",
     },
     button: {
