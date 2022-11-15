@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TEditorProps } from "./case-table-types"
@@ -25,6 +25,10 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TE
   const data = useDataSetContext()
   const initialValueRef = useRef(data?.getValue(row.__id__, column.key))
   const valueRef = useRef(initialValueRef.current)
+
+  useEffect(()=>{
+    data?.setSelectedCases([])
+  }, [data])
 
   const handleChange = (value: string) => {
     valueRef.current = value
