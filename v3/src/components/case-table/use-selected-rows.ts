@@ -121,20 +121,5 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
     }
   }, [data])
 
-  const handleKeyDown = useCallback(({ __id__: caseId }: TRow) => {
-    const currentIndex = data?.caseIndexFromID(caseId)
-    if (!currentIndex) return
-    const numCases = data?.cases?.length || 0
-    let newIndex = -1
-    if (isKeyDown("ArrowDown") && (currentIndex < numCases)) {
-      newIndex = currentIndex + 1
-    }
-    if (isKeyDown("ArrowUp") && (currentIndex > 0)) {
-      newIndex = currentIndex - 1
-    }
-    const newCaseId = data?.getCaseAtIndex(newIndex)?.__id__
-    newCaseId && data?.setSelectedCases([newCaseId])
-  }, [data])
-
-  return { selectedRows, setSelectedRows, handleRowClick, handleKeyDown }
+  return { selectedRows, setSelectedRows, handleRowClick }
 }
