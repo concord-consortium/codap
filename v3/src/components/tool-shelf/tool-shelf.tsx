@@ -1,5 +1,6 @@
 import React from "react"
-import {Box, Flex, HStack, Tag, useToast, VStack} from "@chakra-ui/react"
+import {Box, Flex, HStack, Tag, useToast} from "@chakra-ui/react"
+import t from "../../utilities/translation/translate"
 
 import './tool-shelf.scss'
 import GraphIcon from '../../assets/icons/icon-graph.svg'
@@ -32,57 +33,57 @@ export const ToolShelf = () => {
     {
       ariaLabel: 'Make a table',
       icon: TableIcon,
-      iconLabel: 'Tables …',
-      buttonHint: 'Open a table for each dataset',
+      iconLabel: t("DG.ToolButtonData.tableButton.title"),
+      buttonHint: t("DG.ToolButtonData.tableButton.toolTip"),
       handler: tableHandler
     },
     {
       ariaLabel: 'Make a graph',
       icon: GraphIcon,
-      iconLabel: 'Graph',
-      buttonHint: 'Make a graph',
+      iconLabel: t("DG.ToolButtonData.graphButton.title"),
+      buttonHint: t("DG.ToolButtonData.graphButton.toolTip"),
       handler: graphHandler
     },
     {
       ariaLabel: 'Make a map',
       icon: MapIcon,
-      iconLabel: 'Map',
-      buttonHint: 'Make a map',
+      iconLabel: t("DG.ToolButtonData.mapButton.title"),
+      buttonHint: t("DG.ToolButtonData.mapButton.toolTip"),
       handler: mapHandler
     },
     {
       ariaLabel: 'Make a slider',
       icon: SliderIcon,
-      iconLabel: 'Slider',
-      buttonHint: 'Make a slider',
+      iconLabel: t("DG.ToolButtonData.sliderButton.title"),
+      buttonHint: t("DG.ToolButtonData.sliderButton.toolTip"),
       handler: sliderHandler
     },
     {
       ariaLabel: 'Open/close the calculator',
       icon: CalcIcon,
-      iconLabel: 'Calc',
-      buttonHint: 'Open/close the calculator',
+      iconLabel: t("DG.ToolButtonData.calcButton.title"),
+      buttonHint: t("DG.ToolButtonData.calcButton.toolTip"),
       handler: calcHandler
     },
     {
       ariaLabel: 'Make a text object',
       icon: TextIcon,
-      iconLabel: 'Text',
-      buttonHint: 'Make a text object',
+      iconLabel: t("DG.ToolButtonData.textButton.title"),
+      buttonHint: t("DG.ToolButtonData.textButton.toolTip"),
       handler: textHandler
     },
     {
       ariaLabel: 'Choose a plugin',
       icon: PluginsIcon,
-      iconLabel: 'Plugins …',
-      buttonHint: 'Add a plugin to the document',
+      iconLabel: t("DG.ToolButtonData.pluginMenu.title"),
+      buttonHint: t("DG.ToolButtonData.pluginMenu.toolTip"),
       handler: pluginsHandler
     }
   ]
 
   return (
     <HStack className='tool-shelf' alignContent='center'>
-      <Flex height='100%' borderRight='solid #888888'>
+      <Flex className="toolshelf-component-buttons" >
         {buttonDescriptions.map(aDesc => {
           return (
             <Box
@@ -91,14 +92,16 @@ export const ToolShelf = () => {
               bg='white'
               onClick={aDesc.handler}
               data-testid={`tool-shelf-button-${aDesc.iconLabel}`}
+              className="toolshelf-button"
+              _hover={{ boxShadow: '1px 1px 1px 0px rgba(0, 0, 0, 0.5)' }}
+              // :active styling is in css to override Chakra default
             >
-              <VStack className='button-stack'>
-                {<aDesc.icon height='25px'/>}
-                <Tag className='tool-shelf-tool-label' bg='white'>{aDesc.iconLabel}</Tag>
-              </VStack>
+              {<aDesc.icon/>}
+              <Tag className='tool-shelf-tool-label'>{aDesc.iconLabel}</Tag>
             </Box>)
         })}
       </Flex>
-    </HStack>)
+    </HStack>
+  )
 }
 
