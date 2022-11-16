@@ -3,6 +3,7 @@ import { DataBroker } from "../models/data/data-broker"
 import { EditableComponentTitle } from "./editable-component-title"
 
 import "./codap-component.scss"
+import { InspectorPanel } from "./inspector-panel"
 
 interface IProps {
   broker: DataBroker
@@ -16,11 +17,12 @@ export const CodapComponent: React.FC<IProps> = ({ broker, children }) => {
   }
 
   return (
-    <div className="codap-component">
-      <EditableComponentTitle componentTitle={componentTitle}
+      <div className="codap-component">
+        <EditableComponentTitle componentTitle={componentTitle}
             onEndEdit={handleTitleChange} />
-      {/* inject broker prop into children */}
-      {Children.map(children, child => cloneElement(child as ReactElement, { broker }))}
-    </div>
+        {/* inject broker prop into children */}
+        {Children.map(children, child => cloneElement(child as ReactElement, { broker }))}
+        <InspectorPanel component={"table"}/>
+      </div>
   )
 }

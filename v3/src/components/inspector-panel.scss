@@ -1,0 +1,21 @@
+@import "./vars.scss";
+
+.inspector-panel {
+  position: absolute;
+  right: -50px;
+  min-height: 50px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  .inspector-tool-button {
+    width: 40px;
+    height: 30px;
+    padding: 2px;
+    border: none !important;
+    margin: 5px 0;
+  }
+}
