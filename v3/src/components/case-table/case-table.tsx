@@ -11,7 +11,7 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
-import { InspectorPanel } from "../inspector-panel"
+import { InspectorPanel } from "../inspector-panel/inspector-panel"
 
 import styles from "./case-table-shared.scss"
 import "./case-table.scss"

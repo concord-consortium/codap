@@ -3,7 +3,6 @@ import { DataBroker } from "../models/data/data-broker"
 import { EditableComponentTitle } from "./editable-component-title"
 
 import "./codap-component.scss"
-import { InspectorPanel } from "./inspector-panel"
 
 interface IProps {
   broker: DataBroker
