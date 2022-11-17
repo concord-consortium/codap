@@ -11,6 +11,7 @@ import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
+import { InspectorPanel } from '../../inspector-panel'
 
 const defaultGraphModel = GraphModel.create({
   axes: {
@@ -43,16 +44,17 @@ export const GraphComponent = observer(({broker}: IProps) => {
   setNodeRef(graphRef.current)
 
   return (
-    <DataSetContext.Provider value={dataset}>
-      <InstanceIdContext.Provider value={instanceId}>
-        <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel}
-            graphRef={graphRef}
-            enableAnimation={enableAnimation}
-            dotsRef={dotsRef}
-          />
-        </GraphLayoutContext.Provider>
-      </InstanceIdContext.Provider>
-    </DataSetContext.Provider>
+      <DataSetContext.Provider value={dataset}>
+        <InstanceIdContext.Provider value={instanceId}>
+          <GraphLayoutContext.Provider value={layout}>
+            <Graph model={defaultGraphModel}
+              graphRef={graphRef}
+              enableAnimation={enableAnimation}
+              dotsRef={dotsRef}
+            />
+            <InspectorPanel component={"graph"}/>
+          </GraphLayoutContext.Provider>
+        </InstanceIdContext.Provider>
+      </DataSetContext.Provider>
   )
 })

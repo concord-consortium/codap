@@ -14,6 +14,7 @@ import { prf } from "../../utilities/profiler"
 import styles from "./case-table-shared.scss"
 import "./case-table.scss"
 import "react-data-grid/lib/styles.css"
+import { InspectorPanel } from "../inspector-panel"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
@@ -41,13 +42,18 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
     if (!data) return null
 
     return (
-      <div ref={setNodeRef} className="case-table" data-testid="case-table">
-        <DataGrid ref={gridRef} className="rdg-light"
-          columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-          rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
-        <AttributeDragOverlay activeDragId={overlayDragId} />
-      </div>
+      <>
+        <div ref={setNodeRef} className="case-table" data-testid="case-table">
+          <DataGrid ref={gridRef} className="rdg-light"
+            columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
+            rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+            onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+          <AttributeDragOverlay activeDragId={overlayDragId} />
+        </div>
+        <InspectorPanel component={"table"}/>
+
+      </>
+
     )
   })
 })
