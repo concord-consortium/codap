@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import React, { useRef, useState } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
 import { kIndexColumnKey, TRow } from "./case-table-types"
@@ -11,10 +11,11 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
+import { InspectorPanel } from "../inspector-panel"
+
 import styles from "./case-table-shared.scss"
 import "./case-table.scss"
 import "react-data-grid/lib/styles.css"
-import { InspectorPanel } from "../inspector-panel"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
@@ -22,6 +23,7 @@ interface IProps {
 export const CaseTable = observer(({ setNodeRef }: IProps) => {
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
+  const [showInspector, setShowInspector] = useState(false)
   return prf.measure("Table.render", () => {
 
     const gridRef = useRef<DataGridHandle>(null)
@@ -43,15 +45,15 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
 
     return (
       <>
-        <div ref={setNodeRef} className="case-table" data-testid="case-table">
+        <div ref={setNodeRef} className="case-table" data-testid="case-table"
+            onClick={()=>setShowInspector(!showInspector)}>
           <DataGrid ref={gridRef} className="rdg-light"
             columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
             rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
             onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
           <AttributeDragOverlay activeDragId={overlayDragId} />
         </div>
-        <InspectorPanel component={"table"}/>
-
+        {showInspector && <InspectorPanel component={"table"}/>}
       </>
 
     )
