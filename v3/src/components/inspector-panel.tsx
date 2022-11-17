@@ -9,6 +9,7 @@ import TrashIcon from "../assets/icons/icon-trash.svg"
 import ValuesIcon from "../assets/icons/icon-values.svg"
 import HideShowIcon from "../assets/icons/icon-hideShow.svg"
 import CameraIcon from "../assets/icons/icon-camera.svg"
+import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
 import "./inspector-panel.scss"
 
@@ -45,11 +46,14 @@ export const InspectorPanel = ({component}: IProps) => {
     "slider": sliderInspectors
   }
   return (
-    <Box className="inspector-panel" w="50px" bg="tealDark" data-testid={`inspector-panel-${component}`}>
+    <Box className={`inspector-panel ${component}`} bg="tealDark" data-testid={`inspector-panel-${component}`}>
       {inspectorMap[component].map((iType: string) => {
         return (
           <Button key={iType} className="inspector-tool-button" bg="tealDark">
             {InspectorTool(iType)}
+            {!(iType === "resize") &&
+              <MoreOptionsIcon className="more-options-icon"/>
+            }
           </Button>
         )
       })}

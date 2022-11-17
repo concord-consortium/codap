@@ -4,6 +4,7 @@
   position: absolute;
   right: -50px;
   top: 0;
+  min-width: 50px; // should be width, but temp min-width to accomodate graph
   min-height: 50px;
   z-index: 10;
   display: flex;
@@ -11,12 +12,26 @@
   align-items: center;
   border-radius: 6px;
   padding: 5px 0;
+  &.graph { //Temporarily place on top of component
+    top: -50px;
+    right: 0;
+    flex-direction: row;
+    width: 250px;
+  }
 
   .inspector-tool-button {
     width: 40px;
     height: 30px;
-    padding: 2px;
+    padding: 5px;
     border: none !important;
     margin: 5px 0;
+  }
+
+  .more-options-icon {
+    width: 3px;
+    height: 3px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
   }
 }
