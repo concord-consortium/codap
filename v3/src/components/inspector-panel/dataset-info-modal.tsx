@@ -20,7 +20,7 @@ const DatasetInformationModalContent = ({datasetName, sourceName, importDate, de
   setDataSetName, setSourceName, setImportDate, setDescription
 }: IDatasetInformationModalContentProps) => {
   return (
-    <FormControl display="flex" flexDirection="column">
+    <FormControl display="flex" flexDirection="column" className="dataset-info-modal">
       <FormLabel h="20px" display="flex" flexDirection="row" alignItems="center">
         {t("DG.CaseTable.attributeEditor.name")}
         <Input size="xs" ml={5} placeholder="name" value={datasetName} onFocus={(e) => e.target.select()}
@@ -43,6 +43,7 @@ const DatasetInformationModalContent = ({datasetName, sourceName, importDate, de
       </FormLabel>
       <FormLabel>{t("DG.CaseTable.attributeEditor.description")}
         <Textarea size="xs"
+                  marginLeft="5px"
                   placeholder={t("DG.TableController.datasetMetadata.descriptionHint")}
                   value={description}
                   onFocus={(e) => e.target.select()}

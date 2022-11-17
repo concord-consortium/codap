@@ -1,0 +1,21 @@
+@import "../vars.scss";
+
+.chakra-modal__body {
+  padding: 10px !important;
+  margin-inline-end: 0 !important;
+
+  .dataset-info-modal {
+    .chakra-form__label {
+      margin-inline-end: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      input {
+        margin-left: 5px;
+        width: 185px;
+        right: 0;
+      }
+    }
+  }
+}

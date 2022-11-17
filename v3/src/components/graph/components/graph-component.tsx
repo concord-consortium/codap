@@ -1,7 +1,7 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import {getSnapshot} from "mobx-state-tree"
-import React, {useEffect, useMemo, useRef} from "react"
+import React, {useEffect, useMemo, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {DataBroker} from "../../../models/data/data-broker"
 import {DataSetContext} from "../../../hooks/use-data-set-context"
@@ -33,6 +33,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const enableAnimation = useRef(true)
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
+  const [showInspector, setShowInspector] = useState(false)
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
@@ -51,8 +52,10 @@ export const GraphComponent = observer(({broker}: IProps) => {
               graphRef={graphRef}
               enableAnimation={enableAnimation}
               dotsRef={dotsRef}
+              showInspector={showInspector}
+              setShowInspector={setShowInspector}
             />
-            <InspectorPanel component={"graph"}/>
+            {showInspector && <InspectorPanel component={"graph"}/>}
           </GraphLayoutContext.Provider>
         </InstanceIdContext.Provider>
       </DataSetContext.Provider>
