@@ -53,7 +53,7 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
             onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
           <AttributeDragOverlay activeDragId={overlayDragId} />
         </div>
-        {showInspector && <InspectorPanel component={"table"}/>}
+        {showInspector && <InspectorPanel tools={["information", "resize", "trash", "hide_show", "values"]}/>}
       </>
 
     )

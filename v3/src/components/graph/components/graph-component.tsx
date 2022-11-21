@@ -52,7 +52,9 @@ export const GraphComponent = observer(({broker}: IProps) => {
               enableAnimation={enableAnimation}
               dotsRef={dotsRef}
             />
-            <InspectorPanel component={"graph"}/>
+            {/* Temporarily add component name to place  */}
+            <InspectorPanel tools={["resize", "hide_show", "values", "bar_chart", "styles", "snapshot"]}
+                component={"graph"} />
           </GraphLayoutContext.Provider>
         </InstanceIdContext.Provider>
       </DataSetContext.Provider>

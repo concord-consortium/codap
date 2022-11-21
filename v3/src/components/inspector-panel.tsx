@@ -14,7 +14,8 @@ import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import "./inspector-panel.scss"
 
 interface IProps {
-  component: string
+  tools: string[]
+  component?: string
 }
 
 const InspectorIconComponent: Record<string, any> = {
@@ -34,20 +35,10 @@ export const InspectorTool = (tool: string) => {
   return IconComponent
 }
 
-export const InspectorPanel = ({component}: IProps) => {
-  const tableInpectors = ["information", "resize", "trash", "hide_show", "values"]
-  const graphInspectors = ["resize", "hide_show", "values", "bar_chart", "styles", "snapshot"]
-  const mapInspectors = ["resize", "hide_show", "values", "layers", "snapshot"]
-  const sliderInspectors = ["values"]
-  const inspectorMap: Record<string, any> = {
-    "table": tableInpectors,
-    "graph": graphInspectors,
-    "map": mapInspectors,
-    "slider": sliderInspectors
-  }
+export const InspectorPanel = ({tools, component}: IProps) => {
   return (
-    <Box className={`inspector-panel ${component}`} bg="tealDark" data-testid={`inspector-panel-${component}`}>
-      {inspectorMap[component].map((iType: string) => {
+    <Box className={`inspector-panel ${component ? component : "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+      {tools.map((iType: string) => {
         return (
           <Button key={iType} className="inspector-tool-button" bg="tealDark">
             {InspectorTool(iType)}
