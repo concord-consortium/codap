@@ -1,5 +1,5 @@
 import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
-import {attributeTypes} from "../../../models/data/attribute"
+import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {SetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -18,6 +18,11 @@ export const AttributeDescription = types
     // user-specified type, e.g. treat as numeric
     type: types.maybe(types.enumeration([...attributeTypes]))
   })
+  .actions(self => ({
+    setType( type: AttributeType) {
+      self.type = type
+    }
+  }))
 
 export interface IAttributeDescription extends Instance<typeof AttributeDescription> {
 }
@@ -69,7 +74,7 @@ export const DataConfigurationModel = types
     filterCase(data: IDataSet, caseID: string) {
       return Array.from(self.attributeDescriptions.entries()).every(([place, {attributeID}]) => {
         // can still plot the case without a caption or a legend
-        if (["caption", "legend"].includes( place)) return true
+        if (["caption", "legend"].includes(place)) return true
         switch (self.attributeType(place as GraphAttrRole)) {
           case "numeric":
             return isFinite(data.getNumeric(caseID, attributeID) ?? NaN)
@@ -104,14 +109,13 @@ export const DataConfigurationModel = types
       // But if we know the ids of the attributes involved, we can determine whether
       // an attribute that has a cache is involved
       const attrIDs = actionCall.args[1]
-      if( attrIDs) {
+      if (attrIDs) {
         self.attributeDescriptions.forEach((value, key) => {
-          if( attrIDs.includes( value.attributeID)) {
+          if (attrIDs.includes(value.attributeID)) {
             self.categorySets.set(key as GraphAttrRole, null)
           }
         })
-      }
-      else {
+      } else {
         self.categorySets.clear()
       }
     }
@@ -171,10 +175,9 @@ export const DataConfigurationModel = types
       },
       categorySetForAttrRole(role: GraphAttrRole): Set<string> {
         const existingSet = self.categorySets.get(role)
-        if( existingSet) {
+        if (existingSet) {
           return existingSet
-        }
-        else {
+        } else {
           const result: Set<string> = new Set(this.valuesForAttrRole(role).sort())
           if (result.size === 0) {
             result.add('__main__')
@@ -186,7 +189,7 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
-      getLegendColorForCategory(cat: string):string {
+      getLegendColorForCategory(cat: string): string {
         const catIndex = Array.from(self.categorySetForAttrRole('legend')).indexOf(cat)
         return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
       },
@@ -201,21 +204,21 @@ export const DataConfigurationModel = types
           else dataset?.setSelectedCases(selection)
         }
       },
-      allCasesForCategorySelected(cat:string) {
+      allCasesForCategorySelected(cat: string) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
           selection = (legendID && self.cases.filter((anID: string) => {
             return dataset?.getValue(anID, legendID) === cat
           })) ?? []
-        return selection.length > 0 && (selection as Array<string>).every( anID => dataset?.isCaseSelected(anID))
+        return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
       }
     }))
   .views(self => (
     {
-      getLegendColorForCase(id: string):string {
+      getLegendColorForCase(id: string): string {
         const legendID = self.attributeID('legend'),
           legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
-        return legendValue == null ? '' : self.getLegendColorForCategory( legendValue)
+        return legendValue == null ? '' : self.getLegendColorForCategory(legendValue)
       }
     }))
   .actions(self => ({
@@ -243,6 +246,11 @@ export const DataConfigurationModel = types
       self.filteredCases?.invalidateCases()
       self.categorySets.set(role, null)
     },
+    setAttributeType(role: GraphAttrRole, type: AttributeType) {
+      self.attributeDescriptions.get(role)?.setType(type)
+      self.filteredCases?.invalidateCases()
+      self.categorySets.set(role, null)
+    },
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
       self.handlers.set(id, handler)
@@ -251,6 +259,15 @@ export const DataConfigurationModel = types
       }
     }
   }))
+
+export interface SetAttributeTypeAction extends ISerializedActionCall {
+  name: "setAttributeType"
+  args: [GraphAttrRole, AttributeType]
+}
+
+export function isSetAttributeTypeAction(action: ISerializedActionCall): action is SetAttributeTypeAction {
+  return action.name === "setAttributeType"
+}
 
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {
 }

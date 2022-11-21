@@ -11,7 +11,7 @@ import {
   CategoricalAxisModel,
   ICategoricalAxisModel,
   INumericAxisModel,
-  NumericAxisModel, axisPlaceToAttrRole, attrRoleToAxisPlace, GraphPlace, IEmptyAxisModel
+  NumericAxisModel, axisPlaceToAttrRole, attrRoleToAxisPlace, GraphPlace, IEmptyAxisModel, graphPlaceToAttrPlace
 } from "./axis-model"
 import {PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
@@ -147,7 +147,7 @@ export class GraphController {
       axisPlace = graphPlace as AxisPlace,
       graphAttributeRole = axisPlaceToAttrRole[axisPlace],
       attribute = dataset?.attrFromID(attrID),
-      attributeType = attribute?.type ?? 'empty',
+      attributeType = dataConfig.attributeType(graphPlaceToAttrPlace(graphPlace)) ?? 'empty',
       otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
       otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
       otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
@@ -155,6 +155,7 @@ export class GraphController {
       otherAttributeType = otherAttribute?.type ?? 'empty',
       axisModel = graphModel.getAxis(axisPlace),
       currentAxisType = axisModel?.type,
+      currentlyAssignedAttributeID = dataConfig.attributeID(graphAttributeRole),
       attrDescSnapshot: IAttributeDescriptionSnapshot = {attributeID: attrID},
       // Numeric attributes get priority for primaryRole when present. First one that is already present
       // and then the newly assigned one. If there is an already assigned categorical then its place is
@@ -163,7 +164,7 @@ export class GraphController {
         attributeType === 'numeric' ? graphAttributeRole :
           otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
     dataConfig.setPrimaryRole(primaryRole)
-    dataConfig.setAttribute(graphAttributeRole, attrDescSnapshot)
+    currentlyAssignedAttributeID !== attrID && dataConfig.setAttribute(graphAttributeRole, attrDescSnapshot)
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {
