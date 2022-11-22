@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useRef, useState } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
+import { CaseTableInspector } from "./case-table-inspector"
 import { kIndexColumnKey, TRow } from "./case-table-types"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
@@ -11,7 +12,6 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
-import { InspectorPanel } from "../inspector-panel"
 
 import styles from "./case-table-shared.scss"
 import "./case-table.scss"
@@ -53,7 +53,7 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
             onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
           <AttributeDragOverlay activeDragId={overlayDragId} />
         </div>
-        {showInspector && <InspectorPanel tools={["information", "resize", "trash", "hide_show", "values"]}/>}
+        <CaseTableInspector show={showInspector} />
       </>
 
     )
