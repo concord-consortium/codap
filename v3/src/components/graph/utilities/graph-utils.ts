@@ -1,7 +1,7 @@
 import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {Point, Rect, rTreeRect} from "../graphing-types"
+import {Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "./math-utils"
 import {IDataSet} from "../../../models/data/data-set"
 import {ScaleNumericBaseType} from "../models/graph-layout"
@@ -357,49 +357,49 @@ export interface ISetPointCoordinates {
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string) => number | null)
   getLegendColor?: ((anID: string) => string)
-  duration?: number
+  enableAnimation: React.MutableRefObject<boolean>
   onComplete?: () => void
 }
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
 
   const lookupLegendColor = (id: string) => {
-    const isSelected = dataset?.isCaseSelected(id),
-      legendColor = getLegendColor ? getLegendColor(id) : ''
-    return legendColor !== '' ? legendColor :
-      isSelected ? defaultSelectedColor : defaultPointColor
-  }
+      const isSelected = dataset?.isCaseSelected(id),
+        legendColor = getLegendColor ? getLegendColor(id) : ''
+      return legendColor !== '' ? legendColor :
+        isSelected ? defaultSelectedColor : defaultPointColor
+    },
+
+    setPoints = () => {
+      const duration = enableAnimation.current ? transitionDuration : 0
+      if (selection.size() > 0) {
+        selection
+          .transition()
+          .duration(duration)
+          .on('end', (id, i) => (i === selection.size() - 1) && onComplete())
+          .attr('cx', (anID: string) => getScreenX(anID))
+          .attr('cy', (anID: string) => getScreenY(anID))
+          .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
+          .style('fill', (id: string) => lookupLegendColor(id))
+          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+            defaultSelectedStroke : defaultStrokeColor)
+          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+            defaultSelectedStrokeWidth : defaultStrokeWidth)
+      }
+    }
 
   const
     {
       dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
-      getScreenX, getScreenY, getLegendColor, duration = 0, onComplete
+      getScreenX, getScreenY, getLegendColor, enableAnimation,
+      onComplete = (() => {
+        if( enableAnimation.current) {
+          enableAnimation.current = false
+          setPoints()
+        }
+      })
     } = props,
-    selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
-  if (duration > 0) {
-    selection
-      .transition()
-      .duration(duration)
-      .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
-      .attr('cx', (anID: string) => getScreenX(anID))
-      .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
-      .style('fill', (id: string) => lookupLegendColor(id))
-      .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-        defaultSelectedStroke : defaultStrokeColor)
-      .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-        defaultSelectedStrokeWidth : defaultStrokeWidth)
-  } else if (selection.size() > 0) {
-    selection
-      .attr('cx', (anID: string) => getScreenX(anID))
-      .attr('cy', (anID: string) => getScreenY(anID))
-      .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
-      .style('fill', (id: string) => lookupLegendColor(id))
-      .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-        defaultSelectedStroke : defaultStrokeColor)
-      .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-        defaultSelectedStrokeWidth : defaultStrokeWidth)
-  }
-  // There can be a selection. Rather than call setPointSelection, we can deal with it here
 
+    selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
+    setPoints()
 }

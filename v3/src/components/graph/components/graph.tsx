@@ -1,4 +1,4 @@
-import {select} from "d3"
+import {active, select} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
@@ -79,7 +79,7 @@ export const Graph = observer((
     legendTransformRef.current = `translate(${margin.left}, ${layout.plotHeight + bottomAxisHeight})`
   }, [layout.plotHeight, layout.plotWidth, margin.left, xScale, bottomAxisHeight])
 
-  const handleChangeAttribute = (place: GraphPlace, attrId: string ) => {
+  const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrPlace = graphPlaceToAttrPlace(computedPlace)
     graphModel.setAttributeID(attrPlace, attrId)
@@ -98,7 +98,7 @@ export const Graph = observer((
     return () => disposer?.()
   }, [graphController, dataset, layout, enableAnimation, graphModel])
 
-  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType ) => {
+  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
     graphModel.config.setAttributeType(graphPlaceToAttrPlace(place), treatAs)
     graphController?.handleAttributeAssignment(place, attrId)
   }
@@ -111,7 +111,8 @@ export const Graph = observer((
   // MouseOver events, if over an element, brings up hover text
   function showDataTip(event: MouseEvent) {
     const target = select(event.target as SVGSVGElement)
-    if (target.node()?.nodeName === 'circle' && dataset) {
+    if (target.node()?.nodeName === 'circle' && dataset && !active(target.node()) &&
+        !target.property('isDragging')) {
       target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
       const [, caseID] = target.property('id').split("_"),
         attrIDs = graphModel.config.uniqueTipAttributes,
@@ -121,12 +122,16 @@ export const Graph = observer((
   }
 
   function hideDataTip(event: MouseEvent) {
-    const [, caseID] = select(event.target as SVGSVGElement).property('id').split("_"),
-      isSelected = dataset?.isCaseSelected(caseID)
+    const target = select(event.target as SVGSVGElement)
     dataTip.hide()
-    select(event.target as SVGSVGElement)
-      .transition().duration(transitionDuration)
-      .attr('r', isSelected ? selectedPointRadius : pointRadius)
+    if (target.node()?.nodeName === 'circle' && dataset && !active(target.node()) &&
+      !target.property('isDragging')) {
+      const [, caseID] = select(event.target as SVGSVGElement).property('id').split("_"),
+        isSelected = dataset?.isCaseSelected(caseID)
+      select(event.target as SVGSVGElement)
+        .transition().duration(transitionDuration)
+        .attr('r', isSelected ? selectedPointRadius : pointRadius)
+    }
   }
 
   useEffect(function setupDataTip() {

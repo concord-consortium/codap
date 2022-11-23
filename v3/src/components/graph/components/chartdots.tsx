@@ -24,14 +24,14 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
     layout = useGraphLayoutContext(),
     xAttribute = dataConfiguration?.attributeID('x'),
     yAttribute = dataConfiguration?.attributeID('y')
-  const  primaryAttrPlace = xAttribute ? 'x' :
+  const primaryAttrPlace = xAttribute ? 'x' :
       yAttribute ? 'y' : undefined,
     primaryAxisPlace = primaryAttrPlace ? attrRoleToAxisPlace[primaryAttrPlace] : undefined,
     primaryIsBottom = primaryAxisPlace === 'bottom',
     primaryAttrID = primaryAttrPlace ? dataConfiguration?.attributeID(primaryAttrPlace) : '',
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' :
       primaryAttrPlace === 'y' ? 'x' : undefined,
-    secondaryAxisPlace = secondaryAttrPlace ? attrRoleToAxisPlace[secondaryAttrPlace] :undefined,
+    secondaryAxisPlace = secondaryAttrPlace ? attrRoleToAxisPlace[secondaryAttrPlace] : undefined,
     secondaryAttrID = secondaryAttrPlace ? dataConfiguration?.attributeID(secondaryAttrPlace) : '',
     legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = primaryAxisPlace ? layout.axisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
@@ -77,7 +77,6 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrPlace)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
-      duration = enableAnimation.current ? transitionDuration : 0,
       primaryCellWidth = primaryScale?.bandwidth() ?? 0,
       primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth() :
         (secondaryAxisPlace ? layout.axisLength(secondaryAxisPlace) : 0),
@@ -85,7 +84,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
 
     const computeCellParams = () => {
         primaryCategoriesArray.forEach((primeCat, i) => {
-          if( !categoriesMap[primeCat]) {
+          if (!categoriesMap[primeCat]) {
             categoriesMap[primeCat] = {}
           }
           secondaryCategoriesArray.forEach((secCat, j) => {
@@ -121,45 +120,53 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         })
         return indices
       },
-      onComplete = enableAnimation.current ? () => {
-        enableAnimation.current = false
-      } : undefined,
       cellIndices = buildMapOfIndicesByCase(),
       baseCoord = primaryIsBottom ? 0 : layout.axisLength('left'),
       signForOffset = primaryIsBottom ? 1 : -1,
       primaryCenterKey = primaryIsBottom ? 'cx' : 'cy',
       secondaryCenterKey = primaryIsBottom ? 'cy' : 'cx'
 
-    selection
-      .transition()
-      .duration(duration)
-      .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
-      .attr(primaryCenterKey, (anID: string) => {
-        if (cellIndices[anID]) {
-          const {column} = cellIndices[anID],
-            {h} = cellIndices[anID].cell
-          return baseCoord + signForOffset * ((h + 0.5) * primaryCellWidth) + (column + 0.5) * pointDiameter -
-            cellParams.numPointsInRow * pointDiameter / 2
-        } else {
-          return NaN
+    const setPoints = () => {
+        const duration = enableAnimation.current ? transitionDuration : 0
+        selection
+          .transition()
+          .duration(duration)
+          .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
+          .attr(primaryCenterKey, (anID: string) => {
+            if (cellIndices[anID]) {
+              const {column} = cellIndices[anID],
+                {h} = cellIndices[anID].cell
+              return baseCoord + signForOffset * ((h + 0.5) * primaryCellWidth) + (column + 0.5) * pointDiameter -
+                cellParams.numPointsInRow * pointDiameter / 2
+            } else {
+              return NaN
+            }
+          })
+          .attr(secondaryCenterKey, (anID: string) => {
+            if (cellIndices[anID] && secondaryScale) {
+              const {row} = cellIndices[anID],
+                {v} = cellIndices[anID].cell
+              return secondaryScale.range()[0] -
+                signForOffset * (v * primaryHeight + (row + 0.5) * pointDiameter + row * cellParams.overlap)
+            } else {
+              return NaN
+            }
+          })
+          .style('fill', (anID: string) => {
+            return (legendAttrID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
+          })
+      },
+      onComplete = () => {
+        if (enableAnimation.current) {
+          enableAnimation.current = false
+          setPoints()
         }
-      })
-      .attr(secondaryCenterKey, (anID: string) => {
-        if (cellIndices[anID] && secondaryScale) {
-          const {row} = cellIndices[anID],
-            {v} = cellIndices[anID].cell
-          return secondaryScale.range()[0] -
-            signForOffset * (v * primaryHeight + (row + 0.5) * pointDiameter + row * cellParams.overlap)
-        } else {
-          return NaN
-        }
-      })
-      .style('fill', (anID: string) => {
-        return (legendAttrID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
-      })
+      }
+
+    setPoints()
   }, [dataConfiguration, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
-            enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
-            computeMaxOverAllCells, primaryAttrID, secondaryAttrID, legendAttrID, dataset, secondaryScale])
+    enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
+    computeMaxOverAllCells, primaryAttrID, secondaryAttrID, legendAttrID, dataset, secondaryScale])
 
   useEffect(() => {
     select(dotsRef.current).on('click', (event) => {
@@ -173,7 +180,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   })
 
   usePlotResponders({
-    graphModel,layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
+    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
     primaryAttrID, secondaryAttrID, legendAttrID
   })
 
