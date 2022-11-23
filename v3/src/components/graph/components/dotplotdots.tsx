@@ -188,7 +188,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         },
         getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
         getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord,
-        getLegendColor = dataConfiguration?.getLegendColorForCase
+        getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
       setPointCoordinates({
         dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,

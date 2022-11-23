@@ -174,7 +174,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
       if (element.node()?.nodeName === 'circle') {
         const tItsID: string = element.property('id')
         const [, caseId] = tItsID.split("_")
-        dataset?.selectCases([caseId])
+        dataset?.setSelectedCases([caseId])
       }
     })
   })
