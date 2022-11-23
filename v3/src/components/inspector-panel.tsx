@@ -18,26 +18,19 @@ export const InspectorPanel = ({ component, children }: IProps) => {
 }
 
 interface IInspectorButtonProps {
-  icon: ReactNode
+  children: ReactNode
   tooltip: string
   showMoreOptions: boolean
   onButtonClick?: () => void
 }
 
-export const InspectorButton = ({icon, tooltip, showMoreOptions, onButtonClick}:IInspectorButtonProps) => {
+export const InspectorButton = ({children, tooltip, showMoreOptions, onButtonClick}:IInspectorButtonProps) => {
   return (
     <Button className="inspector-tool-button" title={tooltip}
       onClick={onButtonClick}>
-      {icon}
+      {children}
       {showMoreOptions && <MoreOptionsIcon className="more-options-icon"/>}
     </Button>
   )
 }
 
-{/* <Button key={iType} className="inspector-tool-button" bg="tealDark"
-title={t(`DG.Inspector.${iType}.toolTip`)} onClick={()=> handleToolClick(iType)}>
-{InspectorTool(iType)}
-{!(iType === "resize") &&
-  <MoreOptionsIcon className="more-options-icon"/>
-}
-</Button> */}

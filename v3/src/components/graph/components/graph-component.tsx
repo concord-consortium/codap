@@ -11,7 +11,6 @@ import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import { GraphInspector } from './graph-inspector'
 
 const defaultGraphModel = GraphModel.create({
   axes: {

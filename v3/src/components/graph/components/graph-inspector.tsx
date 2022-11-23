@@ -14,36 +14,24 @@ interface IProps {
 export const GraphInspector = ({ show }: IProps) => {
   return (show
     ? <InspectorPanel component="graph">
-        <InspectorButton
-          icon={<ScaleDataIcon />}
-          tooltip={"DG.Inspector.resize.toolTip"}
-          showMoreOptions={false}
-        />
-        <InspectorButton
-          icon={<HideShowIcon />}
-          tooltip={"DG.Inspector.hideShow.toolTip"}
-          showMoreOptions={true}
-        />
-        <InspectorButton
-          icon={<ValuesIcon />}
-          tooltip={"DG.Inspector.displayValues.toolTip"}
-          showMoreOptions={true}
-        />
-        <InspectorButton
-          icon={<BarChartIcon />}
-          tooltip={"DG.Inspector.displayConfiguration.toolTip"}
-          showMoreOptions={true}
-        />
-        <InspectorButton
-          icon={<StylesIcon />}
-          tooltip={"DG.Inspector.displayStyles.toolTip"}
-          showMoreOptions={true}
-        />
-        <InspectorButton
-          icon={<CameraIcon />}
-          tooltip={"DG.Inspector.makeImage.toolTip"}
-          showMoreOptions={true}
-        />
+        <InspectorButton tooltip={"DG.Inspector.resize.toolTip"} showMoreOptions={false} >
+          <ScaleDataIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.hideShow.toolTip"} showMoreOptions={true}>
+          <HideShowIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.displayValues.toolTip"} showMoreOptions={true}>
+          <ValuesIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.displayConfiguration.toolTip"} showMoreOptions={true}>
+          <BarChartIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.displayStyles.toolTip"} showMoreOptions={true}>
+          <StylesIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.makeImage.toolTip"} showMoreOptions={true}>
+        <CameraIcon />
+        </InspectorButton>
       </InspectorPanel>
     : null
   )
