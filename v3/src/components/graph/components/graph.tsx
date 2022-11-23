@@ -24,6 +24,8 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
+import {GraphInspector} from "./graph-inspector"
+
 
 import "./graph.scss"
 
@@ -32,7 +34,7 @@ interface IProps {
   graphRef: MutableRefObject<HTMLDivElement>
   enableAnimation: MutableRefObject<boolean>
   dotsRef: React.RefObject<SVGSVGElement>
-  showInspector?: boolean
+  showInspector: boolean
   setShowInspector: (show: boolean) => void
 }
 
@@ -202,6 +204,7 @@ export const Graph = observer((
           />
         </svg>
       </div>
+      <GraphInspector show={showInspector} />
     </DataConfigurationContext.Provider>
   )
 })
