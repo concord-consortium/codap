@@ -31,9 +31,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     const attrId = data?.attrIDFromName(column.name as string)
     attrId && data?.attrFromID(attrId).setHidden(true)
   }
-  const handleShowAllAttributes = () => {
-    data?.showAllAttributes()
-  }
+
   const handleDeleteAttribute = () => {
     const attrId = data?.attrIDFromName(column.name as string)
     attrId && data?.removeAttribute(attrId)
@@ -80,8 +78,6 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
         <MenuItem onClick={handleHideAttribute}>
           {t("DG.TableController.headerMenuItems.hideAttribute")}
         </MenuItem>
-        {/* temporary until table tool palette is implemented */}
-        <MenuItem onClick={handleShowAllAttributes}>Show All Attributes</MenuItem>
         <MenuItem onClick={() => handleDeleteAttribute()}>
           {t("DG.TableController.headerMenuItems.deleteAttribute")}
         </MenuItem>

@@ -7,6 +7,7 @@ import TrashIcon from "../../assets/icons/icon-trash.svg"
 import ValuesIcon from "../../assets/icons/icon-values.svg"
 import { DatasetInfoModal } from "./inspector-panel/dataset-info-modal"
 import { TrashMenuList } from "./inspector-panel/trash-menu-list"
+import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
 import t from "../../utilities/translation/translate"
 
 interface IProps {
@@ -34,9 +35,9 @@ export const CaseTableInspector = ({ show }: IProps) => {
         <InspectorMenu tooltip={"DG.Inspector.delete.toolTip"} icon={<TrashIcon className="inspector-menu-icon"/>}>
           <TrashMenuList />
         </InspectorMenu>
-        <InspectorButton tooltip={"DG.Inspector.hideShow.toolTip"} showMoreOptions={true}>
-          <HideShowIcon />
-        </InspectorButton>
+        <InspectorMenu tooltip={"DG.Inspector.hideShow.toolTip"} icon={<HideShowIcon className="inspector-menu-icon"/>}>
+          <HideShowMenuList />
+        </InspectorMenu>
         <InspectorButton tooltip={"DG.Inspector.attributes.toolTip"} showMoreOptions={true}>
           <ValuesIcon />
         </InspectorButton>
