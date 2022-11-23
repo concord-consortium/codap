@@ -23,7 +23,6 @@
     border: none !important;
     margin: 5px;
     background-color: $teal-dark;
-
     &:hover {
       background-color: $teal-light1;
     }
@@ -37,6 +36,17 @@
       position: absolute;
       bottom: 0;
       left: 0;
+    }
+    &.menu {
+      .inspector-menu-icon {
+        margin-left: 5px;
+      }
+      .more-options-icon {
+        width: 3px;
+        height: 3px;
+        position: relative;
+        left: -5px;
+      }
     }
   }
 }
