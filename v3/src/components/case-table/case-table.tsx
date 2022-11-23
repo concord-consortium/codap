@@ -1,8 +1,9 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import React, { useRef, useState } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
+import { CaseTableInspector } from "./case-table-inspector"
 import { kIndexColumnKey, TRow } from "./case-table-types"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
@@ -11,6 +12,7 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
+
 import styles from "./case-table-shared.scss"
 import "./case-table.scss"
 import "react-data-grid/lib/styles.css"
@@ -21,6 +23,7 @@ interface IProps {
 export const CaseTable = observer(({ setNodeRef }: IProps) => {
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
+  const [showInspector, setShowInspector] = useState(false)
   return prf.measure("Table.render", () => {
 
     const gridRef = useRef<DataGridHandle>(null)
@@ -41,13 +44,18 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
     if (!data) return null
 
     return (
-      <div ref={setNodeRef} className="case-table" data-testid="case-table">
-        <DataGrid ref={gridRef} className="rdg-light"
-          columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-          rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
-        <AttributeDragOverlay activeDragId={overlayDragId} />
-      </div>
+      <>
+        <div ref={setNodeRef} className="case-table" data-testid="case-table"
+            onClick={()=>setShowInspector(!showInspector)}>
+          <DataGrid ref={gridRef} className="rdg-light"
+            columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
+            rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+            onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+          <AttributeDragOverlay activeDragId={overlayDragId} />
+        </div>
+        <CaseTableInspector show={showInspector} />
+      </>
+
     )
   })
 })

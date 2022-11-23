@@ -1,7 +1,7 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import {getSnapshot} from "mobx-state-tree"
-import React, {useEffect, useMemo, useRef} from "react"
+import React, {useEffect, useMemo, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {DataBroker} from "../../../models/data/data-broker"
 import {DataSetContext} from "../../../hooks/use-data-set-context"
@@ -11,6 +11,7 @@ import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
+import { GraphInspector } from './graph-inspector'
 
 const defaultGraphModel = GraphModel.create({
   axes: {
@@ -32,6 +33,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const enableAnimation = useRef(true)
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
+  const [showInspector, setShowInspector] = useState(true)
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
@@ -43,16 +45,17 @@ export const GraphComponent = observer(({broker}: IProps) => {
   setNodeRef(graphRef.current)
 
   return (
-    <DataSetContext.Provider value={dataset}>
-      <InstanceIdContext.Provider value={instanceId}>
-        <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel}
-            graphRef={graphRef}
-            enableAnimation={enableAnimation}
-            dotsRef={dotsRef}
-          />
-        </GraphLayoutContext.Provider>
-      </InstanceIdContext.Provider>
-    </DataSetContext.Provider>
+      <DataSetContext.Provider value={dataset}>
+        <InstanceIdContext.Provider value={instanceId}>
+          <GraphLayoutContext.Provider value={layout}>
+            <Graph model={defaultGraphModel}
+              graphRef={graphRef}
+              enableAnimation={enableAnimation}
+              dotsRef={dotsRef}
+            />
+            <GraphInspector show={showInspector} />
+          </GraphLayoutContext.Provider>
+        </InstanceIdContext.Provider>
+      </DataSetContext.Provider>
   )
 })

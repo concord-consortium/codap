@@ -18,7 +18,7 @@ export const CodapComponent: React.FC<IProps> = ({ broker, children }) => {
   return (
     <div className="codap-component">
       <EditableComponentTitle componentTitle={componentTitle}
-            onEndEdit={handleTitleChange} />
+          onEndEdit={handleTitleChange} />
       {/* inject broker prop into children */}
       {Children.map(children, child => cloneElement(child as ReactElement, { broker }))}
     </div>
