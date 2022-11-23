@@ -27,6 +27,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     layout = useGraphLayoutContext(),
     primaryAttrID = dataConfiguration?.attributeID('x') as string,
     secondaryAttrID = dataConfiguration?.attributeID('y') as string,
+    legendAttrID = dataConfiguration?.attributeID('legend') as string,
     xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left") as ScaleNumericBaseType,
     [dragID, setDragID] = useState(''),
@@ -133,10 +134,10 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     const
       getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
       getScreenY = (anID: string) => getScreenCoord(dataset, anID, secondaryAttrID, yScale),
-      {getLegendColorForCase} = dataConfiguration || {}
+      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, selectedOnly,
-      getScreenX, getScreenY, getLegendColor: getLegendColorForCase, enableAnimation})
+      getScreenX, getScreenY, getLegendColor, enableAnimation})
   }, [dataset, pointRadius, selectedPointRadius, dotsRef, primaryAttrID, xScale,
             secondaryAttrID, yScale, enableAnimation, dataConfiguration])
 
