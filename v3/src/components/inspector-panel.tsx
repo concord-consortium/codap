@@ -1,5 +1,6 @@
-import { Box } from "@chakra-ui/react"
+import { Box, Button } from "@chakra-ui/react"
 import React, { ReactNode } from "react"
+import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
 import "./inspector-panel.scss"
 
@@ -15,3 +16,21 @@ export const InspectorPanel = ({ component, children }: IProps) => {
     </Box>
   )
 }
+
+interface IInspectorButtonProps {
+  children: ReactNode
+  tooltip: string
+  showMoreOptions: boolean
+  onButtonClick?: () => void
+}
+
+export const InspectorButton = ({children, tooltip, showMoreOptions, onButtonClick}:IInspectorButtonProps) => {
+  return (
+    <Button className="inspector-tool-button" title={tooltip}
+      onClick={onButtonClick}>
+      {children}
+      {showMoreOptions && <MoreOptionsIcon className="more-options-icon"/>}
+    </Button>
+  )
+}
+

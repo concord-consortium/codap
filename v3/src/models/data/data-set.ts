@@ -155,6 +155,9 @@ export const DataSet = types.model("DataSet", {
   collections: types.array(CollectionModel),
   attributes: types.array(Attribute),
   cases: types.array(CaseID),
+  sourceName: types.maybe(types.string),
+  description: types.maybe(types.string),
+  importDate: types.maybe(types.string),
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string)
 })
@@ -410,6 +413,15 @@ export const DataSet = types.model("DataSet", {
       },
       setName(name: string) {
         self.name = name
+      },
+      setSourceName(source: string) {
+        self.sourceName = source
+      },
+      setImportDate(date: string) {
+        self.importDate = date
+      },
+      setDescription(description: string) {
+        self.description = description
       },
       addCollection(snapshot: ICollectionModelSnapshot) {
         self.collections.push(CollectionModel.create(snapshot))

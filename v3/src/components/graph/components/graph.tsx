@@ -24,6 +24,8 @@ import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
+import {GraphInspector} from "./graph-inspector"
+
 
 import "./graph.scss"
 
@@ -32,6 +34,8 @@ interface IProps {
   graphRef: MutableRefObject<HTMLDivElement>
   enableAnimation: MutableRefObject<boolean>
   dotsRef: React.RefObject<SVGSVGElement>
+  showInspector: boolean
+  setShowInspector: (show: boolean) => void
 }
 
 const marqueeState = new MarqueeState(),
@@ -42,7 +46,7 @@ const marqueeState = new MarqueeState(),
     })
 
 export const Graph = observer((
-  {model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
+  {model: graphModel, graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) => {
   const {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -150,7 +154,7 @@ export const Graph = observer((
 
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
-      <div className={kGraphClass} ref={graphRef} data-testid="graph">
+      <div className={kGraphClass} ref={graphRef} data-testid="graph" onClick={()=>setShowInspector(!showInspector)}>
         <svg className='graph-svg' ref={svgRef}>
           <Background
             transform={`translate(${margin.left}, 0)`}
@@ -195,6 +199,7 @@ export const Graph = observer((
           />
         </svg>
       </div>
+      <GraphInspector show={showInspector} />
     </DataConfigurationContext.Provider>
   )
 })

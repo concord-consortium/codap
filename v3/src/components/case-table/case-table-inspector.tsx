@@ -1,47 +1,47 @@
-import React, { ReactNode } from "react"
-import { Button } from "@chakra-ui/react"
-import { InspectorPanel } from "../inspector-panel"
+import React, { useState } from "react"
+import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import HideShowIcon from "../../assets/icons/icon-hideShow.svg"
 import InformationIcon from "../../assets/icons/icon-info.svg"
 import ScaleDataIcon from "../../assets/icons/icon-scaleData.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 import ValuesIcon from "../../assets/icons/icon-values.svg"
-import MoreOptionsIcon from "../../assets/icons/arrow-moreIconOptions.svg"
+import { DatasetInfoModal } from "./inspector-panel/dataset-info-modal"
+import t from "../../utilities/translation/translate"
 
 interface IProps {
   show: boolean
 }
 
-const ToolIconMap: Record<string, ReactNode> = {
-  "information": <InformationIcon />,
-  "resize": <ScaleDataIcon />,
-  "trash": <TrashIcon />,
-  "hide_show": <HideShowIcon />,
-  "values": <ValuesIcon />
-}
-
 export const CaseTableInspector = ({ show }: IProps) => {
+  const [showInfoModal, setShowInfoModal] = useState(false)
+
+  const handleButtonClick = (tool: string) => {
+    switch (tool) {
+      case "datasetInfo":
+        setShowInfoModal(true)
+    }
+  }
   return (show
     ? <InspectorPanel>
-        <InspectorButton type={"information"} />
-        <InspectorButton type={"resize"} />
-        <InspectorButton type={"trash"} />
-        <InspectorButton type={"hide_show"} />
-        <InspectorButton type={"values"} />
+        <InspectorButton tooltip={t("DG.Inspector.datasetInfo.toolTip")} showMoreOptions={true}
+          onButtonClick={()=>handleButtonClick("datasetInfo")}>
+          <InformationIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}>
+          <ScaleDataIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.delete.toolTip"} showMoreOptions={true}>
+          <TrashIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.hideShow.toolTip"} showMoreOptions={true}>
+          <HideShowIcon />
+        </InspectorButton>
+        <InspectorButton tooltip={"DG.Inspector.attributes.toolTip"} showMoreOptions={true}>
+          <ValuesIcon />
+        </InspectorButton>
+        {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
       </InspectorPanel>
     : null
   )
 }
 
-interface IInspectorButtonProps {
-  type: string
-}
-
-const InspectorButton = ({type}:IInspectorButtonProps) => {
-  return (
-    <Button className="inspector-tool-button">
-      {ToolIconMap[type]}
-      {type !== "resize" && <MoreOptionsIcon className="more-options-icon"/>}
-    </Button>
-  )
-}

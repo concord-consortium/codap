@@ -4,7 +4,7 @@
   position: absolute;
   right: -50px;
   top: 0;
-  min-width: 50px; // should be width, but temp min-width to accomodate graph
+  width: 50px;
   min-height: 50px;
   z-index: 10;
   display: flex;
@@ -12,11 +12,8 @@
   align-items: center;
   border-radius: 6px;
   padding: 5px 0;
-  &.graph { //Temporarily place on top of component
-    top: -50px;
-    right: 0;
-    flex-direction: row;
-    width: 250px;
+  &.graph { //Temporarily place to the left of graph
+    left: -50px;
   }
 
   .inspector-tool-button {
@@ -26,6 +23,13 @@
     border: none !important;
     margin: 5px;
     background-color: $teal-dark;
+
+    &:hover {
+      background-color: $teal-light1;
+    }
+    &:active {
+      background-color: $teal-light3;
+    }
 
     .more-options-icon {
       width: 3px;
