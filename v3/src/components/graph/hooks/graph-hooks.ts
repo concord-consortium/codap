@@ -130,11 +130,11 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     callRefreshPointPositions(false)
   }, [callRefreshPointPositions, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation])
 
-  // respond to added or removed cases
+  // respond to added or removed cases and change in attribute type
   useEffect(function handleAddRemoveCases() {
     const dataConfiguration = graphModel.config
     const disposer = dataConfiguration.onAction(action => {
-      if (['addCases', 'removeCases'].includes(action.name)) {
+      if (['addCases', 'removeCases', 'setAttributeType'].includes(action.name)) {
         matchCirclesToData({
           caseIDs: dataConfiguration.cases,
           pointRadius: graphModel.getPointRadius(),

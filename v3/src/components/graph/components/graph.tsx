@@ -1,4 +1,3 @@
-import {useToast} from "@chakra-ui/react"
 import {select} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import {observer} from "mobx-react-lite"
@@ -24,6 +23,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
+import {AttributeType} from "../../../models/data/attribute"
 import {GraphInspector} from "./graph-inspector"
 
 
@@ -79,8 +79,6 @@ export const Graph = observer((
     legendTransformRef.current = `translate(${margin.left}, ${layout.plotHeight + bottomAxisHeight})`
   }, [layout.plotHeight, layout.plotWidth, margin.left, xScale, bottomAxisHeight])
 
-  const toast = useToast()
-
   const handleChangeAttribute = (place: GraphPlace, attrId: string ) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrPlace = graphPlaceToAttrPlace(computedPlace)
@@ -100,12 +98,9 @@ export const Graph = observer((
     return () => disposer?.()
   }, [graphController, dataset, layout, enableAnimation, graphModel])
 
-  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: string ) => {
-    toast({
-      title: `Treat attribute as`,
-      description:`treat ${dataset?.attrFromID(attrId).name} at the place ${place} as ${treatAs}`,
-      status: 'success', duration: 5000, isClosable: true,
-    })
+  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType ) => {
+    graphModel.config.setAttributeType(graphPlaceToAttrPlace(place), treatAs)
+    graphController?.handleAttributeAssignment(place, attrId)
   }
 
   // We only need to make the following connection once
