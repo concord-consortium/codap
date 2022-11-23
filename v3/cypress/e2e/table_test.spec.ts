@@ -70,8 +70,8 @@ context("case table ui", () => {
             table.getAttribute("Animal").should("not.exist")
         })
         it("verify show all attributes", () => {
-            table.openAttributeMenu("Order")
-            table.selectMenuItemFromAttributeMenu("Show All Attributes")
+            table.openInspectorPanel()
+            table.showAllAttributes()
             table.getColumnHeader(1).should("have.text","Animal")
             table.getAttribute("Animal").should("exist")
         })

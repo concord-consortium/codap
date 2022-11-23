@@ -26,19 +26,23 @@ export const CaseTableInspector = ({ show }: IProps) => {
   return (show
     ? <InspectorPanel>
         <InspectorButton tooltip={t("DG.Inspector.datasetInfo.toolTip")} showMoreOptions={true}
-          onButtonClick={()=>handleButtonClick("datasetInfo")}>
+          onButtonClick={()=>handleButtonClick("datasetInfo")} testId="dataset-info-button">
           <InformationIcon />
         </InspectorButton>
-        <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}>
+        <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
+          testId="resize-table-button">
           <ScaleDataIcon />
         </InspectorButton>
-        <InspectorMenu tooltip={"DG.Inspector.delete.toolTip"} icon={<TrashIcon className="inspector-menu-icon"/>}>
+        <InspectorMenu tooltip={t("DG.Inspector.delete.toolTip")} icon={<TrashIcon className="inspector-menu-icon"/>}
+          testId="delete-cases-button">
           <TrashMenuList />
         </InspectorMenu>
-        <InspectorMenu tooltip={"DG.Inspector.hideShow.toolTip"} icon={<HideShowIcon className="inspector-menu-icon"/>}>
+        <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
+            icon={<HideShowIcon className="inspector-menu-icon"/>} testId="hide-show-button">
           <HideShowMenuList />
         </InspectorMenu>
-        <InspectorButton tooltip={"DG.Inspector.attributes.toolTip"} showMoreOptions={true}>
+        <InspectorButton tooltip={t("DG.Inspector.attributes.toolTip")} showMoreOptions={true}
+          testId="table-attributes-button">
           <ValuesIcon />
         </InspectorButton>
         {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
