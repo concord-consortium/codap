@@ -1,6 +1,5 @@
 import { Box, Button } from "@chakra-ui/react"
 import React, { ReactNode } from "react"
-import t from "../utilities/translation/translate"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
 import "./inspector-panel.scss"
@@ -20,16 +19,17 @@ export const InspectorPanel = ({ component, children }: IProps) => {
 
 interface IInspectorButtonProps {
   icon: ReactNode
-  type: string
+  tooltip: string
+  showMoreOptions: boolean
   onButtonClick?: () => void
 }
 
-export const InspectorButton = ({icon, type, onButtonClick}:IInspectorButtonProps) => {
+export const InspectorButton = ({icon, tooltip, showMoreOptions, onButtonClick}:IInspectorButtonProps) => {
   return (
-    <Button className="inspector-tool-button" title={t(`DG.Inspector.${type}.toolTip`)}
+    <Button className="inspector-tool-button" title={tooltip}
       onClick={onButtonClick}>
       {icon}
-      {(type !== "resize") && <MoreOptionsIcon className="more-options-icon"/>}
+      {showMoreOptions && <MoreOptionsIcon className="more-options-icon"/>}
     </Button>
   )
 }

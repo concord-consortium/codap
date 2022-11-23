@@ -14,12 +14,36 @@ interface IProps {
 export const GraphInspector = ({ show }: IProps) => {
   return (show
     ? <InspectorPanel component="graph">
-        <InspectorButton icon={<ScaleDataIcon />} type={"resize"} />
-        <InspectorButton icon={<HideShowIcon />} type={"hideShow"}/>
-        <InspectorButton icon={<ValuesIcon />} type={"displayValues"} />
-        <InspectorButton icon={<BarChartIcon />} type={"displayConfiguration"} />
-        <InspectorButton icon={<StylesIcon />} type={"displayStyles"} />
-        <InspectorButton icon={<CameraIcon />} type={"makeImage"} />
+        <InspectorButton
+          icon={<ScaleDataIcon />}
+          tooltip={"DG.Inspector.resize.toolTip"}
+          showMoreOptions={false}
+        />
+        <InspectorButton
+          icon={<HideShowIcon />}
+          tooltip={"DG.Inspector.hideShow.toolTip"}
+          showMoreOptions={true}
+        />
+        <InspectorButton
+          icon={<ValuesIcon />}
+          tooltip={"DG.Inspector.displayValues.toolTip"}
+          showMoreOptions={true}
+        />
+        <InspectorButton
+          icon={<BarChartIcon />}
+          tooltip={"DG.Inspector.displayConfiguration.toolTip"}
+          showMoreOptions={true}
+        />
+        <InspectorButton
+          icon={<StylesIcon />}
+          tooltip={"DG.Inspector.displayStyles.toolTip"}
+          showMoreOptions={true}
+        />
+        <InspectorButton
+          icon={<CameraIcon />}
+          tooltip={"DG.Inspector.makeImage.toolTip"}
+          showMoreOptions={true}
+        />
       </InspectorPanel>
     : null
   )
