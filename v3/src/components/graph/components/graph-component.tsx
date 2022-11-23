@@ -11,7 +11,7 @@ import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import { InspectorPanel } from '../../inspector-panel/inspector-panel'
+import { GraphInspector } from './graph-inspector'
 
 const defaultGraphModel = GraphModel.create({
   axes: {
@@ -33,7 +33,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const enableAnimation = useRef(true)
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
-  const [showInspector, setShowInspector] = useState(false)
+  const [showInspector, setShowInspector] = useState(true)
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
@@ -55,7 +55,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
               showInspector={showInspector}
               setShowInspector={setShowInspector}
             />
-            {showInspector && <InspectorPanel component={"graph"}/>}
+            <GraphInspector show={showInspector} />
           </GraphLayoutContext.Provider>
         </InstanceIdContext.Provider>
       </DataSetContext.Provider>

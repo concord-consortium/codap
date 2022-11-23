@@ -21,20 +21,22 @@
     height: 30px;
     padding: 5px;
     border: none !important;
-    margin: 5px 0;
+    margin: 5px;
+    background-color: $teal-dark;
+
     &:hover {
       background-color: $teal-light1;
     }
     &:active {
       background-color: $teal-light3;
     }
-  }
 
-  .more-options-icon {
-    width: 3px;
-    height: 3px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    .more-options-icon {
+      width: 3px;
+      height: 3px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
   }
 }
