@@ -526,6 +526,7 @@ export const DataSet = types.model("DataSet", {
             self.attributes.forEach((attr) => {
               attr.removeValues(index)
             })
+            self.selection.delete(caseID)
             delete caseIDMap[caseID]
             for (let i = index; i < self.cases.length; ++i) {
               const id = self.cases[i].__id__
@@ -556,8 +557,7 @@ export const DataSet = types.model("DataSet", {
       },
 
       setSelectedCases(caseIds: string[]) {
-        this.selectAll(false)
-        this.selectCases(caseIds)
+        self.selection.replace(caseIds)
       }
     }
   }

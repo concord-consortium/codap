@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useState } from "react"
+import React, { CSSProperties, useRef, useState } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
 import { CaseTableInspector } from "./case-table-inspector"
@@ -12,6 +12,7 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
+import t from "../../utilities/translation/translate"
 
 import styles from "./case-table-shared.scss"
 import "./case-table.scss"
@@ -53,9 +54,26 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
             onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
           <AttributeDragOverlay activeDragId={overlayDragId} />
         </div>
+        <NoCasesMessage />
         <CaseTableInspector show={showInspector} />
       </>
 
     )
   })
 })
+
+// temporary until we have an input row
+export const NoCasesMessage = () => {
+  const data = useDataSetContext()
+  const style: CSSProperties = {
+    position: "absolute",
+    top: 54,
+    width: "100%",
+    textAlign: "center",
+    fontSize: 14,
+    fontStyle: "italic"
+  }
+  return !data?.cases.length
+          ? <div className="no-cases-message" style={style}>{t("V3.caseTable.noCases")}</div>
+          : null
+}

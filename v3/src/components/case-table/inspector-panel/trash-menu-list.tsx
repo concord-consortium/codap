@@ -1,67 +1,25 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { IAttribute } from "../../../models/data/attribute"
 import t from "../../../utilities/translation/translate"
 
 export const TrashMenuList = () => {
   const data = useDataSetContext()
 
-  const createGhostCase = (attrs:IAttribute[]) => {
-    const gCase:Record<string, any> = {}
-    attrs?.forEach(attr => {
-      gCase[attr.name]=""
-    })
-    return gCase
-  }
-
   const handleSelectAllCases = () => {
-    const caseIDArr:string[] = []
-    if (data) {
-      data.cases.forEach(c => {
-        caseIDArr.push(c.__id__)
-      })
-      data.selectCases(caseIDArr)
-    }
+    data?.setSelectedCases(data.cases.map(c => c.__id__))
   }
 
   const handleDeleteSelectedCases = () => {
-    if (data) {
-      data.removeCases(Array.from(data.selection))
-      if (data.cases.length === 0) {
-        const ghostCase = createGhostCase(data.attributes)
-        data.addCases([ghostCase])
-      }
-    }
+    data?.removeCases(Array.from(data.selection))
   }
 
    const handleDeleteUnselectedCases = () => {
-    const unselectedCaseIDArr:string[] = []
-
-    if (data) {
-      const casesToRemove = data.cases.filter(c=>
-        !((Array.from(data.selection)).includes(c.__id__)))
-      casesToRemove.forEach(c => {
-        unselectedCaseIDArr.push(c.__id__)
-      })
-      data.removeCases(unselectedCaseIDArr)
-      //check to see if all cases were removed and add ghost case
-      if (data.cases.length === 0) {
-        const ghostCase = createGhostCase(data.attributes)
-        data.addCases([ghostCase])
-      }
-    }
+    data?.removeCases(data.cases.filter(c => !data.selection.has(c.__id__)).map(c => c.__id__))
   }
 
   const handleDeleteAllCases = () => {
-    handleSelectAllCases()
-
-    if (data) {
-      data.removeCases(Array.from(data.selection))
-      const ghostCase = createGhostCase(data.attributes)
-      data.addCases([ghostCase])
-    }
-
+    data?.removeCases(Array.from(data.cases.map(c => c.__id__)))
   }
 
   return (
