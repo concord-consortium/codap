@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import { FormControl, FormLabel, Input, Textarea } from "@chakra-ui/react"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
-import t from "../../utilities/translation/translate"
-import { CodapModal } from "../codap-modal"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import t from "../../../utilities/translation/translate"
+import { CodapModal } from "../../codap-modal"
 
 import "./dataset-info-modal.scss"
 
