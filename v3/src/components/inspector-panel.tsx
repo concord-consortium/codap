@@ -1,4 +1,4 @@
-import { Box, Button } from "@chakra-ui/react"
+import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import React, { ReactNode } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
@@ -34,3 +34,20 @@ export const InspectorButton = ({children, tooltip, showMoreOptions, onButtonCli
   )
 }
 
+interface IInspectorMenuProps {
+  children: ReactNode
+  icon: ReactNode
+  tooltip: string
+  onButtonClick?: () => void
+}
+export const InspectorMenu = ({children, icon, tooltip, onButtonClick}:IInspectorMenuProps) => {
+  return (
+    <Menu isLazy>
+      <MenuButton  className="inspector-tool-button menu" title={tooltip}>
+        {icon}
+        <MoreOptionsIcon className="more-options-icon"/>
+      </MenuButton>
+      {children}
+    </Menu>
+  )
+}

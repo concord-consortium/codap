@@ -1,11 +1,12 @@
 import React, { useState } from "react"
-import { InspectorButton, InspectorPanel } from "../inspector-panel"
+import { InspectorButton, InspectorMenu, InspectorPanel } from "../inspector-panel"
 import HideShowIcon from "../../assets/icons/icon-hideShow.svg"
 import InformationIcon from "../../assets/icons/icon-info.svg"
 import ScaleDataIcon from "../../assets/icons/icon-scaleData.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 import ValuesIcon from "../../assets/icons/icon-values.svg"
 import { DatasetInfoModal } from "./inspector-panel/dataset-info-modal"
+import { TrashMenuList } from "./inspector-panel/trash-menu-list"
 import t from "../../utilities/translation/translate"
 
 interface IProps {
@@ -30,9 +31,9 @@ export const CaseTableInspector = ({ show }: IProps) => {
         <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}>
           <ScaleDataIcon />
         </InspectorButton>
-        <InspectorButton tooltip={"DG.Inspector.delete.toolTip"} showMoreOptions={true}>
-          <TrashIcon />
-        </InspectorButton>
+        <InspectorMenu tooltip={"DG.Inspector.delete.toolTip"} icon={<TrashIcon className="inspector-menu-icon"/>}>
+          <TrashMenuList />
+        </InspectorMenu>
         <InspectorButton tooltip={"DG.Inspector.hideShow.toolTip"} showMoreOptions={true}>
           <HideShowIcon />
         </InspectorButton>
@@ -44,4 +45,3 @@ export const CaseTableInspector = ({ show }: IProps) => {
     : null
   )
 }
-
