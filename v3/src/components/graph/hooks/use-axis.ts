@@ -1,6 +1,6 @@
 import {axisBottom, axisLeft, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
 import {autorun, reaction} from "mobx"
-import {useCallback, useEffect} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {between} from "../utilities/math-utils"
@@ -16,7 +16,13 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
     place = axisModel?.place ?? 'bottom',
     scale = layout.axisScale(place),
     axisFunc = place === 'bottom' ? axisBottom : axisLeft,
-    isNumeric = axisModel?.isNumeric
+    isNumeric = axisModel?.isNumeric,
+    // By all rights, the following three lines should not be necessary to get installDomainSync to run when
+    // GraphController:processV2Document installs a new axis model.
+    // Todo: Revisit and figure out whether we can remove the workaround.
+    previousAxisModel = useRef<IAxisModel>(),
+    axisModelChanged = previousAxisModel.current !== axisModel
+  previousAxisModel.current = axisModel
 
   const refreshAxis = useCallback((duration = 0) => {
 
@@ -44,7 +50,7 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
             .tickSizeInner(-tickLength))
         select(axisElt).select('.grid').selectAll('text').remove()
 
-        if( between(0, numericScale.domain()[0], numericScale.domain()[1])) {
+        if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
           select(axisElt).append('g')
             .attr('class', 'zero')
             .transition().duration(duration)
@@ -60,7 +66,7 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
-    if( axisModel) {
+    if (axisModel) {
       const disposer = reaction(
         () => {
           const {place: aPlace, scale: scaleType} = axisModel
@@ -80,9 +86,9 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
   }, [isNumeric, axisModel, layout, refreshAxis])
 
   // update d3 scale and axis when axis domain changes
-  useEffect(() => {
+  useEffect(function installDomainSync() {
     if (isNumeric) {
-      const disposer = autorun(() => {
+      const disposer = autorun((aReaction) => {
         const numericModel = axisModel as INumericAxisModel
         if (numericModel.domain) {
           const {domain} = numericModel
@@ -92,7 +98,8 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
       })
       return () => disposer()
     }
-  }, [isNumeric, axisModel, refreshAxis, scale])
+    // Note axisModelChanged as a dependent. Shouldn't be necessary.
+  }, [axisModelChanged, isNumeric, axisModel, refreshAxis, scale])
 
   // update d3 scale and axis when layout/range changes
   useEffect(() => {
