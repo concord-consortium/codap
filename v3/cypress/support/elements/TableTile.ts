@@ -24,7 +24,7 @@ export const TableTileElements = {
         return cy.get("[data-testid=case-table-attribute-tooltip]")
     },
     openIndexMenuForRow(rowNum) {
-        cy.get(`[data-testid=case-table] [role=grid] [role=row][aria-rowindex="${rowNum}"] 
+        cy.get(`[data-testid=case-table] [role=grid] [role=row][aria-rowindex="${rowNum}"]
             [data-testid=codap-index-content-button]`).click()
     },
     getIndexMenu() {
@@ -118,10 +118,17 @@ export const TableTileElements = {
             this.selectAttributeEditableState(editable)
         }
         this.getApplyButton().click()
-        
+
     },
     getCell(line, row, instance) {
         return cy.get(`[data-testid=case-table] [aria-rowindex="${row}"] [aria-colindex="${line}"] .cell-span`)
+    },
+    openInspectorPanel() {
+      this.getTableTile().click()
+    },
+    showAllAttributes() {
+      cy.get("[data-testid=hide-show-button").click()
+      cy.get("[data-testid=hide-show-menu-list").find("button").contains("Show Hidden Attribute").click()
     }
 }
 
