@@ -108,15 +108,19 @@ export const Graph = observer((
     graphController?.setDotsRef(dotsRef)
   }, [dotsRef, graphController])
 
+  function okToTransition( target: any) {
+    return target.node()?.nodeName === 'circle' && dataset && !active(target.node()) &&
+      !target.property('isDragging')
+  }
+
   // MouseOver events, if over an element, brings up hover text
   function showDataTip(event: MouseEvent) {
     const target = select(event.target as SVGSVGElement)
-    if (target.node()?.nodeName === 'circle' && dataset && !active(target.node()) &&
-        !target.property('isDragging')) {
+    if (okToTransition(target)) {
       target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
       const [, caseID] = target.property('id').split("_"),
         attrIDs = graphModel.config.uniqueTipAttributes,
-        tipText = getPointTipText(dataset, caseID, attrIDs)
+        tipText = getPointTipText(caseID, attrIDs, dataset)
       tipText !== '' && dataTip.show(tipText, event.target)
     }
   }
@@ -124,8 +128,7 @@ export const Graph = observer((
   function hideDataTip(event: MouseEvent) {
     const target = select(event.target as SVGSVGElement)
     dataTip.hide()
-    if (target.node()?.nodeName === 'circle' && dataset && !active(target.node()) &&
-      !target.property('isDragging')) {
+    if (okToTransition(target)) {
       const [, caseID] = select(event.target as SVGSVGElement).property('id').split("_"),
         isSelected = dataset?.isCaseSelected(caseID)
       select(event.target as SVGSVGElement)

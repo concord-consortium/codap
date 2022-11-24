@@ -139,7 +139,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, selectedOnly,
       getScreenX, getScreenY, getLegendColor, enableAnimation})
   }, [dataset, pointRadius, selectedPointRadius, dotsRef, primaryAttrID, xScale,
-            secondaryAttrID, yScale, enableAnimation, dataConfiguration])
+            secondaryAttrID, legendAttrID, yScale, enableAnimation, dataConfiguration])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const { cases, selection } = dataConfiguration || {}

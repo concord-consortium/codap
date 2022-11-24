@@ -1,7 +1,7 @@
 import {max, range, ScaleBand, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {transitionDuration, PlotProps}
+import {PlotProps}
   from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
@@ -196,7 +196,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       })
     },
     [dataConfiguration?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
-      primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
+      legendAttrID, primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
       dataConfiguration?.getLegendColorForCase])
 
   usePlotResponders({

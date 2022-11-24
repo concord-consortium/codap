@@ -86,7 +86,7 @@ export function setNiceDomain(values: number[], axisModel: IAxisModel) {
   }
 }
 
-export function getPointTipText(dataset: IDataSet, caseID: string, attributeIDs: string[]) {
+export function getPointTipText(caseID: string, attributeIDs: string[], dataset?: IDataSet) {
   const float = format('.3~f'),
     attrArray = (attributeIDs.map(attrID => {
       const attribute = dataset?.attrFromID(attrID),
