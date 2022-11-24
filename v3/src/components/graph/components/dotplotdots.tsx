@@ -1,7 +1,7 @@
 import {max, range, ScaleBand, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {transitionDuration, PlotProps}
+import {PlotProps}
   from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {appState} from "../../app-state"
@@ -52,7 +52,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       if (target.current.node()?.nodeName === 'circle') {
         enableAnimation.current = false // We don't want to animate points until end of drag
         appState.beginPerformance()
-        target.current.transition()
+        target.current
+          .property('isDragging', true)
+          .transition()
           .attr('r', dragPointRadius)
         setDragID(() => tItsID)
         currPos.current = primaryIsBottom ? event.clientX : event.clientY
@@ -98,6 +100,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
       if (dragID !== '') {
         target.current
           .classed('dragging', false)
+          .property('isDragging', false)
           .transition()
           .attr('r', selectedPointRadius)
         setDragID('')
@@ -183,21 +186,17 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         getSecondaryScreenCoord = (anID: string) => {
           return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : null
         },
-        duration = enableAnimation.current ? transitionDuration : 0,
-        onComplete = enableAnimation.current ? () => {
-          enableAnimation.current = false
-        } : undefined,
         getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
         getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord,
-        getLegendColor = dataConfiguration?.getLegendColorForCase
+        getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
       setPointCoordinates({
         dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
-        getScreenX, getScreenY, getLegendColor, duration, onComplete
+        getScreenX, getScreenY, getLegendColor, enableAnimation
       })
     },
     [dataConfiguration?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
-      primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
+      legendAttrID, primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
       dataConfiguration?.getLegendColorForCase])
 
   usePlotResponders({

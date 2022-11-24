@@ -1,7 +1,7 @@
 import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
-import {PlotProps, transitionDuration} from "../graphing-types"
+import {PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -27,6 +27,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     layout = useGraphLayoutContext(),
     primaryAttrID = dataConfiguration?.attributeID('x') as string,
     secondaryAttrID = dataConfiguration?.attributeID('y') as string,
+    legendAttrID = dataConfiguration?.attributeID('legend') as string,
     xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left") as ScaleNumericBaseType,
     [dragID, setDragID] = useState(''),
@@ -43,7 +44,9 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
       const tItsID = target.current.property('id')
       if (target.current.node()?.nodeName === 'circle') {
         appState.beginPerformance()
-        target.current.transition()
+        target.current
+          .property('isDragging', true)
+          .transition()
           .attr('r', dragPointRadius)
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
@@ -97,6 +100,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
       if (dragID !== '') {
         target.current
           .classed('dragging', false)
+          .property('isDragging', false)
           .transition()
           .attr('r', selectedPointRadius)
         setDragID(() => '')
@@ -130,16 +134,12 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     const
       getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
       getScreenY = (anID: string) => getScreenCoord(dataset, anID, secondaryAttrID, yScale),
-      {getLegendColorForCase} = dataConfiguration || {},
-      duration = enableAnimation.current ? transitionDuration : 0,
-      onComplete = enableAnimation.current ? () => {
-        enableAnimation.current = false
-      } : undefined
+      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, selectedOnly,
-      getScreenX, getScreenY, getLegendColor: getLegendColorForCase, duration, onComplete})
+      getScreenX, getScreenY, getLegendColor, enableAnimation})
   }, [dataset, pointRadius, selectedPointRadius, dotsRef, primaryAttrID, xScale,
-            secondaryAttrID, yScale, enableAnimation, dataConfiguration])
+            secondaryAttrID, legendAttrID, yScale, enableAnimation, dataConfiguration])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const { cases, selection } = dataConfiguration || {}
