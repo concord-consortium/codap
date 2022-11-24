@@ -136,6 +136,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = dataConfiguration.onAction(action => {
       if (['addCases', 'removeCases', 'setAttributeType'].includes(action.name)) {
         matchCirclesToData({
+          dataset,
           caseIDs: dataConfiguration.cases,
           pointRadius: graphModel.getPointRadius(),
           dotsElement: dotsRef.current ,
@@ -145,6 +146,6 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }
     })
     return () => disposer()
-  }, [enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+  }, [dataset, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
 }

@@ -77,6 +77,7 @@ export class GraphController {
       }
       else {
         matchCirclesToData({
+          dataset: this.dataset,
           caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
           pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
         })

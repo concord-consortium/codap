@@ -101,6 +101,7 @@ export function getPointTipText(caseID: string, attributeIDs: string[], dataset?
 }
 
 export interface IMatchCirclesProps {
+  dataset?: IDataSet,
   caseIDs: string[]
   dotsElement: SVGGElement | null
   pointRadius: number
@@ -109,7 +110,7 @@ export interface IMatchCirclesProps {
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const {caseIDs, enableAnimation, instanceId, dotsElement, pointRadius} = props,
+  const {dataset, caseIDs, enableAnimation, instanceId, dotsElement, pointRadius} = props,
     keyFunc = (d: string) => d
   enableAnimation.current = true
   select(dotsElement)
@@ -122,7 +123,20 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .attr('class', 'graph-dot')
           .attr('r', pointRadius)
           .property('id', (anID: string) => `${instanceId}_${anID}`)
-          .selection()
+          // .selection()
+          .on('click', (event) => {
+            const element = select(event.target as SVGSVGElement)
+            if (element.node()?.nodeName === 'circle') {
+              const tItsID: string = element.property('id')
+              const [, caseId] = tItsID.split("_")
+              if (event.shiftKey) {
+                dataset?.selectCases([caseId])
+              }
+              else {
+                dataset?.setSelectedCases([caseId])
+              }
+            }
+          })
       }
     )
 }
