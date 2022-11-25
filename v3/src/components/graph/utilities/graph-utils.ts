@@ -109,7 +109,29 @@ export interface IMatchCirclesProps {
   instanceId: string | undefined
 }
 
+export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: IDataSet) {
+  const [, caseId] = caseID.split("_"),
+    extendSelection = event.shiftKey,
+    caseIsSelected = dataset?.isCaseSelected(caseId)
+  if (!caseIsSelected) {
+    if (extendSelection) { // case is not selected and Shift key is down => add case to selection
+      dataset?.selectCases([caseId])
+    } else { // case is not selected and Shift key is up => only this case should be selected
+      dataset?.setSelectedCases([caseId])
+    }
+  } else if (extendSelection) { // case is selected and Shift key is down => deselect case
+    dataset?.selectCases([caseId], false)
+  }
+}
+
 export function matchCirclesToData(props: IMatchCirclesProps) {
+
+  const handleClick = (event: any) => {
+    const element = select(event.target as SVGSVGElement)
+    if (element.node()?.nodeName === 'circle') {
+      handleClickOnDot(event, element.property('id'), dataset)
+    }
+  }
   const {dataset, caseIDs, enableAnimation, instanceId, dotsElement, pointRadius} = props,
     keyFunc = (d: string) => d
   enableAnimation.current = true
@@ -123,22 +145,12 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .attr('class', 'graph-dot')
           .attr('r', pointRadius)
           .property('id', (anID: string) => `${instanceId}_${anID}`)
-          // .selection()
-          .on('click', (event) => {
-            const element = select(event.target as SVGSVGElement)
-            if (element.node()?.nodeName === 'circle') {
-              const tItsID: string = element.property('id')
-              const [, caseId] = tItsID.split("_")
-              if (event.shiftKey) {
-                dataset?.selectCases([caseId])
-              }
-              else {
-                dataset?.setSelectedCases([caseId])
-              }
-            }
-          })
+        // .selection()
+        // .on('click', handleClick)
       }
     )
+  select(dotsElement).on('click', handleClick)
+
 }
 
 //  Return the two points in logical coordinates where the line with the given
@@ -415,5 +427,5 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     } = props,
 
     selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
-    setPoints()
+  setPoints()
 }

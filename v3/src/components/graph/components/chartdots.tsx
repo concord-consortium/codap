@@ -8,7 +8,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrRoleToAxisPlace} from "../models/axis-model"
-import {defaultPointColor} from "../../../utilities/color-utils"
+import {defaultPointColor, defaultSelectedColor} from "../../../utilities/color-utils"
 
 interface IProps {
   graphModel: IGraphModel
@@ -80,7 +80,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
       primaryCellWidth = primaryScale?.bandwidth() ?? 0,
       primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth() :
         (secondaryAxisPlace ? layout.axisLength(secondaryAxisPlace) : 0),
-      categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {}
+      categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {},
+      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     const computeCellParams = () => {
         primaryCategoriesArray.forEach((primeCat, i) => {
@@ -124,9 +125,22 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
       baseCoord = primaryIsBottom ? 0 : layout.axisLength('left'),
       signForOffset = primaryIsBottom ? 1 : -1,
       primaryCenterKey = primaryIsBottom ? 'cx' : 'cy',
-      secondaryCenterKey = primaryIsBottom ? 'cy' : 'cx'
+      secondaryCenterKey = primaryIsBottom ? 'cy' : 'cx',
 
-    const setPoints = () => {
+      lookupLegendColor = (id: string) => {
+        const isSelected = dataset?.isCaseSelected(id),
+          legendColor = getLegendColor ? getLegendColor(id) : ''
+        return legendColor !== '' ? legendColor :
+          isSelected ? defaultSelectedColor : defaultPointColor
+      },
+      onComplete = () => {
+        if (enableAnimation.current) {
+          enableAnimation.current = false
+          setPoints()
+        }
+      },
+
+      setPoints = () => {
         const duration = enableAnimation.current ? transitionDuration : 0
         selection
           .transition()
@@ -152,39 +166,13 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
               return NaN
             }
           })
-          .style('fill', (anID: string) => {
-            return (legendAttrID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
-          })
-      },
-      onComplete = () => {
-        if (enableAnimation.current) {
-          enableAnimation.current = false
-          setPoints()
-        }
+          .style('fill', (anID: string) => lookupLegendColor(anID))
       }
 
     setPoints()
   }, [dataConfiguration, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
     enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
     computeMaxOverAllCells, primaryAttrID, secondaryAttrID, legendAttrID, dataset, secondaryScale])
-
-/*
-  useEffect(() => {
-    select(dotsRef.current).on('click', (event) => {
-      const element = select(event.target as SVGSVGElement)
-      if (element.node()?.nodeName === 'circle') {
-        const tItsID: string = element.property('id')
-        const [, caseId] = tItsID.split("_")
-        if (event.shiftKey) {
-          dataset?.setSelectedCases([caseId])
-        }
-        else {
-          dataset?.setSelectedCases([caseId])
-        }
-      }
-    })
-  })
-*/
 
   usePlotResponders({
     graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,

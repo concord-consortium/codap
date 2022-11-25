@@ -56,9 +56,8 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     height = useRef(0),
     selectionTree = useRef<typeof RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>(),
-    currentlySelectedCaseIDs = useRef<string[]>([]),
 
-    onDragStart = useCallback((event: MouseEvent) => {
+    onDragStart = useCallback((event:any) => {
       appState.beginPerformance()
       const leftEdge = bgRef.current?.getBBox().x ?? 0
       selectionTree.current = prepareTree('.graph-dot-area', 'circle')
@@ -66,9 +65,11 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       startY.current = event.y
       width.current = 0
       height.current = 0
+      if( !event.sourceEvent.shiftKey) {
+        dataset.current?.setSelectedCases([])
+      }
       marqueeState.setMarqueeRect({x: event.x - leftEdge, y: event.y, width: 0, height: 0})
-      currentlySelectedCaseIDs.current = []
-    }, [marqueeState, bgRef]),
+    }, [dataset, marqueeState, bgRef]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -106,8 +107,10 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         .on("drag", onDrag)
         .on("end", onDragEnd),
       groupElement = bgRef.current
-    select(groupElement).on('click', () => {
-      dataset.current?.selectAll(false)
+    select(groupElement).on('click', (event) => {
+      if( !event.shiftKey) {
+        dataset.current?.selectAll(false)
+      }
     })
 
     select(groupElement)

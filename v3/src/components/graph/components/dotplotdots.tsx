@@ -9,7 +9,7 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set"
-import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
+import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {attrRoleToAxisPlace} from "../models/axis-model"
 
@@ -44,7 +44,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
     dragPointRadius = graphModel.getPointRadius('hover-drag')
 
 
-  const onDragStart = useCallback((event: MouseEvent) => {
+  const onDragStart = useCallback((event: any) => {
       dataset?.beginCaching()
       didDrag.current = false
       target.current = select(event.target as SVGSVGElement)
@@ -59,9 +59,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         setDragID(() => tItsID)
         currPos.current = primaryIsBottom ? event.clientX : event.clientY
 
-        const [, caseId] = tItsID.split("_")
-        dataset?.selectCases([caseId])
-        // Record the current values so we can change them during the drag and restore them when done
+        handleClickOnDot(event, tItsID, dataset)
+        // Record the current values, so we can change them during the drag and restore them when done
         const { selection } = dataConfiguration || {}
         selection?.forEach(anID => {
           const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
