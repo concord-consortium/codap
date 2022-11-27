@@ -173,6 +173,7 @@ export const Graph = observer((
           <Axis getAxisModel={() => graphModel.getAxis('left')}
                 attributeID={yAttrID}
                 transform={`translate(${margin.left - 1}, 0)`}
+                enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
@@ -180,6 +181,7 @@ export const Graph = observer((
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
                 transform={`translate(${margin.left}, ${layout.plotHeight})`}
+                enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}

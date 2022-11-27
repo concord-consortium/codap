@@ -1,5 +1,5 @@
 import {Active} from "@dnd-kit/core"
-import React, {useCallback, useEffect, useRef, useState} from "react"
+import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
 import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
@@ -22,13 +22,14 @@ interface IProps {
   getAxisModel: () => IAxisModel | undefined
   attributeID: string
   transform: string
+  enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
-  onDropAttribute, onTreatAttributeAs}: IProps) => {
+  onDropAttribute, enableAnimation, onTreatAttributeAs}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -44,7 +45,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
-  useAxis({axisModel, axisElt, showGridLines})
+  useAxis({axisModel, axisElt, enableAnimation, showGridLines})
 
   useEffect(function setupTransform() {
     axisElt && select(axisElt)
