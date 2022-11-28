@@ -1,17 +1,19 @@
 import {axisBottom, axisLeft, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
 import {autorun, reaction} from "mobx"
-import {useCallback, useEffect, useRef} from "react"
+import {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {between} from "../utilities/math-utils"
+import {transitionDuration} from "../graphing-types"
 
 export interface IUseAxis {
   axisModel?: IAxisModel
   axisElt: SVGGElement | null
+  enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
 }
 
-export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
+export const useAxis = ({axisModel, axisElt, showGridLines, enableAnimation}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
     scale = layout.axisScale(place),
@@ -24,8 +26,8 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
     axisModelChanged = previousAxisModel.current !== axisModel
   previousAxisModel.current = axisModel
 
-  const refreshAxis = useCallback((duration = 0) => {
-
+  const refreshAxis = useCallback(() => {
+    const duration = enableAnimation.current ? transitionDuration : 0
     if (axisElt) {
       // When switching from one axis type to another, e.g. a categorical axis to an
       // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.
@@ -53,7 +55,6 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
         if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
           select(axisElt).append('g')
             .attr('class', 'zero')
-            .transition().duration(duration)
             // @ts-expect-error scale type
             .call(axisFunc(scale)
               .tickSizeInner(-tickLength)
@@ -62,7 +63,7 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
         }
       }
     }
-  }, [axisElt, place, axisFunc, layout, showGridLines, scale])
+  }, [axisElt, place, axisFunc, layout, showGridLines, scale, enableAnimation])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -116,6 +117,6 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
 
   useEffect(() => {
     refreshAxis()
-  })
+  },[refreshAxis])
 
 }
