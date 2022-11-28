@@ -207,9 +207,6 @@ export const SliderComponent = ({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        <p>I might need a portal again to render this g element</p>
-        <div ref={axisPortal} className="axis-portal"></div>
-
         {/* { axisPortal &&
             createPortal(<Axis
               getAxisModel={() => sliderModel.axis} //
@@ -221,15 +218,21 @@ export const SliderComponent = ({sliderModel} : IProps) => {
             />, axisPortal.current as DocumentFragment)
         } */}
 
+        <svg style={{width: "600px"}}>
+          <Axis
+            getAxisModel={() => sliderModel.axis} //
+            attributeID={''}
+            transform={`translate(325, 0)`}
+            showGridLines={false}
+            onDropAttribute={()=> console.log("make optional")}
+            onTreatAttributeAs={() => console.log("make optional")}
+          />
 
-        <Axis
-          getAxisModel={() => sliderModel.axis} //
-          attributeID={''}
-          transform={`translate(10, 10)`}
-          showGridLines={false}
-          onDropAttribute={()=> console.log("make these optional? but typescript will need to appeased")}
-          onTreatAttributeAs={() => console.log("make these optional - but TS will need to be appeased")}
-        />
+          {/* <AxisBasic getAxisModel={() => sliderModel.axis} /> */}
+
+        </svg>
+
+
 
       </div>
     </>
