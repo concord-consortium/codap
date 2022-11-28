@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from "react"
+import { createPortal } from "react-dom"
 import { Slider, SliderTrack, SliderThumb, Flex, Center } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { select, scaleLinear, axisBottom } from "d3"
@@ -43,9 +44,10 @@ interface IProps {
   sliderModel: ISliderModel
 }
 
-export const SliderComponent = observer(({sliderModel} : IProps) => {
+export const SliderComponent = ({sliderModel} : IProps) => {
   const sliderAxisRef = useRef<any>()
   const sliderAxisBasicRef = useRef<any>()
+  const axisPortal = useRef<any>()
   const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0 )
   const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
   const [running, setRunning] = useState<boolean>(false)
@@ -205,23 +207,31 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        {/* <Axis
+        <p>I might need a portal again to render this g element</p>
+        <div ref={axisPortal} className="axis-portal"></div>
+
+        {/* { axisPortal &&
+            createPortal(<Axis
+              getAxisModel={() => sliderModel.axis} //
+              attributeID={''}
+              transform={`translate(10, 10)`}
+              showGridLines={false}
+              onDropAttribute={()=> console.log("make these optional? but typescript will need to appeased")}
+              onTreatAttributeAs={() => console.log("make these optional - but TS will need to be appeased")}
+            />, axisPortal.current as DocumentFragment)
+        } */}
+
+
+        <Axis
           getAxisModel={() => sliderModel.axis} //
-          attributeID={"a45"}
+          attributeID={''}
           transform={`translate(10, 10)`}
           showGridLines={false}
-          onDropAttribute={()=> console.log("hi")}
-          onTreatAttributeAs={() => console.log("hi")}
-        /> */}
-
-        <AxisBasic
-          getAxisModel={() => sliderModel.axis} //
-          transform={`translate(0, 0)`}
-          showGridLines={false}
-          elt={sliderAxisBasicRef.current}
+          onDropAttribute={()=> console.log("make these optional? but typescript will need to appeased")}
+          onTreatAttributeAs={() => console.log("make these optional - but TS will need to be appeased")}
         />
 
       </div>
     </>
   )
-})
+}
