@@ -12,7 +12,7 @@ export const Container: React.FC<IProps> = ({ children }) => {
   return (
     <div className="codap-container">
       {/* wrap each child in a CodapComponent component */}
-      {[0, 1, 2, 3].map(i => {
+      {[0, 1, 2, 3, 4].map(i => {
         return (
           <CodapComponent key={`component-${i}`} broker={gDataBroker}>
             {i < childArray.length
