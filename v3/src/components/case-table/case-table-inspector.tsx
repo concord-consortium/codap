@@ -9,6 +9,7 @@ import { DatasetInfoModal } from "./inspector-panel/dataset-info-modal"
 import { TrashMenuList } from "./inspector-panel/trash-menu-list"
 import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
 import t from "../../utilities/translation/translate"
+import { RulerMenuList } from "./inspector-panel/ruler-menu-list"
 
 interface IProps {
   show: boolean
@@ -41,10 +42,10 @@ export const CaseTableInspector = ({ show }: IProps) => {
             icon={<HideShowIcon className="inspector-menu-icon"/>} testId="hide-show-button">
           <HideShowMenuList />
         </InspectorMenu>
-        <InspectorButton tooltip={t("DG.Inspector.attributes.toolTip")} showMoreOptions={true}
-          testId="table-attributes-button">
-          <ValuesIcon />
-        </InspectorButton>
+        <InspectorMenu tooltip={t("DG.Inspector.attributes.toolTip")}
+          icon={<ValuesIcon className="inspector-menu-icon"/>} testId="table-attributes-button">
+          <RulerMenuList />
+        </InspectorMenu>
         {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
       </InspectorPanel>
     : null
