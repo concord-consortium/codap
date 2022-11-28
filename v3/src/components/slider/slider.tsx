@@ -12,8 +12,14 @@ import { Axis } from "../graph/components/axis"
 import { NumericAxisModel } from "../graph/models/axis-model"
 import { AxisBasic } from "../axis-basic"
 
+// width should be here in presentation
+//     getAxisWidth(){
+//        return self.width - (kSliderPadding * .5)
+// }
+
 // you will need an instance like this to be created, but's it's going to happen
 // on creation of the Slider model
+
 const numericAxis = NumericAxisModel.create({
   place: "bottom",
   type: "numeric",
@@ -21,7 +27,6 @@ const numericAxis = NumericAxisModel.create({
   min: 0,
   max: 15
 })
-
 
 const SliderIconComponent: Record<string, any> = {
   "play": PlayIcon,
@@ -47,20 +52,20 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   const [isManuallyEditing, setIsManuallyEditing] = useState<boolean>(false)
   const intervalRef = useRef<any>()
   const tickSize = 60
-  const decimalPlaces = 2
+  const decimalPlaces = 3
 
   const translationString = `translate(${kSliderPadding * .25}, 0)`
 
-  const rangeMax = sliderModel.max
-  const rangeMin = sliderModel.min
+  const rangeMax = sliderModel.axis.max
+  const rangeMin = sliderModel.axis.min
 
-  const sliderAxis = axisBottom(scaleLinear()
-    .domain(sliderModel.getDomain())
-    .range([0, sliderModel.getAxisWidth()]))
+  // const sliderAxis = axisBottom(scaleLinear()
+  //   .domain(sliderModel.getDomain())
+  //   .range([0, sliderModel.getAxisWidth()]))
 
-  useEffect(() => {
-    select(sliderAxisRef.current).call(sliderAxis)
-  })
+  // useEffect(() => {
+  //   select(sliderAxisRef.current).call(sliderAxis)
+  // })
 
   function inLocalDecimals(x: number | string ){
     if (typeof x === "number") return parseFloat(x.toFixed(decimalPlaces))
@@ -191,7 +196,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           step={multiplesOf}
           max={rangeMax}
           min={rangeMin}
-          width={sliderModel.getAxisWidth()}
+          width={600}
           marginLeft={`${kSliderPadding * .25}px`}
         >
           <SliderTrack bg='transparent' />
@@ -200,7 +205,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        <svg width={sliderModel.width}  height="20">
+        <svg width={600}  height="20">
           <g ref={sliderAxisRef} transform={translationString}></g>
         </svg>
 
@@ -223,7 +228,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
         <hr style={{marginTop: "20px"}} />
         <br/>
 
-        <svg width={sliderModel.width}   height="20">
+        <svg width={600}   height="20">
           <g ref={sliderAxisBasicRef} transform={translationString}></g>
         </svg>
 

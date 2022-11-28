@@ -1,12 +1,21 @@
-import {Instance, types} from "mobx-state-tree"
+import {getSnapshot, Instance, types} from "mobx-state-tree"
 import { uniqueId } from "../../utilities/js-utils"
-
+import { NumericAxisModel, EmptyAxisModel } from "../graph/models/axis-model"
 export interface SliderProperties {
   id: string
   name: string
   value: number
-  min: number
-  max: number
+  axis: typeof NumericAxisModel
+}
+
+const newBottomAxis = () => {
+  return NumericAxisModel.create({
+    type: 'numeric',
+    scale: 'linear',
+    place: 'bottom',
+    min: 0,
+    max: 12
+  })
 }
 
 export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const
@@ -18,9 +27,7 @@ export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),
     name: types.string,
     value: types.number,
-    min: types.number,
-    max: types.number,
-    width: types.number
+    axis: types.optional(NumericAxisModel, getSnapshot(newBottomAxis())),
   })
   .actions(self => ({
     setName(str: string) {
@@ -28,23 +35,11 @@ export const SliderModel = types.model("SliderModel", {
     },
     setValue(n: number) {
       self.value = n
-    },
-    setMin(n: number){
-      self.min = n
-    },
-    setMax(n: number){
-      self.max = n
-    },
-    setSliderWidth(n: number){
-      self.width = n
     }
   }))
   .views(self => ({
     getDomain() {
-      return [self.min, self.max]
-    },
-    getAxisWidth(){
-      return self.width - (kSliderPadding * .5)
+      return [self.axis.min, self.axis.max]
     }
   }))
 

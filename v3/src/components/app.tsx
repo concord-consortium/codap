@@ -17,7 +17,7 @@ import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { SliderComponent } from "./slider/slider"
-import { kSliderDefaultWidth, SliderModel } from "./slider/slider-model"
+import { SliderModel } from "./slider/slider-model"
 import pkg from "../../package.json"
 import build from "../../build_number.json"
 import t from "../utilities/translation/translate"
@@ -32,10 +32,7 @@ export function handleImportDataSet(data: IDataSet) {
 // TODO, connect instantiation with toolbar instead of this hardcoded version
 const sliderValue = SliderModel.create({
   name: "v1",
-  value: 0.5,
-  min: 0,
-  max: 607,
-  width: kSliderDefaultWidth
+  value: 0.5
 })
 
 export const App = () => {
