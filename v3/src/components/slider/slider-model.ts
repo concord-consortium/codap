@@ -1,6 +1,6 @@
 import {getSnapshot, Instance, types} from "mobx-state-tree"
 import { uniqueId } from "../../utilities/js-utils"
-import { NumericAxisModel, EmptyAxisModel } from "../graph/models/axis-model"
+import { NumericAxisModel } from "../graph/models/axis-model"
 export interface SliderProperties {
   id: string
   name: string

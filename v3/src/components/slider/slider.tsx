@@ -20,13 +20,13 @@ import { AxisBasic } from "../axis-basic"
 // you will need an instance like this to be created, but's it's going to happen
 // on creation of the Slider model
 
-const numericAxis = NumericAxisModel.create({
-  place: "bottom",
-  type: "numeric",
-  scale:"linear",
-  min: 0,
-  max: 15
-})
+// const numericAxis = NumericAxisModel.create({
+//   place: "bottom",
+//   type: "numeric",
+//   scale:"linear",
+//   min: 0,
+//   max: 15
+// })
 
 const SliderIconComponent: Record<string, any> = {
   "play": PlayIcon,
@@ -186,7 +186,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           </Center>
         </Flex>
 
-        <Slider
+        <Slider // note this is the Chakra "Slider"
           name={sliderModel.name}
           id={sliderModel.id}
           aria-label={`slider-${sliderModel.id}`}
@@ -205,35 +205,17 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        <svg width={600}  height="20">
-          <g ref={sliderAxisRef} transform={translationString}></g>
-        </svg>
-
-
-        {/* experiment 1 */}
-        <hr style={{marginTop: "20px"}} />
-        <br/>
-
-        <Axis
-          getAxisModel={() => numericAxis} //
+        {/* <Axis
+          getAxisModel={() => sliderModel.axis} //
           attributeID={"a45"}
-          transform={`translate(0, 0)`}
+          transform={`translate(10, 10)`}
           showGridLines={false}
           onDropAttribute={()=> console.log("hi")}
           onTreatAttributeAs={() => console.log("hi")}
-        />
-
-
-        {/* experiment 2 */}
-        <hr style={{marginTop: "20px"}} />
-        <br/>
-
-        <svg width={600}   height="20">
-          <g ref={sliderAxisBasicRef} transform={translationString}></g>
-        </svg>
+        /> */}
 
         <AxisBasic
-          getAxisModel={() => numericAxis} //
+          getAxisModel={() => sliderModel.axis} //
           transform={`translate(0, 0)`}
           showGridLines={false}
           elt={sliderAxisBasicRef.current}

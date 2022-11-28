@@ -35,6 +35,7 @@ export const AxisBasic = ({ getAxisModel, transform, showGridLines, elt }: IProp
 
   return (
     <>
+      <p>am i here?</p>
       <g className='axis-wrapper' ref={axisWrapperRef}>
         <g className='axis' ref={axisRef} data-testid={`axis-${place}`}/>
       </g>
