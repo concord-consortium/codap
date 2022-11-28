@@ -1,7 +1,7 @@
 import {ScaleBand, select} from "d3"
 import React, {memo, useCallback} from "react"
 import {PlotProps, transitionDuration} from "../graphing-types"
-import {usePlotResponders} from "../hooks/graph-hooks"
+import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
@@ -129,7 +129,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
 
       lookupLegendColor = (id: string) => {
         const isSelected = dataset?.isCaseSelected(id),
-          legendColor = getLegendColor ? getLegendColor(id) : ''
+          legendColor = getLegendColor?.(id) ?? ''
         return legendColor !== '' ? legendColor :
           isSelected ? defaultSelectedColor : defaultPointColor
       },

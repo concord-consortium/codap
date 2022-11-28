@@ -57,7 +57,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     selectionTree = useRef<typeof RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>(),
 
-    onDragStart = useCallback((event:any) => {
+    onDragStart = useCallback((event:{ x: number; y: number; sourceEvent: {shiftKey: boolean} }) => {
       appState.beginPerformance()
       const leftEdge = bgRef.current?.getBBox().x ?? 0
       selectionTree.current = prepareTree('.graph-dot-area', 'circle')

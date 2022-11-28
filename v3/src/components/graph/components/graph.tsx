@@ -23,7 +23,7 @@ import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {GraphInspector} from "./graph-inspector"
-import {useDataTips} from "../hooks/graph-hooks"
+import {useDataTips} from "../hooks/use-data-tips"
 
 import "./graph.scss"
 

@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {PlotProps}
   from "../graphing-types"
-import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
+import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
