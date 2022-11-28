@@ -1,12 +1,11 @@
-import {active, select} from "d3"
-import {tip as d3tip} from "d3-v6-tip"
+import {select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
 import {Axis} from "./axis"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
-import {kGraphClass, transitionDuration} from "../graphing-types"
+import {kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -20,12 +19,11 @@ import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {getPointTipText} from "../utilities/graph-utils"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {GraphInspector} from "./graph-inspector"
-
+import {useDataTips} from "../hooks/use-data-tips"
 
 import "./graph.scss"
 
@@ -38,12 +36,7 @@ interface IProps {
   setShowInspector: (show: boolean) => void
 }
 
-const marqueeState = new MarqueeState(),
-  dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
-    .attr('data-testid', 'graph-point-data-tip')
-    .html((d: string) => {
-      return "<p>" + d + "</p>"
-    })
+const marqueeState = new MarqueeState()
 
 export const Graph = observer((
   {model: graphModel, graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) => {
@@ -59,10 +52,7 @@ export const Graph = observer((
     backgroundSvgRef = useRef<SVGGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y'),
-    pointRadius = graphModel.getPointRadius(),
-    selectedPointRadius = graphModel.getPointRadius('select'),
-    hoverPointRadius = graphModel.getPointRadius('hover-drag')
+    yAttrID = graphModel.getAttributeID('y')
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -108,41 +98,7 @@ export const Graph = observer((
     graphController?.setDotsRef(dotsRef)
   }, [dotsRef, graphController])
 
-  function okToTransition( target: any) {
-    return target.node()?.nodeName === 'circle' && dataset && !active(target.node()) &&
-      !target.property('isDragging')
-  }
-
-  // MouseOver events, if over an element, brings up hover text
-  function showDataTip(event: MouseEvent) {
-    const target = select(event.target as SVGSVGElement)
-    if (okToTransition(target)) {
-      target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
-      const [, caseID] = target.property('id').split("_"),
-        attrIDs = graphModel.config.uniqueTipAttributes,
-        tipText = getPointTipText(caseID, attrIDs, dataset)
-      tipText !== '' && dataTip.show(tipText, event.target)
-    }
-  }
-
-  function hideDataTip(event: MouseEvent) {
-    const target = select(event.target as SVGSVGElement)
-    dataTip.hide()
-    if (okToTransition(target)) {
-      const [, caseID] = select(event.target as SVGSVGElement).property('id').split("_"),
-        isSelected = dataset?.isCaseSelected(caseID)
-      select(event.target as SVGSVGElement)
-        .transition().duration(transitionDuration)
-        .attr('r', isSelected ? selectedPointRadius : pointRadius)
-    }
-  }
-
-  useEffect(function setupDataTip() {
-    select(dotsRef.current)
-      .on('mouseover', showDataTip)
-      .on('mouseout', hideDataTip)
-      .call(dataTip)
-  })
+  useDataTips(dotsRef, dataset, graphModel)
 
   const getPlotComponent = () => {
     const props = {

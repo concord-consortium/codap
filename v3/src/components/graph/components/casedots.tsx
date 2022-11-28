@@ -4,12 +4,12 @@ import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
 import { ICase } from "../../../models/data/data-set"
 import { isAddCasesAction } from "../../../models/data/data-set-actions"
-import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
+import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {setPointSelection} from "../utilities/graph-utils"
+import {handleClickOnDot, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {
   defaultPointColor,
@@ -51,9 +51,7 @@ export const CaseDots = memo(function CaseDots(props: {
           .attr('r', dragPointRadius)
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
-
-        const [, caseId] = tItsID.split("_")
-        dataset?.selectCases([caseId])
+        handleClickOnDot(event, tItsID, dataset)
       }
     }, [dragPointRadius, dataset, enableAnimation]),
 

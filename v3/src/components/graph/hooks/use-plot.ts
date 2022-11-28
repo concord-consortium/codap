@@ -1,6 +1,3 @@
-/**
- * Graph Custom Hooks
- */
 import React, {useCallback, useEffect, useRef} from "react"
 import {reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
@@ -40,7 +37,7 @@ export interface IPlotResponderProps {
   layout: GraphLayout
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  dotsRef:  React.RefObject<SVGSVGElement>
+  dotsRef: React.RefObject<SVGSVGElement>
   enableAnimation: React.MutableRefObject<boolean>
 }
 
@@ -55,13 +52,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     refreshPointsRef = useCurrent(refreshPointPositions),
     instanceId = useInstanceIdContext()
 
-    /* This routine is frequently called many times in a row when something about the graph changes that requires
-    * refreshing the plot's point positions. That, by itself, would be a reason to ensure that
-    * the actual refreshPointPositions function is only called once. But another, even more important reason is
-    * that there is no guarantee that when callRefreshPointPositions is invoked, the d3 points in the plot
-    * have been synched with the data configuration's notion of which cases are plottable. Delaying the actual
-    * plotting of points until the next event cycle ensures that the data configuration's filter process will
-    * have had a chance to take place. */
+  /* This routine is frequently called many times in a row when something about the graph changes that requires
+  * refreshing the plot's point positions. That, by itself, would be a reason to ensure that
+  * the actual refreshPointPositions function is only called once. But another, even more important reason is
+  * that there is no guarantee that when callRefreshPointPositions is invoked, the d3 points in the plot
+  * have been synched with the data configuration's notion of which cases are plottable. Delaying the actual
+  * plotting of points until the next event cycle ensures that the data configuration's filter process will
+  * have had a chance to take place. */
   const timer = useRef<any>()
   const callRefreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (timer.current) {
@@ -85,7 +82,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(() => {
     const disposer = reaction(
       () => [xNumeric?.domain, yNumeric?.domain],
-      domains => {
+      () => {
         callRefreshPointPositions(false)
       }, {fireImmediately: true}
     )
@@ -96,7 +93,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(() => {
     const disposer = reaction(
       () => [layout.axisLength('left'), layout.axisLength('bottom')],
-      ranges => {
+      () => {
         callRefreshPointPositions(false)
       }
     )
@@ -136,15 +133,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = dataConfiguration.onAction(action => {
       if (['addCases', 'removeCases', 'setAttributeType'].includes(action.name)) {
         matchCirclesToData({
+          dataset,
           caseIDs: dataConfiguration.cases,
           pointRadius: graphModel.getPointRadius(),
-          dotsElement: dotsRef.current ,
+          dotsElement: dotsRef.current,
           enableAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }
     })
     return () => disposer()
-  }, [enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+  }, [dataset, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
 }

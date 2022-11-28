@@ -2,13 +2,13 @@ import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
 import {PlotProps} from "../graphing-types"
-import {useDragHandlers, usePlotResponders} from "../hooks/graph-hooks"
+import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set"
-import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
+import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 
 interface IProps {
@@ -51,8 +51,7 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
-        const [, caseId] = tItsID.split("_")
-        dataset?.selectCases([caseId])
+        handleClickOnDot(event, tItsID, dataset)
         // Record the current values so we can change them during the drag and restore them when done
         const { selection } = dataConfiguration || {}
         selection?.forEach(anID => {

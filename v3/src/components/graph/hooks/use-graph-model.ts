@@ -21,12 +21,13 @@ export function useGraphModel(props: IProps) {
 
   const callMatchCirclesToData = useCallback(() => {
     matchCirclesToData({
+      dataset,
       caseIDs: dataConfig.cases,
       pointRadius: graphModel.getPointRadius(),
       dotsElement: dotsRef.current,
       enableAnimation, instanceId
     })
-  }, [dataConfig.cases, graphModel, dotsRef, enableAnimation, instanceId])
+  }, [dataset, dataConfig.cases, graphModel, dotsRef, enableAnimation, instanceId])
 
   useEffect(function createCircles() {
     callMatchCirclesToData()
