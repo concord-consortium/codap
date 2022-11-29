@@ -3,7 +3,7 @@ import {axisBottom, axisLeft, scaleLinear, scaleLog, scaleOrdinal, select} from 
 import {autorun, reaction} from "mobx"
 import {useCallback, useEffect, useRef} from "react"
 import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {ScaleNumericBaseType, ScaleType, useGraphLayoutContext} from "../models/graph-layout"
 import {between} from "../utilities/math-utils"
 
 export interface IUseAxis {
@@ -11,12 +11,13 @@ export interface IUseAxis {
   axisElt: SVGGElement | null
   showGridLines: boolean
   insideSlider?: boolean
+  axisScale: ScaleType | undefined
 }
 
-export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider}: IUseAxis) => {
+export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider, axisScale}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
-    scale = layout.axisScale(place),
+    // axisScale = layout.axisScale(place),
     axisFunc = place === 'bottom' ? axisBottom : axisLeft,
     isNumeric = axisModel?.isNumeric,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
@@ -28,7 +29,7 @@ export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider}: IUseA
 
   const refreshAxis = useCallback((duration = 0) => {
     if (insideSlider){
-      console.log("insideSlider: ", scale?.range())
+      console.log("insideSlider: ", axisScale?.range())
     }
     if (axisElt) {
       // When switching from one axis type to another, e.g. a categorical axis to an
@@ -39,18 +40,18 @@ export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider}: IUseA
       select(axisElt)
         .transition().duration(duration)
         // @ts-expect-error scale type
-        .call(axisFunc(scale)
+        .call(axisFunc(axisScale)
           .tickSizeOuter(0))
       select(axisElt).selectAll('.zero').remove()
       select(axisElt).selectAll('.grid').remove()
 
       if (showGridLines) {
         const tickLength = layout.axisLength(otherPlace(place)) ?? 0,
-          numericScale = scale as ScaleNumericBaseType
+          numericScale = axisScale as ScaleNumericBaseType
         select(axisElt).append('g')
           .attr('class', 'grid')
           // @ts-expect-error scale type
-          .call(axisFunc(scale)
+          .call(axisFunc(axisScale)
             .tickSizeInner(-tickLength))
         select(axisElt).select('.grid').selectAll('text').remove()
 
@@ -59,14 +60,14 @@ export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider}: IUseA
             .attr('class', 'zero')
             .transition().duration(duration)
             // @ts-expect-error scale type
-            .call(axisFunc(scale)
+            .call(axisFunc(axisScale)
               .tickSizeInner(-tickLength)
               .tickValues([0]))
           select(axisElt).select('.zero').selectAll('text').remove()
         }
       }
     }
-  }, [axisElt, place, axisFunc, layout, showGridLines, scale])
+  }, [axisElt, place, axisFunc, layout, showGridLines, axisScale])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -96,14 +97,14 @@ export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider}: IUseA
         const numericModel = axisModel as INumericAxisModel
         if (numericModel.domain) {
           const {domain} = numericModel
-          scale?.domain(domain)
+          axisScale?.domain(domain)
           //refreshAxis()
         }
       })
       return () => disposer()
     }
     // Note axisModelChanged as a dependent. Shouldn't be necessary.
-  }, [axisModelChanged, isNumeric, axisModel, refreshAxis, scale])
+  }, [axisModelChanged, isNumeric, axisModel, refreshAxis, axisScale])
 
   // update d3 scale and axis when layout/range changes
   useEffect(() => {

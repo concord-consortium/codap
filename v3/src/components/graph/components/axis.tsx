@@ -39,20 +39,20 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = insideSlider ? scaleLinear().domain([0,12]).range([0,600]) : layout.axisScale(place),
+    axisScale = insideSlider ? scaleLinear().domain([0,12]).range([0,600]) : layout.axisScale(place),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
-  console.log(scale?.range())
-  useAxis({axisModel, axisElt, showGridLines})
+  console.log(axisScale?.range())
+  useAxis({axisModel, axisElt, showGridLines, insideSlider, axisScale})
 
-  // if (insideSlider && scale){
-  //   console.log("SLIDER: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
-  // } else if (!insideSlider && scale) {
-  //   console.log("BOTTOM: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
+  // if (insideSlider && axisScale){
+  //   console.log("SLIDER: ", {transform}, {axisElt}, {axisScale}, {axisModel}, {instanceId})
+  // } else if (!insideSlider && axisScale) {
+  //   console.log("BOTTOM: ", {transform}, {axisElt}, {axisScale}, {axisModel}, {instanceId})
   // }
 
   useEffect(function setupTransform() {
@@ -68,7 +68,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
   }, [place, onDropAttribute])
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
-  const [xMin, xMax] = scale?.range() || [0, 100]
+  const [xMin, xMax] = axisScale?.range() || [0, 100]
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
     select(titleRef.current)
