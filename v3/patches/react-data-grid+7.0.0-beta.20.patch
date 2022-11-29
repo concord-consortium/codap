@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index 0d907c2..91a4e66 100644
+index 3ecf53b..3fd3e28 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
-@@ -3074,6 +3074,7 @@ exports.headerRenderer = headerRenderer;
+@@ -2840,6 +2840,7 @@ exports.headerRenderer = headerRenderer;
  exports.sortIcon = sortIcon;
  exports.sortPriority = sortPriority;
  exports.textEditor = textEditor;
@@ -11,10 +11,10 @@ index 0d907c2..91a4e66 100644
  exports.useFocusRef = useFocusRef;
  exports.useRowSelection = useRowSelection;
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 4c09a02..325f478 100644
+index 37d8ee6..1f475ee 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
-@@ -3058,5 +3058,6 @@ function textEditor({
+@@ -2824,5 +2824,6 @@ function textEditor({
    });
  }
  

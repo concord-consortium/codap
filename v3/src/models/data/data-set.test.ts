@@ -201,7 +201,8 @@ test("DataSet basic functionality", () => {
   const mockConsoleWarn1 = jest.fn()
   const mockConsole1 = jest.spyOn(console, "warn").mockImplementation((...args: any[]) => mockConsoleWarn1(...args))
   expect(dataset.getCaseAtIndex(1)).toBeUndefined()
-  expect(mockConsoleWarn1).toHaveBeenCalledTimes(1)
+  // MobX 6.7.0 no longer warns about out-of-range array accesses
+  expect(mockConsoleWarn1).toHaveBeenCalledTimes(0)
   mockConsole1.mockRestore()
   expect(dataset.getValue("bogus", "bogus")).toBeUndefined()
   expect(dataset.getValueAtIndex(-1, "bogus")).toBeUndefined()
