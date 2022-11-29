@@ -1,3 +1,4 @@
+import { cornersOfRectangle } from "@dnd-kit/core/dist/utilities/algorithms/helpers"
 import {axisBottom, axisLeft, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {useCallback, useEffect, useRef} from "react"
@@ -115,6 +116,16 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
   }, [axisModel, layout, refreshAxis, place])
 
   useEffect(() => {
+    if (place === "bottom"){
+      console.log(axisElt?.classList.value, ": ")
+      const selectados = select(axisElt)
+      selectados.each(function (i, d, nodes) {
+        console.log(nodes[d])
+      })
+      //const foundTransform = "hello"
+
+    }
+
     refreshAxis()
   })
 

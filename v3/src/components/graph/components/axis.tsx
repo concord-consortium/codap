@@ -15,9 +15,7 @@ import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
 import t from "../../../utilities/translation/translate"
 
-
 import "./axis.scss"
-import { instanceOf } from "prop-types"
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
@@ -41,7 +39,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = insideSlider ? scaleOrdinal() : layout.axisScale(place),
+    scale = insideSlider ? scaleLinear() : layout.axisScale(place),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
@@ -50,11 +48,11 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
 
   useAxis({axisModel, axisElt, showGridLines})
 
-  if (insideSlider && scale){
-    console.log("SLIDER: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
-  } else if (!insideSlider && scale) {
-    console.log("BOTTOM: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
-  }
+  // if (insideSlider && scale){
+  //   console.log("SLIDER: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
+  // } else if (!insideSlider && scale) {
+  //   console.log("BOTTOM: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
+  // }
 
   useEffect(function setupTransform() {
     axisElt && select(axisElt)
@@ -119,10 +117,11 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
   }, [axisElt, place, halfRange, label, transform])
 
   const axisWrapperClass = insideSlider ? 'axis-wrapper inside-slider' : 'axis-wrapper'
+  const axisEltClass = insideSlider ? 'axis inside-slider' : 'axis'
   return (
     <>
       <g className={axisWrapperClass} ref={elt => setWrapperElt(elt)}>
-        <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
+        <g className={axisEltClass} ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
         <g ref={titleRef}/>
       </g>
 
