@@ -191,7 +191,7 @@ export const SliderComponent = ({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        <svg style={{width: "100%", display: "block"}}>
+
           <Axis
             getAxisModel={() => sliderModel.axis} //
             attributeID={''}
@@ -201,7 +201,7 @@ export const SliderComponent = ({sliderModel} : IProps) => {
             onTreatAttributeAs={() => console.log("make optional")}
             insideSlider={true}
           />
-        </svg>
+
       </div>
     </>
   )
