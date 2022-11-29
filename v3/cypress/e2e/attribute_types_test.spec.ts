@@ -33,10 +33,10 @@ context("attribute types", () => {
             table.getCell("9", "2").find("span").should("have.class", "dg-boundary-thumb")
         })
         it.skip("verify invalid type", () => {
-            table.getCell("10", "2").should("contain","❌: invalid type(s) for '*'")
+            table.getCell("10", "2").should("contain", "❌: invalid type(s) for '*'")
         })
         it.skip("verify unrecognized", () => {
-            table.getCell("11", "2").should("contain",  "❌: 'Bool|color' is unrecognized")
+            table.getCell("11", "2").should("contain", "❌: 'Bool|color' is unrecognized")
         })
     })
 })

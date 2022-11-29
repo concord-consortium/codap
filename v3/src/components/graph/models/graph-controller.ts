@@ -185,7 +185,7 @@ export class GraphController {
       layout.getAxisScale(axisPlace)?.domain(setOfValues)
     }
     else {  // attributeType is 'empty'
-      if( currentAxisType !== attributeType) {
+      if (currentAxisType !== attributeType) {
         const newAxisModel = EmptyAxisModel.create({place: axisPlace})
         graphModel.setAxis(axisPlace, newAxisModel as IEmptyAxisModel)
         layout.setAxisScale(axisPlace, scaleOrdinal())

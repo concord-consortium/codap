@@ -16,7 +16,7 @@ export const AttributeDescription = types
     type: types.maybe(types.enumeration([...attributeTypes]))
   })
   .actions(self => ({
-    setType( type: AttributeType) {
+    setType(type: AttributeType) {
       self.type = type
     }
   }))
