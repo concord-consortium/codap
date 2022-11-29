@@ -96,7 +96,7 @@ export const App = () => {
               </div>
             </div>
             <CaseTableComponent/>
-            <GraphComponent />
+            {/* <GraphComponent /> */}
             <SliderComponent sliderModel={sliderValue} />
           </Container>
         </div>

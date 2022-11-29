@@ -10,9 +10,10 @@ export interface IUseAxis {
   axisModel?: IAxisModel
   axisElt: SVGGElement | null
   showGridLines: boolean
+  insideSlider?: boolean
 }
 
-export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
+export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
     scale = layout.axisScale(place),
@@ -26,7 +27,9 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
   previousAxisModel.current = axisModel
 
   const refreshAxis = useCallback((duration = 0) => {
-
+    if (insideSlider){
+      console.log("insideSlider: ", scale?.range())
+    }
     if (axisElt) {
       // When switching from one axis type to another, e.g. a categorical axis to an
       // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.
@@ -94,7 +97,7 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
         if (numericModel.domain) {
           const {domain} = numericModel
           scale?.domain(domain)
-          refreshAxis()
+          //refreshAxis()
         }
       })
       return () => disposer()
@@ -117,11 +120,11 @@ export const useAxis = ({axisModel, axisElt, showGridLines}: IUseAxis) => {
 
   useEffect(() => {
     if (place === "bottom"){
-      console.log(axisElt?.classList.value, ": ")
-      const selectados = select(axisElt)
-      selectados.each(function (i, d, nodes) {
-        console.log(nodes[d])
-      })
+      // console.log(axisElt?.classList.value, ": ")
+      // const selectados = select(axisElt)
+      // selectados.each(function (i, d, nodes) {
+      //   console.log(nodes[d])
+      // })
       //const foundTransform = "hello"
 
     }

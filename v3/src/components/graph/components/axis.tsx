@@ -39,13 +39,14 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = insideSlider ? scaleLinear() : layout.axisScale(place),
+    scale = insideSlider ? scaleLinear().domain([0,12]).range([0,600]) : layout.axisScale(place),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
+  console.log(scale?.range())
   useAxis({axisModel, axisElt, showGridLines})
 
   // if (insideSlider && scale){

@@ -195,7 +195,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           <Axis
             getAxisModel={() => sliderModel.axis} //
             attributeID={''}
-            transform={`translate(${600}, ${10})`}
+            transform={`translate(${20}, ${10})`}
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")}
             onTreatAttributeAs={() => console.log("make optional")}
