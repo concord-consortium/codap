@@ -10,11 +10,10 @@ export interface IUseAxis {
   axisModel?: IAxisModel
   axisElt: SVGGElement | null
   showGridLines: boolean
-  insideSlider?: boolean
   axisScale: ScaleType | undefined
 }
 
-export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider, axisScale}: IUseAxis) => {
+export const useAxis = ({axisModel, axisElt, showGridLines, axisScale}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
     // axisScale = layout.axisScale(place),
@@ -28,9 +27,6 @@ export const useAxis = ({axisModel, axisElt, showGridLines, insideSlider, axisSc
   previousAxisModel.current = axisModel
 
   const refreshAxis = useCallback((duration = 0) => {
-    if (insideSlider){
-      console.log("insideSlider: ", axisScale?.range())
-    }
     if (axisElt) {
       // When switching from one axis type to another, e.g. a categorical axis to an
       // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.

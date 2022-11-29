@@ -31,29 +31,25 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
   onDropAttribute, onTreatAttributeAs}: IProps) => {
 
   const
-    testInstanceId = useInstanceIdContext(),
-    instanceId = testInstanceId ? testInstanceId : 'slider-1',
+    idFromContext = useInstanceIdContext(),
+    instanceId = insideSlider ? 'slider-1' : idFromContext, //TODO, lets pass the scale instead of a flag...
     dataset = useDataSetContext(),
     axisModel = getAxisModel(),
     place = axisModel?.place || 'bottom',
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    axisScale = insideSlider ? scaleLinear().domain([0,12]).range([0,600]) : layout.axisScale(place),
+    // TODO pass the scale...and get domain from model and range from some initial layout configuration?....
+    // look and see how you got it flexible in the D3 axis version
+    // and look at dealing with attrId also...
+    axisScale = insideSlider ? scaleLinear().domain([0,12]).range([0,200]) : layout.axisScale(place),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
-  console.log(axisScale?.range())
-  useAxis({axisModel, axisElt, showGridLines, insideSlider, axisScale})
-
-  // if (insideSlider && axisScale){
-  //   console.log("SLIDER: ", {transform}, {axisElt}, {axisScale}, {axisModel}, {instanceId})
-  // } else if (!insideSlider && axisScale) {
-  //   console.log("BOTTOM: ", {transform}, {axisElt}, {axisScale}, {axisModel}, {instanceId})
-  // }
+  useAxis({axisModel, axisElt, showGridLines, axisScale})
 
   useEffect(function setupTransform() {
     axisElt && select(axisElt)
