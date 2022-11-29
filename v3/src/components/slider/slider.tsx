@@ -28,7 +28,7 @@ interface IProps {
   sliderModel: ISliderModel
 }
 
-export const SliderComponent = ({sliderModel} : IProps) => {
+export const SliderComponent = observer(({sliderModel} : IProps) => {
   const sliderAxisRef = useRef<any>()
   const sliderAxisBasicRef = useRef<any>()
   const axisPortal = useRef<any>()
@@ -191,18 +191,19 @@ export const SliderComponent = ({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-
+        <svg style={{width: "100%"}}>
           <Axis
             getAxisModel={() => sliderModel.axis} //
             attributeID={''}
-            transform={`translate(325, 0)`}
+            transform={`translate(600, 0)`}
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")}
             onTreatAttributeAs={() => console.log("make optional")}
             insideSlider={true}
           />
+        </svg>
 
       </div>
     </>
   )
-}
+})
