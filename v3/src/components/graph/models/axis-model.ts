@@ -98,6 +98,9 @@ export const NumericAxisModel = AxisModel
     min: types.number,
     max: types.number
   })
+  .volatile(self => ({
+    transitionDuration: 0
+  }))
   .views(self => ({
     get domain() {
       return [self.min, self.max] as const

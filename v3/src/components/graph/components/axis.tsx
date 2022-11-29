@@ -1,7 +1,7 @@
 import {Active} from "@dnd-kit/core"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
-import {select} from "d3"
+import {ScaleContinuousNumeric, scaleOrdinal, select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -23,11 +23,12 @@ interface IProps {
   attributeID: string
   transform: string
   showGridLines: boolean
+  insideSlider?: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
+export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insideSlider,
   onDropAttribute, onTreatAttributeAs}: IProps) => {
   const
     instanceId = useInstanceIdContext(),
@@ -37,7 +38,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place),
+    scale = insideSlider ? scaleOrdinal().domain([0,10] as any).range([0,400]) : layout.axisScale(place),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
@@ -45,6 +46,18 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
   useAxis({axisModel, axisElt, showGridLines})
+
+  if (insideSlider && scale){
+    console.log("IN SLIDER! here is my domain and range: ")
+
+    console.log(scale.domain())
+    console.log(scale.range())
+  } else if (!insideSlider && scale) {
+    console.log("IN BOTTOM! here is my domain and range: ")
+
+    console.log(scale.domain())
+    console.log(scale.range())
+  }
 
   useEffect(function setupTransform() {
     axisElt && select(axisElt)
@@ -55,7 +68,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
 
   const handleDrop = useCallback((active: Active) => {
     const droppedAttrId = active.data?.current?.attributeId
-    droppedAttrId && onDropAttribute(place, droppedAttrId)
+    droppedAttrId && onDropAttribute?.(place, droppedAttrId)
   }, [place, onDropAttribute])
 
   const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}

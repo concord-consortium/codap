@@ -13,22 +13,6 @@ import { Axis } from "../graph/components/axis"
 import { NumericAxisModel } from "../graph/models/axis-model"
 import { AxisBasic } from "../axis-basic"
 
-// width should be here in presentation
-//     getAxisWidth(){
-//        return self.width - (kSliderPadding * .5)
-// }
-
-// you will need an instance like this to be created, but's it's going to happen
-// on creation of the Slider model
-
-// const numericAxis = NumericAxisModel.create({
-//   place: "bottom",
-//   type: "numeric",
-//   scale:"linear",
-//   min: 0,
-//   max: 15
-// })
-
 const SliderIconComponent: Record<string, any> = {
   "play": PlayIcon,
   "pause": PauseIcon,
@@ -207,18 +191,7 @@ export const SliderComponent = ({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        {/* { axisPortal &&
-            createPortal(<Axis
-              getAxisModel={() => sliderModel.axis} //
-              attributeID={''}
-              transform={`translate(10, 10)`}
-              showGridLines={false}
-              onDropAttribute={()=> console.log("make these optional? but typescript will need to appeased")}
-              onTreatAttributeAs={() => console.log("make these optional - but TS will need to be appeased")}
-            />, axisPortal.current as DocumentFragment)
-        } */}
-
-        <svg style={{width: "600px"}}>
+        <svg style={{width: "100%", display: "block"}}>
           <Axis
             getAxisModel={() => sliderModel.axis} //
             attributeID={''}
@@ -226,14 +199,9 @@ export const SliderComponent = ({sliderModel} : IProps) => {
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")}
             onTreatAttributeAs={() => console.log("make optional")}
+            insideSlider={true}
           />
-
-          {/* <AxisBasic getAxisModel={() => sliderModel.axis} /> */}
-
         </svg>
-
-
-
       </div>
     </>
   )

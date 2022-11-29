@@ -32,7 +32,7 @@ export function handleImportDataSet(data: IDataSet) {
 // TODO, connect instantiation with toolbar instead of this hardcoded version
 const sliderValue = SliderModel.create({
   name: "v1",
-  value: 0.5
+  value: 0.5,
 })
 
 export const App = () => {
