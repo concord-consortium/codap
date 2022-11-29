@@ -31,6 +31,7 @@ interface IProps {
 
 export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insideSlider,
   onDropAttribute, onTreatAttributeAs}: IProps) => {
+
   const
     testInstanceId = useInstanceIdContext(),
     instanceId = testInstanceId ? testInstanceId : 'slider-1',
@@ -50,9 +51,9 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, insid
   useAxis({axisModel, axisElt, showGridLines})
 
   if (insideSlider && scale){
-    console.log("SLIDER: ", {axisElt}, {scale}, {axisModel}, {instanceId})
+    console.log("SLIDER: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
   } else if (!insideSlider && scale) {
-    console.log("BOTTOM: ", {axisElt}, {scale}, {axisModel}, {instanceId})
+    console.log("BOTTOM: ", {transform}, {axisElt}, {scale}, {axisModel}, {instanceId})
   }
 
   useEffect(function setupTransform() {
