@@ -27,7 +27,7 @@ export const RulerMenuList = () => {
   return (
     <MenuList data-testid="trash-menu-list">
       <MenuItem
-        onClick={handleAddNewAttribute}>{t("DG.Inspector.newAttribute", {vars:{varName: data?.name || ""}})}
+        onClick={handleAddNewAttribute}>{t("DG.Inspector.newAttribute", { vars: [data?.name || ""] })}
       </MenuItem>
       <MenuItem onClick={()=>handleMenuItemClick("Rerandomize All")}>{t("DG.Inspector.randomizeAllAttributes")}
       </MenuItem>
