@@ -14,17 +14,9 @@ interface IProps {
 }
 
 export const PointFormatPalette = ({showFormatPalette, setShowFormatPalette}: IProps) => {
-  const data = useDataSetContext()
   const [pointColor, setPointColor] = useState("#E6805B")
   const [pointStroke, setPointStroke] = useState("#FFFFFF")
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF")
-  const [showColorPicker, setShowColorPicker] = useState(false)
-
-  const colorPaletteArr = ["#ffffff", "#000000", "#ff0000", "#ff8000", "#ffff00",
-                            "#008000", "#0000ff", "#4b0082", "#9400d3"]
-  const handleShowColorPicker = () => {
-    setShowColorPicker(true)
-  }
 
   return (
     <InspectorPalette
@@ -35,38 +27,39 @@ export const PointFormatPalette = ({showFormatPalette, setShowFormatPalette}: IP
       onPaletteBlur={()=>setShowFormatPalette(false)}
     >
       <div className="palette-form">
-        <FormControl display="flex" flexDirection="column">
+        <FormControl size="xs">
           <FormLabel className="form-label">{t("DG.Inspector.pointSize")}
-            <Slider aria-label="point-size-slider" ml="10px" defaultValue={1}>
+            <Slider aria-label="point-size-slider" ml="10px" defaultValue={30} >
               <SliderTrack />
               <SliderThumb />
             </Slider>
           </FormLabel>
+        </FormControl>
+        <FormControl>
           <FormLabel className="form-label">{t("DG.Inspector.color")}
-            <Input type="color" className="color-picker-thumb" ml="10px" value={pointColor}
-              onChange={e => setPointColor(e.target.value)}/>
+          <Input type="color" className="color-picker-thumb" value={pointColor}
+            onChange={e => setPointColor(e.target.value)} />
           </FormLabel>
+        </FormControl>
+        <FormControl>
           <FormLabel className="form-label">{t("DG.Inspector.stroke")}
-            <Input type="color" className="color-picker-thumb" ml="10px" value={pointStroke}
-              onChange={e => setPointStroke(e.target.value)}/>
+            <Input type="color" className="color-picker-thumb" value={pointStroke}
+            onChange={e => setPointStroke(e.target.value)}/>
           </FormLabel>
+        </FormControl>
+        <FormControl>
           <Checkbox>{t("DG.Inspector.strokeSameAsFill")}</Checkbox>
+        </FormControl>
+        <FormControl>
           <FormLabel className="form-label">{t("DG.Inspector.backgroundColor")}
-            <Input type="color" className="color-picker-thumb"  ml="10px" value={backgroundColor}
-              onChange={e => setBackgroundColor(e.target.value)}/>
+            <Input type="color" className="color-picker-thumb" value={backgroundColor}
+            onChange={e => setBackgroundColor(e.target.value)}/>
           </FormLabel>
+        </FormControl>
+        <FormControl>
           <Checkbox>{t("DG.Inspector.graphTransparency")}</Checkbox>
         </FormControl>
-        {showColorPicker && <ColorPicker />}
       </div>
     </InspectorPalette>
-  )
-}
-
-const ColorPicker = () => {
-  const [color, setColor] = useState("#E6805B")
-
-  return (
-    <Input type="color" className="color-picker-input" value={color} onChange={e => setColor(e.target.value)}/>
   )
 }

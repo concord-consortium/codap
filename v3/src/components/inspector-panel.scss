@@ -97,6 +97,8 @@
       left: 0;
       background-color: #EEE;
       padding: 10px 20px 20px 20px;
+      display: flex;
+      flex-direction: column;
 
       .form-label {
         display: flex;
