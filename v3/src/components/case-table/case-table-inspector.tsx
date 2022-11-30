@@ -38,7 +38,7 @@ export const CaseTableInspector = ({ show }: IProps) => {
           <TrashMenuList />
         </InspectorMenu>
         <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
-            icon={<HideShowIcon className="inspector-menu-icon"/>} testId="hide-show-button">
+            icon={<HideShowIcon />} testId="hide-show-button">
           <HideShowMenuList />
         </InspectorMenu>
         <InspectorButton tooltip={t("DG.Inspector.attributes.toolTip")} showMoreOptions={true}

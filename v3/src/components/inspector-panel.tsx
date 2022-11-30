@@ -1,5 +1,5 @@
 import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode } from "react"
+import React, { ReactNode, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
 import "./inspector-panel.scss"
@@ -52,4 +52,59 @@ export const InspectorMenu = ({children, icon, tooltip, testId, onButtonClick}:I
       {children}
     </Menu>
   )
+}
+
+interface IInspectorPallete {
+  children: ReactNode
+  Icon?: ReactNode
+  title?: string
+  showPalette: boolean
+  paletteTop?: number
+  onPaletteBlur: () => void
+}
+
+export const InspectorPalette =({children, Icon, title, showPalette, paletteTop, onPaletteBlur}:IInspectorPallete) => {
+  const paletteRef = useRef(null)
+  const [paletteHeight, setPaletteHeight] = useState(251)
+  // const [paletteTop, setPaletteTop] = useState(0)
+  useEffect(() => {
+    if (showPalette) {
+      // console.log(paletteRef.current.clientHeight)
+    }
+    // paletteRef.current && setPaletteHeight(paletteRef.current.clientHeight)
+  })
+  console.log("palHeight", paletteHeight)
+  const PalettePointer = () => {
+    // const pointerStyle = {top: (paletteHeight/2)+11}
+    const pointerStyle = {top: "160px", zIndex: 50}
+
+    return (
+      <div className={`palette-pointer arrow-left`} style={pointerStyle} />
+    )
+  }
+  const PaletteHeader = () => {
+    return (
+      <div className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
+        <div className="codap-inspector-palette-icon-container">
+          {Icon}
+        </div>
+        <div className="codap-inspector-palette-header-title">{title}</div>
+      </div>
+    )
+  }
+  const paletteStyle = {top: paletteTop}
+  return(
+    <>
+      <div className="codap-inspector-palette" style={paletteStyle} ref={paletteRef}
+        data-testid="codap-inspector-palette">
+        <Box className="inspector-palette-content">
+          <PaletteHeader />
+          {children}
+        </Box>
+        <PalettePointer/>
+      </div>
+    </>
+
+  )
+
 }

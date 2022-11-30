@@ -1,0 +1,16 @@
+@import "../../../vars.scss";
+
+.graph-style-formatter {
+  // position: relative;
+  // top: 0;
+  // left: 0;
+  // z-index: 5;
+  // background-color: #EEE;
+}
+.color-picker-thumb {
+  width: 50px !important;
+  height: 32px !important;
+  padding: 2px 5px !important;
+  margin: 2px 1px;
+  border: 1px solid #d0d0d0;
+}

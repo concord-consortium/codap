@@ -33,6 +33,8 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
   const [showInspector, setShowInspector] = useState(false)
+  const [showParentToggles, setShowParentToggles] = useState(false)
+  const [showMeasuresForSelection, setShowMeasuresForSelection] = useState(false)
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setGraphExtent(width, height)
@@ -53,6 +55,10 @@ export const GraphComponent = observer(({broker}: IProps) => {
               dotsRef={dotsRef}
               showInspector={showInspector}
               setShowInspector={setShowInspector}
+              showParentToggles={showParentToggles}
+              setShowParentToggles={setShowParentToggles}
+              showMeasuresForSelection={showMeasuresForSelection}
+              setShowMeasuresForSelection={setShowMeasuresForSelection}
             />
           </GraphLayoutContext.Provider>
         </InstanceIdContext.Provider>
