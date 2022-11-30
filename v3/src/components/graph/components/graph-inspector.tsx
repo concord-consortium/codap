@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
@@ -8,8 +8,10 @@ import StylesIcon from "../../../assets/icons/icon-styles.svg"
 import CameraIcon from "../../../assets/icons/icon-camera.svg"
 import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
 import { PointFormatPalette } from "./inspector-panel/point-format-panel"
+import { IGraphModel } from "../models/graph-model"
 
 interface IProps {
+  graphModel: IGraphModel
   show: boolean
   showParentToggles?: boolean
   setShowParentToggles?: (show: boolean) => void
@@ -17,9 +19,12 @@ interface IProps {
   setShowMeasuresForSelection?: (show: boolean) => void
 }
 
-export const GraphInspector = ({ show, showParentToggles, setShowParentToggles,
+export const GraphInspector = ({ graphModel, show, showParentToggles, setShowParentToggles,
     showMeasuresForSelection, setShowMeasuresForSelection }: IProps) => {
   const [showFormatPalette, setShowFormatPalette] = useState(false)
+  useEffect(()=>{
+    !show && setShowFormatPalette(false)
+  },[show])
   return (show
     ? <>
         <InspectorPanel component="graph">
@@ -52,7 +57,8 @@ export const GraphInspector = ({ show, showParentToggles, setShowParentToggles,
           </InspectorButton>
         </InspectorPanel>
         {showFormatPalette &&
-          <PointFormatPalette showFormatPalette={showFormatPalette} setShowFormatPalette={setShowFormatPalette}/>}
+          <PointFormatPalette graphModel={graphModel} showFormatPalette={showFormatPalette}
+            setShowFormatPalette={setShowFormatPalette}/>}
       </>
     : null
   )

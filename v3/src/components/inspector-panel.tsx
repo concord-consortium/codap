@@ -94,17 +94,14 @@ export const InspectorPalette =({children, Icon, title, showPalette, paletteTop,
   }
   const paletteStyle = {top: paletteTop}
   return(
-    <>
-      <div className="codap-inspector-palette" style={paletteStyle} ref={paletteRef}
-        data-testid="codap-inspector-palette">
-        <Box className="inspector-palette-content">
-          <PaletteHeader />
-          {children}
-        </Box>
-        <PalettePointer/>
-      </div>
-    </>
-
+    <div className="codap-inspector-palette" style={paletteStyle} ref={paletteRef}
+      data-testid="codap-inspector-palette" onBlur={onPaletteBlur}>
+      <Box className="inspector-palette-content">
+        <PaletteHeader />
+        {children}
+      </Box>
+      <PalettePointer/>
+    </div>
   )
 
 }

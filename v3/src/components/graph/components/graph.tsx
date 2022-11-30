@@ -170,7 +170,8 @@ export const Graph = observer((
           />
         </svg>
       </div>
-      <GraphInspector show={showInspector}
+      <GraphInspector graphModel={graphModel}
+                      show={showInspector}
                       showParentToggles={showParentToggles}
                       setShowParentToggles={setShowParentToggles}
                       showMeasuresForSelection={showMeasuresForSelection}
