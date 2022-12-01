@@ -10,13 +10,14 @@ export interface IUseAxis {
   axisModel?: IAxisModel
   axisElt: SVGGElement | null
   enableAnimation: MutableRefObject<boolean>
-  showGridLines: boolean
+  showGridLines: boolean,
+  scale: any
 }
 
-export const useAxis = ({axisModel, axisElt, showGridLines, enableAnimation}: IUseAxis) => {
+export const useAxis = ({axisModel, axisElt, showGridLines, enableAnimation, scale}: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
-    scale = layout.axisScale(place),
+    //scale = layout.axisScale(place),
     axisFunc = place === 'bottom' ? axisBottom : axisLeft,
     isNumeric = axisModel?.isNumeric,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when

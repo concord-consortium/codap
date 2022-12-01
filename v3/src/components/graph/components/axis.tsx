@@ -47,7 +47,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, inGra
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
-  useAxis({axisModel, axisElt, enableAnimation, showGridLines})
+  useAxis({axisModel, axisElt, enableAnimation, showGridLines, scale})
 
   useEffect(function setupTransform() {
     axisElt && select(axisElt)
