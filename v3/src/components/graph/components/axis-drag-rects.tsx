@@ -19,6 +19,7 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
 export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
+
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
     layout = useGraphLayoutContext(),
@@ -131,6 +132,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
   useEffect(() => {
     const disposer = reaction(
       () => {
+        console.log({axisWrapperElt}, "layout.getAxisBounds(place)", layout.getAxisBounds(place))
         return layout.getAxisBounds(place)
       },
       (axisBounds) => {

@@ -9,6 +9,7 @@ import './slider.scss'
 import { ISliderModel, kSliderPadding } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
 import { NumericAxisModel } from "../graph/models/axis-model"
+import { AxisDragRects } from "../graph/components/axis-drag-rects"
 
 // TODO you will need an instance like this to be created, but's it's going to happen
 // on creation of the Slider model
@@ -32,10 +33,12 @@ const SliderIcon = (icon: string) => {
 }
 
 interface IProps {
-  sliderModel: ISliderModel
+  sliderModel: ISliderModel,
+  widthFromApp: number
 }
 
-export const SliderComponent = observer(({sliderModel} : IProps) => {
+export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) => {
+  const sliderAxisWrapRef = useRef<any>()
   const sliderAxisRef = useRef<any>()
   const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0)
   const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
@@ -52,7 +55,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
 
   const sliderAxis = axisBottom(scaleLinear()
     .domain(sliderModel.getDomain())
-    .range([0, sliderModel.getAxisWidth()]))
+    .range([0, widthFromApp]))
 
   useEffect(() => {
     select(sliderAxisRef.current).call(sliderAxis)
@@ -126,7 +129,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
 
   return (
     <>
-      <div className="slider" style={{top: 100, right: 80}}>
+      <div className="slider" style={{top: 100, right: 80, height: "110px"}}>
 
         <div className="inspector-temporary">
           <input
@@ -187,7 +190,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           step={multiplesOf}
           max={rangeMax}
           min={rangeMin}
-          width={sliderModel.getAxisWidth()}
+          width={widthFromApp}
           marginLeft={`${kSliderPadding * .25}px`}
         >
           <SliderTrack bg='transparent' />
@@ -196,9 +199,14 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        <svg width={sliderModel.getAxisWidth() + (kSliderPadding * .5)}  height="20">
-          <g ref={sliderAxisRef} transform={translationString}></g>
+        <svg width={widthFromApp + (kSliderPadding * .5)}  height="20">
+          <g className="axis-wrapper in-slider" ref={sliderAxisWrapRef}>
+            <g className="axis in-slider" ref={sliderAxisRef} transform={translationString}></g>
+          </g>
+
         </svg>
+
+        {/* <AxisDragRects axisModel={sliderModel.axis} axisWrapperElt={sliderAxisWrapRef.current} /> */}
 
       </div>
     </>

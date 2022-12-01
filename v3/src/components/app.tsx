@@ -33,7 +33,6 @@ export function handleImportDataSet(data: IDataSet) {
 const sliderInitialProperties = SliderModel.create({
   name: "v1",
   value: 0.5,
-  width: kSliderDefaultWidth
 })
 
 export const App = () => {
@@ -98,7 +97,7 @@ export const App = () => {
             </div>
             <CaseTableComponent/>
             <GraphComponent />
-            <SliderComponent sliderModel={sliderInitialProperties} />
+            <SliderComponent sliderModel={sliderInitialProperties} widthFromApp={400} />
           </Container>
         </div>
       </V2DocumentContext.Provider>

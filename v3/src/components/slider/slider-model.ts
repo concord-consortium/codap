@@ -17,13 +17,12 @@ export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),
     name: types.string,
     value: types.number,
-    width: types.number,
     axis: types.optional(NumericAxisModel, {
       type: 'numeric',
       scale: 'linear',
       place: 'bottom',
       min: 0,
-      max: 12
+      max: 200
     }),
   })
   .actions(self => ({
@@ -32,17 +31,11 @@ export const SliderModel = types.model("SliderModel", {
     },
     setValue(n: number) {
       self.value = n
-    },
-    setSliderWidth(n: number){
-      self.width = n
     }
   }))
   .views(self => ({
     getDomain() {
       return [self.axis.min, self.axis.max]
-    },
-    getAxisWidth(){
-      return self.width - (kSliderPadding *5)
     }
   }))
 
