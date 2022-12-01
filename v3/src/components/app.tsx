@@ -16,6 +16,8 @@ import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
+import { SliderModel } from "./slider/slider-model"
+import { SliderComponent } from "./slider/slider"
 import pkg from "../../package.json"
 import build from "../../build_number.json"
 import t from "../utilities/translation/translate"
@@ -26,6 +28,12 @@ export function handleImportDataSet(data: IDataSet) {
   // add data set
   gDataBroker.addDataSet(data)
 }
+
+// TODO, connect instantiation with toolbar instead of this hardcoded version
+const sliderValue = SliderModel.create({
+  name: "v1",
+  value: 0.5,
+})
 
 export const App = () => {
   const sampleText = useSampleText()
@@ -89,6 +97,7 @@ export const App = () => {
             </div>
             <CaseTableComponent/>
             <GraphComponent />
+            <SliderComponent sliderModel={sliderValue} />
           </Container>
         </div>
       </V2DocumentContext.Provider>
