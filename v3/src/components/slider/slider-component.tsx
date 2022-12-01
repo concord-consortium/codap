@@ -8,7 +8,6 @@ import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 import './slider.scss'
 import { ISliderModel, kSliderPadding } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
-import { Axis } from "../graph/components/axis"
 import { NumericAxisModel } from "../graph/models/axis-model"
 
 // TODO you will need an instance like this to be created, but's it's going to happen
@@ -38,7 +37,7 @@ interface IProps {
 
 export const SliderComponent = observer(({sliderModel} : IProps) => {
   const sliderAxisRef = useRef<any>()
-  const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0 )
+  const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0)
   const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
   const [running, setRunning] = useState<boolean>(false)
   const [isManuallyEditing, setIsManuallyEditing] = useState<boolean>(false)
