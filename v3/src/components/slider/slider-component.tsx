@@ -117,11 +117,13 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
 
   // Experiment so I can better understand drag rects.
   // It is intentionally simple and not destined for production.
-  const handleUp = () => {
+  // seems like instead what needs to happen is
+  // extend range, maintain existing width, move translation
+  const handleDomainUp = () => {
     sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max + 10)
   }
 
-  const handleDown = () => {
+  const handleDomainDown = () => {
     sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max - 10)
   }
 
@@ -209,8 +211,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
         {/* <AxisDragRects axisModel={sliderModel.axis} axisWrapperElt={sliderAxisWrapRef.current} /> */}
 
         <div className="temporary-dynamic-experiment">
-          <button onClick={ handleUp } style={{ bottom: "-40px"}}>up</button>
-          <button onClick={ handleDown } style={{ bottom: "-70px"}}>down</button>
+          <button onClick={ handleDomainUp } style={{ bottom: "-40px"}}>domain up</button>
+          <button onClick={ handleDomainDown } style={{ bottom: "-70px"}}>domain down</button>
         </div>
       </div>
     </>
