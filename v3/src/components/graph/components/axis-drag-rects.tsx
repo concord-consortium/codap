@@ -132,7 +132,6 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
   useEffect(() => {
     const disposer = reaction(
       () => {
-        console.log({axisWrapperElt}, "layout.getAxisBounds(place)", layout.getAxisBounds(place))
         return layout.getAxisBounds(place)
       },
       (axisBounds) => {
