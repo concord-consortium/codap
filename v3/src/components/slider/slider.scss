@@ -70,4 +70,11 @@
     border-radius: $border-radius-four-corners;
     border:3px solid $teal-dark;
   }
+
+  .temporary-dynamic-experiment button {
+    background: lightgreen;
+    margin:2px;
+    padding:2px;
+    position: absolute;
+  }
 }

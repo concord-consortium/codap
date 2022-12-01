@@ -8,18 +8,6 @@ import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 import './slider.scss'
 import { ISliderModel, kSliderPadding } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
-import { NumericAxisModel } from "../graph/models/axis-model"
-import { AxisDragRects } from "../graph/components/axis-drag-rects"
-
-// TODO you will need an instance like this to be created, but's it's going to happen
-// on creation of the Slider model
-const numericAxis = NumericAxisModel.create({
-  place: "bottom",
-  type: "numeric",
-  scale:"linear",
-  min: 0,
-  max: 12
-})
 
 const SliderIconComponent: Record<string, any> = {
   "play": PlayIcon,
@@ -127,6 +115,16 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
     setIsManuallyEditing(false)
   }
 
+  // Experiment so I can better understand drag rects.
+  // It is intentionally simple and not destined for production.
+  const handleUp = () => {
+    sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max + 10)
+  }
+
+  const handleDown = () => {
+    sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max - 10)
+  }
+
   return (
     <>
       <div className="slider" style={{top: 100, right: 80, height: "110px"}}>
@@ -206,8 +204,14 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
 
         </svg>
 
+        {/* experiments */}
+
         {/* <AxisDragRects axisModel={sliderModel.axis} axisWrapperElt={sliderAxisWrapRef.current} /> */}
 
+        <div className="temporary-dynamic-experiment">
+          <button onClick={ handleUp } style={{ bottom: "-40px"}}>up</button>
+          <button onClick={ handleDown } style={{ bottom: "-70px"}}>down</button>
+        </div>
       </div>
     </>
   )
