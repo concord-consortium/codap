@@ -1,10 +1,11 @@
 import { Instance, types} from "mobx-state-tree"
+import { GlobalValue } from "../../models/data/global-value"
 import { uniqueId } from "../../utilities/js-utils"
 import { NumericAxisModel } from "../graph/models/axis-model"
 export interface SliderProperties {
   id: string
   name: string
-  value: number
+  globalValue: typeof GlobalValue
   axis: typeof NumericAxisModel
 }
 
@@ -16,7 +17,9 @@ export const kSliderDefaultWidth = 600
 export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),
     name: types.string,
-    value: types.number,
+    globalValue: types.optional(GlobalValue, {
+      value: .5
+    }),
     axis: types.optional(NumericAxisModel, {
       type: 'numeric',
       scale: 'linear',
@@ -30,7 +33,7 @@ export const SliderModel = types.model("SliderModel", {
       self.name = str
     },
     setValue(n: number) {
-      self.value = n
+      self.globalValue.setValue(n)
     }
   }))
   .views(self => ({

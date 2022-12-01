@@ -56,11 +56,11 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   }
 
   const sliderExpression = () => {
-    return `${sliderModel.name} = ${sliderModel.value}`
+    return `${sliderModel.name} = ${sliderModel.globalValue.value}`
   }
 
   const titleM = measureText(sliderModel.name)
-  const valueM = measureText(sliderModel.value.toString())
+  const valueM = measureText(sliderModel.globalValue.value.toString())
 
   useEffect(() => {
     const id = setInterval(() => { running && incrementSliderValue() }, tickSize)
@@ -69,8 +69,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   })
 
   useEffect(() => {
-    setSliderValueCandidate(inLocalDecimals(sliderModel.value))
-  },[sliderModel.value])
+    setSliderValueCandidate(inLocalDecimals(sliderModel.globalValue.value))
+  },[sliderModel.globalValue.value])
 
   const handleSliderValueChange = (e: number | React.BaseSyntheticEvent ) => {
     if (typeof e === "number"){
@@ -86,7 +86,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   }
 
   const incrementSliderValue = () => {
-    sliderModel.setValue(inLocalDecimals(sliderModel.value + multiplesOf))
+    sliderModel.setValue(inLocalDecimals(sliderModel.globalValue.value + multiplesOf))
   }
 
   const toggleRunning = () => {
@@ -184,8 +184,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           name={sliderModel.name}
           id={sliderModel.id}
           aria-label={`slider-${sliderModel.id}`}
-          defaultValue={sliderModel.value}
-          value={sliderModel.value}
+          defaultValue={sliderModel.globalValue.value}
+          value={sliderModel.globalValue.value}
           onChange={handleSliderValueChange}
           step={multiplesOf}
           max={rangeMax}

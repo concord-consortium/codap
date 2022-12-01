@@ -30,10 +30,7 @@ export function handleImportDataSet(data: IDataSet) {
 }
 
 // TODO, connect instantiation with toolbar instead of this hardcoded version
-const sliderInitialProperties = SliderModel.create({
-  name: "v1",
-  value: 0.5,
-})
+const sliderInitialProperties = SliderModel.create({name: "v1"})
 
 export const App = () => {
   const sampleText = useSampleText()
