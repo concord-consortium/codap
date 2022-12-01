@@ -29,7 +29,7 @@ export interface IUseDraggableAttribute extends Omit<UseDraggableArguments, "id"
   prefix: string
   attributeId: string
 }
-export const useDraggableAttribute = ({ prefix, attributeId, ...others }: IUseDraggableAttribute) => {
+export const useDraggableAttribute = ({ prefix, attributeId, disabled, ...others }: IUseDraggableAttribute) => {
   // RDG expects all cells to have tabIndex of -1 except for the selected/active/clicked cell.
   // For instance, it calls scrollIntoView(gridRef.current?.querySelector('[tabindex="0"]')).
   // DnDKit sets the tabIndex of draggable elements to 0 by default for keyboard accessibility.
