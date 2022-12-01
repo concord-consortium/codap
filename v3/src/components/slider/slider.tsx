@@ -53,7 +53,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
 
   const sliderAxis = axisBottom(scaleLinear()
     .domain(sliderModel.getDomain())
-    .range([0, 600])) //TODO real calc
+    .range([0, 400])) //TODO real calc - here we must know required pixels for current layout situation
 
   useEffect(() => {
     select(sliderAxisRef.current).call(sliderAxis)
@@ -188,7 +188,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           step={multiplesOf}
           max={rangeMax}
           min={rangeMin}
-          width={620} //TODO real calc
+          width={400} //TODO real calc
           marginLeft={`${kSliderPadding * .25}px`}
         >
           <SliderTrack bg='transparent' />
@@ -198,7 +198,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
         </Slider>
 
         {/* TODO: real calc */}
-        <svg width={620}  height="20">
+        <svg width={400}  height="20">
           <g ref={sliderAxisRef} transform={translationString}></g>
         </svg>
 
