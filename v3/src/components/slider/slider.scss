@@ -55,6 +55,8 @@
     }
   }
 
+  //temporary
+
   .inspector-temporary {
     position: absolute;
     right:-40px;
@@ -72,9 +74,10 @@
   }
 
   .temporary-dynamic-experiment button {
-    background: lightgreen;
+    background: rgba(40, 221, 245, 0.6);
     margin:2px;
     padding:2px;
     position: absolute;
+    left: 200px;
   }
 }
