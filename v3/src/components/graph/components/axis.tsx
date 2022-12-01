@@ -1,7 +1,7 @@
 import {Active} from "@dnd-kit/core"
 import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
-import {select} from "d3"
+import {scaleLinear, select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -24,21 +24,23 @@ interface IProps {
   transform: string
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
+  inGraph: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
+export const Axis = ({attributeID, getAxisModel, transform, showGridLines, inGraph,
   onDropAttribute, enableAnimation, onTreatAttributeAs}: IProps) => {
   const
-    instanceId = useInstanceIdContext(),
+    idFromContext = useInstanceIdContext(),
+    instanceId = inGraph ? idFromContext : 'slider-1',
     dataset = useDataSetContext(),
     axisModel = getAxisModel(),
     place = axisModel?.place || 'bottom',
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place),
+    scale = inGraph ? layout.axisScale(place) : scaleLinear().domain([0,12]).range([0,300]),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)

@@ -203,8 +203,9 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           <g className="axis-wrapper in-slider" ref={sliderAxisWrapRef}>
             <g className="axis in-slider" ref={sliderAxisRef} transform={translationString}></g>
           </g>
-
         </svg>
+
+
 
         {/* experiments */}
 
