@@ -17,7 +17,7 @@ const numericAxis = NumericAxisModel.create({
   type: "numeric",
   scale:"linear",
   min: 0,
-  max: 15
+  max: 12
 })
 
 const SliderIconComponent: Record<string, any> = {
@@ -52,7 +52,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
 
   const sliderAxis = axisBottom(scaleLinear()
     .domain(sliderModel.getDomain())
-    .range([0, 400])) //TODO real calc - here we must know required pixels for current layout situation
+    .range([0, sliderModel.getAxisWidth()]))
 
   useEffect(() => {
     select(sliderAxisRef.current).call(sliderAxis)
@@ -187,7 +187,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           step={multiplesOf}
           max={rangeMax}
           min={rangeMin}
-          width={400} //TODO real calc
+          width={sliderModel.getAxisWidth()}
           marginLeft={`${kSliderPadding * .25}px`}
         >
           <SliderTrack bg='transparent' />
@@ -196,8 +196,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           </SliderThumb>
         </Slider>
 
-        {/* TODO: real calc */}
-        <svg width={400}  height="20">
+        <svg width={sliderModel.getAxisWidth() + (kSliderPadding * .5)}  height="20">
           <g ref={sliderAxisRef} transform={translationString}></g>
         </svg>
 

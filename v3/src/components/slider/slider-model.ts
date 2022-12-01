@@ -1,6 +1,6 @@
-import {getSnapshot, Instance, types} from "mobx-state-tree"
+import { Instance, types} from "mobx-state-tree"
 import { uniqueId } from "../../utilities/js-utils"
-import { INumericAxisModel, NumericAxisModel } from "../graph/models/axis-model"
+import { NumericAxisModel } from "../graph/models/axis-model"
 export interface SliderProperties {
   id: string
   name: string
@@ -11,12 +11,13 @@ export interface SliderProperties {
 export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const
 export type IScaleType = typeof ScaleTypes[number]
 export const kSliderPadding = 60
-export const kSliderDefaultWidth = 400 // TODO real calc
+export const kSliderDefaultWidth = 600
 
 export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),
     name: types.string,
     value: types.number,
+    width: types.number,
     axis: types.optional(NumericAxisModel, {
       type: 'numeric',
       scale: 'linear',
@@ -31,11 +32,17 @@ export const SliderModel = types.model("SliderModel", {
     },
     setValue(n: number) {
       self.value = n
+    },
+    setSliderWidth(n: number){
+      self.width = n
     }
   }))
   .views(self => ({
     getDomain() {
       return [self.axis.min, self.axis.max]
+    },
+    getAxisWidth(){
+      return self.width - (kSliderPadding *5)
     }
   }))
 
