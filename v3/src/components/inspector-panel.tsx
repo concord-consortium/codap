@@ -1,5 +1,5 @@
 import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode, useEffect, useRef, useState } from "react"
+import React, { ReactNode, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
 import "./inspector-panel.scss"
@@ -41,10 +41,11 @@ interface IInspectorMenuProps {
   tooltip: string
   testId: string
   onButtonClick?: () => void
+  onOpen?: () => void
 }
-export const InspectorMenu = ({children, icon, tooltip, testId, onButtonClick}:IInspectorMenuProps) => {
+export const InspectorMenu = ({children, icon, tooltip, testId, onOpen, onButtonClick}:IInspectorMenuProps) => {
   return (
-    <Menu isLazy>
+    <Menu isLazy onOpen={onOpen}>
       <MenuButton className="inspector-tool-button menu" title={tooltip} data-testid={testId}>
         {icon}
         <MoreOptionsIcon className="more-options-icon"/>
@@ -54,29 +55,19 @@ export const InspectorMenu = ({children, icon, tooltip, testId, onButtonClick}:I
   )
 }
 
-interface IInspectorPallete {
+interface IInspectorPalette {
   children: ReactNode
   Icon?: ReactNode
   title?: string
-  showPalette: boolean
   paletteTop?: number
-  onPaletteBlur: () => void
 }
 
-export const InspectorPalette =({children, Icon, title, showPalette, paletteTop, onPaletteBlur}:IInspectorPallete) => {
+export const InspectorPalette =({children, Icon, title, paletteTop}:IInspectorPalette) => {
   const paletteRef = useRef(null)
-  const [paletteHeight, setPaletteHeight] = useState(251)
-  // const [paletteTop, setPaletteTop] = useState(0)
-  useEffect(() => {
-    if (showPalette) {
-      // console.log(paletteRef.current.clientHeight)
-    }
-    // paletteRef.current && setPaletteHeight(paletteRef.current.clientHeight)
-  })
-  console.log("palHeight", paletteHeight)
+  const [paletteHeight, ] = useState(251)
+
   const PalettePointer = () => {
-    // const pointerStyle = {top: (paletteHeight/2)+11}
-    const pointerStyle = {top: "160px", zIndex: 50}
+    const pointerStyle = {top: (paletteHeight/2)}
 
     return (
       <div className={`palette-pointer arrow-left`} style={pointerStyle} />
@@ -94,14 +85,12 @@ export const InspectorPalette =({children, Icon, title, showPalette, paletteTop,
   }
   const paletteStyle = {top: paletteTop}
   return(
-    <div className="codap-inspector-palette" style={paletteStyle} ref={paletteRef}
-      data-testid="codap-inspector-palette" onBlur={onPaletteBlur}>
-      <Box className="inspector-palette-content">
-        <PaletteHeader />
-        {children}
-      </Box>
+    <Box className="codap-inspector-palette" style={paletteStyle} ref={paletteRef}
+        data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
+      <PaletteHeader />
+      {children}
       <PalettePointer/>
-    </div>
+    </Box>
   )
 
 }

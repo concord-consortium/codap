@@ -22,8 +22,11 @@ interface IProps {
 export const GraphInspector = ({ graphModel, show, showParentToggles, setShowParentToggles,
     showMeasuresForSelection, setShowMeasuresForSelection }: IProps) => {
   const [showFormatPalette, setShowFormatPalette] = useState(false)
+  const closeAllPalettes = () => {
+    setShowFormatPalette(false)
+  }
   useEffect(()=>{
-    !show && setShowFormatPalette(false)
+    !show && closeAllPalettes()
   },[show])
   return (show
     ? <>
@@ -33,7 +36,7 @@ export const GraphInspector = ({ graphModel, show, showParentToggles, setShowPar
             <ScaleDataIcon />
           </InspectorButton>
           <InspectorMenu tooltip={"DG.Inspector.displayStyles.toolTip"}
-            icon={<HideShowIcon />} testId={"graph-display-styles-button"}>
+            icon={<HideShowIcon />} testId={"graph-display-styles-button"} onOpen={()=>closeAllPalettes()}>
             <HideShowMenuList showParentToggles={showParentToggles} setShowParentToggles={setShowParentToggles}
               showMeasuresForSelection={showMeasuresForSelection}
               setShowMeasuresForSelection={setShowMeasuresForSelection}

@@ -1,12 +1,12 @@
 import React, { useState } from "react"
-import { Checkbox, FormControl, FormLabel, Input, Slider, SliderThumb,
+import { Checkbox, Flex, FormControl, FormLabel, Input, Slider, SliderThumb,
   SliderTrack }from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
 import { IGraphModel } from "../../models/graph-model"
 import { InspectorPalette } from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 
-import "./point-format-modal.scss"
+import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
@@ -19,7 +19,6 @@ export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormat
   const [pointStroke, setPointStroke] = useState<string | number>("#FFFFFF")
 
   const handlePointSizeMultiplierSetting = (val: any) => {
-    console.log(typeof val, val)
     graphModel.setPointSizeMultiplier(val)
   }
   const handleTransparencySetting = (val: boolean) => {
@@ -35,27 +34,20 @@ export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormat
     setPointStroke(color)
   }
 
-  const handlePaletteBlur = () => {
-    console.log("in handlePaletteBlur")
-    setShowFormatPalette(false)
-  }
   return (
     <InspectorPalette
       title={t("DG.Inspector.styles")}
       Icon={<StylesIcon />}
-      showPalette={showFormatPalette}
-      paletteTop={60}
-      onPaletteBlur={handlePaletteBlur}
-      // onPaletteBlur={()=>setShowFormatPalette(false)}
+      paletteTop={35}
     >
-      <div className="palette-form">
+      <Flex className="palette-form" direction="column">
         <FormControl size="xs">
           <FormLabel className="form-label">{t("DG.Inspector.pointSize")}
-            <Slider aria-label="point-size-slider" ml="10px" min={0} max={2} defaultValue={1} step={0.01}
-              onChange={(val)=>handlePointSizeMultiplierSetting(val)}>
-              <SliderTrack />
-              <SliderThumb />
-            </Slider>
+          <Slider aria-label="point-size-slider" ml="10px" min={0} max={2} defaultValue={1} step={0.01}
+            onChange={(val)=>handlePointSizeMultiplierSetting(val)}>
+            <SliderTrack />
+            <SliderThumb />
+          </Slider>
           </FormLabel>
         </FormControl>
         <FormControl>
@@ -84,7 +76,7 @@ export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormat
             {t("DG.Inspector.graphTransparency")}
           </Checkbox>
         </FormControl>
-      </div>
+      </Flex>
     </InspectorPalette>
   )
 }
