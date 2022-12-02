@@ -4,7 +4,6 @@ import React from "react"
 import { INumericAxisModel, NumericAxisModel } from "../models/axis-model"
 import { GraphLayout, GraphLayoutContext, ScaleType } from "../models/graph-layout"
 import {IUseAxis, useAxis} from "./use-axis"
-import { scaleLinear } from 'd3'
 
 describe("useNumericAxis", () => {
 

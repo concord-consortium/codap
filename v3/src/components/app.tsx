@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { CaseTableComponent } from "./case-table/case-table-component"
 import { CodapDndContext } from "./codap-dnd-context"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
@@ -16,7 +16,7 @@ import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
-import { useSlider, useSliderLayout } from "./slider/use-slider"
+import { useCodapSlider, useCodapSliderLayout } from "./slider/use-slider"
 import { SliderComponent } from "./slider/slider-component"
 import pkg from "../../package.json"
 import build from "../../build_number.json"
@@ -36,8 +36,8 @@ export const App = () => {
   //const initialSlider = useRef<ISliderModel>(null)
   useKeyStates()
 
-  const initialSlider = useSlider()
-  const { sliderWidth } = useSliderLayout()
+  const initialSlider = useCodapSlider()
+  const { sliderWidth } = useCodapSliderLayout()
 
   const _handleImportDataSet = useCallback((data: IDataSet) => {
     handleImportDataSet(data)

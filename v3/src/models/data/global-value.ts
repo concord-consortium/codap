@@ -7,7 +7,7 @@ export interface GlobalValueProperties {
   value: number
 }
 
-const identifier = uniqueId();
+const identifier = uniqueId()
 
 export const GlobalValue = types.model("GlobalValue", {
     id: types.optional(types.identifier, identifier),

@@ -10,24 +10,12 @@ import { ISliderModel, kSliderPadding } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../graph/components/axis"
 
-const SliderIconComponent: Record<string, any> = {
-  "play": PlayIcon,
-  "pause": PauseIcon,
-  "thumb": ThumbIcon
-}
-
-const SliderIcon = (icon: string) => {
-  const IconComponent = SliderIconComponent[icon]
-  return (<IconComponent />)
-}
-
 interface IProps {
   sliderModel: ISliderModel,
   widthFromApp: number
 }
 
 export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) => {
-  const sliderAxisWrapRef = useRef<any>()
   const sliderAxisRef = useRef<any>()
   const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0)
   const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
@@ -111,17 +99,6 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
     setIsManuallyEditing(false)
   }
 
-  // temporary functions for layout debugging
-  const handleDomainUp = () => {
-    sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max + 10)
-  }
-
-  const handleDomainDown = () => {
-    sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max - 10)
-  }
-
-  const translationString = `translate(${kSliderPadding * .5}, 0)`
-
   return (
     <>
       <div className="slider" style={{top: 100, right: 80, height: "150px"}}>
@@ -198,7 +175,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           <Axis
             getAxisModel={() => sliderModel.axis}
             attributeID={''} // make optional in Axis
-            transform={translationString}
+            transform="translate(0, 0)"
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")} // make optional in Axis
             onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis

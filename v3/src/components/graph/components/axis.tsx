@@ -13,13 +13,11 @@ import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisMode
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
-import { useSlider, useSliderLayout } from "../../slider/use-slider" //TODO, change this to codapSlider to avoid confusion with chakra hook
+import { useCodapSlider, useCodapSliderLayout } from "../../slider/use-slider"
 
 import t from "../../../utilities/translation/translate"
 
-
 import "./axis.scss"
-
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
@@ -35,8 +33,8 @@ interface IProps {
 export const Axis = ({attributeID, getAxisModel, transform, showGridLines, inGraph,
   onDropAttribute, enableAnimation, onTreatAttributeAs}: IProps) => {
   const
-    codapSlider = useSlider(),
-    { sliderWidth } = useSliderLayout(),
+    codapSlider = useCodapSlider(),
+    { sliderWidth } = useCodapSliderLayout(),
     idFromContext = useInstanceIdContext(),
     instanceId = inGraph ? idFromContext : 'slider-1',
     dataset = useDataSetContext(),
