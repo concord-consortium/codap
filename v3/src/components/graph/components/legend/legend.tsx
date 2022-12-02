@@ -7,7 +7,7 @@ import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
 import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
-import {getDragAttributeId, IDropData} from "../../../../hooks/use-drag-drop"
+import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {GraphAttrRole} from "../../models/data-configuration-model"
 
@@ -31,14 +31,10 @@ export const Legend = memo(function Legend({legendAttrID, transform, graphElt, o
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
-  const handleLegendDropAttribute = (active: Active) => {
+  useDropHandler(droppableId, active => {
     const dragAttributeID = getDragAttributeId(active)
-    if (dragAttributeID) {
-      onDropAttribute('legend', dragAttributeID)
-    }
-  }
-
-  const data: IDropData = {accepts: ["attribute"], onDrop: handleLegendDropAttribute}
+    dragAttributeID && onDropAttribute('legend', dragAttributeID)
+  })
 
   return legendAttrID ? (
     <>
@@ -62,7 +58,6 @@ export const Legend = memo(function Legend({legendAttrID, transform, graphElt, o
         portal={graphElt}
         target={legendRef.current}
         dropId={droppableId}
-        dropData={data}
         onIsActive={handleIsActive}
         hintString={hintString}
       />

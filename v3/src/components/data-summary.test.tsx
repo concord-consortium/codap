@@ -1,3 +1,4 @@
+import { DndContext } from "@dnd-kit/core"
 import { act, render, screen } from "@testing-library/react"
 import React from "react"
 import { gDataBroker } from "../models/data/data-broker"
@@ -6,12 +7,12 @@ import { DataSummary } from "./data-summary"
 
 describe("DataSummary component", () => {
   it("should render `No data` initially", () => {
-    render(<DataSummary/>)
+    render(<DndContext><DataSummary/></DndContext>)
     expect(screen.getByText("No data")).toBeInTheDocument()
   })
 
   it("should summarize data once added", () => {
-    render(<DataSummary broker={gDataBroker}/>)
+    render(<DndContext><DataSummary broker={gDataBroker}/></DndContext>)
     expect(screen.getByText("No data")).toBeInTheDocument()
 
     const ds = DataSet.create({ name: "foo" })

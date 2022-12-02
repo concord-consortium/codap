@@ -1,11 +1,11 @@
 import {Active} from "@dnd-kit/core"
-import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
+import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
 import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {getDragAttributeId, IDropData} from "../../../hooks/use-drag-drop"
+import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
@@ -54,12 +54,11 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
-  const handleDrop = useCallback((active: Active) => {
-    const droppedAttrId = active.data?.current?.attributeId
+  useDropHandler(droppableId, active => {
+    const droppedAttrId = getDragAttributeId(active)
     droppedAttrId && onDropAttribute(place, droppedAttrId)
-  }, [place, onDropAttribute])
+  })
 
-  const data: IDropData = {accepts: ["attribute"], onDrop: handleDrop}
   const [xMin, xMax] = scale?.range() || [0, 100]
   const halfRange = Math.abs(xMax - xMin) / 2
   useEffect(function setupTitle() {
@@ -131,7 +130,6 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
         <DroppableAxis
           place={`${place}`}
           dropId={droppableId}
-          dropData={data}
           hintString={hintString}
           portal={graphElt}
           target={wrapperElt}
