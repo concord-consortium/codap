@@ -1,5 +1,5 @@
 import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode, useRef, useState } from "react"
+import React, { ReactNode } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
 import "./inspector-panel.scss"
@@ -60,14 +60,13 @@ interface IInspectorPalette {
   Icon?: ReactNode
   title?: string
   paletteTop?: number
+  buttonLocation: number
 }
 
-export const InspectorPalette =({children, Icon, title, paletteTop}:IInspectorPalette) => {
-  const paletteRef = useRef(null)
-  const [paletteHeight, ] = useState(251)
+export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocation}:IInspectorPalette) => {
 
   const PalettePointer = () => {
-    const pointerStyle = {top: (paletteHeight/2)}
+    const pointerStyle = {top: (buttonLocation+11)}
 
     return (
       <div className={`palette-pointer arrow-left`} style={pointerStyle} />
@@ -85,7 +84,7 @@ export const InspectorPalette =({children, Icon, title, paletteTop}:IInspectorPa
   }
   const paletteStyle = {top: paletteTop}
   return(
-    <Box className="codap-inspector-palette" style={paletteStyle} ref={paletteRef}
+    <Box className="codap-inspector-palette" style={paletteStyle}
         data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
       <PaletteHeader />
       {children}

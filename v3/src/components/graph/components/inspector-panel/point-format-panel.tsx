@@ -38,6 +38,7 @@ export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormat
     <InspectorPalette
       title={t("DG.Inspector.styles")}
       Icon={<StylesIcon />}
+      buttonLocation={115}
       paletteTop={35}
     >
       <Flex className="palette-form" direction="column">
