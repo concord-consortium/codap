@@ -194,19 +194,6 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           </SliderThumb>
         </Slider>
 
-
-        {/* Working raw D3 axis for layout debugging */}
-        {/* <svg width={widthFromApp + (kSliderPadding * .5)}  height="30">
-          <g className="axis-wrapper raw-d3-for-debug" ref={sliderAxisWrapRef}>
-            <g className="axis raw-d3-for-debug" ref={sliderAxisRef} transform={translationString}></g>
-          </g>
-        </svg>
-
-        <div className="temporary-dynamic-experiment">
-          <button onClick={ handleDomainUp } style={{ bottom: "-40px" }}>domain up</button>
-          <button onClick={ handleDomainDown } style={{ bottom: "-70px" }}>domain down</button>
-        </div> */}
-
         <svg width={widthFromApp + (kSliderPadding * .5)}  height="50" style={{ marginRight: "0px"}}>
           <Axis
             getAxisModel={() => sliderModel.axis}
