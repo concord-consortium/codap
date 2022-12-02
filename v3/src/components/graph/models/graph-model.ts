@@ -23,7 +23,13 @@ export const GraphModel = types
     axes: types.map(types.maybe(AxisModelUnion)),
     plotType: types.enumeration([...PlotTypes]),
     config: DataConfigurationModel,
-    pointSizeMultiplier: 1
+    pointSizeMultiplier: 1,
+    // Visual properties
+    isTransparent: false,
+    plotBackgroundColor: types.optional(types.string, 'white'),
+    plotBackgroundOpacity: 1,
+    showParentToggles: false,
+    showMeasuresForSelection: false
   })
   .views(self => ({
     getAxis(place: AxisPlace) {
@@ -69,6 +75,21 @@ export const GraphModel = types
         this.setAxis(aKey, props.axes[aKey])
       })
       self.plotType = props.plotType
+    },
+    setIsTransparent(transparent: boolean) {
+      self.isTransparent = transparent
+    },
+    setPlotBackgroundColor(color: string) {
+      self.plotBackgroundColor = color
+    },
+    setPlotBackgroundOpacity(opacity: number) {
+      self.plotBackgroundOpacity = opacity
+    },
+    setShowParentToggles(show: boolean) {
+      self.showParentToggles = show
+    },
+    setShowMeasuresForSelection(show: boolean) {
+      self.showMeasuresForSelection = show
     }
   }))
 

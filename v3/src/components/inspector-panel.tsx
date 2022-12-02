@@ -1,5 +1,5 @@
 import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode } from "react"
+import React, { ReactNode, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
 import "./inspector-panel.scss"
@@ -41,10 +41,11 @@ interface IInspectorMenuProps {
   tooltip: string
   testId: string
   onButtonClick?: () => void
+  onOpen?: () => void
 }
-export const InspectorMenu = ({children, icon, tooltip, testId, onButtonClick}:IInspectorMenuProps) => {
+export const InspectorMenu = ({children, icon, tooltip, testId, onOpen, onButtonClick}:IInspectorMenuProps) => {
   return (
-    <Menu isLazy>
+    <Menu isLazy onOpen={onOpen}>
       <MenuButton className="inspector-tool-button menu" title={tooltip} data-testid={testId}>
         {icon}
         <MoreOptionsIcon className="more-options-icon"/>
@@ -52,4 +53,44 @@ export const InspectorMenu = ({children, icon, tooltip, testId, onButtonClick}:I
       {children}
     </Menu>
   )
+}
+
+interface IInspectorPalette {
+  children: ReactNode
+  Icon?: ReactNode
+  title?: string
+  paletteTop?: number
+}
+
+export const InspectorPalette =({children, Icon, title, paletteTop}:IInspectorPalette) => {
+  const paletteRef = useRef(null)
+  const [paletteHeight, ] = useState(251)
+
+  const PalettePointer = () => {
+    const pointerStyle = {top: (paletteHeight/2)}
+
+    return (
+      <div className={`palette-pointer arrow-left`} style={pointerStyle} />
+    )
+  }
+  const PaletteHeader = () => {
+    return (
+      <div className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
+        <div className="codap-inspector-palette-icon-container">
+          {Icon}
+        </div>
+        <div className="codap-inspector-palette-header-title">{title}</div>
+      </div>
+    )
+  }
+  const paletteStyle = {top: paletteTop}
+  return(
+    <Box className="codap-inspector-palette" style={paletteStyle} ref={paletteRef}
+        data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
+      <PaletteHeader />
+      {children}
+      <PalettePointer/>
+    </Box>
+  )
+
 }

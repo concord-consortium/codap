@@ -50,3 +50,78 @@
     }
   }
 }
+
+.codap-inspector-palette {
+  background-color: #EEE;
+  border: 0px #444 solid;
+  position: absolute;
+  inset: 0;
+  left: 5px;
+  max-width: 270px;
+  height: fit-content;
+  font-family: "museo-sans", sans-serif;
+  z-index: 5;
+
+  .codap-inspector-palette-header {
+    position: relative;
+    top: 0;
+    left: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-shadow: none;
+
+    .codap-inspector-palette-icon-container {
+      width: 30px;
+      height: 30px;
+      background-color: $teal-dark;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .codap-inspector-palette-header-title {
+      border-bottom: solid #C1C5C7 1px;
+      border-left: solid #C1C5C7 1px;
+      padding-left: 5px;
+      width: calc(100% - $header-height);
+      height: $header-height;
+      font-size: 12px;
+      line-height: $header-height;
+    }
+  }
+  .palette-form {
+    position: relative;
+    left: 0;
+    background-color: #EEE;
+    padding: 10px 20px 20px 20px;
+
+    .form-label {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  .palette-pointer {
+    position: absolute;
+    left: -20px;
+    z-index: 50;
+
+    &.arrow-left {
+      width: 0;
+      height: 0;
+      border-top: 25px solid transparent;
+      border-bottom: 25px solid transparent;
+      border-right: 22px solid #EEE;
+    }
+    &.arrow-right {
+      width: 0;
+      height: 0;
+      border-top: 55px solid transparent;
+      border-bottom: 55px solid transparent;
+      border-left: 55px solid #EEE;
+    }
+  }
+}
