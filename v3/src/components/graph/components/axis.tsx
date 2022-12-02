@@ -13,13 +13,13 @@ import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisMode
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
-import { SliderModel } from "../../slider/slider-model"
-import { GlobalValue, GlobalValuesStore } from "../../../models/data/global-value"
+import { useSlider, useSliderLayout } from "../../slider/use-slider" //TODO, change this to codapSlider to avoid confusion with chakra hook
 
 import t from "../../../utilities/translation/translate"
 
 
 import "./axis.scss"
+
 
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
@@ -35,6 +35,8 @@ interface IProps {
 export const Axis = ({attributeID, getAxisModel, transform, showGridLines, inGraph,
   onDropAttribute, enableAnimation, onTreatAttributeAs}: IProps) => {
   const
+    codapSlider = useSlider(),
+    { sliderWidth } = useSliderLayout(),
     idFromContext = useInstanceIdContext(),
     instanceId = inGraph ? idFromContext : 'slider-1',
     dataset = useDataSetContext(),
@@ -43,7 +45,9 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, inGra
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = inGraph ? layout.axisScale(place) : scaleLinear().domain([0,12]).range([0,300]),
+    scale = inGraph
+      ? layout.axisScale(place)
+      : scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth]),
     hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)

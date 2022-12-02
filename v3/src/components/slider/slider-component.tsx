@@ -9,6 +9,7 @@ import './slider.scss'
 import { ISliderModel, kSliderPadding } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../graph/components/axis"
+import { AxisDragRects } from "../graph/components/axis-drag-rects"
 
 const SliderIconComponent: Record<string, any> = {
   "play": PlayIcon,
@@ -37,7 +38,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const tickSize = 60
   const decimalPlaces = 2
 
-  const translationString = `translate(${kSliderPadding * .25}, 0)`
+  const translationString = `translate(${kSliderPadding * .5}, 0)`
 
   const rangeMax = sliderModel.axis.max
   const rangeMin = sliderModel.axis.min
@@ -116,10 +117,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
     setIsManuallyEditing(false)
   }
 
-  // Experiment so I can better understand drag rects.
-  // It is intentionally simple and not destined for production.
-  // seems like instead what needs to happen is
-  // extend range, maintain existing width, move translation
+  // temporary functions for layout debugging
   const handleDomainUp = () => {
     sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max + 10)
   }
@@ -191,8 +189,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           step={multiplesOf}
           max={rangeMax}
           min={rangeMin}
-          width={widthFromApp}
-          marginLeft={`${kSliderPadding * .25}px`}
+          width={widthFromApp  + (kSliderPadding * .5)}
+          marginLeft={`${kSliderPadding * .5}px`}
         >
           <SliderTrack bg='transparent' />
           <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
@@ -200,31 +198,31 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           </SliderThumb>
         </Slider>
 
-        {/* <svg width={widthFromApp + (kSliderPadding * .5)}  height="30">
-          <g className="axis-wrapper in-slider" ref={sliderAxisWrapRef}>
-            <g className="axis in-slider" ref={sliderAxisRef} transform={translationString}></g>
-          </g>
-        </svg> */}
 
-        {/* experiments */}
-        <svg style={{width: "100%"}}>
+        {/* Working raw D3 axis for layout debugging */}
+        {/* <svg width={widthFromApp + (kSliderPadding * .5)}  height="30">
+          <g className="axis-wrapper raw-d3-for-debug" ref={sliderAxisWrapRef}>
+            <g className="axis raw-d3-for-debug" ref={sliderAxisRef} transform={translationString}></g>
+          </g>
+        </svg>
+
+        <div className="temporary-dynamic-experiment">
+          <button onClick={ handleDomainUp } style={{ bottom: "-40px" }}>domain up</button>
+          <button onClick={ handleDomainDown } style={{ bottom: "-70px" }}>domain down</button>
+        </div> */}
+
+        <svg width={widthFromApp + (kSliderPadding * .5)}  height="50" style={{ marginRight: "0px"}}>
           <Axis
             getAxisModel={() => sliderModel.axis}
-            attributeID={''}
+            attributeID={''} // make optional in Axis
             transform={translationString}
             showGridLines={false}
-            onDropAttribute={()=> console.log("make optional")}
-            onTreatAttributeAs={() => console.log("make optional")}
+            onDropAttribute={()=> console.log("make optional")} // make optional in Axis
+            onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis
             inGraph={false}
           />
         </svg>
 
-        {/* <AxisDragRects axisModel={sliderModel.axis} axisWrapperElt={sliderAxisWrapRef.current} /> */}
-
-        {/* <div className="temporary-dynamic-experiment">
-          <button onClick={ handleDomainUp } style={{ bottom: "-40px" }}>domain up</button>
-          <button onClick={ handleDomainDown } style={{ bottom: "-70px" }}>domain down</button>
-        </div> */}
       </div>
     </>
   )
