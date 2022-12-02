@@ -9,7 +9,7 @@ import {transitionDuration} from "../graphing-types"
 export interface IUseAxis {
   axisModel?: IAxisModel
   axisElt: SVGGElement | null
-  enableAnimation: MutableRefObject<boolean>
+  enableAnimation?: MutableRefObject<boolean>
   showGridLines: boolean,
   scale: any
 }
@@ -28,7 +28,7 @@ export const useAxis = ({axisModel, axisElt, showGridLines, enableAnimation, sca
   previousAxisModel.current = axisModel
 
   const refreshAxis = useCallback(() => {
-    const duration = enableAnimation.current ? transitionDuration : 0
+    const duration = enableAnimation?.current ? transitionDuration : 0
     if (axisElt) {
       // When switching from one axis type to another, e.g. a categorical axis to an
       // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.

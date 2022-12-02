@@ -22,7 +22,7 @@ interface IProps {
   getAxisModel: () => IAxisModel | undefined
   attributeID: string
   transform: string
-  enableAnimation: MutableRefObject<boolean>
+  enableAnimation?: MutableRefObject<boolean>
   showGridLines: boolean
   inGraph: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void

@@ -211,13 +211,14 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
         {/* experiments */}
         <svg style={{width: "100%"}}>
           <Axis
-            getAxisModel={() => sliderModel.axis} //
+            getAxisModel={() => sliderModel.axis}
+            //enableAnimation={enableAnimation} -- made this optional in Axis and useAxis
             attributeID={''}
             transform={`translate(${20}, ${10})`}
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")}
             onTreatAttributeAs={() => console.log("make optional")}
-            insideSlider={true}
+            inGraph={false}
           />
         </svg>
 
