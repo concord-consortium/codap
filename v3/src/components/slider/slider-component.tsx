@@ -6,7 +6,7 @@ import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 import './slider.scss'
-import { ISliderModel, kSliderPadding } from "./slider-model"
+import { ISliderModel } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../graph/components/axis"
 
@@ -99,10 +99,14 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
     setIsManuallyEditing(false)
   }
 
+  const extraSpace = 0 // TODO, position axis, maybe join what we need in via useSliderLayout
+  const widthString = `${widthFromApp + extraSpace}px`
+
   return (
     <>
-      <div className="slider" style={{top: 100, right: 80, height: "150px"}}>
-
+      <div className="slider" style={
+        {top: 100, right: 80, height: "150px", width: widthString }
+      }>
         <div className="inspector-temporary">
           <input
             type="number"
@@ -162,8 +166,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           step={multiplesOf}
           max={sliderModel.axis.max}
           min={sliderModel.axis.min}
-          width={widthFromApp  + (kSliderPadding * .5)}
-          marginLeft={`${kSliderPadding * .5}px`}
+          width={widthFromApp}
         >
           <SliderTrack bg='transparent' />
           <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
@@ -171,11 +174,11 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           </SliderThumb>
         </Slider>
 
-        <svg width={widthFromApp + (kSliderPadding * .5)}  height="50" style={{ marginRight: "0px"}}>
+        <svg width={widthFromApp}  height="50">
           <Axis
             getAxisModel={() => sliderModel.axis}
             attributeID={''} // make optional in Axis
-            transform="translate(0, 0)"
+            transform={`translate(0, 0)`}
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")} // make optional in Axis
             onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis
