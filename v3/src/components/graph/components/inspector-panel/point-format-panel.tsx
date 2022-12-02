@@ -11,12 +11,12 @@ import "./point-format-panel.scss"
 interface IProps {
   graphModel: IGraphModel
   showFormatPalette: boolean
-  setShowFormatPalette: (show: boolean) => void;
+  setShowFormatPalette: (show: boolean) => void
 }
 
 export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormatPalette}: IProps) => {
-  const [pointColor, setPointColor] = useState<string | number>("#E6805B")
-  const [pointStroke, setPointStroke] = useState<string | number>("#FFFFFF")
+  const [pointColor, setPointColor] = useState<string>("#E6805B")
+  const [pointStroke, setPointStroke] = useState<string>("#FFFFFF")
 
   const handlePointSizeMultiplierSetting = (val: any) => {
     graphModel.setPointSizeMultiplier(val)
@@ -24,13 +24,13 @@ export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormat
   const handleTransparencySetting = (val: boolean) => {
     graphModel.setIsTransparent(val)
   }
-  const handleBackgroundColorSetting = (color: string | number) => {
+  const handleBackgroundColorSetting = (color: string) => {
     graphModel.setPlotBackgroundColor(color)
   }
-  const handlePointColorSetting = (color: string | number) => {
+  const handlePointColorSetting = (color: string) => {
     setPointColor(color)
   }
-  const handlePointStrokeColorSetting = (color: string | number) => {
+  const handlePointStrokeColorSetting = (color: string) => {
     setPointStroke(color)
   }
 

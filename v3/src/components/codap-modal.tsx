@@ -2,7 +2,7 @@ import { Modal,
   ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Button,
   Tooltip} from "@chakra-ui/react"
-import React, { forwardRef, ReactNode } from "react"
+import React, { forwardRef } from "react"
 
 import "./codap-modal.scss"
 
@@ -21,7 +21,7 @@ interface IProps<TContentProps> {
   onClose: () => void
   className?: string
   title: string
-  Icon?: ReactNode
+  Icon?: React.FC<any>
   Content: React.FC<TContentProps>
   contentProps?: TContentProps | any
   focusElement?: string
@@ -53,7 +53,7 @@ export const CodapModal = forwardRef(<IContentProps,>({ isOpen, onClose,
       <ModalContent ref={ref} className="codap-modal-content" w={contentProps.modalWidth || "400px"}>
         <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
           <div className="codap-modal-icon-container">
-            {Icon}
+            {Icon && <Icon />}
           </div>
           <div className="codap-header-title">{title}</div>
           {hasCloseButton && <ModalCloseButton onClick={onClose} data-testid="modal-close-button"/>}

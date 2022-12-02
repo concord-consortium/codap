@@ -55,10 +55,10 @@
   background-color: #EEE;
   border: 0px #444 solid;
   position: absolute;
-  left: 5px !important;
-  inset: 0px;
+  inset: 0;
+  left: 5px;
   max-width: 270px;
-  height: 251px;
+  height: fit-content;
   font-family: "museo-sans", sans-serif;
   z-index: 5;
 

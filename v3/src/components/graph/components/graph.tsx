@@ -34,17 +34,12 @@ interface IProps {
   dotsRef: React.RefObject<SVGSVGElement>
   showInspector: boolean
   setShowInspector: (show: boolean) => void
-  showParentToggles?: boolean
-  setShowParentToggles?: (show: boolean) => void
-  showMeasuresForSelection?: boolean
-  setShowMeasuresForSelection?: (show: boolean) => void
 }
 
 const marqueeState = new MarqueeState()
 
 export const Graph = observer((
-  {model: graphModel, graphRef, enableAnimation, dotsRef, showInspector, setShowInspector,
-    showParentToggles, setShowParentToggles, showMeasuresForSelection, setShowMeasuresForSelection}: IProps) => {
+  {model: graphModel, graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) => {
   const {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -172,10 +167,6 @@ export const Graph = observer((
       </div>
       <GraphInspector graphModel={graphModel}
                       show={showInspector}
-                      showParentToggles={showParentToggles}
-                      setShowParentToggles={setShowParentToggles}
-                      showMeasuresForSelection={showMeasuresForSelection}
-                      setShowMeasuresForSelection={setShowMeasuresForSelection}
       />
     </DataConfigurationContext.Provider>
   )
