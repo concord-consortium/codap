@@ -8,6 +8,7 @@ import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 import './slider.scss'
 import { ISliderModel, kSliderPadding } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
+import { Axis } from "../graph/components/axis"
 
 const SliderIconComponent: Record<string, any> = {
   "play": PlayIcon,
@@ -208,6 +209,17 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
 
 
         {/* experiments */}
+        <svg style={{width: "100%"}}>
+          <Axis
+            getAxisModel={() => sliderModel.axis} //
+            attributeID={''}
+            transform={`translate(${20}, ${10})`}
+            showGridLines={false}
+            onDropAttribute={()=> console.log("make optional")}
+            onTreatAttributeAs={() => console.log("make optional")}
+            insideSlider={true}
+          />
+        </svg>
 
         {/* <AxisDragRects axisModel={sliderModel.axis} axisWrapperElt={sliderAxisWrapRef.current} /> */}
 

@@ -37,7 +37,6 @@ export const useAxis = ({axisModel, axisElt, showGridLines, enableAnimation, sca
 
       select(axisElt)
         .transition().duration(duration)
-        // @ts-expect-error scale type
         .call(axisFunc(scale)
           .tickSizeOuter(0))
       select(axisElt).selectAll('.zero').remove()
@@ -48,7 +47,6 @@ export const useAxis = ({axisModel, axisElt, showGridLines, enableAnimation, sca
           numericScale = scale as ScaleNumericBaseType
         select(axisElt).append('g')
           .attr('class', 'grid')
-          // @ts-expect-error scale type
           .call(axisFunc(scale)
             .tickSizeInner(-tickLength))
         select(axisElt).select('.grid').selectAll('text').remove()
@@ -56,7 +54,6 @@ export const useAxis = ({axisModel, axisElt, showGridLines, enableAnimation, sca
         if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
           select(axisElt).append('g')
             .attr('class', 'zero')
-            // @ts-expect-error scale type
             .call(axisFunc(scale)
               .tickSizeInner(-tickLength)
               .tickValues([0]))
