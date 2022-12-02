@@ -13,6 +13,9 @@ import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisMode
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
+import { SliderModel } from "../../slider/slider-model"
+import { GlobalValue, GlobalValuesStore } from "../../../models/data/global-value"
+
 import t from "../../../utilities/translation/translate"
 
 

@@ -130,7 +130,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
 
   return (
     <>
-      <div className="slider" style={{top: 100, right: 80, height: "110px"}}>
+      <div className="slider" style={{top: 100, right: 80, height: "150px"}}>
 
         <div className="inspector-temporary">
           <input
@@ -200,21 +200,18 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           </SliderThumb>
         </Slider>
 
-        <svg width={widthFromApp + (kSliderPadding * .5)}  height="20">
+        {/* <svg width={widthFromApp + (kSliderPadding * .5)}  height="30">
           <g className="axis-wrapper in-slider" ref={sliderAxisWrapRef}>
             <g className="axis in-slider" ref={sliderAxisRef} transform={translationString}></g>
           </g>
-        </svg>
-
-
+        </svg> */}
 
         {/* experiments */}
         <svg style={{width: "100%"}}>
           <Axis
             getAxisModel={() => sliderModel.axis}
-            //enableAnimation={enableAnimation} -- made this optional in Axis and useAxis
             attributeID={''}
-            transform={`translate(${20}, ${10})`}
+            transform={translationString}
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")}
             onTreatAttributeAs={() => console.log("make optional")}
@@ -224,10 +221,10 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
 
         {/* <AxisDragRects axisModel={sliderModel.axis} axisWrapperElt={sliderAxisWrapRef.current} /> */}
 
-        <div className="temporary-dynamic-experiment">
-          <button onClick={ handleDomainUp } style={{ bottom: "-40px"}}>domain up</button>
-          <button onClick={ handleDomainDown } style={{ bottom: "-70px"}}>domain down</button>
-        </div>
+        {/* <div className="temporary-dynamic-experiment">
+          <button onClick={ handleDomainUp } style={{ bottom: "-40px" }}>domain up</button>
+          <button onClick={ handleDomainDown } style={{ bottom: "-70px" }}>domain down</button>
+        </div> */}
       </div>
     </>
   )
