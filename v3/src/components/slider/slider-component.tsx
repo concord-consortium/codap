@@ -9,7 +9,6 @@ import './slider.scss'
 import { ISliderModel, kSliderPadding } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../graph/components/axis"
-import { AxisDragRects } from "../graph/components/axis-drag-rects"
 
 const SliderIconComponent: Record<string, any> = {
   "play": PlayIcon,
@@ -35,13 +34,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const [running, setRunning] = useState<boolean>(false)
   const [isManuallyEditing, setIsManuallyEditing] = useState<boolean>(false)
   const intervalRef = useRef<any>()
-  const tickSize = 60
+  const tickTime = 60
   const decimalPlaces = 2
-
-  const translationString = `translate(${kSliderPadding * .5}, 0)`
-
-  const rangeMax = sliderModel.axis.max
-  const rangeMin = sliderModel.axis.min
 
   const sliderAxis = axisBottom(scaleLinear()
     .domain(sliderModel.getDomain())
@@ -65,7 +59,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const valueM = measureText(sliderModel.globalValue.value.toString())
 
   useEffect(() => {
-    const id = setInterval(() => { running && incrementSliderValue() }, tickSize)
+    const id = setInterval(() => { running && incrementSliderValue() }, tickTime)
     intervalRef.current = id
     return () => clearInterval(intervalRef.current)
   })
@@ -125,6 +119,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const handleDomainDown = () => {
     sliderModel.axis.setDomain(sliderModel.axis.min, sliderModel.axis.max - 10)
   }
+
+  const translationString = `translate(${kSliderPadding * .5}, 0)`
 
   return (
     <>
@@ -187,8 +183,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           value={sliderModel.globalValue.value}
           onChange={handleSliderValueChange}
           step={multiplesOf}
-          max={rangeMax}
-          min={rangeMin}
+          max={sliderModel.axis.max}
+          min={sliderModel.axis.min}
           width={widthFromApp  + (kSliderPadding * .5)}
           marginLeft={`${kSliderPadding * .5}px`}
         >
