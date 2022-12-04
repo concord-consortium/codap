@@ -1,10 +1,12 @@
 import { Button, Select } from '@chakra-ui/react'
-import { Active, DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
+import { DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IAttribute } from "../models/data/attribute"
 import { DataBroker } from "../models/data/data-broker"
-import { getDragAttributeId, IDropData, IUseDraggableAttribute, useDraggableAttribute } from '../hooks/use-drag-drop'
+import {
+  getDragAttributeId, IUseDraggableAttribute, useDraggableAttribute, useDropHandler
+} from '../hooks/use-drag-drop'
 import { useV2DocumentContext } from '../hooks/use-v2-document-context'
 import { prf } from "../utilities/profiler"
 import t from "../utilities/translation/translate"
@@ -24,7 +26,7 @@ export const DataSummary = observer(({ broker }: IProps) => {
   const dragAttribute = dragAttributeID ? data?.attrFromID(dragAttributeID) : undefined
 
   // used to determine when a dragged attribute is over the summary component
-  const { setNodeRef } = useDroppable({ id: "summary-component-drop", data: { accepts: ["attribute"] } })
+  const { setNodeRef } = useDroppable({ id: "summary-component-drop" })
 
   const [selectedAttribute, setSelectedAttribute] = useState<IAttribute | undefined>()
 
@@ -116,12 +118,12 @@ interface ISummaryDropTargetProps {
   onDrop?: (attributeId: string) => void
 }
 const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
-  const handleDrop = (active: Active) => {
+  const droppableId = "summary-inspector-drop"
+  const { isOver, setNodeRef } = useDroppable({ id: droppableId })
+  useDropHandler(droppableId, active => {
     const dragAttributeID = getDragAttributeId(active)
     dragAttributeID && onDrop?.(dragAttributeID)
-  }
-  const data: IDropData = { accepts: ["attribute"], onDrop: handleDrop }
-  const { isOver, setNodeRef } = useDroppable({ id: "summary-inspector-drop", data })
+  })
   return (
     <>
       <div ref={setNodeRef} className={`summary-inspector-drop ${isOver ? "over" : ""}`}>

@@ -1,3 +1,4 @@
+import { DndContext } from "@dnd-kit/core"
 import { render, screen } from "@testing-library/react"
 import userEvent from '@testing-library/user-event'
 import React from "react"
@@ -28,12 +29,12 @@ describe("Case Table", () => {
   })
 
   it("renders nothing with no broker", () => {
-    render(<CaseTableComponent />)
+    render(<DndContext><CaseTableComponent/></DndContext>)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
   it("renders nothing with empty broker", () => {
-    render(<CaseTableComponent broker={broker} />)
+    render(<DndContext><CaseTableComponent broker={broker}/></DndContext>)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
@@ -43,7 +44,7 @@ describe("Case Table", () => {
     data.addAttribute({ name: "b" })
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
-    render(<CaseTableComponent broker={broker} />)
+    render(<DndContext><CaseTableComponent broker={broker}/></DndContext>)
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
@@ -55,10 +56,10 @@ describe("Case Table", () => {
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
     const { rerender } = render((
-      <>
+      <DndContext>
         <UseKeyStatesWrapper/>
         <CaseTableComponent broker={broker} />
-      </>
+      </DndContext>
     ))
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
     const indexCells = screen.getAllByRole("rowheader")
@@ -68,10 +69,10 @@ describe("Case Table", () => {
     expect(data.selection.size).toBe(0)
     await user.click(indexContents[0])
     rerender((
-      <>
+      <DndContext>
         <UseKeyStatesWrapper/>
         <CaseTableComponent broker={broker} />
-      </>
+      </DndContext>
     ))
     expect(data.selection.size).toBe(1)
     await user.keyboard('[ShiftLeft>]') // Press Shift (without releasing it)

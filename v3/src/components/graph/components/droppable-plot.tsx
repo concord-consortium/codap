@@ -1,6 +1,6 @@
 import { Active } from "@dnd-kit/core"
 import React from "react"
-import { getDragAttributeId, IDropData } from "../../../hooks/use-drag-drop"
+import { getDragAttributeId, useDropHandler } from "../../../hooks/use-drag-drop"
 import { useDropHintString } from "../../../hooks/use-drop-hint-string"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { GraphPlace } from "../models/axis-model"
@@ -21,14 +21,10 @@ export const DroppablePlot = ({ graphElt, plotElt, onDropAttribute }: IProps) =>
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
-  const handlePlotDropAttribute = (active: Active) => {
+  useDropHandler(droppableId, active => {
     const dragAttributeID = getDragAttributeId(active)
-    if (dragAttributeID) {
-      onDropAttribute('plot', dragAttributeID)
-    }
-  }
-
-  const data: IDropData = {accepts: ["attribute"], onDrop: handlePlotDropAttribute}
+    dragAttributeID && onDropAttribute('plot', dragAttributeID)
+  })
 
   return (
     <DroppableSvg
@@ -36,7 +32,6 @@ export const DroppablePlot = ({ graphElt, plotElt, onDropAttribute }: IProps) =>
       portal={graphElt}
       target={plotElt}
       dropId={droppableId}
-      dropData={data}
       onIsActive={handleIsActive}
       hintString={hintString}
     />

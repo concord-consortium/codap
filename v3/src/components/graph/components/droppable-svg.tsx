@@ -11,13 +11,12 @@ interface IProps {
   portal: HTMLElement | null
   target: SVGGElement | null
   dropId: string
-  dropData: any
   onIsActive?: (active: Active) => boolean
   hintString?: string
 }
 export const DroppableSvg = ({
-    className, portal, target, dropId, dropData, onIsActive, hintString }: IProps) => {
-  const { active, isOver, setNodeRef } = useDroppable({ id: dropId, data: dropData })
+    className, portal, target, dropId, onIsActive, hintString }: IProps) => {
+  const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
   const style: CSSProperties = useOverlayBounds({ target, portal })
   const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`

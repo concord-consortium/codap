@@ -1,4 +1,4 @@
-import { Active, DataRef, useDraggable, UseDraggableArguments } from "@dnd-kit/core"
+import { Active, DataRef, useDndMonitor, useDraggable, UseDraggableArguments } from "@dnd-kit/core"
 
 // list of draggable types
 const DragTypes = ["attribute"] as const
@@ -6,11 +6,6 @@ type DragType = typeof DragTypes[number]
 
 export interface IDragData {
   type: DragType
-}
-
-export interface IDropData {
-  accepts: DragType[]
-  onDrop?: (active: Active) => void
 }
 
 export interface IDragAttributeData extends IDragData {
@@ -37,4 +32,11 @@ export const useDraggableAttribute = ({ prefix, attributeId, ...others }: IUseDr
   const attributes = { tabIndex: -1 }
   const data: IDragAttributeData = { type: "attribute", attributeId }
   return useDraggable({ ...others, id: `${prefix}-${attributeId}`, attributes, data })
+}
+
+export const useDropHandler = (dropId: string, onDrop: (active: Active) => void) => {
+  useDndMonitor({ onDragEnd: ({ active, over }) => {
+    // only call onDrop for the handler that registered it
+    (over?.id === dropId) && onDrop(active)
+  }})
 }

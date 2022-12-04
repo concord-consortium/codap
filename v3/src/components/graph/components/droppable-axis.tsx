@@ -13,14 +13,13 @@ interface IProps {
   portal: HTMLElement | null
   target: SVGGElement | null
   dropId: string
-  dropData: any
   hintString?: string
   onIsActive?: (active: Active) => boolean
 }
-export const DroppableAxis = observer(({ place, portal, target, dropId, dropData, hintString, onIsActive }: IProps) => {
+export const DroppableAxis = observer(({ place, portal, target, dropId, hintString, onIsActive }: IProps) => {
   const axisBounds = useAxisBounds(place)
 
-  const { active, isOver, setNodeRef } = useDroppable({ id: dropId, data: dropData })
+  const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
 
   // calculate the position of the overlay

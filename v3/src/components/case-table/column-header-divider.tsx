@@ -1,8 +1,9 @@
-import { Active, useDroppable } from "@dnd-kit/core"
+import { useDroppable } from "@dnd-kit/core"
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IMoveAttributeOptions } from "../../models/data/data-set"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useDropHandler } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { kIndexColumnKey } from "./case-table-types"
 
@@ -17,17 +18,15 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const tableBounds = tableElt?.getBoundingClientRect()
   const cellBounds = cellElt?.getBoundingClientRect()
 
-  const handleDrop = (active: Active) => {
+  const id = `${instanceId}-attribute:${columnKey}-drop`
+  const { isOver, setNodeRef: setDropRef } = useDroppable({ id })
+  useDropHandler(id, active => {
     const dragAttrId = active.data?.current?.attributeId
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: data?.attributes[0].id }
                                             : { after: columnKey }
     dragAttrId && data?.moveAttribute(dragAttrId, options)
-  }
-
-  const dropData: any = { accepts: ["attribute"], onDrop: handleDrop }
-  const id = `${instanceId}-attribute:${columnKey}-drop`
-  const { isOver, setNodeRef: setDropRef } = useDroppable({ id, data: dropData })
+  })
 
   // find the `case-table` DOM element; divider must be drawn relative
   // to the `case-table` (via React portal) so it isn't clipped by the cell
