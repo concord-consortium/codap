@@ -135,15 +135,15 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.getAxisBounds(place)
+        return inGraph ? layout.getAxisBounds(place) : boundsRect
       },
-      (axisBounds) => {
-        console.log({axisBounds})
+      (nboundsRect) => {
+        console.log({nboundsRect})
         const
           length = inGraph ? layout.axisLength(place) : 300,
           rectSelection = select(rectRef.current),
           numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
-        if (length != null && axisBounds != null) {
+        if (length != null && nboundsRect != null) {
           rectSelection
             .selectAll('.dragRect')
             .data(numbering)// data signify lower, middle, upper rectangles
@@ -154,10 +154,10 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
               },
               (update) => {
                 update
-                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : 0))
-                  .attr('y', (d) => axisBounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width))
-                  .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
+                  .attr('x', (d) => nboundsRect.left + (place === 'bottom' ? (d * length / 3) : 0))
+                  .attr('y', (d) => nboundsRect.top + (place === 'bottom' ? 0 : (d * length / 3)))
+                  .attr('width', () => (place === 'bottom' ? length / 3 : nboundsRect.width))
+                  .attr('height', () => (place === 'bottom' ? nboundsRect.height : length / 3))
               }
             )
           rectSelection.selectAll('.dragRect').raise()
