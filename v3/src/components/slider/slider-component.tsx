@@ -99,14 +99,17 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
     setIsManuallyEditing(false)
   }
 
-  const extraSpace = 0 // TODO, position axis, maybe join what we need in via useSliderLayout
-  const widthString = `${widthFromApp + extraSpace}px`
+  const styleFromApp = { top: 100, right: 80, width: "300px" }
 
   return (
-    <>
-      <div className="slider" style={
-        {top: 100, right: 80, height: "150px", width: widthString }
-      }>
+    <div className="slider-wrapper" style={styleFromApp}>
+      <div className="titlebar">
+        <input type="text"
+          value={sliderModel.name}
+          onChange={handleSliderNameChange}
+        />
+      </div>
+      <div className="slider">
         <div className="inspector-temporary">
           <input
             type="number"
@@ -115,16 +118,12 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           />
         </div>
 
-        <div className="titlebar">
-          <input type="text"
-            value={sliderModel.name}
-            onChange={handleSliderNameChange}
-          />
-        </div>
-
         <Flex>
           <Center w="40px">
-            <button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
+            <button
+              className={`play-pause ${ running ? "running" : "paused"}`}
+              onClick={toggleRunning}
+            >
               { running ? <PauseIcon /> : <PlayIcon /> }
             </button>
           </Center>
@@ -187,6 +186,6 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
         </svg>
 
       </div>
-    </>
+    </div>
   )
 })

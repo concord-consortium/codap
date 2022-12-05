@@ -1,11 +1,12 @@
 @import "./../vars.scss";
 
-.slider {
+.slider-wrapper {
+  border: 2px solid orange;
   position: fixed;
+  height: 150px;
   background: #fff;
   border-radius: $border-radius-four-corners;
   box-shadow: 1px 1px 3px 1px rgba(176, 170, 170, 0.75);
-  padding-bottom:10px;
 
   .titlebar {
     text-align: center;
@@ -20,6 +21,9 @@
       max-width:98%
     }
   }
+}
+.slider {
+  border:1px dotted green;
 
   button svg, .thumb-icon {
     width:27px;
