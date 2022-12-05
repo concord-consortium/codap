@@ -1,10 +1,10 @@
-import {extent, format, select} from "d3"
+import {extent, format, select, selection} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
 import {Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "./math-utils"
 import {IDataSet} from "../../../models/data/data-set"
-import {ScaleNumericBaseType} from "../models/graph-layout"
+import {Bounds, ScaleNumericBaseType} from "../models/graph-layout"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {
   defaultPointColor,
@@ -17,6 +17,16 @@ import {IDataConfigurationModel} from "../models/data-configuration-model"
 /**
  * Utility routines having to do with graph entities
  */
+
+export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
+  const text = selection().append('text')
+  let maxWidth = 0
+  for (const aString of strings) {
+    maxWidth = Math.max(maxWidth, text.text(aString).node()?.getBoundingClientRect().width ?? 0)
+  }
+  text.remove()
+  return maxWidth
+}
 
 export function ptInRect(pt: Point, iRect: Rect) {
   const tRight = iRect.x + iRect.width,
@@ -35,7 +45,7 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
     if (gap === 0) {
       return 1
     }
-    // We move to base 10 so we can get rid of the power of ten.
+    // We move to base 10, so we can get rid of the power of ten.
     const logTrial = Math.log(gap) / Math.LN10,
       floor = Math.floor(logTrial),
       power = Math.pow(10.0, floor)
@@ -380,6 +390,7 @@ export interface ISetPointCoordinates {
   selectedOnly?: boolean
   pointRadius: number
   selectedPointRadius: number
+  plotBounds: Bounds
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string) => number | null)
   getLegendColor?: ((anID: string) => string)
@@ -397,12 +408,15 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     },
 
     setPoints = () => {
-      const duration = enableAnimation.current ? transitionDuration : 0
-      if (selection.size() > 0) {
-        selection
+      const duration = enableAnimation.current ? transitionDuration : 0,
+        transform = `translate(${plotBounds.left}, ${plotBounds.top})`
+
+      if (theSelection.size() > 0) {
+        theSelection
+          .attr('transform', transform)
           .transition()
           .duration(duration)
-          .on('end', (id, i) => (i === selection.size() - 1) && onComplete())
+          .on('end', (id, i) => (i === theSelection.size() - 1) && onComplete())
           .attr('cx', (anID: string) => getScreenX(anID))
           .attr('cy', (anID: string) => getScreenY(anID))
           .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
@@ -416,16 +430,16 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
 
   const
     {
-      dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
+      dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius, plotBounds,
       getScreenX, getScreenY, getLegendColor, enableAnimation,
       onComplete = (() => {
-        if( enableAnimation.current) {
+        if (enableAnimation.current) {
           enableAnimation.current = false
           setPoints()
         }
       })
     } = props,
 
-    selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
+    theSelection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
   setPoints()
 }

@@ -80,10 +80,16 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       layoutData.current = lod
     }, [layout, dataConfiguration]),
 
+    computeDesiredExtent = useCallback(() => {
+      computeLayout()
+      const lod = layoutData.current,
+        labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
+      return lod.numRows * (keySize + padding) + labelHeight
+    }, [computeLayout, legendLabelRef]),
+
     refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
-      const numCategories = categoriesRef.current?.size,
-        labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
+      const numCategories = categoriesRef.current?.size
       select(keysElt)
         .selectAll('g')
         .data(range(0, numCategories ?? 0))
@@ -96,7 +102,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
             update.select('rect')
               .classed('legend-rect-selected',
                 (index) => {
-                return dataConfiguration?.allCasesForCategorySelected(categoryData.current[index].category) ?? false
+                  return dataConfiguration?.allCasesForCategorySelected(categoryData.current[index].category) ?? false
                 })
               .attr('transform', transform)
               .style('fill', (index: number) => categoryData.current[index].color || 'white')
@@ -104,7 +110,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
                 return categoryData.current[index].column * layoutData.current.columnWidth
               })
               .attr('y',
-                (index: number) => 10 + labelHeight + categoryData.current[index].row * (keySize + padding))
+                (index: number) => 10 + categoryData.current[index].row * (keySize + padding))
             update.select('text')
               .text((index: number) => categoryData.current[index].category)
               .attr('transform', transform)
@@ -112,33 +118,34 @@ export const CategoricalLegend = memo(function CategoricalLegend(
                 return categoryData.current[index].column * layoutData.current.columnWidth + keySize + 3
               })
               .attr('y',
-                (index: number) => labelHeight + 1.5 * keySize + categoryData.current[index].row * (keySize + padding))
+                (index: number) => 1.5 * keySize + categoryData.current[index].row * (keySize + padding))
           }
         )
-    }, [dataConfiguration, keysElt, transform, legendLabelRef])
+    }, [dataConfiguration, keysElt, transform])
 
-  useEffect( function respondToSelectionChange() {
+  useEffect(function respondToSelectionChange() {
     const disposer = onAction(dataset, action => {
       if (isSelectionAction(action)) {
         refreshKeys()
       }
     }, true)
     return disposer
-  },[refreshKeys, dataset])
+  }, [refreshKeys, dataset])
 
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
       () => {
-        const {graphHeight, graphWidth} = layout
-        return [graphHeight, graphWidth]
+        const {graphHeight, graphWidth} = layout,
+          legendAttrID = dataConfiguration?.attributeID('legend')
+        return [graphHeight, graphWidth, legendAttrID]
       },
       () => {
-        computeLayout()
+        layout.setDesiredExtent('legend', computeDesiredExtent())
         refreshKeys()
       }, {fireImmediately: true}
     )
     return () => disposer()
-  }, [layout, computeLayout, refreshKeys])
+  }, [layout, refreshKeys, computeDesiredExtent, dataConfiguration])
 
   useEffect(function setup() {
     categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
@@ -154,10 +161,10 @@ export const CategoricalLegend = memo(function CategoricalLegend(
             .append('g')
             .attr('class', 'key')
         )
-      keysSelection.each(function(d, n, group) {
+      keysSelection.each(function (d, n, group) {
         const sel = select(this),
           size = sel.selectAll('rect').size()
-        if(size === 0) {
+        if (size === 0) {
           sel.append('rect')
             .attr('width', keySize)
             .attr('height', keySize)

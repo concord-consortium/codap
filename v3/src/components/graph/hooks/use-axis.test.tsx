@@ -11,12 +11,13 @@ describe("useNumericAxis", () => {
   let axisModel: INumericAxisModel
   let axisElt: SVGGElement
   let useAxisOptions: IUseAxis
+  let titleRef: React.RefObject<SVGGElement>
 
   beforeEach(() => {
     layout = new GraphLayout()
     axisModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     axisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
-    useAxisOptions = { axisModel, axisElt, enableAnimation: { current: false }, showGridLines: false }
+    useAxisOptions = { axisModel, axisElt, titleRef, enableAnimation: { current: false }, showGridLines: false }
   })
 
   it("renders a simple horizontal axis", () => {

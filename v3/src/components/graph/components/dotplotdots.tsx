@@ -7,7 +7,7 @@ import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
@@ -187,16 +187,17 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         },
         getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
         getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord,
-        getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+        getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
+        plotBounds = layout.computedBounds.get('plot') as Bounds
 
       setPointCoordinates({
         dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
-        getScreenX, getScreenY, getLegendColor, enableAnimation
+        getScreenX, getScreenY, getLegendColor, enableAnimation, plotBounds
       })
     },
     [dataConfiguration?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
       legendAttrID, primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
-      dataConfiguration?.getLegendColorForCase])
+      dataConfiguration?.getLegendColorForCase, layout.computedBounds])
 
   usePlotResponders({
     graphModel, primaryAttrID, secondaryAttrID, legendAttrID, layout, dotsRef,

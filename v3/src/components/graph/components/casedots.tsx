@@ -1,14 +1,14 @@
 import {randomUniform, select} from "d3"
-import { onAction } from "mobx-state-tree"
+import {onAction} from "mobx-state-tree"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
-import { ICase } from "../../../models/data/data-set"
-import { isAddCasesAction } from "../../../models/data/data-set-actions"
+import {ICase} from "../../../models/data/data-set"
+import {isAddCasesAction} from "../../../models/data/data-set-actions"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {handleClickOnDot, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {
@@ -93,17 +93,21 @@ export const CaseDots = memo(function CaseDots(props: {
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
-      selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
+      {computedBounds} = layout,
+      bounds = computedBounds.get('plot') as Bounds,
+      transform = `translate(${bounds.left}, ${bounds.top})`,
+      dotsSelection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined,
       [xMin, xMax] = xScale.range(),
       [yMin, yMax] = yScale.range()
-    selection
+    dotsSelection
+      .attr('transform', transform)
       .transition()
       .duration(duration)
-      .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
+      .on('end', (id, i) => (i === dotsSelection.size() - 1) && onComplete?.())
       .attr('cx', (anID: string) => {
         return xMin + pointRadius + randomPointsRef.current[anID].x * (xMax - xMin - 2 * pointRadius)
       })
@@ -111,14 +115,15 @@ export const CaseDots = memo(function CaseDots(props: {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
       .style('fill', (anID: string) => {
-          return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
+        return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
       })
       .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
         defaultSelectedStroke : defaultStrokeColor)
       .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
         defaultSelectedStrokeWidth : defaultStrokeWidth)
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
-  }, [dataset, legendAttrID, dataConfiguration, pointRadius, dotsRef, enableAnimation, xScale, yScale])
+  }, [dataset, legendAttrID, dataConfiguration, pointRadius,
+    layout, dotsRef, enableAnimation, xScale, yScale])
 
   useEffect(function initDistribution() {
     const {cases} = dataset || {}
@@ -131,8 +136,6 @@ export const CaseDots = memo(function CaseDots(props: {
     }
 
     initCases(cases)
-    refreshPointPositions(false)
-
     const disposer = dataset && onAction(dataset, action => {
       if (isAddCasesAction(action)) {
         initCases(action.args[0])
@@ -140,7 +143,7 @@ export const CaseDots = memo(function CaseDots(props: {
     }, true)
 
     return () => disposer?.()
-  }, [dataset, refreshPointPositions])
+  }, [dataset])
 
   usePlotResponders({
     graphModel, dotsRef, legendAttrID, layout, refreshPointPositions, refreshPointSelection, enableAnimation

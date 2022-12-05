@@ -6,6 +6,7 @@ import {useResizeDetector} from "react-resize-detector"
 import {DataBroker} from "../../../models/data/data-broker"
 import {DataSetContext} from "../../../hooks/use-data-set-context"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
+import {kTitleBarHeight} from "../graphing-types"
 import {EmptyAxisModel} from "../models/axis-model"
 import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
@@ -35,7 +36,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const [showInspector, setShowInspector] = useState(false)
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setGraphExtent(width, height)
+    (width != null) && (height != null) && layout.setGraphExtent(width, height - kTitleBarHeight)
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the graph component

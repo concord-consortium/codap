@@ -15,7 +15,6 @@ export const MovableValue = (props: {
 }) => {
   const {model, axis, transform} = props,
     layout = useGraphLayoutContext(),
-    { margin } = layout,
     xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.axisScale("left"),
     valueRef = useRef<SVGSVGElement>(null),
@@ -38,14 +37,14 @@ export const MovableValue = (props: {
   }, [bottom, top, valueObject, xScale])
 
   const refreshValueLabel = useCallback((value: number) => {
-    const leftEdge = margin.left,
+    const leftEdge = 0,
       screenX = xScale(value) + (leftEdge || 0),
       string = valueLabelString(value)
     select('div.movable-value-label')
       .style('left', `${screenX}px`)
       .style('top', 0)
       .html(string)
-  }, [xScale, margin.left])
+  }, [xScale])
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
@@ -64,7 +63,7 @@ export const MovableValue = (props: {
         const { domain } = axis
         return domain
       },
-      domain => {
+      () => {
         const { value } = model
         refreshValue(value)
         refreshValueLabel(value)
@@ -75,8 +74,8 @@ export const MovableValue = (props: {
 
   const
     dragValue = useCallback((event: MouseEvent) => {
-      model.setValue(xScale.invert(event.x - margin.left))
-    }, [margin.left, model, xScale])
+      model.setValue(xScale.invert(event.x))
+    }, [model, xScale])
 
   // Add the behavior to the line cover
   useEffect(function addBehaviors() {

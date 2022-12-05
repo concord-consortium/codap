@@ -6,7 +6,7 @@ import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
@@ -133,11 +133,13 @@ export const ScatterDots = memo(function ScatterDots(props: IProps) {
     const
       getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
       getScreenY = (anID: string) => getScreenCoord(dataset, anID, secondaryAttrID, yScale),
-      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
+      { computedBounds } = layout,
+      plotBounds = computedBounds.get('plot') as Bounds
 
-    setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, selectedOnly,
+    setPointCoordinates({dataset, dotsRef, pointRadius, selectedPointRadius, plotBounds, selectedOnly,
       getScreenX, getScreenY, getLegendColor, enableAnimation})
-  }, [dataset, pointRadius, selectedPointRadius, dotsRef, primaryAttrID, xScale,
+  }, [dataset, pointRadius, selectedPointRadius, dotsRef, layout, primaryAttrID, xScale,
             secondaryAttrID, legendAttrID, yScale, enableAnimation, dataConfiguration])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {

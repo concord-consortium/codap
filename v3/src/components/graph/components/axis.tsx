@@ -13,7 +13,6 @@ import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisMode
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
-import t from "../../../utilities/translation/translate"
 
 
 import "./axis.scss"
@@ -21,15 +20,16 @@ import "./axis.scss"
 interface IProps {
   getAxisModel: () => IAxisModel | undefined
   attributeID: string
-  transform: string
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
-  onDropAttribute, enableAnimation, onTreatAttributeAs}: IProps) => {
+export const Axis = ({
+                       attributeID, getAxisModel, showGridLines,
+                       onDropAttribute, enableAnimation, onTreatAttributeAs
+                     }: IProps) => {
   const
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -39,18 +39,16 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
     scale = layout.axisScale(place),
-    hintString = useDropHintString({ role: axisPlaceToAttrRole[place] }),
+    hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
-  useAxis({axisModel, axisElt, enableAnimation, showGridLines})
-
-  useEffect(function setupTransform() {
-    axisElt && select(axisElt)
-      .attr("transform", transform)
-  }, [axisElt, transform])
+  useAxis({
+    axisModel, axisElt, label, enableAnimation, showGridLines,
+    titleRef
+  })
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
@@ -74,39 +72,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
             .attr('data-testid', `axis-title-${place}`)
         })
 
-  }, [axisElt, halfRange, label, place, transform])
-
-  useEffect(function updateTitlePosition() {
-    // track the bounds of the d3 axis element
-    let observer: ResizeObserver
-    if (axisElt) {
-      observer = new ResizeObserver(() => {
-        const
-          d3AxisBounds = axisElt?.getBBox?.(),
-          tX = (place === 'left') ? (d3AxisBounds?.x ?? 0) - 10 : halfRange,
-          tY = (place === 'bottom') ? (d3AxisBounds?.y ?? 0) + (d3AxisBounds?.height ?? 30) + 15 : halfRange,
-          tRotation = place === 'bottom' ? '' : `rotate(-90,${tX},${tY})`
-        select(titleRef.current)
-          .selectAll('text.axis-title')
-          .data([1])
-          .join(
-            // @ts-expect-error void => Selection
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            (enter) => {
-            },
-            (update) => {
-              update
-                .attr('x', tX)
-                .attr('y', tY)
-                .attr('transform', transform + ' ' + tRotation)
-                .text(label || t('DG.AxisView.emptyGraphCue'))
-            })
-      })
-      observer.observe(axisElt)
-    }
-
-    return () => observer?.disconnect()
-  }, [axisElt, place, halfRange, label, transform])
+  }, [axisElt, halfRange, label, place])
 
   return (
     <>
@@ -115,7 +81,7 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
         <g ref={titleRef}/>
       </g>
 
-      { graphElt &&
+      {graphElt &&
         createPortal(<AxisAttributeMenu
           target={titleRef.current}
           portal={graphElt}
@@ -127,14 +93,15 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines,
 
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
-        <DroppableAxis
-          place={`${place}`}
-          dropId={droppableId}
-          hintString={hintString}
-          portal={graphElt}
-          target={wrapperElt}
-          onIsActive={handleIsActive}
-        />
+      <DroppableAxis
+        place={`${place}`}
+        dropId={droppableId}
+
+        hintString={hintString}
+        portal={graphElt}
+        target={wrapperElt}
+        onIsActive={handleIsActive}
+      />
     </>
   )
 }
