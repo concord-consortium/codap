@@ -134,7 +134,12 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, inGra
       }
 
       {axisModel?.type === 'numeric' ?
-        <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt} inGraph={inGraph} scale={scale} boundsRect={wrapperElt?.getBoundingClientRect()} /> : null}
+        <AxisDragRects
+          axisModel={axisModel as INumericAxisModel}
+          axisWrapperElt={wrapperElt}
+          inGraph={inGraph}
+          scale={scale}
+          boundsRect={wrapperElt?.getBoundingClientRect()} /> : null}
         <DroppableAxis
           place={`${place}`}
           dropId={droppableId}

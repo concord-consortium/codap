@@ -6,6 +6,7 @@ import {INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import t from "../../../utilities/translation/translate"
 import "./axis.scss"
+import { useAxisBounds } from "../hooks/use-axis-bounds"
 
 interface IProps {
   axisModel: INumericAxisModel
@@ -22,13 +23,15 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
 export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scale, boundsRect}: IProps) => {
-
+  const marker = inGraph ? "in-graph: " : "in-slider: "
+  console.log(marker, {boundsRect})
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = inGraph ? axisModel.place : 'bottom',
     layout = useGraphLayoutContext()
     // scale = layout.axisScale(place) as ScaleNumericBaseType
 
   useEffect(function createRects() {
+
     let scaleAtStart: any = null,
       lowerAtStart: number,
       upperAtStart: number,
@@ -133,17 +136,16 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
 
   // update layout of axis drag rects when axis bounds change
   useEffect(() => {
-    const disposer = reaction(
-      () => {
-        return inGraph ? layout.getAxisBounds(place) : boundsRect
-      },
-      (nboundsRect) => {
-        console.log({nboundsRect})
-        const
-          length = inGraph ? layout.axisLength(place) : 300,
-          rectSelection = select(rectRef.current),
-          numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
-        if (length != null && nboundsRect != null) {
+    // const disposer = reaction(
+    //   () => {
+    //     return inGraph ? layout.getAxisBounds(place) : boundsRect
+    //   },
+    //   (nboundsRect) => {
+    //       console.log("ME")
+          const length = place === "bottom" ? boundsRect.width : boundsRect.height
+          const rectSelection = select(rectRef.current)
+          const numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
+        if (length != null && boundsRect != null) {
           rectSelection
             .selectAll('.dragRect')
             .data(numbering)// data signify lower, middle, upper rectangles
@@ -153,19 +155,17 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
               (enter) => {
               },
               (update) => {
+                console.log("ME 2", {rectSelection})
                 update
-                  .attr('x', (d) => nboundsRect.left + (place === 'bottom' ? (d * length / 3) : 0))
-                  .attr('y', (d) => nboundsRect.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                  .attr('width', () => (place === 'bottom' ? length / 3 : nboundsRect.width))
-                  .attr('height', () => (place === 'bottom' ? nboundsRect.height : length / 3))
+                  .attr('x', (d) => boundsRect.left + (place === 'bottom' ? (d * length / 3) : 0))
+                  .attr('y', (d) => boundsRect.top + (place === 'bottom' ? 0 : (d * length / 3)))
+                  .attr('width', () => (place === 'bottom' ? length / 3 : boundsRect.width))
+                  .attr('height', () => (place === 'bottom' ? boundsRect.height : length / 3))
               }
             )
           rectSelection.selectAll('.dragRect').raise()
         }
-      }
-    )
-    return () => disposer()
-  }, [axisModel, layout, axisWrapperElt, place])
+  },[boundsRect, place])
   return (
     <g className={'dragRect'} ref={rectRef}/>
   )
