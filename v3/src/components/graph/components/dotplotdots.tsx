@@ -161,7 +161,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         const maxInBin = Object.values(bins).reduce((prevMax, aBinArray) => {
             return Math.max(prevMax, max(aBinArray, b => b.length) || 0) + 1
           }, 0),
-          excessHeight = Math.max(0, maxInBin - Math.floor(secondaryMax / pointDiameter)) * pointDiameter
+          excessHeight = Math.max(0, maxInBin - Math.floor(secondaryBandwidth / pointDiameter)) * pointDiameter
         overlap = excessHeight / maxInBin
       }
 
