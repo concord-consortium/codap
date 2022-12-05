@@ -10,7 +10,7 @@
 
 .dragRect {
   fill: #e38e71;
-  fill-opacity: 0.01;
+  fill-opacity: 0.2; //0.01;
   cursor: grab;
 
   &.dragging {

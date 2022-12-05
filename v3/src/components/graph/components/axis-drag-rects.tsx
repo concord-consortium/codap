@@ -10,6 +10,9 @@ import "./axis.scss"
 interface IProps {
   axisModel: INumericAxisModel
   axisWrapperElt: SVGGElement | null
+  inGraph: boolean
+  scale: any
+  boundsRect: any
 }
 
 type D3Handler = (this: Element, event: any, d: any) => void
@@ -18,12 +21,12 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.midPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
-export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
+export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scale, boundsRect}: IProps) => {
 
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
-    place = axisModel.place,
-    layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place) as ScaleNumericBaseType
+    place = inGraph ? axisModel.place : 'bottom',
+    layout = useGraphLayoutContext()
+    // scale = layout.axisScale(place) as ScaleNumericBaseType
 
   useEffect(function createRects() {
     let scaleAtStart: any = null,
@@ -136,7 +139,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
       },
       (axisBounds) => {
         const
-          length = layout.axisLength(place),
+          length = inGraph ? layout.axisLength(place) : 300,
           rectSelection = select(rectRef.current),
           numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
         if (length != null && axisBounds != null) {
