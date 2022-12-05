@@ -1,6 +1,6 @@
 
 import { useMemo } from "react"
-import { kSliderDefaultWidth, SliderModel } from "./slider-model"
+import { kDefaultSliderWidth, SliderModel } from "./slider-model"
 
 export const useCodapSlider = () => {
   return useMemo(() => {
@@ -11,7 +11,7 @@ export const useCodapSlider = () => {
 
 export const useCodapSliderLayout = () => {
   // TODO: const calculatedWidth = function(lots of stuff)
-  const calculatedWidth = kSliderDefaultWidth
+  const calculatedWidth = kDefaultSliderWidth
   return {
     sliderWidth: calculatedWidth
   }

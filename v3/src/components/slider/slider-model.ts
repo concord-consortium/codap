@@ -11,7 +11,7 @@ export interface SliderProperties {
 
 export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const
 export type IScaleType = typeof ScaleTypes[number]
-export const kSliderDefaultWidth = 300
+export const kDefaultSliderWidth = 300
 
 export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),
