@@ -138,6 +138,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
         return layout.getAxisBounds(place)
       },
       (axisBounds) => {
+        console.log({axisBounds})
         const
           length = inGraph ? layout.axisLength(place) : 300,
           rectSelection = select(rectRef.current),
