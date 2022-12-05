@@ -1,3 +1,4 @@
+import {observable} from "mobx"
 import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
@@ -43,7 +44,7 @@ export const DataConfigurationModel = types
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
     handlers: new Map<string,(actionCall: ISerializedActionCall) => void>(),
-    categorySets: new Map<GraphAttrRole, Set<string> | null>
+    categorySets: observable.map<string | null>()
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -69,6 +70,11 @@ export const DataConfigurationModel = types
       self.dataset?.attributes.length && places.add("caption")
       return Array.from(places) as GraphAttrRole[]
     }
+  }))
+  .actions(self => ({
+    clearCategorySets() {
+      self.categorySets.clear()
+    },
   }))
   .views(self => ({
     filterCase(data: IDataSet, caseID: string) {
@@ -116,7 +122,7 @@ export const DataConfigurationModel = types
           }
         })
       } else {
-        self.categorySets.clear()
+        self.clearCategorySets()
       }
     }
   }))
