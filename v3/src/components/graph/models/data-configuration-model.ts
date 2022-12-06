@@ -1,3 +1,4 @@
+import {observable} from "mobx"
 import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
@@ -43,7 +44,7 @@ export const DataConfigurationModel = types
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
     handlers: new Map<string,(actionCall: ISerializedActionCall) => void>(),
-    categorySets: new Map<GraphAttrRole, Set<string> | null>
+    categorySets: observable.map<GraphAttrRole, Set<string> | null>()
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -70,6 +71,11 @@ export const DataConfigurationModel = types
       return Array.from(places) as GraphAttrRole[]
     }
   }))
+  .actions(self => ({
+    clearCategorySets() {
+      self.categorySets.clear()
+    },
+  }))
   .views(self => ({
     filterCase(data: IDataSet, caseID: string) {
       return Array.from(self.attributeDescriptions.entries()).every(([place, {attributeID}]) => {
@@ -90,6 +96,7 @@ export const DataConfigurationModel = types
       self.handlers.forEach(handler => handler(actionCall))
     },
     handleSetCaseValues(actionCall: SetCaseValuesAction, cases: IFilteredChangedCases) {
+      let [affectedCases, affectedAttrIDs] = actionCall.args
       // this is called by the FilteredCases object with additional information about
       // whether the value changes result in adding/removing any cases from the filtered set
       // a single call to setCaseValues can result in up to three calls to the handlers
@@ -102,21 +109,23 @@ export const DataConfigurationModel = types
       }
       if (cases.changed.length) {
         const idSet = new Set(cases.changed)
-        const changedCases = actionCall.args[0].filter(aCase => idSet.has(aCase.__id__))
+        const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
         self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
       }
       // Changes to case values require that existing cached categorySets be wiped.
       // But if we know the ids of the attributes involved, we can determine whether
       // an attribute that has a cache is involved
-      const attrIDs = actionCall.args[1]
-      if (attrIDs) {
-        self.attributeDescriptions.forEach((value, key) => {
-          if (attrIDs.includes(value.attributeID)) {
-            self.categorySets.set(key as GraphAttrRole, null)
+      if (!affectedAttrIDs && affectedCases.length === 1) {
+        affectedAttrIDs = Object.keys(affectedCases[0])
+      }
+      if (affectedAttrIDs) {
+        self.attributeDescriptions.forEach((desc, key: GraphAttrRole) => {
+          if (affectedAttrIDs.includes(desc.attributeID)) {
+            self.categorySets.set(key, null)
           }
         })
       } else {
-        self.categorySets.clear()
+        self.clearCategorySets()
       }
     }
   }))

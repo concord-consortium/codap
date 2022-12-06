@@ -87,6 +87,41 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       return lod.numRows * (keySize + padding) + labelHeight
     }, [computeLayout, legendLabelRef]),
 
+    setupKeys = useCallback(() => {
+      categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
+      const numCategories = categoriesRef.current?.size
+      if (keysElt && categoryData.current) {
+        select(keysElt).selectAll('key').remove() // start fresh
+
+        const keysSelection = select(keysElt)
+          .selectAll('g')
+          .data(range(0, numCategories ?? 0))
+          .join(
+            enter => enter
+              .append('g')
+              .attr('class', 'key')
+          )
+        keysSelection.each(function (d, n, group) {
+          const sel = select(this),
+            size = sel.selectAll('rect').size()
+          if (size === 0) {
+            sel.append('rect')
+              .attr('width', keySize)
+              .attr('height', keySize)
+              .on('click',
+                (event, i: number) => {
+                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                })
+            sel.append('text')
+              .on('click',
+                (event, i: number) => {
+                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                })
+          }
+        })
+      }
+    }, [dataConfiguration, keysElt]),
+
     refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
       const numCategories = categoriesRef.current?.size
@@ -132,6 +167,17 @@ export const CategoricalLegend = memo(function CategoricalLegend(
     return disposer
   }, [refreshKeys, dataset])
 
+  useEffect(function respondToCategorySetsChange() {
+    const disposer = reaction(
+      () => dataConfiguration?.categorySetForAttrRole('legend'),
+      () => {
+        layout.setDesiredExtent('legend', computeDesiredExtent())
+        setupKeys()
+        refreshKeys()
+      })
+    return disposer
+  }, [setupKeys, refreshKeys, dataConfiguration, layout, computeDesiredExtent])
+
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
       () => {
@@ -148,40 +194,11 @@ export const CategoricalLegend = memo(function CategoricalLegend(
   }, [layout, refreshKeys, computeDesiredExtent, dataConfiguration])
 
   useEffect(function setup() {
-    categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
-    const numCategories = categoriesRef.current?.size
     if (keysElt && categoryData.current) {
-      select(keysElt).selectAll('key').remove() // start fresh
-
-      const keysSelection = select(keysElt)
-        .selectAll('g')
-        .data(range(0, numCategories ?? 0))
-        .join(
-          enter => enter
-            .append('g')
-            .attr('class', 'key')
-        )
-      keysSelection.each(function (d, n, group) {
-        const sel = select(this),
-          size = sel.selectAll('rect').size()
-        if (size === 0) {
-          sel.append('rect')
-            .attr('width', keySize)
-            .attr('height', keySize)
-            .on('click',
-              (event, i: number) => {
-                dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
-              })
-          sel.append('text')
-            .on('click',
-              (event, i: number) => {
-                dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
-              })
-        }
-      })
+      setupKeys()
       refreshKeys()
     }
-  }, [keysElt, categoryData, refreshKeys, dataConfiguration])
+  }, [keysElt, categoryData, setupKeys, refreshKeys, dataConfiguration])
 
   return (
     <svg className='categories' ref={elt => setKeysElt(elt)}></svg>
