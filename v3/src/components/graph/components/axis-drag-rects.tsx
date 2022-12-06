@@ -22,7 +22,7 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.midPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
-export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scale, boundsRect}: IProps) => {
+export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scale, boundsRect}: IProps) => { //weird that we not using axisWrapperElt
   const marker = inGraph ? "in-graph: " : "in-slider: "
   //console.log(marker, {boundsRect})
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
