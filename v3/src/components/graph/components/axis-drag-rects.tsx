@@ -10,6 +10,9 @@ import "./axis.scss"
 interface IProps {
   axisModel: INumericAxisModel
   axisWrapperElt: SVGGElement | null
+  inGraph: boolean | undefined
+  scale: any
+  boundsRect: any
 }
 
 type D3Handler = (this: Element, event: any, d: any) => void
@@ -18,11 +21,15 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.midPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
-export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
+export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scale, boundsRect}: IProps) => {
+  const marker = inGraph ? "in-graph: " : "in-slider: "
+
+
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
-    layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place) as ScaleNumericBaseType
+    layout = useGraphLayoutContext()
+    //scale = layout.axisScale(place) as ScaleNumericBaseType
+    console.log(marker, {boundsRect}, rectRef.current)
 
   useEffect(function createRects() {
     let scaleAtStart: any = null,
@@ -127,40 +134,34 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
     }
   }, [axisModel, place, scale])
 
-  // update layout of axis drag rects when axis bounds change
+  // update layout of axis drag rects
   useEffect(() => {
-    const disposer = reaction(
-      () => {
-        return layout.computedBounds.get(place)
-      },
-      (axisBounds) => {
-        const
-          length = layout.axisLength(place),
-          rectSelection = select(rectRef.current),
-          numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
-        if (length != null && axisBounds != null) {
-          rectSelection
-            .selectAll('.dragRect')
-            .data(numbering)// data signify lower, middle, upper rectangles
-            .join(
-              // @ts-expect-error void => Selection
-              // eslint-disable-next-line @typescript-eslint/no-empty-function
-              (enter) => {
-              },
-              (update) => {
-                update
-                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : 0))
-                  .attr('y', (d) => axisBounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width))
-                  .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
-              }
-            )
-          rectSelection.selectAll('.dragRect').raise()
-        }
-      }
-    )
-    return () => disposer()
-  }, [axisModel, layout, axisWrapperElt, place])
+    const boundsToUse = inGraph ? layout.getAxisBounds(place) : boundsRect
+    const length = place === "bottom" ? boundsToUse?.width : boundsToUse?.height
+    const rectSelection = select(rectRef.current)
+    const numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
+    if (length != null && boundsToUse != null) {
+      rectSelection
+        .selectAll('.dragRect')
+        .data(numbering)// data signify lower, middle, upper rectangles
+        .join(
+          // @ts-expect-error void => Selection
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          (enter) => {
+          },
+          (update) => {
+            // TODO in morning - redo calculations so that offset for slider scenario amounts to
+            // [{x:0, y: 0}, {x: sliderWidth * .33, y:0 }, {x: sliderWidth * .66, y: 0}]
+            update
+              .attr('x', (d) => boundsToUse?.left + (place === 'bottom' ? (d * length / 3) : 0))
+              .attr('y', (d) => boundsToUse?.top + (place === 'bottom' ? 0 : (d * length / 3)))
+              .attr('width', () => (place === 'bottom' ? length / 3 : boundsToUse?.width))
+              .attr('height', () => (place === 'bottom' ? boundsToUse?.height : length / 3))
+          }
+        )
+      rectSelection.selectAll('.dragRect').raise()
+    }
+  },[boundsRect, place])
   return (
     <g className={'dragRect'} ref={rectRef}/>
   )

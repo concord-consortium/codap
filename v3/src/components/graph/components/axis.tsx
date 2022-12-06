@@ -91,7 +91,13 @@ export const Axis = ({
       }
 
       {axisModel?.type === 'numeric' ?
-        <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
+        <AxisDragRects
+          axisModel={axisModel as INumericAxisModel}
+          axisWrapperElt={wrapperElt}
+          inGraph={inGraph}
+          scale={scale}
+          boundsRect={wrapperElt?.getBoundingClientRect()}
+        /> : null}
       <DroppableAxis
         place={`${place}`}
         dropId={droppableId}
