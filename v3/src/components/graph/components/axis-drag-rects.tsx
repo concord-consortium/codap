@@ -1,7 +1,6 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {drag, select} from "d3"
-import {reaction} from "mobx"
 import {INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import t from "../../../utilities/translation/translate"
@@ -136,6 +135,9 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
 
   // update layout of axis drag rects
   useEffect(() => {
+    // TODO passed boundsRect only working with slider atm
+    // So need to circle back and figure out why the sometimes undefined boundsRect is breaking positioning for graph
+    // once that is done we can remove layout
     const boundsToUse = inGraph ? layout.getAxisBounds(place) : boundsRect
     const length = place === "bottom" ? boundsToUse?.width : boundsToUse?.height
     const rectSelection = select(rectRef.current)
@@ -150,13 +152,23 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
           (enter) => {
           },
           (update) => {
-            // TODO in morning - redo calculations so that offset for slider scenario amounts to
-            // [{x:0, y: 0}, {x: sliderWidth * .33, y:0 }, {x: sliderWidth * .66, y: 0}]
-            update
-              .attr('x', (d) => boundsToUse?.left + (place === 'bottom' ? (d * length / 3) : 0))
-              .attr('y', (d) => boundsToUse?.top + (place === 'bottom' ? 0 : (d * length / 3)))
-              .attr('width', () => (place === 'bottom' ? length / 3 : boundsToUse?.width))
-              .attr('height', () => (place === 'bottom' ? boundsToUse?.height : length / 3))
+            if (inGraph){
+              update
+                .attr('x', (d) => boundsToUse?.left + (place === 'bottom' ? (d * length / 3) : 0))
+                .attr('y', (d) => boundsToUse?.top + (place === 'bottom' ? 0 : (d * length / 3)))
+                .attr('width', () => (place === 'bottom' ? length / 3 : boundsToUse?.width))
+                .attr('height', () => (place === 'bottom' ? boundsToUse?.height : length / 3))
+            }
+
+            else {
+              // roughly [{x:0, y: 0}, {x: sliderWidth * .33, y:0 }, {x: sliderWidth * .66, y: 0}]
+              update
+                .attr('x',0)
+                .attr('y',0)
+                .attr('width', boundsToUse?.width)
+                .attr('height', 30)
+            }
+
           }
         )
       rectSelection.selectAll('.dragRect').raise()
