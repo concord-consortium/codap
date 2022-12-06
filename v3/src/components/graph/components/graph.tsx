@@ -128,7 +128,6 @@ export const Graph = observer((
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
-                inGraph={true}
                 scale={layout.axisScale('left')}
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
@@ -137,7 +136,6 @@ export const Graph = observer((
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
-                inGraph={true}
                 scale={layout.axisScale('bottom')}
           />
 

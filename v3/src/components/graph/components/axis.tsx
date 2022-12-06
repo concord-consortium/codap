@@ -10,11 +10,9 @@ import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
 import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+// import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
-import {useCodapSlider, useCodapSliderLayout} from "../../slider/use-slider"
-
 
 import "./axis.scss"
 
@@ -23,37 +21,31 @@ interface IProps {
   attributeID: string
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
-  inGraph: boolean // SLIDER-TODO -> pass the scale and refactor all the way down
   scale: any
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Axis = ({
-                       attributeID, getAxisModel, showGridLines, scale, inGraph,
+                       attributeID, getAxisModel, showGridLines, scale,
                        onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
-    // codapSlider = useCodapSlider(),
-    // { sliderWidth } = useCodapSliderLayout(),
     idFromContext = useInstanceIdContext(),
-    instanceId = inGraph ? idFromContext : 'slider-1',
+    instanceId = idFromContext?.includes('graph') ? idFromContext : 'slider-1',
+    // TODO ^^^ better way to know where we are, and how to hook into base at use-instance-id-context.ts
     dataset = useDataSetContext(),
     axisModel = getAxisModel(),
     place = axisModel?.place || 'bottom',
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
-    layout = useGraphLayoutContext(),
-    //scale = inGraph
-    //  ? layout.axisScale(place)
-    //  : scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth]),
+    //layout = useGraphLayoutContext(),
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
-  console.log({instanceId}, {scale})
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
     titleRef, scale

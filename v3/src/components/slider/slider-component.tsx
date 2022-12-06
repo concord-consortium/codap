@@ -182,8 +182,6 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
             getAxisModel={() => sliderModel.axis}
             attributeID={''} // make optional in Axis
             enableAnimation={animationRef}
-            inGraph={false}
-            //transform={`translate(0, 0)`}
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")} // make optional in Axis
             onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis
