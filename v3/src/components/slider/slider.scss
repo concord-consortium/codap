@@ -23,7 +23,15 @@
   }
 }
 .slider {
+
+  svg {
+    border: 3px solid red;
+    g {
+      border: 2px solid green;
+    }
+  }
   border:1px dotted green;
+  //position: fixed;
 
   button svg, .thumb-icon {
     width:27px;

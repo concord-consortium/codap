@@ -10,7 +10,6 @@ import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
 import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
-// import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
 
@@ -32,14 +31,13 @@ export const Axis = ({
                      }: IProps) => {
   const
     idFromContext = useInstanceIdContext(),
-    instanceId = idFromContext?.includes('graph') ? idFromContext : 'slider-1',
-    // TODO ^^^ better way to know where we are, and how to hook into base at use-instance-id-context.ts
+    inGraph = idFromContext?.includes('graph'), // TODO - refactor - at this point, I still need this flag for use-axis and drag-rects
+    instanceId = inGraph ? idFromContext : 'slider-1',
     dataset = useDataSetContext(),
     axisModel = getAxisModel(),
     place = axisModel?.place || 'bottom',
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
-    //layout = useGraphLayoutContext(),
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
@@ -48,7 +46,7 @@ export const Axis = ({
 
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
-    titleRef, scale
+    titleRef, scale, inGraph
   })
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)

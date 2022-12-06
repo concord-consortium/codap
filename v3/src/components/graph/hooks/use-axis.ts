@@ -20,11 +20,12 @@ export interface IUseAxis {
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean,
   scale: any
+  inGraph: boolean | undefined
 }
 
 export const useAxis = ({
                           axisModel, axisElt, titleRef, label = t('DG.AxisView.emptyGraphCue'),
-                          showGridLines, enableAnimation, scale
+                          showGridLines, enableAnimation, scale, inGraph
                         }: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
@@ -44,6 +45,8 @@ export const useAxis = ({
     type = axisModel?.type ?? 'empty',
     attributeID = dataConfiguration?.attributeID(attrRole)
   previousAxisModel.current = axisModel
+
+  console.log({place},{inGraph})
 
   const getLabelBounds = (s = 'Wy') => {
     const textElement = selection().append('text').attr('y', 500),
@@ -81,10 +84,18 @@ export const useAxis = ({
 
       scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
 
-      const transform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})` :
-        `translate(${axisBounds.left}, ${axisBounds.top})`
+      // NEXT - this works, but we should pass bounds instead, may not need inGraph calc above
+
+      const transform = (place === 'left')
+        ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
+        :`translate(${axisBounds.left}, ${axisBounds.top})`
+
+      const nTransform = inGraph
+        ? transform
+        : null
+
       select(axisElt)
-        .attr("transform", transform)
+        .attr("transform", nTransform)
         .transition().duration(duration)
         .call(axis(scale).tickSizeOuter(0))
 
