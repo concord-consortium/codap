@@ -3,7 +3,7 @@ import {onAction} from "mobx-state-tree"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
-import { select} from "d3"
+import {select} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -12,10 +12,8 @@ import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
 import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
-
 
 import "./axis.scss"
 
@@ -24,32 +22,35 @@ interface IProps {
   attributeID: string
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
+  scale: any
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Axis = ({
-                       attributeID, getAxisModel, showGridLines,
+                       attributeID, getAxisModel, showGridLines, scale,
                        onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
-    instanceId = useInstanceIdContext(),
+    idFromContext = useInstanceIdContext(),
+    inGraph = idFromContext?.includes('graph'), // TODO - refactor - at this point, I still need this flag for use-axis and drag-rects
+    instanceId = inGraph ? idFromContext : 'slider-1',
     dataset = useDataSetContext(),
     axisModel = getAxisModel(),
     place = axisModel?.place || 'bottom',
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
-    layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place),
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
+  console.log("axis: ", {scale})
+
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
-    titleRef
+    titleRef, scale, inGraph
   })
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
@@ -108,11 +109,17 @@ export const Axis = ({
       }
 
       {axisModel?.type === 'numeric' ?
-        <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
+        <AxisDragRects
+          axisModel={axisModel as INumericAxisModel}
+          axisWrapperElt={wrapperElt}
+          inGraph={inGraph}
+          scale={scale}
+          boundsRect={wrapperElt?.getBoundingClientRect()} //TODO - you still need to account for component as origin - relative to component
+        /> : null}
+
       <DroppableAxis
         place={`${place}`}
         dropId={droppableId}
-
         hintString={hintString}
         portal={graphElt}
         target={wrapperElt}

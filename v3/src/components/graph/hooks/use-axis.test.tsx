@@ -2,7 +2,7 @@
 import { renderHook } from "@testing-library/react"
 import React from "react"
 import { INumericAxisModel, NumericAxisModel } from "../models/axis-model"
-import { GraphLayout, GraphLayoutContext } from "../models/graph-layout"
+import { GraphLayout, GraphLayoutContext, ScaleType } from "../models/graph-layout"
 import {IUseAxis, useAxis} from "./use-axis"
 
 describe("useNumericAxis", () => {
@@ -12,13 +12,14 @@ describe("useNumericAxis", () => {
   let axisElt: SVGGElement
   let useAxisOptions: IUseAxis
   let titleRef: React.RefObject<SVGGElement>
+  let scale: ScaleType
+  let inGraph: boolean
 
   beforeEach(() => {
     layout = new GraphLayout()
     axisModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     axisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
-    useAxisOptions = { axisModel, axisElt, titleRef, enableAnimation: { current: false }, showGridLines: false }
-  })
+    useAxisOptions = { axisModel, axisElt, titleRef, scale, inGraph: true, enableAnimation: { current: false }, showGridLines: false }  })
 
   it("renders a simple horizontal axis", () => {
     renderHook(() => useAxis(useAxisOptions))

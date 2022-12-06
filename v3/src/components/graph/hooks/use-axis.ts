@@ -18,16 +18,18 @@ export interface IUseAxis {
   titleRef: MutableRefObject<SVGGElement | null>
   label?: string
   enableAnimation: MutableRefObject<boolean>
-  showGridLines: boolean
+  showGridLines: boolean,
+  scale: any
+  inGraph: boolean | undefined
 }
 
 export const useAxis = ({
                           axisModel, axisElt, titleRef, label = t('DG.AxisView.emptyGraphCue'),
-                          showGridLines, enableAnimation
+                          showGridLines, enableAnimation, scale, inGraph
                         }: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
-    scale = layout.axisScale(place) as ScaleNumericBaseType,
+    //  scale = layout.axisScale(place) as ScaleNumericBaseType,
     axis = (place === 'bottom') ? axisBottom : axisLeft,
     isNumeric = axisModel?.isNumeric,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
@@ -78,12 +80,16 @@ export const useAxis = ({
       // To avoid that, we manually remove the ticks before initializing the axis.
       select(axisElt).selectAll('.tick').remove()
 
-      scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
+      inGraph && scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
 
-      const transform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})` :
-        `translate(${axisBounds.left}, ${axisBounds.top})`
+      const transform = (place === 'left')
+        ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
+        : `translate(${axisBounds.left}, ${axisBounds.top})`
+
       select(axisElt)
-        .attr("transform", transform)
+        .attr("transform", inGraph ? transform : null)
+        // TODO - see if you can pass bounds down to here, so you don't have to test for inGraph and won't need the layout
+        // then we would not have to null out the transform...we believe...
         .transition().duration(duration)
         .call(axis(scale).tickSizeOuter(0))
 
