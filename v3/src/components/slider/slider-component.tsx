@@ -9,6 +9,7 @@ import './slider.scss'
 import { ISliderModel } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../graph/components/axis"
+import { useCodapSlider, useCodapSliderLayout } from "./use-slider"
 
 interface IProps {
   sliderModel: ISliderModel,
@@ -25,6 +26,8 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const tickTime = 60
   const decimalPlaces = 2
   const animationRef = useRef(true) // SLIDER-TODO - this is a hack, pass through real value
+  const codapSlider = useCodapSlider()
+  const { sliderWidth } = useCodapSliderLayout()
 
   const sliderAxis = axisBottom(scaleLinear()
     .domain(sliderModel.getDomain())
@@ -179,11 +182,12 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
             getAxisModel={() => sliderModel.axis}
             attributeID={''} // make optional in Axis
             enableAnimation={animationRef}
+            inGraph={false}
             //transform={`translate(0, 0)`}
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")} // make optional in Axis
             onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis
-            inGraph={false}
+            scale={scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth])}
           />
         </svg>
 

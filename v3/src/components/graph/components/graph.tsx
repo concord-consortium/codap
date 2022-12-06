@@ -129,6 +129,7 @@ export const Graph = observer((
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
                 inGraph={true}
+                scale={layout.axisScale('left')}
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
@@ -137,6 +138,7 @@ export const Graph = observer((
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
                 inGraph={true}
+                scale={layout.axisScale('bottom')}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>
