@@ -3,7 +3,6 @@
 .slider-wrapper {
   border: 2px solid orange;
   position: fixed;
-  height: 150px;
   background: #fff;
   border-radius: $border-radius-four-corners;
   box-shadow: 1px 1px 3px 1px rgba(176, 170, 170, 0.75);
@@ -21,66 +20,69 @@
       max-width:98%
     }
   }
-}
-.slider {
-
-  svg {
-    border: 3px solid red;
-    g {
-      border: 2px solid green;
+  .slider {
+    .dragRect {
+      background-color: rgba(176, 170, 170, 0.75);
     }
-  }
-  border:1px dotted green;
-  //position: fixed;
-
-  button svg, .thumb-icon {
-    width:27px;
-    height:27px;
-  }
-
-  .thumb-icon {
-    transform: translateY(10px);
-  }
-
-  .paused svg {
-    stroke: white;
-    fill: rgb(10, 167, 10);
-  }
-
-  .running svg {
-    stroke-width: 4px;
-    stroke: rgb(226, 61, 61);
-    padding:3px;
-  }
-
-  *[data-focused]{
-    outline: none;
-    outline-color: transparent;
-  }
-
-  .value .slider-inputs {
-    input {
-      padding: 0px 6px;
-      border-radius: 3px;
-      background-color: rgb(200, 200, 252);
-      text-align: left;
+    svg {
+      border: 3px solid red;
+      g {
+        border: 2px solid green;
+      }
     }
-  }
+    border:1px dotted green;
+    //position: fixed;
 
-  //temporary
-  .inspector-temporary {
-    position: absolute;
-    right:-40px;
-    width:40px;
-    top: 1px;
-    text-align: center;
-    input {
-      width:34px;
-      background-color: transparentize($teal-dark, .5);
+    button svg, .thumb-icon {
+      width:27px;
+      height:27px;
+    }
+
+    .thumb-icon {
+      transform: translateY(10px);
+    }
+
+    .paused svg {
+      stroke: white;
+      fill: rgb(10, 167, 10);
+    }
+
+    .running svg {
+      stroke-width: 4px;
+      stroke: rgb(226, 61, 61);
+      padding:3px;
+    }
+
+    *[data-focused]{
+      outline: none;
+      outline-color: transparent;
+    }
+
+    .value .slider-inputs {
+      input {
+        padding: 0px 6px;
+        border-radius: 3px;
+        background-color: rgb(200, 200, 252);
+        text-align: left;
+      }
+    }
+
+    //temporary
+    .inspector-temporary {
+      position: absolute;
+      right:-40px;
+      width:40px;
+      top: 1px;
       text-align: center;
-      color:white;
+      input {
+        width:34px;
+        background-color: transparentize($teal-dark, .5);
+        text-align: center;
+        color:white;
+      }
+      border-radius: $border-radius-four-corners;
+      border:3px solid $teal-dark;
     }
-    border-radius: $border-radius-four-corners;
-    border:3px solid $teal-dark;
   }
 }
+

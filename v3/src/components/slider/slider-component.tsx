@@ -13,7 +13,7 @@ import { useCodapSlider, useCodapSliderLayout } from "./use-slider"
 
 interface IProps {
   sliderModel: ISliderModel,
-  widthFromApp: number
+  widthFromApp: number // WIDTH-ISSUE
 }
 
 export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) => {
@@ -24,12 +24,12 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const [isManuallyEditing, setIsManuallyEditing] = useState<boolean>(false)
   const intervalRef = useRef<any>()
   const tickTime = 60
-  const decimalPlaces = 2
+  const decimalPlaces = 3
   const animationRef = useRef(true) // SLIDER-TODO - this is a hack, pass through real value
   const codapSlider = useCodapSlider()
   const { sliderWidth } = useCodapSliderLayout()
 
-  const sliderAxis = axisBottom(scaleLinear()
+  const sliderAxis = axisBottom(scaleLinear() // TODO - WIDTH-ISSUE
     .domain(sliderModel.getDomain())
     .range([0, widthFromApp]))
 
@@ -103,7 +103,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
     setIsManuallyEditing(false)
   }
 
-  const styleFromApp = { top: 100, right: 80, width: "300px" }
+  const styleFromApp = { top: 100, right: 80, width: "300px" } // TODO WIDTH-ISSUE
 
   return (
     <div className="slider-wrapper" style={styleFromApp}>
@@ -169,7 +169,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           step={multiplesOf}
           max={sliderModel.axis.max}
           min={sliderModel.axis.min}
-          width={widthFromApp}
+          //width={widthFromApp}
         >
           <SliderTrack bg='transparent' />
           <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
@@ -185,7 +185,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")} // make optional in Axis
             onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis
-            scale={scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth])}
+            scale={scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth])} // WIDTH-ISSUE
           />
         </svg>
 

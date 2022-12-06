@@ -46,8 +46,6 @@ export const useAxis = ({
     attributeID = dataConfiguration?.attributeID(attrRole)
   previousAxisModel.current = axisModel
 
-  console.log({place},{inGraph})
-
   const getLabelBounds = (s = 'Wy') => {
     const textElement = selection().append('text').attr('y', 500),
       bounds = textElement.text(s).node()?.getBoundingClientRect() || {left: 0, top: 0, width: 100, height: 20}

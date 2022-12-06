@@ -9,7 +9,7 @@ export const useCodapSlider = () => {
 
 export const useCodapSliderLayout = () => {
   const determineSliderWidth = () => {
-    return kDefaultSliderWidth + (kDefaultSliderPadding * 2)
+    return kDefaultSliderWidth + (kDefaultSliderPadding * 2) // TODO WIDTH-ISSUE
   }
   return {
     sliderWidth: determineSliderWidth(),
