@@ -1,10 +1,10 @@
-import React, {forwardRef, MutableRefObject, useEffect, useRef, useState} from "react"
-import {onAction} from "mobx-state-tree"
+import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {select} from "d3"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {AxisOrientation} from "../models/axis-model"
 import {GraphAttrRole} from "../models/data-configuration-model"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
+import {useForceUpdate} from "../../../hooks/use-force-update"
 
 import "./legend/legend.scss"
 
@@ -12,44 +12,45 @@ interface IAttributeLabelProps {
   transform: string
   attributeRole: GraphAttrRole
   orientation: AxisOrientation
-  attributeIDs:string[]
+  attributeIDs: string[]
 }
 
 export const AttributeLabel = forwardRef<SVGGElement, IAttributeLabelProps>(
-  ({ transform, attributeIDs }:IAttributeLabelProps, ref) => {
-  const dataConfiguration = useDataConfigurationContext(),
-    dataset = dataConfiguration?.dataset,
-    attrNames = attributeIDs.map(anID => dataset?.attrFromID(anID).name),
-    svgRef = ref as MutableRefObject<SVGGElement | null>,
-    labelRef = useRef<any>(),
-    [, setCounter] = useState(0)
+  ({transform, attributeIDs}: IAttributeLabelProps, ref) => {
+    const dataConfiguration = useDataConfigurationContext(),
+      dataset = dataConfiguration?.dataset,
+      svgRef = ref as MutableRefObject<SVGGElement | null>,
+      labelRef = useRef<any>(),
+      forceUpdate = useForceUpdate()
 
-  useEffect(function adjustLabel() {
-    if( !labelRef.current) {
-      labelRef.current = select('.legend-label')
-        .append('text')
-        .attr('class', 'attribute-label')
-    }
-    labelRef.current
-      .attr('transform', transform)
-      .text(attrNames[0] || 'Legend Attribute')
-  },[attrNames, transform])
+    // We run this useEffect every time even though there is a tiny performance hit
+    useEffect(function adjustLabel() {
+      const attrNames = attributeIDs.map(anID => dataset?.attrFromID(anID).name)
+      if (!labelRef.current) {
+        labelRef.current = select('.legend-label')
+          .append('text')
+          .attr('class', 'attribute-label')
+      }
+      labelRef.current
+        .attr('transform', transform)
+        .text(attrNames[0] || 'Legend Attribute')
+    })
 
     useEffect(function observeAttributeNameChange() {
-      const disposer = dataset && onAction(dataset, action => {
+      const disposer = dataConfiguration?.onAction(action => {
         if (isSetAttributeNameAction(action)) {
           const [changedAttributeID] = action.args
-          if (attributeIDs.includes( changedAttributeID)) {
-            setCounter(prevCounter => prevCounter + 1)
+          if (attributeIDs.includes(changedAttributeID)) {
+            forceUpdate()
           }
         }
-      }, true)
+      })
 
       return () => disposer?.()
-    },[attributeIDs, dataset])
+    }, [attributeIDs, dataConfiguration, forceUpdate])
 
     return (
-    <g className='legend-label' ref={svgRef}/>
-  )
-})
+      <g className='legend-label' ref={svgRef}/>
+    )
+  })
 AttributeLabel.displayName = "AttributeLabel"

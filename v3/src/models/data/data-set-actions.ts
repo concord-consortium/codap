@@ -21,7 +21,7 @@ export const isSetCaseValuesAction = (action: ISerializedActionCall): action is 
 
 export interface SetAttributeNameAction extends ISerializedActionCall {
   name: "setAttributeName"
-  args: [string /*attributeID*/, string/*new name*/]
+  args: [string /*attributeID*/, string /*newName*/]
 }
 
 export const isSetAttributeNameAction = (action: ISerializedActionCall): action is SetAttributeNameAction =>
