@@ -205,9 +205,9 @@ DG = SC.Application.create((function () // closure
      */
     logFromServer: 'concord.org',
 
-    defaultLogServerLoginURL: 'http://cc-log-manager.herokuapp.com/api/logs',
+    defaultLogServerLoginURL: 'http://logger.concord.org/logs',
 
-    defaultLogServerLoginURLSecure: 'https://cc-log-manager.herokuapp.com/api/logs',
+    defaultLogServerLoginURLSecure: 'https://logger.concord.org/logs',
 
     getQueryParam: function(iParam, iDefault) {
       return getUrlParameter(iParam, iDefault);
