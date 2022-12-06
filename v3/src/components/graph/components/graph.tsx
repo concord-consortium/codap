@@ -128,6 +128,7 @@ export const Graph = observer((
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
+                inGraph={true}
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
                 attributeID={xAttrID}
@@ -135,6 +136,7 @@ export const Graph = observer((
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
+                inGraph={true}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>

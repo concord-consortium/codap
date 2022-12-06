@@ -1,7 +1,7 @@
 import {Active} from "@dnd-kit/core"
 import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
-import {select} from "d3"
+import {select, scaleLinear} from "d3"
 import {DroppableAxis} from "./droppable-axis"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -13,6 +13,7 @@ import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisMode
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
+import {useCodapSlider, useCodapSliderLayout} from "../../slider/use-slider"
 
 
 import "./axis.scss"
@@ -22,23 +23,29 @@ interface IProps {
   attributeID: string
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
+  inGraph: boolean // SLIDER-TODO -> pass the scale and refactor all the way down
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Axis = ({
-                       attributeID, getAxisModel, showGridLines,
+                       attributeID, getAxisModel, showGridLines, inGraph,
                        onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
-    instanceId = useInstanceIdContext(),
+    codapSlider = useCodapSlider(),
+    { sliderWidth } = useCodapSliderLayout(),
+    idFromContext = useInstanceIdContext(),
+    instanceId = inGraph ? idFromContext : 'slider-1',
     dataset = useDataSetContext(),
     axisModel = getAxisModel(),
     place = axisModel?.place || 'bottom',
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place),
+    scale = inGraph
+      ? layout.axisScale(place)
+      : scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth]),
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
@@ -47,7 +54,7 @@ export const Axis = ({
 
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
-    titleRef
+    titleRef, scale
   })
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)

@@ -18,16 +18,17 @@ export interface IUseAxis {
   titleRef: MutableRefObject<SVGGElement | null>
   label?: string
   enableAnimation: MutableRefObject<boolean>
-  showGridLines: boolean
+  showGridLines: boolean,
+  scale: any
 }
 
 export const useAxis = ({
                           axisModel, axisElt, titleRef, label = t('DG.AxisView.emptyGraphCue'),
-                          showGridLines, enableAnimation
+                          showGridLines, enableAnimation, scale
                         }: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
-    scale = layout.axisScale(place) as ScaleNumericBaseType,
+    //  scale = layout.axisScale(place) as ScaleNumericBaseType,
     axis = (place === 'bottom') ? axisBottom : axisLeft,
     isNumeric = axisModel?.isNumeric,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
