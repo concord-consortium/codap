@@ -169,15 +169,12 @@ export const CategoricalLegend = memo(function CategoricalLegend(
 
   useEffect(function respondToCategorySetsChange() {
     const disposer = reaction(
-      () => {
-        const sets = dataConfiguration?.categorySets
-        return [sets?.size]
-      },
+      () => dataConfiguration?.categorySetForAttrRole('legend'),
       () => {
         layout.setDesiredExtent('legend', computeDesiredExtent())
         setupKeys()
         refreshKeys()
-      }, {})
+      })
     return disposer
   }, [setupKeys, refreshKeys, dataConfiguration, layout, computeDesiredExtent])
 
