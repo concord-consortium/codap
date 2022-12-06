@@ -20,12 +20,11 @@ export interface IUseAxis {
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean,
   scale: any
-  inGraph: boolean | undefined
 }
 
 export const useAxis = ({
                           axisModel, axisElt, titleRef, label = t('DG.AxisView.emptyGraphCue'),
-                          showGridLines, enableAnimation, scale, inGraph
+                          showGridLines, enableAnimation, scale
                         }: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
@@ -82,18 +81,12 @@ export const useAxis = ({
 
       scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
 
-      // NEXT - this works, but we should pass bounds instead, may not need inGraph calc above
-
       const transform = (place === 'left')
         ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
-        :`translate(${axisBounds.left}, ${axisBounds.top})`
-
-      const nTransform = inGraph
-        ? transform
-        : null
+        : `translate(${axisBounds.left}, ${axisBounds.top})`
 
       select(axisElt)
-        .attr("transform", nTransform)
+        .attr("transform", transform)
         .transition().duration(duration)
         .call(axis(scale).tickSizeOuter(0))
 

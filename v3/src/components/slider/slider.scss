@@ -1,7 +1,6 @@
 @import "./../vars.scss";
 
 .slider-wrapper {
-  border: 2px solid orange;
   position: fixed;
   background: #fff;
   border-radius: $border-radius-four-corners;
@@ -21,18 +20,6 @@
     }
   }
   .slider {
-    .dragRect {
-      background-color: rgba(176, 170, 170, 0.75);
-    }
-    svg {
-      border: 3px solid red;
-      g {
-        border: 2px solid green;
-      }
-    }
-    border:1px dotted green;
-    //position: fixed;
-
     button svg, .thumb-icon {
       width:27px;
       height:27px;

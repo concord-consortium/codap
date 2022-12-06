@@ -2,7 +2,7 @@ import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import {INumericAxisModel} from "../models/axis-model"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import t from "../../../utilities/translation/translate"
 import "./axis.scss"
 
@@ -27,8 +27,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
     layout = useGraphLayoutContext()
-    //scale = layout.axisScale(place) as ScaleNumericBaseType
-    console.log(marker, {boundsRect}, rectRef.current)
+    console.log(marker, {boundsRect}, "rectRef.current", rectRef.current)
 
   useEffect(function createRects() {
     let scaleAtStart: any = null,

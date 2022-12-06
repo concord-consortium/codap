@@ -46,7 +46,7 @@ export const Axis = ({
 
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
-    titleRef, scale, inGraph
+    titleRef, scale
   })
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
