@@ -138,10 +138,9 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
     // So need to circle back and figure out why the sometimes
     // undefined boundsRect is breaking positioning for graph
     // once that is done we can remove layout
-
-    //console.log({boundsRect})
+    const myval = layout.getAxisBounds(place)
     const boundsToUse = inGraph ? layout.getAxisBounds(place) : boundsRect
-    console.log(marker, {boundsRect}, "rectRef.current", rectRef.current, "layout.getAxisBounds(place)", layout.getAxisBounds(place))
+    console.log(marker, {boundsRect},  "layout.getAxisBounds(place)", JSON.stringify(myval)) //they do not match
     const length = place === "bottom" ? boundsToUse?.width : boundsToUse?.height
     const rectSelection = select(rectRef.current)
     const numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
