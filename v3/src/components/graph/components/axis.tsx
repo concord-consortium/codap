@@ -24,17 +24,18 @@ interface IProps {
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
   inGraph: boolean // SLIDER-TODO -> pass the scale and refactor all the way down
+  scale: any
   onDropAttribute: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Axis = ({
-                       attributeID, getAxisModel, showGridLines, inGraph,
+                       attributeID, getAxisModel, showGridLines, scale, inGraph,
                        onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
-    codapSlider = useCodapSlider(),
-    { sliderWidth } = useCodapSliderLayout(),
+    // codapSlider = useCodapSlider(),
+    // { sliderWidth } = useCodapSliderLayout(),
     idFromContext = useInstanceIdContext(),
     instanceId = inGraph ? idFromContext : 'slider-1',
     dataset = useDataSetContext(),
@@ -43,15 +44,16 @@ export const Axis = ({
     label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useGraphLayoutContext(),
-    scale = inGraph
-      ? layout.axisScale(place)
-      : scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth]),
+    //scale = inGraph
+    //  ? layout.axisScale(place)
+    //  : scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth]),
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
+  console.log({instanceId}, {scale})
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
     titleRef, scale
@@ -103,7 +105,6 @@ export const Axis = ({
       <DroppableAxis
         place={`${place}`}
         dropId={droppableId}
-
         hintString={hintString}
         portal={graphElt}
         target={wrapperElt}
