@@ -152,3 +152,5 @@ export const Axis = ({attributeID, getAxisModel, transform, showGridLines, inGra
     </>
   )
 }
+// we have to offset by the x and y of the graph - (given the result of getBoundingClientRect())
+// ^^^ more precisely - transforming from window as origin to graph component as origin

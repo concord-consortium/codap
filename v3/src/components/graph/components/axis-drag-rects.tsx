@@ -24,7 +24,7 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
 
 export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scale, boundsRect}: IProps) => {
   const marker = inGraph ? "in-graph: " : "in-slider: "
-  console.log(marker, {boundsRect})
+  //console.log(marker, {boundsRect})
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = inGraph ? axisModel.place : 'bottom',
     layout = useGraphLayoutContext()
@@ -138,14 +138,16 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
   useEffect(() => {
     // const disposer = reaction(
     //   () => {
-    //     return inGraph ? layout.getAxisBounds(place) : boundsRect
+    //     return inGraph ? layout.getAxisBounds(place) : boundsRect --> this worked because getAxisBounds returned a value that had already been transformed
     //   },
     //   (nboundsRect) => {
     //       console.log("ME")
-          const length = place === "bottom" ? boundsRect.width : boundsRect.height
-          const rectSelection = select(rectRef.current)
-          const numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
-        if (length != null && boundsRect != null) {
+        const boundsToUse = inGraph ? layout.getAxisBounds(place) : boundsRect
+
+        const length = place === "bottom" ? boundsToUse?.width : boundsToUse?.height
+        const rectSelection = select(rectRef.current)
+        const numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
+        if (length != null && boundsToUse != null) {
           rectSelection
             .selectAll('.dragRect')
             .data(numbering)// data signify lower, middle, upper rectangles
@@ -155,12 +157,14 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
               (enter) => {
               },
               (update) => {
-                console.log("ME 2", {rectSelection})
+                // console.log("ME 2", {rectSelection})
+                // TODO in morning - redo calculations so that offset for slider scenario amounts to
+                // [{x:0, y: 0}, {x: sliderWidth * .33, y:0 }, {x: sliderWidth * .66, y: 0}]
                 update
-                  .attr('x', (d) => boundsRect.left + (place === 'bottom' ? (d * length / 3) : 0))
-                  .attr('y', (d) => boundsRect.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                  .attr('width', () => (place === 'bottom' ? length / 3 : boundsRect.width))
-                  .attr('height', () => (place === 'bottom' ? boundsRect.height : length / 3))
+                  .attr('x', (d) => boundsToUse?.left + (place === 'bottom' ? (d * length / 3) : 0))
+                  .attr('y', (d) => boundsToUse?.top + (place === 'bottom' ? 0 : (d * length / 3)))
+                  .attr('width', () => (place === 'bottom' ? length / 3 : boundsToUse?.width))
+                  .attr('height', () => (place === 'bottom' ? boundsToUse?.height : length / 3))
               }
             )
           rectSelection.selectAll('.dragRect').raise()
@@ -170,3 +174,5 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
     <g className={'dragRect'} ref={rectRef}/>
   )
 })
+
+
