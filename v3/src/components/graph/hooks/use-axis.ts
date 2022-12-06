@@ -20,11 +20,12 @@ export interface IUseAxis {
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean,
   scale: any
+  inGraph: boolean | undefined
 }
 
 export const useAxis = ({
                           axisModel, axisElt, titleRef, label = t('DG.AxisView.emptyGraphCue'),
-                          showGridLines, enableAnimation, scale
+                          showGridLines, enableAnimation, scale, inGraph
                         }: IUseAxis) => {
   const layout = useGraphLayoutContext(),
     place = axisModel?.place ?? 'bottom',
@@ -85,8 +86,10 @@ export const useAxis = ({
         ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
         : `translate(${axisBounds.left}, ${axisBounds.top})`
 
+      const transformToUse = inGraph ? transform : null
+
       select(axisElt)
-        .attr("transform", transform)
+        .attr("transform", transformToUse)
         .transition().duration(duration)
         .call(axis(scale).tickSizeOuter(0))
 

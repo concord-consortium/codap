@@ -46,7 +46,7 @@ export const Axis = ({
 
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
-    titleRef, scale
+    titleRef, scale, inGraph
   })
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
@@ -98,6 +98,7 @@ export const Axis = ({
           scale={scale}
           boundsRect={wrapperElt?.getBoundingClientRect()}
         /> : null}
+
       <DroppableAxis
         place={`${place}`}
         dropId={droppableId}

@@ -161,6 +161,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
 
             else {
               // roughly [{x:0, y: 0}, {x: sliderWidth * .33, y:0 }, {x: sliderWidth * .66, y: 0}]
+              // need to use the d to spread them out
               update
                 .attr('x',0)
                 .attr('y',0)
