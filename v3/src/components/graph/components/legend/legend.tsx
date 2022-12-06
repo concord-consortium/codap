@@ -1,4 +1,4 @@
-import React, {memo, useRef} from "react"
+import React, {memo, useMemo, useRef} from "react"
 import {Active} from "@dnd-kit/core"
 import {IGraphModel} from "../../models/graph-model"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
@@ -14,12 +14,12 @@ import {GraphAttrRole} from "../../models/data-configuration-model"
 
 interface ILegendProps {
   graphModel: IGraphModel
-  legendAttrID:string
+  legendAttrID: string
   graphElt: HTMLDivElement | null
   onDropAttribute: (place: any, attrId: string) => void
 }
 
-export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttribute }: ILegendProps) {
+export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttribute}: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
@@ -28,7 +28,8 @@ export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttrib
     instanceId = useInstanceIdContext(),
     droppableId = `${instanceId}-legend-area-drop`,
     role = 'legend' as GraphAttrRole,
-    hintString = useDropHintString({role})
+    hintString = useDropHintString({role}),
+    attributeIDs = useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
 
   const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
@@ -42,21 +43,21 @@ export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttrib
 
   return legendAttrID ? (
     <>
-    <svg ref={legendRef} className='legend'>
-      <AttributeLabel
-        ref={legendLabelRef}
-        transform = {transform}
-        attributeIDs={legendAttrID ? [legendAttrID] : []}
-        orientation='horizontal'
-        attributeRole='legend'
-      />
-      {
-        attrType === 'categorical' ? <CategoricalLegend transform = {transform}
-                                                        legendLabelRef={legendLabelRef}/> :
-          attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}
-                                                  transform = {transform}/> : null
-      }
-    </svg>
+      <svg ref={legendRef} className='legend'>
+        <AttributeLabel
+          ref={legendLabelRef}
+          transform={transform}
+          attributeIDs={attributeIDs}
+          orientation='horizontal'
+          attributeRole='legend'
+        />
+        {
+          attrType === 'categorical' ? <CategoricalLegend transform={transform}
+                                                          legendLabelRef={legendLabelRef}/> :
+            attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}
+                                                    transform={transform}/> : null
+        }
+      </svg>
       <DroppableSvg
         className="droppable-legend"
         portal={graphElt}
