@@ -86,10 +86,10 @@ export const useAxis = ({
         ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
         : `translate(${axisBounds.left}, ${axisBounds.top})`
 
-      const transformToUse = inGraph ? transform : null
-
       select(axisElt)
-        .attr("transform", transformToUse)
+        .attr("transform", inGraph ? transform : null)
+        // TODO - see if you can pass bounds down to here, so you don't have to test for inGraph and won't need the layout
+        // then we would not have to null out the transform...we believe...
         .transition().duration(duration)
         .call(axis(scale).tickSizeOuter(0))
 

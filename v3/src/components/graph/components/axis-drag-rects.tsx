@@ -27,7 +27,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
     layout = useGraphLayoutContext()
-    console.log(marker, {boundsRect}, "rectRef.current", rectRef.current)
+
 
   useEffect(function createRects() {
     let scaleAtStart: any = null,
@@ -135,9 +135,13 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
   // update layout of axis drag rects
   useEffect(() => {
     // TODO passed boundsRect only working with slider atm
-    // So need to circle back and figure out why the sometimes undefined boundsRect is breaking positioning for graph
+    // So need to circle back and figure out why the sometimes
+    // undefined boundsRect is breaking positioning for graph
     // once that is done we can remove layout
+
+    //console.log({boundsRect})
     const boundsToUse = inGraph ? layout.getAxisBounds(place) : boundsRect
+    console.log(marker, {boundsRect}, "rectRef.current", rectRef.current, "layout.getAxisBounds(place)", layout.getAxisBounds(place))
     const length = place === "bottom" ? boundsToUse?.width : boundsToUse?.height
     const rectSelection = select(rectRef.current)
     const numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]

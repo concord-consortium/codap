@@ -96,7 +96,7 @@ export const Axis = ({
           axisWrapperElt={wrapperElt}
           inGraph={inGraph}
           scale={scale}
-          boundsRect={wrapperElt?.getBoundingClientRect()}
+          boundsRect={wrapperElt?.getBoundingClientRect()} //TODO - you still need to account for component as origin - relative to component
         /> : null}
 
       <DroppableAxis

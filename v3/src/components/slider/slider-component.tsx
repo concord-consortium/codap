@@ -177,6 +177,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           </SliderThumb>
         </Slider>
 
+        {/* WIDTH-ISSUE */}
         <svg width={widthFromApp}  height="50">
           <Axis
             getAxisModel={() => sliderModel.axis}
