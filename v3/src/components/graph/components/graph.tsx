@@ -17,7 +17,7 @@ import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
+import {isSetAttributeIDAction, useGraphModelContext} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
@@ -28,7 +28,6 @@ import {useDataTips} from "../hooks/use-data-tips"
 import "./graph.scss"
 
 interface IProps {
-  model: IGraphModel
   graphRef: MutableRefObject<HTMLDivElement>
   enableAnimation: MutableRefObject<boolean>
   dotsRef: React.RefObject<SVGSVGElement>
@@ -39,8 +38,9 @@ interface IProps {
 const marqueeState = new MarqueeState()
 
 export const Graph = observer((
-  {model: graphModel, graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) => {
-  const {plotType} = graphModel,
+  {graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) => {
+  const graphModel = useGraphModelContext(),
+    {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -99,10 +99,7 @@ export const Graph = observer((
 
   const getPlotComponent = () => {
     const props = {
-        graphModel,
-        plotProps: {
           xAttrID, yAttrID, dotsRef, enableAnimation
-        }
       },
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
@@ -151,7 +148,6 @@ export const Graph = observer((
           />
 
           <Legend
-            graphModel={graphModel}
             legendAttrID={graphModel.getAttributeID('legend')}
             graphElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}

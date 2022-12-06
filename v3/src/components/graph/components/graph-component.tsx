@@ -10,10 +10,22 @@ import {kTitleBarHeight} from "../graphing-types"
 import {EmptyAxisModel} from "../models/axis-model"
 import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
-import {GraphModel} from "../models/graph-model"
+import {GraphModel, GraphModelContext} from "../models/graph-model"
 import {Graph} from "./graph"
+import {defaultBackgroundColor, defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
 
 const defaultGraphModel = GraphModel.create({
+  id: undefined,
+  isTransparent: false,
+  plotBackgroundColor: defaultBackgroundColor,
+  plotBackgroundImageID: '',
+  plotBackgroundLockInfo: undefined,
+  pointColor: defaultPointColor,
+  pointSizeMultiplier: 1,
+  _pointStrokeColor: defaultStrokeColor,
+  pointStrokeSameAsFill: false,
+  showMeasuresForSelection: false,
+  showParentToggles: false,
   axes: {
     bottom: EmptyAxisModel.create({place: 'bottom'}),
     left: EmptyAxisModel.create({place: 'left'})
@@ -45,18 +57,19 @@ export const GraphComponent = observer(({broker}: IProps) => {
   setNodeRef(graphRef.current)
 
   return (
-      <DataSetContext.Provider value={dataset}>
-        <InstanceIdContext.Provider value={instanceId}>
-          <GraphLayoutContext.Provider value={layout}>
-            <Graph model={defaultGraphModel}
-              graphRef={graphRef}
-              enableAnimation={enableAnimation}
-              dotsRef={dotsRef}
-              showInspector={showInspector}
-              setShowInspector={setShowInspector}
+    <DataSetContext.Provider value={dataset}>
+      <InstanceIdContext.Provider value={instanceId}>
+        <GraphLayoutContext.Provider value={layout}>
+          <GraphModelContext.Provider value={defaultGraphModel}>
+            <Graph graphRef={graphRef}
+                   enableAnimation={enableAnimation}
+                   dotsRef={dotsRef}
+                   showInspector={showInspector}
+                   setShowInspector={setShowInspector}
             />
-          </GraphLayoutContext.Provider>
-        </InstanceIdContext.Provider>
-      </DataSetContext.Provider>
+          </GraphModelContext.Provider>
+        </GraphLayoutContext.Provider>
+      </InstanceIdContext.Provider>
+    </DataSetContext.Provider>
   )
 })

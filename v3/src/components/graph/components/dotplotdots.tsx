@@ -1,8 +1,7 @@
 import {max, range, ScaleBand, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {PlotProps}
-  from "../graphing-types"
+import {PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -10,16 +9,12 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
-import {IGraphModel} from "../models/graph-model"
 import {attrRoleToAxisPlace} from "../models/axis-model"
+import {useGraphModelContext} from "../models/graph-model"
 
-interface IProps {
-  graphModel: IGraphModel
-  plotProps: PlotProps
-}
-
-export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
-  const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
+export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) {
+  const {dotsRef, enableAnimation} = props,
+    graphModel = useGraphModelContext(),
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -41,7 +36,8 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
     selectedDataObjects = useRef<Record<string, number>>({}),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
-    dragPointRadius = graphModel.getPointRadius('hover-drag')
+    dragPointRadius = graphModel.getPointRadius('hover-drag'),
+    { pointColor, pointStrokeColor } = graphModel
 
 
   const onDragStart = useCallback((event: any) => {
@@ -124,10 +120,10 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    dataConfiguration && setPointSelection({
+    dataConfiguration && setPointSelection({ pointColor, pointStrokeColor,
       dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius
     })
-  }, [dataConfiguration, dotsRef, graphModel, selectedPointRadius])
+  }, [dataConfiguration, dotsRef, graphModel, selectedPointRadius, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const
@@ -178,7 +174,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
 
       const
         // Note that we can get null for either or both of the next two functions. It just means that we have
-        // a circle for the case but we're not plotting it.
+        // a circle for the case, but we're not plotting it.
         getPrimaryScreenCoord = (anID: string) => {
           return getScreenCoord(dataset, anID, primaryAttrID, primaryScale)
         },
@@ -191,13 +187,13 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: IProps) {
         plotBounds = layout.computedBounds.get('plot') as Bounds
 
       setPointCoordinates({
-        dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
+        dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, enableAnimation, plotBounds
       })
     },
     [dataConfiguration?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
       legendAttrID, primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
-      dataConfiguration?.getLegendColorForCase, layout.computedBounds])
+      dataConfiguration?.getLegendColorForCase, layout.computedBounds, pointColor, pointStrokeColor])
 
   usePlotResponders({
     graphModel, primaryAttrID, secondaryAttrID, legendAttrID, layout, dotsRef,

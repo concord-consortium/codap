@@ -6,19 +6,16 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
-import {IGraphModel} from "../models/graph-model"
+import {useGraphModelContext} from "../models/graph-model"
 import {attrRoleToAxisPlace} from "../models/axis-model"
-import {defaultPointColor, defaultSelectedColor} from "../../../utilities/color-utils"
-
-interface IProps {
-  graphModel: IGraphModel
-  plotProps: PlotProps
-}
+import {defaultSelectedColor} from "../../../utilities/color-utils"
 
 type BinMap = Record<string, Record<string, number>>
 
-export const ChartDots = memo(function ChartDots(props: IProps) {
-  const {graphModel, plotProps: {dotsRef, enableAnimation}} = props,
+export const ChartDots = memo(function ChartDots(props: PlotProps) {
+  const { dotsRef, enableAnimation} = props,
+    graphModel= useGraphModelContext(),
+    {pointColor, pointStrokeColor} = graphModel,
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -62,11 +59,10 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
   }, [dataset, dataConfiguration?.cases, primaryAttrID, secondaryAttrID])
 
   const refreshPointSelection = useCallback(() => {
-    dataConfiguration && setPointSelection({
-      dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
-      selectedPointRadius: graphModel.getPointRadius('select')
+    dataConfiguration && setPointSelection({ pointColor, pointStrokeColor, dotsRef, dataConfiguration,
+      pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataConfiguration, dotsRef, graphModel])
+  }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryPlace is the bottom just to help understand the naming
@@ -131,7 +127,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         const isSelected = dataset?.isCaseSelected(id),
           legendColor = getLegendColor?.(id) ?? ''
         return legendColor !== '' ? legendColor :
-          isSelected ? defaultSelectedColor : defaultPointColor
+          isSelected ? defaultSelectedColor : graphModel.pointColor
       },
       onComplete = () => {
         if (enableAnimation.current) {

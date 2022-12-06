@@ -8,6 +8,8 @@ import {appState} from "../../app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {MarqueeState} from "../models/marquee-state"
+import {useGraphModelContext} from "../models/graph-model"
+import {onAction} from "mobx-state-tree"
 
 interface IProps {
   marqueeState: MarqueeState
@@ -43,9 +45,12 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
   const {marqueeState } = props,
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
+    graphModel = useGraphModelContext(),
     bounds = layout.computedBounds.get('plot') as Bounds,
     plotWidth = bounds.width,
     plotHeight = bounds.height,
+    backgroundColor = graphModel.plotBackgroundColor,
+    isTransparent = graphModel.isTransparent,
     transform = `translate(${bounds.left}, ${bounds.top})`,
     bgRef = ref as MutableRefObject<SVGGElement | null>,
     startX = useRef(0),
@@ -129,9 +134,25 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
             .attr('height', plotHeight)
             .attr('x', 0)
             .attr('y', 0)
+            .style('fill', backgroundColor)
+            .style('fill-opacity', isTransparent ? 0 : 1)
         }
       )
-  }, [bgRef, transform, dataset, onDrag, onDragEnd, onDragStart, plotHeight, plotWidth])
+  }, [bgRef, transform, dataset, onDrag, onDragEnd, onDragStart, plotHeight, plotWidth,
+    backgroundColor, isTransparent])
+
+  // respond to point properties change
+  useEffect(function respondToGraphPointVisualAction() {
+    const disposer = onAction(graphModel, action => {
+      if (['setPlotBackgroundColor', 'setIsTransparent'].includes(action.name) ) {
+        select(bgRef.current).selectAll('rect')
+          .style('fill', graphModel.plotBackgroundColor)
+          .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
+      }
+    }, true)
+
+    return () => disposer()
+  }, [graphModel, bgRef])
 
   return (
     <g ref={bgRef}/>

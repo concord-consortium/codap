@@ -10,32 +10,24 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
 import {handleClickOnDot, setPointSelection} from "../utilities/graph-utils"
-import {IGraphModel} from "../models/graph-model"
-import {
-  defaultPointColor,
-  defaultSelectedStroke,
-  defaultSelectedStrokeWidth,
-  defaultStrokeColor, defaultStrokeWidth
-} from "../../../utilities/color-utils"
+import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
+import {useGraphModelContext} from "../models/graph-model"
 
 export const CaseDots = memo(function CaseDots(props: {
-  graphModel: IGraphModel
-  plotProps: {
     dotsRef: React.RefObject<SVGSVGElement>
     enableAnimation: React.MutableRefObject<boolean>
-  }
 }) {
   useInstanceIdContext()
-  const {dotsRef, enableAnimation} = props.plotProps,
-    graphModel = props.graphModel,
+  const {dotsRef, enableAnimation} = props,
+    graphModel = useGraphModelContext(),
     dataset = useDataSetContext(),
     dataConfiguration = useDataConfigurationContext(),
     legendAttrID = dataConfiguration?.attributeID('legend'),
     layout = useGraphLayoutContext(),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
-    pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
+    {pointColor, pointStrokeColor} = graphModel,
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
@@ -88,11 +80,15 @@ export const CaseDots = memo(function CaseDots(props: {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    dataConfiguration && setPointSelection({dotsRef, dataConfiguration, pointRadius, selectedPointRadius})
-  }, [dataConfiguration, dotsRef, pointRadius, selectedPointRadius])
+    dataConfiguration && setPointSelection({
+      dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
+      pointColor, pointStrokeColor
+    })
+  }, [dataConfiguration, graphModel, dotsRef, selectedPointRadius, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
+      pointRadius = graphModel.getPointRadius(),
       {computedBounds} = layout,
       bounds = computedBounds.get('plot') as Bounds,
       transform = `translate(${bounds.left}, ${bounds.top})`,
@@ -115,14 +111,14 @@ export const CaseDots = memo(function CaseDots(props: {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
       .style('fill', (anID: string) => {
-        return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? defaultPointColor
+        return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? pointColor
       })
       .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
-        defaultSelectedStroke : defaultStrokeColor)
+        defaultSelectedStroke : graphModel.pointStrokeColor)
       .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
         defaultSelectedStrokeWidth : defaultStrokeWidth)
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
-  }, [dataset, legendAttrID, dataConfiguration, pointRadius,
+  }, [dataset, legendAttrID, dataConfiguration, graphModel, pointColor,
     layout, dotsRef, enableAnimation, xScale, yScale])
 
   useEffect(function initDistribution() {

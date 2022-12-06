@@ -136,6 +136,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           dataset,
           caseIDs: dataConfiguration.cases,
           pointRadius: graphModel.getPointRadius(),
+          pointColor: graphModel.pointColor,
+          pointStrokeColor: graphModel.pointStrokeColor,
           dotsElement: dotsRef.current,
           enableAnimation, instanceId
         })
