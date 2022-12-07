@@ -80,7 +80,7 @@ export const useAxis = ({
       // To avoid that, we manually remove the ticks before initializing the axis.
       select(axisElt).selectAll('.tick').remove()
 
-      scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
+      inGraph && scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
 
       const transform = (place === 'left')
         ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`

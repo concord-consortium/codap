@@ -9,7 +9,7 @@ import './slider.scss'
 import { ISliderModel } from "./slider-model"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../graph/components/axis"
-import { useCodapSlider, useCodapSliderLayout } from "./use-slider"
+import { useCodapSlider } from "./use-slider"
 
 interface IProps {
   sliderModel: ISliderModel,
@@ -27,7 +27,6 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const decimalPlaces = 3
   const animationRef = useRef(true) // SLIDER-TODO - this is a hack, pass through real value
   const codapSlider = useCodapSlider()
-  const { sliderWidth } = useCodapSliderLayout()
 
   const sliderAxis = axisBottom(scaleLinear() // TODO - WIDTH-ISSUE
     .domain(sliderModel.getDomain())
@@ -103,7 +102,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
     setIsManuallyEditing(false)
   }
 
-  const styleFromApp = { top: 100, right: 80, width: "300px" } // TODO WIDTH-ISSUE
+  const styleFromApp = { top: 100, right: 80 } // TODO WIDTH-ISSUE
 
   return (
     <div className="slider-wrapper" style={styleFromApp}>
@@ -169,7 +168,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
           step={multiplesOf}
           max={sliderModel.axis.max}
           min={sliderModel.axis.min}
-          //width={widthFromApp}
+          width={widthFromApp}
         >
           <SliderTrack bg='transparent' />
           <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
@@ -178,7 +177,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
         </Slider>
 
         {/* WIDTH-ISSUE */}
-        <svg width={widthFromApp}  height="50">
+        <svg height="50">
           <Axis
             getAxisModel={() => sliderModel.axis}
             attributeID={''} // make optional in Axis
@@ -186,7 +185,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
             showGridLines={false}
             onDropAttribute={()=> console.log("make optional")} // make optional in Axis
             onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis
-            scale={scaleLinear().domain(codapSlider.axis.domain).range([0, sliderWidth])} // WIDTH-ISSUE
+            scale={scaleLinear().domain([0,300]).range([0, 300])} // WIDTH-ISSUE
           />
         </svg>
 

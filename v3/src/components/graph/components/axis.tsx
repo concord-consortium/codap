@@ -44,6 +44,8 @@ export const Axis = ({
 
   const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
 
+  console.log("axis: ", {scale})
+
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
     titleRef, scale, inGraph
