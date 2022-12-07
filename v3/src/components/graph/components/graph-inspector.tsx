@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
@@ -18,27 +18,15 @@ interface IProps {
 }
 
 export const GraphInspector = ({ graphModel, show }: IProps) => {
-  const [showFormatPalette, setShowFormatPalette] = useState(false)
-  const [showMeasurePalette, setShowMeasurePalette] = useState(false)
-
-  const closeAllPalettes = () => {
-    setShowFormatPalette(false)
-    setShowMeasurePalette(false)
-  }
+  const [showPalette, setShowPalette] = useState<"format" | "measure" | undefined>()
 
   const handleRulerButton = () => {
-    closeAllPalettes()
-    setShowMeasurePalette(true)
+    setShowPalette("measure")
   }
 
   const handleBrushButton = () => {
-    closeAllPalettes()
-    setShowFormatPalette(true)
+    setShowPalette("format")
   }
-  
-  useEffect(()=>{
-    !show && closeAllPalettes()
-  },[show])
   return (show
     ? <>
         <InspectorPanel component="graph">
@@ -47,7 +35,7 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
             <ScaleDataIcon />
           </InspectorButton>
           <InspectorMenu tooltip={t("DG.Inspector.displayStyles.toolTip")}
-            icon={<HideShowIcon />} testId={"graph-display-styles-button"} onOpen={()=>closeAllPalettes()}>
+            icon={<HideShowIcon />} testId={"graph-display-styles-button"} >
             <HideShowMenuList graphModel={graphModel} />
           </InspectorMenu>
           <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
@@ -67,12 +55,10 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
           <CameraIcon />
           </InspectorButton>
         </InspectorPanel>
-        {showFormatPalette &&
-          <PointFormatPalette graphModel={graphModel} showFormatPalette={showFormatPalette}
-            setShowFormatPalette={setShowFormatPalette}/>}
-        {showMeasurePalette &&
-          <GraphMeasurePalette graphModel={graphModel} showMeasurePalette={showMeasurePalette}
-            setShowMeasurePalette={setShowMeasurePalette}/>}
+        {showPalette === "format" &&
+          <PointFormatPalette graphModel={graphModel} />}
+        {showPalette === "measure" &&
+          <GraphMeasurePalette graphModel={graphModel} />}
       </>
     : null
   )

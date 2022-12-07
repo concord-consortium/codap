@@ -10,11 +10,9 @@ import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
-  showFormatPalette: boolean
-  setShowFormatPalette: (show: boolean) => void
 }
 
-export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormatPalette}: IProps) => {
+export const PointFormatPalette = ({graphModel}: IProps) => {
   const [pointColor, setPointColor] = useState<string>("#E6805B")
   const [pointStroke, setPointStroke] = useState<string>("#FFFFFF")
 

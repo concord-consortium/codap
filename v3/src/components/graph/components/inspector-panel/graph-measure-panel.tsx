@@ -9,36 +9,36 @@ import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
-  showMeasurePalette: boolean
-  setShowMeasurePalette: (show: boolean) => void;
 }
 
-export const GraphMeasurePalette = ({graphModel, showMeasurePalette, setShowMeasurePalette}: IProps) => {
+export const GraphMeasurePalette = ({graphModel}: IProps) => {
   const toast = useToast()
 
-  const dotChartMeasures = [{
-    title: t("DG.Inspector.graphPercent")
-  }]
-  const dotPlotMeasures = [
-    {title: t("DG.Inspector.showLabels")},
-    {title: t("DG.Inspector.graphPlottedMean")},
-    {title: t("DG.Inspector.graphPlottedMedian")},
-    {title: t("DG.Inspector.graphPlottedStDev")},
-    {title: t("DG.Inspector.graphPlottedMeanAbsDev")},
-    {title: t("DG.Inspector.graphPlottedBoxPlot")},
-    {title: t("DG.Inspector.graphBoxPlotShowOutliers")},
-    {title: t("DG.Inspector.graphPlottedValue")},
-  ]
-  const scatterPlotMeasures = [
-    {title: t("DG.Inspector.graphConnectingLine")},
-    {title: t("DG.Inspector.graphMovablePoint")},
-    {title: t("DG.Inspector.graphMovableLine")},
-    {title: t("DG.Inspector.graphLSRL")},
-    {title: t("DG.Inspector.graphInterceptLocked")},
-    {title: t("DG.Inspector.graphPlottedFunction")},
-    {title: t("DG.Inspector.graphPlottedValue")},
-    {title: t("DG.Inspector.graphSquares")},
-  ]
+  const measures = {
+    "casePlot": [ t("DG.Inspector.graphCount")],
+    "dotChart": [ t("DG.Inspector.graphCount"),
+                  t("DG.Inspector.graphPercent")],
+    "dotPlot":  [ t("DG.Inspector.graphCount"),
+                  t("DG.Inspector.showLabels"),
+                  t("DG.Inspector.graphPlottedMean"),
+                  t("DG.Inspector.graphPlottedMedian"),
+                  t("DG.Inspector.graphPlottedStDev"),
+                  t("DG.Inspector.graphPlottedMeanAbsDev"),
+                  t("DG.Inspector.graphPlottedBoxPlot"),
+                  t("DG.Inspector.graphBoxPlotShowOutliers"),
+                  t("DG.Inspector.graphPlottedValue")
+                ],
+    "scatterPlot": [  t("DG.Inspector.graphCount"),
+                      t("DG.Inspector.graphConnectingLine"),
+                      t("DG.Inspector.graphMovablePoint"),
+                      t("DG.Inspector.graphMovableLine"),
+                      t("DG.Inspector.graphLSRL"),
+                      t("DG.Inspector.graphInterceptLocked"),
+                      t("DG.Inspector.graphPlottedFunction"),
+                      t("DG.Inspector.graphPlottedValue"),
+                      t("DG.Inspector.graphSquares"),
+                    ]
+  }
 
   const handleSetting = (measure: string, val: boolean) => {
     toast({
@@ -63,46 +63,17 @@ export const GraphMeasurePalette = ({graphModel, showMeasurePalette, setShowMeas
     >
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
-        <FormControl>
-          <Checkbox onChange={e => handleSetting(t("DG.Inspector.graphCount"), e.target.checked)}>
-            {t("DG.Inspector.graphCount")}
-          </Checkbox>
-        </FormControl>
-        {graphModel.plotType === "dotChart" &&
-          dotChartMeasures.map(m => {
-            return (
-              <FormControl key={m.title}>
-                <Checkbox onChange={e => handleSetting(m.title, e.target.checked)}>
-                  {m.title}
-                </Checkbox>
-              </FormControl>
-            )
-          })
-        }
-        {graphModel.plotType === "dotPlot" &&
-          dotPlotMeasures.map(m => {
-            return (
-              <FormControl key={m.title}>
-                <Checkbox onChange={e => handleSetting(m.title, e.target.checked)}>
-                  {m.title}
-                </Checkbox>
-              </FormControl>
-            )
-          })
-        }
+        {measures[graphModel.plotType].map((title:string) => {
+           return (
+            <FormControl key={title}>
+              <Checkbox onChange={e => handleSetting(title, e.target.checked)}>
+                {title}
+              </Checkbox>
+            </FormControl>
+          )
+        })}
         {graphModel.plotType === "dotPlot" &&
           <Button size="xs" w="120px">Movable Value</Button>}
-        {graphModel.plotType === "scatterPlot" &&
-          scatterPlotMeasures.map(m => {
-            return (
-              <FormControl key={m.title}>
-                <Checkbox onChange={e => handleSetting(m.title, e.target.checked)}>
-                  {m.title}
-                </Checkbox>
-              </FormControl>
-            )
-          })
-        }
       </Flex>
     </InspectorPalette>
   )
