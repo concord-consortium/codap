@@ -15,6 +15,7 @@ export class SliderAxisLayout {
   desiredExtent?: number
 
   @action setParentExtent(width: number, height: number) {
+    console.log("@action setParentExtent: ", width)
     this.sliderWidth = width
     this.sliderHeight = height
   }
@@ -36,6 +37,7 @@ export class SliderAxisLayout {
   }
 
   @action setAxisScale(place: AxisPlace, scale: SliderScale) {
+    console.log("@action setAxisScale: ", this.sliderWidth)
     scale.range([0, this.sliderWidth])
     this.axisScale = scale
   }
@@ -53,3 +55,6 @@ export class SliderAxisLayout {
     }
   }
 }
+
+// TODO find the text click here or drag an attribute
+// It is missing now in render

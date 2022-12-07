@@ -11,7 +11,6 @@ import { kSliderClass, kSliderClassSelector } from "./slider-types"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
-// import { useCodapSlider } from "./use-slider"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 
 import './slider.scss'
@@ -23,7 +22,7 @@ interface IProps {
 export const SliderComponent = observer(({sliderModel} : IProps) => {
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
-  const {width, height, ref: sliderRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 15})
+  const {width, height, ref: sliderRef} = useResizeDetector()
   const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0)
   const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
   const [running, setRunning] = useState<boolean>(false)
@@ -35,7 +34,12 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   // const codapSlider = useCodapSlider()
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setParentExtent(width, height)
+    if ((width != null) && (height != null)) {
+      console.log("...effect...", {layout})
+      layout.setParentExtent(width, height)
+      layout.setAxisScale("bottom", layout.axisScale)
+      //layout.axisScale.range([0, width])
+    }
   }, [width, height, layout])
 
   function inLocalDecimals(x: number | string ){
@@ -104,7 +108,13 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
     setIsManuallyEditing(false)
   }
 
-  const styleFromApp = { top: 100, right: 80 } // TODO WIDTH-ISSUE
+  // TODO - if we depend on "width" returned from observer, the first render miscalculates/fails silently
+  // So we have to depend on known rects before width exists
+
+  //const styleFromApp = { top: 100, right: 80, width: `"${width}px"` }
+  const styleFromApp = { top: 100, right: 180 }
+  const widthPxString = `"${width}px"`
+  console.log({width})
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
@@ -172,7 +182,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               step={multiplesOf}
               max={sliderModel.axis.max}
               min={sliderModel.axis.min}
-              width={layout.sliderWidth}
+              //width={width}
             >
               <SliderTrack bg='transparent' />
               <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
@@ -180,8 +190,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               </SliderThumb>
             </Slider>
 
-            {/* WIDTH-ISSUE */}
-            <svg height="50">
+            <svg height="50" width={width} style={{ border:"2px dashed purple"}}>
               <Axis
                 parentSelector={kSliderClassSelector}
                 getAxisModel={() => sliderModel.axis}
