@@ -2,7 +2,8 @@ import { createContext, useContext } from "react"
 import { AxisBounds, AxisPlace, AxisScaleType } from "../axis-types"
 
 export interface IAxisLayout {
-  axisLength: (place: AxisPlace) => number
+  setParentExtent: (width: number, height: number) => void
+  getAxisLength: (place: AxisPlace) => number
 
   // actual bounds of DOM element
   getAxisBounds: (place: AxisPlace) => AxisBounds | undefined
@@ -17,7 +18,8 @@ export interface IAxisLayout {
 }
 
 const nullAxisLayout: IAxisLayout = {
-  axisLength: () => 0,
+  setParentExtent: () => undefined,
+  getAxisLength: () => 0,
   getAxisBounds: () => undefined,
   setAxisBounds: () => undefined,
   getAxisScale: () => undefined,

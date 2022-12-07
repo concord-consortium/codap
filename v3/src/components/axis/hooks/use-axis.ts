@@ -94,7 +94,7 @@ export const useAxis = ({
       select(axisElt).selectAll('.grid').remove()
 
       if (showGridLines) {
-        const tickLength = layout.axisLength(otherPlace(axisPlace)) ?? 0,
+        const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
           numericScale = scale as ScaleNumericBaseType
         select(axisElt).append('g')
           .attr('class', 'grid')
@@ -188,7 +188,7 @@ export const useAxis = ({
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.axisLength(axisPlace)
+        return layout.getAxisLength(axisPlace)
       },
       () => {
         refreshAxis()

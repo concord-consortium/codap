@@ -1,12 +1,13 @@
 import React, {useEffect, useMemo, useRef, useState} from "react"
+import { useResizeDetector } from "react-resize-detector"
 import { Slider, SliderTrack, SliderThumb, Flex, Center } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { select, scaleLinear, axisBottom } from "d3"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
-import { SliderLayout } from "./slider-layout"
+import { SliderAxisLayout } from "./slider-layout"
 import { ISliderModel } from "./slider-model"
+import { kSliderClass, kSliderClassSelector } from "./slider-types"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
@@ -16,14 +17,13 @@ import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-i
 import './slider.scss'
 
 interface IProps {
-  sliderModel: ISliderModel,
-  widthFromApp: number // WIDTH-ISSUE
+  sliderModel: ISliderModel
 }
 
-export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) => {
+export const SliderComponent = observer(({sliderModel} : IProps) => {
   const instanceId = useNextInstanceId("slider")
-  const layout = useMemo(() => new SliderLayout(), [])
-  const sliderAxisRef = useRef<any>()
+  const layout = useMemo(() => new SliderAxisLayout(), [])
+  const {width, height, ref: sliderRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 15})
   const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0)
   const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
   const [running, setRunning] = useState<boolean>(false)
@@ -34,13 +34,9 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const animationRef = useRef(false)
   // const codapSlider = useCodapSlider()
 
-  const sliderAxis = axisBottom(scaleLinear() // TODO - WIDTH-ISSUE
-    .domain(sliderModel.getDomain())
-    .range([0, widthFromApp]))
-
   useEffect(() => {
-    select(sliderAxisRef.current).call(sliderAxis)
-  })
+    (width != null) && (height != null) && layout.setParentExtent(width, height)
+  }, [width, height, layout])
 
   function inLocalDecimals(x: number | string ){
     if (typeof x === "number") return parseFloat(x.toFixed(decimalPlaces))
@@ -113,7 +109,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
-        <div className="slider-wrapper" style={styleFromApp}>
+        <div className={kSliderClass} style={styleFromApp} ref={sliderRef}>
           <div className="titlebar">
             <input type="text"
               value={sliderModel.name}
@@ -176,7 +172,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
               step={multiplesOf}
               max={sliderModel.axis.max}
               min={sliderModel.axis.min}
-              width={widthFromApp}
+              width={layout.sliderWidth}
             >
               <SliderTrack bg='transparent' />
               <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
@@ -187,6 +183,7 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
             {/* WIDTH-ISSUE */}
             <svg height="50">
               <Axis
+                parentSelector={kSliderClassSelector}
                 getAxisModel={() => sliderModel.axis}
                 enableAnimation={animationRef}
                 showGridLines={false}

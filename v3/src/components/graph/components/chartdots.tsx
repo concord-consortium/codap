@@ -78,7 +78,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       primaryCellWidth = primaryScale?.bandwidth() ?? 0,
       primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth() :
-        (secondaryAxisPlace ? layout.axisLength(secondaryAxisPlace) : 0),
+        (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
       categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {},
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
@@ -121,7 +121,7 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
         return indices
       },
       cellIndices = buildMapOfIndicesByCase(),
-      baseCoord = primaryIsBottom ? 0 : layout.axisLength('left'),
+      baseCoord = primaryIsBottom ? 0 : layout.getAxisLength('left'),
       signForOffset = primaryIsBottom ? 1 : -1,
       primaryCenterKey = primaryIsBottom ? 'cx' : 'cy',
       secondaryCenterKey = primaryIsBottom ? 'cy' : 'cx',

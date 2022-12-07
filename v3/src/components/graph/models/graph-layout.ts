@@ -22,7 +22,9 @@ export class GraphLayout {
   @observable graphWidth = kDefaultGraphWidth
   @observable graphHeight = kDefaultGraphHeight
   @observable legendHeight = kDefaultLegendHeight
+  // actual measures sizes of axis elements
   @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
+  // desired/required size of axis elements
   @observable desiredExtents: Map<GraphPlace, number> = new Map()
   axisScales: Map<AxisPlace, AxisScaleType> = new Map()
 
@@ -39,7 +41,7 @@ export class GraphLayout {
     return this.computedBounds.get('plot')?.height || this.graphHeight - this.legendHeight
   }
 
-  axisLength(place: AxisPlace) {
+  getAxisLength(place: AxisPlace) {
     return isVertical(place) ? this.plotHeight : this.plotWidth
   }
 
@@ -60,7 +62,7 @@ export class GraphLayout {
       const newBounds = bounds
 
       if (place === "bottom") {
-        newBounds.height = Math.min(bounds.height, this.graphHeight - this.axisLength('left') - this.legendHeight)
+        newBounds.height = Math.min(bounds.height, this.graphHeight - this.getAxisLength('left') - this.legendHeight)
         newBounds.top = this.plotHeight
       }
 
@@ -98,7 +100,7 @@ export class GraphLayout {
     })
   }
 
-  @action setGraphExtent(width: number, height: number) {
+  @action setParentExtent(width: number, height: number) {
     this.graphWidth = width
     this.graphHeight = height
   }

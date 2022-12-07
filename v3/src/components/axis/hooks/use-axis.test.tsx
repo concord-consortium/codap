@@ -65,7 +65,7 @@ describe("useNumericAxis", () => {
         </AxisLayoutContext.Provider>
       )
     })
-    layout.setGraphExtent(100, 100)
+    layout.setParentExtent(100, 100)
     expect(layout.getAxisScale("bottom")?.range()).toEqual([0, 80])
   })
 

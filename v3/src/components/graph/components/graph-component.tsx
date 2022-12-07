@@ -37,7 +37,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const [showInspector, setShowInspector] = useState(false)
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setGraphExtent(width, height - kTitleBarHeight)
+    (width != null) && (height != null) && layout.setParentExtent(width, height - kTitleBarHeight)
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the graph component

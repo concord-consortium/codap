@@ -36,7 +36,6 @@ export const App = () => {
   useKeyStates()
 
   const initialSlider = useCodapSlider()
-  const sliderWidth = 300
 
   const _handleImportDataSet = useCallback((data: IDataSet) => {
     handleImportDataSet(data)
@@ -94,7 +93,7 @@ export const App = () => {
             </div>
             <CaseTableComponent/>
             <GraphComponent />
-            <SliderComponent sliderModel={initialSlider} widthFromApp={sliderWidth} />
+            <SliderComponent sliderModel={initialSlider} />
           </Container>
         </div>
       </V2DocumentContext.Provider>

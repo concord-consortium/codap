@@ -136,7 +136,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
       },
       (axisBounds) => {
         const
-          length = layout.axisLength(place),
+          length = layout.getAxisLength(place),
           rectSelection = select(rectRef.current),
           numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
         if (length != null && axisBounds != null) {

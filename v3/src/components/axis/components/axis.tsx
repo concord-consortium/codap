@@ -15,10 +15,10 @@ import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
 
-
 import "./axis.scss"
 
 interface IProps {
+  parentSelector: string
   getAxisModel: () => IAxisModel | undefined
   label?: string
   enableAnimation: MutableRefObject<boolean>
@@ -28,7 +28,7 @@ interface IProps {
 }
 
 export const Axis = ({
-                       label = "", getAxisModel, showGridLines,
+                       parentSelector, label = "", getAxisModel, showGridLines,
                        onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
@@ -42,7 +42,7 @@ export const Axis = ({
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
-  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
+  const {parentElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place, parentSelector)
 
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
@@ -80,14 +80,14 @@ export const Axis = ({
         <g ref={titleRef}/>
       </g>
 
-      {graphElt && onDropAttribute && onTreatAttributeAs &&
+      {parentElt && onDropAttribute && onTreatAttributeAs &&
         createPortal(<AxisAttributeMenu
           target={titleRef.current}
-          portal={graphElt}
+          portal={parentElt}
           place={place}
           onChangeAttribute={onDropAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
-        />, graphElt)
+        />, parentElt)
       }
 
       {axisModel?.type === 'numeric' ?
@@ -98,7 +98,7 @@ export const Axis = ({
           dropId={droppableId}
 
           hintString={hintString}
-          portal={graphElt}
+          portal={parentElt}
           target={wrapperElt}
           onIsActive={handleIsActive}
         />}

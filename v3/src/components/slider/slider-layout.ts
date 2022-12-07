@@ -1,20 +1,25 @@
 import { ScaleContinuousNumeric, scaleLinear } from "d3"
 import { action, observable } from "mobx"
 import { AxisBounds, AxisPlace } from "../axis/axis-types"
-
-export const kDefaultSliderWidth = 300
-export const kDefaultSliderAxisTop = 0
-export const kDefaultSliderAxisHeight = 20
+import {
+  kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth
+} from "./slider-types"
 
 type SliderScale = ScaleContinuousNumeric<number, number>
 
-export class SliderLayout {
+export class SliderAxisLayout {
   @observable sliderWidth = kDefaultSliderWidth
+  @observable sliderHeight = kDefaultSliderHeight
   @observable axisBounds?: AxisBounds
   axisScale: SliderScale = scaleLinear()
-  desiredExtent: number | undefined
+  desiredExtent?: number
 
-  axisLength(place: AxisPlace) {
+  @action setParentExtent(width: number, height: number) {
+    this.sliderWidth = width
+    this.sliderHeight = height
+  }
+
+  getAxisLength(place: AxisPlace) {
     return this.sliderWidth
   }
 

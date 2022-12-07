@@ -5,7 +5,9 @@ import React, {MutableRefObject, useEffect, useRef} from "react"
 import {Axis} from "../../axis/components/axis"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
-import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace, kGraphClass} from "../graphing-types"
+import {
+  attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace, kGraphClass, kGraphClassSelector
+} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -121,14 +123,16 @@ export const Graph = observer((
             ref={backgroundSvgRef}
           />
 
-          <Axis getAxisModel={() => graphModel.getAxis('left')}
+          <Axis parentSelector={kGraphClassSelector}
+                getAxisModel={() => graphModel.getAxis('left')}
                 label={dataset?.attrFromID(yAttrID)?.name}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
           />
-          <Axis getAxisModel={() => graphModel.getAxis('bottom')}
+          <Axis parentSelector={kGraphClassSelector}
+                getAxisModel={() => graphModel.getAxis('bottom')}
                 label={dataset?.attrFromID(xAttrID)?.name}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}

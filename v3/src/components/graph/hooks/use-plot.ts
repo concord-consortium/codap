@@ -92,7 +92,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
     const disposer = reaction(
-      () => [layout.axisLength('left'), layout.axisLength('bottom')],
+      () => [layout.getAxisLength('left'), layout.getAxisLength('bottom')],
       () => {
         callRefreshPointPositions(false)
       }
