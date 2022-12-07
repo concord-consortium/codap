@@ -1,4 +1,5 @@
 import { extendTheme } from '@chakra-ui/react'
+import { Checkbox } from './styles/checkbox-style'
 import { Menu } from './styles/menu-style'
 import { Modal } from './styles/modal-style'
 
@@ -30,6 +31,7 @@ export const theme = extendTheme({
       }
     },
     Menu,
-    Modal
+    Modal,
+    Checkbox
   }
 })

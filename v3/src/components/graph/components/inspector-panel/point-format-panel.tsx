@@ -10,11 +10,9 @@ import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
-  showFormatPalette: boolean
-  setShowFormatPalette: (show: boolean) => void
 }
 
-export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormatPalette}: IProps) => {
+export const PointFormatPalette = ({graphModel}: IProps) => {
   const [pointColor, setPointColor] = useState<string>("#E6805B")
   const [pointStroke, setPointStroke] = useState<string>("#FFFFFF")
 
@@ -38,6 +36,7 @@ export const PointFormatPalette = ({graphModel, showFormatPalette, setShowFormat
     <InspectorPalette
       title={t("DG.Inspector.styles")}
       Icon={<StylesIcon />}
+      buttonLocation={115}
       paletteTop={35}
     >
       <Flex className="palette-form" direction="column">

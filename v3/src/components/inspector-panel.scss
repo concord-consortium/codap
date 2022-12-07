@@ -57,7 +57,7 @@
   position: absolute;
   inset: 0;
   left: 5px;
-  max-width: 270px;
+  width: fit-content;
   height: fit-content;
   font-family: "museo-sans", sans-serif;
   z-index: 5;
@@ -91,11 +91,17 @@
       line-height: $header-height;
     }
   }
+
   .palette-form {
     position: relative;
     left: 0;
     background-color: #EEE;
     padding: 10px 20px 20px 20px;
+
+    .form-title {
+      font-family: "museo-sans", sans-serif !important;
+      font-size: 12px;
+    }
 
     .form-label {
       display: flex;
