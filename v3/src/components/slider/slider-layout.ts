@@ -36,6 +36,7 @@ export class SliderAxisLayout {
   }
 
   @action setAxisScale(place: AxisPlace, scale: SliderScale) {
+    console.log("should be setting scale to: ", this.sliderWidth)
     scale.range([0, this.sliderWidth])
     this.axisScale = scale
   }
