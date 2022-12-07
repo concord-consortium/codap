@@ -2,13 +2,14 @@ import {randomUniform, select} from "d3"
 import {onAction} from "mobx-state-tree"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
+import { ScaleNumericBaseType } from "../../axis/axis-types"
 import {ICase} from "../../../models/data/data-set"
 import {isAddCasesAction} from "../../../models/data/data-set-actions"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {handleClickOnDot, setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
 import {
@@ -39,8 +40,8 @@ export const CaseDots = memo(function CaseDots(props: {
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
-    xScale = layout.axisScale('bottom') as ScaleNumericBaseType,
-    yScale = layout.axisScale('left') as ScaleNumericBaseType
+    xScale = layout.getAxisScale('bottom') as ScaleNumericBaseType,
+    yScale = layout.getAxisScale('left') as ScaleNumericBaseType
 
   const onDragStart = useCallback((event: MouseEvent) => {
       enableAnimation.current = false // We don't want to animate points until end of drag

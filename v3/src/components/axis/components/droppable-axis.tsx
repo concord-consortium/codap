@@ -2,11 +2,9 @@ import { Active, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
+import { AxisPlace } from "../axis-types"
 import { useAxisBounds } from "../hooks/use-axis-bounds"
-import { AxisPlace } from "../models/axis-model"
-import { DropHint } from "./drop-hint"
-
-import "./droppable-svg.scss"
+import { DropHint } from "../../graph/components/drop-hint"
 
 interface IProps {
   place: AxisPlace

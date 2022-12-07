@@ -1,13 +1,12 @@
 import {ScaleBand, select} from "d3"
 import React, {memo, useCallback} from "react"
-import {PlotProps, transitionDuration} from "../graphing-types"
+import {attrRoleToAxisPlace, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {IGraphModel} from "../models/graph-model"
-import {attrRoleToAxisPlace} from "../models/axis-model"
 import {defaultPointColor, defaultSelectedColor} from "../../../utilities/color-utils"
 
 interface IProps {
@@ -34,8 +33,8 @@ export const ChartDots = memo(function ChartDots(props: IProps) {
     secondaryAxisPlace = secondaryAttrPlace ? attrRoleToAxisPlace[secondaryAttrPlace] : undefined,
     secondaryAttrID = secondaryAttrPlace ? dataConfiguration?.attributeID(secondaryAttrPlace) : '',
     legendAttrID = dataConfiguration?.attributeID('legend'),
-    primaryScale = primaryAxisPlace ? layout.axisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
-    secondaryScale = secondaryAxisPlace ? layout.axisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
+    primaryScale = primaryAxisPlace ? layout.getAxisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
+    secondaryScale = secondaryAxisPlace ? layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
 
   const computeMaxOverAllCells = useCallback(() => {
     const valuePairs = (dataConfiguration?.cases || []).map(caseID => {

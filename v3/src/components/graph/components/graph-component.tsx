@@ -7,7 +7,8 @@ import {DataBroker} from "../../../models/data/data-broker"
 import {DataSetContext} from "../../../hooks/use-data-set-context"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {kTitleBarHeight} from "../graphing-types"
-import {EmptyAxisModel} from "../models/axis-model"
+import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
+import {EmptyAxisModel} from "../../axis/models/axis-model"
 import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel} from "../models/graph-model"
@@ -48,13 +49,15 @@ export const GraphComponent = observer(({broker}: IProps) => {
       <DataSetContext.Provider value={dataset}>
         <InstanceIdContext.Provider value={instanceId}>
           <GraphLayoutContext.Provider value={layout}>
-            <Graph model={defaultGraphModel}
-              graphRef={graphRef}
-              enableAnimation={enableAnimation}
-              dotsRef={dotsRef}
-              showInspector={showInspector}
-              setShowInspector={setShowInspector}
-            />
+            <AxisLayoutContext.Provider value={layout}>
+              <Graph model={defaultGraphModel}
+                graphRef={graphRef}
+                enableAnimation={enableAnimation}
+                dotsRef={dotsRef}
+                showInspector={showInspector}
+                setShowInspector={setShowInspector}
+              />
+            </AxisLayoutContext.Provider>
           </GraphLayoutContext.Provider>
         </InstanceIdContext.Provider>
       </DataSetContext.Provider>

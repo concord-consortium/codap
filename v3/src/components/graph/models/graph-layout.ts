@@ -1,11 +1,8 @@
-import {ScaleBand, ScaleContinuousNumeric, ScaleOrdinal, scaleOrdinal} from "d3"
+import {scaleOrdinal} from "d3"
 import {action, computed, makeObservable, observable} from "mobx"
 import {createContext, useContext} from "react"
-import {kTitleBarHeight} from "../graphing-types"
-import {AxisPlace, AxisPlaces, GraphPlace} from "./axis-model"
-
-export type ScaleNumericBaseType = ScaleContinuousNumeric<number, number>
-export type ScaleType = ScaleContinuousNumeric<number, number> | ScaleOrdinal<string, any> | ScaleBand<string>
+import {AxisPlace, AxisPlaces, AxisBounds, AxisScaleType, isVertical} from "../../axis/axis-types"
+import {GraphPlace, kTitleBarHeight} from "../graphing-types"
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 300
@@ -25,9 +22,9 @@ export class GraphLayout {
   @observable graphWidth = kDefaultGraphWidth
   @observable graphHeight = kDefaultGraphHeight
   @observable legendHeight = kDefaultLegendHeight
-  @observable axisBounds: Map<AxisPlace, Bounds> = new Map()
+  @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
   @observable desiredExtents: Map<GraphPlace, number> = new Map()
-  axisScales: Map<AxisPlace, ScaleType> = new Map()
+  axisScales: Map<AxisPlace, AxisScaleType> = new Map()
 
   constructor() {
     AxisPlaces.forEach(place => this.axisScales.set(place, scaleOrdinal()))
@@ -42,27 +39,19 @@ export class GraphLayout {
     return this.computedBounds.get('plot')?.height || this.graphHeight - this.legendHeight
   }
 
-  isHorizontal(place: AxisPlace) {
-    return ["bottom", "top"].includes(place)
-  }
-
-  isVertical(place: AxisPlace) {
-    return ["left", "right"].includes(place)
-  }
-
   axisLength(place: AxisPlace) {
-    return this.isVertical(place) ? this.plotHeight : this.plotWidth
+    return isVertical(place) ? this.plotHeight : this.plotWidth
   }
 
   getAxisBounds(place: AxisPlace) {
     return this.axisBounds.get(place)
   }
 
-  @action setAxisBounds(place: AxisPlace, bounds: Bounds | undefined) {
+  @action setAxisBounds(place: AxisPlace, bounds: AxisBounds | undefined) {
     if (bounds) {
       // We allow the axis to draw gridlines for bivariate numeric plots. Unfortunately, the gridlines end up as
       // part of the axis dom element so that we get in here with bounds that span the entire width or height of
-      // the plot. We tried work arounds to get gridlines that were _not_ part of the axis element with the result
+      // the plot. We tried workarounds to get gridlines that were _not_ part of the axis element with the result
       // that the gridlines got out of synch with axis tick marks during drag. So we have this inelegant solution
       // that shouldn't affect the top and right axes when we get them but it may be worthwhile to
       // (TODO) figure out if there's a better way to render gridlines on background (or plot) so this isn't necessary.
@@ -89,12 +78,12 @@ export class GraphLayout {
     }
   }
 
-  axisScale(place: AxisPlace) {
+  getAxisScale(place: AxisPlace) {
     return this.axisScales.get(place)
   }
 
-  @action setAxisScale(place: AxisPlace, scale: ScaleType) {
-    scale.range(this.isVertical(place) ? [this.plotHeight, 0] : [0, this.plotWidth])
+  @action setAxisScale(place: AxisPlace, scale: AxisScaleType) {
+    scale.range(isVertical(place) ? [this.plotHeight, 0] : [0, this.plotWidth])
     this.axisScales.set(place, scale)
   }
 
@@ -104,8 +93,8 @@ export class GraphLayout {
 
   updateScaleRanges(plotWidth: number, plotHeight: number) {
     AxisPlaces.forEach(place => {
-      const range = this.isVertical(place) ? [plotHeight, 0] : [0, plotWidth]
-      this.axisScale(place)?.range(range)
+      const range = isVertical(place) ? [plotHeight, 0] : [0, plotWidth]
+      this.getAxisScale(place)?.range(range)
     })
   }
 
@@ -152,6 +141,10 @@ export class GraphLayout {
         height: plotHeight})
     // console.log(`newBounds.left = ${JSON.stringify(newBounds.get('left'))}`)
     return newBounds
+  }
+
+  getComputedBounds(place: AxisPlace) {
+    return this.computedBounds.get(place)
   }
 }
 

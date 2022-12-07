@@ -1,7 +1,7 @@
 import { Instance, types} from "mobx-state-tree"
+import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/data/global-value"
 import { uniqueId } from "../../utilities/js-utils"
-import { NumericAxisModel } from "../graph/models/axis-model"
 export interface SliderProperties {
   id: string
   name: string

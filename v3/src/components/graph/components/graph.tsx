@@ -2,10 +2,10 @@ import {select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
-import {Axis} from "./axis"
+import {Axis} from "../../axis/components/axis"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
-import {kGraphClass} from "../graphing-types"
+import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -15,7 +15,6 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace} from "../models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -45,7 +44,7 @@ export const Graph = observer((
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     bottomAxisHeight = layout.getAxisBounds('bottom')?.height ?? 0,
-    xScale = layout.axisScale("bottom"),
+    xScale = layout.getAxisScale("bottom"),
     svgRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
@@ -123,20 +122,18 @@ export const Graph = observer((
           />
 
           <Axis getAxisModel={() => graphModel.getAxis('left')}
-                attributeID={yAttrID}
+                label={dataset?.attrFromID(yAttrID)?.name}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
-                scale={layout.axisScale('left')}
           />
           <Axis getAxisModel={() => graphModel.getAxis('bottom')}
-                attributeID={xAttrID}
+                label={dataset?.attrFromID(xAttrID)?.name}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
                 onTreatAttributeAs={handleTreatAttrAs}
-                scale={layout.axisScale('bottom')}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>

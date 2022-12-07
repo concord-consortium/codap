@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react"
-import {kGraphClassSelector} from "../graphing-types"
-import {AxisPlace} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {AxisPlace} from "../axis-types"
+import {kGraphClassSelector} from "../../graph/graphing-types"
+import {useGraphLayoutContext} from "../../graph/models/graph-layout"
 
 export const useAxisBounds = (place: AxisPlace) => {
   const layout = useGraphLayoutContext()
