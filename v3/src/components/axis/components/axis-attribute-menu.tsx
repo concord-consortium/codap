@@ -1,11 +1,11 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
 import React, { CSSProperties } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { GraphPlace } from "../models/axis-model"
-import { useGraphLayoutContext} from "../models/graph-layout"
+import { GraphPlace } from "../../graph/graphing-types"
+import { useGraphLayoutContext} from "../../graph/models/graph-layout"
 import t from "../../../utilities/translation/translate"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
-import { useDataConfigurationContext } from "../hooks/use-data-configuration-context"
+import { useDataConfigurationContext } from "../../graph/hooks/use-data-configuration-context"
 
 interface IProps {
   place: GraphPlace,

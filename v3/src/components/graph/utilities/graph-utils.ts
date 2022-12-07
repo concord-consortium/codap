@@ -2,9 +2,11 @@ import {extent, format, select, selection} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
 import {Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
-import {between} from "./math-utils"
+import {between} from "../../../utilities/math-utils"
+import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
+import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IDataSet} from "../../../models/data/data-set"
-import {Bounds, ScaleNumericBaseType} from "../models/graph-layout"
+import {Bounds} from "../models/graph-layout"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import { defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity,
   defaultSelectedStrokeWidth, defaultStrokeOpacity, defaultStrokeWidth

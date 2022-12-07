@@ -1,15 +1,15 @@
 import {max, range, ScaleBand, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {PlotProps} from "../graphing-types"
+import { ScaleNumericBaseType } from "../../axis/axis-types"
+import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
-import {attrRoleToAxisPlace} from "../models/axis-model"
 import {useGraphModelContext} from "../models/graph-model"
 
 export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) {
@@ -26,9 +26,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
     secondaryAxisPlace = attrRoleToAxisPlace[secondaryAttrPlace] ?? 'left',
     secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
     legendAttrID = dataConfiguration?.attributeID('legend'),
-    primaryScale = layout.axisScale(primaryAxisPlace) as ScaleNumericBaseType,
-    primaryLength = layout.axisLength(primaryAxisPlace),
-    secondaryScale = layout.axisScale(secondaryAxisPlace) as ScaleBand<string>,
+    primaryScale = layout.getAxisScale(primaryAxisPlace) as ScaleNumericBaseType,
+    primaryLength = layout.getAxisLength(primaryAxisPlace),
+    secondaryScale = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>,
     [dragID, setDragID] = useState(''),
     currPos = useRef(0),
     didDrag = useRef(false),

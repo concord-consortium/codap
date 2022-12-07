@@ -1,7 +1,7 @@
 import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {select} from "d3"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
-import {AxisOrientation} from "../models/axis-model"
+import {AxisOrientation} from "../../axis/models/axis-model"
 import {GraphAttrRole} from "../models/data-configuration-model"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {useForceUpdate} from "../../../hooks/use-force-update"

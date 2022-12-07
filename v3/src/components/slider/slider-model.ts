@@ -1,7 +1,7 @@
 import { Instance, types} from "mobx-state-tree"
+import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/data/global-value"
 import { uniqueId } from "../../utilities/js-utils"
-import { NumericAxisModel } from "../graph/models/axis-model"
 export interface SliderProperties {
   id: string
   name: string
@@ -11,8 +11,6 @@ export interface SliderProperties {
 
 export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const
 export type IScaleType = typeof ScaleTypes[number]
-export const kDefaultSliderWidth = 300 // SYNC-WIDTH-ISSUE
-export const kDefaultSliderPadding = 10
 
 export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),

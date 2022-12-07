@@ -1,12 +1,13 @@
 import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
 import {appState} from "../../app-state"
+import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
@@ -24,8 +25,8 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
     primaryAttrID = dataConfiguration?.attributeID('x') as string,
     secondaryAttrID = dataConfiguration?.attributeID('y') as string,
     legendAttrID = dataConfiguration?.attributeID('legend') as string,
-    xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
-    yScale = layout.axisScale("left") as ScaleNumericBaseType,
+    xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
+    yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),

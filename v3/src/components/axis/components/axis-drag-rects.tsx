@@ -1,17 +1,16 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {drag, select} from "d3"
+import {reaction} from "mobx"
+import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {ScaleNumericBaseType} from "../axis-types"
 import t from "../../../utilities/translation/translate"
 import "./axis.scss"
 
 interface IProps {
   axisModel: INumericAxisModel
   axisWrapperElt: SVGGElement | null
-  inGraph: boolean | undefined
-  scale: any
-  boundsRect: any
 }
 
 type D3Handler = (this: Element, event: any, d: any) => void
@@ -20,14 +19,11 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.midPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
-export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scale, boundsRect}: IProps) => {
-  const marker = inGraph ? "in-graph: " : "in-slider: "
-
-
+export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
-    layout = useGraphLayoutContext()
-
+    layout = useAxisLayoutContext(),
+    scale = layout.getAxisScale(place) as ScaleNumericBaseType
 
   useEffect(function createRects() {
     let scaleAtStart: any = null,
@@ -132,51 +128,41 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt, inGraph, scal
     }
   }, [axisModel, place, scale])
 
-  // update layout of axis drag rects
+  // update layout of axis drag rects when axis bounds change
   useEffect(() => {
-    // TODO passed boundsRect only working with slider atm
-    // So need to circle back and figure out why the sometimes
-    // undefined boundsRect is breaking positioning for graph
-    // once that is done we can remove layout
-    const myval = layout.getAxisBounds(place)
-    const boundsToUse = inGraph ? layout.getAxisBounds(place) : boundsRect
-    console.log(marker, {boundsRect},  "layout.getAxisBounds(place)", JSON.stringify(myval)) //they do not match
-    const length = place === "bottom" ? boundsToUse?.width : boundsToUse?.height
-    const rectSelection = select(rectRef.current)
-    const numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
-    if (length != null && boundsToUse != null) {
-      rectSelection
-        .selectAll('.dragRect')
-        .data(numbering)// data signify lower, middle, upper rectangles
-        .join(
-          // @ts-expect-error void => Selection
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          (enter) => {
-          },
-          (update) => {
-            if (inGraph){
-              update
-                .attr('x', (d) => boundsToUse?.left + (place === 'bottom' ? (d * length / 3) : 0))
-                .attr('y', (d) => boundsToUse?.top + (place === 'bottom' ? 0 : (d * length / 3)))
-                .attr('width', () => (place === 'bottom' ? length / 3 : boundsToUse?.width))
-                .attr('height', () => (place === 'bottom' ? boundsToUse?.height : length / 3))
-            }
-
-            else {
-              // roughly [{x:0, y: 0}, {x: sliderWidth * .33, y:0 }, {x: sliderWidth * .66, y: 0}]
-              // need to use the d to spread them out
-              update
-                .attr('x',0)
-                .attr('y',0)
-                .attr('width', boundsToUse?.width)
-                .attr('height', 30)
-            }
-
-          }
-        )
-      rectSelection.selectAll('.dragRect').raise()
-    }
-  },[boundsRect, place])
+    const disposer = reaction(
+      () => {
+        return layout.getComputedBounds(place)
+      },
+      (axisBounds) => {
+        const
+          length = layout.getAxisLength(place),
+          rectSelection = select(rectRef.current),
+          numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
+        if (length != null && axisBounds != null) {
+          rectSelection
+            .selectAll('.dragRect')
+            .data(numbering)// data signify lower, middle, upper rectangles
+            .join(
+              // @ts-expect-error void => Selection
+              // eslint-disable-next-line @typescript-eslint/no-empty-function
+              (enter) => {
+              },
+              (update) => {
+                update
+                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : 0))
+                  .attr('y', (d) => axisBounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
+                  .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width))
+                  .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
+              }
+            )
+          rectSelection.selectAll('.dragRect').raise()
+        }
+      },
+      { fireImmediately: true }
+    )
+    return () => disposer()
+  }, [axisModel, layout, axisWrapperElt, place])
   return (
     <g className={'dragRect'} ref={rectRef}/>
   )

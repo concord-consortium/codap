@@ -1,33 +1,5 @@
 import {Instance, types} from "mobx-state-tree"
-import {GraphAttrRole} from "./data-configuration-model"
-
-export const AxisPlaces = ["bottom", "left", "right", "top"] as const
-export const GraphPlaces = [...AxisPlaces, "plot", "legend"] as const
-export type AxisPlace = typeof AxisPlaces[number]
-export type GraphPlace = typeof GraphPlaces[number]
-
-export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
-  x: "bottom",
-  y: "left",
-  y2: "right",
-  rightSplit: "right",
-  topSplit: "top"
-}
-export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
-  ...attrRoleToAxisPlace,
-  legend: "legend"
-}
-
-export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
-  bottom: "x",
-  left: "y",
-  top: "topSplit",
-  right: "y2",  // Todo: how to deal with 'rightSplit'?
-}
-
-export const graphPlaceToAttrPlace = (graphPlace: GraphPlace) => {
-  return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrRole[graphPlace as AxisPlace] : 'legend'
-}
+import {AxisPlace, AxisPlaces} from "../axis-types"
 
 export function otherPlace(aPlace: AxisPlace): AxisPlace {
   return aPlace === 'bottom' ? 'left' : 'bottom'

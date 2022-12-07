@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {drag, select} from "d3"
-import { kGraphClassSelector } from "../graphing-types"
-import {INumericAxisModel} from "../models/axis-model"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {useAxisLayoutContext} from "../../axis/models/axis-layout-context"
+import {ScaleNumericBaseType} from "../../axis/axis-types"
+import {kGraphClassSelector} from "../graphing-types"
+import {INumericAxisModel} from "../../axis/models/axis-model"
 import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph-utils"
 import {IMovableLineModel} from "./adornment-models"
 import "./movable-line.scss"
@@ -15,10 +16,10 @@ export const MovableLine = (props: {
   transform: string
 }) => {
   const {model, xAxis, yAxis, transform} = props,
-    layout = useGraphLayoutContext(),
-    xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
+    layout = useAxisLayoutContext(),
+    xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
     xRange = xScale.range(),
-    yScale = layout.axisScale("left") as ScaleNumericBaseType,
+    yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
     yRange = yScale.range(),
     kTolerance = 4, // pixels to snap to horizontal or vertical
     lineRef = useRef() as React.RefObject<SVGSVGElement>,

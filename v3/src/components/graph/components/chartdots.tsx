@@ -1,19 +1,18 @@
 import {ScaleBand, select} from "d3"
 import React, {memo, useCallback} from "react"
-import {PlotProps, transitionDuration} from "../graphing-types"
+import {attrRoleToAxisPlace, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
-import {attrRoleToAxisPlace} from "../models/axis-model"
 import {defaultSelectedColor} from "../../../utilities/color-utils"
 
 type BinMap = Record<string, Record<string, number>>
 
 export const ChartDots = memo(function ChartDots(props: PlotProps) {
-  const { dotsRef, enableAnimation} = props,
+  const {dotsRef, enableAnimation} = props,
     graphModel= useGraphModelContext(),
     {pointColor, pointStrokeColor} = graphModel,
     dataConfiguration = useDataConfigurationContext(),
@@ -31,8 +30,8 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
     secondaryAxisPlace = secondaryAttrPlace ? attrRoleToAxisPlace[secondaryAttrPlace] : undefined,
     secondaryAttrID = secondaryAttrPlace ? dataConfiguration?.attributeID(secondaryAttrPlace) : '',
     legendAttrID = dataConfiguration?.attributeID('legend'),
-    primaryScale = primaryAxisPlace ? layout.axisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
-    secondaryScale = secondaryAxisPlace ? layout.axisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
+    primaryScale = primaryAxisPlace ? layout.getAxisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
+    secondaryScale = secondaryAxisPlace ? layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
 
   const computeMaxOverAllCells = useCallback(() => {
     const valuePairs = (dataConfiguration?.cases || []).map(caseID => {
@@ -75,7 +74,7 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       primaryCellWidth = primaryScale?.bandwidth() ?? 0,
       primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth() :
-        (secondaryAxisPlace ? layout.axisLength(secondaryAxisPlace) : 0),
+        (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
       categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {},
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
@@ -118,7 +117,7 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
         return indices
       },
       cellIndices = buildMapOfIndicesByCase(),
-      baseCoord = primaryIsBottom ? 0 : layout.axisLength('left'),
+      baseCoord = primaryIsBottom ? 0 : layout.getAxisLength('left'),
       signForOffset = primaryIsBottom ? 1 : -1,
       primaryCenterKey = primaryIsBottom ? 'cx' : 'cy',
       secondaryCenterKey = primaryIsBottom ? 'cy' : 'cx',

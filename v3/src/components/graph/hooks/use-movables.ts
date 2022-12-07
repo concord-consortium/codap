@@ -1,8 +1,10 @@
-import {useCallback, useEffect} from "react"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {IMovableLineModel, IMovableValueModel} from "../adornments/adornment-models"
 import {onAction} from "mobx-state-tree"
+import {useCallback, useEffect} from "react"
+import {ScaleNumericBaseType} from "../../axis/axis-types"
+import {IGraphModel} from "../models/graph-model"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {useGraphModelContext} from "../models/graph-model"
+import {IMovableLineModel, IMovableValueModel} from "../adornments/adornment-models"
 
 interface IProps {
   movableLineModel: IMovableLineModel
@@ -13,8 +15,8 @@ export function useMovables(props: IProps) {
   const { movableValueModel, movableLineModel} = props,
     graphModel = useGraphModelContext(),
     layout = useGraphLayoutContext(),
-    xScale = layout.axisScale('bottom') as ScaleNumericBaseType,
-    yScale = layout.axisScale('left') as ScaleNumericBaseType
+    xScale = layout.getAxisScale('bottom') as ScaleNumericBaseType,
+    yScale = layout.getAxisScale('left') as ScaleNumericBaseType
 
   const updateMovables = useCallback(() => {
     const xDomainDelta = xScale.domain()[1] - xScale.domain()[0],
@@ -40,4 +42,3 @@ export function useMovables(props: IProps) {
     return () => disposer?.()
   }, [updateMovables, graphModel])
 }
-

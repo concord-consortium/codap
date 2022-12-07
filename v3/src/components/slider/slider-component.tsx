@@ -1,23 +1,29 @@
-import React, {useEffect, useRef, useState} from "react"
+import React, {useEffect, useMemo, useRef, useState} from "react"
+import { useResizeDetector } from "react-resize-detector"
 import { Slider, SliderTrack, SliderThumb, Flex, Center } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { select, scaleLinear, axisBottom } from "d3"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
-import './slider.scss'
+import { SliderAxisLayout } from "./slider-layout"
 import { ISliderModel } from "./slider-model"
+import { kSliderClass, kSliderClassSelector } from "./slider-types"
 import { measureText } from "../../hooks/use-measure-text"
-import { Axis } from "../graph/components/axis"
-import { useCodapSlider } from "./use-slider"
+import { Axis } from "../axis/components/axis"
+import { AxisLayoutContext } from "../axis/models/axis-layout-context"
+// import { useCodapSlider } from "./use-slider"
+import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
+
+import './slider.scss'
 
 interface IProps {
-  sliderModel: ISliderModel,
-  widthFromApp: number // WIDTH-ISSUE
+  sliderModel: ISliderModel
 }
 
-export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) => {
-  const sliderAxisRef = useRef<any>()
+export const SliderComponent = observer(({sliderModel} : IProps) => {
+  const instanceId = useNextInstanceId("slider")
+  const layout = useMemo(() => new SliderAxisLayout(), [])
+  const {width, height, ref: sliderRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 15})
   const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0)
   const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
   const [running, setRunning] = useState<boolean>(false)
@@ -25,16 +31,12 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const intervalRef = useRef<any>()
   const tickTime = 60
   const decimalPlaces = 3
-  const animationRef = useRef(true) // SLIDER-TODO - this is a hack, pass through real value
-  const codapSlider = useCodapSlider()
-
-  const sliderAxis = axisBottom(scaleLinear() // TODO - WIDTH-ISSUE
-    .domain(sliderModel.getDomain())
-    .range([0, widthFromApp]))
+  const animationRef = useRef(false)
+  // const codapSlider = useCodapSlider()
 
   useEffect(() => {
-    select(sliderAxisRef.current).call(sliderAxis)
-  })
+    (width != null) && (height != null) && layout.setParentExtent(width, height)
+  }, [width, height, layout])
 
   function inLocalDecimals(x: number | string ){
     if (typeof x === "number") return parseFloat(x.toFixed(decimalPlaces))
@@ -105,91 +107,92 @@ export const SliderComponent = observer(({sliderModel, widthFromApp} : IProps) =
   const styleFromApp = { top: 100, right: 80 } // TODO WIDTH-ISSUE
 
   return (
-    <div className="slider-wrapper" style={styleFromApp}>
-      <div className="titlebar">
-        <input type="text"
-          value={sliderModel.name}
-          onChange={handleSliderNameChange}
-        />
-      </div>
-      <div className="slider">
-        <div className="inspector-temporary">
-          <input
-            type="number"
-            value={multiplesOf}
-            onChange={handleMultiplesOfChange}
-          />
-        </div>
-
-        <Flex>
-          <Center w="40px">
-            <button
-              className={`play-pause ${ running ? "running" : "paused"}`}
-              onClick={toggleRunning}
-            >
-              { running ? <PauseIcon /> : <PlayIcon /> }
-            </button>
-          </Center>
-          <Center>
-            <div className="value">
-              { isManuallyEditing
-                ? <div className="slider-inputs">
-                    <input type="text"
-                      className="name-input"
-                      value={sliderModel.name}
-                      onChange={handleSliderNameChange}
-                      style={{width: `${titleM + 40}px`}}
-                    />
-                    <span className="equals-sign">&nbsp;=&nbsp;</span>
-                    <input
-                      className="number-input"
-                      type="number"
-                      value={sliderValueCandidate}
-                      onChange={handleSliderValueInput}
-                      onBlur={handleSliderValueInputBlur}
-                      style={{width: `${valueM + 20}px`}}
-                    />
-                  </div>
-                : <div className="slider-display" onClick={() => setIsManuallyEditing(true)}>
-                    {sliderExpression()}
-                  </div>
-              }
+    <InstanceIdContext.Provider value={instanceId}>
+      <AxisLayoutContext.Provider value={layout}>
+        <div className={kSliderClass} style={styleFromApp} ref={sliderRef}>
+          <div className="titlebar">
+            <input type="text"
+              value={sliderModel.name}
+              onChange={handleSliderNameChange}
+            />
+          </div>
+          <div className="slider">
+            <div className="inspector-temporary">
+              <input
+                type="number"
+                value={multiplesOf}
+                onChange={handleMultiplesOfChange}
+              />
             </div>
-          </Center>
-        </Flex>
 
-        <Slider
-          name={sliderModel.name}
-          id={sliderModel.id}
-          aria-label={`slider-${sliderModel.id}`}
-          defaultValue={sliderModel.globalValue.value}
-          value={sliderModel.globalValue.value}
-          onChange={handleSliderValueChange}
-          step={multiplesOf}
-          max={sliderModel.axis.max}
-          min={sliderModel.axis.min}
-          width={widthFromApp}
-        >
-          <SliderTrack bg='transparent' />
-          <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
-            <ThumbIcon />
-          </SliderThumb>
-        </Slider>
+            <Flex>
+              <Center w="40px">
+                <button
+                  className={`play-pause ${ running ? "running" : "paused"}`}
+                  onClick={toggleRunning}
+                >
+                  { running ? <PauseIcon /> : <PlayIcon /> }
+                </button>
+              </Center>
+              <Center>
+                <div className="value">
+                  { isManuallyEditing
+                    ? <div className="slider-inputs">
+                        <input type="text"
+                          className="name-input"
+                          value={sliderModel.name}
+                          onChange={handleSliderNameChange}
+                          style={{width: `${titleM + 40}px`}}
+                        />
+                        <span className="equals-sign">&nbsp;=&nbsp;</span>
+                        <input
+                          className="number-input"
+                          type="number"
+                          value={sliderValueCandidate}
+                          onChange={handleSliderValueInput}
+                          onBlur={handleSliderValueInputBlur}
+                          style={{width: `${valueM + 20}px`}}
+                        />
+                      </div>
+                    : <div className="slider-display" onClick={() => setIsManuallyEditing(true)}>
+                        {sliderExpression()}
+                      </div>
+                  }
+                </div>
+              </Center>
+            </Flex>
 
-        {/* WIDTH-ISSUE */}
-        <svg height="50">
-          <Axis
-            getAxisModel={() => sliderModel.axis}
-            attributeID={''} // make optional in Axis
-            enableAnimation={animationRef}
-            showGridLines={false}
-            onDropAttribute={()=> console.log("make optional")} // make optional in Axis
-            onTreatAttributeAs={() => console.log("make optional")} // make optional in Axis
-            scale={scaleLinear().domain([0,300]).range([0, 300])} // WIDTH-ISSUE
-          />
-        </svg>
+            <Slider
+              name={sliderModel.name}
+              id={sliderModel.id}
+              aria-label={`slider-${sliderModel.id}`}
+              defaultValue={sliderModel.globalValue.value}
+              value={sliderModel.globalValue.value}
+              onChange={handleSliderValueChange}
+              step={multiplesOf}
+              max={sliderModel.axis.max}
+              min={sliderModel.axis.min}
+              width={layout.sliderWidth}
+            >
+              <SliderTrack bg='transparent' />
+              <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
+                <ThumbIcon />
+              </SliderThumb>
+            </Slider>
 
-      </div>
-    </div>
+            {/* WIDTH-ISSUE */}
+            <svg height="50">
+              <Axis
+                parentSelector={kSliderClassSelector}
+                getAxisModel={() => sliderModel.axis}
+                enableAnimation={animationRef}
+                showGridLines={false}
+              />
+            </svg>
+
+          </div>
+        </div>
+      </AxisLayoutContext.Provider>
+    </InstanceIdContext.Provider>
   )
 })

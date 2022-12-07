@@ -1,5 +1,5 @@
 import {types} from "mobx-state-tree"
-import {AxisModelUnion} from "./axis-model"
+import {AxisModelUnion} from "../../axis/models/axis-model"
 import {uniqueId} from "../../../utilities/js-utils"
 import {PlotModelUnion} from "./plot-model"
 
