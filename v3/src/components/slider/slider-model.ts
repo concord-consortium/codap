@@ -23,7 +23,7 @@ export const SliderModel = types.model("SliderModel", {
       scale: 'linear',
       place: 'bottom',
       min: 0,
-      max: 300 // SYNC-WIDTH-ISSUE
+      max: 12
     }),
   })
   .actions(self => ({

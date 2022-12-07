@@ -11,7 +11,6 @@ import { kSliderClass, kSliderClassSelector } from "./slider-types"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
-// import { useCodapSlider } from "./use-slider"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 
 import './slider.scss'
@@ -36,6 +35,8 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setParentExtent(width, height)
+    console.log("recalc!")
+    layout.setAxisScale("bottom", layout.axisScale)
   }, [width, height, layout])
 
   function inLocalDecimals(x: number | string ){
@@ -104,7 +105,9 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
     setIsManuallyEditing(false)
   }
 
+  const computedBoundsWidth = layout.getComputedBounds('bottom').width
   const styleFromApp = { top: 100, right: 80 } // TODO WIDTH-ISSUE
+  console.log({computedBoundsWidth}, {width})
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
@@ -181,7 +184,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
             </Slider>
 
             {/* WIDTH-ISSUE */}
-            <svg height="50">
+            <svg height="50" width={computedBoundsWidth}>
               <Axis
                 parentSelector={kSliderClassSelector}
                 getAxisModel={() => sliderModel.axis}
