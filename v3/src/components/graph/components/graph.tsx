@@ -25,6 +25,7 @@ import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {GraphInspector} from "./graph-inspector"
 import {useDataTips} from "../hooks/use-data-tips"
+import t from "../../../utilities/translation/translate"
 
 import "./graph.scss"
 
@@ -111,6 +112,10 @@ export const Graph = observer((
     return typeToPlotComponentMap[plotType]
   }
 
+  function axisLabel(attrId: string) {
+    return dataset?.attrFromID(attrId)?.name ?? t('DG.AxisView.emptyGraphCue')
+  }
+
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph" onClick={()=>setShowInspector(!showInspector)}>
@@ -122,7 +127,7 @@ export const Graph = observer((
 
           <Axis parentSelector={kGraphClassSelector}
                 getAxisModel={() => graphModel.getAxis('left')}
-                label={dataset?.attrFromID(yAttrID)?.name}
+                label={axisLabel(yAttrID)}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}
@@ -130,7 +135,7 @@ export const Graph = observer((
           />
           <Axis parentSelector={kGraphClassSelector}
                 getAxisModel={() => graphModel.getAxis('bottom')}
-                label={dataset?.attrFromID(xAttrID)?.name}
+                label={axisLabel(xAttrID)}
                 enableAnimation={enableAnimation}
                 showGridLines={graphModel.plotType === 'scatterPlot'}
                 onDropAttribute={handleChangeAttribute}

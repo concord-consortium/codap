@@ -10,7 +10,6 @@ import {between} from "../../../utilities/math-utils"
 import {graphPlaceToAttrPlace, transitionDuration} from "../../graph/graphing-types"
 import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
 import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
-import t from "../../../utilities/translation/translate"
 
 export interface IUseAxis {
   axisModel?: IAxisModel
@@ -22,7 +21,7 @@ export interface IUseAxis {
 }
 
 export const useAxis = ({
-                          axisModel, axisElt, titleRef, label = t('DG.AxisView.emptyGraphCue'),
+                          axisModel, axisElt, titleRef, label = "",
                           showGridLines, enableAnimation
                         }: IUseAxis) => {
   const layout = useAxisLayoutContext(),
@@ -165,7 +164,7 @@ export const useAxis = ({
       () => refreshAxis(/*myBounds*/)
     )
     return () => disposer()
-  }, [isNumeric, axisModel, layout, refreshAxis, axisPlace])
+  }, [axisPlace, layout, refreshAxis])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {

@@ -2,7 +2,8 @@
 
 .slider-wrapper {
   position: fixed;
-  width:50%;
+  width: 40%;
+  height: 100px;
   background: #fff;
   border-radius: $border-radius-four-corners;
   box-shadow: 1px 1px 3px 1px rgba(176, 170, 170, 0.75);
@@ -73,4 +74,3 @@
     }
   }
 }
-

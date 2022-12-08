@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useRef, useState} from "react"
+import React, {CSSProperties, useEffect, useMemo, useRef, useState} from "react"
 import { useResizeDetector } from "react-resize-detector"
-import { Slider, SliderTrack, SliderThumb, Flex, Center } from "@chakra-ui/react"
+import { Flex, Center } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
@@ -23,24 +23,27 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
+  const [thumbPos, setThumbPos] = useState(0)
   const [sliderValueCandidate, setSliderValueCandidate] = useState<number>(0)
-  const [multiplesOf, setMultiplesOf] = useState<number>(0.5) // move this to model
-  const [running, setRunning] = useState<boolean>(false)
-  const [isManuallyEditing, setIsManuallyEditing] = useState<boolean>(false)
+  const [multiplesOf, setMultiplesOf] = useState(0.5) // move this to model
+  const [running, setRunning] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
   const intervalRef = useRef<any>()
   const tickTime = 60
   const decimalPlaces = 3
   const animationRef = useRef(false)
-  // const codapSlider = useCodapSlider()
 
   useEffect(() => {
     if ((width != null) && (height != null)) {
-      console.log("...effect...", {layout})
       layout.setParentExtent(width, height)
-      layout.setAxisScale("bottom", layout.axisScale)
-      //layout.axisScale.range([0, width])
     }
   }, [width, height, layout])
+
+  useEffect(() => {
+    const kThumbOffset = 8
+    const thumbValue = layout.axisScale(sliderModel.globalValue.value) - kThumbOffset
+    setThumbPos(thumbValue)
+  }, [layout, layout.sliderWidth, sliderModel.axis.domain, sliderModel.globalValue.value])
 
   function inLocalDecimals(x: number | string ){
     if (typeof x === "number") return parseFloat(x.toFixed(decimalPlaces))
@@ -64,14 +67,6 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   useEffect(() => {
     setSliderValueCandidate(inLocalDecimals(sliderModel.globalValue.value))
   },[sliderModel.globalValue.value])
-
-  const handleSliderValueChange = (e: number | React.BaseSyntheticEvent ) => {
-    if (typeof e === "number"){
-      sliderModel.setValue(inLocalDecimals(e))
-    } else {
-      sliderModel.setValue(inLocalDecimals(e.target.value))
-    }
-  }
 
   const resetSliderValue = () => {
     clearInterval(intervalRef.current)
@@ -105,21 +100,27 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
 
   const handleSliderValueInputBlur = () => {
     sliderModel.setValue(sliderValueCandidate)
-    setIsManuallyEditing(false)
+    setIsEditing(false)
   }
 
-  // TODO - if we depend on "width" returned from observer, the first render miscalculates/fails silently
-  // So we have to depend on known rects before width exists
-
-  //const styleFromApp = { top: 100, right: 80, width: `"${width}px"` }
-  const styleFromApp = { top: 100, right: 180 }
-  const widthPxString = `"${width}px"`
-  console.log({width})
+  const componentStyle = { top: 100, right: 80 }
+  const axisStyle: CSSProperties = {
+    position: "absolute",
+    left: 0,
+    top: 70,
+    width,
+    height: 30
+  }
+  const thumbStyle: CSSProperties = {
+    position: "absolute",
+    left: thumbPos,
+    top: 60
+  }
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
-        <div className={kSliderClass} style={styleFromApp} ref={sliderRef}>
+        <div className={kSliderClass} style={componentStyle} ref={sliderRef}>
           <div className="titlebar">
             <input type="text"
               value={sliderModel.name}
@@ -146,7 +147,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               </Center>
               <Center>
                 <div className="value">
-                  { isManuallyEditing
+                  { isEditing
                     ? <div className="slider-inputs">
                         <input type="text"
                           className="name-input"
@@ -164,7 +165,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
                           style={{width: `${valueM + 20}px`}}
                         />
                       </div>
-                    : <div className="slider-display" onClick={() => setIsManuallyEditing(true)}>
+                    : <div className="slider-display" onClick={() => setIsEditing(true)}>
                         {sliderExpression()}
                       </div>
                   }
@@ -172,25 +173,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               </Center>
             </Flex>
 
-            <Slider
-              name={sliderModel.name}
-              id={sliderModel.id}
-              aria-label={`slider-${sliderModel.id}`}
-              defaultValue={sliderModel.globalValue.value}
-              value={sliderModel.globalValue.value}
-              onChange={handleSliderValueChange}
-              step={multiplesOf}
-              max={sliderModel.axis.max}
-              min={sliderModel.axis.min}
-              //width={width}
-            >
-              <SliderTrack bg='transparent' />
-              <SliderThumb w="18px" h="0px" background="transparent" boxShadow="none">
-                <ThumbIcon />
-              </SliderThumb>
-            </Slider>
-
-            <svg height="50" width={width} style={{ border:"2px dashed purple"}}>
+            <svg style={axisStyle}>
               <Axis
                 parentSelector={kSliderClassSelector}
                 getAxisModel={() => sliderModel.axis}
@@ -198,6 +181,8 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
                 showGridLines={false}
               />
             </svg>
+
+            <ThumbIcon style={thumbStyle}/>
 
           </div>
         </div>
