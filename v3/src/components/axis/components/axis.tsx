@@ -28,7 +28,7 @@ interface IProps {
 }
 
 export const Axis = ({
-                       parentSelector, label = "", getAxisModel, showGridLines,
+                       parentSelector, label, getAxisModel, showGridLines,
                        onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
