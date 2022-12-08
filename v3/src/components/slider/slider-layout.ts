@@ -1,5 +1,5 @@
 import { ScaleContinuousNumeric, scaleLinear } from "d3"
-import { action, observable } from "mobx"
+import { action, makeObservable, observable } from "mobx"
 import { AxisBounds, AxisPlace } from "../axis/axis-types"
 import {
   kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth
@@ -13,6 +13,10 @@ export class SliderAxisLayout {
   @observable axisBounds?: AxisBounds
   axisScale: SliderScale = scaleLinear()
   desiredExtent?: number
+
+  constructor() {
+    makeObservable(this)
+  }
 
   @action setParentExtent(width: number, height: number) {
     console.log("@action setParentExtent: ", width)
