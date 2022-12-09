@@ -1,11 +1,13 @@
 .axis {
   background-color: white;
 
-
   axis-title text {
     fill: blue;
   }
 
+  line {
+    stroke: #DDDDDD;
+  }
 }
 
 .dragRect {

@@ -120,12 +120,14 @@ export const Graph = observer((
 
           <GraphAxis place="left"
             enableAnimation={enableAnimation}
-            onDropAttribute={handleChangeAttribute}
+                     showScatterPlotGridLines={graphModel.plotType === 'scatterPlot'}
+                     onDropAttribute={handleChangeAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
           />
 
           <GraphAxis place="bottom"
             enableAnimation={enableAnimation}
+                     showScatterPlotGridLines={graphModel.plotType === 'scatterPlot'}
             onDropAttribute={handleChangeAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
           />

@@ -17,10 +17,10 @@ import {IDataConfigurationModel} from "../models/data-configuration-model"
  */
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
-  const text = selection().append('text')
+  const text = selection().append('svg').append('text')
   let maxWidth = 0
   for (const aString of strings) {
-    maxWidth = Math.max(maxWidth, text.text(aString).node()?.getBoundingClientRect().width ?? 0)
+    maxWidth = Math.max(maxWidth, text.text(aString).node()?.getBBox().width ?? 0)
   }
   text.remove()
   return maxWidth
