@@ -47,16 +47,17 @@
       outline-color: transparent;
     }
 
-    .value .slider-inputs {
-      input {
-        padding: 0px 6px;
+    .slider-inputs {
+      display: flex;
+
+      input, div {
         border-radius: 3px;
-        background-color: rgb(200, 200, 252);
-        text-align: left;
+        // text-align: left;
+        // padding: 2px 0px;
       }
     }
 
-    //temporary
+    //temporary until we implement the real inspector
     .inspector-temporary {
       position: absolute;
       right:-40px;

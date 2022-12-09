@@ -19,7 +19,6 @@ export class SliderAxisLayout {
   }
 
   @action setParentExtent(width: number, height: number) {
-    console.log("@action setParentExtent: ", width)
     this.sliderWidth = width
     this.sliderHeight = height
   }
