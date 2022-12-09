@@ -79,7 +79,9 @@ export class GraphController {
         matchCirclesToData({
           dataset: this.dataset,
           caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
-          pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId
+          pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId,
+          pointColor: graphModel.pointColor,
+          pointStrokeColor: graphModel.pointStrokeColor
         })
       }
       layout.setAxisScale('bottom', scaleOrdinal())

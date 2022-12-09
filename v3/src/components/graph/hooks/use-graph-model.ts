@@ -1,7 +1,7 @@
 import {MutableRefObject, RefObject, useCallback, useEffect} from "react"
 import {onAction} from "mobx-state-tree"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
-import {IGraphModel} from "../models/graph-model"
+import {IGraphModel, isGraphVisualPropsAction} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {INumericAxisModel} from "../models/axis-model"
 
@@ -24,6 +24,8 @@ export function useGraphModel(props: IProps) {
       dataset,
       caseIDs: dataConfig.cases,
       pointRadius: graphModel.getPointRadius(),
+      pointColor: graphModel.pointColor,
+      pointStrokeColor: graphModel.pointStrokeColor,
       dotsElement: dotsRef.current,
       enableAnimation, instanceId
     })
@@ -49,5 +51,15 @@ export function useGraphModel(props: IProps) {
     }, true)
     return () => disposer()
   }, [dataConfig.cases, dataset, enableAnimation, graphModel, yAttrID, yAxisModel])
+
+  // respond to point properties change
+  useEffect(function respondToGraphPointVisualAction() {
+    const disposer = onAction(graphModel, action => {
+      if (isGraphVisualPropsAction(action)) {
+        callMatchCirclesToData()
+      }
+    }, true)
+    return () => disposer()
+  }, [callMatchCirclesToData, graphModel])
 
 }

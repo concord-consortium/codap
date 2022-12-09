@@ -6,11 +6,8 @@ import {between} from "./math-utils"
 import {IDataSet} from "../../../models/data/data-set"
 import {Bounds, ScaleNumericBaseType} from "../models/graph-layout"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {
-  defaultPointColor,
-  defaultSelectedColor,
-  defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
-  defaultStrokeColor, defaultStrokeOpacity, defaultStrokeWidth
+import { defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity,
+  defaultSelectedStrokeWidth, defaultStrokeOpacity, defaultStrokeWidth
 } from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
 
@@ -115,6 +112,8 @@ export interface IMatchCirclesProps {
   caseIDs: string[]
   dotsElement: SVGGElement | null
   pointRadius: number
+  pointColor: string
+  pointStrokeColor: string
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string | undefined
 }
@@ -136,13 +135,7 @@ export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: ID
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
 
-  const handleClick = (event: any) => {
-    const element = select(event.target as SVGSVGElement)
-    if (element.node()?.nodeName === 'circle') {
-      handleClickOnDot(event, element.property('id'), dataset)
-    }
-  }
-  const {dataset, caseIDs, enableAnimation, instanceId, dotsElement, pointRadius} = props,
+  const {caseIDs, enableAnimation, instanceId, dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
     keyFunc = (d: string) => d
   enableAnimation.current = true
   select(dotsElement)
@@ -153,13 +146,16 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
       (enter) => {
         enter.append('circle')
           .attr('class', 'graph-dot')
-          .attr('r', pointRadius)
           .property('id', (anID: string) => `${instanceId}_${anID}`)
-        // .selection()
-        // .on('click', handleClick)
+      },
+      (update) => {
+        update.attr('r', pointRadius)
+          .style('fill', pointColor)
+          .style('stroke', pointStrokeColor)
+          .style('stroke-width', defaultStrokeWidth)
       }
     )
-  select(dotsElement).on('click', handleClick)
+  select(dotsElement).on('click')
 
 }
 
@@ -345,12 +341,14 @@ export interface ISetPointSelection {
   dotsRef: React.RefObject<SVGSVGElement>
   dataConfiguration: IDataConfigurationModel
   pointRadius: number,
-  selectedPointRadius: number
+  selectedPointRadius: number,
+  pointColor: string,
+  pointStrokeColor: string
 }
 
 export function setPointSelection(props: ISetPointSelection) {
   const
-    {dotsRef, dataConfiguration, pointRadius, selectedPointRadius} = props,
+    {dotsRef, dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor} = props,
     dataset = dataConfiguration.dataset,
     dotsSvgElement = dotsRef.current,
     dots = select(dotsSvgElement),
@@ -361,9 +359,9 @@ export function setPointSelection(props: ISetPointSelection) {
       (anID: string) => !!(dataset?.isCaseSelected(anID)))
     // Then set properties to defaults w/o selection
     .attr('r', pointRadius)
-    .style('stroke', defaultStrokeColor)
+    .style('stroke', pointStrokeColor)
     .style('fill', (anID: string) => {
-      return legendID ? dataConfiguration?.getLegendColorForCase(anID) : defaultPointColor
+      return legendID ? dataConfiguration?.getLegendColorForCase(anID) : pointColor
     })
     .style('stroke-width', defaultStrokeWidth)
     .style('stroke-opacity', defaultStrokeOpacity)
@@ -390,6 +388,8 @@ export interface ISetPointCoordinates {
   selectedOnly?: boolean
   pointRadius: number
   selectedPointRadius: number
+  pointColor: string
+  pointStrokeColor: string
   plotBounds: Bounds
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string) => number | null)
@@ -404,7 +404,7 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       const isSelected = dataset?.isCaseSelected(id),
         legendColor = getLegendColor ? getLegendColor(id) : ''
       return legendColor !== '' ? legendColor :
-        isSelected ? defaultSelectedColor : defaultPointColor
+        isSelected ? defaultSelectedColor : pointColor
     },
 
     setPoints = () => {
@@ -422,7 +422,7 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
           .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
           .style('fill', (id: string) => lookupLegendColor(id))
           .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-            defaultSelectedStroke : defaultStrokeColor)
+            defaultSelectedStroke : pointStrokeColor)
           .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
             defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
@@ -430,8 +430,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
 
   const
     {
-      dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius, plotBounds,
-      getScreenX, getScreenY, getLegendColor, enableAnimation,
+      dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius, pointStrokeColor, pointColor,
+      plotBounds, getScreenX, getScreenY, getLegendColor, enableAnimation,
       onComplete = (() => {
         if (enableAnimation.current) {
           enableAnimation.current = false

@@ -1,6 +1,5 @@
 import React, {memo, useMemo, useRef} from "react"
 import {Active} from "@dnd-kit/core"
-import {IGraphModel} from "../../models/graph-model"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {Bounds, useGraphLayoutContext} from "../../models/graph-layout"
 import {AttributeLabel} from "../attribute-label"
@@ -13,7 +12,6 @@ import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {GraphAttrRole} from "../../models/data-configuration-model"
 
 interface ILegendProps {
-  graphModel: IGraphModel
   legendAttrID: string
   graphElt: HTMLDivElement | null
   onDropAttribute: (place: any, attrId: string) => void
