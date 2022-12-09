@@ -132,7 +132,7 @@ export function isSetAttributeIDAction(action: ISerializedActionCall): action is
 
 export interface SetGraphVisualPropsAction extends ISerializedActionCall {
   name: "setGraphVisualProps"
-  args: [GraphAttrRole, string]
+  args: [string | number | boolean]
 }
 
 export function isGraphVisualPropsAction(action: ISerializedActionCall): action is SetGraphVisualPropsAction {

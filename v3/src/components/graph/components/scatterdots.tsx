@@ -18,8 +18,6 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     pointRadius = graphModel.getPointRadius(),
-    pointColor = graphModel.pointColor,
-    pointStrokeColor = graphModel.pointStrokeColor,
     selectedPointRadius = graphModel.getPointRadius('select'),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
     layout = useGraphLayoutContext(),
@@ -124,12 +122,13 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
+    const {pointColor, pointStrokeColor } = graphModel
     dataConfiguration && setPointSelection(
       {dotsRef, dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor})
-  }, [dataConfiguration, dotsRef, pointRadius, selectedPointRadius, pointColor, pointStrokeColor])
+  }, [dataConfiguration, dotsRef, pointRadius, selectedPointRadius, graphModel])
 
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
-    const
+    const {pointColor, pointStrokeColor } = graphModel,
       getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
       getScreenY = (anID: string) => getScreenCoord(dataset, anID, secondaryAttrID, yScale),
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
@@ -140,8 +139,8 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
       dataset, dotsRef, pointRadius, selectedPointRadius, plotBounds, selectedOnly,
       getScreenX, getScreenY, getLegendColor, enableAnimation, pointColor, pointStrokeColor
     })
-  }, [dataset, pointRadius, selectedPointRadius, pointColor, pointStrokeColor, dotsRef, layout, primaryAttrID,
-    xScale, secondaryAttrID, legendAttrID, yScale, enableAnimation, dataConfiguration])
+  }, [dataset, pointRadius, selectedPointRadius, dotsRef, layout, primaryAttrID,
+    xScale, secondaryAttrID, legendAttrID, yScale, enableAnimation, dataConfiguration, graphModel])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const {cases, selection} = dataConfiguration || {}

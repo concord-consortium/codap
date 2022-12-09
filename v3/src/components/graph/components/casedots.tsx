@@ -25,9 +25,7 @@ export const CaseDots = memo(function CaseDots(props: {
     legendAttrID = dataConfiguration?.attributeID('legend'),
     layout = useGraphLayoutContext(),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
-    selectedPointRadius = graphModel.getPointRadius('select'),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
-    {pointColor, pointStrokeColor} = graphModel,
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>(),
@@ -71,20 +69,22 @@ export const CaseDots = memo(function CaseDots(props: {
         target.current
           .classed('dragging', false)
           .transition()
-          .attr('r', selectedPointRadius)
+          .attr('r', graphModel.getPointRadius('select'))
         setDragID(() => '')
         target.current = null
       }
-    }, [selectedPointRadius, dragID])
+    }, [dragID, graphModel])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
+    const {pointColor, pointStrokeColor} = graphModel,
+      selectedPointRadius = graphModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
       pointColor, pointStrokeColor
     })
-  }, [dataConfiguration, graphModel, dotsRef, selectedPointRadius, pointColor, pointStrokeColor])
+  }, [dataConfiguration, graphModel, dotsRef])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
@@ -111,14 +111,14 @@ export const CaseDots = memo(function CaseDots(props: {
         return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
       })
       .style('fill', (anID: string) => {
-        return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? pointColor
+        return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? graphModel.pointColor
       })
       .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
         defaultSelectedStroke : graphModel.pointStrokeColor)
       .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
         defaultSelectedStrokeWidth : defaultStrokeWidth)
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
-  }, [dataset, legendAttrID, dataConfiguration, graphModel, pointColor,
+  }, [dataset, legendAttrID, dataConfiguration, graphModel,
     layout, dotsRef, enableAnimation, xScale, yScale])
 
   useEffect(function initDistribution() {

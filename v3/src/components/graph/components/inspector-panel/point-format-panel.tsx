@@ -1,10 +1,10 @@
 import React from "react"
+import {observer} from "mobx-react-lite"
 import {
   Checkbox, Flex, FormControl, FormLabel, Input, Slider, SliderThumb,
   SliderTrack
 } from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
-import {useForceUpdate} from "../../../../hooks/use-force-update"
 import {IGraphModel} from "../../models/graph-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
@@ -15,32 +15,25 @@ interface IProps {
   graphModel: IGraphModel
 }
 
-export const PointFormatPalette = ({graphModel}: IProps) => {
-
-  const forceUpdate = useForceUpdate()
+export const PointFormatPalette = observer(({graphModel}: IProps) => {
 
   const handlePointSizeMultiplierSetting = (val: any) => {
     graphModel.setPointSizeMultiplier(val)
   }
   const handleTransparencySetting = (isTransparent: boolean) => {
     graphModel.setIsTransparent(isTransparent)
-    forceUpdate()
   }
   const handleBackgroundColorSetting = (color: string) => {
     graphModel.setPlotBackgroundColor(color)
-    forceUpdate()
   }
   const handlePointColorSetting = (color: string) => {
     graphModel.setPointColor(color)
-    forceUpdate()
   }
   const handlePointStrokeColorSetting = (color: string) => {
     graphModel.setPointStrokeColor(color)
-    forceUpdate()
   }
   const handleStrokeSameAsPointColorSetting = (isTheSame: boolean) => {
     graphModel.setPointStrokeSameAsFill(isTheSame)
-    forceUpdate()
   }
 
   return (
@@ -80,7 +73,7 @@ export const PointFormatPalette = ({graphModel}: IProps) => {
             {t("DG.Inspector.strokeSameAsFill")}
           </Checkbox>
         </FormControl>
-        <FormControl>
+        <FormControl isDisabled={graphModel.isTransparent}>
           <FormLabel className="form-label">{t("DG.Inspector.backgroundColor")}
             <Input type="color" className="color-picker-thumb" value={graphModel.plotBackgroundColor}
                    onChange={e => handleBackgroundColorSetting(e.target.value)}/>
@@ -96,4 +89,4 @@ export const PointFormatPalette = ({graphModel}: IProps) => {
       </Flex>
     </InspectorPalette>
   )
-}
+})
