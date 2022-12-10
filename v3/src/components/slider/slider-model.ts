@@ -2,21 +2,14 @@ import { Instance, types} from "mobx-state-tree"
 import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/data/global-value"
 import { uniqueId } from "../../utilities/js-utils"
-export interface SliderProperties {
-  id: string
-  name: string
-  globalValue: typeof GlobalValue
-  axis: typeof NumericAxisModel
-}
-
-export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const
-export type IScaleType = typeof ScaleTypes[number]
 
 export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),
-    name: types.string,
+    multipleOf: 0.5,
     globalValue: types.optional(GlobalValue, {
-      value: .5
+      // TODO: generate unique name from registry
+      name: "slider-1",
+      value: 0.5
     }),
     axis: types.optional(NumericAxisModel, {
       type: 'numeric',
@@ -26,17 +19,29 @@ export const SliderModel = types.model("SliderModel", {
       max: 12
     }),
   })
-  .actions(self => ({
-    setName(str: string) {
-      self.name = str
+  .views(self => ({
+    get domain() {
+      return self.axis.domain
     },
-    setValue(n: number) {
-      self.globalValue.setValue(n)
+    get name() {
+      return self.globalValue.name
+    },
+    get value() {
+      return self.globalValue.value
     }
   }))
-  .views(self => ({
-    getDomain() {
-      return [self.axis.min, self.axis.max]
+  .actions(self => ({
+    setName(name: string) {
+      self.globalValue.setName(name)
+    },
+    setValue(n: number) {
+      if (self.multipleOf !== 0) {
+        n = Math.round(n / self.multipleOf) * self.multipleOf
+      }
+      self.globalValue.setValue(n)
+    },
+    setMultipleOf(n: number) {
+      self.multipleOf = Math.abs(n)
     }
   }))
 

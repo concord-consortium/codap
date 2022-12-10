@@ -1,3 +1,5 @@
+import { format } from "d3"
+import { observer } from "mobx-react-lite"
 import React, {useState, useEffect} from "react"
 import { ISliderModel } from "./slider-model"
 
@@ -8,19 +10,20 @@ interface IProps {
 }
 
 const kDecimalPlaces = 2
+const d3Format = format(`.${kDecimalPlaces}~f`)
 
-export const EditableSliderValue = ({sliderModel} : IProps) => {
+const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
+
+export const EditableSliderValue = observer(({sliderModel} : IProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [candidate, setCandidate] = useState("")
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
     switch (key) {
       case "Escape":
         break
       case "Enter":
-        e.currentTarget.blur()
-        break
       case "Tab":
         e.currentTarget.blur()
         break
@@ -33,25 +36,21 @@ export const EditableSliderValue = ({sliderModel} : IProps) => {
 
   const handleBlur = () => {
     const myFloat = parseFloat(candidate)
-    if (isNaN(myFloat)){
-      setCandidate(sliderModel.globalValue.value.toString())
-    } else {
-      const rounded = myFloat.toFixed(2)
-      const asString = rounded.toString()
+    if (isFinite(myFloat)) {
       sliderModel.setValue(myFloat)
-      setCandidate(asString)
+    } else {
+      setCandidate(formatValue(sliderModel))
     }
   }
 
-  const handleChange = (e: React.BaseSyntheticEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCandidate(e.target.value)
   }
 
   // keep display up-to-date
   useEffect(()=> {
-    const rounded = sliderModel.globalValue.value.toFixed(kDecimalPlaces)
-    setCandidate(rounded.toString())
-  },[sliderModel.globalValue.value])
+    setCandidate(formatValue(sliderModel))
+  }, [sliderModel, sliderModel.globalValue.value])
 
   return (
     <div className={`editable-slider-value ${isEditing ? 'editing' : 'display'}`}>
@@ -64,9 +63,8 @@ export const EditableSliderValue = ({sliderModel} : IProps) => {
             onBlur={handleBlur}
             onChange={handleChange}
           />
-        : <div onClick={handleDisplayClick}>{sliderModel.globalValue.value}</div>
+        : <div onClick={handleDisplayClick}>{formatValue(sliderModel)}</div>
       }
     </div>
   )
-}
-
+})

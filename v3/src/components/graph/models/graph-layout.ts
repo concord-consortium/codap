@@ -22,7 +22,7 @@ export class GraphLayout {
   @observable graphWidth = kDefaultGraphWidth
   @observable graphHeight = kDefaultGraphHeight
   @observable legendHeight = kDefaultLegendHeight
-  // actual measures sizes of axis elements
+  // actual measured sizes of axis elements
   @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
   // desired/required size of axis elements
   @observable desiredExtents: Map<GraphPlace, number> = new Map()

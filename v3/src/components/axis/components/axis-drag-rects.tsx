@@ -158,8 +158,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
             )
           rectSelection.selectAll('.dragRect').raise()
         }
-      },
-      { fireImmediately: true }
+      }
     )
     return () => disposer()
   }, [axisModel, layout, axisWrapperElt, place])

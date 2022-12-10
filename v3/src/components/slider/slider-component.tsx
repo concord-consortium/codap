@@ -1,6 +1,6 @@
 import React, {CSSProperties, useEffect, useMemo, useRef, useState} from "react"
 import { useResizeDetector } from "react-resize-detector"
-import { Flex, Center } from "@chakra-ui/react"
+import { Flex, Center, Portal } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
@@ -11,7 +11,7 @@ import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
-import { V3SliderThumb } from "./slider-thumb"
+import { CodapSliderThumb } from "./slider-thumb"
 import { EditableSliderValue } from "./editable-slider-value"
 
 import './slider.scss'
@@ -24,7 +24,6 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
-  const [multiplesOf, setMultiplesOf] = useState(0.5) // TODO move this to model?
   const [running, setRunning] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
   const intervalRef = useRef<any>()
@@ -49,12 +48,11 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   }
 
   // set increment size
-  const handleMultiplesOfChange = (e: React.BaseSyntheticEvent) => {
-    resetSliderValue()
-    if (typeof e === "number"){
-      setMultiplesOf(e)
-    } else {
-      setMultiplesOf(parseFloat(e.target.value))
+  const handleMultiplesOfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const multipleOf = parseFloat(e.target.value)
+    if (isFinite(multipleOf)) {
+      sliderModel.setMultipleOf(multipleOf)
+      sliderModel.setValue(sliderModel.value)
     }
   }
 
@@ -70,17 +68,12 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   }
 
   const incrementSliderValue = () => {
-    sliderModel.setValue(sliderModel.globalValue.value + multiplesOf)
-  }
-
-  const resetSliderValue = () => {
-    clearInterval(intervalRef.current)
-    sliderModel.setValue(0)
+    sliderModel.setValue(sliderModel.value + sliderModel.multipleOf)
   }
 
   const titleM = measureText(sliderModel.name)
 
-  const handleSliderNameInput = (e: React.BaseSyntheticEvent) => {
+  const handleSliderNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     sliderModel.setName(e.target.value)
   }
 
@@ -96,6 +89,11 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
     }
   }
 
+  const appRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    appRef.current = document.querySelector(".app")
+  }, [])
+
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
@@ -109,14 +107,16 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
             />
           </div>
           <div className="slider">
-            <div className="inspector-temporary">
-              <input
-                type="number"
-                value={multiplesOf}
-                onChange={handleMultiplesOfChange}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
+            <Portal containerRef={appRef}>
+              <div className="inspector-temporary">
+                <input
+                  type="number"
+                  value={sliderModel.multipleOf}
+                  onChange={handleMultiplesOfChange}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+            </Portal>
 
             <Flex>
               <Center w="40px">
@@ -158,12 +158,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               />
             </svg>
 
-            <V3SliderThumb
-              layout={layout}
-              sliderModel={sliderModel}
-              sliderVal={sliderModel.globalValue.value} //TODO - destructure both on the other side?
-              scaleDomain={sliderModel.axis.domain}
-            />
+            <CodapSliderThumb sliderModel={sliderModel} />
 
           </div>
         </div>
