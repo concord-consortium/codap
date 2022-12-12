@@ -22,7 +22,7 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, on
   const role = place === "left" ? "y" : "x"
   const attrId = dataConfig?.attributeID(role)
   const attribute = attrId ? data?.attrFromID(attrId) : null
-  const treatAs = attribute?.type === "numeric" ? "categorical" : "numeric"
+  const treatAs = dataConfig?.attributeType(role) === "numeric" ? "categorical" : "numeric"
   const overlayBounds = useOverlayBounds({target, portal})
   const buttonStyles: CSSProperties = { position: "absolute", color: "transparent" }
 
