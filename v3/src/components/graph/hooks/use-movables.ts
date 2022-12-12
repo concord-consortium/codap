@@ -1,7 +1,6 @@
 import {onAction} from "mobx-state-tree"
 import {useCallback, useEffect} from "react"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {IGraphModel} from "../models/graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {useGraphModelContext} from "../models/graph-model"
 import {IMovableLineModel, IMovableValueModel} from "../adornments/adornment-models"

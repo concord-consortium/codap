@@ -2,12 +2,10 @@ import {select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
-import {Axis} from "../../axis/components/axis"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
-import {
-  attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace, kGraphClass, kGraphClassSelector
-} from "../graphing-types"
+import { GraphAxis } from "./graph-axis"
+import { attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrPlace, kGraphClass } from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -25,7 +23,6 @@ import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {GraphInspector} from "./graph-inspector"
 import {useDataTips} from "../hooks/use-data-tips"
-import t from "../../../utilities/translation/translate"
 
 import "./graph.scss"
 
@@ -112,10 +109,6 @@ export const Graph = observer((
     return typeToPlotComponentMap[plotType]
   }
 
-  function axisLabel(attrId: string) {
-    return dataset?.attrFromID(attrId)?.name ?? t('DG.AxisView.emptyGraphCue')
-  }
-
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph" onClick={()=>setShowInspector(!showInspector)}>
@@ -125,21 +118,16 @@ export const Graph = observer((
             ref={backgroundSvgRef}
           />
 
-          <Axis parentSelector={kGraphClassSelector}
-                getAxisModel={() => graphModel.getAxis('left')}
-                label={axisLabel(yAttrID)}
-                enableAnimation={enableAnimation}
-                showGridLines={graphModel.plotType === 'scatterPlot'}
-                onDropAttribute={handleChangeAttribute}
-                onTreatAttributeAs={handleTreatAttrAs}
+          <GraphAxis place="left"
+            enableAnimation={enableAnimation}
+            onDropAttribute={handleChangeAttribute}
+            onTreatAttributeAs={handleTreatAttrAs}
           />
-          <Axis parentSelector={kGraphClassSelector}
-                getAxisModel={() => graphModel.getAxis('bottom')}
-                label={axisLabel(xAttrID)}
-                enableAnimation={enableAnimation}
-                showGridLines={graphModel.plotType === 'scatterPlot'}
-                onDropAttribute={handleChangeAttribute}
-                onTreatAttributeAs={handleTreatAttrAs}
+
+          <GraphAxis place="bottom"
+            enableAnimation={enableAnimation}
+            onDropAttribute={handleChangeAttribute}
+            onTreatAttributeAs={handleTreatAttrAs}
           />
 
           <svg ref={plotAreaSVGRef} className='graph-dot-area'>

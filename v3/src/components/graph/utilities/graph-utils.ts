@@ -7,7 +7,6 @@ import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {Bounds} from "../models/graph-layout"
-import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import { defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity,
   defaultSelectedStrokeWidth, defaultStrokeOpacity, defaultStrokeWidth
 } from "../../../utilities/color-utils"

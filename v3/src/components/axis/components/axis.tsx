@@ -1,6 +1,4 @@
 import {Active} from "@dnd-kit/core"
-import {onAction} from "mobx-state-tree"
-import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
 import {select} from "d3"
@@ -74,20 +72,6 @@ export const Axis = ({
         })
 
   }, [axisElt, halfRange, label, place])
-
-  useEffect(function observeAttributeNameChange() {
-    const disposer = dataset && onAction(dataset, action => {
-      if (isSetAttributeNameAction(action)) {
-        const [changedAttributeID] = action.args
-        if (changedAttributeID === attributeID) {
-          select(titleRef.current).select('text.axis-title')
-            .text(dataset.attrFromID(attributeID)?.name)
-        }
-      }
-    }, true)
-
-    return () => disposer?.()
-  },[attributeID, dataset])
 
   return (
     <>

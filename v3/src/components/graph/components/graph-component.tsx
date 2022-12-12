@@ -62,12 +62,14 @@ export const GraphComponent = observer(({broker}: IProps) => {
         <InstanceIdContext.Provider value={instanceId}>
           <GraphLayoutContext.Provider value={layout}>
             <AxisLayoutContext.Provider value={layout}>
-              <Graph graphRef={graphRef}
-                     enableAnimation={enableAnimation}
-                     dotsRef={dotsRef}
-                     showInspector={showInspector}
-                     setShowInspector={setShowInspector}
-              />
+              <GraphModelContext.Provider value={defaultGraphModel}>
+                <Graph graphRef={graphRef}
+                      enableAnimation={enableAnimation}
+                      dotsRef={dotsRef}
+                      showInspector={showInspector}
+                      setShowInspector={setShowInspector}
+                />
+              </GraphModelContext.Provider>
             </AxisLayoutContext.Provider>
           </GraphLayoutContext.Provider>
         </InstanceIdContext.Provider>
