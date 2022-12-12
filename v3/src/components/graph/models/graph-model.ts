@@ -1,6 +1,7 @@
 import {Instance, ISerializedActionCall, types} from "mobx-state-tree"
 import {createContext, useContext} from "react"
-import {AxisModelUnion, AxisPlace, IAxisModelUnion} from "./axis-model"
+import {AxisPlace} from "../../axis/axis-types"
+import {AxisModelUnion, IAxisModelUnion} from "../../axis/models/axis-model"
 import {
   hoverRadiusFactor,
   PlotType,

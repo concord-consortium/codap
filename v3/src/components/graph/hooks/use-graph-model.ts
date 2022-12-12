@@ -3,7 +3,7 @@ import {onAction} from "mobx-state-tree"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 import {IGraphModel, isGraphVisualPropsAction} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {INumericAxisModel} from "../models/axis-model"
+import {INumericAxisModel} from "../../axis/models/axis-model"
 
 interface IProps {
   graphModel: IGraphModel

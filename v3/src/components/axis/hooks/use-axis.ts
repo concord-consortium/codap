@@ -1,16 +1,15 @@
 import {
-  axisBottom, axisLeft, scaleLinear,
-  scaleLog, scaleOrdinal, select, selection
+  axisBottom, axisLeft, scaleLinear, scaleLog, scaleOrdinal, select, selection
 } from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect, useRef} from "react"
-import {otherPlace, IAxisModel, INumericAxisModel, graphPlaceToAttrPlace} from "../models/axis-model"
-import {Bounds, ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {between} from "../utilities/math-utils"
-import {transitionDuration, axisGap} from "../graphing-types"
-import {maxWidthOfStringsD3} from "../utilities/graph-utils"
-import {useDataConfigurationContext} from "./use-data-configuration-context"
-import t from "../../../utilities/translation/translate"
+import {AxisBounds, axisGap, isVertical, ScaleNumericBaseType} from "../axis-types"
+import {useAxisLayoutContext} from "../models/axis-layout-context"
+import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {between} from "../../../utilities/math-utils"
+import {graphPlaceToAttrPlace, transitionDuration} from "../../graph/graphing-types"
+import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
+import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 
 export interface IUseAxis {
   axisModel?: IAxisModel
@@ -22,12 +21,12 @@ export interface IUseAxis {
 }
 
 export const useAxis = ({
-                          axisModel, axisElt, titleRef, label = t('DG.AxisView.emptyGraphCue'),
+                          axisModel, axisElt, titleRef, label = "",
                           showGridLines, enableAnimation
                         }: IUseAxis) => {
-  const layout = useGraphLayoutContext(),
+  const layout = useAxisLayoutContext(),
     place = axisModel?.place ?? 'bottom',
-    scale = layout.axisScale(place) as ScaleNumericBaseType,
+    scale = layout.getAxisScale(place) as ScaleNumericBaseType,
     axis = (place === 'bottom') ? axisBottom : axisLeft,
     isNumeric = axisModel?.isNumeric,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
@@ -71,17 +70,19 @@ export const useAxis = ({
   const refreshAxis = useCallback(() => {
     const duration = enableAnimation.current ? transitionDuration : 0
     if (axisElt) {
-      const axisBounds = layout.computedBounds.get(axisPlace) as Bounds,
+      const axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
         labelBounds = getLabelBounds(label)
       // When switching from one axis type to another, e.g. a categorical axis to an
       // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.
       // To avoid that, we manually remove the ticks before initializing the axis.
       select(axisElt).selectAll('.tick').remove()
 
-      scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
+      scale.range(isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
 
-      const transform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})` :
-        `translate(${axisBounds.left}, ${axisBounds.top})`
+      const transform = (place === 'left')
+        ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
+        : `translate(${axisBounds.left}, ${axisBounds.top})`
+
       select(axisElt)
         .attr("transform", transform)
         .transition().duration(duration)
@@ -92,7 +93,7 @@ export const useAxis = ({
       select(axisElt).selectAll('.grid').remove()
 
       if (showGridLines) {
-        const tickLength = layout.axisLength(otherPlace(axisPlace)) ?? 0,
+        const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
           numericScale = scale as ScaleNumericBaseType
         select(axisElt).append('g')
           .attr('class', 'grid')
@@ -159,11 +160,11 @@ export const useAxis = ({
   // Install reaction to bring about rerender when layout's computedBounds changes
   useEffect(() => {
     const disposer = reaction(
-      () => layout.computedBounds.get(axisPlace),
+      () => layout.getComputedBounds(axisPlace),
       () => refreshAxis(/*myBounds*/)
     )
     return () => disposer()
-  }, [isNumeric, axisModel, layout, refreshAxis, axisPlace])
+  }, [axisPlace, layout, refreshAxis])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
@@ -186,7 +187,7 @@ export const useAxis = ({
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.axisLength(axisPlace)
+        return layout.getAxisLength(axisPlace)
       },
       () => {
         refreshAxis()

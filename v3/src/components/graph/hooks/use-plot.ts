@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {INumericAxisModel} from "../models/axis-model"
+import {INumericAxisModel} from "../../axis/models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
 import {useCurrent} from "../../../hooks/use-current"
 import {IGraphModel} from "../models/graph-model"
@@ -92,7 +92,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
     const disposer = reaction(
-      () => [layout.axisLength('left'), layout.axisLength('bottom')],
+      () => [layout.getAxisLength('left'), layout.getAxisLength('bottom')],
       () => {
         callRefreshPointPositions(false)
       }

@@ -16,6 +16,8 @@ import Icon from "../assets/concord.png"
 import { importSample, sampleData, SampleType } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
+import { useCodapSlider } from "./slider/use-slider"
+import { SliderComponent } from "./slider/slider-component"
 import pkg from "../../package.json"
 import build from "../../build_number.json"
 import t from "../utilities/translation/translate"
@@ -32,6 +34,8 @@ export const App = () => {
   const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
 
   useKeyStates()
+
+  const initialSlider = useCodapSlider()
 
   const _handleImportDataSet = useCallback((data: IDataSet) => {
     handleImportDataSet(data)
@@ -89,6 +93,7 @@ export const App = () => {
             </div>
             <CaseTableComponent/>
             <GraphComponent />
+            <SliderComponent sliderModel={initialSlider} />
           </Container>
         </div>
       </V2DocumentContext.Provider>

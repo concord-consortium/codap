@@ -7,7 +7,8 @@ import {DataBroker} from "../../../models/data/data-broker"
 import {DataSetContext} from "../../../hooks/use-data-set-context"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {kTitleBarHeight} from "../graphing-types"
-import {EmptyAxisModel} from "../models/axis-model"
+import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
+import {EmptyAxisModel} from "../../axis/models/axis-model"
 import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel, GraphModelContext} from "../models/graph-model"
@@ -48,7 +49,7 @@ export const GraphComponent = observer(({broker}: IProps) => {
   const [showInspector, setShowInspector] = useState(false)
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setGraphExtent(width, height - kTitleBarHeight)
+    (width != null) && (height != null) && layout.setParentExtent(width, height - kTitleBarHeight)
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the graph component
@@ -57,19 +58,21 @@ export const GraphComponent = observer(({broker}: IProps) => {
   setNodeRef(graphRef.current)
 
   return (
-    <DataSetContext.Provider value={dataset}>
-      <InstanceIdContext.Provider value={instanceId}>
-        <GraphLayoutContext.Provider value={layout}>
-          <GraphModelContext.Provider value={defaultGraphModel}>
-            <Graph graphRef={graphRef}
-                   enableAnimation={enableAnimation}
-                   dotsRef={dotsRef}
-                   showInspector={showInspector}
-                   setShowInspector={setShowInspector}
-            />
-          </GraphModelContext.Provider>
-        </GraphLayoutContext.Provider>
-      </InstanceIdContext.Provider>
-    </DataSetContext.Provider>
+      <DataSetContext.Provider value={dataset}>
+        <InstanceIdContext.Provider value={instanceId}>
+          <GraphLayoutContext.Provider value={layout}>
+            <AxisLayoutContext.Provider value={layout}>
+              <GraphModelContext.Provider value={defaultGraphModel}>
+                <Graph graphRef={graphRef}
+                      enableAnimation={enableAnimation}
+                      dotsRef={dotsRef}
+                      showInspector={showInspector}
+                      setShowInspector={setShowInspector}
+                />
+              </GraphModelContext.Provider>
+            </AxisLayoutContext.Provider>
+          </GraphLayoutContext.Provider>
+        </InstanceIdContext.Provider>
+      </DataSetContext.Provider>
   )
 })

@@ -1,4 +1,32 @@
 import React from "react"
+import {AxisPlace, AxisPlaces} from "../axis/axis-types"
+import {GraphAttrRole} from "./models/data-configuration-model"
+
+export const GraphPlaces = [...AxisPlaces, "plot", "legend"] as const
+export type GraphPlace = typeof GraphPlaces[number]
+
+export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
+  x: "bottom",
+  y: "left",
+  y2: "right",
+  rightSplit: "right",
+  topSplit: "top"
+}
+export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
+  ...attrRoleToAxisPlace,
+  legend: "legend"
+}
+
+export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
+  bottom: "x",
+  left: "y",
+  top: "topSplit",
+  right: "y2",  // Todo: how to deal with 'rightSplit'?
+}
+
+export const graphPlaceToAttrPlace = (graphPlace: GraphPlace) => {
+  return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrRole[graphPlace as AxisPlace] : 'legend'
+}
 
 export interface PlotProps {
   dotsRef: React.RefObject<SVGSVGElement>
@@ -33,8 +61,7 @@ export const kTitleBarHeight = 25,
   pointRadiusMin = 3,
   pointRadiusLogBase = 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
   pointRadiusSelectionAddend = 1,
-  hoverRadiusFactor = 1.5,
-  axisGap = 5
+  hoverRadiusFactor = 1.5
 
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]

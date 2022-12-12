@@ -5,15 +5,13 @@ import {GraphLayout} from "./graph-layout"
 import {GraphAttrRole, IAttributeDescriptionSnapshot}
   from "./data-configuration-model"
 import {IDataSet} from "../../../models/data/data-set"
+import {AxisPlace} from "../../axis/axis-types"
 import {
-  AxisPlace,
-  EmptyAxisModel,
-  CategoricalAxisModel,
-  ICategoricalAxisModel,
-  INumericAxisModel,
-  NumericAxisModel, axisPlaceToAttrRole, attrRoleToAxisPlace, GraphPlace, IEmptyAxisModel, graphPlaceToAttrPlace
-} from "./axis-model"
-import {PlotType} from "../graphing-types"
+  CategoricalAxisModel, EmptyAxisModel, ICategoricalAxisModel, IEmptyAxisModel, INumericAxisModel, NumericAxisModel
+} from "../../axis/models/axis-model"
+import {
+  attrRoleToAxisPlace, axisPlaceToAttrRole, GraphPlace, graphPlaceToAttrPlace, PlotType
+} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 import {CodapV2Document} from "../../../v2/codap-v2-document"
 import {ICodapV2GraphStorage, IGuidLink} from "../../../v2/codap-v2-types"
@@ -185,7 +183,7 @@ export class GraphController {
         graphModel.setAxis(axisPlace, newAxisModel as ICategoricalAxisModel)
         layout.setAxisScale(axisPlace, scaleBand())
       }
-      layout.axisScale(axisPlace)?.domain(setOfValues)
+      layout.getAxisScale(axisPlace)?.domain(setOfValues)
     }
     else {  // attributeType is 'empty'
       if( currentAxisType !== attributeType) {

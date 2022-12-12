@@ -2,8 +2,9 @@ import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import {reaction} from "mobx"
+import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {ScaleNumericBaseType} from "../axis-types"
 import t from "../../../utilities/translation/translate"
 import "./axis.scss"
 
@@ -21,8 +22,8 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
 export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
-    layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place) as ScaleNumericBaseType
+    layout = useAxisLayoutContext(),
+    scale = layout.getAxisScale(place) as ScaleNumericBaseType
 
   useEffect(function createRects() {
     let scaleAtStart: any = null,
@@ -131,11 +132,11 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.computedBounds.get(place)
+        return layout.getComputedBounds(place)
       },
       (axisBounds) => {
         const
-          length = layout.axisLength(place),
+          length = layout.getAxisLength(place),
           rectSelection = select(rectRef.current),
           numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
         if (length != null && axisBounds != null) {

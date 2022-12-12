@@ -2,9 +2,10 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {IMovableValueModel} from "./adornment-models"
-import { kGraphClassSelector } from "../graphing-types"
-import { INumericAxisModel } from "../models/axis-model"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
+import {useAxisLayoutContext} from "../../axis/models/axis-layout-context"
+import {ScaleNumericBaseType} from "../../axis/axis-types"
+import {kGraphClassSelector} from "../graphing-types"
+import {INumericAxisModel} from "../../axis/models/axis-model"
 import {valueLabelString} from "../utilities/graph-utils"
 import "./movable-value.scss"
 
@@ -14,9 +15,9 @@ export const MovableValue = (props: {
   transform: string
 }) => {
   const {model, axis, transform} = props,
-    layout = useGraphLayoutContext(),
-    xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
-    yScale = layout.axisScale("left"),
+    layout = useAxisLayoutContext(),
+    xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
+    yScale = layout.getAxisScale("left"),
     valueRef = useRef<SVGSVGElement>(null),
     [bottom, top] = yScale?.range() || [0, 1],
     [valueObject, setValueObject] = useState<Record<string, any>>({

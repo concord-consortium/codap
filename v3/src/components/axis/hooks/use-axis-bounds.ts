@@ -1,33 +1,32 @@
 import {useEffect, useState} from "react"
-import {kGraphClassSelector} from "../graphing-types"
-import {AxisPlace} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {AxisPlace} from "../axis-types"
+import {useGraphLayoutContext} from "../../graph/models/graph-layout"
 
 export const useAxisBounds = (place: AxisPlace) => {
   const layout = useGraphLayoutContext()
   return layout.getAxisBounds(place)
 }
 
-export const useAxisBoundsProvider = (place: AxisPlace) => {
+export const useAxisBoundsProvider = (place: AxisPlace, parentSelector: string) => {
   const layout = useGraphLayoutContext()
-  const [graphElt, setGraphElt] = useState<HTMLDivElement | null>(null)
+  const [parentElt, setParentElt] = useState<HTMLDivElement | null>(null)
   const [wrapperElt, setWrapperElt] = useState<SVGGElement | null>(null)
 
   useEffect(() => {
-    setGraphElt(wrapperElt?.closest(kGraphClassSelector) as HTMLDivElement ?? null)
-  }, [wrapperElt])
+    setParentElt(wrapperElt?.closest(parentSelector) as HTMLDivElement ?? null)
+  }, [parentSelector, wrapperElt])
 
   useEffect(() => {
     // track the bounds of the graph and axis elements
     let observer: ResizeObserver
     if (wrapperElt) {
       observer = new ResizeObserver(() => {
-        const graphBounds = graphElt?.getBoundingClientRect()
+        const parentBounds = parentElt?.getBoundingClientRect()
         const axisBounds = wrapperElt.getBoundingClientRect()
-        if (graphBounds && axisBounds) {
+        if (parentBounds && axisBounds) {
           layout.setAxisBounds(place, {
-            left: axisBounds.left - graphBounds.left,
-            top: axisBounds.top - graphBounds.top,
+            left: axisBounds.left - parentBounds.left,
+            top: axisBounds.top - parentBounds.top,
             width: axisBounds.width,
             height: axisBounds.height
           })
@@ -39,7 +38,7 @@ export const useAxisBoundsProvider = (place: AxisPlace) => {
     }
 
     return () => observer?.disconnect()
-  }, [graphElt, layout, place, wrapperElt])
+  }, [parentElt, layout, place, wrapperElt])
 
-  return {graphElt, wrapperElt, setWrapperElt}
+  return {parentElt, wrapperElt, setWrapperElt}
 }

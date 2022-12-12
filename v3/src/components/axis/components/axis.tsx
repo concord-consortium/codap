@@ -1,51 +1,48 @@
 import {Active} from "@dnd-kit/core"
-import {onAction} from "mobx-state-tree"
-import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import React, {MutableRefObject, useEffect, useRef, useState} from "react"
 import {createPortal} from "react-dom"
-import { select} from "d3"
+import {select} from "d3"
+import {useAxisLayoutContext} from "../models/axis-layout-context"
+import {AxisPlace} from "../axis-types"
 import {DroppableAxis} from "./droppable-axis"
+import {axisPlaceToAttrRole, GraphPlace} from "../../graph/graphing-types"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {AxisPlace, GraphPlace, axisPlaceToAttrRole, IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisAttributeMenu} from "./axis-attribute-menu"
-
 
 import "./axis.scss"
 
 interface IProps {
+  parentSelector: string
   getAxisModel: () => IAxisModel | undefined
-  attributeID: string
+  label?: string
   enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
-  onDropAttribute: (place: AxisPlace, attrId: string) => void
-  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onDropAttribute?: (place: AxisPlace, attrId: string) => void
+  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Axis = ({
-                       attributeID, getAxisModel, showGridLines,
+                       parentSelector, label, getAxisModel, showGridLines,
                        onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
     instanceId = useInstanceIdContext(),
-    dataset = useDataSetContext(),
     axisModel = getAxisModel(),
     place = axisModel?.place || 'bottom',
-    label = dataset?.attrFromID(attributeID)?.name,
     droppableId = `${instanceId}-${place}-axis-drop`,
-    layout = useGraphLayoutContext(),
-    scale = layout.axisScale(place),
+    layout = useAxisLayoutContext(),
+    scale = layout.getAxisScale(place),
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
-  const {graphElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place)
+  const {parentElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place, parentSelector)
 
   useAxis({
     axisModel, axisElt, label, enableAnimation, showGridLines,
@@ -56,7 +53,7 @@ export const Axis = ({
 
   useDropHandler(droppableId, active => {
     const droppedAttrId = getDragAttributeId(active)
-    droppedAttrId && onDropAttribute(place, droppedAttrId)
+    droppedAttrId && onDropAttribute?.(place, droppedAttrId)
   })
 
   const [xMin, xMax] = scale?.range() || [0, 100]
@@ -76,20 +73,6 @@ export const Axis = ({
 
   }, [axisElt, halfRange, label, place])
 
-  useEffect(function observeAttributeNameChange() {
-    const disposer = dataset && onAction(dataset, action => {
-      if (isSetAttributeNameAction(action)) {
-        const [changedAttributeID] = action.args
-        if (changedAttributeID === attributeID) {
-          select(titleRef.current).select('text.axis-title')
-            .text(dataset.attrFromID(attributeID)?.name)
-        }
-      }
-    }, true)
-
-    return () => disposer?.()
-  },[attributeID, dataset])
-
   return (
     <>
       <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
@@ -97,27 +80,28 @@ export const Axis = ({
         <g ref={titleRef}/>
       </g>
 
-      {graphElt &&
+      {parentElt && onDropAttribute && onTreatAttributeAs &&
         createPortal(<AxisAttributeMenu
           target={titleRef.current}
-          portal={graphElt}
+          portal={parentElt}
           place={place}
           onChangeAttribute={onDropAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
-        />, graphElt)
+        />, parentElt)
       }
 
       {axisModel?.type === 'numeric' ?
         <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
-      <DroppableAxis
-        place={`${place}`}
-        dropId={droppableId}
+      {onDropAttribute &&
+        <DroppableAxis
+          place={`${place}`}
+          dropId={droppableId}
 
-        hintString={hintString}
-        portal={graphElt}
-        target={wrapperElt}
-        onIsActive={handleIsActive}
-      />
+          hintString={hintString}
+          portal={parentElt}
+          target={wrapperElt}
+          onIsActive={handleIsActive}
+        />}
     </>
   )
 }
