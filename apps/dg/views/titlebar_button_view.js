@@ -1,8 +1,8 @@
 // ==========================================================================
 //                          DG.TitleBarCloseButton
-// 
+//
 //  A button view that allows user to close a component view.
-//  
+//
 //  Author:   William Finzer
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -20,8 +20,8 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('views/mouse_and_touch_view')
-sc_require('views/tooltip_enabler')
+sc_require('views/mouse_and_touch_view');
+sc_require('views/tooltip_enabler');
 
 /** @class
 
@@ -39,14 +39,14 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
        classNameBindings: ['isSelected:dg-close-icon-selected'],
        allowParent: NO,
        init: function() {
-         sc_super()
+         sc_super();
          if(!SC.platform.touch) {
            // The following two lines are a workaround to make sure that in SageModeler the button shows
            // itself on the initial hover over the titlebar. (Strange, I know.)
-           this.set('isVisible', true)
+           this.set('isVisible', true);
            this.invokeLater(function() {
-             this.set('isVisible', false)
-           }.bind(this), 1)
+             this.set('isVisible', false);
+           }.bind(this), 1);
          }
        },
        doIt: function() {
@@ -57,17 +57,17 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
             tConfirmCloseMessage = tController.get('confirmCloseMessage')
                                    || 'DG.Component.closeComponent.confirmCloseMessage',
             tConfirmCloseDescription = tController.get('confirmCloseDescription')
-                                       || 'DG.Component.closeComponent.confirmCloseDescription'
+                                       || 'DG.Component.closeComponent.confirmCloseDescription';
 
          // Some components are not closed, but are hidden. These are
          // distinguished by presence of toggleViewVisiblity method.
          if(tController.toggleViewVisibility) {
-           tController.toggleViewVisibility()
+           tController.toggleViewVisibility();
          } else {
 
            var closeComponentAfterConfirm = function() {
-             DG.closeComponent(tComponentId)
-           }.bind(this)
+             DG.closeComponent(tComponentId);
+           }.bind(this);
 
            if(tShouldConfirmClose) {
              DG.AlertPane.warn({
@@ -87,22 +87,22 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
                  }
                ],
                localize: YES
-             })
+             });
 
            } else {
-             DG.closeComponent(tComponentId)
+             DG.closeComponent(tComponentId);
            }
          }
        },
        closeComponent: function(iComponentID, iController) {
          if(iController.toggleViewVisibility) {
-           iController.toggleViewVisibility()
+           iController.toggleViewVisibility();
          } else {
-           var tState
+           var tState;
            // Give the controller a chance to do some housekeeping before we close it (defocus, commit edits, etc.).
            // Also, do this outside of the undo command, so that it can register its own
            // separate undo command if desired.
-           iController.willCloseComponent()
+           iController.willCloseComponent();
 
            DG.UndoHistory.execute(DG.Command.create({
              name: 'component.close',
@@ -110,22 +110,22 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
              redoString: 'DG.Redo.component.close',
              _componentId: iComponentID,
              _controller: function() {
-               return DG.currDocumentController().componentControllersMap[this._componentId]
+               return DG.currDocumentController().componentControllersMap[this._componentId];
              },
              _model: null,
              execute: function() {
-               iController = this._controller()
+               iController = this._controller();
                var tComponentView = iController.get('view'),
-                  tContainerView = tComponentView.get('parentView')
+                  tContainerView = tComponentView.get('parentView');
 
-               this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'))
-               this._model = iController.get('model')
+               this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'));
+               this._model = iController.get('model');
 
                // Some components (the graph in particular), won't restore correctly without calling willSaveComponent(),
                // because sometimes not all of the info necessary to restore the view is actively held in the model.
                // (In the graph's case, there is 'model' which relates to the view, and 'graphModel' which holds all of the
                // configuration like axis ranges, legends, etc.)
-               iController.willSaveComponent()
+               iController.willSaveComponent();
 
                if(iController.saveGameState) {
                  // If we are a GameController, try to save state.
@@ -135,32 +135,32 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
                  // document will clear the undo history, so we must force it not to dirty.
                  iController.saveGameState(function(result) {
                    if(result && result.success) {
-                     tState = result.state
+                     tState = result.state;
                    }
                    SC.run(function() {
                      if(tContainerView.removeComponentView)
-                       tContainerView.removeComponentView(tComponentView)
-                   })
-                 })
+                       tContainerView.removeComponentView(tComponentView);
+                   });
+                 });
                } else {
                  if(tContainerView.removeComponentView)
-                   tContainerView.removeComponentView(tComponentView)
+                   tContainerView.removeComponentView(tComponentView);
                }
              },
              undo: function() {
-               DG.currDocumentController().createComponentAndView(this._model)
+               DG.currDocumentController().createComponentAndView(this._model);
 
-               iController = this._controller()
+               iController = this._controller();
                if(iController.restoreGameState && tState) {
-                 iController.restoreGameState({ gameState: tState })
+                 iController.restoreGameState({ gameState: tState });
                }
              }
-           }))
+           }));
          }
        }
-     }
+     };
    }()) // function closure
-)
+);
 
 /** @class
 
@@ -175,21 +175,21 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
        classNames: 'dg-min-icon'.w(),
        allowParent: NO,
        init: function() {
-         sc_super()
+         sc_super();
          if(!SC.platform.touch) {
            // The following two lines are a workaround to make sure that in SageModeler the button shows
            // itself on the initial hover over the titlebar. (Strange, I know.)
-           this.set('isVisible', true)
+           this.set('isVisible', true);
            this.invokeLater(function() {
-             this.set('isVisible', false)
-           }.bind(this), 1)
+             this.set('isVisible', false);
+           }.bind(this), 1);
          }
        },
        isSelected: false,
        classNameBindings: ['isSelected:dg-min-icon-selected'],
        toolTip: 'DG.Component.minimizeComponent.toolTip',
        doIt: function() {
-         var tComponentView = this.parentView.viewToDrag()
+         var tComponentView = this.parentView.viewToDrag();
          DG.UndoHistory.execute(DG.Command.create({
            name: 'component.minimize',
            undoString: 'DG.Undo.component.minimize',
@@ -204,16 +204,16 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
              }
            },
            execute: function() {
-             tComponentView.toggleMinimization()
+             tComponentView.toggleMinimization();
            },
            undo: function() {
-             this.execute()
+             this.execute();
            }
-         }))
+         }));
        }
-     }
+     };
    }()) // function closure
-)
+);
 
 /** @class
 
@@ -228,9 +228,9 @@ DG.TitleBarUndoRedoButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabl
        localize: true,
        isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled'),
        isVisible: true
-     }
+     };
    }()) // function closure
-)
+);
 
 /** @class
 
@@ -244,18 +244,18 @@ DG.TitleBarUndoButton = DG.TitleBarUndoRedoButton.extend(
    (function() {
      return {
        toolTip: function() {
-         var cmd = this.get('nextUndoCommand')
-         return (cmd ? cmd.get('undoString') : 'DG.mainPage.mainPane.undoButton.toolTip')  // "Undo the last action"
+         var cmd = this.get('nextUndoCommand');
+         return (cmd ? cmd.get('undoString') : 'DG.mainPage.mainPane.undoButton.toolTip'); // "Undo the last action"
        }.property('nextUndoCommand'),
        nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
        classNames: 'dg-undo-icon'.w(),
        doIt: function() {
-         DG.UndoHistory.undo()
+         DG.UndoHistory.undo();
        }
-     }
+     };
    }()) // function closure
-)
+);
 
 /** @class
 
@@ -269,18 +269,18 @@ DG.TitleBarRedoButton = DG.TitleBarUndoRedoButton.extend(
    (function() {
      return {
        toolTip: function() {
-         var cmd = this.get('nextRedoCommand')
-         return (cmd ? cmd.get('redoString') : 'DG.mainPage.mainPane.redoButton.toolTip')  // "Redo the last undone action"
+         var cmd = this.get('nextRedoCommand');
+         return (cmd ? cmd.get('redoString') : 'DG.mainPage.mainPane.redoButton.toolTip');  // "Redo the last undone action"
        }.property('nextRedoCommand'),
        nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
        classNames: 'dg-redo-icon'.w(),
        doIt: function() {
-         DG.UndoHistory.redo()
+         DG.UndoHistory.redo();
        }
-     }
+     };
    }()) // function closure
-)
+);
 
 /** @class
 
@@ -301,7 +301,7 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
               {
                 title: 'DG.DocumentController.toggleToCaseCard'.loc(),
               }
-            ]
+            ];
 
          DG.MenuPane.create({
            classNames: 'dg-attributes-popup'.w(),
@@ -322,22 +322,22 @@ DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler
                  }
                },
                execute: function() {
-                 DG.currDocumentController().toggleTableToCard(tComponentView)
+                 DG.currDocumentController().toggleTableToCard(tComponentView);
                },
                undo: function() {
                  var tDocController = DG.currDocumentController(),
                     tContext = tComponentView.getPath('controller.dataContext'),
-                    tCardComponentView = tDocController.tableCardRegistry.getCardView(tContext)
-                 tDocController.toggleCardToTable(tCardComponentView)
+                    tCardComponentView = tDocController.tableCardRegistry.getCardView(tContext);
+                 tDocController.toggleCardToTable(tCardComponentView);
                }
-             }))
+             }));
            }.observes('selectedItem')
-         }).popup(this, [0, -20, SC.POSITION_BOTTOM])
+         }).popup(this, [0, -20, SC.POSITION_BOTTOM]);
 
        }
-     }
+     };
    }()) // function closure
-)
+);
 
 /** @class
 
@@ -358,7 +358,7 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
               {
                 title: 'DG.DocumentController.toggleToCaseTable'.loc(),
               }
-            ]
+            ];
 
          DG.MenuPane.create({
            classNames: 'dg-attributes-popup'.w(),
@@ -379,20 +379,20 @@ DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnable
                  }
                },
                execute: function() {
-                 DG.currDocumentController().toggleCardToTable(tComponentView)
+                 DG.currDocumentController().toggleCardToTable(tComponentView);
                },
                undo: function() {
                  var tDocController = DG.currDocumentController(),
                     tContext = tComponentView.getPath('controller.dataContext'),
-                    tTableComponentView = tDocController.tableCardRegistry.getTableView(tContext)
-                 tDocController.toggleTableToCard(tTableComponentView)
+                    tTableComponentView = tDocController.tableCardRegistry.getTableView(tContext);
+                 tDocController.toggleTableToCard(tTableComponentView);
                }
-             }))
+             }));
            }.observes('selectedItem')
-         }).popup(this, [0, -20, SC.POSITION_BOTTOM])
+         }).popup(this, [0, -20, SC.POSITION_BOTTOM]);
 
        }
-     }
+     };
    }()) // function closure
-)
+);
 
