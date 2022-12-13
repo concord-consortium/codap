@@ -21,14 +21,13 @@ export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, on
   const attrId = graphModel.getAttributeID(role)
   const label = (attrId && dataset?.attrFromID(attrId)?.name) || t('DG.AxisView.emptyGraphCue')
 
-  const doNotEnableAnimation = useRef(false)
-  console.log("<GraphAxis> re-renders a few times, but likely due to react effects I have not traced yet. Animation still works.")
+  console.log("<GraphAxis>")
 
   return (
     <Axis parentSelector={kGraphClassSelector}
           getAxisModel={() => graphModel.getAxis(place)}
           label={label}
-          enableAnimation={doNotEnableAnimation}
+          enableAnimation={enableAnimation}
           showGridLines={graphModel.plotType === 'scatterPlot'}
           onDropAttribute={onDropAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
