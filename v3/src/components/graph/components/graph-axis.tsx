@@ -21,6 +21,8 @@ export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, on
   const attrId = graphModel.getAttributeID(role)
   const label = (attrId && dataset?.attrFromID(attrId)?.name) || t('DG.AxisView.emptyGraphCue')
 
+  console.log("<GraphAxis> re-renders increase with animation d3 granularity/time, as set in graphing-types.ts")
+
   return (
     <Axis parentSelector={kGraphClassSelector}
           getAxisModel={() => graphModel.getAxis(place)}
