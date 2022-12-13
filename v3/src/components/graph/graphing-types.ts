@@ -56,7 +56,7 @@ export interface counterProps {
 }
 
 export const kTitleBarHeight = 25,
-  transitionDuration = 200, // NOTE - change to see effect on Axis re-render
+  transitionDuration = 1000,
   pointRadiusMax = 10,
   pointRadiusMin = 3,
   pointRadiusLogBase = 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).

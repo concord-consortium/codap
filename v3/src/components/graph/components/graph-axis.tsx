@@ -1,4 +1,4 @@
-import React, { MutableRefObject } from "react"
+import React, { MutableRefObject, useRef } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { AxisPlace } from "../../axis/axis-types"
 import { Axis } from "../../axis/components/axis"
@@ -21,13 +21,14 @@ export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, on
   const attrId = graphModel.getAttributeID(role)
   const label = (attrId && dataset?.attrFromID(attrId)?.name) || t('DG.AxisView.emptyGraphCue')
 
-  console.log("<GraphAxis> re-renders increase with animation d3 granularity/time, as set in graphing-types.ts")
+  const doNotEnableAnimation = useRef(false)
+  console.log("<GraphAxis> re-renders a few times, but likely due to react effects I have not traced yet. Animation still works.")
 
   return (
     <Axis parentSelector={kGraphClassSelector}
           getAxisModel={() => graphModel.getAxis(place)}
           label={label}
-          enableAnimation={enableAnimation}
+          enableAnimation={doNotEnableAnimation}
           showGridLines={graphModel.plotType === 'scatterPlot'}
           onDropAttribute={onDropAttribute}
           onTreatAttributeAs={onTreatAttributeAs}

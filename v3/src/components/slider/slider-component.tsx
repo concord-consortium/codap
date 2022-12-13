@@ -30,6 +30,8 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   const tickTime = 60
   const animationRef = useRef(false)
 
+  console.log('<SliderComponent />')
+
   // width and positioning
   useEffect(() => {
     if ((width != null) && (height != null)) {
