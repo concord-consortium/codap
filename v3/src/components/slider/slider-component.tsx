@@ -28,7 +28,6 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   const [isEditingName, setIsEditingName] = useState(false)
   const intervalRef = useRef<any>()
   const tickTime = 60
-  const animationRef = useRef(false)
 
   // width and positioning
   useEffect(() => {
@@ -153,7 +152,6 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               <Axis
                 parentSelector={kSliderClassSelector}
                 getAxisModel={() => sliderModel.axis}
-                enableAnimation={animationRef}
                 showGridLines={false}
               />
             </svg>

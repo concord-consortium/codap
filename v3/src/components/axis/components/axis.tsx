@@ -21,7 +21,6 @@ interface IProps {
   parentSelector: string
   getAxisModel: () => IAxisModel | undefined
   label?: string
-  enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
   onDropAttribute?: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
@@ -29,7 +28,7 @@ interface IProps {
 
 export const Axis = ({
                        parentSelector, label, getAxisModel, showGridLines,
-                       onDropAttribute, enableAnimation, onTreatAttributeAs
+                       onDropAttribute, onTreatAttributeAs
                      }: IProps) => {
   const
     instanceId = useInstanceIdContext(),
@@ -45,7 +44,7 @@ export const Axis = ({
   const {parentElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place, parentSelector)
 
   useAxis({
-    axisModel, axisElt, label, enableAnimation, showGridLines,
+    axisModel, axisElt, label, showGridLines,
     titleRef
   })
 

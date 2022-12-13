@@ -9,12 +9,11 @@ import { useGraphModelContext } from "../models/graph-model"
 
 interface IProps {
   place: AxisPlace
-  enableAnimation: MutableRefObject<boolean>
   onDropAttribute?: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, onTreatAttributeAs }: IProps) => {
+export const GraphAxis = observer(({ place, onDropAttribute, onTreatAttributeAs }: IProps) => {
   const dataset = useDataSetContext()
   const graphModel = useGraphModelContext()
   const role = axisPlaceToAttrRole[place]
@@ -27,7 +26,6 @@ export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, on
     <Axis parentSelector={kGraphClassSelector}
           getAxisModel={() => graphModel.getAxis(place)}
           label={label}
-          enableAnimation={enableAnimation}
           showGridLines={graphModel.plotType === 'scatterPlot'}
           onDropAttribute={onDropAttribute}
           onTreatAttributeAs={onTreatAttributeAs}

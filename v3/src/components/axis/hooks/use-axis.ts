@@ -16,13 +16,12 @@ export interface IUseAxis {
   axisElt: SVGGElement | null
   titleRef: MutableRefObject<SVGGElement | null>
   label?: string
-  enableAnimation: MutableRefObject<boolean>
   showGridLines: boolean
 }
 
 export const useAxis = ({
                           axisModel, axisElt, titleRef, label = "",
-                          showGridLines, enableAnimation
+                          showGridLines,
                         }: IUseAxis) => {
   const layout = useAxisLayoutContext(),
     place = axisModel?.place ?? 'bottom',
@@ -68,7 +67,7 @@ export const useAxis = ({
   }, [axisPlace, attrRole, dataConfiguration, label, type, scale])
 
   const refreshAxis = useCallback(() => {
-    const duration = enableAnimation.current ? transitionDuration : 0
+    const duration = 0
     if (axisElt) {
       const axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
         labelBounds = getLabelBounds(label)
@@ -133,7 +132,7 @@ export const useAxis = ({
       }
 
     }
-  }, [axisElt, axisPlace, axis, layout, showGridLines, scale, enableAnimation,
+  }, [axisElt, axisPlace, axis, layout, showGridLines, scale,
     place, titleRef, label, halfRange])
 
   // update d3 scale and axis when scale type changes

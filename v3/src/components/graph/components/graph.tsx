@@ -55,8 +55,6 @@ export const Graph = observer((
 
   const graphController = useGraphController({graphModel, enableAnimation, dotsRef})
 
-  const doNotEnableAnimation = useRef(false)
-
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {
       select(plotAreaSVGRef.current)
@@ -121,13 +119,11 @@ export const Graph = observer((
           />
 
           <GraphAxis place="left"
-            enableAnimation={doNotEnableAnimation}
             onDropAttribute={handleChangeAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
           />
 
           <GraphAxis place="bottom"
-            enableAnimation={doNotEnableAnimation}
             onDropAttribute={handleChangeAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
           />
