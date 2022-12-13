@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useRef } from "react"
+import React, { MutableRefObject } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { AxisPlace } from "../../axis/axis-types"
 import { Axis } from "../../axis/components/axis"
