@@ -22,15 +22,15 @@ interface IProps {
   getAxisModel: () => IAxisModel | undefined
   label?: string
   enableAnimation: MutableRefObject<boolean>
-  showScatterPlotGridLines: boolean
+  showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
   onDropAttribute?: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Axis = ({
-                       parentSelector, label, getAxisModel, showScatterPlotGridLines, centerCategoryLabels = true,
-                       onDropAttribute, enableAnimation, onTreatAttributeAs
+                       parentSelector, label, getAxisModel, showScatterPlotGridLines = false,
+                       centerCategoryLabels = true, onDropAttribute, enableAnimation, onTreatAttributeAs
                      }: IProps) => {
   const
     instanceId = useInstanceIdContext(),

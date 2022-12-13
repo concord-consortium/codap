@@ -154,7 +154,6 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
                 parentSelector={kSliderClassSelector}
                 getAxisModel={() => sliderModel.axis}
                 enableAnimation={animationRef}
-                showGridLines={false}
               />
             </svg>
 

@@ -7,7 +7,7 @@ import {AxisBounds, axisGap, isVertical, ScaleNumericBaseType} from "../axis-typ
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {between} from "../../../utilities/math-utils"
-import {graphPlaceToAttrPlace, transitionDuration} from "../../graph/graphing-types"
+import {graphPlaceToAttrRole, transitionDuration} from "../../graph/graphing-types"
 import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
 import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 
@@ -26,10 +26,12 @@ export const useAxis = ({
                           showScatterPlotGridLines, centerCategoryLabels, enableAnimation
                         }: IUseAxis) => {
   const layout = useAxisLayoutContext(),
+    isNumeric = axisModel?.isNumeric,
     place = axisModel?.place ?? 'bottom',
     scale = layout.getAxisScale(place) as ScaleNumericBaseType,
+    ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : scale as unknown as ScaleBand<string>,
+    bandWidth = ordinalScale?.bandwidth() ?? 0,
     axis = (place === 'bottom') ? axisBottom : axisLeft,
-    isNumeric = axisModel?.isNumeric,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
     // Todo: Revisit and figure out whether we can remove the workaround.
@@ -37,7 +39,7 @@ export const useAxis = ({
     axisModelChanged = previousAxisModel.current !== axisModel,
     dataConfiguration = useDataConfigurationContext(),
     axisPlace = axisModel?.place ?? 'bottom',
-    attrRole = graphPlaceToAttrPlace(axisPlace),
+    attrRole = graphPlaceToAttrRole(axisPlace),
     [rangeMin, rangeMax] = scale?.range() || [0, 100],
     halfRange = (rangeMax !== undefined && rangeMin !== undefined) ? Math.abs(rangeMax - rangeMin) / 2 : 50,
     type = axisModel?.type ?? 'empty',
@@ -45,16 +47,31 @@ export const useAxis = ({
   previousAxisModel.current = axisModel
 
   const getLabelBounds = (s = 'Wy') => {
-    const textElement = selection().append('text').attr('y', 500),
+    const textElement = selection().append('text').attr('y', 500)
+        .style('font', '12px sans-serif'),
       bounds = textElement.text(s).node()?.getBoundingClientRect() || {left: 0, top: 0, width: 100, height: 20}
     textElement.remove()
     return bounds
   }
 
+  const collisionExists = useCallback(() => {
+    /* A collision occurs when two labels overlap.
+     * This can occur labels are centered on the tick, or when they are left-aligned. The former requires
+     * computation of two adjacent label widths
+     */
+    const categories = ordinalScale?.domain() ?? [],
+      labelWidths = categories.map(category => getLabelBounds(category).width)
+    return centerCategoryLabels ? labelWidths.some((width, i) => {
+      return i > 0 && width / 2 + labelWidths[i - 1] / 2 > bandWidth
+    }) : labelWidths.some(width => width > bandWidth)
+  }, [bandWidth, centerCategoryLabels, ordinalScale])
+
   const computeDesiredExtent = useCallback(() => {
-    const labelHeight = getLabelBounds(label).height
+    const labelHeight = getLabelBounds(label).height,
+      collision = collisionExists(),
+      maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categorySetForAttrRole(attrRole) ?? [])
     let ticks: number[] = []
-    let desiredExtent = labelHeight + axisGap
+    let desiredExtent = labelHeight + 2 * axisGap
     switch (type) {
       case 'numeric':
         ticks = (scale.ticks?.()) ?? []
@@ -62,22 +79,24 @@ export const useAxis = ({
           getLabelBounds(String(ticks[ticks.length - 1])).width) : getLabelBounds().height
         break
       case 'categorical':
-        desiredExtent += (axisPlace === 'bottom') ? getLabelBounds().height :
-          maxWidthOfStringsD3(dataConfiguration?.categorySetForAttrRole(attrRole) ?? [])
+        desiredExtent += (axisPlace === 'bottom') ?
+          (collision ? maxLabelExtent : getLabelBounds().height) :
+          (collision ? maxLabelExtent : getLabelBounds().width)
     }
     return desiredExtent
-  }, [axisPlace, attrRole, dataConfiguration, label, type, scale])
+  }, [axisPlace, attrRole, dataConfiguration, label, type, scale, collisionExists])
 
   const refreshAxis = useCallback(() => {
     const axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
       labelBounds = getLabelBounds(label),
       duration = enableAnimation.current ? transitionDuration : 0,
-      transform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})` :
-        `translate(${axisBounds.left}, ${axisBounds.top})`,
+      axisIsVertical = isVertical(axisPlace),
+      initialTransform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})` :
+        `translate(${axisBounds.left}, ${axisBounds.top})`
 
-      drawAxis = () => {
+    const drawAxis = () => {
         select(axisElt)
-          .attr("transform", transform)
+          .attr("transform", initialTransform)
           .transition().duration(duration)
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore types are incompatible
@@ -101,28 +120,12 @@ export const useAxis = ({
       },
 
       drawCategoricalAxis = () => {
-        const tickLength = layout.axisLength(otherPlace(axisPlace)) ?? 0,
-          ordinalScale = scale as unknown as ScaleBand<string>,
-          bandWidth = ordinalScale.bandwidth()
-
-        const collisionExists = () => {
-          /* A collision occurs when two labels overlap.
-           * This can occur labels are centered on the tick, or when they are left-aligned. The former requires
-           * computation of two adjacent label widths
-           */
-          const categories = ordinalScale.domain(),
-            labelWidths = categories.map(category => getLabelBounds(category).width)
-          return centerCategoryLabels ? labelWidths.some((width, i) => {
-            return i > 0 && width / 2 + labelWidths[i - 1] / 2 > bandWidth
-          }) : labelWidths.some(width => width > bandWidth)
-        }
+        const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0
 
         const textHeight = getLabelBounds().height,
-          collision = collisionExists(),
-          rotate = (axisPlace === 'bottom') ?
-            (collision ? -90 : 0) : (collision ? 0 : -90)
+          collision = collisionExists()
         select(axisElt)
-          .attr("transform", transform)
+          .attr("transform", initialTransform)
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore types are incompatible
           .call(axis(scale).tickSizeOuter(0))
@@ -131,19 +134,82 @@ export const useAxis = ({
         // select(axisElt).selectAll('line').remove()
         select(axisElt).append('g')
           .transition().duration(duration)
-          .attr('transform', `translate(${layout.isVertical(axisPlace) ? 0 : bandWidth / 2}, ` +
-            `${layout.isVertical(axisPlace) ? bandWidth / 2 : 0})`)
-          .call(axis(ordinalScale).tickSizeInner(-tickLength))
+          .attr('transform', `translate(${axisIsVertical ? 0 : bandWidth / 2}, ` +
+            `${axisIsVertical ? bandWidth / 2 : 0})`)
+          .call(axis(scale).tickSizeInner(-tickLength))
           .selectAll('.domain').remove()
+        let translation = '', rotation = '', textAnchor = 'none'
+        switch (axisPlace) {
+          case 'left':
+            switch (centerCategoryLabels) {
+              case true:
+                switch (collision) {
+                  case true:
+                    translation = `translate(0, ${-bandWidth / 2})`
+                    textAnchor = 'end'
+                    break
+                  case false:
+                    translation = `translate(${-textHeight / 2}, ${-bandWidth / 2})`
+                    rotation = `rotate(-90)`
+                    textAnchor = 'middle'
+                    break
+                }
+                break
+              case false:
+                switch (collision) {
+                  case true:
+                    translation = `translate(0, ${-textHeight / 2})`
+                    textAnchor = 'end'
+                    break
+                  case false:
+                    translation = `translate(${-textHeight / 2}, 0)`
+                    rotation = `rotate(-90)`
+                    textAnchor = 'start'
+                    break
+                }
+                break
+            }
+            break
+          case 'bottom':
+            switch (centerCategoryLabels) {
+              case true:
+                switch (collision) {
+                  case true:
+                    translation = `translate(${-bandWidth / 2 - textHeight / 2}, ${textHeight / 3})`
+                    rotation = `rotate(-90)`
+                    textAnchor = 'end'
+                    break
+                  case false:
+                    translation = `translate(${-bandWidth / 2}, 0)`
+                    textAnchor = 'middle'
+                    break
+                }
+                break
+              case false:
+                switch (collision) {
+                  case true:
+                    translation = `translate(${-bandWidth}, ${textHeight / 3})`
+                    rotation = `rotate(-90)`
+                    textAnchor = 'end'
+                    break
+                  case false:
+                    translation = `translate(${-bandWidth}, ${textHeight / 3})`
+                    textAnchor = 'start'
+                    break
+                }
+                break
+            }
+            break
+        }
         select(axisElt).selectAll('text')
-          .attr('transform', `translate(0,` +
-            `${layout.isVertical(axisPlace) ? -textHeight / 3 : 0}) rotate(${rotate})`)
+          .style('text-anchor', textAnchor)
+          .attr('transform', `${translation}${rotation}`)
       },
 
       drawAxisTitle = () => {
         const
           titleTransform = `translate(${axisBounds.left}, ${axisBounds.top})`,
-          tX = (place === 'left') ? getLabelBounds(label).height - axisGap : halfRange,
+          tX = (place === 'left') ? getLabelBounds(label).height : halfRange,
           tY = (place === 'bottom') ? axisBounds.height - labelBounds.height / 2 : halfRange,
           tRotation = place === 'bottom' ? '' : ` rotate(-90,${tX},${tY})`
         if (titleRef) {
@@ -170,7 +236,7 @@ export const useAxis = ({
     // To avoid that, we manually remove the ticks before initializing the axis.
     select(axisElt).selectAll('.tick').remove()
 
-    scale.range(layout.isVertical(axisPlace) ? [axisBounds.height, 0] : [0, axisBounds.width])
+    scale.range(axisIsVertical ? [axisBounds.height, 0] : [0, axisBounds.width])
     switch (type) {
       case 'numeric':
       case 'empty':
@@ -183,7 +249,7 @@ export const useAxis = ({
     }
     drawAxisTitle()
   }, [axisElt, axisPlace, axis, layout, showScatterPlotGridLines, scale, enableAnimation,
-    place, titleRef, label, halfRange, type, centerCategoryLabels])
+    place, titleRef, label, halfRange, type, bandWidth, collisionExists, centerCategoryLabels,])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {

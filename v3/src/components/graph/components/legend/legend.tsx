@@ -9,7 +9,7 @@ import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
-import {GraphAttrRole} from "../../models/data-configuration-model"
+import {GraphAttrRole} from "../../graphing-types"
 
 interface ILegendProps {
   legendAttrID: string

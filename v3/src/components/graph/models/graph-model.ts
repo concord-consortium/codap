@@ -3,6 +3,7 @@ import {createContext, useContext} from "react"
 import {AxisPlace} from "../../axis/axis-types"
 import {AxisModelUnion, IAxisModelUnion} from "../../axis/models/axis-model"
 import {
+  GraphAttrRole,
   hoverRadiusFactor,
   PlotType,
   PlotTypes,
@@ -10,7 +11,7 @@ import {
   pointRadiusMax,
   pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
-import {DataConfigurationModel, GraphAttrRole} from "./data-configuration-model"
+import {DataConfigurationModel} from "./data-configuration-model"
 import {uniqueId} from "../../../utilities/js-utils"
 import {defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
 

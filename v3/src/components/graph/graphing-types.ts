@@ -1,9 +1,14 @@
 import React from "react"
 import {AxisPlace, AxisPlaces} from "../axis/axis-types"
-import {GraphAttrRole} from "./models/data-configuration-model"
 
 export const GraphPlaces = [...AxisPlaces, "plot", "legend"] as const
 export type GraphPlace = typeof GraphPlaces[number]
+export const PrimaryAttrRoles = ['x', 'y'] as const
+export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'y2'] as const
+export const GraphAttrRoles = [
+  ...TipAttrRoles, 'polygon', 'topSplit', 'rightSplit'] as const
+export type GraphAttrRole = typeof GraphAttrRoles[number]
+
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",
@@ -24,7 +29,7 @@ export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   right: "y2",  // Todo: how to deal with 'rightSplit'?
 }
 
-export const graphPlaceToAttrPlace = (graphPlace: GraphPlace) => {
+export const graphPlaceToAttrRole = (graphPlace: GraphPlace) => {
   return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrRole[graphPlace as AxisPlace] : 'legend'
 }
 

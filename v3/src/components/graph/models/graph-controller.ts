@@ -2,7 +2,7 @@ import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
-import {GraphAttrRole, IAttributeDescriptionSnapshot}
+import {IAttributeDescriptionSnapshot}
   from "./data-configuration-model"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace} from "../../axis/axis-types"
@@ -10,7 +10,7 @@ import {
   CategoricalAxisModel, EmptyAxisModel, ICategoricalAxisModel, IEmptyAxisModel, INumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import {
-  attrRoleToAxisPlace, axisPlaceToAttrRole, GraphPlace, graphPlaceToAttrPlace, PlotType
+  attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType
 } from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 import {CodapV2Document} from "../../../v2/codap-v2-document"
@@ -148,7 +148,7 @@ export class GraphController {
       axisPlace = graphPlace as AxisPlace,
       graphAttributeRole = axisPlaceToAttrRole[axisPlace],
       attribute = dataset?.attrFromID(attrID),
-      attributeType = dataConfig.attributeType(graphPlaceToAttrPlace(graphPlace)) ?? 'empty',
+      attributeType = dataConfig.attributeType(graphPlaceToAttrRole(graphPlace)) ?? 'empty',
       otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
       otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
       otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),

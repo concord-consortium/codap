@@ -17,18 +17,15 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
     {pointColor, pointStrokeColor} = graphModel,
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
-    layout = useGraphLayoutContext(),
-    xAttribute = dataConfiguration?.attributeID('x'),
-    yAttribute = dataConfiguration?.attributeID('y')
-  const primaryAttrPlace = xAttribute ? 'x' :
-      yAttribute ? 'y' : undefined,
-    primaryAxisPlace = primaryAttrPlace ? attrRoleToAxisPlace[primaryAttrPlace] : undefined,
+    layout = useGraphLayoutContext()
+  const primaryAttrRole = dataConfiguration?.primaryRole,
+    primaryAxisPlace = primaryAttrRole ? attrRoleToAxisPlace[primaryAttrRole] : undefined,
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrID = primaryAttrPlace ? dataConfiguration?.attributeID(primaryAttrPlace) : '',
-    secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' :
-      primaryAttrPlace === 'y' ? 'x' : undefined,
-    secondaryAxisPlace = secondaryAttrPlace ? attrRoleToAxisPlace[secondaryAttrPlace] : undefined,
-    secondaryAttrID = secondaryAttrPlace ? dataConfiguration?.attributeID(secondaryAttrPlace) : '',
+    primaryAttrID = primaryAttrRole ? dataConfiguration?.attributeID(primaryAttrRole) : '',
+    secondaryAttrRole = primaryAttrRole === 'x' ? 'y' :
+      primaryAttrRole === 'y' ? 'x' : undefined,
+    secondaryAxisPlace = secondaryAttrRole ? attrRoleToAxisPlace[secondaryAttrRole] : undefined,
+    secondaryAttrID = secondaryAttrRole ? dataConfiguration?.attributeID(secondaryAttrRole) : '',
     legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = primaryAxisPlace ? layout.getAxisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
     secondaryScale = secondaryAxisPlace ? layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
@@ -64,12 +61,12 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
   }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    // We're pretending that the primaryPlace is the bottom just to help understand the naming
+    // We're pretending that the primaryRole is the bottom just to help understand the naming
     const
-      primaryCategoriesArray: string[] = (dataConfiguration && primaryAttrPlace) ?
-        Array.from(dataConfiguration.categorySetForAttrRole(primaryAttrPlace)) : [],
-      secondaryCategoriesArray: string[] = (dataConfiguration && secondaryAttrPlace) ?
-        Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrPlace)) : [],
+      primaryCategoriesArray: string[] = (dataConfiguration && primaryAttrRole) ?
+        Array.from(dataConfiguration.categorySetForAttrRole(primaryAttrRole)) : [],
+      secondaryCategoriesArray: string[] = (dataConfiguration && secondaryAttrRole) ?
+        Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       primaryCellWidth = primaryScale?.bandwidth() ?? 0,
@@ -168,7 +165,7 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
       }
 
     setPoints()
-  }, [dataConfiguration, primaryAttrPlace, secondaryAttrPlace, graphModel, dotsRef,
+  }, [dataConfiguration, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
     enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
     computeMaxOverAllCells, primaryAttrID, secondaryAttrID, legendAttrID, dataset, secondaryScale])
 

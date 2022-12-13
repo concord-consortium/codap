@@ -26,7 +26,8 @@ export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, on
           getAxisModel={() => graphModel.getAxis(place)}
           label={label}
           enableAnimation={enableAnimation}
-          showGridLines={graphModel.plotType === 'scatterPlot'}
+          showScatterPlotGridLines={graphModel.plotType === 'scatterPlot'}
+          centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
           onDropAttribute={onDropAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
     />
