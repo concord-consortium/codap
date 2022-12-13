@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea } from "@chakra-ui/react"
+import { Flex, FormControl, FormLabel, HStack, Input, Radio, RadioGroup, Select, Textarea } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { AttributeType, attributeTypes } from "../../models/data/attribute"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -22,66 +22,72 @@ interface IEditAttributePropertiesModalContentProps {
 }
 
 export const EditAttributePropertiesModalContent = ({attributeName, description, unit, precision, attrType,
-    editable, setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision,
-  }: IEditAttributePropertiesModalContentProps) => {
+  editable, setAttributeName, setDescription, setUnit, setAttrType, setEditable, setPrecision,
+}: IEditAttributePropertiesModalContentProps) => {
 
-  return (
-    <FormControl display="flex" flexDirection="column">
-      <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.name")}
-        <Input size="xs" ml={5} placeholder="attribute" value={attributeName} onFocus={(e) => e.target.select()}
-              onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input"
-              onKeyDown={(e) => e.stopPropagation()}
-        />
-      </FormLabel>
-      <FormLabel>{t("DG.CaseTable.attributeEditor.description")}
-        <Textarea size="xs" placeholder="Describe the attribute" value={description} onFocus={(e) => e.target.select()}
-          onChange={event => setDescription(event.target.value)} data-testid="attr-description-input"
-          onKeyDown={(e) => e.stopPropagation()}
-        />
-      </FormLabel>
-      <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.type")}
-        <Select size="xs" ml={5} value={attrType} data-testid="attr-type-select"
-            onChange={(e) => setAttrType(e.target.value as AttributeType)}>
-          <option value={"none"}></option>
-          {attributeTypes.map(aType => {
-            return (<option key={aType} value={aType} data-testid="attr-type-option">
-                      {t(`DG.CaseTable.attribute.type.${aType}`)}
-                    </option>)
-          })}
-        </Select>
-      </FormLabel>
-      <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.unit")}
-        <Input size="xs" placeholder="unit" ml={5} value={unit} onFocus={(e) => e.target.select()}
-          onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input"
-          onKeyDown={(e) => e.stopPropagation()}
-        />
-      </FormLabel>
-      <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.precision")}
-        <Select size="xs" ml={5} value={precision} data-testid="attr-precision-select"
-            onChange={(e) => setPrecision(e.target.value)}>
-          <option value={""}></option>
-          <option value={"0"} data-testid="attr-precision-option">0</option>
-          <option value={"1"} data-testid="attr-precision-option">1</option>
-          <option value={"2"} data-testid="attr-precision-option">2</option>
-          <option value={"3"} data-testid="attr-precision-option">3</option>
-          <option value={"4"} data-testid="attr-precision-option">4</option>
-          <option value={"5"} data-testid="attr-precision-option">5</option>
-          <option value={"6"} data-testid="attr-precision-option">6</option>
-          <option value={"7"} data-testid="attr-precision-option">7</option>
-          <option value={"8"} data-testid="attr-precision-option">8</option>
-        </Select>
-      </FormLabel>
-      <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.editable")}
-        <RadioGroup value={editable} ml={5} onChange={(value) => setEditable(value)} data-testid="attr-editable-radio"
-          onKeyDown={(e) =>e.stopPropagation()}>
-          <HStack>
-            <Radio value="true">True</Radio>
-            <Radio value="false">False</Radio>
-          </HStack>
-        </RadioGroup>
-      </FormLabel>
+return (
+  <Flex className="edit-attribute-modal" direction="column">
+    <FormControl className="form-control">
+      <FormLabel mb="0">{t("DG.CaseTable.attributeEditor.name")}</FormLabel>
+      <Input className="form-input" size="xs" placeholder="attribute" value={attributeName}
+            onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input"
+            onKeyDown={(e) => e.stopPropagation()} onFocus={(e) => e.target.select()} />
     </FormControl>
-  )
+    <FormControl mt="3px" ml="8px">
+      <FormLabel mb="1px">{t("DG.CaseTable.attributeEditor.description")}</FormLabel>
+      <Textarea w={"calc(100% - 20px)"} mb="8px" size="xs" placeholder="Describe the attribute" value={description}
+        onFocus={(e) => e.target.select()} onKeyDown={(e) => e.stopPropagation()}
+        onChange={event => setDescription(event.target.value)} data-testid="attr-description-input" />
+    </FormControl>
+    <FormControl className="form-control">
+      <FormLabel mb="0" mr="5px">{t("DG.CaseTable.attributeEditor.type")}</FormLabel>
+      <Select size="xs" ml={5} value={attrType} data-testid="attr-type-select"
+          onChange={(e) => setAttrType(e.target.value as AttributeType)}>
+        <option value={"none"}></option>
+        {attributeTypes.map(aType => {
+          return (<option key={aType} value={aType} data-testid="attr-type-option">
+                    {t(`DG.CaseTable.attribute.type.${aType}`)}
+                  </option>)
+        })}
+      </Select>
+    </FormControl>
+    <FormControl className="form-control">
+      <FormLabel mb="0">{t("DG.CaseTable.attributeEditor.unit")}</FormLabel>
+      <Input className="form-input" size="xs" placeholder="unit" ml={5} value={unit} onFocus={(e) => e.target.select()}
+        onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input"
+        onKeyDown={(e) => e.stopPropagation()} />
+    </FormControl>
+    <FormControl className="form-control" >
+      <FormLabel mb="0">{t("DG.CaseTable.attributeEditor.precision")}</FormLabel>
+      <Select size="xs" value={precision} data-testid="attr-precision-select"
+          onChange={(e) => setPrecision(e.target.value)}>
+        <option value={""}></option>
+        <option value={"0"} data-testid="attr-precision-option">0</option>
+        <option value={"1"} data-testid="attr-precision-option">1</option>
+        <option value={"2"} data-testid="attr-precision-option">2</option>
+        <option value={"3"} data-testid="attr-precision-option">3</option>
+        <option value={"4"} data-testid="attr-precision-option">4</option>
+        <option value={"5"} data-testid="attr-precision-option">5</option>
+        <option value={"6"} data-testid="attr-precision-option">6</option>
+        <option value={"7"} data-testid="attr-precision-option">7</option>
+        <option value={"8"} data-testid="attr-precision-option">8</option>
+      </Select>
+    </FormControl>
+    <FormControl className="form-control" >
+      <FormLabel mb="0" aria-label={t("DG.CaseTable.attributeEditor.editable")}>
+        {t("DG.CaseTable.attributeEditor.editable")}
+      </FormLabel>
+      <RadioGroup className="form-input" value={editable} ml={5} onChange={(value) => setEditable(value)}
+          data-testid="attr-editable-radio" aria-label={t("DG.CaseTable.attributeEditor.editable")}
+          onKeyDown={(e) =>e.stopPropagation()}>
+        <HStack>
+          <Radio value="true">True</Radio>
+          <Radio value="false">False</Radio>
+        </HStack>
+      </RadioGroup>
+    </FormControl>
+  </Flex>
+)
 }
 
 interface IProps {

@@ -108,3 +108,15 @@ $table-body-font-size: 8pt;
     padding: 0 5px 0 20px;
   }
 }
+
+.edit-attribute-modal {
+  .form-control {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 0 10px 8px 8px;
+  }
+  .form-input, .chakra-select__wrapper {
+    width: calc(100% - 80px);
+  }
+}
