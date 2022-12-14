@@ -205,8 +205,6 @@ DG = SC.Application.create((function () // closure
      */
     logFromServer: 'concord.org',
 
-    defaultLogServerLoginURL: 'http://logger.concord.org/logs',
-
     defaultLogServerLoginURLSecure: 'https://logger.concord.org/logs',
 
     getQueryParam: function(iParam, iDefault) {
@@ -459,11 +457,7 @@ DG = SC.Application.create((function () // closure
     ],
 
     logServerUrl: function () {
-      if (window.location.protocol.toLowerCase() === 'http') {
-        return DG.defaultLogServerLoginURL;
-      } else {
-        return DG.defaultLogServerLoginURLSecure;
-      }
+      return DG.defaultLogServerLoginURLSecure;
     }.property(),
 
     /**
