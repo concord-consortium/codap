@@ -37,4 +37,11 @@ $header-height: 30px;
   .chakra-form__label {
     align-items: center !important;
   }
+
+  .form-control {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 0 10px 8px 8px;
+  }
 }
