@@ -185,9 +185,9 @@ describe("DataConfigurationModel", () => {
     const config = DataConfigurationModel.create()
     config.setDataset(data)
     config.setPrimaryRole('y')
-    expect(config.primaryPlace).toBe("y")
+    expect(config.primaryRole).toBe("y")
     config.setPrimaryRole('caption')
-    expect(config.primaryPlace).toBe("y")
+    expect(config.primaryRole).toBe("y")
   })
 
   it("returns an attribute values array and category set that ignore empty values", () => {

@@ -18,7 +18,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    primaryAttrPlace = dataConfiguration?.primaryPlace ?? 'x',
+    primaryAttrPlace = dataConfiguration?.primaryRole ?? 'x',
     primaryAxisPlace = attrRoleToAxisPlace[primaryAttrPlace] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
     primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace) as string,

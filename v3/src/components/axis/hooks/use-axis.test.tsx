@@ -18,7 +18,8 @@ describe("useNumericAxis", () => {
     layout = new GraphLayout()
     axisModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     axisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
-    useAxisOptions = { axisModel, axisElt, titleRef, enableAnimation: { current: false }, showGridLines: false }  })
+    useAxisOptions = { axisModel, axisElt, titleRef, enableAnimation: { current: false },
+      showScatterPlotGridLines: false, centerCategoryLabels: true }  })
 
   it("renders a simple horizontal axis", () => {
     renderHook(() => useAxis(useAxisOptions), {
