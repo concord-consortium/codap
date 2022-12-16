@@ -22,7 +22,7 @@ module.exports = (env, argv) => {
       client: {
         overlay: {
           errors: true,
-          warnings: true,
+          warnings: false,
         },
       },
     },

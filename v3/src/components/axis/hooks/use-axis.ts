@@ -40,8 +40,9 @@ export const useAxis = ({
     dataConfiguration = useDataConfigurationContext(),
     axisPlace = axisModel?.place ?? 'bottom',
     attrRole = graphPlaceToAttrRole(axisPlace),
-    [rangeMin, rangeMax] = scale?.range() || [0, 100],
-    halfRange = (rangeMax !== undefined && rangeMin !== undefined) ? Math.abs(rangeMax - rangeMin) / 2 : 50,
+    range = scale?.range() || [0, 100],
+    [rangeMin, rangeMax] = range.length === 2 ? range : [0, 100],
+    halfRange = Math.abs(rangeMax - rangeMin) / 2,
     type = axisModel?.type ?? 'empty',
     attributeID = dataConfiguration?.attributeID(attrRole)
   previousAxisModel.current = axisModel
@@ -56,8 +57,8 @@ export const useAxis = ({
 
   const collisionExists = useCallback(() => {
     /* A collision occurs when two labels overlap.
-     * This can occur labels are centered on the tick, or when they are left-aligned. The former requires
-     * computation of two adjacent label widths
+     * This can occur when labels are centered on the tick, or when they are left-aligned.
+     * The former requires computation of two adjacent label widths.
      */
     const categories = ordinalScale?.domain() ?? [],
       labelWidths = categories.map(category => getLabelBounds(category).width)
@@ -78,10 +79,11 @@ export const useAxis = ({
         desiredExtent += axisPlace === 'left' ? Math.max(getLabelBounds(String(ticks[0])).width,
           getLabelBounds(String(ticks[ticks.length - 1])).width) : getLabelBounds().height
         break
-      case 'categorical':
-        desiredExtent += (axisPlace === 'bottom') ?
-          (collision ? maxLabelExtent : getLabelBounds().height) :
-          (collision ? maxLabelExtent : getLabelBounds().width)
+      case 'categorical': {
+        const labelExtent = (axisPlace === 'bottom') ? getLabelBounds().height : getLabelBounds().width   
+        desiredExtent += collision ? maxLabelExtent : labelExtent      
+        break
+      }
     }
     return desiredExtent
   }, [axisPlace, attrRole, dataConfiguration, label, type, scale, collisionExists])
@@ -126,8 +128,7 @@ export const useAxis = ({
           collision = collisionExists()
         select(axisElt)
           .attr("transform", initialTransform)
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore types are incompatible
+          // @ts-expect-error types are incompatible
           .call(axis(scale).tickSizeOuter(0))
           // Remove everything but the path the forms the axis line
           .selectAll('g').remove()
@@ -186,14 +187,13 @@ export const useAxis = ({
                 }
                 break
               case false:
+                translation = `translate(${-bandWidth}, ${textHeight / 3})`
                 switch (collision) {
                   case true:
-                    translation = `translate(${-bandWidth}, ${textHeight / 3})`
                     rotation = `rotate(-90)`
                     textAnchor = 'end'
                     break
                   case false:
-                    translation = `translate(${-bandWidth}, ${textHeight / 3})`
                     textAnchor = 'start'
                     break
                 }
