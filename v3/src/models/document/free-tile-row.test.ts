@@ -7,15 +7,15 @@ describe("FreeTileLayout", () => {
     expect(row.tiles.size).toBe(0)
     expect(row.last).toBe("")
 
-    row.addTile({ tileId: "tile-1", x: 0, y: 0, width: 100, height: 100 })
+    row.insertTile("tile-1", { x: 0, y: 0, width: 100, height: 100 })
     expect(row.tiles.size).toBe(1)
     expect(row.tiles.get("tile-1")?.tileId).toBe("tile-1")
     expect(row.last).toBe("tile-1")
     expect(row.tileIds).toEqual(["tile-1"])
 
-    row.addTile({ tileId: "tile-2", x: 50, y: 50, width: 100, height: 100 })
-    row.addTile({ tileId: "tile-3", x: 100, y: 100, width: 100, height: 100 })
-    row.addTile({ tileId: "tile-4", x: 150, y: 150, width: 100, height: 100 })
+    row.insertTile("tile-2", { x: 50, y: 50, width: 100, height: 100 })
+    row.insertTile("tile-3", { x: 100, y: 100, width: 100, height: 100 })
+    row.insertTile("tile-4", { x: 150, y: 150, width: 100, height: 100 })
     expect(row.tiles.size).toBe(4)
     expect(row.tiles.get("tile-4")?.tileId).toBe("tile-4")
     expect(row.last).toBe("tile-4")
@@ -52,9 +52,9 @@ describe("FreeTileLayout", () => {
 
   it("moves tiles to top", () => {
     const row = FreeTileRow.create()
-    row.addTile({ tileId: "tile-1", x: 0, y: 0, width: 100, height: 100 })
-    row.addTile({ tileId: "tile-2", x: 50, y: 50, width: 100, height: 100 })
-    row.addTile({ tileId: "tile-3", x: 100, y: 100, width: 100, height: 100 })
+    row.insertTile("tile-1", { x: 0, y: 0, width: 100, height: 100 })
+    row.insertTile("tile-2", { x: 50, y: 50, width: 100, height: 100 })
+    row.insertTile("tile-3", { x: 100, y: 100, width: 100, height: 100 })
 
     // move from middle to last (top)
     row.moveTileToTop("tile-2")
@@ -77,8 +77,8 @@ describe("FreeTileLayout", () => {
 
   it("generates efficient patches", () => {
     const row = FreeTileRow.create()
-    row.addTile({ tileId: "tile-1", x: 0, y: 0, width: 100, height: 100 })
-    row.addTile({ tileId: "tile-2", x: 50, y: 50, width: 100, height: 100 })
+    row.insertTile("tile-1", { x: 0, y: 0, width: 100, height: 100 })
+    row.insertTile("tile-2", { x: 50, y: 50, width: 100, height: 100 })
 
     let patches: string[] = []
     let reverses: string[] = []
@@ -89,7 +89,7 @@ describe("FreeTileLayout", () => {
 
     patches = []
     reverses = []
-    row.addTile({ tileId: "tile-3", x: 100, y: 100, width: 100, height: 100 })
+    row.insertTile("tile-3", { x: 100, y: 100, width: 100, height: 100 })
     expect(patches).toEqual([
       `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100}}`,
       `{"op":"add","path":"/order/2","value":"tile-3"}`
@@ -135,7 +135,6 @@ describe("FreeTileLayout", () => {
     ])
     expect(reverses).toEqual([
       `{"op":"add","path":"/order/0","value":"tile-3"}`,
-      // eslint-disable-next-line max-len
       `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100}}`
     ])
 

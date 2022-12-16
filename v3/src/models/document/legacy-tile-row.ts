@@ -1,7 +1,7 @@
 import { types, Instance, SnapshotIn, SnapshotOut } from "mobx-state-tree"
 import { ITileModel } from "../tiles/tile-model"
 import { withoutUndo } from "../history/tree-monitor"
-import { TileRowModel } from "./tile-row"
+import { ITileInRowOptions, TileRowModel } from "./tile-row"
 
 export interface IDropRowInfo {
   rowInsertIndex: number
@@ -27,6 +27,13 @@ export const LegacyTileLayoutModel = types
     }
   }))
 export interface ILegacyTileLayoutModel extends Instance<typeof LegacyTileLayoutModel> {}
+
+export interface ILegacyTileInRowOptions extends ITileInRowOptions {
+  index: number
+  isUserResizable?: boolean
+}
+export const isLegacyTileInRowOptions = (options?: ITileInRowOptions): options is ILegacyTileInRowOptions =>
+              (options as any)?.index != null
 
 export const LegacyTileRowModel = TileRowModel
   .named("LegacyTileRow")
@@ -79,12 +86,13 @@ export const LegacyTileRowModel = TileRowModel
         }
       })
     },
-    insertTileInRow(tile: ITileModel, tileIndex?: number) {
+    insertTile(tileId: string, options?: ITileInRowOptions) {
+      const { tileIndex, isUserResizable = true } = isLegacyTileInRowOptions(options) ? options : {} as any
       const dstTileIndex = (tileIndex != null) && (tileIndex >= 0) && (tileIndex < self.tiles.length)
                             ? tileIndex
                             : self.tiles.length
-      const tileRef = LegacyTileLayoutModel.create({ tileId: tile.id })
-      tileRef.setUserResizable(tile.isUserResizable)
+      const tileRef = LegacyTileLayoutModel.create({ tileId })
+      tileRef.setUserResizable(isUserResizable)
       self.tiles.splice(dstTileIndex, 0, tileRef)
     },
     moveTileInRow(tileId: string, fromTileIndex: number, toTileIndex: number) {
@@ -99,7 +107,7 @@ export const LegacyTileRowModel = TileRowModel
       const sortedTiles = self.tiles.slice().sort(compareFunc)
       self.tiles.replace(sortedTiles)
     },
-    removeTileFromRow(tileId: string) {
+    removeTile(tileId: string) {
       self.tiles.replace(self.tiles.filter(tile => tile.tileId !== tileId))
       if (!self.isUserResizable) {
         self.height = undefined

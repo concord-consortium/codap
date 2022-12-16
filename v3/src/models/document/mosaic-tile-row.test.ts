@@ -12,13 +12,13 @@ describe("MosaicTileRow", () => {
     expect(row.tiles.size).toBe(0)
     expect(row.root).toBe("")
 
-    row.addTile("tile-1")
+    row.insertTile("tile-1")
     expect(row.nodes.size).toBe(0)
     expect(row.tiles.size).toBe(0)
     expect(row.root).toBe("tile-1")
     expect(row.getGrandParentNode("tile-1")?.id).toBeUndefined()
 
-    row.addTile("tile-2", "tile-1")
+    row.insertTile("tile-2", { splitTileId: "tile-1" })
     expect(row.nodes.size).toBe(1)
     expect(row.tiles.size).toBe(2)
     expect(row.root).toBe("node-1")
@@ -39,7 +39,7 @@ describe("MosaicTileRow", () => {
     node1!.setPercent(0.25)
     expect(node1?.percent).toBe(0.25)
 
-    row.addTile("tile-3", "tile-2", "column")
+    row.insertTile("tile-3", { splitTileId: "tile-2", direction: "column" })
     expect(row.nodes.size).toBe(2)
     expect(row.tiles.size).toBe(3)
     expect(row.root).toBe("node-1")
@@ -55,7 +55,7 @@ describe("MosaicTileRow", () => {
     expect(row.getGrandParentNode("tile-2")?.id).toBe("node-1")
     expect(row.getGrandParentNode("tile-3")?.id).toBe("node-1")
 
-    row.addTile("tile-4", "tile-1", "column")
+    row.insertTile("tile-4", { splitTileId: "tile-1", direction: "column" })
     expect(row.nodes.size).toBe(3)
     expect(row.tiles.size).toBe(4)
     expect(row.root).toBe("node-1")

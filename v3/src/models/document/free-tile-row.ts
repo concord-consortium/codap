@@ -1,5 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { TileRowModel } from "./tile-row"
+import { ITileInRowOptions, TileRowModel } from "./tile-row"
 
 /*
   Represents the layout of a set of tiles/components with arbitrary rectangular bounds that can
@@ -39,6 +39,15 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
 export interface IFreeTileLayout extends Instance<typeof FreeTileLayout> {}
 export interface IFreeTileLayoutSnapshot extends SnapshotIn<typeof FreeTileLayout> {}
 
+export interface IFreeTileInRowOptions extends ITileInRowOptions {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
+              (options as any)?.x != null && (options as any)?.y != null
+
 /*
   Tiles are represented as a map of layouts and an array of tile ids representing the order.
  */
@@ -51,6 +60,9 @@ export const FreeTileRow = TileRowModel
     order: types.array(types.string)  // tile ids ordered from back to front
   })
   .views(self => ({
+    get acceptDefaultInsert() {
+      return true
+    },
     getNode(tileId: string) {
       return self.tiles.get(tileId)
     },
@@ -63,12 +75,19 @@ export const FreeTileRow = TileRowModel
     // returns tile ids in list/traversal order
     get tileIds() {
       return self.order
+    },
+    get tileCount() {
+      return self.tiles.size
+    },
+    hasTile(tileId: string) {
+      return self.tiles.has(tileId)
     }
   }))
   .actions(self => ({
-    addTile(layout: IFreeTileLayoutSnapshot) {
-      self.tiles.set(layout.tileId, layout)
-      self.order.push(layout.tileId)
+    insertTile(tileId: string, options?: ITileInRowOptions) {
+      const { x = 50, y = 50, width = 400, height = 300 } = isFreeTileInRowOptions(options) ? options : {}
+      self.tiles.set(tileId, { tileId, x, y, width, height })
+      self.order.push(tileId)
     },
     removeTile(tileId: string) {
       const index = self.order.findIndex(id => id === tileId)
@@ -85,3 +104,4 @@ export const FreeTileRow = TileRowModel
       }
     }
   }))
+  export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}

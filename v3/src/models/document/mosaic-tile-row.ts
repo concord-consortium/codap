@@ -1,6 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { uniqueId } from "../../utilities/js-utils"
-import { TileRowModel } from "./tile-row"
+import { ITileInRowOptions, TileRowModel } from "./tile-row"
 
 /*
   Mosaic representation patterned after https://github.com/nomcopter/react-mosaic.
@@ -12,6 +12,13 @@ import { TileRowModel } from "./tile-row"
 
 export const SplitDirections = ["row", "column"] as const
 export type SplitDirection = typeof SplitDirections[number]
+
+export interface IMosaicTileInRowOptions extends ITileInRowOptions {
+  splitTileId?: string
+  direction?: SplitDirection
+}
+export const isMosaicTileInRowOptions = (options?: ITileInRowOptions): options is IMosaicTileInRowOptions =>
+              (options as any)?.splitTileId != null || (options as any)?.direction != null
 
 export const MosaicTileNode = types.model("MosaicTileNode", {
   id: types.optional(types.identifier, () => uniqueId()),
@@ -55,6 +62,12 @@ export const MosaicTileRow = TileRowModel
     },
     getParentNode(tileId: string): TMosaicTileNode | undefined {
       return self.nodes.get(self.tiles.get(tileId) ?? "")
+    },
+    hasTile(tileId: string) {
+      return self.tiles.has(tileId)
+    },
+    get tileCount() {
+      return self.tiles.size
     }
   }))
   .views(self => ({
@@ -80,7 +93,8 @@ export const MosaicTileRow = TileRowModel
   }))
   .actions(self => ({
     // splitTileId is required except for the first tile
-    addTile(newTileId: string, splitTileId?: string, direction: SplitDirection = "row") {
+    insertTile(newTileId: string, options?: IMosaicTileInRowOptions) {
+      const { splitTileId = undefined, direction = "row" } = isMosaicTileInRowOptions(options) ? options : {}
       if (!splitTileId) {
         if (!self.root) {
           self.root = newTileId
@@ -134,3 +148,4 @@ export const MosaicTileRow = TileRowModel
       self.nodes.delete(parentNode.id)
     }
   }))
+export interface IMosaicTileRow extends Instance<typeof MosaicTileRow> {}
