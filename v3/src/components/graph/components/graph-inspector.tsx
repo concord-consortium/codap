@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
@@ -18,7 +18,14 @@ interface IProps {
 }
 
 export const GraphInspector = ({ graphModel, show }: IProps) => {
-  const [showPalette, setShowPalette] = useState<"format" | "measure" | undefined>()
+  const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
+  useEffect(()=>{
+    !show && setShowPalette(undefined)
+  }, [show])
+
+  const handleResize = () => {
+    setShowPalette(undefined)
+  }
 
   const handleRulerButton = () => {
     setShowPalette("measure")
@@ -31,7 +38,7 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
     ? <>
         <InspectorPanel component="graph">
           <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
-            testId={"graph-resize-button"} >
+            testId={"graph-resize-button"} onButtonClick={handleResize}>
             <ScaleDataIcon />
           </InspectorButton>
           <InspectorMenu tooltip={t("DG.Inspector.displayStyles.toolTip")}
@@ -56,9 +63,9 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
           </InspectorButton>
         </InspectorPanel>
         {showPalette === "format" &&
-          <PointFormatPalette graphModel={graphModel} />}
+          <PointFormatPalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
         {showPalette === "measure" &&
-          <GraphMeasurePalette graphModel={graphModel} />}
+          <GraphMeasurePalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
       </>
     : null
   )

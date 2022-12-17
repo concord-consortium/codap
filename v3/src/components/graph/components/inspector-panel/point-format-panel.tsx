@@ -13,10 +13,10 @@ import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
+  setShowPalette: (palette: string | undefined) => void;
 }
 
-export const PointFormatPalette = observer(({graphModel}: IProps) => {
-
+export const PointFormatPalette = observer(({graphModel, setShowPalette}: IProps) => {
   const handlePointSizeMultiplierSetting = (val: any) => {
     graphModel.setPointSizeMultiplier(val)
   }
@@ -42,6 +42,7 @@ export const PointFormatPalette = observer(({graphModel}: IProps) => {
       Icon={<StylesIcon/>}
       buttonLocation={115}
       paletteTop={35}
+      setShowPalette={setShowPalette}
     >
       <Flex className="palette-form" direction="column">
         <FormControl size="xs">

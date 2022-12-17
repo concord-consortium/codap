@@ -9,9 +9,10 @@ import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
+  setShowPalette: (palette: string | undefined) => void
 }
 
-export const GraphMeasurePalette = ({graphModel}: IProps) => {
+export const GraphMeasurePalette = ({graphModel, setShowPalette}: IProps) => {
   const toast = useToast()
 
   const measures = {
@@ -60,6 +61,7 @@ export const GraphMeasurePalette = ({graphModel}: IProps) => {
       Icon={<ValuesIcon />}
       paletteTop={paletteTop}
       buttonLocation={graphModel.plotType === "casePlot" || graphModel.plotType === "dotChart" ? 25 : 75}
+      setShowPalette={setShowPalette}
     >
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
