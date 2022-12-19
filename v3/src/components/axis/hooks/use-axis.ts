@@ -10,6 +10,7 @@ import {between} from "../../../utilities/math-utils"
 import {graphPlaceToAttrRole, transitionDuration} from "../../graph/graphing-types"
 import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
 import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
+import {getCategoricalLabelPlacement} from "../axis-utils"
 
 export interface IUseAxis {
   axisModel?: IAxisModel
@@ -60,11 +61,12 @@ export const useAxis = ({
      * This can occur when labels are centered on the tick, or when they are left-aligned.
      * The former requires computation of two adjacent label widths.
      */
-    const categories = ordinalScale?.domain() ?? [],
+    const narrowedBandwidth = bandWidth - 5,
+      categories = ordinalScale?.domain() ?? [],
       labelWidths = categories.map(category => getLabelBounds(category).width)
     return centerCategoryLabels ? labelWidths.some((width, i) => {
-      return i > 0 && width / 2 + labelWidths[i - 1] / 2 > bandWidth
-    }) : labelWidths.some(width => width > bandWidth)
+      return i > 0 && width / 2 + labelWidths[i - 1] / 2 > narrowedBandwidth
+    }) : labelWidths.some(width => width > narrowedBandwidth)
   }, [bandWidth, centerCategoryLabels, ordinalScale])
 
   const computeDesiredExtent = useCallback(() => {
@@ -80,8 +82,8 @@ export const useAxis = ({
           getLabelBounds(String(ticks[ticks.length - 1])).width) : getLabelBounds().height
         break
       case 'categorical': {
-        const labelExtent = (axisPlace === 'bottom') ? getLabelBounds().height : getLabelBounds().width   
-        desiredExtent += collision ? maxLabelExtent : labelExtent      
+        const labelExtent = (axisPlace === 'bottom') ? getLabelBounds().height : getLabelBounds().width
+        desiredExtent += collision ? maxLabelExtent : labelExtent
         break
       }
     }
@@ -122,10 +124,11 @@ export const useAxis = ({
       },
 
       drawCategoricalAxis = () => {
-        const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0
-
-        const textHeight = getLabelBounds().height,
+        const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
+          textHeight = getLabelBounds().height,
           collision = collisionExists()
+        const {translation, rotation, textAnchor } = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
+          collision, bandWidth, textHeight)
         select(axisElt)
           .attr("transform", initialTransform)
           // @ts-expect-error types are incompatible
@@ -139,68 +142,6 @@ export const useAxis = ({
             `${axisIsVertical ? bandWidth / 2 : 0})`)
           .call(axis(scale).tickSizeInner(-tickLength))
           .selectAll('.domain').remove()
-        let translation = '', rotation = '', textAnchor = 'none'
-        switch (axisPlace) {
-          case 'left':
-            switch (centerCategoryLabels) {
-              case true:
-                switch (collision) {
-                  case true:
-                    translation = `translate(0, ${-bandWidth / 2})`
-                    textAnchor = 'end'
-                    break
-                  case false:
-                    translation = `translate(${-textHeight / 2}, ${-bandWidth / 2})`
-                    rotation = `rotate(-90)`
-                    textAnchor = 'middle'
-                    break
-                }
-                break
-              case false:
-                switch (collision) {
-                  case true:
-                    translation = `translate(0, ${-textHeight / 2})`
-                    textAnchor = 'end'
-                    break
-                  case false:
-                    translation = `translate(${-textHeight / 2}, 0)`
-                    rotation = `rotate(-90)`
-                    textAnchor = 'start'
-                    break
-                }
-                break
-            }
-            break
-          case 'bottom':
-            switch (centerCategoryLabels) {
-              case true:
-                switch (collision) {
-                  case true:
-                    translation = `translate(${-bandWidth / 2 - textHeight / 2}, ${textHeight / 3})`
-                    rotation = `rotate(-90)`
-                    textAnchor = 'end'
-                    break
-                  case false:
-                    translation = `translate(${-bandWidth / 2}, 0)`
-                    textAnchor = 'middle'
-                    break
-                }
-                break
-              case false:
-                translation = `translate(${-bandWidth}, ${textHeight / 3})`
-                switch (collision) {
-                  case true:
-                    rotation = `rotate(-90)`
-                    textAnchor = 'end'
-                    break
-                  case false:
-                    textAnchor = 'start'
-                    break
-                }
-                break
-            }
-            break
-        }
         select(axisElt).selectAll('text')
           .style('text-anchor', textAnchor)
           .attr('transform', `${translation}${rotation}`)
