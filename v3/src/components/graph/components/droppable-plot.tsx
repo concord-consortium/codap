@@ -1,5 +1,5 @@
 import { Active } from "@dnd-kit/core"
-import React from "react"
+import React,  { useMemo} from "react"
 import { getDragAttributeId, useDropHandler } from "../../../hooks/use-drag-drop"
 import { useDropHintString } from "../../../hooks/use-drop-hint-string"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
@@ -12,14 +12,15 @@ interface IProps {
   plotElt: SVGGElement | null
   onDropAttribute: (place: GraphPlace, attrId: string) => void
 }
+
+const handleIsActive = (active: Active) => !!getDragAttributeId(active)
+
 export const DroppablePlot = ({ graphElt, plotElt, onDropAttribute }: IProps) => {
   const instanceId = useInstanceIdContext()
   const dataConfig = useDataConfigurationContext()
   const droppableId = `${instanceId}-plot-area-drop`
   const role = dataConfig?.noAttributesAssigned ? 'x' : 'legend'
   const hintString = useDropHintString({ role })
-
-  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
   useDropHandler(droppableId, active => {
     const dragAttributeID = getDragAttributeId(active)
