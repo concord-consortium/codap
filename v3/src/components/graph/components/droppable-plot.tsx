@@ -1,11 +1,11 @@
-import { Active } from "@dnd-kit/core"
-import React,  { useMemo} from "react"
-import { getDragAttributeId, useDropHandler } from "../../../hooks/use-drag-drop"
-import { useDropHintString } from "../../../hooks/use-drop-hint-string"
-import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
-import { GraphPlace } from "../graphing-types"
-import { DroppableSvg } from "./droppable-svg"
-import { useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {Active} from "@dnd-kit/core"
+import React, {memo} from "react"
+import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
+import {useDropHintString} from "../../../hooks/use-drop-hint-string"
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {GraphPlace} from "../graphing-types"
+import {DroppableSvg} from "./droppable-svg"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 
 interface IProps {
   graphElt: HTMLDivElement | null
@@ -15,7 +15,7 @@ interface IProps {
 
 const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
-export const DroppablePlot = ({ graphElt, plotElt, onDropAttribute }: IProps) => {
+const _DroppablePlot = ({ graphElt, plotElt, onDropAttribute }: IProps) => {
   const instanceId = useInstanceIdContext()
   const dataConfig = useDataConfigurationContext()
   const droppableId = `${instanceId}-plot-area-drop`
@@ -38,3 +38,4 @@ export const DroppablePlot = ({ graphElt, plotElt, onDropAttribute }: IProps) =>
     />
   )
 }
+export const DroppablePlot = memo(_DroppablePlot)
