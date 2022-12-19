@@ -28,6 +28,8 @@ interface IProps {
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
+const handleIsActive = (active: Active) => !!getDragAttributeId(active)
+
 export const Axis = ({
                        parentSelector, label, getAxisModel, showScatterPlotGridLines = false,
                        centerCategoryLabels = true, onDropAttribute, enableAnimation, onTreatAttributeAs
@@ -49,8 +51,6 @@ export const Axis = ({
     axisModel, axisElt, label, enableAnimation, showScatterPlotGridLines, centerCategoryLabels,
     titleRef
   })
-
-  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
   useDropHandler(droppableId, active => {
     const droppedAttrId = getDragAttributeId(active)
