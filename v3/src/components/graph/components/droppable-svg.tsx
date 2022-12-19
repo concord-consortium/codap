@@ -1,5 +1,5 @@
 import { Active, useDroppable } from "@dnd-kit/core"
-import React, { CSSProperties } from "react"
+import React, { CSSProperties, memo } from "react"
 import { createPortal } from "react-dom"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { DropHint } from "./drop-hint"
@@ -14,7 +14,8 @@ interface IProps {
   onIsActive?: (active: Active) => boolean
   hintString?: string
 }
-export const DroppableSvg = ({
+
+const _DroppableSvg = ({
     className, portal, target, dropId, onIsActive, hintString }: IProps) => {
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
@@ -31,3 +32,4 @@ export const DroppableSvg = ({
     portal
   )
 }
+export const DroppableSvg = memo(_DroppableSvg)
