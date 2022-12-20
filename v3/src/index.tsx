@@ -1,3 +1,6 @@
+// https://www.npmjs.com/package/@welldone-software/why-did-you-render
+// uncomment the line below to enable why-did-you-render (for development only)
+// import "../wdyr.ts"
 import { ChakraProvider } from '@chakra-ui/react'
 import React from "react"
 import { createRoot } from "react-dom/client"
