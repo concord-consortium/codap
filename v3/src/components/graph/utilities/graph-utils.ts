@@ -7,7 +7,8 @@ import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {Bounds} from "../models/graph-layout"
-import { defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity,
+import {
+  defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity,
   defaultSelectedStrokeWidth, defaultStrokeOpacity, defaultStrokeWidth
 } from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
@@ -156,7 +157,13 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .style('stroke-width', defaultStrokeWidth)
       }
     )
-  select(dotsElement).on('click')
+  select(dotsElement).on('click',
+    (event: MouseEvent) => {
+      const target = select(event.target as SVGSVGElement)
+      if (target.node()?.nodeName === 'circle') {
+        handleClickOnDot(event, target.property('id'), props.dataset)
+      }
+    })
 
 }
 

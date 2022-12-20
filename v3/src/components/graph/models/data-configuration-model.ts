@@ -71,6 +71,9 @@ export const DataConfigurationModel = types
     clearCategorySets() {
       self.categorySets.clear()
     },
+    setCategorySetForRole(role: GraphAttrRole, set: Set<string> | null) {
+      self.categorySets.set(role, set)
+    }
   }))
   .views(self => ({
     filterCase(data: IDataSet, caseID: string) {
@@ -187,7 +190,7 @@ export const DataConfigurationModel = types
           if (result.size === 0) {
             result.add('__main__')
           }
-          self.categorySets.set(role, result)
+          self.setCategorySetForRole(role, result)
           return result
         }
       }
