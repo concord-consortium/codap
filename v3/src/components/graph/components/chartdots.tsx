@@ -178,7 +178,7 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
 
     setPoints()
   }, [dataConfiguration, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
-    enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
+    enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace, pointStrokeColor,
     computeMaxOverAllCells, primaryAttrID, secondaryAttrID, dataset, secondaryScale])
 
   usePlotResponders({

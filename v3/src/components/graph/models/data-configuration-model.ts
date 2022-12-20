@@ -71,7 +71,7 @@ export const DataConfigurationModel = types
     clearCategorySets() {
       self.categorySets.clear()
     },
-    setCategorySetResultForRole(role: GraphAttrRole, set: Set<string> | null) {
+    setCategorySetForRole(role: GraphAttrRole, set: Set<string> | null) {
       self.categorySets.set(role, set)
     }
   }))
@@ -190,7 +190,7 @@ export const DataConfigurationModel = types
           if (result.size === 0) {
             result.add('__main__')
           }
-          self.setCategorySetResultForRole(role, result)
+          self.setCategorySetForRole(role, result)
           return result
         }
       }
