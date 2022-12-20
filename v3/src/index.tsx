@@ -1,4 +1,4 @@
-// https://www.npmjs.com/package/@welldone-software/why-did-you-render
+// https://github.com/welldone-software/why-did-you-render#options
 // uncomment the line below to enable why-did-you-render (for development only)
 // import "../wdyr.ts"
 import { ChakraProvider } from '@chakra-ui/react'
