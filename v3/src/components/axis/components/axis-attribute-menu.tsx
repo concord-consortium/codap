@@ -31,7 +31,9 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, on
 
   if (!attrId && place === "bottom"){
     buttonStyles.top = plotHeight + 4
-    buttonStyles.left = ( plotWidth * .5 ) - 8 // ~ width of y scale
+    // TODO - below needs better calculation because string lengths vary with language
+    // and container width varies with the left place attribute
+    buttonStyles.left = ( plotWidth * .5 ) - 60
   }
 
   const toggleMenu = () => setChakraIsOpen(!chakraIsOpen)
