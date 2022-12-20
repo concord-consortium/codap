@@ -17,6 +17,8 @@ interface ILegendProps {
   onDropAttribute: (place: any, attrId: string) => void
 }
 
+const handleIsActive = (active: Active) => !!getDragAttributeId(active)
+
 export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttribute}: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
@@ -28,8 +30,6 @@ export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttrib
     role = 'legend' as GraphAttrRole,
     hintString = useDropHintString({role}),
     attributeIDs = useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
-
-  const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
   useDropHandler(droppableId, active => {
     const dragAttributeID = getDragAttributeId(active)
