@@ -127,8 +127,10 @@ export const useAxis = ({
         const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
           textHeight = getLabelBounds().height,
           collision = collisionExists()
-        const {translation, rotation, textAnchor } = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
-          collision, bandWidth, textHeight)
+        const {translation, rotation, textAnchor } = getCategoricalLabelPlacement({
+          axisPlace, centerCategoryLabels,
+          collision, bandWidth, textHeight
+        })
         select(axisElt)
           .attr("transform", initialTransform)
           // @ts-expect-error types are incompatible

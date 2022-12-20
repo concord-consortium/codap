@@ -1,8 +1,15 @@
 import {AxisPlace} from "./axis-types"
 
+interface ICategoricalLabelProps {
+  axisPlace: AxisPlace,
+  centerCategoryLabels: boolean,
+  collision: boolean,
+  bandWidth: number,
+  textHeight: number
+}
 
-export const getCategoricalLabelPlacement = (
-  axisPlace: AxisPlace, centerCategoryLabels: boolean, collision: boolean, bandWidth: number, textHeight: number) => {
+export const getCategoricalLabelPlacement = (props:ICategoricalLabelProps) => {
+  const {axisPlace, centerCategoryLabels, collision, bandWidth, textHeight} = props
   let translation = '', rotation = '', textAnchor = 'none'
   switch (axisPlace) {
     case 'left':
