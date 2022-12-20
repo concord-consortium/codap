@@ -7,13 +7,18 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
-import {defaultSelectedColor} from "../../../utilities/color-utils"
+import {
+  defaultSelectedColor,
+  defaultSelectedStroke,
+  defaultSelectedStrokeWidth,
+  defaultStrokeWidth
+} from "../../../utilities/color-utils"
 
 type BinMap = Record<string, Record<string, number>>
 
 export const ChartDots = memo(function ChartDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
-    graphModel= useGraphModelContext(),
+    graphModel = useGraphModelContext(),
     {pointColor, pointStrokeColor} = graphModel,
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
@@ -26,7 +31,6 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
       primaryAttrRole === 'y' ? 'x' : undefined,
     secondaryAxisPlace = secondaryAttrRole ? attrRoleToAxisPlace[secondaryAttrRole] : undefined,
     secondaryAttrID = secondaryAttrRole ? dataConfiguration?.attributeID(secondaryAttrRole) : '',
-    legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = primaryAxisPlace ? layout.getAxisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
     secondaryScale = secondaryAxisPlace ? layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
 
@@ -55,7 +59,8 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
   }, [dataset, dataConfiguration?.cases, primaryAttrID, secondaryAttrID])
 
   const refreshPointSelection = useCallback(() => {
-    dataConfiguration && setPointSelection({ pointColor, pointStrokeColor, dotsRef, dataConfiguration,
+    dataConfiguration && setPointSelection({
+      pointColor, pointStrokeColor, dotsRef, dataConfiguration,
       pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select')
     })
   }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
@@ -73,6 +78,7 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
       primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth() :
         (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
       categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {},
+      legendAttrID = dataConfiguration?.attributeID('legend'),
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     const computeCellParams = () => {
@@ -135,12 +141,14 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
       setPoints = () => {
         const duration = enableAnimation.current ? transitionDuration : 0,
           plotBounds = layout.computedBounds.get('plot') as Bounds,
-          transform = `translate(${plotBounds.left}, ${plotBounds.top})`
+          transform = `translate(${plotBounds.left}, ${plotBounds.top})`,
+          pointRadius = graphModel.getPointRadius()
         selection
           .attr('transform', transform)
           .transition()
           .duration(duration)
           .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
+          .attr('r', pointRadius)
           .attr(primaryCenterKey, (anID: string) => {
             if (cellIndices[anID]) {
               const {column} = cellIndices[anID],
@@ -162,16 +170,20 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
             }
           })
           .style('fill', (anID: string) => lookupLegendColor(anID))
+          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+            defaultSelectedStroke : pointStrokeColor)
+          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
+            defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
 
     setPoints()
   }, [dataConfiguration, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
     enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace,
-    computeMaxOverAllCells, primaryAttrID, secondaryAttrID, legendAttrID, dataset, secondaryScale])
+    computeMaxOverAllCells, primaryAttrID, secondaryAttrID, dataset, secondaryScale])
 
   usePlotResponders({
     graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
-    primaryAttrID, secondaryAttrID, legendAttrID
+    primaryAttrID, secondaryAttrID, legendAttrID:dataConfiguration?.attributeID('legend')
   })
 
   return (
