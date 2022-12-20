@@ -1,6 +1,6 @@
 
 import { IAnyStateTreeNode, types } from "mobx-state-tree"
-import { kUnknownSharedModel, SharedModel, SharedModelType } from "./shared-model"
+import { kUnknownSharedModel, SharedModel, ISharedModel } from "./shared-model"
 import { getSharedModelClasses, getSharedModelInfoByType } from "./shared-model-registry"
 
 export function sharedModelFactory(snapshot: any) {
@@ -96,7 +96,7 @@ export interface ISharedModelManager {
    * @param sharedModel the new or existing shared model that is going to be
    * used by this tile.
    */
-  addTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: SharedModelType, isProvider?: boolean): void;
+  addTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: ISharedModel, isProvider?: boolean): void;
 
   /**
    * Remove the link from the shared model to the tile.
@@ -106,26 +106,26 @@ export interface ISharedModelManager {
    *
    * @param sharedModel an existing shared model
    */
-  removeTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: SharedModelType): void;
+  removeTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: ISharedModel): void;
 
   /**
    * Get all of the shared models that link to this tile
    *
    * @param tileContentModel
    */
-  getTileSharedModels(tileContentModel: IAnyStateTreeNode): SharedModelType[];
+  getTileSharedModels(tileContentModel: IAnyStateTreeNode): ISharedModel[];
 
   /**
    * Get the tiles that link to this shared model
    *
    * @param sharedModel
    */
-  getSharedModelTiles(sharedModel?: SharedModelType): IAnyStateTreeNode[];
+  getSharedModelTiles(sharedModel?: ISharedModel): IAnyStateTreeNode[];
 
   /**
    * Get the ids of the tiles that link to this shared model
    *
    * @param sharedModel
    */
-  getSharedModelTileIds(sharedModel?: SharedModelType): string[];
+  getSharedModelTileIds(sharedModel?: ISharedModel): string[];
 }

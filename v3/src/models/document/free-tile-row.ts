@@ -63,6 +63,9 @@ export const FreeTileRow = TileRowModel
     get acceptDefaultInsert() {
       return true
     },
+    get removeWhenEmpty() {
+      return false
+    },
     getNode(tileId: string) {
       return self.tiles.get(tileId)
     },

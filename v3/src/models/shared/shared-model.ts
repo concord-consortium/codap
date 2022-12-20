@@ -38,5 +38,4 @@ export const SharedModel = types.model("SharedModel", {
     self.indexOfType = index
   }
 }))
-
-export interface SharedModelType extends Instance<typeof SharedModel> {}
+export interface ISharedModel extends Instance<typeof SharedModel> {}

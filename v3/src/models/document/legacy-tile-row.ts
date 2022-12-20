@@ -42,6 +42,9 @@ export const LegacyTileRowModel = TileRowModel
     tiles: types.array(LegacyTileLayoutModel)
   })
   .views(self => ({
+    get removeWhenEmpty() {
+      return true
+    },
     get isEmpty() {
       return (self.tiles.length === 0) && !self.isSectionHeader
     },
@@ -52,7 +55,7 @@ export const LegacyTileRowModel = TileRowModel
       return !self.isSectionHeader && self.tiles.some(tileRef => tileRef.isUserResizable)
     },
     get tileIds() {
-      return self.tiles.map(tile => tile.tileId).join(", ")
+      return self.tiles.map(tile => tile.tileId)
     },
     acceptTileDrop(rowInfo: IDropRowInfo) {
       const rowDropLocation = rowInfo.rowDropLocation

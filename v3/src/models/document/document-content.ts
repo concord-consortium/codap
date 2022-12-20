@@ -1,5 +1,5 @@
 import { getType, Instance, types } from "mobx-state-tree"
-import { SharedModel } from "../shared/shared-model"
+import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { SharedModelUnion } from "../shared/shared-model-manager"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
 import { ITileModel, TileModel } from "../tiles/tile-model"
@@ -46,7 +46,7 @@ export const DocumentContentModel = types
       return self.tileMap.size === 0
     },
     getTile(tileId: string) {
-      return tileId ? self.tileMap.get(tileId) : undefined
+      return tileId && self.tileMap.has(tileId) ? self.tileMap.get(tileId) : undefined
     },
     get rowCount() {
       return self.rowOrder.length
@@ -55,7 +55,7 @@ export const DocumentContentModel = types
       return self.rowMap.get(rowId)
     },
     getRowByIndex(index: number): ITileRowModelUnion | undefined {
-      return self.rowMap.get(self.rowOrder[index])
+      return index < self.rowOrder.length ? self.rowMap.get(self.rowOrder[index]) : undefined
     },
     getRowIndex(rowId: string) {
       return self.rowOrder.findIndex(_rowId => _rowId === rowId)
@@ -112,7 +112,7 @@ export const DocumentContentModel = types
         const row = self.getRowByIndex(i)
         if (row?.acceptDefaultInsert) return i
         if (row && !row.isSectionHeader) {
-          return i
+          return i + 1
         }
       }
       // if all else fails, revert to last visible row
@@ -120,29 +120,37 @@ export const DocumentContentModel = types
     },
   }))
   .actions(self => ({
-    insertRow(row: ITileRowModelUnion, index?: number) {
+    insertRow(row: ITileRowModelUnion, rowIndex?: number) {
       self.rowMap.put(row)
-      if ((index != null) && (index < self.rowOrder.length)) {
-        self.rowOrder.splice(index, 0, row.id)
+      if ((rowIndex != null) && (rowIndex < self.rowOrder.length)) {
+        self.rowOrder.splice(rowIndex, 0, row.id)
       }
       else {
         self.rowOrder.push(row.id)
       }
     },
-    deleteRow(rowId: string) {
-      self.rowOrder.remove(rowId)
-      self.rowMap.delete(rowId)
-    },
-    insertNewTileInRow(tile: ITileModel, row: ITileRowModelUnion, options?: ITileInRowOptions) {
+    insertTileInRow(tile: ITileModel, row: ITileRowModelUnion, options?: ITileInRowOptions) {
       row.insertTile(tile.id, options)
       self.tileMap.put(tile)
     },
+    setVisibleRows(rows: string[]) {
+      self.visibleRows = rows
+    }
+  }))
+  .actions(self => ({
+    deleteRow(rowId: string) {
+      self.rowOrder.remove(rowId)
+      self.rowMap.delete(rowId)
+      self.setVisibleRows(self.visibleRows.filter(id => id !== rowId))
+    },
+  }))
+  .actions(self => ({
     deleteTile(tileId: string) {
       const rowId = self.findRowIdContainingTile(tileId)
       const row = rowId ? self.rowMap.get(rowId) : undefined
       row?.removeTile(tileId)
       if (row?.isEmpty && row.removeWhenEmpty) {
-        self.rowMap.delete(row.id)
+        self.deleteRow(row.id)
       }
       self.tileMap.delete(tileId)
     },
@@ -152,8 +160,24 @@ export const DocumentContentModel = types
           row.removeTile(tileId)
           self.tileMap.delete(tileId)
         })
-    },
-    setVisibleRows(rows: string[]) {
-      self.visibleRows = rows
+      if (row?.isEmpty && row.removeWhenEmpty) {
+        self.deleteRow(row.id)
+      }
     }
   }))
+  .actions(self => ({
+    addSharedModel(sharedModel: ISharedModel) {
+      // we make sure there isn't an entry already otherwise adding a shared
+      // model twice would clobber the existing entry.
+      let sharedModelEntry = self.sharedModelMap.get(sharedModel.id)
+
+      if (!sharedModelEntry) {
+        sharedModelEntry = SharedModelEntry.create({sharedModel})
+        self.sharedModelMap.set(sharedModel.id, sharedModelEntry)
+      }
+
+      return sharedModelEntry
+    },
+
+  }))
+export interface IDocumentContentModel extends Instance<typeof DocumentContentModel> {}
