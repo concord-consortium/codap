@@ -6,7 +6,7 @@ import { useGraphLayoutContext } from "../../graph/models/graph-layout"
 import t from "../../../utilities/translation/translate"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { useDataConfigurationContext } from "../../graph/hooks/use-data-configuration-context"
-import { useCodapOutsideClick } from "../../../hooks/use-codap-outside-click"
+import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 
 interface IProps {
   place: GraphPlace,
@@ -27,7 +27,7 @@ const _AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatA
   const overlayBounds = useOverlayBounds({target, portal})
   const buttonStyles: CSSProperties = { position: "absolute", color: "transparent" }
   const menu = useRef<HTMLDivElement>(null)
-  const [chakraIsOpen, setChakraIsOpen] = useState(false)
+  const [menuIsOpen, setMenuIsOpen] = useState(false)
 
   if (!attrId && place === "bottom"){
     buttonStyles.top = plotHeight + 4
@@ -36,13 +36,13 @@ const _AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatA
     buttonStyles.left = ( plotWidth * .5 ) - 60
   }
 
-  const toggleMenu = () => setChakraIsOpen(!chakraIsOpen)
+  const toggleMenu = () => setMenuIsOpen(!menuIsOpen)
 
-  useCodapOutsideClick({ref: menu, handler: () => setChakraIsOpen(false)})
+  useOutsidePointerDown({ref: menu, handler: () => setMenuIsOpen(false)})
 
   return (
     <div className="axis-attribute-menu" ref={menu}>
-      <Menu isOpen={chakraIsOpen}>
+      <Menu isOpen={menuIsOpen}>
         <MenuButton onClick={toggleMenu} style={{ ...overlayBounds, ...buttonStyles }}>{attribute?.name}</MenuButton>
         <MenuList onClick={toggleMenu}>
           { data?.attributes?.map((attr) => {
