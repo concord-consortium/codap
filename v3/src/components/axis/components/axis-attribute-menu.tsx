@@ -1,5 +1,5 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
-import React, { CSSProperties, useRef, useState } from "react"
+import React, { CSSProperties, useRef, useState, memo } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { GraphPlace } from "../../graph/graphing-types"
 import { useGraphLayoutContext } from "../../graph/models/graph-layout"
@@ -16,7 +16,7 @@ interface IProps {
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps ) => {
+const _AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps ) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
   const { plotWidth, plotHeight } = useGraphLayoutContext()
@@ -74,3 +74,4 @@ export const AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, on
     </div>
   )
 }
+export const AxisAttributeMenu = memo(_AxisAttributeMenu)
