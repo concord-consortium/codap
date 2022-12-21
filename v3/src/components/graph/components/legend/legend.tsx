@@ -10,6 +10,8 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {GraphAttrRole} from "../../graphing-types"
+import { createPortal } from "react-dom"
+import { LegendAttributeMenu } from "./legend-attribute-menu"
 
 interface ILegendProps {
   legendAttrID: string
@@ -42,6 +44,13 @@ export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttrib
   return legendAttrID ? (
     <>
       <svg ref={legendRef} className='legend'>
+        { graphElt && createPortal(
+            <LegendAttributeMenu
+              target={legendLabelRef.current}
+              portal={graphElt}
+            />,
+          graphElt)
+        }
         <AttributeLabel
           ref={legendLabelRef}
           transform={transform}
