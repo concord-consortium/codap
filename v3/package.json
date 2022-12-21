@@ -97,6 +97,7 @@
     "@types/rtree": "^1.4.28",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
     "@typescript-eslint/parser": "^5.41.0",
+    "@welldone-software/why-did-you-render": "^7.0.1",
     "autoprefixer": "^10.4.12",
     "caniuse-lite": "^1.0.30001425",
     "clean-webpack-plugin": "^4.0.0",
