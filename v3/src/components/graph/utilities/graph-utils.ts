@@ -342,7 +342,7 @@ export function rectToTreeRect(rect: Rect) {
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
                                attrID: string, scale: ScaleNumericBaseType) {
   const value = dataSet?.getNumeric(id, attrID)
-  return value != null && !isNaN(value) ? /*Math.round(100 * */scale(value)/*) / 100*/ : null
+  return value != null && !isNaN(value) ? scale(value) : null
 }
 
 export interface ISetPointSelection {
