@@ -120,7 +120,7 @@ export const DataConfigurationModel = types
       if (affectedAttrIDs) {
         self.attributeDescriptions.forEach((desc, key: GraphAttrRole) => {
           if (affectedAttrIDs.includes(desc.attributeID)) {
-            self.categorySets.set(key, null)
+            self.setCategorySetForRole(key, null)
           }
         })
       } else {

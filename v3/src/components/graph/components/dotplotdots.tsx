@@ -201,6 +201,6 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
   })
 
   return (
-    <svg/>
+    <></>
   )
 }))
