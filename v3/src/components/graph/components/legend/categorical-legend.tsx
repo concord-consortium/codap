@@ -1,11 +1,12 @@
 import {reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
-import {range, select, selection} from "d3"
+import {range, select} from "d3"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
+import {measureText} from "../../../../hooks/use-measure-text"
 
 import './legend.scss'
 
@@ -58,10 +59,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       lod.fullWidth = layout.getAxisLength('bottom')
       lod.maxWidth = 0
       categoriesRef.current?.forEach(cat => {
-        const text = selection().append('text').attr('y', 500).text(cat),
-          width = text.node()?.getBoundingClientRect()?.width
-        lod.maxWidth = Math.max(lod.maxWidth, width ?? 0)
-        text.remove()
+        lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, '12px sans-serif'))
       })
       lod.maxWidth += keySize + padding
       lod.numColumns = Math.floor(lod.fullWidth / lod.maxWidth)

@@ -1,4 +1,4 @@
-import {extent, format, select, selection} from "d3"
+import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
 import {Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
@@ -12,18 +12,17 @@ import {
   defaultSelectedStrokeWidth, defaultStrokeOpacity, defaultStrokeWidth
 } from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
+import {measureText} from "../../../hooks/use-measure-text"
 
 /**
  * Utility routines having to do with graph entities
  */
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
-  const text = selection().append('svg').append('text').style('font', '12px sans-serif')
   let maxWidth = 0
   for (const aString of strings) {
-    maxWidth = Math.max(maxWidth, text.text(aString).node()?.getComputedTextLength() ?? 0)
+    maxWidth = Math.max(maxWidth, measureText(aString, '12px sans-serif'))
   }
-  text.remove()
   return maxWidth
 }
 

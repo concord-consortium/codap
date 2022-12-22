@@ -1,6 +1,5 @@
 import {
-  axisBottom, axisLeft, ScaleBand, scaleLinear, scaleLog, scaleOrdinal, select, selection
-} from "d3"
+  axisBottom, axisLeft, ScaleBand, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {AxisBounds, axisGap, isVertical, ScaleNumericBaseType} from "../axis-types"
@@ -11,6 +10,7 @@ import {graphPlaceToAttrRole, transitionDuration} from "../../graph/graphing-typ
 import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
 import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 import {getCategoricalLabelPlacement} from "../axis-utils"
+import {measureTextExtent} from "../../../hooks/use-measure-text"
 
 export interface IUseAxis {
   axisModel?: IAxisModel
@@ -49,11 +49,7 @@ export const useAxis = ({
   previousAxisModel.current = axisModel
 
   const getLabelBounds = (s = 'Wy') => {
-    const textElement = selection().append('text').attr('y', 500)
-        .style('font', '12px sans-serif'),
-      bounds = textElement.text(s).node()?.getBoundingClientRect() || {left: 0, top: 0, width: 100, height: 20}
-    textElement.remove()
-    return bounds
+      return measureTextExtent(s, '12px sans-serif')
   }
 
   const collisionExists = useCallback(() => {
@@ -73,16 +69,19 @@ export const useAxis = ({
     const labelHeight = getLabelBounds(label).height,
       collision = collisionExists(),
       maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categorySetForAttrRole(attrRole) ?? [])
-    let ticks: number[] = []
     let desiredExtent = labelHeight + 2 * axisGap
+    let ticks: string[] = []
     switch (type) {
-      case 'numeric':
-        ticks = (scale.ticks?.()) ?? []
-        desiredExtent += axisPlace === 'left' ? Math.max(getLabelBounds(String(ticks[0])).width,
-          getLabelBounds(String(ticks[ticks.length - 1])).width) : getLabelBounds().height
+      case 'numeric': {
+        const format = scale.tickFormat && scale.tickFormat()
+        ticks = ((scale.ticks?.()) ?? []).map(tick => format(tick))
+        desiredExtent += axisPlace === 'left' ?
+          Math.max(getLabelBounds(ticks[0]).width, getLabelBounds(ticks[ticks.length - 1]).width) + axisGap :
+          labelHeight
         break
+      }
       case 'categorical': {
-        const labelExtent = (axisPlace === 'bottom') ? getLabelBounds().height : getLabelBounds().width
+        const labelExtent = (axisPlace === 'bottom') ? labelHeight : getLabelBounds().width
         desiredExtent += collision ? maxLabelExtent : labelExtent
         break
       }
