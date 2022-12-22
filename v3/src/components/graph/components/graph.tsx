@@ -1,4 +1,3 @@
-import {select} from "d3"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
@@ -43,27 +42,14 @@ export const Graph = observer((
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    bottomAxisHeight = layout.getAxisBounds('bottom')?.height ?? 0,
-    xScale = layout.getAxisScale("bottom"),
     svgRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
-    plotAreaSVGRef = useRef<SVGSVGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   const graphController = useGraphController({graphModel, enableAnimation, dotsRef})
-
-  useEffect(function setupPlotArea() {
-    if (xScale && xScale?.range().length > 0) {
-      select(plotAreaSVGRef.current)
-        .attr('x', xScale?.range()[0])
-        .attr('y', 0)
-        .attr('width', layout.plotWidth)
-        .attr('height', layout.plotHeight)
-    }
-  }, [layout.plotHeight, layout.plotWidth, xScale, bottomAxisHeight])
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
@@ -130,12 +116,10 @@ export const Graph = observer((
                      onTreatAttributeAs={handleTreatAttrAs}
           />
 
-          <svg ref={plotAreaSVGRef} className='graph-dot-area'>
-            <svg ref={dotsRef}>
+            <svg ref={dotsRef} className='graph-dot-area'>
               {getPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>
-          </svg>
 
           <DroppablePlot
             graphElt={graphRef.current}
