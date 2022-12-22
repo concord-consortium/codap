@@ -20,13 +20,14 @@ export const LegendAttributeMenu = ({ target, portal }: IProps) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
   const attrId = dataConfig?.attributeID("legend")
+  const attribute = attrId ? data?.attrFromID(attrId) : null
+  const treatAs = dataConfig?.attributeType("legend") === "numeric" ? "categorical" : "numeric"
   const menu = useRef<HTMLDivElement>(null)
   const [menuIsOpen, setMenuIsOpen] = useState(false)
 
   const overlayBounds = useOverlayBounds({target, portal})
 
   const toggleMenu = () => {
-    console.log("toggle the legend attr menu")
     setMenuIsOpen(!menuIsOpen)
   }
 
@@ -36,9 +37,26 @@ export const LegendAttributeMenu = ({ target, portal }: IProps) => {
     <div className="legend-attribute-menu">
       <Menu isOpen={menuIsOpen}>
         <MenuButton onClick={toggleMenu} style={{ ...overlayBounds, ...buttonStyles }}></MenuButton>
-        <MenuList onClick={toggleMenu}>
-          <MenuItem>foo</MenuItem>
-          <MenuItem>Bar</MenuItem>
+        <MenuList onClick={()=> setMenuIsOpen(false)}>
+        { data?.attributes?.map((attr) => {
+            return (
+              <MenuItem key={attr.id}>
+                {attr.name}
+              </MenuItem>
+            )
+          })}
+          { attribute &&
+            <>
+              <MenuDivider />
+              <MenuItem>
+                {t("DG.DataDisplayMenu.removeAttribute_legend", {vars: [attribute?.name]})}
+              </MenuItem>
+              <MenuItem>
+                {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
+                {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
+              </MenuItem>
+            </>
+          }
         </MenuList>
       </Menu>
     </div>

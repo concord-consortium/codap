@@ -44,7 +44,7 @@ const _AxisAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatA
     <div className="axis-attribute-menu" ref={menu}>
       <Menu isOpen={menuIsOpen}>
         <MenuButton onClick={toggleMenu} style={{ ...overlayBounds, ...buttonStyles }}>{attribute?.name}</MenuButton>
-        <MenuList onClick={toggleMenu}>
+        <MenuList onClick={()=> setMenuIsOpen(false)}>
           { data?.attributes?.map((attr) => {
             return (
               <MenuItem onClick={() => onChangeAttribute(place, attr.id)} key={attr.id}>
