@@ -9,15 +9,14 @@ import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
-import {GraphAttrRole} from "../../graphing-types"
-import { createPortal } from "react-dom"
-import { LegendAttributeMenu } from "./legend-attribute-menu"
-
+import {GraphAttrRole, GraphPlace} from "../../graphing-types"
+import {createPortal} from "react-dom"
+import {LegendAttributeMenu} from "./legend-attribute-menu"
 interface ILegendProps {
   legendAttrID: string
   graphElt: HTMLDivElement | null
-  onDropAttribute: (place: any, attrId: string) => void
-  onTreatAttributeAs: (place: any, attrId: string, treatAs: string) => void
+  onDropAttribute: (place: GraphPlace, attrId: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 const handleIsActive = (active: Active) => !!getDragAttributeId(active)

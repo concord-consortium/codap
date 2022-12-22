@@ -5,17 +5,17 @@ import { useOverlayBounds } from "../../../../hooks/use-overlay-bounds"
 import { useOutsidePointerDown } from "../../../../hooks/use-outside-pointer-down"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { useDataSetContext } from "../../../../hooks/use-data-set-context"
+import { GraphPlace } from "../../graphing-types"
 
 interface IProps {
   target: SVGGElement | null
   portal: HTMLElement | null
-  onChangeAttribute: (place: any, attrId: string) => void
-  onTreatAttributeAs: (place: any, attrId: string, treatAs: string) => void
+  onChangeAttribute: (place: GraphPlace, attrId: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 const buttonStyles: CSSProperties = {
   position: "absolute",
-  backgroundColor: "rgba(100, 220, 120, .8)",// temporary
   color: "transparent"
 }
 
@@ -68,5 +68,4 @@ const _LegendAttributeMenu = ({ target, portal, onChangeAttribute, onTreatAttrib
     </div>
   )
 }
-
 export const LegendAttributeMenu = memo(_LegendAttributeMenu)
