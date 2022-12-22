@@ -17,11 +17,14 @@ interface ILegendProps {
   legendAttrID: string
   graphElt: HTMLDivElement | null
   onDropAttribute: (place: any, attrId: string) => void
+  onTreatAttributeAs: (place: any, attrId: string, treatAs: string) => void
 }
 
 const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
-export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttribute}: ILegendProps) {
+export const Legend = memo(function Legend({
+    legendAttrID, graphElt, onDropAttribute, onTreatAttributeAs
+}: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
@@ -49,6 +52,7 @@ export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttrib
               target={legendLabelRef.current}
               portal={graphElt}
               onChangeAttribute={onDropAttribute}
+              onTreatAttributeAs={onTreatAttributeAs}
             />,
           graphElt)
         }

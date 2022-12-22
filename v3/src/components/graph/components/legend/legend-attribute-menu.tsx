@@ -1,5 +1,5 @@
-import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, position } from "@chakra-ui/react"
-import React, { useRef, useState, CSSProperties } from "react"
+import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
+import React, { useRef, useState, CSSProperties, memo } from "react"
 import t from "../../../../utilities/translation/translate"
 import { useOverlayBounds } from "../../../../hooks/use-overlay-bounds"
 import { useOutsidePointerDown } from "../../../../hooks/use-outside-pointer-down"
@@ -10,6 +10,7 @@ interface IProps {
   target: SVGGElement | null
   portal: HTMLElement | null
   onChangeAttribute: (place: any, attrId: string) => void
+  onTreatAttributeAs: (place: any, attrId: string, treatAs: string) => void
 }
 
 const buttonStyles: CSSProperties = {
@@ -18,7 +19,7 @@ const buttonStyles: CSSProperties = {
   color: "transparent"
 }
 
-export const LegendAttributeMenu = ({ target, portal, onChangeAttribute }: IProps) => {
+const _LegendAttributeMenu = ({ target, portal, onChangeAttribute, onTreatAttributeAs }: IProps) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
   const attrId = dataConfig?.attributeID("legend")
@@ -30,10 +31,6 @@ export const LegendAttributeMenu = ({ target, portal, onChangeAttribute }: IProp
 
   const toggleMenu = () => {
     setMenuIsOpen(!menuIsOpen)
-  }
-
-  const handleMenuAttrClick = (attributeId: any) => {
-    console.log("handleMenuAttrClick! ", attrId)
   }
 
   useOutsidePointerDown({ref: menu, handler: () => setMenuIsOpen(false)})
@@ -60,7 +57,7 @@ export const LegendAttributeMenu = ({ target, portal, onChangeAttribute }: IProp
               <MenuItem>
                 {t("DG.DataDisplayMenu.removeAttribute_legend", {vars: [attribute?.name]})}
               </MenuItem>
-              <MenuItem>
+              <MenuItem onClick={() => onTreatAttributeAs("legend", attribute?.id, treatAs)}>
                 {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
                 {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
               </MenuItem>
@@ -72,3 +69,4 @@ export const LegendAttributeMenu = ({ target, portal, onChangeAttribute }: IProp
   )
 }
 
+export const LegendAttributeMenu = memo(_LegendAttributeMenu)

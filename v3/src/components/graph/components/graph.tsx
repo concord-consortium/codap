@@ -147,6 +147,7 @@ export const Graph = observer((
             legendAttrID={graphModel.getAttributeID('legend')}
             graphElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
+            onTreatAttributeAs={handleTreatAttrAs}
           />
         </svg>
       </div>
