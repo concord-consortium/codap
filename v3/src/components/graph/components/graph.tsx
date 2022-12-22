@@ -51,18 +51,6 @@ export const Graph = observer((
 
   const graphController = useGraphController({graphModel, enableAnimation, dotsRef})
 
-/*
-  useEffect(function setupPlotArea() {
-    if (xScale && xScale?.range().length > 0) {
-      select(dotsRef.current)
-        .attr('x', xScale?.range()[0])
-        .attr('y', 0)
-        .attr('width', layout.plotWidth)
-        .attr('height', layout.plotHeight)
-    }
-  }, [dotsRef, layout.plotHeight, layout.plotWidth, xScale, bottomAxisHeight])
-*/
-
   const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole(computedPlace)
