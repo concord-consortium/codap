@@ -48,6 +48,7 @@ export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttrib
             <LegendAttributeMenu
               target={legendLabelRef.current}
               portal={graphElt}
+              onChangeAttribute={onDropAttribute}
             />,
           graphElt)
         }
