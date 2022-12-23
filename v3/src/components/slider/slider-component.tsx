@@ -125,7 +125,6 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
                 </button>
               </Center>
               <Center>
-                {/* TODO - editing looks better than before, but still needs a bit of polish */}
                 <div className="slider-inputs">
                   { isEditingName ?
                     <input

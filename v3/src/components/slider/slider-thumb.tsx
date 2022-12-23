@@ -28,5 +28,5 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
     top: 60
   }
 
-  return <ThumbIcon style={thumbStyle}/>
+  return <ThumbIcon style={thumbStyle} className="slider-thumb-svg"/>
 })
