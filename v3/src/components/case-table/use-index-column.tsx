@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
-import { Menu, MenuButton } from "@chakra-ui/react"
+import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
 import { IDataSet } from "../../models/data/data-set"
 import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
@@ -95,9 +95,12 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
   return (
     <Menu isLazy>
       <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button"
-                  onKeyDown={handleKeyDown}>
+                  onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
         {index != null ? `${index + 1}` : ""}
       </MenuButton>
+      <VisuallyHidden id="sr-index-menu-instructions">
+          To open the menu, press the Enter key.
+      </VisuallyHidden>
       {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
     </Menu>
   )

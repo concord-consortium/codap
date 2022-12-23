@@ -1,4 +1,4 @@
-import { Tooltip, Menu, MenuButton, Input } from "@chakra-ui/react"
+import { Tooltip, Menu, MenuButton, Input, VisuallyHidden } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import React, { useEffect, useRef, useState } from "react"
 import { uniqueName } from "../../utilities/js-utils"
@@ -108,17 +108,25 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
               data-testid="case-table-attribute-tooltip" isDisabled={disableTooltip}
           >
             <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
-              { editingAttrId
-                ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
-                    variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
-                    onKeyDown={handleInputKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
-                  />
-                : <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
-                      fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}
-                      onKeyDown={handleButtonKeyDown}>
-                    {column.name ? `${column?.name}${units}` : kDefaultAttributeName}
-                  </MenuButton>
-              }
+            { editingAttrId
+                  ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
+                      variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
+                      onKeyDown={handleInputKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
+                    />
+                  : <>
+                      <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
+                          fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}
+                          onKeyDown={handleButtonKeyDown} aria-describedby="sr-column-header-drag-instructions">
+                        {column.name ? `${column?.name}${units}` : kDefaultAttributeName}
+                      </MenuButton>
+                      {column.key !== kIndexColumnKey &&
+                        <VisuallyHidden id="sr-column-header-drag-instructions">
+                          Press Space to drag attribute to a location on table or to a graph.
+                          To open the menu, press the Enter key.
+                        </VisuallyHidden>
+                      }
+                    </>
+                }
               <CaseTablePortal>
                 <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}
                   onModalOpen={handleModalOpen}
