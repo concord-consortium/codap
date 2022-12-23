@@ -13,7 +13,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {AxisDragRects} from "./axis-drag-rects"
-import {AxisAttributeMenu} from "./axis-attribute-menu"
+import {AxisOrLegendAttributeMenu} from "./axis-or-legend-attribute-menu"
 
 import "./axis.scss"
 
@@ -82,7 +82,7 @@ export const Axis = ({
       </g>
 
       {parentElt && onDropAttribute && onTreatAttributeAs &&
-        createPortal(<AxisAttributeMenu
+        createPortal(<AxisOrLegendAttributeMenu
           target={titleRef.current}
           portal={parentElt}
           place={place}

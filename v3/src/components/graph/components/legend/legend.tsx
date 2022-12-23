@@ -1,4 +1,5 @@
 import React, {memo, useMemo, useRef} from "react"
+import {createPortal} from "react-dom"
 import {Active} from "@dnd-kit/core"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {Bounds, useGraphLayoutContext} from "../../models/graph-layout"
@@ -10,8 +11,8 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {GraphAttrRole, GraphPlace} from "../../graphing-types"
-import {createPortal} from "react-dom"
-import {LegendAttributeMenu} from "./legend-attribute-menu"
+import {AxisOrLegendAttributeMenu} from "../../../axis/components/axis-or-legend-attribute-menu"
+
 interface ILegendProps {
   legendAttrID: string
   graphElt: HTMLDivElement | null
@@ -22,7 +23,7 @@ interface ILegendProps {
 const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
 export const Legend = memo(function Legend({
-    legendAttrID, graphElt, onDropAttribute, onTreatAttributeAs
+  legendAttrID, graphElt, onDropAttribute, onTreatAttributeAs
 }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
@@ -47,7 +48,8 @@ export const Legend = memo(function Legend({
     <>
       <svg ref={legendRef} className='legend'>
         { graphElt && createPortal(
-            <LegendAttributeMenu
+            <AxisOrLegendAttributeMenu
+              place="legend"
               target={legendLabelRef.current}
               portal={graphElt}
               onChangeAttribute={onDropAttribute}
