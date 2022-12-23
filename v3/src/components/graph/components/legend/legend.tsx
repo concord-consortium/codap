@@ -1,4 +1,5 @@
 import React, {memo, useMemo, useRef} from "react"
+import {createPortal} from "react-dom"
 import {Active} from "@dnd-kit/core"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {Bounds, useGraphLayoutContext} from "../../models/graph-layout"
@@ -9,17 +10,21 @@ import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
-import {GraphAttrRole} from "../../graphing-types"
+import {GraphAttrRole, GraphPlace} from "../../graphing-types"
+import {AxisOrLegendAttributeMenu} from "../../../axis/components/axis-or-legend-attribute-menu"
 
 interface ILegendProps {
   legendAttrID: string
   graphElt: HTMLDivElement | null
-  onDropAttribute: (place: any, attrId: string) => void
+  onDropAttribute: (place: GraphPlace, attrId: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
-export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttribute}: ILegendProps) {
+export const Legend = memo(function Legend({
+  legendAttrID, graphElt, onDropAttribute, onTreatAttributeAs
+}: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
@@ -42,6 +47,16 @@ export const Legend = memo(function Legend({legendAttrID, graphElt, onDropAttrib
   return legendAttrID ? (
     <>
       <svg ref={legendRef} className='legend'>
+        { graphElt && createPortal(
+            <AxisOrLegendAttributeMenu
+              place="legend"
+              target={legendLabelRef.current}
+              portal={graphElt}
+              onChangeAttribute={onDropAttribute}
+              onTreatAttributeAs={onTreatAttributeAs}
+            />,
+          graphElt)
+        }
         <AttributeLabel
           ref={legendLabelRef}
           transform={transform}
