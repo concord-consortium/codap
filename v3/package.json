@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-mvp.1",
+  "version": "3.0.0-1085",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
