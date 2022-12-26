@@ -182,7 +182,7 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
     computeMaxOverAllCells, primaryAttrID, secondaryAttrID, dataset, secondaryScale])
 
   usePlotResponders({
-    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
+    graphModel, dataset, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
     primaryAttrID, secondaryAttrID, legendAttrID:dataConfiguration?.attributeID('legend')
   })
 
