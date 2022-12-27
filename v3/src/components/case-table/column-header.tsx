@@ -115,14 +115,15 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                     />
                   : <>
                       <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
-                          fontWeight="bold" data-testid={`codap-attribute-button ${column?.name}`}
-                          onKeyDown={handleButtonKeyDown} aria-describedby="sr-column-header-drag-instructions">
+                          fontWeight="bold" onKeyDown={handleButtonKeyDown}
+                          data-testid={`codap-attribute-button ${column?.name}`}
+                          aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
                         {column.name ? `${column?.name}${units}` : kDefaultAttributeName}
                       </MenuButton>
                       {column.key !== kIndexColumnKey &&
-                        <VisuallyHidden id="sr-column-header-drag-instructions">
-                          <pre> Press Space to drag attribute to a location on table or to a graph.
-                            To open the menu, press the Enter key.
+                        <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
+                          <pre> Press Space to drag the attribute within the table or to a graph.
+                                Press Enter to open the attribute menu.
                           </pre>
                         </VisuallyHidden>
                       }

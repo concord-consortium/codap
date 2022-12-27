@@ -99,7 +99,7 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
         {index != null ? `${index + 1}` : ""}
       </MenuButton>
       <VisuallyHidden id="sr-index-menu-instructions">
-          To open the menu, press the Enter key.
+        Press Enter to open the menu.
       </VisuallyHidden>
       {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
     </Menu>
