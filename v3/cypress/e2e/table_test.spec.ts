@@ -26,12 +26,14 @@ context("case table ui", () => {
         it("verify columns and tooltips", () => {
             table.getColumnHeaders().should("have.length",10)
             table.getColumnHeader(0).invoke("text").then(columnName => {
+                const columnNameArr = columnName.split()
                 table.getColumnHeader(0).rightclick({force:true})
-                table.getColumnHeaderTooltip().should("contain", columnName)
+                table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
             })
             table.getColumnHeader(1).invoke("text").then(columnName => {
+                const columnNameArr = columnName.split(" ")
                 table.getColumnHeader(1).rightclick({force:true})
-                table.getColumnHeaderTooltip().should("contain", columnName)
+                table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
             })
         })
         it("verify edit attribute properties", () => {
@@ -55,12 +57,12 @@ context("case table ui", () => {
 
     describe("case table header attribute menu", () => {
         it("verify rename attribute", () => {
-            table.getColumnHeader(1).should("have.text","Mammal")
+            table.getColumnHeader(1).should("contain","Mammal")
             table.getAttribute("Mammal").should("exist")
             table.openAttributeMenu("Mammal")
             table.selectMenuItemFromAttributeMenu("Rename")
             table.renameColumnName(`Animal{enter}`)
-            table.getColumnHeader(1).should("have.text","Animal")
+            table.getColumnHeader(1).should("contain","Animal")
             table.getAttribute("Animal").should("exist")
         })
         it("verify hide attribute", () => {
@@ -72,7 +74,7 @@ context("case table ui", () => {
         it("verify show all attributes", () => {
             table.openInspectorPanel()
             table.showAllAttributes()
-            table.getColumnHeader(1).should("have.text","Animal")
+            table.getColumnHeader(1).should("contain","Animal")
             table.getAttribute("Animal").should("exist")
         })
         it("verify delete attribute", () => {

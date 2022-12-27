@@ -121,8 +121,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                       </MenuButton>
                       {column.key !== kIndexColumnKey &&
                         <VisuallyHidden id="sr-column-header-drag-instructions">
-                          Press Space to drag attribute to a location on table or to a graph.
-                          To open the menu, press the Enter key.
+                          <pre> Press Space to drag attribute to a location on table or to a graph.
+                            To open the menu, press the Enter key.
+                          </pre>
                         </VisuallyHidden>
                       }
                     </>
