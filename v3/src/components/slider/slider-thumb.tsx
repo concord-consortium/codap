@@ -11,22 +11,15 @@ interface IProps {
   sliderModel: ISliderModel
 }
 
-const getComponentX = () => {
-  const wholeSlider = document.querySelector(".slider-wrapper")
-  const sliderBounds = wholeSlider?.getBoundingClientRect()
-  return sliderBounds?.x
-}
-
 export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
   const layout = useAxisLayoutContext()
   const length = layout.getAxisLength("bottom")
   const scale = layout.getAxisScale("bottom") as ScaleNumericBaseType
+  const wholeSlider = document.querySelector(".slider-wrapper")
+  const componentX = wholeSlider?.getBoundingClientRect().x
   const [thumbPos, setThumbPos] = useState(0)
-  //const [isDragging, setIsDragging] = useState(false)
   const mouseDownX = useRef(0)
-  const componentX = getComponentX()
 
-  // when sliderModel.value changes, the thumb position changes
   useEffect(() => {
     const kThumbOffset = 8
     setThumbPos(scale(sliderModel.value) - kThumbOffset)
@@ -40,14 +33,15 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
 
   const handlePointerDown = (e: React.PointerEvent) => {
     mouseDownX.current = e.clientX
-  }
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    console.log('mouse went up')
+    if (wholeSlider) {
+      wholeSlider.addEventListener("pointermove", (ev) => handlePointerMove(ev as any))
+    }
   }
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (componentX) {
+    const targetElt = e.target as HTMLElement
+    const dragOk = !targetElt.classList.contains("dragRect")
+    if (componentX && dragOk) {
       const pixelTarget = e.clientX - componentX
       const scaledValue = scale.invert(pixelTarget)
       sliderModel.setValue(scaledValue)
@@ -57,8 +51,6 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
   return (
      <ThumbIcon
       onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerMove={handlePointerMove}
       style={thumbStyle}
       className="slider-thumb-svg"
     />
