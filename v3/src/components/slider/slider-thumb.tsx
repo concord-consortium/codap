@@ -60,7 +60,6 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
   }
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    //setIsDragging(false)
     console.log('mouse went up')
   }
 
@@ -68,8 +67,9 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
     if (componentX) {
       const pixelTarget = e.clientX - componentX
       const scaledValue = scale.invert(pixelTarget)
-      console.log("scaledValue is: ", scaledValue)
+      console.log("scaledValue is so set slider to it: ", scaledValue)
       sliderModel.setValue(scaledValue)
+      console.log("now sliderModel.value is: ", sliderModel.value)
     }
   }
 
