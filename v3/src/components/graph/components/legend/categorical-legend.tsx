@@ -200,7 +200,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
   }, [keysElt, categoryData, setupKeys, refreshKeys, dataConfiguration])
 
   return (
-    <svg className='categories' ref={elt => setKeysElt(elt)}></svg>
+    <svg className='legend-categories' ref={elt => setKeysElt(elt)}></svg>
   )
 })
 CategoricalLegend.displayName = "CategoricalLegend"

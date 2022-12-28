@@ -131,7 +131,7 @@ export class GraphLayout {
       {left: leftAxisWidth, top: topAxisHeight + plotHeight, width: plotWidth,
         height: bottomAxisHeight})
     newBounds.set('legend',
-      {left: leftAxisWidth, top: graphHeight - legendHeight, width: graphWidth,
+      {left: 6, top: graphHeight - legendHeight, width: graphWidth - 6,
         height: legendHeight})
     newBounds.set('right',
       {left: rightAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth,
