@@ -9,7 +9,7 @@ interface IProps {
   sliderModel: ISliderModel
 }
 
-const kDecimalPlaces = 4
+const kDecimalPlaces = 2
 const d3Format = format(`.${kDecimalPlaces}~f`)
 
 const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
