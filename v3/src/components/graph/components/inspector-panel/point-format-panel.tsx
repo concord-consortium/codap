@@ -1,10 +1,12 @@
-import React from "react"
+import React, { ReactElement, useRef } from "react"
 import {observer} from "mobx-react-lite"
 import {
   Checkbox, Flex, FormControl, FormLabel, Input, Slider, SliderThumb,
   SliderTrack
 } from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
+import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { missingColor } from "../../../../utilities/color-utils"
 import {IGraphModel} from "../../models/graph-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
@@ -17,6 +19,12 @@ interface IProps {
 }
 
 export const PointFormatPalette = observer(({graphModel, setShowPalette}: IProps) => {
+  const dataConfiguration = useDataConfigurationContext()
+  const legendAttrID = graphModel.getAttributeID("legend")
+  const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
+  const categoriesRef = useRef<Set<string> | undefined>()
+  categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
+
   const handlePointSizeMultiplierSetting = (val: any) => {
     graphModel.setPointSizeMultiplier(val)
   }
@@ -35,6 +43,18 @@ export const PointFormatPalette = observer(({graphModel, setShowPalette}: IProps
   const handleStrokeSameAsPointColorSetting = (isTheSame: boolean) => {
     graphModel.setPointStrokeSameAsFill(isTheSame)
   }
+
+const catPointColorSettingArr: ReactElement[] = []
+categoriesRef.current?.forEach(cat => {
+  catPointColorSettingArr.push(
+    <Flex direction="row" key={cat}>
+      <FormLabel className="form-label">{cat}</FormLabel>
+      <Input type="color" className="color-picker-thumb"
+              value={dataConfiguration?.getLegendColorForCategory(cat) || missingColor}
+              onChange={e => handlePointColorSetting(e.target.value)}/>
+    </Flex>
+  )
+})
 
   return (
     <InspectorPalette
@@ -55,17 +75,33 @@ export const PointFormatPalette = observer(({graphModel, setShowPalette}: IProps
             </Slider>
           </FormLabel>
         </FormControl>
-        <FormControl>
-          <FormLabel className="form-label">{t("DG.Inspector.color")}
-            <Input type="color" className="color-picker-thumb" value={graphModel.pointColor}
-                   onChange={e => handlePointColorSetting(e.target.value)}/>
-          </FormLabel>
-        </FormControl>
         <FormControl isDisabled={graphModel.pointStrokeSameAsFill}>
-          <FormLabel className="form-label">{t("DG.Inspector.stroke")}
+          <FormLabel className="form-label">{t("DG.Inspector.stroke")}</FormLabel>
             <Input type="color" className="color-picker-thumb" value={graphModel.pointStrokeColor}
                    onChange={e => handlePointStrokeColorSetting(e.target.value)}/>
-          </FormLabel>
+        </FormControl>
+        <FormControl>
+            <>
+              { graphModel.getAttributeID("legend") &&
+                  attrType === "categorical"
+                    ? <FormControl className="cat-color-setting">{catPointColorSettingArr}</FormControl>
+                    : attrType === "numeric"
+                      ? <FormControl className="num-color-setting">
+                          <Flex direction="row">
+                            <FormLabel className="form-label">{t("DG.Inspector.legendColor")}</FormLabel>
+                            <Input type="color" className="color-picker-thumb" value={missingColor}
+                                  onChange={e => handlePointColorSetting(e.target.value)}/>
+                            <Input type="color" className="color-picker-thumb" value={missingColor}
+                                  onChange={e => handlePointColorSetting(e.target.value)}/>
+                          </Flex>
+                        </FormControl>
+                      : <>
+                          <FormLabel className="form-label">{t("DG.Inspector.color")}</FormLabel>
+                          <Input type="color" className="color-picker-thumb" value={graphModel.pointColor}
+                                onChange={e => handlePointColorSetting(e.target.value)}/>
+                        </>
+              }
+            </>
         </FormControl>
         <FormControl>
           <Checkbox
