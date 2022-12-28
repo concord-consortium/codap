@@ -49,7 +49,7 @@ categoriesRef.current?.forEach(cat => {
   catPointColorSettingArr.push(
     <Flex direction="row" key={cat}>
       <FormLabel className="form-label">{cat}</FormLabel>
-      <Input type="color" className="color-picker-thumb"
+      <Input type="color" className="color-picker-thumb categorical"
               value={dataConfiguration?.getLegendColorForCategory(cat) || missingColor}
               onChange={e => handlePointColorSetting(e.target.value)}/>
     </Flex>
@@ -75,9 +75,11 @@ categoriesRef.current?.forEach(cat => {
           </FormLabel>
         </FormControl>
         <FormControl isDisabled={graphModel.pointStrokeSameAsFill}>
-          <FormLabel className="form-label">{t("DG.Inspector.stroke")}</FormLabel>
+          <Flex direction="row" >
+            <FormLabel className="form-label">{t("DG.Inspector.stroke")}</FormLabel>
             <Input type="color" className="color-picker-thumb" value={graphModel.pointStrokeColor}
-                   onChange={e => handlePointStrokeColorSetting(e.target.value)}/>
+                    onChange={e => handlePointStrokeColorSetting(e.target.value)}/>
+          </Flex>
         </FormControl>
         <FormControl>
             <>
@@ -94,11 +96,11 @@ categoriesRef.current?.forEach(cat => {
                                   onChange={e => handlePointColorSetting(e.target.value)}/>
                           </Flex>
                         </FormControl>
-                      : <>
+                      : <Flex direction="row">
                           <FormLabel className="form-label">{t("DG.Inspector.color")}</FormLabel>
                           <Input type="color" className="color-picker-thumb" value={graphModel.pointColor}
                                 onChange={e => handlePointColorSetting(e.target.value)}/>
-                        </>
+                        </Flex>
               }
             </>
         </FormControl>
