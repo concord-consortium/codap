@@ -61,11 +61,9 @@ interface IInspectorPalette {
   title?: string
   paletteTop?: number
   buttonLocation: number
-  setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocation,
-    setShowPalette}:IInspectorPalette) => {
+export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocation}:IInspectorPalette) => {
   const PalettePointer = () => {
     const pointerStyle = {top: (buttonLocation+11)}
 
@@ -86,10 +84,6 @@ export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocati
   const paletteStyle = {top: paletteTop}
   const paletteRef = useRef<HTMLDivElement>(null)
 
-  useOutsideClick({
-    ref: paletteRef,
-    handler: () => setShowPalette(undefined),
-  })
   return(
     <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle}
         data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>

@@ -62,7 +62,6 @@ categoriesRef.current?.forEach(cat => {
       Icon={<StylesIcon/>}
       buttonLocation={115}
       paletteTop={35}
-      setShowPalette={setShowPalette}
     >
       <Flex className="palette-form" direction="column">
         <FormControl size="xs">
