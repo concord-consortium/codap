@@ -6,7 +6,7 @@ import {AxisBounds, axisGap, isVertical, ScaleNumericBaseType} from "../axis-typ
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {between} from "../../../utilities/math-utils"
-import {graphPlaceToAttrRole, transitionDuration} from "../../graph/graphing-types"
+import {graphPlaceToAttrRole, kGraphFont, transitionDuration} from "../../graph/graphing-types"
 import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
 import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 import {getCategoricalLabelPlacement} from "../axis-utils"
@@ -49,7 +49,7 @@ export const useAxis = ({
   previousAxisModel.current = axisModel
 
   const getLabelBounds = (s = 'Wy') => {
-      return measureTextExtent(s, '12px sans-serif')
+      return measureTextExtent(s, kGraphFont)
   }
 
   const collisionExists = useCallback(() => {
@@ -73,7 +73,7 @@ export const useAxis = ({
     let ticks: string[] = []
     switch (type) {
       case 'numeric': {
-        const format = scale.tickFormat && scale.tickFormat()
+        const format = scale.tickFormat?.()
         ticks = ((scale.ticks?.()) ?? []).map(tick => format(tick))
         desiredExtent += axisPlace === 'left' ?
           Math.max(getLabelBounds(ticks[0]).width, getLabelBounds(ticks[ticks.length - 1]).width) + axisGap :

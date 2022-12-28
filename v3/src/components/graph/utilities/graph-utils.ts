@@ -1,7 +1,7 @@
 import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
+import {kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "../../../utilities/math-utils"
 import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
@@ -21,7 +21,7 @@ import {measureText} from "../../../hooks/use-measure-text"
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
   for (const aString of strings) {
-    maxWidth = Math.max(maxWidth, measureText(aString, '12px sans-serif'))
+    maxWidth = Math.max(maxWidth, measureText(aString, kGraphFont))
   }
   return maxWidth
 }

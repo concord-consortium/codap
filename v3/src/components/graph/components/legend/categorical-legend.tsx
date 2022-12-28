@@ -9,6 +9,7 @@ import {missingColor} from "../../../../utilities/color-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
 
 import './legend.scss'
+import {kGraphFont} from "../../graphing-types"
 
 interface ICategoricalLegendProps {
   transform: string,
@@ -59,7 +60,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       lod.fullWidth = layout.getAxisLength('bottom')
       lod.maxWidth = 0
       categoriesRef.current?.forEach(cat => {
-        lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, '12px sans-serif'))
+        lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kGraphFont))
       })
       lod.maxWidth += keySize + padding
       lod.numColumns = Math.floor(lod.fullWidth / lod.maxWidth)
