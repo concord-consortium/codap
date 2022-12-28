@@ -35,28 +35,11 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
   const thumbStyle: CSSProperties = {
     position: "absolute",
     left: thumbPos,
-    top: 60,
-   // backgroundColor: isDragging ? "red" : "transparent"
+    top: 60
   }
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    // setIsDragging(true)
     mouseDownX.current = e.clientX
-    console.log("downX is: ", mouseDownX.current)
-
-    // console.log({downX, sliderX})
-    // if (downX !== foundMouse.current) {
-    //   foundMouse.current = downX//set foundMouse.
-    // }
-    // console.log("mouse went down at foundMouse.current: ", foundMouse.current)
-
-    //console.log("axisBounds is: ", axisBounds)
-    // foundMouse.current = getClientX(e.currentTarget)
-    // console.log("mouse went down at foundMouse.current: ", foundMouse.current) //set foundMouse.current
-    //
-    // const axisEdge = getClientX(theAxis)
-    // console.log("axisEdge is: ", axisEdge)
-    // setIsDragging(true)
   }
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -67,9 +50,7 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
     if (componentX) {
       const pixelTarget = e.clientX - componentX
       const scaledValue = scale.invert(pixelTarget)
-      console.log("scaledValue is so set slider to it: ", scaledValue)
       sliderModel.setValue(scaledValue)
-      console.log("now sliderModel.value is: ", sliderModel.value)
     }
   }
 
