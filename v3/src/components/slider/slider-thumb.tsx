@@ -18,6 +18,7 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
   const wholeSlider = document.querySelector(".slider-wrapper")
   const componentX = wholeSlider?.getBoundingClientRect().x
   const [thumbPos, setThumbPos] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
   const mouseDownX = useRef(0)
 
   useEffect(() => {
@@ -28,13 +29,15 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
   const thumbStyle: CSSProperties = {
     position: "absolute",
     left: thumbPos,
-    top: 60
+    top: isDragging ? 59 : 60,
+    filter: isDragging ? "drop-shadow(3px 1px 1px #555)" : "none"
   }
 
   const handlePointerDown = (e: React.PointerEvent) => {
     mouseDownX.current = e.clientX
     if (wholeSlider) {
       wholeSlider.addEventListener("pointermove", (ev) => handlePointerMove(ev as any))
+      wholeSlider.addEventListener("pointerup", (ev) => handlePointerUp(ev as any))
     }
   }
 
@@ -42,10 +45,15 @@ export const CodapSliderThumb = observer(({sliderModel} : IProps) => {
     const targetElt = e.target as HTMLElement
     const dragOk = !targetElt.classList.contains("dragRect")
     if (componentX && dragOk) {
+      setIsDragging(true)
       const pixelTarget = e.clientX - componentX
       const scaledValue = scale.invert(pixelTarget)
       sliderModel.setValue(scaledValue)
     }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    setIsDragging(false)
   }
 
   return (
