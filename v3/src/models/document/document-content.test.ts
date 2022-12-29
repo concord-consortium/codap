@@ -1,22 +1,10 @@
+import { getType } from "mobx-state-tree"
 import { registerTileTypes } from "../../register-tile-types"
-import { TileContentModel } from "../tiles/tile-content"
-import { registerTileContentInfo } from "../tiles/tile-content-info"
+import { TestTileContent } from "../../test/test-tile-content"
 import { TileModel } from "../tiles/tile-model"
 import { DocumentContentModel, IDocumentContentModel } from "./document-content"
 import { FreeTileRow } from "./free-tile-row"
 import { LegacyTileRowModel } from "./legacy-tile-row"
-
-const TestTileContent = TileContentModel
-  .named("TestTileContent")
-  .props({
-    test: ""
-  })
-
-registerTileContentInfo({
-  type: "Test",
-  modelClass: TestTileContent,
-  defaultContent: () => TestTileContent.create()
-})
 
 registerTileTypes(["Test"])
 
@@ -108,7 +96,7 @@ describe("DocumentContent", () => {
     expect(content.getRowByIndex(0)).toBe(row)
     expect(content.getRowIndex(row.id)).toBe(0)
     expect(content.indexOfLastVisibleRow).toBe(0)
-    expect(content.defaultInsertRow).toBe(0)
+    expect(getType(content.defaultInsertRow).name).toBe("FreeTileRow")
 
     const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
     content.insertTileInRow(tile, row, { x: 50, y: 50, width: 400, height: 300 })

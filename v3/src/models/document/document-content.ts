@@ -1,4 +1,4 @@
-import { getType, Instance, types } from "mobx-state-tree"
+import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { SharedModelUnion } from "../shared/shared-model-manager"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
@@ -39,6 +39,7 @@ export const DocumentContentModel = types
     sharedModelMap: types.map(SharedModelEntry)
   })
   .volatile(self => ({
+    rowCreator: undefined as (() => ITileRowModelUnion) | undefined,
     visibleRows: [] as string[]
   }))
   .views(self => ({
@@ -102,7 +103,7 @@ export const DocumentContentModel = types
       // next tile comes after the last visible row with content
       for (let i = self.indexOfLastVisibleRow; i >= 0; --i) {
         const row = self.getRowByIndex(i)
-        if (row?.acceptDefaultInsert) return i
+        if (row?.acceptDefaultInsert) return row
         if (row && !row.isSectionHeader && !self.isPlaceholderRow(row)) {
           return i + 1
         }
@@ -110,7 +111,7 @@ export const DocumentContentModel = types
       // if no tiles have content, insert after the first non-header row
       for (let i = 0; i < self.rowCount; ++i) {
         const row = self.getRowByIndex(i)
-        if (row?.acceptDefaultInsert) return i
+        if (row?.acceptDefaultInsert) return row
         if (row && !row.isSectionHeader) {
           return i + 1
         }
@@ -120,6 +121,9 @@ export const DocumentContentModel = types
     },
   }))
   .actions(self => ({
+    setRowCreator(creator: () => ITileRowModelUnion) {
+      self.rowCreator = creator
+    },
     insertRow(row: ITileRowModelUnion, rowIndex?: number) {
       self.rowMap.put(row)
       if ((rowIndex != null) && (rowIndex < self.rowOrder.length)) {
@@ -138,6 +142,17 @@ export const DocumentContentModel = types
     }
   }))
   .actions(self => ({
+    insertTileInDefaultRow(tile: ITileModel) {
+      const rowOrIndex = self.defaultInsertRow
+      const requiresNewRow = typeof rowOrIndex === "number"
+      const row = requiresNewRow ? self.rowCreator?.() : rowOrIndex
+      if (row) {
+        if (requiresNewRow) {
+          self.insertRow(row, rowOrIndex)
+        }
+        self.insertTileInRow(tile, row)
+      }
+    },
     deleteRow(rowId: string) {
       self.rowOrder.remove(rowId)
       self.rowMap.delete(rowId)
@@ -181,3 +196,4 @@ export const DocumentContentModel = types
 
   }))
 export interface IDocumentContentModel extends Instance<typeof DocumentContentModel> {}
+export interface IDocumentContentSnapshotIn extends SnapshotIn<typeof DocumentContentModel> {}

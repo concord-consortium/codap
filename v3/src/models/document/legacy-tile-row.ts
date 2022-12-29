@@ -1,6 +1,6 @@
 import { types, Instance, SnapshotIn, SnapshotOut } from "mobx-state-tree"
+import { withoutUndo } from "../history/without-undo"
 import { ITileModel } from "../tiles/tile-model"
-import { withoutUndo } from "../history/tree-monitor"
 import { ITileInRowOptions, TileRowModel } from "./tile-row"
 
 export interface IDropRowInfo {
