@@ -7,6 +7,7 @@
   "typescript.tsdk": "./node_modules/typescript/lib",
   "cSpell.words": [
     "Chakra",
+    "clsx",
     "papaparse",
     "portaling",
     "ulid"

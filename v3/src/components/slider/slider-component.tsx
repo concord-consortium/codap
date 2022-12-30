@@ -68,7 +68,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   }
 
   const incrementSliderValue = () => {
-    sliderModel.setValue(sliderModel.value + sliderModel.multipleOf)
+    sliderModel.setValueRoundedToMultipleOf(sliderModel.value + sliderModel.multipleOf)
   }
 
   const titleM = measureText(sliderModel.name)
@@ -156,7 +156,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               />
             </svg>
 
-            <CodapSliderThumb sliderModel={sliderModel} />
+            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel} />
 
           </div>
         </div>

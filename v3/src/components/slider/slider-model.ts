@@ -42,7 +42,7 @@ export const SliderModel = types.model("SliderModel", {
       self.globalValue.setValue(n)
     },
     setValue(n: number) {
-      if (self.multipleOf !== 0) {
+      if (self.resolution !== 0) {
         n = Math.round(n / self.resolution) * self.resolution
       }
       self.globalValue.setValue(n)
