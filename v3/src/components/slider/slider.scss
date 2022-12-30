@@ -57,6 +57,16 @@
         // padding: 2px 0px;
       }
     }
+
+    .slider-thumb-icon {
+      position: absolute;
+      top: 60px;
+
+      &.dragging {
+        top: 59px;
+        filter: drop-shadow(3px 1px 1px #555);
+      }
+    }
   }
 }
 
