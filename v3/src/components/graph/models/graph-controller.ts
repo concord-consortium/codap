@@ -140,7 +140,6 @@ export class GraphController {
 
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
     if(['plot', 'legend'].includes( graphPlace)) {
-      this.layout.setLegendHeight(100) // todo: temporary!
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
     const {dataset, graphModel, layout} = this,

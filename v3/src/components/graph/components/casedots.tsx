@@ -98,8 +98,8 @@ export const CaseDots = memo(function CaseDots(props: {
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined,
-      [xMin, xMax] = xScale.range(),
-      [yMin, yMax] = yScale.range()
+      [xMin, xMax] = layout.getAxisScale('bottom')?.range() ?? [0, 1],
+      [yMin, yMax] = layout.getAxisScale('left')?.range() ?? [0, 1]
     dotsSelection
       .attr('transform', transform)
       .transition()
