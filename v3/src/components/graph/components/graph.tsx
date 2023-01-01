@@ -129,7 +129,7 @@ export const Graph = observer((
                      onTreatAttributeAs={handleTreatAttrAs}
           />
 
-          <svg ref={plotAreaSVGRef} className='graph-dot-area'>
+          <svg ref={plotAreaSVGRef}>
             <svg ref={dotsRef} className='graph-dot-area'>
               {getPlotComponent()}
             </svg>
