@@ -2,7 +2,6 @@ import {randomUniform, select} from "d3"
 import {onAction} from "mobx-state-tree"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
-import { ScaleNumericBaseType } from "../../axis/axis-types"
 import {ICase} from "../../../models/data/data-set"
 import {isAddCasesAction} from "../../../models/data/data-set-actions"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
@@ -29,9 +28,7 @@ export const CaseDots = memo(function CaseDots(props: {
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
-    target = useRef<any>(),
-    xScale = layout.getAxisScale('bottom') as ScaleNumericBaseType,
-    yScale = layout.getAxisScale('left') as ScaleNumericBaseType
+    target = useRef<any>()
 
   const onDragStart = useCallback((event: MouseEvent) => {
       enableAnimation.current = false // We don't want to animate points until end of drag
@@ -98,8 +95,8 @@ export const CaseDots = memo(function CaseDots(props: {
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined,
-      [xMin, xMax] = xScale.range(),
-      [yMin, yMax] = yScale.range()
+      [xMin, xMax] = layout.getAxisScale('bottom')?.range() ?? [0, 1],
+      [yMin, yMax] = layout.getAxisScale('left')?.range() ?? [0, 1]
     dotsSelection
       .attr('transform', transform)
       .transition()
@@ -120,7 +117,7 @@ export const CaseDots = memo(function CaseDots(props: {
         defaultSelectedStrokeWidth : defaultStrokeWidth)
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
   }, [dataset, legendAttrID, dataConfiguration, graphModel,
-    layout, dotsRef, enableAnimation, xScale, yScale])
+    layout, dotsRef, enableAnimation])
 
   useEffect(function initDistribution() {
     const {cases} = dataset || {}
