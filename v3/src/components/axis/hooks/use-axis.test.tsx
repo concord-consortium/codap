@@ -6,11 +6,6 @@ import { AxisLayoutContext } from "../models/axis-layout-context"
 import { INumericAxisModel, NumericAxisModel } from "../models/axis-model"
 import {IUseAxis, useAxis} from "./use-axis"
 
-jest.mock("../../../hooks/use-measure-text", () => ({
-  measureText: (text: string) => text.length * 6,
-  measureTextExtent: (text: string) => ({ width: text.length * 6, height: 16 })
-}))
-
 describe("useNumericAxis", () => {
 
   let layout: GraphLayout

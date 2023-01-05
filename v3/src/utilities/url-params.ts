@@ -1,8 +1,8 @@
-import { parse } from "query-string"
+import queryString from "query-string"
 
 // separate function aids in tests
 export const getSearchParams = () => location.search
 
-export let urlParams = parse(getSearchParams())
+export let urlParams = queryString.parse(getSearchParams())
 
-export const setUrlParams = (search: string) => urlParams = parse(search)
+export const setUrlParams = (search: string) => urlParams = queryString.parse(search)
