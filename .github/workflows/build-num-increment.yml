@@ -5,13 +5,16 @@ on:
       - main
     paths-ignore:
       - 'v3/build_number.json'
+      - 'v3/CHANGELOG.md' # Do not increment build number when release branches are merged into main, which typically change CHANGELOG.md
+                          # since we want to lock the build number we're about to release and 
+                          # do not want the release branch's merge to main to trigger another build number increment
 jobs:
   test:
     name: Increment value test
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
