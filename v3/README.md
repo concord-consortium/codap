@@ -77,17 +77,20 @@ Other branches are deployed to https://codap3.concord.org/branch/{branch-name}/,
 
 To deploy a production release:
 
-1. Increment version number in package.json
-2. Create new entry in CHANGELOG.md
+1. Update the version number in `package.json` and `package-lock.json`
+    - `npm version --no-git-tag-version [patch|minor|major]`
+2. Create new entry in `CHANGELOG.md` with a description of the new version
 3. Run `git log --pretty=oneline --reverse <last release tag>...HEAD | grep '#' | grep -v Merge` and add contents (after edits if needed to CHANGELOG.md)
 4. Run `npm run build`
 5. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`
-6. Create `release-<version>` branch and commit changes, push to GitHub, create PR and merge
-7. Checkout `master` and pull
-8. Checkout `v3-production`
-9. Run `git merge master --no-ff`
-10. Push `v3-production` to GitHub
-11. Use https://github.com/concord-consortium/codap/releases to create a new release tag
+6. Create `v3-release-<version>` branch and commit changes, push to GitHub, create PR and merge
+7. Checkout `main` and pull
+8. Make a new version tag using your local git client with the version number in the description (e.g., `git tag -a 3.0.0-pre.1085 -m "version 3.0.0-pre.1085"`) and push the tag to the remote origin (e.g., `git push origin 3.0.0-pre.1085`)
+9. Watch the GitHub actions build to see that the S3 Deploy step finished and then QA this version using the versioned URL (e.g., https://codap3.concord.org/version/3.0.0-pre.1085/)
+10. Checkout `v3-production`
+11. Run `git merge main --no-ff`
+12. Push `v3-production` to GitHub
+13. Use https://github.com/concord-consortium/codap/releases to create a new release tag
 
 ### Testing
 - run `npm run lint` to lint the source files
