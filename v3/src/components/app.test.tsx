@@ -8,7 +8,8 @@ import { App, handleImportDataSet } from "./app"
 
 // used by case table
 jest.mock("../hooks/use-measure-text", () => ({
-  measureText: (text: string) => text.length * 6
+  measureText: (text: string) => text.length * 6,
+  measureTextExtent: (text: string) => ({ width: text.length, height: 16 })
 }))
 
 describe.skip("App component", () => {
