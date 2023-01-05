@@ -12,11 +12,6 @@ jest.mock("./case-table-shared.scss", () => ({
   bodyRowHeight: "18"
 }))
 
-// used by case table
-jest.mock("../../hooks/use-measure-text", () => ({
-  measureText: (text: string) => text.length * 6
-}))
-
 const UseKeyStatesWrapper = () => {
   useKeyStates()
   return null
