@@ -37,8 +37,8 @@ export const TileContentModel = types.model("TileContentModel", {
     type: types.optional(types.string, kUnknownTileType)
   })
   .views(self => ({
-    get tileEnv() {
-      return getEnv(self) as ITileEnvironment | undefined
+    get tileEnv(): ITileEnvironment | undefined {
+      return getEnv(self)
     },
     // Override in specific tile content model when external data (like from SharedModels) is needed when copying
     get tileSnapshotForCopy() {

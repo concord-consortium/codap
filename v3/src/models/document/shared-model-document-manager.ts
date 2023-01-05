@@ -115,7 +115,7 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
     }
 
     const sharedModels: ISharedModel[] = []
-    for(const sharedModelEntry of this.document.sharedModelMap.values()) {
+    for (const sharedModelEntry of this.document.sharedModelMap.values()) {
       if (sharedModelEntry.tiles.includes(tile)) {
         sharedModels.push(sharedModelEntry.sharedModel)
       }

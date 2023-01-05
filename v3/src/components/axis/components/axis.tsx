@@ -91,8 +91,8 @@ export const Axis = ({
         />, parentElt)
       }
 
-      {axisModel?.type === 'numeric' ?
-        <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
+      {axisModel?.type === 'numeric'
+        ? <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
       {onDropAttribute &&
         <DroppableAxis
           place={`${place}`}

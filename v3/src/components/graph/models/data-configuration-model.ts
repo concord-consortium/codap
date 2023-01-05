@@ -39,7 +39,7 @@ export const DataConfigurationModel = types
     dataset: undefined as IDataSet | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
-    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>(),
+    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
     categorySets: observable.map<GraphAttrRole, Set<string> | null>()
   }))
   .views(self => ({

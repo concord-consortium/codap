@@ -86,8 +86,9 @@ export const DocumentModel = Tree.named("Document")
       }
       else {
         self.content = DocumentContentModel.create(snapshot)
-        const sharedModelManager = (getEnv(self) as ITileEnvironment).sharedModelManager;
-        (sharedModelManager as ISharedModelDocumentManager).setDocument(self.content)
+        const env: ITileEnvironment = getEnv(self)
+        const sharedModelManager = env.sharedModelManager
+        ;(sharedModelManager as ISharedModelDocumentManager).setDocument(self.content)
       }
     },
 

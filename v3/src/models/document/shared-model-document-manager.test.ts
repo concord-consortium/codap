@@ -24,10 +24,10 @@ const TestSharedModel = SharedModel
     value: types.maybe(types.string)
   })
   .actions(self => ({
-    setValue(value: string){
+    setValue(value: string) {
       self.value = value
     },
-    setValueAsync: flow(function *setValueAsync(value: string){
+    setValueAsync: flow(function *setValueAsync(value: string) {
       self.value = value
       // eslint-disable-next-line testing-library/await-async-utils
       yield wait(20)
@@ -886,5 +886,6 @@ async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number
 }
 
 function getSharedModelManager(docModel: IDocumentModel) {
-  return (getEnv(docModel) as ITileEnvironment).sharedModelManager!
+  const env: ITileEnvironment = getEnv(docModel)
+  return env.sharedModelManager!
 }

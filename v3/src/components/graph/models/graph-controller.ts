@@ -67,7 +67,7 @@ export class GraphController {
     else {
       // TODO, this may not be the reliable thing to test for AND/OR
       // we may need to be able to call setGraphProperties when axis' models are in place?
-      if (!dotsRef.current){
+      if (!dotsRef.current) {
         graphModel.setGraphProperties({
           axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
           left: EmptyAxisModel.create({place: 'left'})}, plotType: 'casePlot'
@@ -110,11 +110,11 @@ export class GraphController {
         }
       }
     })
-    graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y]);
-    ['x', 'y'].forEach((attrPlace: GraphAttrRole) => {
+    graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y])
+    ;['x', 'y'].forEach((attrPlace: GraphAttrRole) => {
       const axisPlace = attrRoleToAxisPlace[attrPlace],
         attrType = attrTypes[attrPlace]
-      if(axisPlace) {
+      if (axisPlace) {
         let axisModel
         switch (attrType) {
           case 'numeric':
@@ -139,7 +139,7 @@ export class GraphController {
   }
 
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
-    if(['plot', 'legend'].includes( graphPlace)) {
+    if (['plot', 'legend'].includes(graphPlace)) {
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
     const {dataset, graphModel, layout} = this,
@@ -160,9 +160,9 @@ export class GraphController {
       // Numeric attributes get priority for primaryRole when present. First one that is already present
       // and then the newly assigned one. If there is an already assigned categorical then its place is
       // the primaryRole, or, lastly, the newly assigned place
-      primaryRole = otherAttributeType === 'numeric' ? otherAttrRole :
-        attributeType === 'numeric' ? graphAttributeRole :
-          otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
+      primaryRole = otherAttributeType === 'numeric' ? otherAttrRole
+        : attributeType === 'numeric' ? graphAttributeRole
+          : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
     dataConfig.setPrimaryRole(primaryRole)
     currentlyAssignedAttributeID !== attrID && dataConfig.setAttribute(graphAttributeRole, attrDescSnapshot)
     graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])

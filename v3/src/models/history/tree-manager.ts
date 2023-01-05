@@ -166,7 +166,7 @@ export const TreeManager = types
     self.document = cDoc
   },
 
-  setNumHistoryEntriesApplied(value: number){
+  setNumHistoryEntriesApplied(value: number) {
     self.numHistoryEventsApplied = value
   },
 
@@ -242,7 +242,7 @@ export const TreeManager = types
     self.putTree(document.key, document)
   },
 
-  updateSharedModel(historyEntryId: string, exchangeId: string, sourceTreeId: string, snapshot: any) {
+  updateSharedModel(historyEntryId: string, exchangeId: string, sourceTreeId: string, snapshot: any): Promise<void> {
     // Right now this can be called in 2 cases:
     // 1. when a user changes something in a tree which then updates the
     //    tree's view of the shared model, so the tree wants all copies of
@@ -270,8 +270,7 @@ export const TreeManager = types
       self.startExchange(historyEntryId, applyExchangeId, "updateSharedModel.apply")
       return tree.applySharedModelSnapshotFromManager(historyEntryId, applyExchangeId, snapshot)
     })
-    // The contract for this method is to return a Promise<void> so we cast the result here.
-    return Promise.all(applyPromises).then() as Promise<void>
+    return Promise.all(applyPromises).then()
   },
 
   addHistoryEntry(historyEntryId: string, exchangeId: string, treeId: string, actionName: string,

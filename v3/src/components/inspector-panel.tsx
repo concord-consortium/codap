@@ -90,7 +90,7 @@ export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocati
     ref: paletteRef,
     handler: () => setShowPalette(undefined),
   })
-  return(
+  return (
     <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle}
         data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
       <PaletteHeader />

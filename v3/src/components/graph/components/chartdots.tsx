@@ -27,8 +27,8 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
     primaryAxisPlace = primaryAttrRole ? attrRoleToAxisPlace[primaryAttrRole] : undefined,
     primaryIsBottom = primaryAxisPlace === 'bottom',
     primaryAttrID = primaryAttrRole ? dataConfiguration?.attributeID(primaryAttrRole) : '',
-    secondaryAttrRole = primaryAttrRole === 'x' ? 'y' :
-      primaryAttrRole === 'y' ? 'x' : undefined,
+    secondaryAttrRole = primaryAttrRole === 'x' ? 'y'
+      : primaryAttrRole === 'y' ? 'x' : undefined,
     secondaryAxisPlace = secondaryAttrRole ? attrRoleToAxisPlace[secondaryAttrRole] : undefined,
     secondaryAttrID = secondaryAttrRole ? dataConfiguration?.attributeID(secondaryAttrRole) : '',
     primaryScale = primaryAxisPlace ? layout.getAxisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
@@ -68,15 +68,15 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryRole is the bottom just to help understand the naming
     const
-      primaryCategoriesArray: string[] = (dataConfiguration && primaryAttrRole) ?
-        Array.from(dataConfiguration.categorySetForAttrRole(primaryAttrRole)) : [],
-      secondaryCategoriesArray: string[] = (dataConfiguration && secondaryAttrRole) ?
-        Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrRole)) : [],
+      primaryCategoriesArray: string[] = (dataConfiguration && primaryAttrRole)
+        ? Array.from(dataConfiguration.categorySetForAttrRole(primaryAttrRole)) : [],
+      secondaryCategoriesArray: string[] = (dataConfiguration && secondaryAttrRole)
+        ? Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       primaryCellWidth = primaryScale?.bandwidth() ?? 0,
-      primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth() :
-        (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
+      primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth()
+        : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
       categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {},
       legendAttrID = dataConfiguration?.attributeID('legend'),
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
@@ -128,8 +128,8 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
       lookupLegendColor = (id: string) => {
         const isSelected = dataset?.isCaseSelected(id),
           legendColor = getLegendColor?.(id) ?? ''
-        return legendColor !== '' ? legendColor :
-          isSelected ? defaultSelectedColor : graphModel.pointColor
+        return legendColor !== '' ? legendColor
+          : isSelected ? defaultSelectedColor : graphModel.pointColor
       },
       onComplete = () => {
         if (enableAnimation.current) {
@@ -170,10 +170,10 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
             }
           })
           .style('fill', (anID: string) => lookupLegendColor(anID))
-          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-            defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-            defaultSelectedStrokeWidth : defaultStrokeWidth)
+          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+            ? defaultSelectedStroke : pointStrokeColor)
+          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+            ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
 
     setPoints()

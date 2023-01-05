@@ -75,9 +75,9 @@ export const useAxis = ({
       case 'numeric': {
         const format = scale.tickFormat?.()
         ticks = ((scale.ticks?.()) ?? []).map(tick => format(tick))
-        desiredExtent += axisPlace === 'left' ?
-          Math.max(getLabelBounds(ticks[0]).width, getLabelBounds(ticks[ticks.length - 1]).width) + axisGap :
-          labelHeight
+        desiredExtent += axisPlace === 'left'
+          ? Math.max(getLabelBounds(ticks[0]).width, getLabelBounds(ticks[ticks.length - 1]).width) + axisGap
+          : labelHeight
         break
       }
       case 'categorical': {
@@ -94,8 +94,8 @@ export const useAxis = ({
       labelBounds = getLabelBounds(label),
       duration = enableAnimation.current ? transitionDuration : 0,
       axisIsVertical = isVertical(axisPlace),
-      initialTransform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})` :
-        `translate(${axisBounds.left}, ${axisBounds.top})`
+      initialTransform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
+        : `translate(${axisBounds.left}, ${axisBounds.top})`
 
     const drawAxis = () => {
         select(axisElt)
@@ -113,7 +113,7 @@ export const useAxis = ({
           .attr('class', 'grid')
           .call(axis(scale).tickSizeInner(-tickLength))
         select(axisElt).select('.grid').selectAll('text').remove()
-        const numericScale = scale as ScaleNumericBaseType
+        const numericScale = scale
         if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
           select(axisElt).append('g')
             .attr('class', 'zero')
@@ -201,9 +201,9 @@ export const useAxis = ({
         },
         ({place: aPlace, scaleType}) => {
           const newScale =
-            scaleType === 'log' ? scaleLog() :
-              scaleType === 'linear' ? scaleLinear() :
-                scaleOrdinal()
+            scaleType === 'log' ? scaleLog()
+              : scaleType === 'linear' ? scaleLinear()
+                : scaleOrdinal()
           layout.setAxisScale(aPlace, newScale)
           refreshAxis()
         }

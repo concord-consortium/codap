@@ -20,7 +20,7 @@ const TestSharedModel = SharedModel
     value: types.maybe(types.string)
   })
   .actions(self => ({
-    setValue(value: string){
+    setValue(value: string) {
       self.value = value
     }
   }))
@@ -56,7 +56,7 @@ const TestTile = TileContentModel
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       self.updateCount++
       const sharedModelValue = self.sharedModel?.value
-      self.text = sharedModelValue ? sharedModelValue + "-tile" : undefined
+      self.text = sharedModelValue ? `${sharedModelValue}-tile` : undefined
     },
     setFlag(_flag: boolean) {
       self.flag = _flag
@@ -243,7 +243,7 @@ it("records multiple history entries", async () => {
   tileContent.setActionText("action 3")
   tileContent.setActionText("action 4")
 
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument: Instance<typeof CDocument> = manager.document
   await expectEntryToBeComplete(manager, 5)
 
   expect(getSnapshot(changeDocument.history)).toEqual([
@@ -279,7 +279,7 @@ it("can replay the history entries", async () => {
 // TODO: it would nicer to use a custom Jest matcher here so we can
 // provide a better error message when it fails
 async function expectEntryToBeComplete(manager: Instance<typeof TreeManager>, length: number) {
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument: Instance<typeof CDocument> = manager.document
   let timedOut = false
   try {
     await when(

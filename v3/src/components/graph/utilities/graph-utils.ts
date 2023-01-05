@@ -411,8 +411,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
   const lookupLegendColor = (id: string) => {
       const isSelected = dataset?.isCaseSelected(id),
         legendColor = getLegendColor ? getLegendColor(id) : ''
-      return legendColor !== '' ? legendColor :
-        isSelected ? defaultSelectedColor : pointColor
+      return legendColor !== '' ? legendColor
+        : isSelected ? defaultSelectedColor : pointColor
     },
 
     setPoints = () => {
@@ -429,10 +429,10 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
           .attr('cy', (anID: string) => getScreenY(anID))
           .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
           .style('fill', (id: string) => lookupLegendColor(id))
-          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-            defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-            defaultSelectedStrokeWidth : defaultStrokeWidth)
+          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+            ? defaultSelectedStroke : pointStrokeColor)
+          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+            ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
     }
 
