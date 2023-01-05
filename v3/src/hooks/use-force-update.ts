@@ -5,6 +5,6 @@ import {useCallback, useState} from "react"
  */
 export const useForceUpdate = () => {
   const set = useState(false)[1]
-  return useCallback(() => set((s) => !s),[set])
+  return useCallback(() => set((s) => !s), [set])
 }
 

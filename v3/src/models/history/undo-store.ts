@@ -47,7 +47,7 @@ export const UndoStore = types
     const historyEntryId = nanoid()
     const exchangeId = nanoid()
 
-    const manager = getParent(self) as Instance<typeof TreeManager>
+    const manager: Instance<typeof TreeManager> = getParent(self)
 
     // Start a non-undoable action with this id
     // TODO: we are using a fake tree id of "manager" here. This is currently

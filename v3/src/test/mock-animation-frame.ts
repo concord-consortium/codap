@@ -59,7 +59,7 @@ export class MockAnimationFrame {
     }
 
     triggerAll(elapsed = 1000 / 60) {
-      while(this.queue.size > 0) this.triggerNext(elapsed)
+      while (this.queue.size > 0) this.triggerNext(elapsed)
       // return the time passed to callback
       return this.time
     }

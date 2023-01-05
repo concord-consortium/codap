@@ -27,7 +27,7 @@ const TestSharedModel = SharedModel
     value: types.maybe(types.string)
   })
   .actions(self => ({
-    setValue(value: string){
+    setValue(value: string) {
       self.value = value
     }
   }))
@@ -75,29 +75,29 @@ const TestTile = TileContentModel
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       self.updateCount++
       const sharedModelValue = self.sharedModel?.value
-      self.text = sharedModelValue ? sharedModelValue + "-tile" : undefined
+      self.text = sharedModelValue ? `${sharedModelValue}-tile` : undefined
     },
     setFlag(_flag: boolean) {
       self.flag = _flag
     },
-    setFlagWithoutUndo(_flag: boolean){
+    setFlagWithoutUndo(_flag: boolean) {
       withoutUndo()
       self.flag = _flag
     },
-    updateCounterAsync: flow(function *updateCounterAsync(){
+    updateCounterAsync: flow(function *updateCounterAsync() {
       self.counter += 1
       // eslint-disable-next-line testing-library/await-async-utils
       yield wait(50) // intermittent failures with shorter waits
       self.counter += 1
     }),
-    updateCounterWithoutUndoAsync: flow(function *updateCounterWithoutUndoAsync(){
+    updateCounterWithoutUndoAsync: flow(function *updateCounterWithoutUndoAsync() {
       withoutUndo()
       self.counter += 1
       // eslint-disable-next-line testing-library/await-async-utils
       yield wait(50) // intermittent failures with shorter waits
       self.counter += 1
     }),
-    setChildValue(_value: string){
+    setChildValue(_value: string) {
       self.child?.setValueWithoutUndo(_value)
     }
   }))
@@ -189,7 +189,7 @@ it("records a tile change as one history event with one TreeRecordEntry", async 
   tileContent.setFlag(true)
 
   await expectEntryToBeComplete(manager, 1)
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
 
   expect(getSnapshot(changeDocument.history)).toEqual([
     setFlagTrueEntry
@@ -230,7 +230,7 @@ it("can undo a tile change", async () => {
 
   expect(tileContent.flag).toBeUndefined()
 
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([
     setFlagTrueEntry,
     undoEntry
@@ -276,7 +276,7 @@ it("can redo a tile change", async () => {
 
   expect(tileContent.flag).toBe(true)
 
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([
     setFlagTrueEntry,
     undoEntry,
@@ -292,7 +292,7 @@ it("records a async tile change as one history event with one TreeRecordEntry", 
   await tileContent.updateCounterAsync()
 
   await expectEntryToBeComplete(manager, 1)
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
 
   expect(getSnapshot(changeDocument.history)).toEqual([
     {
@@ -330,7 +330,7 @@ it("records an async tile change and an interleaved history event with 2 entries
   await updateCounterPromise
 
   await expectEntryToBeComplete(manager, 2)
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
 
   expect(getSnapshot(changeDocument.history)).toEqual([
     setFlagTrueEntry,
@@ -371,7 +371,7 @@ it("can skip adding an action to the undo list", async () => {
 
   expect(tileContent.flag).toBe(true)
 
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([
     // override the action name of the initialUpdateEntry
     {
@@ -404,7 +404,7 @@ it("can handle withoutUndo even when tree isn't monitored", async () => {
 
   expect(tileContent.flag).toBe(true)
 
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([])
 })
 
@@ -474,7 +474,7 @@ it("will print a warning and still add the action to the undo list if any child 
 
   expect(tileContent.child?.value).toBe("new child value")
 
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
 
   expect(getSnapshot(changeDocument.history)).toEqual([
     {
@@ -522,7 +522,7 @@ it("records undoable actions that happen in the middle async actions which are n
   expect(tileContent.flag).toBe(true)
   expect(tileContent.counter).toBe(2)
 
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([
     setFlagTrueEntry,
     {
@@ -582,7 +582,7 @@ it("can replay the history entries", async () => {
     expect(tileContent.flag).toBe(true)
 
     // The history should not change after it is replayed
-    const changeDocument = manager.document as Instance<typeof CDocument>
+    const changeDocument = manager.document
     expect(getSnapshot(changeDocument.history)).toEqual(history)
 
 })
@@ -888,7 +888,7 @@ async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number
 // TODO: it would nicer to use a custom Jest matcher here so we can
 // provide a better error message when it fails
 async function expectEntryToBeComplete(manager: Instance<typeof TreeManager>, length: number) {
-  const changeDocument = manager.document as Instance<typeof CDocument>
+  const changeDocument = manager.document
   let timedOut = false
   try {
     await when(

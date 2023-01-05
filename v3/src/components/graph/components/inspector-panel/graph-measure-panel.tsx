@@ -1,5 +1,5 @@
 import React from "react"
-import { Box, Button, Checkbox, Flex, FormControl, useToast}from "@chakra-ui/react"
+import { Box, Button, Checkbox, Flex, FormControl, useToast} from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
 import { IGraphModel } from "../../models/graph-model"
 import { InspectorPalette } from "../../../inspector-panel"

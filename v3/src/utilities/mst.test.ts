@@ -188,7 +188,7 @@ describe("Mobx State Tree", () => {
     results.set("MST V(P) onSnapshot", "not called")
 
     function pad(s: string, length: number) {
-      return (s + "          ").substring(0, length)
+      return (`${s}          `).substring(0, length)
     }
 
     const resultsArray = Array.from(results.entries())

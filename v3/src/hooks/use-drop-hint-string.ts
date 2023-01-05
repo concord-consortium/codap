@@ -16,7 +16,7 @@ interface HintMapEntry {
 }
 type HintMap = Partial<Record<GraphAttrRole, Partial<Record<AttributeType, HintMapEntry>>>>
 
-export function determineBaseString(role: GraphAttrRole, dropType?: AttributeType, priorType?: AttributeType){
+export function determineBaseString(role: GraphAttrRole, dropType?: AttributeType, priorType?: AttributeType) {
   const stringMap: HintMap = {
     x: {
       numeric: {
@@ -59,7 +59,7 @@ export const useDropHintString = ({role} : IUseDropHintStringProps) => {
     dataConfig = useDataConfigurationContext(),
     { active } = useDndContext()
 
-  if (dataSet && active?.data.current ) {
+  if (dataSet && active?.data.current) {
     const dragAttrId = getDragAttributeId(active),
       dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId).name : undefined,
       dragAttrType = dragAttrId? dataSet.attrFromID(dragAttrId).type : undefined

@@ -100,16 +100,16 @@ export const TableTileElements = {
         this.openAttributeMenu(attr)
         this.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
         if (name!=="") {
-            this.enterAttributeName(`{selectAll}{backspace}` + name)
+            this.enterAttributeName(`{selectAll}{backspace}${name}`)
         }
         if (description!=null) {
-            this.enterAttributeDescription(`{selectAll}{backspace}` + description)
+            this.enterAttributeDescription(`{selectAll}{backspace}${description}`)
         }
         if (type!=null) {
             this.selectAttributeType(type)
         }
         if (unit!=null) {
-            this.enterAttributeUnit(`{selectAll}{backspace}` + unit)
+            this.enterAttributeUnit(`{selectAll}{backspace}${unit}`)
         }
         if (precision!=null) {
             this.selectAttributePrecision(precision)

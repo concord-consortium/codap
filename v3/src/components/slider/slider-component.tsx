@@ -126,18 +126,18 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               </Center>
               <Center>
                 <div className="slider-inputs">
-                  { isEditingName ?
-                    <input
-                      type="text"
-                      className="name-input"
-                      value={sliderModel.name}
-                      onChange={handleSliderNameInput}
-                      onBlur={() => setIsEditingName(false)}
-                      style={{width: `${titleM + 2 + (titleM * .25)}px`, paddingLeft: "3px"}}
-                    /> :
-                    <div onClick={() => setIsEditingName(true)}>
+                  { isEditingName
+                    ? <input
+                        type="text"
+                        className="name-input"
+                        value={sliderModel.name}
+                        onChange={handleSliderNameInput}
+                        onBlur={() => setIsEditingName(false)}
+                        style={{width: `${titleM + 2 + (titleM * .25)}px`, paddingLeft: "3px"}}
+                      />
+                    : <div onClick={() => setIsEditingName(true)}>
                         {sliderModel.name}
-                    </div>
+                      </div>
                   }
 
                   <span className="equals-sign">&nbsp;=&nbsp;</span>

@@ -25,7 +25,7 @@ export const canonicalizeExpression = (displayExpression: string, xName: string)
     const parser = new Parser()
     canonicalExpression = parser.parse(canonicalExpression).toString()
   }
-  catch(e) {
+  catch (e) {
     // nop
   }
   return canonicalExpression

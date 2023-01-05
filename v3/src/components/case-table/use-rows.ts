@@ -108,7 +108,7 @@ export const useRows = (data?: IDataSet) => {
           return casesToUpdate
         }
 
-        switch(action.name) {
+        switch (action.name) {
           case "addAttribute":
           case "removeAttribute":
           case "setFormat":

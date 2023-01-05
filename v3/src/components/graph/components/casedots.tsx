@@ -111,10 +111,10 @@ export const CaseDots = memo(function CaseDots(props: {
       .style('fill', (anID: string) => {
         return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? graphModel.pointColor
       })
-      .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
-        defaultSelectedStroke : graphModel.pointStrokeColor)
-      .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id)) ?
-        defaultSelectedStrokeWidth : defaultStrokeWidth)
+      .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id))
+        ? defaultSelectedStroke : graphModel.pointStrokeColor)
+      .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id))
+        ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
   }, [dataset, legendAttrID, dataConfiguration, graphModel,
     layout, dotsRef, enableAnimation])

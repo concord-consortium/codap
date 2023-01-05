@@ -52,7 +52,7 @@ export const Tree = types.model("Tree", {
     }
 
     // Run update function on the tiles
-    for(const tile of tiles) {
+    for (const tile of tiles) {
       tile.content.updateAfterSharedModelChanges(sharedModel)
     }
   }

@@ -191,7 +191,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("returns an attribute values array and category set that ignore empty values", () => {
-    data.addCases(toCanonical(data,[
+    data.addCases(toCanonical(data, [
       { __id__: "c4", n: "n1", x: 1, y: 1 },
       { __id__: "c5", n: "", x: 6, y: 1 },
       { __id__: "c6", n: "n1", x: 6, y: 6 }]))

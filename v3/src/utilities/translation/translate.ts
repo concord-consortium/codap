@@ -28,7 +28,7 @@ const languageFiles: LanguageFileEntry[] = [
   {key: 'es',    contents: es},     // Spanish
   {key: 'fa',    contents: fa},     // Farsi (Persian)
   {key: 'he',    contents: he},     // Hebrew
-  {key: 'ja' ,   contents: ja},     // Japanese
+  {key: 'ja',    contents: ja},     // Japanese
   {key: 'nb',    contents: nb},     // Norwegian Bokmål
   {key: 'nn',    contents: nn},     // Norwegian Nynorsk
   {key: 'pt-BR', contents: ptBR},   // Brazilian Portuguese

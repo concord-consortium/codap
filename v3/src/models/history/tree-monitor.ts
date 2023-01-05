@@ -111,7 +111,7 @@ export class TreeMonitor {
             // adds model to the document and tile to the entry. So there currently
             // isn't a need for the tree monitor to handle that case.
             const pathMatch = _patch.path.match(/(.*\/content\/sharedModelMap\/[^/]+\/sharedModel)\//)
-            if(pathMatch) {
+            if (pathMatch) {
               const sharedModelPath = pathMatch[1]
 
               if (!sharedModelModifications[sharedModelPath]) {

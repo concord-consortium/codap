@@ -21,7 +21,7 @@ const removeAttrItemLabelKeys: Record<string, string> = {
   "legend": "DG.DataDisplayMenu.removeAttribute_legend"
 }
 
-const _AxisOrLegendAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps ) => {
+const _AxisOrLegendAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
   const role = graphPlaceToAttrRole(place)

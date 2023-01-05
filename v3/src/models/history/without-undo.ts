@@ -29,7 +29,7 @@ export function withoutUndo() {
   }
 
   const call = runningCalls.get(actionCall)
-  if (!call){
+  if (!call) {
     // It is normal for there to be no running calls. This can happen in two cases:
     //   - the document isn't being edited so the tree monitor is disabled
     //   - the document content is part of the authored unit. In this case there is no
@@ -43,7 +43,7 @@ export function withoutUndo() {
         if ((root as any).treeMonitor?.enabled) {
           console.warn("cannot find action tracking middleware call")
         }
-      } catch ( error ) {
+      } catch (error) {
         console.warn("cannot find action tracking middleware call, " +
           "error thrown while trying to find the tree", error)
       }
