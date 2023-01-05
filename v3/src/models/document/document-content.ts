@@ -99,6 +99,8 @@ export const DocumentContentModel = types
     }
   }))
   .views(self => ({
+    // Returns a row instance if the new tile should be inserted in an existing row or an
+    // index if a new row should be created (at the returned index) to contain the new tile.
     get defaultInsertRow() {
       // next tile comes after the last visible row with content
       for (let i = self.indexOfLastVisibleRow; i >= 0; --i) {
