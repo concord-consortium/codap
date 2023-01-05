@@ -3,178 +3,110 @@
 // https://observablehq.com/@d3/scale-legend
 import {
   axisBottom,
+  /*
   interpolate,
   interpolateRound,
   quantize,
   scaleBand,
   ScaleContinuousNumeric,
+*/
   scaleLinear,
   format,
-  range,
-  select
+  // range,
+  select, range, min, max
 } from "d3"
 import {kChoroplethHeight} from "../../../graphing-types"
+import {neededSigDigitsArrayForQuantiles} from "../../../../../utilities/math-utils"
 
-export function choroplethLegend(scale:any, choroplethElt:SVGGElement, {
-  title='',
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-  tickSize = 6,
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-  width = 320,
-  height = 44 + tickSize,
-  rectHeight = 16,
-  transform = '',
-  marginTop = 0,
-  marginRight = 0,
-  marginBottom = 16 + tickSize,
-  marginLeft = 0,
-  ticks = width / 64,
-  tickFormat='',
-  tickValues:any = []
-} = {}) {
+export type ChoroplethLegendProps = {
+  tickSize?: number,
+  width?: number,
+  rectHeight?: number,
+  transform?: string,
+  marginTop?: number,
+  marginRight?: number,
+  marginLeft?: number,
+  ticks?: number,
+  clickHandler: (quantile: number, extend: boolean) => void,
+  casesInQuantileSelectedHandler: (quantile: number) => boolean
+}
 
-  function ramp(iScale:ScaleContinuousNumeric<number, string>, n = 256) {
-    const canvas = document.createElement("canvas")
-    canvas.width = n
-    canvas.height = 1
-    const context = canvas.getContext("2d") as CanvasRenderingContext2D
-    for (let i = 0; i < n; ++i) {
-      context.fillStyle = iScale(i / (n - 1))
-      context.fillRect(i, 0, 1, 1)
-    }
-    return canvas
-  }
+export function choroplethLegend(scale: any, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {
+  const {
+      tickSize = 6, transform = '', width = 320, marginTop = 0, marginRight = 0, marginLeft = 0,
+      ticks = 5, clickHandler, casesInQuantileSelectedHandler
+    } = props,
+    minValue = min(scale.domain()),
+    maxValue = max(scale.domain())
 
+  let tickFormat: any = '.2r',
+    tickValues: any = []
+
+  select(choroplethElt).selectAll("*").remove()
   const svg = select(choroplethElt).append("svg")
     .attr('transform', transform)
-    .attr("width", width)
-    .attr("height", height)
     // .attr("viewBox", [0, 0, width, height])
     .style("overflow", "visible")
     .style("display", "block")
 
-  // let tickAdjust = (g:any) => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height)
-  let x:any
+  const thresholds =
+      scale.quantiles(),
+    fullBoundaries = [minValue, ...thresholds, maxValue],
+    domainValues = scale.domain(),
+    significantDigits = neededSigDigitsArrayForQuantiles(fullBoundaries, domainValues)
 
-  // Continuous
-  if (scale.interpolate) {
-    const n = Math.min(scale.domain().length, scale.range().length)
+  const thresholdFormat = typeof tickFormat === "string" ? format(tickFormat)
+    : tickFormat
 
-    x = scale.copy().rangeRound(quantize(interpolate(marginLeft, width - marginRight), n))
-
-    svg.append("image")
-      .attr("x", marginLeft)
-      .attr("y", marginTop)
-      .attr("width", width - marginLeft - marginRight)
-      .attr("height", height - marginTop - marginBottom)
-      .attr("preserveAspectRatio", "none")
-      .attr("xlink:href", ramp(scale.copy().domain(quantize(interpolate(0, 1), n))).toDataURL())
-  }
-
-  // Sequential
-  else if (scale.interpolator) {
-    x = Object.assign(scale.copy()
-        .interpolator(interpolateRound(marginLeft, width - marginRight)),
-      {range() { return [marginLeft, width - marginRight] }})
-
-    svg.append("image")
-      .attr("x", marginLeft)
-      .attr("y", marginTop)
-      .attr("width", width - marginLeft - marginRight)
-      .attr("height", height - marginTop - marginBottom)
-      .attr("preserveAspectRatio", "none")
-      .attr("xlink:href", ramp(scale.interpolator()).toDataURL())
-
-    // scaleSequentialQuantile doesn’t implement ticks or tickFormat.
-    if (!x.ticks) {
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-      if (tickValues === undefined) {
-        const n = Math.round(ticks + 1)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-        tickValues = range(n).map(i => quantile(scale.domain(), i / (n - 1)))
-      }
-      if (typeof tickFormat !== "function") {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-        tickFormat = format(tickFormat === undefined ? ",f" : tickFormat)
-      }
-    }
-  }
-
-  // Threshold
-  else if (scale.invertExtent) {
-    const thresholds
-      = scale.thresholds ? scale.thresholds() // scaleQuantize
-      : scale.quantiles ? scale.quantiles() // scaleQuantile
-        : scale.domain() // scaleThreshold
-
-    const thresholdFormat
-      = tickFormat === undefined ? (d:any) => d
-      : typeof tickFormat === "string" ? format(tickFormat)
-        : tickFormat
-
-    x = scaleLinear()
-      .domain([-1, scale.range().length - 1])
-      .rangeRound([marginLeft, width - marginRight])
-
-    svg.append("g")
-      .selectAll("rect")
-      .data(scale.range())
-      .join("rect")
-      .attr('transform', transform)
-      .attr("x", (d, i) => x(i - 1))
-      .attr("y", marginTop)
-      .attr("width", (d, i) => x(i) - x(i - 1))
-      .attr("height", kChoroplethHeight /*height - marginTop - marginBottom*/)
-      .attr("fill", (d:string) => d)
-
-    // const tickValues = range(thresholds.length)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-    tickFormat = i => thresholdFormat(thresholds[i], i)
-  }
-
-  // Ordinal
-  else {
-    x = scaleBand()
-      .domain(scale.domain())
-      .rangeRound([marginLeft, width - marginRight])
-
-    svg.append("g")
-      .selectAll("rect")
-      .data(scale.domain())
-      .join("rect")
-      .attr("x", x)
-      .attr("y", marginTop)
-      .attr("width", Math.max(0, x.bandwidth() - 1))
-      .attr("height", height - marginTop - marginBottom)
-      .attr("fill", scale)
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    // tickAdjust = () => {}
-  }
+  const x = scaleLinear()
+    .domain([-1, scale.range().length - 1])
+    .rangeRound([marginLeft, width - marginRight])
 
   svg.append("g")
-    .attr("transform", transform + `translate(0,${kChoroplethHeight})`)
+    .selectAll("rect")
+    .data(scale.range())
+    .join("rect")
+    .classed('legend-rect-selected',
+      (color) => {
+        return casesInQuantileSelectedHandler(scale.range().indexOf(color))
+      })
+    .attr('transform', transform)
+    .attr("x", (d, i) => x(i - 1))
+    .attr("y", marginTop)
+    .attr("width", (d, i) => x(i) - x(i - 1))
+    .attr("height", kChoroplethHeight /*height - marginTop - marginBottom*/)
+    .attr("fill", (d: string) => d)
+    .on('click', (event, color) => {
+      clickHandler(scale.range().indexOf(color), event.shiftKey)
+    })
+
+  tickValues = range(thresholds.length)
+  tickFormat = (i: number) => thresholdFormat(thresholds[i])
+
+  svg.append("g")
+    .attr('class', 'legend-axis')
+    .attr("transform", `${transform} translate(0,${kChoroplethHeight})`)
     .call(axisBottom(x)
-      .ticks(ticks, typeof tickFormat === "string" ? tickFormat : undefined))
-      // .tickFormat(typeof tickFormat === "function" ? tickFormat : undefined)
-      // .tickSize(tickSize)
-      // .tickValues(tickValues))
-    // .call(tickAdjust)
-    // .call(g => g.select(".domain").remove())
-    // .call(g => g.append("text")
-    //   .attr("x", marginLeft)
-    //   .attr("y", marginTop + marginBottom - height - 6)
-    //   .attr("fill", "currentColor")
-    //   .attr("text-anchor", "start")
-    //   .attr("font-weight", "bold")
-    //   .attr("class", "title")
-    //   .text(title))
+      .ticks(ticks)
+      .tickFormat(tickFormat)
+      .tickSize(tickSize)
+      .tickValues(tickValues))
+
+  svg.select('.legend-axis')
+    .append('g')
+    .attr('class', 'legend-axis-label')
+    .selectAll('text')
+    .data([Number(minValue), Number(maxValue)])
+    .join(
+      // @ts-expect-error void => Selection
+      (enter) => {
+        enter.append('text')
+          .attr('y', kChoroplethHeight)
+          .style('text-anchor', (d, i) => i ? 'end' : 'start')
+          .attr('x', (d, i) => i * width)
+          .text((d, i) => format(`.${significantDigits[i === 0 ? 0 : 5]}r`)(d))
+      }
+    )
 
   return svg.node()
 }

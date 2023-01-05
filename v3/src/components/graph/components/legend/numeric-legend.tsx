@@ -1,6 +1,9 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import {reaction} from "mobx"
+import {onAction} from "mobx-state-tree"
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {choroplethLegend} from "./choroplethLegend/choroplethLegend"
 import {measureTextExtent} from "../../../../hooks/use-measure-text"
@@ -24,30 +27,64 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
     computeDesiredExtent = useCallback(() => {
       const labelHeight = measureTextExtent(dataset?.attrFromID(legendAttrID).name ?? '', kGraphFont).height
       return 2 * labelHeight + kChoroplethHeight + 2 * axisGap
-    }, [dataset, legendAttrID])
+    }, [dataset, legendAttrID]),
 
-  useEffect(() => {
-    if (choroplethElt) {
-      layout.setDesiredExtent('legend', computeDesiredExtent())
-      quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
-      const bounds = layout.computedBounds.get('legend'),
-        translate = `translate(${bounds?.left}, ${bounds?.top})`
-      choroplethLegend(quantileScale.current, choroplethElt,
-        {
-          transform: translate, width: bounds?.width, height: bounds?.height, marginLeft: 6, marginRight: 6
-        })
-    }
-  }, [dataConfiguration, layout, legendAttrID, computeDesiredExtent, choroplethElt])
+    refreshScale = useCallback(() => {
+      if (choroplethElt) {
+        valuesRef.current = dataConfiguration?.numericValuesForAttrRole('legend') ?? []
+        layout.setDesiredExtent('legend', computeDesiredExtent())
+        quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
+        const bounds = layout.computedBounds.get('legend'),
+          translate = `translate(${bounds?.left}, ${(bounds?.top ?? 0) + axisGap})`
+        choroplethLegend(quantileScale.current, choroplethElt,
+          {
+            transform: translate, width: bounds?.width,
+            marginLeft: 6, marginRight: 6, ticks: 5,
+            clickHandler: (quantile: number, extend: boolean) => {
+              dataConfiguration?.selectCasesForLegendQuantile(quantile, extend)
+            },
+            casesInQuantileSelectedHandler: (quantile: number) => {
+              return !!dataConfiguration?.casesInQuantileSelected(quantile)
+            }
+          })
+      }
+    }, [layout, computeDesiredExtent, choroplethElt, dataConfiguration])
 
+  useEffect(function refresh() {
+    refreshScale()
+  }, [refreshScale])
 
-/*
-  useEffect(function setup() {
-    if (choroplethElt) {
-      layout.setDesiredExtent('legend', computeDesiredExtent())
-      quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
-    }
-  }, [choroplethElt, computeDesiredExtent, layout, dataConfiguration])
-*/
+  useEffect(function respondToLayoutChange() {
+    const disposer = reaction(
+      () => {
+        const {graphHeight, graphWidth} = layout,
+          legendID = dataConfiguration?.attributeID('legend')
+        return [graphHeight, graphWidth, legendID]
+      },
+      () => {
+        refreshScale()
+      }, {fireImmediately: true}
+    )
+    return () => disposer()
+  }, [layout, computeDesiredExtent, dataConfiguration, refreshScale])
+
+  useEffect(function respondToSelectionChange() {
+    const disposer = onAction(dataset, action => {
+      if (isSelectionAction(action)) {
+        refreshScale()
+      }
+    }, true)
+    return disposer
+  }, [refreshScale, dataset])
+
+  useEffect(function respondToNumericValuesChange() {
+    const disposer = reaction(
+      () => dataConfiguration?.numericValuesForAttrRole('legend'),
+      () => {
+        refreshScale()
+      })
+    return disposer
+  }, [dataConfiguration, refreshScale])
 
 
   return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)}></svg>

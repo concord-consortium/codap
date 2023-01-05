@@ -1,4 +1,5 @@
 import {observable} from "mobx"
+import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
@@ -40,7 +41,8 @@ export const DataConfigurationModel = types
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
-    categorySets: observable.map<GraphAttrRole, Set<string> | null>()
+    categorySets: observable.map<GraphAttrRole, Set<string> | null>(),
+    legendQuantileScale: undefined as ScaleQuantile<string> | undefined
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -65,6 +67,9 @@ export const DataConfigurationModel = types
       const places = new Set<string>(self.attributeDescriptions.keys())
       self.dataset?.attributes.length && places.add("caption")
       return Array.from(places) as GraphAttrRole[]
+    },
+    get legendQuantileScale() {
+      return scaleQuantile(this.numericValuesForAttrRole('legend'), schemeBlues[5])
     }
   }))
   .actions(self => ({
@@ -201,6 +206,11 @@ export const DataConfigurationModel = types
         const catIndex = Array.from(self.categorySetForAttrRole('legend')).indexOf(cat)
         return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
       },
+
+      getLegendColorForNumericValue(value: number): string {
+        return self.legendQuantileScale(value)
+      },
+
       selectCasesForLegendValue(aValue: string, extend = false) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
@@ -219,14 +229,47 @@ export const DataConfigurationModel = types
             return dataset?.getValue(anID, legendID) === cat
           })) ?? []
         return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
+      },
+      selectCasesForLegendQuantile(quantile: number, extend = false) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          thresholds = self.legendQuantileScale.quantiles(),
+          min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
+          max = quantile === thresholds.length ? Infinity : thresholds[quantile],
+          selection = legendID && self.cases.filter((anID: string) => {
+            const value = dataset?.getNumeric(anID, legendID)
+            return value !== undefined && value >= min && value < max
+          })
+        if (selection) {
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
+        }
+      },
+      casesInQuantileSelected(quantile: number): boolean {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          thresholds = self.legendQuantileScale.quantiles(),
+          min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
+          max = quantile === thresholds.length ? Infinity : thresholds[quantile],
+          selection: string[] = legendID && legendID !== ''
+            ? self.cases.filter((anID: string) => {
+              const value = dataset?.getNumeric(anID, legendID)
+              return value !== undefined && value >= min && value < max
+            })
+            : []
+        return !!(selection.length > 0 &&selection?.every((anID: string) => dataset?.isCaseSelected(anID)))
       }
     }))
   .views(self => (
     {
       getLegendColorForCase(id: string): string {
         const legendID = self.attributeID('legend'),
+          legendType = self.attributeType('legend'),
           legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
-        return legendValue == null ? '' : self.getLegendColorForCategory(legendValue)
+        return legendValue == null ? ''
+          : legendType === 'categorical' ? self.getLegendColorForCategory(legendValue)
+            : legendType === 'numeric' ? self.getLegendColorForNumericValue(Number(legendValue))
+              : ''
       },
       /**
        * Called to determine whether the categories on an axis should be centered.
@@ -236,7 +279,7 @@ export const DataConfigurationModel = types
       categoriesForAxisShouldBeCentered(place: AxisPlace) {
         const role = graphPlaceToAttrRole(place),
           primaryRole = self.primaryRole
-          return primaryRole === role
+        return primaryRole === role
       }
     }))
   .actions(self => ({
