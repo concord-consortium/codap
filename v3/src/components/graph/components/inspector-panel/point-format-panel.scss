@@ -1,5 +1,13 @@
 @import "../../../vars.scss";
 
+.palette-row {
+  flex-direction: row;
+  align-items: center;
+  label {
+    margin: 0;
+  }
+}
+
 .color-picker-thumb {
   width: 50px !important;
   height: 32px !important;
@@ -17,6 +25,8 @@
   height: 75px;
   overflow-y: auto;
 
+  // we limit the number of categories showing to 3 so force to
+  // show the vertical scrollbar if there are more than 3
   &::-webkit-scrollbar-track {
     border-radius: 0.175rem;
     background-color: lightgray;
@@ -28,5 +38,9 @@
   &::-webkit-scrollbar-thumb {
     border-radius: 0.175rem;
     background-color: gray;
+  }
+
+  .cat-color-picker {
+    margin: 6px 0px;
   }
 }
