@@ -28,19 +28,11 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
   }
 
   const handleRulerButton = () => {
-    if (showPalette === "measure") {
-      setShowPalette(undefined)
-    } else {
-      setShowPalette("measure")
-    }
+    setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
   const handleBrushButton = () => {
-    if (showPalette === "format") {
-      setShowPalette(undefined)
-    } else {
-      setShowPalette("format")
-    }
+    setShowPalette(showPalette === "format" ? undefined : "format")
   }
 
   return (show

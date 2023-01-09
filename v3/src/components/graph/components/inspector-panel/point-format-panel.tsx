@@ -90,6 +90,8 @@ categoriesRef.current?.forEach(cat => {
                     : attrType === "numeric"
                       ? <FormControl className="num-color-setting">
                           <Flex className="palette-row">
+                            {/* Sets the min and max colors for numeric legend. Currently not implemented so
+                                this sets the same color for all the points*/}
                             <FormLabel className="form-label">{t("DG.Inspector.legendColor")}</FormLabel>
                             <Input type="color" className="color-picker-thumb" value={missingColor}
                                   onChange={e => handlePointColorSetting(e.target.value)}/>
