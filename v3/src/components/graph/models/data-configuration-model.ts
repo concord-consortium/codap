@@ -41,8 +41,7 @@ export const DataConfigurationModel = types
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
-    categorySets: observable.map<GraphAttrRole, Set<string> | null>(),
-    legendQuantileScale: undefined as ScaleQuantile<string> | undefined
+    categorySets: observable.map<GraphAttrRole, Set<string> | null>()
   }))
   .views(self => ({
     get defaultCaptionAttributeID() {
@@ -67,11 +66,29 @@ export const DataConfigurationModel = types
       const places = new Set<string>(self.attributeDescriptions.keys())
       self.dataset?.attributes.length && places.add("caption")
       return Array.from(places) as GraphAttrRole[]
-    },
-    get legendQuantileScale() {
-      return scaleQuantile(this.numericValuesForAttrRole('legend'), schemeBlues[5])
     }
   }))
+  .extend(self => {
+    // TODO: This is a hack to get around the fact that MST doesn't seem to cache this as expected
+    // when implemented as simple view.
+    let quantileScale: ScaleQuantile<string> | undefined = undefined
+
+    return {
+      views: {
+        get legendQuantileScale() {
+          if (!quantileScale) {
+            quantileScale = scaleQuantile(this.numericValuesForAttrRole('legend'), schemeBlues[5])
+          }
+          return quantileScale
+        },
+      },
+      actions: {
+        invalidateQuantileScale() {
+          quantileScale = undefined
+        }
+      }
+    }
+  })
   .actions(self => ({
     clearCategorySets() {
       self.categorySets.clear()
@@ -126,10 +143,14 @@ export const DataConfigurationModel = types
         self.attributeDescriptions.forEach((desc, key: GraphAttrRole) => {
           if (affectedAttrIDs.includes(desc.attributeID)) {
             self.setCategorySetForRole(key, null)
+            if (key === "legend") {
+              self.invalidateQuantileScale()
+            }
           }
         })
       } else {
         self.clearCategorySets()
+        self.invalidateQuantileScale()
       }
     }
   }))
@@ -292,6 +313,7 @@ export const DataConfigurationModel = types
         source: dataset, filter: self.filterCase,
         onSetCaseValues: self.handleSetCaseValues
       })
+      self.invalidateQuantileScale()
     },
     setPrimaryRole(role: GraphAttrRole) {
       if (role === 'x' || role === 'y') {
@@ -306,6 +328,9 @@ export const DataConfigurationModel = types
       }
       self.filteredCases?.invalidateCases()
       self.categorySets.set(role, null)
+      if (role === 'legend') {
+        self.invalidateQuantileScale()
+      }
     },
     setAttributeType(role: GraphAttrRole, type: AttributeType) {
       self.attributeDescriptions.get(role)?.setType(type)

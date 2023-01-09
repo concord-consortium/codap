@@ -77,6 +77,8 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
     return disposer
   }, [refreshScale, dataset])
 
+  // todo: This reaction is not begin trigger when a value of the legend attribute is changed.
+  // It should be.
   useEffect(function respondToNumericValuesChange() {
     const disposer = reaction(
       () => dataConfiguration?.numericValuesForAttrRole('legend'),
@@ -85,7 +87,6 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
       })
     return disposer
   }, [dataConfiguration, refreshScale])
-
 
   return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)}></svg>
 })
