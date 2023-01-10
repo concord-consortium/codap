@@ -7,6 +7,12 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const os = require('os')
 
+// DEPLOY_PATH is set by the s3-deploy-action its value will be:
+// `branch/[branch-name]/` or `version/[tag-name]/`
+// See the following documentation for more detail:
+//   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
+const DEPLOY_PATH = process.env.DEPLOY_PATH;
+
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
 
@@ -164,6 +170,12 @@ module.exports = (env, argv) => {
         template: 'src/index.html',
         favicon: 'src/public/favicon.ico',
       }),
+      ...(DEPLOY_PATH ? [new HtmlWebpackPlugin({
+        filename: "index-top.html",
+        template: "src/index.html",
+        favicon: "src/public/favicon.ico",
+        publicPath: DEPLOY_PATH
+      })] : []),
       new CleanWebpackPlugin(),
     ]
   }

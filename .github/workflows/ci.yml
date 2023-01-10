@@ -7,6 +7,8 @@ on:
       - '.github/workflows/v3.yml'
     tags-ignore:
       - '3.*'
+    branches-ignore:
+      - 'main'
 
 jobs:
   build_test:
