@@ -164,6 +164,12 @@ module.exports = (env, argv) => {
         template: 'src/index.html',
         favicon: 'src/public/favicon.ico',
       }),
+      ...(DEPLOY_PATH ? [new HtmlWebpackPlugin({
+        filename: "index-top.html",
+        template: "src/index.html",
+        favicon: "src/public/favicon.ico",
+        publicPath: DEPLOY_PATH
+      })] : []),
       new CleanWebpackPlugin(),
     ]
   }

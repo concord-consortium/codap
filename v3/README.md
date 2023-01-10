@@ -86,11 +86,10 @@ To deploy a production release:
 6. Create `v3-release-<version>` branch and commit changes, push to GitHub, create PR and merge
 7. Checkout `main` and pull
 8. Make a new version tag using your local git client with the version number in the description (e.g., `git tag -a 3.0.0-pre.1085 -m "version 3.0.0-pre.1085"`) and push the tag to the remote origin (e.g., `git push origin 3.0.0-pre.1085`)
-9. Watch the GitHub actions build to see that the S3 Deploy step finished and then QA this version using the versioned URL (e.g., https://codap3.concord.org/version/3.0.0-pre.1085/)
-10. Checkout `v3-production`
-11. Run `git merge main --no-ff`
-12. Push `v3-production` to GitHub
-13. Use https://github.com/concord-consortium/codap/releases to create a new release tag
+9. Watch the GitHub actions build to see that the S3 Deploy step finished and then QA this version using the versioned URL (e.g., https://codap3.concord.org/version/3.0.0-pre.1085/) or alternatively QA the staged release in step 11
+10. Stage the release by running the [Release v3 Staging Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-staging.yml) and entering the version tag you just pushed
+11. Test the staged release at https://codap3.concord.org/index-staging.html
+12. Update production by running the [Release v3 Production Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml) and entering the release version tag
 
 ### Testing
 - run `npm run lint` to lint the source files
