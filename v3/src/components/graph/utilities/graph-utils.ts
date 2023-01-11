@@ -1,7 +1,7 @@
-import {extent, format, select, selection} from "d3"
+import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
+import {kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "../../../utilities/math-utils"
 import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
@@ -12,18 +12,17 @@ import {
   defaultSelectedStrokeWidth, defaultStrokeOpacity, defaultStrokeWidth
 } from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
+import {measureText} from "../../../hooks/use-measure-text"
 
 /**
  * Utility routines having to do with graph entities
  */
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
-  const text = selection().append('svg').append('text').style('font', '12px sans-serif')
   let maxWidth = 0
   for (const aString of strings) {
-    maxWidth = Math.max(maxWidth, text.text(aString).node()?.getComputedTextLength() ?? 0)
+    maxWidth = Math.max(maxWidth, measureText(aString, kGraphFont))
   }
-  text.remove()
   return maxWidth
 }
 
@@ -90,8 +89,8 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
 export function setNiceDomain(values: number[], axisModel: IAxisModel) {
   if (axisModel.type === 'numeric') {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
-    const {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue);
-    (axisModel as INumericAxisModel).setDomain(niceMin, niceMax)
+    const {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
+    ;(axisModel as INumericAxisModel).setDomain(niceMin, niceMax)
   }
 }
 
@@ -101,8 +100,9 @@ export function getPointTipText(caseID: string, attributeIDs: string[], dataset?
       const attribute = dataset?.attrFromID(attrID),
         name = attribute?.name,
         isNumeric = attribute?.type === 'numeric',
-        value = isNumeric ? float(dataset?.getNumeric(caseID, attrID) ?? 0) :
-          dataset?.getValue(caseID, attrID)
+        value = isNumeric
+          ? float(dataset?.getNumeric(caseID, attrID) ?? 0)
+          : dataset?.getValue(caseID, attrID)
       return (value && (isNumeric && isFinite(value)) || (!isNumeric && value !== '')) ? `${name}: ${value}` : ''
     }))
   // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
@@ -411,8 +411,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
   const lookupLegendColor = (id: string) => {
       const isSelected = dataset?.isCaseSelected(id),
         legendColor = getLegendColor ? getLegendColor(id) : ''
-      return legendColor !== '' ? legendColor :
-        isSelected ? defaultSelectedColor : pointColor
+      return legendColor !== '' ? legendColor
+        : isSelected ? defaultSelectedColor : pointColor
     },
 
     setPoints = () => {
@@ -429,10 +429,10 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
           .attr('cy', (anID: string) => getScreenY(anID))
           .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
           .style('fill', (id: string) => lookupLegendColor(id))
-          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-            defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id)) ?
-            defaultSelectedStrokeWidth : defaultStrokeWidth)
+          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+            ? defaultSelectedStroke : pointStrokeColor)
+          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+            ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
     }
 

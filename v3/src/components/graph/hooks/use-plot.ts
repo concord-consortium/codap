@@ -8,6 +8,7 @@ import {useCurrent} from "../../../hooks/use-current"
 import {IGraphModel} from "../models/graph-model"
 import {matchCirclesToData} from "../utilities/graph-utils"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {useDataSetContext} from "../../../hooks/use-data-set-context"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -46,7 +47,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       graphModel, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation,
       refreshPointPositions, refreshPointSelection, dotsRef, layout
     } = props,
-    dataset = graphModel.config.dataset,
+    dataset = useDataSetContext(),
     xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
     yNumeric = graphModel.getAxis('left') as INumericAxisModel,
     refreshPointsRef = useCurrent(refreshPointPositions),
@@ -70,7 +71,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }, 10)
   }, [refreshPointsRef])
 
-  useEffect(() => {
+  useEffect(function doneWithTimer() {
     return () => {
       if (timer.current) {
         clearTimeout(timer.current)

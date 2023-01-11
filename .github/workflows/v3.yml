@@ -5,6 +5,8 @@ on:
     paths:      # only run this workflow if it contains v3 files
       - 'v3/**' # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-including-paths
       - '.github/workflows/v3.yml'
+    branches-ignore:
+      - 'master'
 
 jobs:
   build_test:
@@ -42,7 +44,7 @@ jobs:
         containers: [1]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: cypress-io/github-action@v4
         with:
           working-directory: v3
@@ -77,7 +79,7 @@ jobs:
       - cypress
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
       - name: Install Dependencies
         working-directory: v3

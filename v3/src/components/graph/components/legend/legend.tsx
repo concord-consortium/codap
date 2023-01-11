@@ -66,8 +66,8 @@ export const Legend = memo(function Legend({
         />
         {
           attrType === 'categorical' ? <CategoricalLegend transform={transform}
-                                                          legendLabelRef={legendLabelRef}/> :
-            attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}
+                                                          legendLabelRef={legendLabelRef}/>
+            : attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}
                                                     transform={transform}/> : null
         }
       </svg>

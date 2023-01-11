@@ -9,7 +9,7 @@ import {getPointTipText} from "../utilities/graph-utils"
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
   .html((d: string) => {
-    return "<p>" + d + "</p>"
+    return `<p>${d}</p>`
   })
 
 export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,

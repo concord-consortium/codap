@@ -24,7 +24,7 @@ describe.skip("Graph", () => {
 
   it("renders graph point for each case", () => {
     const data = DataSet.create()
-    data.addAttribute({ name: "xVariable"} )
+    data.addAttribute({ name: "xVariable"})
     data.addAttribute({ name: "yVariable" })
     data.addCases(toCanonical(data, [{ xVariable: 1, yVariable: 2 }, { xVariable: 3, yVariable: 4 }]))
     broker.addDataSet(data)

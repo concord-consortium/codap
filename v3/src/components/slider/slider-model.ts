@@ -6,6 +6,7 @@ import { uniqueId } from "../../utilities/js-utils"
 export const SliderModel = types.model("SliderModel", {
     id: types.optional(types.identifier, () => uniqueId()),
     multipleOf: 0.5,
+    resolution: .01,
     globalValue: types.optional(GlobalValue, {
       // TODO: generate unique name from registry
       name: "slider-1",
@@ -34,9 +35,15 @@ export const SliderModel = types.model("SliderModel", {
     setName(name: string) {
       self.globalValue.setName(name)
     },
-    setValue(n: number) {
+    setValueRoundedToMultipleOf(n: number) {
       if (self.multipleOf !== 0) {
         n = Math.round(n / self.multipleOf) * self.multipleOf
+      }
+      self.globalValue.setValue(n)
+    },
+    setValue(n: number) {
+      if (self.resolution !== 0) {
+        n = Math.round(n / self.resolution) * self.resolution
       }
       self.globalValue.setValue(n)
     },

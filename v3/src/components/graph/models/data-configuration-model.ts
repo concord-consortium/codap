@@ -1,4 +1,5 @@
 import {observable} from "mobx"
+import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
@@ -16,7 +17,7 @@ export const AttributeDescription = types
     type: types.maybe(types.enumeration([...attributeTypes]))
   })
   .actions(self => ({
-    setType( type: AttributeType) {
+    setType(type: AttributeType) {
       self.type = type
     }
   }))
@@ -39,7 +40,7 @@ export const DataConfigurationModel = types
     dataset: undefined as IDataSet | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases | undefined,
-    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>(),
+    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
     categorySets: observable.map<GraphAttrRole, Set<string> | null>()
   }))
   .views(self => ({
@@ -67,6 +68,27 @@ export const DataConfigurationModel = types
       return Array.from(places) as GraphAttrRole[]
     }
   }))
+  .extend(self => {
+    // TODO: This is a hack to get around the fact that MST doesn't seem to cache this as expected
+    // when implemented as simple view.
+    let quantileScale: ScaleQuantile<string> | undefined = undefined
+
+    return {
+      views: {
+        get legendQuantileScale() {
+          if (!quantileScale) {
+            quantileScale = scaleQuantile(this.numericValuesForAttrRole('legend'), schemeBlues[5])
+          }
+          return quantileScale
+        },
+      },
+      actions: {
+        invalidateQuantileScale() {
+          quantileScale = undefined
+        }
+      }
+    }
+  })
   .actions(self => ({
     clearCategorySets() {
       self.categorySets.clear()
@@ -121,10 +143,14 @@ export const DataConfigurationModel = types
         self.attributeDescriptions.forEach((desc, key: GraphAttrRole) => {
           if (affectedAttrIDs.includes(desc.attributeID)) {
             self.setCategorySetForRole(key, null)
+            if (key === "legend") {
+              self.invalidateQuantileScale()
+            }
           }
         })
       } else {
         self.clearCategorySets()
+        self.invalidateQuantileScale()
       }
     }
   }))
@@ -201,6 +227,11 @@ export const DataConfigurationModel = types
         const catIndex = Array.from(self.categorySetForAttrRole('legend')).indexOf(cat)
         return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
       },
+
+      getLegendColorForNumericValue(value: number): string {
+        return self.legendQuantileScale(value)
+      },
+
       selectCasesForLegendValue(aValue: string, extend = false) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
@@ -219,14 +250,43 @@ export const DataConfigurationModel = types
             return dataset?.getValue(anID, legendID) === cat
           })) ?? []
         return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
+      },
+      selectedCasesForLegendQuantile(quantile: number) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          thresholds = self.legendQuantileScale.quantiles(),
+          min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
+          max = quantile === thresholds.length ? Infinity : thresholds[quantile],
+          selection: string[] = legendID && legendID !== ''
+            ? self.cases.filter((anID: string) => {
+              const value = dataset?.getNumeric(anID, legendID)
+              return value !== undefined && value >= min && value < max
+            })
+            : []
+        return selection
+      },
+      selectCasesForLegendQuantile(quantile: number, extend = false) {
+        const selection = this.selectedCasesForLegendQuantile(quantile)
+        if (selection) {
+          if (extend) self.dataset?.selectCases(selection)
+          else self.dataset?.setSelectedCases(selection)
+        }
+      },
+      casesInQuantileSelected(quantile: number): boolean {
+        const selection = this.selectedCasesForLegendQuantile(quantile)
+        return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
       }
     }))
   .views(self => (
     {
       getLegendColorForCase(id: string): string {
         const legendID = self.attributeID('legend'),
+          legendType = self.attributeType('legend'),
           legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
-        return legendValue == null ? '' : self.getLegendColorForCategory(legendValue)
+        return legendValue == null ? ''
+          : legendType === 'categorical' ? self.getLegendColorForCategory(legendValue)
+            : legendType === 'numeric' ? self.getLegendColorForNumericValue(Number(legendValue))
+              : ''
       },
       /**
        * Called to determine whether the categories on an axis should be centered.
@@ -236,7 +296,7 @@ export const DataConfigurationModel = types
       categoriesForAxisShouldBeCentered(place: AxisPlace) {
         const role = graphPlaceToAttrRole(place),
           primaryRole = self.primaryRole
-          return primaryRole === role
+        return primaryRole === role
       }
     }))
   .actions(self => ({
@@ -249,6 +309,7 @@ export const DataConfigurationModel = types
         source: dataset, filter: self.filterCase,
         onSetCaseValues: self.handleSetCaseValues
       })
+      self.invalidateQuantileScale()
     },
     setPrimaryRole(role: GraphAttrRole) {
       if (role === 'x' || role === 'y') {
@@ -263,6 +324,9 @@ export const DataConfigurationModel = types
       }
       self.filteredCases?.invalidateCases()
       self.categorySets.set(role, null)
+      if (role === 'legend') {
+        self.invalidateQuantileScale()
+      }
     },
     setAttributeType(role: GraphAttrRole, type: AttributeType) {
       self.attributeDescriptions.get(role)?.setType(type)

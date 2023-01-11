@@ -28,7 +28,7 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
 
   useEffect(() => {
     setAttributeName(columnName)
-  },[columnName])
+  }, [columnName])
 
   const editProperties = () => {
     onClose()

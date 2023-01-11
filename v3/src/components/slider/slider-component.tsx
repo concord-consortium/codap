@@ -68,7 +68,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   }
 
   const incrementSliderValue = () => {
-    sliderModel.setValue(sliderModel.value + sliderModel.multipleOf)
+    sliderModel.setValueRoundedToMultipleOf(sliderModel.value + sliderModel.multipleOf)
   }
 
   const titleM = measureText(sliderModel.name)
@@ -125,20 +125,19 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
                 </button>
               </Center>
               <Center>
-                {/* TODO - editing looks better than before, but still needs a bit of polish */}
                 <div className="slider-inputs">
-                  { isEditingName ?
-                    <input
-                      type="text"
-                      className="name-input"
-                      value={sliderModel.name}
-                      onChange={handleSliderNameInput}
-                      onBlur={() => setIsEditingName(false)}
-                      style={{width: `${titleM + 2 + (titleM * .25)}px`, paddingLeft: "3px"}}
-                    /> :
-                    <div onClick={() => setIsEditingName(true)}>
+                  { isEditingName
+                    ? <input
+                        type="text"
+                        className="name-input"
+                        value={sliderModel.name}
+                        onChange={handleSliderNameInput}
+                        onBlur={() => setIsEditingName(false)}
+                        style={{width: `${titleM + 2 + (titleM * .25)}px`, paddingLeft: "3px"}}
+                      />
+                    : <div onClick={() => setIsEditingName(true)}>
                         {sliderModel.name}
-                    </div>
+                      </div>
                   }
 
                   <span className="equals-sign">&nbsp;=&nbsp;</span>
@@ -157,7 +156,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
               />
             </svg>
 
-            <CodapSliderThumb sliderModel={sliderModel} />
+            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel} />
 
           </div>
         </div>

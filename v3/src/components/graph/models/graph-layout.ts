@@ -105,11 +105,6 @@ export class GraphLayout {
     this.graphHeight = height
   }
 
-  @action setLegendHeight(height: number) {
-    this.updateScaleRanges(this.plotWidth, 0.8 * this.graphHeight - height)
-    this.legendHeight = height
-  }
-
   /**
    * We assume that all the desired extents have been set so that we can compute new bounds.
    * We set the computedBounds only once at the end so there should be only one notification to respond to.
@@ -136,7 +131,7 @@ export class GraphLayout {
       {left: leftAxisWidth, top: topAxisHeight + plotHeight, width: plotWidth,
         height: bottomAxisHeight})
     newBounds.set('legend',
-      {left: leftAxisWidth, top: graphHeight - legendHeight, width: graphWidth,
+      {left: 6, top: graphHeight - legendHeight, width: graphWidth - 6,
         height: legendHeight})
     newBounds.set('right',
       {left: rightAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth,

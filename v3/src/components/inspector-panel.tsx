@@ -84,7 +84,11 @@ export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocati
   const paletteStyle = {top: paletteTop}
   const paletteRef = useRef<HTMLDivElement>(null)
 
-  return(
+  useOutsideClick({
+    ref: paletteRef,
+    handler: () => setShowPalette(undefined),
+  })
+  return (
     <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle}
         data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
       <PaletteHeader />

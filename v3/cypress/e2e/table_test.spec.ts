@@ -24,14 +24,16 @@ context("case table ui", () => {
             table.getCollectionTitle().should("have.value", collectionName)
         })
         it("verify columns and tooltips", () => {
-            table.getColumnHeaders().should("have.length",10)
+            table.getColumnHeaders().should("have.length", 10)
             table.getColumnHeader(0).invoke("text").then(columnName => {
+                const columnNameArr = columnName.split()
                 table.getColumnHeader(0).rightclick({force:true})
-                table.getColumnHeaderTooltip().should("contain", columnName)
+                table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
             })
             table.getColumnHeader(1).invoke("text").then(columnName => {
+                const columnNameArr = columnName.split(" ")
                 table.getColumnHeader(1).rightclick({force:true})
-                table.getColumnHeaderTooltip().should("contain", columnName)
+                table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
             })
         })
         it("verify edit attribute properties", () => {
@@ -45,7 +47,7 @@ context("case table ui", () => {
             table.editAttributeProperty("Height", name, description, type, unit, precision, editable)
             table.getAttribute(name).should("have.text", newName)
             table.getAttribute(name).rightclick({force:true})
-            table.getColumnHeaderTooltip().should("contain", name + " : " + description)
+            table.getColumnHeaderTooltip().should("contain", `${name} : ${description}`)
         })
         // it("verify attribute reorder within a collection", () => {
         // });
@@ -55,32 +57,32 @@ context("case table ui", () => {
 
     describe("case table header attribute menu", () => {
         it("verify rename attribute", () => {
-            table.getColumnHeader(1).should("have.text","Mammal")
+            table.getColumnHeader(1).should("contain", "Mammal")
             table.getAttribute("Mammal").should("exist")
             table.openAttributeMenu("Mammal")
             table.selectMenuItemFromAttributeMenu("Rename")
             table.renameColumnName(`Animal{enter}`)
-            table.getColumnHeader(1).should("have.text","Animal")
+            table.getColumnHeader(1).should("contain", "Animal")
             table.getAttribute("Animal").should("exist")
         })
         it("verify hide attribute", () => {
             table.openAttributeMenu("Animal")
             table.selectMenuItemFromAttributeMenu("Hide Attribute")
-            table.getColumnHeader(1).should("not.have.text","Animal")
+            table.getColumnHeader(1).should("not.have.text", "Animal")
             table.getAttribute("Animal").should("not.exist")
         })
         it("verify show all attributes", () => {
             table.openInspectorPanel()
             table.showAllAttributes()
-            table.getColumnHeader(1).should("have.text","Animal")
+            table.getColumnHeader(1).should("contain", "Animal")
             table.getAttribute("Animal").should("exist")
         })
         it("verify delete attribute", () => {
             table.openAttributeMenu("Animal")
             table.selectMenuItemFromAttributeMenu("Delete Attribute")
-            table.getColumnHeader(1).should("not.have.text","Animal")
+            table.getColumnHeader(1).should("not.have.text", "Animal")
             table.getAttribute("Animal").should("not.exist")
-            table.getColumnHeaders().should("have.length",numOfAttributes-1)
+            table.getColumnHeaders().should("have.length", numOfAttributes-1)
         })
     })
 

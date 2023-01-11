@@ -12,11 +12,6 @@ jest.mock("./case-table-shared.scss", () => ({
   bodyRowHeight: "18"
 }))
 
-// used by case table
-jest.mock("../../hooks/use-measure-text", () => ({
-  measureText: (text: string) => text.length * 6
-}))
-
 const UseKeyStatesWrapper = () => {
   useKeyStates()
   return null
@@ -40,7 +35,7 @@ describe("Case Table", () => {
 
   it("renders table with data", () => {
     const data = DataSet.create()
-    data.addAttribute({ name: "a"} )
+    data.addAttribute({ name: "a"})
     data.addAttribute({ name: "b" })
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
@@ -51,7 +46,7 @@ describe("Case Table", () => {
   it("selects rows when index cell is clicked", async () => {
     const user = userEvent.setup()
     const data = DataSet.create()
-    data.addAttribute({ name: "a"} )
+    data.addAttribute({ name: "a"})
     data.addAttribute({ name: "b" })
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
