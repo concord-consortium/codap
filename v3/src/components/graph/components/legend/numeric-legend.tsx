@@ -1,6 +1,5 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {reaction} from "mobx"
-import {onAction} from "mobx-state-tree"
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
