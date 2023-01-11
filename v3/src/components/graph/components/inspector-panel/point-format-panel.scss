@@ -3,6 +3,7 @@
 .palette-row {
   flex-direction: row;
   align-items: center;
+  height: 20px;
   label {
     margin: 0;
   }
@@ -23,10 +24,12 @@
 
 .cat-color-setting {
   height: 75px;
-  overflow-y: auto;
+  overflow-y: scroll;
 
-  // we limit the number of categories showing to 3 so force to
-  // show the vertical scrollbar if there are more than 3
+  // We limit the number of categories visible to 3 so we need to force the
+  // vertical scrollbar to be visible if there are more than 3 so users know
+  // it is a scrollable list of categories. This only works for Chrome and Safari.
+  // Still need to figure out what to do for Firefox
   &::-webkit-scrollbar-track {
     border-radius: 0.175rem;
     background-color: lightgray;
