@@ -71,7 +71,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }, 10)
   }, [refreshPointsRef])
 
-  useEffect(() => {
+  useEffect(function doneWithTimer() {
     return () => {
       if (timer.current) {
         clearTimeout(timer.current)

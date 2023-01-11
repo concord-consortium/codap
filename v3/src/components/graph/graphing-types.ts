@@ -67,7 +67,8 @@ export const kTitleBarHeight = 25,
   pointRadiusLogBase = 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
   pointRadiusSelectionAddend = 1,
   hoverRadiusFactor = 1.5,
-  kGraphFont = '12px sans-serif'
+  kGraphFont = '12px sans-serif',
+  kChoroplethHeight = 16
 
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
