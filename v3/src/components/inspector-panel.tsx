@@ -1,4 +1,4 @@
-import { Box, Button, Menu, MenuButton, useOutsideClick } from "@chakra-ui/react"
+import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import React, { ReactNode, useRef } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 
@@ -84,10 +84,6 @@ export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocati
   const paletteStyle = {top: paletteTop}
   const paletteRef = useRef<HTMLDivElement>(null)
 
-  useOutsideClick({
-    ref: paletteRef,
-    handler: () => setShowPalette(undefined),
-  })
   return (
     <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle}
         data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
