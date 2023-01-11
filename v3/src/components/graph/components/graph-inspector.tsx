@@ -28,12 +28,13 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
   }
 
   const handleRulerButton = () => {
-    setShowPalette("measure")
+    setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
   const handleBrushButton = () => {
-    setShowPalette("format")
+    setShowPalette(showPalette === "format" ? undefined : "format")
   }
+
   return (show
     ? <>
         <InspectorPanel component="graph">

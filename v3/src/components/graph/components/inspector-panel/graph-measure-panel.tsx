@@ -61,7 +61,6 @@ export const GraphMeasurePalette = ({graphModel, setShowPalette}: IProps) => {
       Icon={<ValuesIcon />}
       paletteTop={paletteTop}
       buttonLocation={graphModel.plotType === "casePlot" || graphModel.plotType === "dotChart" ? 25 : 75}
-      setShowPalette={setShowPalette}
     >
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
