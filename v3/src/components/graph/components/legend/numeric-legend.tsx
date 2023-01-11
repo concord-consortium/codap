@@ -10,8 +10,14 @@ import {measureTextExtent} from "../../../../hooks/use-measure-text"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {kChoroplethHeight, kGraphFont} from "../../graphing-types"
 import {axisGap} from "../../../axis/axis-types"
+import {IDataSet} from "../../../../models/data/data-set"
 
-interface INumericLegendProps {
+const computeDesiredExtent = (dataset:IDataSet | undefined, legendAttrID:string) => {
+  const labelHeight = measureTextExtent(dataset?.attrFromID(legendAttrID).name ?? '', kGraphFont).height
+  return 2 * labelHeight + kChoroplethHeight + 2 * axisGap
+}
+
+  interface INumericLegendProps {
   legendAttrID: string
   transform: string
 }
@@ -24,15 +30,10 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
 
-    computeDesiredExtent = useCallback(() => {
-      const labelHeight = measureTextExtent(dataset?.attrFromID(legendAttrID).name ?? '', kGraphFont).height
-      return 2 * labelHeight + kChoroplethHeight + 2 * axisGap
-    }, [dataset, legendAttrID]),
-
     refreshScale = useCallback(() => {
       if (choroplethElt) {
         valuesRef.current = dataConfiguration?.numericValuesForAttrRole('legend') ?? []
-        layout.setDesiredExtent('legend', computeDesiredExtent())
+        layout.setDesiredExtent('legend', computeDesiredExtent(dataset, legendAttrID))
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
         const bounds = layout.computedBounds.get('legend'),
           translate = `translate(${bounds?.left}, ${(bounds?.top ?? 0) + axisGap})`
@@ -48,7 +49,7 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
             }
           })
       }
-    }, [layout, computeDesiredExtent, choroplethElt, dataConfiguration])
+    }, [layout, dataset, legendAttrID, choroplethElt, dataConfiguration])
 
   useEffect(function refresh() {
     refreshScale()
@@ -66,26 +67,24 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
       }, {fireImmediately: true}
     )
     return () => disposer()
-  }, [layout, computeDesiredExtent, dataConfiguration, refreshScale])
+  }, [layout, dataConfiguration, refreshScale])
 
   useEffect(function respondToSelectionChange() {
-    const disposer = onAction(dataset, action => {
+    return onAction(dataset, action => {
       if (isSelectionAction(action)) {
         refreshScale()
       }
     }, true)
-    return disposer
   }, [refreshScale, dataset])
 
-  // todo: This reaction is not begin trigger when a value of the legend attribute is changed.
+  // todo: This reaction is not being triggered when a legend attribute value is changed.
   // It should be.
   useEffect(function respondToNumericValuesChange() {
-    const disposer = reaction(
+    return reaction(
       () => dataConfiguration?.numericValuesForAttrRole('legend'),
       () => {
         refreshScale()
       })
-    return disposer
   }, [dataConfiguration, refreshScale])
 
   return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)}></svg>

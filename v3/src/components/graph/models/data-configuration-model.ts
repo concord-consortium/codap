@@ -251,22 +251,7 @@ export const DataConfigurationModel = types
           })) ?? []
         return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
       },
-      selectCasesForLegendQuantile(quantile: number, extend = false) {
-        const dataset = self.dataset,
-          legendID = self.attributeID('legend'),
-          thresholds = self.legendQuantileScale.quantiles(),
-          min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
-          max = quantile === thresholds.length ? Infinity : thresholds[quantile],
-          selection = legendID && self.cases.filter((anID: string) => {
-            const value = dataset?.getNumeric(anID, legendID)
-            return value !== undefined && value >= min && value < max
-          })
-        if (selection) {
-          if (extend) dataset?.selectCases(selection)
-          else dataset?.setSelectedCases(selection)
-        }
-      },
-      casesInQuantileSelected(quantile: number): boolean {
+      selectedCasesForLegendQuantile(quantile: number) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
           thresholds = self.legendQuantileScale.quantiles(),
@@ -278,7 +263,18 @@ export const DataConfigurationModel = types
               return value !== undefined && value >= min && value < max
             })
             : []
-        return !!(selection.length > 0 &&selection?.every((anID: string) => dataset?.isCaseSelected(anID)))
+        return selection
+      },
+      selectCasesForLegendQuantile(quantile: number, extend = false) {
+        const selection = this.selectedCasesForLegendQuantile(quantile)
+        if (selection) {
+          if (extend) self.dataset?.selectCases(selection)
+          else self.dataset?.setSelectedCases(selection)
+        }
+      },
+      casesInQuantileSelected(quantile: number): boolean {
+        const selection = this.selectedCasesForLegendQuantile(quantile)
+        return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
       }
     }))
   .views(self => (

@@ -13,7 +13,7 @@ import {
   scaleLinear,
   format,
   // range,
-  select, range, min, max
+  select, range, min, max, ScaleQuantile
 } from "d3"
 import {kChoroplethHeight} from "../../../graphing-types"
 import {neededSigDigitsArrayForQuantiles} from "../../../../../utilities/math-utils"
@@ -31,16 +31,17 @@ export type ChoroplethLegendProps = {
   casesInQuantileSelectedHandler: (quantile: number) => boolean
 }
 
-export function choroplethLegend(scale: any, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {
+type ChoroplethScale = ScaleQuantile<string>
+export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {
   const {
       tickSize = 6, transform = '', width = 320, marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, clickHandler, casesInQuantileSelectedHandler
     } = props,
-    minValue = min(scale.domain()),
-    maxValue = max(scale.domain())
+    minValue = min(scale.domain()) ?? 0,
+    maxValue = max(scale.domain()) ?? 0
 
-  let tickFormat: any = '.2r',
-    tickValues: any = []
+  let tickFormat: string | ((i: number) => string) = '.2r',
+    tickValues: number[] = []
 
   select(choroplethElt).selectAll("*").remove()
   const svg = select(choroplethElt).append("svg")
