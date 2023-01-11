@@ -70,12 +70,12 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
   }, [layout, dataConfiguration, refreshScale])
 
   useEffect(function respondToSelectionChange() {
-    return onAction(dataset, action => {
+    return dataConfiguration?.onAction(action => {
       if (isSelectionAction(action)) {
         refreshScale()
       }
-    }, true)
-  }, [refreshScale, dataset])
+    })
+  }, [refreshScale, dataConfiguration])
 
   // todo: This reaction is not being triggered when a legend attribute value is changed.
   // It should be.
