@@ -1,10 +1,13 @@
 import { Instance, types} from "mobx-state-tree"
 import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/data/global-value"
-import { uniqueId } from "../../utilities/js-utils"
+import { TileContentModel } from "../../models/tiles/tile-content"
+import { kSliderTileType } from "./slider-defs"
 
-export const SliderModel = types.model("SliderModel", {
-    id: types.optional(types.identifier, () => uniqueId()),
+export const SliderModel = TileContentModel
+  .named("SliderModel")
+  .props({
+    type: types.optional(types.literal(kSliderTileType), kSliderTileType),
     multipleOf: 0.5,
     resolution: .01,
     globalValue: types.optional(GlobalValue, {

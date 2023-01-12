@@ -1,26 +1,21 @@
-import React, { ReactNode } from "react"
-import { CodapComponent } from "./codap-component"
-import { gDataBroker } from "../models/data/data-broker"
+import React from "react"
+import { MosaicTileRowComponent } from "./mosaic-tile-row"
+import { IDocumentContentModel } from "../models/document/document-content"
+import { isMosaicTileRow } from "../models/document/mosaic-tile-row"
 
 import "./container.scss"
 
 interface IProps {
-  children: ReactNode
+  content?: IDocumentContentModel
 }
-export const Container: React.FC<IProps> = ({ children }) => {
-  const childArray = Array.isArray(children) ? children : [children]
+export const Container: React.FC<IProps> = ({ content }) => {
+  // TODO: handle the possibility of multiple rows
+  const row = content?.getRowByIndex(0)
+  const getTile = (tileId: string) => content?.getTile(tileId)
   return (
     <div className="codap-container">
-      {/* wrap each child in a CodapComponent component */}
-      {[0, 1, 2, 3, 4].map(i => {
-        return (
-          <CodapComponent key={`component-${i}`} broker={gDataBroker}>
-            {i < childArray.length
-              ? childArray[i]
-              : <div className="component-placeholder">{`Placeholder ${i + 1}`}</div>}
-          </CodapComponent>
-        )
-      })}
+      {isMosaicTileRow(row) &&
+        <MosaicTileRowComponent row={row} getTile={getTile} />}
     </div>
   )
 }

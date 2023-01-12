@@ -18,7 +18,7 @@ describe.skip("Graph", () => {
   })
 
   it("renders with empty broker", () => {
-    render(<GraphComponent broker={broker} />)
+    render(<GraphComponent/>)
     expect(screen.getByTestId("graph")).toBeInTheDocument()
   })
 
@@ -28,7 +28,7 @@ describe.skip("Graph", () => {
     data.addAttribute({ name: "yVariable" })
     data.addCases(toCanonical(data, [{ xVariable: 1, yVariable: 2 }, { xVariable: 3, yVariable: 4 }]))
     broker.addDataSet(data)
-    render(<GraphComponent broker={broker} />)
+    render(<GraphComponent/>)
     expect(screen.getByTestId("graph")).toBeInTheDocument()
     // rerender(<GraphComponent broker={broker} />)
     // expect(screen.getByText('xVariable')).toBeInTheDocument()
@@ -42,12 +42,12 @@ describe.skip("Graph", () => {
     data.addAttribute({ name: "yVariable" })
     data.addCases(toCanonical(data, [{ xVariable: 1, yVariable: 2 }, { xVariable: 3, yVariable: 4 }]))
     broker.addDataSet(data)
-    const { rerender } = render(<GraphComponent broker={broker} />)
+    const { rerender } = render(<GraphComponent/>)
     expect(screen.getByTestId("graph")).toBeInTheDocument()
     // expect(screen.getByText('xVariable')).toBeInTheDocument()
     // expect(screen.getByText('yVariable')).toBeInTheDocument()
     const plotTypeButton = screen.getByText("Dot Plot")
     await user.click(plotTypeButton)
-    rerender(<GraphComponent broker={broker} />)
+    rerender(<GraphComponent/>)
   })
 })

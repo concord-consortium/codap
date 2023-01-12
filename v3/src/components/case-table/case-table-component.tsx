@@ -1,25 +1,20 @@
 import { useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { DataBroker } from "../../models/data/data-broker"
-import { DataSetContext } from "../../hooks/use-data-set-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 import { CaseTable } from "./case-table"
+import { ITileBaseProps } from "../tiles/tile-base-props"
 
-interface IProps {
-  broker?: DataBroker;
+interface IProps extends ITileBaseProps {
 }
-export const CaseTableComponent = observer(({ broker }: IProps) => {
+export const CaseTableComponent = observer((props: IProps) => {
   const instanceId = useNextInstanceId("case-table")
-  const data = broker?.selectedDataSet || broker?.last
   const id = `${instanceId}-component-drop-overlay`
   const { setNodeRef } = useDroppable({ id })
 
   return (
-    <DataSetContext.Provider value={data}>
-      <InstanceIdContext.Provider value={instanceId}>
-        <CaseTable setNodeRef={setNodeRef} />
-      </InstanceIdContext.Provider>
-    </DataSetContext.Provider>
+    <InstanceIdContext.Provider value={instanceId}>
+      <CaseTable setNodeRef={setNodeRef} />
+    </InstanceIdContext.Provider>
   )
 })

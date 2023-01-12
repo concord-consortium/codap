@@ -1,6 +1,6 @@
 import { destroy, Instance, types, getEnv, flow, SnapshotIn } from "mobx-state-tree"
 import { when } from "mobx"
-import { ITileProps } from "../../components/tiles/tile-component"
+import { ITileBaseProps } from "../../components/tiles/tile-base-props"
 import { SharedModel, ISharedModel } from "../shared/shared-model"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
 import { registerSharedModelInfo } from "../shared/shared-model-registry"
@@ -94,7 +94,7 @@ const TestTile = TileContentModel
   }))
 interface TestTileType extends Instance<typeof TestTile> {}
 
-const TestTileComponent: React.FC<ITileProps> = () => {
+const TestTileComponent: React.FC<ITileBaseProps> = () => {
   throw new Error("Component not implemented.")
 }
 

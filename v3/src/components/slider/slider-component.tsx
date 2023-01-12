@@ -5,22 +5,25 @@ import { observer } from "mobx-react-lite"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { SliderAxisLayout } from "./slider-layout"
-import { ISliderModel } from "./slider-model"
+import { ISliderModel, SliderModel } from "./slider-model"
 import { kSliderClass, kSliderClassSelector } from "./slider-types"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
+import { ITileBaseProps } from "../tiles/tile-base-props"
 import { CodapSliderThumb } from "./slider-thumb"
 import { EditableSliderValue } from "./editable-slider-value"
 
 import './slider.scss'
 
-interface IProps {
-  sliderModel: ISliderModel
+const kDefaultSliderModel = SliderModel.create({ globalValue: { name: "v1", value: 0.5 }})
+
+interface IProps extends ITileBaseProps {
+  sliderModel?: ISliderModel
 }
 
-export const SliderComponent = observer(({sliderModel} : IProps) => {
+export const SliderComponent = observer(({sliderModel = kDefaultSliderModel} : IProps) => {
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
@@ -29,6 +32,10 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   const intervalRef = useRef<any>()
   const tickTime = 60
   const animationRef = useRef(false)
+  const sliderBounds = sliderRef.current?.getBoundingClientRect()
+  const inspectorStyle: React.CSSProperties | undefined = sliderBounds
+          ? { left: sliderBounds.right, top: sliderBounds.top }
+          : undefined
 
   // width and positioning
   useEffect(() => {
@@ -36,8 +43,6 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
       layout.setParentExtent(width, height)
     }
   }, [width, height, layout])
-
-  const componentStyle = { top: 100, right: 80 }
 
   const axisStyle: CSSProperties = {
     position: "absolute",
@@ -97,7 +102,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
-        <div className={kSliderClass} style={componentStyle} ref={sliderRef}>
+        <div className={kSliderClass} ref={sliderRef}>
           <div className="titlebar">
             <input type="text"
               value={sliderModel.name}
@@ -108,7 +113,7 @@ export const SliderComponent = observer(({sliderModel} : IProps) => {
           </div>
           <div className="slider">
             <Portal containerRef={appRef}>
-              <div className="inspector-temporary">
+              <div className="inspector-temporary" style={inspectorStyle}>
                 <input
                   type="number"
                   value={sliderModel.multipleOf}
