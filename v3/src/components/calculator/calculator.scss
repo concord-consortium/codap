@@ -1,0 +1,83 @@
+@import "../vars.scss";
+$button-width: 30px;
+$button-height: 24px;
+
+.calculator-wrapper {
+  border: 2px solid white;
+  position: absolute;
+  background: #fff;
+  border-radius: $border-radius-four-corners;
+  box-shadow: 1px 1px 3px 1px rgba(176, 170, 170, 0.75);
+  right: 20px;
+  bottom: 20px;
+
+  .titlebar {
+    background-color: $teal-dark;
+    border-radius:$border-radius-top-corners;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 25px;
+
+    .titlebar-close {
+      position: absolute;
+      right: 0;
+      height: 24px;
+      width: 24px;
+    }
+  }
+
+  .calculator {
+    font-family: "museo-sans", sans-serif;
+    font-size: 12px;
+    height: 155px;
+    width: 127px;
+    margin-top: 3px;
+    background-color: white;
+
+    .calc-input {
+      height: 20px;
+    }
+
+    .calc-buttons {
+      margin-top: 3px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: 131px;
+
+      .calc-button {
+        width: $button-width;
+        height: $button-height;
+        border: 0 none;
+        color: #555;
+        background-color: lightgray;
+        padding: 0;
+        margin: 1px;
+        min-width: 0; //override Chakra min-width
+        &.wide {
+          width: calc(($button-width * 2) + 2px);
+        }
+      }
+
+      // .button-row {
+      //   flex-direction: row;
+      //   width: 100%;
+
+      //   .calc-button {
+      //     width: $button-width;
+      //     height: $button-height;
+      //     border: 0 none;
+      //     color: #555;
+      //     background-color: lightgray;
+      //     padding: 0;
+      //     margin: 1px;
+      //     min-width: 0; //override Chakra min-width
+      //     &.wide {
+      //       width: calc($button-width * 2);
+      //     }
+      //   }
+      // }
+    }
+  }
+}

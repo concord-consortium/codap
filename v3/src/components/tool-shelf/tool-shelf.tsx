@@ -11,7 +11,11 @@ import CalcIcon from '../../assets/icons/icon-calc.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
-export const ToolShelf = () => {
+interface IProps {
+  setCalculatorOpen: (open: boolean) => void
+}
+
+export const ToolShelf = ({setCalculatorOpen}: IProps) => {
   const notify = (description: string) => {
       toast({
         position: "top-right",
@@ -25,9 +29,14 @@ export const ToolShelf = () => {
     graphHandler = () => notify('graph'),
     mapHandler = () => notify('map'),
     sliderHandler = () => notify('slider'),
-    calcHandler = () => notify('calc'),
+    calcHandler = () => handleCalculatorOpen(),
     textHandler = () => notify('text'),
     pluginsHandler = () => notify('plugins')
+
+  const handleCalculatorOpen = () => {
+    setCalculatorOpen(true)
+  }
+
 
   const buttonDescriptions = [
     {
@@ -104,4 +113,3 @@ export const ToolShelf = () => {
     </HStack>
   )
 }
-

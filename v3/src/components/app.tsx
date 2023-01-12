@@ -23,6 +23,7 @@ import build from "../../build_number.json"
 import t from "../utilities/translation/translate"
 
 import "./app.scss"
+import { Calculator } from "./calculator/calculator"
 
 export function handleImportDataSet(data: IDataSet) {
   // add data set
@@ -32,6 +33,7 @@ export function handleImportDataSet(data: IDataSet) {
 export const App = () => {
   const sampleText = useSampleText()
   const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
+  const [calculatorOpen, setCalculatorOpen] = useState(false)
 
   useKeyStates()
 
@@ -77,7 +79,7 @@ export const App = () => {
     <CodapDndContext>
       <V2DocumentContext.Provider value={v2Document}>
         <div className="app" data-testid="app">
-          <ToolShelf/>
+          <ToolShelf setCalculatorOpen={setCalculatorOpen}/>
           <Container>
             {/* each top-level child will be wrapped in a CodapComponent */}
             <DataSummary />
@@ -90,6 +92,7 @@ export const App = () => {
                 <Text text={sampleText}/>
                 <p>{t("V3.INTRO.DRAG.CSV")}</p>
               </div>
+              {calculatorOpen && <Calculator setCalculatorOpen={setCalculatorOpen} />}
             </div>
             <CaseTableComponent/>
             <GraphComponent />
