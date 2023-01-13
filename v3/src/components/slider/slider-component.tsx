@@ -5,7 +5,7 @@ import { observer } from "mobx-react-lite"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { SliderAxisLayout } from "./slider-layout"
-import { ISliderModel, SliderModel } from "./slider-model"
+import { isSliderModel } from "./slider-model"
 import { kSliderClass, kSliderClassSelector } from "./slider-types"
 import { measureText } from "../../hooks/use-measure-text"
 import { Axis } from "../axis/components/axis"
@@ -17,13 +17,10 @@ import { EditableSliderValue } from "./editable-slider-value"
 
 import './slider.scss'
 
-const kDefaultSliderModel = SliderModel.create({ globalValue: { name: "v1", value: 0.5 }})
+export const SliderComponent = observer(({ tile } : ITileBaseProps) => {
+  const sliderModel = tile?.content
+  if (!isSliderModel(sliderModel)) return null
 
-interface IProps extends ITileBaseProps {
-  sliderModel?: ISliderModel
-}
-
-export const SliderComponent = observer(({sliderModel = kDefaultSliderModel} : IProps) => {
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
