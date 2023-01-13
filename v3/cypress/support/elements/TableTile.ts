@@ -1,6 +1,6 @@
 export const TableTileElements = {
     getTableTile() {
-        return cy.get(".codap-component").eq(2)
+        return cy.get(".codap-component.codap-case-table")
     },
     getCaseTableGrid() {
         return cy.get("[data-testid=case-table] [role=grid]")
@@ -131,4 +131,3 @@ export const TableTileElements = {
       cy.get("[data-testid=hide-show-menu-list").find("button").contains("Show Hidden Attribute").click()
     }
 }
-

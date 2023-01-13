@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import React from "react"
 import { DataBroker } from "../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../models/data/data-set"
+import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useKeyStates } from "../../hooks/use-key-states"
 import { CaseTableComponent } from "./case-table-component"
 
@@ -29,7 +30,7 @@ describe("Case Table", () => {
   })
 
   it("renders nothing with empty broker", () => {
-    render(<DndContext><CaseTableComponent broker={broker}/></DndContext>)
+    render(<DndContext><CaseTableComponent/></DndContext>)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
@@ -39,7 +40,12 @@ describe("Case Table", () => {
     data.addAttribute({ name: "b" })
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
-    render(<DndContext><CaseTableComponent broker={broker}/></DndContext>)
+    render(
+      <DndContext>
+        <DataSetContext.Provider value={data}>
+          <CaseTableComponent/>
+        </DataSetContext.Provider>
+      </DndContext>)
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
@@ -52,8 +58,10 @@ describe("Case Table", () => {
     broker.addDataSet(data)
     const { rerender } = render((
       <DndContext>
-        <UseKeyStatesWrapper/>
-        <CaseTableComponent broker={broker} />
+        <DataSetContext.Provider value={data}>
+          <UseKeyStatesWrapper/>
+          <CaseTableComponent/>
+        </DataSetContext.Provider>
       </DndContext>
     ))
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
@@ -65,8 +73,10 @@ describe("Case Table", () => {
     await user.click(indexContents[0])
     rerender((
       <DndContext>
-        <UseKeyStatesWrapper/>
-        <CaseTableComponent broker={broker} />
+        <DataSetContext.Provider value={data}>
+          <UseKeyStatesWrapper/>
+          <CaseTableComponent/>
+        </DataSetContext.Provider>
       </DndContext>
     ))
     expect(data.selection.size).toBe(1)

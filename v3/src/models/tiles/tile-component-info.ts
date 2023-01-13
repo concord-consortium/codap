@@ -1,9 +1,9 @@
 import React, { SVGProps } from "react"
-import { ITileProps } from "../../components/tiles/tile-component"
+import { ITileBaseProps } from "../../components/tiles/tile-base-props"
 
 export interface ITileComponentInfo {
   type: string;
-  Component: React.ComponentType<ITileProps>;
+  Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
   Icon?: React.FC<SVGProps<SVGSVGElement>>;
   /**

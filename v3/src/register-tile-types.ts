@@ -2,6 +2,12 @@
 import "./models/tiles/placeholder/placeholder-registration"
 import "./models/tiles/unknown-content-registration"
 
+import "./components/case-table/case-table-registration"
+import "./components/data-summary/data-summary-registration"
+import "./components/graph/graph-registration"
+import "./components/hello/hello-registration"
+import "./components/slider/slider-registration"
+
 const gTileRegistration: Record<string, () => void> = {
   // "Table": () => Promise.all([
   //   import(/* webpackChunkName: "Table" */"./models/tiles/table/table-registration"),

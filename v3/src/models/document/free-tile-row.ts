@@ -55,7 +55,7 @@ export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is 
 export const FreeTileRow = TileRowModel
   .named("FreeTileRow")
   .props({
-    type: types.optional(types.string, "free"),
+    type: types.optional(types.literal("free"), "free"),
     tiles: types.map(FreeTileLayout), // tile id => layout
     order: types.array(types.string)  // tile ids ordered from back to front
   })

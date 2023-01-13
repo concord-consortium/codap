@@ -3,8 +3,6 @@ import {observer} from "mobx-react-lite"
 import {getSnapshot} from "mobx-state-tree"
 import React, {useEffect, useMemo, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import {DataBroker} from "../../../models/data/data-broker"
-import {DataSetContext} from "../../../hooks/use-data-set-context"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {kTitleBarHeight} from "../graphing-types"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
@@ -13,10 +11,10 @@ import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModel, GraphModelContext} from "../models/graph-model"
 import {Graph} from "./graph"
+import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {defaultBackgroundColor, defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
 
 const defaultGraphModel = GraphModel.create({
-  id: undefined,
   isTransparent: false,
   plotBackgroundColor: defaultBackgroundColor,
   plotBackgroundImageID: '',
@@ -35,16 +33,14 @@ const defaultGraphModel = GraphModel.create({
   config: getSnapshot(DataConfigurationModel.create())
 })
 
-interface IProps {
-  broker?: DataBroker
+interface IProps extends ITileBaseProps {
 }
 
-export const GraphComponent = observer(({broker}: IProps) => {
+export const GraphComponent = observer((props: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
   const enableAnimation = useRef(true)
-  const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
   const [showInspector, setShowInspector] = useState(false)
 
@@ -58,21 +54,19 @@ export const GraphComponent = observer(({broker}: IProps) => {
   setNodeRef(graphRef.current)
 
   return (
-      <DataSetContext.Provider value={dataset}>
-        <InstanceIdContext.Provider value={instanceId}>
-          <GraphLayoutContext.Provider value={layout}>
-            <AxisLayoutContext.Provider value={layout}>
-              <GraphModelContext.Provider value={defaultGraphModel}>
-                <Graph graphRef={graphRef}
-                      enableAnimation={enableAnimation}
-                      dotsRef={dotsRef}
-                      showInspector={showInspector}
-                      setShowInspector={setShowInspector}
-                />
-              </GraphModelContext.Provider>
-            </AxisLayoutContext.Provider>
-          </GraphLayoutContext.Provider>
-        </InstanceIdContext.Provider>
-      </DataSetContext.Provider>
+    <InstanceIdContext.Provider value={instanceId}>
+      <GraphLayoutContext.Provider value={layout}>
+        <AxisLayoutContext.Provider value={layout}>
+          <GraphModelContext.Provider value={defaultGraphModel}>
+            <Graph graphRef={graphRef}
+                  enableAnimation={enableAnimation}
+                  dotsRef={dotsRef}
+                  showInspector={showInspector}
+                  setShowInspector={setShowInspector}
+            />
+          </GraphModelContext.Provider>
+        </AxisLayoutContext.Provider>
+      </GraphLayoutContext.Provider>
+    </InstanceIdContext.Provider>
   )
 })

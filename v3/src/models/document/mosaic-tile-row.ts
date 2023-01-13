@@ -1,6 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { uniqueId } from "../../utilities/js-utils"
-import { ITileInRowOptions, TileRowModel } from "./tile-row"
+import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
 
 /*
   Mosaic representation patterned after https://github.com/nomcopter/react-mosaic.
@@ -30,6 +30,9 @@ export const MosaicTileNode = types.model("MosaicTileNode", {
 .views(self => ({
   otherId(nodeOrTileId: string) {
     return self.first === nodeOrTileId ? self.second : self.first
+  },
+  get directionTyped(): "row" | "column" {
+    return self.direction as "row" | "column"
   }
 }))
 .actions(self => ({
@@ -45,22 +48,22 @@ export const MosaicTileNode = types.model("MosaicTileNode", {
     }
   }
 }))
-export interface TMosaicTileNode extends Instance<typeof MosaicTileNode> {}
+export interface IMosaicTileNode extends Instance<typeof MosaicTileNode> {}
 
 export const MosaicTileRow = TileRowModel
   .named("MosaicTileRow")
   .props({
-    type: types.optional(types.string, "mosaic"),
+    type: types.optional(types.literal("mosaic"), "mosaic"),
     nodes: types.map(MosaicTileNode),
     // maps tile ids to parent node ids
     tiles: types.map(types.string),
     root: ""  // id of root node
   })
   .views(self => ({
-    getNode(nodeId: string): TMosaicTileNode | undefined {
+    getNode(nodeId: string): IMosaicTileNode | undefined {
       return self.nodes.get(nodeId)
     },
-    getParentNode(tileId: string): TMosaicTileNode | undefined {
+    getParentNode(tileId: string): IMosaicTileNode | undefined {
       return self.nodes.get(self.tiles.get(tileId) ?? "")
     },
     hasTile(tileId: string) {
@@ -71,10 +74,10 @@ export const MosaicTileRow = TileRowModel
     }
   }))
   .views(self => ({
-    getGrandParentNode(tileId: string): TMosaicTileNode | undefined {
+    getGrandParentNode(tileId: string): IMosaicTileNode | undefined {
       const parent = self.getParentNode(tileId)
 
-      function processNode(node?: TMosaicTileNode): TMosaicTileNode | undefined {
+      function processNode(node?: IMosaicTileNode): IMosaicTileNode | undefined {
         const firstNode = node && self.getNode(node.first)
         if (firstNode && (firstNode === parent)) {
           return node
@@ -149,3 +152,7 @@ export const MosaicTileRow = TileRowModel
     }
   }))
 export interface IMosaicTileRow extends Instance<typeof MosaicTileRow> {}
+
+export function isMosaicTileRow(row?: ITileRowModel): row is IMosaicTileRow {
+  return row?.type === "mosaic"
+}
