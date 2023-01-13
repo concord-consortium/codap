@@ -19,7 +19,7 @@ jobs:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Increment value
-        run: ./increment_build_num.sh
+        run: v3/increment_build_num.sh
       - name: Commit files
         run: |
           git config --local user.email ${{ secrets.USER_EMAIL }}
