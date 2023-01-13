@@ -1,7 +1,7 @@
 import { Instance, types} from "mobx-state-tree"
 import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/data/global-value"
-import { TileContentModel } from "../../models/tiles/tile-content"
+import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kSliderTileType } from "./slider-defs"
 
 export const SliderModel = TileContentModel
@@ -56,3 +56,7 @@ export const SliderModel = TileContentModel
   }))
 
 export interface ISliderModel extends Instance<typeof SliderModel> {}
+
+export function isSliderModel(model?: ITileContentModel): model is ISliderModel {
+  return model?.type === kSliderTileType
+}

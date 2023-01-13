@@ -1,0 +1,15 @@
+diff --git a/node_modules/mobx-state-tree/dist/mobx-state-tree.module.js b/node_modules/mobx-state-tree/dist/mobx-state-tree.module.js
+index cffca0a..20dd829 100644
+--- a/node_modules/mobx-state-tree/dist/mobx-state-tree.module.js
++++ b/node_modules/mobx-state-tree/dist/mobx-state-tree.module.js
+@@ -3030,8 +3030,8 @@ function onAction(target, listener, attachAfter) {
+     // check all arguments
+     assertIsStateTreeNode(target, 1);
+     if (devMode()) {
+-        if (!isRoot(target))
+-            warnError("Warning: Attaching onAction listeners to non root nodes is dangerous: No events will be emitted for actions initiated higher up in the tree.");
++        // [CC] if (!isRoot(target))
++        // [CC]     warnError("Warning: Attaching onAction listeners to non root nodes is dangerous: No events will be emitted for actions initiated higher up in the tree.");
+         if (!isProtected(target))
+             warnError("Warning: Attaching onAction listeners to non protected nodes is dangerous: No events will be emitted for direct modifications without action.");
+     }

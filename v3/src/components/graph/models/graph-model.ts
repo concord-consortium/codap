@@ -8,8 +8,8 @@ import {
   pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
 import {DataConfigurationModel} from "./data-configuration-model"
-import {TileContentModel} from "../../../models/tiles/tile-content"
-import {defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
+import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
+import {defaultBackgroundColor, defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -37,15 +37,15 @@ export const GraphModel = TileContentModel
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     config: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
     // Visual properties
-    pointColor: types.optional(types.string, defaultPointColor),
-    _pointStrokeColor: types.optional(types.string, defaultStrokeColor),
-    pointStrokeSameAsFill: types.optional(types.boolean, false),
-    plotBackgroundColor: types.optional(types.string, 'white'),
+    pointColor: defaultPointColor,
+    _pointStrokeColor: defaultStrokeColor,
+    pointStrokeSameAsFill: false,
+    plotBackgroundColor: defaultBackgroundColor,
     pointSizeMultiplier: 1,
     isTransparent: false,
-    plotBackgroundImageID: types.optional(types.string, ''),
+    plotBackgroundImageID: "",
     // todo: how to use this type?
-    plotBackgroundLockInfo: types.frozen<BackgroundLockInfo | undefined>(),
+    plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
     showParentToggles: false,
     showMeasuresForSelection: false
@@ -146,3 +146,7 @@ export interface IGraphModel extends Instance<typeof GraphModel> {
 export const GraphModelContext = createContext<IGraphModel>({} as IGraphModel)
 
 export const useGraphModelContext = () => useContext(GraphModelContext)
+
+export function isGraphModel(model?: ITileContentModel): model is IGraphModel {
+  return model?.type === kGraphTileType
+}
