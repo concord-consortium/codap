@@ -73,6 +73,20 @@ export interface ISharedModelManager {
   getSharedModelsByType<IT extends typeof SharedModelUnion>(type: string): IT["Type"][];
 
   /**
+   * Add a shared model to the container if it doesn't exist.
+   *
+   * If the shared model was already part of this container it won't be added to
+   * the container twice.
+   *
+   * This method adds a shared model to the container without associating it
+   * with any tiles.
+   *
+   * @param sharedModel the new or existing shared model that is going to be
+   * used by this tile.
+   */
+  addSharedModel(sharedModel: ISharedModel): void;
+
+  /**
    * Add a shared model to the container if it doesn't exist and add a link to
    * the tile from the shared model.
    *

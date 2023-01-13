@@ -1,13 +1,19 @@
 import { reaction } from "mobx"
 import { DataBroker } from "./data-broker"
-import { DataSet, toCanonical } from "./data-set"
+import { DataSet, IDataSet, toCanonical } from "./data-set"
 
 describe("DataBroker", () => {
-  let broker = new DataBroker()
-  const dsEmpty = DataSet.create({ name: "empty"})
-  const dsCases = DataSet.create({ name: "cases" })
-  dsCases.addAttribute({ name: "a" })
-  dsCases.addCases(toCanonical(dsCases, [{ a: 1 }, { a: 2 }, { a: 3 }]))
+  let broker: DataBroker
+  let dsEmpty: IDataSet
+  let dsCases: IDataSet
+
+  beforeEach(() => {
+    broker = new DataBroker()
+    dsEmpty = DataSet.create({ name: "empty"})
+    dsCases = DataSet.create({ name: "cases" })
+    dsCases.addAttribute({ name: "a" })
+    dsCases.addCases(toCanonical(dsCases, [{ a: 1 }, { a: 2 }, { a: 3 }]))
+  })
 
   it("should work as expected when empty", () => {
     expect(broker.length).toBe(0)
@@ -29,6 +35,7 @@ describe("DataBroker", () => {
   })
 
   it("should work as expected with multiple DataSets", () => {
+    broker.addDataSet(dsEmpty)
     broker.addDataSet(dsCases)
     expect(broker.length).toBe(2)
     expect(broker.first).toEqual(dsEmpty)
@@ -51,18 +58,22 @@ describe("DataBroker", () => {
     const handler = jest.fn((summaries: any) => lastSummaries = summaries)
     reaction(() => broker.summaries, summaries => handler(summaries))
     // adding a DataSet triggers the reaction
-    broker.addDataSet(dsEmpty)
+    broker.addDataSet(dsCases)
     expect(handler).toHaveBeenCalledTimes(1)
+    expect(lastSummaries).toEqual([
+      { id: dsCases.id, name: "cases", attributes: 1, cases: 3 }])
+    broker.addDataSet(dsEmpty)
+    expect(handler).toHaveBeenCalledTimes(2)
     expect(lastSummaries).toEqual([
       { id: dsCases.id, name: "cases", attributes: 1, cases: 3 },
       { id: dsEmpty.id, name: "empty", attributes: 0, cases: 0 }])
     // removing a DataSet triggers the reaction
     broker.removeDataSet(dsEmpty.id)
-    expect(handler).toHaveBeenCalledTimes(2)
+    expect(handler).toHaveBeenCalledTimes(3)
     expect(lastSummaries).toEqual([{ id: dsCases.id, name: "cases", attributes: 1, cases: 3 }])
     // replacing a DataSet triggers the reaction
     broker.addDataSet(DataSet.create({ id: dsCases.id, name: dsCases.name }))
-    expect(handler).toHaveBeenCalledTimes(3)
+    expect(handler).toHaveBeenCalledTimes(4)
     expect(lastSummaries).toEqual([{ id: dsCases.id, name: "cases", attributes: 0, cases: 0 }])
   })
 
