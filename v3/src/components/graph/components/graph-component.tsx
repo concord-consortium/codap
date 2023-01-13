@@ -1,42 +1,19 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import {getSnapshot} from "mobx-state-tree"
 import React, {useEffect, useMemo, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {kTitleBarHeight} from "../graphing-types"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
-import {EmptyAxisModel} from "../../axis/models/axis-model"
-import {DataConfigurationModel} from "../models/data-configuration-model"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
-import {GraphModel, GraphModelContext} from "../models/graph-model"
+import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
-import {defaultBackgroundColor, defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
 
-const defaultGraphModel = GraphModel.create({
-  isTransparent: false,
-  plotBackgroundColor: defaultBackgroundColor,
-  plotBackgroundImageID: '',
-  plotBackgroundLockInfo: undefined,
-  pointColor: defaultPointColor,
-  pointSizeMultiplier: 1,
-  _pointStrokeColor: defaultStrokeColor,
-  pointStrokeSameAsFill: false,
-  showMeasuresForSelection: false,
-  showParentToggles: false,
-  axes: {
-    bottom: EmptyAxisModel.create({place: 'bottom'}),
-    left: EmptyAxisModel.create({place: 'left'})
-  },
-  plotType: "casePlot",
-  config: getSnapshot(DataConfigurationModel.create())
-})
+export const GraphComponent = observer(({ tile }: ITileBaseProps) => {
+  const graphModel = tile?.content
+  if (!isGraphModel(graphModel)) return null
 
-interface IProps extends ITileBaseProps {
-}
-
-export const GraphComponent = observer((props: IProps) => {
   const instanceId = useNextInstanceId("graph")
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
@@ -57,7 +34,7 @@ export const GraphComponent = observer((props: IProps) => {
     <InstanceIdContext.Provider value={instanceId}>
       <GraphLayoutContext.Provider value={layout}>
         <AxisLayoutContext.Provider value={layout}>
-          <GraphModelContext.Provider value={defaultGraphModel}>
+          <GraphModelContext.Provider value={graphModel}>
             <Graph graphRef={graphRef}
                   enableAnimation={enableAnimation}
                   dotsRef={dotsRef}
