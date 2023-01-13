@@ -1,5 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { ITileInRowOptions, TileRowModel } from "./tile-row"
+import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
 
 /*
   Represents the layout of a set of tiles/components with arbitrary rectangular bounds that can
@@ -108,3 +108,7 @@ export const FreeTileRow = TileRowModel
     }
   }))
   export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}
+
+export function isFreeTileRow(row?: ITileRowModel): row is IFreeTileRow {
+  return row?.type === "free"
+}

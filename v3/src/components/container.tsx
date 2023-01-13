@@ -1,6 +1,8 @@
 import React from "react"
+import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
 import { IDocumentContentModel } from "../models/document/document-content"
+import { isFreeTileRow } from "../models/document/free-tile-row"
 import { isMosaicTileRow } from "../models/document/mosaic-tile-row"
 
 import "./container.scss"
@@ -16,6 +18,8 @@ export const Container: React.FC<IProps> = ({ content }) => {
     <div className="codap-container">
       {isMosaicTileRow(row) &&
         <MosaicTileRowComponent row={row} getTile={getTile} />}
+      {isFreeTileRow(row) &&
+        <FreeTileRowComponent row={row} getTile={getTile} />}
     </div>
   )
 }
