@@ -40,7 +40,7 @@ export const Calculator = ({setCalculatorOpen}: IProps) => {
         description: `Need closing parenthesis ")"`,
         status: "success",
         duration: 5000,
-        isClosable: true,
+        isClosable: true
       })
     } else {
       try {
