@@ -1,13 +1,15 @@
+@use "../../vars.scss";
+
 .graph-plot {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: calc(100% - vars.$title-bar-height);
   background-color: aliceblue;
 
 
   svg {
     width: 100%;
-    height: 100%;
+    height: calc(100% - vars.$title-bar-height);
   }
 
   text {

@@ -2,22 +2,25 @@ import { Button, Select } from '@chakra-ui/react'
 import { DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
-import { IAttribute } from "../models/data/attribute"
-import { DataBroker } from "../models/data/data-broker"
+import { isDataSummaryModel } from './data-summary-model'
+import { IAttribute } from "../../models/data/attribute"
+import { gDataBroker } from "../../models/data/data-broker"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import {
   getDragAttributeId, IUseDraggableAttribute, useDraggableAttribute, useDropHandler
-} from '../hooks/use-drag-drop'
-import { useV2DocumentContext } from '../hooks/use-v2-document-context'
-import { prf } from "../utilities/profiler"
-import t from "../utilities/translation/translate"
+} from "../../hooks/use-drag-drop"
+import { useV2DocumentContext } from "../../hooks/use-v2-document-context"
+import { ITileBaseProps } from "../tiles/tile-base-props"
+import { prf } from "../../utilities/profiler"
+import t from "../../utilities/translation/translate"
 
 import "./data-summary.scss"
 
-interface IProps {
-  broker?: DataBroker
-}
-export const DataSummary = observer(({ broker }: IProps) => {
-  const data = broker?.selectedDataSet || broker?.last
+export const DataSummary = observer(({ tile }: ITileBaseProps) => {
+  const summaryModel = tile?.content
+  if (!isDataSummaryModel(summaryModel)) return null
+
+  const data = useDataSetContext()
   const v2Document = useV2DocumentContext()
 
   const { active } = useDndContext()
@@ -28,18 +31,16 @@ export const DataSummary = observer(({ broker }: IProps) => {
   // used to determine when a dragged attribute is over the summary component
   const { setNodeRef } = useDroppable({ id: "summary-component-drop" })
 
-  const [selectedAttribute, setSelectedAttribute] = useState<IAttribute | undefined>()
-
   const handleDrop = (attributeId: string) => {
-    setSelectedAttribute(data?.attrFromID(attributeId))
+    summaryModel.inspect(attributeId)
   }
 
   const handleDataSetSelection = (evt: React.ChangeEvent<HTMLSelectElement>) => {
-    broker?.setSelectedDataSetId(evt.target.value)
+    gDataBroker?.setSelectedDataSetId(evt.target.value)
   }
 
   const DataSelectPopup = () => {
-    const dataSetSummaries = broker?.summaries
+    const dataSetSummaries = gDataBroker?.summaries
     const renderOption = (name: string, id: string) => {
       return <option key={name} value={id}>{name}</option>
     }
@@ -82,7 +83,7 @@ export const DataSummary = observer(({ broker }: IProps) => {
         ))}
       </div>
       {data && <DataSelectPopup />}
-      {data && <SummaryDropTarget attribute={selectedAttribute} onDrop={handleDrop}/>}
+      {data && <SummaryDropTarget attributeId={summaryModel.inspectedAttrId} onDrop={handleDrop}/>}
       {data && <ProfilerButton />}
       <DragOverlay dropAnimation={null}>
         {data && isSummaryDrag && dragAttribute
@@ -114,10 +115,12 @@ const OverlayAttribute = ({ attribute }: IDraggableAttributeProps) => {
 }
 
 interface ISummaryDropTargetProps {
-  attribute?: IAttribute
+  attributeId?: string
   onDrop?: (attributeId: string) => void
 }
-const SummaryDropTarget = ({ attribute, onDrop }: ISummaryDropTargetProps) => {
+const SummaryDropTarget = ({ attributeId, onDrop }: ISummaryDropTargetProps) => {
+  const data = useDataSetContext()
+  const attribute = attributeId ? data?.attrFromID(attributeId) : undefined
   const droppableId = "summary-inspector-drop"
   const { isOver, setNodeRef } = useDroppable({ id: droppableId })
   useDropHandler(droppableId, active => {

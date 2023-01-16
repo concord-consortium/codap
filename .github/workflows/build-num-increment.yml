@@ -6,7 +6,7 @@ on:
     paths-ignore:
       - 'v3/build_number.json'
       - 'v3/CHANGELOG.md' # Do not increment build number when release branches are merged into main, which typically change CHANGELOG.md
-                          # since we want to lock the build number we're about to release and 
+                          # since we want to lock the build number we're about to release and
                           # do not want the release branch's merge to main to trigger another build number increment
 jobs:
   test:
@@ -19,10 +19,15 @@ jobs:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Increment value
-        uses: yoichiro/gh-action-increment-value@main
+        working-directory: v3
+        run: ./increment_build_num.sh
+      - name: Commit files
+        run: |
+          git config --local user.email ${{ secrets.USER_EMAIL }}
+          git config --local user.name ${{ secrets.USER_NAME }}
+          git commit -a -m "Increment the build number"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
         with:
-          target_directory: 'v3'
-          target_file: 'build_number.json'
-          prefix: 'buildNumber":'
-          suffix: '}'
-          commit_message: 'Increment the build number '
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}

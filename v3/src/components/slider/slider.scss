@@ -1,9 +1,11 @@
 @import "./../vars.scss";
 
+$pseudo-inspector-width: 40px;
+
 .slider-wrapper {
-  position: fixed;
+  position: relative;
   overflow: clip;
-  width: 40%;
+  width: calc(100% - $pseudo-inspector-width);
   height: 100px;
   background: #fff;
   border-radius: $border-radius-four-corners;
@@ -72,11 +74,14 @@
 
 .app {
   //temporary until we implement the real inspector
+  .free-tile-row {
+    .slider-wrapper {
+      width: 100%;
+    }
+  }
   .inspector-temporary {
     position: absolute;
-    top: 100px;
-    right: 40px;
-    width: 40px;
+    width: $pseudo-inspector-width;
     text-align: center;
     input {
       width: 34px;

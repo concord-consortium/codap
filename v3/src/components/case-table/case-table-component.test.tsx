@@ -1,11 +1,17 @@
 import { DndContext } from "@dnd-kit/core"
 import { render, screen } from "@testing-library/react"
 import userEvent from '@testing-library/user-event'
+import { getSnapshot } from "mobx-state-tree"
 import React from "react"
+import { CaseTableComponent } from "./case-table-component"
+import { kCaseTableTileType } from "./case-table-defs"
+import { CaseTableModel } from "./case-table-model"
+import { DataSetContext } from "../../hooks/use-data-set-context"
+import { useKeyStates } from "../../hooks/use-key-states"
 import { DataBroker } from "../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../models/data/data-set"
-import { useKeyStates } from "../../hooks/use-key-states"
-import { CaseTableComponent } from "./case-table-component"
+import { ITileModel, TileModel } from "../../models/tiles/tile-model"
+import { registerTileTypes } from "../../register-tile-types"
 
 jest.mock("./case-table-shared.scss", () => ({
   headerRowHeight: "30",
@@ -18,18 +24,22 @@ const UseKeyStatesWrapper = () => {
 }
 
 describe("Case Table", () => {
+  registerTileTypes([kCaseTableTileType])
+
   let broker: DataBroker
+  let tile: ITileModel
   beforeEach(() => {
     broker = new DataBroker()
+    tile = TileModel.create({ content: getSnapshot(CaseTableModel.create()) })
   })
 
   it("renders nothing with no broker", () => {
-    render(<DndContext><CaseTableComponent/></DndContext>)
+    render(<DndContext><CaseTableComponent tile={tile}/></DndContext>)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
   it("renders nothing with empty broker", () => {
-    render(<DndContext><CaseTableComponent broker={broker}/></DndContext>)
+    render(<DndContext><CaseTableComponent tile={tile}/></DndContext>)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
@@ -39,7 +49,12 @@ describe("Case Table", () => {
     data.addAttribute({ name: "b" })
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
-    render(<DndContext><CaseTableComponent broker={broker}/></DndContext>)
+    render(
+      <DndContext>
+        <DataSetContext.Provider value={data}>
+          <CaseTableComponent tile={tile}/>
+        </DataSetContext.Provider>
+      </DndContext>)
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
@@ -52,8 +67,10 @@ describe("Case Table", () => {
     broker.addDataSet(data)
     const { rerender } = render((
       <DndContext>
-        <UseKeyStatesWrapper/>
-        <CaseTableComponent broker={broker} />
+        <DataSetContext.Provider value={data}>
+          <UseKeyStatesWrapper/>
+          <CaseTableComponent tile={tile}/>
+        </DataSetContext.Provider>
       </DndContext>
     ))
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
@@ -65,8 +82,10 @@ describe("Case Table", () => {
     await user.click(indexContents[0])
     rerender((
       <DndContext>
-        <UseKeyStatesWrapper/>
-        <CaseTableComponent broker={broker} />
+        <DataSetContext.Provider value={data}>
+          <UseKeyStatesWrapper/>
+          <CaseTableComponent tile={tile}/>
+        </DataSetContext.Provider>
       </DndContext>
     ))
     expect(data.selection.size).toBe(1)

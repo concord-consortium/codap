@@ -1,29 +1,24 @@
 import React, { useCallback, useEffect, useState } from "react"
-import { CaseTableComponent } from "./case-table/case-table-component"
 import { CodapDndContext } from "./codap-dnd-context"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import {Container} from "./container"
-import {DataSummary} from "./data-summary"
 import {gDataBroker} from "../models/data/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
-import { GraphComponent } from "./graph/components/graph-component"
-import {Text} from "./text"
+import { addDefaultComponents, getCurrentDocument } from "../models/document/create-codap-document"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
-import {useSampleText} from "../hooks/use-sample-text"
 import { V2DocumentContext } from "../hooks/use-v2-document-context"
-import Icon from "../assets/concord.png"
+import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
-import { useCodapSlider } from "./slider/use-slider"
-import { SliderComponent } from "./slider/slider-component"
-import pkg from "../../package.json"
-import build from "../../build_number.json"
-import t from "../utilities/translation/translate"
 
 import "./app.scss"
 import { Calculator } from "./calculator/calculator"
+
+registerTileTypes([])
+
+addDefaultComponents()
 
 export function handleImportDataSet(data: IDataSet) {
   // add data set
@@ -31,13 +26,11 @@ export function handleImportDataSet(data: IDataSet) {
 }
 
 export const App = () => {
-  const sampleText = useSampleText()
+  const codapDocument = getCurrentDocument()
   const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
   const [calculatorOpen, setCalculatorOpen] = useState(false)
 
   useKeyStates()
-
-  const initialSlider = useCodapSlider()
 
   const _handleImportDataSet = useCallback((data: IDataSet) => {
     handleImportDataSet(data)
@@ -80,24 +73,7 @@ export const App = () => {
       <V2DocumentContext.Provider value={v2Document}>
         <div className="app" data-testid="app">
           <ToolShelf setCalculatorOpen={setCalculatorOpen}/>
-          <Container>
-            {/* each top-level child will be wrapped in a CodapComponent */}
-            <DataSummary />
-            <div className="hello-codap3">
-              <div className="version-build-number">
-                <span>v{pkg.version}-build-{build.buildNumber}</span>
-              </div>
-              <div>
-                <img src={Icon}/>
-                <Text text={sampleText}/>
-                <p>{t("V3.INTRO.DRAG.CSV")}</p>
-              </div>
-              {calculatorOpen && <Calculator setCalculatorOpen={setCalculatorOpen} />}
-            </div>
-            <CaseTableComponent/>
-            <GraphComponent />
-            <SliderComponent sliderModel={initialSlider} />
-          </Container>
+          <Container content={codapDocument.content} />
         </div>
       </V2DocumentContext.Provider>
     </CodapDndContext>

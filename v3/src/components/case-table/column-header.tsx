@@ -96,7 +96,6 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
 
   const units = attribute?.units ? ` (${attribute.units})` : ""
   const description = attribute?.userDescription ? `: ${attribute.userDescription}` : ""
-
   return (
     <Menu isLazy>
       {({ isOpen }) => {

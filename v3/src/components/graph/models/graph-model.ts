@@ -2,18 +2,14 @@ import {Instance, ISerializedActionCall, types} from "mobx-state-tree"
 import {createContext, useContext} from "react"
 import {AxisPlace} from "../../axis/axis-types"
 import {AxisModelUnion, IAxisModelUnion} from "../../axis/models/axis-model"
+import {kGraphTileType} from "../graph-defs"
 import {
-  GraphAttrRole,
-  hoverRadiusFactor,
-  PlotType,
-  PlotTypes,
-  pointRadiusLogBase,
-  pointRadiusMax,
-  pointRadiusMin, pointRadiusSelectionAddend
+  GraphAttrRole, hoverRadiusFactor, PlotType, PlotTypes,
+  pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
 import {DataConfigurationModel} from "./data-configuration-model"
-import {uniqueId} from "../../../utilities/js-utils"
-import {defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
+import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
+import {defaultBackgroundColor, defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -31,23 +27,25 @@ export type BackgroundLockInfo = {
 export const NumberToggleModel = types
   .model('NumberToggleModel', {})
 
-export const GraphModel = types
-  .model("GraphModel", {
-    id: types.optional(types.identifier, () => uniqueId()),
+export const GraphModel = TileContentModel
+  .named("GraphModel")
+  .props({
+    type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     // keys are AxisPlaces
     axes: types.map(types.maybe(AxisModelUnion)),
-    plotType: types.enumeration([...PlotTypes]),
-    config: DataConfigurationModel,
+    // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
+    plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
+    config: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
     // Visual properties
-    pointColor: types.optional(types.string, defaultPointColor),
-    _pointStrokeColor: types.optional(types.string, defaultStrokeColor),
-    pointStrokeSameAsFill: types.optional(types.boolean, false),
-    plotBackgroundColor: types.optional(types.string, 'white'),
+    pointColor: defaultPointColor,
+    _pointStrokeColor: defaultStrokeColor,
+    pointStrokeSameAsFill: false,
+    plotBackgroundColor: defaultBackgroundColor,
     pointSizeMultiplier: 1,
     isTransparent: false,
-    plotBackgroundImageID: types.optional(types.string, ''),
+    plotBackgroundImageID: "",
     // todo: how to use this type?
-    plotBackgroundLockInfo: types.frozen<BackgroundLockInfo | undefined>(),
+    plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
     showParentToggles: false,
     showMeasuresForSelection: false
@@ -148,3 +146,7 @@ export interface IGraphModel extends Instance<typeof GraphModel> {
 export const GraphModelContext = createContext<IGraphModel>({} as IGraphModel)
 
 export const useGraphModelContext = () => useContext(GraphModelContext)
+
+export function isGraphModel(model?: ITileContentModel): model is IGraphModel {
+  return model?.type === kGraphTileType
+}

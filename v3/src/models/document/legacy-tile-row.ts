@@ -38,7 +38,7 @@ export const isLegacyTileInRowOptions = (options?: ITileInRowOptions): options i
 export const LegacyTileRowModel = TileRowModel
   .named("LegacyTileRow")
   .props({
-    type: types.optional(types.string, "legacy"),
+    type: types.optional(types.literal("legacy"), "legacy"),
     tiles: types.array(LegacyTileLayoutModel)
   })
   .views(self => ({
