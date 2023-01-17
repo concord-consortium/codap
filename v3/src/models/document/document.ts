@@ -1,4 +1,3 @@
-import { uniqueId } from "lodash"
 import { addDisposer, applySnapshot, destroy, getEnv, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Tree } from "../history/tree"
 import { TreeManager } from "../history/tree-manager"
@@ -9,6 +8,7 @@ import { DocumentContentModel, IDocumentContentSnapshotIn } from "./document-con
 import { IDocumentMetadata } from "./document-metadata"
 import { IDocumentProperties } from "./document-types"
 import { ISharedModelDocumentManager } from "./shared-model-document-manager"
+import { uniqueId } from "../../utilities/js-utils"
 
 export const DocumentModel = Tree.named("Document")
   .props({

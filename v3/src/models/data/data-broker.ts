@@ -1,4 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
+import { ISharedModelDocumentManager } from "../document/shared-model-document-manager"
+import { SharedDataSet } from "../shared/shared-data-set"
 import { IDataSet } from "./data-set"
 
 export interface IDataSetSummary {
@@ -15,6 +17,7 @@ export class DataBroker {
   @observable dataSets = new Map<string, IDataSet>()
   readonly allowMultiple: boolean
   @observable selectedDataSetId = ""
+  sharedModelManager?: ISharedModelDocumentManager
 
   constructor(options?: IDataBrokerOptions) {
     const { allowMultiple = true } = options || {}
@@ -55,12 +58,21 @@ export class DataBroker {
   }
 
   @action
+  setSharedModelManager(manager: ISharedModelDocumentManager) {
+    this.sharedModelManager = manager
+  }
+
+  @action
   setSelectedDataSetId(id:string) {
     this.selectedDataSetId = id || this.last?.id || ""
   }
 
   @action
   addDataSet(ds: IDataSet) {
+    const sharedModel = SharedDataSet.create()
+    sharedModel.setDataSet(ds)
+    this.sharedModelManager?.addSharedModel(sharedModel)
+
     !this.allowMultiple && this.dataSets.clear()
     this.dataSets.set(ds.id, ds)
     this.setSelectedDataSetId(ds.id)

@@ -52,6 +52,34 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
     return this.document?.getSharedModelsByType<IT>(type) || []
   }
 
+  addSharedModel(sharedModel: ISharedModel) {
+    if (!this.document) {
+      console.warn("addSharedModel has no document. this will have no effect")
+      return
+    }
+
+    // assign an indexOfType if necessary
+    if (sharedModel.indexOfType < 0) {
+      const usedIndices = new Set<number>()
+      const sharedModels = this.document.getSharedModelsByType(sharedModel.type)
+      sharedModels.forEach(model => {
+        if (model.indexOfType >= 0) {
+          usedIndices.add(model.indexOfType)
+        }
+      })
+      for (let i = 1; sharedModel.indexOfType < 0; ++i) {
+        if (!usedIndices.has(i)) {
+          sharedModel.setIndexOfType(i)
+          break
+        }
+      }
+    }
+
+    // register it with the document if necessary.
+    // This won't re-add it if it is already there
+    return this.document.addSharedModel(sharedModel)
+  }
+
   addTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: ISharedModel, isProvider = false): void {
     if (!this.document) {
       console.warn("addTileSharedModel has no document. this will have no effect")
@@ -65,29 +93,12 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
       return
     }
 
-      // assign an indexOfType if necessary
-      if (sharedModel.indexOfType < 0) {
-        const usedIndices = new Set<number>()
-        const sharedModels = this.document.getSharedModelsByType(sharedModel.type)
-        sharedModels.forEach(model => {
-          if (model.indexOfType >= 0) {
-            usedIndices.add(model.indexOfType)
-          }
-        })
-        for (let i = 1; sharedModel.indexOfType < 0; ++i) {
-          if (!usedIndices.has(i)) {
-            sharedModel.setIndexOfType(i)
-            break
-          }
-        }
-      }
-
     // register it with the document if necessary.
     // This won't re-add it if it is already there
-    const sharedModelEntry = this.document.addSharedModel(sharedModel)
+    const sharedModelEntry = this.addSharedModel(sharedModel)
 
     // If the sharedModel was added before we don't need to do anything
-    if (sharedModelEntry.tiles.includes(tile)) {
+    if (!sharedModelEntry || sharedModelEntry.tiles.includes(tile)) {
       return
     }
 
