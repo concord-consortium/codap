@@ -4,7 +4,7 @@
 Version 3.0.0-pre.1089 has some bug fixes with accessibility that were found by Allyant and VoiceOver and features related to enabling free component layouts, slider animation, graph brush palette, etc.
 
 ### Features/Improvements
-- #26: This table of editable cells lacks instructions for screen reader users [#183939669](https://www.pivotaltracker.com/story/show/183939669)
+- `#26`: This table of editable cells lacks instructions for screen reader users [#183939669](https://www.pivotaltracker.com/story/show/183939669)
 - A numeric attribute used as a legend produces a choropleth legend [#184029172](https://www.pivotaltracker.com/story/show/184029172)
 - Add functionality to change points properties and graph background properties [#183929138](https://www.pivotaltracker.com/story/show/183929138)
 - Slider animation [#184098342](https://www.pivotaltracker.com/story/show/184098342)
@@ -16,8 +16,8 @@ Version 3.0.0-pre.1089 has some bug fixes with accessibility that were found by 
 
 ### Bug Fixes
 - Incrementing build numbers fails [#184154683](https://www.pivotaltracker.com/story/show/184154683)
-- #30: Additional content is only revealed on hover, which is inaccessible to screen reader and keyboard users [#183939655](https://www.pivotaltracker.com/story/show/183939655)
-- #25: Keyboard users cannot trigger and navigate these menus [#183939697](https://www.pivotaltracker.com/story/show/183939697)
+- `#30`: Additional content is only revealed on hover, which is inaccessible to screen reader and keyboard users [#183939655](https://www.pivotaltracker.com/story/show/183939655)
+- `#25`: Keyboard users cannot trigger and navigate these menus [#183939697](https://www.pivotaltracker.com/story/show/183939697)
 - Case plot points are not responding to change in window size [#184125835](https://www.pivotaltracker.com/story/show/184125835)
 
 ### Asset Sizes
