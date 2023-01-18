@@ -22,19 +22,22 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
   const [modalIsOpen, setModalIsOpen] = useState(false)
-  // disable dragging when the column header menu is open
-  const disabled = isMenuOpen.current
+  const onCloseRef = useRef<() => void>()
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
   const attribute = data?.attrFromID(column.key)
 
-  const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key, disabled }
+  const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
   const setCellRef = (elt: HTMLDivElement | null) => {
     setContentElt(elt)
     setDragNodeRef(elt?.parentElement || null)
   }
+
+  useEffect(() => {
+    onCloseRef.current?.()
+  }, [dragging])
 
   useEffect(() => {
     const parent = cellElt?.closest(".rdg-cell")
@@ -99,9 +102,10 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
 
   return (
     <Menu isLazy>
-      {({ isOpen }) => {
+      {({ isOpen, onClose }) => {
         const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
         isMenuOpen.current = isOpen
+        onCloseRef.current = onClose
         return (
           <Tooltip label={`${column.name} ${description}` || kDefaultAttributeName} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
