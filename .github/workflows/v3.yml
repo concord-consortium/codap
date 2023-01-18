@@ -5,8 +5,6 @@ on:
     paths:      # only run this workflow if it contains v3 files
       - 'v3/**' # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-including-paths
       - '.github/workflows/v3.yml'
-    branches-ignore:
-      - 'master'
 
 jobs:
   build_test:
