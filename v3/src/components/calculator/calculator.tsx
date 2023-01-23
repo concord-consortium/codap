@@ -1,16 +1,17 @@
-import { Button, CloseButton, Flex, Text, Input, useToast } from "@chakra-ui/react"
+import { Button, Flex, Text, useToast } from "@chakra-ui/react"
 import React, { useState } from "react"
+import { ITileBaseProps } from "../tiles/tile-base-props"
+import { isCalculatorModel } from "./calculator-model"
 
 import "./calculator.scss"
 
-interface IProps {
-  setCalculatorOpen: (open: boolean) => void
-}
-
-export const Calculator = ({setCalculatorOpen}: IProps) => {
+export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const [calcValue, setCalcValue] = useState("")
   const [justEvaled, setJustEvaled] = useState(false)
   const toast = useToast()
+
+  const calculatorModel = tile?.content
+  if (!isCalculatorModel(calculatorModel)) return null
 
   const clearValue = () => {
     setCalcValue("")
@@ -92,7 +93,6 @@ export const Calculator = ({setCalculatorOpen}: IProps) => {
     <Flex className="calculator-wrapper" flexDirection="column">
       <Flex className="titlebar">
         <span className="title-text">Calculator</span>
-        <CloseButton className="titlebar-close" onClick={()=>setCalculatorOpen(false)}/>
       </Flex>
       <Flex className="calculator" data-testid="codap-calculator" direction="column">
         <Text className="calc-input" backgroundColor="white" height="30px">{calcValue}</Text>

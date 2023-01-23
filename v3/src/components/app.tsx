@@ -14,7 +14,6 @@ import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 
 import "./app.scss"
-import { Calculator } from "./calculator/calculator"
 
 registerTileTypes([])
 
@@ -28,7 +27,6 @@ export function handleImportDataSet(data: IDataSet) {
 export const App = () => {
   const codapDocument = getCurrentDocument()
   const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
-  const [calculatorOpen, setCalculatorOpen] = useState(false)
 
   useKeyStates()
 
@@ -72,8 +70,8 @@ export const App = () => {
     <CodapDndContext>
       <V2DocumentContext.Provider value={v2Document}>
         <div className="app" data-testid="app">
-          <ToolShelf setCalculatorOpen={setCalculatorOpen}/>
-          <Container content={codapDocument.content} />
+          <ToolShelf/>
+          <Container content={codapDocument.content}/>
         </div>
       </V2DocumentContext.Provider>
     </CodapDndContext>

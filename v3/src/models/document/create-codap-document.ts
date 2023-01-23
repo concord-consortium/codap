@@ -1,3 +1,4 @@
+import { kCalculatorTileType } from "../../components/calculator/calculator-defs"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kDataSummaryTileType } from "../../components/data-summary/data-summary-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
@@ -102,6 +103,14 @@ export function addDefaultComponents() {
               ? { splitTileId: tableTile.id, direction: "row" }
               : { x: kFullWidth + kGap, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
       content.insertTileInRow(graphTile, row, graphOptions)
+    }
+
+    const calculatorTile = createDefaultTileOfType(kCalculatorTileType)
+    if (calculatorTile) {
+      const calcOptions = isMosaicTileRow(row)
+              ? { splitTileId: helloTile.id, direction: "column" }
+              : { x: kFullWidth + kGap, y: 50, width: 127, height: 155 }
+      content.insertTileInRow(calculatorTile, row, calcOptions)
     }
   })
 }

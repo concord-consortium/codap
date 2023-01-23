@@ -11,11 +11,7 @@ import CalcIcon from '../../assets/icons/icon-calc.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
-interface IProps {
-  setCalculatorOpen: (open: boolean) => void
-}
-
-export const ToolShelf = ({setCalculatorOpen}: IProps) => {
+export const ToolShelf = () => {
   const notify = (description: string) => {
       toast({
         position: "top-right",
@@ -29,14 +25,9 @@ export const ToolShelf = ({setCalculatorOpen}: IProps) => {
     graphHandler = () => notify('graph'),
     mapHandler = () => notify('map'),
     sliderHandler = () => notify('slider'),
-    calcHandler = () => handleCalculatorOpen(),
+    calcHandler = () => notify('calculator'),
     textHandler = () => notify('text'),
     pluginsHandler = () => notify('plugins')
-
-  const handleCalculatorOpen = () => {
-    setCalculatorOpen(true)
-  }
-
 
   const buttonDescriptions = [
     {
