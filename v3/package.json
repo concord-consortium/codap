@@ -63,6 +63,8 @@
     "test:watch": "jest --watch",
     "test:coverage:watch": "jest --coverage --watchAll",
     "test:cypress": "cypress run",
+    "test:cypress:dev": "cypress run --env testEnv=dev",
+    "test:cypress:staging": "cypress run --env testEnv=staging",
     "test:cypress:open": "cypress open",
     "test:coverage:cypress:open": "cypress open --env coverage=true",
     "test:full": "npm-run-all test test:cypress"

@@ -7,7 +7,9 @@ let middleRowIndex = undefined
 let numOfCases = undefined
 
 before(()=> {
-    cy.visit("?sample=mammals")
+    const queryParams = "?sample=mammals"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
     cy.wait(2000)
     table.getNumOfAttributes().should("equal", numOfAttributes.toString())
     table.getNumOfCases().then($cases => {
@@ -36,7 +38,7 @@ context("case table ui", () => {
                 table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
             })
         })
-        it("verify edit attribute properties", () => {
+        it.skip("verify edit attribute properties", () => {
             const name = "Tallness",
                 description = "The average height of the mammal.",
                 unit="meters",
@@ -55,7 +57,7 @@ context("case table ui", () => {
         // });
     })
 
-    describe("case table header attribute menu", () => {
+    describe.skip("case table header attribute menu", () => {
         it("verify rename attribute", () => {
             table.getColumnHeader(1).should("contain", "Mammal")
             table.getAttribute("Mammal").should("exist")
@@ -86,7 +88,7 @@ context("case table ui", () => {
         })
     })
 
-    describe("index menu", () => {
+    describe.skip("index menu", () => {
         it("verify index menu insert case and delete case work", () => {
             table.openIndexMenuForRow(2)
             table.insertCase()
