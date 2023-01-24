@@ -3,9 +3,10 @@ import React, { useCallback, useEffect, useState } from "react"
 import { CodapDndContext } from "./codap-dnd-context"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import {Container} from "./container"
+import { MenuBar } from "./menu-bar/menu-bar"
 import {gDataBroker} from "../models/data/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
-import { addDefaultComponents, getCurrentDocument } from "../models/document/create-codap-document"
+import { addDefaultComponents, getCurrentDocument } from "../models/codap/create-codap-document"
 import { ISharedModelDocumentManager } from "../models/document/shared-model-document-manager"
 import { ITileEnvironment } from "../models/tiles/tile-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -82,6 +83,7 @@ export const App = () => {
     <CodapDndContext>
       <V2DocumentContext.Provider value={v2Document}>
         <div className="app" data-testid="app">
+          <MenuBar/>
           <ToolShelf/>
           <Container content={codapDocument.content} />
         </div>

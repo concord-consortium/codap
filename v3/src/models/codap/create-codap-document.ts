@@ -6,14 +6,18 @@ import { kSliderTileType } from "../../components/slider/slider-defs"
 import { urlParams } from "../../utilities/url-params"
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { TileModel } from "../tiles/tile-model"
-import { createDocumentModel } from "./create-document-model"
-import { IDocumentModel, IDocumentModelSnapshot } from "./document"
-import { DocumentContentModel } from "./document-content"
-import { FreeTileRow, IFreeTileInRowOptions } from "./free-tile-row"
-import { IMosaicTileInRowOptions, isMosaicTileRow, MosaicTileRow } from "./mosaic-tile-row"
+import { createDocumentModel } from "../document/create-document-model"
+import { IDocumentModel, IDocumentModelSnapshot } from "../document/document"
+import { DocumentContentModel } from "../document/document-content"
+import { FreeTileRow, IFreeTileInRowOptions } from "../document/free-tile-row"
+import { IMosaicTileInRowOptions, isMosaicTileRow, MosaicTileRow } from "../document/mosaic-tile-row"
+import build from "../../../build_number.json"
+import pkg from "../../../package.json"
+const { version } = pkg
+const { buildNumber } = build
 
 export function createCodapDocument(snapshot?: IDocumentModelSnapshot): IDocumentModel {
-  const document = createDocumentModel({ type: "CODAP", ...snapshot })
+  const document = createDocumentModel({ type: "CODAP", version, build: `${buildNumber}`, ...snapshot })
   if (!document.content) {
     document.setContent(DocumentContentModel.create() as any)
   }

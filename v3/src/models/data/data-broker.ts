@@ -87,6 +87,14 @@ export class DataBroker {
   clear() {
     this.dataSets.clear()
   }
+
+  prepareSnapshots() {
+    this.dataSets.forEach(data => data.prepareSnapshot())
+  }
+
+  completeSnapshots() {
+    this.dataSets.forEach(data => data.completeSnapshot())
+  }
 }
 
 export const gDataBroker = new DataBroker({ allowMultiple: true })
