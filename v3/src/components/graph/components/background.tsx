@@ -2,7 +2,7 @@ import {onAction} from "mobx-state-tree"
 import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {InternalizedData, Point, rTreeRect} from "../graphing-types"
+import {CaseData, InternalizedData, Point, rTreeRect} from "../graphing-types"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
@@ -25,7 +25,7 @@ const prepareTree = (areaSelector: string, circleSelector: string, offset: Point
             y: Number(element.cy.baseVal.value) + offset.y,
             w: 1, h: 1
           }
-        selectionTree.insert(rect, element.__data__)
+        selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
       })
     // @ts-expect-error fromJSON
     return selectionTree

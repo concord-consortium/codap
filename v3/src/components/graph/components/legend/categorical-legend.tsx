@@ -136,7 +136,8 @@ export const CategoricalLegend = memo(function CategoricalLegend(
             update.select('rect')
               .classed('legend-rect-selected',
                 (index) => {
-                  return dataConfiguration?.allCasesForCategorySelected(categoryData.current[index].category) ?? false
+                  return dataConfiguration?.allCasesForCategoryAreSelected(categoryData.current[index].category) ??
+                    false
                 })
               .attr('transform', transform)
               .style('fill', (index: number) => categoryData.current[index].color || 'white')

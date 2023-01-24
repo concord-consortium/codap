@@ -9,7 +9,12 @@ import {
 } from "../graphing-types"
 import {DataConfigurationModel} from "./data-configuration-model"
 import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
-import {defaultBackgroundColor, defaultPointColor, defaultStrokeColor} from "../../../utilities/color-utils"
+import {
+  defaultBackgroundColor,
+  defaultPointColor,
+  defaultStrokeColor,
+  kellyColors
+} from "../../../utilities/color-utils"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -37,7 +42,7 @@ export const GraphModel = TileContentModel
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     config: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
     // Visual properties
-    pointColor: defaultPointColor,
+    _pointColors: types.optional(types.array(types.string), [defaultPointColor]),
     _pointStrokeColor: defaultStrokeColor,
     pointStrokeSameAsFill: false,
     plotBackgroundColor: defaultBackgroundColor,
@@ -51,8 +56,14 @@ export const GraphModel = TileContentModel
     showMeasuresForSelection: false
   })
   .views(self => ({
+    pointColorAtIndex(plotIndex = 0) {
+      return self._pointColors[plotIndex] ?? kellyColors[plotIndex % kellyColors.length]
+    },
+    get pointColor() {
+      return this.pointColorAtIndex(0)
+    },
     get pointStrokeColor() {
-      return self.pointStrokeSameAsFill ? self.pointColor : self._pointStrokeColor
+      return self.pointStrokeSameAsFill ? this.pointColor() : self._pointStrokeColor
     },
     getAxis(place: AxisPlace) {
       return self.axes.get(place)
@@ -62,7 +73,7 @@ export const GraphModel = TileContentModel
     },
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
       let r = pointRadiusMax
-      const numPoints = self.config.cases.length
+      const numPoints = self.config.caseDataArray.length
       // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
       for (let i = pointRadiusLogBase; i <= numPoints; i = i * pointRadiusLogBase) {
         --r
@@ -84,7 +95,11 @@ export const GraphModel = TileContentModel
       self.axes.set(place, axis)
     },
     setAttributeID(role: GraphAttrRole, id: string) {
-      self.config.setAttribute(role, {attributeID: id})
+      if (role === 'yPlus') {
+        self.config.addYAttribute({attributeID: id})
+      } else {
+        self.config.setAttribute(role, {attributeID: id})
+      }
     },
     setPlotType(type: PlotType) {
       self.plotType = type
@@ -95,8 +110,8 @@ export const GraphModel = TileContentModel
       })
       self.plotType = props.plotType
     },
-    setPointColor(color: string) {
-      self.pointColor = color
+    setPointColor(color: string, plotIndex = 0) {
+      self._pointColors[plotIndex] = color
     },
     setPointStrokeColor(color: string) {
       self._pointStrokeColor = color

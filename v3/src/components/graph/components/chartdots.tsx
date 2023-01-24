@@ -1,6 +1,6 @@
 import {ScaleBand, select} from "d3"
 import React, {memo, useCallback} from "react"
-import {attrRoleToAxisPlace, PlotProps, transitionDuration} from "../graphing-types"
+import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -35,14 +35,14 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
     secondaryScale = secondaryAxisPlace ? layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
 
   const computeMaxOverAllCells = useCallback(() => {
-    const valuePairs = (dataConfiguration?.cases || []).map(caseID => {
+    const valuePairs = (dataConfiguration?.caseDataArray || []).map((aCaseData:CaseData) => {
         return {
-          primary: (primaryAttrID && dataset?.getValue(caseID, primaryAttrID)) ?? '',
-          secondary: (secondaryAttrID && dataset?.getValue(caseID, secondaryAttrID)) ?? '__main__'
+          primary: (primaryAttrID && dataset?.getValue(aCaseData.caseID, primaryAttrID)) ?? '',
+          secondary: (secondaryAttrID && dataset?.getValue(aCaseData.caseID, secondaryAttrID)) ?? '__main__'
         }
       }),
       bins: BinMap = {}
-    valuePairs?.forEach(aValue => {
+    valuePairs?.forEach((aValue:any) => {
       if (bins[aValue.primary] === undefined) {
         bins[aValue.primary] = {}
       }
@@ -56,7 +56,7 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
         return Math.max(vMax, bins[hKey][vKey])
       }, 0))
     }, 0)
-  }, [dataset, dataConfiguration?.cases, primaryAttrID, secondaryAttrID])
+  }, [dataset, dataConfiguration?.caseDataArray, primaryAttrID, secondaryAttrID])
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
@@ -108,8 +108,9 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
 
       buildMapOfIndicesByCase = () => {
         const indices: Record<string, { cell: { h: number, v: number }, row: number, column: number }> = {}
-        primaryAttrID && (dataConfiguration?.cases || []).forEach(anID => {
-          const hCat = dataset?.getValue(anID, primaryAttrID),
+        primaryAttrID && (dataConfiguration?.caseDataArray || []).forEach((aCaseData:CaseData) => {
+          const anID = aCaseData.caseID,
+            hCat = dataset?.getValue(anID, primaryAttrID),
             vCat = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__',
             mapEntry = categoriesMap[hCat][vCat],
             numInCell = mapEntry.numSoFar++,
@@ -149,7 +150,8 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
           .duration(duration)
           .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
           .attr('r', pointRadius)
-          .attr(primaryCenterKey, (anID: string) => {
+          .attr(primaryCenterKey, (aCaseData: CaseData) => {
+            const anID = aCaseData.caseID
             if (cellIndices[anID]) {
               const {column} = cellIndices[anID],
                 {h} = cellIndices[anID].cell
@@ -159,7 +161,8 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
               return NaN
             }
           })
-          .attr(secondaryCenterKey, (anID: string) => {
+          .attr(secondaryCenterKey, (aCaseData: CaseData) => {
+            const anID = aCaseData.caseID
             if (cellIndices[anID] && secondaryScale) {
               const {row} = cellIndices[anID],
                 {v} = cellIndices[anID].cell
@@ -169,10 +172,12 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
               return NaN
             }
           })
-          .style('fill', (anID: string) => lookupLegendColor(anID))
-          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+          .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID))
+          .style('stroke', (aCaseData: CaseData) =>
+            (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
             ? defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+          .style('stroke-width', (aCaseData: CaseData) =>
+            (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
 

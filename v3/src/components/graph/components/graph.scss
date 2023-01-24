@@ -1,15 +1,15 @@
-@use "../../vars.scss";
+@import "../../vars.scss";
 
 .graph-plot {
   position: relative;
   width: 100%;
-  height: calc(100% - vars.$title-bar-height);
+  height: calc(100% - $title-bar-height);
   background-color: aliceblue;
 
 
   svg {
     width: 100%;
-    height: calc(100% - vars.$title-bar-height);
+    height: calc(100% - $title-bar-height);
   }
 
   text {
@@ -47,4 +47,18 @@
   box-shadow: 0 4px 20px 4px rgba(0, 20, 60, .1), 0 4px 80px -8px rgba(0, 20, 60, .2);
   background-color: rgba(251, 251, 176, 0.7);
   border-radius: 4px;
+}
+
+.add-attribute-drop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 25px;
+  &.active {
+    border: 5px solid rgb(255, 216, 102);
+  }
+  &.over {
+    background: yellow;
+  }
 }

@@ -44,7 +44,7 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
               dataConfiguration?.selectCasesForLegendQuantile(quantile, extend)
             },
             casesInQuantileSelectedHandler: (quantile: number) => {
-              return !!dataConfiguration?.casesInQuantileSelected(quantile)
+              return !!dataConfiguration?.casesInQuantileAreSelected(quantile)
             }
           })
       }

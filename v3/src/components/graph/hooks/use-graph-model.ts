@@ -21,19 +21,18 @@ export function useGraphModel(props: IProps) {
 
   const callMatchCirclesToData = useCallback(() => {
     matchCirclesToData({
-      dataset,
-      caseIDs: dataConfig.cases,
+      dataConfiguration: dataConfig,
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointColor,
       pointStrokeColor: graphModel.pointStrokeColor,
       dotsElement: dotsRef.current,
       enableAnimation, instanceId
     })
-  }, [dataset, dataConfig.cases, graphModel, dotsRef, enableAnimation, instanceId])
+  }, [dataConfig, graphModel, dotsRef, enableAnimation, instanceId])
 
   useEffect(function createCircles() {
     callMatchCirclesToData()
-  }, [callMatchCirclesToData])
+  }, [callMatchCirclesToData, dataConfig.caseDataArray])
 
   // respond to change in plotType
   useEffect(function installPlotTypeAction() {
@@ -44,13 +43,13 @@ export function useGraphModel(props: IProps) {
         enableAnimation.current = true
         // In case the y-values have changed we rescale
         if (newPlotType === 'scatterPlot') {
-          const values = dataConfig.cases.map(anID => dataset?.getNumeric(anID, yAttrID)) as number[]
+          const values = dataConfig.caseDataArray.map((anID:string) => dataset?.getNumeric(anID, yAttrID)) as number[]
           setNiceDomain(values || [], yAxisModel as INumericAxisModel)
         }
       }
     }, true)
     return () => disposer()
-  }, [dataConfig.cases, dataset, enableAnimation, graphModel, yAttrID, yAxisModel])
+  }, [dataConfig.caseDataArray, dataset, enableAnimation, graphModel, yAttrID, yAxisModel])
 
   // respond to point properties change
   useEffect(function respondToGraphPointVisualAction() {

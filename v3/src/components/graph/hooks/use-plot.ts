@@ -132,8 +132,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = dataConfiguration.onAction(action => {
       if (['addCases', 'removeCases', 'setAttributeType'].includes(action.name)) {
         matchCirclesToData({
-          dataset,
-          caseIDs: dataConfiguration.cases,
+          dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointColor,
           pointStrokeColor: graphModel.pointStrokeColor,

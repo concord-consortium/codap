@@ -24,7 +24,7 @@ const removeAttrItemLabelKeys: Record<string, string> = {
 const _AxisOrLegendAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
-  const role = graphPlaceToAttrRole(place)
+  const role = graphPlaceToAttrRole[place]
   const attrId = dataConfig?.attributeID(role)
   const attribute = attrId ? data?.attrFromID(attrId) : null
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})

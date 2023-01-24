@@ -28,7 +28,7 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual([])
     expect(config.tipAttributes).toEqual([])
     expect(config.uniqueTipAttributes).toEqual([])
-    expect(config.cases).toEqual([])
+    expect(config.caseDataArray).toEqual([])
   })
 
   it("behaves as expected with empty/case plot", () => {
@@ -45,7 +45,11 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual(["nId"])
     expect(config.tipAttributes).toEqual(["nId"])
     expect(config.uniqueTipAttributes).toEqual(["nId"])
-    expect(config.cases).toEqual(["c1", "c2", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"},
+      {plotNum: 0, caseID: "c3"}
+    ])
   })
 
   it("behaves as expected with dot chart on x axis", () => {
@@ -63,7 +67,10 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual(["nId"])
     expect(config.tipAttributes).toEqual(["nId", "nId"])
     expect(config.uniqueTipAttributes).toEqual(["nId"])
-    expect(config.cases).toEqual(["c1", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c3"}
+    ])
   })
 
   it("behaves as expected with dot plot on x axis", () => {
@@ -81,7 +88,10 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual(["xId", "nId"])
     expect(config.tipAttributes).toEqual(["xId", "nId"])
     expect(config.uniqueTipAttributes).toEqual(["xId", "nId"])
-    expect(config.cases).toEqual(["c1", "c2"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"}
+    ])
   })
 
   it("behaves as expected with scatter plot and explicit caption attribute", () => {
@@ -102,7 +112,7 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual(["xId", "yId", "nId"])
     expect(config.tipAttributes).toEqual(["xId", "yId", "nId"])
     expect(config.uniqueTipAttributes).toEqual(["xId", "yId", "nId"])
-    expect(config.cases).toEqual(["c1"])
+    expect(config.caseDataArray).toEqual([{plotNum: 0, caseID: "c1"}])
 
     // behaves as expected after removing x axis attribute
     config.setAttribute("x")
@@ -118,22 +128,36 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual(["yId", "nId"])
     expect(config.tipAttributes).toEqual(["yId", "nId"])
     expect(config.uniqueTipAttributes).toEqual(["yId", "nId"])
-    expect(config.cases).toEqual(["c1", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c3"}
+    ])
 
     // updates cases when values change
     data.setCaseValues([{ __id__: "c2", "yId": 2 }])
-    expect(config.cases).toEqual(["c1", "c2", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"},
+      {plotNum: 0, caseID: "c3"}
+    ])
 
     // triggers observers when values change
     const trigger = jest.fn()
-    reaction(() => config.cases, () => trigger())
+    reaction(() => config.caseDataArray, () => trigger())
     expect(trigger).not.toHaveBeenCalled()
     data.setCaseValues([{ __id__: "c2", "yId": "" }])
     expect(trigger).toHaveBeenCalledTimes(1)
-    expect(config.cases).toEqual(["c1", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c3"}
+    ])
     data.setCaseValues([{ __id__: "c2", "yId": "2" }])
     expect(trigger).toHaveBeenCalledTimes(2)
-    expect(config.cases).toEqual(["c1", "c2", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"},
+      {plotNum: 0, caseID: "c3"}
+    ])
   })
 
   it("selection behaves as expected", () => {

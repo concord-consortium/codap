@@ -47,7 +47,13 @@ export function determineBaseString(role: GraphAttrRole, dropType?: AttributeTyp
         empty: "dropInPlot",
         existing: "dropInPlot"
       }
-    }
+    },
+    yPlus: {
+      numeric: {
+        empty: "addAttribute",
+        existing: "addAttribute"
+      }
+    },
   }
 
   const stringKey = dropType && stringMap[role]?.[dropType]?.[priorType ? "existing" : "empty"]

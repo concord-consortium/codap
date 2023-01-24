@@ -75,8 +75,7 @@ export class GraphController {
       }
       else {
         matchCirclesToData({
-          dataset: this.dataset,
-          caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
+          dataConfiguration: dataConfig, dotsElement: dotsRef.current,
           pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId,
           pointColor: graphModel.pointColor,
           pointStrokeColor: graphModel.pointStrokeColor
@@ -142,12 +141,17 @@ export class GraphController {
     if (['plot', 'legend'].includes(graphPlace)) {
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
     }
+    else if (graphPlace === 'yPlus') {
+      const yAxisModel = this.graphModel.getAxis('left')
+      yAxisModel && setNiceDomain(this.graphModel.config.numericValuesForYAxis, yAxisModel)
+      return
+    }
     const {dataset, graphModel, layout} = this,
       dataConfig = graphModel.config,
       axisPlace = graphPlace as AxisPlace,
       graphAttributeRole = axisPlaceToAttrRole[axisPlace],
       attribute = dataset?.attrFromID(attrID),
-      attributeType = dataConfig.attributeType(graphPlaceToAttrRole(graphPlace)) ?? 'empty',
+      attributeType = dataConfig.attributeType(graphPlaceToAttrRole[graphPlace]) ?? 'empty',
       otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
       otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
       otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
