@@ -1,0 +1,83 @@
+@import "./vars.scss";
+
+.component-header {
+  flex-direction: row;
+  height: $title-bar-height !important;
+  background-color: #177991;
+  width: 100%;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  &:hover {
+    .header-right {
+      visibility: visible;
+    }
+  }
+  &:active {
+    .header-right {
+      visibility: visible;
+    }
+  }
+
+  .header-left {
+    flex-direction: row;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 5px;
+    align-items: center;
+    justify-content: center;
+    background-color: #177991;
+    height: 24px;
+    width: 24px;
+    .card-table-icon {
+      fill: white;
+      height: 14px;
+      width: 14px;
+    }
+  }
+
+  .header-right {
+    height: $title-bar-height !important;
+    flex-direction: row;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    visibility: hidden;
+    background-color: #177991 !important;
+    fill: lightgray;
+
+    .component-minimize-icon {
+      height: 20px;
+      width: 19px;
+      fill: lightgray;
+      &:hover {
+        height: 25px;
+        width: 24px;
+        fill: white;
+      }
+      &:active {
+        height: 25px;
+        width: 24px;
+        fill: black;
+      }
+    }
+
+    .component-close-button {
+      background-color: #177991 !important;
+      color: lightgray;
+      height: 24px;
+      &:hover {
+        font-size: medium;
+        font-weight: bold;
+        color: white;
+      }
+      &:active {
+        font-size: medium;
+        font-weight: bold;
+        color: black;
+      }
+    }
+  }
+}
