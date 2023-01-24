@@ -56,7 +56,7 @@ rm -rf tmp
 echo '    * npm packages are up to date'
 npm install
 echo '    * extension directories clean'
-./bin/check_clean_codeline "$CODAP_DATA_HOME" "$EXP_CODAP_BRANCH" || 
+./bin/check_clean_codeline "$CODAP_DATA_HOME" "$EXP_CODAP_BRANCH" ||
     error "Extn codeline check failed: $CODAP_DATA_HOME"
 ./bin/check_clean_codeline "$CODAP_DATA_INTERACTIVE_HOME" "$EXP_CODAP_BRANCH" ||
     error "Extn codeline check failed: $CODAP_DATA_INTERACTIVE_HOME"
@@ -125,4 +125,4 @@ set -v
 # 14. qa: move ‘latest’ symlink (unknown: scriptable)
 # 15. write release notes (partly scripted)
 set +v
-# 
+#
