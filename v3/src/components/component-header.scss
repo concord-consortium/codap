@@ -29,6 +29,7 @@
     background-color: #177991;
     height: 24px;
     width: 24px;
+    border-top-left-radius: 6px;
     .card-table-icon {
       fill: white;
       height: 14px;
@@ -47,6 +48,7 @@
     visibility: hidden;
     background-color: #177991 !important;
     fill: lightgray;
+    border-top-right-radius: 6px;
 
     .component-minimize-icon {
       height: 20px;

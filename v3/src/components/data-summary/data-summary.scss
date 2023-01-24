@@ -6,6 +6,8 @@
   height: calc(100% - vars.$title-bar-height);
   background-color: aliceblue;
   padding: 5px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 
   .data-components, .data-attributes {
     margin-top: 15px;
