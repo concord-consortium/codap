@@ -497,10 +497,11 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
       if (caseShouldBeAddedAtEnd(parentID, this.parent, this.lastCase())) {
         /**
-         * Note of 1/8/22: The following condition has been altered to temporarily fix
-         * [PT Story 184177772](https://www.pivotaltracker.com/story/show/184177772).
+         * Order is important in the test because iCase.isEmpty may cause a side effect and
+         * caching of formula results. We only want to bring that about *after* we've
+         * created the caseIDToIndexMap.
          */
-        if (/*!iCase.isEmpty() ||*/ !parentID) {
+        if (!this.caseIDToIndexMap[caseID] || !iCase.isEmpty() || !parentID) {
           this.caseIDToGroupedIndexMap[caseID] = caseCounts[parentID]++;
         }
         caseIDToIndexMap[caseID] = this.cases.length;
