@@ -7,4 +7,6 @@
   color: white;
   text-align: center;
   position: inherit !important; //overrides Chakra's position relative
+  border-top-left-radius: 6px !important;
+  border-top-right-radius: 6px !important;
 }
