@@ -1,5 +1,7 @@
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
+import build from "../../../build_number.json"
+import pkg from "../../../package.json"
 import { getCurrentDocument } from "../../models/codap/create-codap-document"
 import { gDataBroker } from "../../models/data/data-broker"
 import { HamburgerIcon } from "./hamburger-icon"
@@ -13,6 +15,9 @@ export function MenuBar() {
         <MenuButton className="hamburger-button">
           <HamburgerIcon/>
         </MenuButton>
+        <div className="version-build-number">
+          <span>v{pkg.version}-build-{build.buildNumber}</span>
+        </div>
         <MenuList>
           <MenuItem isDisabled={true}>Import JSON File...</MenuItem>
           <MenuItem onClick={exportDocument}>Export JSON File...</MenuItem>
