@@ -2,13 +2,13 @@ import { format } from "d3"
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { ICase, IDataSet } from "../../models/data/data-set"
 import {
   AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
 } from "../../models/data/data-set-actions"
 import { prf } from "../../utilities/profiler"
-import { appState } from "../app-state"
 import { TRow, TRowsChangeData } from "./case-table-types"
 
 export const useRows = (data?: IDataSet) => {

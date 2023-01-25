@@ -5,7 +5,7 @@ import RTree from 'rtree'
 import {InternalizedData, Point, rTreeRect} from "../graphing-types"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
-import {appState} from "../../app-state"
+import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {MarqueeState} from "../models/marquee-state"

@@ -4,7 +4,6 @@ import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
-import {useCurrent} from "../../../hooks/use-current"
 import {IGraphModel} from "../models/graph-model"
 import {matchCirclesToData} from "../utilities/graph-utils"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -50,7 +49,6 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     dataset = useDataSetContext(),
     xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
     yNumeric = graphModel.getAxis('left') as INumericAxisModel,
-    refreshPointsRef = useCurrent(refreshPointPositions),
     instanceId = useInstanceIdContext()
 
   /* This routine is frequently called many times in a row when something about the graph changes that requires
@@ -66,10 +64,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       return
     }
     timer.current = setTimeout(() => {
-      refreshPointsRef.current(selectedOnly)
+      refreshPointPositions(selectedOnly)
       timer.current = null
     }, 10)
-  }, [refreshPointsRef])
+  }, [refreshPointPositions])
 
   useEffect(function doneWithTimer() {
     return () => {

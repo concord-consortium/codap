@@ -2,7 +2,7 @@ import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
-import { getCurrentDocument } from "../../models/codap/create-codap-document"
+import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { HamburgerIcon } from "./hamburger-icon"
 
@@ -19,8 +19,8 @@ export function MenuBar() {
           <span>v{pkg.version}-build-{build.buildNumber}</span>
         </div>
         <MenuList>
-          <MenuItem isDisabled={true}>Import JSON File...</MenuItem>
-          <MenuItem onClick={exportDocument}>Export JSON File...</MenuItem>
+          <MenuItem onClick={handleImportDocument}>Import JSON File...</MenuItem>
+          <MenuItem onClick={handleExportDocument}>Export JSON File...</MenuItem>
         </MenuList>
       </Menu>
     </div>
@@ -44,10 +44,10 @@ function download(path: string, filename: string) {
   document.body.removeChild(anchor)
 }
 
-function exportDocument() {
+function handleExportDocument() {
   // Convert JSON to string
   gDataBroker.prepareSnapshots()
-  const data = JSON.stringify(getCurrentDocument())
+  const data = JSON.stringify(appState.document)
   gDataBroker.completeSnapshots()
 
   // Create a Blob object
@@ -61,4 +61,45 @@ function exportDocument() {
 
   // Release the object URL
   URL.revokeObjectURL(url)
+}
+
+function handleImportDocument() {
+  // create a new input element
+  const input = document.createElement("input")
+  input.type = "file"
+  input.addEventListener('change', function handleChange() {
+    // check if user had selected a file
+    if (!input.files?.length) return
+
+    const file = input.files[0]
+    const reader = new FileReader()
+
+    reader.onload = function() {
+      const json = reader.result as string | null
+      const snap = json && JSON.parse(json)
+      try {
+        if (snap) {
+          appState.setDocument(snap)
+        }
+      }
+      catch (e) {
+        console.error("error opening document!")
+      }
+    }
+
+    reader.onerror = function() {
+      console.error(reader.error)
+    }
+
+    reader.readAsText(file)
+  })
+
+  // append to the DOM
+  document.body.appendChild(input)
+
+  // trigger `click` event
+  input.click()
+
+  // Remove element from DOM
+  document.body.removeChild(input)
 }

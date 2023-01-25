@@ -62,7 +62,7 @@ export const Graph = observer((
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
     }
-  }, [plotAreaSVGRef, layout.plotHeight, layout.plotWidth, xScale])
+  }, [dataset, plotAreaSVGRef, layout.plotHeight, layout.plotWidth, xScale])
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
