@@ -13,12 +13,12 @@
     <rect x="15" y="16" fill="none" width="5" height="3"/>
     <rect x="1" y="12" fill="none" width="7" height="3"/>
     <rect x="1" y="16" fill="none" width="7" height="3"/>
-    <path fill="#102633" d="M26,0H1C0.4,0,0,0.4,0,1v18c0,0.6,0.4,1,1,1h25c0.6,0,1-0.4,1-1V1C27,0.4,26.6,0,26,0z M20,1v6h-5V1H20z
+    <path d="M26,0H1C0.4,0,0,0.4,0,1v18c0,0.6,0.4,1,1,1h25c0.6,0,1-0.4,1-1V1C27,0.4,26.6,0,26,0z M20,1v6h-5V1H20z
       M15,8h5v3h-5V8z M15,12h5v3h-5V12z M14,1v6H9V1H14z M9,8h5v3H9V8z M9,12h5v3H9V12z M1,1h7v6H1V1z M1,8h7v3H1V8z M1,12h7v3H1V12z
       M1,19v-3h7v3H1z M9,19v-3h5v3H9z M15,19v-3h5v3H15z M26,19h-5v-3h5v-1h-5v-3h5v-1h-5V8h5V7h-5V1h5h0L26,19z"/>
-    <rect x="22" y="2" fill="#102633" width="3" height="4"/>
-    <rect x="16" y="2" fill="#102633" width="3" height="4"/>
-    <rect x="10" y="2" fill="#102633" width="3" height="4"/>
-    <rect x="2" y="2" fill="#102633" width="5" height="4"/>
+    <rect x="22" y="2" width="3" height="4"/>
+    <rect x="16" y="2" width="3" height="4"/>
+    <rect x="10" y="2" width="3" height="4"/>
+    <rect x="2" y="2" width="5" height="4"/>
   </g>
 </svg>
