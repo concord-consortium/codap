@@ -20,7 +20,6 @@
 
   .header-left {
     flex-direction: row;
-    align-items: center;
     position: absolute;
     top: 0;
     left: 5px;
@@ -31,9 +30,11 @@
     width: 24px;
     border-top-left-radius: 6px;
     .card-table-icon {
-      fill: white;
-      height: 14px;
-      width: 14px;
+      background-color: white;
+      fill: #177991;
+      height: 15px;
+      width: 13px;
+      border-radius: 2px;
     }
   }
 
