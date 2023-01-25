@@ -2,7 +2,7 @@
 
 .codap-container {
   width: 100%;
-  height: calc(100% - $tool-shelf-height);
+  height: calc(100% - $menu-bar-height - $tool-shelf-height);
 
   .component-placeholder {
     width: 100%;

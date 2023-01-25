@@ -4,7 +4,7 @@ import { gDataBroker } from "../data/data-broker"
 import { DataSet, toCanonical } from "../data/data-set"
 import { ITileEnvironment } from "../tiles/tile-content"
 import { createCodapDocument } from "./create-codap-document"
-import { ISharedModelDocumentManager } from "./shared-model-document-manager"
+import { ISharedModelDocumentManager } from "../document/shared-model-document-manager"
 import { ISharedDataSet } from "../shared/shared-data-set"
 import "../shared/shared-data-set-registration"
 

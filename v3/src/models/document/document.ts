@@ -14,6 +14,8 @@ export const DocumentModel = Tree.named("Document")
   .props({
     key: types.optional(types.identifier, () => uniqueId()),
     type: types.string,
+    version: types.maybe(types.string),
+    build: types.maybe(types.string),
     createdAt: 0,       // remote documents fill this in when content is loaded
     title: types.maybe(types.string),
     properties: types.map(types.string),
