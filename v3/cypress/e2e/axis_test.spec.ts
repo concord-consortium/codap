@@ -16,7 +16,7 @@ const arrayOfValues = [
 
 context("Test graph axes with various attribute types", () => {
     before(function () {
-        const queryParams = "?sample=mammals"
+        const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)

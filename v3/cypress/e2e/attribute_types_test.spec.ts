@@ -4,7 +4,7 @@ import {CfmElements as cfm} from "../support/elements/CfmObject"
 context("attribute types", () => {
     before(() => {
         const filename = "cypress/fixtures/attribute-types-test-document.codap"
-        const url = `${Cypress.config("index")}`;
+        const url = `${Cypress.config("index")}`
         cy.visit(url)
         cy.wait(3000)
         cfm.openLocalDoc(filename)

@@ -5,7 +5,7 @@ Cypress.Commands.add("clickMenuItem", text => {
 Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 0) => {
     const el = {
         tableHeader: ".codap-data-summary .data-attributes .draggable-attribute",
-        tableColumnHeader: 
+        tableColumnHeader:
         `.codap-case-table [data-testid="codap-attribute-button ${target}"]`,
         caseCardHeader: ".react-data-card-attribute",
         caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
@@ -118,5 +118,21 @@ Cypress.Commands.add("mouseMoveBy",
             })
             .wait(options?.delay || 0, { log: Boolean(options?.delay) })
             .trigger("mouseup", { force: true })
+            .wait(options?.delay || 0, { log: Boolean(options?.delay) })
+    })
+
+// analogous to mouseMoveBy but doesn't seem to trigger the PointerSensor as expected
+Cypress.Commands.add("pointerMoveBy",
+    (subject, targetRect, options?: { delay: number }) => {
+        cy.wrap(subject)
+            .trigger("pointerdown", { force: true })
+            .wait(options?.delay || 0, { log: Boolean(options?.delay) })
+            .trigger("pointermove", {
+                force: true,
+                clientX: Math.floor(targetRect.x + targetRect.width / 2),
+                clientY: Math.floor(targetRect.y + targetRect.height / 2),
+            })
+            .wait(options?.delay || 0, { log: Boolean(options?.delay) })
+            .trigger("pointerup", { force: true })
             .wait(options?.delay || 0, { log: Boolean(options?.delay) })
     })

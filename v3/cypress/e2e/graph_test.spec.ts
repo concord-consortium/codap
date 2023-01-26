@@ -12,7 +12,7 @@ const arrayOfPlots = [
 
 context("Test graph plot transitions", () => {
     before(function () {
-        const queryParams = "?sample=mammals"
+        const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)
