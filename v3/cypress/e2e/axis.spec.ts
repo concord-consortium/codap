@@ -1,4 +1,4 @@
-import { AxisHelper as ah } from "../support/helpers/AxisHelper"
+import { AxisHelper as ah } from "../support/helpers/axis-helper"
 
 const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet" ]
 
@@ -151,7 +151,7 @@ context("Test graph axes with various attribute types", () => {
 
 context("Test graph axes attribute menu", () => {
     before(function () {
-        const queryParams = "?sample=mammals"
+        const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)

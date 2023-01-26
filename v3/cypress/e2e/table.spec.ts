@@ -1,4 +1,4 @@
-import {TableTileElements as table} from "../support/elements/TableTile"
+import {TableTileElements as table} from "../support/elements/table-tile"
 
 const numOfAttributes = 10
 const firstRowIndex = 2

@@ -1,5 +1,5 @@
-import { AxisHelper as ah } from "../support/helpers/AxisHelper"
-import { LegendHelper as lh } from "../support/helpers/LegendHelper"
+import { AxisHelper as ah } from "../support/helpers/axis-helper"
+import { LegendHelper as lh } from "../support/helpers/legend-helper"
 
 const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet" ]
 
@@ -122,7 +122,7 @@ context("Test legend with various attribute types", () => {
 
 context("Test drawing legend on existing legend", () => {
     before(function () {
-        const queryParams = "?sample=mammals"
+        const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)
@@ -194,7 +194,7 @@ context("Test drawing legend on existing legend", () => {
 })
 context("Test selecting and selecting categories in legend", () => {
     before(function () {
-        const queryParams = "?sample=mammals"
+        const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)

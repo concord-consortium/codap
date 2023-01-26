@@ -1,4 +1,4 @@
-import { AxisElements as ae } from "../elements/AxisElements"
+import { AxisElements as ae } from "../elements/axis-elements"
 
 export const AxisHelper = {
     verifyDefaultAxisLabel(axis) {

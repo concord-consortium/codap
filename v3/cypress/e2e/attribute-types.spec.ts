@@ -1,9 +1,9 @@
-import {TableTileElements as table} from "../support/elements/TableTile"
-import {CfmElements as cfm} from "../support/elements/CfmObject"
+import {TableTileElements as table} from "../support/elements/table-tile"
+import {CfmElements as cfm} from "../support/elements/cfm"
 
 context("attribute types", () => {
     before(() => {
-        const filename = "cypress/fixtures/attribute-types-test-document.codap"
+        const filename = "cypress/fixtures/attribute-types.codap"
         const url = `${Cypress.config("index")}`
         cy.visit(url)
         cy.wait(3000)
