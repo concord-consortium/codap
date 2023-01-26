@@ -6,6 +6,8 @@ $button-height: 24px;
   background: #333333;
   padding: 2px;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
   .calculator {
     flex-direction: column;

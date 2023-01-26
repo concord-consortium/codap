@@ -1,6 +1,6 @@
 import {select} from "d3"
 import React, {memo, useCallback, useRef, useState} from "react"
-import {appState} from "../../app-state"
+import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
@@ -58,8 +58,7 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
           }
         })
       }
-    }, [dataConfiguration, dataset, primaryAttrID, secondaryAttrID, enableAnimation,
-      dragPointRadius]),
+    }, [dataConfiguration, dataset, primaryAttrID, secondaryAttrID, enableAnimation, dragPointRadius]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {

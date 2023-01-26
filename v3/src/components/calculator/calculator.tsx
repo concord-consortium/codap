@@ -1,4 +1,4 @@
-import { Button, Flex, Text, useToast } from "@chakra-ui/react"
+import { Button, Flex, Text } from "@chakra-ui/react"
 import React, { useState } from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isCalculatorModel } from "./calculator-model"
