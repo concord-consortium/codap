@@ -100,14 +100,6 @@ export const SliderComponent = observer(({ tile } : ITileBaseProps) => {
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
         <div className={kSliderClass} ref={sliderRef}>
-          <div className="titlebar">
-            <input type="text"
-              value={sliderModel.name}
-              onChange={handleSliderNameInput}
-              onBlur={() => setIsEditingName(false)}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
           <div className="slider">
             <Portal containerRef={appRef}>
               <div className="inspector-temporary" style={inspectorStyle}>

@@ -8,22 +8,7 @@ $pseudo-inspector-width: 40px;
   width: calc(100% - $pseudo-inspector-width);
   height: 100px;
   background: #fff;
-  border-radius: $border-radius-four-corners;
-  box-shadow: 1px 1px 3px 1px rgba(176, 170, 170, 0.75);
 
-  .titlebar {
-    text-align: center;
-    background-color: $teal-dark;
-    border-radius:$border-radius-top-corners;
-    input {
-      background-color: transparent;
-      text-align: center;
-      font-weight: bold;
-      color:white;
-      max-height: 19px;
-      max-width:98%
-    }
-  }
   .slider {
     button svg, .thumb-icon {
       width:27px;
