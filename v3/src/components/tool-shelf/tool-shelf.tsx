@@ -25,7 +25,7 @@ export const ToolShelf = () => {
     graphHandler = () => notify('graph'),
     mapHandler = () => notify('map'),
     sliderHandler = () => notify('slider'),
-    calcHandler = () => notify('calc'),
+    calcHandler = () => notify('calculator'),
     textHandler = () => notify('text'),
     pluginsHandler = () => notify('plugins')
 
@@ -104,4 +104,3 @@ export const ToolShelf = () => {
     </HStack>
   )
 }
-

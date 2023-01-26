@@ -85,7 +85,7 @@ export const App = () => {
         <div className="app" data-testid="app">
           <MenuBar/>
           <ToolShelf/>
-          <Container content={codapDocument.content} />
+          <Container content={codapDocument.content}/>
         </div>
       </V2DocumentContext.Provider>
     </CodapDndContext>

@@ -1,0 +1,50 @@
+@import "../vars.scss";
+$button-width: 30px;
+$button-height: 24px;
+
+.calculator-wrapper {
+  background: #333333;
+  padding: 2px;
+  flex-direction: column;
+
+  .calculator {
+    flex-direction: column;
+    font-family: "museo-sans", sans-serif;
+    font-size: 12px;
+    height: 155px;
+    width: 127px;
+    margin-top: 3px;
+    background-color: #333333;
+
+    .calc-input {
+      height: 20px;
+      width: 100%;
+      border-radius: 3px;
+      border: 1px solid;
+      border-color: inherit;
+      background-color: white;
+      padding: 0 3px;
+    }
+
+    .calc-buttons {
+      margin-top: 3px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: 131px;
+
+      .calc-button {
+        width: $button-width;
+        height: $button-height;
+        border: 0 none;
+        color: #555;
+        background-color: lightgray;
+        padding: 0;
+        margin: 1px;
+        min-width: 0; //override Chakra min-width
+        &.wide {
+          width: calc(($button-width * 2) + 2px);
+        }
+      }
+    }
+  }
+}
