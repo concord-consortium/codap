@@ -56,27 +56,27 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
 
   const calcButtonsArr = [
     {"C": ()=>clearValue()},
-    {"(": ()=>insert("(")},
-    {")": ()=>insert(")")},
-    {"/": ()=>insert("/")},
+    {"\u0028": ()=>insert("(")},
+    {"\u0029": ()=>insert(")")},
+    {"\u002F": ()=>insert("/")},
     {"7": ()=>insert("7")},
     {"8": ()=>insert("8")},
     {"9": ()=>insert("9")},
-    {"X": ()=>insert("*")},
+    {"\u0058": ()=>insert("*")},
     {"4": ()=>insert("4")},
     {"5": ()=>insert("5")},
     {"6": ()=>insert("6")},
-    {"-": ()=>insert("-")},
+    {"\u002D": ()=>insert("-")},
     {"1": ()=>insert("1")},
     {"2": ()=>insert("2")},
     {"3": ()=>insert("3")},
-    {"+": ()=>insert("+")},
+    {"\u002B": ()=>insert("+")},
     {"0": ()=>insert("0")},
-    {".": ()=>insert(".")}
+    {"\u002E": ()=>insert(".")}
   ]
 
   const calcButtons: React.ReactElement[] = []
-  calcButtonsArr.forEach((button:Record<string,any>) => {
+  calcButtonsArr.forEach((button:Record<string, any>) => {
     for (const key in button) {
       calcButtons.push(
         <Button key={key} className="calc-button" onClick={button[key]}>
