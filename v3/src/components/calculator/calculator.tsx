@@ -9,7 +9,6 @@ import "./calculator.scss"
 export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const [calcValue, setCalcValue] = useState("")
   const [justEvaled, setJustEvaled] = useState(false)
-  const toast = useToast()
 
   const calculatorModel = tile?.content
   if (!isCalculatorModel(calculatorModel)) return null
@@ -27,6 +26,8 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       setJustEvaled(false)
       if (operation.includes(strToInsert)) {
         setCalcValue(()=>`${prevValue}${strToInsert}`)
+      } else {
+        setCalcValue((ex)=>`${ex}${strToInsert}`)
       }
     } else {
       setCalcValue((ex)=>`${ex}${strToInsert}`)
@@ -35,15 +36,15 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
 
   const handleEvaluateButtonPress = () => {
     if (justEvaled) return
-    if (calcValue.includes("(") && !calcValue.includes(")")) {
-      toast({
-        title: "Invalid expression",
-        description: `Need closing parenthesis ")"`,
-        status: "success",
-        duration: 5000,
-        isClosable: true
-      })
-    } else {
+    // if (calcValue.includes("(") && !calcValue.includes(")")) {
+    //   toast({
+    //     title: "Invalid expression",
+    //     description: `Need closing parenthesis ")"`,
+    //     status: "success",
+    //     duration: 5000,
+    //     isClosable: true
+    //   })
+    // } else {
       try {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
@@ -51,7 +52,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         setCalcValue(`Error`)
       }
       setJustEvaled(true)
-    }
+    // }
   }
 
   const calcButtonsArr = [
