@@ -1,3 +1,4 @@
+import { kCalculatorTileType } from "../../components/calculator/calculator-defs"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kDataSummaryTileType } from "../../components/data-summary/data-summary-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
@@ -26,6 +27,8 @@ export function addDefaultComponents() {
   if (!row) return
 
   const kFullWidth = 580
+  const kWidth25 = kFullWidth / 4
+  const kWidth75 = kFullWidth * 3 / 4
   const kFullHeight = 300
   const kHalfHeight = kFullHeight / 2
   const kGap = 10
@@ -45,18 +48,27 @@ export function addDefaultComponents() {
             : { x: 2, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
     content.insertTileInRow(tableTile, row, tableOptions)
 
+    const calculatorTile = createDefaultTileOfType(kCalculatorTileType)
+    if (!calculatorTile) return
+    if (calculatorTile) {
+      const calcOptions = isMosaicTileRow(row)
+              ? { splitTileId: summaryTile.id, direction: "row" }
+              : { x: kFullWidth + kGap / 2, y: 2, width: kWidth25, height: kFullHeight }
+      content.insertTileInRow(calculatorTile, row, calcOptions)
+    }
+
     const helloTile = createDefaultTileOfType(kHelloCodapTileType)
     if (!helloTile) return
     const helloOptions = isMosaicTileRow(row)
-            ? { splitTileId: summaryTile.id, direction: "row" }
-            : { x: kFullWidth + kGap, y: 2, width: kFullWidth, height: kHalfHeight }
+            ? { splitTileId: calculatorTile.id, direction: "row", percent: 0.75 }
+            : { x: kFullWidth + kWidth25 + kGap, y: 2, width: kWidth75, height: kHalfHeight }
     content.insertTileInRow(helloTile, row, helloOptions)
 
     const sliderTile = createDefaultTileOfType(kSliderTileType)
     if (sliderTile) {
       const sliderOptions = isMosaicTileRow(row)
               ? { splitTileId: helloTile.id, direction: "column" }
-              : { x: kFullWidth + kGap, y: kHalfHeight + kGap / 2, width: kFullWidth, height: kHalfHeight }
+              : { x: kFullWidth + kWidth25 + kGap, y: kHalfHeight + kGap / 2, width: kWidth75, height: kHalfHeight }
       content.insertTileInRow(sliderTile, row, sliderOptions)
     }
 

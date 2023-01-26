@@ -16,6 +16,7 @@ export type SplitDirection = typeof SplitDirections[number]
 export interface IMosaicTileInRowOptions extends ITileInRowOptions {
   splitTileId?: string
   direction?: SplitDirection
+  percent?: number
 }
 export const isMosaicTileInRowOptions = (options?: ITileInRowOptions): options is IMosaicTileInRowOptions =>
               (options as any)?.splitTileId != null || (options as any)?.direction != null
@@ -97,7 +98,10 @@ export const MosaicTileRow = TileRowModel
   .actions(self => ({
     // splitTileId is required except for the first tile
     insertTile(newTileId: string, options?: IMosaicTileInRowOptions) {
-      const { splitTileId = undefined, direction = "row" } = isMosaicTileInRowOptions(options) ? options : {}
+      const {
+        splitTileId = undefined, direction = "row", percent: inPercent = 0.5
+      } = isMosaicTileInRowOptions(options) ? options : {}
+      const percent = 1 - inPercent
       if (!splitTileId) {
         if (!self.root) {
           self.root = newTileId
@@ -109,7 +113,7 @@ export const MosaicTileRow = TileRowModel
         // single tile with no nodes/splits yet
         if (self.root) {
           const rootTileId = self.root
-          const firstNode = MosaicTileNode.create({ direction, first: rootTileId, second: newTileId })
+          const firstNode = MosaicTileNode.create({ direction, percent, first: rootTileId, second: newTileId })
           self.nodes.put(firstNode)
           self.root = firstNode.id
           self.tiles.set(rootTileId, firstNode.id)
@@ -118,7 +122,7 @@ export const MosaicTileRow = TileRowModel
         return
       }
       // for now, new tile is always to right or below the tile being split
-      const newNode = MosaicTileNode.create({ direction, first: splitTileId, second: newTileId })
+      const newNode = MosaicTileNode.create({ direction, percent, first: splitTileId, second: newTileId })
       self.nodes.put(newNode)
       parentNode.replaceNodeOrTileId(splitTileId, newNode.id)
       self.tiles.set(splitTileId, newNode.id)
