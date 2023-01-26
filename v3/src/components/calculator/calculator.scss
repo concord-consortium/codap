@@ -5,6 +5,7 @@ $button-height: 24px;
 .calculator-wrapper {
   background: #333333;
   padding: 2px;
+  flex-direction: column;
 
   .calculator {
     flex-direction: column;

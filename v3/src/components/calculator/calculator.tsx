@@ -86,9 +86,9 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     }
   })
   return (
-    <Flex className="calculator-wrapper" flexDirection="column">
-      <Flex className="calculator" data-testid="codap-calculator" direction="column">
-        <Text className="calc-input" backgroundColor="white" height="30px">{calcValue}</Text>
+    <Flex className="calculator-wrapper">
+      <Flex className="calculator" data-testid="codap-calculator">
+        <Text className="calc-input">{calcValue}</Text>
         <Flex className="calc-buttons">
             {calcButtons}
             <Button className="calc-button wide" onClick={handleEvaluateButtonPress}>=</Button>
