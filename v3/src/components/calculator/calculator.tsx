@@ -2,6 +2,7 @@ import { Button, Flex, Text, useToast } from "@chakra-ui/react"
 import React, { useState } from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isCalculatorModel } from "./calculator-model"
+import { evaluate } from "mathjs"
 
 import "./calculator.scss"
 
@@ -15,26 +16,25 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
 
   const clearValue = () => {
     setCalcValue("")
+    setJustEvaled(false)
   }
-  const insertSymbol = (symbol: string) => { //parenthesis or decimal point
-    if (justEvaled) {
-      clearValue()
-    }
-    insert(symbol)
-  }
+
   const insert = (strToInsert: string) => {
-    if (justEvaled && !isNaN(parseInt(strToInsert, 10))) {
+    const operation = ["+", "-", "*", "/", "("]
+    if (justEvaled) {
+      const prevValue = calcValue
       clearValue()
       setJustEvaled(false)
-      if (calcValue === "") { setCalcValue(strToInsert) }
-      else  { setCalcValue(calcValue.concat(strToInsert)) }
+      if (operation.includes(strToInsert)) {
+        setCalcValue(()=>`${prevValue}${strToInsert}`)
+      }
     } else {
-      setCalcValue(calcValue.concat(strToInsert))
+      setCalcValue((ex)=>`${ex}${strToInsert}`)
     }
   }
-  const evaluate = () => {
-    // eslint-disable-next-line no-useless-escape
-    const input = calcValue.replace(/[^0-9()+\-*\/.]/g, "") //sanitize input
+
+  const handleEvaluateButtonPress = () => {
+    if (justEvaled) return
     if (calcValue.includes("(") && !calcValue.includes(")")) {
       toast({
         title: "Invalid expression",
@@ -45,38 +45,34 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       })
     } else {
       try {
-        const solution = eval(input)
+        const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
-        setJustEvaled(true)
       } catch  (error) {
         setCalcValue(`Error`)
       }
+      setJustEvaled(true)
     }
-  }
-
-  const handleEvaluateButtonPress = () => {
-    evaluate()
   }
 
   const calcButtonsArr = [
     {"C": ()=>clearValue()},
-    {"(": ()=>insertSymbol("(")},
-    {")": ()=>insertSymbol(")")},
-    {"/": ()=>insertSymbol("/")},
+    {"(": ()=>insert("(")},
+    {")": ()=>insert(")")},
+    {"/": ()=>insert("/")},
     {"7": ()=>insert("7")},
     {"8": ()=>insert("8")},
     {"9": ()=>insert("9")},
-    {"X": ()=>insertSymbol("*")},
+    {"X": ()=>insert("*")},
     {"4": ()=>insert("4")},
     {"5": ()=>insert("5")},
     {"6": ()=>insert("6")},
-    {"-": ()=>insertSymbol("-")},
+    {"-": ()=>insert("-")},
     {"1": ()=>insert("1")},
     {"2": ()=>insert("2")},
     {"3": ()=>insert("3")},
-    {"+": ()=>insertSymbol("+")},
+    {"+": ()=>insert("+")},
     {"0": ()=>insert("0")},
-    {".": ()=>insertSymbol(".")}
+    {".": ()=>insert(".")}
   ]
 
   const calcButtons: React.ReactElement[] = []
@@ -91,9 +87,6 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   })
   return (
     <Flex className="calculator-wrapper" flexDirection="column">
-      <Flex className="titlebar">
-        <span className="title-text">Calculator</span>
-      </Flex>
       <Flex className="calculator" data-testid="codap-calculator" direction="column">
         <Text className="calc-input" backgroundColor="white" height="30px">{calcValue}</Text>
         <Flex className="calc-buttons">

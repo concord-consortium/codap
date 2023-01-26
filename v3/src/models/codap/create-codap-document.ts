@@ -113,7 +113,7 @@ export function addDefaultComponents() {
     if (calculatorTile) {
       const calcOptions = isMosaicTileRow(row)
               ? { splitTileId: helloTile.id, direction: "column" }
-              : { x: kFullWidth + kGap, y: 50, width: 127, height: 155 }
+              : { x: kFullWidth * 1.75, y: 35, width: 132, height: 185 }
       content.insertTileInRow(calculatorTile, row, calcOptions)
     }
   })

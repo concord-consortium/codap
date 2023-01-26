@@ -10,6 +10,5 @@ export const CalculatorModel = TileContentModel
 export interface ICalculatorModel extends Instance<typeof CalculatorModel> {}
 
 export function isCalculatorModel(model?: ITileContentModel): model is ICalculatorModel {
-  console.log("isCalculatorModel model", model)
   return model?.type === kCalculatorTileType
 }
