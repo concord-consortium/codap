@@ -96,7 +96,6 @@ export const MosaicTileComponent = observer(({ row, tile, direction, pctExtent }
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
   const handleCloseTile = (tileId: string) => {
-    console.log("in handleCloseTile", tileId)
     row?.removeTile(tileId)
   }
 
