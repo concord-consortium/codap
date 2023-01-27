@@ -4,7 +4,7 @@ import { DataSetContext } from "../hooks/use-data-set-context"
 import { gDataBroker } from "../models/data/data-broker"
 import { ITileBaseProps } from "./tiles/tile-base-props"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ComponentHeader } from "./component-header"
+import { ComponentTitleBar } from "./component-title-bar"
 import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 
 import "./codap-component.scss"
@@ -20,7 +20,7 @@ export const CodapComponent = observer(({ tile, Component, tileEltClass }: IProp
   return (
     <DataSetContext.Provider value={dataset}>
       <div className={`codap-component ${tileEltClass}`}>
-        <ComponentHeader tileType={tileEltClass} datasetName={dataset?.name}/>
+        <ComponentTitleBar tileType={tileEltClass} datasetName={dataset?.name}/>
         <Component tile={tile} />
         <ResizeHandle className="component-resize-handle"/>
       </div>

@@ -5,14 +5,14 @@ import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import TableIcon from "../assets/icons/icon-table.svg"
 import CardIcon from "../assets/icons/icon-case-card.svg"
 
-import "./component-header.scss"
+import "./component-title-bar.scss"
 
 interface IProps {
   tileType: string
   datasetName?: string
 }
 
-export const ComponentHeader = ({tileType, datasetName}: IProps) => {
+export const ComponentTitleBar = ({tileType, datasetName}: IProps) => {
   const [componentTitle, setComponentTitle] = useState(datasetName || "New Dataset")
   const [showCaseCard, setShowCaseCard] = useState(false)
 
@@ -21,7 +21,7 @@ export const ComponentHeader = ({tileType, datasetName}: IProps) => {
   }
 
   return (
-    <Flex className="component-header">
+    <Flex className="component-title-bar">
       {tileType === "codap-case-table" &&
         <Flex className="header-left">
           {showCaseCard

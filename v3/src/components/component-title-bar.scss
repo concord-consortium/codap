@@ -1,12 +1,11 @@
 @import "./vars.scss";
 
-.component-header {
+.component-title-bar {
   flex-direction: row;
-  height: $title-bar-height !important;
+  height: $title-bar-height;
   background-color: #177991;
   width: 100%;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-radius: $border-radius-top-corners;
   &:hover {
     .header-right {
       visibility: visible;
@@ -39,7 +38,7 @@
   }
 
   .header-right {
-    height: $title-bar-height !important;
+    height: $title-bar-height;
     flex-direction: row;
     align-items: center;
     position: absolute;
