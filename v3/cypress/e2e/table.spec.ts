@@ -1,4 +1,4 @@
-import {TableTileElements as table} from "../support/elements/TableTile"
+import {TableTileElements as table} from "../support/elements/table-tile"
 
 const numOfAttributes = 10
 const firstRowIndex = 2
@@ -7,7 +7,9 @@ let middleRowIndex = undefined
 let numOfCases = undefined
 
 before(()=> {
-    cy.visit("?sample=mammals")
+    const queryParams = "?sample=mammals"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
     cy.wait(2000)
     table.getNumOfAttributes().should("equal", numOfAttributes.toString())
     table.getNumOfCases().then($cases => {
