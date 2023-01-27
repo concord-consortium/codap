@@ -129,14 +129,17 @@ export const MosaicTileRow = TileRowModel
       self.tiles.set(newTileId, newNode.id)
     },
     removeTile(tileId: string) {
+      console.log("in mosaic-tile-row removeTile", tileId, "before remove self.tiles", self.tiles.toJSON())
       const parentNode = self.getParentNode(tileId)
       if (!parentNode) {
+        console.log("there's parent node", parentNode)
         // there's only a root tile
         self.root = ""
         return
       }
       const grandParentNode = self.getGrandParentNode(tileId)
       if (!grandParentNode) {
+        console.log("there's grandParentNode", grandParentNode)
         // parent is the root node
         const otherTileId = parentNode.otherId(tileId)
         self.root = otherTileId
@@ -153,6 +156,7 @@ export const MosaicTileRow = TileRowModel
         self.tiles.set(otherId, grandParentNode.id)
       }
       self.nodes.delete(parentNode.id)
+      console.log("in mosaic-tile-row removeTile self.tiles", self.tiles.toJSON())
     }
   }))
 export interface IMosaicTileRow extends Instance<typeof MosaicTileRow> {}

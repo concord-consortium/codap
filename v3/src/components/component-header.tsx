@@ -9,11 +9,13 @@ import CardIcon from "../assets/icons/icon-case-card.svg"
 import "./component-header.scss"
 
 interface IProps {
+  tileId: string;
   tileType: string
   datasetName?: string
+  onCloseTile: (tileId: string) => void
 }
 
-export const ComponentHeader = ({tileType, datasetName}: IProps) => {
+export const ComponentHeader = ({tileId, tileType, datasetName, onCloseTile}: IProps) => {
   const [componentTitle, setComponentTitle] = useState(datasetName || "New Dataset")
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
@@ -57,7 +59,7 @@ export const ComponentHeader = ({tileType, datasetName}: IProps) => {
       <EditableComponentTitle componentTitle={componentTitle} onEndEdit={handleTitleChange} />
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon"/>
-        <CloseButton className="component-close-button"/>
+        <CloseButton className="component-close-button" onClick={()=>onCloseTile(tileId)}/>
       </Flex>
     </Flex>
 

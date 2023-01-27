@@ -13,14 +13,16 @@ export interface IProps extends ITileBaseProps {
   tile: ITileModel
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
+  onCloseTile: (tileId: string) => void
 }
-export const CodapComponent = observer(({ tile, Component, tileEltClass }: IProps) => {
+export const CodapComponent = observer(({ tile, Component, tileEltClass, onCloseTile }: IProps) => {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
 
   return (
     <DataSetContext.Provider value={dataset}>
       <div className={`codap-component ${tileEltClass}`}>
-        <ComponentHeader tileType={tileEltClass} datasetName={dataset?.name}/>
+        <ComponentHeader tileId={tile.id} tileType={tileEltClass} datasetName={dataset?.name}
+            onCloseTile={onCloseTile}/>
         <Component tile={tile} />
         <ResizeHandle className="component-resize-handle"/>
       </div>

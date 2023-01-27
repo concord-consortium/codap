@@ -1,4 +1,5 @@
 import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
 import React from "react"
 import { IMosaicTileNode, IMosaicTileRow } from "../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
@@ -50,7 +51,7 @@ interface INodeOrTileProps extends IExtentProps {
   nodeOrTileId: string
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicNodeOrTileComponent = ({ nodeOrTileId, ...others }: INodeOrTileProps) => {
+export const MosaicNodeOrTileComponent = observer(({ nodeOrTileId, ...others }: INodeOrTileProps) => {
   const { row, getTile } = others
   const node = row.getNode(nodeOrTileId)
   const tile = node ? undefined : getTile(nodeOrTileId)
@@ -61,7 +62,7 @@ export const MosaicNodeOrTileComponent = ({ nodeOrTileId, ...others }: INodeOrTi
       {tile && <MosaicTileComponent tile={tile} {...others} />}
     </>
   )
-}
+})
 
 /*
  * MosaicNodeComponent
@@ -71,7 +72,7 @@ interface IMosaicNodeProps extends IExtentProps {
   node: IMosaicTileNode
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicNodeComponent = ({ node, direction, pctExtent, ...others }: IMosaicNodeProps) => {
+export const MosaicNodeComponent = observer(({ node, direction, pctExtent, ...others }: IMosaicNodeProps) => {
   const style = styleFromExtent({ direction, pctExtent })
   const node1Props = { direction: node.directionTyped, pctExtent: 100 * node.percent }
   const node2Props = { direction: node.directionTyped, pctExtent: 100 * (1 - node.percent) }
@@ -81,22 +82,30 @@ export const MosaicNodeComponent = ({ node, direction, pctExtent, ...others }: I
       <MosaicNodeOrTileComponent nodeOrTileId={node.second} {...node2Props} {...others} />
     </div>
   )
-}
+})
 
 /*
  * MosaicTileComponent
  */
 interface IMosaicTileProps extends IExtentProps {
   tile: ITileModel
+  row: IMosaicTileRow
 }
-export const MosaicTileComponent = ({ tile, direction, pctExtent }: IMosaicTileProps) => {
+export const MosaicTileComponent = observer(({ row, tile, direction, pctExtent }: IMosaicTileProps) => {
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
+  const handleCloseTile = (tileId: string) => {
+    console.log("in handleCloseTile", tileId)
+    row?.removeTile(tileId)
+  }
+
   return (
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
-        <CodapComponent tile={tile} Component={info.Component} tileEltClass={info.tileEltClass} />}
+        <CodapComponent tile={tile} Component={info.Component} tileEltClass={info.tileEltClass}
+            onCloseTile={handleCloseTile}/>
+      }
     </div>
   )
-}
+})
