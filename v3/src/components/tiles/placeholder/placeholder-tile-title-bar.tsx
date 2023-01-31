@@ -3,11 +3,9 @@ import { ComponentTitleBar, EditableComponentTitle  } from "../../component-titl
 import { CloseButton, Flex } from "@chakra-ui/react"
 import t from "../../../utilities/translation/translate"
 import MinimizeIcon from "../../../assets/icons/icon-minimize.svg"
-import { useDataSetContext } from "../../../hooks/use-data-set-context"
 
 export const PlaceholderTileTitleBar = () => {
-  const dataset = useDataSetContext()
-  const [title, setTitle] = useState(dataset?.name || "Dataset")
+  const [title, setTitle] = useState("")
   const handleTitleChange = (newTitle?: string) => {
     newTitle && setTitle(newTitle)
   }

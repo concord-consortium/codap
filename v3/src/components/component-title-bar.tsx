@@ -25,7 +25,7 @@ interface IEditableComponentTitleProps {
 
 export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
                 observer(({componentTitle, onEndEdit}) => {
-  const title = componentTitle || "New Dataset"
+  const title = componentTitle
   const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
 
