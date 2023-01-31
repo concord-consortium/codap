@@ -1,11 +1,15 @@
+import { observer } from "mobx-react-lite"
 import { getEnv } from "mobx-state-tree"
 import React, { useCallback, useEffect, useState } from "react"
 import { CodapDndContext } from "./codap-dnd-context"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import {Container} from "./container"
+import { MenuBar } from "./menu-bar/menu-bar"
+import { appState } from "../models/app-state"
+import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
-import { addDefaultComponents, getCurrentDocument } from "../models/document/create-codap-document"
+import { IDocumentModelSnapshot } from "../models/document/document"
 import { ISharedModelDocumentManager } from "../models/document/shared-model-document-manager"
 import { ITileEnvironment } from "../models/tiles/tile-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -28,8 +32,8 @@ export function handleImportDataSet(data: IDataSet) {
   gDataBroker.addDataSet(data)
 }
 
-export const App = () => {
-  const codapDocument = getCurrentDocument()
+export const App = observer(() => {
+  const codapDocument = appState.document
   const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
 
   useKeyStates()
@@ -39,16 +43,21 @@ export const App = () => {
     setV2Document(undefined)
   }, [])
 
-  const handleImportDocument = useCallback((document: CodapV2Document) => {
+  const handleImportV2Document = useCallback((document: CodapV2Document) => {
     // add data sets
     document.datasets.forEach(data => gDataBroker.addDataSet(data))
     setV2Document(document)
   }, [])
 
+  const handleImportV3Document = useCallback((document: IDocumentModelSnapshot) => {
+    appState.setDocument(document)
+  }, [])
+
   useDropHandler({
     selector: "#app",
     onImportDataSet: _handleImportDataSet,
-    onImportDocument: handleImportDocument
+    onImportV2Document: handleImportV2Document,
+    onImportV3Document: handleImportV3Document
   })
 
   function createNewStarterDataset() {
@@ -62,7 +71,7 @@ export const App = () => {
   useEffect(() => {
     // connect the data broker to the shared model manager
     if (!gDataBroker.sharedModelManager) {
-      const docEnv: ITileEnvironment | undefined = getEnv(getCurrentDocument())
+      const docEnv: ITileEnvironment | undefined = getEnv(appState.document)
       const sharedModelManager = docEnv?.sharedModelManager as ISharedModelDocumentManager | undefined
       sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
     }
@@ -82,10 +91,11 @@ export const App = () => {
     <CodapDndContext>
       <V2DocumentContext.Provider value={v2Document}>
         <div className="app" data-testid="app">
+          <MenuBar/>
           <ToolShelf/>
-          <Container content={codapDocument.content} />
+          <Container content={codapDocument.content}/>
         </div>
       </V2DocumentContext.Provider>
     </CodapDndContext>
   )
-}
+})

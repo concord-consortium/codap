@@ -1,7 +1,7 @@
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { appState } from "../app-state"
+import { appState } from "../../models/app-state"
 import { IDataSet } from "../../models/data/data-set"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
 import { prf } from "../../utilities/profiler"

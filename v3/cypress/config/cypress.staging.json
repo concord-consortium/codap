@@ -1,4 +1,4 @@
 {
     "baseUrl": "https://codap3.concord.org",
-    "index": "/branch/main/"
+    "index": "index-staging.html"
 }

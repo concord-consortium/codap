@@ -63,6 +63,8 @@
     "test:watch": "jest --watch",
     "test:coverage:watch": "jest --coverage --watchAll",
     "test:cypress": "cypress run",
+    "test:cypress:dev": "cypress run --env testEnv=dev",
+    "test:cypress:staging": "cypress run --env testEnv=staging",
     "test:cypress:open": "cypress open",
     "test:coverage:cypress:open": "cypress open --env coverage=true",
     "test:full": "npm-run-all test test:cypress"
@@ -155,6 +157,7 @@
     "expr-eval": "^2.0.2",
     "framer-motion": "^8.1.7",
     "lodash": "^4.17.21",
+    "mathjs": "^11.5.0",
     "mobx": "^6.7.0",
     "mobx-react-lite": "^3.4.0",
     "mobx-state-tree": "^5.1.7",

@@ -1,6 +1,6 @@
 export const TableTileElements = {
     getTableTile() {
-        return cy.get(".codap-component.codap-case-table")
+        return cy.get(".codap-case-table")
     },
     getCaseTableGrid() {
         return cy.get("[data-testid=case-table] [role=grid]")
@@ -69,7 +69,7 @@ export const TableTileElements = {
         return cy.get("[data-testid=attribute-menu-list] button").contains(item)
     },
     selectMenuItemFromAttributeMenu(item) {
-        this.getAttributeMenuItem(item).click()
+        this.getAttributeMenuItem(item).click({force:true})
     },
     renameColumnName(newName) {
         cy.get("[data-testid=column-name-input").type(newName)
@@ -120,14 +120,21 @@ export const TableTileElements = {
         this.getApplyButton().click()
 
     },
-    getCell(line, row, instance) {
+    getCell(line, row) {
         return cy.get(`[data-testid=case-table] [aria-rowindex="${row}"] [aria-colindex="${line}"] .cell-span`)
+    },
+    verifyRowSelected(row) {
+        cy.get(`[data-testid=case-table] [aria-rowindex="${row}"]`).invoke("attr", "aria-selected")
+        .should("contain", true)
+    },
+    verifyRowSelectedWithCellValue(cell) {
+        cy.get(`[data-testid=case-table] [aria-selected=true]`).should("contain", cell)
     },
     openInspectorPanel() {
       this.getTableTile().click()
     },
     showAllAttributes() {
-      cy.get("[data-testid=hide-show-button").click()
+      cy.get("[data-testid=hide-show-button]").click()
       cy.get("[data-testid=hide-show-menu-list").find("button").contains("Show Hidden Attribute").click()
     }
 }

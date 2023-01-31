@@ -1,7 +1,8 @@
 import {
-  DndContext, KeyboardCoordinateGetter, KeyboardSensor, PointerSensor, useSensor, useSensors
+  DndContext, KeyboardCoordinateGetter, KeyboardSensor, PointerSensor, MouseSensor, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
+import { urlParams } from "../utilities/url-params"
 import { dndDetectCollision } from "./dnd-detect-collision"
 
 interface IProps {
@@ -9,10 +10,13 @@ interface IProps {
 }
 export const CodapDndContext = ({ children }: IProps) => {
 
+  const useMouseSensor = useSensor(MouseSensor)
   const sensors = useSensors(
                     // pointer must move three pixels before starting a drag
                     useSensor(PointerSensor, { activationConstraint: { distance: 3 }}),
-                    useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }))
+                    useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
+                    // mouse sensor can be enabled for cypress tests, for instance
+                    urlParams.mouseSensor !== undefined ? useMouseSensor : null)
 
   return (
     <DndContext collisionDetection={dndDetectCollision} sensors={sensors}>

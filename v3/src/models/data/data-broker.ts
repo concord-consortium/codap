@@ -1,6 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { ISharedModelDocumentManager } from "../document/shared-model-document-manager"
-import { SharedDataSet } from "../shared/shared-data-set"
+import { ISharedDataSet, SharedDataSet } from "../shared/shared-data-set"
 import { IDataSet } from "./data-set"
 
 export interface IDataSetSummary {
@@ -74,6 +74,12 @@ export class DataBroker {
     this.sharedModelManager?.addSharedModel(sharedModel)
 
     !this.allowMultiple && this.dataSets.clear()
+    this.addSharedDataSet(sharedModel)
+  }
+
+  @action
+  addSharedDataSet(shared: ISharedDataSet) {
+    const ds = shared.dataSet
     this.dataSets.set(ds.id, ds)
     this.setSelectedDataSetId(ds.id)
   }
@@ -86,6 +92,14 @@ export class DataBroker {
   @action
   clear() {
     this.dataSets.clear()
+  }
+
+  prepareSnapshots() {
+    this.dataSets.forEach(data => data.prepareSnapshot())
+  }
+
+  completeSnapshots() {
+    this.dataSets.forEach(data => data.completeSnapshot())
   }
 }
 
