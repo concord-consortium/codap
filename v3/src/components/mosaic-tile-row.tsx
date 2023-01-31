@@ -96,7 +96,9 @@ export const MosaicTileComponent = ({ tile, direction, pctExtent }: IMosaicTileP
   return (
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
-        <CodapComponent tile={tile} Component={info.Component} tileEltClass={info.tileEltClass} />}
+        <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
+            tileEltClass={info.tileEltClass} />
+      }
     </div>
   )
 }

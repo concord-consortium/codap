@@ -4,6 +4,7 @@ import { kGraphTileClass, kGraphTileType } from "./graph-defs"
 import { GraphModel } from "./models/graph-model"
 import { GraphComponent } from "./components/graph-component"
 import { EmptyAxisModel } from "../axis/models/axis-model"
+import { GraphTitleBar } from "./components/graph-title-bar"
 
 registerTileContentInfo({
   type: kGraphTileType,
@@ -18,6 +19,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kGraphTileType,
+  TitleBar: GraphTitleBar,
   Component: GraphComponent,
   tileEltClass: kGraphTileClass
 })

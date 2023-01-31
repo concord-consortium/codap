@@ -16,7 +16,8 @@ export const LegacyTileLayoutModel = types
     widthPct: types.maybe(types.number)
   })
   .volatile(self => ({
-    isUserResizable: false
+    isUserResizable: false,
+    isUserClosable: false
   }))
   .actions(self => ({
     setWidthPct(widthPct?: number) {
@@ -24,6 +25,9 @@ export const LegacyTileLayoutModel = types
     },
     setUserResizable(isUserResizable: boolean) {
       self.isUserResizable = isUserResizable
+    },
+    setUserClosable(isUserClosable: boolean) {
+      self.isUserClosable = isUserClosable
     }
   }))
 export interface ILegacyTileLayoutModel extends Instance<typeof LegacyTileLayoutModel> {}
@@ -31,6 +35,7 @@ export interface ILegacyTileLayoutModel extends Instance<typeof LegacyTileLayout
 export interface ILegacyTileInRowOptions extends ITileInRowOptions {
   index: number
   isUserResizable?: boolean
+  isUserClosable?: boolean
 }
 export const isLegacyTileInRowOptions = (options?: ITileInRowOptions): options is ILegacyTileInRowOptions =>
               (options as any)?.index != null
@@ -53,6 +58,9 @@ export const LegacyTileRowModel = TileRowModel
     },
     get isUserResizable() {
       return !self.isSectionHeader && self.tiles.some(tileRef => tileRef.isUserResizable)
+    },
+    get isUserClosable() {
+      return !self.isSectionHeader && self.tiles.some(tileRef => tileRef.isUserClosable)
     },
     get tileIds() {
       return self.tiles.map(tile => tile.tileId)
@@ -86,16 +94,21 @@ export const LegacyTileRowModel = TileRowModel
         const tile: ITileModel = tileMap.get(tileRef.tileId)
         if (tile) {
           tileRef.setUserResizable(tile.isUserResizable)
+          tileRef.setUserClosable(tile.isUserClosable)
         }
       })
     },
     insertTile(tileId: string, options?: ITileInRowOptions) {
-      const { tileIndex, isUserResizable = true } = isLegacyTileInRowOptions(options) ? options : {} as any
+      const { tileIndex, isUserResizable = true, isUserClosable = true } = isLegacyTileInRowOptions(options)
+        ? options
+        : {} as any
       const dstTileIndex = (tileIndex != null) && (tileIndex >= 0) && (tileIndex < self.tiles.length)
                             ? tileIndex
                             : self.tiles.length
       const tileRef = LegacyTileLayoutModel.create({ tileId })
       tileRef.setUserResizable(isUserResizable)
+      tileRef.setUserResizable(isUserClosable)
+
       self.tiles.splice(dstTileIndex, 0, tileRef)
     },
     moveTileInRow(tileId: string, fromTileIndex: number, toTileIndex: number) {

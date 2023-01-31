@@ -1,65 +1,61 @@
-import React, { useState } from "react"
-import { Box, CloseButton, Flex } from "@chakra-ui/react"
-import { EditableComponentTitle } from "./editable-component-title"
-import t from "../utilities/translation/translate"
-import MinimizeIcon from "../assets/icons/icon-minimize.svg"
-import TableIcon from "../assets/icons/icon-table.svg"
-import CardIcon from "../assets/icons/icon-case-card.svg"
+import React, { ReactNode, useState } from "react"
+import { Flex, Input } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 
 import "./component-title-bar.scss"
 
 interface IProps {
-  tileType: string
-  datasetName?: string
+  component?: string
+  children?: ReactNode
 }
 
-export const ComponentTitleBar = ({tileType, datasetName}: IProps) => {
-  const [componentTitle, setComponentTitle] = useState(datasetName || "New Dataset")
-  const [showSwitchMessage, setShowSwitchMessage] = useState(false)
-  const [showCaseCard, setShowCaseCard] = useState(false)
-
-  const handleTitleChange = (title?: string) => {
-    title && setComponentTitle(title)
-  }
-
-  const handleShowCardTableToggleMessage = () => {
-    setShowSwitchMessage(true)
-  }
-
-  const handleToggleCardTable = (e:React.MouseEvent) => {
-    e.stopPropagation()
-    setShowSwitchMessage(false)
-    setShowCaseCard(!showCaseCard)
-  }
-
-  const cardTableToggleString = showCaseCard
-                                  ? t("DG.DocumentController.toggleToCaseTable")
-                                  : t("DG.DocumentController.toggleToCaseCard")
-
+export const ComponentTitleBar = ({component, children}: IProps) => {
   return (
-    <Flex className="component-title-bar">
-      {tileType === "codap-case-table" &&
-        <div className="header-left"
-             title={cardTableToggleString}
-             onClick={handleShowCardTableToggleMessage}>
-          {showCaseCard
-            ? <TableIcon className="table-icon" />
-            : <CardIcon className="card-icon"/>
-          }
-          {showSwitchMessage &&
-            <Box className={`card-table-toggle-message`}
-                  onClick={handleToggleCardTable}>
-              {cardTableToggleString}
-            </Box>
-          }
-        </div>
-      }
-      <EditableComponentTitle componentTitle={componentTitle} onEndEdit={handleTitleChange} />
-      <Flex className="header-right">
-        <MinimizeIcon className="component-minimize-icon"/>
-        <CloseButton className="component-close-button"/>
-      </Flex>
+    <Flex className={`component-title-bar ${component}-title-bar`}>
+      {children}
     </Flex>
-
   )
 }
+
+interface IEditableComponentTitleProps {
+  className?: string
+  componentTitle: string
+  onEndEdit?: (title?: string) => void
+}
+
+export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
+                observer(({componentTitle, onEndEdit}) => {
+  const title = componentTitle || "New Dataset"
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingTitle, setEditingTitle] = useState(title)
+
+  const handleClick = () => {
+    if (!isEditing) {
+      setEditingTitle(title)
+      setIsEditing(true)
+    }
+  }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const { key } = e
+    switch (key) {
+      case "Escape":
+        handleClose(false)
+        break
+      case "Enter":
+      case "Tab":
+        handleClose(true)
+        e.currentTarget.blur()
+        break
+    }
+  }
+  const handleClose = (accept: boolean) => {
+    const trimTitle = editingTitle?.trim()
+    onEndEdit?.(accept && trimTitle ? trimTitle : undefined)
+    setIsEditing(false)
+  }
+  return (
+    <Input className="editable-component-title" value={editingTitle} data-testid="editable-component-title" size="sm"
+      onClick={handleClick} onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
+      onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()} />
+  )
+})
