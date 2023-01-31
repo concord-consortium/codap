@@ -36,15 +36,6 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
 
   const handleEvaluateButtonPress = () => {
     if (justEvaled) return
-    // if (calcValue.includes("(") && !calcValue.includes(")")) {
-    //   toast({
-    //     title: "Invalid expression",
-    //     description: `Need closing parenthesis ")"`,
-    //     status: "success",
-    //     duration: 5000,
-    //     isClosable: true
-    //   })
-    // } else {
       try {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
