@@ -13,7 +13,6 @@ export const CaseTableTitleBar = () => {
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
 
-
   const handleTitleChange = (newTitle?: string) => {
     newTitle && setTitle(newTitle)
   }
