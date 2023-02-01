@@ -97,6 +97,9 @@ interface TestTileType extends Instance<typeof TestTile> {}
 const TestTileComponent: React.FC<ITileBaseProps> = () => {
   throw new Error("Component not implemented.")
 }
+const TestTileTitleBarComponent: React.FC<ITileBaseProps> = () => {
+  throw new Error("Component not implemented.")
+}
 
 registerTileContentInfo({
   type: "TestTile",
@@ -107,6 +110,7 @@ registerTileContentInfo({
 })
 registerTileComponentInfo({
   type: "TestTile",
+  TitleBar: TestTileTitleBarComponent,
   Component: TestTileComponent,
   tileEltClass: "test-tile"
 })

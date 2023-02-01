@@ -84,6 +84,9 @@ export const TileModel = types
     get isUserResizable() {
       return !!(self.content as any).isUserResizable
     },
+    get isUserClosable() {
+      return !!(self.content as any).isUserClosable
+    },
     exportJson(options?: ITileExportOptions): string | undefined {
       const { includeId, excludeTitle, ...otherOptions } = options || {}
       let contentJson = (self.content as any).exportJson(otherOptions)

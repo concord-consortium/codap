@@ -3,6 +3,7 @@ import { ITileBaseProps } from "../../components/tiles/tile-base-props"
 
 export interface ITileComponentInfo {
   type: string;
+  TitleBar: React.ComponentType<ITileBaseProps>;
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
   Icon?: React.FC<SVGProps<SVGSVGElement>>;

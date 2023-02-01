@@ -23,7 +23,9 @@ export const FreeTileRowComponent = ({ row, getTile }: IFreeTileRowProps) => {
           return (
             <div className="free-tile-component" style={style} key={tileId}>
               {tile && info &&
-                <CodapComponent tile={tile} Component={info.Component} tileEltClass={info.tileEltClass} />}
+                <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
+                    tileEltClass={info.tileEltClass} />
+              }
             </div>
           )
         })
