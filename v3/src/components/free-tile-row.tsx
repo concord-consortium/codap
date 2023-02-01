@@ -13,6 +13,7 @@ interface IFreeTileRowProps {
 }
 export const FreeTileRowComponent = observer(({ row, getTile }: IFreeTileRowProps) => {
   const handleCloseTile = (tileId: string) => {
+    if (!tileId) return
     row?.removeTile(tileId)
   }
   return (
@@ -28,7 +29,7 @@ export const FreeTileRowComponent = observer(({ row, getTile }: IFreeTileRowProp
             <div className="free-tile-component" style={style} key={tileId}>
               {tile && info &&
                 <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-                    tileEltClass={info.tileEltClass} />
+                    tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}/>
               }
             </div>
           )
