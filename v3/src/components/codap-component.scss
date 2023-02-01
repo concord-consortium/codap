@@ -1,12 +1,70 @@
+@use "./vars.scss";
+$border-drag-width: 8px;
+$corner-drag-size: calc($border-drag-width * 2);
+
 .codap-component {
   position: relative;
   width: 100%;
   height: 100%;
+  resize: both;
+  overflow: auto;
 
   input {
     &:focus {
       background-color: white !important;
       color: black !important
     }
+  }
+}
+
+.codap-component-border {
+  border: solid 0 transparent;
+  overflow: hidden;
+  position: absolute;
+  margin: 0;
+  user-select: none;
+  &.right {
+    bottom: 0;
+    right: 0;
+    top: vars.$title-bar-height;
+    width: $border-drag-width;
+    ;
+    cursor: e-resize;
+  }
+  &.bottom {
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: $border-drag-width;
+    cursor: s-resize;
+  }
+  &.left {
+    bottom: 0;
+    left: 0;
+    top: 0;
+    width: $border-drag-width;
+    cursor: w-resize;
+  }
+}
+
+.codap-component-corner {
+  border: solid 0 transparent;
+  overflow: hidden;
+  position: absolute;
+  margin: 0;
+  user-select: none;
+  &.bottom-left {
+    bottom: 0;
+    left: 0;
+    height: $corner-drag-size;
+    width: $corner-drag-size;
+    cursor: sw-resize;
+  }
+  &.bottom-right {
+    bottom: 0;
+    left: 0;
+    height: $corner-drag-size;
+    width: $corner-drag-size;
+    cursor: se-resize;
   }
 }
