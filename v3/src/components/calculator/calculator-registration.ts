@@ -3,6 +3,7 @@ import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { CalculatorComponent } from "./calculator"
 import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
 import { CalculatorModel } from "./calculator-model"
+import { CalculatorTitleBar } from "./calculator-title-bar"
 
 registerTileContentInfo({
   type: kCalculatorTileType,
@@ -12,6 +13,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kCalculatorTileType,
+  TitleBar: CalculatorTitleBar,
   Component: CalculatorComponent,
   tileEltClass: kCalculatorTileClass
 })

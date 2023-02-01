@@ -3,6 +3,7 @@ import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { CaseTableComponent } from "./case-table-component"
 import { kCaseTableTileType } from "./case-table-defs"
 import { CaseTableModel } from "./case-table-model"
+import { CaseTableTitleBar } from "./case-table-title-bar"
 
 registerTileContentInfo({
   type: kCaseTableTileType,
@@ -12,6 +13,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: "CodapCaseTable",
+  TitleBar: CaseTableTitleBar,
   Component: CaseTableComponent,
   tileEltClass: "codap-case-table"
 })

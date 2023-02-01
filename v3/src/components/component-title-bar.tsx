@@ -1,16 +1,31 @@
+import React, { ReactNode, useState } from "react"
+import { Flex, Input } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useState } from "react"
-import { Input } from "@chakra-ui/react"
 
-import "./editable-component-title.scss"
+import "./component-title-bar.scss"
 
 interface IProps {
+  component?: string
+  children?: ReactNode
+}
+
+export const ComponentTitleBar = ({component, children}: IProps) => {
+  return (
+    <Flex className={`component-title-bar ${component}-title-bar`}>
+      {children}
+    </Flex>
+  )
+}
+
+interface IEditableComponentTitleProps {
   className?: string
   componentTitle: string
   onEndEdit?: (title?: string) => void
 }
-export const EditableComponentTitle: React.FC<IProps> = observer(({componentTitle, onEndEdit}) => {
-  const title = componentTitle || "New Dataset"
+
+export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
+                observer(({componentTitle, onEndEdit}) => {
+  const title = componentTitle
   const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
 

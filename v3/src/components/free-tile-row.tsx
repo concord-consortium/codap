@@ -27,8 +27,9 @@ export const FreeTileRowComponent = observer(({ row, getTile }: IFreeTileRowProp
           return (
             <div className="free-tile-component" style={style} key={tileId}>
               {tile && info &&
-                <CodapComponent tile={tile} Component={info.Component} tileEltClass={info.tileEltClass}
-                    onCloseTile={handleCloseTile}/>}
+                <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
+                    tileEltClass={info.tileEltClass} />
+              }
             </div>
           )
         })

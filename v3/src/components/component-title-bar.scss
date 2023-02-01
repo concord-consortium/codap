@@ -1,0 +1,90 @@
+@import "./vars.scss";
+
+.component-title-bar {
+  flex-direction: row;
+  height: $title-bar-height;
+  background-color: #177991;
+  width: 100%;
+  border-radius: $border-radius-top-corners;
+  &:hover {
+    .header-right {
+      visibility: visible;
+    }
+  }
+  &:active {
+    .header-right {
+      visibility: visible;
+    }
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    top: 0;
+    left: 5px;
+    align-items: center;
+    justify-content: center;
+    background-color: #177991;
+    height: 24px;
+    width: 24px;
+    border-top-left-radius: 6px;
+
+  }
+
+  .header-right {
+    height: $title-bar-height;
+    flex-direction: row;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    visibility: hidden;
+    background-color: #177991 !important;
+    fill: lightgray;
+    border-top-right-radius: 6px;
+
+    .component-minimize-icon {
+      height: 20px;
+      width: 19px;
+      fill: lightgray;
+      &:hover {
+        height: 25px;
+        width: 24px;
+        fill: white;
+      }
+      &:active {
+        height: 25px;
+        width: 24px;
+        fill: black;
+      }
+    }
+
+    .component-close-button {
+      background-color: #177991 !important;
+      color: lightgray;
+      height: 24px;
+      &:hover {
+        font-size: medium;
+        font-weight: bold;
+        color: white;
+      }
+      &:active {
+        font-size: medium;
+        font-weight: bold;
+        color: black;
+      }
+    }
+  }
+}
+
+.editable-component-title {
+  // TODO: better way?
+  height: $title-bar-height !important;
+  border: none !important;
+  color: white;
+  text-align: center;
+  position: inherit !important; //overrides Chakra's position relative
+  border-radius: $border-radius-top-corners;
+}

@@ -3,6 +3,7 @@ import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { SliderComponent } from "./slider-component"
 import { kSliderTileType, kSliderTileClass } from "./slider-defs"
 import { SliderModel } from "./slider-model"
+import { SliderTitleBar } from "./slider-title-bar"
 
 registerTileContentInfo({
   type: kSliderTileType,
@@ -13,6 +14,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kSliderTileType,
+  TitleBar: SliderTitleBar,
   Component: SliderComponent,
   tileEltClass: kSliderTileClass
 })
