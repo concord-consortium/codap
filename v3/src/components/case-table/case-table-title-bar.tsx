@@ -7,6 +7,8 @@ import TableIcon from "../../assets/icons/icon-table.svg"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 
+import "./case-table-title-bar.scss"
+
 export const CaseTableTitleBar = () => {
   const dataset = useDataSetContext()
   const [title, setTitle] = useState(dataset?.name || "Dataset")
