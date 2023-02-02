@@ -429,6 +429,14 @@ export const DataConfigurationModel = types
       }))
       self.setPointsNeedUpdating(true)
     },
+    removeYAttributeWithID(id: string) {
+      const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
+      if (index >= 0) {
+        self._yAttributeDescriptions.splice(index, 1)
+        self.filteredCases?.splice(index, 1)
+        self.setPointsNeedUpdating(true)
+      }
+    },
     setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
       if (role === 'y') {
         self._yAttributeDescriptions[plotNumber]?.setType(type)

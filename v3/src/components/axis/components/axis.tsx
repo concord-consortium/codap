@@ -25,6 +25,7 @@ interface IProps {
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
   onDropAttribute?: (place: AxisPlace, attrId: string) => void
+  onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
@@ -32,7 +33,8 @@ const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
 export const Axis = ({
                        parentSelector, label, getAxisModel, showScatterPlotGridLines = false,
-                       centerCategoryLabels = true, onDropAttribute, enableAnimation, onTreatAttributeAs
+                       centerCategoryLabels = true, onDropAttribute, enableAnimation, onTreatAttributeAs,
+                       onRemoveAttribute
                      }: IProps) => {
   const
     instanceId = useInstanceIdContext(),
@@ -81,12 +83,13 @@ export const Axis = ({
         <g ref={titleRef}/>
       </g>
 
-      {parentElt && onDropAttribute && onTreatAttributeAs &&
+      {parentElt && onDropAttribute && onTreatAttributeAs && onRemoveAttribute &&
         createPortal(<AxisOrLegendAttributeMenu
           target={titleRef.current}
           portal={parentElt}
           place={place}
           onChangeAttribute={onDropAttribute}
+          onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
         />, parentElt)
       }
@@ -94,15 +97,15 @@ export const Axis = ({
       {axisModel?.type === 'numeric'
         ? <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
       {onDropAttribute &&
-        <DroppableAxis
-          place={`${place}`}
-          dropId={droppableId}
+         <DroppableAxis
+            place={`${place}`}
+            dropId={droppableId}
 
-          hintString={hintString}
-          portal={parentElt}
-          target={wrapperElt}
-          onIsActive={handleIsActive}
-        />}
+            hintString={hintString}
+            portal={parentElt}
+            target={wrapperElt}
+            onIsActive={handleIsActive}
+         />}
     </>
   )
 }
