@@ -35,7 +35,7 @@ export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof Attribu
  * - For situations in which there is exactly one y-attribute, there exists one set of cases, filtered
  *    by the presence of values for all assigned attributes, neglecting caption and legend.
  *  - But when there is more than one y-attribute, there is one set of cases for each y-attribute. So
- *    we have to set of cases we are referring to. To keep the api as simple as possible we provide a
+ *    we have to choose the set of cases we are referring to. To keep the api as simple as possible we provide a
  *    set of access methods that do not require the user to specify which set of cases they are
  *    interested in. For these methods, the assumption is that the caseArrayNumber is 0.
  *  -
