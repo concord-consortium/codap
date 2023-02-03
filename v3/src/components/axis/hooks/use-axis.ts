@@ -40,7 +40,7 @@ export const useAxis = ({
     axisModelChanged = previousAxisModel.current !== axisModel,
     dataConfiguration = useDataConfigurationContext(),
     axisPlace = axisModel?.place ?? 'bottom',
-    attrRole = graphPlaceToAttrRole(axisPlace),
+    attrRole = graphPlaceToAttrRole[axisPlace],
     range = scale?.range() || [0, 100],
     [rangeMin, rangeMax] = range.length === 2 ? range : [0, 100],
     halfRange = Math.abs(rangeMax - rangeMin) / 2,

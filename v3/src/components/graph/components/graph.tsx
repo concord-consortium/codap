@@ -2,8 +2,10 @@ import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
 import {select} from "d3"
+import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
+import {AxisPlace} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
 import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
@@ -66,7 +68,7 @@ export const Graph = observer((
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
-    const attrRole = graphPlaceToAttrRole(computedPlace)
+    const attrRole = graphPlaceToAttrRole[computedPlace]
     graphModel.setAttributeID(attrRole, attrId)
   }
 
@@ -84,7 +86,7 @@ export const Graph = observer((
   }, [graphController, dataset, layout, enableAnimation, graphModel])
 
   const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
-    graphModel.config.setAttributeType(graphPlaceToAttrRole(place), treatAs)
+    graphModel.config.setAttributeType(graphPlaceToAttrRole[place], treatAs)
     graphController?.handleAttributeAssignment(place, attrId)
   }
 
@@ -108,6 +110,17 @@ export const Graph = observer((
     return typeToPlotComponentMap[plotType]
   }
 
+  const getGraphAxes = () => {
+    return ['left', 'bottom'].map((place: AxisPlace) => {
+      return <GraphAxis key={place}
+                        place={place}
+                        enableAnimation={enableAnimation}
+                        onDropAttribute={handleChangeAttribute}
+                        onTreatAttributeAs={handleTreatAttrAs}
+      />
+    })
+  }
+
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph" onClick={() => setShowInspector(!showInspector)}>
@@ -117,17 +130,7 @@ export const Graph = observer((
             ref={backgroundSvgRef}
           />
 
-          <GraphAxis place="left"
-                     enableAnimation={enableAnimation}
-                     onDropAttribute={handleChangeAttribute}
-                     onTreatAttributeAs={handleTreatAttrAs}
-          />
-
-          <GraphAxis place="bottom"
-                     enableAnimation={enableAnimation}
-                     onDropAttribute={handleChangeAttribute}
-                     onTreatAttributeAs={handleTreatAttrAs}
-          />
+          {getGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
             <svg ref={dotsRef} className='graph-dot-area'>
@@ -149,6 +152,9 @@ export const Graph = observer((
             onTreatAttributeAs={handleTreatAttrAs}
           />
         </svg>
+        <DroppableAddAttribute
+          plotType = {plotType}
+          onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
       </div>
       <GraphInspector graphModel={graphModel}
                       show={showInspector}

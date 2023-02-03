@@ -1,7 +1,7 @@
 import {randomUniform, select} from "d3"
 import {onAction} from "mobx-state-tree"
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
-import {pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
+import {CaseData, pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
 import {ICase} from "../../../models/data/data-set"
 import {isAddCasesAction} from "../../../models/data/data-set-actions"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
@@ -33,13 +33,13 @@ export const CaseDots = memo(function CaseDots(props: {
   const onDragStart = useCallback((event: MouseEvent) => {
       enableAnimation.current = false // We don't want to animate points until end of drag
       target.current = select(event.target as SVGSVGElement)
-      const tItsID: string = target.current.property('id')
+      const aCaseData: CaseData = target.current.node().__data__
       if (target.current.node()?.nodeName === 'circle') {
         target.current.transition()
           .attr('r', dragPointRadius)
-        setDragID(tItsID)
+        setDragID(aCaseData.caseID)
         currPos.current = {x: event.clientX, y: event.clientY}
-        handleClickOnDot(event, tItsID, dataset)
+        handleClickOnDot(event, aCaseData.caseID, dataset)
       }
     }, [dragPointRadius, dataset, enableAnimation]),
 
@@ -102,20 +102,22 @@ export const CaseDots = memo(function CaseDots(props: {
       .transition()
       .duration(duration)
       .on('end', (id, i) => (i === dotsSelection.size() - 1) && onComplete?.())
-      .attr('cx', (anID: string) => {
-        return xMin + pointRadius + randomPointsRef.current[anID].x * (xMax - xMin - 2 * pointRadius)
+      .attr('cx', (aCaseData:CaseData) => {
+        return xMin + pointRadius + randomPointsRef.current[aCaseData.caseID].x * (xMax - xMin - 2 * pointRadius)
       })
-      .attr('cy', (anID: string) => {
-        return yMax + pointRadius + randomPointsRef.current[anID].y * (yMin - yMax - 2 * pointRadius)
+      .attr('cy', (aCaseData:CaseData) => {
+        return yMax + pointRadius + randomPointsRef.current[aCaseData.caseID].y * (yMin - yMax - 2 * pointRadius)
       })
-      .style('fill', (anID: string) => {
+      .style('fill', (aCaseData:CaseData) => {
+        const anID = aCaseData.caseID
         return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? graphModel.pointColor
       })
-      .style('stroke', (id: string) => (legendAttrID && dataset?.isCaseSelected(id))
+      .style('stroke', (aCaseData:CaseData) => (legendAttrID && dataset?.isCaseSelected(aCaseData.caseID))
         ? defaultSelectedStroke : graphModel.pointStrokeColor)
       .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id))
         ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-      .attr('r', (anID: string) => pointRadius + (dataset?.isCaseSelected(anID) ? pointRadiusSelectionAddend : 0))
+      .attr('r', (aCaseData:CaseData) => pointRadius + (dataset?.isCaseSelected(aCaseData.caseID)
+        ? pointRadiusSelectionAddend : 0))
   }, [dataset, legendAttrID, dataConfiguration, graphModel,
     layout, dotsRef, enableAnimation])
 
