@@ -133,6 +133,7 @@ export const MosaicTileRow = TileRowModel
       if (!parentNode) {
         // there's only a root tile
         self.root = ""
+        self.tiles.delete(tileId)
         return
       }
       const grandParentNode = self.getGrandParentNode(tileId)
@@ -141,7 +142,6 @@ export const MosaicTileRow = TileRowModel
         const otherTileId = parentNode.otherId(tileId)
         self.root = otherTileId
         self.tiles.delete(tileId)
-        self.tiles.delete(otherTileId)
         self.nodes.delete(parentNode.id)
         return
       }

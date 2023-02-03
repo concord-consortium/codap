@@ -98,7 +98,7 @@ describe("MosaicTileRow", () => {
 
     row.removeTile("tile-2")
     expect(row.nodes.size).toBe(0)
-    expect(row.tiles.size).toBe(0)
+    expect(row.tiles.size).toBe(1)
     expect(row.root).toBe("tile-1")
 
     row.removeTile("tile-1")

@@ -15,14 +15,14 @@ interface IMosaicTileRowProps {
   row: IMosaicTileRow
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicTileRowComponent = ({ row, getTile }: IMosaicTileRowProps) => {
+export const MosaicTileRowComponent = observer(({ row, getTile }: IMosaicTileRowProps) => {
   return (
     <div className="mosaic-tile-row">
       {row &&
         <MosaicNodeOrTileComponent row={row} nodeOrTileId={row.root} getTile={getTile} />}
     </div>
   )
-}
+})
 
 /*
  * styleFromExtent
