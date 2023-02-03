@@ -1,6 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { IDocumentContentModel } from "../models/document/document-content"
 import { IMosaicTileNode, IMosaicTileRow } from "../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -13,13 +14,14 @@ import "./mosaic-tile-row.scss"
  */
 interface IMosaicTileRowProps {
   row: IMosaicTileRow
+  content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicTileRowComponent = ({ row, getTile }: IMosaicTileRowProps) => {
+export const MosaicTileRowComponent = ({ content, row, getTile }: IMosaicTileRowProps) => {
   return (
     <div className="mosaic-tile-row">
       {row &&
-        <MosaicNodeOrTileComponent row={row} nodeOrTileId={row.root} getTile={getTile} />}
+        <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root} getTile={getTile} />}
     </div>
   )
 }
@@ -49,6 +51,7 @@ interface IExtentProps {
 interface INodeOrTileProps extends IExtentProps {
   row: IMosaicTileRow
   nodeOrTileId: string
+  content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
 }
 export const MosaicNodeOrTileComponent = observer(({ nodeOrTileId, ...others }: INodeOrTileProps) => {
@@ -89,14 +92,14 @@ export const MosaicNodeComponent = observer(({ node, direction, pctExtent, ...ot
  */
 interface IMosaicTileProps extends IExtentProps {
   tile: ITileModel
-  row: IMosaicTileRow
+  content?: IDocumentContentModel
 }
-export const MosaicTileComponent = observer(({ row, tile, direction, pctExtent }: IMosaicTileProps) => {
+export const MosaicTileComponent = observer(({ content, tile, direction, pctExtent }: IMosaicTileProps) => {
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
   const handleCloseTile = (tileId: string) => {
-    row?.removeTile(tileId)
+    content?.deleteTile(tileId)
   }
 
   return (

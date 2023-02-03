@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { IDocumentContentModel } from "../models/document/document-content"
 import { IFreeTileRow } from "../models/document/free-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -8,13 +9,14 @@ import { CodapComponent } from "./codap-component"
 import "./free-tile-row.scss"
 
 interface IFreeTileRowProps {
+  content?: IDocumentContentModel
   row: IFreeTileRow
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const FreeTileRowComponent = observer(({ row, getTile }: IFreeTileRowProps) => {
+export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTileRowProps) => {
   const handleCloseTile = (tileId: string) => {
     if (!tileId) return
-    row?.removeTile(tileId)
+    content?.deleteTile(tileId)
   }
   return (
     <div className="free-tile-row">
