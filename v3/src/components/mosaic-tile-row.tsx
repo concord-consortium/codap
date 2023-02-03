@@ -24,7 +24,7 @@ export const MosaicTileRowComponent = ({ content, row, getTile }: IMosaicTileRow
         <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root} getTile={getTile} />}
     </div>
   )
-}
+})
 
 /*
  * styleFromExtent
