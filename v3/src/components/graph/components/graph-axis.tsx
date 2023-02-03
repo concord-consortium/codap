@@ -11,10 +11,12 @@ interface IProps {
   place: AxisPlace
   enableAnimation: MutableRefObject<boolean>
   onDropAttribute?: (place: AxisPlace, attrId: string) => void
+  onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, onTreatAttributeAs }: IProps) => {
+export const GraphAxis = observer((
+  { place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
   const dataConfig = useDataConfigurationContext()
   const dataset = dataConfig?.dataset
   const graphModel = useGraphModelContext()
@@ -36,6 +38,7 @@ export const GraphAxis = observer(({ place, enableAnimation, onDropAttribute, on
           showScatterPlotGridLines={graphModel.plotType === 'scatterPlot'}
           centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
           onDropAttribute={onDropAttribute}
+          onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
     />
   )

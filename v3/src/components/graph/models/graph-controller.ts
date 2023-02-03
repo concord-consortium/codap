@@ -63,17 +63,17 @@ export class GraphController {
 
     if (v2Document) {
       this.processV2Document()
-    }
-    else {
+    } else {
       // TODO, this may not be the reliable thing to test for AND/OR
       // we may need to be able to call setGraphProperties when axis' models are in place?
       if (!dotsRef.current) {
         graphModel.setGraphProperties({
-          axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
-          left: EmptyAxisModel.create({place: 'left'})}, plotType: 'casePlot'
+          axes: {
+            bottom: EmptyAxisModel.create({place: 'bottom'}),
+            left: EmptyAxisModel.create({place: 'left'})
+          }, plotType: 'casePlot'
         })
-      }
-      else {
+      } else {
         matchCirclesToData({
           dataConfiguration: dataConfig, dotsElement: dotsRef.current,
           pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId,
@@ -97,16 +97,23 @@ export class GraphController {
       if (['xAttr', 'yAttr', 'legendAttr'].includes(aKey)) {
         const match = aKey.match(/[a-z]+/),
           attrPlace = (match?.[0] ?? 'x') as GraphAttrRole,
-          attrV2ID = (links[aKey] as IGuidLink<"DG.Attribute">).id,
-          attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
-          attribute = dataset?.attrFromName(attrName),
-          attrID = attribute?.id ?? '',
-          attrSnapshot = {attributeID: attrID}
-        dataConfig.setAttribute(attrPlace, attrSnapshot)
-        graphModel.setAttributeID(attrPlace, attrID)
-        if (['x', 'y'].includes(attrPlace)) {
-          attrTypes[attrPlace] = attribute?.type ?? 'empty'
-        }
+          v2AttrArray = Array.isArray(links[aKey]) ? links[aKey] as any[] : [links[aKey]]
+        v2AttrArray.forEach((aLink: IGuidLink<"DG.Attribute">, index: number) => {
+          const attrV2ID = aLink.id,
+            attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
+            attribute = dataset?.attrFromName(attrName),
+            attrID = attribute?.id ?? '',
+            attrSnapshot = {attributeID: attrID}
+          if (index === 0) {
+            dataConfig.setAttribute(attrPlace, attrSnapshot)
+            graphModel.setAttributeID(attrPlace, attrID)
+            if (['x', 'y'].includes(attrPlace)) {
+              attrTypes[attrPlace] = attribute?.type ?? 'empty'
+            }
+          } else if (attrPlace === 'y') {
+            dataConfig.addYAttribute(attrSnapshot)
+          }
+        })
       }
     })
     graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y])
@@ -140,8 +147,7 @@ export class GraphController {
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
     if (['plot', 'legend'].includes(graphPlace)) {
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
-    }
-    else if (graphPlace === 'yPlus') {
+    } else if (graphPlace === 'yPlus') {
       const yAxisModel = this.graphModel.getAxis('left')
       yAxisModel && setNiceDomain(this.graphModel.config.numericValuesForYAxis, yAxisModel)
       return
@@ -187,8 +193,7 @@ export class GraphController {
         layout.setAxisScale(axisPlace, scaleBand())
       }
       layout.getAxisScale(axisPlace)?.domain(setOfValues)
-    }
-    else {  // attributeType is 'empty'
+    } else {  // attributeType is 'empty'
       if (currentAxisType !== attributeType) {
         const newAxisModel = EmptyAxisModel.create({place: axisPlace})
         graphModel.setAxis(axisPlace, newAxisModel as IEmptyAxisModel)

@@ -63,7 +63,7 @@ export const GraphModel = TileContentModel
       return this.pointColorAtIndex(0)
     },
     get pointStrokeColor() {
-      return self.pointStrokeSameAsFill ? this.pointColor : self._pointStrokeColor
+      return self.pointStrokeSameAsFill ? this.pointColor() : self._pointStrokeColor
     },
     getAxis(place: AxisPlace) {
       return self.axes.get(place)

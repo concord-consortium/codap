@@ -72,6 +72,19 @@ export const Graph = observer((
     graphModel.setAttributeID(attrRole, attrId)
   }
 
+  /**
+   * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
+   * do we have to do anything special. Otherwise, we can just call handleChangeAttribute.
+   */
+  const handleRemoveAttribute = (place: GraphPlace, idOfAttributeToRemove: string) => {
+    if (place === 'left' && graphModel.config?.yAttributeDescriptions.length > 1) {
+      graphModel.config?.removeYAttributeWithID(idOfAttributeToRemove)
+    }
+    else {
+      handleChangeAttribute(place, '')
+    }
+  }
+
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAction(graphModel, action => {
@@ -116,6 +129,7 @@ export const Graph = observer((
                         place={place}
                         enableAnimation={enableAnimation}
                         onDropAttribute={handleChangeAttribute}
+                        onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}
       />
     })
@@ -149,6 +163,7 @@ export const Graph = observer((
             legendAttrID={graphModel.getAttributeID('legend')}
             graphElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
+            onRemoveAttribute={handleRemoveAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
           />
         </svg>
