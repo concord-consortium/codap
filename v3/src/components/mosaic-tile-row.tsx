@@ -17,7 +17,7 @@ interface IMosaicTileRowProps {
   content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicTileRowComponent = ({ content, row, getTile }: IMosaicTileRowProps) => {
+export const MosaicTileRowComponent = observer(({ content, row, getTile }: IMosaicTileRowProps) => {
   return (
     <div className="mosaic-tile-row">
       {row &&
