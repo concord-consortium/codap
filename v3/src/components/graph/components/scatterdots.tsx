@@ -140,7 +140,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     const yAttrIDs = dataConfiguration?.yAttributeIDs || [],
       {pointColor, pointStrokeColor} = graphModel,
       hasY2Attribute = dataConfiguration?.hasY2Attribute,
-      v2Scale = layout.getAxisScale("v2") as ScaleNumericBaseType,
+      v2Scale = layout.getAxisScale("rightNumeric") as ScaleNumericBaseType,
       numberOfPlots = dataConfiguration?.numberOfPlots || 1,
       getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
       getScreenY = (anID: string, plotNum = 0) => {

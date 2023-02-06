@@ -6,7 +6,7 @@ import {DropHint} from "./drop-hint"
 import {PlotType} from "../graphing-types"
 
 interface IAddAttributeProps {
-  location: 'top' | 'y2'
+  location: 'top' | 'rightNumeric'
   plotType: PlotType
   onDrop: (attributeId: string) => void
 }

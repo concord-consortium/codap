@@ -22,7 +22,7 @@ export const AxisModel = types.model("AxisModel", {
   }))
   .views(self => ({
     get orientation(): AxisOrientation {
-      return self.place === "left" || self.place === "right"
+      return ['left', 'rightCat', 'rightNumeric'].includes(self.place)
         ? "vertical" : "horizontal"
     },
     get isNumeric() {

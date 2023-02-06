@@ -7,7 +7,14 @@ import {SetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
-import {CaseData, GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../graphing-types"
+import {
+  CaseData,
+  GraphAttrRole,
+  GraphPlace,
+  graphPlaceToAttrRole,
+  PrimaryAttrRoles,
+  TipAttrRoles
+} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
 
 export const AttributeDescription = types
@@ -57,25 +64,25 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     get y2AttributeDescriptionIsPresent() {
-      return !!self._attributeDescriptions.get('y2')
+      return !!self._attributeDescriptions.get('rightNumeric')
     },
-    // Includes y2 if present
+    // Includes rightNumeric if present
     get yAttributeDescriptions() {
       const descriptions = self._yAttributeDescriptions,
-        y2Description = self._attributeDescriptions.get('y2') ?? null
+        y2Description = self._attributeDescriptions.get('rightNumeric') ?? null
       return descriptions.concat(y2Description ? [y2Description] : [])
     },
-    // Includes y2 if present
+    // Includes rightNumeric if present
     get yAttributeIDs() {
       return this.yAttributeDescriptions.map((d: IAttributeDescriptionSnapshot) => d.attributeID)
     },
     /**
      * No attribute descriptions beyond the first for y are returned.
-     * The y2 attribute description is also not returned.
+     * The rightNumeric attribute description is also not returned.
      */
     get attributeDescriptions() {
       const descriptions = {...getSnapshot(self._attributeDescriptions)}
-      delete descriptions.y2
+      delete descriptions.rightNumeric
       if (self._yAttributeDescriptions.length > 0) {
         descriptions.y = self._yAttributeDescriptions[0]
       }
@@ -87,12 +94,12 @@ export const DataConfigurationModel = types
       return self.dataset?.attributes[0]?.id
     },
     /**
-     * For the 'y' role we return the first y-attribute, for 'y2' we return the last y-attribute.
+     * For the 'y' role we return the first y-attribute, for 'rightNumeric' we return the last y-attribute.
      * For all other roles we return the attribute description for the role.
      */
     attributeDescriptionForRole(role: GraphAttrRole) {
       return role === 'y' ? this.yAttributeDescriptions[0]
-        : role === 'y2' ? self._attributeDescriptions.get('y2')
+        : role === 'rightNumeric' ? self._attributeDescriptions.get('rightNumeric')
         : this.attributeDescriptions[role]
     },
     attributeID(role: GraphAttrRole) {
@@ -112,6 +119,10 @@ export const DataConfigurationModel = types
       const places = new Set<string>(Object.keys(this.attributeDescriptions))
       self.dataset?.attributes.length && places.add("caption")
       return Array.from(places) as GraphAttrRole[]
+    },
+    placeCanHaveZeroExtent(place: GraphPlace) {
+      return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
+        this.attributeID(graphPlaceToAttrRole[place]) === ''
     }
   }))
   .extend(() => {
@@ -148,16 +159,16 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     filterCase(data: IDataSet, caseID: string, caseArrayNumber: number) {
-      const hasY2 = !!self._attributeDescriptions.get('y2'),
+      const hasY2 = !!self._attributeDescriptions.get('rightNumeric'),
         numY = self._yAttributeDescriptions.length,
         descriptions = {... self.attributeDescriptions}
       if (hasY2 && caseArrayNumber === self._yAttributeDescriptions.length) {
-        descriptions.y = self._attributeDescriptions.get('y2') ?? descriptions.y
+        descriptions.y = self._attributeDescriptions.get('rightNumeric') ?? descriptions.y
       }
       else if (caseArrayNumber < numY) {
         descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
       }
-      delete descriptions.y2
+      delete descriptions.rightNumeric
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
         if (["caption", "legend"].includes(role)) return true
@@ -249,7 +260,7 @@ export const DataConfigurationModel = types
       return this.filteredCases.length  // filteredCases is an array of CaseArrays
     },
     get hasY2Attribute() {
-      return !!self.attributeID('y2')
+      return !!self.attributeID('rightNumeric')
     },
     getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
       return self.filteredCases
@@ -445,7 +456,7 @@ export const DataConfigurationModel = types
         if (desc && desc.attributeID !== '') {
           self._yAttributeDescriptions.push(desc)
         }
-      } else if (role === 'y2') {
+      } else if (role === 'rightNumeric') {
         this.setY2Attribute(desc)
       } else {
         if (desc && desc.attributeID !== '') {
@@ -463,7 +474,8 @@ export const DataConfigurationModel = types
       }
     },
     _addNewFilteredCases() {
-      self.dataset && self.filteredCases?.push(new FilteredCases({
+       self.dataset && self.filteredCases
+        ?.push(new FilteredCases({
           casesArrayNumber: self.filteredCases.length,
           source: self.dataset, filter: self.filterCase,
           onSetCaseValues: self.handleSetCaseValues
@@ -475,11 +487,16 @@ export const DataConfigurationModel = types
       this._addNewFilteredCases()
     },
     setY2Attribute(desc: IAttributeDescriptionSnapshot) {
-      const isNewAttribute = !self._attributeDescriptions.get('y2')
-      self._attributeDescriptions.set('y2', desc)
+      const isNewAttribute = !self._attributeDescriptions.get('rightNumeric'),
+        isEmpty = desc.attributeID === ''
+      self._attributeDescriptions.set('rightNumeric', desc)
       if (isNewAttribute) {
         this._addNewFilteredCases()
-      } else {
+      } else if (isEmpty) {
+        self.filteredCases?.pop() // remove the last one because it is the array
+        self.setPointsNeedUpdating(true)
+      }
+      else {
         const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
         existingFilteredCases?.invalidateCases()
       }

@@ -80,11 +80,14 @@ export const CategoricalLegend = memo(function CategoricalLegend(
     }, [layout, dataConfiguration]),
 
     computeDesiredExtent = useCallback(() => {
+      if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
+        return 0
+      }
       computeLayout()
       const lod = layoutData.current,
         labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
       return lod.numRows * (keySize + padding) + labelHeight
-    }, [computeLayout, legendLabelRef]),
+    }, [computeLayout, legendLabelRef, dataConfiguration]),
 
     setupKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
@@ -159,13 +162,12 @@ export const CategoricalLegend = memo(function CategoricalLegend(
     }, [dataConfiguration, keysElt, transform])
 
   useEffect(function respondToSelectionChange() {
-    const disposer = onAction(dataset, action => {
+    return onAction(dataset, action => {
       if (isSelectionAction(action)) {
         refreshKeys()
       }
     }, true)
-    return disposer
-  }, [refreshKeys, dataset])
+  }, [refreshKeys, dataset, computeDesiredExtent])
 
   useEffect(function respondToCategorySetsChange() {
     const disposer = reaction(

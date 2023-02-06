@@ -35,7 +35,7 @@ export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,
         const caseID = (target.datum() as CaseData).caseID,
           plotNum = (target.datum() as CaseData).plotNum, // Only can be non-zero for scatter plots
           attrIDsToUse = roleAttrIDPairs.filter((aPair) => {
-            return plotNum > 0 || aPair.role !== 'y2'
+            return plotNum > 0 || aPair.role !== 'rightNumeric'
           }).map((aPair) => {
             return plotNum === 0
               ? aPair.attributeID
