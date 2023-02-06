@@ -1,6 +1,6 @@
 import {max, range, ScaleBand, select} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {memo, useCallback, useRef, useState} from "react"
+import React, {useCallback, useRef, useState} from "react"
 import { ScaleNumericBaseType } from "../../axis/axis-types"
 import {attrRoleToAxisPlace, CaseData, PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
@@ -12,7 +12,7 @@ import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
-export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) {
+export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphModelContext(),
     dataConfiguration = useDataConfigurationContext(),
@@ -204,4 +204,4 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
   return (
     <></>
   )
-}))
+})

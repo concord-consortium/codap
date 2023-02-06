@@ -16,7 +16,7 @@ export type GraphAttrRole = typeof GraphAttrRoles[number]
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",
   y: "left",
-  y2: "right",
+  y2: "v2",
   rightSplit: "right",
   topSplit: "top"
 }
@@ -30,7 +30,8 @@ export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   bottom: "x",
   left: "y",
   top: "topSplit",
-  right: "y2",  // Todo: how to deal with 'rightSplit'?
+  right: "rightSplit",
+  v2: "y2"
 }
 
 export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {

@@ -47,8 +47,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       refreshPointPositions, refreshPointSelection, dotsRef, layout
     } = props,
     dataset = useDataSetContext(),
+    // numberOfScales = layout.axisScales.entries().size(),
     xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
     yNumeric = graphModel.getAxis('left') as INumericAxisModel,
+    v2Numeric = graphModel.getAxis('v2') as INumericAxisModel,
     instanceId = useInstanceIdContext()
 
   /* This routine is frequently called many times in a row when something about the graph changes that requires
@@ -80,13 +82,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to axis domain changes (e.g. axis dragging)
   useEffect(() => {
     const disposer = reaction(
-      () => [xNumeric?.domain, yNumeric?.domain],
+      () => [xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain],
       () => {
         callRefreshPointPositions(false)
       }, {fireImmediately: true}
     )
     return () => disposer()
-  }, [callRefreshPointPositions, xNumeric?.domain, yNumeric?.domain])
+  }, [callRefreshPointPositions, xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {

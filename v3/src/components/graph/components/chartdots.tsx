@@ -1,5 +1,5 @@
 import {ScaleBand, select} from "d3"
-import React, {memo, useCallback} from "react"
+import React, {useCallback} from "react"
 import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -16,7 +16,7 @@ import {
 
 type BinMap = Record<string, Record<string, number>>
 
-export const ChartDots = memo(function ChartDots(props: PlotProps) {
+export const ChartDots = function ChartDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphModelContext(),
     {pointColor, pointStrokeColor} = graphModel,
@@ -194,4 +194,4 @@ export const ChartDots = memo(function ChartDots(props: PlotProps) {
   return (
     <></>
   )
-})
+}
