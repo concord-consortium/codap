@@ -496,7 +496,12 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       }
 
       if (caseShouldBeAddedAtEnd(parentID, this.parent, this.lastCase())) {
-        if (!iCase.isEmpty() || !parentID) {
+        /**
+         * Order is important in the test because iCase.isEmpty may cause a side effect and
+         * caching of formula results. We only want to bring that about *after* we've
+         * created the caseIDToIndexMap.
+         */
+        if (!this.caseIDToIndexMap[caseID] || !iCase.isEmpty() || !parentID) {
           this.caseIDToGroupedIndexMap[caseID] = caseCounts[parentID]++;
         }
         caseIDToIndexMap[caseID] = this.cases.length;
