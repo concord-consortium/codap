@@ -553,6 +553,12 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-jp'
       },
       {
+        langName: '한국어',
+        langDigraph: 'ko',
+        countryDigraph: 'KO',
+        icon: 'flag flag-ko'
+      },
+      {
         langName: 'Bokmål',
         langDigraph: 'nb',
         countryDigraph: 'NO',
