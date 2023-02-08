@@ -76,7 +76,7 @@ export const DataConfigurationModel = types
     get attributeDescriptions() {
       const descriptions = {...getSnapshot(self._attributeDescriptions)}
       delete descriptions.y2
-      if (self._yAttributeDescriptions.length > 1) {
+      if (self._yAttributeDescriptions.length > 0) {
         descriptions.y = self._yAttributeDescriptions[0]
       }
       return descriptions
