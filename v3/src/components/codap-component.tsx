@@ -13,8 +13,9 @@ export interface IProps extends ITileBaseProps {
   TitleBar: React.ComponentType<ITileBaseProps>;
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
+  onPointerDown: (e: React.PointerEvent) => void
 }
-export const CodapComponent = observer(({ tile, TitleBar, Component, tileEltClass }: IProps) => {
+export const CodapComponent = observer(({ tile, TitleBar, Component, tileEltClass, onPointerDown }: IProps) => {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
 
   return (
@@ -22,7 +23,9 @@ export const CodapComponent = observer(({ tile, TitleBar, Component, tileEltClas
       <div className={`codap-component ${tileEltClass}`}>
         <TitleBar tile={tile}/>
         <Component tile={tile} />
-        <ResizeHandle className="component-resize-handle"/>
+        <div className="resize-handle-wrapper" onPointerDown={onPointerDown}>
+          <ResizeHandle className="component-resize-handle"/>
+        </div>
       </div>
     </DataSetContext.Provider>
   )

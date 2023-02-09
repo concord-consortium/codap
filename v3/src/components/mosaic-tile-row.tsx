@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import React from "react"
+import React, { useRef, useState } from "react"
 import { IMosaicTileNode, IMosaicTileRow } from "../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -93,11 +93,45 @@ export const MosaicTileComponent = ({ tile, direction, pctExtent }: IMosaicTileP
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
+  const [, setResizingTileId] = useState("")
+  const tempWidth = useRef<number>(0)
+  const tempHeight = useRef<number>(0)
+
+
+  const handleResizePointerDown = (e: React.PointerEvent) => {
+    const startWidth = tile.width || 0
+    const startHeight = tile.height || 0
+    const startPosition = {x: e.pageX, y: e.pageY}
+    tempWidth.current = startWidth
+    tempHeight.current = startHeight
+
+    const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
+      setResizingTileId(tile.id)
+      const resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
+      const resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+      // setResizingTileStyle({left: tile.x, top: tile.y, width: resizingWidth, height: resizingHeight})
+      tempWidth.current = resizingWidth
+      tempHeight.current = resizingHeight
+    }
+    const onPointerUp = () => {
+      document.body.removeEventListener("pointermove", onPointerMove)
+      document.body.removeEventListener("pointerup", onPointerUp)
+      tile.setWidth(tempWidth.current)
+      tile.setHeight(tempHeight.current)
+      setResizingTileId("")
+    }
+
+    document.body.addEventListener("pointermove", onPointerMove)
+    document.body.addEventListener("pointerup", onPointerUp)
+  }
+  console.log("style", style)
+  console.log("width", tile.width, tile.height)
+
   return (
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
         <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-            tileEltClass={info.tileEltClass} />
+            tileEltClass={info.tileEltClass} onPointerDown={(e)=>handleResizePointerDown(e)}/>
       }
     </div>
   )
