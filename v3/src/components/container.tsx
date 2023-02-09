@@ -17,9 +17,9 @@ export const Container: React.FC<IProps> = ({ content }) => {
   return (
     <div className="codap-container">
       {isMosaicTileRow(row) &&
-        <MosaicTileRowComponent row={row} getTile={getTile} />}
+        <MosaicTileRowComponent content={content} row={row} getTile={getTile} />}
       {isFreeTileRow(row) &&
-        <FreeTileRowComponent row={row} getTile={getTile} />}
+        <FreeTileRowComponent content={content} row={row} getTile={getTile} />}
     </div>
   )
 }
