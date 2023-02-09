@@ -88,6 +88,9 @@ export const GraphModel = TileContentModel
         case "select":
           return result + pointRadiusSelectionAddend
       }
+    },
+    axisShouldShowGridLines(place: AxisPlace) {
+      return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
     }
   }))
   .actions(self => ({

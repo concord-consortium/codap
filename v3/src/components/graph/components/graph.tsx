@@ -124,7 +124,11 @@ export const Graph = observer((
   }
 
   const getGraphAxes = () => {
-    return ['left', 'bottom'].map((place: AxisPlace) => {
+    const places = ['left', 'bottom']
+    if (graphModel.getAxis('v2')) {
+      places.push('v2')
+    }
+    return places.map((place: AxisPlace) => {
       return <GraphAxis key={place}
                         place={place}
                         enableAnimation={enableAnimation}
@@ -168,8 +172,13 @@ export const Graph = observer((
           />
         </svg>
         <DroppableAddAttribute
+          location={'top'}
           plotType = {plotType}
           onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
+        <DroppableAddAttribute
+          location={'y2'}
+          plotType = {plotType}
+          onDrop={handleChangeAttribute.bind(null, 'v2')}/>
       </div>
       <GraphInspector graphModel={graphModel}
                       show={showInspector}

@@ -5,6 +5,7 @@ import {IGraphModel} from "../models/graph-model"
 import {CaseData, transitionDuration} from "../graphing-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {getPointTipText} from "../utilities/graph-utils"
+import {RoleAttrIDPair} from "../models/data-configuration-model"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -17,7 +18,7 @@ export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,
   const hoverPointRadius = graphModel.getPointRadius('hover-drag'),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
-    attrIDs = graphModel.config.uniqueTipAttributes,
+    roleAttrIDPairs:RoleAttrIDPair[] = graphModel.config.uniqueTipAttributes,
     yAttrIDs = graphModel.config.yAttributeIDs
 
   useEffect(() => {
@@ -33,12 +34,13 @@ export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,
         target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
         const caseID = (target.datum() as CaseData).caseID,
           plotNum = (target.datum() as CaseData).plotNum, // Only can be non-zero for scatter plots
-          indexOfYAttr = attrIDs.indexOf(yAttrIDs[0]),
-          attrIDsToUse = [...attrIDs]
-
-        if (plotNum > 0 && indexOfYAttr >= 0 && yAttrIDs[plotNum]) {
-          attrIDsToUse[indexOfYAttr] = yAttrIDs[plotNum]
-        }
+          attrIDsToUse = roleAttrIDPairs.filter((aPair) => {
+            return plotNum > 0 || aPair.role !== 'y2'
+          }).map((aPair) => {
+            return plotNum === 0
+              ? aPair.attributeID
+              : aPair.role === 'y' ? yAttrIDs[plotNum] : aPair.attributeID
+          })
         const tipText = getPointTipText(caseID, attrIDsToUse, dataset)
         tipText !== '' && dataTip.show(tipText, event.target)
       }
@@ -60,6 +62,6 @@ export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,
       .on('mouseover', showDataTip)
       .on('mouseout', hideDataTip)
       .call(dataTip)
-  }, [dotsRef, dataset, attrIDs, yAttrIDs,
+  }, [dotsRef, dataset, roleAttrIDPairs, yAttrIDs,
     hoverPointRadius, pointRadius, selectedPointRadius])
 }

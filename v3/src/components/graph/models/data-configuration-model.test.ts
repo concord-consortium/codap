@@ -43,8 +43,8 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["caption"])
     expect(config.attributes).toEqual(["nId"])
     expect(config.uniqueAttributes).toEqual(["nId"])
-    expect(config.tipAttributes).toEqual(["nId"])
-    expect(config.uniqueTipAttributes).toEqual(["nId"])
+    expect(config.tipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
       {plotNum: 0, caseID: "c1"},
       {plotNum: 0, caseID: "c2"},
@@ -65,8 +65,9 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["x", "caption"])
     expect(config.attributes).toEqual(["nId", "nId"])
     expect(config.uniqueAttributes).toEqual(["nId"])
-    expect(config.tipAttributes).toEqual(["nId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["nId"])
+    expect(config.tipAttributes).toEqual([{attributeID: "nId", role: "x"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
       {plotNum: 0, caseID: "c1"},
       {plotNum: 0, caseID: "c3"}
@@ -86,8 +87,10 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["x", "caption"])
     expect(config.attributes).toEqual(["xId", "nId"])
     expect(config.uniqueAttributes).toEqual(["xId", "nId"])
-    expect(config.tipAttributes).toEqual(["xId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["xId", "nId"])
+    expect(config.tipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
       {plotNum: 0, caseID: "c1"},
       {plotNum: 0, caseID: "c2"}
@@ -110,8 +113,10 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["x", "caption", "y"])
     expect(config.attributes).toEqual(["xId", "nId", "yId"])
     expect(config.uniqueAttributes).toEqual(["xId", "nId", "yId"])
-    expect(config.tipAttributes).toEqual(["xId", "yId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["xId", "yId", "nId"])
+    expect(config.tipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([{plotNum: 0, caseID: "c1"}])
 
     // behaves as expected after removing x axis attribute
@@ -126,8 +131,10 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["caption", "y"])
     expect(config.attributes).toEqual(["nId", "yId"])
     expect(config.uniqueAttributes).toEqual(["nId", "yId"])
-    expect(config.tipAttributes).toEqual(["yId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["yId", "nId"])
+    expect(config.tipAttributes).toEqual([{attributeID: "yId", role: "y"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "yId", role: "y"},
+      {attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
       {plotNum: 0, caseID: "c1"},
       {plotNum: 0, caseID: "c3"}

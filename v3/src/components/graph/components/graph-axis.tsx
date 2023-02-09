@@ -1,10 +1,10 @@
-import React, { MutableRefObject } from "react"
-import { AxisPlace } from "../../axis/axis-types"
-import { Axis } from "../../axis/components/axis"
-import { axisPlaceToAttrRole, GraphPlace, kGraphClassSelector } from "../graphing-types"
+import React, {MutableRefObject} from "react"
+import {AxisPlace} from "../../axis/axis-types"
+import {Axis} from "../../axis/components/axis"
+import {axisPlaceToAttrRole, GraphPlace, kGraphClassSelector} from "../graphing-types"
 import t from "../../../utilities/translation/translate"
-import { observer } from "mobx-react-lite"
-import { useGraphModelContext } from "../models/graph-model"
+import {observer} from "mobx-react-lite"
+import {useGraphModelContext} from "../models/graph-model"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 
 interface IProps {
@@ -16,7 +16,7 @@ interface IProps {
 }
 
 export const GraphAxis = observer((
-  { place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
+  {place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) => {
   const dataConfig = useDataConfigurationContext()
   const dataset = dataConfig?.dataset
   const graphModel = useGraphModelContext()
@@ -24,9 +24,13 @@ export const GraphAxis = observer((
   const attrId = graphModel.getAttributeID(role)
 
   const getLabel = () => {
-    return (place === 'left' && graphModel.plotType === 'scatterPlot')
-      ? dataConfig?.yAttributeDescriptions.map(desc => desc.attributeID &&
-        dataset?.attrFromID(desc.attributeID)?.name || '').join(', ')
+    const isScatterPlot = graphModel.plotType === 'scatterPlot',
+      yAttributeDescriptions = dataConfig?.yAttributeDescriptions || []
+    return place === 'left' && isScatterPlot
+      ? yAttributeDescriptions.map((desc, index) => {
+        const isY2 = desc.attributeID === graphModel.getAttributeID('y2')
+        return (desc.attributeID && !isY2 && dataset?.attrFromID(desc.attributeID)?.name) || ''
+      }).filter(aName => aName !== '').join(', ')
       : (attrId && dataset?.attrFromID(attrId)?.name) || t('DG.AxisView.emptyGraphCue')
   }
 
@@ -35,7 +39,7 @@ export const GraphAxis = observer((
           getAxisModel={() => graphModel.getAxis(place)}
           label={getLabel()}
           enableAnimation={enableAnimation}
-          showScatterPlotGridLines={graphModel.plotType === 'scatterPlot'}
+          showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
           centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
           onDropAttribute={onDropAttribute}
           onRemoveAttribute={onRemoveAttribute}

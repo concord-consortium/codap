@@ -22,10 +22,7 @@ export const AttributeDescription = types
     }
   }))
 
-/*
-export interface IAttributeDescription extends Instance<typeof AttributeDescription> {
-}
-*/
+export type RoleAttrIDPair = { role: GraphAttrRole, attributeID: string }
 
 export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof AttributeDescription> {
 }
@@ -59,28 +56,44 @@ export const DataConfigurationModel = types
     pointsNeedUpdating: false
   }))
   .views(self => ({
+    get y2AttributeDescriptionIsPresent() {
+      return !!self._attributeDescriptions.get('y2')
+    },
+    // Includes y2 if present
     get yAttributeDescriptions() {
-      return self._yAttributeDescriptions
+      const descriptions = self._yAttributeDescriptions,
+        y2Description = self._attributeDescriptions.get('y2') ?? null
+      return descriptions.concat(y2Description ? [y2Description] : [])
     },
+    // Includes y2 if present
     get yAttributeIDs() {
-      return self._yAttributeDescriptions.map(d => d.attributeID)
+      return this.yAttributeDescriptions.map((d: IAttributeDescriptionSnapshot) => d.attributeID)
     },
+    /**
+     * No attribute descriptions beyond the first for y are returned.
+     * The y2 attribute description is also not returned.
+     */
     get attributeDescriptions() {
-      return self._yAttributeDescriptions.reduce((acc, yAttrDesc, index: number) => {
-        const key = index === 0 ? 'y' : `y${index}`
-        acc[key] = yAttrDesc
-        return acc
-      }, {...getSnapshot(self._attributeDescriptions)})
+      const descriptions = {...getSnapshot(self._attributeDescriptions)}
+      delete descriptions.y2
+      if (self._yAttributeDescriptions.length > 0) {
+        descriptions.y = self._yAttributeDescriptions[0]
+      }
+      return descriptions
     },
     get defaultCaptionAttributeID() {
       // In v2, the caption is the attribute left-most in the child-most collection among plotted attributes
       // Until we have better support for hierarchical attributes, we just return the left-most attribute.
       return self.dataset?.attributes[0]?.id
     },
+    /**
+     * For the 'y' role we return the first y-attribute, for 'y2' we return the last y-attribute.
+     * For all other roles we return the attribute description for the role.
+     */
     attributeDescriptionForRole(role: GraphAttrRole) {
       return role === 'y' ? this.yAttributeDescriptions[0]
-        : role === 'yPlus' ? this.yAttributeDescriptions[1]
-          : this.attributeDescriptions[role]
+        : role === 'y2' ? self._attributeDescriptions.get('y2')
+        : this.attributeDescriptions[role]
     },
     attributeID(role: GraphAttrRole) {
       let attrID = this.attributeDescriptionForRole(role)?.attributeID
@@ -134,11 +147,21 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
-    filterCase(data: IDataSet, caseID: string) {
-      return Object.entries(self.attributeDescriptions).every(([place, {attributeID}]) => {
+    filterCase(data: IDataSet, caseID: string, caseArrayNumber: number) {
+      const hasY2 = !!self._attributeDescriptions.get('y2'),
+        numY = self._yAttributeDescriptions.length,
+        descriptions = {... self.attributeDescriptions}
+      if (hasY2 && caseArrayNumber === self._yAttributeDescriptions.length) {
+        descriptions.y = self._attributeDescriptions.get('y2') ?? descriptions.y
+      }
+      else if (caseArrayNumber < numY) {
+        descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
+      }
+      delete descriptions.y2
+      return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
-        if (["caption", "legend"].includes(place)) return true
-        switch (self.attributeType(place as GraphAttrRole)) {
+        if (["caption", "legend"].includes(role)) return true
+        switch (self.attributeType(role as GraphAttrRole)) {
           case "numeric":
             return isFinite(data.getNumeric(caseID, attributeID) ?? NaN)
           default:
@@ -197,20 +220,36 @@ export const DataConfigurationModel = types
     get uniqueAttributes() {
       return Array.from(new Set<string>(this.attributes))
     },
-    get tipAttributes() {
+    get tipAttributes():RoleAttrIDPair[] {
       return TipAttrRoles
-        .map(place => self.attributeID(place))
-        .filter(id => !!id) as string[]
+        .map(role => {
+          return {role, attributeID: self.attributeID(role) }
+        })
+        .filter(pair => !!pair.attributeID)
     },
     get uniqueTipAttributes() {
-      return Array.from(new Set<string>(this.tipAttributes))
+      const tipAttributes = this.tipAttributes,
+        idCounts:  Record<string, number> = {}
+      tipAttributes.forEach((aPair:RoleAttrIDPair) => {
+        idCounts[aPair.attributeID] = (idCounts[aPair.attributeID] || 0) + 1
+      })
+      return tipAttributes.filter((aPair:RoleAttrIDPair) => {
+        if (idCounts[aPair.attributeID] > 1) {
+          idCounts[aPair.attributeID]--
+          return false
+        }
+        return true
+      })
     },
     get noAttributesAssigned() {
       // The first attribute is always assigned as 'caption'. So it's really no attributes assigned except for that
       return this.attributes.length <= 1
     },
     get numberOfPlots() {
-      return self._yAttributeDescriptions.length
+      return this.filteredCases.length  // filteredCases is an array of CaseArrays
+    },
+    get hasY2Attribute() {
+      return !!self.attributeID('y2')
     },
     getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
       return self.filteredCases
@@ -284,7 +323,7 @@ export const DataConfigurationModel = types
         const allGraphCaseIds = Array.from(this.getSetOfAllGraphCaseIDs()),
           allValues: number[] = []
 
-        return self.yAttributeIDs.reduce((acc, yAttrID) => {
+        return self.yAttributeIDs.reduce((acc: number[], yAttrID: string) => {
           const values = allGraphCaseIds.map((anID: string) => Number(self.dataset?.getValue(anID, yAttrID)))
           return acc.concat(values)
         }, allValues)
@@ -406,6 +445,8 @@ export const DataConfigurationModel = types
         if (desc && desc.attributeID !== '') {
           self._yAttributeDescriptions.push(desc)
         }
+      } else if (role === 'y2') {
+        this.setY2Attribute(desc)
       } else {
         if (desc && desc.attributeID !== '') {
           self._attributeDescriptions.set(role, desc)
@@ -421,13 +462,27 @@ export const DataConfigurationModel = types
         self.invalidateQuantileScale()
       }
     },
+    _addNewFilteredCases() {
+      self.dataset && self.filteredCases?.push(new FilteredCases({
+          casesArrayNumber: self.filteredCases.length,
+          source: self.dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        }))
+      self.setPointsNeedUpdating(true)
+    },
     addYAttribute(desc: IAttributeDescriptionSnapshot) {
       self._yAttributeDescriptions.push(desc)
-      self.filteredCases && self.dataset && self.filteredCases.push(new FilteredCases({
-        source: self.dataset, filter: self.filterCase,
-        onSetCaseValues: self.handleSetCaseValues
-      }))
-      self.setPointsNeedUpdating(true)
+      this._addNewFilteredCases()
+    },
+    setY2Attribute(desc: IAttributeDescriptionSnapshot) {
+      const isNewAttribute = !self._attributeDescriptions.get('y2')
+      self._attributeDescriptions.set('y2', desc)
+      if (isNewAttribute) {
+        this._addNewFilteredCases()
+      } else {
+        const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
+        existingFilteredCases?.invalidateCases()
+      }
     },
     removeYAttributeWithID(id: string) {
       const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)

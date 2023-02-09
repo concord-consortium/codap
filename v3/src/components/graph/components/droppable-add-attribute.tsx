@@ -6,12 +6,13 @@ import {DropHint} from "./drop-hint"
 import {PlotType} from "../graphing-types"
 
 interface IAddAttributeProps {
+  location: 'top' | 'y2'
   plotType: PlotType
   onDrop: (attributeId: string) => void
 }
 
-export const DroppableAddAttribute = ({plotType, onDrop}: IAddAttributeProps) => {
-  const droppableId = "graph-add-attribute-drop",
+export const DroppableAddAttribute = ({location, plotType, onDrop}: IAddAttributeProps) => {
+  const droppableId = `graph-add-attribute-drop-${location}`,
     {active, isOver, setNodeRef} = useDroppable({id: droppableId}),
     hintString = useDropHintString({role: 'yPlus'})
   useDropHandler(droppableId, isActive => {
@@ -21,7 +22,7 @@ export const DroppableAddAttribute = ({plotType, onDrop}: IAddAttributeProps) =>
   if (plotType === 'scatterPlot') {
     return (
       <div ref={setNodeRef} id={droppableId}
-           className={`add-attribute-drop ${isOver ? "over" : ""} ${active ? "active" : ""} }`}>
+           className={`add-attribute-drop-${location} ${isOver ? "over" : ""} ${active ? "active" : ""} }`}>
         {isOver && hintString &&
            <DropHint hintText={hintString}/>
         }

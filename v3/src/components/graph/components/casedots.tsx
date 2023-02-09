@@ -1,6 +1,6 @@
 import {randomUniform, select} from "d3"
 import {onAction} from "mobx-state-tree"
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData, pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
 import {ICase} from "../../../models/data/data-set"
 import {isAddCasesAction} from "../../../models/data/data-set-actions"
@@ -13,7 +13,7 @@ import {handleClickOnDot, setPointSelection} from "../utilities/graph-utils"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
-export const CaseDots = memo(function CaseDots(props: {
+export const CaseDots = function CaseDots(props: {
     dotsRef: React.RefObject<SVGSVGElement>
     enableAnimation: React.MutableRefObject<boolean>
 }) {
@@ -148,4 +148,4 @@ export const CaseDots = memo(function CaseDots(props: {
   return (
     <></>
   )
-})
+}

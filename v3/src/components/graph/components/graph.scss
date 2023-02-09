@@ -49,12 +49,26 @@
   border-radius: 4px;
 }
 
-.add-attribute-drop {
+.add-attribute-drop-top {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 25px;
+  &.active {
+    border: 5px solid rgb(255, 216, 102);
+  }
+  &.over {
+    background: yellow;
+  }
+}
+
+.add-attribute-drop-y2 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 25px;
+  height: 100%;
   &.active {
     border: 5px solid rgb(255, 216, 102);
   }

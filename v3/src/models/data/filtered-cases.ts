@@ -3,7 +3,7 @@ import { ISerializedActionCall, onAction } from "mobx-state-tree"
 import { IDataSet } from "./data-set"
 import { isSetCaseValuesAction } from "./data-set-actions"
 
-export type FilterFn = (data: IDataSet, caseId: string) => boolean
+export type FilterFn = (data: IDataSet, caseId: string, casesArrayNumber?:number) => boolean
 
 export interface IFilteredChangedCases {
   added: string[]   // ids of cases that newly pass the filter
@@ -14,20 +14,24 @@ export type OnSetCaseValuesFn = (actionCall: ISerializedActionCall, cases: IFilt
 
 interface IProps {
   source: IDataSet
+  // Non-zero when there are more than one y-attribute
+  casesArrayNumber?: number
   filter?: FilterFn
   onSetCaseValues?: OnSetCaseValuesFn
 }
 
 export class FilteredCases {
   private source: IDataSet
+  private casesArrayNumber: number
   @observable private filter?: FilterFn
   private onSetCaseValues?: OnSetCaseValuesFn
 
   private prevCaseIdSet = new Set<string>()
   private onActionDisposers: Array<() => void>
 
-  constructor({ source, filter, onSetCaseValues }: IProps) {
+  constructor({ source, casesArrayNumber = 0, filter, onSetCaseValues }: IProps) {
     this.source = source
+    this.casesArrayNumber = casesArrayNumber
     this.filter = filter
     this.onSetCaseValues = onSetCaseValues
 
@@ -53,7 +57,7 @@ export class FilteredCases {
     // temptation of premature optimization, let's wait to see whether it becomes a bottleneck.
     return this.source.cases
             .map(aCase => aCase.__id__)
-            .filter(id => !this.filter || this.filter(this.source, id))
+            .filter(id => !this.filter || this.filter(this.source, id, this.casesArrayNumber))
   }
 
   @computed

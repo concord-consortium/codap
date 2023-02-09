@@ -2,7 +2,8 @@ import { ScaleBand, ScaleContinuousNumeric, ScaleOrdinal } from "d3"
 
 export const axisGap = 5
 
-export const AxisPlaces = ["bottom", "left", "right", "top"] as const
+// "right" and "top" can only be categorical axes. "v2" can only be numeric
+export const AxisPlaces = ["bottom", "left", "right", "top", "v2"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 
 export function isHorizontal(place: AxisPlace) {
@@ -10,7 +11,7 @@ export function isHorizontal(place: AxisPlace) {
 }
 
 export function isVertical(place: AxisPlace) {
-  return ["left", "right"].includes(place)
+  return ["left", "right", "v2"].includes(place)
 }
 
 export interface AxisBounds {

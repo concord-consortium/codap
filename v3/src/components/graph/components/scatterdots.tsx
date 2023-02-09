@@ -1,5 +1,5 @@
 import {select} from "d3"
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
@@ -13,7 +13,7 @@ import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
-export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
+export const ScatterDots = function ScatterDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphModelContext(),
     instanceId = useInstanceIdContext(),
@@ -88,7 +88,7 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
             }
           })
           caseValues.length &&
-            dataset?.setCaseValues(caseValues, [primaryAttrID, secondaryAttrIDs.current[plotNumRef.current]])
+          dataset?.setCaseValues(caseValues, [primaryAttrID, secondaryAttrIDs.current[plotNumRef.current]])
         }
       }
     }, [dataConfiguration, dataset, dragID, primaryAttrID, xScale, secondaryAttrIDs, yScale]),
@@ -139,9 +139,13 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
     const yAttrIDs = dataConfiguration?.yAttributeIDs || [],
       {pointColor, pointStrokeColor} = graphModel,
+      hasY2Attribute = dataConfiguration?.hasY2Attribute,
+      v2Scale = layout.getAxisScale("v2") as ScaleNumericBaseType,
+      numberOfPlots = dataConfiguration?.numberOfPlots || 1,
       getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
       getScreenY = (anID: string, plotNum = 0) => {
-        return getScreenCoord(dataset, anID, yAttrIDs[plotNum], yScale)
+        const verticalScale = hasY2Attribute && plotNum === numberOfPlots - 1 ? v2Scale : yScale
+        return getScreenCoord(dataset, anID, yAttrIDs[plotNum], verticalScale)
       },
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
       {computedBounds} = layout,
@@ -203,4 +207,4 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
   return (
     <svg/>
   )
-})
+}
