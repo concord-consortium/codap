@@ -39,7 +39,7 @@ export const GraphAxis = observer((
           getAxisModel={() => graphModel.getAxis(place)}
           label={getLabel()}
           enableAnimation={enableAnimation}
-          showScatterPlotGridLines={graphModel.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)}
+          showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
           centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
           onDropAttribute={onDropAttribute}
           onRemoveAttribute={onRemoveAttribute}

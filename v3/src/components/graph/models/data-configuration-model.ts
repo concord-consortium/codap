@@ -88,7 +88,6 @@ export const DataConfigurationModel = types
     },
     /**
      * For the 'y' role we return the first y-attribute, for 'y2' we return the last y-attribute.
-     * For the 'yPlus' we do not return anything.
      * For all other roles we return the attribute description for the role.
      */
     attributeDescriptionForRole(role: GraphAttrRole) {
@@ -151,7 +150,7 @@ export const DataConfigurationModel = types
     filterCase(data: IDataSet, caseID: string, caseArrayNumber: number) {
       const hasY2 = !!self._attributeDescriptions.get('y2'),
         numY = self._yAttributeDescriptions.length,
-        descriptions = self.attributeDescriptions
+        descriptions = {... self.attributeDescriptions}
       if (hasY2 && caseArrayNumber === self._yAttributeDescriptions.length) {
         descriptions.y = self._attributeDescriptions.get('y2') ?? descriptions.y
       }
@@ -230,7 +229,7 @@ export const DataConfigurationModel = types
     },
     get uniqueTipAttributes() {
       const tipAttributes = this.tipAttributes,
-        idCounts: {[id: string]: number} = {}
+        idCounts:  Record<string, number> = {}
       tipAttributes.forEach((aPair:RoleAttrIDPair) => {
         idCounts[aPair.attributeID] = (idCounts[aPair.attributeID] || 0) + 1
       })
@@ -247,7 +246,7 @@ export const DataConfigurationModel = types
       return this.attributes.length <= 1
     },
     get numberOfPlots() {
-      return this.filteredCases.length
+      return this.filteredCases.length  // filteredCases is an array of CaseArrays
     },
     get hasY2Attribute() {
       return !!self.attributeID('y2')
@@ -464,8 +463,7 @@ export const DataConfigurationModel = types
       }
     },
     _addNewFilteredCases() {
-      self.filteredCases && self.dataset && self.filteredCases
-        .push(new FilteredCases({
+      self.dataset && self.filteredCases?.push(new FilteredCases({
           casesArrayNumber: self.filteredCases.length,
           source: self.dataset, filter: self.filterCase,
           onSetCaseValues: self.handleSetCaseValues
@@ -477,9 +475,9 @@ export const DataConfigurationModel = types
       this._addNewFilteredCases()
     },
     setY2Attribute(desc: IAttributeDescriptionSnapshot) {
-      const newAttribute = !self._attributeDescriptions.get('y2')
+      const isNewAttribute = !self._attributeDescriptions.get('y2')
       self._attributeDescriptions.set('y2', desc)
-      if (newAttribute) {
+      if (isNewAttribute) {
         this._addNewFilteredCases()
       } else {
         const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
