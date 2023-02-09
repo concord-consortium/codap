@@ -17,6 +17,8 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
+import {setNiceDomain} from "../utilities/graph-utils"
+import {IAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {isSetAttributeIDAction, useGraphModelContext} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -79,6 +81,8 @@ export const Graph = observer((
   const handleRemoveAttribute = (place: GraphPlace, idOfAttributeToRemove: string) => {
     if (place === 'left' && graphModel.config?.yAttributeDescriptions.length > 1) {
       graphModel.config?.removeYAttributeWithID(idOfAttributeToRemove)
+      const yAxisModel = graphModel.getAxis('left') as IAxisModel
+      setNiceDomain(graphModel.config.numericValuesForAttrRole('y'), yAxisModel)
     }
     else {
       handleChangeAttribute(place, '')
