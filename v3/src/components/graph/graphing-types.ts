@@ -7,7 +7,7 @@ export type CaseData = { plotNum: number, caseID: string }
 export const GraphPlaces = [...AxisPlaces, "yPlus", "plot", "legend"] as const
 export type GraphPlace = typeof GraphPlaces[number]
 export const PrimaryAttrRoles = ['x', 'y'] as const
-export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'y2'] as const
+export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'rightNumeric'] as const
 export const GraphAttrRoles = [
   ...TipAttrRoles, 'polygon', 'yPlus', 'topSplit', 'rightSplit'] as const
 export type GraphAttrRole = typeof GraphAttrRoles[number]
@@ -16,8 +16,8 @@ export type GraphAttrRole = typeof GraphAttrRoles[number]
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",
   y: "left",
-  y2: "v2",
-  rightSplit: "right",
+  rightNumeric: "rightNumeric",
+  rightSplit: "rightCat",
   topSplit: "top"
 }
 export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
@@ -30,8 +30,8 @@ export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   bottom: "x",
   left: "y",
   top: "topSplit",
-  right: "rightSplit",
-  v2: "y2"
+  rightCat: "rightSplit",
+  rightNumeric: "rightNumeric"
 }
 
 export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {

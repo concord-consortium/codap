@@ -9,14 +9,9 @@ import {measureTextExtent} from "../../../../hooks/use-measure-text"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {kChoroplethHeight, kGraphFont} from "../../graphing-types"
 import {axisGap} from "../../../axis/axis-types"
-import {IDataSet} from "../../../../models/data/data-set"
 
-const computeDesiredExtent = (dataset:IDataSet | undefined, legendAttrID:string) => {
-  const labelHeight = measureTextExtent(dataset?.attrFromID(legendAttrID).name ?? '', kGraphFont).height
-  return 2 * labelHeight + kChoroplethHeight + 2 * axisGap
-}
 
-  interface INumericLegendProps {
+interface INumericLegendProps {
   legendAttrID: string
   transform: string
 }
@@ -30,9 +25,18 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
     valuesRef = useRef<number[]>([]),
 
     refreshScale = useCallback(() => {
+
+      const computeDesiredExtent = () => {
+        if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
+          return 0
+        }
+        const labelHeight = measureTextExtent(dataset?.attrFromID(legendAttrID).name ?? '', kGraphFont).height
+        return 2 * labelHeight + kChoroplethHeight + 2 * axisGap
+      }
+
       if (choroplethElt) {
         valuesRef.current = dataConfiguration?.numericValuesForAttrRole('legend') ?? []
-        layout.setDesiredExtent('legend', computeDesiredExtent(dataset, legendAttrID))
+        layout.setDesiredExtent('legend', computeDesiredExtent())
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
         const bounds = layout.computedBounds.get('legend'),
           translate = `translate(${bounds?.left}, ${(bounds?.top ?? 0) + axisGap})`
@@ -48,7 +52,7 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
             }
           })
       }
-    }, [layout, dataset, legendAttrID, choroplethElt, dataConfiguration])
+    }, [choroplethElt, dataConfiguration, layout, dataset, legendAttrID])
 
   useEffect(function refresh() {
     refreshScale()

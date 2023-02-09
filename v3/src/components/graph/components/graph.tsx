@@ -129,8 +129,8 @@ export const Graph = observer((
 
   const getGraphAxes = () => {
     const places = ['left', 'bottom']
-    if (graphModel.getAxis('v2')) {
-      places.push('v2')
+    if (graphModel.getAxis('rightNumeric')) {
+      places.push('rightNumeric')
     }
     return places.map((place: AxisPlace) => {
       return <GraphAxis key={place}
@@ -180,9 +180,9 @@ export const Graph = observer((
           plotType = {plotType}
           onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
         <DroppableAddAttribute
-          location={'y2'}
+          location={'rightNumeric'}
           plotType = {plotType}
-          onDrop={handleChangeAttribute.bind(null, 'v2')}/>
+          onDrop={handleChangeAttribute.bind(null, 'rightNumeric')}/>
       </div>
       <GraphInspector graphModel={graphModel}
                       show={showInspector}

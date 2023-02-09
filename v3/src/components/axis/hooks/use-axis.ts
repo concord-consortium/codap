@@ -35,7 +35,7 @@ export const useAxis = ({
     bandWidth = ordinalScale?.bandwidth() ?? 0,
     axis = (place === 'bottom') ? axisBottom
       : (place === 'left') ? axisLeft
-        : (place === 'v2') ? axisRight
+        : (place === 'rightNumeric') ? axisRight
           : null,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
@@ -70,6 +70,9 @@ export const useAxis = ({
   }, [bandWidth, centerCategoryLabels, ordinalScale])
 
   const computeDesiredExtent = useCallback(() => {
+    if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
+      return 0
+    }
     const labelHeight = getLabelBounds(label).height,
       collision = collisionExists(),
       maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categorySetForAttrRole(attrRole) ?? [])
@@ -79,7 +82,7 @@ export const useAxis = ({
       case 'numeric': {
         const format = scale.tickFormat?.()
         ticks = ((scale.ticks?.()) ?? []).map(tick => format(tick))
-        desiredExtent += ['left', 'v2'].includes(axisPlace)
+        desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
           ? Math.max(getLabelBounds(ticks[0]).width, getLabelBounds(ticks[ticks.length - 1]).width) + axisGap
           : labelHeight
         break
@@ -158,7 +161,7 @@ export const useAxis = ({
         const
           titleTransform = `translate(${axisBounds.left}, ${axisBounds.top})`,
           tX = place === 'left' ? labelBounds.height
-            : place === 'v2' ? axisBounds.width - labelBounds.height / 2
+            : place === 'rightNumeric' ? axisBounds.width - labelBounds.height / 2
               : halfRange,
           tY = (place === 'bottom') ? axisBounds.height - labelBounds.height / 2 : halfRange,
           tRotation = place === 'bottom' ? '' : ` rotate(-90,${tX},${tY})`

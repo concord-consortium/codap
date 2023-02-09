@@ -28,7 +28,7 @@ export const GraphAxis = observer((
       yAttributeDescriptions = dataConfig?.yAttributeDescriptions || []
     return place === 'left' && isScatterPlot
       ? yAttributeDescriptions.map((desc, index) => {
-        const isY2 = desc.attributeID === graphModel.getAttributeID('y2')
+        const isY2 = desc.attributeID === graphModel.getAttributeID('rightNumeric')
         return (desc.attributeID && !isY2 && dataset?.attrFromID(desc.attributeID)?.name) || ''
       }).filter(aName => aName !== '').join(', ')
       : (attrId && dataset?.attrFromID(attrId)?.name) || t('DG.AxisView.emptyGraphCue')

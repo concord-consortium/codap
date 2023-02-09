@@ -50,7 +50,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     // numberOfScales = layout.axisScales.entries().size(),
     xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
     yNumeric = graphModel.getAxis('left') as INumericAxisModel,
-    v2Numeric = graphModel.getAxis('v2') as INumericAxisModel,
+    v2Numeric = graphModel.getAxis('rightNumeric') as INumericAxisModel,
     instanceId = useInstanceIdContext()
 
   /* This routine is frequently called many times in a row when something about the graph changes that requires

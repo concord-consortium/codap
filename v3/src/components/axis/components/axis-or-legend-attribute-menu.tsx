@@ -19,7 +19,7 @@ interface IProps {
 const removeAttrItemLabelKeys: Record<string, string> = {
   "x": "DG.DataDisplayMenu.removeAttribute_x",
   "y": "DG.DataDisplayMenu.removeAttribute_y",
-  "y2": "DG.DataDisplayMenu.removeAttribute_y2",
+  "rightNumeric": "DG.DataDisplayMenu.removeAttribute_y2",
   "legend": "DG.DataDisplayMenu.removeAttribute_legend"
 }
 
