@@ -18,13 +18,13 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
+    primaryAttrIDRef = useRef<string>(''),
+    secondaryAttrIDRef = useRef<string>(''),
     primaryAttrPlace = dataConfiguration?.primaryRole ?? 'x',
     primaryAxisPlace = attrRoleToAxisPlace[primaryAttrPlace] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrID = dataConfiguration?.attributeID(primaryAttrPlace) as string,
     secondaryAttrPlace = primaryAttrPlace === 'x' ? 'y' : 'x',
     secondaryAxisPlace = attrRoleToAxisPlace[secondaryAttrPlace] ?? 'left',
-    secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrPlace),
     legendAttrID = dataConfiguration?.attributeID('legend'),
     primaryScale = layout.getAxisScale(primaryAxisPlace) as ScaleNumericBaseType,
     primaryLength = layout.getAxisLength(primaryAxisPlace),
@@ -38,6 +38,9 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     selectedPointRadius = graphModel.getPointRadius('select'),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
     { pointColor, pointStrokeColor } = graphModel
+
+  primaryAttrIDRef.current = dataConfiguration?.attributeID(primaryAttrPlace) as string
+  secondaryAttrIDRef.current = dataConfiguration?.attributeID(secondaryAttrPlace)
 
 
   const onDragStart = useCallback((event: any) => {
@@ -59,13 +62,13 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         // Record the current values, so we can change them during the drag and restore them when done
         const { selection } = dataConfiguration || {}
         selection?.forEach(anID => {
-          const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
+          const itsValue = dataset?.getNumeric(anID, primaryAttrIDRef.current) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
         })
       }
-    }, [dataConfiguration, dataset, dragPointRadius, primaryAttrID, primaryIsBottom, enableAnimation]),
+    }, [dataConfiguration, dataset, dragPointRadius, primaryIsBottom, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
@@ -78,15 +81,15 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
             caseValues: ICase[] = [],
             { selection } = dataConfiguration || {}
           selection?.forEach(anID => {
-            const currValue = Number(dataset?.getNumeric(anID, primaryAttrID))
+            const currValue = Number(dataset?.getNumeric(anID, primaryAttrIDRef.current))
             if (isFinite(currValue)) {
-              caseValues.push({__id__: anID, [primaryAttrID]: currValue + delta})
+              caseValues.push({__id__: anID, [primaryAttrIDRef.current]: currValue + delta})
             }
           })
-          caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID])
+          caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrIDRef.current])
         }
       }
-    }, [dataset, dragID, primaryAttrID, primaryScale, primaryIsBottom, dataConfiguration]),
+    }, [dataset, dragID, primaryScale, primaryIsBottom, dataConfiguration]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -107,7 +110,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
-              [primaryAttrID]: selectedDataObjects.current[anID]
+              [primaryAttrIDRef.current]: selectedDataObjects.current[anID]
             })
           })
           enableAnimation.current = true // So points will animate back to original positions
@@ -115,7 +118,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           didDrag.current = false
         }
       }
-    }, [dataConfiguration, dataset, selectedPointRadius, dragID, enableAnimation, primaryAttrID])
+    }, [dataConfiguration, dataset, selectedPointRadius, dragID, enableAnimation])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -144,9 +147,9 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
 
         dataConfiguration?.caseDataArray.forEach((aCaseData:CaseData) => {
           const anID = aCaseData.caseID,
-            numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttrID) ?? -1),
+            numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttrIDRef.current) ?? -1),
             bin = Math.ceil((numerator ?? 0) / binWidth),
-            category = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__'
+            category = secondaryAttrIDRef.current ? dataset?.getValue(anID, secondaryAttrIDRef.current) : '__main__'
           if (!bins[category]) {
             bins[category] = range(numBins + 1).map(() => [])
           }
@@ -177,7 +180,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         // Note that we can get null for either or both of the next two functions. It just means that we have
         // a circle for the case, but we're not plotting it.
         getPrimaryScreenCoord = (anID: string) => {
-          return getScreenCoord(dataset, anID, primaryAttrID, primaryScale)
+          return getScreenCoord(dataset, anID, primaryAttrIDRef.current, primaryScale)
         },
         getSecondaryScreenCoord = (anID: string) => {
           return binMap[anID] ? computeSecondaryCoord(binMap[anID].category, binMap[anID].indexInBin) : null
@@ -193,12 +196,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       })
     },
     [dataConfiguration?.caseDataArray, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
-      legendAttrID, primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
+      legendAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
       dataConfiguration?.getLegendColorForCase, layout.computedBounds, pointColor, pointStrokeColor])
 
   usePlotResponders({
-    graphModel, primaryAttrID, secondaryAttrID, legendAttrID, layout, dotsRef,
-    refreshPointPositions, refreshPointSelection, enableAnimation
+    graphModel, primaryAttrID: primaryAttrIDRef.current, secondaryAttrID: secondaryAttrIDRef.current,
+    legendAttrID, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (

@@ -19,12 +19,12 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     instanceId = useInstanceIdContext(),
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
+    primaryAttrIDRef = useRef<string>(''),
+    secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
     layout = useGraphLayoutContext(),
-    primaryAttrID = dataConfiguration?.attributeID('x') as string,
-    secondaryAttrIDs = useRef(dataConfiguration?.yAttributeIDs || []),
     legendAttrID = dataConfiguration?.attributeID('legend') as string,
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
@@ -35,9 +35,12 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
     plotNumRef = useRef(0)
 
+  primaryAttrIDRef.current = dataConfiguration?.attributeID('x') as string
+  secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
+
   const onDragStart = useCallback((event: MouseEvent) => {
       dataset?.beginCaching()
-      secondaryAttrIDs.current = dataConfiguration?.yAttributeIDs || []
+      secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
       enableAnimation.current = false // We don't want to animate points until end of drag
       didDrag.current = false
       target.current = select(event.target as SVGSVGElement)
@@ -57,12 +60,12 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
         const {selection} = dataConfiguration || {}
         selection?.forEach(anID => {
           selectedDataObjects.current[anID] = {
-            x: dataset?.getNumeric(anID, primaryAttrID) ?? 0,
-            y: dataset?.getNumeric(anID, secondaryAttrIDs.current[plotNumRef.current]) ?? 0
+            x: dataset?.getNumeric(anID, primaryAttrIDRef.current) ?? 0,
+            y: dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]) ?? 0
           }
         })
       }
-    }, [dataConfiguration, dataset, primaryAttrID, secondaryAttrIDs, enableAnimation, dragPointRadius]),
+    }, [dataConfiguration, dataset, enableAnimation, dragPointRadius]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
@@ -77,21 +80,22 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
             caseValues: ICase[] = [],
             {selection} = dataConfiguration || {}
           selection?.forEach(anID => {
-            const currX = Number(dataset?.getNumeric(anID, primaryAttrID)),
-              currY = Number(dataset?.getNumeric(anID, secondaryAttrIDs.current[plotNumRef.current]))
+            const currX = Number(dataset?.getNumeric(anID, primaryAttrIDRef.current)),
+              currY = Number(dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]))
             if (isFinite(currX) && isFinite(currY)) {
               caseValues.push({
                 __id__: anID,
-                [primaryAttrID]: currX + deltaX,
-                [secondaryAttrIDs.current[plotNumRef.current]]: currY + deltaY
+                [primaryAttrIDRef.current]: currX + deltaX,
+                [secondaryAttrIDsRef.current[plotNumRef.current]]: currY + deltaY
               })
             }
           })
           caseValues.length &&
-          dataset?.setCaseValues(caseValues, [primaryAttrID, secondaryAttrIDs.current[plotNumRef.current]])
+          dataset?.setCaseValues(caseValues,
+            [primaryAttrIDRef.current, secondaryAttrIDsRef.current[plotNumRef.current]])
         }
       }
-    }, [dataConfiguration, dataset, dragID, primaryAttrID, xScale, secondaryAttrIDs, yScale]),
+    }, [dataConfiguration, dataset, dragID, xScale, yScale]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -112,17 +116,17 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
           selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
-              [primaryAttrID]: selectedDataObjects.current[anID].x,
-              [secondaryAttrIDs.current[plotNumRef.current]]: selectedDataObjects.current[anID].y
+              [primaryAttrIDRef.current]: selectedDataObjects.current[anID].x,
+              [secondaryAttrIDsRef.current[plotNumRef.current]]: selectedDataObjects.current[anID].y
             })
           })
           enableAnimation.current = true // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues,
-            [primaryAttrID, secondaryAttrIDs.current[plotNumRef.current]])
+            [primaryAttrIDRef.current, secondaryAttrIDsRef.current[plotNumRef.current]])
           didDrag.current = false
         }
       }
-    }, [dataConfiguration, dataset, dragID, primaryAttrID, secondaryAttrIDs, enableAnimation,
+    }, [dataConfiguration, dataset, dragID, enableAnimation,
       selectedPointRadius])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
@@ -142,7 +146,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       hasY2Attribute = dataConfiguration?.hasY2Attribute,
       v2Scale = layout.getAxisScale("v2") as ScaleNumericBaseType,
       numberOfPlots = dataConfiguration?.numberOfPlots || 1,
-      getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
+      getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrIDRef.current, xScale),
       getScreenY = (anID: string, plotNum = 0) => {
         const verticalScale = hasY2Attribute && plotNum === numberOfPlots - 1 ? v2Scale : yScale
         return getScreenCoord(dataset, anID, yAttrIDs[plotNum], verticalScale)
@@ -156,7 +160,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       getScreenX, getScreenY, getLegendColor, getPointColorAtIndex: graphModel.pointColorAtIndex,
       enableAnimation, pointColor, pointStrokeColor
     })
-  }, [dataConfiguration, dataset, pointRadius, selectedPointRadius, dotsRef, layout, primaryAttrID,
+  }, [dataConfiguration, dataset, pointRadius, selectedPointRadius, dotsRef, layout,
     xScale, legendAttrID, yScale, enableAnimation, graphModel])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
@@ -166,8 +170,8 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
         dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
       if (dot) {
         const dotSvg = dot as SVGCircleElement
-        const x = getScreenCoord(dataset, caseId, primaryAttrID, xScale)
-        const y = getScreenCoord(dataset, caseId, secondaryAttrIDs.current[aCaseData.plotNum], yScale)
+        const x = getScreenCoord(dataset, caseId, primaryAttrIDRef.current, xScale)
+        const y = getScreenCoord(dataset, caseId, secondaryAttrIDsRef.current[aCaseData.plotNum], yScale)
         if (x != null && isFinite(x) && y != null && isFinite(y)) {
           dotSvg.setAttribute("cx", `${x}`)
           dotSvg.setAttribute("cy", `${y}`)
@@ -179,8 +183,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     } else {
       joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
-  }, [dataConfiguration, dataset, dotsRef, instanceId, primaryAttrID, xScale,
-    secondaryAttrIDs, yScale])
+  }, [dataConfiguration, dataset, dotsRef, instanceId, xScale, yScale])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (appState.isPerformanceMode) {
@@ -200,8 +203,8 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
   }, [dataConfiguration?.pointsNeedUpdating, refreshPointPositionsD3])
 
   usePlotResponders({
-    graphModel, primaryAttrID, secondaryAttrID: secondaryAttrIDs.current[0], layout, dotsRef,
-    refreshPointPositions, refreshPointSelection, enableAnimation
+    graphModel, primaryAttrID:primaryAttrIDRef.current, secondaryAttrID: secondaryAttrIDsRef.current[0],
+    layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (
