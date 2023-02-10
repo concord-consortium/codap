@@ -1028,6 +1028,7 @@ SC.stringsFor("en", {
     "DG.Locale.name.es": "Spanish",
     "DG.Locale.name.he": "Hebrew",
     "DG.Locale.name.ja": "Japanese",
+    "DG.Locale.name.ko": "Korean",
     "DG.Locale.name.nb": "Bokmål",
     "DG.Locale.name.nn": "Nynorsk",
     "DG.Locale.name.tr": "Turkish",
