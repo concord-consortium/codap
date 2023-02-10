@@ -1,7 +1,7 @@
 import {extent, format, select} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
+import {CaseData, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "../../../utilities/math-utils"
 import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
@@ -109,9 +109,22 @@ export function getPointTipText(caseID: string, attributeIDs: string[], dataset?
   return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
 }
 
+export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: IDataSet) {
+  const extendSelection = event.shiftKey,
+    caseIsSelected = dataset?.isCaseSelected(caseID)
+  if (!caseIsSelected) {
+    if (extendSelection) { // case is not selected and Shift key is down => add case to selection
+      dataset?.selectCases([caseID])
+    } else { // case is not selected and Shift key is up => only this case should be selected
+      dataset?.setSelectedCases([caseID])
+    }
+  } else if (extendSelection) { // case is selected and Shift key is down => deselect case
+    dataset?.selectCases([caseID], false)
+  }
+}
+
 export interface IMatchCirclesProps {
-  dataset?: IDataSet,
-  caseIDs: string[]
+  dataConfiguration: IDataConfigurationModel
   dotsElement: SVGGElement | null
   pointRadius: number
   pointColor: string
@@ -120,29 +133,16 @@ export interface IMatchCirclesProps {
   instanceId: string | undefined
 }
 
-export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: IDataSet) {
-  const [, caseId] = caseID.split("_"),
-    extendSelection = event.shiftKey,
-    caseIsSelected = dataset?.isCaseSelected(caseId)
-  if (!caseIsSelected) {
-    if (extendSelection) { // case is not selected and Shift key is down => add case to selection
-      dataset?.selectCases([caseId])
-    } else { // case is not selected and Shift key is up => only this case should be selected
-      dataset?.setSelectedCases([caseId])
-    }
-  } else if (extendSelection) { // case is selected and Shift key is down => deselect case
-    dataset?.selectCases([caseId], false)
-  }
-}
-
 export function matchCirclesToData(props: IMatchCirclesProps) {
 
-  const {caseIDs, enableAnimation, instanceId, dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
-    keyFunc = (d: string) => d
+  const {dataConfiguration, enableAnimation, instanceId,
+      dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
+    allCaseData = dataConfiguration.joinedCaseDataArrays,
+    caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`
   enableAnimation.current = true
   select(dotsElement)
     .selectAll('circle')
-    .data(caseIDs, keyFunc)
+    .data(allCaseData, caseDataKeyFunc)
     .join(
       // @ts-expect-error void => Selection
       (enter) => {
@@ -161,10 +161,10 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     (event: MouseEvent) => {
       const target = select(event.target as SVGSVGElement)
       if (target.node()?.nodeName === 'circle') {
-        handleClickOnDot(event, target.property('id'), props.dataset)
+        handleClickOnDot(event, (target.datum() as CaseData).caseID, dataConfiguration.dataset)
       }
     })
-
+  dataConfiguration.setPointsNeedUpdating(false)
 }
 
 //  Return the two points in logical coordinates where the line with the given
@@ -351,12 +351,14 @@ export interface ISetPointSelection {
   pointRadius: number,
   selectedPointRadius: number,
   pointColor: string,
-  pointStrokeColor: string
+  pointStrokeColor: string,
+  getPointColorAtIndex?: (index: number) => string
 }
 
 export function setPointSelection(props: ISetPointSelection) {
   const
-    {dotsRef, dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor} = props,
+    {dotsRef, dataConfiguration, pointRadius, selectedPointRadius,
+      pointColor, pointStrokeColor, getPointColorAtIndex} = props,
     dataset = dataConfiguration.dataset,
     dotsSvgElement = dotsRef.current,
     dots = select(dotsSvgElement),
@@ -364,12 +366,15 @@ export function setPointSelection(props: ISetPointSelection) {
   // First set the class based on selection
   dots.selectAll('circle')
     .classed('graph-dot-highlighted',
-      (anID: string) => !!(dataset?.isCaseSelected(anID)))
+      (aCaseData: CaseData) => !!(dataset?.isCaseSelected(aCaseData.caseID)))
     // Then set properties to defaults w/o selection
     .attr('r', pointRadius)
     .style('stroke', pointStrokeColor)
-    .style('fill', (anID: string) => {
-      return legendID ? dataConfiguration?.getLegendColorForCase(anID) : pointColor
+    .style('fill', (aCaseData:CaseData) => {
+      return legendID
+        ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID)
+        : aCaseData.plotNum && getPointColorAtIndex
+          ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
     })
     .style('stroke-width', defaultStrokeWidth)
     .style('stroke-opacity', defaultStrokeOpacity)
@@ -398,9 +403,10 @@ export interface ISetPointCoordinates {
   selectedPointRadius: number
   pointColor: string
   pointStrokeColor: string
+  getPointColorAtIndex?: (index: number) => string
   plotBounds: Bounds
   getScreenX: ((anID: string) => number | null)
-  getScreenY: ((anID: string) => number | null)
+  getScreenY: ((anID: string, plotNum?:number) => number | null)
   getLegendColor?: ((anID: string) => string)
   enableAnimation: React.MutableRefObject<boolean>
   onComplete?: () => void
@@ -408,11 +414,14 @@ export interface ISetPointCoordinates {
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
 
-  const lookupLegendColor = (id: string) => {
-      const isSelected = dataset?.isCaseSelected(id),
+  const lookupLegendColor = (aCaseData: CaseData) => {
+      const id = aCaseData.caseID,
+        isSelected = dataset?.isCaseSelected(id),
         legendColor = getLegendColor ? getLegendColor(id) : ''
       return legendColor !== '' ? legendColor
-        : isSelected ? defaultSelectedColor : pointColor
+        : isSelected ? defaultSelectedColor
+          : aCaseData.plotNum && getPointColorAtIndex
+            ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
     },
 
     setPoints = () => {
@@ -425,20 +434,26 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
           .transition()
           .duration(duration)
           .on('end', (id, i) => (i === theSelection.size() - 1) && onComplete())
-          .attr('cx', (anID: string) => getScreenX(anID))
-          .attr('cy', (anID: string) => getScreenY(anID))
-          .attr('r', (id: string) => dataset?.isCaseSelected(id) ? selectedPointRadius : pointRadius)
-          .style('fill', (id: string) => lookupLegendColor(id))
-          .style('stroke', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+          .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
+          .attr('cy', (aCaseData: CaseData) => {
+            return getScreenY(aCaseData.caseID, aCaseData.plotNum)
+          })
+          .attr('r', (aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
+            ? selectedPointRadius : pointRadius)
+          .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData))
+          .style('stroke', (aCaseData: CaseData) =>
+            (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
             ? defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (id: string) => (getLegendColor && dataset?.isCaseSelected(id))
+          .style('stroke-width', (aCaseData: CaseData) =>
+            (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
     }
 
   const
     {
-      dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius, pointStrokeColor, pointColor,
+      dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
+      pointStrokeColor, pointColor, getPointColorAtIndex,
       plotBounds, getScreenX, getScreenY, getLegendColor, enableAnimation,
       onComplete = (() => {
         if (enableAnimation.current) {

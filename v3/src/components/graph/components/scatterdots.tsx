@@ -1,8 +1,9 @@
 import {select} from "d3"
-import React, {memo, useCallback, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
+import {autorun} from "mobx"
 import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {PlotProps} from "../graphing-types"
+import {CaseData, PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -12,7 +13,7 @@ import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
-export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
+export const ScatterDots = function ScatterDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphModelContext(),
     instanceId = useInstanceIdContext(),
@@ -23,7 +24,7 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
     layout = useGraphLayoutContext(),
     primaryAttrID = dataConfiguration?.attributeID('x') as string,
-    secondaryAttrID = dataConfiguration?.attributeID('y') as string,
+    secondaryAttrIDs = useRef(dataConfiguration?.yAttributeIDs || []),
     legendAttrID = dataConfiguration?.attributeID('legend') as string,
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
@@ -31,14 +32,17 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),
     target = useRef<any>(),
-    selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({})
+    selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
+    plotNumRef = useRef(0)
 
   const onDragStart = useCallback((event: MouseEvent) => {
       dataset?.beginCaching()
+      secondaryAttrIDs.current = dataConfiguration?.yAttributeIDs || []
       enableAnimation.current = false // We don't want to animate points until end of drag
       didDrag.current = false
       target.current = select(event.target as SVGSVGElement)
-      const tItsID = target.current.property('id')
+      const tItsID = target.current.datum()?.caseID ?? ''
+      plotNumRef.current = target.current.datum()?.plotNum ?? 0
       if (target.current.node()?.nodeName === 'circle') {
         appState.beginPerformance()
         target.current
@@ -54,11 +58,11 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
         selection?.forEach(anID => {
           selectedDataObjects.current[anID] = {
             x: dataset?.getNumeric(anID, primaryAttrID) ?? 0,
-            y: dataset?.getNumeric(anID, secondaryAttrID) ?? 0
+            y: dataset?.getNumeric(anID, secondaryAttrIDs.current[plotNumRef.current]) ?? 0
           }
         })
       }
-    }, [dataConfiguration, dataset, primaryAttrID, secondaryAttrID, enableAnimation, dragPointRadius]),
+    }, [dataConfiguration, dataset, primaryAttrID, secondaryAttrIDs, enableAnimation, dragPointRadius]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID !== '') {
@@ -74,19 +78,20 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
             {selection} = dataConfiguration || {}
           selection?.forEach(anID => {
             const currX = Number(dataset?.getNumeric(anID, primaryAttrID)),
-              currY = Number(dataset?.getNumeric(anID, secondaryAttrID))
+              currY = Number(dataset?.getNumeric(anID, secondaryAttrIDs.current[plotNumRef.current]))
             if (isFinite(currX) && isFinite(currY)) {
               caseValues.push({
                 __id__: anID,
                 [primaryAttrID]: currX + deltaX,
-                [secondaryAttrID]: currY + deltaY
+                [secondaryAttrIDs.current[plotNumRef.current]]: currY + deltaY
               })
             }
           })
-          caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID, secondaryAttrID])
+          caseValues.length &&
+          dataset?.setCaseValues(caseValues, [primaryAttrID, secondaryAttrIDs.current[plotNumRef.current]])
         }
       }
-    }, [dataConfiguration, dataset, dragID, primaryAttrID, xScale, secondaryAttrID, yScale]),
+    }, [dataConfiguration, dataset, dragID, primaryAttrID, xScale, secondaryAttrIDs, yScale]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -108,48 +113,61 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
             caseValues.push({
               __id__: anID,
               [primaryAttrID]: selectedDataObjects.current[anID].x,
-              [secondaryAttrID]: selectedDataObjects.current[anID].y
+              [secondaryAttrIDs.current[plotNumRef.current]]: selectedDataObjects.current[anID].y
             })
           })
           enableAnimation.current = true // So points will animate back to original positions
-          caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID, secondaryAttrID])
+          caseValues.length && dataset?.setCaseValues(caseValues,
+            [primaryAttrID, secondaryAttrIDs.current[plotNumRef.current]])
           didDrag.current = false
         }
       }
-    }, [dataConfiguration, dataset, dragID, primaryAttrID, secondaryAttrID, enableAnimation,
+    }, [dataConfiguration, dataset, dragID, primaryAttrID, secondaryAttrIDs, enableAnimation,
       selectedPointRadius])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor } = graphModel
+    const {pointColor, pointStrokeColor} = graphModel
     dataConfiguration && setPointSelection(
-      {dotsRef, dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor})
+      {
+        dotsRef, dataConfiguration, pointRadius, selectedPointRadius,
+        pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointColorAtIndex
+      })
   }, [dataConfiguration, dotsRef, pointRadius, selectedPointRadius, graphModel])
 
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
-    const {pointColor, pointStrokeColor } = graphModel,
+    const yAttrIDs = dataConfiguration?.yAttributeIDs || [],
+      {pointColor, pointStrokeColor} = graphModel,
+      hasY2Attribute = dataConfiguration?.hasY2Attribute,
+      v2Scale = layout.getAxisScale("rightNumeric") as ScaleNumericBaseType,
+      numberOfPlots = dataConfiguration?.numberOfPlots || 1,
       getScreenX = (anID: string) => getScreenCoord(dataset, anID, primaryAttrID, xScale),
-      getScreenY = (anID: string) => getScreenCoord(dataset, anID, secondaryAttrID, yScale),
+      getScreenY = (anID: string, plotNum = 0) => {
+        const verticalScale = hasY2Attribute && plotNum === numberOfPlots - 1 ? v2Scale : yScale
+        return getScreenCoord(dataset, anID, yAttrIDs[plotNum], verticalScale)
+      },
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
       {computedBounds} = layout,
       plotBounds = computedBounds.get('plot') as Bounds
 
     setPointCoordinates({
       dataset, dotsRef, pointRadius, selectedPointRadius, plotBounds, selectedOnly,
-      getScreenX, getScreenY, getLegendColor, enableAnimation, pointColor, pointStrokeColor
+      getScreenX, getScreenY, getLegendColor, getPointColorAtIndex: graphModel.pointColorAtIndex,
+      enableAnimation, pointColor, pointStrokeColor
     })
-  }, [dataset, pointRadius, selectedPointRadius, dotsRef, layout, primaryAttrID,
-    xScale, secondaryAttrID, legendAttrID, yScale, enableAnimation, dataConfiguration, graphModel])
+  }, [dataConfiguration, dataset, pointRadius, selectedPointRadius, dotsRef, layout, primaryAttrID,
+    xScale, legendAttrID, yScale, enableAnimation, graphModel])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
-    const {cases, selection} = dataConfiguration || {}
-    const updateDot = (caseId: string) => {
-      const dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
+    const {joinedCaseDataArrays, selection} = dataConfiguration || {}
+    const updateDot = (aCaseData: CaseData) => {
+      const caseId = aCaseData.caseID,
+        dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
       if (dot) {
         const dotSvg = dot as SVGCircleElement
         const x = getScreenCoord(dataset, caseId, primaryAttrID, xScale)
-        const y = getScreenCoord(dataset, caseId, secondaryAttrID, yScale)
+        const y = getScreenCoord(dataset, caseId, secondaryAttrIDs.current[aCaseData.plotNum], yScale)
         if (x != null && isFinite(x) && y != null && isFinite(y)) {
           dotSvg.setAttribute("cx", `${x}`)
           dotSvg.setAttribute("cy", `${y}`)
@@ -157,11 +175,12 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
       }
     }
     if (selectedOnly) {
-      selection?.forEach(caseId => updateDot(caseId))
+      selection?.forEach(caseId => updateDot({plotNum: 0, caseID: caseId}))
     } else {
-      cases?.forEach(anID => updateDot(anID))
+      joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
-  }, [dataConfiguration, dataset, dotsRef, instanceId, primaryAttrID, xScale, secondaryAttrID, yScale])
+  }, [dataConfiguration, dataset, dotsRef, instanceId, primaryAttrID, xScale,
+    secondaryAttrIDs, yScale])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (appState.isPerformanceMode) {
@@ -171,12 +190,21 @@ export const ScatterDots = memo(function ScatterDots(props: PlotProps) {
     }
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
+  // respond to pointsNeedUpdating becoming false; that is when the points have been updated
+  // Happens when the number of plots has changed
+  useEffect(() => {
+    return autorun(
+      () => {
+        !dataConfiguration?.pointsNeedUpdating && refreshPointPositionsD3(false)
+      })
+  }, [dataConfiguration?.pointsNeedUpdating, refreshPointPositionsD3])
+
   usePlotResponders({
-    graphModel, primaryAttrID, secondaryAttrID, layout, dotsRef,
+    graphModel, primaryAttrID, secondaryAttrID: secondaryAttrIDs.current[0], layout, dotsRef,
     refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (
     <svg/>
   )
-})
+}

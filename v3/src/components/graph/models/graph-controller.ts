@@ -63,20 +63,19 @@ export class GraphController {
 
     if (v2Document) {
       this.processV2Document()
-    }
-    else {
+    } else {
       // TODO, this may not be the reliable thing to test for AND/OR
       // we may need to be able to call setGraphProperties when axis' models are in place?
       if (!dotsRef.current) {
         graphModel.setGraphProperties({
-          axes: {bottom: EmptyAxisModel.create({place: 'bottom'}),
-          left: EmptyAxisModel.create({place: 'left'})}, plotType: 'casePlot'
+          axes: {
+            bottom: EmptyAxisModel.create({place: 'bottom'}),
+            left: EmptyAxisModel.create({place: 'left'})
+          }, plotType: 'casePlot'
         })
-      }
-      else {
+      } else {
         matchCirclesToData({
-          dataset: this.dataset,
-          caseIDs: dataConfig.cases, dotsElement: dotsRef.current,
+          dataConfiguration: dataConfig, dotsElement: dotsRef.current,
           pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId,
           pointColor: graphModel.pointColor,
           pointStrokeColor: graphModel.pointStrokeColor
@@ -95,44 +94,52 @@ export class GraphController {
       links = storage?._links_ || {},
       attrTypes: Record<string, string> = {x: 'empty', y: 'empty', legend: 'empty'}
     Object.keys(links).forEach((aKey: keyof typeof links) => {
-      if (['xAttr', 'yAttr', 'legendAttr'].includes(aKey)) {
-        const match = aKey.match(/[a-z]+/),
-          attrPlace = (match?.[0] ?? 'x') as GraphAttrRole,
-          attrV2ID = (links[aKey] as IGuidLink<"DG.Attribute">).id,
-          attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
-          attribute = dataset?.attrFromName(attrName),
-          attrID = attribute?.id ?? '',
-          attrSnapshot = {attributeID: attrID}
-        dataConfig.setAttribute(attrPlace, attrSnapshot)
-        graphModel.setAttributeID(attrPlace, attrID)
-        if (['x', 'y'].includes(attrPlace)) {
-          attrTypes[attrPlace] = attribute?.type ?? 'empty'
-        }
+      if (['xAttr', 'yAttr', 'y2Attr', 'legendAttr'].includes(aKey)) {
+        const match = aKey.match(/[a-z2]+/),
+          attrRole = (match?.[0] ?? 'x') as GraphAttrRole,
+          v2AttrArray = Array.isArray(links[aKey]) ? links[aKey] as any[] : [links[aKey]]
+        v2AttrArray.forEach((aLink: IGuidLink<"DG.Attribute">, index: number) => {
+          const attrV2ID = aLink.id,
+            attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
+            attribute = dataset?.attrFromName(attrName),
+            attrID = attribute?.id ?? '',
+            attrSnapshot = {attributeID: attrID}
+          if (index === 0) {
+            graphModel.setAttributeID(attrRole, attrID)
+            if (['x', 'y', 'rightNumeric'].includes(attrRole)) {
+              attrTypes[attrRole] = attribute?.type ?? 'empty'
+            }
+          } else if (attrRole === 'y') {
+            dataConfig.addYAttribute(attrSnapshot)
+          }
+        })
       }
     })
     graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y])
-    ;['x', 'y'].forEach((attrPlace: GraphAttrRole) => {
-      const axisPlace = attrRoleToAxisPlace[attrPlace],
-        attrType = attrTypes[attrPlace]
+    ;['x', 'y', 'rightNumeric'].forEach((attrRole: GraphAttrRole) => {
+      const axisPlace = attrRoleToAxisPlace[attrRole],
+        attrType = attrTypes[attrRole]
       if (axisPlace) {
         let axisModel
         switch (attrType) {
           case 'numeric':
             axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
             graphModel.setAxis(axisPlace, axisModel)
-            setNiceDomain(dataConfig.numericValuesForAttrRole(attrPlace), axisModel)
+            setNiceDomain(dataConfig.numericValuesForAttrRole(attrRole), axisModel)
             layout.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
             graphModel.setAxis(axisPlace, axisModel)
             layout.setAxisScale(axisPlace,
-              scaleBand().domain(dataConfig.categorySetForAttrRole(attrPlace)))
+              scaleBand().domain(dataConfig.categorySetForAttrRole(attrRole)))
             break
-          default:
-            axisModel = EmptyAxisModel.create({place: axisPlace})
-            graphModel.setAxis(axisPlace, axisModel)
-            layout.setAxisScale(axisPlace, scaleOrdinal())
+          default:  // Note that we never add an EmptyAxisModel to 'rightNumeric'
+            if (axisPlace !== 'rightNumeric') {
+              axisModel = EmptyAxisModel.create({place: axisPlace})
+              graphModel.setAxis(axisPlace, axisModel)
+              layout.setAxisScale(axisPlace, scaleOrdinal())
+            }
         }
       }
     })
@@ -141,13 +148,19 @@ export class GraphController {
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
     if (['plot', 'legend'].includes(graphPlace)) {
       return  // Since there is no axis associated with the legend and the plotType will not change, we bail
+    } else if (graphPlace === 'yPlus') {
+      const yAxisModel = this.graphModel.getAxis('left')
+      yAxisModel && setNiceDomain(this.graphModel.config.numericValuesForYAxis, yAxisModel)
+      return
     }
     const {dataset, graphModel, layout} = this,
       dataConfig = graphModel.config,
       axisPlace = graphPlace as AxisPlace,
       graphAttributeRole = axisPlaceToAttrRole[axisPlace],
       attribute = dataset?.attrFromID(attrID),
-      attributeType = dataConfig.attributeType(graphPlaceToAttrRole(graphPlace)) ?? 'empty',
+      attributeType = dataConfig.attributeType(graphPlaceToAttrRole[graphPlace]) ?? 'empty',
+      // rightNumeric only occurs in presence of scatterplot
+      primaryType = graphPlace === 'rightNumeric' ? 'numeric' : attributeType,
       otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
       otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
       otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
@@ -165,7 +178,7 @@ export class GraphController {
           : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
     dataConfig.setPrimaryRole(primaryRole)
     currentlyAssignedAttributeID !== attrID && dataConfig.setAttribute(graphAttributeRole, attrDescSnapshot)
-    graphModel.setPlotType(plotChoices[attributeType][otherAttributeType])
+    graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
     if (attributeType === 'numeric') {
       if (currentAxisType !== attributeType) {
         const newAxisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
@@ -183,12 +196,12 @@ export class GraphController {
         layout.setAxisScale(axisPlace, scaleBand())
       }
       layout.getAxisScale(axisPlace)?.domain(setOfValues)
-    }
-    else {  // attributeType is 'empty'
+    } else {  // attributeType is 'empty'
       if (currentAxisType !== attributeType) {
-        const newAxisModel = EmptyAxisModel.create({place: axisPlace})
-        graphModel.setAxis(axisPlace, newAxisModel as IEmptyAxisModel)
         layout.setAxisScale(axisPlace, scaleOrdinal())
+        const newAxisModel = graphAttributeRole !== 'rightNumeric'
+          ? EmptyAxisModel.create({place: axisPlace}) : undefined
+        graphModel.setAxis(axisPlace, newAxisModel as IEmptyAxisModel)
       }
     }
   }

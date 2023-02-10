@@ -2,8 +2,10 @@ import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
 import {select} from "d3"
+import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
+import {AxisPlace} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
 import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
@@ -15,6 +17,8 @@ import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
+import {setNiceDomain} from "../utilities/graph-utils"
+import {IAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {isSetAttributeIDAction, useGraphModelContext} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -66,8 +70,23 @@ export const Graph = observer((
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
-    const attrRole = graphPlaceToAttrRole(computedPlace)
+    const attrRole = graphPlaceToAttrRole[computedPlace]
     graphModel.setAttributeID(attrRole, attrId)
+  }
+
+  /**
+   * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
+   * do we have to do anything special. Otherwise, we can just call handleChangeAttribute.
+   */
+  const handleRemoveAttribute = (place: GraphPlace, idOfAttributeToRemove: string) => {
+    if (place === 'left' && graphModel.config?.yAttributeDescriptions.length > 1) {
+      graphModel.config?.removeYAttributeWithID(idOfAttributeToRemove)
+      const yAxisModel = graphModel.getAxis('left') as IAxisModel
+      setNiceDomain(graphModel.config.numericValuesForAttrRole('y'), yAxisModel)
+    }
+    else {
+      handleChangeAttribute(place, '')
+    }
   }
 
   // respond to assignment of new attribute ID
@@ -84,7 +103,7 @@ export const Graph = observer((
   }, [graphController, dataset, layout, enableAnimation, graphModel])
 
   const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
-    graphModel.config.setAttributeType(graphPlaceToAttrRole(place), treatAs)
+    graphModel.config.setAttributeType(graphPlaceToAttrRole[place], treatAs)
     graphController?.handleAttributeAssignment(place, attrId)
   }
 
@@ -108,6 +127,22 @@ export const Graph = observer((
     return typeToPlotComponentMap[plotType]
   }
 
+  const getGraphAxes = () => {
+    const places = ['left', 'bottom']
+    if (graphModel.getAxis('rightNumeric')) {
+      places.push('rightNumeric')
+    }
+    return places.map((place: AxisPlace) => {
+      return <GraphAxis key={place}
+                        place={place}
+                        enableAnimation={enableAnimation}
+                        onDropAttribute={handleChangeAttribute}
+                        onRemoveAttribute={handleRemoveAttribute}
+                        onTreatAttributeAs={handleTreatAttrAs}
+      />
+    })
+  }
+
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph" onClick={() => setShowInspector(!showInspector)}>
@@ -117,17 +152,7 @@ export const Graph = observer((
             ref={backgroundSvgRef}
           />
 
-          <GraphAxis place="left"
-                     enableAnimation={enableAnimation}
-                     onDropAttribute={handleChangeAttribute}
-                     onTreatAttributeAs={handleTreatAttrAs}
-          />
-
-          <GraphAxis place="bottom"
-                     enableAnimation={enableAnimation}
-                     onDropAttribute={handleChangeAttribute}
-                     onTreatAttributeAs={handleTreatAttrAs}
-          />
+          {getGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
             <svg ref={dotsRef} className='graph-dot-area'>
@@ -146,9 +171,18 @@ export const Graph = observer((
             legendAttrID={graphModel.getAttributeID('legend')}
             graphElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
+            onRemoveAttribute={handleRemoveAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
           />
         </svg>
+        <DroppableAddAttribute
+          location={'top'}
+          plotType = {plotType}
+          onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
+        <DroppableAddAttribute
+          location={'rightNumeric'}
+          plotType = {plotType}
+          onDrop={handleChangeAttribute.bind(null, 'rightNumeric')}/>
       </div>
       <GraphInspector graphModel={graphModel}
                       show={showInspector}

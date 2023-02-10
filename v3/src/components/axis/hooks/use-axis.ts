@@ -1,5 +1,6 @@
 import {
-  axisBottom, axisLeft, ScaleBand, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
+  axisBottom, axisLeft, axisRight, ScaleBand, scaleLinear, scaleLog, scaleOrdinal, select
+} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {AxisBounds, axisGap, isVertical, ScaleNumericBaseType} from "../axis-types"
@@ -32,7 +33,10 @@ export const useAxis = ({
     scale = layout.getAxisScale(place) as ScaleNumericBaseType,
     ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : scale as unknown as ScaleBand<string>,
     bandWidth = ordinalScale?.bandwidth() ?? 0,
-    axis = (place === 'bottom') ? axisBottom : axisLeft,
+    axis = (place === 'bottom') ? axisBottom
+      : (place === 'left') ? axisLeft
+        : (place === 'rightNumeric') ? axisRight
+          : null,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
     // Todo: Revisit and figure out whether we can remove the workaround.
@@ -40,7 +44,7 @@ export const useAxis = ({
     axisModelChanged = previousAxisModel.current !== axisModel,
     dataConfiguration = useDataConfigurationContext(),
     axisPlace = axisModel?.place ?? 'bottom',
-    attrRole = graphPlaceToAttrRole(axisPlace),
+    attrRole = graphPlaceToAttrRole[axisPlace],
     range = scale?.range() || [0, 100],
     [rangeMin, rangeMax] = range.length === 2 ? range : [0, 100],
     halfRange = Math.abs(rangeMax - rangeMin) / 2,
@@ -49,7 +53,7 @@ export const useAxis = ({
   previousAxisModel.current = axisModel
 
   const getLabelBounds = (s = 'Wy') => {
-      return measureTextExtent(s, kGraphFont)
+    return measureTextExtent(s, kGraphFont)
   }
 
   const collisionExists = useCallback(() => {
@@ -66,6 +70,9 @@ export const useAxis = ({
   }, [bandWidth, centerCategoryLabels, ordinalScale])
 
   const computeDesiredExtent = useCallback(() => {
+    if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
+      return 0
+    }
     const labelHeight = getLabelBounds(label).height,
       collision = collisionExists(),
       maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categorySetForAttrRole(attrRole) ?? [])
@@ -75,7 +82,7 @@ export const useAxis = ({
       case 'numeric': {
         const format = scale.tickFormat?.()
         ticks = ((scale.ticks?.()) ?? []).map(tick => format(tick))
-        desiredExtent += axisPlace === 'left'
+        desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
           ? Math.max(getLabelBounds(ticks[0]).width, getLabelBounds(ticks[ticks.length - 1]).width) + axisGap
           : labelHeight
         break
@@ -107,26 +114,29 @@ export const useAxis = ({
       },
 
       drawScatterPlotGridLines = () => {
-        select(axisElt).selectAll('.zero, .grid').remove()
-        const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0
-        select(axisElt).append('g')
-          .attr('class', 'grid')
-          .call(axis(scale).tickSizeInner(-tickLength))
-        select(axisElt).select('.grid').selectAll('text').remove()
-        const numericScale = scale
-        if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
+        if (axis) {
+          select(axisElt).selectAll('.zero, .grid').remove()
+          const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0
           select(axisElt).append('g')
-            .attr('class', 'zero')
-            .call(axis(scale).tickSizeInner(-tickLength).tickValues([0]))
-          select(axisElt).select('.zero').selectAll('text').remove()
+            .attr('class', 'grid')
+            .call(axis(scale).tickSizeInner(-tickLength))
+          select(axisElt).select('.grid').selectAll('text').remove()
+          const numericScale = scale
+          if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
+            select(axisElt).append('g')
+              .attr('class', 'zero')
+              .call(axis(scale).tickSizeInner(-tickLength).tickValues([0]))
+            select(axisElt).select('.zero').selectAll('text').remove()
+          }
         }
       },
 
       drawCategoricalAxis = () => {
+      if (axis) {
         const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
           textHeight = getLabelBounds().height,
           collision = collisionExists()
-        const {translation, rotation, textAnchor } = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
+        const {translation, rotation, textAnchor} = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
           collision, bandWidth, textHeight)
         select(axisElt)
           .attr("transform", initialTransform)
@@ -144,12 +154,15 @@ export const useAxis = ({
         select(axisElt).selectAll('text')
           .style('text-anchor', textAnchor)
           .attr('transform', `${translation}${rotation}`)
+      }
       },
 
       drawAxisTitle = () => {
         const
           titleTransform = `translate(${axisBounds.left}, ${axisBounds.top})`,
-          tX = (place === 'left') ? getLabelBounds(label).height : halfRange,
+          tX = place === 'left' ? labelBounds.height
+            : place === 'rightNumeric' ? axisBounds.width - labelBounds.height / 2
+              : halfRange,
           tY = (place === 'bottom') ? axisBounds.height - labelBounds.height / 2 : halfRange,
           tRotation = place === 'bottom' ? '' : ` rotate(-90,${tX},${tY})`
         if (titleRef) {

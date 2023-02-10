@@ -1,24 +1,28 @@
 import React from "react"
 import {AxisPlace, AxisPlaces} from "../axis/axis-types"
 
-export const GraphPlaces = [...AxisPlaces, "plot", "legend"] as const
+ // The data stored with each plot element (e.g. 'circle')
+export type CaseData = { plotNum: number, caseID: string }
+
+export const GraphPlaces = [...AxisPlaces, "yPlus", "plot", "legend"] as const
 export type GraphPlace = typeof GraphPlaces[number]
 export const PrimaryAttrRoles = ['x', 'y'] as const
-export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'y2'] as const
+export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'rightNumeric'] as const
 export const GraphAttrRoles = [
-  ...TipAttrRoles, 'polygon', 'topSplit', 'rightSplit'] as const
+  ...TipAttrRoles, 'polygon', 'yPlus', 'topSplit', 'rightSplit'] as const
 export type GraphAttrRole = typeof GraphAttrRoles[number]
 
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",
   y: "left",
-  y2: "right",
-  rightSplit: "right",
+  rightNumeric: "rightNumeric",
+  rightSplit: "rightCat",
   topSplit: "top"
 }
 export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
   ...attrRoleToAxisPlace,
+  yPlus: "yPlus",
   legend: "legend"
 }
 
@@ -26,11 +30,15 @@ export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   bottom: "x",
   left: "y",
   top: "topSplit",
-  right: "y2",  // Todo: how to deal with 'rightSplit'?
+  rightCat: "rightSplit",
+  rightNumeric: "rightNumeric"
 }
 
-export const graphPlaceToAttrRole = (graphPlace: GraphPlace) => {
-  return AxisPlaces.includes(graphPlace as AxisPlace) ? axisPlaceToAttrRole[graphPlace as AxisPlace] : 'legend'
+export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {
+  ...axisPlaceToAttrRole,
+  legend: "legend",
+  plot: "legend",
+  yPlus: "yPlus"
 }
 
 export interface PlotProps {

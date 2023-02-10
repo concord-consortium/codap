@@ -12,19 +12,22 @@ interface IProps {
   target: SVGGElement | null
   portal: HTMLElement | null
   onChangeAttribute: (place: GraphPlace, attrId: string) => void
+  onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 const removeAttrItemLabelKeys: Record<string, string> = {
   "x": "DG.DataDisplayMenu.removeAttribute_x",
   "y": "DG.DataDisplayMenu.removeAttribute_y",
+  "rightNumeric": "DG.DataDisplayMenu.removeAttribute_y2",
   "legend": "DG.DataDisplayMenu.removeAttribute_legend"
 }
 
-const _AxisOrLegendAttributeMenu = ({ place, target, portal, onChangeAttribute, onTreatAttributeAs }: IProps) => {
+const _AxisOrLegendAttributeMenu = ({ place, target, portal,
+                                      onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
-  const role = graphPlaceToAttrRole(place)
+  const role = graphPlaceToAttrRole[place]
   const attrId = dataConfig?.attributeID(role)
   const attribute = attrId ? data?.attrFromID(attrId) : null
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
@@ -55,7 +58,7 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal, onChangeAttribute, 
                 { attribute &&
                   <>
                     <MenuDivider />
-                    <MenuItem onClick={() => onChangeAttribute(place, "")}>
+                    <MenuItem onClick={() => onRemoveAttribute(place, attrId)}>
                       {removeAttrItemLabel}
                     </MenuItem>
                     <MenuItem onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}>

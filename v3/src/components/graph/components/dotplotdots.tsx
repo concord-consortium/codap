@@ -1,8 +1,8 @@
 import {max, range, ScaleBand, select} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {memo, useCallback, useRef, useState} from "react"
+import React, {useCallback, useRef, useState} from "react"
 import { ScaleNumericBaseType } from "../../axis/axis-types"
-import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
+import {attrRoleToAxisPlace, CaseData, PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -12,7 +12,7 @@ import {ICase} from "../../../models/data/data-set"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
-export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) {
+export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphModelContext(),
     dataConfiguration = useDataConfigurationContext(),
@@ -44,7 +44,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
       dataset?.beginCaching()
       didDrag.current = false
       target.current = select(event.target as SVGSVGElement)
-      const tItsID: string = target.current.property('id')
+      const tItsID: string = target.current.datum()?.caseID ?? ''
       if (target.current.node()?.nodeName === 'circle') {
         enableAnimation.current = false // We don't want to animate points until end of drag
         appState.beginPerformance()
@@ -142,8 +142,9 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
           binWidth = primaryLength / (numBins - 1),
           bins: Record<string, string[][]> = {}
 
-        dataConfiguration?.cases.forEach((anID) => {
-          const numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttrID) ?? -1),
+        dataConfiguration?.caseDataArray.forEach((aCaseData:CaseData) => {
+          const anID = aCaseData.caseID,
+            numerator = primaryScale?.(dataset?.getNumeric(anID, primaryAttrID) ?? -1),
             bin = Math.ceil((numerator ?? 0) / binWidth),
             category = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__'
           if (!bins[category]) {
@@ -191,7 +192,7 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
         getScreenX, getScreenY, getLegendColor, enableAnimation, plotBounds
       })
     },
-    [dataConfiguration?.cases, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
+    [dataConfiguration?.caseDataArray, dataset, pointRadius, selectedPointRadius, dotsRef, enableAnimation,
       legendAttrID, primaryAttrID, secondaryAttrID, primaryLength, primaryIsBottom, primaryScale, secondaryScale,
       dataConfiguration?.getLegendColorForCase, layout.computedBounds, pointColor, pointStrokeColor])
 
@@ -203,4 +204,4 @@ export const DotPlotDots = memo(observer(function DotPlotDots(props: PlotProps) 
   return (
     <></>
   )
-}))
+})

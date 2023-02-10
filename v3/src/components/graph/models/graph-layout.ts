@@ -116,9 +116,10 @@ export class GraphLayout {
       leftAxisWidth = desiredExtents.get('left') ?? 20,
       bottomAxisHeight = desiredExtents.get('bottom') ?? 20,
       legendHeight = desiredExtents.get('legend') ?? 0,
-      rightAxisWidth = desiredExtents.get('right') ?? 0,
+      v2AxisWidth = desiredExtents.get('rightNumeric') ?? 0,
+      rightAxisWidth = desiredExtents.get('rightCat') ?? 0,
       newBounds: Map<GraphPlace, Bounds> = new Map(),
-      plotWidth = graphWidth - leftAxisWidth - rightAxisWidth,
+      plotWidth = graphWidth - leftAxisWidth - v2AxisWidth - rightAxisWidth,
       plotHeight = graphHeight - topAxisHeight - bottomAxisHeight - legendHeight
     newBounds.set('left',
       {left: 0, top: 0, width: leftAxisWidth, height: plotHeight})
@@ -133,8 +134,11 @@ export class GraphLayout {
     newBounds.set('legend',
       {left: 6, top: graphHeight - legendHeight, width: graphWidth - 6,
         height: legendHeight})
-    newBounds.set('right',
-      {left: rightAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth,
+    newBounds.set('rightNumeric',
+      {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: v2AxisWidth,
+        height: plotHeight})
+    newBounds.set('rightCat',
+      {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth,
         height: plotHeight})
     // console.log(`newBounds.left = ${JSON.stringify(newBounds.get('left'))}`)
     return newBounds
