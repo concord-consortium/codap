@@ -26,6 +26,10 @@ export const FreeTileRowComponent = ({ row, getTile }: IFreeTileRowProps) => {
     tempWidth.current = startWidth
     tempHeight.current = startHeight
     let resizingWidth = startWidth, resizingHeight = startHeight, resizingWidthLeft = tile.x
+    // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
+    // the pointer down event location, which moves the entire component to the right by the same number of pixels.
+    // So we force it to always be the left position of the component
+    const leftStartPosition = startPosition.x > tile.x ? tile.x : startPosition.x
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tile.tileId)
@@ -35,11 +39,13 @@ export const FreeTileRowComponent = ({ row, getTile }: IFreeTileRowProps) => {
           resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
           break
         case "bottom-left":
-          resizingWidth = startPosition.x - startWidth + pointerMoveEvent.pageX
-          resizingHeight = startPosition.y - startHeight + pointerMoveEvent.pageY
+          resizingWidth = startWidth + leftStartPosition - pointerMoveEvent.pageX
+          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+          resizingWidthLeft = pointerMoveEvent.pageX
           break
         case "left":
-          resizingWidth = startPosition.x + startWidth - pointerMoveEvent.pageX
+          resizingWidth = startWidth + leftStartPosition - pointerMoveEvent.pageX
+
           resizingWidthLeft = pointerMoveEvent.pageX
           break
         case "bottom":
@@ -51,9 +57,9 @@ export const FreeTileRowComponent = ({ row, getTile }: IFreeTileRowProps) => {
       }
 
       setResizingTileStyle({left: resizingWidthLeft, top: tile.y, width: resizingWidth, height: resizingHeight})
+      tempLeft.current = resizingWidthLeft
       tempWidth.current = resizingWidth
       tempHeight.current = resizingHeight
-      tempLeft.current = resizingWidthLeft
     }
     const onPointerUp = () => {
       document.body.removeEventListener("pointermove", onPointerMove)
