@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react"
 import { IMosaicTileNode, IMosaicTileRow } from "../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
+import { tileModelHooks } from "../models/tiles/tile-model-hooks"
 import { CodapComponent } from "./codap-component"
 
 import "./mosaic-tile-row.scss"
@@ -93,23 +94,46 @@ export const MosaicTileComponent = ({ tile, direction, pctExtent }: IMosaicTileP
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
-  const [, setResizingTileId] = useState("")
+  const [resizingTileStyle, setResizingTileStyle] =
+    useState<{width: number, height: number}>()
+  const [resizingTileId, setResizingTileId] = useState("")
+  // const [direction, setDirection] = useState("")
   const tempWidth = useRef<number>(0)
   const tempHeight = useRef<number>(0)
 
 
-  const handleResizePointerDown = (e: React.PointerEvent) => {
+  const handleResizePointerDown = (e: React.PointerEvent, resizeDirection: string) => {
     const startWidth = tile.width || 0
     const startHeight = tile.height || 0
     const startPosition = {x: e.pageX, y: e.pageY}
     tempWidth.current = startWidth
     tempHeight.current = startHeight
+    let resizingWidth = startWidth, resizingHeight = startHeight
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tile.id)
-      const resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
-      const resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
-      // setResizingTileStyle({left: tile.x, top: tile.y, width: resizingWidth, height: resizingHeight})
+      switch (resizeDirection) {
+        case "bottom-right":
+          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
+          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+          break
+        case "bottom-left":
+          resizingWidth = startPosition.x - startWidth + pointerMoveEvent.pageX
+          resizingHeight = startPosition.y - startHeight + pointerMoveEvent.pageY
+          break
+        case "left":
+          resizingWidth = startPosition.x - startWidth + pointerMoveEvent.pageX
+          break
+        case "bottom":
+          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+          break
+        case "right":
+          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
+          break
+      }
+      // const resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
+      // const resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+      setResizingTileStyle({width: resizingWidth, height: resizingHeight})
       tempWidth.current = resizingWidth
       tempHeight.current = resizingHeight
     }
@@ -124,14 +148,17 @@ export const MosaicTileComponent = ({ tile, direction, pctExtent }: IMosaicTileP
     document.body.addEventListener("pointermove", onPointerMove)
     document.body.addEventListener("pointerup", onPointerUp)
   }
-  console.log("style", style)
-  console.log("width", tile.width, tile.height)
 
   return (
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
         <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-            tileEltClass={info.tileEltClass} onPointerDown={(e)=>handleResizePointerDown(e)}/>
+            tileEltClass={info.tileEltClass}
+            onBottomRightPointerDown={(e)=>handleResizePointerDown(e, "bottom-right")}
+            onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, "bottom-left")}
+            onRightPointerDown={(e)=>handleResizePointerDown(e, "right")}
+            onBottomPointerDown={(e)=>handleResizePointerDown(e, "bottom")}
+            onLeftPointerDown={(e)=>handleResizePointerDown(e, "left")}        />
       }
     </div>
   )

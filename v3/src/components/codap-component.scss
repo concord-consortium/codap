@@ -6,8 +6,6 @@ $corner-drag-size: calc($border-drag-width * 2);
   position: relative;
   width: 100%;
   height: 100%;
-  resize: both;
-  overflow: auto;
 
   input {
     &:focus {
@@ -16,19 +14,7 @@ $corner-drag-size: calc($border-drag-width * 2);
     }
   }
 
-  .component-resize-handle {
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
-    width: 22px;
-    height: 22px;
-    z-index: 5;
-    cursor: resize;
-    fill: #d3d3d3;
-    &:hover {
-      fill: white;
-    }
-  }
+
 }
 
 .codap-component-border {
@@ -38,24 +24,23 @@ $corner-drag-size: calc($border-drag-width * 2);
   margin: 0;
   user-select: none;
   &.right {
-    bottom: 0;
+    bottom: 16px;
     right: 0;
     top: vars.$title-bar-height;
     width: $border-drag-width;
-    ;
     cursor: e-resize;
   }
   &.bottom {
     bottom: 0;
-    right: 0;
-    left: 0;
+    right: 16px;
+    left: 16px;
     height: $border-drag-width;
     cursor: s-resize;
   }
   &.left {
-    bottom: 0;
+    bottom: 16px;
     left: 0;
-    top: 0;
+    top: vars.$title-bar-height;
     width: $border-drag-width;
     cursor: w-resize;
   }
@@ -72,13 +57,22 @@ $corner-drag-size: calc($border-drag-width * 2);
     left: 0;
     height: $corner-drag-size;
     width: $corner-drag-size;
+    z-index: 5;
     cursor: sw-resize;
   }
   &.bottom-right {
     bottom: 0;
-    left: 0;
-    height: $corner-drag-size;
-    width: $corner-drag-size;
+    right: 0;
+    height: 22px;
+    width: 22px;
+    z-index: 5;
     cursor: se-resize;
+  }
+
+  .component-resize-handle {
+    fill: #d3d3d3;
+    &:hover {
+      fill: white;
+    }
   }
 }

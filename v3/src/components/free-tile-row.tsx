@@ -16,27 +16,50 @@ export const FreeTileRowComponent = ({ row, getTile }: IFreeTileRowProps) => {
   const [resizingTileId, setResizingTileId] = useState("")
   const tempWidth = useRef<number>(0)
   const tempHeight = useRef<number>(0)
+  const tempLeft = useRef<number>(0)
 
-
-  const handleResizePointerDown = (e: React.PointerEvent, tile: IFreeTileLayout) => {
+  const handleResizePointerDown = (e: React.PointerEvent, tile: IFreeTileLayout, direction: string) => {
     const startWidth = tile.width
     const startHeight = tile.height
     const startPosition = {x: e.pageX, y: e.pageY}
+    tempLeft.current = tile.x
     tempWidth.current = startWidth
     tempHeight.current = startHeight
+    let resizingWidth = startWidth, resizingHeight = startHeight, resizingWidthLeft = tile.x
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tile.tileId)
-      const resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
-      const resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
-      setResizingTileStyle({left: tile.x, top: tile.y, width: resizingWidth, height: resizingHeight})
+      switch (direction) {
+        case "bottom-right":
+          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
+          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+          break
+        case "bottom-left":
+          resizingWidth = startPosition.x - startWidth + pointerMoveEvent.pageX
+          resizingHeight = startPosition.y - startHeight + pointerMoveEvent.pageY
+          break
+        case "left":
+          resizingWidth = startPosition.x + startWidth - pointerMoveEvent.pageX
+          resizingWidthLeft = pointerMoveEvent.pageX
+          break
+        case "bottom":
+          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+          break
+        case "right":
+          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
+          break
+      }
+
+      setResizingTileStyle({left: resizingWidthLeft, top: tile.y, width: resizingWidth, height: resizingHeight})
       tempWidth.current = resizingWidth
       tempHeight.current = resizingHeight
+      tempLeft.current = resizingWidthLeft
     }
     const onPointerUp = () => {
       document.body.removeEventListener("pointermove", onPointerMove)
       document.body.removeEventListener("pointerup", onPointerUp)
       tile.setSize(tempWidth.current, tempHeight.current)
+      tile.setPosition(tempLeft.current, tile.y)
       setResizingTileId("")
     }
 
@@ -60,7 +83,12 @@ export const FreeTileRowComponent = ({ row, getTile }: IFreeTileRowProps) => {
               {tile && info && rowTile &&
                 <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
                     tileEltClass={info.tileEltClass}
-                    onPointerDown={(e)=>handleResizePointerDown(e, rowTile)}/>
+                    onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
+                    onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
+                    onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}
+                    onBottomPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom")}
+                    onLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "left")}
+                />
               }
             </div>
           )

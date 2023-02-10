@@ -8,17 +8,21 @@ import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 
 import "./codap-component.scss"
 
-const kMinComponentSize = 50,
-      kMaxComponentSize = Number.MAX_VALUE
-
 export interface IProps extends ITileBaseProps {
   tile: ITileModel
   TitleBar: React.ComponentType<ITileBaseProps>;
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
-  onPointerDown: (e: React.PointerEvent) => void
+  onBottomRightPointerDown: (e: React.PointerEvent) => void
+  onBottomLeftPointerDown: (e: React.PointerEvent) => void
+  onRightPointerDown: (e: React.PointerEvent) => void
+  onBottomPointerDown: (e: React.PointerEvent) => void
+  onLeftPointerDown: (e: React.PointerEvent) => void
 }
-export const CodapComponent = observer(({ tile, TitleBar, Component, tileEltClass, onPointerDown }: IProps) => {
+
+export const CodapComponent =
+    observer(({ tile, TitleBar, Component, tileEltClass, onBottomRightPointerDown, onBottomLeftPointerDown,
+      onRightPointerDown, onBottomPointerDown, onLeftPointerDown }: IProps) => {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
 
   return (
@@ -26,14 +30,13 @@ export const CodapComponent = observer(({ tile, TitleBar, Component, tileEltClas
       <div className={`codap-component ${tileEltClass}`}>
         <TitleBar tile={tile}/>
         <Component tile={tile} />
-        <div className="resize-handle-wrapper" onPointerDown={onPointerDown}>
+        <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>
+        <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>
+        <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>
+        <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
+        <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
           <ResizeHandle className="component-resize-handle"/>
         </div>
-        <div className="codap-component-border right" ref={setBorderElt}onPointerMove={handleBorderResizeRight}/>
-        <div className="codap-component-border bottom" />
-        <div className="codap-component-border left" onPointerMove={handleBorderResizeLeft}/>
-        <div className="codap-component-corner bottom-left" />
-        <div className="codap-component-border bottom-rightf" />
       </div>
     </DataSetContext.Provider>
   )
