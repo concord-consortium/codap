@@ -26,8 +26,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
   const primaryAttrRole = dataConfiguration?.primaryRole,
     primaryAxisPlace = primaryAttrRole ? attrRoleToAxisPlace[primaryAttrRole] : undefined,
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrIDRef = useRef<string>(''),
-    secondaryAttrIDRef = useRef<string>(''),
+    primaryAttrIDRef = useRef(''),
+    secondaryAttrIDRef = useRef(''),
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y'
       : primaryAttrRole === 'y' ? 'x' : undefined,
     secondaryAxisPlace = secondaryAttrRole ? attrRoleToAxisPlace[secondaryAttrRole] : undefined,
