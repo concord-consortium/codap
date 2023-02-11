@@ -48,10 +48,11 @@ import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import { CollectionModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
 import {
   CaseGroup, CaseID, CollectionGroup, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec,
-  IGetCaseOptions, IGetCasesOptions, IMoveAttributeOptions, newCaseId
+  IGetCaseOptions, IGetCasesOptions, IMoveAttributeOptions, uniqueCaseId
 } from "./data-set-types"
 import { uniqueId } from "../../utilities/js-utils"
 
+// remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
   srcDataSet: IDataSet;
   derivationSpec: IDerivationSpec;
@@ -538,7 +539,7 @@ export const DataSet = types.model("DataSet", {
             }
             else if (call.context === self && call.name === "addCases") {
               call.args[0] = (call.args[0] as ICaseCreation[]).map(iCase => {
-                const { __id__ = newCaseId(), ...others } = iCase
+                const { __id__ = uniqueCaseId(), ...others } = iCase
                 return { __id__, ...others }
               })
             }
@@ -654,7 +655,7 @@ export const DataSet = types.model("DataSet", {
         const { before, after } = options || {}
         cases.forEach((aCase, index) => {
           // shouldn't ever have to assign an id here since the middleware should do so
-          const { __id__ = newCaseId() } = aCase
+          const { __id__ = uniqueCaseId() } = aCase
           const insertPosition = after ? afterIndexForInsert(index, after) : beforeIndexForInsert(index, before)
           self.attributes.forEach((attr: IAttribute) => {
             const value = aCase[attr.id]
