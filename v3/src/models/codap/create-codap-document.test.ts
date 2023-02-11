@@ -69,7 +69,7 @@ describe("createCodapDocument", () => {
                 userEditable: true,
                 values: ["1", "2", "3"]
               }],
-              cases: [{ __id__: "order-5" }, { __id__: "order-6" }, { __id__: "order-7" }],
+              cases: [{ __id__: "CASEorder-5" }, { __id__: "CASEorder-6" }, { __id__: "CASEorder-7" }],
               collections: [],
               id: "test-3",
               snapSelection: []

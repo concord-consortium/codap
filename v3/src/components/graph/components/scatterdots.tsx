@@ -9,7 +9,7 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
-import {ICase} from "../../../models/data/data-set"
+import {ICase} from "../../../models/data/data-set-types"
 import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
