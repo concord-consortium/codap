@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useRef, useState } from "react"
+import React, { useState } from "react"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IFreeTileLayout, IFreeTileRow } from "../models/document/free-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
@@ -17,9 +17,6 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width: number, height: number}>()
   const [resizingTileId, setResizingTileId] = useState("")
-  const tempWidth = useRef<number>(0)
-  const tempHeight = useRef<number>(0)
-  const tempLeft = useRef<number>(0)
 
   const handleCloseTile = (tileId: string) => {
     if (!tileId) return
@@ -30,55 +27,50 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
     const startWidth = tile.width
     const startHeight = tile.height
     const startPosition = {x: e.pageX, y: e.pageY}
-    tempLeft.current = tile.x
-    tempWidth.current = startWidth
-    tempHeight.current = startHeight
-    let resizingWidth = startWidth, resizingHeight = startHeight, resizingWidthLeft = tile.x
+
+    let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = tile.x
     // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
     // the pointer down event location, which moves the entire component to the right by the same number of pixels.
     // So we force it to always be the left position of the component
-    const leftStartPosition = startPosition.x > tile.x ? tile.x : startPosition.x
-
+    const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tile.tileId)
+      const xDelta = pointerMoveEvent.pageX - startPosition.x
+      const yDelta = pointerMoveEvent.pageY - startPosition.y
       switch (direction) {
         case "bottom-right":
-          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
-          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+          resizingWidth = startWidth + xDelta
+          resizingHeight = startHeight + yDelta
           break
         case "bottom-left":
-          resizingWidth = startWidth + leftStartPosition - pointerMoveEvent.pageX
-          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
-          resizingWidthLeft = pointerMoveEvent.pageX
+          resizingWidth = startWidth - xDelta
+          resizingHeight = startHeight + yDelta
+          resizingLeft = startLeft + xDelta
           break
         case "left":
-          resizingWidth = startWidth + leftStartPosition - pointerMoveEvent.pageX
-
-          resizingWidthLeft = pointerMoveEvent.pageX
+          resizingWidth = startWidth - xDelta
+          resizingLeft = startLeft + xDelta
           break
         case "bottom":
-          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
+          resizingHeight = startHeight + yDelta
           break
         case "right":
-          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
+          resizingWidth = startWidth + xDelta
           break
       }
 
-      setResizingTileStyle({left: resizingWidthLeft, top: tile.y, width: resizingWidth, height: resizingHeight})
-      tempLeft.current = resizingWidthLeft
-      tempWidth.current = resizingWidth
-      tempHeight.current = resizingHeight
+      setResizingTileStyle({left: resizingLeft, top: tile.y, width: resizingWidth, height: resizingHeight})
     }
     const onPointerUp = () => {
-      document.body.removeEventListener("pointermove", onPointerMove)
-      document.body.removeEventListener("pointerup", onPointerUp)
-      tile.setSize(tempWidth.current, tempHeight.current)
-      tile.setPosition(tempLeft.current, tile.y)
+      document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
+      document.body.removeEventListener("pointerup", onPointerUp, { capture: true })
+      tile.setSize(resizingWidth, resizingHeight)
+      tile.setPosition(resizingLeft, tile.y)
       setResizingTileId("")
     }
 
-    document.body.addEventListener("pointermove", onPointerMove)
-    document.body.addEventListener("pointerup", onPointerUp)
+    document.body.addEventListener("pointermove", onPointerMove, { capture: true })
+    document.body.addEventListener("pointerup", onPointerUp, { capture: true })
   }
 
   return (

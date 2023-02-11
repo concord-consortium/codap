@@ -24,7 +24,7 @@ $corner-drag-size: calc($border-drag-width * 2);
   margin: 0;
   user-select: none;
   &.right {
-    bottom: 16px;
+    bottom: $corner-drag-size;
     right: 0;
     top: vars.$title-bar-height;
     width: $border-drag-width;
@@ -32,13 +32,13 @@ $corner-drag-size: calc($border-drag-width * 2);
   }
   &.bottom {
     bottom: 0;
-    right: 16px;
-    left: 16px;
+    right: $corner-drag-size;
+    left: $corner-drag-size;
     height: $border-drag-width;
     cursor: s-resize;
   }
   &.left {
-    bottom: 16px;
+    bottom: $corner-drag-size;
     left: 0;
     top: vars.$title-bar-height;
     width: $border-drag-width;

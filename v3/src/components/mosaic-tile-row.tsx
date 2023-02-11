@@ -1,11 +1,10 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useState } from "react"
+import React from "react"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IMosaicTileNode, IMosaicTileRow } from "../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { tileModelHooks } from "../models/tiles/tile-model-hooks"
 import { CodapComponent } from "./codap-component"
 
 import "./mosaic-tile-row.scss"
@@ -100,60 +99,8 @@ export const MosaicTileComponent = observer(({ content, tile, direction, pctExte
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
 
-  const [resizingTileStyle, setResizingTileStyle] =
-    useState<{width: number, height: number}>()
-  const [resizingTileId, setResizingTileId] = useState("")
-  // const [direction, setDirection] = useState("")
-  const tempWidth = useRef<number>(0)
-  const tempHeight = useRef<number>(0)
-
   const handleCloseTile = (tileId: string) => {
     content?.deleteTile(tileId)
-  }
-
-  const handleResizePointerDown = (e: React.PointerEvent, resizeDirection: string) => {
-    const startWidth = tile.width || 0
-    const startHeight = tile.height || 0
-    const startPosition = {x: e.pageX, y: e.pageY}
-    tempWidth.current = startWidth
-    tempHeight.current = startHeight
-    let resizingWidth = startWidth, resizingHeight = startHeight
-
-    const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
-      setResizingTileId(tile.id)
-      switch (resizeDirection) {
-        case "bottom-right":
-          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
-          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
-          break
-        case "bottom-left":
-          resizingWidth = startPosition.x - startWidth + pointerMoveEvent.pageX
-          resizingHeight = startPosition.y - startHeight + pointerMoveEvent.pageY
-          break
-        case "left":
-          resizingWidth = startPosition.x - startWidth + pointerMoveEvent.pageX
-          break
-        case "bottom":
-          resizingHeight = startHeight - startPosition.y + pointerMoveEvent.pageY
-          break
-        case "right":
-          resizingWidth = startWidth - startPosition.x + pointerMoveEvent.pageX
-          break
-      }
-      setResizingTileStyle({width: resizingWidth, height: resizingHeight})
-      tempWidth.current = resizingWidth
-      tempHeight.current = resizingHeight
-    }
-    const onPointerUp = () => {
-      document.body.removeEventListener("pointermove", onPointerMove)
-      document.body.removeEventListener("pointerup", onPointerUp)
-      tile.setWidth(tempWidth.current)
-      tile.setHeight(tempHeight.current)
-      setResizingTileId("")
-    }
-
-    document.body.addEventListener("pointermove", onPointerMove)
-    document.body.addEventListener("pointerup", onPointerUp)
   }
 
   return (
@@ -161,11 +108,6 @@ export const MosaicTileComponent = observer(({ content, tile, direction, pctExte
       {tile && info &&
         <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
             tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}
-            onBottomRightPointerDown={(e)=>handleResizePointerDown(e, "bottom-right")}
-            onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, "bottom-left")}
-            onRightPointerDown={(e)=>handleResizePointerDown(e, "right")}
-            onBottomPointerDown={(e)=>handleResizePointerDown(e, "bottom")}
-            onLeftPointerDown={(e)=>handleResizePointerDown(e, "left")}
         />
       }
     </div>

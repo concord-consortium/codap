@@ -63,9 +63,7 @@ export const TileModel = types
     // whether to restrict display to certain users
     display: DisplayUserTypeEnum,
     // e.g. "TextContentModel", ...
-    content: TileContentUnion,
-    height: types.maybe(types.number),
-    width: types.maybe(types.number)
+    content: TileContentUnion
   })
   .preProcessSnapshot(snapshot => {
     const tileType = snapshot.content.type
@@ -117,12 +115,6 @@ export const TileModel = types
   .actions(self => ({
     setTitle(title: string) {
       self.title = title
-    },
-    setHeight(height: number) {
-      self.height = height
-    },
-    setWidth(width: number) {
-      self.width = width
     }
   }))
   .actions(self => ({
