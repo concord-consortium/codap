@@ -1,5 +1,5 @@
 import {ScaleBand, select} from "d3"
-import React, {useCallback} from "react"
+import React, {useCallback, useRef} from "react"
 import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -26,19 +26,23 @@ export const ChartDots = function ChartDots(props: PlotProps) {
   const primaryAttrRole = dataConfiguration?.primaryRole,
     primaryAxisPlace = primaryAttrRole ? attrRoleToAxisPlace[primaryAttrRole] : undefined,
     primaryIsBottom = primaryAxisPlace === 'bottom',
-    primaryAttrID = primaryAttrRole ? dataConfiguration?.attributeID(primaryAttrRole) : '',
+    primaryAttrIDRef = useRef(''),
+    secondaryAttrIDRef = useRef(''),
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y'
       : primaryAttrRole === 'y' ? 'x' : undefined,
     secondaryAxisPlace = secondaryAttrRole ? attrRoleToAxisPlace[secondaryAttrRole] : undefined,
-    secondaryAttrID = secondaryAttrRole ? dataConfiguration?.attributeID(secondaryAttrRole) : '',
     primaryScale = primaryAxisPlace ? layout.getAxisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
     secondaryScale = secondaryAxisPlace ? layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
+
+  primaryAttrIDRef.current = primaryAttrRole ? dataConfiguration?.attributeID(primaryAttrRole) : ''
+  secondaryAttrIDRef.current = secondaryAttrRole ? dataConfiguration?.attributeID(secondaryAttrRole) : ''
 
   const computeMaxOverAllCells = useCallback(() => {
     const valuePairs = (dataConfiguration?.caseDataArray || []).map((aCaseData:CaseData) => {
         return {
-          primary: (primaryAttrID && dataset?.getValue(aCaseData.caseID, primaryAttrID)) ?? '',
-          secondary: (secondaryAttrID && dataset?.getValue(aCaseData.caseID, secondaryAttrID)) ?? '__main__'
+          primary: (primaryAttrIDRef.current && dataset?.getValue(aCaseData.caseID, primaryAttrIDRef.current)) ?? '',
+          secondary: (secondaryAttrIDRef.current &&
+            dataset?.getValue(aCaseData.caseID, secondaryAttrIDRef.current)) ?? '__main__'
         }
       }),
       bins: BinMap = {}
@@ -56,7 +60,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         return Math.max(vMax, bins[hKey][vKey])
       }, 0))
     }, 0)
-  }, [dataset, dataConfiguration?.caseDataArray, primaryAttrID, secondaryAttrID])
+  }, [dataset, dataConfiguration?.caseDataArray])
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
@@ -108,10 +112,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
       buildMapOfIndicesByCase = () => {
         const indices: Record<string, { cell: { h: number, v: number }, row: number, column: number }> = {}
-        primaryAttrID && (dataConfiguration?.caseDataArray || []).forEach((aCaseData:CaseData) => {
+        primaryAttrIDRef.current && (dataConfiguration?.caseDataArray || []).forEach((aCaseData:CaseData) => {
           const anID = aCaseData.caseID,
-            hCat = dataset?.getValue(anID, primaryAttrID),
-            vCat = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__',
+            hCat = dataset?.getValue(anID, primaryAttrIDRef.current),
+            vCat = secondaryAttrIDRef.current ? dataset?.getValue(anID, secondaryAttrIDRef.current) : '__main__',
             mapEntry = categoriesMap[hCat][vCat],
             numInCell = mapEntry.numSoFar++,
             row = Math.floor(numInCell / cellParams.numPointsInRow),
@@ -184,11 +188,12 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     setPoints()
   }, [dataConfiguration, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
     enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace, pointStrokeColor,
-    computeMaxOverAllCells, primaryAttrID, secondaryAttrID, dataset, secondaryScale])
+    computeMaxOverAllCells, dataset, secondaryScale])
 
   usePlotResponders({
     graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
-    primaryAttrID, secondaryAttrID, legendAttrID:dataConfiguration?.attributeID('legend')
+    primaryAttrID: primaryAttrIDRef.current, secondaryAttrID: secondaryAttrIDRef.current,
+    legendAttrID:dataConfiguration?.attributeID('legend')
   })
 
   return (
