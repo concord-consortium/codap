@@ -32,7 +32,9 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
     // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
     // the pointer down event location, which moves the entire component to the right by the same number of pixels.
     // So we force it to always be the left position of the component
-    const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
+    // const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
+    const startLeft = tile.x
+
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tile.tileId)
       const xDelta = pointerMoveEvent.pageX - startPosition.x
