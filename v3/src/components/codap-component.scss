@@ -1,3 +1,7 @@
+@use "./vars.scss";
+$border-drag-width: 8px;
+$corner-drag-size: calc($border-drag-width * 2);
+
 .codap-component {
   position: relative;
   width: 100%;
@@ -10,14 +14,62 @@
     }
   }
 
-  .component-resize-handle {
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
-    width: 22px;
-    height: 22px;
+
+}
+
+.codap-component-border {
+  border: solid 0 transparent;
+  overflow: hidden;
+  position: absolute;
+  margin: 0;
+  user-select: none;
+  &.right {
+    bottom: $corner-drag-size;
+    right: 0;
+    top: vars.$title-bar-height;
+    width: $border-drag-width;
+    cursor: e-resize;
+  }
+  &.bottom {
+    bottom: 0;
+    right: $corner-drag-size;
+    left: $corner-drag-size;
+    height: $border-drag-width;
+    cursor: s-resize;
+  }
+  &.left {
+    bottom: $corner-drag-size;
+    left: 0;
+    top: vars.$title-bar-height;
+    width: $border-drag-width;
+    cursor: w-resize;
+  }
+}
+
+.codap-component-corner {
+  border: solid 0 transparent;
+  overflow: hidden;
+  position: absolute;
+  margin: 0;
+  user-select: none;
+  &.bottom-left {
+    bottom: 0;
+    left: 0;
+    height: $corner-drag-size;
+    width: $corner-drag-size;
     z-index: 5;
-    cursor: resize;
+    cursor: sw-resize;
+  }
+  &.bottom-right {
+    bottom: 0;
+    right: 0;
+    height: 22px;
+    width: 22px;
+    z-index: 5;
+    cursor: se-resize;
+  }
+
+  .component-resize-handle {
     fill: #d3d3d3;
     &:hover {
       fill: white;

@@ -14,9 +14,16 @@ export interface IProps extends ITileBaseProps {
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
   onCloseTile: (tileId: string) => void
+  onBottomRightPointerDown?: (e: React.PointerEvent) => void
+  onBottomLeftPointerDown?: (e: React.PointerEvent) => void
+  onRightPointerDown?: (e: React.PointerEvent) => void
+  onBottomPointerDown?: (e: React.PointerEvent) => void
+  onLeftPointerDown?: (e: React.PointerEvent) => void
 }
 
-export const CodapComponent = observer(({ tile, TitleBar, Component, tileEltClass, onCloseTile }: IProps) => {
+export const CodapComponent =
+    observer(({ tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
+      onRightPointerDown, onBottomPointerDown, onLeftPointerDown }: IProps) => {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
 
   return (
@@ -24,7 +31,17 @@ export const CodapComponent = observer(({ tile, TitleBar, Component, tileEltClas
       <div className={`codap-component ${tileEltClass}`}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
-        <ResizeHandle className="component-resize-handle"/>
+        {onRightPointerDown && <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
+        {onBottomPointerDown && <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
+        {onLeftPointerDown && <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
+        {onBottomLeftPointerDown &&
+          <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
+        }
+        {onBottomRightPointerDown &&
+          <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
+            <ResizeHandle className="component-resize-handle"/>
+          </div>
+        }
       </div>
     </DataSetContext.Provider>
   )

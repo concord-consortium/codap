@@ -98,6 +98,7 @@ export const MosaicTileComponent = observer(({ content, tile, direction, pctExte
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
+
   const handleCloseTile = (tileId: string) => {
     content?.deleteTile(tileId)
   }
@@ -106,7 +107,8 @@ export const MosaicTileComponent = observer(({ content, tile, direction, pctExte
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
         <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-            tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}/>
+            tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}
+        />
       }
     </div>
   )
