@@ -1,9 +1,8 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
-import {
-  CaseID, DataSet, fromCanonical, ICaseID, toCanonical
-} from "./data-set"
+import { DataSet, fromCanonical, toCanonical } from "./data-set"
+import { CaseID, ICaseID } from "./data-set-types"
 
 let message = () => ""
 

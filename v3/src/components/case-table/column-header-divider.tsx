@@ -1,7 +1,7 @@
 import { useDroppable } from "@dnd-kit/core"
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { IMoveAttributeOptions } from "../../models/data/data-set"
+import { IMoveAttributeOptions } from "../../models/data/data-set-types"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useDropHandler } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"

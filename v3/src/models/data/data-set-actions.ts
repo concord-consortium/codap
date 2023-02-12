@@ -1,5 +1,5 @@
 import { ISerializedActionCall } from "mobx-state-tree"
-import { IAddCaseOptions, ICase } from "./data-set"
+import { IAddCaseOptions, ICase } from "./data-set-types"
 
 // TODO: define the types for the rest of the actions
 

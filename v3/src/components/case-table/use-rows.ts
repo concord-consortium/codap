@@ -4,7 +4,8 @@ import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
-import { ICase, IDataSet } from "../../models/data/data-set"
+import { IDataSet } from "../../models/data/data-set"
+import { ICase } from "../../models/data/data-set-types"
 import {
   AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
 } from "../../models/data/data-set-actions"
