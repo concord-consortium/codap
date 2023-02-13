@@ -1,10 +1,8 @@
-import { useDroppable } from "@dnd-kit/core"
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IMoveAttributeOptions } from "../../models/data/data-set-types"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { useDropHandler } from "../../hooks/use-drag-drop"
-import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { kIndexColumnKey } from "./case-table-types"
 
 interface IProps {
@@ -12,15 +10,12 @@ interface IProps {
   cellElt: HTMLElement | null
 }
 export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
-  const instanceId = useInstanceIdContext()
   const data = useDataSetContext()
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
   const tableBounds = tableElt?.getBoundingClientRect()
   const cellBounds = cellElt?.getBoundingClientRect()
 
-  const id = `${instanceId}-attribute:${columnKey}-drop`
-  const { isOver, setNodeRef: setDropRef } = useDroppable({ id })
-  useDropHandler(id, active => {
+  const { isOver, setNodeRef: setDropRef } = useTileDroppable(`attribute:${columnKey}`, active => {
     const dragAttrId = active.data?.current?.attributeId
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: data?.attributes[0].id }

@@ -1,18 +1,24 @@
-import { useDroppable } from "@dnd-kit/core"
+import { closestCenter } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { useTileDropOverlay } from "../../hooks/use-drag-drop"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
+import { registerTileCollisionDetection } from "../dnd-detect-collision"
+import { ITileBaseProps } from "../tiles/tile-base-props"
 import { CaseTable } from "./case-table"
 import { isCaseTableModel } from "./case-table-model"
-import { ITileBaseProps } from "../tiles/tile-base-props"
+import { kCaseTableIdBase } from "./case-table-types"
+
+// use closestCenter inside table for column resizing
+registerTileCollisionDetection(kCaseTableIdBase, closestCenter)
 
 export const CaseTableComponent = observer(({ tile }: ITileBaseProps) => {
   const tableModel = tile?.content
   if (!isCaseTableModel(tableModel)) return null
 
-  const instanceId = useNextInstanceId("case-table")
-  const id = `${instanceId}-component-drop-overlay`
-  const { setNodeRef } = useDroppable({ id })
+  const instanceId = useNextInstanceId(kCaseTableIdBase)
+  // pass in the instance id since the context hasn't been provided yet
+  const { setNodeRef } = useTileDropOverlay(instanceId)
 
   return (
     <InstanceIdContext.Provider value={instanceId}>

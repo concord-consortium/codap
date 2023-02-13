@@ -2,6 +2,8 @@ import {
   CalculatedColumn, Column, EditorProps, FormatterProps, HeaderRendererProps, RowRendererProps, RowsChangeData
 } from "react-data-grid"
 
+export const kCaseTableIdBase = "case-table"
+
 export interface TRow {
   __id__: string;
   // ids of attributes whose DOM representation have been manipulated
