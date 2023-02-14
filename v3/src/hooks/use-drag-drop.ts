@@ -37,14 +37,18 @@ export const useDraggableAttribute = ({ prefix, attributeId, ...others }: IUseDr
   return useDraggable({ ...others, id: `${prefix}-${attributeId}`, attributes, data })
 }
 
-// collision-detection code uses drop overlays to identify the tile that should handle the drag
+// Collision-detection code uses drop overlays to identify the tile that should handle the drag.
+// Passes its dropProps argument to useDroppable and returns an object with the return value
+// of useDroppable plus the generated id.
 export const useTileDropOverlay = (baseId?: string, dropProps?: UseDroppableArguments) => {
   const instanceId = useInstanceIdContext() || baseId
   const id = `${instanceId}-drop-overlay`
   return { id, ...useDroppable({ ...dropProps, id }) }
 }
 
-// collision-detection code keys on drop ids that match this convention
+// Collision-detection code keys on drop ids that match this convention.
+// Passes its dropProps argument to useDroppable and returns an object with the return value
+// of useDroppable plus the generated id.
 export const useTileDroppable = (
   baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
 ) => {
