@@ -457,8 +457,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       plotBounds, getScreenX, getScreenY, getLegendColor, enableAnimation,
       onComplete = (() => {
         if (enableAnimation.current) {
-          enableAnimation.current = false
           setPoints()
+          enableAnimation.current = false
         }
       })
     } = props,

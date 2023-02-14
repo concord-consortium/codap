@@ -2,12 +2,12 @@ import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
-import {IAttributeDescriptionSnapshot}
-  from "./data-configuration-model"
+import {IAttributeDescriptionSnapshot} from "./data-configuration-model"
+import {IAttribute} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, EmptyAxisModel, ICategoricalAxisModel, IEmptyAxisModel, INumericAxisModel, NumericAxisModel
+  CategoricalAxisModel, EmptyAxisModel, IAxisModel, IEmptyAxisModel, INumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import {
   attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType
@@ -153,6 +153,51 @@ export class GraphController {
       yAxisModel && setNiceDomain(this.graphModel.config.numericValuesForYAxis, yAxisModel)
       return
     }
+
+    interface IAxisSetupProps {
+      attr?: IAttribute,
+      attrType: string,
+      currentType?: string,
+      place: AxisPlace,
+      attrRole: GraphAttrRole,
+      currAxisModel?: IAxisModel
+    }
+
+    const setupAxis = (props: IAxisSetupProps) => {
+      const {attr, attrType, currentType, place, attrRole, currAxisModel} = props
+      switch (attrType) {
+        case 'numeric': {
+          if (currentType !== 'numeric') {
+            const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
+            graphModel.setAxis(place, newAxisModel)
+            layout.setAxisScale(place, scaleLinear())
+            setNiceDomain(attr?.numValues || [], newAxisModel)
+          } else {
+            setNiceDomain(attr?.numValues || [], currAxisModel as INumericAxisModel)
+          }
+        }
+          break
+        case 'categorical': {
+          const setOfValues = dataConfig.categorySetForAttrRole(attrRole)
+          if (currentType !== 'categorical') {
+            const newAxisModel = CategoricalAxisModel.create({place})
+            graphModel.setAxis(place, newAxisModel)
+            layout.setAxisScale(place, scaleBand())
+          }
+          layout.getAxisScale(place)?.domain(setOfValues)
+        }
+          break
+        case 'empty': {
+          if (currentType !== 'empty') {
+            layout.setAxisScale(place, scaleOrdinal())
+            const newAxisModel = graphAttributeRole !== 'rightNumeric'
+              ? EmptyAxisModel.create({place}) : undefined
+            graphModel.setAxis(place, newAxisModel as IEmptyAxisModel)
+          }
+        }
+      }
+    }
+
     const {dataset, graphModel, layout} = this,
       dataConfig = graphModel.config,
       axisPlace = graphPlace as AxisPlace,
@@ -167,7 +212,7 @@ export class GraphController {
       otherAttribute = dataset?.attrFromID(otherAttrID),
       otherAttributeType = otherAttribute?.type ?? 'empty',
       axisModel = graphModel.getAxis(axisPlace),
-      currentAxisType = axisModel?.type,
+      otherAxisModel = graphModel.getAxis(otherAxisPlace),
       currentlyAssignedAttributeID = dataConfig.attributeID(graphAttributeRole),
       attrDescSnapshot: IAttributeDescriptionSnapshot = {attributeID: attrID},
       // Numeric attributes get priority for primaryRole when present. First one that is already present
@@ -179,31 +224,22 @@ export class GraphController {
     dataConfig.setPrimaryRole(primaryRole)
     currentlyAssignedAttributeID !== attrID && dataConfig.setAttribute(graphAttributeRole, attrDescSnapshot)
     graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
-    if (attributeType === 'numeric') {
-      if (currentAxisType !== attributeType) {
-        const newAxisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
-        graphModel.setAxis(axisPlace, newAxisModel as INumericAxisModel)
-        layout.setAxisScale(axisPlace, scaleLinear())
-        setNiceDomain(attribute?.numValues || [], newAxisModel)
-      } else {
-        setNiceDomain(attribute?.numValues || [], axisModel as INumericAxisModel)
-      }
-    } else if (attributeType === 'categorical') {
-      const setOfValues = dataConfig.categorySetForAttrRole(graphAttributeRole)
-      if (currentAxisType !== attributeType) {
-        const newAxisModel = CategoricalAxisModel.create({place: axisPlace})
-        graphModel.setAxis(axisPlace, newAxisModel as ICategoricalAxisModel)
-        layout.setAxisScale(axisPlace, scaleBand())
-      }
-      layout.getAxisScale(axisPlace)?.domain(setOfValues)
-    } else {  // attributeType is 'empty'
-      if (currentAxisType !== attributeType) {
-        layout.setAxisScale(axisPlace, scaleOrdinal())
-        const newAxisModel = graphAttributeRole !== 'rightNumeric'
-          ? EmptyAxisModel.create({place: axisPlace}) : undefined
-        graphModel.setAxis(axisPlace, newAxisModel as IEmptyAxisModel)
-      }
-    }
+    setupAxis({
+      attr: attribute,
+      attrType: attributeType,
+      currentType: axisModel?.type,
+      place: axisPlace,
+      attrRole: graphAttributeRole,
+      currAxisModel: graphModel.getAxis(axisPlace)
+    })
+    setupAxis({
+      attr: otherAttribute,
+      attrType: otherAttributeType,
+      currentType: otherAxisModel?.type,
+      place: otherAxisPlace,
+      attrRole: otherAttrRole,
+      currAxisModel: otherAxisModel
+    })
   }
 
   setDotsRef(dotsRef: React.RefObject<SVGSVGElement>) {

@@ -1,6 +1,5 @@
 import {select} from "d3"
-import React, {useCallback, useEffect, useRef, useState} from "react"
-import {autorun} from "mobx"
+import React, {useCallback, useRef, useState} from "react"
 import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData, PlotProps} from "../graphing-types"
@@ -193,15 +192,18 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     }
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
+/*
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed
   useEffect(() => {
     return autorun(
       () => {
+        // The following needs to get put in the timer queue
         !dataConfiguration?.pointsNeedUpdating && refreshPointPositionsD3(false)
       })
   }, [dataConfiguration?.pointsNeedUpdating, refreshPointPositionsD3])
 
+*/
   usePlotResponders({
     graphModel, primaryAttrID:primaryAttrIDRef.current, secondaryAttrID: secondaryAttrIDsRef.current[0],
     layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef} from "react"
-import {reaction} from "mobx"
+import {autorun, reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {INumericAxisModel} from "../../axis/models/axis-model"
@@ -65,11 +65,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     if (timer.current) {
       return
     }
+    const savedEnableAnimation = enableAnimation.current
     timer.current = setTimeout(() => {
+      enableAnimation.current = savedEnableAnimation
       refreshPointPositions(selectedOnly)
       timer.current = null
     }, 10)
-  }, [refreshPointPositions])
+  }, [refreshPointPositions, enableAnimation])
 
   useEffect(function doneWithTimer() {
     return () => {
@@ -146,5 +148,17 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     })
     return () => disposer()
   }, [dataset, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+
+  // respond to pointsNeedUpdating becoming false; that is when the points have been updated
+  // Happens when the number of plots has changed
+  useEffect(() => {
+    return autorun(
+      () => {
+        // The following needs to get put in the timer queue
+        !graphModel.config?.pointsNeedUpdating && callRefreshPointPositions(false)
+      })
+  }, [graphModel, callRefreshPointPositions])
+
+
 
 }
