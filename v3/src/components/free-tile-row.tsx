@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IFreeTileLayout, IFreeTileRow } from "../models/document/free-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
@@ -17,6 +17,10 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width: number, height: number}>()
   const [resizingTileId, setResizingTileId] = useState("")
+  const [movingTileId, setMovingTileId] = useState("")
+  const [movingTileStyle, setMovingTileStyle] = useState<{left: number, top: number, width: number, height: number}>()
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  // const isDraggingRef = useRef<boolean>()
 
   const handleCloseTile = (tileId: string) => {
     if (!tileId) return
@@ -27,13 +31,8 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
     const startWidth = tile.width
     const startHeight = tile.height
     const startPosition = {x: e.pageX, y: e.pageY}
-
-    let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = tile.x
-    // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
-    // the pointer down event location, which moves the entire component to the right by the same number of pixels.
-    // So we force it to always be the left position of the component
-    // const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
     const startLeft = tile.x
+    let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = tile.x
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tile.tileId)
@@ -75,6 +74,48 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
   }
 
+
+
+  const handleComponentDragPointerDown = (e: React.MouseEvent, tile: IFreeTileLayout) => {
+    console.log("handleComponentDragPointerDown")
+
+    const startPosition = {x: e.pageX, y: e.pageY}
+    const startTop = tile.y
+    const startLeft = tile.x
+    let movingLeft = startLeft, movingTop = startTop
+
+    const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setMovingTileId(tile.tileId)
+      // isDraggingRef.current = true
+      // console.log("in onPointerMove isDragging", isDraggingRef.current)
+      const xDelta = pointerMoveEvent.pageX - startPosition.x
+      const yDelta = pointerMoveEvent.pageY - startPosition.y
+      movingLeft = startLeft + xDelta
+      movingTop = startTop + yDelta
+      setMovingTileStyle({left: movingLeft, top: movingTop, width: tile.width, height: tile.height})
+    }
+    const onPointerUp = () => {
+      document.body.removeEventListener("mousemove", onPointerMove, { capture: true })
+      document.body.removeEventListener("mouseup", onPointerUp, { capture: true })
+      tile.setPosition(movingLeft, movingTop)
+      setMovingTileId("")
+      // console.log("in onPointerup isDragging", isDraggingRef.current)
+    }
+    document.body.addEventListener("mousemove", onPointerMove, { capture: true })
+    document.body.addEventListener("mouseup", onPointerUp, { capture: true })
+  }
+
+  const handleTitleBarClick = (e: React.PointerEvent) => {
+    console.log("ComponentTitleBar handleClick")
+    // e.preventDefault()
+    // if (isDraggingRef.current) return
+    if (!isEditingTitle) {
+      setIsEditingTitle?.(true)
+    }
+  }
+
   return (
     <div className="free-tile-row">
       {
@@ -84,13 +125,18 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
           const rowTile = row.tiles.get(tileId)
           const { x: left, y: top, width, height } = rowTile || {}
           const tileStyle: React.CSSProperties = { left, top, width, height }
-          const style = tileId === resizingTileId ? resizingTileStyle : tileStyle
+          const style = tileId === resizingTileId
+                          ? resizingTileStyle
+                          : tileId === movingTileId ? movingTileStyle : tileStyle
           const info = getTileComponentInfo(tileType)
           return (
             <div className="free-tile-component" style={style} key={tileId}>
               {tile && info && rowTile &&
                 <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
                     tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}
+                    isEditingTitle={isEditingTitle} setIsEditingTitle={setIsEditingTitle}
+                    onHandleTitleBarClick={(e)=>handleTitleBarClick(e)}
+                    onComponentMovePointerDown={(e)=>handleComponentDragPointerDown(e, rowTile)}
                     onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
                     onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
                     onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}

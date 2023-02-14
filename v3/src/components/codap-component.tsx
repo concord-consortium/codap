@@ -13,23 +13,30 @@ export interface IProps extends ITileBaseProps {
   TitleBar: React.ComponentType<ITileTitleBarProps>;
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
-  onCloseTile: (tileId: string) => void
-  onBottomRightPointerDown?: (e: React.PointerEvent) => void
-  onBottomLeftPointerDown?: (e: React.PointerEvent) => void
-  onRightPointerDown?: (e: React.PointerEvent) => void
-  onBottomPointerDown?: (e: React.PointerEvent) => void
-  onLeftPointerDown?: (e: React.PointerEvent) => void
+  isEditingTitle: boolean;
+  onCloseTile: (tileId: string) => void;
+  onBottomRightPointerDown?: (e: React.PointerEvent) => void;
+  onBottomLeftPointerDown?: (e: React.PointerEvent) => void;
+  onRightPointerDown?: (e: React.PointerEvent) => void;
+  onBottomPointerDown?: (e: React.PointerEvent) => void;
+  onLeftPointerDown?: (e: React.PointerEvent) => void;
+  onComponentMovePointerDown?: (e: React.PointerEvent) => void;
+  setIsEditingTitle: (editing: boolean) => void;
+  onHandleTitleBarClick?: (e: React.PointerEvent) => void;
 }
 
 export const CodapComponent =
-    observer(({ tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
-      onRightPointerDown, onBottomPointerDown, onLeftPointerDown }: IProps) => {
+    observer(({ tile, TitleBar, Component, tileEltClass, isEditingTitle, onCloseTile, onBottomRightPointerDown,
+                onBottomLeftPointerDown, onRightPointerDown, onBottomPointerDown, onLeftPointerDown,
+                onComponentMovePointerDown, setIsEditingTitle, onHandleTitleBarClick }: IProps) => {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
 
   return (
     <DataSetContext.Provider value={dataset}>
       <div className={`codap-component ${tileEltClass}`}>
-        <TitleBar tile={tile} onCloseTile={onCloseTile}/>
+        <TitleBar tile={tile} onCloseTile={onCloseTile} isEditingTitle={isEditingTitle}
+            setIsEditingTitle={setIsEditingTitle} onComponentMovePointerDown={onComponentMovePointerDown}
+            onHandleTitleBarClick={onHandleTitleBarClick}/>
         <Component tile={tile} />
         {onRightPointerDown && <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
         {onBottomPointerDown && <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}

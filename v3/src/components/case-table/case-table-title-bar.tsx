@@ -10,7 +10,7 @@ import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
 import "./case-table-title-bar.scss"
 
-export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
+export const CaseTableTitleBar = ({tile, isEditingTitle, onCloseTile, onComponentMovePointerDown, setIsEditingTitle, onHandleTitleBarClick}: ITileTitleBarProps) => {
   const dataset = useDataSetContext()
   const [title, setTitle] = useState(dataset?.name || "Dataset")
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
@@ -50,7 +50,13 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
           </Box>
         }
       </div>
-      <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange} />
+      {isEditingTitle
+        ? <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange}
+              setIsEditing={setIsEditingTitle}/>
+        : <Box className="title-bar" onMouseDown={onComponentMovePointerDown as any}>
+            <Box className="title-text" onClick={onHandleTitleBarClick}>{title}</Box>
+          </Box>
+      }
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}

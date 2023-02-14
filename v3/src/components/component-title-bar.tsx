@@ -20,21 +20,14 @@ export const ComponentTitleBar = ({component, children}: IProps) => {
 interface IEditableComponentTitleProps {
   className?: string
   componentTitle: string
+  setIsEditing: (editing: boolean) => void
   onEndEdit?: (title?: string) => void
 }
 
 export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
-                observer(({componentTitle, onEndEdit}) => {
+                observer(({componentTitle, onEndEdit, setIsEditing}) => {
   const title = componentTitle
-  const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
-
-  const handleClick = () => {
-    if (!isEditing) {
-      setEditingTitle(title)
-      setIsEditing(true)
-    }
-  }
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = e
     switch (key) {
@@ -53,9 +46,10 @@ export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
     onEndEdit?.(accept && trimTitle ? trimTitle : undefined)
     setIsEditing(false)
   }
+
   return (
     <Input className="editable-component-title" value={editingTitle} data-testid="editable-component-title" size="sm"
-      onClick={handleClick} onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
+      onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
       onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()} />
   )
 })

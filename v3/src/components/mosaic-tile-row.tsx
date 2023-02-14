@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useState } from "react"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IMosaicTileNode, IMosaicTileRow } from "../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
@@ -98,6 +98,7 @@ export const MosaicTileComponent = observer(({ content, tile, direction, pctExte
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
 
   const handleCloseTile = (tileId: string) => {
     content?.deleteTile(tileId)
@@ -107,7 +108,8 @@ export const MosaicTileComponent = observer(({ content, tile, direction, pctExte
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
         <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-            tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}
+            tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile} isEditingTitle={isEditingTitle}
+            setIsEditingTitle={setIsEditingTitle}
         />
       }
     </div>

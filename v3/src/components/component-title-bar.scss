@@ -4,7 +4,7 @@
   flex-direction: row;
   height: $title-bar-height;
   background-color: #177991;
-  width: 100%;
+  justify-content: center;
   border-radius: $border-radius-top-corners;
   &:hover {
     .header-right {
@@ -87,4 +87,18 @@
   text-align: center;
   position: inherit !important; //overrides Chakra's position relative
   border-radius: $border-radius-top-corners;
+}
+
+.title-bar {
+  width: 100%;
+  cursor: grab;
+}
+.title-text {
+  width: max-content;
+  color: white;
+  font-size: 14px;
+  text-align: center;
+  padding-top: 2px;
+  margin: auto;
+  cursor: text
 }
