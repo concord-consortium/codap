@@ -1,14 +1,16 @@
 import { Button, Select } from '@chakra-ui/react'
-import { DragOverlay, useDndContext, useDroppable } from "@dnd-kit/core"
+import { DragOverlay, useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { isDataSummaryModel } from './data-summary-model'
+import { registerTileCollisionDetection } from '../dnd-detect-collision'
 import { IAttribute } from "../../models/data/attribute"
 import { gDataBroker } from "../../models/data/data-broker"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import {
-  getDragAttributeId, IUseDraggableAttribute, useDraggableAttribute, useDropHandler
+  getDragAttributeId, IUseDraggableAttribute, useDraggableAttribute, useTileDropOverlay, useTileDroppable
 } from "../../hooks/use-drag-drop"
+import { InstanceIdContext, useNextInstanceId } from '../../hooks/use-instance-id-context'
 import { useV2DocumentContext } from "../../hooks/use-v2-document-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { prf } from "../../utilities/profiler"
@@ -16,20 +18,24 @@ import t from "../../utilities/translation/translate"
 
 import "./data-summary.scss"
 
+const kSummaryIdBase = "summary"
+registerTileCollisionDetection(kSummaryIdBase)
+
 export const DataSummary = observer(({ tile }: ITileBaseProps) => {
   const summaryModel = tile?.content
   if (!isDataSummaryModel(summaryModel)) return null
 
+  const instanceId = useNextInstanceId(kSummaryIdBase)
   const data = useDataSetContext()
   const v2Document = useV2DocumentContext()
 
   const { active } = useDndContext()
-  const isSummaryDrag = active && `${active.id}`.startsWith("summary")
+  const isSummaryDrag = active && `${active.id}`.startsWith(kSummaryIdBase)
   const dragAttributeID = getDragAttributeId(active)
   const dragAttribute = dragAttributeID ? data?.attrFromID(dragAttributeID) : undefined
 
   // used to determine when a dragged attribute is over the summary component
-  const { setNodeRef } = useDroppable({ id: "summary-component-drop" })
+  const { setNodeRef } = useTileDropOverlay(kSummaryIdBase)
 
   const handleDrop = (attributeId: string) => {
     summaryModel.inspect(attributeId)
@@ -64,33 +70,35 @@ export const DataSummary = observer(({ tile }: ITileBaseProps) => {
   const casesStr = t(data?.cases.length === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
 
   return (
-    <div ref={setNodeRef} className="data-summary">
-      <p>
-        {data
-          ? t("V3.summary.parseResults", { vars: [data.name, data.cases.length, casesStr, data.selection.size] })
-          : t("V3.summary.noData")}
-      </p>
-      {componentList &&
-        <div className="data-components">
-          <div className="data-components-title"><b>Components</b></div>
-          <p>{componentList}</p>
+    <InstanceIdContext.Provider value={instanceId}>
+      <div ref={setNodeRef} className="data-summary">
+        <p>
+          {data
+            ? t("V3.summary.parseResults", { vars: [data.name, data.cases.length, casesStr, data.selection.size] })
+            : t("V3.summary.noData")}
+        </p>
+        {componentList &&
+          <div className="data-components">
+            <div className="data-components-title"><b>Components</b></div>
+            <p>{componentList}</p>
+          </div>
+        }
+        <div className="data-attributes">
+          <div className="data-attributes-title"><b>{t("V3.summary.attributes")}</b></div>
+          {data?.attributes.map(attr => (
+            <DraggableAttribute key={attr.id} attribute={attr} />
+          ))}
         </div>
-      }
-      <div className="data-attributes">
-        <div className="data-attributes-title"><b>{t("V3.summary.attributes")}</b></div>
-        {data?.attributes.map(attr => (
-          <DraggableAttribute key={attr.id} attribute={attr} />
-        ))}
+        {data && <DataSelectPopup />}
+        {data && <SummaryDropTarget attributeId={summaryModel.inspectedAttrId} onDrop={handleDrop}/>}
+        {data && <ProfilerButton />}
+        <DragOverlay dropAnimation={null}>
+          {data && isSummaryDrag && dragAttribute
+            ? <OverlayAttribute attribute={dragAttribute} />
+            : null}
+        </DragOverlay>
       </div>
-      {data && <DataSelectPopup />}
-      {data && <SummaryDropTarget attributeId={summaryModel.inspectedAttrId} onDrop={handleDrop}/>}
-      {data && <ProfilerButton />}
-      <DragOverlay dropAnimation={null}>
-        {data && isSummaryDrag && dragAttribute
-          ? <OverlayAttribute attribute={dragAttribute} />
-          : null}
-      </DragOverlay>
-    </div>
+    </InstanceIdContext.Provider>
   )
 })
 
@@ -121,9 +129,7 @@ interface ISummaryDropTargetProps {
 const SummaryDropTarget = ({ attributeId, onDrop }: ISummaryDropTargetProps) => {
   const data = useDataSetContext()
   const attribute = attributeId ? data?.attrFromID(attributeId) : undefined
-  const droppableId = "summary-inspector-drop"
-  const { isOver, setNodeRef } = useDroppable({ id: droppableId })
-  useDropHandler(droppableId, active => {
+  const { isOver, setNodeRef } = useTileDroppable("inspector", active => {
     const dragAttributeID = getDragAttributeId(active)
     dragAttributeID && onDrop?.(dragAttributeID)
   })

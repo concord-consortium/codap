@@ -1,4 +1,7 @@
-import { Active, DataRef, useDndMonitor, useDraggable, UseDraggableArguments } from "@dnd-kit/core"
+import {
+  Active, DataRef, useDndMonitor, useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
+} from "@dnd-kit/core"
+import { useInstanceIdContext } from "./use-instance-id-context"
 
 // list of draggable types
 const DragTypes = ["attribute"] as const
@@ -32,6 +35,27 @@ export const useDraggableAttribute = ({ prefix, attributeId, ...others }: IUseDr
   const attributes = { tabIndex: -1 }
   const data: IDragAttributeData = { type: "attribute", attributeId }
   return useDraggable({ ...others, id: `${prefix}-${attributeId}`, attributes, data })
+}
+
+// Collision-detection code uses drop overlays to identify the tile that should handle the drag.
+// Passes its dropProps argument to useDroppable and returns an object with the return value
+// of useDroppable plus the generated id.
+export const useTileDropOverlay = (baseId?: string, dropProps?: UseDroppableArguments) => {
+  const instanceId = useInstanceIdContext() || baseId
+  const id = `${instanceId}-drop-overlay`
+  return { id, ...useDroppable({ ...dropProps, id }) }
+}
+
+// Collision-detection code keys on drop ids that match this convention.
+// Passes its dropProps argument to useDroppable and returns an object with the return value
+// of useDroppable plus the generated id.
+export const useTileDroppable = (
+  baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
+) => {
+  const instanceId = useInstanceIdContext()
+  const id = `${instanceId}-${baseId}-drop`
+  useDropHandler(id, onDrop)
+  return { id, ...useDroppable({ ...dropProps, id }) }
 }
 
 export const useDropHandler = (dropId: string, onDrop: (active: Active) => void) => {
