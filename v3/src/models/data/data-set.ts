@@ -175,11 +175,26 @@ export const DataSet = types.model("DataSet", {
     return self.collections.find(coll => coll.getAttribute(attributeId))
   }
 
+  function getGroupedAttributes() {
+    const groupedAttrs: IAttribute[] = []
+    self.collections.forEach(collection => {
+      collection.attributes.forEach(attr => attr && groupedAttrs.push(attr))
+    })
+    return groupedAttrs
+  }
+
   return {
     views: {
       getCollection,
       getCollectionIndex,
       getCollectionForAttribute,
+      get groupedAttributes(): IAttribute[] {
+        return getGroupedAttributes()
+      },
+      get ungroupedAttributes(): IAttribute[] {
+        const grouped = new Set(getGroupedAttributes().map(attr => attr.id))
+        return self.attributes.filter(attr => attr && !grouped.has(attr.id))
+      },
       get collectionGroups() {
         if (isValidCollectionGroups) return _collectionGroups
 

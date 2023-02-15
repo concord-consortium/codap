@@ -1,3 +1,4 @@
+import { useToast } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties, useRef, useState } from "react"
@@ -5,6 +6,7 @@ import DataGrid, { DataGridHandle } from "react-data-grid"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
 import { CaseTableInspector } from "./case-table-inspector"
 import { kIndexColumnKey, TRow } from "./case-table-types"
+import { NewCollectionDrop } from "./new-collection-drop"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
@@ -22,6 +24,7 @@ interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
 }
 export const CaseTable = observer(({ setNodeRef }: IProps) => {
+  const toast = useToast()
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
   const [showInspector, setShowInspector] = useState(false)
@@ -44,15 +47,34 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
 
     if (!data) return null
 
+    function handleNewCollectionDrop(attrId: string) {
+      const attr = data?.attrFromID(attrId)
+      if (data && attr) {
+        data.moveAttributeToNewCollection(attrId)
+        toast({
+          title: "New Collection Drop",
+          description: `Attribute ${attr.name} moved to a new collection`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        })
+      }
+    }
+
     return (
       <>
         <div ref={setNodeRef} className="case-table" data-testid="case-table"
             onClick={()=>setShowInspector(!showInspector)}>
-          <DataGrid ref={gridRef} className="rdg-light"
-            columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-            rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-            onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
-          <AttributeDragOverlay activeDragId={overlayDragId} />
+              <div className="case-table-content">
+                <> {/* to a first approximation, a hierarchical table replicates these children for each collection */}
+                  <NewCollectionDrop onDrop={handleNewCollectionDrop} />
+                  <DataGrid ref={gridRef} className="rdg-light"
+                    columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
+                    rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+                    onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+                </>
+                <AttributeDragOverlay activeDragId={overlayDragId} />
+              </div>
         </div>
         <NoCasesMessage />
         <CaseTableInspector show={showInspector} />

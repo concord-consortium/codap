@@ -15,7 +15,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const tableBounds = tableElt?.getBoundingClientRect()
   const cellBounds = cellElt?.getBoundingClientRect()
 
-  const { isOver, setNodeRef: setDropRef } = useTileDroppable(`attribute:${columnKey}`, active => {
+  const { isOver, setNodeRef: setDropRef } = useTileDroppable(`attribute-divider:${columnKey}`, active => {
     const dragAttrId = active.data?.current?.attributeId
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: data?.attributes[0].id }
