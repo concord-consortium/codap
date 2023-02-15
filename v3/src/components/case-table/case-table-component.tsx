@@ -12,9 +12,12 @@ import { kCaseTableIdBase } from "./case-table-types"
 const collisionDetection: CollisionDetection = (args) => {
   // use rectangle intersection for collection drop zones
   const collisions = rectIntersection(args)
-  const collectionDrop = collisions.find(collision => /collection.+drop$/.test(`${collision.id}`))
-  // use closestCenter inside table for column resizing
-  return collectionDrop ? [collectionDrop] : closestCenter(args)
+  const collectionDrop = collisions.find(collision => /new-collection.+drop$/.test(`${collision.id}`))
+  if (collectionDrop) return [collectionDrop]
+  // use closestCenter among column dividers for column resizing within table
+  const droppableContainers = args.droppableContainers
+                                .filter(container => /attribute-divider:.+drop/.test(`${container.id}`))
+  return closestCenter({ ...args, droppableContainers })
 }
 registerTileCollisionDetection(kCaseTableIdBase, collisionDetection)
 
