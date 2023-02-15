@@ -3,6 +3,7 @@ import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
+import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
@@ -23,9 +24,10 @@ export const getFormatter = (formatStr: string) => {
 
 interface IUseColumnsProps {
   data?: IDataSet
+  collection?: ICollectionModel
   indexColumn: TColumn
 }
-export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
+export const useColumns = ({ data, collection, indexColumn }: IUseColumnsProps) => {
 
   const [columns, setColumns] = useState<TColumn[]>([])
 
@@ -54,7 +56,10 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // rebuild column definitions when referenced properties change
     const disposer = autorun(() => {
       // column definitions
-      const visibleAttrs: IAttribute[] = data?.attributes.filter(attr => !attr.hidden) ?? []
+      const attrs: IAttribute[] = (collection
+                                    ? Array.from(collection.attributes) as IAttribute[]
+                                    : data?.ungroupedAttributes) ?? []
+      const visibleAttrs: IAttribute[] = attrs.filter(attr => attr && !attr.hidden)
       const _columns: TColumn[] = data
         ? [
             indexColumn,
@@ -74,7 +79,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       setColumns(_columns)
     })
     return () => disposer()
-  }, [CellFormatter, data, indexColumn])
+  }, [CellFormatter, collection, data, indexColumn])
 
   return columns
 }

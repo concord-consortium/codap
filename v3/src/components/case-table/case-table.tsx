@@ -49,13 +49,16 @@ export const CaseTable = observer(({ setNodeRef }: IProps) => {
 
     function handleNewCollectionDrop(attrId: string) {
       const attr = data?.attrFromID(attrId)
-      attr && toast({
-        title: "New Collection Drop",
-        description: `You dropped attribute ${attr.name} to create a hierarchical collection`,
-        status: "success",
-        duration: 5000,
-        isClosable: true
-      })
+      if (data && attr) {
+        data.moveAttributeToNewCollection(attrId)
+        toast({
+          title: "New Collection Drop",
+          description: `Attribute ${attr.name} moved to a new collection`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        })
+      }
     }
 
     return (

@@ -34,12 +34,16 @@ describe("CollectionGroups", () => {
     expect(data.getCasesForAttributes(["aId"])).toEqual(data.cases)
     expect(data.getCasesForAttributes(["bId"])).toEqual(data.cases)
     expect(data.getCasesForAttributes(["cId"])).toEqual(data.cases)
+    expect(data.groupedAttributes).toEqual([])
+    expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId", "cId"])
   })
 
   it("handles grouping by a single attribute", () => {
     const collection = CollectionModel.create()
     collection.addAttribute(data.attrFromID("aId"))
     data.addCollection(collection)
+    expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId"])
+    expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["bId", "cId"])
 
     expect(collection.id).toBe("COLLtest-2")
     expect(data.collectionGroups.length).toBe(1)
@@ -57,6 +61,8 @@ describe("CollectionGroups", () => {
     collection.addAttribute(data.attrFromID("aId"))
     collection.addAttribute(data.attrFromID("bId"))
     data.addCollection(collection)
+    expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId"])
+    expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["cId"])
 
     expect(collection.id).toBe("COLLtest-2")
     expect(data.collectionGroups.length).toBe(1)
@@ -79,6 +85,8 @@ describe("CollectionGroups", () => {
     const collection2 = CollectionModel.create()
     collection2.addAttribute(data.attrFromID("bId"))
     data.addCollection(collection2)
+    expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId"])
+    expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["cId"])
 
     expect(data.collectionGroups.length).toBe(2)
     const aCases = data.getCasesForAttributes(["aId"])
