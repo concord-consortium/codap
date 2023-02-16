@@ -3,10 +3,10 @@ import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
-import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
+import { useCollectionContext } from "./collection-context"
 import { ColumnHeader } from "./column-header"
 
 // cache d3 number formatters so we don't have to generate them on every render
@@ -24,11 +24,10 @@ export const getFormatter = (formatStr: string) => {
 
 interface IUseColumnsProps {
   data?: IDataSet
-  collection?: ICollectionModel
   indexColumn: TColumn
 }
-export const useColumns = ({ data, collection, indexColumn }: IUseColumnsProps) => {
-
+export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
+  const collection = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
 
   // cell formatter/renderer

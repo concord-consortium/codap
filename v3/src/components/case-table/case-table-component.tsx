@@ -16,7 +16,7 @@ const collisionDetection: CollisionDetection = (args) => {
   if (collectionDrop) return [collectionDrop]
   // use closestCenter among column dividers for column resizing within table
   const droppableContainers = args.droppableContainers
-                                .filter(container => /attribute-divider:.+drop/.test(`${container.id}`))
+                                .filter(container => /attribute-divider:.+drop$/.test(`${container.id}`))
   return closestCenter({ ...args, droppableContainers })
 }
 registerTileCollisionDetection(kCaseTableIdBase, collisionDetection)

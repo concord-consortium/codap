@@ -47,8 +47,8 @@ import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import { CollectionModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
 import {
-  CaseGroup, CaseID, CollectionGroup, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec,
-  IGetCaseOptions, IGetCasesOptions, IMoveAttributeOptions, uniqueCaseId
+  CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec,
+  IGetCaseOptions, IGetCasesOptions, IMoveAttributeCollectionOptions, IMoveAttributeOptions, uniqueCaseId
 } from "./data-set-types"
 import { uniqueId } from "../../utilities/js-utils"
 
@@ -114,6 +114,14 @@ export function toCanonical(ds: IDataSet, cases: CaseOrArray): CaseOrArray {
           : toCanonicalCase(ds, cases)
 }
 
+// represents the set of grouped cases at a particular level of the hierarchy
+export interface CollectionGroup {
+  collection: ICollectionModel
+  groups: CaseGroup[]
+  // map from valuesJson to corresponding CaseGroup
+  groupsMap: Record<string, CaseGroup>
+}
+
 export const DataSet = types.model("DataSet", {
   id: types.optional(types.identifier, () => uniqueId()),
   sourceID: types.maybe(types.string),
@@ -158,12 +166,41 @@ export const DataSet = types.model("DataSet", {
     }
   }
 })
+.views(self => ({
+  attrIndexFromID(id: string) {
+    const index = self.attributes.findIndex(attr => attr.id === id)
+    return index >= 0 ? index : undefined
+  }
+}))
+.actions(self => ({
+  // change the attribute order within the data set itself; doesn't handle collections
+  moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
+    const beforeAttrIndex = options?.before ? self.attrIndexFromID(options.before) : undefined
+    const afterAttrIndex = options?.after ? self.attrIndexFromID(options.after) : undefined
+    const found = self.attributes.find(attr => attr.id === attributeID)
+    if (found) {
+      // removing an MST model from an MST array calls destroy() on it, so the only way
+      // to change the order without destroying any of the elements is to sort the array
+      const dstOrder: Record<string, number> = {}
+      // collect the current indices of each attribute in the array
+      self.attributes.forEach((attr, i) => dstOrder[attr.id] = i)
+      // assign the moved attribute an "index" value corresponding to its destination
+      dstOrder[attributeID] = beforeAttrIndex != null
+                                ? beforeAttrIndex - 0.5
+                                : afterAttrIndex != null
+                                    ? afterAttrIndex + 0.5
+                                    : self.attributes.length
+      // sort the attributes by the adjusted "indices"
+      self.attributes.sort((a, b) => dstOrder[a.id] - dstOrder[b.id])
+    }
+  }
+}))
 .extend(self => {
   // we do our own caching because MST's auto-caching wasn't working as expected
   let _collectionGroups: CollectionGroup[] = []
   let isValidCollectionGroups = false
 
-  function getCollection(collectionId: string) {
+  function getCollection(collectionId: string): ICollectionModel | undefined {
     return self.collections.find(coll => coll.id === collectionId)
   }
 
@@ -171,7 +208,7 @@ export const DataSet = types.model("DataSet", {
     return self.collections.findIndex(coll => coll.id === collectionId)
   }
 
-  function getCollectionForAttribute(attributeId: string) {
+  function getCollectionForAttribute(attributeId: string): ICollectionModel | undefined {
     return self.collections.find(coll => coll.getAttribute(attributeId))
   }
 
@@ -260,9 +297,9 @@ export const DataSet = types.model("DataSet", {
       removeCollection(collection: ICollectionModel) {
         self.collections.remove(collection)
       },
-      setCollectionForAttribute(collectionId: string, attributeId: string, beforeAttrId?: string) {
+      setCollectionForAttribute(attributeId: string, options?: IMoveAttributeCollectionOptions) {
         const attribute = self.attributes.find(attr => attr.id === attributeId)
-        const newCollection = getCollection(collectionId)
+        const newCollection = options?.collection ? getCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
           if (oldCollection) {
@@ -277,8 +314,11 @@ export const DataSet = types.model("DataSet", {
           }
           if (newCollection) {
             // add it to the new collection
-            const beforeAttr = beforeAttrId ? newCollection.getAttribute(beforeAttrId) : undefined
-            newCollection.addAttribute(attribute, beforeAttr)
+            newCollection.addAttribute(attribute, options)
+          }
+          else if (options?.before || options?.after) {
+            // move it within the data set
+            self.moveAttribute(attributeId, options)
           }
           if (!oldCollection) {
             // if the last ungrouped attribute was moved into a collection, then eliminate
@@ -293,10 +333,11 @@ export const DataSet = types.model("DataSet", {
           this.invalidateCollectionGroups()
         }
       },
+      // if beforeCollectionId is not specified, new collection is last (child-most)
       moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
         const collection = CollectionModel.create()
         this.addCollection(collection, beforeCollectionId)
-        this.setCollectionForAttribute(collection.id, attributeId)
+        this.setCollectionForAttribute(attributeId, { collection: collection.id })
       }
     }
   }
@@ -342,11 +383,6 @@ export const DataSet = types.model("DataSet", {
         disposers: { [index: string]: () => void } = {}
 
   const attrIDFromName = (name: string) => attrNameMap[name]
-
-  function attrIndexFromID(id: string) {
-    const index = self.attributes.findIndex(attr => attr.id === id)
-    return index >= 0 ? index : undefined
-  }
 
   function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
     const index = self.caseIDMap[caseID]
@@ -430,7 +466,6 @@ export const DataSet = types.model("DataSet", {
         return id ? attrIDMap[id] : undefined
       },
       attrIDFromName,
-      attrIndexFromID,
       caseIndexFromID(id: string) {
         return self.caseIDMap[id]
       },
@@ -596,7 +631,7 @@ export const DataSet = types.model("DataSet", {
         self.invalidateCollectionGroups()
       },
       addAttribute(snapshot: IAttributeSnapshot, beforeID?: string) {
-        let beforeIndex = beforeID ? attrIndexFromID(beforeID) ?? -1 : -1
+        let beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
         if (beforeIndex >= 0) {
           self.attributes.splice(beforeIndex, 0, snapshot)
         }
@@ -626,7 +661,7 @@ export const DataSet = types.model("DataSet", {
       },
 
       removeAttribute(attributeID: string) {
-        const attrIndex = attrIndexFromID(attributeID),
+        const attrIndex = self.attrIndexFromID(attributeID),
               attribute = attributeID ? attrIDMap[attributeID] : undefined,
               attrName = attribute?.name
 
@@ -646,23 +681,6 @@ export const DataSet = types.model("DataSet", {
           self.attributes.splice(attrIndex, 1)
           attributeID && delete attrIDMap[attributeID]
           attrName && delete attrNameMap[attrName]
-        }
-      },
-
-      moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
-        const beforeAttrIndex = options?.before ? attrIndexFromID(options.before) : undefined
-        const afterAttrIndex = options?.after ? attrIndexFromID(options.after) : undefined
-        if (attrIDMap[attributeID]) {
-          const dstOrder: Record<string, number> = {}
-          self.attributes.forEach((attr, i) => dstOrder[attr.id] = i)
-          // assign the moved attribute an "index" value corresponding to its destination
-          dstOrder[attributeID] = beforeAttrIndex != null
-                                    ? beforeAttrIndex - 0.5
-                                    : afterAttrIndex != null
-                                        ? afterAttrIndex + 0.5
-                                        : self.attributes.length
-          // sort the attributes by the adjusted "indices"
-          self.attributes.sort((a, b) => dstOrder[a.id] - dstOrder[b.id])
         }
       },
 
