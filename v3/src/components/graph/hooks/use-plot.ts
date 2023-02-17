@@ -69,7 +69,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       refreshPointPositions(selectedOnly)
       timer.current = null
     }, 10)
-  }, [refreshPointPositions, enableAnimation])
+  }, [refreshPointPositions])
 
   useEffect(function doneWithTimer() {
     return () => {

@@ -2,7 +2,6 @@ import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
-import {IAttributeDescriptionSnapshot} from "./data-configuration-model"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
