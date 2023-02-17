@@ -3,11 +3,10 @@ import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
 import {IAttributeDescriptionSnapshot} from "./data-configuration-model"
-import {IAttribute} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {AxisPlace} from "../../axis/axis-types"
+import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, EmptyAxisModel, IAxisModel, IEmptyAxisModel, INumericAxisModel, NumericAxisModel
+  CategoricalAxisModel, EmptyAxisModel, IEmptyAxisModel, INumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import {
   attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType
@@ -147,24 +146,45 @@ export class GraphController {
 
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
     if (['plot', 'legend'].includes(graphPlace)) {
-      return  // Since there is no axis associated with the legend and the plotType will not change, we bail
+      // Since there is no axis associated with the legend and the plotType will not change, we bail
+      return
     } else if (graphPlace === 'yPlus') {
+      // The yPlus attribute utilizes the left numeric axis for plotting but doesn't change anything else
       const yAxisModel = this.graphModel.getAxis('left')
       yAxisModel && setNiceDomain(this.graphModel.config.numericValuesForYAxis, yAxisModel)
       return
     }
 
-    interface IAxisSetupProps {
-      attr?: IAttribute,
-      attrType: string,
-      currentType?: string,
-      place: AxisPlace,
-      attrRole: GraphAttrRole,
-      currAxisModel?: IAxisModel
+    const setPrimaryRoleAndPlotType = () => {
+      const axisPlace = graphPlace as AxisPlace,
+        graphAttributeRole = axisPlaceToAttrRole[axisPlace],
+        attributeType = dataConfig.attributeType(graphPlaceToAttrRole[graphPlace]) ?? 'empty',
+        // rightNumeric only occurs in presence of scatterplot
+        primaryType = graphPlace === 'rightNumeric' ? 'numeric' : attributeType,
+        otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
+        otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
+        otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
+        otherAttributeType = dataset?.attrFromID(otherAttrID)?.type ?? 'empty',
+        // Numeric attributes get priority for primaryRole when present. First one that is already present
+        // and then the newly assigned one. If there is an already assigned categorical then its place is
+        // the primaryRole, or, lastly, the newly assigned place
+        primaryRole = otherAttributeType === 'numeric' ? otherAttrRole
+          : attributeType === 'numeric' ? graphAttributeRole
+            : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
+      dataConfig.setPrimaryRole(primaryRole)
+      if (dataConfig.attributeID(graphAttributeRole) !== attrID) {
+        dataConfig.setAttribute(graphAttributeRole, {attributeID: attrID})
+      }
+      graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
     }
 
-    const setupAxis = (props: IAxisSetupProps) => {
-      const {attr, attrType, currentType, place, attrRole, currAxisModel} = props
+    const setupAxis = (place: AxisPlace) => {
+      const attrRole = graphPlaceToAttrRole[place],
+        attributeID = dataConfig.attributeID(attrRole),
+        attr = dataset?.attrFromID(attributeID),
+        attrType = attr?.type ?? 'empty',
+        currAxisModel = graphModel.getAxis(place),
+        currentType = currAxisModel?.type ?? 'empty'
       switch (attrType) {
         case 'numeric': {
           if (currentType !== 'numeric') {
@@ -190,7 +210,7 @@ export class GraphController {
         case 'empty': {
           if (currentType !== 'empty') {
             layout.setAxisScale(place, scaleOrdinal())
-            const newAxisModel = graphAttributeRole !== 'rightNumeric'
+            const newAxisModel = attrRole !== 'rightNumeric'
               ? EmptyAxisModel.create({place}) : undefined
             graphModel.setAxis(place, newAxisModel as IEmptyAxisModel)
           }
@@ -199,47 +219,10 @@ export class GraphController {
     }
 
     const {dataset, graphModel, layout} = this,
-      dataConfig = graphModel.config,
-      axisPlace = graphPlace as AxisPlace,
-      graphAttributeRole = axisPlaceToAttrRole[axisPlace],
-      attribute = dataset?.attrFromID(attrID),
-      attributeType = dataConfig.attributeType(graphPlaceToAttrRole[graphPlace]) ?? 'empty',
-      // rightNumeric only occurs in presence of scatterplot
-      primaryType = graphPlace === 'rightNumeric' ? 'numeric' : attributeType,
-      otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
-      otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
-      otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
-      otherAttribute = dataset?.attrFromID(otherAttrID),
-      otherAttributeType = otherAttribute?.type ?? 'empty',
-      axisModel = graphModel.getAxis(axisPlace),
-      otherAxisModel = graphModel.getAxis(otherAxisPlace),
-      currentlyAssignedAttributeID = dataConfig.attributeID(graphAttributeRole),
-      attrDescSnapshot: IAttributeDescriptionSnapshot = {attributeID: attrID},
-      // Numeric attributes get priority for primaryRole when present. First one that is already present
-      // and then the newly assigned one. If there is an already assigned categorical then its place is
-      // the primaryRole, or, lastly, the newly assigned place
-      primaryRole = otherAttributeType === 'numeric' ? otherAttrRole
-        : attributeType === 'numeric' ? graphAttributeRole
-          : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
-    dataConfig.setPrimaryRole(primaryRole)
-    currentlyAssignedAttributeID !== attrID && dataConfig.setAttribute(graphAttributeRole, attrDescSnapshot)
-    graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
-    setupAxis({
-      attr: attribute,
-      attrType: attributeType,
-      currentType: axisModel?.type,
-      place: axisPlace,
-      attrRole: graphAttributeRole,
-      currAxisModel: graphModel.getAxis(axisPlace)
-    })
-    setupAxis({
-      attr: otherAttribute,
-      attrType: otherAttributeType,
-      currentType: otherAxisModel?.type,
-      place: otherAxisPlace,
-      attrRole: otherAttrRole,
-      currAxisModel: otherAxisModel
-    })
+      dataConfig = graphModel.config
+
+    setPrimaryRoleAndPlotType()
+    AxisPlaces.forEach(setupAxis)
   }
 
   setDotsRef(dotsRef: React.RefObject<SVGSVGElement>) {
