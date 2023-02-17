@@ -65,9 +65,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     if (timer.current) {
       return
     }
-    const savedEnableAnimation = enableAnimation.current
     timer.current = setTimeout(() => {
-      enableAnimation.current = savedEnableAnimation
       refreshPointPositions(selectedOnly)
       timer.current = null
     }, 10)
@@ -154,7 +152,6 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(() => {
     return autorun(
       () => {
-        // The following needs to get put in the timer queue
         !graphModel.config?.pointsNeedUpdating && callRefreshPointPositions(false)
       })
   }, [graphModel, callRefreshPointPositions])
