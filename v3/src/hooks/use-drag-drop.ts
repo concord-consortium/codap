@@ -4,12 +4,14 @@ import {
 import { useInstanceIdContext } from "./use-instance-id-context"
 
 // list of draggable types
-const DragTypes = ["attribute"] as const
+const DragTypes = ["attribute", "tile"] as const
 type DragType = typeof DragTypes[number]
 
 export interface IDragData {
   type: DragType
 }
+
+// Attribute Dragging
 
 export interface IDragAttributeData extends IDragData {
   type: "attribute"
@@ -53,6 +55,8 @@ export const useTileDroppable = (
   baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
 ) => {
   const instanceId = useInstanceIdContext()
+  // console.log("in useTileDroppable baseId", baseId, "instanceId", instanceId)
+
   const id = `${instanceId}-${baseId}-drop`
   useDropHandler(id, onDrop)
   return { id, ...useDroppable({ ...dropProps, id }) }
@@ -63,4 +67,55 @@ export const useDropHandler = (dropId: string, onDrop: (active: Active) => void)
     // only call onDrop for the handler that registered it
     (over?.id === dropId) && onDrop(active)
   }})
+}
+
+// Tile Dragging
+
+export interface IDragTileData extends IDragData {
+  type: "tile"
+  tileId: string
+}
+export function isDragTileData(data: DataRef): data is DataRef<IDragTileData> {
+  // console.log("in isDragTileData", data)
+
+  return data.current?.type === "tile"
+}
+export const getDragTileId = (active: Active | null) => {
+  // console.log("in getDragTileId", active)
+
+  return active && isDragTileData(active.data) ? active.data.current?.tileId : undefined
+}
+
+export interface IUseDraggableTile extends Omit<UseDraggableArguments, "id"> {
+  prefix: string
+  tileId: string
+}
+export const useDraggableTile = ({ prefix, tileId, ...others }: IUseDraggableTile) => {
+  const data: IDragTileData = { type: "tile", tileId }
+  console.log("in useDraggableTile", tileId)
+  return useDraggable({ ...others, id: `${prefix}-${tileId}`, data })
+}
+
+// Collision-detection code uses drop overlays to identify the tile that should handle the drag.
+// Passes its dropProps argument to useDroppable and returns an object with the return value
+// of useDroppable plus the generated id.
+// export const useTileDropOverlay = (baseId?: string, dropProps?: UseDroppableArguments) => {
+//   const instanceId = useInstanceIdContext() || baseId
+//   const id = `${instanceId}-drop-overlay`
+//   return { id, ...useDroppable({ ...dropProps, id }) }
+// }
+
+// Collision-detection code keys on drop ids that match this convention.
+// Passes its dropProps argument to useDroppable and returns an object with the return value
+// of useDroppable plus the generated id.
+export const useContainerDroppable = (
+  baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
+) => {
+  // const instanceId = useInstanceIdContext()
+  // const id = `${instanceId}-${baseId}-drop`
+  const id = `${baseId}-drop`
+
+  console.log("in useContainerDroppable baseId", baseId, "id", id)
+  useDropHandler(id, onDrop)
+  return { id, ...useDroppable({ ...dropProps, id }) }
 }

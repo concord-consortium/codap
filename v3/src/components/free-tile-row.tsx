@@ -1,5 +1,7 @@
+import { useDndContext, useDraggable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
+import {CSS} from "@dnd-kit/utilities"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IFreeTileLayout, IFreeTileRow } from "../models/document/free-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
@@ -7,6 +9,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
 
 import "./free-tile-row.scss"
+import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 
 interface IFreeTileRowProps {
   content?: IDocumentContentModel
@@ -16,7 +19,9 @@ interface IFreeTileRowProps {
 export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTileRowProps) => {
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width: number, height: number}>()
+    const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [resizingTileId, setResizingTileId] = useState("")
+  const [draggingTileId, setDraggingTileId] = useState("")
 
   const handleCloseTile = (tileId: string) => {
     if (!tileId) return
@@ -75,6 +80,17 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
   }
 
+  const handleTitleBarClick = (evt: React.PointerEvent) => {
+    evt.preventDefault()
+    console.log("ComponentTitleBar handleClick")
+    setIsEditingTitle?.(true)
+  }
+
+  const handleDragTile = (evt: any, tile: IFreeTileLayout) => {
+    console.log("in handleDragTile evt", evt)
+    setDraggingTileId(tile.tileId)
+  }
+
   return (
     <div className="free-tile-row">
       {
@@ -83,14 +99,30 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
           const tileType = tile?.content.type
           const rowTile = row.tiles.get(tileId)
           const { x: left, y: top, width, height } = rowTile || {}
+          const { active } = useDndContext()
           const tileStyle: React.CSSProperties = { left, top, width, height }
-          const style = tileId === resizingTileId ? resizingTileStyle : tileStyle
+          // tileId === draggingTileId && console.log("transform: ", CSS.Translate.toString(transform))
+          // const style = tileId === resizingTileId
+          //                 ? resizingTileStyle
+          //                 : tileId === draggingTileId
+          //                     ? {transform: CSS.Translate.toString(transform)}
+          //                     : tileStyle
           const info = getTileComponentInfo(tileType)
+          const draggableOptions: IUseDraggableTile = { prefix: "case-table", tileId }
+          const {setNodeRef, transform} = useDraggableTile(draggableOptions)
+          console.log("tileId === draggingTileId:",tileId === draggingTileId, "transform: ", CSS.Translate.toString(transform))
+          const style = tileId === resizingTileId
+                          ? resizingTileStyle
+                          : active
+                              ? {transform: CSS.Translate.toString(transform)}
+                              : tileStyle
           return (
-            <div className="free-tile-component" style={style} key={tileId}>
+            <div className="free-tile-component" style={style} key={tileId} ref={setNodeRef}>
               {tile && info && rowTile &&
                 <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
                     tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}
+                    isEditingTitle={isEditingTitle} setIsEditingTitle={setIsEditingTitle}
+                    onHandleTitleBarClick={handleTitleBarClick}
                     onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
                     onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
                     onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}

@@ -9,13 +9,16 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
 import "./case-table-title-bar.scss"
+import { IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
 
-export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
+export const CaseTableTitleBar = ({tile, isEditingTitle, onCloseTile, setIsEditingTitle, onHandleTitleBarClick}: ITileTitleBarProps) => {
   const dataset = useDataSetContext()
   const [title, setTitle] = useState(dataset?.name || "Dataset")
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
   const tileId = tile?.id || ""
+  const draggableOptions: IUseDraggableTile = { prefix: "case-table", tileId }
+  const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
 
   const handleTitleChange = (newTitle?: string) => {
     newTitle && setTitle(newTitle)
@@ -35,7 +38,7 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
                                   ? t("DG.DocumentController.toggleToCaseTable")
                                   : t("DG.DocumentController.toggleToCaseCard")
   return (
-    <ComponentTitleBar component={"case-table"}>
+    <ComponentTitleBar component={"case-table"} tileId={tileId}>
       <div className="header-left"
             title={cardTableToggleString}
             onClick={handleShowCardTableToggleMessage}>
@@ -50,7 +53,14 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
           </Box>
         }
       </div>
-      <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange} />
+      {isEditingTitle
+        ? <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange}
+              setIsEditing={setIsEditingTitle}/>
+        : <Box className="title-bar" ref={setActivatorNodeRef} {...attributes} {...listeners}>
+            <Box className="title-text" onClick={onHandleTitleBarClick}>{title}</Box>
+          </Box>
+      }
+      {/* <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange} /> */}
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}

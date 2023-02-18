@@ -5,5 +5,8 @@ export interface ITileBaseProps {
 }
 
 export interface ITileTitleBarProps extends ITileBaseProps {
+  isEditingTitle: boolean
+  onHandleTitleBarClick?: (e: React.MouseEvent) => void
   onCloseTile: (tileId: string) => void
+  setIsEditingTitle: (editing: boolean) => void
 }

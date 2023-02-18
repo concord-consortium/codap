@@ -3,14 +3,19 @@ import { Flex, Input } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 
 import "./component-title-bar.scss"
+import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 
 interface IProps {
   component?: string
+  tileId: string
   children?: ReactNode
 }
 
-export const ComponentTitleBar = ({component, children}: IProps) => {
+export const ComponentTitleBar = ({component, tileId, children}: IProps) => {
+  // const draggableOptions: IUseDraggableTile = { prefix: "case-table", tileId }
+  // const {attributes, listeners} = useDraggableTile(draggableOptions)
   return (
+    // <Flex className={`component-title-bar ${component}-title-bar`}{...listeners} {...attributes}>
     <Flex className={`component-title-bar ${component}-title-bar`}>
       {children}
     </Flex>
@@ -20,21 +25,22 @@ export const ComponentTitleBar = ({component, children}: IProps) => {
 interface IEditableComponentTitleProps {
   className?: string
   componentTitle: string
+  setIsEditing: (editing: boolean) => void
   onEndEdit?: (title?: string) => void
 }
 
 export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
-                observer(({componentTitle, onEndEdit}) => {
+                observer(({componentTitle, setIsEditing, onEndEdit}) => {
   const title = componentTitle
-  const [isEditing, setIsEditing] = useState(false)
+  // const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
 
-  const handleClick = () => {
-    if (!isEditing) {
-      setEditingTitle(title)
-      setIsEditing(true)
-    }
-  }
+  // const handleClick = () => {
+  //   if (!isEditing) {
+  //     setEditingTitle(title)
+  //     setIsEditing(true)
+  //   }
+  // }
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = e
     switch (key) {
@@ -55,7 +61,8 @@ export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
   }
   return (
     <Input className="editable-component-title" value={editingTitle} data-testid="editable-component-title" size="sm"
-      onClick={handleClick} onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
+      // onClick={handleClick} onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
+      onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
       onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()} />
   )
 })
