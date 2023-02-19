@@ -148,7 +148,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   }, [dataset, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
-  // Happens when the number of plots has changed
+  // Happens when the number of plots has changed for now. Possibly other situations in the future.
   useEffect(() => {
     return autorun(
       () => {
