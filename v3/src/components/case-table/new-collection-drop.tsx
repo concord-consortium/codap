@@ -3,12 +3,15 @@ import React, { useMemo, useRef } from "react"
 import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 import t from "../../utilities/translation/translate"
+import { useCollectionContext } from "./collection-context"
 
 interface IProps {
   onDrop?: (attrId: string) => void
 }
 export function NewCollectionDrop({ onDrop }: IProps) {
-  const { active, isOver, setNodeRef } = useTileDroppable("new-collection", _active => {
+  const collection = useCollectionContext()
+  const collectionId = collection?.id || "child-most"
+  const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${collectionId}`, _active => {
     const dragAttributeID = getDragAttributeId(_active)
     dragAttributeID && onDrop?.(dragAttributeID)
   })

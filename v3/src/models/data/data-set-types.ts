@@ -1,7 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { uniqueOrderedId } from "../../utilities/js-utils"
 import { IValueType } from "./attribute"
-import { ICollectionModel } from "./collection"
 
 export const uniqueCaseId = () => `CASE${uniqueOrderedId()}`
 
@@ -46,6 +45,10 @@ export interface IMoveAttributeOptions {
   after?: string;   // id of attribute after which the moved attribute should be placed
 }
 
+export interface IMoveAttributeCollectionOptions extends IMoveAttributeOptions {
+  collection?: string // id of destination collection; undefined => no collection (ungrouped)
+}
+
 // remnant of derived DataSet implementation that isn't in active use
 export interface IDerivationSpec {
   attributeIDs?: string[];
@@ -61,12 +64,4 @@ export interface CaseGroup {
   cases: string[]
   // stringified version of grouped case values for easy comparison/categorization
   valuesJson: string
-}
-
-// represents the set of grouped cases at a particular level of the hierarchy
-export interface CollectionGroup {
-  collection: ICollectionModel
-  groups: CaseGroup[]
-  // map from valuesJson to corresponding CaseGroup
-  groupsMap: Record<string, CaseGroup>
 }

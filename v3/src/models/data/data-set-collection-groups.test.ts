@@ -28,6 +28,17 @@ describe("CollectionGroups", () => {
     }
   })
 
+  function attributesByCollection() : string[][] {
+    const attrs: string[][] = []
+
+    data.collections.forEach(collection => {
+      attrs.push(collection.attributes.map(attr => attr!.id))
+    })
+    attrs.push(data.ungroupedAttributes.map(attr => attr.id))
+
+    return attrs
+  }
+
   it("handles ungrouped data", () => {
     expect(data.collectionGroups).toEqual([])
     expect(data.getCasesForCollection("foo")).toEqual([])
@@ -47,6 +58,7 @@ describe("CollectionGroups", () => {
 
     expect(collection.id).toBe("COLLtest-2")
     expect(data.collectionGroups.length).toBe(1)
+    expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
     expect(data.getCollection(collection.id)).toBe(collection)
     const aCases = data.getCasesForAttributes(["aId"])
     expect(data.getCasesForCollection(collection.id)).toEqual(aCases)
@@ -63,6 +75,7 @@ describe("CollectionGroups", () => {
     data.addCollection(collection)
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["cId"])
+    expect(attributesByCollection()).toEqual([["aId", "bId"], ["cId"]])
 
     expect(collection.id).toBe("COLLtest-2")
     expect(data.collectionGroups.length).toBe(1)
@@ -87,6 +100,7 @@ describe("CollectionGroups", () => {
     data.addCollection(collection2)
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["cId"])
+    expect(attributesByCollection()).toEqual([["aId"], ["bId"], ["cId"]])
 
     expect(data.collectionGroups.length).toBe(2)
     const aCases = data.getCasesForAttributes(["aId"])
@@ -109,26 +123,38 @@ describe("CollectionGroups", () => {
     expect(data.collectionGroups.length).toBe(0)
     // move attr "a" to a new collection
     data.moveAttributeToNewCollection("aId")
-    const aCollection = data.collections.at(0)
-    const aCases = data.getCasesForCollection(aCollection!.id)
+    expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
+    const aCases = data.getCasesForCollection(data.collections[0]!.id)
     expect(data.getCasesForAttributes(["aId"])).toEqual(aCases)
     // move attr "b" to a new collection (parent to collection with "a")
-    data.moveAttributeToNewCollection("bId", aCollection!.id)
-    const bCollection = data.collections.at(0)
+    data.moveAttributeToNewCollection("bId", data.collections[0]!.id)
+    expect(attributesByCollection()).toEqual([["bId"], ["aId"], ["cId"]])
     expect(data.collections.length).toBe(2)
     // move attr "a" from its collection to the collection with "b",
     // leaving only the one collection with "a" and "b"
-    data.setCollectionForAttribute(bCollection!.id, "aId", "bId")
+    data.setCollectionForAttribute("aId", { collection: data.collections[0]!.id, before: "bId" })
     expect(data.collections.length).toBe(1)
+    expect(attributesByCollection()).toEqual([["aId", "bId"], ["cId"]])
     // move attr "b" to a new collection (child to collection with "a")
     data.moveAttributeToNewCollection("bId")
     expect(data.collections.length).toBe(2)
-    const bCases = data.getCasesForCollection(bCollection!.id)
+    expect(attributesByCollection()).toEqual([["aId"], ["bId"], ["cId"]])
+    const bCases = data.getCasesForCollection(data.collections[1]!.id)
     expect(data.isCaseSelected(bCases[0].__id__)).toBe(false)
     // move attr "c" to collection with "b", leaving no un-grouped attributes
     // the child-most collection is then removed, leaving those attributes un-grouped
-    data.setCollectionForAttribute(bCollection!.id, "cId")
+    data.setCollectionForAttribute("cId", { collection: data.collections[1]!.id })
+    expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
     expect(data.collections.length).toBe(1)
+    expect(data.collections[0].attributes.length).toBe(1)
+    expect(data.collections[0].attributes[0]!.id).toBe("aId")
+    // move attr "a" out of its collection back into data set
+    data.setCollectionForAttribute("aId", { before: "bId"})
+    expect(attributesByCollection()).toEqual([["aId", "bId", "cId"]])
+    expect(data.collections.length).toBe(0)
+    expect(data.attrIndexFromID("aId")).toBe(0)
+    expect(data.attrIndexFromID("bId")).toBe(1)
+    expect(data.attrIndexFromID("cId")).toBe(2)
   })
   it("sets values of all cases when setting values of pseudo-cases", () => {
     data.moveAttributeToNewCollection("aId")
@@ -145,7 +171,7 @@ describe("CollectionGroups", () => {
     data.moveAttributeToNewCollection("aId")
     expect(data.collections.length).toBe(1)
     const collection = data.collections.at(0)
-    data.setCollectionForAttribute(collection!.id, "bId")
+    data.setCollectionForAttribute("bId", { collection: collection!.id })
     data.removeAttribute("aId")
     expect(data.collections.length).toBe(1)
     data.removeAttribute("bId")
