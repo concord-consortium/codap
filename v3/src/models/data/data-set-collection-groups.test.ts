@@ -12,6 +12,17 @@ describe("CollectionGroups", () => {
 
   let data: IDataSet
 
+  function addDefaultCases(bFn: (b: number) => number = b => b) {
+    for (let a = 1; a <= 3; ++a) {
+      for (let b = 1; b<= 3; ++b) {
+        const _b = bFn(b)
+        for (let c = 1; c <= 3; ++c) {
+          data.addCases([{ __id__: `${a}-${_b}-${c}`, aId: `${a}`, bId: `${_b}`, cId: `${c}` }])
+        }
+      }
+    }
+  }
+
   beforeEach(() => {
     mockNodeIdCount = 0
 
@@ -19,13 +30,7 @@ describe("CollectionGroups", () => {
     data.addAttribute({ id: "aId", name: "a" })
     data.addAttribute({ id: "bId", name: "b" })
     data.addAttribute({ id: "cId", name: "c" })
-    for (let a = 1; a <= 3; ++a) {
-      for (let b = 1; b<= 3; ++b) {
-        for (let c = 1; c <= 3; ++c) {
-          data.addCases([{ __id__: `${a}-${b}-${c}`, aId: `${a}`, bId: `${b}`, cId: `${c}` }])
-        }
-      }
-    }
+    addDefaultCases()
   })
 
   function attributesByCollection() : string[][] {
@@ -41,7 +46,7 @@ describe("CollectionGroups", () => {
 
   it("handles ungrouped data", () => {
     expect(data.collectionGroups).toEqual([])
-    expect(data.getCasesForCollection("foo")).toEqual([])
+    expect(data.getCasesForCollection("foo")).toEqual(data.cases)
     expect(data.getCasesForAttributes(["aId"])).toEqual(data.cases)
     expect(data.getCasesForAttributes(["bId"])).toEqual(data.cases)
     expect(data.getCasesForAttributes(["cId"])).toEqual(data.cases)
@@ -117,6 +122,13 @@ describe("CollectionGroups", () => {
     expect(cCases.length).toBe(27)
     const abcCases = data.getCasesForAttributes(["aId", "bId", "cId"])
     expect(abcCases.length).toBe(27)
+
+    // add another set of default cases
+    addDefaultCases(b => 4)
+    const _aCases = data.getCasesForAttributes(["aId"])
+    expect(_aCases.map((c: any) => c.aId)).toEqual(["1", "2", "3"])
+    const _bCases = data.getCasesForAttributes(["bId"])
+    expect(_bCases.map((c: any) => c.bId)).toEqual(["1", "2", "3", "4", "1", "2", "3", "4", "1", "2", "3", "4"])
   })
 
   it("handles moving attributes between collections", () => {
@@ -156,13 +168,14 @@ describe("CollectionGroups", () => {
     expect(data.attrIndexFromID("bId")).toBe(1)
     expect(data.attrIndexFromID("cId")).toBe(2)
   })
+
   it("sets values of all cases when setting values of pseudo-cases", () => {
     data.moveAttributeToNewCollection("aId")
     const pseudoCases = data.getCasesForAttributes(["aId"])
     const pseudoCase = { ...pseudoCases[0], aId: "4" }
     data.setCaseValues([pseudoCase])
     const collectionGroup = data.collectionGroups[0]
-    for (const caseId of collectionGroup.groups[0].cases) {
+    for (const caseId of collectionGroup.groups[0].childCaseIds) {
       expect(data.getValue(caseId, "aId")).toBe("4")
     }
   })

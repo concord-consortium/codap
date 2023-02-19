@@ -5,7 +5,9 @@ import {
 export const kCaseTableIdBase = "case-table"
 
 export interface TRow {
-  __id__: string;
+  __id__: string
+  // index for grouped/collection cases
+  __index__?: number
   // ids of attributes whose DOM representation have been manipulated
   __domAttrs__?: Set<string>
 }
