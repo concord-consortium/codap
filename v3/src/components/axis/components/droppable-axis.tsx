@@ -22,7 +22,8 @@ export const DroppableAxis = observer(({ place, portal, target, dropId, hintStri
 
   // calculate the position of the overlay
   const style: CSSProperties = { ...axisBounds }
-  const classes = `droppable-axis droppable-svg ${place} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`
+  const classes =
+    `droppable-axis droppable-svg ${place} ${isActive ? "active" : ""} ${isActive && isOver ? "over" : ""}`
 
   return portal && target && createPortal(
     <>

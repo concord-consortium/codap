@@ -428,6 +428,10 @@ export const DataConfigurationModel = types
         const role = graphPlaceToAttrRole[place],
           primaryRole = self.primaryRole
         return primaryRole === role
+      },
+      graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop: string) {
+        const existingID = self.attributeID(graphPlaceToAttrRole[place])
+        return !!idToDrop && existingID !== idToDrop
       }
     }))
   .actions(self => ({

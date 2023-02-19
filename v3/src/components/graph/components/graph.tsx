@@ -136,6 +136,7 @@ export const Graph = observer((
       return <GraphAxis key={place}
                         place={place}
                         enableAnimation={enableAnimation}
+                        isDropAllowed={graphModel.config.graphPlaceCanAcceptAttributeIDDrop}
                         onDropAttribute={handleChangeAttribute}
                         onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}
@@ -164,6 +165,7 @@ export const Graph = observer((
           <DroppablePlot
             graphElt={graphRef.current}
             plotElt={backgroundSvgRef.current}
+            isDropAllowed={graphModel.config.graphPlaceCanAcceptAttributeIDDrop}
             onDropAttribute={handleChangeAttribute}
           />
 
