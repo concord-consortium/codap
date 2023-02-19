@@ -20,11 +20,11 @@ export const CollectionTable = () => {
   const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ data, gridRef })
 
   // columns
-  const indexColumn = useIndexColumn({ data })
+  const indexColumn = useIndexColumn()
   const columns = useColumns({ data, indexColumn })
 
   // rows
-  const { rows, handleRowsChange } = useRows(data)
+  const { rows, handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
   if (!data) return null

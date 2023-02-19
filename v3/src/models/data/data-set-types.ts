@@ -60,8 +60,10 @@ export interface IDerivationSpec {
 export interface CaseGroup {
   // id of pseudo-case and attribute values
   pseudoCase: ICase
-  // ids of cases in the group
-  cases: string[]
+  // ids of leaf child cases (actual cases) in the group
+  childCaseIds: string[]
+  // ids of child pseudo cases in the group (if any)
+  childPseudoCaseIds?: string[]
   // stringified version of grouped case values for easy comparison/categorization
   valuesJson: string
 }
