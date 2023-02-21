@@ -17,7 +17,7 @@ export const CollectionTable = () => {
   const collection = useCollectionContext()
   const gridRef = useRef<DataGridHandle>(null)
 
-  const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ data, gridRef })
+  const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ gridRef })
 
   // columns
   const indexColumn = useIndexColumn()

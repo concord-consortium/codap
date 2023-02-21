@@ -433,7 +433,7 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .views(self => ({
-  getCasesForCollection(collectionId: string) {
+  getCasesForCollection(collectionId?: string) {
     for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
       const collectionGroup = self.collectionGroups[i]
       if (collectionGroup.collection.id === collectionId) {
@@ -857,7 +857,16 @@ export const DataSet = types.model("DataSet", {
       },
 
       selectCases(caseIds: string[], select = true) {
+        const ids: string[] = []
         caseIds.forEach(id => {
+          const pseudoCase = self.pseudoCaseMap[id]
+          if (pseudoCase) {
+            ids.push(...pseudoCase.childCaseIds)
+          } else {
+            ids.push(id)
+          }
+        })
+        ids.forEach(id => {
           if (select) {
             self.selection.add(id)
           }
@@ -868,7 +877,16 @@ export const DataSet = types.model("DataSet", {
       },
 
       setSelectedCases(caseIds: string[]) {
-        self.selection.replace(caseIds)
+        const ids: string[] = []
+        caseIds.forEach(id => {
+          const pseudoCase = self.pseudoCaseMap[id]
+          if (pseudoCase) {
+            ids.push(...pseudoCase.childCaseIds)
+          } else {
+            ids.push(id)
+          }
+        })
+        self.selection.replace(ids)
       }
     }
   }
