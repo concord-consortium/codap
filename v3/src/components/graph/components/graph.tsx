@@ -52,7 +52,8 @@ export const Graph = observer((
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y')
+    yAttrID = graphModel.getAttributeID('y'),
+    isDropAllowed = graphModel.config.graphPlaceCanAcceptAttributeIDDrop
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -136,7 +137,7 @@ export const Graph = observer((
       return <GraphAxis key={place}
                         place={place}
                         enableAnimation={enableAnimation}
-                        isDropAllowed={graphModel.config.graphPlaceCanAcceptAttributeIDDrop}
+                        isDropAllowed={isDropAllowed}
                         onDropAttribute={handleChangeAttribute}
                         onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}
@@ -165,13 +166,14 @@ export const Graph = observer((
           <DroppablePlot
             graphElt={graphRef.current}
             plotElt={backgroundSvgRef.current}
-            isDropAllowed={graphModel.config.graphPlaceCanAcceptAttributeIDDrop}
+            isDropAllowed={isDropAllowed}
             onDropAttribute={handleChangeAttribute}
           />
 
           <Legend
             legendAttrID={graphModel.getAttributeID('legend')}
             graphElt={graphRef.current}
+            isDropAllowed={isDropAllowed}
             onDropAttribute={handleChangeAttribute}
             onRemoveAttribute={handleRemoveAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
@@ -180,10 +182,12 @@ export const Graph = observer((
         <DroppableAddAttribute
           location={'top'}
           plotType = {plotType}
+          isDropAllowed={isDropAllowed}
           onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
         <DroppableAddAttribute
           location={'rightNumeric'}
           plotType = {plotType}
+          isDropAllowed={isDropAllowed}
           onDrop={handleChangeAttribute.bind(null, 'rightNumeric')}/>
       </div>
       <GraphInspector graphModel={graphModel}

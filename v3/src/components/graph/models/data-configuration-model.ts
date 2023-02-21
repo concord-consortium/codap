@@ -430,8 +430,12 @@ export const DataConfigurationModel = types
         return primaryRole === role
       },
       graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop: string) {
-        const existingID = self.attributeID(graphPlaceToAttrRole[place])
-        return !!idToDrop && existingID !== idToDrop
+        if (place === 'yPlus') {
+          return !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
+        } else {
+          const existingID = self.attributeID(graphPlaceToAttrRole[place])
+          return !!idToDrop && existingID !== idToDrop
+        }
       }
     }))
   .actions(self => ({
