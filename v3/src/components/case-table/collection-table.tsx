@@ -1,12 +1,12 @@
 import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { TRow } from "./case-table-types"
-import { useCollectionContext } from "./collection-context"
 import { NewCollectionDrop } from "./new-collection-drop"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 
 import styles from "./case-table-shared.scss"

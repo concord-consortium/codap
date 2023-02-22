@@ -1,10 +1,10 @@
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IMoveAttributeOptions } from "../../models/data/data-set-types"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
 import { kIndexColumnKey } from "./case-table-types"
-import { useCollectionContext } from "./collection-context"
 
 interface IProps {
   columnKey: string

@@ -2,11 +2,11 @@ import { Tooltip } from "@chakra-ui/react"
 import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
-import { useCollectionContext } from "./collection-context"
 import { ColumnHeader } from "./column-header"
 
 // cache d3 number formatters so we don't have to generate them on every render
