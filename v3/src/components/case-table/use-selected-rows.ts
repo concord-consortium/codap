@@ -1,20 +1,42 @@
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
+import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
-import { prf } from "../../utilities/profiler"
-import { isKeyDown } from "../../hooks/use-key-states"
 import { TRow } from "./case-table-types"
-import { DataGridHandle } from "react-data-grid"
 import { useRowScrolling } from "./use-row-scrolling"
+import { useCollectionContext } from "../../hooks/use-collection-context"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { isKeyDown } from "../../hooks/use-key-states"
+import { prf } from "../../utilities/profiler"
 
 interface UseSelectedRows {
-  data?: IDataSet
   gridRef: React.RefObject<DataGridHandle | null>
 }
-export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
+
+// it may make sense to move these utilities into the DataSet at some point
+function caseIdFromIndex(index: number, data?: IDataSet, collection?: ICollectionModel) {
+  if (!data) return undefined
+  if (!collection) return data.caseIDFromIndex(index)
+  const cases = data.getCasesForCollection(collection.id)
+  return cases[index]?.__id__
+}
+
+function caseIndexFromId(caseId: string, data?: IDataSet, collection?: ICollectionModel) {
+  if (!data) return undefined
+  if (!collection) return data.caseIndexFromID(caseId)
+  const cases = data.getCasesForCollection(collection.id)
+  // for now, linear search through pseudo-cases; could index if performance becomes a problem.
+  const found = cases.findIndex(aCase => aCase.__id__ === caseId)
+  return found >= 0 ? found : undefined
+}
+
+export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
+  const data = useDataSetContext()
+  const collection = useCollectionContext()
   const [selectedRows, _setSelectedRows] = useState<ReadonlySet<string>>(() => new Set())
   const syncCount = useRef(0)
 
@@ -32,13 +54,16 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
   const syncRowSelectionToRdg = useCallback(() => {
     prf.measure("Table.syncRowSelectionToRdg", () => {
       const newSelection = prf.measure("Table.syncRowSelectionToRdg[reaction-copy]", () => {
-        return new Set(data?.selection)
+        const selection = new Set<string>()
+        const cases = data?.getCasesForCollection(collection?.id) || []
+        cases.forEach(aCase => data?.isCaseSelected(aCase.__id__) && selection.add(aCase.__id__))
+        return selection
       })
       prf.measure("Table.syncRowSelectionToRdg[reaction-set]", () => {
         _setSelectedRows(newSelection)
       })
     })
-  }, [data?.selection])
+  }, [collection, data])
 
   const syncRowSelectionToDom = useCallback(() => {
     prf.measure("Table.syncRowSelectionToDom", () => {
@@ -46,7 +71,7 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
       const rows = grid?.querySelectorAll(".rdg-row")
       rows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = data?.caseIDFromIndex(rowIndex)
+        const caseId = caseIdFromIndex(rowIndex, data, collection)
         const isSelected = row.getAttribute("aria-selected")
         const shouldBeSelected = caseId && data?.isCaseSelected(caseId)
         if (caseId && (isSelected !== shouldBeSelected)) {
@@ -54,7 +79,7 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
         }
       })
     })
-  }, [data])
+  }, [collection, data])
 
   useEffect(() => {
     const disposer = reaction(() => appState.appMode, mode => {
@@ -80,7 +105,8 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
           }
           if (isPartialSelectionAction(action)) {
             const caseIds = action.args[0]
-            const caseIndices = caseIds.map(id => data?.caseIndexFromID(id)).filter(index => index != null)
+            const caseIndices = caseIds.map(id => caseIndexFromId(id, data, collection))
+                                       .filter(index => index != null) as number[]
             const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
             isSelecting && caseIndices.length && scrollClosestRowIntoView(caseIndices)
           }
@@ -88,7 +114,7 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
       })
     }, true)
     return () => disposer?.()
-  }, [data, scrollClosestRowIntoView, syncRowSelectionToDom, syncRowSelectionToRdg])
+  }, [collection, data, scrollClosestRowIntoView, syncRowSelectionToDom, syncRowSelectionToRdg])
 
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
@@ -97,14 +123,14 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
     const isCaseSelected = data?.isCaseSelected(caseId)
     const isExtending = isKeyDown("Shift") || isKeyDown("Alt") || isKeyDown("Meta")
     if (isKeyDown("Shift") && anchorCase.current) {
-      const targetIndex = data?.caseIndexFromID(caseId)
-      const anchorIndex = data?.caseIndexFromID(anchorCase.current)
+      const targetIndex = caseIndexFromId(caseId, data, collection)
+      const anchorIndex = caseIndexFromId(anchorCase.current, data, collection)
       const casesToSelect: string[] = []
       if (targetIndex != null && anchorIndex != null) {
         const start = Math.min(anchorIndex, targetIndex)
         const end = Math.max(anchorIndex, targetIndex)
         for (let i = start; i <= end; ++i) {
-          const id = data?.cases[i].__id__
+          const id = caseIdFromIndex(i, data, collection)
           id && casesToSelect.push(id)
           data?.selectCases(casesToSelect, true)
         }
@@ -119,7 +145,7 @@ export const useSelectedRows = ({ data, gridRef }: UseSelectedRows) => {
       data?.setSelectedCases([caseId])
       anchorCase.current = caseId
     }
-  }, [data])
+  }, [collection, data])
 
   return { selectedRows, setSelectedRows, handleRowClick }
 }

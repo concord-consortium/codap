@@ -1,9 +1,9 @@
 import { clsx } from "clsx"
 import React, { useMemo, useRef } from "react"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 import t from "../../utilities/translation/translate"
-import { useCollectionContext } from "./collection-context"
 
 interface IProps {
   onDrop?: (attrId: string) => void

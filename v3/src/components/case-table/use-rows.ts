@@ -2,6 +2,7 @@ import { format } from "d3"
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
@@ -11,7 +12,6 @@ import {
 } from "../../models/data/data-set-actions"
 import { prf } from "../../utilities/profiler"
 import { TRow, TRowsChangeData } from "./case-table-types"
-import { useCollectionContext } from "./collection-context"
 
 export const useRows = () => {
   const data = useDataSetContext()
