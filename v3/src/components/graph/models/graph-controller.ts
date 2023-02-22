@@ -162,7 +162,6 @@ export class GraphController {
         primaryType = graphPlace === 'rightNumeric' ? 'numeric' : attributeType,
         otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
         otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
-        otherAttrID = graphModel.getAttributeID(axisPlaceToAttrRole[otherAxisPlace]),
         otherAttributeType = dataConfig.attributeType(graphPlaceToAttrRole[otherAxisPlace]) ?? 'empty',
         // Numeric attributes get priority for primaryRole when present. First one that is already present
         // and then the newly assigned one. If there is an already assigned categorical then its place is
