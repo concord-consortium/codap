@@ -1,15 +1,16 @@
 import {
   CalculatedColumn, Column, EditorProps, FormatterProps, HeaderRendererProps, RowRendererProps, RowsChangeData
 } from "react-data-grid"
+import { IGroupedCase } from "../../models/data/data-set-types"
 
 export const kCaseTableIdBase = "case-table"
 
-export interface TRow {
-  __id__: string
-  // index for grouped/collection cases
-  __index__?: number
+export const symDom = Symbol.for("dom")
+
+// TRow extends IGroupedCase to facilitate interchange
+export interface TRow extends IGroupedCase {
   // ids of attributes whose DOM representation have been manipulated
-  __domAttrs__?: Set<string>
+  [symDom]?: Set<string>
 }
 export interface TRowsChangeData extends RowsChangeData<TRow> {}
 export interface TColumn extends Column<TRow> {}

@@ -5,13 +5,14 @@ import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { symIndex } from "../../models/data/data-set-types"
 import t from "../../utilities/translation/translate"
 
 export const useIndexColumn = () => {
   const data = useDataSetContext()
   // formatter/renderer
-  const formatter = useCallback(({ row: { __id__, __index__ } }: TFormatterProps) => {
-    const index = __index__ != null ? __index__ : data?.caseIndexFromID(__id__)
+  const formatter = useCallback(({ row: { __id__, [symIndex]: _index } }: TFormatterProps) => {
+    const index = _index != null ? _index : data?.caseIndexFromID(__id__)
     return (
       <IndexCell caseId={__id__} index={index} />
     )

@@ -43,7 +43,7 @@ describe("CollectionModel", () => {
     expect(collection.getAttributeIndex("a")).toBe(-1)
   })
 
-  it("behaves as expected", () => {
+  it("can add/move/remove attributes", () => {
     const tree = Tree.create()
     const collection = CollectionModel.create()
     tree.addCollection(collection)

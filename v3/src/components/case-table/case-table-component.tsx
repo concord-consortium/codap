@@ -1,6 +1,7 @@
 import { closestCenter, CollisionDetection, rectIntersection } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDropOverlay } from "../../hooks/use-drag-drop"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 import { registerTileCollisionDetection } from "../dnd-detect-collision"
@@ -8,6 +9,7 @@ import { ITileBaseProps } from "../tiles/tile-base-props"
 import { CaseTable } from "./case-table"
 import { isCaseTableModel } from "./case-table-model"
 import { kCaseTableIdBase } from "./case-table-types"
+import { CaseTableModelContext } from "./use-case-table-model"
 
 const collisionDetection: CollisionDetection = (args) => {
   // use rectangle intersection for collection drop zones
@@ -22,8 +24,11 @@ const collisionDetection: CollisionDetection = (args) => {
 registerTileCollisionDetection(kCaseTableIdBase, collisionDetection)
 
 export const CaseTableComponent = observer(({ tile }: ITileBaseProps) => {
+  const data = useDataSetContext()
   const tableModel = tile?.content
   if (!isCaseTableModel(tableModel)) return null
+  // ultimately this should probably be in the model, perhaps afterAttach
+  data && tableModel.setData(data)
 
   const instanceId = useNextInstanceId(kCaseTableIdBase)
   // pass in the instance id since the context hasn't been provided yet
@@ -31,7 +36,9 @@ export const CaseTableComponent = observer(({ tile }: ITileBaseProps) => {
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
-      <CaseTable setNodeRef={setNodeRef} />
+      <CaseTableModelContext.Provider value={tableModel}>
+        <CaseTable setNodeRef={setNodeRef} />
+      </CaseTableModelContext.Provider>
     </InstanceIdContext.Provider>
   )
 })

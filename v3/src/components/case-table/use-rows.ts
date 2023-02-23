@@ -2,16 +2,16 @@ import { format } from "d3"
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
-import { ICase } from "../../models/data/data-set-types"
+import { ICase, IGroupedCase, symIndex } from "../../models/data/data-set-types"
 import {
   AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
 } from "../../models/data/data-set-actions"
 import { prf } from "../../utilities/profiler"
-import { TRow, TRowsChangeData } from "./case-table-types"
 
 export const useRows = () => {
   const data = useDataSetContext()
@@ -30,20 +30,20 @@ export const useRows = () => {
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
     rowCache.clear()
-    cases.forEach((aCase: TRow) => rowCache.set(aCase.__id__, { __id__: aCase.__id__, __index__: aCase.__index__ }))
+    cases.forEach(({ __id__, [symIndex]: i }: IGroupedCase) => rowCache.set(__id__, { __id__, [symIndex]: i }))
   }, [cases, rowCache])
 
   const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
-    const entry = rowCache.get(caseId)
-    if (entry && !entry.__domAttrs__) entry.__domAttrs__ = new Set<string>()
-    entry?.__domAttrs__?.add(attrId)
+    const row = rowCache.get(caseId)
+    if (row && !row[symDom]) row[symDom] = new Set<string>()
+    row?.[symDom]?.add(attrId)
   }, [rowCache])
 
   const syncRowsToRdg = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToRdg]", () => {
       // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
       const newRows = prf.measure("Table.useRows[syncRowsToRdg-copy]", () => {
-        return cases.map(({ __id__ }) => rowCache.get(__id__)).filter(c => !!c) as ICase[]
+        return cases.map(({ __id__ }) => rowCache.get(__id__)).filter(c => !!c) as TRow[]
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
         setRows(newRows || [])

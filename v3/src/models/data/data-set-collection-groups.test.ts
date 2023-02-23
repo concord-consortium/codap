@@ -169,6 +169,17 @@ describe("CollectionGroups", () => {
     expect(data.attrIndexFromID("cId")).toBe(2)
   })
 
+  it("selects all child cases when selecting a parent/pseudo-case", () => {
+    data.moveAttributeToNewCollection("aId")
+    const pseudoCases = data.getCasesForAttributes(["aId"])
+    data.selectCases([pseudoCases[0].__id__])
+    expect(data.selection.size).toBe(9)
+    data.selectAll(false)
+    expect(data.selection.size).toBe(0)
+    data.setSelectedCases([pseudoCases[0].__id__])
+    expect(data.selection.size).toBe(9)
+  })
+
   it("sets values of all cases when setting values of pseudo-cases", () => {
     data.moveAttributeToNewCollection("aId")
     const pseudoCases = data.getCasesForAttributes(["aId"])

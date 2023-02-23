@@ -63,7 +63,6 @@ describe("createCodapDocument", () => {
               attributes: [{
                 clientKey: "",
                 formula: {},
-                hidden: false,
                 id: "test-4",
                 name: "a",
                 userEditable: true,

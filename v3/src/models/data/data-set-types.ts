@@ -56,10 +56,24 @@ export interface IDerivationSpec {
   synchronize?: boolean;
 }
 
+// not currently used, but perhaps should be instead of __id__
+// export const symId = Symbol.for("id")
+
+// used in IGroupedCase
+export const symParent = Symbol.for("parent")
+export const symIndex = Symbol.for("index")
+
+export interface IGroupedCase extends ICase {
+  [symParent]?: string
+  [symIndex]?: number
+}
+
 // represents a set of cases which have common grouped values (a pseudo-case)
 export interface CaseGroup {
+  // id of collection containing the group
+  collectionId: string
   // id of pseudo-case and attribute values
-  pseudoCase: ICase
+  pseudoCase: IGroupedCase
   // ids of leaf child cases (actual cases) in the group
   childCaseIds: string[]
   // ids of child pseudo cases in the group (if any)

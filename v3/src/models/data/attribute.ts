@@ -62,7 +62,6 @@ export const Attribute = types.model("Attribute", {
   units: types.maybe(types.string),
   userPrecision: types.maybe(types.number),
   userEditable: true,
-  hidden: false,
   formula: types.optional(Formula, () => Formula.create()),
   // simple array -- _not_ MST all the way down to the array elements
   // due to its frozen nature, clients should _not_ use `values` directly
@@ -95,7 +94,6 @@ export const Attribute = types.model("Attribute", {
   get numericCount() {
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }
-  
 }))
 .actions(self => ({
   afterCreate() {
@@ -164,9 +162,6 @@ export const Attribute = types.model("Attribute", {
 .actions(self => ({
   setName(newName: string) {
     self.name = newName
-  },
-  setHidden(hidden: boolean) {
-    self.hidden = hidden
   },
   setUnits(units: string) {
     self.units = units

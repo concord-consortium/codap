@@ -5,9 +5,10 @@ import React, { useCallback, useEffect, useState } from "react"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
-import { TColumn, TFormatterProps } from "./case-table-types"
+import { symDom, TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
+import { useCaseTableModel } from "./use-case-table-model"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -27,6 +28,7 @@ interface IUseColumnsProps {
   indexColumn: TColumn
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
+  const tableModel = useCaseTableModel()
   const collection = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
 
@@ -39,8 +41,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     const value = isFinite(num) && formatter ? formatter(num) : str
     // if this is the first React render after performance rendering, add a
     // random key to force React to render the contents for synchronization
-    const key = row.__domAttrs__?.has(column.key) ? Math.random() : undefined
-    row.__domAttrs__?.delete(column.key)
+    const key = row[symDom]?.has(column.key) ? Math.random() : undefined
+    row[symDom]?.delete(column.key)
     // for now we just render numbers and raw string values; eventually,
     // we can support other formats here (dates, colors, etc.)
     return (
@@ -58,7 +60,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       const attrs: IAttribute[] = (collection
                                     ? Array.from(collection.attributes) as IAttribute[]
                                     : data?.ungroupedAttributes) ?? []
-      const visibleAttrs: IAttribute[] = attrs.filter(attr => attr && !attr.hidden)
+      const visibleAttrs: IAttribute[] = attrs.filter(attr => attr && !tableModel?.isHidden(attr.id))
       const _columns: TColumn[] = data
         ? [
             indexColumn,
@@ -78,7 +80,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       setColumns(_columns)
     })
     return () => disposer()
-  }, [CellFormatter, collection, data, indexColumn])
+  }, [CellFormatter, collection, data, indexColumn, tableModel])
 
   return columns
 }
