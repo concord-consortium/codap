@@ -26,10 +26,12 @@ export const CaseTableModel = TileContentModel
     columnWidth(attrId: string) {
       return self.columnWidths.get(attrId)
     },
+    // true if passed the id of a parent/pseudo-case whose child cases have been collapsed, false otherwise
     isCollapsed(caseId: string) {
       const { collectionId, valuesJson } = self.data?.pseudoCaseMap[caseId] || {}
       return (collectionId && valuesJson && self.collections.get(collectionId)?.collapsed.get(valuesJson)) ?? false
     },
+    // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
       return self.hidden.get(attrId) ?? false
     }

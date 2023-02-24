@@ -20,4 +20,5 @@ export interface TFormatterProps extends FormatterProps<TRow> {}
 export interface THeaderRendererProps extends HeaderRendererProps<TRow> {}
 export interface TRowRendererProps extends RowRendererProps<TRow> {}
 
+// used in lieu of attribute id for index column for ReactDataGrid
 export const kIndexColumnKey = "__index__"

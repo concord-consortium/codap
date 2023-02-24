@@ -272,6 +272,8 @@ export const DataSet = types.model("DataSet", {
               const cumulativeValuesJson = JSON.stringify(cumulativeValues)
               if (!groupsMap[cumulativeValuesJson]) {
                 // start a new group with just this case (for now)
+                // note: PCAS ids are considered ephemeral and should not be stored/serialized,
+                // because they can be regenerated whenever the data changes.
                 const pseudoCase: IGroupedCase = { __id__: `PCAS${uniqueId()}`, ...cumulativeValues }
                 groupsMap[cumulativeValuesJson] = {
                   collectionId: collection.id,
