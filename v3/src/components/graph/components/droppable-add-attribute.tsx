@@ -3,10 +3,10 @@ import {Active, useDroppable} from "@dnd-kit/core"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {DropHint} from "./drop-hint"
-import {IsGraphDropAllowed, PlotType} from "../graphing-types"
+import {graphPlaceToAttrRole, IsGraphDropAllowed, PlotType} from "../graphing-types"
 
 interface IAddAttributeProps {
-  location: 'top' | 'rightNumeric'
+  location: 'yPlus' | 'top' | 'rightNumeric'
   plotType: PlotType
   isDropAllowed?: IsGraphDropAllowed
   onDrop: (attributeId: string) => void
@@ -15,13 +15,14 @@ interface IAddAttributeProps {
 export const DroppableAddAttribute = ({location, plotType,
                                         isDropAllowed = () => true, onDrop}: IAddAttributeProps) => {
   const droppableId = `graph-add-attribute-drop-${location}`,
+    role = graphPlaceToAttrRole[location],
     {active, isOver, setNodeRef} = useDroppable({id: droppableId}),
-    hintString = useDropHintString({role: 'yPlus', isDropAllowed})
+    hintString = useDropHintString({ role, isDropAllowed})
 
   const handleIsActive = (iActive: Active) => {
     const droppedAttrId = getDragAttributeId(iActive)
     if (isDropAllowed) {
-      return isDropAllowed('legend', droppedAttrId)
+      return isDropAllowed(location, droppedAttrId)
     } else {
       return !!droppedAttrId
     }
@@ -33,9 +34,11 @@ export const DroppableAddAttribute = ({location, plotType,
   })
 
   if (plotType === 'scatterPlot') {
+    const isActive = active && handleIsActive(active)
+    const className = `add-attribute-drop-${location} ${isActive && isOver ? "over" : ""} ${isActive ? "active" : ""}`
     return (
       <div ref={setNodeRef} id={droppableId}
-           className={`add-attribute-drop-${location} ${active && isOver ? "over" : ""} ${active ? "active" : ""} }`}>
+           className={className}>
         {isOver && hintString &&
            <DropHint hintText={hintString}/>
         }

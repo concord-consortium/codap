@@ -60,6 +60,22 @@
   }
   &.over {
     background: yellow;
+    opacity: 0.5;
+  }
+}
+
+.add-attribute-drop-yPlus {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 25px;
+  &.active {
+    border: 5px solid rgb(255, 216, 102);
+  }
+  &.over {
+    background: yellow;
+    opacity: 0.5;
   }
 }
 
@@ -74,5 +90,6 @@
   }
   &.over {
     background: yellow;
+    opacity: 0.5;
   }
 }

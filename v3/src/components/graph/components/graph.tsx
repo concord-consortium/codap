@@ -180,7 +180,7 @@ export const Graph = observer((
           />
         </svg>
         <DroppableAddAttribute
-          location={'top'}
+          location={'yPlus'}
           plotType = {plotType}
           isDropAllowed={isDropAllowed}
           onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>

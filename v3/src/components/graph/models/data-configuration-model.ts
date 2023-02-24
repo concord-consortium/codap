@@ -430,11 +430,13 @@ export const DataConfigurationModel = types
         return primaryRole === role
       },
       graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop: string) {
+        const role = graphPlaceToAttrRole[place]
         if (place === 'yPlus') {
-          return !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
+          return self.attributeType(role) === 'numeric' && !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
         } else {
-          const existingID = self.attributeID(graphPlaceToAttrRole[place])
-          return !!idToDrop && existingID !== idToDrop
+          const existingID = self.attributeID(role)
+          return (place === 'rightNumeric' ? self.dataset?.attrFromID(idToDrop).type === 'numeric' : true) &&
+            !!idToDrop && existingID !== idToDrop
         }
       }
     }))

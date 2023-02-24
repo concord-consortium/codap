@@ -55,6 +55,12 @@ export function determineBaseString(role: GraphAttrRole, dropType?: AttributeTyp
         existing: "addAttribute"
       }
     },
+    rightNumeric: {
+      numeric: {
+        empty: "addAttribute",
+        existing: "addAttribute"
+      }
+    },
   }
 
   const stringKey = dropType && stringMap[role]?.[dropType]?.[priorType ? "existing" : "empty"]
