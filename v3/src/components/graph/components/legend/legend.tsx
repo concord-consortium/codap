@@ -1,4 +1,4 @@
-import React, {memo, useMemo, useRef} from "react"
+import React, {useMemo, useRef} from "react"
 import {createPortal} from "react-dom"
 import {Active} from "@dnd-kit/core"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
@@ -21,12 +21,12 @@ interface ILegendProps {
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-const handleIsActive = (active: Active) => !!getDragAttributeId(active)
-
-export const Legend = memo(function Legend({
-  legendAttrID, graphElt, onDropAttribute, onTreatAttributeAs, onRemoveAttribute
-}: ILegendProps) {
+export const Legend = function Legend({
+                                        legendAttrID, graphElt,
+                                        onDropAttribute, onTreatAttributeAs, onRemoveAttribute
+                                      }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
+    isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendLabelRef = useRef<SVGGElement>(null),
@@ -34,12 +34,22 @@ export const Legend = memo(function Legend({
     instanceId = useInstanceIdContext(),
     droppableId = `${instanceId}-legend-area-drop`,
     role = 'legend' as GraphAttrRole,
-    hintString = useDropHintString({role}),
+    hintString = useDropHintString({role, isDropAllowed}),
     attributeIDs = useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
+
+  const handleIsActive = (active: Active) => {
+    const droppedAttrId = getDragAttributeId(active) ?? ''
+    if (isDropAllowed) {
+      return isDropAllowed('legend', droppedAttrId)
+    } else {
+      return !!droppedAttrId
+    }
+  }
 
   useDropHandler(droppableId, active => {
     const dragAttributeID = getDragAttributeId(active)
-    dragAttributeID && onDropAttribute('legend', dragAttributeID)
+    dragAttributeID && isDropAllowed('legend', dragAttributeID) &&
+    onDropAttribute('legend', dragAttributeID)
   })
 
   const legendBounds = layout.computedBounds.get('legend') as Bounds,
@@ -49,14 +59,14 @@ export const Legend = memo(function Legend({
     <>
       <svg ref={legendRef} className='legend'>
         { graphElt && createPortal(
-            <AxisOrLegendAttributeMenu
-              place="legend"
-              target={legendLabelRef.current}
-              portal={graphElt}
-              onChangeAttribute={onDropAttribute}
-              onRemoveAttribute={onRemoveAttribute}
-              onTreatAttributeAs={onTreatAttributeAs}
-            />,
+          <AxisOrLegendAttributeMenu
+            place="legend"
+            target={legendLabelRef.current}
+            portal={graphElt}
+            onChangeAttribute={onDropAttribute}
+            onRemoveAttribute={onRemoveAttribute}
+            onTreatAttributeAs={onTreatAttributeAs}
+          />,
           graphElt)
         }
         <AttributeLabel
@@ -70,7 +80,7 @@ export const Legend = memo(function Legend({
           attrType === 'categorical' ? <CategoricalLegend transform={transform}
                                                           legendLabelRef={legendLabelRef}/>
             : attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}
-                                                    transform={transform}/> : null
+                                                      transform={transform}/> : null
         }
       </svg>
       <DroppableSvg
@@ -84,5 +94,5 @@ export const Legend = memo(function Legend({
     </>
 
   ) : null
-})
+}
 Legend.displayName = "Legend"

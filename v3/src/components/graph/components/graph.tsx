@@ -176,7 +176,7 @@ export const Graph = observer((
           />
         </svg>
         <DroppableAddAttribute
-          location={'top'}
+          location={'yPlus'}
           plotType = {plotType}
           onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
         <DroppableAddAttribute

@@ -18,6 +18,7 @@ interface IProps {
 export const GraphAxis = observer((
   {place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) => {
   const dataConfig = useDataConfigurationContext()
+  const isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true)
   const dataset = dataConfig?.dataset
   const graphModel = useGraphModelContext()
   const role = axisPlaceToAttrRole[place]
@@ -41,6 +42,7 @@ export const GraphAxis = observer((
           enableAnimation={enableAnimation}
           showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
           centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
+          isDropAllowed={isDropAllowed}
           onDropAttribute={onDropAttribute}
           onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
