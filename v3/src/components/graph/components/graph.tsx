@@ -52,8 +52,7 @@ export const Graph = observer((
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y'),
-    isDropAllowed = graphModel.config.graphPlaceCanAcceptAttributeIDDrop
+    yAttrID = graphModel.getAttributeID('y')
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
@@ -137,7 +136,6 @@ export const Graph = observer((
       return <GraphAxis key={place}
                         place={place}
                         enableAnimation={enableAnimation}
-                        isDropAllowed={isDropAllowed}
                         onDropAttribute={handleChangeAttribute}
                         onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}
@@ -166,14 +164,12 @@ export const Graph = observer((
           <DroppablePlot
             graphElt={graphRef.current}
             plotElt={backgroundSvgRef.current}
-            isDropAllowed={isDropAllowed}
             onDropAttribute={handleChangeAttribute}
           />
 
           <Legend
             legendAttrID={graphModel.getAttributeID('legend')}
             graphElt={graphRef.current}
-            isDropAllowed={isDropAllowed}
             onDropAttribute={handleChangeAttribute}
             onRemoveAttribute={handleRemoveAttribute}
             onTreatAttributeAs={handleTreatAttrAs}
@@ -182,12 +178,10 @@ export const Graph = observer((
         <DroppableAddAttribute
           location={'yPlus'}
           plotType = {plotType}
-          isDropAllowed={isDropAllowed}
           onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
         <DroppableAddAttribute
           location={'rightNumeric'}
           plotType = {plotType}
-          isDropAllowed={isDropAllowed}
           onDrop={handleChangeAttribute.bind(null, 'rightNumeric')}/>
       </div>
       <GraphInspector graphModel={graphModel}

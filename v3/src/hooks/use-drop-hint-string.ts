@@ -73,9 +73,9 @@ export const useDropHintString = ({role, isDropAllowed} : IUseDropHintStringProp
     { active } = useDndContext(),
     dragAttrId = getDragAttributeId(active),
     place = attrRoleToGraphPlace[role] as GraphPlace,
-    dropAllowed = isDropAllowed ?? (() => true)
+    dropAllowed = isDropAllowed ? isDropAllowed(place, dragAttrId) : true
 
-  if (dataSet && active?.data.current && dropAllowed(place, dragAttrId)) {
+  if (dataSet && active?.data.current && dropAllowed) {
     const dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId).name : undefined,
       dragAttrType = dragAttrId? dataSet.attrFromID(dragAttrId).type : undefined
 

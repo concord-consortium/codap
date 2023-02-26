@@ -11,7 +11,7 @@ export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'rightNum
 export const GraphAttrRoles = [
   ...TipAttrRoles, 'polygon', 'yPlus', 'topSplit', 'rightSplit'] as const
 export type GraphAttrRole = typeof GraphAttrRoles[number]
-export type IsGraphDropAllowed = (place: GraphPlace, attrId: string | undefined) => boolean
+export type IsGraphDropAllowed = (place: GraphPlace, attrId?: string) => boolean
 
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {

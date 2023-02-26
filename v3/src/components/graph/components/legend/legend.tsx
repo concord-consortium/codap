@@ -10,23 +10,23 @@ import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
-import {GraphAttrRole, GraphPlace, IsGraphDropAllowed} from "../../graphing-types"
+import {GraphAttrRole, GraphPlace} from "../../graphing-types"
 import {AxisOrLegendAttributeMenu} from "../../../axis/components/axis-or-legend-attribute-menu"
 
 interface ILegendProps {
   legendAttrID: string
   graphElt: HTMLDivElement | null
-  isDropAllowed?: IsGraphDropAllowed
   onDropAttribute: (place: GraphPlace, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
 export const Legend = function Legend({
-                                        legendAttrID, graphElt, isDropAllowed = () => true,
+                                        legendAttrID, graphElt,
                                         onDropAttribute, onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
+    isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendLabelRef = useRef<SVGGElement>(null),
@@ -38,7 +38,7 @@ export const Legend = function Legend({
     attributeIDs = useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
 
   const handleIsActive = (active: Active) => {
-    const droppedAttrId = getDragAttributeId(active)
+    const droppedAttrId = getDragAttributeId(active) ?? ''
     if (isDropAllowed) {
       return isDropAllowed('legend', droppedAttrId)
     } else {
