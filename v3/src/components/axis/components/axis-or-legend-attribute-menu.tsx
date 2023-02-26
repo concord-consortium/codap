@@ -20,7 +20,9 @@ const removeAttrItemLabelKeys: Record<string, string> = {
   "x": "DG.DataDisplayMenu.removeAttribute_x",
   "y": "DG.DataDisplayMenu.removeAttribute_y",
   "rightNumeric": "DG.DataDisplayMenu.removeAttribute_y2",
-  "legend": "DG.DataDisplayMenu.removeAttribute_legend"
+  "legend": "DG.DataDisplayMenu.removeAttribute_legend",
+  "topSplit": "DG.DataDisplayMenu.removeAttribute_top",
+  "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
 }
 
 const _AxisOrLegendAttributeMenu = ({ place, target, portal,
@@ -28,7 +30,7 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
   const role = graphPlaceToAttrRole[place]
-  const attrId = dataConfig?.attributeID(role)
+  const attrId = dataConfig?.attributeID(role) || ''
   const attribute = attrId ? data?.attrFromID(attrId) : null
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
   const treatAs = dataConfig?.attributeType(role) === "numeric" ? "categorical" : "numeric"

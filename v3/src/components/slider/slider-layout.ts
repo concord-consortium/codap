@@ -1,17 +1,16 @@
-import { ScaleContinuousNumeric, scaleLinear } from "d3"
 import { action, makeObservable, observable } from "mobx"
 import { AxisBounds, AxisPlace } from "../axis/axis-types"
 import {
   kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth
 } from "./slider-types"
-
-type SliderScale = ScaleContinuousNumeric<number, number>
+import {MultiScale} from "../graph/models/multi-scale"
+import {IScaleType} from "../axis/models/axis-model"
 
 export class SliderAxisLayout {
   @observable sliderWidth = kDefaultSliderWidth
   @observable sliderHeight = kDefaultSliderHeight
   @observable axisBounds?: AxisBounds
-  axisScale: SliderScale = scaleLinear()
+  axisScale: MultiScale = new MultiScale({scaleType: "linear", orientation: "horizontal"})
   desiredExtent?: number
 
   constructor() {
@@ -21,6 +20,7 @@ export class SliderAxisLayout {
   @action setParentExtent(width: number, height: number) {
     this.sliderWidth = width
     this.sliderHeight = height
+    this.axisScale.setLength(this.sliderWidth)
   }
 
   getAxisLength(place: AxisPlace) {
@@ -39,9 +39,9 @@ export class SliderAxisLayout {
     return this.axisScale
   }
 
-  @action setAxisScale(place: AxisPlace, scale: SliderScale) {
-    scale.range([0, this.sliderWidth])
-    this.axisScale = scale
+  @action setAxisScaleType(place: AxisPlace, scaleType: IScaleType) {
+    this.axisScale.setLength(this.sliderWidth)
+    this.axisScale.setScaleType(scaleType)
   }
 
   @action setDesiredExtent(place: any, extent: number) {

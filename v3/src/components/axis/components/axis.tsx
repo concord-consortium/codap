@@ -1,8 +1,8 @@
 import {Active} from "@dnd-kit/core"
-import React, {MutableRefObject, useEffect, useRef, useState} from "react"
+import React, {MutableRefObject, useRef, useState} from "react"
 import {createPortal} from "react-dom"
-import {select} from "d3"
-import {useAxisLayoutContext} from "../models/axis-layout-context"
+import {range} from "d3"
+import {useGraphLayoutContext} from "../../graph/models/graph-layout"
 import {AxisPlace} from "../axis-types"
 import {DroppableAxis} from "./droppable-axis"
 import {axisPlaceToAttrRole, GraphPlace, IsGraphDropAllowed} from "../../graph/graphing-types"
@@ -11,9 +11,10 @@ import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
-import {IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {AxisDragRects} from "./axis-drag-rects"
+import {IAxisModel} from "../models/axis-model"
 import {AxisOrLegendAttributeMenu} from "./axis-or-legend-attribute-menu"
+import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
+import {SubAxis} from "./sub-axis"
 
 import "./axis.scss"
 
@@ -37,13 +38,13 @@ export const Axis = ({
                        enableAnimation, onTreatAttributeAs, onRemoveAttribute
                      }: IProps) => {
   const
+    dataConfiguration = useDataConfigurationContext(),
     instanceId = useInstanceIdContext(),
     axisModel = getAxisModel(),
+    layout = useGraphLayoutContext(),
     place = axisModel?.place || 'bottom',
     droppableId = `${instanceId}-${place}-axis-drop`,
-    layout = useAxisLayoutContext(),
-    scale = layout.getAxisScale(place),
-    hintString = useDropHintString({role: axisPlaceToAttrRole[place], isDropAllowed}),
+    hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
 
@@ -59,8 +60,7 @@ export const Axis = ({
   const {parentElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place, parentSelector)
 
   useAxis({
-    axisModel, axisElt, label, enableAnimation, showScatterPlotGridLines, centerCategoryLabels,
-    titleRef
+    axisModel, axisElt, titleRef, axisTitle: label, centerCategoryLabels
   })
 
   useDropHandler(droppableId, active => {
@@ -68,27 +68,26 @@ export const Axis = ({
     droppedAttrId && isDropAllowed(place, droppedAttrId) && onDropAttribute?.(place, droppedAttrId)
   })
 
-  const [xMin, xMax] = scale?.range() || [0, 100]
-  const halfRange = Math.abs(xMax - xMin) / 2
-  useEffect(function setupTitle() {
-    select(titleRef.current)
-      .selectAll('text.axis-title')
-      .data([1])
-      .join(
-        // @ts-expect-error void => Selection
-        (enter) => {
-          enter.append('text')
-            .attr('class', 'axis-title')
-            .attr('text-anchor', 'middle')
-            .attr('data-testid', `axis-title-${place}`)
-        })
-
-  }, [axisElt, halfRange, label, place])
+  const getSubAxes = () => {
+    const numRepetitions = dataConfiguration?.numRepetitionsForPlace(place) ?? 1
+    layout.getAxisScale && layout?.getAxisScale(place).setRepetitions(numRepetitions)
+    return range(numRepetitions).map(i => {
+      return <SubAxis key={i}
+                      subAxisIndex={i}
+                      getAxisModel={getAxisModel}
+                      enableAnimation={enableAnimation}
+                      showScatterPlotGridLines={showScatterPlotGridLines}
+                      centerCategoryLabels={centerCategoryLabels}
+      />
+    })
+  }
 
   return (
     <>
       <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
-        <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
+        <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}>
+          {getSubAxes()}
+        </g>
         <g ref={titleRef}/>
       </g>
 
@@ -103,8 +102,6 @@ export const Axis = ({
         />, parentElt)
       }
 
-      {axisModel?.type === 'numeric'
-        ? <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={wrapperElt}/> : null}
       {onDropAttribute &&
          <DroppableAxis
             place={`${place}`}

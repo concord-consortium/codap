@@ -1,0 +1,98 @@
+import {action, computed, makeObservable, observable} from "mobx"
+import {NumberValue, ScaleBand, scaleBand, ScaleLinear, scaleLinear, scaleLog, scaleOrdinal} from "d3"
+import {AxisScaleType} from "../../axis/axis-types"
+import {IScaleType} from "../../axis/models/axis-model"
+
+interface IDataCoordinate {
+  cell: number
+  data: number | string
+}
+interface IMultiScaleProps {
+  scaleType: IScaleType
+  orientation: "horizontal" | "vertical"
+}
+
+export const scaleTypeToD3Scale = (iScaleType: IScaleType) => {
+  switch (iScaleType) {
+    case "ordinal":
+      return scaleOrdinal()
+    case "band":
+      return scaleBand()
+    case "linear":
+      return scaleLinear()
+    case "log":
+      return scaleLog()
+  }
+}
+
+/**
+ * This class is used to by plots to compute screen coordinates from data coordinates. It can also invert
+ * the process, computing data coordinates from screen coordinates.
+ * One instance is assigned to each axis place. Only 'left', 'bottom' and 'rightNumeric' places ever have
+ * more than one repetition, and these only when a 'rightCat' or 'top' axis is present.
+ */
+export class MultiScale {
+  @observable scaleType: IScaleType
+  @observable repetitions = 1
+  @observable length = 0
+  @observable orientation: "horizontal" | "vertical"
+  scale: AxisScaleType
+
+  constructor({scaleType, orientation}: IMultiScaleProps) {
+    this.scaleType = scaleType
+    this.orientation = orientation
+    this.scale = scaleTypeToD3Scale(scaleType)
+    makeObservable(this)
+  }
+  @computed get cellLength() {
+    return this.length / this.repetitions
+  }
+
+  @computed get domain() {
+    return this.scale?.domain()
+  }
+
+  @action setScaleType(scaleType: IScaleType) {
+    this.scaleType = scaleType
+    this.scale = scaleTypeToD3Scale(scaleType)
+  }
+
+  @action setLength(length: number) {
+    this.length = length
+    this.scale?.range(this.orientation === 'horizontal' ? [0, this.length] : [this.length, 0])
+  }
+
+  @action setRepetitions(repetitions: number) {
+    this.repetitions = repetitions
+  }
+
+  @action setDomain(domain: Iterable<NumberValue> | Iterable<string>) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this.scale?.domain(domain)
+  }
+
+  getScreenCoordinate(dataCoord:IDataCoordinate): number {
+    let scaleCoord = 0
+    switch (this.scaleType) {
+      case "linear":
+      case "log":
+        scaleCoord = (this.scale as ScaleLinear<number, number>)(Number(dataCoord.data))
+        break
+      case "ordinal":
+      case "band":
+        scaleCoord = (this.scale as ScaleBand<string>)(String(dataCoord.data)) ?? 0
+    }
+    return dataCoord.cell * this.cellLength + scaleCoord
+  }
+
+  getDataCoordinate(screenCoordinate: number) {
+    if (['linear', 'log'].includes(this.scaleType) && this.scale) {
+      const cell = Math.floor(this.cellLength / screenCoordinate),
+        numericScale = this.scale as ScaleLinear<number, number>
+      return { cell, data: numericScale.invert(screenCoordinate) }
+    }
+    return {data: NaN}
+  }
+
+}

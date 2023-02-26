@@ -1,11 +1,11 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {reaction} from "mobx"
-import {drag, select} from "d3"
+import {drag, ScaleContinuousNumeric, select} from "d3"
 import t from "../../../utilities/translation/translate"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
-import {ScaleNumericBaseType} from "../axis-types"
+import {MultiScale} from "../../graph/models/multi-scale"
 
 import "./axis.scss"
 
@@ -26,14 +26,20 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
     layout = useAxisLayoutContext()
 
   useEffect(function createRects() {
-    let axisScale: ScaleNumericBaseType,
-      scaleAtStart: any = null,
-      lowerAtStart: number,
-      upperAtStart: number,
+    let axisScale: MultiScale,
+      d3Scale: ScaleContinuousNumeric<number, number>,
+      d3ScaleAtStart: ScaleContinuousNumeric<number, number>,
+      lower: number,
+      upper: number,
       dilationAnchorCoord: number,
       dragging = false
 
     const onDragStart: D3Handler = () => {
+        axisScale = layout.getAxisScale(place)
+        d3Scale = axisScale.scale as ScaleContinuousNumeric<number, number>
+        d3ScaleAtStart = d3Scale.copy()
+        lower = d3ScaleAtStart.domain()[0]
+        upper = d3ScaleAtStart.domain()[1]
         select(this as Element)
           .classed('dragging', true)
         axisModel.setTransitionDuration(0)
@@ -42,12 +48,13 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
       onDilateStart: D3Handler = (event: { x: number, y: number }) => {
         select(this)
           .classed('dragging', true)
-        axisScale = layout.getAxisScale(place) as ScaleNumericBaseType
-        scaleAtStart = axisScale?.copy()
-        lowerAtStart = scaleAtStart.domain()[0]
-        upperAtStart = scaleAtStart.domain()[1]
-        dilationAnchorCoord = Number(place === 'bottom' ? axisScale?.invert(event.x)
-          : axisScale?.invert(event.y))
+        axisScale = layout.getAxisScale(place)
+        d3Scale = axisScale.scale as ScaleContinuousNumeric<number, number>
+        d3ScaleAtStart = d3Scale.copy()
+        lower = d3ScaleAtStart.domain()[0]
+        upper = d3ScaleAtStart.domain()[1]
+        dilationAnchorCoord = Number(place === 'bottom' ? d3Scale.invert(event.x)
+          : d3Scale.invert(event.y))
         dragging = true
         axisModel.setTransitionDuration(0)
       },
@@ -56,20 +63,22 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
         const delta = -(place === 'bottom' ? event.dx : event.dy)
         if (dragging && delta !== 0) {
           const
-            x2 = place === 'bottom' ? scaleAtStart.invert(event.x) : scaleAtStart.invert(event.y),
-            ratio = (upperAtStart - x2) / (upperAtStart - dilationAnchorCoord),
-            newRange = (upperAtStart - lowerAtStart) / ratio,
-            newLowerBound = upperAtStart - newRange
-          axisModel.setDomain(newLowerBound, upperAtStart)
+            x2 = place === 'bottom' ? d3ScaleAtStart.invert(event.x) : d3ScaleAtStart.invert(event.y),
+            ratio = (upper - x2) / (upper - dilationAnchorCoord),
+            newRange = (upper - lower) / ratio,
+            newLowerBound = upper - newRange
+          axisModel.setDomain(newLowerBound, upper)
         }
       },
 
       onDragTranslate = (event: { dx: number; dy: number }) => {
         const delta = -(place === 'bottom' ? event.dx : event.dy)
         if (delta !== 0) {
-          const worldDelta = Number(axisScale?.invert(delta)) -
-            Number(axisScale?.invert(0))
-          axisModel.setDomain(axisModel.min + worldDelta, axisModel.max + worldDelta)
+          const worldDelta = Number(d3Scale.invert(delta)) -
+            Number(d3Scale.invert(0))
+          lower += worldDelta
+          upper += worldDelta
+          axisModel.setDomain(lower, upper)
         }
       },
 
@@ -77,18 +86,17 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
         const delta = (place === 'bottom' ? event.dx : event.dy)
         if (dragging && delta !== 0) {
           const
-            x2 = place === 'bottom' ? scaleAtStart.invert(event.x) : scaleAtStart.invert(event.y),
-            ratio = (x2 - lowerAtStart) / (dilationAnchorCoord - lowerAtStart),
-            newRange = (upperAtStart - lowerAtStart) / ratio,
-            newUpperBound = lowerAtStart + newRange
-          axisModel.setDomain(lowerAtStart, newUpperBound)
+            x2 = place === 'bottom' ? d3ScaleAtStart.invert(event.x) : d3ScaleAtStart.invert(event.y),
+            ratio = (x2 - lower) / (dilationAnchorCoord - lower),
+            newRange = (upper - lower) / ratio,
+            newUpperBound = lower + newRange
+          axisModel.setDomain(lower, newUpperBound)
         }
       },
 
       onDragEnd = () => {
         select(this)
           .classed('dragging', false)
-        scaleAtStart = null
         dragging = false
       }
 
@@ -151,7 +159,7 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
             .join(
               // @ts-expect-error void => Selection
               // eslint-disable-next-line @typescript-eslint/no-empty-function
-              (enter) => {
+              () => {
               },
               (update) => {
                 update
@@ -163,7 +171,7 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
             )
           rectSelection.selectAll('.dragRect').raise()
         }
-      }
+      }, {fireImmediately: true}
     )
     return () => disposer()
   }, [axisModel, layout, axisWrapperElt, place])

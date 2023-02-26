@@ -7,9 +7,10 @@ export type CaseData = { plotNum: number, caseID: string }
 export const GraphPlaces = [...AxisPlaces, "yPlus", "plot", "legend"] as const
 export type GraphPlace = typeof GraphPlaces[number]
 export const PrimaryAttrRoles = ['x', 'y'] as const
-export const TipAttrRoles = [...PrimaryAttrRoles, 'legend', 'caption', 'rightNumeric'] as const
+export const TipAttrRoles =
+  [...PrimaryAttrRoles, 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'caption'] as const
 export const GraphAttrRoles = [
-  ...TipAttrRoles, 'polygon', 'yPlus', 'topSplit', 'rightSplit'] as const
+  ...TipAttrRoles, 'polygon', 'yPlus'] as const
 export type GraphAttrRole = typeof GraphAttrRoles[number]
 export type IsGraphDropAllowed = (place: GraphPlace, attrId?: string) => boolean
 

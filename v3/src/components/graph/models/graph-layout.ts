@@ -1,10 +1,9 @@
-import {scaleBand, scaleLinear, scaleLog, scaleOrdinal} from "d3"
 import {action, computed, makeObservable, observable} from "mobx"
 import {createContext, useContext} from "react"
-import {AxisPlace, AxisPlaces, AxisBounds, AxisScaleType, isVertical} from "../../axis/axis-types"
+import {AxisPlace, AxisPlaces, AxisBounds, isVertical} from "../../axis/axis-types"
 import {GraphPlace} from "../graphing-types"
+import {MultiScale} from "./multi-scale"
 import {IScaleType} from "../../axis/models/axis-model"
-import {kTitleBarHeight} from "../../constants"
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 300
@@ -15,19 +14,6 @@ export interface Bounds {
   top: number
   width: number
   height: number
-}
-
-export const scaleTypeToD3Scale = (iScaleType: IScaleType) => {
-  switch (iScaleType) {
-    case "ordinal":
-      return scaleOrdinal()
-    case "band":
-      return scaleBand()
-    case "linear":
-      return scaleLinear()
-    case "log":
-      return scaleLog()
-  }
 }
 
 export const CategoricalLayouts = ["parallel", "perpendicular"] as const
@@ -41,10 +27,12 @@ export class GraphLayout {
   @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
   // desired/required size of axis elements
   @observable desiredExtents: Map<GraphPlace, number> = new Map()
-  axisScales: Map<AxisPlace, AxisScaleType> = new Map()
+  axisScales: Map<AxisPlace, MultiScale> = new Map()
 
   constructor() {
-    AxisPlaces.forEach(place => this.axisScales.set(place, scaleOrdinal()))
+    AxisPlaces.forEach(place => this.axisScales.set(place,
+      new MultiScale({scaleType: "ordinal",
+        orientation: isVertical(place) ? "vertical" : "horizontal"})))
     makeObservable(this)
   }
 
@@ -96,28 +84,32 @@ export class GraphLayout {
   }
 
   getAxisScale(place: AxisPlace) {
-    return this.axisScales.get(place)
+    return this.axisScales.get(place) ??
+      new MultiScale({scaleType: "ordinal", orientation: "horizontal"})
   }
 
-  @action setAxisScale(place: AxisPlace, scale: AxisScaleType) {
-    scale.range(isVertical(place) ? [this.plotHeight, 0] : [0, this.plotWidth])
-    this.axisScales.set(place, scale)
+  @action setAxisScaleType(place: AxisPlace, scale: IScaleType) {
+    this.getAxisScale(place)?.setScaleType(scale)
+    const length = isVertical(place) ? this.plotHeight : this.plotWidth
+    this.getAxisScale(place)?.setLength(length)
   }
 
   @action setDesiredExtent(place: GraphPlace, extent: number) {
     this.desiredExtents.set(place, extent)
+    this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }
 
   updateScaleRanges(plotWidth: number, plotHeight: number) {
     AxisPlaces.forEach(place => {
-      const range = isVertical(place) ? [plotHeight, 0] : [0, plotWidth]
-      this.getAxisScale(place)?.range(range)
+      const length = isVertical(place) ? plotHeight : plotWidth
+      this.getAxisScale(place)?.setLength(length)
     })
   }
 
   @action setParentExtent(width: number, height: number) {
     this.graphWidth = width
     this.graphHeight = height
+    this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }
 
   /**
@@ -137,9 +129,9 @@ export class GraphLayout {
       plotWidth = graphWidth - leftAxisWidth - v2AxisWidth - rightAxisWidth,
       plotHeight = graphHeight - topAxisHeight - bottomAxisHeight - legendHeight
     newBounds.set('left',
-      {left: 0, top: 0, width: leftAxisWidth, height: plotHeight})
+      {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight})
     newBounds.set('top',
-      {left: leftAxisWidth, top: kTitleBarHeight, width: graphWidth - leftAxisWidth - rightAxisWidth,
+      {left: leftAxisWidth, top: 0, width: graphWidth - leftAxisWidth - rightAxisWidth,
         height: topAxisHeight})
     newBounds.set('plot',
       {left: leftAxisWidth, top: topAxisHeight, width: plotWidth, height: plotHeight})

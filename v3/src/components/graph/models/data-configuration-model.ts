@@ -107,14 +107,14 @@ export const DataConfigurationModel = types
         : role === 'rightNumeric' ? self._attributeDescriptions.get('rightNumeric')
           : this.attributeDescriptions[role]
     },
-    attributeID(role: GraphAttrRole) {
+    attributeID(role: GraphAttrRole): string {
       let attrID = this.attributeDescriptionForRole(role)?.attributeID
       if ((role === "caption") && !attrID) {
         attrID = this.defaultCaptionAttributeID
       }
       return attrID
     },
-    attributeType(role: GraphAttrRole) {
+    attributeType(role: GraphAttrRole):string {
       const desc = this.attributeDescriptionForRole(role)
       const attrID = this.attributeID(role)
       const attr = attrID && self.dataset?.attrFromID(attrID)
@@ -131,10 +131,10 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
-    get primaryAttributeID() {
+    get primaryAttributeID(): string {
       return self.primaryRole && self.attributeID(self.primaryRole) || ''
     },
-    get secondaryAttributeID() {
+    get secondaryAttributeID(): string {
       return self.secondaryRole && self.attributeID(self.secondaryRole) || ''
     }
   }))
@@ -363,6 +363,17 @@ export const DataConfigurationModel = types
           self.setCategorySetForRole(role, result)
           return result
         }
+      },
+      numRepetitionsForPlace(place: GraphPlace) {
+        let numRepetitions = 1
+        switch (place) {
+          case 'left':
+            numRepetitions = Math.max(this.categorySetForAttrRole('rightSplit').size, 1)
+            break
+          case 'bottom':
+            numRepetitions = Math.max(this.categorySetForAttrRole('topSplit').size, 1)
+        }
+        return numRepetitions
       }
     }))
   .views(self => (
@@ -436,21 +447,27 @@ export const DataConfigurationModel = types
        * Called to determine whether the categories on an axis should be centered.
        * If the attribute is playing a primary role, then it should be centered.
        * If it is a secondary role, then it should not be centered.
+       * 'top' and 'rightCat' are always centered.
        */
       categoriesForAxisShouldBeCentered(place: AxisPlace) {
         const role = graphPlaceToAttrRole[place],
           primaryRole = self.primaryRole
-        return primaryRole === role
+        return primaryRole === role || !['left', 'bottom'].includes(place)
       },
       graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop: string) {
         const role = graphPlaceToAttrRole[place],
-          typeToDrop = self.dataset?.attrFromID(idToDrop)?.type
+          typeToDropIsNumeric = self.dataset?.attrFromID(idToDrop)?.type === 'numeric',
+          xIsNumeric = self.attributeType('x') === 'numeric',
+          existingID = self.attributeID(role)
         if (place === 'yPlus') {
-          return typeToDrop === 'numeric' && !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
-        } else {
-          const existingID = self.attributeID(role)
-          return (place === 'rightNumeric' ? typeToDrop === 'numeric' : true) &&
-            !!idToDrop && existingID !== idToDrop
+          return xIsNumeric && typeToDropIsNumeric && !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
+        } else if (place === 'rightNumeric') {
+          return xIsNumeric && typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
+        } else if (['top', 'rightCat'].includes(place)) {
+          return !typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
+        }
+        else {
+          return !!idToDrop && existingID !== idToDrop
         }
       }
     }))

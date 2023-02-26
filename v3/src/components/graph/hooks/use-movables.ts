@@ -14,8 +14,8 @@ export function useMovables(props: IProps) {
   const { movableValueModel, movableLineModel} = props,
     graphModel = useGraphModelContext(),
     layout = useGraphLayoutContext(),
-    xScale = layout.getAxisScale('bottom') as ScaleNumericBaseType,
-    yScale = layout.getAxisScale('left') as ScaleNumericBaseType
+    xScale = layout.getAxisScale('bottom')?.scale as ScaleNumericBaseType,
+    yScale = layout.getAxisScale('left')?.scale as ScaleNumericBaseType
 
   const updateMovables = useCallback(() => {
     const xDomainDelta = xScale.domain()[1] - xScale.domain()[0],

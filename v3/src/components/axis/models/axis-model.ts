@@ -2,7 +2,7 @@ import {Instance, types} from "mobx-state-tree"
 import {AxisPlace, AxisPlaces} from "../axis-types"
 
 export function otherPlace(aPlace: AxisPlace): AxisPlace {
-  return aPlace === 'bottom' ? 'left' : 'bottom'
+  return ['bottom', 'top'].includes(aPlace) ? 'left' : 'bottom'
 }
 
 export type AxisOrientation = "horizontal" | "vertical"
