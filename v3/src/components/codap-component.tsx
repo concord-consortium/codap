@@ -28,7 +28,7 @@ export const CodapComponent =
 
   return (
     <DataSetContext.Provider value={dataset}>
-      <div className={`codap-component ${tileEltClass}`}>
+      <div className={`codap-component ${tileEltClass}`} key={tile.id}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
         {onRightPointerDown && <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}

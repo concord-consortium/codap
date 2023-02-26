@@ -1,11 +1,9 @@
-import {
-  axisBottom, axisLeft, axisRight, ScaleBand, scaleLinear, scaleLog, scaleOrdinal, select
-} from "d3"
+import {ScaleBand, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect, useRef} from "react"
-import {AxisBounds, axisGap, isVertical, ScaleNumericBaseType} from "../axis-types"
+import {AxisBounds, axisGap, axisPlaceToAxis, isVertical, ScaleNumericBaseType} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {otherPlace, IAxisModel, INumericAxisModel} from "../models/axis-model"
+import {otherPlace, IAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {between} from "../../../utilities/math-utils"
 import {graphPlaceToAttrRole, kGraphFont, transitionDuration} from "../../graph/graphing-types"
 import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
@@ -28,15 +26,13 @@ export const useAxis = ({
                           showScatterPlotGridLines, centerCategoryLabels, enableAnimation
                         }: IUseAxis) => {
   const layout = useAxisLayoutContext(),
-    isNumeric = axisModel?.isNumeric,
+    isNumeric = axisModel && isNumericAxisModel(axisModel),
     place = axisModel?.place ?? 'bottom',
     scale = layout.getAxisScale(place) as ScaleNumericBaseType,
-    ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : scale as unknown as ScaleBand<string>,
-    bandWidth = ordinalScale?.bandwidth() ?? 0,
-    axis = (place === 'bottom') ? axisBottom
-      : (place === 'left') ? axisLeft
-        : (place === 'rightNumeric') ? axisRight
-          : null,
+    ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : scale as unknown as ScaleBand<string>
+  const
+    bandWidth = (ordinalScale?.bandwidth && ordinalScale?.bandwidth()) ?? 0,
+    axis = axisPlaceToAxis(place),
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
     // Todo: Revisit and figure out whether we can remove the workaround.
@@ -238,7 +234,7 @@ export const useAxis = ({
   useEffect(function installDomainSync() {
     if (isNumeric) {
       const disposer = autorun(() => {
-        const numericModel = axisModel as INumericAxisModel
+        const numericModel = axisModel
         if (numericModel.domain) {
           const {domain} = numericModel
           scale?.domain(domain)

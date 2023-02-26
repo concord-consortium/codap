@@ -442,17 +442,22 @@ export const DataConfigurationModel = types
       }
     }))
   .actions(self => ({
-    setDataset(dataset: IDataSet) {
+    setDataset(dataset: IDataSet | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
       self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
-      self._attributeDescriptions.clear()
-      self._yAttributeDescriptions.clear()
+      /*
+            self._attributeDescriptions.clear()
+            self._yAttributeDescriptions.clear()
+      */
       self.filteredCases = []
-      self.filteredCases[0] = new FilteredCases({
-        source: dataset, filter: self.filterCase,
-        onSetCaseValues: self.handleSetCaseValues
-      })
+      if (dataset) {
+        self.filteredCases[0] = new FilteredCases({
+          source: dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        })
+      }
+      self.clearCategorySets()
       self.invalidateQuantileScale()
     },
     setPrimaryRole(role: GraphAttrRole) {

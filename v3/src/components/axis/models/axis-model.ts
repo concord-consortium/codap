@@ -96,5 +96,14 @@ export function isNumericAxisModel(axisModel: IAxisModel): axisModel is INumeric
   return axisModel.isNumeric
 }
 
-export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
+const axisTypeDispatcher = (axisSnap: any) => {
+  switch (axisSnap.type) {
+    case "categorical": return CategoricalAxisModel
+    case "numeric": return NumericAxisModel
+    default: return EmptyAxisModel
+  }
+}
+
+export const AxisModelUnion = types.union({ dispatcher: axisTypeDispatcher },
+  EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
 export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel

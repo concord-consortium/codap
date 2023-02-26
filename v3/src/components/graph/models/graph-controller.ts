@@ -1,7 +1,7 @@
 import React from "react"
 import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
-import {GraphLayout} from "./graph-layout"
+import {GraphLayout, scaleTypeToD3Scale} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
@@ -20,73 +20,74 @@ const plotChoices: Record<string, Record<string, PlotType>> = {
   categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
 }
 
-export interface IGraphControllerProps {
+interface IGraphControllerConstructorProps {
+  enableAnimation: React.MutableRefObject<boolean>
+  dotsRef: React.RefObject<SVGSVGElement>
+  instanceId: string
+}
+
+interface IGraphControllerProps {
   graphModel: IGraphModel
   layout: GraphLayout
   dataset: IDataSet | undefined
-  enableAnimation: React.MutableRefObject<boolean>
-  instanceId: string
-  dotsRef: React.RefObject<SVGSVGElement>
-  v2Document?: CodapV2Document
 }
 
 export class GraphController {
-  graphModel: IGraphModel
-  layout: GraphLayout
+  graphModel: IGraphModel | undefined
+  layout: GraphLayout | undefined
   dataset: IDataSet | undefined
   enableAnimation: React.MutableRefObject<boolean>
-  instanceId: string
   dotsRef: React.RefObject<SVGSVGElement>
-  v2Document?: CodapV2Document
+  instanceId: string
 
+  constructor({enableAnimation, dotsRef, instanceId}: IGraphControllerConstructorProps) {
+    this.instanceId = instanceId
+    this.enableAnimation = enableAnimation
+    this.dotsRef = dotsRef
+  }
 
-  constructor(props: IGraphControllerProps) {
+  setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
     this.layout = props.layout
     this.dataset = props.dataset
-    this.instanceId = props.instanceId
-    this.enableAnimation = props.enableAnimation
-    this.dotsRef = props.dotsRef
-    this.v2Document = props.v2Document
-    if (this.dataset) {
-      this.graphModel.config.setDataset(this.dataset)
+    if (this.graphModel.config.dataset !== props.dataset) {
+      this.graphModel.config.setDataset(props.dataset)
     }
-    // Presumably a new dataset is now being used. So we have to set things up for an empty graph
     this.initializeGraph()
   }
 
   initializeGraph() {
-    const {graphModel, layout, dotsRef, enableAnimation, instanceId, v2Document} = this,
-      dataConfig = graphModel.config
-
-    if (v2Document) {
-      this.processV2Document()
-    } else {
-      // TODO, this may not be the reliable thing to test for AND/OR
-      // we may need to be able to call setGraphProperties when axis' models are in place?
-      if (!dotsRef.current) {
-        graphModel.setGraphProperties({
-          axes: {
-            bottom: EmptyAxisModel.create({place: 'bottom'}),
-            left: EmptyAxisModel.create({place: 'left'})
-          }, plotType: 'casePlot'
-        })
-      } else {
-        matchCirclesToData({
-          dataConfiguration: dataConfig, dotsElement: dotsRef.current,
-          pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId,
-          pointColor: graphModel.pointColor,
-          pointStrokeColor: graphModel.pointStrokeColor
-        })
-      }
-      layout.setAxisScale('bottom', scaleOrdinal())
-      layout.setAxisScale('left', scaleOrdinal())
+    const {graphModel, dotsRef, enableAnimation, instanceId, layout} = this,
+      dataConfig = graphModel?.config
+    if (dataConfig && layout && dotsRef.current) {
+      AxisPlaces.forEach((axisPlace: AxisPlace) => {
+        const axisModel = graphModel.getAxis(axisPlace),
+          attrRole = axisPlaceToAttrRole[axisPlace]
+        if (axisModel) {
+          const axisScale = scaleTypeToD3Scale(axisModel.scale)
+          layout.setAxisScale(axisPlace, axisScale)
+          switch (axisModel.type) {
+            case 'numeric':
+              axisScale.domain([(axisModel as INumericAxisModel).min, (axisModel as INumericAxisModel).max])
+              break
+            case 'categorical':
+              axisScale.domain(graphModel.config.categorySetForAttrRole(attrRole))
+              break
+          }
+        }
+      })
+      matchCirclesToData({
+        dataConfiguration: dataConfig, dotsElement: dotsRef.current,
+        pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId,
+        pointColor: graphModel.pointColor,
+        pointStrokeColor: graphModel.pointStrokeColor
+      })
     }
   }
 
-  processV2Document() {
-    const {graphModel, layout, /*dotsRef, enableAnimation,*/ dataset, v2Document} = this,
-      dataConfig = graphModel.config,
+  processV2Document(v2Document: CodapV2Document) {
+    const {graphModel, layout, /*dotsRef, enableAnimation,*/ dataset} = this,
+      dataConfig = graphModel?.config,
       firstV2GraphComponent = v2Document?.components.find(aComp => aComp.type === 'DG.GraphView'),
       storage = firstV2GraphComponent?.componentStorage as ICodapV2GraphStorage,
       links = storage?._links_ || {},
@@ -103,17 +104,17 @@ export class GraphController {
             attrID = attribute?.id ?? '',
             attrSnapshot = {attributeID: attrID}
           if (index === 0) {
-            graphModel.setAttributeID(attrRole, attrID)
+            graphModel?.setAttributeID(attrRole, attrID)
             if (['x', 'y', 'rightNumeric'].includes(attrRole)) {
               attrTypes[attrRole] = attribute?.type ?? 'empty'
             }
           } else if (attrRole === 'y') {
-            dataConfig.addYAttribute(attrSnapshot)
+            dataConfig?.addYAttribute(attrSnapshot)
           }
         })
       }
     })
-    graphModel.setPlotType(plotChoices[attrTypes.x][attrTypes.y])
+    graphModel?.setPlotType(plotChoices[attrTypes.x][attrTypes.y])
     ;['x', 'y', 'rightNumeric'].forEach((attrRole: GraphAttrRole) => {
       const axisPlace = attrRoleToAxisPlace[attrRole],
         attrType = attrTypes[attrRole]
@@ -122,21 +123,21 @@ export class GraphController {
         switch (attrType) {
           case 'numeric':
             axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
-            graphModel.setAxis(axisPlace, axisModel)
-            setNiceDomain(dataConfig.numericValuesForAttrRole(attrRole), axisModel)
-            layout.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
+            graphModel?.setAxis(axisPlace, axisModel)
+            setNiceDomain(dataConfig?.numericValuesForAttrRole(attrRole) ?? [], axisModel)
+            layout?.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
-            graphModel.setAxis(axisPlace, axisModel)
-            layout.setAxisScale(axisPlace,
-              scaleBand().domain(dataConfig.categorySetForAttrRole(attrRole)))
+            graphModel?.setAxis(axisPlace, axisModel)
+            layout?.setAxisScale(axisPlace,
+              scaleBand().domain(dataConfig?.categorySetForAttrRole(attrRole) ?? []))
             break
           default:  // Note that we never add an EmptyAxisModel to 'rightNumeric'
             if (axisPlace !== 'rightNumeric') {
               axisModel = EmptyAxisModel.create({place: axisPlace})
-              graphModel.setAxis(axisPlace, axisModel)
-              layout.setAxisScale(axisPlace, scaleOrdinal())
+              graphModel?.setAxis(axisPlace, axisModel)
+              layout?.setAxisScale(axisPlace, scaleOrdinal())
             }
         }
       }
@@ -144,13 +145,18 @@ export class GraphController {
   }
 
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
+    const {graphModel, layout, dataset} = this,
+      dataConfig = graphModel?.config
+    if (!(graphModel && layout && dataset && dataConfig)) {
+      return
+    }
     if (['plot', 'legend'].includes(graphPlace)) {
       // Since there is no axis associated with the legend and the plotType will not change, we bail
       return
     } else if (graphPlace === 'yPlus') {
       // The yPlus attribute utilizes the left numeric axis for plotting but doesn't change anything else
-      const yAxisModel = this.graphModel.getAxis('left')
-      yAxisModel && setNiceDomain(this.graphModel.config.numericValuesForYAxis, yAxisModel)
+      const yAxisModel = graphModel.getAxis('left')
+      yAxisModel && setNiceDomain(dataConfig.numericValuesForYAxis, yAxisModel)
       return
     }
 
@@ -216,15 +222,7 @@ export class GraphController {
       }
     }
 
-    const {dataset, graphModel, layout} = this,
-      dataConfig = graphModel.config
-
     setPrimaryRoleAndPlotType()
     AxisPlaces.forEach(setupAxis)
   }
-
-  setDotsRef(dotsRef: React.RefObject<SVGSVGElement>) {
-    this.dotsRef = dotsRef
-  }
-
 }

@@ -37,7 +37,7 @@ export const GraphModel = TileContentModel
   .props({
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     // keys are AxisPlaces
-    axes: types.map(types.maybe(AxisModelUnion)),
+    axes: types.map(AxisModelUnion),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     config: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
