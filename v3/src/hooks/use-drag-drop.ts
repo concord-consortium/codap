@@ -1,5 +1,5 @@
 import {
-  Active, DataRef, Translate, useDndMonitor, useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
+  Active, DataRef, DragEndEvent, useDndMonitor, useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
 import { useInstanceIdContext } from "./use-instance-id-context"
 
@@ -79,12 +79,10 @@ export interface IDragTileData extends IDragData {
 }
 
 export function isDragTileData(data: DataRef): data is DataRef<IDragTileData> {
-  console.log("in isDragTileData", data)
   return data.current?.type === "tile"
 }
 
 export const getDragTileId = (active: Active | null) => {
-  console.log("in getDragTileId", active)
   return active && isDragTileData(active.data) ? active.data.current?.tileId : undefined
 }
 
@@ -92,15 +90,14 @@ export interface IUseDraggableTile extends Omit<UseDraggableArguments, "id"> {
   prefix: string
   tileId: string
 }
-export const useDraggableTile = ({ prefix, tileId, ...others }: IUseDraggableTile, onStartDrag: (active: Active)=>void) => {
+export const useDraggableTile = ({ prefix, tileId, ...others }: IUseDraggableTile,
+  onStartDrag: (active: Active)=>void) => {
   const data: IDragTileData = { type: "tile", tileId }
-  // console.log("in useDraggableTile", tileId)
   useTileDragStartHandler(tileId, onStartDrag)
   return useDraggable({ ...others, id: `${prefix}-${tileId}`, data })
 }
 
 export const useTileDragStartHandler = (dragId: string, onStartDrag: (active: Active) => void) => {
-  // console.log("in useDropHandle:", dropId)
   useDndMonitor({ onDragStart: ({ active }) => {
     // only call onDrop for the handler that registered it
     onStartDrag(active)
@@ -108,7 +105,7 @@ export const useTileDragStartHandler = (dragId: string, onStartDrag: (active: Ac
 }
 
 export const useContainerDroppable = (
-  baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
+  baseId: string, onDrop: (event: DragEndEvent) => void, dropProps?: UseDroppableArguments
 ) => {
   const instanceId = useInstanceIdContext()
   const id = `${instanceId}-${baseId}-drop`
@@ -117,10 +114,10 @@ export const useContainerDroppable = (
   return { id, ...useDroppable({ ...dropProps, id }) }
 }
 
-export const useTileDropHandler = (dropId: string, onDrop: (active: Active, delta: Translate) => void) => {
-  // console.log("in useDropHandle:", dropId)
-  useDndMonitor({ onDragEnd: ({ active, delta }) => {
+
+export const useTileDropHandler = (dropId: string, onDrop: (event: DragEndEvent) => void) => {
+  useDndMonitor({ onDragEnd: (event: DragEndEvent) => {
     // only call onDrop for the handler that registered it
-    onDrop(active, delta)
+    onDrop(event)
   }})
 }

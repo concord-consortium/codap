@@ -80,15 +80,7 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
   }
 
   const handleTitleBarClick = (evt: React.PointerEvent) => {
-    // evt.preventDefault()
-    console.log("ComponentTitleBar handleClick")
     setIsEditingTitle(true)
-  }
-
-  const handleStartMovingTile = (tileId: string) => {
-    // console.log("in handleStartMovingTile")
-    // setMovingTile(tileId)
-    row.moveTileToTop(tileId)
   }
 
   return (
@@ -107,30 +99,15 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
             activeDrag => {
             const dragTileId = getDragTileId(activeDrag)
             if (dragTileId) {
-              console.log("in free tile row useDraggableTile onStartDrag method")
               if (isFreeTileRow(row)) {
                 row.moveTileToTop(dragTileId)
-                // rowTile?.setPosition(50,50)
               }
             }
-          }
-          //   () => {
-          //   const dragTileId = getDragTileId(active)
-          //   if (dragTileId) {
-          //     console.log("active.rect:", active?.rect)
-          //     if (isFreeTileRow(row)) {
-          //       row.moveTileToTop(dragTileId)
-          //       // rowTile?.setPosition(50,50)
-          //     }
-          //   }
-          // }
-          )
+          })
           const startStyleTop = top || 0
           const startStyleLeft = left || 0
           const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
             width, height}
-          // transform && setTileTop(startStyleTop + transform.y)
-          // transform && setTileLeft(startStyleLeft + transform.x)
           const style = tileId === resizingTileId
                           ? resizingTileStyle
                           : active && movingStyle

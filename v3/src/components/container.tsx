@@ -17,14 +17,12 @@ export const Container: React.FC<IProps> = ({ content }) => {
   const getTile = (tileId: string) => content?.getTile(tileId)
 
 
-  const { setNodeRef } = useContainerDroppable("codap-container", active => {
-    const dragTileId = getDragTileId(active)
+  const { setNodeRef } = useContainerDroppable("codap-container", evt => {
+    const dragTileId = getDragTileId(evt.active)
     if (dragTileId) {
-      console.log("active.rect:", active.rect)
       if (isFreeTileRow(row)) {
         const rowTile = row.getNode(dragTileId)
-        console.log(rowTile)
-        // rowTile?.setPosition(50,50)
+        rowTile?.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
       }
     }
   })
