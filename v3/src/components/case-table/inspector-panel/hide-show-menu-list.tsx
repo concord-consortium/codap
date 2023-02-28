@@ -1,12 +1,12 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
-import { useCaseTableModel } from "../use-case-table-model"
+import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import t from "../../../utilities/translation/translate"
 
 export const HideShowMenuList = () => {
   const data = useDataSetContext()
-  const tableModel = useCaseTableModel()
+  const caseMetadata = useCaseMetadata()
   const toast = useToast()
 
   const handleSetAsideSelectedCases = () => {
@@ -45,10 +45,10 @@ export const HideShowMenuList = () => {
   }
 
   const handleShowAllAttributes = () => {
-    tableModel?.showAllAttributes()
+    caseMetadata?.showAllAttributes()
   }
 
-  const hiddenAttributes = data?.attributes.filter(attr => attr && tableModel?.isHidden(attr.id))
+  const hiddenAttributes = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id))
   const noHiddenAttributes = !hiddenAttributes?.length || hiddenAttributes?.length <= 0
 
   const caseCount = data?.cases.length ?? 0

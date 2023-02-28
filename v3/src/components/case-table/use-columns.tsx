@@ -2,13 +2,13 @@ import { Tooltip } from "@chakra-ui/react"
 import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { symDom, TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
-import { useCaseTableModel } from "./use-case-table-model"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -28,7 +28,7 @@ interface IUseColumnsProps {
   indexColumn: TColumn
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
-  const tableModel = useCaseTableModel()
+  const caseMetadata = useCaseMetadata()
   const collection = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
 
@@ -60,7 +60,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       const attrs: IAttribute[] = (collection
                                     ? Array.from(collection.attributes) as IAttribute[]
                                     : data?.ungroupedAttributes) ?? []
-      const visibleAttrs: IAttribute[] = attrs.filter(attr => attr && !tableModel?.isHidden(attr.id))
+      const visibleAttrs: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
       const _columns: TColumn[] = data
         ? [
             indexColumn,
@@ -80,7 +80,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       setColumns(_columns)
     })
     return () => disposer()
-  }, [CellFormatter, collection, data, indexColumn, tableModel])
+  }, [CellFormatter, caseMetadata, collection, data, indexColumn])
 
   return columns
 }

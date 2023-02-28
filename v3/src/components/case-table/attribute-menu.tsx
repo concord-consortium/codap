@@ -1,10 +1,10 @@
 import React, { forwardRef } from "react"
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import { CalculatedColumn } from "react-data-grid"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRow } from "./case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties"
-import { useCaseTableModel } from "./use-case-table-model"
 import t from "../../utilities/translation/translate"
 
 interface IProps {
@@ -17,7 +17,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     ({ column, onRenameAttribute, onModalOpen }, ref) => {
   const toast = useToast()
   const data = useDataSetContext()
-  const tableModel = useCaseTableModel()
+  const caseMetadata = useCaseMetadata()
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   const handleMenuItemClick = (menuItem: string) => {
@@ -31,7 +31,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   }
   const handleHideAttribute = () => {
     const attrId = data?.attrIDFromName(column.name as string)
-    attrId && tableModel?.setIsHidden(attrId, true)
+    attrId && caseMetadata?.setIsHidden(attrId, true)
   }
 
   const handleDeleteAttribute = () => {
