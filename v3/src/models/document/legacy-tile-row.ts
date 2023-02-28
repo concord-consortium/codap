@@ -65,6 +65,9 @@ export const LegacyTileRowModel = TileRowModel
     get tileIds() {
       return self.tiles.map(tile => tile.tileId)
     },
+    getNode(tileId: string) {
+      return self.tiles.find(tile => tile.tileId === tileId)
+    },
     acceptTileDrop(rowInfo: IDropRowInfo) {
       const rowDropLocation = rowInfo.rowDropLocation
       return !self.isSectionHeader && ((rowDropLocation === "left") || (rowDropLocation === "right"))

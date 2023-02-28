@@ -94,11 +94,13 @@
   cursor: grab !important;
 }
 .title-text {
+  display: flex !important;
+  justify-content: center !important;
   width: max-content;
   color: white;
-  font-size: 14px;
+  font-size: 14px !important;
   text-align: center;
-  padding-top: 2px;
+  padding-top: 2px !important;
   margin: auto;
   cursor: text
 }

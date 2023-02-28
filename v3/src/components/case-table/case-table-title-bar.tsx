@@ -1,6 +1,6 @@
 import React, { useState } from "react"
-import { ComponentTitleBar, EditableComponentTitle  } from "../component-title-bar"
-import { Box, CloseButton, Flex } from "@chakra-ui/react"
+import { ComponentTitleBar  } from "../component-title-bar"
+import { Box, CloseButton, Editable, EditableInput, EditablePreview, Flex } from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -10,6 +10,7 @@ import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
 import "./case-table-title-bar.scss"
 import { IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
+import { useDraggable } from "@dnd-kit/core"
 
 export const CaseTableTitleBar = ({tile, isEditingTitle, onCloseTile, setIsEditingTitle, onHandleTitleBarClick}: ITileTitleBarProps) => {
   const dataset = useDataSetContext()
@@ -18,7 +19,17 @@ export const CaseTableTitleBar = ({tile, isEditingTitle, onCloseTile, setIsEditi
   const [showCaseCard, setShowCaseCard] = useState(false)
   const tileId = tile?.id || ""
   const draggableOptions: IUseDraggableTile = { prefix: "case-table", tileId }
-  const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
+  const {attributes, listeners, setActivatorNodeRef} = useDraggable({id: `case-table-${tileId}`})
+  // , () => {
+  //   // const dragTileId = getDragTileId(tileId)
+  //   if (tileId) {
+  //     console.log("in case table title bar useDraggableTile startDrag:")
+  //     // if (isFreeTileRow(row)) {
+  //     //   row.moveTileToTop(tileId)
+  //     //   // rowTile?.setPosition(50,50)
+  //     // }
+  //   }
+  // })
 
   const handleTitleChange = (newTitle?: string) => {
     newTitle && setTitle(newTitle)
@@ -53,13 +64,17 @@ export const CaseTableTitleBar = ({tile, isEditingTitle, onCloseTile, setIsEditi
           </Box>
         }
       </div>
-      {isEditingTitle
+      {/* {isEditingTitle
         ? <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange}
               setIsEditing={setIsEditingTitle}/>
-        : <Box className="title-bar" ref={setActivatorNodeRef} {...attributes} {...listeners}>
+        : <Box className="title-bar case-table-box" ref={setActivatorNodeRef} {...attributes} {...listeners} data-testid="case-table-title-bar">
             <Box className="title-text" onClick={onHandleTitleBarClick}>{title}</Box>
           </Box>
-      }
+      } */}
+      <Editable defaultValue={title} className="title-bar case-table-box" ref={setActivatorNodeRef} {...attributes} {...listeners}>
+        <EditablePreview className="title-text"/>
+        <EditableInput className="title-text"/>
+      </Editable>
       {/* <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange} /> */}
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>

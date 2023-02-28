@@ -1,15 +1,14 @@
-import { useDndContext, useDraggable } from "@dnd-kit/core"
+import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
-import {CSS} from "@dnd-kit/utilities"
 import { IDocumentContentModel } from "../models/document/document-content"
-import { IFreeTileLayout, IFreeTileRow } from "../models/document/free-tile-row"
+import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../models/document/free-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
 
 import "./free-tile-row.scss"
-import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
+import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 
 interface IFreeTileRowProps {
   content?: IDocumentContentModel
@@ -19,9 +18,9 @@ interface IFreeTileRowProps {
 export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTileRowProps) => {
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width: number, height: number}>()
-    const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [resizingTileId, setResizingTileId] = useState("")
-  const [draggingTileId, setDraggingTileId] = useState("")
+  // const [movingTile, setMovingTile] = useState("")
 
   const handleCloseTile = (tileId: string) => {
     if (!tileId) return
@@ -40,7 +39,7 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
     // const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
     const startLeft = tile.x
 
-    const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
+    const onResizePointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tile.tileId)
       const xDelta = pointerMoveEvent.pageX - startPosition.x
       const yDelta = pointerMoveEvent.pageY - startPosition.y
@@ -68,27 +67,28 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
 
       setResizingTileStyle({left: resizingLeft, top: tile.y, width: resizingWidth, height: resizingHeight})
     }
-    const onPointerUp = () => {
-      document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
-      document.body.removeEventListener("pointerup", onPointerUp, { capture: true })
+    const onResizePointerUp = () => {
+      document.body.removeEventListener("pointermove", onResizePointerMove, { capture: true })
+      document.body.removeEventListener("pointerup", onResizePointerUp, { capture: true })
       tile.setSize(resizingWidth, resizingHeight)
       tile.setPosition(resizingLeft, tile.y)
       setResizingTileId("")
     }
 
-    document.body.addEventListener("pointermove", onPointerMove, { capture: true })
-    document.body.addEventListener("pointerup", onPointerUp, { capture: true })
+    document.body.addEventListener("pointermove", onResizePointerMove, { capture: true })
+    document.body.addEventListener("pointerup", onResizePointerUp, { capture: true })
   }
 
   const handleTitleBarClick = (evt: React.PointerEvent) => {
-    evt.preventDefault()
+    // evt.preventDefault()
     console.log("ComponentTitleBar handleClick")
-    setIsEditingTitle?.(true)
+    setIsEditingTitle(true)
   }
 
-  const handleDragTile = (evt: any, tile: IFreeTileLayout) => {
-    console.log("in handleDragTile evt", evt)
-    setDraggingTileId(tile.tileId)
+  const handleStartMovingTile = (tileId: string) => {
+    // console.log("in handleStartMovingTile")
+    // setMovingTile(tileId)
+    row.moveTileToTop(tileId)
   }
 
   return (
@@ -101,20 +101,40 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
           const { x: left, y: top, width, height } = rowTile || {}
           const { active } = useDndContext()
           const tileStyle: React.CSSProperties = { left, top, width, height }
-          // tileId === draggingTileId && console.log("transform: ", CSS.Translate.toString(transform))
-          // const style = tileId === resizingTileId
-          //                 ? resizingTileStyle
-          //                 : tileId === draggingTileId
-          //                     ? {transform: CSS.Translate.toString(transform)}
-          //                     : tileStyle
           const info = getTileComponentInfo(tileType)
           const draggableOptions: IUseDraggableTile = { prefix: "case-table", tileId }
-          const {setNodeRef, transform} = useDraggableTile(draggableOptions)
-          console.log("tileId === draggingTileId:",tileId === draggingTileId, "transform: ", CSS.Translate.toString(transform))
+          const {setNodeRef, transform} = useDraggableTile(draggableOptions,
+            activeDrag => {
+            const dragTileId = getDragTileId(activeDrag)
+            if (dragTileId) {
+              console.log("in free tile row useDraggableTile onStartDrag method")
+              if (isFreeTileRow(row)) {
+                row.moveTileToTop(dragTileId)
+                // rowTile?.setPosition(50,50)
+              }
+            }
+          }
+          //   () => {
+          //   const dragTileId = getDragTileId(active)
+          //   if (dragTileId) {
+          //     console.log("active.rect:", active?.rect)
+          //     if (isFreeTileRow(row)) {
+          //       row.moveTileToTop(dragTileId)
+          //       // rowTile?.setPosition(50,50)
+          //     }
+          //   }
+          // }
+          )
+          const startStyleTop = top || 0
+          const startStyleLeft = left || 0
+          const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
+            width, height}
+          // transform && setTileTop(startStyleTop + transform.y)
+          // transform && setTileLeft(startStyleLeft + transform.x)
           const style = tileId === resizingTileId
                           ? resizingTileStyle
-                          : active
-                              ? {transform: CSS.Translate.toString(transform)}
+                          : active && movingStyle
+                              ? movingStyle
                               : tileStyle
           return (
             <div className="free-tile-component" style={style} key={tileId} ref={setNodeRef}>

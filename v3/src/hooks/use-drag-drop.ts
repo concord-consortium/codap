@@ -1,5 +1,5 @@
 import {
-  Active, DataRef, useDndMonitor, useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
+  Active, DataRef, Translate, useDndMonitor, useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
 import { useInstanceIdContext } from "./use-instance-id-context"
 
@@ -63,8 +63,10 @@ export const useTileDroppable = (
 }
 
 export const useDropHandler = (dropId: string, onDrop: (active: Active) => void) => {
+  // console.log("in useDropHandle:", dropId)
   useDndMonitor({ onDragEnd: ({ active, over }) => {
     // only call onDrop for the handler that registered it
+
     (over?.id === dropId) && onDrop(active)
   }})
 }
@@ -75,14 +77,14 @@ export interface IDragTileData extends IDragData {
   type: "tile"
   tileId: string
 }
-export function isDragTileData(data: DataRef): data is DataRef<IDragTileData> {
-  // console.log("in isDragTileData", data)
 
+export function isDragTileData(data: DataRef): data is DataRef<IDragTileData> {
+  console.log("in isDragTileData", data)
   return data.current?.type === "tile"
 }
-export const getDragTileId = (active: Active | null) => {
-  // console.log("in getDragTileId", active)
 
+export const getDragTileId = (active: Active | null) => {
+  console.log("in getDragTileId", active)
   return active && isDragTileData(active.data) ? active.data.current?.tileId : undefined
 }
 
@@ -90,32 +92,35 @@ export interface IUseDraggableTile extends Omit<UseDraggableArguments, "id"> {
   prefix: string
   tileId: string
 }
-export const useDraggableTile = ({ prefix, tileId, ...others }: IUseDraggableTile) => {
+export const useDraggableTile = ({ prefix, tileId, ...others }: IUseDraggableTile, onStartDrag: (active: Active)=>void) => {
   const data: IDragTileData = { type: "tile", tileId }
-  console.log("in useDraggableTile", tileId)
+  // console.log("in useDraggableTile", tileId)
+  useTileDragStartHandler(tileId, onStartDrag)
   return useDraggable({ ...others, id: `${prefix}-${tileId}`, data })
 }
 
-// Collision-detection code uses drop overlays to identify the tile that should handle the drag.
-// Passes its dropProps argument to useDroppable and returns an object with the return value
-// of useDroppable plus the generated id.
-// export const useTileDropOverlay = (baseId?: string, dropProps?: UseDroppableArguments) => {
-//   const instanceId = useInstanceIdContext() || baseId
-//   const id = `${instanceId}-drop-overlay`
-//   return { id, ...useDroppable({ ...dropProps, id }) }
-// }
+export const useTileDragStartHandler = (dragId: string, onStartDrag: (active: Active) => void) => {
+  // console.log("in useDropHandle:", dropId)
+  useDndMonitor({ onDragStart: ({ active }) => {
+    // only call onDrop for the handler that registered it
+    onStartDrag(active)
+  }})
+}
 
-// Collision-detection code keys on drop ids that match this convention.
-// Passes its dropProps argument to useDroppable and returns an object with the return value
-// of useDroppable plus the generated id.
 export const useContainerDroppable = (
   baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
 ) => {
-  // const instanceId = useInstanceIdContext()
-  // const id = `${instanceId}-${baseId}-drop`
-  const id = `${baseId}-drop`
+  const instanceId = useInstanceIdContext()
+  const id = `${instanceId}-${baseId}-drop`
 
-  console.log("in useContainerDroppable baseId", baseId, "id", id)
-  useDropHandler(id, onDrop)
+  useTileDropHandler(id, onDrop)
   return { id, ...useDroppable({ ...dropProps, id }) }
+}
+
+export const useTileDropHandler = (dropId: string, onDrop: (active: Active, delta: Translate) => void) => {
+  // console.log("in useDropHandle:", dropId)
+  useDndMonitor({ onDragEnd: ({ active, delta }) => {
+    // only call onDrop for the handler that registered it
+    onDrop(active, delta)
+  }})
 }

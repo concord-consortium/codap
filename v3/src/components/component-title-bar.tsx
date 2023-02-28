@@ -1,9 +1,8 @@
 import React, { ReactNode, useState } from "react"
-import { Flex, Input } from "@chakra-ui/react"
+import { Editable, Flex, Input } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 
 import "./component-title-bar.scss"
-import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 
 interface IProps {
   component?: string
@@ -34,13 +33,7 @@ export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
   const title = componentTitle
   // const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
-
-  // const handleClick = () => {
-  //   if (!isEditing) {
-  //     setEditingTitle(title)
-  //     setIsEditing(true)
-  //   }
-  // }
+console.log("in EditableComponentTitle")
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = e
     switch (key) {
@@ -61,7 +54,6 @@ export const EditableComponentTitle: React.FC<IEditableComponentTitleProps> =
   }
   return (
     <Input className="editable-component-title" value={editingTitle} data-testid="editable-component-title" size="sm"
-      // onClick={handleClick} onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
       onChange={event => setEditingTitle(event.target.value)} onKeyDown={handleKeyDown}
       onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()} />
   )
