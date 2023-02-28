@@ -47,8 +47,8 @@ import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import { CollectionModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
 import {
-  CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec,
-  IGetCaseOptions, IGetCasesOptions, IMoveAttributeCollectionOptions, IMoveAttributeOptions, uniqueCaseId
+  CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
+  IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
 import { uniqueId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
@@ -201,7 +201,7 @@ export const DataSet = types.model("DataSet", {
   // we do our own caching because MST's auto-caching wasn't working as expected
   let _collectionGroups: CollectionGroup[] = []
   // array of child-most cases, i.e. cases not grouped in a collection
-  let _childCases: ICase[] = []
+  let _childCases: IGroupedCase[] = []
   let isValidCollectionGroups = false
 
   function getCollection(collectionId: string): ICollectionModel | undefined {
@@ -272,15 +272,18 @@ export const DataSet = types.model("DataSet", {
               const cumulativeValuesJson = JSON.stringify(cumulativeValues)
               if (!groupsMap[cumulativeValuesJson]) {
                 // start a new group with just this case (for now)
-                const pseudoCase: ICase = { __id__: `PCASE${uniqueId()}`, ...cumulativeValues }
+                // note: PCAS ids are considered ephemeral and should not be stored/serialized,
+                // because they can be regenerated whenever the data changes.
+                const pseudoCase: IGroupedCase = { __id__: `PCAS${uniqueId()}`, ...cumulativeValues }
                 groupsMap[cumulativeValuesJson] = {
+                  collectionId: collection.id,
                   pseudoCase,
                   childCaseIds: [aCase.__id__],
                   valuesJson: cumulativeValuesJson
                 }
                 if (collIndex === 0) {
                   // for the first collection, index is just position in the array
-                  pseudoCase.__index__ = groups.length
+                  pseudoCase[symIndex] = groups.length
                   groups.push(groupsMap[cumulativeValuesJson])
                 }
                 else {
@@ -293,22 +296,22 @@ export const DataSet = types.model("DataSet", {
                     let indexOfLastCaseWithSameParent = -1
 
                     // add link from child to parent
-                    pseudoCase.__parent__ = parentPseudoCase.__id__
+                    pseudoCase[symParent] = parentPseudoCase.__id__
 
                     // add link from parent to child
                     if (!parentCaseGroup.childPseudoCaseIds) {
                       // this is the first child of the corresponding parent pseudo-case
                       parentCaseGroup.childPseudoCaseIds = [pseudoCase.__id__]
-                      pseudoCase.__index__ = 0
+                      pseudoCase[symIndex] = 0
                     }
                     else {
                       // add a new child to the corresponding parent pseudo-case
-                      pseudoCase.__index__ = parentCaseGroup.childPseudoCaseIds.length
+                      pseudoCase[symIndex] = parentCaseGroup.childPseudoCaseIds.length
                       parentCaseGroup.childPseudoCaseIds.push(pseudoCase.__id__)
 
                       // add new group as last case of parent
                       for (let i = 0; i < groups.length; ++i) {
-                        if (groups[i].pseudoCase.__parent__ === pseudoCase.__parent__) {
+                        if (groups[i].pseudoCase[symParent] === pseudoCase[symParent]) {
                           indexOfLastCaseWithSameParent = i
                         }
                         else if (indexOfLastCaseWithSameParent >= 0) {
@@ -346,7 +349,7 @@ export const DataSet = types.model("DataSet", {
           // if there are collections, then child cases are determined by the parents
           lastCollectionGroup?.groups.forEach(group => {
             _childCases.push(...group.childCaseIds.map((caseId, index) =>
-              ({__id__: caseId, __parent__: group.pseudoCase.__id__, __index__: index })))
+              ({__id__: caseId, [symParent]: group.pseudoCase.__id__, [symIndex]: index })))
           })
         }
         else {
@@ -508,7 +511,6 @@ export const DataSet = types.model("DataSet", {
   }
 
   function insertCaseIDAtIndex(id: string, beforeIndex: number) {
-    // const newCase = { __id__: id, __index__: beforeIndex };
     const newCase = { __id__: id }
     if ((beforeIndex != null) && (beforeIndex < self.cases.length)) {
       self.cases.splice(beforeIndex, 0, newCase)
@@ -516,7 +518,6 @@ export const DataSet = types.model("DataSet", {
       for (let i = beforeIndex + 1; i < self.cases.length; ++i) {
         const aCase = self.cases[i]
         ++self.caseIDMap[aCase.__id__]
-        // aCase.__index__ = i;
       }
     }
     else {
@@ -698,10 +699,12 @@ export const DataSet = types.model("DataSet", {
       },
       // should be called before retrieving snapshot (pre-serialization)
       prepareSnapshot() {
+        // move volatile data into serializable properties
         self.attributes.forEach(attr => attr.prepareSnapshot())
       },
       // should be called after retrieving snapshot (post-serialization)
       completeSnapshot() {
+        // move data back into volatile storage for efficiency
         self.attributes.forEach(attr => attr.completeSnapshot())
       },
       setName(name: string) {
@@ -744,10 +747,6 @@ export const DataSet = types.model("DataSet", {
           attribute.setName(nameStr)
           attrNameMap[nameStr] = attributeID
         }
-      },
-
-      showAllAttributes() {
-        self.attributes.forEach(attr => attr.setHidden(false))
       },
 
       removeAttribute(attributeID: string) {

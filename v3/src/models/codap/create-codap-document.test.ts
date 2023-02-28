@@ -6,6 +6,7 @@ import { ITileEnvironment } from "../tiles/tile-content"
 import { createCodapDocument } from "./create-codap-document"
 import { ISharedModelDocumentManager } from "../document/shared-model-document-manager"
 import { ISharedDataSet } from "../shared/shared-data-set"
+import "../shared/shared-case-metadata-registration"
 import "../shared/shared-data-set-registration"
 
 // eslint-disable-next-line no-var
@@ -63,7 +64,6 @@ describe("createCodapDocument", () => {
               attributes: [{
                 clientKey: "",
                 formula: {},
-                hidden: false,
                 id: "test-4",
                 name: "a",
                 userEditable: true,
@@ -77,6 +77,17 @@ describe("createCodapDocument", () => {
             id: "test-8",
             providerId: "",
             type: "SharedDataSet"
+          },
+          tiles: []
+        },
+        "test-10": {
+          sharedModel: {
+            collections: {},
+            columnWidths: {},
+            data: "test-3",
+            hidden: {},
+            id: "test-10",
+            type: "SharedCaseMetadata"
           },
           tiles: []
         }

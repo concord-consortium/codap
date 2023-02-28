@@ -19,6 +19,7 @@ import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
+import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
 import "./app.scss"
