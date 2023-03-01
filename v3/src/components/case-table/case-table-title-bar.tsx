@@ -40,6 +40,7 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
   const cardTableToggleString = showCaseCard
                                   ? t("DG.DocumentController.toggleToCaseTable")
                                   : t("DG.DocumentController.toggleToCaseCard")
+
   return (
     <ComponentTitleBar component={"case-table"} tileId={tileId} title={dataset?.name || "Dataset"}
         draggableId={`tileType-${tileId}`}>
@@ -59,8 +60,7 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
       </div>
       <Editable defaultValue={title} className="title-bar" isPreviewFocusable={true} submitOnBlur={true}
           onEdit={()=>setIsEditing(true)} ref={setActivatorNodeRef} {...attributes} {...listeners}
-          onSubmit={handleTitleChange} onCancel={()=>setIsEditing(false)}
-      >
+          onSubmit={handleTitleChange} onCancel={()=>setIsEditing(false)}>
         <EditablePreview className="title-text"/>
         <EditableInput className="title-text-input"/>
       </Editable>
