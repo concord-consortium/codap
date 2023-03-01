@@ -104,3 +104,16 @@
   margin: auto;
   cursor: text
 }
+.title-text-input {
+  display: flex !important;
+  justify-content: center !important;
+  height: calc($title-bar-height - 2px) !important;
+  width: max-content;
+  font-size: 14px !important;
+  text-align: center !important;
+  padding-top: 2px !important;
+  margin: auto;
+  cursor: text;
+  outline: none !important;
+  border-radius: $border-radius-top-corners !important;
+}

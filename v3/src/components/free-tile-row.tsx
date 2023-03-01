@@ -20,7 +20,6 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
     useState<{left: number, top: number, width: number, height: number}>()
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [resizingTileId, setResizingTileId] = useState("")
-  // const [movingTile, setMovingTile] = useState("")
 
   const handleCloseTile = (tileId: string) => {
     if (!tileId) return
@@ -94,16 +93,20 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
           const { active } = useDndContext()
           const tileStyle: React.CSSProperties = { left, top, width, height }
           const info = getTileComponentInfo(tileType)
-          const draggableOptions: IUseDraggableTile = { prefix: "case-table", tileId }
+          console.log("tile type:", tileType)
+          const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId }
           const {setNodeRef, transform} = useDraggableTile(draggableOptions,
             activeDrag => {
             const dragTileId = getDragTileId(activeDrag)
+            console.log("in activeDrag")
             if (dragTileId) {
               if (isFreeTileRow(row)) {
                 row.moveTileToTop(dragTileId)
               }
             }
           })
+
+          console.log("transfrom", transform)
           const startStyleTop = top || 0
           const startStyleLeft = left || 0
           const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
