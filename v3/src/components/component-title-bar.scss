@@ -79,16 +79,6 @@
   }
 }
 
-.editable-component-title {
-  // TODO: better way?
-  height: $title-bar-height !important;
-  border: none !important;
-  color: white;
-  text-align: center;
-  position: inherit !important; //overrides Chakra's position relative
-  border-radius: $border-radius-top-corners;
-}
-
 .title-bar {
   width: 100%;
   cursor: grab !important;

@@ -86,7 +86,6 @@ export const FreeTileComponent = ({ row, tile, tileId, onCloseTile}: IProps) => 
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
   }
 
-
   const startStyleTop = top || 0
   const startStyleLeft = left || 0
   const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,

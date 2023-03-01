@@ -35,7 +35,8 @@ export const ComponentTitleBar = ({component, title, draggableId, children}: IPr
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
       {children}
       <Editable defaultValue={title} className="title-bar" isPreviewFocusable={!dragging} submitOnBlur={true}
-          onEdit={()=>setIsEditing(true)} onSubmit={handleTitleChange} onCancel={handleCancel}>
+          onEdit={()=>setIsEditing(true)} onSubmit={handleTitleChange} onCancel={handleCancel}
+          data-testid="editable-component-title">
         <EditablePreview className="title-text"/>
         <EditableInput className="title-text-input"/>
       </Editable>
