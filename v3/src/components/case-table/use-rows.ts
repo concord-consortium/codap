@@ -3,17 +3,19 @@ import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
-import { ICase, IGroupedCase, symIndex } from "../../models/data/data-set-types"
+import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
 import {
   AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
 } from "../../models/data/data-set-actions"
 import { prf } from "../../utilities/profiler"
 
 export const useRows = () => {
+  const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collection = useCollectionContext()
   // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
@@ -30,7 +32,12 @@ export const useRows = () => {
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
     rowCache.clear()
-    cases.forEach(({ __id__, [symIndex]: i }: IGroupedCase) => rowCache.set(__id__, { __id__, [symIndex]: i }))
+    let prevParent: string | undefined
+    cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
+      const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
+      rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
+      prevParent = parent
+    })
   }, [cases, rowCache])
 
   const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
@@ -43,13 +50,18 @@ export const useRows = () => {
     prf.measure("Table.useRows[syncRowsToRdg]", () => {
       // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
       const newRows = prf.measure("Table.useRows[syncRowsToRdg-copy]", () => {
-        return cases.map(({ __id__ }) => rowCache.get(__id__)).filter(c => !!c) as TRow[]
+        return cases.map(({ __id__ }) => {
+          const row = rowCache.get(__id__)
+          const parentId = row?.[symParent]
+          const isCollapsed = parentId && caseMetadata?.isCollapsed(parentId)
+          return !isCollapsed || row?.[symFirstChild] ? row : undefined
+        }).filter(c => !!c) as TRow[]
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
         setRows(newRows || [])
       })
     })
-  }, [cases, rowCache])
+  }, [caseMetadata, cases, rowCache])
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
@@ -94,7 +106,7 @@ export const useRows = () => {
     resetRowCache()
     syncRowsToRdg()
 
-    // update the cache on changes
+    // update the cache on data changes
     const beforeDisposer = data && onAction(data, action => {
       if (isRemoveCasesAction(action)) {
         const caseIds = action.args[0]
@@ -162,11 +174,22 @@ export const useRows = () => {
         }
       })
     }, true)
+
+    // update the cache on metadata changes
+    const metadataDisposer = caseMetadata && onAction(caseMetadata, action => {
+      switch (action.name) {
+        case "setIsCollapsed":
+          resetRowCache()
+          break
+      }
+      syncRowsToRdg()
+    }, true)
     return () => {
       beforeDisposer?.()
       afterDisposer?.()
+      metadataDisposer?.()
     }
-  }, [data, resetRowCache, rowCache, syncRowsToDom, syncRowsToRdg])
+  }, [caseMetadata, data, resetRowCache, rowCache, syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset

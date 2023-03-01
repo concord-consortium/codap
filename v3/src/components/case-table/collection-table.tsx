@@ -1,8 +1,9 @@
+import { observer } from "mobx-react-lite"
+import pluralize from "pluralize"
 import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
-import pluralize from "pluralize"
-import { TRow } from "./case-table-types"
-import { NewCollectionDrop } from "./new-collection-drop"
+import { kChildMostTableCollectionId, TRow } from "./case-table-types"
+import { CollectionTableSpacer } from "./collection-table-spacer"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
@@ -13,9 +14,10 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
-export const CollectionTable = () => {
+export const CollectionTable = observer(function CollectionTable() {
   const data = useDataSetContext()
   const collection = useCollectionContext()
+  const collectionId = collection?.id || kChildMostTableCollectionId
   const gridRef = useRef<DataGridHandle>(null)
 
   const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ gridRef })
@@ -41,8 +43,8 @@ export const CollectionTable = () => {
   }
 
   return (
-    <div className="collection-table">
-      <NewCollectionDrop onDrop={handleNewCollectionDrop} />
+    <div className={`collection-table collection-${collectionId}`}>
+      <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title">
         <div className="collection-title">{`${defaultTableName} (${caseCount} cases)`}</div>
         <DataGrid ref={gridRef} className="rdg-light"
@@ -50,7 +52,6 @@ export const CollectionTable = () => {
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
       </div>
-      {collection && <div className="collection-table-spacer" />}
     </div>
   )
-}
+})

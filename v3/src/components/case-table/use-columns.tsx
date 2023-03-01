@@ -1,11 +1,12 @@
 import { Tooltip } from "@chakra-ui/react"
 import { format } from "d3"
-import { autorun } from "mobx"
+import { reaction } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
-import { useCollectionContext } from "../../hooks/use-collection-context"
+import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
+import { symParent } from "../../models/data/data-set-types"
 import { symDom, TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
@@ -25,10 +26,11 @@ export const getFormatter = (formatStr: string) => {
 
 interface IUseColumnsProps {
   data?: IDataSet
-  indexColumn: TColumn
+  indexColumn?: TColumn
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
   const caseMetadata = useCaseMetadata()
+  const parentCollection = useParentCollectionContext()
   const collection = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
 
@@ -39,6 +41,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     const str = data?.getValue(row.__id__, column.key) ?? ""
     const num = data?.getNumeric(row.__id__, column.key) ?? NaN
     const value = isFinite(num) && formatter ? formatter(num) : str
+    const isParentCollapsed = row[symParent] ? caseMetadata?.isCollapsed(row[symParent]) : false
+    const output = isParentCollapsed ? "" : value
     // if this is the first React render after performance rendering, add a
     // random key to force React to render the contents for synchronization
     const key = row[symDom]?.has(column.key) ? Math.random() : undefined
@@ -48,39 +52,45 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     return (
       <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
         openDelay={1000} placement="bottom" bottom="10px" left="15px">
-        <span className="cell-span" key={key}>{value}</span>
+        <span className="cell-span" key={key}>{output}</span>
       </Tooltip>
     )
-  }, [data])
+  }, [caseMetadata, data])
 
   useEffect(() => {
     // rebuild column definitions when referenced properties change
-    const disposer = autorun(() => {
-      // column definitions
-      const attrs: IAttribute[] = (collection
-                                    ? Array.from(collection.attributes) as IAttribute[]
-                                    : data?.ungroupedAttributes) ?? []
-      const visibleAttrs: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-      const _columns: TColumn[] = data
-        ? [
-            indexColumn,
-            // attribute column definitions
-            ...visibleAttrs.map(({ id, name, userEditable }) => ({
-              key: id,
-              name,
-              resizable: true,
-              headerCellClass: "codap-column-header",
-              headerRenderer: ColumnHeader,
-              cellClass: "codap-data-cell",
-              formatter: CellFormatter,
-              editor: userEditable ? CellTextEditor : undefined
-            }))
-        ]
-        : []
-      setColumns(_columns)
-    })
+    const disposer = reaction(
+      () => {
+        const attrs: IAttribute[] = (collection
+                                      ? Array.from(collection.attributes) as IAttribute[]
+                                      : data?.ungroupedAttributes) ?? []
+        const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
+        return { visible }
+      },
+      ({ visible }) => {
+        // column definitions
+        const _columns: TColumn[] = data
+          ? [
+              ...(indexColumn ? [indexColumn] : []),
+              // attribute column definitions
+              ...visible.map(({ id, name, userEditable }) => ({
+                key: id,
+                name,
+                resizable: true,
+                headerCellClass: "codap-column-header",
+                headerRenderer: ColumnHeader,
+                cellClass: "codap-data-cell",
+                formatter: CellFormatter,
+                editor: userEditable ? CellTextEditor : undefined
+              }))
+          ]
+          : []
+        setColumns(_columns)
+      },
+      { fireImmediately: true }
+    )
     return () => disposer()
-  }, [CellFormatter, caseMetadata, collection, data, indexColumn])
+  }, [CellFormatter, caseMetadata, collection, data, indexColumn, parentCollection])
 
   return columns
 }

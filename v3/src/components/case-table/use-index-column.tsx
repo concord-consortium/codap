@@ -1,34 +1,85 @@
 import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { clsx } from "clsx"
+import { reaction } from "mobx"
+import React, { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
+import { kIndexColumnKey, TColumn, TFormatterProps, TRow } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
+import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { symIndex } from "../../models/data/data-set-types"
+import { IAttribute } from "../../models/data/attribute"
+import { symIndex, symParent } from "../../models/data/data-set-types"
 import t from "../../utilities/translation/translate"
 
 export const useIndexColumn = () => {
+  const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
+  const parentCollection = useParentCollectionContext()
+  const collection = useCollectionContext()
   // formatter/renderer
-  const formatter = useCallback(({ row: { __id__, [symIndex]: _index } }: TFormatterProps) => {
+  const formatter = useCallback(({ row: { __id__, [symIndex]: _index, [symParent]: parentId } }: TFormatterProps) => {
     const index = _index != null ? _index : data?.caseIndexFromID(__id__)
+    const collapsedCases = (data && parentId && caseMetadata?.isCollapsed(parentId))
+                            ? data.pseudoCaseMap[parentId]?.childPseudoCaseIds?.length ??
+                              data.pseudoCaseMap[parentId]?.childCaseIds.length
+                            : undefined
     return (
-      <IndexCell caseId={__id__} index={index} />
+      <IndexCell caseId={__id__} index={index} collapsedCases={collapsedCases} />
     )
-  }, [data])
+  }, [caseMetadata, data])
+  const [indexColumn, setIndexColumn] = useState<TColumn | undefined>()
 
-  // column definition
-  const indexColumn: TColumn = useMemo(() => ({
-    key: kIndexColumnKey,
-    name: t("DG.CaseTable.indexColumnName"),
-    minWidth: 52,
-    width: 52,
-    headerCellClass: "codap-column-header index",
-    headerRenderer: ColumnHeader,
-    cellClass: "codap-index-cell",
-    formatter
-  }), [formatter])
+  useEffect(() => {
+    // rebuild index column definition when referenced properties change
+    const disposer = reaction(
+      () => {
+        const attrs: IAttribute[] = (collection
+                                      ? Array.from(collection.attributes) as IAttribute[]
+                                      : data?.ungroupedAttributes) ?? []
+        const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
+        const parentMetadata = caseMetadata && parentCollection
+                                ? caseMetadata?.collections.get(parentCollection.id)
+                                : undefined
+        const collapsed = new Set<string>()
+        data?.collectionGroups.forEach(collectionGroup => {
+          if (collectionGroup.collection.id === parentCollection?.id) {
+            parentMetadata?.collapsed.forEach((value, key) => {
+              const pCase = collectionGroup.groupsMap[key]?.pseudoCase
+              if (pCase) collapsed.add(pCase.__id__)
+            })
+          }
+        })
+        return { visible, collapsed }
+      },
+      ({ visible, collapsed }) => {
+        setIndexColumn({
+          key: kIndexColumnKey,
+          name: t("DG.CaseTable.indexColumnName"),
+          minWidth: 52,
+          width: 52,
+          headerCellClass: "codap-column-header index",
+          headerRenderer: ColumnHeader,
+          cellClass: "codap-index-cell",
+          // TODO: better type
+          colSpan(args: any) {
+            // collapsed rows span the entire table
+            if (args.type === "ROW") {
+              const row: TRow = args.row
+              const parentId = row[symParent]
+              if (parentId && collapsed.has(parentId)) {
+                return visible.length + 1
+              }
+            }
+          },
+          formatter
+        })
+      },
+      { fireImmediately: true }
+    )
+    return disposer
+  })
 
   return indexColumn
 }
@@ -36,9 +87,10 @@ export const useIndexColumn = () => {
 interface ICellProps {
   caseId: string
   index?: number
+  collapsedCases?: number
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
+export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps) => {
   const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
   const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
   const setNodeRef = (elt: HTMLButtonElement | null) => {
@@ -91,11 +143,15 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
     }
   }
 
+  const classes = clsx("codap-index-content", { collapsed: collapsedCases != null })
+  const casesStr = t(collapsedCases === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
   return (
     <Menu isLazy>
-      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button"
+      <MenuButton ref={setNodeRef} className={classes} data-testid="codap-index-content-button"
                   onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-        {index != null ? `${index + 1}` : ""}
+        {collapsedCases != null
+          ? `${collapsedCases} ${casesStr}`
+          : index != null ? `${index + 1}` : ""}
       </MenuButton>
       <VisuallyHidden id="sr-index-menu-instructions">
         Press Enter to open the menu.

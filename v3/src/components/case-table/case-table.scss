@@ -27,11 +27,19 @@ $table-body-font-size: 8pt;
         }
       }
 
-      .new-collection-drop {
+      .collection-table-spacer {
         position: relative;
-        width: 30px;
+        width: 48px;
         height: 100%;
         background: white;
+
+        &.parentMost {
+          width: 30px;
+
+          .drop-message {
+            left: 7px;
+          }
+        }
 
         &.active {
           border: 5px solid rgba(255, 216, 102, 0.5);
@@ -44,17 +52,13 @@ $table-body-font-size: 8pt;
         .drop-message {
           position: absolute;
           bottom: 0;
-          left: 10px;
+          left: 17px;
           transform: rotate(-90deg);
           transform-origin: left;
           white-space: nowrap;
           font: 12px sans-serif;
           opacity: 100%;
         }
-      }
-
-      .collection-table-spacer {
-        width: 48px;
       }
     }
   }
@@ -126,6 +130,10 @@ $table-body-font-size: 8pt;
           display: flex;
           align-items: center;
           justify-content: center;
+
+          &.collapsed {
+            text-align: left
+          }
         }
       }
 
