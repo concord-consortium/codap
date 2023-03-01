@@ -16,7 +16,7 @@ interface IProps {
 // offset from left edge of thumb to center of thumb
 const kThumbOffset = 8
 
-export const CodapSliderThumb = observer(({sliderContainer, sliderModel} : IProps) => {
+export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel} : IProps) {
   const layout = useAxisLayoutContext()
   const length = layout.getAxisLength("bottom")
   const scale = layout.getAxisScale("bottom") as ScaleNumericBaseType

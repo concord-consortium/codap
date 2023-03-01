@@ -32,7 +32,7 @@ export function handleImportDataSet(data: IDataSet) {
   gDataBroker.addDataSet(data)
 }
 
-export const App = observer(() => {
+export const App = observer(function App() {
   const codapDocument = appState.document
   const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
 

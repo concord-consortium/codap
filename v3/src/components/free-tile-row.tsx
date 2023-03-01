@@ -13,7 +13,8 @@ interface IFreeTileRowProps {
   row: IFreeTileRow
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTileRowProps) => {
+export const FreeTileRowComponent = observer(function FreeTileRowComponent(
+  { content, row, getTile }: IFreeTileRowProps) {
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width: number, height: number}>()
   const [resizingTileId, setResizingTileId] = useState("")

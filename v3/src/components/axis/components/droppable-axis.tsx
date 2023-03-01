@@ -15,7 +15,8 @@ interface IProps {
   hintString?: string
   onIsActive?: (active: Active) => boolean
 }
-export const DroppableAxis = observer(({ place, portal, target, dropId, hintString, onIsActive }: IProps) => {
+export const DroppableAxis = observer(function DroppableAxis(
+  { place, portal, target, dropId, hintString, onIsActive }: IProps) {
   const axisBounds = useAxisBounds(place)
 
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
