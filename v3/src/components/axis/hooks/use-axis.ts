@@ -1,7 +1,7 @@
 import {ScaleBand, scaleLinear, scaleLog, scaleOrdinal, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect, useRef} from "react"
-import {AxisBounds, axisGap, axisPlaceToAxis, isVertical, ScaleNumericBaseType} from "../axis-types"
+import {AxisBounds, axisGap, axisPlaceToAxisFn, isVertical, ScaleNumericBaseType} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {otherPlace, IAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {between} from "../../../utilities/math-utils"
@@ -31,8 +31,8 @@ export const useAxis = ({
     scale = layout.getAxisScale(place) as ScaleNumericBaseType,
     ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : scale as unknown as ScaleBand<string>
   const
-    bandWidth = (ordinalScale?.bandwidth && ordinalScale?.bandwidth()) ?? 0,
-    axis = axisPlaceToAxis(place),
+    bandWidth = (ordinalScale?.bandwidth?.()) ?? 0,
+    axis = axisPlaceToAxisFn(place),
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
     // Todo: Revisit and figure out whether we can remove the workaround.

@@ -5,7 +5,13 @@ import {GraphLayout, scaleTypeToD3Scale} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, EmptyAxisModel, IEmptyAxisModel, INumericAxisModel, NumericAxisModel
+  CategoricalAxisModel,
+  EmptyAxisModel,
+  IEmptyAxisModel,
+  INumericAxisModel,
+  isCategoricalAxisModel,
+  isNumericAxisModel,
+  NumericAxisModel
 } from "../../axis/models/axis-model"
 import {
   attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType
@@ -33,9 +39,9 @@ interface IGraphControllerProps {
 }
 
 export class GraphController {
-  graphModel: IGraphModel | undefined
-  layout: GraphLayout | undefined
-  dataset: IDataSet | undefined
+  graphModel?: IGraphModel
+  layout?: GraphLayout
+  dataset?: IDataSet
   enableAnimation: React.MutableRefObject<boolean>
   dotsRef: React.RefObject<SVGSVGElement>
   instanceId: string
@@ -66,13 +72,11 @@ export class GraphController {
         if (axisModel) {
           const axisScale = scaleTypeToD3Scale(axisModel.scale)
           layout.setAxisScale(axisPlace, axisScale)
-          switch (axisModel.type) {
-            case 'numeric':
-              axisScale.domain([(axisModel as INumericAxisModel).min, (axisModel as INumericAxisModel).max])
-              break
-            case 'categorical':
-              axisScale.domain(graphModel.config.categorySetForAttrRole(attrRole))
-              break
+          if (isNumericAxisModel(axisModel)) {
+            axisScale.domain(axisModel.domain)
+          }
+          else if (isCategoricalAxisModel(axisModel)) {
+            axisScale.domain(graphModel.config.categorySetForAttrRole(attrRole))
           }
         }
       })

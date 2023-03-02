@@ -60,7 +60,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
             ratio = (upperAtStart - x2) / (upperAtStart - dilationAnchorCoord),
             newRange = (upperAtStart - lowerAtStart) / ratio,
             newLowerBound = upperAtStart - newRange
-          axisModel.setDomain?.(newLowerBound, upperAtStart)
+          axisModel.setDomain(newLowerBound, upperAtStart)
         }
       },
 
@@ -69,7 +69,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
         if (delta !== 0) {
           const worldDelta = Number(axisScale?.invert(delta)) -
             Number(axisScale?.invert(0))
-          axisModel.setDomain?.(axisModel.min + worldDelta, axisModel.max + worldDelta)
+          axisModel.setDomain(axisModel.min + worldDelta, axisModel.max + worldDelta)
         }
       },
 
@@ -81,7 +81,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
             ratio = (x2 - lowerAtStart) / (dilationAnchorCoord - lowerAtStart),
             newRange = (upperAtStart - lowerAtStart) / ratio,
             newUpperBound = lowerAtStart + newRange
-          axisModel.setDomain?.(lowerAtStart, newUpperBound)
+          axisModel.setDomain(lowerAtStart, newUpperBound)
         }
       },
 

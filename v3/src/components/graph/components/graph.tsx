@@ -39,8 +39,9 @@ interface IProps {
 
 const marqueeState = new MarqueeState()
 
-export const Graph = observer((
-  {graphController, graphRef, showInspector, setShowInspector}: IProps) => {
+
+export const Graph = observer(function Graph(
+  {graphController, graphRef, showInspector, setShowInspector}: IProps) {
   const graphModel = useGraphModelContext(),
     { enableAnimation, dotsRef } = graphController,
     {plotType} = graphModel,

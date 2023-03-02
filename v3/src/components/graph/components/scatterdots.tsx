@@ -34,7 +34,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
     plotNumRef = useRef(0)
 
-  primaryAttrIDRef.current = dataConfiguration?.attributeID('x') as string
+  primaryAttrIDRef.current = dataConfiguration?.primaryAttributeID
   secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
   pointRadiusRef.current = graphModel.getPointRadius()
   selectedPointRadiusRef.current = graphModel.getPointRadius('select')

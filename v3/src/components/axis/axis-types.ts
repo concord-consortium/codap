@@ -6,19 +6,14 @@ export const axisGap = 5
 export const AxisPlaces = ["bottom", "left", "rightCat", "top", "rightNumeric"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 
-export const axisPlaceToAxis = (place: AxisPlace) => {
-  switch (place) {
-    case "bottom":
-      return axisBottom
-    case "left":
-      return axisLeft
-    case "rightCat":
-      return axisRight
-    case "top":
-      return axisTop
-    case "rightNumeric":
-      return axisRight
-  }
+export const axisPlaceToAxisFn = (place: AxisPlace) => {
+  return {
+    bottom: axisBottom,
+    left: axisLeft,
+    rightCat: axisRight,
+    rightNumeric: axisRight,
+    top: axisTop
+  }[place]
 }
 
 export function isHorizontal(place: AxisPlace) {

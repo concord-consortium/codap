@@ -33,17 +33,11 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     didDrag = useRef(false),
     target = useRef<any>(),
     selectedDataObjects = useRef<Record<string, number>>({}),
-    pointRadiusRef = useRef(0),
-    selectedPointRadiusRef = useRef(0),
-    dragPointRadiusRef = useRef(0),
     { pointColor, pointStrokeColor } = graphModel
 
-  primaryAttrIDRef.current = dataConfiguration?.attributeID(primaryAttrPlace) as string
+  primaryAttrIDRef.current = dataConfiguration?.primaryAttributeID
   primaryScaleRef.current = layout.getAxisScale(primaryAxisPlace) as ScaleNumericBaseType
-  secondaryAttrIDRef.current = dataConfiguration?.attributeID(secondaryAttrPlace)
-  pointRadiusRef.current =  graphModel.getPointRadius()
-  selectedPointRadiusRef.current =  graphModel.getPointRadius('select')
-  dragPointRadiusRef.current =   graphModel.getPointRadius('hover-drag')
+  secondaryAttrIDRef.current = dataConfiguration?.secondaryAttributeID
 
 
   const onDragStart = useCallback((event: any) => {
@@ -57,7 +51,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         target.current
           .property('isDragging', true)
           .transition()
-          .attr('r', dragPointRadiusRef.current)
+          .attr('r', graphModel.getPointRadius('hover-drag'))
         setDragID(() => tItsID)
         currPos.current = primaryIsBottom ? event.clientX : event.clientY
 
@@ -104,7 +98,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           .classed('dragging', false)
           .property('isDragging', false)
           .transition()
-          .attr('r', selectedPointRadiusRef.current)
+          .attr('r', graphModel.getPointRadius('select'))
         setDragID('')
         target.current = null
 
@@ -129,13 +123,13 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({ pointColor, pointStrokeColor,
       dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
-      selectedPointRadius: selectedPointRadiusRef.current })
+      selectedPointRadius: graphModel.getPointRadius('select') })
   }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const
         secondaryScale = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>,
-        pointDiameter = 2 * pointRadiusRef.current,
+        pointDiameter = 2 * graphModel.getPointRadius(),
         secondaryRangeIndex = primaryIsBottom ? 0 : 1,
         secondaryMax = Number(secondaryScale?.range()[secondaryRangeIndex]),
         secondaryExtent = Math.abs(Number(secondaryScale?.range()[0] -
@@ -197,7 +191,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         plotBounds = layout.computedBounds.get('plot') as Bounds
 
       setPointCoordinates({
-        dataset, pointRadius: pointRadiusRef.current, selectedPointRadius: selectedPointRadiusRef.current,
+        dataset, pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select'),
         dotsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, enableAnimation, plotBounds
       })

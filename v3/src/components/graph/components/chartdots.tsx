@@ -35,8 +35,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     primaryScaleRef.current = layout.getAxisScale(primaryAxisPlace) as ScaleBand<string>
     secondaryScaleRef.current = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>
 
-  primaryAttrIDRef.current = primaryAttrRole ? dataConfiguration?.attributeID(primaryAttrRole) : ''
-  secondaryAttrIDRef.current = secondaryAttrRole ? dataConfiguration?.attributeID(secondaryAttrRole) : ''
+  primaryAttrIDRef.current = dataConfiguration?.primaryAttributeID
+  secondaryAttrIDRef.current = dataConfiguration?.secondaryAttributeID
 
   const computeMaxOverAllCells = useCallback(() => {
     const valuePairs = (dataConfiguration?.caseDataArray || []).map((aCaseData:CaseData) => {
@@ -79,7 +79,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         ? Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
-      primaryCellWidth = (primaryScaleRef.current?.bandwidth && primaryScaleRef.current.bandwidth()) ?? 0,
+      primaryCellWidth = (primaryScaleRef.current?.bandwidth?.()) ?? 0,
       primaryHeight = secondaryScaleRef.current?.bandwidth ? secondaryScaleRef.current.bandwidth()
         : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
       categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {},

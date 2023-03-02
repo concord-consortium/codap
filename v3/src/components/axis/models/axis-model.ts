@@ -27,6 +27,9 @@ export const AxisModel = types.model("AxisModel", {
     },
     get isNumeric() {
       return ["linear", "log"].includes(self.scale)
+    },
+    get isCategorical() {
+      return self.type === "categorical"
     }
   }))
   .actions(self => ({
@@ -60,6 +63,10 @@ export const CategoricalAxisModel = AxisModel
   })
 
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {
+}
+
+export function isCategoricalAxisModel(axisModel: IAxisModel): axisModel is ICategoricalAxisModel {
+  return axisModel.isCategorical
 }
 
 export const NumericAxisModel = AxisModel
