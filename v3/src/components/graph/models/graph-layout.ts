@@ -4,8 +4,6 @@ import {createContext, useContext} from "react"
 import {AxisPlace, AxisPlaces, AxisBounds, AxisScaleType, isVertical} from "../../axis/axis-types"
 import {GraphPlace, kTitleBarHeight} from "../graphing-types"
 import {IScaleType} from "../../axis/models/axis-model"
-import {GraphModel, IGraphModel} from "./graph-model";
-import {Instance} from "mobx-state-tree";
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 300

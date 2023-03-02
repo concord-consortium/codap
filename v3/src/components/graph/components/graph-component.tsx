@@ -22,8 +22,8 @@ export const GraphComponent = observer(({tile}: ITileBaseProps) => {
   const enableAnimation = useRef(true)
   const dotsRef = useRef<SVGSVGElement>(null)
   const graphController = useMemo(
-    () => new GraphController({enableAnimation, dotsRef, instanceId}),
-    [enableAnimation, dotsRef, instanceId]
+    () => new GraphController({layout, enableAnimation, dotsRef, instanceId}),
+    [layout, instanceId]
   )
   const [showInspector, setShowInspector] = useState(false)
 
