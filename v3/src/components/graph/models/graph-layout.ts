@@ -1,8 +1,9 @@
-import {scaleOrdinal} from "d3"
+import {scaleBand, scaleLinear, scaleLog, scaleOrdinal} from "d3"
 import {action, computed, makeObservable, observable} from "mobx"
 import {createContext, useContext} from "react"
 import {AxisPlace, AxisPlaces, AxisBounds, AxisScaleType, isVertical} from "../../axis/axis-types"
 import {GraphPlace, kTitleBarHeight} from "../graphing-types"
+import {IScaleType} from "../../axis/models/axis-model"
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 300
@@ -13,6 +14,19 @@ export interface Bounds {
   top: number
   width: number
   height: number
+}
+
+export const scaleTypeToD3Scale = (iScaleType: IScaleType) => {
+  switch (iScaleType) {
+    case "ordinal":
+      return scaleOrdinal()
+    case "band":
+      return scaleBand()
+    case "linear":
+      return scaleLinear()
+    case "log":
+      return scaleLog()
+  }
 }
 
 export const CategoricalLayouts = ["parallel", "perpendicular"] as const

@@ -2,6 +2,7 @@ import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useRef} from "react"
 import {select} from "d3"
+import {GraphController} from "../models/graph-controller"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
@@ -15,7 +16,6 @@ import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useGraphController} from "../hooks/use-graph-controller"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
@@ -31,18 +31,19 @@ import {useDataTips} from "../hooks/use-data-tips"
 import "./graph.scss"
 
 interface IProps {
+  graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement>
-  enableAnimation: MutableRefObject<boolean>
-  dotsRef: React.RefObject<SVGSVGElement>
   showInspector: boolean
   setShowInspector: (show: boolean) => void
 }
 
 const marqueeState = new MarqueeState()
 
-export const Graph = observer((
-  {graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) => {
+
+export const Graph = observer(function Graph(
+  {graphController, graphRef, showInspector, setShowInspector}: IProps) {
   const graphModel = useGraphModelContext(),
+    { enableAnimation, dotsRef } = graphController,
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     dataset = useDataSetContext(),
@@ -55,8 +56,6 @@ export const Graph = observer((
     yAttrID = graphModel.getAttributeID('y')
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
-
-  const graphController = useGraphController({graphModel, enableAnimation, dotsRef})
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.range().length > 0) {
@@ -83,8 +82,7 @@ export const Graph = observer((
       graphModel.config?.removeYAttributeWithID(idOfAttributeToRemove)
       const yAxisModel = graphModel.getAxis('left') as IAxisModel
       setNiceDomain(graphModel.config.numericValuesForAttrRole('y'), yAxisModel)
-    }
-    else {
+    } else {
       handleChangeAttribute(place, '')
     }
   }
@@ -106,11 +104,6 @@ export const Graph = observer((
     graphModel.config.setAttributeType(graphPlaceToAttrRole[place], treatAs)
     graphController?.handleAttributeAssignment(place, attrId)
   }
-
-  // We only need to make the following connection once
-  useEffect(function passDotsRefToController() {
-    graphController?.setDotsRef(dotsRef)
-  }, [dotsRef, graphController])
 
   useDataTips(dotsRef, dataset, graphModel)
 
@@ -177,11 +170,11 @@ export const Graph = observer((
         </svg>
         <DroppableAddAttribute
           location={'yPlus'}
-          plotType = {plotType}
+          plotType={plotType}
           onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
         <DroppableAddAttribute
           location={'rightNumeric'}
-          plotType = {plotType}
+          plotType={plotType}
           onDrop={handleChangeAttribute.bind(null, 'rightNumeric')}/>
       </div>
       <GraphInspector graphModel={graphModel}

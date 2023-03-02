@@ -174,7 +174,7 @@ describe("DataConfigurationModel", () => {
 
     config.setDataset(data)
     data.selectAll()
-    expect(config.selection.length).toBe(3)
+    expect(config.selection.length).toBe(2)
 
     config.setAttribute("x", { attributeID: "xId" })
     expect(config.selection.length).toBe(2)
