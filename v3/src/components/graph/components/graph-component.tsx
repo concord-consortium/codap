@@ -6,7 +6,7 @@ import {useGraphController} from "../hooks/use-graph-controller"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {kTitleBarHeight} from "../graphing-types"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
-import {GraphLayoutContext, useGraphLayoutContext} from "../models/graph-layout"
+import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
@@ -17,13 +17,13 @@ export const GraphComponent = observer(({tile}: ITileBaseProps) => {
   if (!isGraphModel(graphModel)) return null
 
   const instanceId = useNextInstanceId("graph")
-  const layout = useGraphLayoutContext()
+  const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
   const enableAnimation = useRef(true)
   const dotsRef = useRef<SVGSVGElement>(null)
   const graphController = useMemo(
-    () => new GraphController({enableAnimation, dotsRef, instanceId}),
-    [enableAnimation, dotsRef, instanceId]
+    () => new GraphController({layout, enableAnimation, dotsRef, instanceId}),
+    [layout, instanceId]
   )
   const [showInspector, setShowInspector] = useState(false)
 

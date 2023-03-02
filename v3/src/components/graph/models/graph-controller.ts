@@ -27,6 +27,7 @@ const plotChoices: Record<string, Record<string, PlotType>> = {
 }
 
 interface IGraphControllerConstructorProps {
+  layout: GraphLayout
   enableAnimation: React.MutableRefObject<boolean>
   dotsRef: React.RefObject<SVGSVGElement>
   instanceId: string
@@ -34,19 +35,19 @@ interface IGraphControllerConstructorProps {
 
 interface IGraphControllerProps {
   graphModel: IGraphModel
-  layout: GraphLayout
   dataset: IDataSet | undefined
 }
 
 export class GraphController {
   graphModel?: IGraphModel
-  layout?: GraphLayout
+  layout: GraphLayout
   dataset?: IDataSet
   enableAnimation: React.MutableRefObject<boolean>
   dotsRef: React.RefObject<SVGSVGElement>
   instanceId: string
 
-  constructor({enableAnimation, dotsRef, instanceId}: IGraphControllerConstructorProps) {
+  constructor({layout, enableAnimation, dotsRef, instanceId}: IGraphControllerConstructorProps) {
+    this.layout = layout
     this.instanceId = instanceId
     this.enableAnimation = enableAnimation
     this.dotsRef = dotsRef
@@ -54,7 +55,6 @@ export class GraphController {
 
   setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
-    this.layout = props.layout
     this.dataset = props.dataset
     if (this.graphModel.config.dataset !== props.dataset) {
       this.graphModel.config.setDataset(props.dataset)

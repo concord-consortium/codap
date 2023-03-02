@@ -163,6 +163,7 @@ export class GraphLayout {
   }
 }
 
-export const GraphLayoutContext = createContext(new GraphLayout())
+export const GraphLayoutContext = createContext<GraphLayout>({} as GraphLayout)
+
 
 export const useGraphLayoutContext = () => useContext(GraphLayoutContext)
