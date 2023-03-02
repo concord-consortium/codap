@@ -65,7 +65,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           }
         })
       }
-    }, [dataConfiguration, dataset, primaryIsBottom, enableAnimation]),
+    }, [graphModel, dataConfiguration, dataset, primaryIsBottom, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dragID) {
@@ -116,7 +116,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           didDrag.current = false
         }
       }
-    }, [dataConfiguration, dataset, dragID, enableAnimation])
+    }, [graphModel, dataConfiguration, dataset, dragID, enableAnimation])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -196,7 +196,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         getScreenX, getScreenY, getLegendColor, enableAnimation, plotBounds
       })
     },
-    [dataConfiguration?.caseDataArray, dataset, dotsRef, enableAnimation, layout, secondaryAxisPlace,
+    [graphModel, dataConfiguration?.caseDataArray, dataset, dotsRef, enableAnimation, layout, secondaryAxisPlace,
       legendAttrID, primaryLength, primaryIsBottom,
       dataConfiguration?.getLegendColorForCase, pointColor, pointStrokeColor])
 
