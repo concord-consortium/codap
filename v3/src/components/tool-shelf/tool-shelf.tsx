@@ -1,8 +1,9 @@
 import React from "react"
 import {Box, Flex, HStack, Tag, useToast} from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
-
-import './tool-shelf.scss'
+import { IDocumentContentModel } from "../../models/document/document-content"
+import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { kCalculatorTileType } from "../calculator/calculator-defs"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
 import TableIcon from '../../assets/icons/icon-table.svg'
 import MapIcon from '../../assets/icons/icon-map.svg'
@@ -11,7 +12,19 @@ import CalcIcon from '../../assets/icons/icon-calc.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
-export const ToolShelf = () => {
+import './tool-shelf.scss'
+
+const kCalcHeight = 162
+const kCalcWidth = 145
+const kFullWidth = 580
+const kGap = 10
+const kHeaderHeight = 25
+
+interface IProps {
+  content?: IDocumentContentModel
+}
+
+export const ToolShelf = ({content}: IProps) => {
   const notify = (description: string) => {
       toast({
         position: "top-right",
@@ -25,9 +38,27 @@ export const ToolShelf = () => {
     graphHandler = () => notify('graph'),
     mapHandler = () => notify('map'),
     sliderHandler = () => notify('slider'),
-    calcHandler = () => notify('calculator'),
     textHandler = () => notify('text'),
     pluginsHandler = () => notify('plugins')
+
+  const row = content?.getRowByIndex(0)
+
+  const calcHandler = () => {
+    const calculatorTile = content?.hasTileOfType(kCalculatorTileType)
+    console.log("calculatorTile", calculatorTile)
+    if (calculatorTile) {
+      const tileId = calculatorTile.id
+      content?.deleteTile(tileId)
+    } else if (row) {
+      console.log("in else")
+      const calcTile = createDefaultTileOfType(kCalculatorTileType)
+      if (!calcTile) return
+      if (calcTile) {
+        const calcOptions = { x: kFullWidth + kGap / 2, y: 2, width: kCalcWidth, height: kHeaderHeight + kCalcHeight }
+        content?.insertTileInRow(calcTile, row, calcOptions)
+      }
+    }
+  }
 
   const buttonDescriptions = [
     {
