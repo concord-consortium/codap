@@ -4,6 +4,7 @@ import t from "../../utilities/translation/translate"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { kCalculatorTileType } from "../calculator/calculator-defs"
+import { kGraphTileType } from "../graph/graph-defs"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
 import TableIcon from '../../assets/icons/icon-table.svg'
 import MapIcon from '../../assets/icons/icon-map.svg'
@@ -17,8 +18,13 @@ import './tool-shelf.scss'
 const kCalcHeight = 162
 const kCalcWidth = 145
 const kFullWidth = 580
+const kWidth25 = kFullWidth / 4
+const kWidth75 = kFullWidth * 3 / 4
+const kFullHeight = 300
+const kHalfHeight = kFullHeight / 2
 const kGap = 10
 const kHeaderHeight = 25
+const kOffset = 10
 
 interface IProps {
   content?: IDocumentContentModel
@@ -35,7 +41,6 @@ export const ToolShelf = ({content}: IProps) => {
     },
     toast = useToast(),
     tableHandler = () => notify('table'),
-    graphHandler = () => notify('graph'),
     mapHandler = () => notify('map'),
     sliderHandler = () => notify('slider'),
     textHandler = () => notify('text'),
@@ -44,18 +49,31 @@ export const ToolShelf = ({content}: IProps) => {
   const row = content?.getRowByIndex(0)
 
   const calcHandler = () => {
+    // Calculator button is the only button that can open and close a tile
     const calculatorTile = content?.hasTileOfType(kCalculatorTileType)
-    console.log("calculatorTile", calculatorTile)
     if (calculatorTile) {
-      const tileId = calculatorTile.id
+      const tileId = calculatorTile[0].id //There can only be one calculator in the document
       content?.deleteTile(tileId)
     } else if (row) {
-      console.log("in else")
       const calcTile = createDefaultTileOfType(kCalculatorTileType)
-      if (!calcTile) return
+      // if (!calcTile) return
       if (calcTile) {
         const calcOptions = { x: kFullWidth + kGap / 2, y: 2, width: kCalcWidth, height: kHeaderHeight + kCalcHeight }
         content?.insertTileInRow(calcTile, row, calcOptions)
+      }
+    }
+  }
+
+  const graphHandler = () => {
+    const numGraphTiles = (content?.hasTileOfType(kGraphTileType))?.length || 0
+    const offsetPosition = kOffset * numGraphTiles
+     if (row) {
+      const graphTile = createDefaultTileOfType(kGraphTileType)
+      if (graphTile) {
+        const graphOptions ={ x: kFullWidth + kGap + offsetPosition,
+                              y: kFullHeight + kGap + offsetPosition,
+                              width: kFullWidth, height: kFullHeight }
+        content?.insertTileInRow(graphTile, row, graphOptions)
       }
     }
   }
