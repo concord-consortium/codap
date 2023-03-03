@@ -12,6 +12,7 @@ $table-body-font-size: 8pt;
     width: 100%;
     height: 100%;
     display: flex;
+    overflow-x: scroll;
 
     .collection-table {
       display: flex;

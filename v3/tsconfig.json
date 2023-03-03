@@ -21,6 +21,7 @@
     "lib": ["dom", "dom.iterable", "es2018"]
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    ".eslintrc.cjs"
   ]
 }
