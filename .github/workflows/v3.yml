@@ -38,7 +38,7 @@ jobs:
       # https://github.com/cypress-io/github-action/issues/48
       fail-fast: false
       matrix:
-        # run 3 copies of the current job in parallel
+        # run 2 copies of the current job in parallel
         containers: [1, 2]
     steps:
       - name: Checkout
