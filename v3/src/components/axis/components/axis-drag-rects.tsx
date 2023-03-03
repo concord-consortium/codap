@@ -20,7 +20,7 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.midPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
-export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
+export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWrapperElt}: IProps) {
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
     layout = useAxisLayoutContext()
