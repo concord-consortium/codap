@@ -14,6 +14,9 @@ import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
 import './tool-shelf.scss'
+import { kSliderTileType } from "../slider/slider-defs"
+import { uniqueName } from "../../utilities/js-utils"
+import { isSliderModel } from "../slider/slider-model"
 
 const kCalcHeight = 162
 const kCalcWidth = 145
@@ -42,7 +45,7 @@ export const ToolShelf = ({content}: IProps) => {
     toast = useToast(),
     tableHandler = () => notify('table'),
     mapHandler = () => notify('map'),
-    sliderHandler = () => notify('slider'),
+    // sliderHandler = () => notify('slider'),
     textHandler = () => notify('text'),
     pluginsHandler = () => notify('plugins')
 
@@ -74,6 +77,33 @@ export const ToolShelf = ({content}: IProps) => {
                               y: kFullHeight + kGap + offsetPosition,
                               width: kFullWidth, height: kFullHeight }
         content?.insertTileInRow(graphTile, row, graphOptions)
+      }
+    }
+  }
+
+  const sliderHandler = () => {
+    const existingSliderTiles = content?.hasTileOfType(kSliderTileType)
+    const existingSliderNames = existingSliderTiles?.map(tile => {
+      const sliderModel = tile.content
+      const sliderName = (isSliderModel(sliderModel) && sliderModel.name)
+      return sliderName
+    })
+    const numSliderTiles = (existingSliderTiles)?.length || 0
+    const offsetPosition = kOffset * numSliderTiles
+    if (row) {
+      const sliderTile = createDefaultTileOfType(kSliderTileType)
+      if (sliderTile) {
+        const sliderOptions = { x: kFullWidth + kWidth25 + kGap + offsetPosition,
+                                y: kHalfHeight + (kGap / 2) + offsetPosition,
+                                width: kWidth75, height: kHalfHeight }
+        const newSliderModel = sliderTile.content
+        const newSliderTitle = (isSliderModel(newSliderModel) && newSliderModel.name) || ""
+        const uniqueSliderTitle = uniqueName(newSliderTitle,
+          (aVarName: string) =>
+            (!existingSliderNames?.find(n => aVarName === n))
+        )
+        isSliderModel(newSliderModel) && newSliderModel.setName(uniqueSliderTitle)
+        content?.insertTileInRow(sliderTile, row, sliderOptions)
       }
     }
   }
