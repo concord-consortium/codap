@@ -47,7 +47,7 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
     const parentGridBounds = parentGridRef.current?.getBoundingClientRect()
     const rowHeaderHeight = getCssVariable(parentGridRef.current, "--rdg-header-row-height") ?? 30
     const rowHeight = getCssVariable(parentGridRef.current, "--rdg-row-height") ?? 18
-    // TODO: handle scrolled table
+    // TODO: real buttons; handle scrolled table
     const clickedRow = Math.floor((e.clientY - (parentGridBounds?.top ?? 0) - rowHeaderHeight) / rowHeight)
     const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
     const clickedCase = cases[clickedRow]

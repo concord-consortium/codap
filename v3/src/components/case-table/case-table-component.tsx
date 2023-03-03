@@ -1,6 +1,6 @@
 import { closestCenter, CollisionDetection, rectIntersection } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useEffect } from "react"
+import React from "react"
 import { CaseMetadataContext } from "../../hooks/use-case-metadata"
 import { useDataSetAndMetadata } from "../../hooks/use-data-set-and-metadata"
 import { DataSetContext } from "../../hooks/use-data-set-context"
@@ -33,16 +33,17 @@ export const CaseTableComponent = observer(function CaseTableComponent({ tile }:
   const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
   const { data, metadata } = useDataSetAndMetadata(tableModel?.data, tableModel?.metadata)
 
-  useEffect(() => {
-    if (tableModel) {
-      if (data && data !== tableModel.data) {
-        tableModel.setData(data)
-      }
-      if (metadata && metadata !== tableModel.metadata) {
-        tableModel.setMetadata(metadata)
-      }
-    }
-  }, [data, metadata, tableModel])
+  // TODO: update model when appropriate
+  // useEffect(() => {
+  //   if (tableModel) {
+  //     if (data && data !== tableModel.data) {
+  //       tableModel.setData(data)
+  //     }
+  //     if (metadata && metadata !== tableModel.metadata) {
+  //       tableModel.setMetadata(metadata)
+  //     }
+  //   }
+  // }, [data, metadata, tableModel])
 
   if (!tableModel) return null
 
