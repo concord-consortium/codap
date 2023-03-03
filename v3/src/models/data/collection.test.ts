@@ -1,6 +1,6 @@
 import { destroy, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { CollectionModel, ICollectionModel } from "./collection"
+import { CollectionModel, CollectionPropsModel, ICollectionModel } from "./collection"
 
 const Tree = types.model("Tree", {
   attributes: types.array(Attribute),
@@ -19,6 +19,14 @@ const Tree = types.model("Tree", {
 }))
 
 describe("CollectionModel", () => {
+
+  it("displayTitle works as expected", () => {
+    const withName = CollectionPropsModel.create({ name: "name" })
+    expect(withName.displayTitle).toBe("name")
+
+    const withNameAndTitle = CollectionPropsModel.create({ name: "name", title: "title" })
+    expect(withNameAndTitle.displayTitle).toBe("title")
+  })
 
   it("handles undefined references", () => {
     const tree = Tree.create()

@@ -71,6 +71,7 @@ describe("createCodapDocument", () => {
               }],
               cases: [{ __id__: "CASEorder-5" }, { __id__: "CASEorder-6" }, { __id__: "CASEorder-7" }],
               collections: [],
+              ungrouped: { name: "", title: "" },
               id: "test-3",
               snapSelection: []
             },

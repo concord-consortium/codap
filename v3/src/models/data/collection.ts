@@ -11,12 +11,25 @@ export const CollectionLabels = types.model("CollectionLabels", {
   setOfCasesWithArticle: ""
 })
 
-export const CollectionModel = types.model("Collection", {
-  id: types.optional(types.identifier, () => `COLL${uniqueId()}`),
+export const CollectionPropsModel = types.model("CollectionProps", {
   name: "",
   title: "",
-  attributes: types.array(types.safeReference(Attribute)),
-  labels: types.optional(CollectionLabels, () => CollectionLabels.create())
+  labels: types.maybe(CollectionLabels)
+})
+.views(self => ({
+  get displayTitle() {
+    return self.title || self.name
+  }
+}))
+export interface ICollectionPropsModel extends Instance<typeof CollectionPropsModel> {}
+
+export const CollectionModel = CollectionPropsModel
+.named("Collection")
+.props({
+  // id required for efficient patches in MST arrays
+  id: types.optional(types.identifier, () => `COLL${uniqueId()}`),
+  // grouping attributes in left-to-right order
+  attributes: types.array(types.safeReference(Attribute))
 })
 .views(self => ({
   getAttribute(attrId: string) {
