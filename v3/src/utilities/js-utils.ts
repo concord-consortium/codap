@@ -1,4 +1,3 @@
-import { cornersOfRectangle } from "@dnd-kit/core/dist/utilities/algorithms/helpers"
 import { nanoid } from "nanoid"
 import { monotonicFactory } from "ulid"
 const ulid = monotonicFactory()
@@ -70,13 +69,12 @@ export function uniqueOrderedId(): string {
  *
  * returns a unique name from a given base name, adding a numeric suffix if necessary
  */
-export function uniqueName(base: string, isValid: (name: string) => boolean) {
-  console.log("base", base)
-  if (isValid(base)) return base
+export function uniqueName(current: string, isValid: (name: string) => boolean) {
+  if (isValid(current)) return current
   let name: string
+  const base = current.replace(/[0-9]/g, '') //sliders base strings may have numbers
   for (let i = 2; !isValid(name = `${base}${i}`); ++i) {
     // nothing to do
   }
-  console.log("name", name)
   return name
 }
