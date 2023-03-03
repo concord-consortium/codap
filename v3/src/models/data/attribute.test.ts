@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash"
 import { getSnapshot } from "mobx-state-tree"
-import { Attribute, IAttributeSnapshot, importValueToString } from "./attribute"
+import { Attribute, IAttributeSnapshot, importValueToString, kDefaultFormatStr } from "./attribute"
 import { kSerializedXKey } from "./expression-utils"
 
 describe("Attribute", () => {
@@ -167,6 +167,18 @@ describe("Attribute", () => {
     expect(attribute.value(5)).toBe("")
     expect(attribute.isNumeric(5)).toBe(false)
     expect(attribute.numeric(5)).toBeNaN()
+
+    expect(attribute.format).toBe(kDefaultFormatStr)
+    attribute.setUserPrecision(2)
+    expect(attribute.format).toBe(".2~f")
+
+    expect(attribute.userDescription).toBeUndefined()
+    attribute.setUserDescription("description")
+    expect(attribute.userDescription).toBe("description")
+
+    expect(attribute.userEditable).toBe(true)
+    attribute.setUserEditable(false)
+    expect(attribute.userEditable).toBe(false)
   })
 
   test("Serialization (development)", () => {
