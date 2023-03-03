@@ -22,9 +22,8 @@ export interface IProps extends ITileBaseProps {
 }
 
 export const CodapComponent =
-    observer(function CodapComponent(
-      { tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
-      onRightPointerDown, onBottomPointerDown, onLeftPointerDown }: IProps) {
+    observer(({ tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
+      onRightPointerDown, onBottomPointerDown, onLeftPointerDown }: IProps) => {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
 
   return (

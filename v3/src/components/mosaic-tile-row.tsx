@@ -77,7 +77,8 @@ interface IMosaicNodeProps extends IExtentProps {
   node: IMosaicTileNode
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicNodeComponent = observer(function MosaicNodeComponent(
+export const MosaicNodeComponent = observer(
+  function MosaicNodeComponent(
   { node, direction, pctExtent, ...others }: IMosaicNodeProps) {
   const style = styleFromExtent({ direction, pctExtent })
   const node1Props = { direction: node.directionTyped, pctExtent: 100 * node.percent }
@@ -97,7 +98,8 @@ interface IMosaicTileProps extends IExtentProps {
   tile: ITileModel
   content?: IDocumentContentModel
 }
-export const MosaicTileComponent = observer(function MosaicTileComponent(
+export const MosaicTileComponent = observer(
+  function MosaicTileComponent(
   { content, tile, direction, pctExtent }: IMosaicTileProps) {
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type

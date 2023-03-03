@@ -40,8 +40,8 @@ interface IProps {
 
 const marqueeState = new MarqueeState()
 
-export const Graph = observer(function Graph(
-  {graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) {
+export const Graph = observer((
+  {graphRef, enableAnimation, dotsRef, showInspector, setShowInspector}: IProps) => {
   const graphModel = useGraphModelContext(),
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
