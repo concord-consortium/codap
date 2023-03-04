@@ -1,10 +1,14 @@
 import React from "react"
 import {Box, Flex, HStack, Tag, useToast} from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
+import { uniqueName } from "../../utilities/js-utils"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { kCalculatorTileType } from "../calculator/calculator-defs"
 import { kGraphTileType } from "../graph/graph-defs"
+import { kSliderTileType } from "../slider/slider-defs"
+import { kCaseTableTileType } from "../case-table/case-table-defs"
+import { isSliderModel } from "../slider/slider-model"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
 import TableIcon from '../../assets/icons/icon-table.svg'
 import MapIcon from '../../assets/icons/icon-map.svg'
@@ -14,9 +18,6 @@ import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
 import './tool-shelf.scss'
-import { kSliderTileType } from "../slider/slider-defs"
-import { uniqueName } from "../../utilities/js-utils"
-import { isSliderModel } from "../slider/slider-model"
 
 const kCalcHeight = 162
 const kCalcWidth = 145
@@ -43,9 +44,7 @@ export const ToolShelf = ({content}: IProps) => {
       })
     },
     toast = useToast(),
-    tableHandler = () => notify('table'),
     mapHandler = () => notify('map'),
-    // sliderHandler = () => notify('slider'),
     textHandler = () => notify('text'),
     pluginsHandler = () => notify('plugins')
 
@@ -104,6 +103,20 @@ export const ToolShelf = ({content}: IProps) => {
         )
         isSliderModel(newSliderModel) && newSliderModel.setName(uniqueSliderTitle)
         content?.insertTileInRow(sliderTile, row, sliderOptions)
+      }
+    }
+  }
+
+  const tableHandler = () => {
+    const numTableTiles = (content?.hasTileOfType(kCaseTableTileType))?.length || 0
+    const offsetPosition = kOffset * numTableTiles
+    if (row) {
+      const tableTile = createDefaultTileOfType(kCaseTableTileType)
+      if (tableTile) {
+        const tableOptions ={ x: 2 + offsetPosition,
+                              y: kFullHeight + kGap + offsetPosition,
+                              width: kFullWidth, height: kFullHeight }
+        content?.insertTileInRow(tableTile, row, tableOptions)
       }
     }
   }
