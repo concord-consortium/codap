@@ -5,7 +5,7 @@ import { useCollectionContext, useParentCollectionContext } from "../../hooks/us
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
-import { getCssVariable } from "../../utilities/css-utils"
+import { getNumericCssVariable } from "../../utilities/css-utils"
 import t from "../../utilities/translation/translate"
 import { kChildMostTableCollectionId } from "./case-table-types"
 
@@ -45,8 +45,8 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
 
   function handleClick(e: React.MouseEvent) {
     const parentGridBounds = parentGridRef.current?.getBoundingClientRect()
-    const rowHeaderHeight = getCssVariable(parentGridRef.current, "--rdg-header-row-height") ?? 30
-    const rowHeight = getCssVariable(parentGridRef.current, "--rdg-row-height") ?? 18
+    const rowHeaderHeight = getNumericCssVariable(parentGridRef.current, "--rdg-header-row-height") ?? 30
+    const rowHeight = getNumericCssVariable(parentGridRef.current, "--rdg-row-height") ?? 18
     // TODO: real buttons; handle scrolled table
     const clickedRow = Math.floor((e.clientY - (parentGridBounds?.top ?? 0) - rowHeaderHeight) / rowHeight)
     const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
