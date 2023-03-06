@@ -138,7 +138,8 @@ module.exports = {
       }
     },
     { // eslint configs
-      files: [".eslintrc*.js"],
+      // *.config.ts should be added after cypress.config.ts lint fixes
+      files: [".eslintrc*.cjs", "./*.config.js", "why-did-you-render.ts"],
       env: {
         node: true
       }

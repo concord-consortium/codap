@@ -11,7 +11,7 @@ const os = require('os')
 // `branch/[branch-name]/` or `version/[tag-name]/`
 // See the following documentation for more detail:
 //   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
-const DEPLOY_PATH = process.env.DEPLOY_PATH;
+const DEPLOY_PATH = process.env.DEPLOY_PATH
 
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
