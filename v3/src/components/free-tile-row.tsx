@@ -24,7 +24,7 @@ export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTi
         row?.tileIds.map(tileId => {
           const tile = getTile(tileId)
           return (
-            <FreeTileComponent row={row} tileId={tileId} tile={tile} onCloseTile={handleCloseTile} key={tileId}/>
+            tile && <FreeTileComponent row={row} tile={tile} onCloseTile={handleCloseTile} key={tileId}/>
           )
         })
       }

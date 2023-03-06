@@ -4,9 +4,9 @@ import { MosaicTileRowComponent } from "./mosaic-tile-row"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { isFreeTileRow } from "../models/document/free-tile-row"
 import { isMosaicTileRow } from "../models/document/mosaic-tile-row"
+import { getDragTileId, useContainerDroppable } from "../hooks/use-drag-drop"
 
 import "./container.scss"
-import { getDragTileId, useContainerDroppable } from "../hooks/use-drag-drop"
 
 interface IProps {
   content?: IDocumentContentModel
@@ -28,7 +28,7 @@ export const Container: React.FC<IProps> = ({ content }) => {
   })
 
   return (
-    <div id="codap-container" className="codap-container" ref={setNodeRef}>
+    <div className="codap-container" ref={setNodeRef}>
       {isMosaicTileRow(row) &&
         <MosaicTileRowComponent content={content} row={row} getTile={getTile} />}
       {isFreeTileRow(row) &&

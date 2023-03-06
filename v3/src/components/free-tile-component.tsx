@@ -8,16 +8,16 @@ import { CodapComponent } from "./codap-component"
 
 interface IProps {
   row: IFreeTileRow;
-  tileId: string;
-  tile?: ITileModel;
+  tile: ITileModel;
   onCloseTile: (tileId: string) => void;
 }
 
-export const FreeTileComponent = ({ row, tile, tileId, onCloseTile}: IProps) => {
+export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width: number, height: number}>()
   const [resizingTileId, setResizingTileId] = useState("")
-  const tileType = tile?.content.type
+  const tileId = tile.id
+  const tileType = tile.content.type
   const rowTile = row.tiles.get(tileId)
   const { x: left, y: top, width, height } = rowTile || {}
   const { active } = useDndContext()

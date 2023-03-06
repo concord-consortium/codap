@@ -55,7 +55,6 @@ export const useTileDroppable = (
   baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
 ) => {
   const instanceId = useInstanceIdContext()
-  // console.log("in useTileDroppable baseId", baseId, "instanceId", instanceId)
 
   const id = `${instanceId}-${baseId}-drop`
   useDropHandler(id, onDrop)
@@ -63,10 +62,8 @@ export const useTileDroppable = (
 }
 
 export const useDropHandler = (dropId: string, onDrop: (active: Active) => void) => {
-  // console.log("in useDropHandle:", dropId)
   useDndMonitor({ onDragEnd: ({ active, over }) => {
     // only call onDrop for the handler that registered it
-
     (over?.id === dropId) && onDrop(active)
   }})
 }
@@ -90,8 +87,8 @@ export interface IUseDraggableTile extends Omit<UseDraggableArguments, "id"> {
   prefix: string
   tileId: string
 }
-export const useDraggableTile = ({ prefix, tileId, ...others }: IUseDraggableTile,
-  onStartDrag: (active: Active)=>void) => {
+export const useDraggableTile =
+  ({ prefix, tileId, ...others }: IUseDraggableTile, onStartDrag: (active: Active)=>void) => {
   const data: IDragTileData = { type: "tile", tileId }
   useTileDragStartHandler(tileId, onStartDrag)
   return useDraggable({ ...others, id: `${prefix}-${tileId}`, data })
@@ -99,8 +96,8 @@ export const useDraggableTile = ({ prefix, tileId, ...others }: IUseDraggableTil
 
 export const useTileDragStartHandler = (dragId: string, onStartDrag: (active: Active) => void) => {
   useDndMonitor({ onDragStart: ({ active }) => {
-    // only call onDrop for the handler that registered it
-    onStartDrag(active)
+    // only call onDragStart for the handler that registered it
+    (active.id === dragId) && onStartDrag(active)
   }})
 }
 
@@ -118,6 +115,6 @@ export const useContainerDroppable = (
 export const useTileDropHandler = (dropId: string, onDrop: (event: DragEndEvent) => void) => {
   useDndMonitor({ onDragEnd: (event: DragEndEvent) => {
     // only call onDrop for the handler that registered it
-    onDrop(event)
+    (event.over?.id === dropId) && onDrop(event)
   }})
 }
