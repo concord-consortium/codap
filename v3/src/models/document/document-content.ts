@@ -49,7 +49,7 @@ export const DocumentContentModel = types
     getTile(tileId: string) {
       return tileId && self.tileMap.has(tileId) ? self.tileMap.get(tileId) : undefined
     },
-    hasTileOfType(type: string) {
+    getTilesOfType(type: string) {
       const tileMapEntries = Array.from(self.tileMap.values())
       return tileMapEntries.filter(tile => tile.content.type === type)
     },

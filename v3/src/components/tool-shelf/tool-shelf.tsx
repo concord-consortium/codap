@@ -52,7 +52,7 @@ export const ToolShelf = ({content}: IProps) => {
 
   const calcHandler = () => {
     // Calculator button is the only button that can open and close a tile
-    const calculatorTile = content?.hasTileOfType(kCalculatorTileType)
+    const calculatorTile = content?.getTilesOfType(kCalculatorTileType)
     if (calculatorTile) {
       const tileId = calculatorTile[0].id //There can only be one calculator in the document
       content?.deleteTile(tileId)
@@ -67,7 +67,7 @@ export const ToolShelf = ({content}: IProps) => {
   }
 
   const graphHandler = () => {
-    const numGraphTiles = (content?.hasTileOfType(kGraphTileType))?.length || 0
+    const numGraphTiles = (content?.getTilesOfType(kGraphTileType))?.length || 0
     const offsetPosition = kOffset * numGraphTiles
      if (row) {
       const graphTile = createDefaultTileOfType(kGraphTileType)
@@ -81,7 +81,7 @@ export const ToolShelf = ({content}: IProps) => {
   }
 
   const sliderHandler = () => {
-    const existingSliderTiles = content?.hasTileOfType(kSliderTileType)
+    const existingSliderTiles = content?.getTilesOfType(kSliderTileType)
     const existingSliderNames = existingSliderTiles?.map(tile => {
       const sliderModel = tile.content
       const sliderName = (isSliderModel(sliderModel) && sliderModel.name)
@@ -108,7 +108,7 @@ export const ToolShelf = ({content}: IProps) => {
   }
 
   const tableHandler = () => {
-    const numTableTiles = (content?.hasTileOfType(kCaseTableTileType))?.length || 0
+    const numTableTiles = (content?.getTilesOfType(kCaseTableTileType))?.length || 0
     const offsetPosition = kOffset * numTableTiles
     if (row) {
       const tableTile = createDefaultTileOfType(kCaseTableTileType)
