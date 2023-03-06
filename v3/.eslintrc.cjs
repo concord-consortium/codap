@@ -138,7 +138,7 @@ module.exports = {
       }
     },
     { // eslint configs
-      files: [".eslintrc.cjs"],
+      files: [".eslintrc*.js"],
       env: {
         node: true
       }
