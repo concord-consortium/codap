@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 module.exports = {
   plugins: [
-    require('autoprefixer')
+    require('autoprefixer') // eslint-disable-line @typescript-eslint/no-require-imports
   ]
 }
-/* eslint-enable @typescript-eslint/no-require-imports */
