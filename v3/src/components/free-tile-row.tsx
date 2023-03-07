@@ -12,7 +12,8 @@ interface IFreeTileRowProps {
   row: IFreeTileRow
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const FreeTileRowComponent = observer(({ content, row, getTile }: IFreeTileRowProps) => {
+export const FreeTileRowComponent = observer(function FreeTileRowComponent(
+  { content, row, getTile }: IFreeTileRowProps) {
   const handleCloseTile = (tileId: string) => {
     if (!tileId) return
     content?.deleteTile(tileId)

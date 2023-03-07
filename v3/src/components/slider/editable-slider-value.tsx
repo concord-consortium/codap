@@ -14,7 +14,7 @@ const d3Format = format(`.${kDecimalPlaces}~f`)
 
 const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
 
-export const EditableSliderValue = observer(({sliderModel} : IProps) => {
+export const EditableSliderValue = observer(function EditableSliderValue({sliderModel} : IProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [candidate, setCandidate] = useState("")
 

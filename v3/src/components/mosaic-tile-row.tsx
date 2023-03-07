@@ -17,7 +17,8 @@ interface IMosaicTileRowProps {
   content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicTileRowComponent = observer(({ content, row, getTile }: IMosaicTileRowProps) => {
+export const MosaicTileRowComponent = observer(function MosaicTileRowComponent(
+  { content, row, getTile }: IMosaicTileRowProps) {
   return (
     <div className="mosaic-tile-row">
       {row &&
@@ -54,7 +55,8 @@ interface INodeOrTileProps extends IExtentProps {
   content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicNodeOrTileComponent = observer(({ nodeOrTileId, ...others }: INodeOrTileProps) => {
+export const MosaicNodeOrTileComponent = observer(function MosaicNodeOrTileComponent(
+  { nodeOrTileId, ...others }: INodeOrTileProps) {
   const { row, getTile } = others
   const node = row.getNode(nodeOrTileId)
   const tile = node ? undefined : getTile(nodeOrTileId)
@@ -75,7 +77,9 @@ interface IMosaicNodeProps extends IExtentProps {
   node: IMosaicTileNode
   getTile: (tileId: string) => ITileModel | undefined
 }
-export const MosaicNodeComponent = observer(({ node, direction, pctExtent, ...others }: IMosaicNodeProps) => {
+export const MosaicNodeComponent = observer(
+  function MosaicNodeComponent(
+  { node, direction, pctExtent, ...others }: IMosaicNodeProps) {
   const style = styleFromExtent({ direction, pctExtent })
   const node1Props = { direction: node.directionTyped, pctExtent: 100 * node.percent }
   const node2Props = { direction: node.directionTyped, pctExtent: 100 * (1 - node.percent) }
@@ -94,7 +98,9 @@ interface IMosaicTileProps extends IExtentProps {
   tile: ITileModel
   content?: IDocumentContentModel
 }
-export const MosaicTileComponent = observer(({ content, tile, direction, pctExtent }: IMosaicTileProps) => {
+export const MosaicTileComponent = observer(
+  function MosaicTileComponent(
+  { content, tile, direction, pctExtent }: IMosaicTileProps) {
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)

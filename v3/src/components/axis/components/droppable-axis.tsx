@@ -2,6 +2,7 @@ import { Active, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
+import {clsx} from "clsx"
 import { AxisPlace } from "../axis-types"
 import { useAxisBounds } from "../hooks/use-axis-bounds"
 import { DropHint } from "../../graph/components/drop-hint"
@@ -14,7 +15,8 @@ interface IProps {
   hintString?: string
   onIsActive?: (active: Active) => boolean
 }
-export const DroppableAxis = observer(({ place, portal, target, dropId, hintString, onIsActive }: IProps) => {
+export const DroppableAxis = observer(function DroppableAxis(
+  { place, portal, target, dropId, hintString, onIsActive }: IProps) {
   const axisBounds = useAxisBounds(place)
 
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
@@ -22,7 +24,8 @@ export const DroppableAxis = observer(({ place, portal, target, dropId, hintStri
 
   // calculate the position of the overlay
   const style: CSSProperties = { ...axisBounds }
-  const classes = `droppable-axis droppable-svg ${place} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`
+  const classes =
+    clsx("droppable-axis", "droppable-svg", place, { active: isActive, over: isActive && isOver })
 
   return portal && target && createPortal(
     <>

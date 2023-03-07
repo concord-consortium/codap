@@ -63,6 +63,11 @@ export const DataConfigurationModel = types
     pointsNeedUpdating: false
   }))
   .views(self => ({
+    get secondaryRole() {
+      return self.primaryRole === 'x' ? 'y'
+        : self.primaryRole === 'y' ? 'x'
+          : ''
+    },
     get y2AttributeDescriptionIsPresent() {
       return !!self._attributeDescriptions.get('rightNumeric')
     },
@@ -100,7 +105,7 @@ export const DataConfigurationModel = types
     attributeDescriptionForRole(role: GraphAttrRole) {
       return role === 'y' ? this.yAttributeDescriptions[0]
         : role === 'rightNumeric' ? self._attributeDescriptions.get('rightNumeric')
-        : this.attributeDescriptions[role]
+          : this.attributeDescriptions[role]
     },
     attributeID(role: GraphAttrRole) {
       let attrID = this.attributeDescriptionForRole(role)?.attributeID
@@ -123,6 +128,14 @@ export const DataConfigurationModel = types
     placeCanHaveZeroExtent(place: GraphPlace) {
       return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
         this.attributeID(graphPlaceToAttrRole[place]) === ''
+    }
+  }))
+  .views(self => ({
+    get primaryAttributeID() {
+      return self.primaryRole && self.attributeID(self.primaryRole) || ''
+    },
+    get secondaryAttributeID() {
+      return self.secondaryRole && self.attributeID(self.secondaryRole) || ''
     }
   }))
   .extend(() => {
@@ -161,11 +174,10 @@ export const DataConfigurationModel = types
     filterCase(data: IDataSet, caseID: string, caseArrayNumber: number) {
       const hasY2 = !!self._attributeDescriptions.get('rightNumeric'),
         numY = self._yAttributeDescriptions.length,
-        descriptions = {... self.attributeDescriptions}
+        descriptions = {...self.attributeDescriptions}
       if (hasY2 && caseArrayNumber === self._yAttributeDescriptions.length) {
         descriptions.y = self._attributeDescriptions.get('rightNumeric') ?? descriptions.y
-      }
-      else if (caseArrayNumber < numY) {
+      } else if (caseArrayNumber < numY) {
         descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
       }
       delete descriptions.rightNumeric
@@ -231,20 +243,20 @@ export const DataConfigurationModel = types
     get uniqueAttributes() {
       return Array.from(new Set<string>(this.attributes))
     },
-    get tipAttributes():RoleAttrIDPair[] {
+    get tipAttributes(): RoleAttrIDPair[] {
       return TipAttrRoles
         .map(role => {
-          return {role, attributeID: self.attributeID(role) }
+          return {role, attributeID: self.attributeID(role)}
         })
         .filter(pair => !!pair.attributeID)
     },
     get uniqueTipAttributes() {
       const tipAttributes = this.tipAttributes,
-        idCounts:  Record<string, number> = {}
-      tipAttributes.forEach((aPair:RoleAttrIDPair) => {
+        idCounts: Record<string, number> = {}
+      tipAttributes.forEach((aPair: RoleAttrIDPair) => {
         idCounts[aPair.attributeID] = (idCounts[aPair.attributeID] || 0) + 1
       })
-      return tipAttributes.filter((aPair:RoleAttrIDPair) => {
+      return tipAttributes.filter((aPair: RoleAttrIDPair) => {
         if (idCounts[aPair.attributeID] > 1) {
           idCounts[aPair.attributeID]--
           return false
@@ -429,20 +441,32 @@ export const DataConfigurationModel = types
         const role = graphPlaceToAttrRole[place],
           primaryRole = self.primaryRole
         return primaryRole === role
+      },
+      graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop: string) {
+        const role = graphPlaceToAttrRole[place],
+          typeToDrop = self.dataset?.attrFromID(idToDrop)?.type
+        if (place === 'yPlus') {
+          return typeToDrop === 'numeric' && !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
+        } else {
+          const existingID = self.attributeID(role)
+          return (place === 'rightNumeric' ? typeToDrop === 'numeric' : true) &&
+            !!idToDrop && existingID !== idToDrop
+        }
       }
     }))
   .actions(self => ({
-    setDataset(dataset: IDataSet) {
+    setDataset(dataset: IDataSet | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
       self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
-      self._attributeDescriptions.clear()
-      self._yAttributeDescriptions.clear()
       self.filteredCases = []
-      self.filteredCases[0] = new FilteredCases({
-        source: dataset, filter: self.filterCase,
-        onSetCaseValues: self.handleSetCaseValues
-      })
+      if (dataset) {
+        self.filteredCases[0] = new FilteredCases({
+          source: dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        })
+      }
+      self.clearCategorySets()
       self.invalidateQuantileScale()
     },
     setPrimaryRole(role: GraphAttrRole) {
@@ -451,6 +475,35 @@ export const DataConfigurationModel = types
       }
     },
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+
+      const replaceYAttribute = (iDesc?: IAttributeDescriptionSnapshot) => {
+          self._yAttributeDescriptions.clear()
+          if (iDesc && iDesc.attributeID !== '') {
+            self._yAttributeDescriptions.push(iDesc)
+          }
+        },
+        setAttributeDescription = (iRole: GraphAttrRole, iDesc?: IAttributeDescriptionSnapshot) => {
+          if (iRole === 'y') {
+            replaceYAttribute(iDesc)
+          } else if (iDesc && iDesc.attributeID !== '') {
+            self._attributeDescriptions.set(iRole, iDesc)
+          } else {
+            self._attributeDescriptions.delete(iRole)
+          }
+        }
+
+      // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
+      // move whatever attribute is assigned to the given role to that axis.
+      if (['x', 'y'].includes(role)) {
+        const otherRole = role === 'x' ? 'y' : 'x',
+          otherDesc = self.attributeDescriptionForRole(otherRole)
+        if (otherDesc?.attributeID === desc?.attributeID) {
+          const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'empty'}
+          setAttributeDescription(otherRole,
+            {attributeID: currentDesc.attributeID, type: currentDesc.attributeType})
+          self.categorySets.set(otherRole, null)
+        }
+      }
       if (role === 'y') {
         self._yAttributeDescriptions.clear()
         if (desc && desc.attributeID !== '') {
@@ -459,11 +512,7 @@ export const DataConfigurationModel = types
       } else if (role === 'rightNumeric') {
         this.setY2Attribute(desc)
       } else {
-        if (desc && desc.attributeID !== '') {
-          self._attributeDescriptions.set(role, desc)
-        } else {
-          self._attributeDescriptions.delete(role)
-        }
+        setAttributeDescription(role, desc)
       }
       self.filteredCases?.forEach((aFilteredCases) => {
         aFilteredCases.invalidateCases()
@@ -474,7 +523,7 @@ export const DataConfigurationModel = types
       }
     },
     _addNewFilteredCases() {
-       self.dataset && self.filteredCases
+      self.dataset && self.filteredCases
         ?.push(new FilteredCases({
           casesArrayNumber: self.filteredCases.length,
           source: self.dataset, filter: self.filterCase,
@@ -495,8 +544,7 @@ export const DataConfigurationModel = types
       } else if (isEmpty) {
         self.filteredCases?.pop() // remove the last one because it is the array
         self.setPointsNeedUpdating(true)
-      }
-      else {
+      } else {
         const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
         existingFilteredCases?.invalidateCases()
       }

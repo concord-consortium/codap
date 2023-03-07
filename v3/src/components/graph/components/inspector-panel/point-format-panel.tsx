@@ -18,7 +18,7 @@ interface IProps {
   setShowPalette: (palette: string | undefined) => void;
 }
 
-export const PointFormatPalette = observer(({graphModel, setShowPalette}: IProps) => {
+export const PointFormatPalette = observer(function PointFormatPalette({graphModel, setShowPalette}: IProps) {
   const dataConfiguration = useDataConfigurationContext()
   const legendAttrID = graphModel.getAttributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type

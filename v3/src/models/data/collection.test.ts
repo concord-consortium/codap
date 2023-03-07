@@ -1,6 +1,6 @@
 import { destroy, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { CollectionModel, ICollectionModel } from "./collection"
+import { CollectionModel, CollectionPropsModel, ICollectionModel } from "./collection"
 
 const Tree = types.model("Tree", {
   attributes: types.array(Attribute),
@@ -19,6 +19,14 @@ const Tree = types.model("Tree", {
 }))
 
 describe("CollectionModel", () => {
+
+  it("displayTitle works as expected", () => {
+    const withName = CollectionPropsModel.create({ name: "name" })
+    expect(withName.displayTitle).toBe("name")
+
+    const withNameAndTitle = CollectionPropsModel.create({ name: "name", title: "title" })
+    expect(withNameAndTitle.displayTitle).toBe("title")
+  })
 
   it("handles undefined references", () => {
     const tree = Tree.create()
@@ -43,29 +51,41 @@ describe("CollectionModel", () => {
     expect(collection.getAttributeIndex("a")).toBe(-1)
   })
 
-  it("behaves as expected", () => {
+  it("can add/move/remove attributes", () => {
     const tree = Tree.create()
     const collection = CollectionModel.create()
     tree.addCollection(collection)
-    const attribute = Attribute.create({ id: "a", name: "a" })
-    tree.addAttribute(attribute)
-    expect(isAlive(attribute)).toBe(true)
-    collection.addAttribute(attribute)
-    expect(isAlive(attribute)).toBe(true)
+    const attrA = Attribute.create({ id: "a", name: "a" })
+    tree.addAttribute(attrA)
+    expect(isAlive(attrA)).toBe(true)
+    collection.addAttribute(attrA)
+    expect(isAlive(attrA)).toBe(true)
     expect(collection.attributes.length).toBe(1)
-    expect(collection.getAttribute("a")).toBe(attribute)
+    expect(collection.getAttribute("a")).toBe(attrA)
     expect(collection.getAttributeIndex("a")).toBe(0)
 
     const attrB = Attribute.create({ id: "b", name: "b" })
     tree.addAttribute(attrB)
-    collection.addAttribute(attrB, attribute)
+    collection.addAttribute(attrB, { before: "a" })
     expect(collection.attributes.length).toBe(2)
     expect(collection.getAttributeIndex("b")).toBe(0)
     expect(collection.getAttributeIndex("a")).toBe(1)
 
     collection.removeAttribute("a")
     expect(collection.attributes.length).toBe(1)
+    collection.addAttribute(attrA, { after: "b" })
+    expect(collection.attributes.length).toBe(2)
+    expect(collection.getAttributeIndex("b")).toBe(0)
+    expect(collection.getAttributeIndex("a")).toBe(1)
+    collection.moveAttribute("a", { before: "b" })
+    expect(collection.getAttributeIndex("a")).toBe(0)
+    expect(collection.getAttributeIndex("b")).toBe(1)
+    collection.moveAttribute("a", { after: "b" })
+    expect(collection.getAttributeIndex("b")).toBe(0)
+    expect(collection.getAttributeIndex("a")).toBe(1)
     collection.removeAttribute("b")
+    expect(collection.attributes.length).toBe(1)
+    collection.removeAttribute("a")
     expect(collection.attributes.length).toBe(0)
   })
 

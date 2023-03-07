@@ -1,19 +1,18 @@
+import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
-import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
-import { IDataSet } from "../../models/data/data-set"
 import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { symIndex } from "../../models/data/data-set-types"
 import t from "../../utilities/translation/translate"
 
-interface IHookProps {
-  data?: IDataSet
-}
-export const useIndexColumn = ({ data }: IHookProps) => {
+export const useIndexColumn = () => {
+  const data = useDataSetContext()
   // formatter/renderer
-  const formatter = useCallback(({ row: { __id__ } }: TFormatterProps) => {
-    const index = data?.caseIndexFromID(__id__)
+  const formatter = useCallback(({ row: { __id__, [symIndex]: _index } }: TFormatterProps) => {
+    const index = _index != null ? _index : data?.caseIndexFromID(__id__)
     return (
       <IndexCell caseId={__id__} index={index} />
     )

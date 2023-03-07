@@ -2,9 +2,11 @@ import { Tooltip } from "@chakra-ui/react"
 import { format } from "d3"
 import { autorun } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
-import { TColumn, TFormatterProps } from "./case-table-types"
+import { symDom, TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
 
@@ -26,7 +28,8 @@ interface IUseColumnsProps {
   indexColumn: TColumn
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
-
+  const caseMetadata = useCaseMetadata()
+  const collection = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
 
   // cell formatter/renderer
@@ -38,8 +41,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     const value = isFinite(num) && formatter ? formatter(num) : str
     // if this is the first React render after performance rendering, add a
     // random key to force React to render the contents for synchronization
-    const key = row.__domAttrs__?.has(column.key) ? Math.random() : undefined
-    row.__domAttrs__?.delete(column.key)
+    const key = row[symDom]?.has(column.key) ? Math.random() : undefined
+    row[symDom]?.delete(column.key)
     // for now we just render numbers and raw string values; eventually,
     // we can support other formats here (dates, colors, etc.)
     return (
@@ -54,7 +57,10 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // rebuild column definitions when referenced properties change
     const disposer = autorun(() => {
       // column definitions
-      const visibleAttrs: IAttribute[] = data?.attributes.filter(attr => !attr.hidden) ?? []
+      const attrs: IAttribute[] = (collection
+                                    ? Array.from(collection.attributes) as IAttribute[]
+                                    : data?.ungroupedAttributes) ?? []
+      const visibleAttrs: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
       const _columns: TColumn[] = data
         ? [
             indexColumn,
@@ -74,7 +80,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       setColumns(_columns)
     })
     return () => disposer()
-  }, [CellFormatter, data, indexColumn])
+  }, [CellFormatter, caseMetadata, collection, data, indexColumn])
 
   return columns
 }

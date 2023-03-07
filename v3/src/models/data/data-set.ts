@@ -45,12 +45,13 @@
 import { observable } from "mobx"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { CollectionModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
+import { CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
 import {
-  CaseGroup, CaseID, CollectionGroup, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec,
-  IGetCaseOptions, IGetCasesOptions, IMoveAttributeOptions, uniqueCaseId
+  CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
+  IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
 import { uniqueId } from "../../utilities/js-utils"
+import { prf } from "../../utilities/profiler"
 
 // remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
@@ -114,12 +115,23 @@ export function toCanonical(ds: IDataSet, cases: CaseOrArray): CaseOrArray {
           : toCanonicalCase(ds, cases)
 }
 
+// represents the set of grouped cases at a particular level of the hierarchy
+export interface CollectionGroup {
+  collection: ICollectionModel
+  // each group represents a single case at this level along with links to child cases
+  groups: CaseGroup[]
+  // map from valuesJson to corresponding CaseGroup
+  groupsMap: Record<string, CaseGroup>
+}
+
 export const DataSet = types.model("DataSet", {
   id: types.optional(types.identifier, () => uniqueId()),
   sourceID: types.maybe(types.string),
   name: types.maybe(types.string),
   // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
   collections: types.array(CollectionModel),
+  // ungrouped (child-most) collection has properties, but no grouping attributes
+  ungrouped: types.optional(CollectionPropsModel, () => CollectionPropsModel.create()),
   attributes: types.array(Attribute),
   cases: types.array(CaseID),
   sourceName: types.maybe(types.string),
@@ -158,12 +170,43 @@ export const DataSet = types.model("DataSet", {
     }
   }
 })
+.views(self => ({
+  attrIndexFromID(id: string) {
+    const index = self.attributes.findIndex(attr => attr.id === id)
+    return index >= 0 ? index : undefined
+  }
+}))
+.actions(self => ({
+  // change the attribute order within the data set itself; doesn't handle collections
+  moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
+    const beforeAttrIndex = options?.before ? self.attrIndexFromID(options.before) : undefined
+    const afterAttrIndex = options?.after ? self.attrIndexFromID(options.after) : undefined
+    const found = self.attributes.find(attr => attr.id === attributeID)
+    if (found) {
+      // removing an MST model from an MST array calls destroy() on it, so the only way
+      // to change the order without destroying any of the elements is to sort the array
+      const dstOrder: Record<string, number> = {}
+      // collect the current indices of each attribute in the array
+      self.attributes.forEach((attr, i) => dstOrder[attr.id] = i)
+      // assign the moved attribute an "index" value corresponding to its destination
+      dstOrder[attributeID] = beforeAttrIndex != null
+                                ? beforeAttrIndex - 0.5
+                                : afterAttrIndex != null
+                                    ? afterAttrIndex + 0.5
+                                    : self.attributes.length
+      // sort the attributes by the adjusted "indices"
+      self.attributes.sort((a, b) => dstOrder[a.id] - dstOrder[b.id])
+    }
+  }
+}))
 .extend(self => {
   // we do our own caching because MST's auto-caching wasn't working as expected
   let _collectionGroups: CollectionGroup[] = []
+  // array of child-most cases, i.e. cases not grouped in a collection
+  let _childCases: IGroupedCase[] = []
   let isValidCollectionGroups = false
 
-  function getCollection(collectionId: string) {
+  function getCollection(collectionId: string): ICollectionModel | undefined {
     return self.collections.find(coll => coll.id === collectionId)
   }
 
@@ -171,46 +214,150 @@ export const DataSet = types.model("DataSet", {
     return self.collections.findIndex(coll => coll.id === collectionId)
   }
 
-  function getCollectionForAttribute(attributeId: string) {
+  function getCollectionForAttribute(attributeId: string): ICollectionModel | undefined {
     return self.collections.find(coll => coll.getAttribute(attributeId))
+  }
+
+  function getGroupedAttributes() {
+    const groupedAttrs: IAttribute[] = []
+    self.collections.forEach(collection => {
+      collection.attributes.forEach(attr => attr && groupedAttrs.push(attr))
+    })
+    return groupedAttrs
   }
 
   return {
     views: {
+      // get collection from id
       getCollection,
+      // get index from collection
       getCollectionIndex,
+      // get collection from attribute, if any; undefined => not in a collection
       getCollectionForAttribute,
+      // leaf-most child cases (i.e. those not grouped in a collection)
+      get childCases() {
+        return _childCases
+      },
+      // array of attributes grouped that are grouped into collections
+      get groupedAttributes(): IAttribute[] {
+        return getGroupedAttributes()
+      },
+      // array of attributes _not_ grouped into collections
+      get ungroupedAttributes(): IAttribute[] {
+        const grouped = new Set(getGroupedAttributes().map(attr => attr.id))
+        return self.attributes.filter(attr => attr && !grouped.has(attr.id))
+      },
+      // the resulting collection groups
       get collectionGroups() {
         if (isValidCollectionGroups) return _collectionGroups
 
         _collectionGroups = self.collections.map(collection => ({ collection, groups: [], groupsMap: {} }))
 
-        self.cases.forEach(aCase => {
-          const index = self.caseIDMap[aCase.__id__]
-          const groupedAttrs: IAttribute[] = []
-          _collectionGroups.forEach(({ collection, groups, groupsMap }) => {
-            // attributes grouped by a given collection are cumulative
-            collection.attributes.forEach(attr => {
-              if (attr) groupedAttrs.push(attr)
+        prf.measure("DataSet.collectionGroups", () => {
+          self.cases.forEach(aCase => {
+            const index = self.caseIDMap[aCase.__id__]
+            // parent attributes used for grouping are cumulative
+            const parentAttrs: IAttribute[] = []
+            _collectionGroups.forEach(({ collection, groups, groupsMap }, collIndex) => {
+              const collectionAttrs: IAttribute[] = Array.from(collection.attributes) as IAttribute[]
+              const parentValues: Record<string, string> = {}
+              const cumulativeValues: Record<string, string> = {}
+              parentAttrs.forEach(attr => {
+                parentValues[attr.id] = attr.value(index)
+                cumulativeValues[attr.id] = attr.value(index)
+              })
+              collectionAttrs.forEach(attr => {
+                cumulativeValues[attr.id] = attr.value(index)
+              })
+              // group by stringified values of grouped attributes
+              const parentValuesJson = JSON.stringify(parentValues)
+              const cumulativeValuesJson = JSON.stringify(cumulativeValues)
+              if (!groupsMap[cumulativeValuesJson]) {
+                // start a new group with just this case (for now)
+                // note: PCAS ids are considered ephemeral and should not be stored/serialized,
+                // because they can be regenerated whenever the data changes.
+                const pseudoCase: IGroupedCase = { __id__: `PCAS${uniqueId()}`, ...cumulativeValues }
+                groupsMap[cumulativeValuesJson] = {
+                  collectionId: collection.id,
+                  pseudoCase,
+                  childCaseIds: [aCase.__id__],
+                  valuesJson: cumulativeValuesJson
+                }
+                if (collIndex === 0) {
+                  // for the first collection, index is just position in the array
+                  pseudoCase[symIndex] = groups.length
+                  groups.push(groupsMap[cumulativeValuesJson])
+                }
+                else {
+                  // for collections after the first, index is determined from position in parent
+                  // and we must link up parent cases to child cases
+                  const parentCollectionGroup = _collectionGroups[collIndex - 1]
+                  const parentCaseGroup = parentCollectionGroup.groupsMap[parentValuesJson]
+                  if (parentCaseGroup) {
+                    const parentPseudoCase = parentCaseGroup.pseudoCase
+                    let indexOfLastCaseWithSameParent = -1
+
+                    // add link from child to parent
+                    pseudoCase[symParent] = parentPseudoCase.__id__
+
+                    // add link from parent to child
+                    if (!parentCaseGroup.childPseudoCaseIds) {
+                      // this is the first child of the corresponding parent pseudo-case
+                      parentCaseGroup.childPseudoCaseIds = [pseudoCase.__id__]
+                      pseudoCase[symIndex] = 0
+                    }
+                    else {
+                      // add a new child to the corresponding parent pseudo-case
+                      pseudoCase[symIndex] = parentCaseGroup.childPseudoCaseIds.length
+                      parentCaseGroup.childPseudoCaseIds.push(pseudoCase.__id__)
+
+                      // add new group as last case of parent
+                      for (let i = 0; i < groups.length; ++i) {
+                        if (groups[i].pseudoCase[symParent] === pseudoCase[symParent]) {
+                          indexOfLastCaseWithSameParent = i
+                        }
+                        else if (indexOfLastCaseWithSameParent >= 0) {
+                          break
+                        }
+                      }
+                    }
+                    // add the new pseudo-case at its appropriate place in the array
+                    if (indexOfLastCaseWithSameParent >= 0) {
+                      groups.splice(indexOfLastCaseWithSameParent + 1, 0, groupsMap[cumulativeValuesJson])
+                    }
+                    else {
+                      groups.push(groupsMap[cumulativeValuesJson])
+                    }
+                  }
+                  else {
+                    console.warn(`Failed to find expected parent for case ${cumulativeValuesJson}!`)
+                  }
+                }
+              }
+              else {
+                // add the case to an existing group
+                groupsMap[cumulativeValuesJson].childCaseIds.push(aCase.__id__)
+              }
+              parentAttrs.push(...collectionAttrs)
             })
-            const groupedValues: Record<string, string> = {}
-            groupedAttrs.forEach(attr => {
-              groupedValues[attr.id] = attr.value(index)
-            })
-            // group by stringified values of grouped attributes
-            const groupedValuesJson = JSON.stringify(groupedValues)
-            if (!groupsMap[groupedValuesJson]) {
-              // start a new group with just this case (for now)
-              const pseudoCase: ICase = { __id__: `PCASE${uniqueId()}`, ...groupedValues }
-              groupsMap[groupedValuesJson] = { pseudoCase, cases: [aCase.__id__], valuesJson: groupedValuesJson }
-              groups.push(groupsMap[groupedValuesJson])
-            }
-            else {
-              // add the case to an existing group
-              groupsMap[groupedValuesJson].cases.push(aCase.__id__)
-            }
           })
         })
+
+        _childCases = []
+        const lastCollectionGroup = _collectionGroups.length
+                                      ? _collectionGroups[_collectionGroups.length - 1]
+                                      : undefined
+        if (lastCollectionGroup) {
+          // if there are collections, then child cases are determined by the parents
+          lastCollectionGroup?.groups.forEach(group => {
+            _childCases.push(...group.childCaseIds.map((caseId, index) =>
+              ({__id__: caseId, [symParent]: group.pseudoCase.__id__, [symIndex]: index })))
+          })
+        }
+        else {
+          // in the absence of collections, use the original cases
+          _childCases = self.cases.map(c => ({ __id__: c.__id__ }))
+        }
 
         // clear map from pseudo-case id to pseudo-case
         // can't assign empty object because we're not an action
@@ -245,9 +392,9 @@ export const DataSet = types.model("DataSet", {
       removeCollection(collection: ICollectionModel) {
         self.collections.remove(collection)
       },
-      setCollectionForAttribute(collectionId: string, attributeId: string, beforeAttrId?: string) {
+      setCollectionForAttribute(attributeId: string, options?: IMoveAttributeCollectionOptions) {
         const attribute = self.attributes.find(attr => attr.id === attributeId)
-        const newCollection = getCollection(collectionId)
+        const newCollection = options?.collection ? getCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
           if (oldCollection) {
@@ -262,8 +409,11 @@ export const DataSet = types.model("DataSet", {
           }
           if (newCollection) {
             // add it to the new collection
-            const beforeAttr = beforeAttrId ? newCollection.getAttribute(beforeAttrId) : undefined
-            newCollection.addAttribute(attribute, beforeAttr)
+            newCollection.addAttribute(attribute, options)
+          }
+          else if (options?.before || options?.after) {
+            // move it within the data set
+            self.moveAttribute(attributeId, options)
           }
           if (!oldCollection) {
             // if the last ungrouped attribute was moved into a collection, then eliminate
@@ -278,23 +428,24 @@ export const DataSet = types.model("DataSet", {
           this.invalidateCollectionGroups()
         }
       },
+      // if beforeCollectionId is not specified, new collection is last (child-most)
       moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
         const collection = CollectionModel.create()
         this.addCollection(collection, beforeCollectionId)
-        this.setCollectionForAttribute(collection.id, attributeId)
+        this.setCollectionForAttribute(attributeId, { collection: collection.id })
       }
     }
   }
 })
 .views(self => ({
-  getCasesForCollection(collectionId: string) {
+  getCasesForCollection(collectionId?: string) {
     for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
       const collectionGroup = self.collectionGroups[i]
       if (collectionGroup.collection.id === collectionId) {
         return collectionGroup.groups.map(group => group.pseudoCase)
       }
     }
-    return []
+    return self.childCases
   },
   getCasesForAttributes(attributeIds: string[]) {
     // finds the child-most collection (if any) among the specified attributes
@@ -309,7 +460,7 @@ export const DataSet = types.model("DataSet", {
       }
       if (attrCollectionIndex < 0) {
         // if we get here then the attribute isn't grouped, so the regular cases can be used
-        return self.cases
+        return self.childCases
       }
       collectionIndex = Math.max(collectionIndex, attrCollectionIndex)
     }
@@ -327,11 +478,6 @@ export const DataSet = types.model("DataSet", {
         disposers: { [index: string]: () => void } = {}
 
   const attrIDFromName = (name: string) => attrNameMap[name]
-
-  function attrIndexFromID(id: string) {
-    const index = self.attributes.findIndex(attr => attr.id === id)
-    return index >= 0 ? index : undefined
-  }
 
   function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
     const index = self.caseIDMap[caseID]
@@ -367,7 +513,6 @@ export const DataSet = types.model("DataSet", {
   }
 
   function insertCaseIDAtIndex(id: string, beforeIndex: number) {
-    // const newCase = { __id__: id, __index__: beforeIndex };
     const newCase = { __id__: id }
     if ((beforeIndex != null) && (beforeIndex < self.cases.length)) {
       self.cases.splice(beforeIndex, 0, newCase)
@@ -375,7 +520,6 @@ export const DataSet = types.model("DataSet", {
       for (let i = beforeIndex + 1; i < self.cases.length; ++i) {
         const aCase = self.cases[i]
         ++self.caseIDMap[aCase.__id__]
-        // aCase.__index__ = i;
       }
     }
     else {
@@ -415,7 +559,6 @@ export const DataSet = types.model("DataSet", {
         return id ? attrIDMap[id] : undefined
       },
       attrIDFromName,
-      attrIndexFromID,
       caseIndexFromID(id: string) {
         return self.caseIDMap[id]
       },
@@ -433,11 +576,11 @@ export const DataSet = types.model("DataSet", {
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
         const _caseId = self.pseudoCaseMap[caseID]
-                          ? self.pseudoCaseMap[caseID].cases[0]
+                          ? self.pseudoCaseMap[caseID].childCaseIds[0]
                           : caseID
         const index = _caseId ? self.caseIDMap[_caseId] : undefined
         return index != null
-                ? this.getValueAtIndex(self.caseIDMap[caseID], attributeID)
+                ? this.getValueAtIndex(self.caseIDMap[_caseId], attributeID)
                 : undefined
       },
       getValueAtIndex(index: number, attributeID: string) {
@@ -453,11 +596,11 @@ export const DataSet = types.model("DataSet", {
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
         const _caseId = self.pseudoCaseMap[caseID]
-                          ? self.pseudoCaseMap[caseID].cases[0]
+                          ? self.pseudoCaseMap[caseID].childCaseIds[0]
                           : caseID
         const index = _caseId ? self.caseIDMap[_caseId] : undefined
         return index != null
-                ? this.getNumericAtIndex(self.caseIDMap[caseID], attributeID)
+                ? this.getNumericAtIndex(self.caseIDMap[_caseId], attributeID)
                 : undefined
       },
       getNumericAtIndex(index: number, attributeID: string) {
@@ -497,7 +640,7 @@ export const DataSet = types.model("DataSet", {
         // a pseudo-case is selected if all of its individual cases are selected
         const group = self.pseudoCaseMap[caseId]
         return group
-                ? group.cases.every(id => self.selection.has(id))
+                ? group.childCaseIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
       },
       get isInTransaction() {
@@ -558,10 +701,12 @@ export const DataSet = types.model("DataSet", {
       },
       // should be called before retrieving snapshot (pre-serialization)
       prepareSnapshot() {
+        // move volatile data into serializable properties
         self.attributes.forEach(attr => attr.prepareSnapshot())
       },
       // should be called after retrieving snapshot (post-serialization)
       completeSnapshot() {
+        // move data back into volatile storage for efficiency
         self.attributes.forEach(attr => attr.completeSnapshot())
       },
       setName(name: string) {
@@ -581,7 +726,7 @@ export const DataSet = types.model("DataSet", {
         self.invalidateCollectionGroups()
       },
       addAttribute(snapshot: IAttributeSnapshot, beforeID?: string) {
-        let beforeIndex = beforeID ? attrIndexFromID(beforeID) ?? -1 : -1
+        let beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
         if (beforeIndex >= 0) {
           self.attributes.splice(beforeIndex, 0, snapshot)
         }
@@ -606,12 +751,8 @@ export const DataSet = types.model("DataSet", {
         }
       },
 
-      showAllAttributes() {
-        self.attributes.forEach(attr => attr.setHidden(false))
-      },
-
       removeAttribute(attributeID: string) {
-        const attrIndex = attrIndexFromID(attributeID),
+        const attrIndex = self.attrIndexFromID(attributeID),
               attribute = attributeID ? attrIDMap[attributeID] : undefined,
               attrName = attribute?.name
 
@@ -631,23 +772,6 @@ export const DataSet = types.model("DataSet", {
           self.attributes.splice(attrIndex, 1)
           attributeID && delete attrIDMap[attributeID]
           attrName && delete attrNameMap[attrName]
-        }
-      },
-
-      moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
-        const beforeAttrIndex = options?.before ? attrIndexFromID(options.before) : undefined
-        const afterAttrIndex = options?.after ? attrIndexFromID(options.after) : undefined
-        if (attrIDMap[attributeID]) {
-          const dstOrder: Record<string, number> = {}
-          self.attributes.forEach((attr, i) => dstOrder[attr.id] = i)
-          // assign the moved attribute an "index" value corresponding to its destination
-          dstOrder[attributeID] = beforeAttrIndex != null
-                                    ? beforeAttrIndex - 0.5
-                                    : afterAttrIndex != null
-                                        ? afterAttrIndex + 0.5
-                                        : self.attributes.length
-          // sort the attributes by the adjusted "indices"
-          self.attributes.sort((a, b) => dstOrder[a.id] - dstOrder[b.id])
         }
       },
 
@@ -679,7 +803,7 @@ export const DataSet = types.model("DataSet", {
         cases.forEach(aCase => {
           const caseGroup = self.pseudoCaseMap[aCase.__id__]
           if (caseGroup) {
-            ungroupedCases.push(...caseGroup.cases.map(id => ({ ...aCase, __id__: id })))
+            ungroupedCases.push(...caseGroup.childCaseIds.map(id => ({ ...aCase, __id__: id })))
           }
         })
         const _cases = ungroupedCases.length > 0
@@ -734,7 +858,16 @@ export const DataSet = types.model("DataSet", {
       },
 
       selectCases(caseIds: string[], select = true) {
+        const ids: string[] = []
         caseIds.forEach(id => {
+          const pseudoCase = self.pseudoCaseMap[id]
+          if (pseudoCase) {
+            ids.push(...pseudoCase.childCaseIds)
+          } else {
+            ids.push(id)
+          }
+        })
+        ids.forEach(id => {
           if (select) {
             self.selection.add(id)
           }
@@ -745,7 +878,16 @@ export const DataSet = types.model("DataSet", {
       },
 
       setSelectedCases(caseIds: string[]) {
-        self.selection.replace(caseIds)
+        const ids: string[] = []
+        caseIds.forEach(id => {
+          const pseudoCase = self.pseudoCaseMap[id]
+          if (pseudoCase) {
+            ids.push(...pseudoCase.childCaseIds)
+          } else {
+            ids.push(id)
+          }
+        })
+        self.selection.replace(ids)
       }
     }
   }

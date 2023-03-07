@@ -1,4 +1,4 @@
-import React, {CSSProperties, useEffect, useMemo, useRef, useState} from "react"
+import React, { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { useResizeDetector } from "react-resize-detector"
 import { Flex, Center, Portal } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
@@ -17,10 +17,8 @@ import { EditableSliderValue } from "./editable-slider-value"
 
 import './slider.scss'
 
-export const SliderComponent = observer(({ tile } : ITileBaseProps) => {
+export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = tile?.content
-  if (!isSliderModel(sliderModel)) return null
-
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
@@ -49,15 +47,6 @@ export const SliderComponent = observer(({ tile } : ITileBaseProps) => {
     height: 30
   }
 
-  // set increment size
-  const handleMultiplesOfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const multipleOf = parseFloat(e.target.value)
-    if (isFinite(multipleOf)) {
-      sliderModel.setMultipleOf(multipleOf)
-      sliderModel.setValue(sliderModel.value)
-    }
-  }
-
   // control slider value with play/pause
   useEffect(() => {
     const id = setInterval(() => { running && incrementSliderValue() }, tickTime)
@@ -67,6 +56,22 @@ export const SliderComponent = observer(({ tile } : ITileBaseProps) => {
 
   const toggleRunning = () => {
     setRunning(!running)
+  }
+
+  const appRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    appRef.current = document.querySelector(".app")
+  }, [])
+
+  if (!isSliderModel(sliderModel)) return null
+
+  // set increment size
+  const handleMultiplesOfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const multipleOf = parseFloat(e.target.value)
+    if (isFinite(multipleOf)) {
+      sliderModel.setMultipleOf(multipleOf)
+      sliderModel.setValue(sliderModel.value)
+    }
   }
 
   const incrementSliderValue = () => {
@@ -90,11 +95,6 @@ export const SliderComponent = observer(({ tile } : ITileBaseProps) => {
         break
     }
   }
-
-  const appRef = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    appRef.current = document.querySelector(".app")
-  }, [])
 
   return (
     <InstanceIdContext.Provider value={instanceId}>

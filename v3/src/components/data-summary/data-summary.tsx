@@ -21,9 +21,8 @@ import "./data-summary.scss"
 const kSummaryIdBase = "summary"
 registerTileCollisionDetection(kSummaryIdBase)
 
-export const DataSummary = observer(({ tile }: ITileBaseProps) => {
+export const DataSummary = observer(function DataSummary({ tile }: ITileBaseProps) {
   const summaryModel = tile?.content
-  if (!isDataSummaryModel(summaryModel)) return null
 
   const instanceId = useNextInstanceId(kSummaryIdBase)
   const data = useDataSetContext()
@@ -36,6 +35,8 @@ export const DataSummary = observer(({ tile }: ITileBaseProps) => {
 
   // used to determine when a dragged attribute is over the summary component
   const { setNodeRef } = useTileDropOverlay(kSummaryIdBase)
+
+  if (!isDataSummaryModel(summaryModel)) return null
 
   const handleDrop = (attributeId: string) => {
     summaryModel.inspect(attributeId)

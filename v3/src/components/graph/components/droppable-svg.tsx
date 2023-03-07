@@ -20,7 +20,7 @@ const _DroppableSvg = ({
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
   const style: CSSProperties = useOverlayBounds({ target, portal })
-  const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isOver ? "over" : ""}`
+  const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isActive && isOver ? "over" : ""}`
 
   return portal && target && createPortal(
     <>

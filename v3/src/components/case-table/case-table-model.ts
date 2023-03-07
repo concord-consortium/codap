@@ -6,7 +6,6 @@ export const CaseTableModel = TileContentModel
   .named("CaseTableModel")
   .props({
     type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType)
-    // column widths, hidden columns(?), etc.
   })
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
 

@@ -27,6 +27,9 @@ export const AxisModel = types.model("AxisModel", {
     },
     get isNumeric() {
       return ["linear", "log"].includes(self.scale)
+    },
+    get isCategorical() {
+      return self.type === "categorical"
     }
   }))
   .actions(self => ({
@@ -60,6 +63,10 @@ export const CategoricalAxisModel = AxisModel
   })
 
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {
+}
+
+export function isCategoricalAxisModel(axisModel: IAxisModel): axisModel is ICategoricalAxisModel {
+  return axisModel.isCategorical
 }
 
 export const NumericAxisModel = AxisModel
@@ -96,5 +103,14 @@ export function isNumericAxisModel(axisModel: IAxisModel): axisModel is INumeric
   return axisModel.isNumeric
 }
 
-export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
+const axisTypeDispatcher = (axisSnap: any) => {
+  switch (axisSnap.type) {
+    case "categorical": return CategoricalAxisModel
+    case "numeric": return NumericAxisModel
+    default: return EmptyAxisModel
+  }
+}
+
+export const AxisModelUnion = types.union({ dispatcher: axisTypeDispatcher },
+  EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
 export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel

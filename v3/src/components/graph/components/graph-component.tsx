@@ -2,6 +2,7 @@ import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useMemo, useRef, useState} from "react"
 import {useResizeDetector} from "react-resize-detector"
+import {useGraphController} from "../hooks/use-graph-controller"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {kTitleBarHeight} from "../graphing-types"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
@@ -9,8 +10,9 @@ import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
+import {GraphController} from "../models/graph-controller"
 
-export const GraphComponent = observer(({ tile }: ITileBaseProps) => {
+export const GraphComponent = observer(({tile}: ITileBaseProps) => {
   const graphModel = tile?.content
   if (!isGraphModel(graphModel)) return null
 
@@ -19,7 +21,13 @@ export const GraphComponent = observer(({ tile }: ITileBaseProps) => {
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
   const enableAnimation = useRef(true)
   const dotsRef = useRef<SVGSVGElement>(null)
+  const graphController = useMemo(
+    () => new GraphController({layout, enableAnimation, dotsRef, instanceId}),
+    [layout, instanceId]
+  )
   const [showInspector, setShowInspector] = useState(false)
+
+  useGraphController({graphController, graphModel})
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setParentExtent(width, height - kTitleBarHeight)
@@ -35,11 +43,10 @@ export const GraphComponent = observer(({ tile }: ITileBaseProps) => {
       <GraphLayoutContext.Provider value={layout}>
         <AxisLayoutContext.Provider value={layout}>
           <GraphModelContext.Provider value={graphModel}>
-            <Graph graphRef={graphRef}
-                  enableAnimation={enableAnimation}
-                  dotsRef={dotsRef}
-                  showInspector={showInspector}
-                  setShowInspector={setShowInspector}
+            <Graph graphController={graphController}
+                   graphRef={graphRef}
+                   showInspector={showInspector}
+                   setShowInspector={setShowInspector}
             />
           </GraphModelContext.Provider>
         </AxisLayoutContext.Provider>

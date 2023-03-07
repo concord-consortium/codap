@@ -5,7 +5,7 @@ import {select} from "d3"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {AxisPlace} from "../axis-types"
 import {DroppableAxis} from "./droppable-axis"
-import {axisPlaceToAttrRole, GraphPlace} from "../../graph/graphing-types"
+import {axisPlaceToAttrRole, GraphPlace, IsGraphDropAllowed} from "../../graph/graphing-types"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
 import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
@@ -24,17 +24,17 @@ interface IProps {
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
+  isDropAllowed?: IsGraphDropAllowed
   onDropAttribute?: (place: AxisPlace, attrId: string) => void
   onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-const handleIsActive = (active: Active) => !!getDragAttributeId(active)
 
 export const Axis = ({
                        parentSelector, label, getAxisModel, showScatterPlotGridLines = false,
-                       centerCategoryLabels = true, onDropAttribute, enableAnimation, onTreatAttributeAs,
-                       onRemoveAttribute
+                       centerCategoryLabels = true, isDropAllowed = () => true, onDropAttribute,
+                       enableAnimation, onTreatAttributeAs, onRemoveAttribute
                      }: IProps) => {
   const
     instanceId = useInstanceIdContext(),
@@ -43,9 +43,18 @@ export const Axis = ({
     droppableId = `${instanceId}-${place}-axis-drop`,
     layout = useAxisLayoutContext(),
     scale = layout.getAxisScale(place),
-    hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
+    hintString = useDropHintString({role: axisPlaceToAttrRole[place], isDropAllowed}),
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null),
     titleRef = useRef<SVGGElement | null>(null)
+
+  const handleIsActive = (active: Active) => {
+    const droppedAttrId = getDragAttributeId(active)
+    if (isDropAllowed) {
+      return isDropAllowed(place, droppedAttrId)
+    } else {
+      return !!droppedAttrId
+    }
+  }
 
   const {parentElt, wrapperElt, setWrapperElt} = useAxisBoundsProvider(place, parentSelector)
 
@@ -56,7 +65,7 @@ export const Axis = ({
 
   useDropHandler(droppableId, active => {
     const droppedAttrId = getDragAttributeId(active)
-    droppedAttrId && onDropAttribute?.(place, droppedAttrId)
+    droppedAttrId && isDropAllowed(place, droppedAttrId) && onDropAttribute?.(place, droppedAttrId)
   })
 
   const [xMin, xMax] = scale?.range() || [0, 100]

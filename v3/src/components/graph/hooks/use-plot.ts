@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef} from "react"
-import {reaction} from "mobx"
+import {autorun, reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {INumericAxisModel} from "../../axis/models/axis-model"
@@ -146,5 +146,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     })
     return () => disposer()
   }, [dataset, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+
+  // respond to pointsNeedUpdating becoming false; that is when the points have been updated
+  // Happens when the number of plots has changed for now. Possibly other situations in the future.
+  useEffect(() => {
+    return autorun(
+      () => {
+        !graphModel.config?.pointsNeedUpdating && callRefreshPointPositions(false)
+      })
+  }, [graphModel, callRefreshPointPositions])
+
+
 
 }

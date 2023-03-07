@@ -1,5 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { ISharedModelDocumentManager } from "../document/shared-model-document-manager"
+import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet } from "../shared/shared-data-set"
 import { IDataSet } from "./data-set"
 
@@ -72,6 +73,10 @@ export class DataBroker {
     const sharedModel = SharedDataSet.create()
     sharedModel.setDataSet(ds)
     this.sharedModelManager?.addSharedModel(sharedModel)
+
+    const caseMetadata = SharedCaseMetadata.create()
+    caseMetadata.setData(ds)
+    this.sharedModelManager?.addSharedModel(caseMetadata)
 
     !this.allowMultiple && this.dataSets.clear()
     this.addSharedDataSet(sharedModel)

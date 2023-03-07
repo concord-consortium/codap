@@ -7,7 +7,7 @@ import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { observer } from "mobx-react-lite"
 import { isSliderModel } from "./slider-model"
 
-export const SliderTitleBar = observer(({ tile, onCloseTile }: ITileTitleBarProps) => {
+export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTile }: ITileTitleBarProps) {
   const sliderModel = tile?.content
   const tileId = tile?.id || ""
   const title = (isSliderModel(sliderModel) && sliderModel.name) || "Slider"

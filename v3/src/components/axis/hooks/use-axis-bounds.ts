@@ -1,14 +1,14 @@
 import {useEffect, useState} from "react"
 import {AxisPlace} from "../axis-types"
-import {useGraphLayoutContext} from "../../graph/models/graph-layout"
+import {useAxisLayoutContext} from "../models/axis-layout-context"
 
 export const useAxisBounds = (place: AxisPlace) => {
-  const layout = useGraphLayoutContext()
+  const layout = useAxisLayoutContext()
   return layout.getAxisBounds(place)
 }
 
 export const useAxisBoundsProvider = (place: AxisPlace, parentSelector: string) => {
-  const layout = useGraphLayoutContext()
+  const layout = useAxisLayoutContext()
   const [parentElt, setParentElt] = useState<HTMLDivElement | null>(null)
   const [wrapperElt, setWrapperElt] = useState<SVGGElement | null>(null)
 

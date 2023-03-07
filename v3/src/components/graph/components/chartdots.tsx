@@ -23,19 +23,20 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext()
-  const primaryAttrRole = dataConfiguration?.primaryRole,
-    primaryAxisPlace = primaryAttrRole ? attrRoleToAxisPlace[primaryAttrRole] : undefined,
+  const primaryAttrRole = dataConfiguration?.primaryRole ?? 'x',
+    primaryAxisPlace = attrRoleToAxisPlace[primaryAttrRole] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
     primaryAttrIDRef = useRef(''),
     secondaryAttrIDRef = useRef(''),
-    secondaryAttrRole = primaryAttrRole === 'x' ? 'y'
-      : primaryAttrRole === 'y' ? 'x' : undefined,
-    secondaryAxisPlace = secondaryAttrRole ? attrRoleToAxisPlace[secondaryAttrRole] : undefined,
-    primaryScale = primaryAxisPlace ? layout.getAxisScale(primaryAxisPlace) as ScaleBand<string> : undefined,
-    secondaryScale = secondaryAxisPlace ? layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string> : undefined
+    secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
+    secondaryAxisPlace = attrRoleToAxisPlace[secondaryAttrRole] ?? 'left',
+    primaryScaleRef = useRef<ScaleBand<string>>(),
+    secondaryScaleRef = useRef<ScaleBand<string>>()
+    primaryScaleRef.current = layout.getAxisScale(primaryAxisPlace) as ScaleBand<string>
+    secondaryScaleRef.current = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>
 
-  primaryAttrIDRef.current = primaryAttrRole ? dataConfiguration?.attributeID(primaryAttrRole) : ''
-  secondaryAttrIDRef.current = secondaryAttrRole ? dataConfiguration?.attributeID(secondaryAttrRole) : ''
+  primaryAttrIDRef.current = dataConfiguration?.primaryAttributeID
+  secondaryAttrIDRef.current = dataConfiguration?.secondaryAttributeID
 
   const computeMaxOverAllCells = useCallback(() => {
     const valuePairs = (dataConfiguration?.caseDataArray || []).map((aCaseData:CaseData) => {
@@ -78,8 +79,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         ? Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
-      primaryCellWidth = primaryScale?.bandwidth() ?? 0,
-      primaryHeight = secondaryScale?.bandwidth ? secondaryScale.bandwidth()
+      primaryCellWidth = (primaryScaleRef.current?.bandwidth?.()) ?? 0,
+      primaryHeight = secondaryScaleRef.current?.bandwidth ? secondaryScaleRef.current.bandwidth()
         : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
       categoriesMap: Record<string, Record<string, { cell: { h: number, v: number }, numSoFar: number }>> = {},
       legendAttrID = dataConfiguration?.attributeID('legend'),
@@ -115,12 +116,14 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         primaryAttrIDRef.current && (dataConfiguration?.caseDataArray || []).forEach((aCaseData:CaseData) => {
           const anID = aCaseData.caseID,
             hCat = dataset?.getValue(anID, primaryAttrIDRef.current),
-            vCat = secondaryAttrIDRef.current ? dataset?.getValue(anID, secondaryAttrIDRef.current) : '__main__',
-            mapEntry = categoriesMap[hCat][vCat],
-            numInCell = mapEntry.numSoFar++,
-            row = Math.floor(numInCell / cellParams.numPointsInRow),
-            column = numInCell % cellParams.numPointsInRow
-          indices[anID] = {cell: mapEntry.cell, row, column}
+            vCat = secondaryAttrIDRef.current ? dataset?.getValue(anID, secondaryAttrIDRef.current) : '__main__'
+          if (hCat && vCat && categoriesMap[hCat] && categoriesMap[hCat][vCat]) {
+            const mapEntry = categoriesMap[hCat][vCat],
+              numInCell = mapEntry.numSoFar++,
+              row = Math.floor(numInCell / cellParams.numPointsInRow),
+              column = numInCell % cellParams.numPointsInRow
+            indices[anID] = {cell: mapEntry.cell, row, column}
+          }
         })
         return indices
       },
@@ -162,18 +165,18 @@ export const ChartDots = function ChartDots(props: PlotProps) {
               return baseCoord + signForOffset * ((h + 0.5) * primaryCellWidth) + (column + 0.5) * pointDiameter -
                 cellParams.numPointsInRow * pointDiameter / 2
             } else {
-              return NaN
+              return 0
             }
           })
           .attr(secondaryCenterKey, (aCaseData: CaseData) => {
             const anID = aCaseData.caseID
-            if (cellIndices[anID] && secondaryScale) {
+            if (cellIndices[anID] && secondaryScaleRef.current) {
               const {row} = cellIndices[anID],
                 {v} = cellIndices[anID].cell
-              return secondaryScale.range()[0] -
+              return secondaryScaleRef.current.range()[0] -
                 signForOffset * (v * primaryHeight + (row + 0.5) * pointDiameter + row * cellParams.overlap)
             } else {
-              return NaN
+              return 0
             }
           })
           .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID))
@@ -187,8 +190,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
     setPoints()
   }, [dataConfiguration, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
-    enableAnimation, primaryScale, primaryIsBottom, layout, secondaryAxisPlace, pointStrokeColor,
-    computeMaxOverAllCells, dataset, secondaryScale])
+    enableAnimation, primaryIsBottom, layout, secondaryAxisPlace, pointStrokeColor, computeMaxOverAllCells, dataset])
 
   usePlotResponders({
     graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
