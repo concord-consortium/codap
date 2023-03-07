@@ -24,7 +24,6 @@ export const dndDetectCollision: CollisionDetection = (args) => {
   // if this is a tile drag, then ignore all collisions other than the container
   if (args.active.data.current?.type === "tile") {
     const containers = args.droppableContainers.filter(({id}) => id === "codap-container-drop")
-    // apply the collection detection function specified by the tile
     return rectIntersection({ ...args, droppableContainers: containers })
   }
 
