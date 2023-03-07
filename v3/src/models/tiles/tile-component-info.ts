@@ -31,3 +31,10 @@ export function getTileComponentInfo(type?: string) {
   // toLowerCase() for legacy support of tool names
   return type ? gTileComponentInfoMap.get(type.toLowerCase()) : undefined
 }
+
+export function getTileComponentIcon(type?: string) {
+  // toLowerCase() for legacy support of tool names
+  const cIcon = type && gTileComponentInfoMap.get(type.toLowerCase())?.Icon
+  return cIcon
+  // return type ? gTileComponentInfoMap.get(type.toLowerCase()) : undefined
+}

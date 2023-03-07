@@ -4,6 +4,7 @@ import { CalculatorComponent } from "./calculator"
 import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
 import { CalculatorModel } from "./calculator-model"
 import { CalculatorTitleBar } from "./calculator-title-bar"
+import CalcIcon from '../../assets/icons/icon-calc.svg'
 
 registerTileContentInfo({
   type: kCalculatorTileType,
@@ -15,5 +16,6 @@ registerTileComponentInfo({
   type: kCalculatorTileType,
   TitleBar: CalculatorTitleBar,
   Component: CalculatorComponent,
-  tileEltClass: kCalculatorTileClass
+  tileEltClass: kCalculatorTileClass,
+  Icon: CalcIcon
 })

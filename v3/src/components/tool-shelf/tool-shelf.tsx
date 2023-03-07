@@ -9,15 +9,12 @@ import { kGraphTileType } from "../graph/graph-defs"
 import { kSliderTileType } from "../slider/slider-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { isSliderModel } from "../slider/slider-model"
-import GraphIcon from '../../assets/icons/icon-graph.svg'
-import TableIcon from '../../assets/icons/icon-table.svg'
 import MapIcon from '../../assets/icons/icon-map.svg'
-import SliderIcon from '../../assets/icons/icon-slider.svg'
-import CalcIcon from '../../assets/icons/icon-calc.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
 import './tool-shelf.scss'
+import { getTileComponentIcon, getTileComponentInfo } from "../../models/tiles/tile-component-info"
 
 const kCalcHeight = 162
 const kCalcWidth = 145
@@ -121,17 +118,18 @@ export const ToolShelf = ({content}: IProps) => {
     }
   }
 
+  //getTileComponentInfo("CodapCaseTable")?.Icon
   const buttonDescriptions = [
     {
       ariaLabel: 'Make a table',
-      icon: TableIcon,
+      icon: getTileComponentIcon("CodapCaseTable"),
       iconLabel: t("DG.ToolButtonData.tableButton.title"),
       buttonHint: t("DG.ToolButtonData.tableButton.toolTip"),
       handler: tableHandler
     },
     {
       ariaLabel: 'Make a graph',
-      icon: GraphIcon,
+      icon: getTileComponentIcon("CodapGraph"),
       iconLabel: t("DG.ToolButtonData.graphButton.title"),
       buttonHint: t("DG.ToolButtonData.graphButton.toolTip"),
       handler: graphHandler
@@ -145,14 +143,15 @@ export const ToolShelf = ({content}: IProps) => {
     },
     {
       ariaLabel: 'Make a slider',
-      icon: SliderIcon,
+      // icon: SliderIcon,
+      icon: getTileComponentIcon("CodapSlider"),
       iconLabel: t("DG.ToolButtonData.sliderButton.title"),
       buttonHint: t("DG.ToolButtonData.sliderButton.toolTip"),
       handler: sliderHandler
     },
     {
       ariaLabel: 'Open/close the calculator',
-      icon: CalcIcon,
+      icon: getTileComponentIcon("Calculator"),
       iconLabel: t("DG.ToolButtonData.calcButton.title"),
       buttonHint: t("DG.ToolButtonData.calcButton.toolTip"),
       handler: calcHandler

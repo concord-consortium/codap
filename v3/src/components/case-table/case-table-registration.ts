@@ -4,6 +4,7 @@ import { CaseTableComponent } from "./case-table-component"
 import { kCaseTableTileType } from "./case-table-defs"
 import { CaseTableModel } from "./case-table-model"
 import { CaseTableTitleBar } from "./case-table-title-bar"
+import TableIcon from '../../assets/icons/icon-table.svg'
 
 registerTileContentInfo({
   type: kCaseTableTileType,
@@ -15,5 +16,6 @@ registerTileComponentInfo({
   type: "CodapCaseTable",
   TitleBar: CaseTableTitleBar,
   Component: CaseTableComponent,
-  tileEltClass: "codap-case-table"
+  tileEltClass: "codap-case-table",
+  Icon: TableIcon
 })
