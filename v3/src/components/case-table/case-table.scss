@@ -17,6 +17,15 @@ $table-body-font-size: 8pt;
       display: flex;
       align-items: stretch;
 
+      .collection-table-and-title {
+        display: flex;
+        flex-direction: column;
+
+        .collection-title {
+          text-align: center;
+        }
+      }
+
       .new-collection-drop {
         position: relative;
         width: 30px;
