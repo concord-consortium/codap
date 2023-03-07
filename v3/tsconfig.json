@@ -21,6 +21,11 @@
     "lib": ["dom", "dom.iterable", "es2018"]
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    ".eslintrc*.cjs",
+    // cypress.config.ts will need another pass before being added
+    // "*.config.ts",
+    "*.config.js",
+    "why-did-you-render.ts"
   ]
 }
