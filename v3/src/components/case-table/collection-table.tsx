@@ -1,5 +1,6 @@
 import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
+import pluralize from "pluralize"
 import { TRow } from "./case-table-types"
 import { NewCollectionDrop } from "./new-collection-drop"
 import { useColumns } from "./use-columns"
@@ -27,6 +28,9 @@ export const CollectionTable = () => {
   const { rows, handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
+  const defaultTableName = pluralize(collection?.attributes[0]?.name ?? data?.ungroupedAttributes[0]?.name ?? '')
+  const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
+
   if (!data) return null
 
   function handleNewCollectionDrop(attrId: string) {
@@ -39,10 +43,13 @@ export const CollectionTable = () => {
   return (
     <div className="collection-table">
       <NewCollectionDrop onDrop={handleNewCollectionDrop} />
-      <DataGrid ref={gridRef} className="rdg-light"
-        columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-        rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-        onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+      <div className="collection-table-and-title">
+        <div className="collection-title">{`${defaultTableName} (${caseCount} cases)`}</div>
+        <DataGrid ref={gridRef} className="rdg-light"
+          columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
+          rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+          onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+      </div>
       {collection && <div className="collection-table-spacer" />}
     </div>
   )
