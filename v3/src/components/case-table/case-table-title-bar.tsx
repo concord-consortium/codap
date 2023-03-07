@@ -1,6 +1,6 @@
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { ComponentTitleBar, EditableComponentTitle  } from "../component-title-bar"
-import { Box, CloseButton, Flex } from "@chakra-ui/react"
+import { Box, CloseButton, Flex, useOutsideClick } from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -15,8 +15,13 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
   const [title, setTitle] = useState(dataset?.name || "Dataset")
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
+  const cardTableToggleRef = useRef(null)
   const tileId = tile?.id || ""
 
+  useOutsideClick({
+    ref: cardTableToggleRef,
+    handler: () => setShowSwitchMessage(false)
+  })
   const handleTitleChange = (newTitle?: string) => {
     newTitle && setTitle(newTitle)
   }
@@ -44,7 +49,7 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
           : <CardIcon className="card-icon"/>
         }
         {showSwitchMessage &&
-          <Box className={`card-table-toggle-message`}
+          <Box ref={cardTableToggleRef} tabIndex={0} className={`card-table-toggle-message`}
                 onClick={handleToggleCardTable}>
             {cardTableToggleString}
           </Box>
