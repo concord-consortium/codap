@@ -1,4 +1,6 @@
 import { createContext, useContext } from "react"
+import { ICollectionPropsModel } from "../models/data/collection"
+
 import { ICollectionModel } from "../models/data/collection"
 
 export const CollectionContext = createContext<ICollectionModel | undefined>(undefined)

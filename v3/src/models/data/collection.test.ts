@@ -1,6 +1,6 @@
 import { destroy, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { CollectionModel, CollectionPropsModel, ICollectionModel } from "./collection"
+import { CollectionModel, CollectionPropsModel, ICollectionModel, isCollectionModel } from "./collection"
 
 const Tree = types.model("Tree", {
   attributes: types.array(Attribute),
@@ -20,17 +20,20 @@ const Tree = types.model("Tree", {
 
 describe("CollectionModel", () => {
 
-  it("displayTitle works as expected", () => {
+  it("displayTitle and isCollectionModel() work as expected", () => {
     const withName = CollectionPropsModel.create({ name: "name" })
     expect(withName.displayTitle).toBe("name")
+    expect(isCollectionModel(withName)).toBe(false)
 
     const withNameAndTitle = CollectionPropsModel.create({ name: "name", title: "title" })
     expect(withNameAndTitle.displayTitle).toBe("title")
+    expect(isCollectionModel(withNameAndTitle)).toBe(false)
   })
 
   it("handles undefined references", () => {
     const tree = Tree.create()
     const collection = CollectionModel.create()
+    expect(isCollectionModel(collection)).toBe(true)
     tree.addCollection(collection)
     const attribute = Attribute.create({ id: "a", name: "a" })
     tree.addAttribute(attribute)
@@ -54,6 +57,7 @@ describe("CollectionModel", () => {
   it("can add/move/remove attributes", () => {
     const tree = Tree.create()
     const collection = CollectionModel.create()
+    expect(isCollectionModel(collection)).toBe(true)
     tree.addCollection(collection)
     const attrA = Attribute.create({ id: "a", name: "a" })
     tree.addAttribute(attrA)
