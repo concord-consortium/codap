@@ -20,7 +20,7 @@ SC.stringsFor("ko", {
     "DG.mainPage.mainPane.redoButton.title": "재실행",
     "DG.mainPage.mainPane.redoButton.toolTip": "마지막 취소 작업 재실행",
     "DG.mainPage.mainPane.versionString": "버젼 %@ (%@)",
-    "DG.mainPage.mainPane.messageView.value": "현재 브라우저가 CODAP을 지원하지 않습니다. CODAP은 Firefox 46+, Chrome 50+, Windows Edge 14+ 및 Safari 10+에서 지원됩니다. ",
+    "DG.mainPage.mainPane.messageView.value": "현재 브라우저가 CODAP을 지원하지 않습니다. CODAP은 Firefox 46+, Chrome 50+, Windows Edge 14+ 및 Safari 10+에서 지원됩니다.",
     "DG.mainPage.titleBar.saved": "저장 완료",
     "DG.mainPage.mainPane.versionString.IS_BUILD": "버젼 %@ (%@ IS)",
     "DG.mainPage.mainPane.versionString.SRRI_BUILD": "버젼 %@ (%@.srri10)",
@@ -184,7 +184,7 @@ SC.stringsFor("ko", {
     "DG.Undo.graph.hideMovableLine": "이동 가능한 선 숨기기 취소",
     "DG.Redo.graph.hideMovableLine": "이동 가능한 선 숨기기 재실행",
     "DG.Undo.graph.lockIntercept": "잠금 선 취소",
-    "DG.Redo.graph.lockIntercept": "Redo locking line intercept",
+    "DG.Redo.graph.lockIntercept": "원점을 지나는 선 재실행",
     "DG.Undo.graph.unlockIntercept": "선 표시 취소",
     "DG.Redo.graph.unlockIntercept": "선 표시 재실행",
     "DG.Undo.graph.showPlotFunction": "함수값을 그래프에 표시 취소",
@@ -1066,5 +1066,5 @@ SC.stringsFor("ko", {
     "DG.plugin.Choosy.description": "많은 속성을 가진 데이터셋을 구성하고 단순화합니다.",
     "DG.plugin.Transformers.title": "변환 도구",
     "DG.plugin.Transformers.description": "강력한 도구 모음을 이용하여 데이터셋을 변환합니다.",
-    "DG.Locale.name.ko": "Korean"
+    "DG.Locale.name.ko": "한국어"
 });
