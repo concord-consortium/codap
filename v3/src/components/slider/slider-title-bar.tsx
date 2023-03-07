@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { ComponentTitleBar, EditableComponentTitle  } from "../component-title-bar"
+import React from "react"
+import { ComponentTitleBar  } from "../component-title-bar"
 import { CloseButton, Flex } from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
@@ -9,15 +9,13 @@ import { isSliderModel } from "./slider-model"
 
 export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTile }: ITileTitleBarProps) {
   const sliderModel = tile?.content
-  const [title, setTitle] = useState((isSliderModel(sliderModel) && sliderModel.name) || "Slider")
   const tileId = tile?.id || ""
-  const handleTitleChange = (newTitle?: string) => {
-    newTitle && setTitle(newTitle)
-  }
+  const title = (isSliderModel(sliderModel) && sliderModel.name) || "Slider"
+  const tileType = tile?.content.type
 
   return (
-    <ComponentTitleBar component={"slider"}>
-      <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange} />
+    <ComponentTitleBar component={"slider"} title={title}
+        draggableId={`${tileType}-${tileId}`}>
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
