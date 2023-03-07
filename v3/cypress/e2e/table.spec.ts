@@ -23,7 +23,7 @@ context("case table ui", () => {
     describe("table view", () => {
         const collectionName = "Dataset"
         it("verify collection name is visible", () => {
-            table.getCollectionTitle().should("have.value", collectionName)
+            table.getCollectionTitle().should("contain", collectionName)
         })
         it("verify columns and tooltips", () => {
             table.getColumnHeaders().should("have.length", 10)

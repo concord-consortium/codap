@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react"
-import { ComponentTitleBar, EditableComponentTitle  } from "../component-title-bar"
+import { ComponentTitleBar } from "../component-title-bar"
 import { Box, CloseButton, Flex, useOutsideClick } from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
@@ -12,19 +12,17 @@ import "./case-table-title-bar.scss"
 
 export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
   const dataset = useDataSetContext()
-  const [title, setTitle] = useState(dataset?.name || "Dataset")
+  const title = dataset?.name || "Dataset"
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
   const cardTableToggleRef = useRef(null)
   const tileId = tile?.id || ""
+  const tileType = tile?.content.type
 
   useOutsideClick({
     ref: cardTableToggleRef,
     handler: () => setShowSwitchMessage(false)
   })
-  const handleTitleChange = (newTitle?: string) => {
-    newTitle && setTitle(newTitle)
-  }
 
   const handleShowCardTableToggleMessage = () => {
     setShowSwitchMessage(true)
@@ -39,8 +37,10 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
   const cardTableToggleString = showCaseCard
                                   ? t("DG.DocumentController.toggleToCaseTable")
                                   : t("DG.DocumentController.toggleToCaseCard")
+
   return (
-    <ComponentTitleBar component={"case-table"}>
+    <ComponentTitleBar component={"case-table"} title={title}
+        draggableId={`${tileType}-${tileId}`}>
       <div className="header-left"
             title={cardTableToggleString}
             onClick={handleShowCardTableToggleMessage}>
@@ -49,13 +49,12 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
           : <CardIcon className="card-icon"/>
         }
         {showSwitchMessage &&
-          <Box ref={cardTableToggleRef} tabIndex={0} className={`card-table-toggle-message`}
+          <Box ref={cardTableToggleRef} className={`card-table-toggle-message`}
                 onClick={handleToggleCardTable}>
             {cardTableToggleString}
           </Box>
         }
       </div>
-      <EditableComponentTitle componentTitle={title} onEndEdit={handleTitleChange} />
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
