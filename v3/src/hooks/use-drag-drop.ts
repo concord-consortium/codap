@@ -55,7 +55,6 @@ export const useTileDroppable = (
   baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
 ) => {
   const instanceId = useInstanceIdContext()
-
   const id = `${instanceId}-${baseId}-drop`
   useDropHandler(id, onDrop)
   return { id, ...useDroppable({ ...dropProps, id }) }
@@ -90,8 +89,9 @@ export interface IUseDraggableTile extends Omit<UseDraggableArguments, "id"> {
 export const useDraggableTile =
   ({ prefix, tileId, ...others }: IUseDraggableTile, onStartDrag: (active: Active)=>void) => {
   const data: IDragTileData = { type: "tile", tileId }
-  useTileDragStartHandler(tileId, onStartDrag)
-  return useDraggable({ ...others, id: `${prefix}-${tileId}`, data })
+  const dragId = `${prefix}-${tileId}`
+  useTileDragStartHandler(dragId, onStartDrag)
+  return useDraggable({ ...others, id: dragId, data })
 }
 
 export const useTileDragStartHandler = (dragId: string, onStartDrag: (active: Active) => void) => {
@@ -104,13 +104,11 @@ export const useTileDragStartHandler = (dragId: string, onStartDrag: (active: Ac
 export const useContainerDroppable = (
   baseId: string, onDrop: (event: DragEndEvent) => void, dropProps?: UseDroppableArguments
 ) => {
-  const instanceId = useInstanceIdContext()
-  const id = `${instanceId}-${baseId}-drop`
+  const id = `${baseId}-drop`
 
   useTileDropHandler(id, onDrop)
   return { id, ...useDroppable({ ...dropProps, id }) }
 }
-
 
 export const useTileDropHandler = (dropId: string, onDrop: (event: DragEndEvent) => void) => {
   useDndMonitor({ onDragEnd: (event: DragEndEvent) => {
