@@ -23,9 +23,6 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
     ref: cardTableToggleRef,
     handler: () => setShowSwitchMessage(false)
   })
-  const handleTitleChange = (newTitle?: string) => {
-    newTitle && setTitle(newTitle)
-  }
 
   const handleShowCardTableToggleMessage = () => {
     setShowSwitchMessage(true)
