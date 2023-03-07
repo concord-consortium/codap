@@ -1,15 +1,17 @@
-import React from "react"
+import React, { useState } from "react"
 import { ComponentTitleBar  } from "../component-title-bar"
 import { CloseButton, Flex } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
-export const DataSummaryTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
+export const DataSummaryTitleBar = observer(function DataSummaryTitleBar({tile, onCloseTile}: ITileTitleBarProps) {
   const dataset = useDataSetContext()
+  const [customTitle, setCustomTitle] = useState<string | null>(null)
+  const title = customTitle ?? dataset?.name ?? "Dataset"
   const tileId = tile?.id || ""
-  const title = dataset?.name || "Dataset"
   const tileType = tile?.content.type
 
   return (
@@ -22,4 +24,4 @@ export const DataSummaryTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => 
       </Flex>
     </ComponentTitleBar>
   )
-}
+})

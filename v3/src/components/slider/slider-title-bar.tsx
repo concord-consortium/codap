@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { ComponentTitleBar  } from "../component-title-bar"
 import { CloseButton, Flex } from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
@@ -9,10 +9,10 @@ import { isSliderModel } from "./slider-model"
 
 export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTile }: ITileTitleBarProps) {
   const sliderModel = tile?.content
+  const [customTitle, setCustomTitle] = useState<string | null>(null)
+  const title = customTitle ?? ((isSliderModel(sliderModel) && sliderModel.name) || "Slider")
   const tileId = tile?.id || ""
-  const title = (isSliderModel(sliderModel) && sliderModel.name) || "Slider"
   const tileType = tile?.content.type
-
   return (
     <ComponentTitleBar tile={tile} component={"slider"} title={title}
         draggableId={`${tileType}-${tileId}`}>

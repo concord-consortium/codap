@@ -79,7 +79,7 @@ export const App = observer(function App() {
 
     // create the initial sample data (if specified) or a new data set
     if (gDataBroker.dataSets.size === 0) {
-      const sample = sampleData.find(name => urlParams.sample === name)
+      const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
       if (sample) {
         importSample(sample, handleImportDataSet)
       } else {

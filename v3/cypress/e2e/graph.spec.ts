@@ -1,3 +1,5 @@
+import { GraphTileElements as graph } from "../support/elements/graph-tile"
+
 const arrayOfPlots = [
     { attribute: "Mammal", axis: "x", collection: "mammals" },
     { attribute: "Order", axis: "y", collection: "mammals" },
@@ -23,5 +25,9 @@ context("Test graph plot transitions", () => {
             cy.wait(2000)
             // cy.matchImageSnapshot(`${hash.attribute}_on_${hash.axis}`)
         })
+    })
+    it("populates title bar from sample data", () => {
+      const collectionName = "Mammals"
+      graph.getCollectionTitle().should("have.value", collectionName)
     })
 })

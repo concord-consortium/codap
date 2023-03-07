@@ -12,9 +12,10 @@ import "./case-table-title-bar.scss"
 
 export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
   const dataset = useDataSetContext()
-  const title = dataset?.name || "Dataset"
+  const [customTitle, setCustomTitle] = useState<string | null>(null)
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
+  const title = customTitle ?? (dataset?.name || "Dataset")
   const cardTableToggleRef = useRef(null)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type

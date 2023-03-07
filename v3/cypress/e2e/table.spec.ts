@@ -21,7 +21,7 @@ before(()=> {
 
 context("case table ui", () => {
     describe("table view", () => {
-        const collectionName = "Dataset"
+        const collectionName = "Mammals"
         it("verify collection name is visible", () => {
             table.getCollectionTitle().should("contain", collectionName)
         })
