@@ -45,7 +45,7 @@
 import { observable } from "mobx"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { CollectionModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
+import { CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
 import {
   CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
   IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
@@ -130,6 +130,8 @@ export const DataSet = types.model("DataSet", {
   name: types.maybe(types.string),
   // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
   collections: types.array(CollectionModel),
+  // ungrouped (child-most) collection has properties, but no grouping attributes
+  ungrouped: types.optional(CollectionPropsModel, () => CollectionPropsModel.create()),
   attributes: types.array(Attribute),
   cases: types.array(CaseID),
   sourceName: types.maybe(types.string),

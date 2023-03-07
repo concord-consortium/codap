@@ -1,11 +1,12 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
-import {drag, select} from "d3"
 import {reaction} from "mobx"
+import {drag, select} from "d3"
+import t from "../../../utilities/translation/translate"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType} from "../axis-types"
-import t from "../../../utilities/translation/translate"
+
 import "./axis.scss"
 
 interface IProps {
@@ -19,14 +20,14 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.midPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
-export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
+export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWrapperElt}: IProps) {
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
-    layout = useAxisLayoutContext(),
-    scale = layout.getAxisScale(place) as ScaleNumericBaseType
+    layout = useAxisLayoutContext()
 
   useEffect(function createRects() {
-    let scaleAtStart: any = null,
+    let axisScale: ScaleNumericBaseType,
+      scaleAtStart: any = null,
       lowerAtStart: number,
       upperAtStart: number,
       dilationAnchorCoord: number,
@@ -41,10 +42,12 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
       onDilateStart: D3Handler = (event: { x: number, y: number }) => {
         select(this)
           .classed('dragging', true)
-        scaleAtStart = scale?.copy()
+        axisScale = layout.getAxisScale(place) as ScaleNumericBaseType
+        scaleAtStart = axisScale?.copy()
         lowerAtStart = scaleAtStart.domain()[0]
         upperAtStart = scaleAtStart.domain()[1]
-        dilationAnchorCoord = Number(place === 'bottom' ? scale?.invert(event.x) : scale?.invert(event.y))
+        dilationAnchorCoord = Number(place === 'bottom' ? axisScale?.invert(event.x)
+          : axisScale?.invert(event.y))
         dragging = true
         axisModel.setTransitionDuration(0)
       },
@@ -64,7 +67,8 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
       onDragTranslate = (event: { dx: number; dy: number }) => {
         const delta = -(place === 'bottom' ? event.dx : event.dy)
         if (delta !== 0) {
-          const worldDelta = Number(scale?.invert(delta)) - Number(scale?.invert(0))
+          const worldDelta = Number(axisScale?.invert(delta)) -
+            Number(axisScale?.invert(0))
           axisModel.setDomain(axisModel.min + worldDelta, axisModel.max + worldDelta)
         }
       },
@@ -91,7 +95,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
     if (rectRef.current) {
       const rectSelection = select(rectRef.current)
 
-      // Add three rects in which the user can drag to dilate or translate the scale
+      // Add three rects in which the user can drag to dilate or translate the axis scale
       const
         classPrefix = place === 'bottom' ? 'h' : 'v',
         numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0],
@@ -127,7 +131,7 @@ export const AxisDragRects = observer(({axisModel, axisWrapperElt}: IProps) => {
           .call(dragBehavior[behaviorIndex])
       })
     }
-  }, [axisModel, place, scale])
+  }, [axisModel, place, layout])
 
   // update layout of axis drag rects when axis bounds change
   useEffect(() => {

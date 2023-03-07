@@ -63,6 +63,11 @@ export const DataConfigurationModel = types
     pointsNeedUpdating: false
   }))
   .views(self => ({
+    get secondaryRole() {
+      return self.primaryRole === 'x' ? 'y'
+        : self.primaryRole === 'y' ? 'x'
+          : ''
+    },
     get y2AttributeDescriptionIsPresent() {
       return !!self._attributeDescriptions.get('rightNumeric')
     },
@@ -123,6 +128,14 @@ export const DataConfigurationModel = types
     placeCanHaveZeroExtent(place: GraphPlace) {
       return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
         this.attributeID(graphPlaceToAttrRole[place]) === ''
+    }
+  }))
+  .views(self => ({
+    get primaryAttributeID() {
+      return self.primaryRole && self.attributeID(self.primaryRole) || ''
+    },
+    get secondaryAttributeID() {
+      return self.secondaryRole && self.attributeID(self.secondaryRole) || ''
     }
   }))
   .extend(() => {
@@ -442,17 +455,18 @@ export const DataConfigurationModel = types
       }
     }))
   .actions(self => ({
-    setDataset(dataset: IDataSet) {
+    setDataset(dataset: IDataSet | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
       self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
-      self._attributeDescriptions.clear()
-      self._yAttributeDescriptions.clear()
       self.filteredCases = []
-      self.filteredCases[0] = new FilteredCases({
-        source: dataset, filter: self.filterCase,
-        onSetCaseValues: self.handleSetCaseValues
-      })
+      if (dataset) {
+        self.filteredCases[0] = new FilteredCases({
+          source: dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        })
+      }
+      self.clearCategorySets()
       self.invalidateQuantileScale()
     },
     setPrimaryRole(role: GraphAttrRole) {
