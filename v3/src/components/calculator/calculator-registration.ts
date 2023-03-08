@@ -17,5 +17,9 @@ registerTileComponentInfo({
   TitleBar: CalculatorTitleBar,
   Component: CalculatorComponent,
   tileEltClass: kCalculatorTileClass,
-  Icon: CalcIcon
+  Icon: CalcIcon,
+  toolshelfPosition: 50,
+  isSingleton: true,
+  height: 162,
+  width: 145,
 })

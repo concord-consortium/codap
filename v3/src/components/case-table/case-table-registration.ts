@@ -17,5 +17,8 @@ registerTileComponentInfo({
   TitleBar: CaseTableTitleBar,
   Component: CaseTableComponent,
   tileEltClass: "codap-case-table",
-  Icon: TableIcon
+  Icon: TableIcon,
+  height: 275,
+  width: 580,
+  toolshelfPosition: 10
 })

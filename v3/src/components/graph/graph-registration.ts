@@ -23,5 +23,8 @@ registerTileComponentInfo({
   TitleBar: GraphTitleBar,
   Component: GraphComponent,
   tileEltClass: kGraphTileClass,
-  Icon: GraphIcon
+  Icon: GraphIcon,
+  toolshelfPosition: 20,
+  height: 300,
+  width: 300
 })

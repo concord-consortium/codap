@@ -16,6 +16,14 @@ export interface ITileComponentInfo {
    * from trying to set the selection.
    */
   tileHandlesOwnSelection?: boolean;
+  /**
+   * Components should have a default height and width. Plugins will specify their own height and width
+   */
+  width?: number;
+  height?: number;
+  /* Toolshelf specific properties */
+  toolshelfPosition?: number;
+  isSingleton?: boolean; // Only one instance of a tile is open per documeent so toolshelf button opens and closes tile
 }
 
 const gTileComponentInfoMap = new Map<string, ITileComponentInfo>()
@@ -27,14 +35,12 @@ export function registerTileComponentInfo(tileComponentInfo: ITileComponentInfo)
 
 // Tool id, e.g. kDrawingTileType, kGeometryTileType, etc.
 // undefined is supported so callers do not need to check the id before passing it in
+// toLowerCase() for legacy support of tool names
 export function getTileComponentInfo(type?: string) {
-  // toLowerCase() for legacy support of tool names
   return type ? gTileComponentInfoMap.get(type.toLowerCase()) : undefined
 }
 
 export function getTileComponentIcon(type?: string) {
-  // toLowerCase() for legacy support of tool names
   const cIcon = type && gTileComponentInfoMap.get(type.toLowerCase())?.Icon
   return cIcon
-  // return type ? gTileComponentInfoMap.get(type.toLowerCase()) : undefined
 }
