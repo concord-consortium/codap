@@ -1,6 +1,8 @@
+@use "../vars.scss";
+
 .card-icon {
   background-color: white;
-  fill: #177991;
+  fill: vars.$codap-teal-dark;
   height: 16px;
   width: 13px;
   border-radius: 2px;
@@ -14,7 +16,7 @@
 }
 
 .table-icon {
-  background-color: #177991;
+  background-color: vars.$codap-teal-dark;
   fill: white;
   color: white;
   margin-top: 2px;

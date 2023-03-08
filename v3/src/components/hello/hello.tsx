@@ -6,6 +6,8 @@ import t from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isHelloCodapModel } from "./hello-model"
 
+import "./hello.scss"
+
 export const HelloComponent = ({ tile }: ITileBaseProps) => {
   const sampleText = useSampleText()
   const helloModel = tile?.content

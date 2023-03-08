@@ -52,7 +52,7 @@ export const CaseTableComponent = observer(function CaseTableComponent({ tile }:
       <DataSetContext.Provider value={data}>
         <CaseMetadataContext.Provider value={metadata}>
           <CaseTableModelContext.Provider value={tableModel}>
-            <CaseTable setNodeRef={setNodeRef} />
+            <CaseTable tile={tile} setNodeRef={setNodeRef} />
           </CaseTableModelContext.Provider>
         </CaseMetadataContext.Provider>
       </DataSetContext.Provider>

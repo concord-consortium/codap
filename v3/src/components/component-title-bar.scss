@@ -3,9 +3,12 @@
 .component-title-bar {
   flex-direction: row;
   height: $title-bar-height;
-  background-color: #177991;
+  background-color: $codap-teal-light;
   width: 100%;
   border-radius: $border-radius-top-corners;
+  &.focusTile {
+    background-color: $codap-teal-dark;
+  }
   &:hover {
     .header-right {
       visibility: visible;
@@ -25,7 +28,6 @@
     left: 5px;
     align-items: center;
     justify-content: center;
-    background-color: #177991;
     height: 24px;
     width: 24px;
     border-top-left-radius: 6px;
@@ -41,7 +43,6 @@
     right: 0;
     cursor: pointer;
     visibility: hidden;
-    background-color: #177991 !important;
     fill: lightgray;
     border-top-right-radius: 6px;
 
@@ -62,7 +63,6 @@
     }
 
     .component-close-button {
-      background-color: #177991 !important;
       color: lightgray;
       height: 24px;
       &:hover {

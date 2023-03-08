@@ -19,7 +19,7 @@ export const theme = extendTheme({
   colors: {
     tealDark: "#01879E",
     tealLight1: "#2ba5c1",
-    teallight2: "#72bfca",
+    tealLight2: "#72bfca",
     tealLight3: "#93d5e4",
     tealLight4: "#b7e2ec",
     tealLight5: "#e2f4f8"

@@ -1,8 +1,10 @@
+import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useEffect } from "react"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IFreeTileRow } from "../models/document/free-tile-row"
 import { ITileModel } from "../models/tiles/tile-model"
+import { uiState } from "../models/ui-state"
 import { FreeTileComponent } from "./free-tile-component"
 
 import "./free-tile-row.scss"
@@ -18,6 +20,16 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
     if (!tileId) return
     content?.deleteTile(tileId)
   }
+
+  // focused tile should always be on top
+  useEffect(() => {
+    return autorun(() => {
+      const { focusedTile } = uiState
+      if (focusedTile && (focusedTile !== row.last)) {
+        row.moveTileToTop(focusedTile)
+      }
+    })
+  }, [row])
 
   return (
     <div className="free-tile-row">
