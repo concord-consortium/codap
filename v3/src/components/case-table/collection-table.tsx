@@ -1,8 +1,5 @@
 import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
-// eslint wants us to add @types/pluralize to our deps instead of devDependencies
-// Are we okay with moving types into our main deps, or do we just want to suppress this warning?
-// eslint-disable-next-line import/no-extraneous-dependencies
 import pluralize from "pluralize"
 import { TRow } from "./case-table-types"
 import { NewCollectionDrop } from "./new-collection-drop"
