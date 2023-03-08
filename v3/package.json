@@ -167,7 +167,7 @@
     "pluralize": "^8.0.0",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
-    "react-data-grid": "7.0.0-beta.20",
+    "react-data-grid": "7.0.0-beta.26",
     "react-dom": "^18.2.0",
     "react-resize-detector": "^7.1.2",
     "rtree": "^1.4.2",

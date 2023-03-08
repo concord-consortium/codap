@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index 3ecf53b..3fd3e28 100644
+index c04a926..eb9ea56 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
-@@ -2840,6 +2840,7 @@ exports.headerRenderer = headerRenderer;
+@@ -2879,6 +2879,7 @@ exports.headerRenderer = headerRenderer;
  exports.sortIcon = sortIcon;
  exports.sortPriority = sortPriority;
  exports.textEditor = textEditor;
@@ -11,22 +11,22 @@ index 3ecf53b..3fd3e28 100644
  exports.useFocusRef = useFocusRef;
  exports.useRowSelection = useRowSelection;
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 37d8ee6..1f475ee 100644
+index 7c4949a..109de6e 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
-@@ -2824,5 +2824,6 @@ function textEditor({
+@@ -2863,5 +2863,6 @@ function textEditor({
    });
  }
  
--export { DataGridDefaultComponentsProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, sortIcon, sortPriority, textEditor, toggleGroupFormatter, useFocusRef, useRowSelection, valueFormatter };
+-export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, sortIcon, sortPriority, textEditor, toggleGroupFormatter, useFocusRef, useRowSelection, valueFormatter };
 +// [CC] (patch-package) export textEditorClassname
-+export { DataGridDefaultComponentsProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, sortIcon, sortPriority, textEditor, textEditorClassname, toggleGroupFormatter, useFocusRef, useRowSelection, valueFormatter };
++export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, sortIcon, sortPriority, textEditor, textEditorClassname, toggleGroupFormatter, useFocusRef, useRowSelection, valueFormatter };
  //# sourceMappingURL=bundle.js.map
 diff --git a/node_modules/react-data-grid/lib/index.d.ts b/node_modules/react-data-grid/lib/index.d.ts
-index 07a6905..b33967f 100644
+index e12abf7..72d5a4e 100644
 --- a/node_modules/react-data-grid/lib/index.d.ts
 +++ b/node_modules/react-data-grid/lib/index.d.ts
-@@ -363,6 +363,8 @@ export declare interface SummaryFormatterProps<TSummaryRow, TRow = unknown> {
+@@ -394,6 +394,8 @@ export declare interface SummaryFormatterProps<TSummaryRow, TRow = unknown> {
      isCellSelected: boolean;
  }
  

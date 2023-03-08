@@ -1,7 +1,7 @@
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { DataGridHandle } from "react-data-grid"
+import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
+import { CellClickArgs, DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
@@ -119,7 +119,8 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
 
-  const handleRowClick = useCallback(({ __id__: caseId }: TRow) => {
+  const handleCellClick = useCallback(
+  ({ row: { __id__: caseId } }: CellClickArgs<TRow>, event: MouseEvent<HTMLDivElement>) => {
     const isCaseSelected = data?.isCaseSelected(caseId)
     const isExtending = isKeyDown("Shift") || isKeyDown("Alt") || isKeyDown("Meta")
     if (isKeyDown("Shift") && anchorCase.current) {
@@ -147,5 +148,5 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
     }
   }, [collection, data])
 
-  return { selectedRows, setSelectedRows, handleRowClick }
+  return { selectedRows, setSelectedRows, handleCellClick }
 }

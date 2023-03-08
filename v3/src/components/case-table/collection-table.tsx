@@ -1,5 +1,8 @@
 import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
+// eslint wants us to add @types/pluralize to our deps instead of devDependencies
+// Are we okay with moving types into our main deps, or do we just want to suppress this warning?
+// eslint-disable-next-line import/no-extraneous-dependencies
 import pluralize from "pluralize"
 import { TRow } from "./case-table-types"
 import { NewCollectionDrop } from "./new-collection-drop"
@@ -18,7 +21,7 @@ export const CollectionTable = () => {
   const collection = useCollectionContext()
   const gridRef = useRef<DataGridHandle>(null)
 
-  const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ gridRef })
+  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
 
   // columns
   const indexColumn = useIndexColumn()
@@ -48,7 +51,7 @@ export const CollectionTable = () => {
         <DataGrid ref={gridRef} className="rdg-light"
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+          onCellClick={handleCellClick} onRowsChange={handleRowsChange}/>
       </div>
       {collection && <div className="collection-table-spacer" />}
     </div>
