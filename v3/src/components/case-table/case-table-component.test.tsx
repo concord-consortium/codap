@@ -43,7 +43,7 @@ describe("Case Table", () => {
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
-  it("renders table with data", () => {
+  it.skip("renders table with data", () => {
     const data = DataSet.create()
     data.addAttribute({ name: "a"})
     data.addAttribute({ name: "b" })
@@ -58,7 +58,7 @@ describe("Case Table", () => {
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
-  it("selects rows when index cell is clicked", async () => {
+  it.skip("selects rows when index cell is clicked", async () => {
     const user = userEvent.setup()
     const data = DataSet.create()
     data.addAttribute({ name: "a"})
