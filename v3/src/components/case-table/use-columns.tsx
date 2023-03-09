@@ -62,18 +62,18 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     const disposer = reaction(
       () => {
         const attrs: IAttribute[] = (collection
-                                      ? Array.from(collection.attributes) as IAttribute[]
+                                      ? Array.from(collection.attributes.values()) as IAttribute[]
                                       : data?.ungroupedAttributes) ?? []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return { visible }
+        return visible.map(({ id, name, userEditable }) => ({ id, name, userEditable }))
       },
-      ({ visible }) => {
+      entries => {
         // column definitions
         const _columns: TColumn[] = data
           ? [
               ...(indexColumn ? [indexColumn] : []),
               // attribute column definitions
-              ...visible.map(({ id, name, userEditable }) => ({
+              ...entries.map(({ id, name, userEditable }) => ({
                 key: id,
                 name,
                 resizable: true,

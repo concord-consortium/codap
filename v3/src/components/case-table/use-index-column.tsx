@@ -79,7 +79,7 @@ export const useIndexColumn = () => {
       { fireImmediately: true }
     )
     return disposer
-  })
+  }, [caseMetadata, collection, data?.collectionGroups, data?.ungroupedAttributes, formatter, parentCollection])
 
   return indexColumn
 }
