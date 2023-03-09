@@ -1,6 +1,9 @@
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
+import { IAttribute } from "../../models/data/attribute"
+import { isCollectionModel } from "../../models/data/collection"
 import { IMoveAttributeOptions } from "../../models/data/data-set-types"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
@@ -24,12 +27,12 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     if (!data || !dragAttrId) return
 
     const srcCollection = data.getCollectionForAttribute(dragAttrId)
-    const firstAttr = collection?.attributes[0] || data.attributes[0]
+    const firstAttr: IAttribute | undefined = getCollectionAttrs(collection, data)[0]
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
-                                            ? { before: firstAttr.id }
+                                            ? { before: firstAttr?.id }
                                             : { after: columnKey }
     if (collection === srcCollection) {
-      if (collection) {
+      if (isCollectionModel(collection)) {
         // move the attribute within a collection
         collection.moveAttribute(dragAttrId, options)
       }

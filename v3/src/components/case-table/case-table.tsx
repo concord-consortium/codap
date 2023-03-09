@@ -8,7 +8,7 @@ import { CollectionTable } from "./collection-table"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
-import { ICollectionModel } from "../../models/data/collection"
+import { ICollectionPropsModel } from "../../models/data/collection"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
 
@@ -30,9 +30,9 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
     if (!data) return null
 
-    const collections: Array<ICollectionModel | undefined> = data.collections.map(collection => collection)
-    // add an `undefined` entry which represents the "collection" of ungrouped attributes
-    collections.push(undefined)
+    const collections: ICollectionPropsModel[] = data.collections.map(collection => collection)
+    // add the ungrouped "collection"
+    collections.push(data.ungrouped)
 
     return (
       <>

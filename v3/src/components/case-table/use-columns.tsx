@@ -7,6 +7,7 @@ import { useCollectionContext, useParentCollectionContext } from "../../hooks/us
 import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { symDom, TColumn, TFormatterProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
@@ -61,9 +62,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // rebuild column definitions when referenced properties change
     const disposer = reaction(
       () => {
-        const attrs: IAttribute[] = (collection
-                                      ? Array.from(collection.attributes.values()) as IAttribute[]
-                                      : data?.ungroupedAttributes) ?? []
+        const attrs: IAttribute[] = getCollectionAttrs(collection, data)
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
         return visible.map(({ id, name, userEditable }) => ({ id, name, userEditable }))
       },

@@ -61,7 +61,7 @@ describe("CollectionGroups", () => {
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["bId", "cId"])
 
-    expect(collection.id).toBe("COLLtest-2")
+    expect(collection.id).toBe("COLLtest-3")
     expect(data.collectionGroups.length).toBe(1)
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
     expect(data.getCollection(collection.id)).toBe(collection)
@@ -82,7 +82,7 @@ describe("CollectionGroups", () => {
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["cId"])
     expect(attributesByCollection()).toEqual([["aId", "bId"], ["cId"]])
 
-    expect(collection.id).toBe("COLLtest-2")
+    expect(collection.id).toBe("COLLtest-3")
     expect(data.collectionGroups.length).toBe(1)
     const aCases = data.getCasesForAttributes(["aId"])
     expect(aCases.length).toBe(9)

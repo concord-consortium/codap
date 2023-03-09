@@ -10,6 +10,7 @@ import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
@@ -30,7 +31,7 @@ export const CollectionTable = observer(function CollectionTable() {
   const { rows, handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
-  const defaultTableName = pluralize(collection?.attributes[0]?.name ?? data?.ungroupedAttributes[0]?.name ?? '')
+  const defaultTableName = pluralize((collection.displayTitle || getCollectionAttrs(collection, data)[0]?.name) ?? '')
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
 
   if (!data) return null
@@ -38,7 +39,7 @@ export const CollectionTable = observer(function CollectionTable() {
   function handleNewCollectionDrop(attrId: string) {
     const attr = data?.attrFromID(attrId)
     if (data && attr) {
-      data.moveAttributeToNewCollection(attrId, collection?.id)
+      data.moveAttributeToNewCollection(attrId, collection.id)
     }
   }
 

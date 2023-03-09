@@ -45,7 +45,10 @@
 import { observable } from "mobx"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
+import {
+  CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionModelSnapshot, ICollectionPropsModel,
+  isCollectionModel
+} from "./collection"
 import {
   CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
   IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
@@ -214,8 +217,9 @@ export const DataSet = types.model("DataSet", {
     return self.collections.findIndex(coll => coll.id === collectionId)
   }
 
-  function getCollectionForAttribute(attributeId: string): ICollectionModel | undefined {
-    return self.collections.find(coll => coll.getAttribute(attributeId))
+  function getCollectionForAttribute(attributeId: string): ICollectionPropsModel | undefined {
+    return self.collections.find(coll => coll.getAttribute(attributeId)) ??
+            (self.attributes.find(attr => attr.id === attributeId) ? self.ungrouped : undefined)
   }
 
   function getGroupedAttributes() {
@@ -397,7 +401,7 @@ export const DataSet = types.model("DataSet", {
         const newCollection = options?.collection ? getCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
-          if (oldCollection) {
+          if (isCollectionModel(oldCollection)) {
             // remove it from previous collection (if any)
             if (oldCollection.attributes.length > 1) {
               oldCollection.removeAttribute(attributeId)
@@ -415,7 +419,7 @@ export const DataSet = types.model("DataSet", {
             // move it within the data set
             self.moveAttribute(attributeId, options)
           }
-          if (!oldCollection) {
+          if (!isCollectionModel(oldCollection)) {
             // if the last ungrouped attribute was moved into a collection, then eliminate
             // the last collection, thus un-grouping the child-most attributes
             const allAttrCount = self.attributes.length
@@ -759,7 +763,7 @@ export const DataSet = types.model("DataSet", {
         if (attrIndex != null) {
           // remove attribute from any collection
           const collection = self.getCollectionForAttribute(attributeID)
-          if (collection) {
+          if (isCollectionModel(collection)) {
             if (collection.attributes.length > 1) {
               collection.removeAttribute(attributeID)
             }

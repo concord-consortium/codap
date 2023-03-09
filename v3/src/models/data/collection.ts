@@ -1,4 +1,4 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
 import { uniqueId } from "../../utilities/js-utils"
 import { IMoveAttributeOptions } from "./data-set-types"
@@ -12,6 +12,7 @@ export const CollectionLabels = types.model("CollectionLabels", {
 })
 
 export const CollectionPropsModel = types.model("CollectionProps", {
+  id: types.optional(types.identifier, () => `COLL${uniqueId()}`),
   name: "",
   title: "",
   labels: types.maybe(CollectionLabels)
@@ -26,8 +27,6 @@ export interface ICollectionPropsModel extends Instance<typeof CollectionPropsMo
 export const CollectionModel = CollectionPropsModel
 .named("Collection")
 .props({
-  // id required for efficient patches in MST arrays
-  id: types.optional(types.identifier, () => `COLL${uniqueId()}`),
   // grouping attributes in left-to-right order
   attributes: types.array(types.safeReference(Attribute))
 })
@@ -69,3 +68,7 @@ export const CollectionModel = CollectionPropsModel
 }))
 export interface ICollectionModel extends Instance<typeof CollectionModel> {}
 export interface ICollectionModelSnapshot extends SnapshotIn<typeof CollectionModel> {}
+
+export function isCollectionModel(model: IAnyStateTreeNode): model is ICollectionModel {
+  return getType(model) === CollectionModel
+}
