@@ -69,10 +69,9 @@ export function uniqueOrderedId(): string {
  *
  * returns a unique name from a given base name, adding a numeric suffix if necessary
  */
-export function uniqueName(current: string, isValid: (name: string) => boolean) {
-  if (isValid(current)) return current
+export function uniqueName(base: string, isValid: (name: string) => boolean) {
+  if (isValid(base)) return base
   let name: string
-  const base = current.replace(/[0-9]/g, '') //sliders base strings may have numbers
   for (let i = 2; !isValid(name = `${base}${i}`); ++i) {
     // nothing to do
   }
