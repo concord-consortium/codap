@@ -22,7 +22,6 @@ export interface ITileComponentInfo {
   width?: number;
   height?: number;
   /* Toolshelf specific properties */
-  toolshelfPosition?: number;
   isSingleton?: boolean; // Only one instance of a tile is open per documeent so toolshelf button opens and closes tile
 }
 

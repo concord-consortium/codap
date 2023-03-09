@@ -19,7 +19,6 @@ registerTileComponentInfo({
   Component: SliderComponent,
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
-  toolshelfPosition: 40,
   height: 98,
   width: 300
 })
