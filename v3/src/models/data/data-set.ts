@@ -235,7 +235,7 @@ export const DataSet = types.model("DataSet", {
       // get collection from attribute, if any; undefined => not in a collection
       getCollectionForAttribute,
       // leaf-most child cases (i.e. those not grouped in a collection)
-      get childCases() {
+      childCases() {
         return _childCases
       },
       // array of attributes grouped that are grouped into collections
@@ -445,7 +445,7 @@ export const DataSet = types.model("DataSet", {
         return collectionGroup.groups.map(group => group.pseudoCase)
       }
     }
-    return self.childCases
+    return self.childCases()
   },
   getCasesForAttributes(attributeIds: string[]) {
     // finds the child-most collection (if any) among the specified attributes
@@ -460,7 +460,7 @@ export const DataSet = types.model("DataSet", {
       }
       if (attrCollectionIndex < 0) {
         // if we get here then the attribute isn't grouped, so the regular cases can be used
-        return self.childCases
+        return self.childCases()
       }
       collectionIndex = Math.max(collectionIndex, attrCollectionIndex)
     }

@@ -40,7 +40,7 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
       attribute.setUserDescription(description)
       attribute.setUserType(attrType === "none" ? undefined : attrType)
       attribute.setUnits(unit)
-      attribute.setUserPrecision(isFinite(+precision) ? +precision : undefined)
+      attribute.setUserPrecision(precision && isFinite(+precision) ? +precision : undefined)
       attribute.setUserEditable(editable === "true")
     }
   }
