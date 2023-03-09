@@ -31,7 +31,7 @@ export const CollectionTable = observer(function CollectionTable() {
   const { rows, handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
-  const defaultTableName = pluralize((collection.displayTitle || getCollectionAttrs(collection)[0]?.name) ?? '')
+  const defaultTableName = pluralize((collection.displayTitle || getCollectionAttrs(collection, data)[0]?.name) ?? '')
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
 
   if (!data) return null

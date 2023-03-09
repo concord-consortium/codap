@@ -27,7 +27,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     if (!data || !dragAttrId) return
 
     const srcCollection = data.getCollectionForAttribute(dragAttrId)
-    const firstAttr: IAttribute | undefined = getCollectionAttrs(collection)[0]
+    const firstAttr: IAttribute | undefined = getCollectionAttrs(collection, data)[0]
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: firstAttr?.id }
                                             : { after: columnKey }
