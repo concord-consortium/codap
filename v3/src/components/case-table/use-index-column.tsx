@@ -11,6 +11,7 @@ import { useCollectionContext, useParentCollectionContext } from "../../hooks/us
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IAttribute } from "../../models/data/attribute"
 import { symIndex, symParent } from "../../models/data/data-set-types"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import t from "../../utilities/translation/translate"
 
 export const useIndexColumn = () => {
@@ -35,9 +36,7 @@ export const useIndexColumn = () => {
     // rebuild index column definition when referenced properties change
     const disposer = reaction(
       () => {
-        const attrs: IAttribute[] = (collection
-                                      ? Array.from(collection.attributes) as IAttribute[]
-                                      : data?.ungroupedAttributes) ?? []
+        const attrs: IAttribute[] = getCollectionAttrs(collection, data)
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
         const parentMetadata = caseMetadata && parentCollection
                                 ? caseMetadata?.collections.get(parentCollection.id)
@@ -79,7 +78,7 @@ export const useIndexColumn = () => {
       { fireImmediately: true }
     )
     return disposer
-  }, [caseMetadata, collection, data?.collectionGroups, data?.ungroupedAttributes, formatter, parentCollection])
+  }, [caseMetadata, collection, data, data?.collectionGroups, data?.ungroupedAttributes, formatter, parentCollection])
 
   return indexColumn
 }
