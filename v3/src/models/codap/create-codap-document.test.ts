@@ -66,7 +66,8 @@ describe("createCodapDocument", () => {
                 formula: {},
                 id: "test-5",
                 name: "a",
-                userEditable: true,
+                title: "",
+                editable: true,
                 values: ["1", "2", "3"]
               }],
               cases: [{ __id__: "CASEorder-6" }, { __id__: "CASEorder-7" }, { __id__: "CASEorder-8" }],

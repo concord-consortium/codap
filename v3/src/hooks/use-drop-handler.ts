@@ -4,12 +4,12 @@ import { IDocumentModelSnapshot } from "../models/document/document"
 import { convertParsedCsvToDataSet, CsvParseResult, importCsvFile } from "../utilities/csv-import"
 import { safeJsonParse } from "../utilities/js-utils"
 import { CodapV2Document } from "../v2/codap-v2-document"
-import { ICodapV2Document } from "../v2/codap-v2-types"
+import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
 
 function importCodapV2Document(file: File | null, onComplete: (document: CodapV2Document) => void) {
   const reader = new FileReader()
   reader.onload = () => {
-    const result = reader.result && safeJsonParse<ICodapV2Document>(reader.result as string)
+    const result = reader.result && safeJsonParse<ICodapV2DocumentJson>(reader.result as string)
     const document = result && new CodapV2Document(result)
     document && onComplete(document)
   }

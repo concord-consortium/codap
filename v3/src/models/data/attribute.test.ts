@@ -169,16 +169,16 @@ describe("Attribute", () => {
     expect(attribute.numeric(5)).toBeNaN()
 
     expect(attribute.format).toBe(kDefaultFormatStr)
-    attribute.setUserPrecision(2)
+    attribute.setPrecision(2)
     expect(attribute.format).toBe(".2~f")
 
-    expect(attribute.userDescription).toBeUndefined()
-    attribute.setUserDescription("description")
-    expect(attribute.userDescription).toBe("description")
+    expect(attribute.description).toBeUndefined()
+    attribute.setDescription("description")
+    expect(attribute.description).toBe("description")
 
-    expect(attribute.userEditable).toBe(true)
-    attribute.setUserEditable(false)
-    expect(attribute.userEditable).toBe(false)
+    expect(attribute.editable).toBe(true)
+    attribute.setEditable(false)
+    expect(attribute.editable).toBe(false)
   })
 
   test("Serialization (development)", () => {
