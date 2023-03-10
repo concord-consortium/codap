@@ -107,7 +107,7 @@ export const FreeTileRow = TileRowModel
       }
     }
   }))
-  export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}
+export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}
 
 export function isFreeTileRow(row?: ITileRowModel): row is IFreeTileRow {
   return row?.type === "free"

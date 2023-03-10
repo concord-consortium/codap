@@ -39,7 +39,7 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
                                   : t("DG.DocumentController.toggleToCaseCard")
 
   return (
-    <ComponentTitleBar component={"case-table"} title={title}
+    <ComponentTitleBar tile={tile} component={"case-table"} title={title}
         draggableId={`${tileType}-${tileId}`}>
       <div className="header-left"
             title={cardTableToggleString}
