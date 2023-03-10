@@ -37,22 +37,22 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
       data?.setAttributeName(attrId, () => uniqueName(attributeName,
         (aName: string) => (aName === columnName) || !data.attributes.find(attr => aName === attr.name)
        ))
-      attribute.setUserDescription(description)
+      attribute.setDescription(description)
       attribute.setUserType(attrType === "none" ? undefined : attrType)
       attribute.setUnits(unit)
-      attribute.setUserPrecision(precision && isFinite(+precision) ? +precision : undefined)
-      attribute.setUserEditable(editable === "true")
+      attribute.setPrecision(precision && isFinite(+precision) ? +precision : undefined)
+      attribute.setEditable(editable === "true")
     }
   }
   const closeModal = () => {
     onClose()
     onModalOpen(false)
     setAttributeName(attribute?.name || "")
-    setDescription(attribute?.userDescription || "")
+    setDescription(attribute?.description || "")
     setAttrType(attribute?.userType ? attribute?.userType : "none")
     setUnit(attribute?.units || "")
-    setPrecision((attribute?.userPrecision)?.toString() || "")
-    setEditable((attribute?.userEditable)?.toString() || "true")
+    setPrecision((attribute?.precision)?.toString() || "")
+    setEditable((attribute?.editable)?.toString() || "true")
   }
 
   const buttons=[{  label: t("DG.AttrFormView.cancelBtnTitle"),

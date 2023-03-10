@@ -22,6 +22,14 @@ export const CollectionPropsModel = types.model("CollectionProps", {
     return self.title || self.name
   }
 }))
+.actions(self => ({
+  setName(name: string) {
+    self.name = name
+  },
+  setTitle(title: string) {
+    self.title = title
+  }
+}))
 export interface ICollectionPropsModel extends Instance<typeof CollectionPropsModel> {}
 
 export const CollectionModel = CollectionPropsModel

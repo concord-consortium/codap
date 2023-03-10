@@ -46,8 +46,7 @@ import { observable } from "mobx"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import {
-  CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionModelSnapshot, ICollectionPropsModel,
-  isCollectionModel
+  CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
 } from "./collection"
 import {
   CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
@@ -334,6 +333,7 @@ export const DataSet = types.model("DataSet", {
                     }
                   }
                   else {
+                    /* istanbul ignore next */
                     console.warn(`Failed to find expected parent for case ${cumulativeValuesJson}!`)
                   }
                 }
@@ -724,10 +724,6 @@ export const DataSet = types.model("DataSet", {
       },
       setDescription(description: string) {
         self.description = description
-      },
-      addCollection(snapshot: ICollectionModelSnapshot) {
-        self.collections.push(CollectionModel.create(snapshot))
-        self.invalidateCollectionGroups()
       },
       addAttribute(snapshot: IAttributeSnapshot, beforeID?: string) {
         let beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
