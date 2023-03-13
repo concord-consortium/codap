@@ -86,7 +86,7 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
         }
       }
     }
-    tLoc.y = tLoc.y - kCodapAppHeader
+    tLoc.y = tLoc.y > 190 ? tLoc.y - kCodapAppHeader : tLoc.y
     return tLoc
   }
 
