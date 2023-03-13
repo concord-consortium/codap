@@ -5,6 +5,7 @@ import { IDocumentContentModel } from "../../models/document/document-content"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { getTileComponentIcon, getTileComponentInfo, ITileComponentInfo } from "../../models/tiles/tile-component-info"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
+import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import MapIcon from '../../assets/icons/icon-map.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
@@ -41,15 +42,21 @@ export const ToolShelf = ({content}: IProps) => {
   }
 
   const createTile = (tileType: string, componentInfo: ITileComponentInfo) => {
+    const width = componentInfo.width || 185
+    const height = componentInfo.height || 250
     if (row) {
       const newTile = createDefaultTileOfType(tileType)
       if (newTile) {
         if (isFreeTileRow(row)) {
-          const tileOptions = { width: componentInfo.width, height: componentInfo.height }
+          const newTileSize = {width, height}
+          const newTilePosition = getPositionOfNewComponent(newTileSize)
+          const tileOptions = { x: newTilePosition.x, y: newTilePosition.y,
+                                width, height }
           content?.insertTileInRow(newTile, row, tileOptions)
           const rowTile = row.tiles.get(newTile.id)
           if (componentInfo.width && componentInfo.height) {
-            rowTile?.setSize(componentInfo.width, componentInfo.height + kHeaderHeight)
+            rowTile?.setSize(componentInfo.width,  componentInfo.height + kHeaderHeight)
+            rowTile?.setPosition(newTilePosition.x, newTilePosition.y)
           }
         }
       }
