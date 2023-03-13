@@ -42,7 +42,7 @@ describe(`V2 "mammals.codap"`, () => {
     expect(mammals.globalValues.length).toBe(0)
     expect(mammals.datasets.length).toBe(1)
 
-    const data = mammals.datasets[0]
+    const data = mammals.datasets[0].dataSet
     expect(data.attributes.length).toBe(9)
     expect(data.cases.length).toBe(27)
 
@@ -80,7 +80,7 @@ describe(`V2 "24cats.codap"`, () => {
     expect(cats.globalValues.length).toBe(0)
     expect(cats.datasets.length).toBe(1)
 
-    const data = cats.datasets[0]
+    const data = cats.datasets[0].dataSet
     expect(data.collections.length).toBe(1)
     expect(data.collections[0].attributes.length).toBe(1)
     expect(data.attributes.length).toBe(9)
