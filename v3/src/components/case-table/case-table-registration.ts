@@ -8,6 +8,7 @@ import TableIcon from '../../assets/icons/icon-table.svg'
 
 registerTileContentInfo({
   type: kCaseTableTileType,
+  prefix: "TABL",
   modelClass: CaseTableModel,
   defaultContent: () => CaseTableModel.create()
 })

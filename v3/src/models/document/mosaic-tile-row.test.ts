@@ -2,7 +2,7 @@ import { MosaicTileRow } from "./mosaic-tile-row"
 
 let mockNodeIdCount = -1  // first call is for tile identifier
 jest.mock("../../utilities/js-utils", () => ({
-  uniqueId: () => `node-${++mockNodeIdCount}`
+  typedId: () => `node-${++mockNodeIdCount}`
 }))
 
 describe("MosaicTileRow", () => {

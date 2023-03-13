@@ -12,7 +12,7 @@ import "../shared/shared-data-set-registration"
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
 jest.mock("../../utilities/js-utils", () => ({
-  uniqueId: () => `test-${++mockNodeIdCount}`,
+  typedId: () => `test-${++mockNodeIdCount}`,
   uniqueOrderedId: () => `order-${++mockNodeIdCount}`
 }))
 
@@ -72,7 +72,7 @@ describe("createCodapDocument", () => {
               }],
               cases: [{ __id__: "CASEorder-6" }, { __id__: "CASEorder-7" }, { __id__: "CASEorder-8" }],
               collections: [],
-              ungrouped: { id: "COLLtest-4", name: "", title: "" },
+              ungrouped: { id: "test-4", name: "", title: "" },
               id: "test-3",
               snapSelection: []
             },

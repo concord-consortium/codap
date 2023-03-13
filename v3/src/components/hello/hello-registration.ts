@@ -7,6 +7,7 @@ import { HelloTitleBar } from "./hello-title-bar"
 
 registerTileContentInfo({
   type: kHelloCodapTileType,
+  prefix: "HLLO",
   modelClass: HelloCodapModel,
   defaultContent: () => HelloCodapModel.create()
 })

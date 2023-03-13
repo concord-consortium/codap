@@ -112,6 +112,7 @@ const TestTileTitleBarComponent: React.FC<any> = () => {
 
 registerTileContentInfo({
   type: "TestTile",
+  prefix: "TEST",
   modelClass: TestTile,
   defaultContent(options) {
     return TestTile.create()

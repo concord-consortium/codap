@@ -11,6 +11,7 @@ export function defaultContent(): IUnknownContentModel {
 
 registerTileContentInfo({
   type: kUnknownTileType,
+  prefix: "UNKN",
   modelClass: UnknownContentModel,
   defaultContent
 })
