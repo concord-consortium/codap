@@ -4,6 +4,7 @@ import { SliderComponent } from "./slider-component"
 import { kSliderTileType, kSliderTileClass } from "./slider-defs"
 import { SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
+import SliderIcon from '../../assets/icons/icon-slider.svg'
 
 registerTileContentInfo({
   type: kSliderTileType,
@@ -16,5 +17,8 @@ registerTileComponentInfo({
   type: kSliderTileType,
   TitleBar: SliderTitleBar,
   Component: SliderComponent,
-  tileEltClass: kSliderTileClass
+  tileEltClass: kSliderTileClass,
+  Icon: SliderIcon,
+  height: 98,
+  width: 300
 })

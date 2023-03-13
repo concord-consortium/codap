@@ -16,6 +16,13 @@ export interface ITileComponentInfo {
    * from trying to set the selection.
    */
   tileHandlesOwnSelection?: boolean;
+  /**
+   * Components should have a default height and width. Plugins will specify their own height and width
+   */
+  width?: number;
+  height?: number;
+  /* Toolshelf specific properties */
+  isSingleton?: boolean; // Only one instance of a tile is open per documeent so toolshelf button opens and closes tile
 }
 
 const gTileComponentInfoMap = new Map<string, ITileComponentInfo>()
@@ -30,4 +37,8 @@ export function registerTileComponentInfo(tileComponentInfo: ITileComponentInfo)
 export function getTileComponentInfo(type?: string) {
   // toLowerCase() for legacy support of tool names
   return type ? gTileComponentInfoMap.get(type.toLowerCase()) : undefined
+}
+
+export function getTileComponentIcon(type?: string) {
+  return getTileComponentInfo(type)?.Icon
 }

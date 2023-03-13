@@ -93,7 +93,7 @@ export const App = observer(function App() {
       <V2DocumentContext.Provider value={v2Document}>
         <div className="app" data-testid="app">
           <MenuBar/>
-          <ToolShelf/>
+          <ToolShelf content={codapDocument.content}/>
           <Container content={codapDocument.content}/>
         </div>
       </V2DocumentContext.Provider>
