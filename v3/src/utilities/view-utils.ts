@@ -61,8 +61,7 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
         if (intersects(tLoc)) {
           tLoc.x += kGap
           if (tLoc.x + iViewRect.width > iOffset.x + rowRect.x + rowRect.width)
-            { console.log("in break")
-              break }
+            { break }
         }
         else {
           tSuccess = true
@@ -87,6 +86,7 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
         }
       }
     }
+    tLoc.y = tLoc.y - kCodapAppHeader
     return tLoc
   }
 
