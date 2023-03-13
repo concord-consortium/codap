@@ -4,7 +4,7 @@ import t from "../../utilities/translation/translate"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { getTileComponentIcon, getTileComponentInfo, ITileComponentInfo } from "../../models/tiles/tile-component-info"
-import { IFreeTileRow } from "../../models/document/free-tile-row"
+import { isFreeTileRow } from "../../models/document/free-tile-row"
 import MapIcon from '../../assets/icons/icon-map.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
@@ -28,7 +28,7 @@ export const ToolShelf = ({content}: IProps) => {
     },
     toast = useToast()
 
-  const row = content?.getRowByIndex(0) as IFreeTileRow
+  const row = content?.getRowByIndex(0)
 
   const toggleTileVisibility = (tileType: string, componentInfo: ITileComponentInfo) => {
     const tiles = content?.getTilesOfType(tileType)
@@ -44,11 +44,13 @@ export const ToolShelf = ({content}: IProps) => {
     if (row) {
       const newTile = createDefaultTileOfType(tileType)
       if (newTile) {
-        const tileOptions = { width: componentInfo.width, height: componentInfo.height }
-        content?.insertTileInRow(newTile, row, tileOptions)
-        const rowTile = row.tiles.get(newTile.id)
-        if (componentInfo.width && componentInfo.height) {
-          rowTile?.setSize(componentInfo.width,  componentInfo.height + kHeaderHeight)
+        if (isFreeTileRow(row)) {
+          const tileOptions = { width: componentInfo.width, height: componentInfo.height }
+          content?.insertTileInRow(newTile, row, tileOptions)
+          const rowTile = row.tiles.get(newTile.id)
+          if (componentInfo.width && componentInfo.height) {
+            rowTile?.setSize(componentInfo.width, componentInfo.height + kHeaderHeight)
+          }
         }
       }
     }
@@ -128,7 +130,7 @@ export const ToolShelf = ({content}: IProps) => {
               as='button'
               key={aDesc.iconLabel}
               bg='white'
-              onClick={()=> createComponentHandler(aDesc.tileType)}
+              onClick={() => createComponentHandler(aDesc.tileType)}
               data-testid={`tool-shelf-button-${aDesc.iconLabel}`}
               className="toolshelf-button"
               _hover={{ boxShadow: '1px 1px 1px 0px rgba(0, 0, 0, 0.5)' }}

@@ -34,12 +34,11 @@ export function registerTileComponentInfo(tileComponentInfo: ITileComponentInfo)
 
 // Tool id, e.g. kDrawingTileType, kGeometryTileType, etc.
 // undefined is supported so callers do not need to check the id before passing it in
-// toLowerCase() for legacy support of tool names
 export function getTileComponentInfo(type?: string) {
+  // toLowerCase() for legacy support of tool names
   return type ? gTileComponentInfoMap.get(type.toLowerCase()) : undefined
 }
 
 export function getTileComponentIcon(type?: string) {
-  const cIcon = type && gTileComponentInfoMap.get(type.toLowerCase())?.Icon
-  return cIcon
+  return getTileComponentInfo(type)?.Icon
 }
