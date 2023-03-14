@@ -34,7 +34,8 @@ export const TileContentModel = types.model("TileContentModel", {
     //
     // Perhaps there is some better way to define this so that there would be an error
     // if a sub type does not override it.
-    type: types.optional(types.string, kUnknownTileType)
+    type: types.optional(types.string, kUnknownTileType),
+    isUserResizable: true
   })
   .views(self => ({
     get tileEnv(): ITileEnvironment | undefined {

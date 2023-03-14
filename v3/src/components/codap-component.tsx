@@ -38,13 +38,16 @@ export const CodapComponent = observer(function CodapComponent({
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
-        {onRightPointerDown && <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
-        {onBottomPointerDown && <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
-        {onLeftPointerDown && <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
-        {onBottomLeftPointerDown &&
+        {onRightPointerDown && tile.isUserResizable &&
+          <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
+        {onBottomPointerDown && tile.isUserResizable &&
+          <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
+        {onLeftPointerDown && tile.isUserResizable &&
+          <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
+        {onBottomLeftPointerDown && tile.isUserResizable &&
           <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
         }
-        {onBottomRightPointerDown &&
+        {onBottomRightPointerDown && tile.isUserResizable &&
           <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
             {uiState.isFocusedTile(tile.id) &&
               <ResizeHandle className="component-resize-handle"/>}
