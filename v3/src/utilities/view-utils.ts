@@ -5,10 +5,8 @@ const kGap = 5 // Also used to increment during search
 export const getPositionOfNewComponent = (iViewRect: {width: number, height: number}, iPosition = "top") => {
   const parentEl = document.getElementsByClassName("free-tile-row")
   const rowRect = parentEl[0].getBoundingClientRect()
-  console.log("rowRect", rowRect)
   const existingEls = document.getElementsByClassName("free-tile-component")
   const existingRects = Array.from(existingEls).map(el => el.getBoundingClientRect())
-  console.log("existingRects", existingRects)
 
   const findEmptyLocationForRect = () => {
     const iOffset = {x: 0, y: 0}
@@ -92,6 +90,5 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
   }
 
   const nLoc = findEmptyLocationForRect()
-  console.log("nLoc", nLoc)
   return nLoc
 }
