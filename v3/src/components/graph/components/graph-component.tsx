@@ -1,16 +1,17 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import React, {useEffect, useMemo, useRef, useState} from "react"
+import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {useGraphController} from "../hooks/use-graph-controller"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
+import {uiState} from "../../../models/ui-state"
 import {kTitleBarHeight} from "../graphing-types"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
+import {GraphController} from "../models/graph-controller"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
-import {GraphController} from "../models/graph-controller"
 
 export const GraphComponent = observer(({tile}: ITileBaseProps) => {
   const graphModel = tile?.content
@@ -25,7 +26,6 @@ export const GraphComponent = observer(({tile}: ITileBaseProps) => {
     () => new GraphController({layout, enableAnimation, dotsRef, instanceId}),
     [layout, instanceId]
   )
-  const [showInspector, setShowInspector] = useState(false)
 
   useGraphController({graphController, graphModel})
 
@@ -45,8 +45,7 @@ export const GraphComponent = observer(({tile}: ITileBaseProps) => {
           <GraphModelContext.Provider value={graphModel}>
             <Graph graphController={graphController}
                    graphRef={graphRef}
-                   showInspector={showInspector}
-                   setShowInspector={setShowInspector}
+                   showInspector={uiState.isFocusedTile(tile?.id)}
             />
           </GraphModelContext.Provider>
         </AxisLayoutContext.Provider>

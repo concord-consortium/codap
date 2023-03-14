@@ -64,7 +64,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       () => {
         const attrs: IAttribute[] = getCollectionAttrs(collection, data)
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return visible.map(({ id, name, userEditable }) => ({ id, name, userEditable }))
+        return visible.map(({ id, name, editable }) => ({ id, name, editable }))
       },
       entries => {
         // column definitions
@@ -72,7 +72,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
           ? [
               ...(indexColumn ? [indexColumn] : []),
               // attribute column definitions
-              ...entries.map(({ id, name, userEditable }) => ({
+              ...entries.map(({ id, name, editable }) => ({
                 key: id,
                 name,
                 resizable: true,
@@ -80,7 +80,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 headerRenderer: ColumnHeader,
                 cellClass: "codap-data-cell",
                 formatter: CellFormatter,
-                editor: userEditable ? CellTextEditor : undefined
+                editor: editable ? CellTextEditor : undefined
               }))
           ]
           : []

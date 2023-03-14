@@ -20,13 +20,17 @@ const Tree = types.model("Tree", {
 
 describe("CollectionModel", () => {
 
-  it("displayTitle and isCollectionModel() work as expected", () => {
+  it("Simple properties work as expected", () => {
     const withName = CollectionPropsModel.create({ name: "name" })
     expect(withName.displayTitle).toBe("name")
+    withName.setName("newName")
+    expect(withName.displayTitle).toBe("newName")
     expect(isCollectionModel(withName)).toBe(false)
 
     const withNameAndTitle = CollectionPropsModel.create({ name: "name", title: "title" })
     expect(withNameAndTitle.displayTitle).toBe("title")
+    withNameAndTitle.setTitle("newTitle")
+    expect(withNameAndTitle.displayTitle).toBe("newTitle")
     expect(isCollectionModel(withNameAndTitle)).toBe(false)
   })
 

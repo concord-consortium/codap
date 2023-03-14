@@ -1,18 +1,23 @@
-import React, { ReactNode, useState } from "react"
 import { Editable, EditableInput, EditablePreview, Flex } from "@chakra-ui/react"
 import { useDndContext, useDraggable } from "@dnd-kit/core"
-
+import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
+import React, { ReactNode, useState } from "react"
+import { ITileModel } from "../models/tiles/tile-model"
+import { uiState } from "../models/ui-state"
 
 import "./component-title-bar.scss"
 
 interface IProps {
+  tile?: ITileModel
   component?: string
   title: string
   draggableId: string
   children?: ReactNode
 }
 
-export const ComponentTitleBar = ({component, title, draggableId, children}: IProps) => {
+export const ComponentTitleBar = observer(function ComponentTitleBar(
+  {tile, component, title, draggableId, children}: IProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [, setTitle] = useState(title|| "Dataset")
   const { active } = useDndContext()
@@ -29,9 +34,10 @@ export const ComponentTitleBar = ({component, title, draggableId, children}: IPr
 
   const draggableOptions = {id: draggableId, disabled: isEditing}
   const {attributes, listeners, setActivatorNodeRef} = useDraggable(draggableOptions)
+  const classes = clsx("component-title-bar", `${component}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
 
   return (
-    <Flex className={`component-title-bar ${component}-title-bar`}
+    <Flex className={classes}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
       {children}
       <Editable defaultValue={title} className="title-bar" isPreviewFocusable={!dragging} submitOnBlur={true}
@@ -42,4 +48,4 @@ export const ComponentTitleBar = ({component, title, draggableId, children}: IPr
       </Editable>
     </Flex>
   )
-}
+})

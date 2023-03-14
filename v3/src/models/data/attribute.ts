@@ -56,12 +56,13 @@ export const Attribute = types.model("Attribute", {
   clientKey: "",
   sourceID: types.maybe(types.string),
   name: types.string,
-  userDescription: types.maybe(types.string),
+  title: "",
+  description: types.maybe(types.string),
   userType: types.maybe(types.enumeration([...attributeTypes])),
   // userFormat: types.maybe(types.string),
   units: types.maybe(types.string),
-  userPrecision: types.maybe(types.number),
-  userEditable: true,
+  precision: types.maybe(types.number),
+  editable: true,
   formula: types.optional(Formula, () => Formula.create()),
   // simple array -- _not_ MST all the way down to the array elements
   // due to its frozen nature, clients should _not_ use `values` directly
@@ -140,7 +141,7 @@ export const Attribute = types.model("Attribute", {
     return self.numericCount === self.numValues.length - self.emptyCount ? "numeric" : "categorical"
   },
   get format() {
-    return self.userPrecision != null ? `.${self.userPrecision}~f` : kDefaultFormatStr
+    return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr
   },
   value(index: number) {
     return self.strValues[index]
@@ -166,8 +167,8 @@ export const Attribute = types.model("Attribute", {
   setUnits(units: string) {
     self.units = units
   },
-  setUserDescription(description: string) {
-    self.userDescription = description
+  setDescription(description: string) {
+    self.description = description
   },
   setUserType(type: AttributeType | undefined) {
     self.userType = type
@@ -175,11 +176,11 @@ export const Attribute = types.model("Attribute", {
   // setUserFormat(precision: string) {
   //   self.userFormat = `.${precision}~f`
   // },
-  setUserPrecision(precision?: number) {
-    self.userPrecision = precision
+  setPrecision(precision?: number) {
+    self.precision = precision
   },
-  setUserEditable(editable: boolean) {
-    self.userEditable = editable
+  setEditable(editable: boolean) {
+    self.editable = editable
   },
   clearFormula() {
     self.formula.setDisplay()

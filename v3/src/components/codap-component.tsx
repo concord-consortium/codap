@@ -4,6 +4,7 @@ import { DataSetContext } from "../hooks/use-data-set-context"
 import { gDataBroker } from "../models/data/data-broker"
 import { ITileBaseProps, ITileTitleBarProps } from "./tiles/tile-base-props"
 import { ITileModel } from "../models/tiles/tile-model"
+import { uiState } from "../models/ui-state"
 import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 
 import "./codap-component.scss"
@@ -21,14 +22,20 @@ export interface IProps extends ITileBaseProps {
   onLeftPointerDown?: (e: React.PointerEvent) => void
 }
 
-export const CodapComponent =
-    observer(({ tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
-      onRightPointerDown, onBottomPointerDown, onLeftPointerDown }: IProps) => {
+export const CodapComponent = observer(function CodapComponent({
+  tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
+  onBottomPointerDown, onLeftPointerDown, onRightPointerDown
+}: IProps) {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
+
+  function handleFocusTile() {
+    uiState.setFocusedTile(tile.id)
+  }
 
   return (
     <DataSetContext.Provider value={dataset}>
-      <div className={`codap-component ${tileEltClass}`} key={tile.id}>
+      <div className={`codap-component ${tileEltClass}`} key={tile.id}
+        onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
         {onRightPointerDown && <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
@@ -39,7 +46,8 @@ export const CodapComponent =
         }
         {onBottomRightPointerDown &&
           <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
-            <ResizeHandle className="component-resize-handle"/>
+            {uiState.isFocusedTile(tile.id) &&
+              <ResizeHandle className="component-resize-handle"/>}
           </div>
         }
       </div>
