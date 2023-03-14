@@ -10,6 +10,7 @@ function defaultPlaceholderContent() {
 
 registerTileContentInfo({
   type: kPlaceholderTileType,
+  prefix: "PLAC",
   modelClass: PlaceholderContentModel,
   defaultContent: defaultPlaceholderContent
 })

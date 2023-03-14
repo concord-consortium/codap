@@ -33,7 +33,7 @@
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "./formula"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 import t from "../../utilities/translation/translate"
 
 
@@ -52,7 +52,7 @@ export const attributeTypes = ["categorical", "numeric", "date", "qualitative", 
 export type AttributeType = typeof attributeTypes[number]
 
 export const Attribute = types.model("Attribute", {
-  id: types.optional(types.identifier, () => uniqueId()),
+  id: types.optional(types.identifier, () => typedId("ATTR")),
   clientKey: "",
   sourceID: types.maybe(types.string),
   name: types.string,

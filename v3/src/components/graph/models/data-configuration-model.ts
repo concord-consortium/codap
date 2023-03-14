@@ -5,7 +5,7 @@ import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {SetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
-import {uniqueId} from "../../../utilities/js-utils"
+import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
 import {
   CaseData,
@@ -47,7 +47,7 @@ export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof Attribu
 
 export const DataConfigurationModel = types
   .model('DataConfigurationModel', {
-    id: types.optional(types.identifier, () => uniqueId()),
+    id: types.optional(types.identifier, () => typedId("DCON")),
     // determines stacking direction in categorical-categorical, for instance
     primaryRole: types.maybe(types.enumeration([...PrimaryAttrRoles])),
     // keys are GraphAttrRoles

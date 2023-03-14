@@ -8,6 +8,7 @@ import CalcIcon from '../../assets/icons/icon-calc.svg'
 
 registerTileContentInfo({
   type: kCalculatorTileType,
+  prefix: "CALC",
   modelClass: CalculatorModel,
   defaultContent: () => CalculatorModel.create()
 })

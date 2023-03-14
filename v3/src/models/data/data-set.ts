@@ -52,7 +52,7 @@ import {
   CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
   IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
 
 // remnant of derived DataSet implementation that isn't in active use
@@ -127,7 +127,7 @@ export interface CollectionGroup {
 }
 
 export const DataSet = types.model("DataSet", {
-  id: types.optional(types.identifier, () => uniqueId()),
+  id: types.optional(types.identifier, () => typedId("DATA")),
   sourceID: types.maybe(types.string),
   name: types.maybe(types.string),
   // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
@@ -279,7 +279,7 @@ export const DataSet = types.model("DataSet", {
                 // start a new group with just this case (for now)
                 // note: PCAS ids are considered ephemeral and should not be stored/serialized,
                 // because they can be regenerated whenever the data changes.
-                const pseudoCase: IGroupedCase = { __id__: `PCAS${uniqueId()}`, ...cumulativeValues }
+                const pseudoCase: IGroupedCase = { __id__: typedId("PCAS"), ...cumulativeValues }
                 groupsMap[cumulativeValuesJson] = {
                   collectionId: collection.id,
                   pseudoCase,
@@ -681,7 +681,7 @@ export const DataSet = types.model("DataSet", {
         if (!srcDataSet) {
           disposers.addIdsMiddleware = addMiddleware(self, (call, next) => {
             if (call.context === self && call.name === "addAttribute") {
-              const { id = uniqueId(), ...others } = call.args[0] as IAttributeSnapshot
+              const { id = typedId("ATTR"), ...others } = call.args[0] as IAttributeSnapshot
               call.args[0] = { id, ...others }
             }
             else if (call.context === self && call.name === "addCases") {

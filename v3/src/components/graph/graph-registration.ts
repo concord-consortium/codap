@@ -9,6 +9,7 @@ import GraphIcon from '../../assets/icons/icon-graph.svg'
 
 registerTileContentInfo({
   type: kGraphTileType,
+  prefix: "GRPH",
   modelClass: GraphModel,
   defaultContent: () => GraphModel.create({
     axes: {

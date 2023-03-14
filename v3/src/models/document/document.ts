@@ -8,11 +8,11 @@ import { DocumentContentModel, IDocumentContentSnapshotIn } from "./document-con
 import { IDocumentMetadata } from "./document-metadata"
 import { IDocumentProperties } from "./document-types"
 import { ISharedModelDocumentManager } from "./shared-model-document-manager"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 
 export const DocumentModel = Tree.named("Document")
   .props({
-    key: types.optional(types.identifier, () => uniqueId()),
+    key: types.optional(types.identifier, () => typedId("DOC_")),
     type: types.string,
     version: types.maybe(types.string),
     build: types.maybe(types.string),
