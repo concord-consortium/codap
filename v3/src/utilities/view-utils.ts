@@ -5,8 +5,10 @@ const kGap = 5 // Also used to increment during search
 export const getPositionOfNewComponent = (iViewRect: {width: number, height: number}, iPosition = "top") => {
   const parentEl = document.getElementsByClassName("free-tile-row")
   const rowRect = parentEl[0].getBoundingClientRect()
+  console.log("rowRect", rowRect)
   const existingEls = document.getElementsByClassName("free-tile-component")
-  const tReservedRects = Array.from(existingEls).map(el => el.getBoundingClientRect())
+  const existingRects = Array.from(existingEls).map(el => el.getBoundingClientRect())
+  console.log("existingRects", existingRects)
 
   const findEmptyLocationForRect = () => {
     const iOffset = {x: 0, y: 0}
@@ -20,7 +22,7 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
       const tRes = (!isNaN(r1.x) && !isNaN(r1.y)) && !(r2.x > r1.x + r1.width ||
           r2.x + r2.width < r1.x ||
           r2.y > r1.y + r1.height ||
-          r2.y + r2.height < r1.y)
+          r2.y + r2.height < r1.y - kTitleBarHeight - kGap)
       return tRes
     }
 
@@ -29,10 +31,10 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
     if none intersect.
     */
     const intersects = (iTopLeft: {x: number, y: number}) => {
-      return !tReservedRects.every(rect => {
+      return !existingRects.every(rect => {
         return !intersectRect(rect,
                               { x: iTopLeft.x,
-                                y: iTopLeft.y,
+                                y: iTopLeft.y + kCodapAppHeader,
                                 width: iViewRect.width,
                                 height: iViewRect.height
                               })
@@ -40,14 +42,14 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
     }
 
     const onTopOfViewRectTopLeft = (iTopLeft: {x: number, y: number}) => {
-      return !tReservedRects.every(rect => {
+      return !existingRects.every(rect => {
         return !(iTopLeft.x === rect.x && iTopLeft.y + kCodapAppHeader === rect.y)
       })
     }
 
     // If there are no other views or reserved areas, simply return the initial
     // candidate.
-    if (tReservedRects.length === 0) {
+    if (existingRects.length === 0) {
       return tLoc
     }
 
@@ -86,10 +88,10 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
         }
       }
     }
-    tLoc.y = tLoc.y > 190 ? tLoc.y - kCodapAppHeader : tLoc.y
     return tLoc
   }
 
   const nLoc = findEmptyLocationForRect()
+  console.log("nLoc", nLoc)
   return nLoc
 }
