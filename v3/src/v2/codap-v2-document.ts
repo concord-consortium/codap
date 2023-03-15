@@ -1,14 +1,15 @@
+import { CollectionModel } from "../models/data/collection"
 import { DataSet, IDataSet, toCanonical } from "../models/data/data-set"
 import {
-  CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2Document
+  CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson
 } from "./codap-v2-types"
 
 export class CodapV2Document {
-  private document: ICodapV2Document
+  private document: ICodapV2DocumentJson
   private guidMap: Record<number, { type: string, object: any }> = {}
   private data: Record<number, IDataSet> = {}
 
-  constructor(document: ICodapV2Document) {
+  constructor(document: ICodapV2DocumentJson) {
     this.document = document
 
     // register the document
@@ -19,15 +20,15 @@ export class CodapV2Document {
   }
 
   get contexts() {
-    return this.document.contexts || []
+    return this.document.contexts
   }
 
   get components() {
-    return this.document.components || []
+    return this.document.components
   }
 
   get globalValues() {
-    return this.document.globalValues || []
+    return this.document.globalValues
   }
 
   get datasets() {
@@ -39,20 +40,20 @@ export class CodapV2Document {
     return parentCaseId != null ? this.guidMap[parentCaseId]?.object as ICodapV2Case: undefined
   }
 
-  getAttribute(anID:number) {
+  getAttribute(anID: number) {
     return this.guidMap[anID]
   }
 
-  registerComponents(components?: CodapV2Component[] | null) {
+  registerComponents(components?: CodapV2Component[]) {
     components?.forEach(component => {
       const { guid, type, } = component
       this.guidMap[guid] = { type, object: component }
     })
   }
 
-  registerContexts(contexts?: ICodapV2DataContext[] | null) {
+  registerContexts(contexts?: ICodapV2DataContext[]) {
     contexts?.forEach(context => {
-      const { guid, type, document, name, collections } = context
+      const { guid, type = "DG.DataContext", document, name = "", collections = [] } = context
       if (document && this.guidMap[document]?.type !== "DG.Document") {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
       }
@@ -63,30 +64,41 @@ export class CodapV2Document {
     })
   }
 
-  registerCollections(data: IDataSet, collections?: ICodapV2Collection[] | null) {
-    collections?.forEach((collection, index) => {
-      const { attrs, cases, guid, type } = collection
+  registerCollections(data: IDataSet, collections: ICodapV2Collection[]) {
+    collections.forEach((collection, index) => {
+      const { attrs = [], cases = [], guid, name = "", title = "", type = "DG.Collection" } = collection
       this.guidMap[guid] = { type, object: collection }
 
       // assumes hierarchical collection are in order parent => child
-      const level = collections.length - index - 1
-      const attributes = attrs.map(attr => data.attrFromName(attr.name)?.id).filter(id => !!id)
-      data.addCollection({ attributes })
+      const level = collections.length - index - 1  // 0 === child-most
       this.registerAttributes(data, attrs, level)
       this.registerCases(data, cases, level)
+
+      if (level > 0) {
+        const collectionModel = CollectionModel.create({ name, title })
+        attrs.forEach(attr => {
+          const attrModel = data.attrFromName(attr.name)
+          attrModel && collectionModel.addAttribute(attrModel)
+        })
+        data.addCollection(collectionModel)
+      }
+      else {
+        data.ungrouped.setName(name)
+        data.ungrouped.setTitle(title)
+      }
     })
   }
 
-  registerAttributes(data: IDataSet, attributes: ICodapV2Attribute[] | null, level: number) {
-    attributes?.forEach(attr => {
-      const { guid, name, type, formula } = attr
+  registerAttributes(data: IDataSet, attributes: ICodapV2Attribute[], level: number) {
+    attributes.forEach(attr => {
+      const { guid, name = "", title = "", type = "DG.Attribute", formula } = attr
       this.guidMap[guid] = { type: type || "DG.Attribute", object: attr }
-      data.addAttribute({ name, formula })
+      data.addAttribute({ name, formula, title })
     })
   }
 
-  registerCases(data: IDataSet, cases: ICodapV2Case[] | null, level: number) {
-    cases?.forEach(_case => {
+  registerCases(data: IDataSet, cases: ICodapV2Case[], level: number) {
+    cases.forEach(_case => {
       const { guid, values } = _case
       this.guidMap[guid] = { type: "DG.Case", object: _case }
       // only add child/leaf cases

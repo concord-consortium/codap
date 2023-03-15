@@ -46,6 +46,16 @@ export function safeJsonParse<T = any>(json?: string) {
 }
 
 /*
+ * typedId()
+ *
+ * returns a unique id string prepended with a supplied prefix
+ */
+export function typedId(type: string, idLength = 12): string {
+  // cf. https://zelark.github.io/nano-id-cc/
+  return `${type}${nanoid(idLength)}`
+}
+
+/*
  * uniqueId()
  *
  * returns a unique id string

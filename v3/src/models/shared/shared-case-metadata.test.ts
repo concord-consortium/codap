@@ -5,7 +5,7 @@ import { SharedCaseMetadata } from "./shared-case-metadata"
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
 jest.mock("../../utilities/js-utils", () => ({
-  uniqueId: () => `test-${++mockNodeIdCount}`,
+  typedId: () => `test-${++mockNodeIdCount}`,
   uniqueOrderedId: () => `order-${++mockNodeIdCount}`
 }))
 

@@ -61,6 +61,7 @@ export interface IDerivationSpec {
 
 // used in IGroupedCase
 export const symParent = Symbol.for("parent")
+export const symFirstChild = Symbol.for("firstChild")
 export const symIndex = Symbol.for("index")
 
 export interface IGroupedCase extends ICase {

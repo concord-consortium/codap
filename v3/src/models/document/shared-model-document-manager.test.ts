@@ -103,6 +103,7 @@ const TestTileTitleBarComponent: React.FC<ITileBaseProps> = () => {
 
 registerTileContentInfo({
   type: "TestTile",
+  prefix: "TEST",
   modelClass: TestTile,
   defaultContent(options) {
     throw new Error("Function not implemented.")

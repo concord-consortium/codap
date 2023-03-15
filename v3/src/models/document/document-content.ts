@@ -49,6 +49,10 @@ export const DocumentContentModel = types
     getTile(tileId: string) {
       return tileId && self.tileMap.has(tileId) ? self.tileMap.get(tileId) : undefined
     },
+    getTilesOfType(type: string) {
+      const tileMapEntries = Array.from(self.tileMap.values())
+      return tileMapEntries.filter(tile => tile.content.type === type)
+    },
     get rowCount() {
       return self.rowOrder.length
     },

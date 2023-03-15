@@ -6,13 +6,14 @@ import { FreeTileRow } from "../document/free-tile-row"
 import { MosaicTileRow } from "../document/mosaic-tile-row"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
+import { getSnapshot } from "mobx-state-tree"
 const { version } = pkg
 const { buildNumber } = build
 
 export function createCodapDocument(snapshot?: IDocumentModelSnapshot): IDocumentModel {
   const document = createDocumentModel({ type: "CODAP", version, build: `${buildNumber}`, ...snapshot })
   if (!document.content) {
-    document.setContent(DocumentContentModel.create() as any)
+    document.setContent(getSnapshot(DocumentContentModel.create()))
   }
   if (document.content?.rowCount === 0) {
     const isFreeLayout = urlParams.layout === "free"

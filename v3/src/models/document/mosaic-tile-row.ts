@@ -1,5 +1,5 @@
 import { Instance, types } from "mobx-state-tree"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
 
 /*
@@ -22,7 +22,7 @@ export const isMosaicTileInRowOptions = (options?: ITileInRowOptions): options i
               (options as any)?.splitTileId != null || (options as any)?.direction != null
 
 export const MosaicTileNode = types.model("MosaicTileNode", {
-  id: types.optional(types.identifier, () => uniqueId()),
+  id: types.optional(types.identifier, () => typedId("MNOD")),
   direction: types.enumeration(["row", "column"]),
   percent: 0.5,
   first: types.string,  // node id or tile id

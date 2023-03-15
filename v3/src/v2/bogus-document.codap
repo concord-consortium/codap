@@ -1,0 +1,32 @@
+{
+  "name": "Mammals Sample",
+  "guid": 3,
+  "components": [],
+  "contexts": [
+    {
+      "type": "DG.DataContext",
+      "document": 1,
+      "guid": 2,
+      "collections": [
+        {
+          "areParentChildLinksConfigured": false,
+          "attrs": [
+          ],
+          "cases": [
+          ],
+          "caseName": null,
+          "childAttrName": null,
+          "collapseChildren": null,
+          "guid": 3,
+          "name": "Mammals",
+          "type": "DG.Collection"
+        }
+      ],
+      "contextStorage": {}
+    }
+  ],
+  "globalValues": [],
+  "appName": "",
+  "appVersion": "",
+  "appBuildNum": ""
+}

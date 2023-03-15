@@ -3,7 +3,7 @@ import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
-import { ICollectionModel } from "../../models/data/collection"
+import { ICollectionPropsModel, isCollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
 import { TCellClickArgs } from "./case-table-types"
@@ -17,16 +17,16 @@ interface UseSelectedRows {
 }
 
 // it may make sense to move these utilities into the DataSet at some point
-function caseIdFromIndex(index: number, data?: IDataSet, collection?: ICollectionModel) {
+function caseIdFromIndex(index: number, data?: IDataSet, collection?: ICollectionPropsModel) {
   if (!data) return undefined
-  if (!collection) return data.caseIDFromIndex(index)
+  if (!isCollectionModel(collection)) return data.caseIDFromIndex(index)
   const cases = data.getCasesForCollection(collection.id)
   return cases[index]?.__id__
 }
 
-function caseIndexFromId(caseId: string, data?: IDataSet, collection?: ICollectionModel) {
+function caseIndexFromId(caseId: string, data?: IDataSet, collection?: ICollectionPropsModel) {
   if (!data) return undefined
-  if (!collection) return data.caseIndexFromID(caseId)
+  if (!isCollectionModel(collection)) return data.caseIndexFromID(caseId)
   const cases = data.getCasesForCollection(collection.id)
   // for now, linear search through pseudo-cases; could index if performance becomes a problem.
   const found = cases.findIndex(aCase => aCase.__id__ === caseId)
@@ -54,7 +54,7 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
     prf.measure("Table.syncRowSelectionToRdg", () => {
       const newSelection = prf.measure("Table.syncRowSelectionToRdg[reaction-copy]", () => {
         const selection = new Set<string>()
-        const cases = data?.getCasesForCollection(collection?.id) || []
+        const cases = data?.getCasesForCollection(collection.id) || []
         cases.forEach(aCase => data?.isCaseSelected(aCase.__id__) && selection.add(aCase.__id__))
         return selection
       })

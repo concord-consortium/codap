@@ -11,7 +11,7 @@ export const PlaceholderTileTitleBar = ({tile, onCloseTile}: ITileTitleBarProps)
   const tileType = tile?.content.type
 
   return (
-    <ComponentTitleBar component={"placeholder-tile"} title={title}
+    <ComponentTitleBar tile={tile} component={"placeholder-tile"} title={title}
         draggableId={`${tileType}-${tileId}`}>
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>

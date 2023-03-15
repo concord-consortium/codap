@@ -5,9 +5,11 @@ import { GraphModel } from "./models/graph-model"
 import { GraphComponent } from "./components/graph-component"
 import { EmptyAxisModel } from "../axis/models/axis-model"
 import { GraphTitleBar } from "./components/graph-title-bar"
+import GraphIcon from '../../assets/icons/icon-graph.svg'
 
 registerTileContentInfo({
   type: kGraphTileType,
+  prefix: "GRPH",
   modelClass: GraphModel,
   defaultContent: () => GraphModel.create({
     axes: {
@@ -21,5 +23,8 @@ registerTileComponentInfo({
   type: kGraphTileType,
   TitleBar: GraphTitleBar,
   Component: GraphComponent,
-  tileEltClass: kGraphTileClass
+  tileEltClass: kGraphTileClass,
+  Icon: GraphIcon,
+  height: 300,
+  width: 300
 })

@@ -1,0 +1,13 @@
+@use "../vars.scss";
+
+.hello-codap3 {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 25px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: aliceblue;
+  border-radius: vars.$border-radius-bottom-corners;
+  overflow: hidden;
+}

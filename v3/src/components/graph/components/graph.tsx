@@ -34,14 +34,12 @@ interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement>
   showInspector: boolean
-  setShowInspector: (show: boolean) => void
 }
 
 const marqueeState = new MarqueeState()
 
 
-export const Graph = observer(function Graph(
-  {graphController, graphRef, showInspector, setShowInspector}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, showInspector}: IProps) {
   const graphModel = useGraphModelContext(),
     { enableAnimation, dotsRef } = graphController,
     {plotType} = graphModel,
@@ -138,7 +136,7 @@ export const Graph = observer(function Graph(
 
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
-      <div className={kGraphClass} ref={graphRef} data-testid="graph" onClick={() => setShowInspector(!showInspector)}>
+      <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
             marqueeState={marqueeState}

@@ -1,17 +1,23 @@
 import React from "react"
 import {Box, Flex, HStack, Tag, useToast} from "@chakra-ui/react"
 import t from "../../utilities/translation/translate"
-
-import './tool-shelf.scss'
-import GraphIcon from '../../assets/icons/icon-graph.svg'
-import TableIcon from '../../assets/icons/icon-table.svg'
+import { IDocumentContentModel } from "../../models/document/document-content"
+import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { getTileComponentIcon, getTileComponentInfo, ITileComponentInfo } from "../../models/tiles/tile-component-info"
+import { isFreeTileRow } from "../../models/document/free-tile-row"
 import MapIcon from '../../assets/icons/icon-map.svg'
-import SliderIcon from '../../assets/icons/icon-slider.svg'
-import CalcIcon from '../../assets/icons/icon-calc.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
-export const ToolShelf = () => {
+import './tool-shelf.scss'
+
+const kHeaderHeight = 25
+
+interface IProps {
+  content?: IDocumentContentModel
+}
+
+export const ToolShelf = ({content}: IProps) => {
   const notify = (description: string) => {
       toast({
         position: "top-right",
@@ -20,64 +26,98 @@ export const ToolShelf = () => {
         status: "success"
       })
     },
-    toast = useToast(),
-    tableHandler = () => notify('table'),
-    graphHandler = () => notify('graph'),
-    mapHandler = () => notify('map'),
-    sliderHandler = () => notify('slider'),
-    calcHandler = () => notify('calculator'),
-    textHandler = () => notify('text'),
-    pluginsHandler = () => notify('plugins')
+    toast = useToast()
+
+  const row = content?.getRowByIndex(0)
+
+  const toggleTileVisibility = (tileType: string, componentInfo: ITileComponentInfo) => {
+    const tiles = content?.getTilesOfType(tileType)
+    if (tiles && tiles.length > 0) {
+      const tileId = tiles[0].id
+      content?.deleteTile(tileId)
+    } else {
+      createTile(tileType, componentInfo)
+    }
+  }
+
+  const createTile = (tileType: string, componentInfo: ITileComponentInfo) => {
+    if (row) {
+      const newTile = createDefaultTileOfType(tileType)
+      if (newTile) {
+        if (isFreeTileRow(row)) {
+          const tileOptions = { width: componentInfo.width, height: componentInfo.height }
+          content?.insertTileInRow(newTile, row, tileOptions)
+          const rowTile = row.tiles.get(newTile.id)
+          if (componentInfo.width && componentInfo.height) {
+            rowTile?.setSize(componentInfo.width, componentInfo.height + kHeaderHeight)
+          }
+        }
+      }
+    }
+  }
+
+  const createComponentHandler = (tileType: string) => {
+    const componentInfo = getTileComponentInfo(tileType)
+    if (componentInfo) {
+      if (componentInfo.isSingleton) {
+        toggleTileVisibility(tileType, componentInfo)
+      } else {
+        createTile(tileType, componentInfo)
+      }
+    }  else {
+      notify(tileType)
+    }
+  }
 
   const buttonDescriptions = [
     {
       ariaLabel: 'Make a table',
-      icon: TableIcon,
+      icon: getTileComponentIcon("CodapCaseTable"),
       iconLabel: t("DG.ToolButtonData.tableButton.title"),
       buttonHint: t("DG.ToolButtonData.tableButton.toolTip"),
-      handler: tableHandler
+      tileType: "CodapCaseTable"
     },
     {
       ariaLabel: 'Make a graph',
-      icon: GraphIcon,
+      icon: getTileComponentIcon("CodapGraph"),
       iconLabel: t("DG.ToolButtonData.graphButton.title"),
       buttonHint: t("DG.ToolButtonData.graphButton.toolTip"),
-      handler: graphHandler
+      tileType: "CodapGraph"
     },
     {
       ariaLabel: 'Make a map',
       icon: MapIcon,
       iconLabel: t("DG.ToolButtonData.mapButton.title"),
       buttonHint: t("DG.ToolButtonData.mapButton.toolTip"),
-      handler: mapHandler
+      tileType: "CodapMap"
     },
     {
       ariaLabel: 'Make a slider',
-      icon: SliderIcon,
+      icon: getTileComponentIcon("CodapSlider"),
       iconLabel: t("DG.ToolButtonData.sliderButton.title"),
       buttonHint: t("DG.ToolButtonData.sliderButton.toolTip"),
-      handler: sliderHandler
+      tileType: "CodapSlider"
     },
     {
       ariaLabel: 'Open/close the calculator',
-      icon: CalcIcon,
+      icon: getTileComponentIcon("Calculator"),
       iconLabel: t("DG.ToolButtonData.calcButton.title"),
       buttonHint: t("DG.ToolButtonData.calcButton.toolTip"),
-      handler: calcHandler
+      tileType: "Calculator"
     },
     {
       ariaLabel: 'Make a text object',
       icon: TextIcon,
       iconLabel: t("DG.ToolButtonData.textButton.title"),
       buttonHint: t("DG.ToolButtonData.textButton.toolTip"),
-      handler: textHandler
+      tileType: "CodapText"
     },
     {
       ariaLabel: 'Choose a plugin',
       icon: PluginsIcon,
       iconLabel: t("DG.ToolButtonData.pluginMenu.title"),
       buttonHint: t("DG.ToolButtonData.pluginMenu.toolTip"),
-      handler: pluginsHandler
+      tileType: "CodapPlugin"
     }
   ]
 
@@ -90,7 +130,7 @@ export const ToolShelf = () => {
               as='button'
               key={aDesc.iconLabel}
               bg='white'
-              onClick={aDesc.handler}
+              onClick={() => createComponentHandler(aDesc.tileType)}
               data-testid={`tool-shelf-button-${aDesc.iconLabel}`}
               className="toolshelf-button"
               _hover={{ boxShadow: '1px 1px 1px 0px rgba(0, 0, 0, 0.5)' }}

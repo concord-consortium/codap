@@ -45,12 +45,14 @@
 import { observable } from "mobx"
 import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionModelSnapshot } from "./collection"
+import {
+  CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
+} from "./collection"
 import {
   CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
   IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
 
 // remnant of derived DataSet implementation that isn't in active use
@@ -125,7 +127,7 @@ export interface CollectionGroup {
 }
 
 export const DataSet = types.model("DataSet", {
-  id: types.optional(types.identifier, () => uniqueId()),
+  id: types.optional(types.identifier, () => typedId("DATA")),
   sourceID: types.maybe(types.string),
   name: types.maybe(types.string),
   // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
@@ -214,8 +216,9 @@ export const DataSet = types.model("DataSet", {
     return self.collections.findIndex(coll => coll.id === collectionId)
   }
 
-  function getCollectionForAttribute(attributeId: string): ICollectionModel | undefined {
-    return self.collections.find(coll => coll.getAttribute(attributeId))
+  function getCollectionForAttribute(attributeId: string): ICollectionPropsModel | undefined {
+    return self.collections.find(coll => coll.getAttribute(attributeId)) ??
+            (self.attributes.find(attr => attr.id === attributeId) ? self.ungrouped : undefined)
   }
 
   function getGroupedAttributes() {
@@ -235,7 +238,7 @@ export const DataSet = types.model("DataSet", {
       // get collection from attribute, if any; undefined => not in a collection
       getCollectionForAttribute,
       // leaf-most child cases (i.e. those not grouped in a collection)
-      get childCases() {
+      childCases() {
         return _childCases
       },
       // array of attributes grouped that are grouped into collections
@@ -276,7 +279,7 @@ export const DataSet = types.model("DataSet", {
                 // start a new group with just this case (for now)
                 // note: PCAS ids are considered ephemeral and should not be stored/serialized,
                 // because they can be regenerated whenever the data changes.
-                const pseudoCase: IGroupedCase = { __id__: `PCAS${uniqueId()}`, ...cumulativeValues }
+                const pseudoCase: IGroupedCase = { __id__: typedId("PCAS"), ...cumulativeValues }
                 groupsMap[cumulativeValuesJson] = {
                   collectionId: collection.id,
                   pseudoCase,
@@ -330,6 +333,7 @@ export const DataSet = types.model("DataSet", {
                     }
                   }
                   else {
+                    /* istanbul ignore next */
                     console.warn(`Failed to find expected parent for case ${cumulativeValuesJson}!`)
                   }
                 }
@@ -397,7 +401,7 @@ export const DataSet = types.model("DataSet", {
         const newCollection = options?.collection ? getCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
-          if (oldCollection) {
+          if (isCollectionModel(oldCollection)) {
             // remove it from previous collection (if any)
             if (oldCollection.attributes.length > 1) {
               oldCollection.removeAttribute(attributeId)
@@ -415,7 +419,7 @@ export const DataSet = types.model("DataSet", {
             // move it within the data set
             self.moveAttribute(attributeId, options)
           }
-          if (!oldCollection) {
+          if (!isCollectionModel(oldCollection)) {
             // if the last ungrouped attribute was moved into a collection, then eliminate
             // the last collection, thus un-grouping the child-most attributes
             const allAttrCount = self.attributes.length
@@ -445,7 +449,7 @@ export const DataSet = types.model("DataSet", {
         return collectionGroup.groups.map(group => group.pseudoCase)
       }
     }
-    return self.childCases
+    return self.childCases()
   },
   getCasesForAttributes(attributeIds: string[]) {
     // finds the child-most collection (if any) among the specified attributes
@@ -460,7 +464,7 @@ export const DataSet = types.model("DataSet", {
       }
       if (attrCollectionIndex < 0) {
         // if we get here then the attribute isn't grouped, so the regular cases can be used
-        return self.childCases
+        return self.childCases()
       }
       collectionIndex = Math.max(collectionIndex, attrCollectionIndex)
     }
@@ -677,7 +681,7 @@ export const DataSet = types.model("DataSet", {
         if (!srcDataSet) {
           disposers.addIdsMiddleware = addMiddleware(self, (call, next) => {
             if (call.context === self && call.name === "addAttribute") {
-              const { id = uniqueId(), ...others } = call.args[0] as IAttributeSnapshot
+              const { id = typedId("ATTR"), ...others } = call.args[0] as IAttributeSnapshot
               call.args[0] = { id, ...others }
             }
             else if (call.context === self && call.name === "addCases") {
@@ -721,10 +725,6 @@ export const DataSet = types.model("DataSet", {
       setDescription(description: string) {
         self.description = description
       },
-      addCollection(snapshot: ICollectionModelSnapshot) {
-        self.collections.push(CollectionModel.create(snapshot))
-        self.invalidateCollectionGroups()
-      },
       addAttribute(snapshot: IAttributeSnapshot, beforeID?: string) {
         let beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
         if (beforeIndex >= 0) {
@@ -759,7 +759,7 @@ export const DataSet = types.model("DataSet", {
         if (attrIndex != null) {
           // remove attribute from any collection
           const collection = self.getCollectionForAttribute(attributeID)
-          if (collection) {
+          if (isCollectionModel(collection)) {
             if (collection.attributes.length > 1) {
               collection.removeAttribute(attributeID)
             }

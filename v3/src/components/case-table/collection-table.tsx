@@ -1,21 +1,24 @@
+import { observer } from "mobx-react-lite"
+import pluralize from "pluralize"
 import React, { useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
-import pluralize from "pluralize"
-import { TRow } from "./case-table-types"
-import { NewCollectionDrop } from "./new-collection-drop"
+import { kChildMostTableCollectionId, TRow } from "./case-table-types"
+import { CollectionTableSpacer } from "./collection-table-spacer"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
-export const CollectionTable = () => {
+export const CollectionTable = observer(function CollectionTable() {
   const data = useDataSetContext()
   const collection = useCollectionContext()
+  const collectionId = collection?.id || kChildMostTableCollectionId
   const gridRef = useRef<DataGridHandle>(null)
 
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
@@ -28,7 +31,7 @@ export const CollectionTable = () => {
   const { rows, handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
-  const defaultTableName = pluralize(collection?.attributes[0]?.name ?? data?.ungroupedAttributes[0]?.name ?? '')
+  const defaultTableName = pluralize((collection.displayTitle || getCollectionAttrs(collection, data)[0]?.name) ?? '')
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
 
   if (!data) return null
@@ -36,13 +39,13 @@ export const CollectionTable = () => {
   function handleNewCollectionDrop(attrId: string) {
     const attr = data?.attrFromID(attrId)
     if (data && attr) {
-      data.moveAttributeToNewCollection(attrId, collection?.id)
+      data.moveAttributeToNewCollection(attrId, collection.id)
     }
   }
 
   return (
-    <div className="collection-table">
-      <NewCollectionDrop onDrop={handleNewCollectionDrop} />
+    <div className={`collection-table collection-${collectionId}`}>
+      <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title">
         <div className="collection-title">{`${defaultTableName} (${caseCount} cases)`}</div>
         <DataGrid ref={gridRef} className="rdg-light"
@@ -50,7 +53,6 @@ export const CollectionTable = () => {
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           onCellClick={handleCellClick} onRowsChange={handleRowsChange}/>
       </div>
-      {collection && <div className="collection-table-spacer" />}
     </div>
   )
-}
+})

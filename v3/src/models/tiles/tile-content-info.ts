@@ -19,6 +19,7 @@ type TileContentSnapshotPostProcessor =
 
 export interface ITileContentInfo {
   type: string;
+  prefix: string; // conventionally four uppercase chars
   modelClass: typeof TileContentModel;
   defaultContent: (options?: IDefaultContentOptions) => ITileContentModel;
   titleBase?: string;

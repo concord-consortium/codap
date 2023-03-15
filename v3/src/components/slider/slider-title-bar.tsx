@@ -14,7 +14,7 @@ export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTi
   const tileType = tile?.content.type
 
   return (
-    <ComponentTitleBar component={"slider"} title={title}
+    <ComponentTitleBar tile={tile} component={"slider"} title={title}
         draggableId={`${tileType}-${tileId}`}>
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>

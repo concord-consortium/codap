@@ -12,7 +12,7 @@ import "../shared/shared-data-set-registration"
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
 jest.mock("../../utilities/js-utils", () => ({
-  uniqueId: () => `test-${++mockNodeIdCount}`,
+  typedId: () => `test-${++mockNodeIdCount}`,
   uniqueOrderedId: () => `order-${++mockNodeIdCount}`
 }))
 
@@ -42,7 +42,7 @@ describe("createCodapDocument", () => {
     gDataBroker.setSharedModelManager(manager)
     gDataBroker.addDataSet(data)
 
-    const entry = doc.content?.sharedModelMap.get("test-8")
+    const entry = doc.content?.sharedModelMap.get("test-9")
     const sharedModel = entry?.sharedModel as ISharedDataSet | undefined
     // the DataSet is not copied -- it's a single instance
     expect(data).toBe(gDataBroker.last)
@@ -58,36 +58,37 @@ describe("createCodapDocument", () => {
       rowMap: { "test-2": { id: "test-2", type: "mosaic", nodes: {}, tiles: {}, root: "" } },
       rowOrder: ["test-2"],
       sharedModelMap: {
-        "test-8": {
+        "test-9": {
           sharedModel: {
             dataSet: {
               attributes: [{
                 clientKey: "",
                 formula: {},
-                id: "test-4",
+                id: "test-5",
                 name: "a",
-                userEditable: true,
+                title: "",
+                editable: true,
                 values: ["1", "2", "3"]
               }],
-              cases: [{ __id__: "CASEorder-5" }, { __id__: "CASEorder-6" }, { __id__: "CASEorder-7" }],
+              cases: [{ __id__: "CASEorder-6" }, { __id__: "CASEorder-7" }, { __id__: "CASEorder-8" }],
               collections: [],
-              ungrouped: { name: "", title: "" },
+              ungrouped: { id: "test-4", name: "", title: "" },
               id: "test-3",
               snapSelection: []
             },
-            id: "test-8",
+            id: "test-9",
             providerId: "",
             type: "SharedDataSet"
           },
           tiles: []
         },
-        "test-10": {
+        "test-12": {
           sharedModel: {
             collections: {},
             columnWidths: {},
             data: "test-3",
             hidden: {},
-            id: "test-10",
+            id: "test-12",
             type: "SharedCaseMetadata"
           },
           tiles: []

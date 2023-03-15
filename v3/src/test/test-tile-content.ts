@@ -11,6 +11,7 @@ export interface ITestTileContent extends Instance<typeof TestTileContent> {}
 
 registerTileContentInfo({
   type: "Test",
+  prefix: "TEST",
   modelClass: TestTileContent,
   defaultContent: () => TestTileContent.create()
 })

@@ -4,6 +4,7 @@ import { kDataSummaryTileType } from "../../components/data-summary/data-summary
 import { kGraphTileType } from "../../components/graph/graph-defs"
 import { kHelloCodapTileType } from "../../components/hello/hello-defs"
 import { kSliderTileType } from "../../components/slider/slider-defs"
+import { typedId } from "../../utilities/js-utils"
 import { appState } from "../app-state"
 import { IFreeTileInRowOptions } from "../document/free-tile-row"
 import { IMosaicTileInRowOptions, isMosaicTileRow } from "../document/mosaic-tile-row"
@@ -14,8 +15,9 @@ type ILayoutOptions = IFreeTileInRowOptions | IMosaicTileInRowOptions | undefine
 
 export function createDefaultTileOfType(tileType: string) {
   const info = getTileContentInfo(tileType)
+  const id = typedId(info?.prefix || "TILE")
   const content = info?.defaultContent()
-  return content ? TileModel.create({ content }) : undefined
+  return content ? TileModel.create({ id, content }) : undefined
 }
 
 // TODO: Eliminate (or hide behind a URL parameter) default dashboard content
