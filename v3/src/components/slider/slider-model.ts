@@ -9,6 +9,9 @@ export const SliderModel = TileContentModel
   .props({
     type: types.optional(types.literal(kSliderTileType), kSliderTileType),
     multipleOf: 0.5,
+    animationRate: 1,
+    direction: types.string,
+    repetition: types.string,
     resolution: .01,
     globalValue: types.optional(GlobalValue, {
       // TODO: generate unique name from registry
@@ -52,6 +55,15 @@ export const SliderModel = TileContentModel
     },
     setMultipleOf(n: number) {
       self.multipleOf = Math.abs(n)
+    },
+    setAnimationRate(n: number) {
+      self.animationRate = Math.abs(n)
+    },
+    setDirection(direction: string) {
+      self.direction = direction
+    },
+    setRepetition(repetition: string) {
+      self.repetition = repetition
     }
   }))
 
