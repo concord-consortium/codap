@@ -5,17 +5,24 @@ import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 
 import "./case-table-title-bar.scss"
 
 export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
-  const dataset = useDataSetContext()
-  const [customTitle, setCustomTitle] = useState<string | null>(null)
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
-  const title = customTitle ?? (dataset?.name || "Dataset")
+  //////
+  const title = tile?.title || t("DG.AppController.createDataSet.name")
+  console.log(`tile.title: ${tile?.title}`) // undefined (not populated by default from data set context)
+
+  const dataset = useDataSetContext()
+  console.log(`dataset.name: ${dataset?.name}`)
+
+  // useEffect to set tile.title to dataset.name?
+  // ... or can we do this when the tile model is created?
+  //////
   const cardTableToggleRef = useRef(null)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type

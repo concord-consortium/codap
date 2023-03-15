@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite"
 import React, { ReactNode, useState } from "react"
 import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
+import t from "../utilities/translation/translate"
 
 import "./component-title-bar.scss"
 
@@ -19,7 +20,7 @@ interface IProps {
 export const ComponentTitleBar = observer(function ComponentTitleBar(
   {tile, component, title, draggableId, children}: IProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [, setTitle] = useState(title|| "Dataset")
+  const [, setTitle] = useState(title || t("DG.AppController.createDataSet.name"))
   const { active } = useDndContext()
   const dragging = !!active
 

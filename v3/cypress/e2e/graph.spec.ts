@@ -28,6 +28,6 @@ context("Test graph plot transitions", () => {
     })
     it("populates title bar from sample data", () => {
       const collectionName = "Mammals"
-      graph.getCollectionTitle().should("have.value", collectionName)
+      graph.getCollectionTitle().should("contain", collectionName)
     })
 })
