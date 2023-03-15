@@ -1,11 +1,5 @@
 import {
-  CalculatedColumn,
-  CellClickArgs,
-  Column,
-  EditorProps,
-  FormatterProps,
-  HeaderRendererProps,
-  RowRendererProps,
+  CalculatedColumn, CellClickArgs, Column, EditorProps, FormatterProps, HeaderRendererProps, RowRendererProps,
   RowsChangeData,
 } from "react-data-grid"
 import { IGroupedCase, symFirstChild } from "../../models/data/data-set-types"
