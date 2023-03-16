@@ -21,9 +21,9 @@ before(()=> {
 
 context("case table ui", () => {
     describe("table view", () => {
-        const collectionName = "Mammals"
-        it("verify collection name is visible", () => {
-            table.getCollectionTitle().should("contain", collectionName)
+        it("populates title bar from sample data", () => {
+          const collectionName = "Mammals"
+          table.getCollectionTitle().should("contain", collectionName)
         })
         it("verify columns and tooltips", () => {
             table.getColumnHeaders().should("have.length", 10)

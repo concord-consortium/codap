@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react"
 import { ComponentTitleBar } from "../component-title-bar"
 import { Box, CloseButton, Flex, useOutsideClick } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -10,19 +11,11 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 
 import "./case-table-title-bar.scss"
 
-export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
+export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCloseTile}: ITileTitleBarProps) {
+  const dataset = useDataSetContext()
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
-  //////
-  const title = tile?.title || t("DG.AppController.createDataSet.name")
-  console.log(`tile.title: ${tile?.title}`) // undefined (not populated by default from data set context)
-
-  const dataset = useDataSetContext()
-  console.log(`dataset.name: ${dataset?.name}`)
-
-  // useEffect to set tile.title to dataset.name?
-  // ... or can we do this when the tile model is created?
-  //////
+  const title = tile?.title || dataset?.name || t("DG.AppController.createDataSet.name")
   const cardTableToggleRef = useRef(null)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
@@ -70,4 +63,4 @@ export const CaseTableTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
       </Flex>
     </ComponentTitleBar>
   )
-}
+})

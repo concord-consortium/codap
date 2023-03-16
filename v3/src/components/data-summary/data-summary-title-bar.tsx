@@ -5,9 +5,11 @@ import { observer } from "mobx-react-lite"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 
 export const DataSummaryTitleBar = observer(function DataSummaryTitleBar({tile, onCloseTile}: ITileTitleBarProps) {
-  const title = tile?.title || t("DG.AppController.createDataSet.name")
+  const dataset = useDataSetContext()
+  const title = tile?.title || dataset?.name || t("DG.AppController.createDataSet.name")
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
 
