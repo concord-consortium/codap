@@ -14,6 +14,7 @@ export interface IProps extends ITileBaseProps {
   TitleBar: React.ComponentType<ITileTitleBarProps>;
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
+  isFixedSize?: boolean;
   onCloseTile: (tileId: string) => void
   onBottomRightPointerDown?: (e: React.PointerEvent) => void
   onBottomLeftPointerDown?: (e: React.PointerEvent) => void
@@ -23,11 +24,10 @@ export interface IProps extends ITileBaseProps {
 }
 
 export const CodapComponent = observer(function CodapComponent({
-  tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
-  onBottomPointerDown, onLeftPointerDown, onRightPointerDown
+  tile, TitleBar, Component, tileEltClass,isFixedSize, onCloseTile, onBottomRightPointerDown,
+  onBottomLeftPointerDown, onBottomPointerDown, onLeftPointerDown, onRightPointerDown
 }: IProps) {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
-
   function handleFocusTile() {
     uiState.setFocusedTile(tile.id)
   }
@@ -38,13 +38,16 @@ export const CodapComponent = observer(function CodapComponent({
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
-        {onRightPointerDown && <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
-        {onBottomPointerDown && <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
-        {onLeftPointerDown && <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
-        {onBottomLeftPointerDown &&
+        {onRightPointerDown && !isFixedSize &&
+          <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
+        {onBottomPointerDown && !isFixedSize &&
+          <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
+        {onLeftPointerDown && !isFixedSize &&
+          <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
+        {onBottomLeftPointerDown && !isFixedSize &&
           <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
         }
-        {onBottomRightPointerDown &&
+        {onBottomRightPointerDown && !isFixedSize &&
           <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
             {uiState.isFocusedTile(tile.id) &&
               <ResizeHandle className="component-resize-handle"/>}

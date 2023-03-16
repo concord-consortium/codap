@@ -22,4 +22,5 @@ registerTileComponentInfo({
   isSingleton: true,
   height: 162,
   width: 145,
+  isFixedSize: true,
 })
