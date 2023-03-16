@@ -19,17 +19,13 @@ interface IProps {
 export const ComponentTitleBar = observer(function ComponentTitleBar(
   {tile, component, title, draggableId, children}: IProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [, setTitle] = useState(title|| "Dataset")
   const { active } = useDndContext()
   const dragging = !!active
 
-  const handleTitleChange = (newTitle?: string) => {
-    newTitle && setTitle(newTitle)
-    setIsEditing(false)
-  }
-
-  const handleCancel =  () => {
-    setIsEditing(false)
+  const handleChangeTitle = (nextValue?: string) => {
+    if (tile != null && nextValue) {
+      tile.setTitle(nextValue)
+    }
   }
 
   const draggableOptions = {id: draggableId, disabled: isEditing}
@@ -40,8 +36,9 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
     <Flex className={classes}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
       {children}
-      <Editable defaultValue={title} className="title-bar" isPreviewFocusable={!dragging} submitOnBlur={true}
-          onEdit={()=>setIsEditing(true)} onSubmit={handleTitleChange} onCancel={handleCancel}
+      <Editable value={title} className="title-bar" isPreviewFocusable={!dragging} submitOnBlur={true}
+          onEdit={() => setIsEditing(true)} onSubmit={() => setIsEditing(false)}
+          onChange={handleChangeTitle} onCancel={() => setIsEditing(false)}
           data-testid="editable-component-title">
         <EditablePreview className="title-text"/>
         <EditableInput className="title-text-input"/>
