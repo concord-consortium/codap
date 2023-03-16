@@ -11,7 +11,6 @@ import {
   getDragAttributeId, IUseDraggableAttribute, useDraggableAttribute, useTileDropOverlay, useTileDroppable
 } from "../../hooks/use-drag-drop"
 import { InstanceIdContext, useNextInstanceId } from '../../hooks/use-instance-id-context'
-import { useV2DocumentContext } from "../../hooks/use-v2-document-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
@@ -26,7 +25,6 @@ export const DataSummary = observer(function DataSummary({ tile }: ITileBaseProp
 
   const instanceId = useNextInstanceId(kSummaryIdBase)
   const data = useDataSetContext()
-  const v2Document = useV2DocumentContext()
 
   const { active } = useDndContext()
   const isSummaryDrag = active && `${active.id}`.startsWith(kSummaryIdBase)
@@ -66,8 +64,6 @@ export const DataSummary = observer(function DataSummary({ tile }: ITileBaseProp
     return null
   }
 
-  const componentTypes = v2Document?.components.map(component => component.type)
-  const componentList = componentTypes?.join(", ")
   const casesStr = t(data?.cases.length === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
 
   return (
@@ -78,12 +74,6 @@ export const DataSummary = observer(function DataSummary({ tile }: ITileBaseProp
             ? t("V3.summary.parseResults", { vars: [data.name, data.cases.length, casesStr, data.selection.size] })
             : t("V3.summary.noData")}
         </p>
-        {componentList &&
-          <div className="data-components">
-            <div className="data-components-title"><b>Components</b></div>
-            <p>{componentList}</p>
-          </div>
-        }
         <div className="data-attributes">
           <div className="data-attributes-title"><b>{t("V3.summary.attributes")}</b></div>
           {data?.attributes.map(attr => (

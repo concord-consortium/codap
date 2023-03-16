@@ -8,6 +8,7 @@ import SliderIcon from '../../assets/icons/icon-slider.svg'
 
 registerTileContentInfo({
   type: kSliderTileType,
+  prefix: "SLID",
   modelClass: SliderModel,
   // TODO: deal with auto-incrementing global value names for uniqueness
   defaultContent: () => SliderModel.create({ direction: "loToHigh", repetition: "once",

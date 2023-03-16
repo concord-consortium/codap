@@ -56,6 +56,9 @@ export const DocumentContentModel = types
     get rowCount() {
       return self.rowOrder.length
     },
+    get firstRow(): ITileRowModelUnion | undefined {
+      return this.getRowByIndex(0)
+    },
     getRow(rowId: string): ITileRowModelUnion | undefined {
       return self.rowMap.get(rowId)
     },

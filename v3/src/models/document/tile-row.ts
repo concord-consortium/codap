@@ -1,5 +1,5 @@
 import { Instance, SnapshotIn, SnapshotOut, types } from "mobx-state-tree"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 
 /*
   Represents the layout of a set of tiles/components within a section of a document. The term
@@ -15,7 +15,7 @@ export interface ITileInRowOptions {
 
 export const TileRowModel = types
   .model("TileRow", {
-    id: types.optional(types.identifier, () => uniqueId()),
+    id: types.optional(types.identifier, () => typedId("TROW")),
     type: types.optional(types.string, () => { throw "type must be overridden" }),
     title: types.maybe(types.string), // e.g. for separate pages of a multi-page document
     // the following properties are primarily for use in vertically scrolled rows, e.g. CLUE

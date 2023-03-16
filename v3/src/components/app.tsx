@@ -1,24 +1,26 @@
 import { observer } from "mobx-react-lite"
-import { getEnv } from "mobx-state-tree"
-import React, { useCallback, useEffect, useState } from "react"
+import { getSnapshot } from "mobx-state-tree"
+import React, { useCallback, useEffect } from "react"
 import { CodapDndContext } from "./codap-dnd-context"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import {Container} from "./container"
 import { MenuBar } from "./menu-bar/menu-bar"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
+import { createCodapDocument, getTileEnvironment } from "../models/codap/create-codap-document"
 import {gDataBroker} from "../models/data/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
 import { IDocumentModelSnapshot } from "../models/document/document"
 import { ISharedModelDocumentManager } from "../models/document/shared-model-document-manager"
-import { ITileEnvironment } from "../models/tiles/tile-content"
+import { ITileModel } from "../models/tiles/tile-model"
+import { DocumentContext } from "../hooks/use-document-context"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
-import { V2DocumentContext } from "../hooks/use-v2-document-context"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
+import { importV2Component } from "../v2/codap-v2-tile-importers"
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
@@ -35,19 +37,46 @@ export function handleImportDataSet(data: IDataSet) {
 
 export const App = observer(function App() {
   const codapDocument = appState.document
-  const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
 
   useKeyStates()
 
   const _handleImportDataSet = useCallback((data: IDataSet) => {
     handleImportDataSet(data)
-    setV2Document(undefined)
   }, [])
 
-  const handleImportV2Document = useCallback((document: CodapV2Document) => {
-    // add data sets
-    document.datasets.forEach(data => gDataBroker.addDataSet(data))
-    setV2Document(document)
+  const handleImportV2Document = useCallback((v2Document: CodapV2Document) => {
+    const v3Document = createCodapDocument(undefined, "free")
+    const sharedModelManager = getTileEnvironment(v3Document)?.sharedModelManager
+    sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
+    // add shared models (data sets and case metadata)
+    v2Document.datasets.forEach((data, key) => {
+      const metadata = v2Document.metadata[key]
+      gDataBroker.addDataAndMetadata(data, metadata)
+    })
+
+    // sort components
+    const v2Components = v2Document.components.slice()
+    // sort by zIndex so the resulting tiles will be ordered appropriately
+    v2Components.sort((a, b) => (a.layout.zIndex ?? 0) - (b.layout.zIndex ?? 0))
+
+    // add components
+    const { content } = v3Document
+    const row = content?.firstRow
+    v2Components.forEach(v2Component => {
+      const insertTile = (tile: ITileModel) => {
+        if (row && tile) {
+          const { left, top, width, height } = v2Component.layout
+          content?.insertTileInRow(tile, row, { x: left, y: top, width, height })
+        }
+      }
+      importV2Component({ v2Component, v2Document, sharedModelManager, insertTile })
+    })
+
+    // retrieve document snapshot
+    gDataBroker.prepareSnapshots()
+    const docSnapshot = getSnapshot(v3Document)
+    gDataBroker.completeSnapshots()
+    appState.setDocument(docSnapshot)
   }, [])
 
   const handleImportV3Document = useCallback((document: IDocumentModelSnapshot) => {
@@ -72,7 +101,7 @@ export const App = observer(function App() {
   useEffect(() => {
     // connect the data broker to the shared model manager
     if (!gDataBroker.sharedModelManager) {
-      const docEnv: ITileEnvironment | undefined = getEnv(appState.document)
+      const docEnv = getTileEnvironment(appState.document)
       const sharedModelManager = docEnv?.sharedModelManager as ISharedModelDocumentManager | undefined
       sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
     }
@@ -90,13 +119,13 @@ export const App = observer(function App() {
 
   return (
     <CodapDndContext>
-      <V2DocumentContext.Provider value={v2Document}>
+      <DocumentContext.Provider value={appState.document.content}>
         <div className="app" data-testid="app">
           <MenuBar/>
           <ToolShelf content={codapDocument.content}/>
           <Container content={codapDocument.content}/>
         </div>
-      </V2DocumentContext.Provider>
+      </DocumentContext.Provider>
     </CodapDndContext>
   )
 })

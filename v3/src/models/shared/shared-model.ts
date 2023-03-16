@@ -1,5 +1,5 @@
 import { Instance, types } from "mobx-state-tree"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 
 export const kUnknownSharedModel = "unknownSharedModel"
 
@@ -28,7 +28,7 @@ export const SharedModel = types.model("SharedModel", {
   type: types.optional(types.string, kUnknownSharedModel),
 
   // if not provided, will be generated
-  id: types.optional(types.identifier, () => uniqueId()),
+  id: types.optional(types.identifier, () => typedId("SHAR")),
 })
 .volatile(self => ({
   indexOfType: -1

@@ -3,7 +3,7 @@
  */
 
 import {Instance, types} from "mobx-state-tree"
-import {uniqueId} from "../../../utilities/js-utils"
+import {typedId} from "../../../utilities/js-utils"
 import {Point} from "../graphing-types"
 
 export const PointModel = types.model("Point", {
@@ -27,7 +27,7 @@ export interface IPointModel extends Instance<typeof PointModel> {}
 export const kInfinitePoint = {x:NaN, y:NaN}
 
 const Adornment = types.model("Adornment", {
-  id: types.optional(types.identifier, () => uniqueId()),
+  id: types.optional(types.identifier, () => typedId("ADRN")),
   type: types.optional(types.string, () => {
     throw "type must be overridden"
   }),

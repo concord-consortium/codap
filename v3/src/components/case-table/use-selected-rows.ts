@@ -1,16 +1,15 @@
 import { reaction } from "mobx"
 import { onAction } from "mobx-state-tree"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { ICollectionPropsModel, isCollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
-import { TRow } from "./case-table-types"
+import { TCellClickArgs } from "./case-table-types"
 import { useRowScrolling } from "./use-row-scrolling"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { isKeyDown } from "../../hooks/use-key-states"
 import { prf } from "../../utilities/profiler"
 
 interface UseSelectedRows {
@@ -119,10 +118,11 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
 
-  const handleRowClick = useCallback(({ __id__: caseId }: TRow) => {
+  const handleCellClick = useCallback(
+  ({ row: { __id__: caseId } }: TCellClickArgs, event: MouseEvent<HTMLDivElement>) => {
     const isCaseSelected = data?.isCaseSelected(caseId)
-    const isExtending = isKeyDown("Shift") || isKeyDown("Alt") || isKeyDown("Meta")
-    if (isKeyDown("Shift") && anchorCase.current) {
+    const isExtending = event.shiftKey || event.altKey || event.metaKey
+    if (event.shiftKey && anchorCase.current) {
       const targetIndex = caseIndexFromId(caseId, data, collection)
       const anchorIndex = caseIndexFromId(anchorCase.current, data, collection)
       const casesToSelect: string[] = []
@@ -147,5 +147,5 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
     }
   }, [collection, data])
 
-  return { selectedRows, setSelectedRows, handleRowClick }
+  return { selectedRows, setSelectedRows, handleCellClick }
 }

@@ -1,8 +1,8 @@
 import {Instance, types} from "mobx-state-tree"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 
 export const GlobalValue = types.model("GlobalValue", {
-    id: types.optional(types.identifier, () => uniqueId()),
+    id: types.optional(types.identifier, () => typedId("GLOB")),
     name: types.string,
     value: types.number
   })

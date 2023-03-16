@@ -7,6 +7,7 @@ import { DataSummaryTitleBar } from "./data-summary-title-bar"
 
 registerTileContentInfo({
   type: kDataSummaryTileType,
+  prefix: "DSUM",
   modelClass: DataSummaryModel,
   defaultContent: () => DataSummaryModel.create()
 })

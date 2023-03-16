@@ -2,7 +2,7 @@ import { MosaicTileRow } from "./mosaic-tile-row"
 
 let mockNodeIdCount = -1  // first call is for tile identifier
 jest.mock("../../utilities/js-utils", () => ({
-  uniqueId: () => `node-${++mockNodeIdCount}`
+  typedId: () => `node-${++mockNodeIdCount}`
 }))
 
 describe("MosaicTileRow", () => {
@@ -11,17 +11,20 @@ describe("MosaicTileRow", () => {
     expect(row.nodes.size).toBe(0)
     expect(row.tiles.size).toBe(0)
     expect(row.root).toBe("")
+    expect(row.tileIds).toEqual([])
 
     row.insertTile("tile-1")
     expect(row.nodes.size).toBe(0)
     expect(row.tiles.size).toBe(0)
     expect(row.root).toBe("tile-1")
+    expect(row.tileIds).toEqual(["tile-1"])
     expect(row.getGrandParentNode("tile-1")?.id).toBeUndefined()
 
     row.insertTile("tile-2", { splitTileId: "tile-1" })
     expect(row.nodes.size).toBe(1)
     expect(row.tiles.size).toBe(2)
     expect(row.root).toBe("node-1")
+    expect(row.tileIds).toEqual(["tile-1", "tile-2"])
     const node1 = row.nodes.get("node-1")
     expect(node1?.first).toBe("tile-1")
     expect(node1?.second).toBe("tile-2")
@@ -43,6 +46,7 @@ describe("MosaicTileRow", () => {
     expect(row.nodes.size).toBe(2)
     expect(row.tiles.size).toBe(3)
     expect(row.root).toBe("node-1")
+    expect(row.tileIds).toEqual(["tile-1", "tile-2", "tile-3"])
     expect(node1?.first).toBe("tile-1")
     expect(node1?.second).toBe("node-2")
     const node2 = row.nodes.get("node-2")
@@ -59,6 +63,7 @@ describe("MosaicTileRow", () => {
     expect(row.nodes.size).toBe(3)
     expect(row.tiles.size).toBe(4)
     expect(row.root).toBe("node-1")
+    expect(row.tileIds).toEqual(["tile-1", "tile-4", "tile-2", "tile-3"])
     expect(node1?.first).toBe("node-3")
     expect(node1?.second).toBe("node-2")
     expect(node2?.first).toBe("tile-2")
@@ -79,6 +84,7 @@ describe("MosaicTileRow", () => {
     expect(row.nodes.size).toBe(2)
     expect(row.tiles.size).toBe(3)
     expect(row.root).toBe("node-1")
+    expect(row.tileIds).toEqual(["tile-1", "tile-2", "tile-3"])
     expect(node1?.first).toBe("tile-1")
     expect(node1?.second).toBe("node-2")
     expect(node2?.first).toBe("tile-2")
@@ -91,6 +97,7 @@ describe("MosaicTileRow", () => {
     expect(row.nodes.size).toBe(1)
     expect(row.tiles.size).toBe(2)
     expect(row.root).toBe("node-1")
+    expect(row.tileIds).toEqual(["tile-1", "tile-2"])
     expect(node1?.first).toBe("tile-1")
     expect(node1?.second).toBe("tile-2")
     expect(row.tiles.get("tile-1")).toBe("node-1")
@@ -100,10 +107,12 @@ describe("MosaicTileRow", () => {
     expect(row.nodes.size).toBe(0)
     expect(row.tiles.size).toBe(1)
     expect(row.root).toBe("tile-1")
+    expect(row.tileIds).toEqual(["tile-1"])
 
     row.removeTile("tile-1")
     expect(row.nodes.size).toBe(0)
     expect(row.tiles.size).toBe(0)
     expect(row.root).toBe("")
+    expect(row.tileIds).toEqual([])
   })
 })

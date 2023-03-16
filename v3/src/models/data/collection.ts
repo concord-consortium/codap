@@ -1,6 +1,6 @@
 import { getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { uniqueId } from "../../utilities/js-utils"
+import { typedId } from "../../utilities/js-utils"
 import { IMoveAttributeOptions } from "./data-set-types"
 
 export const CollectionLabels = types.model("CollectionLabels", {
@@ -12,7 +12,7 @@ export const CollectionLabels = types.model("CollectionLabels", {
 })
 
 export const CollectionPropsModel = types.model("CollectionProps", {
-  id: types.optional(types.identifier, () => `COLL${uniqueId()}`),
+  id: types.optional(types.identifier, () => typedId("COLL")),
   name: "",
   title: "",
   labels: types.maybe(CollectionLabels)
