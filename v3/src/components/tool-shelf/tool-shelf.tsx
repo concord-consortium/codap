@@ -49,14 +49,13 @@ export const ToolShelf = ({content}: IProps) => {
       if (newTile) {
         if (isFreeTileRow(row)) {
           const newTileSize = {width, height}
-          const newTilePosition = getPositionOfNewComponent(newTileSize)
-          const tileOptions = { x: newTilePosition.x, y: newTilePosition.y,
-                                width, height }
+          const {x, y} = getPositionOfNewComponent(newTileSize)
+          const tileOptions = { x, y, width, height }
           content?.insertTileInRow(newTile, row, tileOptions)
           const rowTile = row.tiles.get(newTile.id)
           if (componentInfo.width && componentInfo.height) {
             rowTile?.setSize(componentInfo.width,  componentInfo.height + kHeaderHeight)
-            rowTile?.setPosition(newTilePosition.x, newTilePosition.y)
+            rowTile?.setPosition(tileOptions.x, tileOptions.y)
           }
         }
       }
