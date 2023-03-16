@@ -22,6 +22,10 @@ export interface ICodapV2Attribute {
   unit?: string | null
 }
 
+export function isCodapV2Attribute(o: any): o is ICodapV2Attribute {
+  return o.type === "DG.Attribute"
+}
+
 export interface ICodapV2Case {
   id?: number
   guid: number
@@ -52,7 +56,7 @@ export interface ICodapV2Collection {
   name: string
   parent?: number
   title: string
-  type: 'DG.Collection'
+  type: "DG.Collection"
 }
 
 export interface ICodapV2DataContext {
@@ -145,6 +149,7 @@ export interface ICodapV2BaseComponent {
     left: number
     top: number
     isVisible: boolean
+    zIndex?: number
   }
   savedHeight: number | null
 }

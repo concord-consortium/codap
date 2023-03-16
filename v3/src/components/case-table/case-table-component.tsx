@@ -2,7 +2,7 @@ import { closestCenter, CollisionDetection, rectIntersection } from "@dnd-kit/co
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { CaseMetadataContext } from "../../hooks/use-case-metadata"
-import { useDataSetAndMetadata } from "../../hooks/use-data-set-and-metadata"
+import { useDataSet } from "../../hooks/use-data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDropOverlay } from "../../hooks/use-drag-drop"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
@@ -31,19 +31,7 @@ export const CaseTableComponent = observer(function CaseTableComponent({ tile }:
   const { setNodeRef } = useTileDropOverlay(instanceId)
 
   const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
-  const { data, metadata } = useDataSetAndMetadata(tableModel?.data, tableModel?.metadata)
-
-  // TODO: update model when appropriate
-  // useEffect(() => {
-  //   if (tableModel) {
-  //     if (data && data !== tableModel.data) {
-  //       tableModel.setData(data)
-  //     }
-  //     if (metadata && metadata !== tableModel.metadata) {
-  //       tableModel.setMetadata(metadata)
-  //     }
-  //   }
-  // }, [data, metadata, tableModel])
+  const { data, metadata } = useDataSet(tableModel?.data, tableModel?.metadata)
 
   if (!tableModel) return null
 

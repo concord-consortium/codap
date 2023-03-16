@@ -1,6 +1,6 @@
-import { Instance, types } from "mobx-state-tree"
+import { getType, Instance, types } from "mobx-state-tree"
 import { DataSet, IDataSet } from "../data/data-set"
-import { SharedModel } from "./shared-model"
+import { ISharedModel, SharedModel } from "./shared-model"
 
 export const kSharedCaseMetadataType = "SharedCaseMetadata"
 
@@ -76,3 +76,7 @@ export const SharedCaseMetadata = SharedModel
     }
   }))
 export interface ISharedCaseMetadata extends Instance<typeof SharedCaseMetadata> {}
+
+export function isSharedCaseMetadata(model?: ISharedModel): model is ISharedCaseMetadata {
+  return model ? getType(model) === SharedCaseMetadata : false
+}

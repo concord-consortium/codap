@@ -75,6 +75,23 @@ export const MosaicTileRow = TileRowModel
     }
   }))
   .views(self => ({
+    get tileIds() {
+      const ids: string[] = []
+
+      function processId(nodeOrTileId: string) {
+        const node = self.getNode(nodeOrTileId)
+        if (node) {
+          processId(node.first)
+          processId(node.second)
+        }
+        else if (nodeOrTileId) {
+          ids.push(nodeOrTileId)
+        }
+      }
+
+      processId(self.root)
+      return ids
+    },
     getGrandParentNode(tileId: string): IMosaicTileNode | undefined {
       const parent = self.getParentNode(tileId)
 

@@ -2,6 +2,8 @@ import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
+import {useDataSet} from '../../../hooks/use-data-set'
+import {DataSetContext} from '../../../hooks/use-data-set-context'
 import {useGraphController} from "../hooks/use-graph-controller"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {uiState} from "../../../models/ui-state"
@@ -13,11 +15,11 @@ import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 
-export const GraphComponent = observer(({tile}: ITileBaseProps) => {
-  const graphModel = tile?.content
-  if (!isGraphModel(graphModel)) return null
+export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
+  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("graph")
+  const { data } = useDataSet(graphModel?.data)
   const layout = useMemo(() => new GraphLayout(), [])
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
   const enableAnimation = useRef(true)
@@ -38,18 +40,22 @@ export const GraphComponent = observer(({tile}: ITileBaseProps) => {
   const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(graphRef.current)
 
+  if (!graphModel) return null
+
   return (
-    <InstanceIdContext.Provider value={instanceId}>
-      <GraphLayoutContext.Provider value={layout}>
-        <AxisLayoutContext.Provider value={layout}>
-          <GraphModelContext.Provider value={graphModel}>
-            <Graph graphController={graphController}
-                   graphRef={graphRef}
-                   showInspector={uiState.isFocusedTile(tile?.id)}
-            />
-          </GraphModelContext.Provider>
-        </AxisLayoutContext.Provider>
-      </GraphLayoutContext.Provider>
-    </InstanceIdContext.Provider>
+    <DataSetContext.Provider value={data}>
+      <InstanceIdContext.Provider value={instanceId}>
+        <GraphLayoutContext.Provider value={layout}>
+          <AxisLayoutContext.Provider value={layout}>
+            <GraphModelContext.Provider value={graphModel}>
+              <Graph graphController={graphController}
+                    graphRef={graphRef}
+                    showInspector={uiState.isFocusedTile(tile?.id)}
+              />
+            </GraphModelContext.Provider>
+          </AxisLayoutContext.Provider>
+        </GraphLayoutContext.Provider>
+      </InstanceIdContext.Provider>
+    </DataSetContext.Provider>
   )
 })

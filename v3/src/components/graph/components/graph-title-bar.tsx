@@ -9,7 +9,7 @@ import { ITileTitleBarProps } from "../../tiles/tile-base-props"
 export const GraphTitleBar = ({tile, onCloseTile}: ITileTitleBarProps) => {
   const dataset = useDataSetContext()
   const tileId = tile?.id || ""
-  const title = dataset?.name || "Dataset"
+  const title = tile?.title || dataset?.name || "Dataset"
   const tileType = tile?.content.type
 
   return (

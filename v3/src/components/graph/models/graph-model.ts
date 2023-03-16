@@ -1,13 +1,17 @@
-import {Instance, ISerializedActionCall, types} from "mobx-state-tree"
+import {Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {createContext, useContext} from "react"
 import {AxisPlace} from "../../axis/axis-types"
-import {AxisModelUnion, IAxisModelUnion} from "../../axis/models/axis-model"
+import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion} from "../../axis/models/axis-model"
 import {kGraphTileType} from "../graph-defs"
 import {
   GraphAttrRole, hoverRadiusFactor, PlotType, PlotTypes,
   pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
 import {DataConfigurationModel} from "./data-configuration-model"
+import {IDataSet} from "../../../models/data/data-set"
+import {ISharedModel} from "../../../models/shared/shared-model"
+import { ISharedCaseMetadata, isSharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
+import {isSharedDataSet} from "../../../models/shared/shared-data-set"
 import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
 import {
   defaultBackgroundColor,
@@ -56,6 +60,16 @@ export const GraphModel = TileContentModel
     showMeasuresForSelection: false
   })
   .views(self => ({
+    get data(): IDataSet | undefined {
+      const sharedModelManager = self.tileEnv?.sharedModelManager
+      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedDataSet(m))
+      return isSharedDataSet(sharedModel) ? sharedModel.dataSet : undefined
+    },
+    get metadata(): ISharedCaseMetadata | undefined {
+      const sharedModelManager = self.tileEnv?.sharedModelManager
+      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedCaseMetadata(m))
+      return isSharedCaseMetadata(sharedModel) ? sharedModel : undefined
+    },
     pointColorAtIndex(plotIndex = 0) {
       return self._pointColors[plotIndex] ?? kellyColors[plotIndex % kellyColors.length]
     },
@@ -94,6 +108,9 @@ export const GraphModel = TileContentModel
     }
   }))
   .actions(self => ({
+    updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
+      // TODO
+    },
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
     },
@@ -138,6 +155,18 @@ export const GraphModel = TileContentModel
       self.showMeasuresForSelection = show
     }
   }))
+export interface IGraphModel extends Instance<typeof GraphModel> {}
+export interface IGraphModelSnapshot extends SnapshotIn<typeof GraphModel> {}
+
+export function createGraphModel(snap?: IGraphModelSnapshot) {
+  return GraphModel.create({
+    axes: {
+      bottom: EmptyAxisModel.create({place: "bottom"}),
+      left: EmptyAxisModel.create({place: "left"})
+    },
+    ...snap
+  })
+}
 
 export interface SetAttributeIDAction extends ISerializedActionCall {
   name: "setAttributeID"
@@ -156,9 +185,6 @@ export interface SetGraphVisualPropsAction extends ISerializedActionCall {
 export function isGraphVisualPropsAction(action: ISerializedActionCall): action is SetGraphVisualPropsAction {
   return ['setPointColor', 'setPointStrokeColor', 'setPointStrokeSameAsFill', 'setPlotBackgroundColor',
     'setPointSizeMultiplier', 'setIsTransparent'].includes(action.name)
-}
-
-export interface IGraphModel extends Instance<typeof GraphModel> {
 }
 
 export const GraphModelContext = createContext<IGraphModel>({} as IGraphModel)

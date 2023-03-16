@@ -1,22 +1,31 @@
 import { Instance, types } from "mobx-state-tree"
-import { DataSet, IDataSet } from "../../models/data/data-set"
-import { ISharedCaseMetadata, SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { IDataSet } from "../../models/data/data-set"
+import { ISharedCaseMetadata, isSharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { isSharedDataSet } from "../../models/shared/shared-data-set"
+import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseTableTileType } from "./case-table-defs"
 
 export const CaseTableModel = TileContentModel
   .named("CaseTableModel")
   .props({
-    type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType),
-    data: types.safeReference(DataSet),
-    metadata: types.safeReference(SharedCaseMetadata)
+    type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType)
   })
-  .actions(self => ({
-    setData(data?: IDataSet) {
-      self.data = data
+  .views(self => ({
+    get data(): IDataSet | undefined {
+      const sharedModelManager = self.tileEnv?.sharedModelManager
+      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedDataSet(m))
+      return isSharedDataSet(sharedModel) ? sharedModel.dataSet : undefined
     },
-    setMetadata(metadata?: ISharedCaseMetadata) {
-      self.metadata = metadata
+    get metadata(): ISharedCaseMetadata | undefined {
+      const sharedModelManager = self.tileEnv?.sharedModelManager
+      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedCaseMetadata(m))
+      return isSharedCaseMetadata(sharedModel) ? sharedModel : undefined
+    }
+  }))
+  .actions(self => ({
+    updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
+      // TODO
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
