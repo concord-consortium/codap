@@ -113,7 +113,7 @@ export const MosaicTileComponent = observer(
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
         <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-            tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile}/>
+            tileEltClass={info.tileEltClass} onCloseTile={handleCloseTile} isUserResizable={false}/>
       }
     </div>
   )

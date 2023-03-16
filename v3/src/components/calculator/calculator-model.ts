@@ -6,7 +6,6 @@ export const CalculatorModel = TileContentModel
   .named("CalculatorModel")
   .props({
     type: types.optional(types.literal(kCalculatorTileType), kCalculatorTileType),
-    isUserResizable: false
   })
 export interface ICalculatorModel extends Instance<typeof CalculatorModel> {}
 

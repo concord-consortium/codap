@@ -19,5 +19,6 @@ registerTileComponentInfo({
   TitleBar: PlaceholderTileTitleBar,
   Component: PlaceholderTileComponent,
   tileEltClass: "placeholder-tile",
-  tileHandlesOwnSelection: true
+  tileHandlesOwnSelection: true,
+  isUserResizable: true,
 })

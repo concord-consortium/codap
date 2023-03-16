@@ -20,4 +20,5 @@ registerTileComponentInfo({
   Icon: TableIcon,
   height: 275,
   width: 580,
+  isUserResizable: true,
 })

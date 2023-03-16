@@ -14,6 +14,7 @@ export interface IProps extends ITileBaseProps {
   TitleBar: React.ComponentType<ITileTitleBarProps>;
   Component: React.ComponentType<ITileBaseProps>;
   tileEltClass: string;
+  isUserResizable?: boolean;
   onCloseTile: (tileId: string) => void
   onBottomRightPointerDown?: (e: React.PointerEvent) => void
   onBottomLeftPointerDown?: (e: React.PointerEvent) => void
@@ -23,11 +24,10 @@ export interface IProps extends ITileBaseProps {
 }
 
 export const CodapComponent = observer(function CodapComponent({
-  tile, TitleBar, Component, tileEltClass, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
-  onBottomPointerDown, onLeftPointerDown, onRightPointerDown
+  tile, TitleBar, Component, tileEltClass,isUserResizable, onCloseTile, onBottomRightPointerDown,
+  onBottomLeftPointerDown, onBottomPointerDown, onLeftPointerDown, onRightPointerDown
 }: IProps) {
   const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
-
   function handleFocusTile() {
     uiState.setFocusedTile(tile.id)
   }
@@ -38,16 +38,16 @@ export const CodapComponent = observer(function CodapComponent({
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
-        {onRightPointerDown && tile.isUserResizable &&
+        {onRightPointerDown && isUserResizable &&
           <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
-        {onBottomPointerDown && tile.isUserResizable &&
+        {onBottomPointerDown && isUserResizable &&
           <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
-        {onLeftPointerDown && tile.isUserResizable &&
+        {onLeftPointerDown && isUserResizable &&
           <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
-        {onBottomLeftPointerDown && tile.isUserResizable &&
+        {onBottomLeftPointerDown && isUserResizable &&
           <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
         }
-        {onBottomRightPointerDown && tile.isUserResizable &&
+        {onBottomRightPointerDown && isUserResizable &&
           <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
             {uiState.isFocusedTile(tile.id) &&
               <ResizeHandle className="component-resize-handle"/>}

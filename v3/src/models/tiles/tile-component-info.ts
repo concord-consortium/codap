@@ -23,6 +23,7 @@ export interface ITileComponentInfo {
   height?: number;
   /* Toolshelf specific properties */
   isSingleton?: boolean; // Only one instance of a tile is open per documeent so toolshelf button opens and closes tile
+  isUserResizable?: boolean;
 }
 
 const gTileComponentInfoMap = new Map<string, ITileComponentInfo>()
