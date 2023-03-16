@@ -1,13 +1,17 @@
 import { CollectionModel } from "../models/data/collection"
-import { DataSet, IDataSet, toCanonical } from "../models/data/data-set"
+import { IDataSet, toCanonical } from "../models/data/data-set"
+import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
+import { ISharedDataSet, SharedDataSet } from "../models/shared/shared-data-set"
 import {
-  CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson
+  CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson,
+  isCodapV2Attribute, isV2TableComponent
 } from "./codap-v2-types"
 
 export class CodapV2Document {
   private document: ICodapV2DocumentJson
   private guidMap: Record<number, { type: string, object: any }> = {}
-  private data: Record<number, IDataSet> = {}
+  private dataMap: Record<number, ISharedDataSet> = {}
+  private metadataMap: Record<number, ISharedCaseMetadata> = {}
 
   constructor(document: ICodapV2DocumentJson) {
     this.document = document
@@ -15,8 +19,8 @@ export class CodapV2Document {
     // register the document
     this.guidMap[document.guid] = { type: "DG.Document", object: document }
 
-    this.registerComponents(document.components)
     this.registerContexts(document.contexts)
+    this.registerComponents(document.components)
   }
 
   get contexts() {
@@ -32,7 +36,15 @@ export class CodapV2Document {
   }
 
   get datasets() {
-    return Object.values(this.data)
+    return Object.values(this.dataMap)
+  }
+
+  get metadata() {
+    return Object.values(this.metadataMap)
+  }
+
+  getDataAndMetadata(v2Id: number) {
+    return { data: this.dataMap[v2Id], metadata: this.metadataMap[v2Id] }
   }
 
   getParentCase(aCase: ICodapV2Case) {
@@ -46,8 +58,24 @@ export class CodapV2Document {
 
   registerComponents(components?: CodapV2Component[]) {
     components?.forEach(component => {
-      const { guid, type, } = component
+      const { guid, type } = component
       this.guidMap[guid] = { type, object: component }
+
+      // extract table metadata (e.g. column widths)
+      if (isV2TableComponent(component)) {
+        const { _links_, attributeWidths } = component.componentStorage
+        const data = this.dataMap[_links_.context.id].dataSet
+        const metadata = this.metadataMap[_links_.context.id]
+        attributeWidths?.forEach(entry => {
+          const v2Attr = this.guidMap[entry._links_.attr.id]
+          if (isCodapV2Attribute(v2Attr)) {
+            const attrId = data.attrIDFromName(v2Attr.name)
+            if (attrId && entry.width) {
+              metadata.setColumnWidth(attrId, entry.width)
+            }
+          }
+        })
+      }
     })
   }
 
@@ -58,9 +86,11 @@ export class CodapV2Document {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
       }
       this.guidMap[guid] = { type, object: context }
-      this.data[guid] = DataSet.create({ name })
+      const sharedDataSet = SharedDataSet.create({ dataSet: { name } })
+      this.dataMap[guid] = sharedDataSet
+      this.metadataMap[guid] = SharedCaseMetadata.create({ data: this.dataMap[guid].id })
 
-      this.registerCollections(this.data[guid], collections)
+      this.registerCollections(sharedDataSet.dataSet, collections)
     })
   }
 

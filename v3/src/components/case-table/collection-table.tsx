@@ -21,7 +21,7 @@ export const CollectionTable = observer(function CollectionTable() {
   const collectionId = collection?.id || kChildMostTableCollectionId
   const gridRef = useRef<DataGridHandle>(null)
 
-  const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ gridRef })
+  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
 
   // columns
   const indexColumn = useIndexColumn()
@@ -51,7 +51,7 @@ export const CollectionTable = observer(function CollectionTable() {
         <DataGrid ref={gridRef} className="rdg-light"
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
+          onCellClick={handleCellClick} onRowsChange={handleRowsChange}/>
       </div>
     </div>
   )

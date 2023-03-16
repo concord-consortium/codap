@@ -4,7 +4,7 @@ import { ISharedCaseMetadata, kSharedCaseMetadataType } from "../models/shared/s
 import { ITileEnvironment } from "../models/tiles/tile-content"
 import { useDataSetContext } from "./use-data-set-context"
 
-export function useDataSetAndMetadata(inData?: IDataSet, inMetadata?: ISharedCaseMetadata) {
+export function useDataSet(inData?: IDataSet, inMetadata?: ISharedCaseMetadata) {
   const _data = useDataSetContext()
   const data = inData ?? _data
   // find the metadata that corresponds to this DataSet
