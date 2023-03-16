@@ -42,8 +42,8 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
             testId={"graph-resize-button"} onButtonClick={handleResize}>
             <ScaleDataIcon />
           </InspectorButton>
-          <InspectorMenu tooltip={t("DG.Inspector.displayStyles.toolTip")}
-            icon={<HideShowIcon />} testId={"graph-display-styles-button"} >
+          <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
+            icon={<HideShowIcon />} testId={"graph-hide-show-button"} >
             <HideShowMenuList graphModel={graphModel} />
           </InspectorMenu>
           <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
@@ -62,11 +62,11 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
             testId={"graph-camera-button"}>
           <CameraIcon />
           </InspectorButton>
+          {showPalette === "format" &&
+            <PointFormatPalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
+          {showPalette === "measure" &&
+            <GraphMeasurePalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
         </InspectorPanel>
-        {showPalette === "format" &&
-          <PointFormatPalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
-        {showPalette === "measure" &&
-          <GraphMeasurePalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
       </>
     : null
   )

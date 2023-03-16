@@ -60,7 +60,7 @@ export const GraphMeasurePalette = ({graphModel, setShowPalette}: IProps) => {
       title={t("DG.Inspector.values")}
       Icon={<ValuesIcon />}
       paletteTop={paletteTop}
-      buttonLocation={graphModel.plotType === "casePlot" || graphModel.plotType === "dotChart" ? 25 : 75}
+      button={"graph-display-values-button"}
     >
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>

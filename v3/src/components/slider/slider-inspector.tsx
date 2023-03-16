@@ -23,12 +23,12 @@ export const SliderInspector = ({ sliderModel, show }: IProps) => {
     ? <>
         <InspectorPanel component="slider">
           <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
-            onButtonClick={handleRulerButton} testId={"slider-inspector-button"}>
+            onButtonClick={handleRulerButton} testId={"slider-values-button"}>
             <ValuesIcon />
           </InspectorButton>
+          {showPalette === "measure" &&
+            <SliderSettingsPalette sliderModel={sliderModel} setShowPalette={setShowPalette}/>}
         </InspectorPanel>
-        {showPalette === "measure" &&
-          <SliderSettingsPalette sliderModel={sliderModel} setShowPalette={setShowPalette}/>}
       </>
     : null
   )

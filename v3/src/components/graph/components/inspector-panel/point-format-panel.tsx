@@ -60,7 +60,7 @@ categoriesRef.current?.forEach(cat => {
     <InspectorPalette
       title={t("DG.Inspector.styles")}
       Icon={<StylesIcon/>}
-      buttonLocation={115}
+      button={"graph-display-styles-button"}
       paletteTop={35}
     >
       <Flex className="palette-form" direction="column">

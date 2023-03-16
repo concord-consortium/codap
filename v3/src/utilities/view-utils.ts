@@ -93,3 +93,10 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
   const nLoc = findEmptyLocationForRect()
   return nLoc
 }
+
+export const isWithinBounds = (dimension: number, rect?: DOMRect) => {
+  if (!rect) return
+  const viewportEl = document.getElementsByClassName("free-tile-row")?.[0]
+  const viewportRect = viewportEl.getBoundingClientRect()
+  return (rect.right + dimension + 10) < viewportRect?.right
+}

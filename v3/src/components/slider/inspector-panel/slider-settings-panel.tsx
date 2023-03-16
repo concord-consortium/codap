@@ -48,7 +48,7 @@ export const SliderSettingsPalette =
     <InspectorPalette
       title={t("DG.Inspector.values")}
       Icon={<ValuesIcon/>}
-      buttonLocation={50}
+      button={"slider-values-button"}
       paletteTop={-50}
     >
       <Flex className="palette-form" direction="column">

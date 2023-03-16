@@ -1,6 +1,7 @@
 import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode, useRef } from "react"
+import React, { ReactNode, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
+import { isWithinBounds } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
 
@@ -60,15 +61,27 @@ interface IInspectorPalette {
   Icon?: ReactNode
   title?: string
   paletteTop?: number
-  buttonLocation: number
+  button: string
 }
 
-export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocation}:IInspectorPalette) => {
+export const InspectorPalette =({children, Icon, title, paletteTop = 0, button}:IInspectorPalette) => {
+  const panelRect = document.querySelector("[data-testid=inspector-panel]")?.getBoundingClientRect()
+  const buttonRect = document.querySelector(`[data-testid=${button}]`)?.getBoundingClientRect()
+  const panelTop = panelRect?.top || 0
+  const buttonTop = buttonRect?.top || 0
+  const [paletteWidth, setPaletteWidth] = useState(0)
+  useEffect(() => {
+    if (paletteRef.current) {
+      setPaletteWidth(paletteRef.current.offsetWidth)
+    }
+  }, [])
+
   const PalettePointer = () => {
-    const pointerStyle = {top: (buttonLocation+11)}
+    const pointerStyle = {top: buttonTop - panelTop - 5}
 
     return (
-      <div className={`palette-pointer arrow-left`} style={pointerStyle} />
+      <div className={`palette-pointer ${isWithinBounds(paletteWidth, buttonRect) ? "arrow-left" : "arrow-right"}`}
+            style={pointerStyle} />
     )
   }
   const PaletteHeader = () => {
@@ -81,16 +94,17 @@ export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocati
       </div>
     )
   }
-  const paletteStyle = {top: paletteTop}
+  const paletteStyle = {top: paletteTop, left: isWithinBounds(paletteWidth, buttonRect) ? 60 : -(paletteWidth + 10)}
   const paletteRef = useRef<HTMLDivElement>(null)
-
   return (
-    <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle}
-        data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
-      <PaletteHeader />
-      {children}
+    <>
       <PalettePointer/>
-    </Box>
+      <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle} tabIndex={0} zIndex={250}
+          data-testid="codap-inspector-palette">
+        <PaletteHeader />
+        {children}
+      </Box>
+    </>
   )
 
 }
