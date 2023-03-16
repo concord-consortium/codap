@@ -21,5 +21,4 @@ registerTileComponentInfo({
   Icon: SliderIcon,
   height: 98,
   width: 300,
-  isUserResizable: true,
 })

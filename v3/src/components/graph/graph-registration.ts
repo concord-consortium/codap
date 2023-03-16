@@ -26,5 +26,4 @@ registerTileComponentInfo({
   Icon: GraphIcon,
   height: 300,
   width: 300,
-  isUserResizable: true, 
 })

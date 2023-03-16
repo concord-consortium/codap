@@ -21,5 +21,4 @@ registerTileComponentInfo({
   Component: PlaceholderTileComponent,
   tileEltClass: "placeholder-tile",
   tileHandlesOwnSelection: true,
-  isUserResizable: true,
 })

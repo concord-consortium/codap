@@ -16,5 +16,4 @@ registerTileComponentInfo({
   TitleBar: DataSummaryTitleBar,
   Component: DataSummary,
   tileEltClass: kDataSummaryTileClass,
-  isUserResizable: true,
 })

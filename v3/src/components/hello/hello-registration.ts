@@ -16,5 +16,4 @@ registerTileComponentInfo({
   TitleBar: HelloTitleBar,
   Component: HelloComponent,
   tileEltClass: kHelloCodapTileClass,
-  isUserResizable: true,
 })

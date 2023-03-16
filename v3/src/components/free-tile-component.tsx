@@ -100,7 +100,7 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
       {tile && info && rowTile &&
         <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
             tileEltClass={info.tileEltClass} onCloseTile={onCloseTile}
-            isUserResizable={info.isUserResizable}
+            isFixedSize={info.isFixedSize}
             onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
             onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
             onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}
