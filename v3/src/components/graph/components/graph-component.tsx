@@ -40,7 +40,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(graphRef.current)
 
-  if (!isGraphModel(graphModel)) return null
+  if (!graphModel) return null
 
   return (
     <DataSetContext.Provider value={data}>

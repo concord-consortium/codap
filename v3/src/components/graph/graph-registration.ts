@@ -36,12 +36,14 @@ registerV2TileImporter("DG.GraphView", ({ v2Component, v2Document, sharedModelMa
   const graphTile = TileModel.create({
     id: typedId(kGraphIdPrefix),
     title,
+    // TODO: flesh out graph model conversion
     content: createGraphModel()
   })
   insertTile(graphTile)
 
   // link shared model
   const contextId = _links_.context.id
-  const { data } = v2Document.getDataAndMetadata(contextId)
+  const { data, metadata } = v2Document.getDataAndMetadata(contextId)
   sharedModelManager?.addTileSharedModel(graphTile.content, data, true)
+  sharedModelManager?.addTileSharedModel(graphTile.content, metadata, true)
 })

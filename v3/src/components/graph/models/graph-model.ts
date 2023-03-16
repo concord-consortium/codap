@@ -10,6 +10,7 @@ import {
 import {DataConfigurationModel} from "./data-configuration-model"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedModel} from "../../../models/shared/shared-model"
+import { ISharedCaseMetadata, isSharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
 import {isSharedDataSet} from "../../../models/shared/shared-data-set"
 import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
 import {
@@ -63,6 +64,11 @@ export const GraphModel = TileContentModel
       const sharedModelManager = self.tileEnv?.sharedModelManager
       const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedDataSet(m))
       return isSharedDataSet(sharedModel) ? sharedModel.dataSet : undefined
+    },
+    get metadata(): ISharedCaseMetadata | undefined {
+      const sharedModelManager = self.tileEnv?.sharedModelManager
+      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedCaseMetadata(m))
+      return isSharedCaseMetadata(sharedModel) ? sharedModel : undefined
     },
     pointColorAtIndex(plotIndex = 0) {
       return self._pointColors[plotIndex] ?? kellyColors[plotIndex % kellyColors.length]

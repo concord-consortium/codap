@@ -48,7 +48,7 @@ export const App = observer(function App() {
     const v3Document = createCodapDocument(undefined, "free")
     const sharedModelManager = getTileEnvironment(v3Document)?.sharedModelManager
     sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
-    // add data sets
+    // add shared models (data sets and case metadata)
     v2Document.datasets.forEach((data, key) => {
       const metadata = v2Document.metadata[key]
       gDataBroker.addDataAndMetadata(data, metadata)
