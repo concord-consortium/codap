@@ -1,6 +1,6 @@
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect } from "react"
+import React, { useEffect, useRef } from "react"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IFreeTileRow } from "../models/document/free-tile-row"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -16,10 +16,8 @@ interface IFreeTileRowProps {
 }
 export const FreeTileRowComponent = observer(function FreeTileRowComponent(
   { content, row, getTile }: IFreeTileRowProps) {
-  const handleCloseTile = (tileId: string) => {
-    if (!tileId) return
-    content?.deleteTile(tileId)
-  }
+
+  const rowRef = useRef<HTMLDivElement | null>(null)
 
   // focused tile should always be on top
   useEffect(() => {
@@ -31,8 +29,18 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
     })
   }, [row])
 
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.target === rowRef.current) {
+      uiState.setFocusedTile()
+    }
+  }
+
+  function handleCloseTile(tileId: string) {
+    tileId && content?.deleteTile(tileId)
+  }
+
   return (
-    <div className="free-tile-row">
+    <div className="free-tile-row" ref={rowRef} onPointerDown={handlePointerDown}>
       {
         row?.tileIds.map(tileId => {
           const tile = getTile(tileId)
