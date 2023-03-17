@@ -8,6 +8,7 @@ $pseudo-inspector-width: 40px;
   width: calc(100% - $pseudo-inspector-width);
   height: 100px;
   background: #fff;
+  border-radius: $border-radius-bottom-corners;
 
   .slider {
     button svg, .thumb-icon {

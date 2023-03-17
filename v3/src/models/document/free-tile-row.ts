@@ -15,8 +15,8 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   tileId: types.string,
   x: types.number,
   y: types.number,
-  width: types.number,
-  height: types.number
+  width: types.maybe(types.number),
+  height: types.maybe(types.number)
 })
 .views(self => ({
   get position() {
@@ -31,7 +31,7 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
     self.x = x
     self.y = y
   },
-  setSize(width: number, height: number) {
+  setSize(width?: number, height?: number) {
     self.width = width
     self.height = height
   }
@@ -42,8 +42,8 @@ export interface IFreeTileLayoutSnapshot extends SnapshotIn<typeof FreeTileLayou
 export interface IFreeTileInRowOptions extends ITileInRowOptions {
   x: number
   y: number
-  width: number
-  height: number
+  width?: number
+  height?: number
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
               (options as any)?.x != null && (options as any)?.y != null
@@ -88,7 +88,7 @@ export const FreeTileRow = TileRowModel
   }))
   .actions(self => ({
     insertTile(tileId: string, options?: ITileInRowOptions) {
-      const { x = 50, y = 50, width = 400, height = 300 } = isFreeTileInRowOptions(options) ? options : {}
+      const { x = 50, y = 50, width = undefined, height = undefined } = isFreeTileInRowOptions(options) ? options : {}
       self.tiles.set(tileId, { tileId, x, y, width, height })
       self.order.push(tileId)
     },

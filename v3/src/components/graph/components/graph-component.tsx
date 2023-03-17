@@ -2,18 +2,18 @@ import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
+import {kTitleBarHeight} from '../../constants'
+import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
 import {useGraphController} from "../hooks/use-graph-controller"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {uiState} from "../../../models/ui-state"
-import {kTitleBarHeight} from "../graphing-types"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import {ITileBaseProps} from '../../tiles/tile-base-props'
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined

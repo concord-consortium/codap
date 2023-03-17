@@ -84,6 +84,13 @@ export interface IGuidLink<T extends string> {
   id: number
 }
 
+export interface ICodapV2CalculatorStorage {
+  title: string
+  name: string
+  userSetTitle: boolean
+  cannotCLose: boolean
+}
+
 export interface ICodapV2TableStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
@@ -153,6 +160,13 @@ export interface ICodapV2BaseComponent {
   }
   savedHeight: number | null
 }
+
+export interface ICodapV2CalculatorComponent extends ICodapV2BaseComponent {
+  type: "DG.Calculator"
+  componentStorage: ICodapV2CalculatorStorage
+}
+export const isV2CalculatorComponent = (component: ICodapV2BaseComponent): component is ICodapV2CalculatorComponent =>
+  component.type === "DG.Calculator"
 
 export interface ICodapV2TableComponent extends ICodapV2BaseComponent {
   type: "DG.TableView"
