@@ -1,4 +1,4 @@
-import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
+import { forwardRef, Box, Button, Menu, MenuButton, Portal } from "@chakra-ui/react"
 import React, { ReactNode, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { isWithinBounds } from "../utilities/view-utils"
@@ -11,10 +11,16 @@ interface IProps {
 }
 
 export const InspectorPanel = forwardRef(({ component, children }: IProps, ref) => {
+  const appRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    appRef.current = document.querySelector(".app")
+  }, [])
   return (
-    <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
-      {children}
-    </Box>
+    <Portal containerRef={appRef}>
+      <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+        {children}
+      </Box>
+    </Portal>
   )
 })
 
