@@ -23,7 +23,7 @@ jobs:
         run: npm run build
       - name: Run Tests
         working-directory: v3
-        run: npm run test:coverage
+        run: npm run test:coverage -- --maxWorkers=2
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
