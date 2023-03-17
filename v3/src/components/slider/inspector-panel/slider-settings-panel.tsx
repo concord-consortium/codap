@@ -1,6 +1,7 @@
 import React from "react"
 import {observer} from "mobx-react-lite"
-import {Flex, FormControl, FormLabel, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Select} from "@chakra-ui/react"
+import {Flex, FormControl, FormLabel, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
+        NumberInputField, NumberInputStepper, Select} from "@chakra-ui/react"
 import t from "../../../utilities/translation/translate"
 import {ISliderModel} from "../slider-model"
 import {InspectorPalette} from "../../inspector-panel"
@@ -10,24 +11,13 @@ import "./slider-settings-panel.scss"
 
 interface IProps {
   sliderModel: ISliderModel
+  panelRect?: DOMRect
+  buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
 }
 
 export const SliderSettingsPalette =
-    observer(function SliderSettingsPalette({sliderModel, setShowPalette}: IProps) {
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const { key } = e
-    switch (key) {
-      case "Escape":
-        break
-      case "Enter":
-      case "Tab":
-        e.currentTarget.blur()
-        break
-    }
-  }
-
+    observer(function SliderSettingsPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
   const handleMultiplesOfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const multipleOf = parseFloat(e.target.value)
     if (isFinite(multipleOf)) {
@@ -48,8 +38,10 @@ export const SliderSettingsPalette =
     <InspectorPalette
       title={t("DG.Inspector.values")}
       Icon={<ValuesIcon/>}
-      button={"slider-values-button"}
       paletteTop={-50}
+      setShowPalette={setShowPalette}
+      panelRect={panelRect}
+      buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
         <FormControl size="xs">

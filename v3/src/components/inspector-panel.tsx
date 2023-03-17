@@ -1,4 +1,4 @@
-import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
+import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import React, { ReactNode, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { isWithinBounds } from "../utilities/view-utils"
@@ -10,13 +10,13 @@ interface IProps {
   children: ReactNode
 }
 
-export const InspectorPanel = ({ component, children }: IProps) => {
+export const InspectorPanel = forwardRef(({ component, children }: IProps, ref) => {
   return (
-    <Box className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+    <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
       {children}
     </Box>
   )
-}
+})
 
 interface IInspectorButtonProps {
   children: ReactNode
@@ -24,12 +24,19 @@ interface IInspectorButtonProps {
   testId: string
   showMoreOptions: boolean
   onButtonClick?: () => void
+  setButtonRef?: (ref: any) => void
 }
 
-export const InspectorButton = ({children, tooltip, testId, showMoreOptions, onButtonClick}:IInspectorButtonProps) => {
+export const InspectorButton = ({children, tooltip, testId, showMoreOptions, setButtonRef,
+    onButtonClick}:IInspectorButtonProps) => {
+  const buttonRef = useRef<any>()
+  const _onClick = () => {
+    setButtonRef?.(buttonRef)
+    onButtonClick?.()
+  }
   return (
-    <Button className="inspector-tool-button" title={tooltip} data-testid={testId}
-      onClick={onButtonClick}>
+    <Button ref={buttonRef} className="inspector-tool-button" title={tooltip} data-testid={testId}
+      onClick={_onClick}>
       {children}
       {showMoreOptions && <MoreOptionsIcon className="more-options-icon"/>}
     </Button>
@@ -61,15 +68,20 @@ interface IInspectorPalette {
   Icon?: ReactNode
   title?: string
   paletteTop?: number
-  button: string
+  panelRect?: DOMRect
+  buttonRect?: DOMRect
+  setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette =({children, Icon, title, paletteTop = 0, button}:IInspectorPalette) => {
-  const panelRect = document.querySelector("[data-testid=inspector-panel]")?.getBoundingClientRect()
-  const buttonRect = document.querySelector(`[data-testid=${button}]`)?.getBoundingClientRect()
+export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelRect, buttonRect,
+     setShowPalette}:IInspectorPalette) => {
+
   const panelTop = panelRect?.top || 0
   const buttonTop = buttonRect?.top || 0
   const [paletteWidth, setPaletteWidth] = useState(0)
+  const paletteRef = useRef<HTMLDivElement>(null)
+  const inBounds = panelRect && isWithinBounds(paletteWidth, panelRect)
+
   useEffect(() => {
     if (paletteRef.current) {
       setPaletteWidth(paletteRef.current.offsetWidth)
@@ -80,8 +92,7 @@ export const InspectorPalette =({children, Icon, title, paletteTop = 0, button}:
     const pointerStyle = {top: buttonTop - panelTop - 5}
 
     return (
-      <div className={`palette-pointer ${isWithinBounds(paletteWidth, buttonRect) ? "arrow-left" : "arrow-right"}`}
-            style={pointerStyle} />
+      <div className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`} style={pointerStyle} />
     )
   }
   const PaletteHeader = () => {
@@ -94,8 +105,8 @@ export const InspectorPalette =({children, Icon, title, paletteTop = 0, button}:
       </div>
     )
   }
-  const paletteStyle = {top: paletteTop, left: isWithinBounds(paletteWidth, buttonRect) ? 60 : -(paletteWidth + 10)}
-  const paletteRef = useRef<HTMLDivElement>(null)
+
+  const paletteStyle = {top: paletteTop, left: inBounds ? 60 : -(paletteWidth + 10)}
   return (
     <>
       <PalettePointer/>
@@ -106,5 +117,4 @@ export const InspectorPalette =({children, Icon, title, paletteTop = 0, button}:
       </Box>
     </>
   )
-
 }

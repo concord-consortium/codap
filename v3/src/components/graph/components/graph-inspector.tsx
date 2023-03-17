@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
@@ -11,6 +11,7 @@ import { PointFormatPalette } from "./inspector-panel/point-format-panel"
 import { IGraphModel } from "../models/graph-model"
 import { GraphMeasurePalette } from "./inspector-panel/graph-measure-panel"
 import t from "../../../utilities/translation/translate"
+import { useDndContext } from "@dnd-kit/core"
 
 interface IProps {
   graphModel: IGraphModel
@@ -19,9 +20,15 @@ interface IProps {
 
 export const GraphInspector = ({ graphModel, show }: IProps) => {
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
+  const panelRef = useRef<HTMLDivElement>()
+  const panelRect = panelRef.current?.getBoundingClientRect()
+  const buttonRef = useRef<HTMLDivElement>()
+  const buttonRect = buttonRef.current?.getBoundingClientRect()
+  const {active} = useDndContext()
+
   useEffect(()=>{
     !show && setShowPalette(undefined)
-  }, [show])
+  }, [active, show])
 
   const handleResize = () => {
     setShowPalette(undefined)
@@ -35,9 +42,13 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
     setShowPalette(showPalette === "format" ? undefined : "format")
   }
 
+  const setButtonRef = (ref: any) => {
+    buttonRef.current = ref.current
+  }
+
   return (show
     ? <>
-        <InspectorPanel component="graph">
+        <InspectorPanel component="graph" ref={panelRef}>
           <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
             testId={"graph-resize-button"} onButtonClick={handleResize}>
             <ScaleDataIcon />
@@ -47,7 +58,7 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
             <HideShowMenuList graphModel={graphModel} />
           </InspectorMenu>
           <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
-            onButtonClick={handleRulerButton} testId={"graph-display-values-button"}>
+            onButtonClick={handleRulerButton} setButtonRef={setButtonRef} testId={"graph-display-values-button"}>
             <ValuesIcon />
           </InspectorButton>
           <InspectorButton tooltip={t("DG.Inspector.displayConfiguration.toolTip")} showMoreOptions={true}
@@ -55,7 +66,7 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
             <BarChartIcon />
           </InspectorButton>
           <InspectorButton tooltip={t("DG.Inspector.displayStyles.toolTip")} showMoreOptions={true}
-            onButtonClick={handleBrushButton} testId={"graph-display-styles-button"}>
+            onButtonClick={handleBrushButton} setButtonRef={setButtonRef} testId={"graph-display-styles-button"}>
             <StylesIcon />
           </InspectorButton>
           <InspectorButton tooltip={t("DG.Inspector.makeImage.toolTip")} showMoreOptions={true}
@@ -63,9 +74,11 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
           <CameraIcon />
           </InspectorButton>
           {showPalette === "format" &&
-            <PointFormatPalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
+            <PointFormatPalette graphModel={graphModel} setShowPalette={setShowPalette}
+              panelRect={panelRect} buttonRect={buttonRect}/>}
           {showPalette === "measure" &&
-            <GraphMeasurePalette graphModel={graphModel} setShowPalette={setShowPalette}/>}
+            <GraphMeasurePalette graphModel={graphModel} setShowPalette={setShowPalette}
+              panelRect={panelRect} buttonRect={buttonRect}/>}
         </InspectorPanel>
       </>
     : null

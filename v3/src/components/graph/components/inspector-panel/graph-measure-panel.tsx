@@ -9,10 +9,12 @@ import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
+  panelRect?: DOMRect
+  buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const GraphMeasurePalette = ({graphModel, setShowPalette}: IProps) => {
+export const GraphMeasurePalette = ({graphModel, panelRect, buttonRect, setShowPalette}: IProps) => {
   const toast = useToast()
 
   const measures = {
@@ -60,7 +62,9 @@ export const GraphMeasurePalette = ({graphModel, setShowPalette}: IProps) => {
       title={t("DG.Inspector.values")}
       Icon={<ValuesIcon />}
       paletteTop={paletteTop}
-      button={"graph-display-values-button"}
+      setShowPalette={setShowPalette}
+      panelRect={panelRect}
+      buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
