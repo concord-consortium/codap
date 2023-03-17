@@ -21,6 +21,6 @@ registerTileComponentInfo({
   Component: SliderComponent,
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
-  height: 98,
-  width: 300
+  defaultWidth: 300,
+  isFixedHeight: true
 })

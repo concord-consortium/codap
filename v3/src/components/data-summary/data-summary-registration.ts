@@ -16,5 +16,5 @@ registerTileComponentInfo({
   type: kDataSummaryTileType,
   TitleBar: DataSummaryTitleBar,
   Component: DataSummary,
-  tileEltClass: kDataSummaryTileClass
+  tileEltClass: kDataSummaryTileClass,
 })

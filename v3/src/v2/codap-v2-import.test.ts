@@ -19,6 +19,29 @@ describe(`V2 "bogus-document.codap"`, () => {
 
 })
 
+describe(`V2 "calculator.codap"`, () => {
+  const file = path.join(__dirname, "./", "calculator.codap")
+  const calculatorJson = fs.readFileSync(file, "utf8")
+  const calculatorDoc = JSON.parse(calculatorJson) as ICodapV2DocumentJson
+
+  it("should be importable", () => {
+    expect(calculatorDoc.name).toBe("Calculator Sample")
+    expect(calculatorDoc.components?.length).toBe(1)
+    expect(calculatorDoc.contexts?.length).toBe(0)
+    expect(calculatorDoc.globalValues?.length).toBe(0)
+  })
+
+  it("should be importable by CodapV2Document", () => {
+    const mammals = new CodapV2Document(calculatorDoc)
+    expect(mammals.components.length).toBe(1)
+    expect(mammals.contexts.length).toBe(0)
+    expect(mammals.globalValues.length).toBe(0)
+    expect(mammals.datasets.length).toBe(0)
+
+    expect(mammals.components.map(c => c.type)).toEqual(["DG.Calculator"])
+  })
+})
+
 describe(`V2 "mammals.codap"`, () => {
 
   const file = path.join(__dirname, "./", "mammals.codap")

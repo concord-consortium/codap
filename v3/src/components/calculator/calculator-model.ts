@@ -5,7 +5,8 @@ import { kCalculatorTileType } from "./calculator-defs"
 export const CalculatorModel = TileContentModel
   .named("CalculatorModel")
   .props({
-    type: types.optional(types.literal(kCalculatorTileType), kCalculatorTileType)
+    type: types.optional(types.literal(kCalculatorTileType), kCalculatorTileType),
+    name: ""
   })
 export interface ICalculatorModel extends Instance<typeof CalculatorModel> {}
 

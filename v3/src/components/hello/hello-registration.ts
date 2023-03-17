@@ -16,5 +16,5 @@ registerTileComponentInfo({
   type: kHelloCodapTileType,
   TitleBar: HelloTitleBar,
   Component: HelloComponent,
-  tileEltClass: kHelloCodapTileClass
+  tileEltClass: kHelloCodapTileClass,
 })

@@ -1,10 +1,17 @@
-@import "../vars.scss";
+@use "../vars.scss";
+
 $button-width: 30px;
 $button-height: 24px;
 
+// temporary until .codap-component can specify these globally
+// inspectors must be portaled first otherwise they'd be hidden
+.codap-component.calculator {
+  overflow: hidden;
+}
+
 .calculator-wrapper {
   background: #333333;
-  padding: 2px;
+  padding: 2px 4px 4px 4px;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -13,8 +20,6 @@ $button-height: 24px;
     flex-direction: column;
     font-family: "museo-sans", sans-serif;
     font-size: 12px;
-    height: 155px;
-    width: 127px;
     margin-top: 3px;
     background-color: #333333;
 
@@ -32,6 +37,7 @@ $button-height: 24px;
       margin-top: 3px;
       flex-direction: row;
       flex-wrap: wrap;
+      justify-content: space-evenly;
       width: 131px;
 
       .calc-button {

@@ -23,7 +23,7 @@ export class UIState {
   }
 
   @action
-  setFocusedTile(tileId: string) {
+  setFocusedTile(tileId = "") {
     this.focusTileId = tileId
   }
 }
