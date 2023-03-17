@@ -88,7 +88,7 @@ export interface ICodapV2CalculatorStorage {
   title: string
   name: string
   userSetTitle: boolean
-  cannotCLose: boolean
+  cannotClose: boolean
 }
 
 export interface ICodapV2TableStorage {
