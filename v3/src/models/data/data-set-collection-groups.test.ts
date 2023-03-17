@@ -194,8 +194,8 @@ describe("CollectionGroups", () => {
   it("removes attributes from collections when they're removed from the data set", () => {
     data.moveAttributeToNewCollection("aId")
     expect(data.collections.length).toBe(1)
-    const collection = data.collections.at(0)
-    data.setCollectionForAttribute("bId", { collection: collection!.id })
+    const collection = data.collections[0]
+    data.setCollectionForAttribute("bId", { collection: collection.id })
     data.removeAttribute("aId")
     expect(data.collections.length).toBe(1)
     data.removeAttribute("bId")
