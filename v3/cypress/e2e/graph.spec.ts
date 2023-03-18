@@ -1,3 +1,5 @@
+import { GraphTileElements as graph } from "../support/elements/graph-tile"
+
 const arrayOfPlots = [
     { attribute: "Mammal", axis: "x", collection: "mammals" },
     { attribute: "Order", axis: "y", collection: "mammals" },
@@ -16,6 +18,10 @@ context("Test graph plot transitions", () => {
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)
+    })
+    it("populates title bar from sample data", () => {
+      const collectionName = "Mammals"
+      graph.getCollectionTitle().should("contain", collectionName)
     })
     it("will add attributes to a graph and verify plot transitions are correct", () => {
         cy.wrap(arrayOfPlots).each((hash, index, list) => {

@@ -1,5 +1,6 @@
 import React from "react"
 import {Box, Flex, HStack, Tag, useToast} from "@chakra-ui/react"
+import { kDefaultTileHeight, kDefaultTileWidth } from "../constants"
 import t from "../../utilities/translation/translate"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -42,8 +43,8 @@ export const ToolShelf = ({content}: IProps) => {
   }
 
   const createTile = (tileType: string, componentInfo: ITileComponentInfo) => {
-    const width = componentInfo.width || 185
-    const height = componentInfo.height || 250
+    const width = componentInfo.defaultWidth || kDefaultTileWidth
+    const height = componentInfo.defaultHeight || kDefaultTileHeight
     if (row) {
       const newTile = createDefaultTileOfType(tileType)
       if (newTile) {
@@ -53,8 +54,8 @@ export const ToolShelf = ({content}: IProps) => {
           const tileOptions = { x, y, width, height }
           content?.insertTileInRow(newTile, row, tileOptions)
           const rowTile = row.tiles.get(newTile.id)
-          if (componentInfo.width && componentInfo.height) {
-            rowTile?.setSize(componentInfo.width,  componentInfo.height + kHeaderHeight)
+          if (componentInfo.defaultWidth && componentInfo.defaultHeight) {
+            rowTile?.setSize(componentInfo.defaultWidth,  componentInfo.defaultHeight + kHeaderHeight)
             rowTile?.setPosition(tileOptions.x, tileOptions.y)
           }
         }

@@ -2,7 +2,6 @@ import { useDndContext } from "@dnd-kit/core"
 import React, { useState } from "react"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../models/document/free-tile-row"
-import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
 
@@ -14,7 +13,7 @@ interface IProps {
 
 export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
   const [resizingTileStyle, setResizingTileStyle] =
-    useState<{left: number, top: number, width: number, height: number}>()
+    useState<{left: number, top: number, width?: number, height?: number}>()
   const [resizingTileId, setResizingTileId] = useState("")
   const tileId = tile.id
   const tileType = tile.content.type
@@ -22,7 +21,6 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
   const { x: left, y: top, width, height } = rowTile || {}
   const { active } = useDndContext()
   const tileStyle: React.CSSProperties = { left, top, width, height }
-  const info = getTileComponentInfo(tileType)
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId }
   const {setNodeRef, transform} = useDraggableTile(draggableOptions,
     activeDrag => {
@@ -50,26 +48,17 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
       setResizingTileId(mtile.tileId)
       const xDelta = pointerMoveEvent.pageX - startPosition.x
       const yDelta = pointerMoveEvent.pageY - startPosition.y
-      switch (direction) {
-        case "bottom-right":
-          resizingWidth = startWidth + xDelta
-          resizingHeight = startHeight + yDelta
-          break
-        case "bottom-left":
-          resizingWidth = startWidth - xDelta
-          resizingHeight = startHeight + yDelta
-          resizingLeft = startLeft + xDelta
-          break
-        case "left":
-          resizingWidth = startWidth - xDelta
-          resizingLeft = startLeft + xDelta
-          break
-        case "bottom":
-          resizingHeight = startHeight + yDelta
-          break
-        case "right":
-          resizingWidth = startWidth + xDelta
-          break
+      const addIfDefined = (x: number | undefined, delta: number) => x != null ? x + delta : x
+
+      if (direction.includes("left")) {
+        resizingWidth = addIfDefined(startWidth, -xDelta)
+        resizingLeft = startLeft + xDelta
+      }
+      if (direction.includes("bottom")) {
+        resizingHeight = addIfDefined(startHeight, yDelta)
+      }
+      if (direction.includes("right")) {
+        resizingWidth = addIfDefined(startWidth, xDelta)
       }
 
       setResizingTileStyle({left: resizingLeft, top: mtile.y, width: resizingWidth, height: resizingHeight})
@@ -97,14 +86,14 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
                       : tileStyle
   return (
     <div className="free-tile-component" style={style} key={tileId} ref={setNodeRef}>
-      {tile && info && rowTile &&
-        <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-            tileEltClass={info.tileEltClass} onCloseTile={onCloseTile}
-            onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
-            onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
-            onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}
-            onBottomPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom")}
-            onLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "left")}
+      {tile && rowTile &&
+        <CodapComponent tile={tile}
+          onCloseTile={onCloseTile}
+          onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
+          onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
+          onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}
+          onBottomPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom")}
+          onLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "left")}
         />
       }
     </div>

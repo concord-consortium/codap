@@ -55,7 +55,7 @@ export function addDefaultComponents() {
     if (calculatorTile) {
       const calcOptions = isMosaicTileRow(row)
               ? { splitTileId: summaryTile.id, direction: "row" }
-              : { x: kFullWidth + kGap / 2, y: 2, width: kWidth25, height: kFullHeight }
+              : { x: kFullWidth + kGap, y: 2 }
       content.insertTileInRow(calculatorTile, row, calcOptions)
     }
 
@@ -70,7 +70,7 @@ export function addDefaultComponents() {
     if (sliderTile) {
       const sliderOptions = isMosaicTileRow(row)
               ? { splitTileId: helloTile.id, direction: "column" }
-              : { x: kFullWidth + kWidth25 + kGap, y: kHalfHeight + kGap / 2, width: kWidth75, height: kHalfHeight }
+              : { x: kFullWidth + kWidth25 + kGap, y: kHalfHeight + kGap, width: kWidth75 }
       content.insertTileInRow(sliderTile, row, sliderOptions)
     }
 

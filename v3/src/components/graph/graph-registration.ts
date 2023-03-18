@@ -25,8 +25,8 @@ registerTileComponentInfo({
   Component: GraphComponent,
   tileEltClass: kGraphTileClass,
   Icon: GraphIcon,
-  height: 300,
-  width: 300
+  defaultWidth: 300,
+  defaultHeight: 300
 })
 
 registerV2TileImporter("DG.GraphView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {

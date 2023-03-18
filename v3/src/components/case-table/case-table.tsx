@@ -39,20 +39,20 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
     return (
       <>
         <div ref={setNodeRef} className="case-table" data-testid="case-table">
-              <div className="case-table-content">
-                {collections.map((collection, i) => {
-                  const key = collection?.id || kChildMostTableCollectionId
-                  const parent = i > 0 ? collections[i - 1] : undefined
-                  return (
-                    <ParentCollectionContext.Provider key={key} value={parent}>
-                      <CollectionContext.Provider key={key} value={collection}>
-                        <CollectionTable />
-                      </CollectionContext.Provider>
-                    </ParentCollectionContext.Provider>
-                  )
-                })}
-                <AttributeDragOverlay activeDragId={overlayDragId} />
-              </div>
+          <div className="case-table-content">
+            {collections.map((collection, i) => {
+              const key = collection?.id || kChildMostTableCollectionId
+              const parent = i > 0 ? collections[i - 1] : undefined
+              return (
+                <ParentCollectionContext.Provider key={key} value={parent}>
+                  <CollectionContext.Provider key={key} value={collection}>
+                    <CollectionTable />
+                  </CollectionContext.Provider>
+                </ParentCollectionContext.Provider>
+              )
+            })}
+            <AttributeDragOverlay activeDragId={overlayDragId} />
+          </div>
         </div>
         <NoCasesMessage />
         <CaseTableInspector show={uiState.isFocusedTile(tile?.id)} />

@@ -12,6 +12,7 @@ import {gDataBroker} from "../models/data/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
 import { IDocumentModelSnapshot } from "../models/document/document"
 import { ISharedModelDocumentManager } from "../models/document/shared-model-document-manager"
+import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { DocumentContext } from "../hooks/use-document-context"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -65,8 +66,14 @@ export const App = observer(function App() {
     v2Components.forEach(v2Component => {
       const insertTile = (tile: ITileModel) => {
         if (row && tile) {
-          const { left, top, width, height } = v2Component.layout
-          content?.insertTileInRow(tile, row, { x: left, y: top, width, height })
+          const info = getTileComponentInfo(tile.content.type)
+          if (info) {
+            const { left, top, width, height } = v2Component.layout
+            // only apply imported width and height to resizable tiles
+            const _width = !info.isFixedWidth ? { width } : {}
+            const _height = !info?.isFixedHeight ? { height } : {}
+            content?.insertTileInRow(tile, row, { x: left, y: top, ..._width, ..._height })
+          }
         }
       }
       importV2Component({ v2Component, v2Document, sharedModelManager, insertTile })
@@ -108,7 +115,7 @@ export const App = observer(function App() {
 
     // create the initial sample data (if specified) or a new data set
     if (gDataBroker.dataSets.size === 0) {
-      const sample = sampleData.find(name => urlParams.sample === name)
+      const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
       if (sample) {
         importSample(sample, handleImportDataSet)
       } else {

@@ -17,12 +17,14 @@ export interface ITileComponentInfo {
    */
   tileHandlesOwnSelection?: boolean;
   /**
-   * Components should have a default height and width. Plugins will specify their own height and width
+   * REsizable components should have a default width and height. Plugins will specify their own height and width
    */
-  width?: number;
-  height?: number;
-  /* Toolshelf specific properties */
-  isSingleton?: boolean; // Only one instance of a tile is open per documeent so toolshelf button opens and closes tile
+  defaultWidth?: number;
+  defaultHeight?: number;
+  /* Tool shelf specific properties */
+  isSingleton?: boolean; // Only one instance of a tile is open per document so tool shelf button opens and closes tile
+  isFixedWidth?: boolean;
+  isFixedHeight?: boolean;
 }
 
 const gTileComponentInfoMap = new Map<string, ITileComponentInfo>()
