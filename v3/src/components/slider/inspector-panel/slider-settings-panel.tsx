@@ -1,6 +1,6 @@
 import React from "react"
 import {observer} from "mobx-react-lite"
-import {Flex, FormControl, FormLabel, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
+import {Flex, FormControl, FormLabel, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
         NumberInputField, NumberInputStepper, Select} from "@chakra-ui/react"
 import t from "../../../utilities/translation/translate"
 import {ISliderModel} from "../slider-model"
@@ -23,7 +23,6 @@ export const SliderSettingsPalette =
     const multipleOf = parseFloat(value)
     if (isFinite(multipleOf)) {
       sliderModel.setMultipleOf(multipleOf)
-      sliderModel.setValue(sliderModel.value)
     }
   }
 
@@ -31,10 +30,9 @@ export const SliderSettingsPalette =
     const animationRate = parseFloat(value)
     if (isFinite(animationRate)) {
       sliderModel.setAnimationRate(animationRate)
-      sliderModel.setValue(sliderModel.value)
     }
   }
-
+console.log(typeof sliderModel.multipleOf)
   return (
     <InspectorPalette
       title={t("DG.Inspector.values")}
@@ -48,8 +46,8 @@ export const SliderSettingsPalette =
         <FormControl size="xs">
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
-              <NumberInput className="slider-input multiples" size="xs" value={sliderModel.multipleOf}
-                precision={2} step={0.01} onChange={handleMultiplesOfChange}>
+              <NumberInput className="slider-input multiples" size="xs"
+                precision={2} step={1} onChange={handleMultiplesOfChange}>
                   <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
@@ -62,8 +60,8 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
-              <NumberInput className="slider-input animation-rate" size="xs" value={sliderModel.animationRate}
-                 precision={2} step={0.01} onChange={handleAnimationRateChange}>
+              <NumberInput className="slider-input animation-rate" size="xs"
+                 precision={2} step={1} onChange={handleAnimationRateChange}>
                 <NumberInputField/>
                   <NumberInputStepper>
                     <NumberIncrementStepper />
