@@ -8,6 +8,7 @@
     "target": "es2018",
     "allowJs": true,
     "esModuleInterop": true,
+    "isolatedModules": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "importHelpers": true,
