@@ -2,7 +2,7 @@ import {TableTileElements as table} from "../support/elements/table-tile"
 import {CfmElements as cfm} from "../support/elements/cfm"
 
 context("attribute types", () => {
-    before(() => {
+    beforeEach(() => {
         const filename = "cypress/fixtures/attribute-types.codap"
         const url = `${Cypress.config("index")}`
         cy.visit(url)

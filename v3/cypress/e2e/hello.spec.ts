@@ -1,7 +1,7 @@
 import { HelloTileElements as hello } from "../support/elements/hello-tile"
 
 context("Data summary UI", () => {
-    before(function () {
+    beforeEach(function () {
         const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
