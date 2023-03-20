@@ -18,22 +18,21 @@ interface IProps {
 
 export const SliderSettingsPalette =
     observer(function SliderSettingsPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
-  const handleMultiplesOfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const multipleOf = parseFloat(e.target.value)
+
+  const handleMultiplesOfChange = (value: string) => {
+    const multipleOf = parseFloat(value)
     if (isFinite(multipleOf)) {
       sliderModel.setMultipleOf(multipleOf)
-      sliderModel.setValue(sliderModel.value)
     }
   }
 
-  const handleAnimationRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const animationRate = parseFloat(e.target.value)
+  const handleAnimationRateChange = (value: string) => {
+    const animationRate = parseFloat(value)
     if (isFinite(animationRate)) {
       sliderModel.setAnimationRate(animationRate)
-      sliderModel.setValue(sliderModel.value)
     }
   }
-
+console.log(typeof sliderModel.multipleOf)
   return (
     <InspectorPalette
       title={t("DG.Inspector.values")}
@@ -47,8 +46,9 @@ export const SliderSettingsPalette =
         <FormControl size="xs">
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
-              <NumberInput className="slider-input multiples" size="xs">
-                  <NumberInputField onChange={handleMultiplesOfChange}/>
+              <NumberInput className="slider-input multiples" size="xs"
+                precision={2} step={1} onChange={handleMultiplesOfChange}>
+                  <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
                     <NumberDecrementStepper />
@@ -56,10 +56,13 @@ export const SliderSettingsPalette =
               </NumberInput>
             </FormLabel>
           </Flex>
+        </FormControl>
+        <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
-              <NumberInput className="slider-input animation-rate" size="xs">
-                <NumberInputField onChange={handleAnimationRateChange}/>
+              <NumberInput className="slider-input animation-rate" size="xs"
+                 precision={2} step={1} onChange={handleAnimationRateChange}>
+                <NumberInputField/>
                   <NumberInputStepper>
                     <NumberIncrementStepper />
                     <NumberDecrementStepper />
@@ -67,6 +70,8 @@ export const SliderSettingsPalette =
               </NumberInput>
             </FormLabel>
           </Flex>
+        </FormControl>
+        <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.direction")}
               <Select className="slider-select direction" value={sliderModel.direction}
@@ -77,6 +82,8 @@ export const SliderSettingsPalette =
               </Select>
             </FormLabel>
           </Flex>
+        </FormControl>
+        <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.mode")}
               <Select className="slider-select mode" value={sliderModel.direction}
