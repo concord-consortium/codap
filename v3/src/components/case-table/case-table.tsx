@@ -2,7 +2,6 @@ import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties } from "react"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
-import { CaseTableInspector } from "./case-table-inspector"
 import { kChildMostTableCollectionId, kIndexColumnKey } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
@@ -10,7 +9,6 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { ICollectionPropsModel } from "../../models/data/collection"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { uiState } from "../../models/ui-state"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
 
@@ -55,7 +53,6 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
           </div>
         </div>
         <NoCasesMessage />
-        <CaseTableInspector show={uiState.isFocusedTile(tile?.id)} />
       </>
     )
   })

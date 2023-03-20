@@ -1,17 +1,12 @@
 import React, { useEffect, useRef, useState } from "react"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import ValuesIcon from "../../assets/icons/icon-values.svg"
-import { ISliderModel } from "./slider-model"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import t from "../../utilities/translation/translate"
 import { useDndContext } from "@dnd-kit/core"
+import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 
-interface IProps {
-  sliderModel: ISliderModel
-  show: boolean
-}
-
-export const SliderInspector = ({ sliderModel, show }: IProps) => {
+export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
@@ -31,18 +26,15 @@ export const SliderInspector = ({ sliderModel, show }: IProps) => {
     buttonRef.current = ref.current
   }
 
-  return (show
-    ? <>
-        <InspectorPanel component="slider" ref={panelRef}>
-          <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
-            onButtonClick={handleRulerButton} setButtonRef={setButtonRef} testId={"slider-values-button"}>
-            <ValuesIcon />
-          </InspectorButton>
-          {showPalette === "measure" &&
-            <SliderSettingsPalette sliderModel={sliderModel} setShowPalette={setShowPalette}
-              panelRect={panelRect} buttonRect={buttonRect}/>}
-        </InspectorPanel>
-      </>
-    : null
+  return (
+    <InspectorPanel component="slider" show={show}>
+      <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
+        onButtonClick={handleRulerButton} setButtonRef={setButtonRef} testId={"slider-values-button"}>
+        <ValuesIcon />
+      </InspectorButton>
+      {showPalette === "measure" &&
+        <SliderSettingsPalette tile={tile} setShowPalette={setShowPalette}
+          panelRect={panelRect} buttonRect={buttonRect}/>}
+    </InspectorPanel>
   )
 }

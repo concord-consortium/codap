@@ -9,6 +9,7 @@ import TableIcon from '../../assets/icons/icon-table.svg'
 import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2TableComponent } from "../../v2/codap-v2-types"
+import { CaseTableInspector } from "./case-table-inspector"
 
 export const kCaseTableIdPrefix = "TABL"
 
@@ -23,6 +24,7 @@ registerTileComponentInfo({
   type: "CodapCaseTable",
   TitleBar: CaseTableTitleBar,
   Component: CaseTableComponent,
+  InspectorPanel: CaseTableInspector,
   tileEltClass: "codap-case-table",
   Icon: TableIcon,
   defaultWidth: 580,

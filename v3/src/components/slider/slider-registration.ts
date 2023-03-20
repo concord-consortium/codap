@@ -1,6 +1,7 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { SliderComponent } from "./slider-component"
+import { SliderInspector } from "./slider-inspector"
 import { kSliderTileType, kSliderTileClass } from "./slider-defs"
 import { SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
@@ -19,6 +20,7 @@ registerTileComponentInfo({
   type: kSliderTileType,
   TitleBar: SliderTitleBar,
   Component: SliderComponent,
+  InspectorPanel: SliderInspector,
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
   defaultWidth: 300,

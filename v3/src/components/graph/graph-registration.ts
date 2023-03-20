@@ -9,6 +9,7 @@ import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2GraphComponent } from "../../v2/codap-v2-types"
 import { TileModel } from "../../models/tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
+import { GraphInspector } from "./components/graph-inspector"
 
 export const kGraphIdPrefix = "GRPH"
 
@@ -23,6 +24,7 @@ registerTileComponentInfo({
   type: kGraphTileType,
   TitleBar: GraphTitleBar,
   Component: GraphComponent,
+  InspectorPanel: GraphInspector,
   tileEltClass: kGraphTileClass,
   Icon: GraphIcon,
   defaultWidth: 300,

@@ -3,36 +3,37 @@ import {observer} from "mobx-react-lite"
 import {Flex, FormControl, FormLabel, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
         NumberInputField, NumberInputStepper, Select} from "@chakra-ui/react"
 import t from "../../../utilities/translation/translate"
-import {ISliderModel} from "../slider-model"
+import {ITileModel} from "../../../models/tiles/tile-model"
+import {isSliderModel} from "../slider-model"
 import {InspectorPalette} from "../../inspector-panel"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
 
 import "./slider-settings-panel.scss"
 
 interface IProps {
-  sliderModel: ISliderModel
+  tile?: ITileModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
 }
 
 export const SliderSettingsPalette =
-    observer(function SliderSettingsPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
+    observer(function SliderSettingsPalette({tile, panelRect, buttonRect, setShowPalette}: IProps) {
+  const sliderModel = isSliderModel(tile?.content) ? tile?.content : undefined
 
   const handleMultiplesOfChange = (value: string) => {
     const multipleOf = parseFloat(value)
     if (isFinite(multipleOf)) {
-      sliderModel.setMultipleOf(multipleOf)
+      sliderModel?.setMultipleOf(multipleOf)
     }
   }
 
   const handleAnimationRateChange = (value: string) => {
     const animationRate = parseFloat(value)
     if (isFinite(animationRate)) {
-      sliderModel.setAnimationRate(animationRate)
+      sliderModel?.setAnimationRate(animationRate)
     }
   }
-console.log(typeof sliderModel.multipleOf)
   return (
     <InspectorPalette
       title={t("DG.Inspector.values")}
@@ -74,8 +75,8 @@ console.log(typeof sliderModel.multipleOf)
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.direction")}
-              <Select className="slider-select direction" value={sliderModel.direction}
-                      onChange={e => sliderModel.setDirection(e.target.value)}>
+              <Select className="slider-select direction" value={sliderModel?.direction}
+                      onChange={e => sliderModel?.setDirection(e.target.value)}>
                 <option value={"lowToHigh"}>{t("DG.Slider.lowToHigh")}</option>
                 <option value={"backAndForth"}>{t("DG.Slider.backAndForth")}</option>
                 <option value={"hightToLow"}>{t("DG.Slider.highToLow")}</option>
@@ -86,8 +87,8 @@ console.log(typeof sliderModel.multipleOf)
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.mode")}
-              <Select className="slider-select mode" value={sliderModel.direction}
-                      onChange={e => sliderModel.setRepetition(e.target.value)}>
+              <Select className="slider-select mode" value={sliderModel?.direction}
+                      onChange={e => sliderModel?.setRepetition(e.target.value)}>
                 <option value={"nonStop"}>{t("DG.Slider.nonStop")}</option>
                 <option value={"onceOnly"}>{t("DG.Slider.onceOnly")}</option>
               </Select>

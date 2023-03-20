@@ -1,28 +1,26 @@
-import { forwardRef, Box, Button, Menu, MenuButton, Portal } from "@chakra-ui/react"
+import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import React, { ReactNode, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
+import { ITileModel } from "../models/tiles/tile-model"
 import { isWithinBounds } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
 
 interface IProps {
+  tile?: ITileModel
   component?: string
-  children: ReactNode
+  show?: boolean
+  children?: ReactNode
 }
 
-export const InspectorPanel = forwardRef(({ component, children }: IProps, ref) => {
-  const appRef = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    appRef.current = document.querySelector(".app")
-  }, [])
-  return (
-    <Portal containerRef={appRef}>
-      <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+export const InspectorPanel = ({ component, show, children }: IProps) => {
+  return (show
+    ? <Box className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
         {children}
       </Box>
-    </Portal>
+    : null
   )
-})
+}
 
 interface IInspectorButtonProps {
   children: ReactNode
