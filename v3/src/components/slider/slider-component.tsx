@@ -1,6 +1,6 @@
 import React, { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { useResizeDetector } from "react-resize-detector"
-import { Flex, Center, Portal } from "@chakra-ui/react"
+import { Flex, Center } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
@@ -12,8 +12,10 @@ import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
+import { uiState } from "../../models/ui-state"
 import { CodapSliderThumb } from "./slider-thumb"
 import { EditableSliderValue } from "./editable-slider-value"
+import { SliderInspector } from "./slider-inspector"
 
 import './slider.scss'
 
@@ -27,10 +29,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const intervalRef = useRef<any>()
   const tickTime = 60
   const animationRef = useRef(false)
-  const sliderBounds = sliderRef.current?.getBoundingClientRect()
-  const inspectorStyle: React.CSSProperties | undefined = sliderBounds
-          ? { left: sliderBounds.right, top: sliderBounds.top }
-          : undefined
 
   // width and positioning
   useEffect(() => {
@@ -65,15 +63,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   if (!isSliderModel(sliderModel)) return null
 
-  // set increment size
-  const handleMultiplesOfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const multipleOf = parseFloat(e.target.value)
-    if (isFinite(multipleOf)) {
-      sliderModel.setMultipleOf(multipleOf)
-      sliderModel.setValue(sliderModel.value)
-    }
-  }
-
   const incrementSliderValue = () => {
     sliderModel.setValueRoundedToMultipleOf(sliderModel.value + sliderModel.multipleOf)
   }
@@ -84,33 +73,11 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     sliderModel.setName(e.target.value)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const { key } = e
-    switch (key) {
-      case "Escape":
-        break
-      case "Enter":
-      case "Tab":
-        e.currentTarget.blur()
-        break
-    }
-  }
-
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
         <div className={kSliderClass} ref={sliderRef}>
           <div className="slider">
-            <Portal containerRef={appRef}>
-              <div className="inspector-temporary" style={inspectorStyle}>
-                <input
-                  type="number"
-                  value={sliderModel.multipleOf}
-                  onChange={handleMultiplesOfChange}
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
-            </Portal>
 
             <Flex>
               <Center w="40px">
@@ -154,6 +121,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
           </div>
         </div>
+        <SliderInspector sliderModel={sliderModel} show={uiState.isFocusedTile(tile?.id)}/>
       </AxisLayoutContext.Provider>
     </InstanceIdContext.Provider>
   )

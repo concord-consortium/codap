@@ -25,7 +25,6 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
-import {GraphInspector} from "./graph-inspector"
 import {useDataTips} from "../hooks/use-data-tips"
 
 import "./graph.scss"
@@ -33,13 +32,12 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement>
-  showInspector: boolean
 }
 
 const marqueeState = new MarqueeState()
 
 
-export const Graph = observer(function Graph({graphController, graphRef, showInspector}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef}: IProps) {
   const graphModel = useGraphModelContext(),
     { enableAnimation, dotsRef } = graphController,
     {plotType} = graphModel,
@@ -175,9 +173,6 @@ export const Graph = observer(function Graph({graphController, graphRef, showIns
           plotType={plotType}
           onDrop={handleChangeAttribute.bind(null, 'rightNumeric')}/>
       </div>
-      <GraphInspector graphModel={graphModel}
-                      show={showInspector}
-      />
     </DataConfigurationContext.Provider>
   )
 })

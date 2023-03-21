@@ -1,21 +1,26 @@
-import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode, useRef } from "react"
+import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
+import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
+import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
+import { isWithinBounds } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
 
 interface IProps {
   component?: string
   children: ReactNode
+  setShowPalette?: (palette: string | undefined) => void
 }
 
-export const InspectorPanel = ({ component, children }: IProps) => {
+export const InspectorPanel = forwardRef(({ component, setShowPalette, children }: IProps, ref) => {
+  useOutsidePointerDown({ref: ref as unknown as RefObject<HTMLElement>, handler: ()=> setShowPalette?.(undefined)})
+
   return (
-    <Box className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+    <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
       {children}
     </Box>
   )
-}
+})
 
 interface IInspectorButtonProps {
   children: ReactNode
@@ -23,12 +28,19 @@ interface IInspectorButtonProps {
   testId: string
   showMoreOptions: boolean
   onButtonClick?: () => void
+  setButtonRef?: (ref: any) => void
 }
 
-export const InspectorButton = ({children, tooltip, testId, showMoreOptions, onButtonClick}:IInspectorButtonProps) => {
+export const InspectorButton = ({children, tooltip, testId, showMoreOptions, setButtonRef,
+    onButtonClick}:IInspectorButtonProps) => {
+  const buttonRef = useRef<any>()
+  const _onClick = () => {
+    setButtonRef?.(buttonRef)
+    onButtonClick?.()
+  }
   return (
-    <Button className="inspector-tool-button" title={tooltip} data-testid={testId}
-      onClick={onButtonClick}>
+    <Button ref={buttonRef} className="inspector-tool-button" title={tooltip} data-testid={testId}
+      onClick={_onClick}>
       {children}
       {showMoreOptions && <MoreOptionsIcon className="more-options-icon"/>}
     </Button>
@@ -60,15 +72,31 @@ interface IInspectorPalette {
   Icon?: ReactNode
   title?: string
   paletteTop?: number
-  buttonLocation: number
+  panelRect?: DOMRect
+  buttonRect?: DOMRect
+  buttonRef?: any
+  setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocation}:IInspectorPalette) => {
+export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelRect, buttonRect, buttonRef,
+     setShowPalette}:IInspectorPalette) => {
+  const panelTop = panelRect?.top || 0
+  const buttonTop = buttonRect?.top || 0
+  const [paletteWidth, setPaletteWidth] = useState(0)
+  const paletteRef = useRef<HTMLDivElement>(null)
+  const inBounds = panelRect && isWithinBounds(paletteWidth, panelRect)
+
+  useEffect(() => {
+    if (paletteRef.current) {
+      setPaletteWidth(paletteRef.current.offsetWidth)
+    }
+  }, [])
+
   const PalettePointer = () => {
-    const pointerStyle = {top: (buttonLocation+11)}
+    const pointerStyle = {top: buttonTop - panelTop - 5}
 
     return (
-      <div className={`palette-pointer arrow-left`} style={pointerStyle} />
+      <div className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`} style={pointerStyle} />
     )
   }
   const PaletteHeader = () => {
@@ -81,16 +109,16 @@ export const InspectorPalette =({children, Icon, title, paletteTop, buttonLocati
       </div>
     )
   }
-  const paletteStyle = {top: paletteTop}
-  const paletteRef = useRef<HTMLDivElement>(null)
 
+  const paletteStyle = {top: paletteTop, left: inBounds ? 60 : -(paletteWidth + 10)}
   return (
-    <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle}
-        data-testid="codap-inspector-palette" tabIndex={0} zIndex={1400}>
-      <PaletteHeader />
-      {children}
+    <>
       <PalettePointer/>
-    </Box>
+      <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle} tabIndex={0} zIndex={250}
+          data-testid="codap-inspector-palette">
+        <PaletteHeader />
+        {children}
+      </Box>
+    </>
   )
-
 }
