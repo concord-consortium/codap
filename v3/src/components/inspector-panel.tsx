@@ -17,7 +17,7 @@ export const InspectorPanel = forwardRef(({ component, show, setShowPalette, chi
   useOutsidePointerDown({ref: ref as unknown as RefObject<HTMLElement>, handler: ()=> setShowPalette?.(undefined)})
   return (show
     ? <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
-      	{children}
+        {children}
       </Box>
     : null
   )
@@ -80,7 +80,6 @@ interface IInspectorPalette {
 
 export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelRect, buttonRect,
      setShowPalette}:IInspectorPalette) => {
-
   const panelTop = panelRect?.top || 0
   const buttonTop = buttonRect?.top || 0
   const [paletteWidth, setPaletteWidth] = useState(0)

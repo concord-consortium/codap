@@ -25,7 +25,7 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   }
 
   return (
-    <InspectorPanel component="slider" show={show}>
+    <InspectorPanel ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette}>
       <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
         onButtonClick={handleRulerButton} setButtonRef={setButtonRef} testId={"slider-values-button"}>
         <ValuesIcon />

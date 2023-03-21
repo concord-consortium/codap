@@ -43,7 +43,7 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   }
 
   return (
-    <InspectorPanel component="graph" show={show}>
+    <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
       <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
         testId={"graph-resize-button"} onButtonClick={handleResize}>
         <ScaleDataIcon />
