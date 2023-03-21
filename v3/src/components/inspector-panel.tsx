@@ -1,6 +1,7 @@
 import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import React, { ReactNode, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
+import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
@@ -107,6 +108,7 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
   }
 
   const paletteStyle = {top: paletteTop, left: inBounds ? 60 : -(paletteWidth + 10)}
+  useOutsidePointerDown({ref: paletteRef, handler: ()=>setShowPalette(undefined)})
   return (
     <>
       <PalettePointer/>
