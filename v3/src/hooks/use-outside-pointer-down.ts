@@ -11,7 +11,7 @@ interface IProps {
   /**
    * The reference to a DOM element.
    */
-  ref: React.RefObject<HTMLElement>
+  ref: React.RefObject<HTMLElement> | null
   /**
    * Function invoked when a click is triggered outside the referenced element.
    */
@@ -29,13 +29,13 @@ export function useOutsidePointerDown({ ref, handler, enabled = true }: IProps) 
     if (!enabled) return
 
     const onPointerDown: any = (e: PointerEvent) => {
-      if (isValidEvent(e, ref)) {
+      if (ref && isValidEvent(e, ref)) {
         savedHandler(e)
       }
     }
 
     // listen for pointerdown because D3 drag handlers intercept subsequent mouse events
-    const doc = getOwnerDocument(ref.current)
+    const doc = getOwnerDocument(ref?.current)
     doc.addEventListener("pointerdown", onPointerDown, true)
 
     return () => {

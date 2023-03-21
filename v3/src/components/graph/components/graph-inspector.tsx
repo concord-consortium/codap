@@ -48,7 +48,7 @@ export const GraphInspector = ({ graphModel, show }: IProps) => {
 
   return (show
     ? <>
-        <InspectorPanel component="graph" ref={panelRef}>
+        <InspectorPanel component="graph" ref={panelRef} setShowPalette={setShowPalette}>
           <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
             testId={"graph-resize-button"} onButtonClick={handleResize}>
             <ScaleDataIcon />

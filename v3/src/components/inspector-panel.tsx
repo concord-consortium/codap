@@ -1,5 +1,5 @@
 import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode, useEffect, useRef, useState } from "react"
+import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds } from "../utilities/view-utils"
@@ -9,9 +9,12 @@ import "./inspector-panel.scss"
 interface IProps {
   component?: string
   children: ReactNode
+  setShowPalette?: (palette: string | undefined) => void
 }
 
-export const InspectorPanel = forwardRef(({ component, children }: IProps, ref) => {
+export const InspectorPanel = forwardRef(({ component, setShowPalette, children }: IProps, ref) => {
+  useOutsidePointerDown({ref: ref as unknown as RefObject<HTMLElement>, handler: ()=> setShowPalette?.(undefined)})
+
   return (
     <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
       {children}
@@ -71,12 +74,12 @@ interface IInspectorPalette {
   paletteTop?: number
   panelRect?: DOMRect
   buttonRect?: DOMRect
+  buttonRef?: any
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelRect, buttonRect,
+export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelRect, buttonRect, buttonRef,
      setShowPalette}:IInspectorPalette) => {
-
   const panelTop = panelRect?.top || 0
   const buttonTop = buttonRect?.top || 0
   const [paletteWidth, setPaletteWidth] = useState(0)
@@ -108,7 +111,6 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
   }
 
   const paletteStyle = {top: paletteTop, left: inBounds ? 60 : -(paletteWidth + 10)}
-  useOutsidePointerDown({ref: paletteRef, handler: ()=>setShowPalette(undefined)})
   return (
     <>
       <PalettePointer/>
