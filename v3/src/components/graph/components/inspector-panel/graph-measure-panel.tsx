@@ -53,6 +53,7 @@ export const GraphMeasurePalette = ({graphModel, panelRect, buttonRect, setShowP
     })
   }
 
+  //temporary setting until paletteTop can be dynamically set depending on component placement
   const paletteTop = graphModel.plotType === "casePlot" || graphModel.plotType === "dotChart"
                       ? 50
                       : 0
