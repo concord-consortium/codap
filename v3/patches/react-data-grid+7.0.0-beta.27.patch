@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index c04a926..eb9ea56 100644
+index 1f103ff..ffb4850 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
 @@ -2879,6 +2879,7 @@ exports.headerRenderer = headerRenderer;
@@ -11,7 +11,7 @@ index c04a926..eb9ea56 100644
  exports.useFocusRef = useFocusRef;
  exports.useRowSelection = useRowSelection;
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 7c4949a..109de6e 100644
+index d12ce6b..bd10e93 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
 @@ -2863,5 +2863,6 @@ function textEditor({

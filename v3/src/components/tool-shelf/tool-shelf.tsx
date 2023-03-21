@@ -129,7 +129,7 @@ export const ToolShelf = ({content}: IProps) => {
   ]
 
   return (
-    <HStack className='tool-shelf' alignContent='center'>
+    <HStack className='tool-shelf' alignContent='center' data-testid='tool-shelf'>
       <Flex className="toolshelf-component-buttons" >
         {buttonDescriptions.map(aDesc => {
           return (
@@ -143,7 +143,7 @@ export const ToolShelf = ({content}: IProps) => {
               _hover={{ boxShadow: '1px 1px 1px 0px rgba(0, 0, 0, 0.5)' }}
               // :active styling is in css to override Chakra default
             >
-              {<aDesc.icon/>}
+              {aDesc.icon && <aDesc.icon/>}
               <Tag className='tool-shelf-tool-label'>{aDesc.iconLabel}</Tag>
             </Box>)
         })}
