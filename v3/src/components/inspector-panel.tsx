@@ -1,26 +1,27 @@
-import { Box, Button, Menu, MenuButton } from "@chakra-ui/react"
-import React, { ReactNode, useEffect, useRef, useState } from "react"
+import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
+import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
-import { ITileModel } from "../models/tiles/tile-model"
+import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
 
 interface IProps {
-  tile?: ITileModel
   component?: string
   show?: boolean
-  children?: ReactNode
+  children: ReactNode
+  setShowPalette?: (palette: string | undefined) => void
 }
 
-export const InspectorPanel = ({ component, show, children }: IProps) => {
+export const InspectorPanel = forwardRef(({ component, show, setShowPalette, children }: IProps, ref) => {
+  useOutsidePointerDown({ref: ref as unknown as RefObject<HTMLElement>, handler: ()=> setShowPalette?.(undefined)})
   return (show
-    ? <Box className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
-        {children}
+    ? <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+      	{children}
       </Box>
     : null
   )
-}
+})
 
 interface IInspectorButtonProps {
   children: ReactNode

@@ -3,7 +3,6 @@ import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import ValuesIcon from "../../assets/icons/icon-values.svg"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import t from "../../utilities/translation/translate"
-import { useDndContext } from "@dnd-kit/core"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 
 export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
@@ -12,11 +11,10 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const panelRect = panelRef.current?.getBoundingClientRect()
   const buttonRef = useRef<HTMLDivElement>()
   const buttonRect = buttonRef.current?.getBoundingClientRect()
-  const {active} = useDndContext()
 
   useEffect(()=>{
     !show && setShowPalette(undefined)
-  }, [active, show])
+  }, [show])
 
   const handleRulerButton = () => {
     setShowPalette(showPalette === "measure" ? undefined : "measure")

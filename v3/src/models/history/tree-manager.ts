@@ -411,7 +411,7 @@ export const TreeManager = types
     const startingIndex = direction === 1 ? self.numHistoryEventsApplied : self.numHistoryEventsApplied - 1
     const endingIndex = direction === 1 ? newHistoryPosition : newHistoryPosition - 1
     for (let i=startingIndex; i !== endingIndex; i=i+direction) {
-      const entry = self.document.history.at(i)
+      const entry = self.document.history[i]
       for (const treeEntry of (entry?.records || [])) {
         const patches = treePatches[treeEntry.tree]
         if (newHistoryPosition > self.numHistoryEventsApplied) {
@@ -453,7 +453,7 @@ export const TreeManager = types
 }))
 .views(self => ({
   getHistoryEntry: (historyIndex: number) => {
-    return self.document.history.at(historyIndex)
+    return self.document.history[historyIndex]
   }
 }))
 .views(self => ({

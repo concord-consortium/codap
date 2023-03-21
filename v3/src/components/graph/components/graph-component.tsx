@@ -13,6 +13,7 @@ import {GraphController} from "../models/graph-controller"
 import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
+import { GraphInspector } from './graph-inspector'
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
@@ -50,6 +51,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
               <Graph graphController={graphController}
                       graphRef={graphRef}
               />
+              <GraphInspector graphModel={graphModel} show={uiState.isFocusedTile(tile?.id)}/>
             </GraphModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>
