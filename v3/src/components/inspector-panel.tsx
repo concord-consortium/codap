@@ -90,7 +90,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
   const pointerTop = buttonTop - panelTop - 5
   const pointerHeight = pointerRef.current?.offsetHeight
-  const pointerMidpoint = pointerHeight ? pointerTop + pointerHeight/2 : 0
+  const pointerMidpoint = pointerHeight ? pointerTop + pointerHeight/2 : 13
   const paletteTop = (tempPaletteTop && paletteHeight) &&
     getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
 
