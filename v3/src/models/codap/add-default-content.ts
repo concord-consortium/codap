@@ -2,7 +2,6 @@ import { kCalculatorTileType } from "../../components/calculator/calculator-defs
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kDataSummaryTileType } from "../../components/data-summary/data-summary-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
-import { kHelloCodapTileType } from "../../components/hello/hello-defs"
 import { kSliderTileType } from "../../components/slider/slider-defs"
 import { typedId } from "../../utilities/js-utils"
 import { appState } from "../app-state"
@@ -59,17 +58,10 @@ export function addDefaultComponents() {
       content.insertTileInRow(calculatorTile, row, calcOptions)
     }
 
-    const helloTile = createDefaultTileOfType(kHelloCodapTileType)
-    if (!helloTile) return
-    const helloOptions = isMosaicTileRow(row)
-            ? { splitTileId: calculatorTile.id, direction: "row", percent: 0.75 }
-            : { x: kFullWidth + kWidth25 + kGap, y: 2, width: kWidth75, height: kHalfHeight }
-    content.insertTileInRow(helloTile, row, helloOptions)
-
     const sliderTile = createDefaultTileOfType(kSliderTileType)
     if (sliderTile) {
       const sliderOptions = isMosaicTileRow(row)
-              ? { splitTileId: helloTile.id, direction: "column" }
+              ? { splitTileId: calculatorTile.id, direction: "column" }
               : { x: kFullWidth + kWidth25 + kGap, y: kHalfHeight + kGap, width: kWidth75 }
       content.insertTileInRow(sliderTile, row, sliderOptions)
     }
