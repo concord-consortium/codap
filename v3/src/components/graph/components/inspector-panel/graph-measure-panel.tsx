@@ -55,16 +55,10 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
     })
   }
 
-  //temporary setting until paletteTop can be dynamically set depending on component placement
-  const paletteTop = graphModel?.plotType === "casePlot" || graphModel?.plotType === "dotChart"
-                      ? 50
-                      : 0
-
   return (
     <InspectorPalette
       title={t("DG.Inspector.values")}
       Icon={<ValuesIcon />}
-      paletteTop={paletteTop}
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}

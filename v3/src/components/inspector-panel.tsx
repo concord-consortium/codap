@@ -2,7 +2,7 @@ import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
-import { isWithinBounds } from "../utilities/view-utils"
+import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
 
@@ -72,20 +72,27 @@ interface IInspectorPalette {
   children: ReactNode
   Icon?: ReactNode
   title?: string
-  paletteTop?: number
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelRect, buttonRect,
+export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
      setShowPalette}:IInspectorPalette) => {
   const panelTop = panelRect?.top || 0
   const buttonTop = buttonRect?.top || 0
   const [paletteWidth, setPaletteWidth] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
+  const pointerRef = useRef<HTMLDivElement>(null)
   const viewportEl = document.getElementsByClassName("free-tile-row")?.[0]
   const [inBounds, setInBounds] = useState(isWithinBounds(paletteWidth, panelRect))
+  const paletteHeight = paletteRef.current?.offsetHeight
+  const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
+  const pointerTop = buttonTop - panelTop - 5
+  const pointerHeight = pointerRef.current?.offsetHeight
+  const pointerMidpoint = pointerHeight ? pointerTop + pointerHeight/2 : 0
+  const paletteTop = (tempPaletteTop && paletteHeight) &&
+    getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
 
   useEffect(()=> {
     const observer = new ResizeObserver(entries => {
@@ -108,7 +115,8 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
     const pointerStyle = {top: buttonTop - panelTop - 5}
 
     return (
-      <div className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`} style={pointerStyle} />
+      <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
+            style={pointerStyle} />
     )
   }
   const PaletteHeader = () => {
