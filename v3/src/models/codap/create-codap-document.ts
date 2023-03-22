@@ -17,14 +17,14 @@ export function createCodapDocument(snapshot?: IDocumentModelSnapshot, layout?: 
     document.setContent(getSnapshot(DocumentContentModel.create()))
   }
   if (document.content?.rowCount === 0) {
-    const isFreeLayout = layout === "free" || urlParams.layout === "free"
+    const isMosaicLayout = layout === "mosaic" || urlParams.layout === "mosaic"
     // CODAP v2/v3 documents have a single "row" containing all tiles/components
     // const rowCreator = () => FreeTileRow.create()
     // But for now we use a mosaic to preserve the current dashboard behavior until
     // we have the ability to create/move components.
-    const rowCreator = isFreeLayout
-                        ? () => FreeTileRow.create()
-                        : () => MosaicTileRow.create()
+    const rowCreator = isMosaicLayout
+                        ? () => MosaicTileRow.create()
+                        : () => FreeTileRow.create()
     const row = rowCreator()
     document.content.setRowCreator(rowCreator)
     document.content.insertRow(row)
