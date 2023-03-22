@@ -1,8 +1,8 @@
-import { addDisposer, applySnapshot, destroy, getEnv, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { addDisposer, applySnapshot, destroy, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Tree } from "../history/tree"
 import { TreeManager } from "../history/tree-manager"
 import { TreeMonitor } from "../history/tree-monitor"
-import { ITileEnvironment } from "../tiles/tile-content"
+import { getSharedModelManager } from "../tiles/tile-environment"
 import { ITileModel } from "../tiles/tile-model"
 import { DocumentContentModel, IDocumentContentSnapshotIn } from "./document-content"
 import { IDocumentMetadata } from "./document-metadata"
@@ -88,9 +88,8 @@ export const DocumentModel = Tree.named("Document")
       }
       else {
         self.content = DocumentContentModel.create(snapshot)
-        const env: ITileEnvironment = getEnv(self)
-        const sharedModelManager = env.sharedModelManager
-        ;(sharedModelManager as ISharedModelDocumentManager).setDocument(self.content)
+        const sharedModelManager = getSharedModelManager(self)
+        ;(sharedModelManager as ISharedModelDocumentManager)?.setDocument(self.content)
       }
     },
 

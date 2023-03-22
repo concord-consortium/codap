@@ -3,6 +3,8 @@ import { ISharedCaseMetadata, SharedCaseMetadata } from "../shared/shared-case-m
 import { ISharedDataSet, SharedDataSet } from "../shared/shared-data-set"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { IDataSet } from "./data-set"
+import "../shared/shared-data-set-registration"
+import "../shared/shared-case-metadata-registration"
 
 export interface IDataSetSummary {
   id: string;
@@ -82,6 +84,8 @@ export class DataBroker {
 
     !this.allowMultiple && this.dataSets.clear()
     this.addSharedDataSet(sharedModel)
+
+    return { sharedData: sharedModel, caseMetadata }
   }
 
   @action

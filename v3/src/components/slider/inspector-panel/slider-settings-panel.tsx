@@ -3,11 +3,12 @@ import {observer} from "mobx-react-lite"
 import {Flex, FormControl, FormLabel, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
         NumberInputField, NumberInputStepper, Select} from "@chakra-ui/react"
 import t from "../../../utilities/translation/translate"
-import {ISliderModel} from "../slider-model"
+import {animationDirectionString, animationModeString, ISliderModel} from "../slider-model"
 import {InspectorPalette} from "../../inspector-panel"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
 
 import "./slider-settings-panel.scss"
+import { EAnimationDirection, EAnimationMode } from "../slider-types"
 
 interface IProps {
   sliderModel: ISliderModel
@@ -75,10 +76,11 @@ console.log(typeof sliderModel.multipleOf)
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.direction")}
               <Select className="slider-select direction" value={sliderModel.direction}
-                      onChange={e => sliderModel.setDirection(e.target.value)}>
-                <option value={"lowToHigh"}>{t("DG.Slider.lowToHigh")}</option>
-                <option value={"backAndForth"}>{t("DG.Slider.backAndForth")}</option>
-                <option value={"hightToLow"}>{t("DG.Slider.highToLow")}</option>
+                      onChange={e => sliderModel.setAnimationDirection(+e.target.value)}>
+                {Object.keys(EAnimationDirection).map((key, direction) => {
+                  const label = animationDirectionString(direction)
+                  return label && <option key={label} value={direction}>{label}</option>
+                })}
               </Select>
             </FormLabel>
           </Flex>
@@ -87,9 +89,11 @@ console.log(typeof sliderModel.multipleOf)
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.mode")}
               <Select className="slider-select mode" value={sliderModel.direction}
-                      onChange={e => sliderModel.setRepetition(e.target.value)}>
-                <option value={"nonStop"}>{t("DG.Slider.nonStop")}</option>
-                <option value={"onceOnly"}>{t("DG.Slider.onceOnly")}</option>
+                      onChange={e => sliderModel.setAnimationMode(+e.target.value)}>
+                {Object.keys(EAnimationMode).map((key, mode) => {
+                  const label = animationModeString(mode)
+                  return label && <option key={label} value={mode}>{label}</option>
+                })}
               </Select>
             </FormLabel>
           </Flex>

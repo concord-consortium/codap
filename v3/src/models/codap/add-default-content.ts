@@ -9,14 +9,16 @@ import { appState } from "../app-state"
 import { IFreeTileInRowOptions } from "../document/free-tile-row"
 import { IMosaicTileInRowOptions, isMosaicTileRow } from "../document/mosaic-tile-row"
 import { getTileContentInfo } from "../tiles/tile-content-info"
+import { getTileEnvironment } from "../tiles/tile-environment"
 import { TileModel } from "../tiles/tile-model"
 
 type ILayoutOptions = IFreeTileInRowOptions | IMosaicTileInRowOptions | undefined
 
 export function createDefaultTileOfType(tileType: string) {
+  const env = getTileEnvironment(appState.document)
   const info = getTileContentInfo(tileType)
   const id = typedId(info?.prefix || "TILE")
-  const content = info?.defaultContent()
+  const content = info?.defaultContent({ env })
   return content ? TileModel.create({ id, content }) : undefined
 }
 

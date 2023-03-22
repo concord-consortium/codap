@@ -1,6 +1,8 @@
 import {Instance, types} from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 
+export const kDefaultNamePrefix = "v"
+
 export const GlobalValue = types.model("GlobalValue", {
     id: types.optional(types.identifier, () => typedId("GLOB")),
     name: types.string,

@@ -40,7 +40,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const axisStyle: CSSProperties = {
     position: "absolute",
     left: 0,
-    top: 70,
+    top: 52,
     width,
     height: 30
   }
@@ -64,7 +64,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   if (!isSliderModel(sliderModel)) return null
 
   const incrementSliderValue = () => {
-    sliderModel.setValueRoundedToMultipleOf(sliderModel.value + sliderModel.multipleOf)
+    sliderModel.setValue(sliderModel.value + sliderModel.increment)
   }
 
   const titleM = measureText(sliderModel.name)

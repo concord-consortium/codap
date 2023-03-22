@@ -7,12 +7,12 @@ import {Container} from "./container"
 import { MenuBar } from "./menu-bar/menu-bar"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
-import { createCodapDocument, getTileEnvironment } from "../models/codap/create-codap-document"
+import { createCodapDocument } from "../models/codap/create-codap-document"
 import {gDataBroker} from "../models/data/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
 import { IDocumentModelSnapshot } from "../models/document/document"
-import { ISharedModelDocumentManager } from "../models/document/shared-model-document-manager"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { ITileModel } from "../models/tiles/tile-model"
 import { DocumentContext } from "../hooks/use-document-context"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -47,7 +47,7 @@ export const App = observer(function App() {
 
   const handleImportV2Document = useCallback((v2Document: CodapV2Document) => {
     const v3Document = createCodapDocument(undefined, "free")
-    const sharedModelManager = getTileEnvironment(v3Document)?.sharedModelManager
+    const sharedModelManager = getSharedModelManager(v3Document)
     sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
     // add shared models (data sets and case metadata)
     v2Document.datasets.forEach((data, key) => {
@@ -108,8 +108,7 @@ export const App = observer(function App() {
   useEffect(() => {
     // connect the data broker to the shared model manager
     if (!gDataBroker.sharedModelManager) {
-      const docEnv = getTileEnvironment(appState.document)
-      const sharedModelManager = docEnv?.sharedModelManager as ISharedModelDocumentManager | undefined
+      const sharedModelManager = getSharedModelManager(appState.document)
       sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
     }
 
