@@ -88,11 +88,8 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = e
-    switch (key) {
-      case "Escape":
-      case "Enter":
-        setShowPalette(undefined)
-        break
+    if (key === "Enter" || key === "Escape") {
+      setShowPalette(undefined)
     }
   }
 

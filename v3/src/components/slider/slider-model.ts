@@ -53,17 +53,11 @@ export const SliderModel = TileContentModel
       }
       self.globalValue.setValue(n)
     },
-    setMultipleOf(n: number | string) {
-      const multipleOf = typeof n !== "number" ? parseFloat(n) : n
-      if (!isNaN(multipleOf) && isFinite(multipleOf)) {
-        self.multipleOf = Math.abs(multipleOf)
-      }
+    setMultipleOf(n: number) {
+      self.multipleOf = Math.abs(n)
     },
-    setAnimationRate(n: number | string) {
-      const rate = typeof n !== "number" ? parseFloat(n) : n
-      if (!isNaN(rate) && isFinite(rate)) {
-        self.animationRate = Math.abs(rate)
-      }
+    setAnimationRate(n: number) {
+      self.animationRate = Math.abs(n)
     },
     setDirection(direction: string) {
       self.direction = direction
