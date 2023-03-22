@@ -16,7 +16,7 @@ export interface V2TileImportArgs {
   // function to call to insert the imported tile into the document
   insertTile: (tile: ITileModel) => void
 }
-export type V2TileImportFn = (args: V2TileImportArgs) => void
+export type V2TileImportFn = (args: V2TileImportArgs) => ITileModel | undefined
 
 // map from v2 component type to import function
 const gV2TileImporters = new Map<string, V2TileImportFn>()

@@ -76,7 +76,10 @@ export interface ICodapV2DataContext {
 }
 
 export interface ICodapV2GlobalValue {
-
+  // from DG.GlobalValue.toArchive
+  name: string
+  value: number
+  guid: number
 }
 
 export interface IGuidLink<T extends string> {
@@ -85,8 +88,27 @@ export interface IGuidLink<T extends string> {
 }
 
 export interface ICodapV2CalculatorStorage {
+  // from DG.Component.toArchive
   title: string
   name: string
+  userSetTitle: boolean
+  cannotClose: boolean
+}
+
+export interface ICodapV2SliderStorage {
+  // from SliderController.createComponentStorage
+  _links_: {
+    model: IGuidLink<"DG.GlobalValue">
+  },
+  lowerBound?: number
+  upperBound?: number
+  animationDirection: number
+  animationMode: number
+  restrictToMultiplesOf: number | null
+  maxPerSecond: number | null
+  userTitle: boolean
+  // from DG.Component.toArchive
+  title: string
   userSetTitle: boolean
   cannotClose: boolean
 }
@@ -149,6 +171,7 @@ export interface ICodapV2GuideStorage {
 export interface ICodapV2BaseComponent {
   type: string  // e.g. "DG.TableView", "DG.GraphView", "DG.GuideView", etc.
   guid: number
+  id: number
   componentStorage: Record<string, any>
   layout: {
     width: number
@@ -168,6 +191,12 @@ export interface ICodapV2CalculatorComponent extends ICodapV2BaseComponent {
 export const isV2CalculatorComponent = (component: ICodapV2BaseComponent): component is ICodapV2CalculatorComponent =>
   component.type === "DG.Calculator"
 
+export interface ICodapV2SliderComponent extends ICodapV2BaseComponent {
+  type: "DG.SliderView",
+  componentStorage: ICodapV2SliderStorage
+}
+export const isV2SliderComponent = (component: ICodapV2BaseComponent): component is ICodapV2SliderComponent =>
+  component.type === "DG.SliderView"
 export interface ICodapV2TableComponent extends ICodapV2BaseComponent {
   type: "DG.TableView"
   componentStorage: ICodapV2TableStorage
