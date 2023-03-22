@@ -1,10 +1,11 @@
 import { useDndContext } from "@dnd-kit/core"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../models/document/free-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
+import { TileDisplayContext } from "./tile-display-context"
 
 interface IProps {
   row: IFreeTileRow;
@@ -33,6 +34,10 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
       }
     }
   })
+  const [tileDisplayContext, setTileDisplayContext] = useState({ left, width })
+  useEffect(() => {
+    setTileDisplayContext({ left, width })
+  }, [left, width])
 
   const handleResizePointerDown = (e: React.PointerEvent, mtile: IFreeTileLayout, direction: string) => {
     const startWidth = mtile.width
@@ -96,18 +101,20 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
                       ? movingStyle
                       : tileStyle
   return (
-    <div className="free-tile-component" style={style} key={tileId} ref={setNodeRef}>
-      {tile && info && rowTile &&
-        <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
-            tileEltClass={info.tileEltClass} onCloseTile={onCloseTile}
-            isFixedSize={info.isFixedSize}
-            onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
-            onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
-            onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}
-            onBottomPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom")}
-            onLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "left")}
-        />
-      }
-    </div>
+    <TileDisplayContext.Provider value={tileDisplayContext}>
+      <div className="free-tile-component" style={style} key={tileId} ref={setNodeRef}>
+        {tile && info && rowTile &&
+          <CodapComponent tile={tile} TitleBar={info.TitleBar} Component={info.Component}
+              tileEltClass={info.tileEltClass} onCloseTile={onCloseTile}
+              isFixedSize={info.isFixedSize}
+              onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
+              onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
+              onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}
+              onBottomPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom")}
+              onLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "left")}
+          />
+        }
+      </div>
+    </TileDisplayContext.Provider>
   )
 }
