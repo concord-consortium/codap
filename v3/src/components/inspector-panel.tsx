@@ -84,7 +84,19 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
   const buttonTop = buttonRect?.top || 0
   const [paletteWidth, setPaletteWidth] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
-  const inBounds = panelRect && isWithinBounds(paletteWidth, panelRect)
+  const viewportEl = document.getElementsByClassName("free-tile-row")?.[0]
+  const [inBounds, setInBounds] = useState(isWithinBounds(paletteWidth, panelRect))
+
+  useEffect(()=> {
+    const observer = new ResizeObserver(entries => {
+      entries.forEach(entry => {
+        if (panelRect) {
+          setInBounds(isWithinBounds(paletteWidth, panelRect))
+        }
+      })
+    })
+    observer.observe(viewportEl)
+  }, [paletteWidth, panelRect, viewportEl])
 
   useEffect(() => {
     if (paletteRef.current) {
