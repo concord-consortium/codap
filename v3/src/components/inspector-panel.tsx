@@ -95,7 +95,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
 
   useEffect(()=> {
-    const observer = new ResizeObserver(entries => {
+    const observer = viewportEl && new ResizeObserver(entries => {
       entries.forEach(entry => {
         if (panelRect) {
           setInBounds(isWithinBounds(paletteWidth, panelRect))
@@ -103,6 +103,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
       })
     })
     observer.observe(viewportEl)
+    return () => observer?.disconnect()
   }, [paletteWidth, panelRect, viewportEl])
 
   useEffect(() => {
