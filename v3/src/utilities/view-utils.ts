@@ -100,3 +100,12 @@ export const isWithinBounds = (dimension: number, rect?: DOMRect) => {
   const viewportRect = viewportEl.getBoundingClientRect()
   return (rect.right + dimension + 10) < viewportRect?.right
 }
+
+export const getPaletteTopPosition = (tempTop: number, paletteHeight: number, pointerMid: number) => {
+  const top = pointerMid-paletteHeight/2
+  if ((tempTop+top) > kCodapAppHeader + kGap) {
+    return top
+  } else {
+    return 0
+  }
+}
