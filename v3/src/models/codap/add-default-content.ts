@@ -31,7 +31,6 @@ export function addDefaultComponents() {
   const kWidth25 = kFullWidth / 4
   const kWidth75 = kFullWidth * 3 / 4
   const kFullHeight = 300
-  const kHalfHeight = kFullHeight / 2
   const kGap = 10
 
   setTimeout(() => {
@@ -61,8 +60,8 @@ export function addDefaultComponents() {
     const sliderTile = createDefaultTileOfType(kSliderTileType)
     if (sliderTile) {
       const sliderOptions = isMosaicTileRow(row)
-              ? { splitTileId: calculatorTile.id, direction: "column" }
-              : { x: kFullWidth + kWidth25 + kGap, y: kHalfHeight + kGap, width: kWidth75 }
+              ? { splitTileId: calculatorTile.id, direction: "row" }
+              : { x: kFullWidth + kWidth25 + kGap, y: 2, width: kWidth75 }
       content.insertTileInRow(sliderTile, row, sliderOptions)
     }
 
