@@ -38,7 +38,6 @@ export const SliderSettingsPalette =
     <InspectorPalette
       title={t("DG.Inspector.values")}
       Icon={<ValuesIcon/>}
-      paletteTop={-50} //temporary setting until paletteTop can be dynamically set depending on component placement
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}

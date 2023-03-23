@@ -66,7 +66,6 @@ categoriesRef.current?.forEach(cat => {
     <InspectorPalette
       title={t("DG.Inspector.styles")}
       Icon={<StylesIcon/>}
-      paletteTop={35} //temporary setting until paletteTop can be dynamically set depending on component placement
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
