@@ -1,7 +1,7 @@
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 
 context("Slider UI", () => {
-    before(function () {
+    beforeEach(function () {
         const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)

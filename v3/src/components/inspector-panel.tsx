@@ -98,6 +98,13 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
     observer.observe(viewportEl)
   }, [paletteWidth, panelRect, viewportEl])
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const { key } = e
+    if (key === "Enter" || key === "Escape") {
+      setShowPalette(undefined)
+    }
+  }
+
   useEffect(() => {
     if (paletteRef.current) {
       setPaletteWidth(paletteRef.current.offsetWidth)
@@ -111,6 +118,7 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
       <div className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`} style={pointerStyle} />
     )
   }
+
   const PaletteHeader = () => {
     return (
       <div className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
@@ -127,7 +135,7 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
     <>
       <PalettePointer/>
       <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle} tabIndex={0} zIndex={250}
-          data-testid="codap-inspector-palette">
+          data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader />
         {children}
       </Box>

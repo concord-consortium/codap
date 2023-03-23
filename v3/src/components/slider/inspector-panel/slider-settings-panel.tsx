@@ -47,13 +47,13 @@ export const SliderSettingsPalette =
         <FormControl size="xs">
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
-              <NumberInput className="slider-input multiples" size="xs"
-                precision={2} step={1} onChange={handleMultiplesOfChange}>
-                  <NumberInputField />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
+              <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf || 1}
+                  min={0.1} precision={2} step={1} onChange={handleMultiplesOfChange}>
+                <NumberInputField />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
               </NumberInput>
             </FormLabel>
           </Flex>
@@ -61,9 +61,9 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
-              <NumberInput className="slider-input animation-rate" size="xs"
-                 precision={2} step={1} onChange={handleAnimationRateChange}>
-                <NumberInputField/>
+              <NumberInput className="slider-input animation-rate" size="xs" min={0.1} precision={2} step={1}
+                  defaultValue={sliderModel.animationRate || 1} onChange={handleAnimationRateChange}>
+                <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
                     <NumberDecrementStepper />
@@ -87,8 +87,8 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.mode")}
-              <Select className="slider-select mode" value={sliderModel?.direction}
-                      onChange={e => sliderModel?.setRepetition(e.target.value)}>
+              <Select className="slider-select mode" value={sliderModel.repetition}
+                      onChange={e => sliderModel.setRepetition(e.target.value)}>
                 <option value={"nonStop"}>{t("DG.Slider.nonStop")}</option>
                 <option value={"onceOnly"}>{t("DG.Slider.onceOnly")}</option>
               </Select>

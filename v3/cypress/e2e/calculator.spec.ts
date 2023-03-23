@@ -1,7 +1,7 @@
 import { CalculatorTileElements as calc } from "../support/elements/calculator-tile"
 
 context("Data summary UI", () => {
-    before(function () {
+    beforeEach(function () {
         const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
