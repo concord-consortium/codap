@@ -94,11 +94,13 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
   return nLoc
 }
 
-export const isWithinBounds = (dimension: number, rect?: DOMRect) => {
-  if (!rect) return false
-  const viewportEl = document.getElementsByClassName("free-tile-row")?.[0]
+export const isWithinBounds = (panelRight: number, palette: HTMLDivElement | null) => {
+  if (!palette) return false
+  const paletteRect = palette.getBoundingClientRect()
+  const viewportEl = palette.closest(".tile-row")
+  if (!viewportEl) return false
   const viewportRect = viewportEl.getBoundingClientRect()
-  return (rect.right + dimension + 10) < viewportRect?.right
+  return (panelRight + paletteRect.width + 10) < viewportRect.right
 }
 
 export const getPaletteTopPosition = (tempTop: number, paletteHeight: number, pointerMid: number) => {

@@ -5,7 +5,7 @@ export interface ITileComponentInfo {
   type: string;
   TitleBar: React.ComponentType<ITileTitleBarProps>;
   Component: React.ComponentType<ITileBaseProps>;
-  InspectorPanel?:  React.ComponentType<ITileInspectorPanelProps>;
+  InspectorPanel?: React.ComponentType<ITileInspectorPanelProps>;
   tileEltClass: string;
   Icon?: React.FC<SVGProps<SVGSVGElement>>;
   /**

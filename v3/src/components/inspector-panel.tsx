@@ -80,12 +80,13 @@ interface IInspectorPalette {
 export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
      setShowPalette}:IInspectorPalette) => {
   const panelTop = panelRect?.top || 0
+  const panelRight = panelRect?.right || 0
   const buttonTop = buttonRect?.top || 0
   const [paletteWidth, setPaletteWidth] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
   const pointerRef = useRef<HTMLDivElement>(null)
-  const viewportEl = document.getElementsByClassName("free-tile-row")?.[0]
-  const [inBounds, setInBounds] = useState(isWithinBounds(paletteWidth, panelRect))
+  const viewportEl = paletteRef.current?.closest(".tile-row")
+  const [inBounds, setInBounds] = useState(isWithinBounds(panelRight, paletteRef.current))
   const paletteHeight = paletteRef.current?.offsetHeight
   const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
   const pointerTop = buttonTop - panelTop - 5
@@ -97,14 +98,14 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   useEffect(()=> {
     const observer = viewportEl && new ResizeObserver(entries => {
       entries.forEach(entry => {
-        if (panelRect) {
-          setInBounds(isWithinBounds(paletteWidth, panelRect))
+        if (panelRight && paletteRef.current) {
+          setInBounds(isWithinBounds(panelRight, paletteRef.current))
         }
       })
     })
-    observer?.observe(viewportEl)
+    viewportEl && observer?.observe(viewportEl)
     return () => observer?.disconnect()
-  }, [paletteWidth, panelRect, viewportEl])
+  }, [panelRight, viewportEl])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = e

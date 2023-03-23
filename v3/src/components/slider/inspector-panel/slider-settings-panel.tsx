@@ -20,18 +20,19 @@ interface IProps {
 export const SliderSettingsPalette =
     observer(function SliderSettingsPalette({tile, panelRect, buttonRect, setShowPalette}: IProps) {
   const sliderModel = isSliderModel(tile?.content) ? tile?.content : undefined
+  if (!sliderModel) return null
 
   const handleMultiplesOfChange = (value: string) => {
     const multipleOf = parseFloat(value)
     if (isFinite(multipleOf)) {
-      sliderModel?.setMultipleOf(multipleOf)
+      sliderModel.setMultipleOf(multipleOf)
     }
   }
 
   const handleAnimationRateChange = (value: string) => {
     const animationRate = parseFloat(value)
     if (isFinite(animationRate)) {
-      sliderModel?.setAnimationRate(animationRate)
+      sliderModel.setAnimationRate(animationRate)
     }
   }
   return (
@@ -74,8 +75,8 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.direction")}
-              <Select className="slider-select direction" value={sliderModel?.direction}
-                      onChange={e => sliderModel?.setDirection(e.target.value)}>
+              <Select className="slider-select direction" value={sliderModel.direction}
+                      onChange={e => sliderModel.setDirection(e.target.value)}>
                 <option value={"lowToHigh"}>{t("DG.Slider.lowToHigh")}</option>
                 <option value={"backAndForth"}>{t("DG.Slider.backAndForth")}</option>
                 <option value={"hightToLow"}>{t("DG.Slider.highToLow")}</option>
