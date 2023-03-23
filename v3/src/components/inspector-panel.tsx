@@ -102,7 +102,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
         }
       })
     })
-    observer.observe(viewportEl)
+    observer?.observe(viewportEl)
     return () => observer?.disconnect()
   }, [paletteWidth, panelRect, viewportEl])
 
