@@ -1,6 +1,4 @@
 {
-    "V3.INTRO.HELLO": "Hola CODAP3!",
-    "V3.INTRO.DRAG.CSV": "Arrastre un archivo CSV a esta ventana para obtener algunos datos.",
     "V3.summary.parseResults": "Parsed \"%@1\" with %@2 %@3 (%@4 selected) and...",
     "V3.summary.noData": "Sin datos",
     "V3.summary.attributes": "Atributos",
