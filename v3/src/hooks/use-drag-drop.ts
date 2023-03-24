@@ -1,6 +1,5 @@
-import {
-  Active, DataRef, DragEndEvent, useDndMonitor, useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
-} from "@dnd-kit/core"
+import { Active, DataRef, DragEndEvent, Modifier, useDndMonitor, useDraggable, UseDraggableArguments,
+    useDroppable, UseDroppableArguments} from "@dnd-kit/core"
 import { useInstanceIdContext } from "./use-instance-id-context"
 
 // list of draggable types
@@ -115,4 +114,14 @@ export const useTileDropHandler = (dropId: string, onDrop: (event: DragEndEvent)
     // only call onDrop for the handler that registered it
     (event.over?.id === dropId) && onDrop(event)
   }})
+}
+
+export const containerSnapToGridModifier: Modifier = ({transform, active}) => {
+  // in pixels
+  const gridSize = active && isDragTileData(active.data) ? 5 : 1
+  return {
+    ...transform,
+    x: Math.ceil(transform.x / gridSize) * gridSize,
+    y: Math.ceil(transform.y / gridSize) * gridSize,
+  }
 }
