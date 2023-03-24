@@ -59,7 +59,7 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCl
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
-            onPointerDownCapture={()=>onCloseTile(tileId)} onClick={()=>onCloseTile(tileId)}/>
+            onPointerDown={()=>onCloseTile(tileId)}/>
       </Flex>
     </ComponentTitleBar>
   )
