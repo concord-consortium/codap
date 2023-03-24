@@ -18,4 +18,5 @@ export const AnimationModes = ["nonStop", "onceOnly"] as const
 export type AnimationMode = typeof AnimationModes[number]
 export const kDefaultAnimationMode = "onceOnly"
 
-export const kDefaultAnimationRate = 20 // frames/second
+// export const kDefaultAnimationRate = 20 // frames/second
+export const kDefaultAnimationRate = undefined // frames/second
