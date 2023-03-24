@@ -2,6 +2,7 @@ import {
   DndContext, KeyboardCoordinateGetter, KeyboardSensor, PointerSensor, MouseSensor, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
+import { containerSnapToGridModifier } from "../hooks/use-drag-drop"
 import { urlParams } from "../utilities/url-params"
 import { dndDetectCollision } from "./dnd-detect-collision"
 
@@ -17,9 +18,8 @@ export const CodapDndContext = ({ children }: IProps) => {
                     useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
                     // mouse sensor can be enabled for cypress tests, for instance
                     urlParams.mouseSensor !== undefined ? useMouseSensor : null)
-
   return (
-    <DndContext collisionDetection={dndDetectCollision} sensors={sensors}>
+    <DndContext collisionDetection={dndDetectCollision} sensors={sensors} modifiers={[containerSnapToGridModifier]}>
       {children}
     </DndContext>
   )
