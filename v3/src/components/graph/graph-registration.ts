@@ -46,4 +46,6 @@ registerV2TileImporter("DG.GraphView", ({ v2Component, v2Document, sharedModelMa
   const { data, metadata } = v2Document.getDataAndMetadata(contextId)
   sharedModelManager?.addTileSharedModel(graphTile.content, data, true)
   sharedModelManager?.addTileSharedModel(graphTile.content, metadata, true)
+
+  return graphTile
 })

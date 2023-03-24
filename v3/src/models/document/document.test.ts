@@ -1,10 +1,7 @@
-import { registerTileTypes } from "../../register-tile-types"
 import { ITestTileContent, TestTileContent } from "../../test/test-tile-content"
 import { createSingleTileContent } from "../../test/test-utils"
 import { createDocumentModel } from "./create-document-model"
 import { IDocumentModel } from "./document"
-
-registerTileTypes(["Test"])
 
 describe("document model", () => {
   let document: IDocumentModel

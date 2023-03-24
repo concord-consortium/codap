@@ -1,18 +1,18 @@
 @import "./../vars.scss";
 
-$pseudo-inspector-width: 40px;
+$slider-component-height: 98px;
 
 .slider-wrapper {
   position: relative;
   overflow: clip;
-  height: calc(100% - $title-bar-height);
+  height: calc($slider-component-height - $title-bar-height);
   background: #fff;
   border-radius: $border-radius-bottom-corners;
 
   .slider {
     button svg, .thumb-icon {
-      width:27px;
-      height:27px;
+      width: 27px;
+      height: 27px;
     }
 
     .thumb-icon {
@@ -47,10 +47,10 @@ $pseudo-inspector-width: 40px;
 
     .slider-thumb-icon {
       position: absolute;
-      top: 60px;
+      top: 42px;
 
       &.dragging {
-        top: 59px;
+        top: 41px;
         filter: drop-shadow(3px 1px 1px #555);
       }
     }

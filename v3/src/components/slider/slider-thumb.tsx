@@ -40,7 +40,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
       if ((containerX != null) && isDragging) {
         const pixelTarget = e.clientX + downOffset.current
         const scaledValue = scale.invert(pixelTarget - containerX)
-        sliderModel.setValueRoundedToMultipleOf(scaledValue)
+        sliderModel.setValue(scaledValue)
       }
       e.preventDefault()
       e.stopImmediatePropagation()

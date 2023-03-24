@@ -37,7 +37,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   const handleBlur = () => {
     const myFloat = parseFloat(candidate)
     if (isFinite(myFloat)) {
-      sliderModel.setValueRoundedToMultipleOf(myFloat)
+      sliderModel.setValue(myFloat)
     } else {
       setCandidate(formatValue(sliderModel))
     }

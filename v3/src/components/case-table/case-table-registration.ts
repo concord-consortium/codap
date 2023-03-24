@@ -45,4 +45,6 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
   const { data, metadata } = v2Document.getDataAndMetadata(contextId)
   sharedModelManager?.addTileSharedModel(tableTile.content, data, true)
   sharedModelManager?.addTileSharedModel(tableTile.content, metadata, true)
+
+  return tableTile
 })

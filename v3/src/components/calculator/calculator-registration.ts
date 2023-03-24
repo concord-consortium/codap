@@ -30,7 +30,7 @@ registerTileComponentInfo({
   isFixedHeight: true
 })
 
-registerV2TileImporter("DG.Calculator", ({ v2Component, v2Document, insertTile }) => {
+registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
   if (!isV2CalculatorComponent(v2Component)) return
 
   const { name = "", title = "" } = v2Component.componentStorage
@@ -40,4 +40,6 @@ registerV2TileImporter("DG.Calculator", ({ v2Component, v2Document, insertTile }
     content: CalculatorModel.create({ name })
   })
   insertTile(calculatorTile)
+
+  return calculatorTile
 })

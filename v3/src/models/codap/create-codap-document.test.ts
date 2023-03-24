@@ -1,11 +1,10 @@
-import { getEnv, getSnapshot } from "mobx-state-tree"
+import { getSnapshot } from "mobx-state-tree"
 import { omitUndefined } from "../../test/test-utils"
 import { gDataBroker } from "../data/data-broker"
 import { DataSet, toCanonical } from "../data/data-set"
-import { ITileEnvironment } from "../tiles/tile-content"
 import { createCodapDocument } from "./create-codap-document"
-import { ISharedModelDocumentManager } from "../document/shared-model-document-manager"
 import { ISharedDataSet } from "../shared/shared-data-set"
+import { getSharedModelManager } from "../tiles/tile-environment"
 import "../shared/shared-case-metadata-registration"
 import "../shared/shared-data-set-registration"
 
@@ -26,23 +25,39 @@ describe("createCodapDocument", () => {
     expect(doc.key).toBe("test-1")
     expect(doc.type).toBe("CODAP")
     expect(omitUndefined(getSnapshot(doc.content!))).toEqual({
-      rowMap: { "test-2": { id: "test-2", type: "free", order: [], tiles: {} } },
-      rowOrder: ["test-2"],
-      sharedModelMap: {},
+      rowMap: { "test-3": { id: "test-3", type: "free", order: [], tiles: {} } },
+      rowOrder: ["test-3"],
+      sharedModelMap: {
+        "test-2": { sharedModel: { id: "test-2", type: "GlobalValueManager", globals: {} }, tiles: [] }
+      },
+      tileMap: {}
+    })
+  })
+
+  it("creates an empty document with mosaic layout", () => {
+    const doc = createCodapDocument(undefined, "mosaic")
+    expect(doc.key).toBe("test-1")
+    expect(doc.type).toBe("CODAP")
+    expect(omitUndefined(getSnapshot(doc.content!))).toEqual({
+      rowMap: { "test-3": { id: "test-3", type: "mosaic", nodes: {}, root: "", tiles: {} } },
+      rowOrder: ["test-3"],
+      sharedModelMap: {
+        "test-2": { sharedModel: { id: "test-2", type: "GlobalValueManager", globals: {} }, tiles: [] }
+      },
       tileMap: {}
     })
   })
 
   it("DataBroker adds a DataSet to the document as a shared model", () => {
     const doc = createCodapDocument()
-    const manager = getEnv<ITileEnvironment>(doc).sharedModelManager as ISharedModelDocumentManager
+    const manager = getSharedModelManager(doc)
     const data = DataSet.create()
     data.addAttribute({ name: "a" })
     data.addCases(toCanonical(data, [{ a: "1" }, { a: "2" }, { a: "3" }]))
-    gDataBroker.setSharedModelManager(manager)
-    gDataBroker.addDataSet(data)
+    gDataBroker.setSharedModelManager(manager!)
+    const { sharedData, caseMetadata } = gDataBroker.addDataSet(data)
 
-    const entry = doc.content?.sharedModelMap.get("test-9")
+    const entry = doc.content?.sharedModelMap.get(sharedData.id)
     const sharedModel = entry?.sharedModel as ISharedDataSet | undefined
     // the DataSet is not copied -- it's a single instance
     expect(data).toBe(gDataBroker.last)
@@ -55,40 +70,44 @@ describe("createCodapDocument", () => {
 
     // the resulting document content contains the contents of the DataSet
     expect(snapContent).toEqual({
-      rowMap: { "test-2": { id: "test-2", type: "free", order: [], tiles: {} } },
-      rowOrder: ["test-2"],
+      rowMap: { "test-3": { id: "test-3", type: "free", order: [], tiles: {} } },
+      rowOrder: ["test-3"],
       sharedModelMap: {
-        "test-9": {
+        "test-2": {
+          sharedModel: { id: "test-2", type: "GlobalValueManager", globals: {} },
+          tiles: []
+        },
+        [sharedData.id]: {
           sharedModel: {
             dataSet: {
               attributes: [{
                 clientKey: "",
                 formula: {},
-                id: "test-5",
+                id: "test-6",
                 name: "a",
                 title: "",
                 editable: true,
                 values: ["1", "2", "3"]
               }],
-              cases: [{ __id__: "CASEorder-6" }, { __id__: "CASEorder-7" }, { __id__: "CASEorder-8" }],
+              cases: [{ __id__: "CASEorder-7" }, { __id__: "CASEorder-8" }, { __id__: "CASEorder-9" }],
               collections: [],
-              ungrouped: { id: "test-4", name: "", title: "" },
-              id: "test-3",
+              ungrouped: { id: "test-5", name: "", title: "" },
+              id: "test-4",
               snapSelection: []
             },
-            id: "test-9",
+            id: sharedData.id,
             providerId: "",
             type: "SharedDataSet"
           },
           tiles: []
         },
-        "test-12": {
+        [caseMetadata.id]: {
           sharedModel: {
             collections: {},
             columnWidths: {},
-            data: "test-3",
+            data: "test-4",
             hidden: {},
-            id: "test-12",
+            id: caseMetadata.id,
             type: "SharedCaseMetadata"
           },
           tiles: []
