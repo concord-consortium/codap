@@ -19,8 +19,8 @@ export function createCodapDocument(snapshot?: IDocumentModelSnapshot, layout?: 
     document.setContent(getSnapshot(DocumentContentModel.create()))
   }
   // add the global value manager if there isn't one
-  if (!document.content?.getFirstSharedModelByType(GlobalValueManager)) {
-    document.content?.addSharedModel(GlobalValueManager.create())
+  if (document.content && !document.content.getFirstSharedModelByType(GlobalValueManager)) {
+    document.content.addSharedModel(GlobalValueManager.create())
   }
   // create the default tile container ("row")
   if (document.content?.rowCount === 0) {

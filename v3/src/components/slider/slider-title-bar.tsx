@@ -5,9 +5,11 @@ import { ComponentTitleBar  } from "../component-title-bar"
 import t from "../../utilities/translation/translate"
 import MinimizeIcon from "../../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { isSliderModel } from "./slider-model"
 
 export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTile }: ITileTitleBarProps) {
-  const title = tile?.title || t("DG.DocumentController.sliderTitle")
+  const sliderModel = isSliderModel(tile?.content) ? tile?.content : undefined
+  const title = tile?.title || sliderModel?.name || t("DG.DocumentController.sliderTitle")
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
   return (
