@@ -19,7 +19,7 @@ export const DataSummaryTitleBar = observer(function DataSummaryTitleBar({tile, 
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
-          onClick={()=>onCloseTile(tileId)}/>
+          onPointerDown={()=>onCloseTile(tileId)}/>
       </Flex>
     </ComponentTitleBar>
   )

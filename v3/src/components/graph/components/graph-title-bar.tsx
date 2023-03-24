@@ -18,7 +18,7 @@ export const GraphTitleBar = observer(function GraphTitleBar({tile, onCloseTile}
       <Flex className="header-right">
         <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
-          onClick={() => onCloseTile(tileId)}/>
+          onPointerDown={()=>onCloseTile(tileId)}/>
       </Flex>
     </ComponentTitleBar>
   )
