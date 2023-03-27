@@ -1,0 +1,104 @@
+#!/bin/bash
+#
+# Runs a dev build of CODAP with sourcemaps with NO DEPLOYMENT
+#
+# Program Dependencies(in addition to standard unix and CODAP dependencies):
+#   git, node, npm, openssh, jq.
+# Requires user account with root permissions on the server.
+# Configured in $HOME/.codap-build.rc: CODAP_HOME, CODAP_SERVER.
+# Requires access to Pivotal Tracker. PROJECT_ID, TOKEN, and USER_NAME should
+# be defined in $HOME/.ptrc
+PROGNAME=`basename $0`
+
+#
+# Set up configuration
+. ${HOME}/.codap-build.rc
+
+function error() {
+  echo error: $* 1>&2
+  exit 1
+}
+
+function checkAnswer() {
+  [ "$ANSWER" != "y" ] && exit 2
+}
+
+#
+# define constants, if not already done
+CODAP_HOME=${CODAP_HOME:-${HOME}/codap}
+CODAP_DATA_HOME=${CODAP_DATA_HOME:-${CODAP_HOME}/../codap-data}
+CODAP_DATA_INTERACTIVE_HOME=${CODAP_DATA_INTERACTIVE_HOME:-${CODAP_HOME}/../codap-data-interactives}
+CODAP_TRANSFORMERS_HOME=${CODAP_TRANSFORMERS_HOME:-${CODAP_HOME}/../codap-transformers}
+STORY_BUILDER_HOME=${STORY_BUILDER_HOME:-${CODAP_HOME}/../story-builder}
+
+# expected codap build branch
+EXP_CODAP_BRANCH=${EXP_CODAP_BRANCH:-master}
+EXP_TRANSFORMERS_BRANCH=${EXP_TRANSFORMERS_BRANCH:-main}
+
+#echo HOME: $CODAP_HOME
+#set -e
+
+cd "$CODAP_HOME"
+# add $CODAP_HOME/bin to path
+PATH=./bin:$PATH
+CODAP_BRANCH=`git rev-parse --abbrev-ref HEAD`
+#echo BRANCH: $CODAP_BRANCH
+SERVER_DIR_EMBEDDED_MODE=/var/www/html/releases/zips
+
+read -p 'prep. Are translations and CFM up to date? ' ANSWER
+checkAnswer
+
+echo '1. verify clean codeline'
+echo '    * up-to-date with github: “git pull”'
+git pull
+echo '    * remove tmp directory'
+rm -rf tmp
+echo '    * npm packages are up to date'
+npm install
+echo '    * extension directories clean'
+./bin/check_clean_codeline "$CODAP_DATA_HOME" "$EXP_CODAP_BRANCH" ||
+    error "Extn codeline check failed: $CODAP_DATA_HOME"
+./bin/check_clean_codeline "$CODAP_DATA_INTERACTIVE_HOME" "$EXP_CODAP_BRANCH" ||
+    error "Extn codeline check failed: $CODAP_DATA_INTERACTIVE_HOME"
+./bin/check_clean_codeline "$CODAP_TRANSFORMERS_HOME" "$EXP_TRANSFORMERS_BRANCH" ||
+    error "Extn codeline check failed: $CODAP_TRANSFORMERS_HOME"
+./bin/check_clean_codeline "$STORY_BUILDER_HOME" "$EXP_CODAP_BRANCH" ||
+    error "Extn codeline check failed: $STORY_BUILDER_HOME"
+./bin/recordExtnVersions
+echo '    * nothing checked out, and in master: “git st”'
+[ "$CODAP_BRANCH" != "$EXP_CODAP_BRANCH" ] && error 'branch is not master'
+[ `git status -s | wc -l` != 0 ] && error 'CODAP codeline is not clean'
+echo '     * lint error free: “npm run lint”'
+npm run lint
+
+read -p 'Ready? ' ANSWER
+checkAnswer
+
+# test step sometimes times out, leaving a log behind
+# this could confuse the checks in updateBuildNumber
+[ -e npm-debug.log ] && mv -f npm-debug.log /tmp
+
+echo '2. update build number: '
+updateBuildNumber
+BUILD_NUM=`getBuildNumber apps/dg/core.js`
+BUILD_STR=build_$BUILD_NUM
+echo BUILD_NUM=$BUILD_NUM
+echo BUILD_STR=$BUILD_STR
+
+read -p 'Have Build Number? ' ANSWER
+checkAnswer
+
+echo '3. make pt release marker: '
+npm run pt:make-release-story $BUILD_STR
+
+read -p 'Have Release Story? ' ANSWER
+checkAnswer
+
+echo '4. make the third party bundle: '
+npm run build:bundle-dev
+
+read -p 'Have Bundle? ' ANSWER
+checkAnswer
+
+echo '5. make dev release: '
+makeCodapZip $BUILD_STR
