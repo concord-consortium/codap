@@ -25,8 +25,6 @@ import { importV2Component } from "../v2/codap-v2-tile-importers"
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
-import "./app.scss"
-
 registerTileTypes([])
 
 addDefaultComponents()

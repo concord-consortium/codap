@@ -7,8 +7,6 @@ import React from "react"
 import { App } from "./components/app"
 import { theme } from "./theme"
 
-import "./index.scss"
-
 // // https://reactjs.org/blog/2022/03/08/react-18-upgrade-guide.html#updates-to-client-rendering-apis
 // const container = document.getElementById('app')
 // // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

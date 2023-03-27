@@ -8,7 +8,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
 import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 
-import "./codap-component.scss"
+import styles from './codap-component.module.scss'
 
 export interface IProps extends ITileBaseProps {
   tile: ITileModel
@@ -36,21 +36,36 @@ export const CodapComponent = observer(function CodapComponent({
 
   return (
     <DataSetContext.Provider value={dataset}>
-      <div className={`codap-component ${tileEltClass}`} key={tile.id}
+      <div className={`codap-component ${tileEltClass} ${styles['codap-component']}`} key={tile.id}
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
         {onRightPointerDown && !isFixedWidth &&
-          <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
+          <div
+            className={`codap-component-border right ${styles['codap-component-border']}`}
+            onPointerDown={onRightPointerDown}
+          />}
         {onBottomPointerDown && !isFixedHeight &&
-          <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
+          <div
+            className={`codap-component-border bottom ${styles['codap-component-border']}`}
+            onPointerDown={onBottomPointerDown}
+          />}
         {onLeftPointerDown && !isFixedWidth &&
-          <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
+          <div
+            className={`codap-component-border left ${styles['codap-component-border']}`}
+            onPointerDown={onLeftPointerDown}
+          />}
         {onBottomLeftPointerDown && !(isFixedWidth && isFixedHeight) &&
-          <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
+          <div
+            className={`codap-component-corner bottom-left ${styles['codap-component-corner']}`}
+            onPointerDown={onBottomLeftPointerDown}
+          />
         }
         {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) &&
-          <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
+          <div
+            className={`codap-component-corner bottom-right ${styles['codap-component-corner']}`}
+            onPointerDown={onBottomRightPointerDown}
+          >
             {uiState.isFocusedTile(tile.id) &&
               <ResizeHandle className="component-resize-handle"/>}
           </div>

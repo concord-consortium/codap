@@ -8,6 +8,9 @@ import { uiState } from "../models/ui-state"
 
 import "./component-title-bar.scss"
 
+// okay, we've kinda got it figured out at this point. probably not something we can automate, 10% took us 20 minutes?
+// Let's say 10 minutes with a learning curve down. So like two more hours of work to do it.
+
 interface IProps {
   tile?: ITileModel
   component?: string
