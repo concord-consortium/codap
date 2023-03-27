@@ -1,7 +1,6 @@
 import { defineConfig } from 'cypress'
 import fs from 'fs-extra';
 import path from 'path';
-import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin'
 
 export default defineConfig({
     video: false,

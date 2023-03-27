@@ -1,5 +1,5 @@
 import { extendTheme } from '@chakra-ui/react'
-import { Checkbox } from './styles/checkbox-style'
+import { Checkbox } from '../src/styles/checkbox-style'
 import { Menu } from './styles/menu-style'
 import { Modal } from './styles/modal-style'
 

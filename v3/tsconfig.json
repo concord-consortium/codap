@@ -1,32 +1,47 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "sourceMap": true,
-    "noImplicitAny": true,
+    "target": "es2018",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2018"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2018",
-    "allowJs": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
+    "noImplicitAny": true,
+    // todo: Figure out how to not require this
+    // "noImplicitThis": false,
+    // todo: Figure out how to not require this
+    // "strictFunctionTypes": false,
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
     "importHelpers": true,
-    "strict": true,
-    // todo: Figure out how to not require this
-    "noImplicitThis": false,
-    // todo: Figure out how to not require this
-    "strictFunctionTypes": false,
-    "types": [],
-    "jsx": "react",
-    "lib": ["dom", "dom.iterable", "es2018"]
+    "isolatedModules": true,
+    "jsx": "preserve", // was "react" but next.js implements its own optimized jsx transform
+    "incremental": true,
+    // "paths": {
+    //   "@/*": [
+    //     "./src/*"
+    //   ]
+    // },
+    "sourceMap": true, //
+    "types": []
   },
   "include": [
-    "./src/**/*",
-    ".eslintrc*.cjs",
-    // cypress.config.ts will need another pass before being added
-    // "*.config.ts",
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".eslintrc*.js",
     "*.config.js",
-    "why-did-you-render.ts"
+    "./src/test/jest-resolver.js",
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
