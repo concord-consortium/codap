@@ -39,8 +39,7 @@ export const SliderModel = TileContentModel
       return self.multipleOf || 0.1
     },
     get animationRate() {
-      return self._animationRate
-      // return self._animationRate ?? kDefaultAnimationRate
+      return self._animationRate ?? kDefaultAnimationRate
     },
     get globalValueManager() {
       const sharedModelManager = getSharedModelManager(self)

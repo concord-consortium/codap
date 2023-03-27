@@ -61,7 +61,7 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
               <NumberInput className="slider-input animation-rate" size="xs" min={0.1} precision={2} step={1}
-                  defaultValue={sliderModel.animationRate} onChange={handleAnimationRateChange}>
+                  defaultValue={sliderModel._animationRate} onChange={handleAnimationRateChange}>
                 <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
