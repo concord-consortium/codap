@@ -78,21 +78,21 @@ checkAnswer
 # this could confuse the checks in updateBuildNumber
 [ -e npm-debug.log ] && mv -f npm-debug.log /tmp
 
-echo '2. update build number: '
-updateBuildNumber
-BUILD_NUM=`getBuildNumber apps/dg/core.js`
-BUILD_STR=build_$BUILD_NUM
-echo BUILD_NUM=$BUILD_NUM
-echo BUILD_STR=$BUILD_STR
+# echo '2. update build number: '
+# updateBuildNumber
+# BUILD_NUM=`getBuildNumber apps/dg/core.js`
+# BUILD_STR=build_$BUILD_NUM
+# echo BUILD_NUM=$BUILD_NUM
+# echo BUILD_STR=$BUILD_STR
 
-read -p 'Have Build Number? ' ANSWER
-checkAnswer
+# read -p 'Have Build Number? ' ANSWER
+# checkAnswer
 
-echo '3. make pt release marker: '
-npm run pt:make-release-story $BUILD_STR
+# echo '3. make pt release marker: '
+# npm run pt:make-release-story $BUILD_STR
 
-read -p 'Have Release Story? ' ANSWER
-checkAnswer
+# read -p 'Have Release Story? ' ANSWER
+# checkAnswer
 
 echo '4. make the third party bundle: '
 npm run build:bundle-dev
