@@ -1,36 +1,32 @@
-import { Editable, EditableInput, EditablePreview, Flex } from "@chakra-ui/react"
+import { Button, CloseButton, Editable, EditableInput, EditablePreview, Flex } from "@chakra-ui/react"
 import { useDndContext, useDraggable } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { ReactNode, useState } from "react"
-import { ITileModel } from "../models/tiles/tile-model"
+import React, { useState } from "react"
 import { uiState } from "../models/ui-state"
+import MinimizeIcon from "../assets/icons/icon-minimize.svg"
+import { ITileTitleBarProps } from "./tiles/tile-base-props"
+import t from "../utilities/translation/translate"
 
 import "./component-title-bar.scss"
 
-interface IProps {
-  tile?: ITileModel
-  component?: string
-  title: string
-  draggableId: string
-  children?: ReactNode
-}
-
 export const ComponentTitleBar = observer(function ComponentTitleBar(
-  {tile, component, title, draggableId, children}: IProps) {
+    { tile, title, children,  onCloseTile }: ITileTitleBarProps) {
   const [isEditing, setIsEditing] = useState(false)
   const { active } = useDndContext()
   const dragging = !!active
+  const tileId = tile?.id || ""
+  const tileType = tile?.content.type
+  const draggableId = `${tileType}-${tileId}`
+  const draggableOptions = {id: draggableId, disabled: isEditing}
+  const {attributes, listeners, setActivatorNodeRef} = useDraggable(draggableOptions)
+  const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
 
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue) {
       tile.setTitle(nextValue)
     }
   }
-
-  const draggableOptions = {id: draggableId, disabled: isEditing}
-  const {attributes, listeners, setActivatorNodeRef} = useDraggable(draggableOptions)
-  const classes = clsx("component-title-bar", `${component}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
 
   return (
     <Flex className={classes}
@@ -43,6 +39,13 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
         <EditablePreview className="title-text"/>
         <EditableInput className="title-text-input"/>
       </Editable>
+      <Flex className="header-right">
+        <Button className="component-minimize-button">
+          <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
+        </Button>
+        <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
+          onPointerDown={()=>onCloseTile?.(tileId)}/>
+      </Flex>
     </Flex>
   )
 })
