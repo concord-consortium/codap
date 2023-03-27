@@ -8,7 +8,7 @@ import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2CalculatorComponent } from "../../v2/codap-v2-types"
 import { TileModel } from "../../models/tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
-import { ComponentTitleBar } from "../component-title-bar"
+import { CalculatorTitleBar } from "./calculator-title-bar"
 
 export const kCalculatorIdPrefix = "CALC"
 
@@ -21,7 +21,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kCalculatorTileType,
-  TitleBar: ComponentTitleBar,
+  TitleBar: CalculatorTitleBar,
   Component: CalculatorComponent,
   tileEltClass: kCalculatorTileClass,
   Icon: CalcIcon,
