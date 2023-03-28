@@ -44,6 +44,7 @@ registerTileComponentInfo({
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
   defaultWidth: 300,
+  defaultHeight: 73,
   isFixedHeight: true
 })
 
