@@ -13,7 +13,6 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 
 import styles from "./case-table-shared.scss"
-import "react-data-grid/lib/styles.css"
 
 export const CollectionTable = observer(function CollectionTable() {
   const data = useDataSetContext()

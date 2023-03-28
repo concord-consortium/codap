@@ -10,6 +10,7 @@
   }
 }
 
+
 .dragRect {
   fill: #e38e71;
   fill-opacity: 0.01;
@@ -42,19 +43,21 @@
   &.v-lower-dilate {
     cursor: url("../../../assets/DownDilate.png") 8 8, grab;
   }
-
 }
 
-.grid .tick line {
-  stroke: lightgrey;
-  stroke-opacity: 0.7;
-  shape-rendering: crispEdges;
-  pointer-events: none;
-}
-
-.zero .tick line {
-  stroke: #444444;
-  stroke-opacity: 0.8;
-  shape-rendering: crispEdges;
-  pointer-events: none;
+// nextjs: Added dragLine to give these styles to axis-drag-rects.tsx. Not sure if they're scoped properly
+.dragLine {
+  .grid .tick line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+    pointer-events: none;
+  }
+  
+  .zero .tick line {
+    stroke: #444444;
+    stroke-opacity: 0.8;
+    shape-rendering: crispEdges;
+    pointer-events: none;
+  }  
 }

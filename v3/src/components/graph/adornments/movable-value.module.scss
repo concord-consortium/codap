@@ -1,26 +1,27 @@
-.movable-value-container {
-  position: absolute;
-  background-color: rgba(0, 0, 255, 0.3);
+.movableValueStyles {
+  .movable-value-container {
+    position: absolute;
+    background-color: rgba(0, 0, 255, 0.3);
+  }
+  
+  .movable-value-label {
+    text-align: center;
+    position: absolute;
+    background-color: yellow;
+  }
+  
+  .movable-value {
+    stroke: blue;
+    stroke-width: 2px;
+  }
+  
+  .movable-value-cover {
+    stroke: rgba(210, 105, 30, 0.01);
+    stroke-width: 8px;
+    cursor: url("../../../assets/LinePivotBotLeft.png") 8 8, grab;
+  }
+  
+  .movable-value-cover:hover {
+    stroke: rgba(210, 105, 30, 0.5);
+  }  
 }
-
-.movable-value-label {
-  text-align: center;
-  position: absolute;
-  background-color: yellow;
-}
-
-.movable-value {
-  stroke: blue;
-  stroke-width: 2px;
-}
-
-.movable-value-cover {
-  stroke: rgba(210, 105, 30, 0.01);
-  stroke-width: 8px;
-  cursor: url("../../../assets/LinePivotBotLeft.png") 8 8, grab;
-}
-
-.movable-value-cover:hover {
-  stroke: rgba(210, 105, 30, 0.5);
-}
-

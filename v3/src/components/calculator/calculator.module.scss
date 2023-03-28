@@ -5,9 +5,10 @@ $button-height: 24px;
 
 // temporary until .codap-component can specify these globally
 // inspectors must be portaled first otherwise they'd be hidden
-.codap-component.calculator {
-  overflow: hidden;
-}
+// .codap-component.calculator {
+//   overflow: hidden;
+// }
+// Nextjs migration: 
 
 .calculator-wrapper {
   background: #333333;

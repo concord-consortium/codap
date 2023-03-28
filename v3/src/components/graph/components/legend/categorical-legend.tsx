@@ -8,7 +8,7 @@ import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
 
-import './legend.scss'
+import styles from './legend.module.scss'
 import {kGraphFont} from "../../graphing-types"
 
 interface ICategoricalLegendProps {
@@ -137,7 +137,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
           },
           update => {
             update.select('rect')
-              .classed('legend-rect-selected',
+              .classed(`legend-rect-selected ${styles['legend-rect-selected']}`,
                 (index) => {
                   return dataConfiguration?.allCasesForCategoryAreSelected(categoryData.current[index].category) ??
                     false
@@ -203,7 +203,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
   }, [keysElt, categoryData, setupKeys, refreshKeys, dataConfiguration])
 
   return (
-    <svg className='legend-categories' ref={elt => setKeysElt(elt)}></svg>
+    <svg className={`legend-categories ${styles['legend-categories']}`} ref={elt => setKeysElt(elt)}></svg>
   )
 })
 CategoricalLegend.displayName = "CategoricalLegend"

@@ -1,40 +1,39 @@
-.legend {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: lightgreen;
-
-  svg {
+.legend-categories {
+  .legend {
+    position: relative;
     width: 100%;
     height: 100%;
-    fill: yellow;
-  }
+    background-color: lightgreen;
 
-  text {
-    fill: black;
-    font: 12px sans-serif;
-    cursor: pointer;
-  }
+    svg {
+      width: 100%;
+      height: 100%;
+      fill: yellow;
+    }
 
-  rect {
-    opacity: 0.85;
-    stroke: #315B7D;
-    cursor: pointer;
-  }
+    text {
+      fill: black;
+      font: 12px sans-serif;
+      cursor: pointer;
+    }
 
+    rect {
+      opacity: 0.85;
+      stroke: #315B7D;
+      cursor: pointer;
+    }
+
+  }
 }
-  .legend-rect-selected {
-    stroke: black !important;
-    stroke-width: 2px !important;
-  }
+
+.legend-rect-selected {
+  stroke: black !important;
+  stroke-width: 2px !important;
+}
 
 .legend-label text {
   fill: blue;
   text-align: center;
-}
-
-.legend-categories {
-
 }
 
 .key {

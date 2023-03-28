@@ -15,7 +15,7 @@ import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {AxisDragRects} from "./axis-drag-rects"
 import {AxisOrLegendAttributeMenu} from "./axis-or-legend-attribute-menu"
 
-import "./axis.scss"
+import styles from "./axis.module.scss"
 
 interface IProps {
   parentSelector: string
@@ -88,7 +88,7 @@ export const Axis = ({
   return (
     <>
       <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
-        <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
+        <g className={`axis ${styles.axis}`} ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}/>
         <g ref={titleRef}/>
       </g>
 
@@ -97,6 +97,7 @@ export const Axis = ({
           target={titleRef.current}
           portal={parentElt}
           place={place}
+          // @TODO find out what these are
           onChangeAttribute={onDropAttribute}
           onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}

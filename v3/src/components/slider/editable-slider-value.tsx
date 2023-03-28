@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, {useState, useEffect} from "react"
 import { ISliderModel } from "./slider-model"
 
-import './slider.scss'
+// import styles from './slider.module.scss'
 
 interface IProps {
   sliderModel: ISliderModel

@@ -46,6 +46,13 @@ body {
   }
 }
 
+// temporary until .codap-component can specify these globally
+// inspectors must be portaled first otherwise they'd be hidden
+// @henry nextjs update: moved from calculator.module.scss
+.codap-component.calculator {
+  overflow: hidden;
+}
+
 // Might migrate these to global from './components/vars.module.scss
 /*
 $menu-bar-height: 30px;

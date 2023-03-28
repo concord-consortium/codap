@@ -11,7 +11,7 @@ import MapIcon from '../../assets/icons/icon-map.svg'
 import TextIcon from '../../assets/icons/icon-text.svg'
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
-import './tool-shelf.scss'
+import styles from './tool-shelf.module.scss'
 
 const kHeaderHeight = 25
 
@@ -129,7 +129,7 @@ export const ToolShelf = ({content}: IProps) => {
   ]
 
   return (
-    <HStack className='tool-shelf' alignContent='center' data-testid='tool-shelf'>
+    <HStack className={`tool-shelf ${styles['tool-shelf']}`} alignContent='center' data-testid='tool-shelf'>
       <Flex className="toolshelf-component-buttons" >
         {buttonDescriptions.map(aDesc => {
           return (

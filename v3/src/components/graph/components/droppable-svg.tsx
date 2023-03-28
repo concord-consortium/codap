@@ -4,7 +4,7 @@ import { createPortal } from "react-dom"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { DropHint } from "./drop-hint"
 
-import "./droppable-svg.scss"
+import styles from "./droppable-svg.module.scss"
 
 interface IProps {
   className?: string
@@ -20,7 +20,7 @@ const _DroppableSvg = ({
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
   const style: CSSProperties = useOverlayBounds({ target, portal })
-  const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isActive && isOver ? "over" : ""}`
+  const classes = `droppable-svg ${styles['droppable-svg']} ${className} ${isActive ? "active" : ""} ${isActive && isOver ? "over" : ""}` // eslint-disable-line max-len
 
   return portal && target && createPortal(
     <>

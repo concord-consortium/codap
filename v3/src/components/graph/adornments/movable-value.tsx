@@ -7,7 +7,7 @@ import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphClassSelector} from "../graphing-types"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {valueLabelString} from "../utilities/graph-utils"
-import "./movable-value.scss"
+import styles from "./movable-value.module.scss"
 
 export const MovableValue = (props: {
   model: IMovableValueModel
@@ -109,6 +109,6 @@ export const MovableValue = (props: {
   }, [transform])
 
   return (
-    <g ref={valueRef}/>
+    <g className={styles.movableValueStyles} ref={valueRef}/>
   )
 }

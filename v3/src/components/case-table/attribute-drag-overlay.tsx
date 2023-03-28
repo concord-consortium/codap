@@ -3,7 +3,7 @@ import React from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeId } from "../../hooks/use-drag-drop"
 
-import "./attribute-drag-overlay.scss"
+import styles from "./attribute-drag-overlay.module.scss"
 
 interface IProps {
   activeDragId?: string
@@ -16,7 +16,7 @@ export const AttributeDragOverlay = ({ activeDragId }: IProps) => {
   return (
     <DragOverlay dropAnimation={null}>
       {dragAttrId
-        ? <div className="attribute-drag-overlay">
+        ? <div className={`attribute-drag-overlay ${styles['attribute-drag-overlay']}`}>
             {attr?.name}
           </div>
         : null}

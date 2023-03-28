@@ -8,7 +8,7 @@ import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes} 
 import t from "../../../utilities/translation/translate"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
 
-import "./slider-settings-panel.scss"
+import styles from "./slider-settings-panel.module.scss"
 
 interface IProps {
   sliderModel: ISliderModel
@@ -44,7 +44,7 @@ export const SliderSettingsPalette =
     >
       <Flex className="palette-form" direction="column">
         <FormControl size="xs">
-          <Flex className="palette-row">
+          <Flex className={`palette-row ${styles['palette-row']}`}>
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
               <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf || 1}
                   min={0.1} precision={2} step={1} onChange={handleMultiplesOfChange}>
@@ -58,7 +58,7 @@ export const SliderSettingsPalette =
           </Flex>
         </FormControl>
         <FormControl>
-          <Flex className="palette-row">
+          <Flex className={`palette-row ${styles['palette-row']}`}>
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
               <NumberInput className="slider-input animation-rate" size="xs" min={0.1} precision={2} step={1}
                   defaultValue={sliderModel.animationRate || 1} onChange={handleAnimationRateChange}>
@@ -72,7 +72,7 @@ export const SliderSettingsPalette =
           </Flex>
         </FormControl>
         <FormControl>
-          <Flex className="palette-row">
+          <Flex className={`palette-row ${styles['palette-row']}`}>
             <FormLabel className="form-label">{t("DG.Slider.direction")}
               <Select className="slider-select direction" value={sliderModel.animationDirection}
                       onChange={e => sliderModel.setAnimationDirection(e.target.value as AnimationDirection)}>
@@ -84,7 +84,7 @@ export const SliderSettingsPalette =
           </Flex>
         </FormControl>
         <FormControl>
-          <Flex className="palette-row">
+          <Flex className={`palette-row ${styles['palette-row']}`}>
             <FormLabel className="form-label">{t("DG.Slider.mode")}
               <Select className="slider-select mode" value={sliderModel.animationMode}
                       onChange={e => sliderModel.setAnimationMode(e.target.value as AnimationMode)}>

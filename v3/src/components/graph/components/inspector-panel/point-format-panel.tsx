@@ -11,7 +11,7 @@ import {IGraphModel} from "../../models/graph-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 
-import "./point-format-panel.scss"
+import styles from "./point-format-panel.module.scss"
 
 interface IProps {
   graphModel: IGraphModel
@@ -50,9 +50,10 @@ export const PointFormatPalette = observer(function PointFormatPalette({graphMod
 const catPointColorSettingArr: ReactElement[] = []
 categoriesRef.current?.forEach(cat => {
   catPointColorSettingArr.push(
-    <Flex direction="row" key={cat} className="palette-row cat-color-picker">
+    <Flex direction="row" key={cat}
+      className={`palette-row ${styles['palette-row']} cat-color-picker ${styles['cat-color-picker']}`}>
       <FormLabel className="form-label">{cat}</FormLabel>
-      <Input type="color" className="color-picker-thumb categorical"
+      <Input type="color" className={`color-picker-thumb ${styles['color-picker-thumb']} categorical`}
               value={dataConfiguration?.getLegendColorForCategory(cat) || missingColor}
               onChange={e => handlePointColorSetting(e.target.value)}/>
     </Flex>
@@ -68,9 +69,9 @@ categoriesRef.current?.forEach(cat => {
       panelRect={panelRect}
       buttonRect={buttonRect}
     >
-      <Flex className="palette-form" direction="column">
+      <Flex className={`palette-form ${styles['palette-form']}`} direction="column">
         <FormControl size="xs">
-          <Flex className="palette-row">
+          <Flex className={`palette-row ${styles['palette-row']}`}>
             <FormLabel className="form-label">{t("DG.Inspector.pointSize")}</FormLabel>
             <Slider aria-label="point-size-slider" ml="10px" min={0} max={2}
                     defaultValue={graphModel.pointSizeMultiplier} step={0.01}
@@ -81,33 +82,35 @@ categoriesRef.current?.forEach(cat => {
           </Flex>
         </FormControl>
         <FormControl isDisabled={graphModel.pointStrokeSameAsFill}>
-          <Flex className="palette-row">
+          <Flex className={`palette-row ${styles['palette-row']}`}>
             <FormLabel className="form-label">{t("DG.Inspector.stroke")}</FormLabel>
-            <Input type="color" className="color-picker-thumb" value={graphModel.pointStrokeColor}
-                    onChange={e => handlePointStrokeColorSetting(e.target.value)}/>
+            <Input type="color" className={`color-picker-thumb ${styles['color-picker-thumb']}`}
+              value={graphModel.pointStrokeColor} onChange={e => handlePointStrokeColorSetting(e.target.value)}/>
           </Flex>
         </FormControl>
         <FormControl>
             <>
               { graphModel.getAttributeID("legend") &&
                   attrType === "categorical"
-                    ? <FormControl className="cat-color-setting">{catPointColorSettingArr}</FormControl>
+                    ? <FormControl className={`cat-color-setting ${styles['cat-color-setting']}`}>
+                        {catPointColorSettingArr}
+                      </FormControl>
                     : attrType === "numeric"
                       ? <FormControl className="num-color-setting">
-                          <Flex className="palette-row">
+                          <Flex className={`palette-row ${styles['palette-row']}`}>
                             {/* Sets the min and max colors for numeric legend. Currently not implemented so
                                 this sets the same color for all the points*/}
                             <FormLabel className="form-label">{t("DG.Inspector.legendColor")}</FormLabel>
-                            <Input type="color" className="color-picker-thumb" value={missingColor}
-                                  onChange={e => handlePointColorSetting(e.target.value)}/>
-                            <Input type="color" className="color-picker-thumb" value={missingColor}
-                                  onChange={e => handlePointColorSetting(e.target.value)}/>
+                            <Input type="color" className={`color-picker-thumb ${styles['color-picker-thumb']}`}
+                              value={missingColor} onChange={e => handlePointColorSetting(e.target.value)}/>
+                            <Input type="color" className={`color-picker-thumb ${styles['color-picker-thumb']}`}
+                              value={missingColor} onChange={e => handlePointColorSetting(e.target.value)}/>
                           </Flex>
                         </FormControl>
-                      : <Flex className="palette-row">
+                      : <Flex className={`palette-row ${styles['palette-row']}`}>
                           <FormLabel className="form-label">{t("DG.Inspector.color")}</FormLabel>
-                          <Input type="color" className="color-picker-thumb" value={graphModel.pointColor}
-                                onChange={e => handlePointColorSetting(e.target.value)}/>
+                          <Input type="color" className={`color-picker-thumb ${styles['color-picker-thumb']}`}
+                            value={graphModel.pointColor} onChange={e => handlePointColorSetting(e.target.value)}/>
                         </Flex>
               }
             </>
@@ -120,10 +123,10 @@ categoriesRef.current?.forEach(cat => {
           </Checkbox>
         </FormControl>
         <FormControl isDisabled={graphModel.isTransparent}>
-        <Flex className="palette-row">
+        <Flex className={`palette-row ${styles['palette-row']}`}>
           <FormLabel className="form-label">{t("DG.Inspector.backgroundColor")}</FormLabel>
-          <Input type="color" className="color-picker-thumb" value={graphModel.plotBackgroundColor}
-                  onChange={e => handleBackgroundColorSetting(e.target.value)}/>
+          <Input type="color" className={`color-picker-thumb ${styles['color-picker-thumb']}`}
+            value={graphModel.plotBackgroundColor} onChange={e => handleBackgroundColorSetting(e.target.value)}/>
         </Flex>
         </FormControl>
         <FormControl>

@@ -14,7 +14,7 @@ import { uiState } from "../../models/ui-state"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
 
-import "./case-table.scss"
+import styles from "./case-table.module.scss"
 
 interface IProps {
   tile?: ITileModel
@@ -38,7 +38,7 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
 
     return (
       <>
-        <div ref={setNodeRef} className="case-table" data-testid="case-table">
+        <div ref={setNodeRef} className={`case-table ${styles['case-table']}`} data-testid="case-table">
           <div className="case-table-content">
             {collections.map((collection, i) => {
               const key = collection?.id || kChildMostTableCollectionId

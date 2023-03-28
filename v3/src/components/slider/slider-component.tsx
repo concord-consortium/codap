@@ -17,7 +17,7 @@ import { CodapSliderThumb } from "./slider-thumb"
 import { EditableSliderValue } from "./editable-slider-value"
 import { SliderInspector } from "./slider-inspector"
 
-import './slider.scss'
+import styles from './slider.module.scss'
 
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = tile?.content
@@ -76,9 +76,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
-        <div className={kSliderClass} ref={sliderRef}>
+        <div className={`${kSliderClass} ${styles[kSliderClass]}`} ref={sliderRef}>
           <div className="slider">
-
             <Flex>
               <Center w="40px">
                 <button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>

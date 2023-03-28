@@ -9,7 +9,7 @@ import CardIcon from "../../assets/icons/icon-case-card.svg"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 
-import "./case-table-title-bar.scss"
+import styles from "./case-table-title-bar.module.scss"
 
 export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCloseTile}: ITileTitleBarProps) {
   const dataset = useDataSetContext()
@@ -46,11 +46,11 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCl
             title={cardTableToggleString}
             onClick={handleShowCardTableToggleMessage}>
         {showCaseCard
-          ? <TableIcon className="table-icon" />
-          : <CardIcon className="card-icon"/>
+          ? <TableIcon className={`table-icon ${styles['table-icon']}`} />
+          : <CardIcon className={`card-icon ${styles['card-icon']}`} />
         }
         {showSwitchMessage &&
-          <Box ref={cardTableToggleRef} className={`card-table-toggle-message`}
+          <Box ref={cardTableToggleRef} className={`card-table-toggle-message ${styles['card-table-toggle-message']}`}
                 onClick={handleToggleCardTable}>
             {cardTableToggleString}
           </Box>

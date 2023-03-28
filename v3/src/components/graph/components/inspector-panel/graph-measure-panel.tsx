@@ -5,7 +5,7 @@ import { IGraphModel } from "../../models/graph-model"
 import { InspectorPalette } from "../../../inspector-panel"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 
-import "./point-format-panel.scss"
+import styles from "./point-format-panel.module.scss"
 
 interface IProps {
   graphModel: IGraphModel
@@ -67,7 +67,7 @@ export const GraphMeasurePalette = ({graphModel, panelRect, buttonRect, setShowP
       panelRect={panelRect}
       buttonRect={buttonRect}
     >
-      <Flex className="palette-form" direction="column">
+      <Flex className={`palette-form ${styles['palette-form']}`} direction="column">
         <Box className="form-title">Show ...</Box>
         {measures[graphModel.plotType].map((title:string) => {
            return (

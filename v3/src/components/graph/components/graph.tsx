@@ -27,7 +27,7 @@ import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {useDataTips} from "../hooks/use-data-tips"
 
-import "./graph.scss"
+import styles from "./graph.module.scss"
 
 interface IProps {
   graphController: GraphController
@@ -134,7 +134,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
 
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
-      <div className={kGraphClass} ref={graphRef} data-testid="graph">
+      <div className={`${kGraphClass} ${styles.graphStyles}`} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
             marqueeState={marqueeState}

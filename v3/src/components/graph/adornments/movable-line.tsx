@@ -7,7 +7,8 @@ import {kGraphClassSelector} from "../graphing-types"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph-utils"
 import {IMovableLineModel} from "./adornment-models"
-import "./movable-line.scss"
+
+import styles from "./movable-line.module.scss"
 
 export const MovableLine = (props: {
   model: IMovableLineModel
@@ -185,7 +186,7 @@ export const MovableLine = (props: {
   }, [])
 
   return (
-    <g>
+    <g className={styles.movableLineStyles}>
       <g ref={lineRef}/>
     </g>
   )

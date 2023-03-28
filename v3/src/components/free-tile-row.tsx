@@ -7,7 +7,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
 import { FreeTileComponent } from "./free-tile-component"
 
-import "./free-tile-row.scss"
+import styles from "./free-tile-row.module.scss"
 
 interface IFreeTileRowProps {
   content?: IDocumentContentModel
@@ -40,7 +40,7 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
   }
 
   return (
-    <div className="free-tile-row" ref={rowRef} onPointerDown={handlePointerDown}>
+    <div className={`free-tile-row ${styles['free-tile-row']}`} ref={rowRef} onPointerDown={handlePointerDown}>
       {
         row?.tileIds.map(tileId => {
           const tile = getTile(tileId)

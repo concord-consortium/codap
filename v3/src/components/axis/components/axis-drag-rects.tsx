@@ -7,7 +7,7 @@ import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
 import {ScaleNumericBaseType} from "../axis-types"
 
-import "./axis.scss"
+import styles from "./axis.module.scss"
 
 interface IProps {
   axisModel: INumericAxisModel
@@ -168,6 +168,6 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
     return () => disposer()
   }, [axisModel, layout, axisWrapperElt, place])
   return (
-    <g className={'dragRect'} ref={rectRef}/>
+    <g className={`dragRect ${styles.dragRect} ${styles.dragLine}`} ref={rectRef} />
   )
 })

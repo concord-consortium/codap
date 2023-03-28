@@ -4,7 +4,7 @@ import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isCalculatorModel } from "./calculator-model"
 import { evaluate } from "mathjs"
 
-import "./calculator.scss"
+import styles from "./calculator.module.scss"
 
 export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const [calcValue, setCalcValue] = useState("")
@@ -78,7 +78,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     }
   })
   return (
-    <Flex className="calculator-wrapper">
+    <Flex className={`calculator-wrapper ${styles['calculator-wrapper']}`}>
       <Flex className="calculator" data-testid="codap-calculator">
         <Text className="calc-input">{calcValue}</Text>
         <Flex className="calc-buttons">

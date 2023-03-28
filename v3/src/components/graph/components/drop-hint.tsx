@@ -1,7 +1,7 @@
 import {useDndMonitor} from "@dnd-kit/core"
 import React, {useRef, useState} from "react"
 
-import "./drop-hint.scss"
+import styles from "./drop-hint.module.scss"
 
 interface IProps {
   hintText: string | undefined
@@ -27,7 +27,7 @@ export const DropHint = ({ hintText }: IProps) => {
   })
 
   return (
-    <div ref={hintDiv} className="drop-hint" style={{ top: hintPos.top, left: hintPos.left }}>
+    <div ref={hintDiv} className={`drop-hint ${styles['drop-hint']}`} style={{ top: hintPos.top, left: hintPos.left }}>
       {hintText}
     </div>
   )

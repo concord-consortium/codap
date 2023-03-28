@@ -15,7 +15,7 @@ import { ITileBaseProps } from "../tiles/tile-base-props"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
 
-import "./data-summary.scss"
+import styles from "./data-summary.module.scss"
 
 const kSummaryIdBase = "summary"
 registerTileCollisionDetection(kSummaryIdBase)
@@ -100,14 +100,15 @@ const DraggableAttribute = ({ attribute }: IDraggableAttributeProps) => {
   const draggableOptions: IUseDraggableAttribute = { prefix: "summary", attributeId: attribute.id }
   const { attributes, listeners, setNodeRef } = useDraggableAttribute(draggableOptions)
   return (
-    <div ref={setNodeRef} className="draggable-attribute" {...attributes} {...listeners}>
+    <div ref={setNodeRef} className={`draggable-attribute ${styles['draggable-attribute']}`}
+      {...attributes} {...listeners}>
       {attribute.name}
     </div>
   )
 }
 const OverlayAttribute = ({ attribute }: IDraggableAttributeProps) => {
   return (
-    <div className={`draggable-attribute overlay`} >
+    <div className={`draggable-attribute ${styles['draggable-attribute']} overlay`} >
       {attribute.name}
     </div>
   )

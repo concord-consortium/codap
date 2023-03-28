@@ -6,7 +6,7 @@ import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {GraphAttrRole} from "../graphing-types"
 
-import "./legend/legend.scss"
+import styles from "./legend/legend.module.scss"
 
 interface IAttributeLabelProps {
   transform: string
@@ -50,7 +50,7 @@ export const AttributeLabel = forwardRef<SVGGElement, IAttributeLabelProps>(
     }, [attributeIDs, dataConfiguration, forceUpdate])
 
     return (
-      <g className='legend-label' ref={svgRef}/>
+      <g className={`legend-label ${styles['legend-label']}`} ref={svgRef}/>
     )
   })
 AttributeLabel.displayName = "AttributeLabel"

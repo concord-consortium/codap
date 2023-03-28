@@ -7,7 +7,7 @@ import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
 
-import "./mosaic-tile-row.scss"
+import styles from "./mosaic-tile-row.module.scss"
 
 /*
  * MosaicTileRowComponent
@@ -20,7 +20,7 @@ interface IMosaicTileRowProps {
 export const MosaicTileRowComponent = observer(function MosaicTileRowComponent(
   { content, row, getTile }: IMosaicTileRowProps) {
   return (
-    <div className="mosaic-tile-row">
+    <div className={`mosaic-tile-row ${styles['mosaic-tile-row']}`}>
       {row &&
         <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root} getTile={getTile} />}
     </div>

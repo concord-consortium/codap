@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import {MarqueeState} from "../models/marquee-state"
-import "./marquee.scss"
+import styles from "./marquee.module.scss"
 
 export const Marquee = observer(function Marquee(props:{marqueeState: MarqueeState}) {
   const marqueeRef = useRef<SVGSVGElement>(null),
@@ -28,6 +28,6 @@ export const Marquee = observer(function Marquee(props:{marqueeState: MarqueeSta
   }, [marqueeRect])
 
   return (
-    <g ref={marqueeRef}/>
+    <g className={styles.marqueeStyles} ref={marqueeRef}/>
   )
 })

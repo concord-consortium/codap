@@ -6,7 +6,7 @@ import { ScaleNumericBaseType } from "../axis/axis-types"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 
-import './slider.scss'
+// import styles from './slider.module.scss'
 
 interface IProps {
   sliderContainer: HTMLDivElement

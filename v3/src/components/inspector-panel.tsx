@@ -4,7 +4,7 @@ import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds } from "../utilities/view-utils"
 
-import "./inspector-panel.scss"
+import styles from "./inspector-panel.module.scss"
 
 interface IProps {
   component?: string
@@ -16,7 +16,9 @@ export const InspectorPanel = forwardRef(({ component, setShowPalette, children 
   useOutsidePointerDown({ref: ref as unknown as RefObject<HTMLElement>, handler: ()=> setShowPalette?.(undefined)})
 
   return (
-    <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+    <Box ref={ref} className={`inspector-panel ${component ?? "" } ${styles['inspector-panel']}`}
+      bg="tealDark" data-testid={"inspector-panel"}
+    >
       {children}
     </Box>
   )
@@ -103,7 +105,9 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
     const pointerStyle = {top: buttonTop - panelTop - 5}
 
     return (
-      <div className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`} style={pointerStyle} />
+      <div className={`palette-pointer ${styles['palette-pointer']} ${inBounds ? "arrow-left" : "arrow-right"}`}
+        style={pointerStyle}
+      />
     )
   }
 
@@ -122,7 +126,8 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
   return (
     <>
       <PalettePointer/>
-      <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle} tabIndex={0} zIndex={250}
+      <Box ref={paletteRef} className={`codap-inspector-palette ${styles['codap-inspector-palette']}`}
+          style={paletteStyle} tabIndex={0} zIndex={250}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader />
         {children}

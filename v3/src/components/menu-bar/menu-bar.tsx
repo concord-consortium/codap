@@ -6,11 +6,11 @@ import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { HamburgerIcon } from "./hamburger-icon"
 
-import "./menu-bar.scss"
+import styles from "./menu-bar.module.scss"
 
 export function MenuBar() {
   return (
-    <div className="menu-bar">
+    <div className={`menu-bar ${styles['menu-bar']}`}>
       <Menu>
         <MenuButton className="hamburger-button">
           <HamburgerIcon/>
