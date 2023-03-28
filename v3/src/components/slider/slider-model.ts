@@ -91,8 +91,7 @@ export const SliderModel = TileContentModel
     setAnimationMode(mode: AnimationMode) {
       self.animationMode = mode
     },
-    // setAnimationRate(rate: number) {
-    setAnimationRate(rate: number | undefined) {
+    setAnimationRate(rate: number) {
       if (rate) {
         // no need to store the default value
         self._animationRate = rate === kDefaultAnimationRate ? undefined : Math.abs(rate)
