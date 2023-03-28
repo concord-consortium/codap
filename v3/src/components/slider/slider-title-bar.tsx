@@ -7,8 +7,8 @@ import { isSliderModel } from "./slider-model"
 
 export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTile }: ITileTitleBarProps) {
   const sliderModel = isSliderModel(tile?.content) ? tile?.content : undefined
-  const title = tile?.title || sliderModel?.name || t("DG.DocumentController.sliderTitle")
+  const getTitle = () => tile?.title || sliderModel?.name || t("DG.DocumentController.sliderTitle")
   return (
-    <ComponentTitleBar tile={tile} title={title} onCloseTile={onCloseTile} />
+    <ComponentTitleBar tile={tile} getTitle={getTitle} onCloseTile={onCloseTile} />
   )
 })

@@ -7,7 +7,6 @@ import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
 import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
-import t from "../utilities/translation/translate"
 
 import "./codap-component.scss"
 
@@ -39,8 +38,7 @@ export const CodapComponent = observer(function CodapComponent({
     <DataSetContext.Provider value={dataset}>
       <div className={`codap-component ${tileEltClass}`} key={tile.id}
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
-        <TitleBar title={tile?.title || dataset?.name || t("DG.AppController.createDataSet.name")} tile={tile}
-          onCloseTile={onCloseTile}/>
+        <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
         {onRightPointerDown && !isFixedWidth &&
           <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}

@@ -5,8 +5,8 @@ import t from "../../utilities/translation/translate"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
 export const CalculatorTitleBar = observer(function CalculatorTitleBar({ tile, onCloseTile }: ITileTitleBarProps) {
+  const getTitle = () => tile?.title || t("DG.DocumentController.calculatorTitle")
   return (
-    <ComponentTitleBar tile={tile} title={tile?.title || t("DG.DocumentController.calculatorTitle")}
-        onCloseTile={onCloseTile} />
+    <ComponentTitleBar tile={tile} getTitle={getTitle} onCloseTile={onCloseTile} />
   )
 })
