@@ -26,7 +26,7 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
     layout = useAxisLayoutContext()
 
   useEffect(function createRects() {
-    let axisScale: MultiScale,
+    let multiScale: MultiScale | undefined,
       d3Scale: ScaleContinuousNumeric<number, number>,
       d3ScaleAtStart: ScaleContinuousNumeric<number, number>,
       lower: number,
@@ -35,8 +35,8 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
       dragging = false
 
     const onDragStart: D3Handler = () => {
-        axisScale = layout.getAxisScale(place)
-        d3Scale = axisScale.scale as ScaleContinuousNumeric<number, number>
+        multiScale = layout.getAxisScale(place)
+        d3Scale = multiScale?.scale as ScaleContinuousNumeric<number, number>
         d3ScaleAtStart = d3Scale.copy()
         lower = d3ScaleAtStart.domain()[0]
         upper = d3ScaleAtStart.domain()[1]
@@ -48,8 +48,8 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
       onDilateStart: D3Handler = (event: { x: number, y: number }) => {
         select(this)
           .classed('dragging', true)
-        axisScale = layout.getAxisScale(place)
-        d3Scale = axisScale.scale as ScaleContinuousNumeric<number, number>
+        multiScale = layout.getAxisScale(place)
+        d3Scale = multiScale?.scale as ScaleContinuousNumeric<number, number>
         d3ScaleAtStart = d3Scale.copy()
         lower = d3ScaleAtStart.domain()[0]
         upper = d3ScaleAtStart.domain()[1]

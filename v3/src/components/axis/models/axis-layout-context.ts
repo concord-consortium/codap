@@ -11,7 +11,7 @@ export interface IAxisLayout {
   getAxisBounds: (place: AxisPlace) => AxisBounds | undefined
   setAxisBounds: (place: AxisPlace, bounds?: AxisBounds) => void
 
-  getAxisScale: (place: AxisPlace) => MultiScale
+  getAxisScale: (place: AxisPlace) => MultiScale | undefined
   setAxisScaleType: (place: AxisPlace, scaleType: IScaleType) => void
 
   // desired/computed bounds via model
@@ -24,7 +24,7 @@ const nullAxisLayout: IAxisLayout = {
   getAxisLength: () => 0,
   getAxisBounds: () => undefined,
   setAxisBounds: () => undefined,
-  getAxisScale: () => new MultiScale({scaleType: "ordinal", orientation: "horizontal"}),
+  getAxisScale: () => undefined,
   setAxisScaleType: () => undefined,
   getComputedBounds: () => undefined,
   setDesiredExtent: () => undefined

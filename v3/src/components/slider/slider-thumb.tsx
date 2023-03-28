@@ -26,7 +26,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
 
   useEffect(() => {
     setThumbPos((scale?.getScreenCoordinate({cell: 0, data: sliderModel.value}) ?? 0) - kThumbOffset)
-  }, [length, scale, scale.length, sliderModel.domain, sliderModel.value])
+  }, [length, scale, scale?.length, sliderModel.domain, sliderModel.value])
 
   const thumbStyle: CSSProperties = {
     left: thumbPos

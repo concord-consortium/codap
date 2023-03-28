@@ -10,7 +10,6 @@ import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
 import {handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
-import {DimensionInfo, fillOutDimensionRefs} from "../utilities/plot-utils"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
@@ -21,26 +20,13 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     primaryAttrRole = dataConfiguration?.primaryRole ?? 'x',
     primaryIsBottom = primaryAttrRole === 'x',
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
-    legendAttrID = dataConfiguration?.attributeID('legend'),
     {pointColor, pointStrokeColor} = graphModel,
-    primaryDimensionRef = useRef<DimensionInfo>(),
-    secondaryDimensionRef = useRef<DimensionInfo>(),
-    extraPrimaryDimensionRef = useRef<DimensionInfo>(),
-    extraSecondaryDimensionRef = useRef<DimensionInfo>(),
     // Used for tracking drag events
     [dragID, setDragID] = useState(''),
     currPos = useRef(0),
     didDrag = useRef(false),
     target = useRef<any>(),
     selectedDataObjects = useRef<Record<string, number>>({})
-
-  fillOutDimensionRefs({
-    dataConfiguration, layout,
-    primary: {role: primaryAttrRole, ref: primaryDimensionRef},
-    secondary: {role: secondaryAttrRole, ref: secondaryDimensionRef},
-    extraPrimary: {role: primaryAttrRole === 'x' ? 'topSplit' : 'rightSplit', ref: extraPrimaryDimensionRef},
-    extraSecondary: {role: secondaryAttrRole === 'x' ? 'topSplit' : 'rightSplit', ref: extraSecondaryDimensionRef}
-  })
 
   const onDragStart = useCallback((event: any) => {
       dataset?.beginCaching()
@@ -61,7 +47,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         // Record the current values, so we can change them during the drag and restore them when done
         const {selection} = dataConfiguration || {}
         selection?.forEach(anID => {
-          const itsValue = dataset?.getNumeric(anID, primaryDimensionRef.current?.attrID ?? '') || undefined
+          const primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? '',
+            itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
@@ -70,11 +57,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     }, [graphModel, dataConfiguration, dataset, primaryIsBottom, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
-      const primaryAxisScale = primaryDimensionRef.current?.scale as ScaleLinear<number, number> | undefined
+      const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
+        primaryAxisScale = layout.getAxisScale(primaryPlace)?.scale as ScaleLinear<number, number> | undefined
       if (primaryAxisScale && dragID) {
         const newPos = primaryIsBottom ? event.clientX : event.clientY,
           deltaPixels = newPos - currPos.current,
-          primaryAttrID = primaryDimensionRef.current?.attrID ?? ''
+          primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? ''
         currPos.current = newPos
         if (deltaPixels !== 0) {
           didDrag.current = true
@@ -91,7 +79,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID])
         }
       }
-    }, [dataset, dragID, primaryIsBottom, dataConfiguration]),
+    }, [dataset, dragID, primaryIsBottom, dataConfiguration, layout, primaryAttrRole]),
 
     onDragEnd = useCallback(() => {
       dataset?.endCaching()
@@ -112,7 +100,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           selection?.forEach(anID => {
             caseValues.push({
               __id__: anID,
-              [primaryDimensionRef.current?.attrID ?? '']: selectedDataObjects.current[anID]
+              [dataConfiguration?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
             })
           })
           enableAnimation.current = true // So points will animate back to original positions
@@ -120,7 +108,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           didDrag.current = false
         }
       }
-    }, [graphModel, dataConfiguration, dataset, dragID, enableAnimation])
+    }, [graphModel, dataConfiguration, primaryAttrRole, dataset, dragID, enableAnimation])
 
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -133,16 +121,22 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-      const primaryAxisScale = primaryDimensionRef.current?.scale as ScaleLinear<number, number>,
-        extraPrimaryAxisScale = extraPrimaryDimensionRef.current?.scale as ScaleBand<string>,
-        secondaryAxisScale = secondaryDimensionRef.current?.scale as ScaleBand<string>,
-        extraSecondaryAxisScale = extraSecondaryDimensionRef.current?.scale as ScaleBand<string>,
-        primaryAttrID = primaryDimensionRef.current?.attrID ?? '',
-        extraPrimaryAttrID = extraPrimaryDimensionRef.current?.attrID ?? '',
+      const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
+        secondaryPlace = primaryIsBottom ? 'left' : 'bottom',
+        extraPrimaryPlace = primaryIsBottom ? 'top' : 'rightCat',
+        extraPrimaryRole = primaryIsBottom ? 'topSplit' : 'rightSplit',
+        extraSecondaryPlace = primaryIsBottom ? 'rightCat' : 'top',
+        extraSecondaryRole = primaryIsBottom ? 'rightSplit' : 'topSplit',
+        primaryAxisScale = layout.getAxisScale(primaryPlace)?.scale as ScaleLinear<number, number>,
+        extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace).scale as ScaleBand<string>,
+        secondaryAxisScale = layout.getAxisScale(secondaryPlace).scale as ScaleBand<string>,
+        extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace).scale as ScaleBand<string>,
+        primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? '',
+        extraPrimaryAttrID = dataConfiguration?.attributeID(extraPrimaryRole) ?? '',
         numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1),
         pointDiameter = 2 * graphModel.getPointRadius(),
-        secondaryAttrID = secondaryDimensionRef.current?.attrID ?? '',
-        extraSecondaryAttrID = extraSecondaryDimensionRef.current?.attrID ?? '',
+        secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? '',
+        extraSecondaryAttrID = dataConfiguration?.attributeID(extraSecondaryRole) ?? '',
         secondaryRangeIndex = primaryIsBottom ? 0 : 1,
         secondaryMax = Number(secondaryAxisScale.range()[secondaryRangeIndex]),
         secondaryAxisExtent = Math.abs(Number(secondaryAxisScale.range()[0] -
@@ -161,7 +155,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
 
       function computeBinPlacements() {
         const
-          primaryLength = layout.getAxisLength(primaryDimensionRef.current?.place ?? 'bottom') /
+          primaryLength = layout.getAxisLength(primaryPlace) /
             numExtraPrimaryBands,
           numBins = Math.ceil(primaryLength / pointDiameter) + 1,
           binWidth = primaryLength / (numBins - 1),
@@ -251,7 +245,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         },
         getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
         getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord,
-        getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
+        getLegendColor = dataConfiguration?.attributeID('legend')
+          ? dataConfiguration?.getLegendColorForCase : undefined,
         plotBounds = layout.computedBounds.get('plot') as Bounds
 
       setPointCoordinates({
@@ -260,13 +255,14 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         getScreenX, getScreenY, getLegendColor, enableAnimation, plotBounds
       })
     },
-    [graphModel, dataConfiguration?.caseDataArray, dataset, dotsRef, enableAnimation, layout,
-      legendAttrID, primaryIsBottom, dataConfiguration?.getLegendColorForCase, pointColor, pointStrokeColor])
+    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef,
+      enableAnimation, primaryIsBottom, pointColor, pointStrokeColor])
 
   usePlotResponders({
-    graphModel, primaryAttrID: primaryDimensionRef.current?.attrID ?? '',
-    secondaryAttrID: secondaryDimensionRef.current?.attrID,
-    legendAttrID, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
+    graphModel, primaryAttrID: dataConfiguration?.attributeID(primaryAttrRole) ?? '',
+    secondaryAttrID: dataConfiguration?.attributeID(secondaryAttrRole),
+    legendAttrID: dataConfiguration?.attributeID('legend'),
+    layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (

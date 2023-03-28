@@ -13,13 +13,13 @@ interface IAddAttributeProps {
   onDrop: (attributeId: string) => void
 }
 
-export const DroppableAddAttribute = ({place, plotType, onDrop}: IAddAttributeProps) => {
+export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
   const dataConfiguration = useDataConfigurationContext(),
     isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop,
     droppableId = `graph-add-attribute-drop-${place}`,
     role = graphPlaceToAttrRole[place],
     {active, isOver, setNodeRef} = useDroppable({id: droppableId}),
-    hintString = useDropHintString({ role})
+    hintString = useDropHintString({role})
 
   const handleIsActive = (iActive: Active) => {
     const droppedAttrId = getDragAttributeId(iActive) ?? ''
@@ -36,20 +36,16 @@ export const DroppableAddAttribute = ({place, plotType, onDrop}: IAddAttributePr
   })
 
   // if (plotType === 'scatterPlot') {
-    const isActive = active && handleIsActive(active)
-    const className = clsx(`add-attribute-drop-${place}`, { over: isActive && isOver, active: isActive })
-    return (
-      <div ref={setNodeRef} id={droppableId}
-           className={className}>
-        {isOver && hintString &&
-           <DropHint hintText={hintString}/>
-        }
-      </div>
-    )
-/*
-  } else {
-    return null
-  }
-*/
+  const isActive = active && handleIsActive(active),
+    placeKey = ['rightNumeric', 'rightCat'].includes(place) ? 'right' : place // both use same css
+  const className = clsx(`add-attribute-drop-${placeKey}`, {over: isActive && isOver, active: isActive})
+  return (
+    <div ref={setNodeRef} id={droppableId}
+         className={className}>
+      {isOver && hintString &&
+         <DropHint hintText={hintString}/>
+      }
+    </div>
+  )
 }
 

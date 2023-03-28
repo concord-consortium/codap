@@ -103,7 +103,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
 
   useDataTips(dotsRef, dataset, graphModel)
 
-  const getPlotComponent = () => {
+  const renderPlotComponent = () => {
     const props = {
         xAttrID, yAttrID, dotsRef, enableAnimation
       },
@@ -116,7 +116,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     return typeToPlotComponentMap[plotType]
   }
 
-  const getGraphAxes = () => {
+  const renderGraphAxes = () => {
     const places = AxisPlaces.filter((place: AxisPlace) => {
       return !!graphModel.getAxis(place)
     })
@@ -131,7 +131,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     })
   }
 
-  const getDroppableAddAttributes = () => {
+  const renderDroppableAddAttributes = () => {
     const droppables: JSX.Element[] = []
     if (plotType !== 'casePlot') {
       const places = ['top', 'rightCat'].concat(plotType=== 'scatterPlot' ? ['yPlus', 'rightNumeric'] : [])
@@ -158,11 +158,11 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
             ref={backgroundSvgRef}
           />
 
-          {getGraphAxes()}
+          {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
             <svg ref={dotsRef} className='graph-dot-area'>
-              {getPlotComponent()}
+              {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>
           </svg>
@@ -181,7 +181,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
             onTreatAttributeAs={handleTreatAttrAs}
           />
         </svg>
-        {getDroppableAddAttributes()}
+        {renderDroppableAddAttributes()}
       </div>
     </DataConfigurationContext.Provider>
   )

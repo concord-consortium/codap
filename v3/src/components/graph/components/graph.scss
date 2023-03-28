@@ -79,7 +79,7 @@
   }
 }
 
-.add-attribute-drop-rightNumeric {
+.add-attribute-drop-right {
   position: absolute;
   top: 0;
   right: 0;
@@ -94,17 +94,3 @@
   }
 }
 
-.add-attribute-drop-rightCat {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 25px;
-  height: 100%;
-  &.active {
-    border: 5px solid rgb(255, 216, 102);
-  }
-  &.over {
-    background: yellow;
-    opacity: 0.5;
-  }
-}

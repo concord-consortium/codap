@@ -70,7 +70,7 @@ export const Axis = ({
 
   const getSubAxes = () => {
     const numRepetitions = dataConfiguration?.numRepetitionsForPlace(place) ?? 1
-    layout.getAxisScale && layout?.getAxisScale(place).setRepetitions(numRepetitions)
+    layout.getAxisScale?.(place).setRepetitions(numRepetitions)
     return range(numRepetitions).map(i => {
       return <SubAxis key={i}
                       subAxisIndex={i}

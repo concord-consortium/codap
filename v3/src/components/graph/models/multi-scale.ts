@@ -7,6 +7,7 @@ interface IDataCoordinate {
   cell: number
   data: number | string
 }
+
 interface IMultiScaleProps {
   scaleType: IScaleType
   orientation: "horizontal" | "vertical"
@@ -36,7 +37,8 @@ export class MultiScale {
   @observable repetitions = 1
   @observable length = 0
   @observable orientation: "horizontal" | "vertical"
-  scale: AxisScaleType
+  // Subaxes copy this scale to do their rendering because they need to change the range.
+  scale: AxisScaleType  // d3 scale whose range is the entire axis length.
 
   constructor({scaleType, orientation}: IMultiScaleProps) {
     this.scaleType = scaleType
@@ -44,6 +46,7 @@ export class MultiScale {
     this.scale = scaleTypeToD3Scale(scaleType)
     makeObservable(this)
   }
+
   @computed get cellLength() {
     return this.length / this.repetitions
   }
@@ -72,7 +75,7 @@ export class MultiScale {
     this.scale?.domain(domain)
   }
 
-  getScreenCoordinate(dataCoord:IDataCoordinate): number {
+  getScreenCoordinate(dataCoord: IDataCoordinate): number {
     let scaleCoord = 0
     switch (this.scaleType) {
       case "linear":
@@ -90,7 +93,7 @@ export class MultiScale {
     if (['linear', 'log'].includes(this.scaleType) && this.scale) {
       const cell = Math.floor(this.cellLength / screenCoordinate),
         numericScale = this.scale as ScaleLinear<number, number>
-      return { cell, data: numericScale.invert(screenCoordinate) }
+      return {cell, data: numericScale.invert(screenCoordinate)}
     }
     return {data: NaN}
   }

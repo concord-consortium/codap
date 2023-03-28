@@ -1,5 +1,5 @@
 import {ScaleBand, select} from "d3"
-import React, {useCallback, useRef} from "react"
+import React, {useCallback} from "react"
 import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -7,7 +7,6 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
-import {DimensionInfo, fillOutDimensionRefs} from "../utilities/plot-utils"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth
 } from "../../../utilities/color-utils"
@@ -25,18 +24,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     primaryAxisPlace = attrRoleToAxisPlace[primaryAttrRole] ?? 'bottom',
     primaryIsBottom = primaryAxisPlace === 'bottom',
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
-    primaryDimensionRef = useRef<DimensionInfo>(),
-    secondaryDimensionRef = useRef<DimensionInfo>(),
-    extraPrimaryDimensionRef = useRef<DimensionInfo>(),
-    extraSecondaryDimensionRef = useRef<DimensionInfo>()
-
-  fillOutDimensionRefs({
-    dataConfiguration, layout,
-    primary: {role: primaryAttrRole, ref: primaryDimensionRef},
-    secondary: {role: secondaryAttrRole, ref: secondaryDimensionRef},
-    extraPrimary: {role: primaryAttrRole === 'x' ? 'topSplit' : 'rightSplit', ref: extraPrimaryDimensionRef},
-    extraSecondary: {role: secondaryAttrRole === 'x' ? 'topSplit' : 'rightSplit', ref: extraSecondaryDimensionRef}
-  })
+    extraPrimaryAttrRole = primaryAttrRole === 'x' ? 'topSplit' : 'rightSplit',
+    extraSecondaryAttrRole = primaryAttrRole === 'x' ? 'rightSplit' : 'topSplit'
 
   /**
    * Compute the maximum number of points in any cell of the grid. The grid has four
@@ -44,10 +33,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
    * (Seems like there ought to be a more straightforward way to do this.)
    */
   const computeMaxOverAllCells = useCallback(() => {
-    const primAttrID = primaryDimensionRef.current?.attrID,
-      secAttrID = secondaryDimensionRef.current?.attrID,
-      extraPrimAttrID = extraPrimaryDimensionRef.current?.attrID,
-      extraSecAttrID = extraSecondaryDimensionRef.current?.attrID,
+    const primAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? '',
+      secAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? '',
+      extraPrimAttrID = dataConfiguration?.attributeID(extraPrimaryAttrRole) ?? '',
+      extraSecAttrID = dataConfiguration?.attributeID(extraSecondaryAttrRole) ?? '',
       valueQuads = (dataConfiguration?.caseDataArray || []).map((aCaseData: CaseData) => {
         return {
           primary: (primAttrID && dataset?.getValue(aCaseData.caseID, primAttrID)) ?? '',
@@ -72,6 +61,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       }
       bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
     })
+    // Now find and return the maximum value in the bins
     return Object.keys(bins).reduce((hMax, hKey) => {
       return Math.max(hMax, Object.keys(bins[hKey]).reduce((vMax, vKey) => {
         return Math.max(vMax, Object.keys(bins[hKey][vKey]).reduce((epMax, epKey) => {
@@ -93,10 +83,11 @@ export const ChartDots = function ChartDots(props: PlotProps) {
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryRole is the bottom just to help understand the naming
     const
-      extraPrimaryAttrID = extraPrimaryDimensionRef.current?.attrID,
-      extraPrimaryAttrRole = extraPrimaryDimensionRef.current?.role,
-      extraSecondaryAttrID = extraSecondaryDimensionRef.current?.attrID,
-      extraSecondaryAttrRole = extraSecondaryDimensionRef.current?.role,
+      secondaryAxisPlace = attrRoleToAxisPlace[secondaryAttrRole] ?? 'left',
+      extraPrimaryAxisPlace = attrRoleToAxisPlace[extraPrimaryAttrRole] ?? 'top',
+      extraSecondaryAxisPlace = attrRoleToAxisPlace[extraSecondaryAttrRole] ?? 'rightCat',
+      extraPrimaryAttrID = dataConfiguration?.attributeID(extraPrimaryAttrRole) ?? '',
+      extraSecondaryAttrID = dataConfiguration?.attributeID(extraSecondaryAttrRole) ?? '',
       primCatsArray: string[] = (dataConfiguration && primaryAttrRole)
         ? Array.from(dataConfiguration.categorySetForAttrRole(primaryAttrRole)) : [],
       secCatsArray: string[] = (dataConfiguration && secondaryAttrRole)
@@ -107,14 +98,15 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         ? Array.from(dataConfiguration.categorySetForAttrRole(extraSecondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
-      primOrdinalScale = primaryDimensionRef.current?.scale as ScaleBand<string>,
-      secOrdinalScale = secondaryDimensionRef.current?.scale as ScaleBand<string>,
-      extraPrimOrdinalScale = extraPrimaryDimensionRef.current?.scale as ScaleBand<string>,
-      extraSecOrdinalScale = extraSecondaryDimensionRef.current?.scale as ScaleBand<string>,
-      primaryCellWidth = (primOrdinalScale.bandwidth?.()) ?? 0,
-      secondaryAxisPlace = secondaryDimensionRef.current?.place,
-      primaryHeight = secOrdinalScale.bandwidth ? secOrdinalScale.bandwidth()
-        : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0),
+      primOrdinalScale = layout.getAxisScale(primaryAxisPlace)?.scale as ScaleBand<string>,
+      secOrdinalScale = layout.getAxisScale(secondaryAxisPlace)?.scale as ScaleBand<string>,
+      extraPrimOrdinalScale = layout.getAxisScale(extraPrimaryAxisPlace)?.scale as ScaleBand<string>,
+      extraSecOrdinalScale = layout.getAxisScale(extraSecondaryAxisPlace)?.scale as ScaleBand<string>,
+      primaryCellWidth = ((primOrdinalScale.bandwidth?.()) ?? 0) /
+        (dataConfiguration?.numRepetitionsForPlace(primaryAxisPlace) ?? 1),
+      primaryHeight = (secOrdinalScale.bandwidth ? secOrdinalScale.bandwidth()
+        : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0)) /
+            (dataConfiguration?.numRepetitionsForPlace(secondaryAxisPlace) ?? 1),
       extraPrimCellWidth = (extraPrimOrdinalScale.bandwidth?.()) ?? 0,
       extraSecCellWidth = (extraSecOrdinalScale.bandwidth?.()) ?? 0,
       catMap: Record<string, Record<string, Record<string, Record<string,
@@ -163,8 +155,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       buildMapOfIndicesByCase = () => {
         const indices: Record<string, { cell: { p: number, s: number, ep:number, es:number },
             row: number, column: number }> = {},
-          primaryAttrID = primaryDimensionRef.current?.attrID,
-          secondaryAttrID = secondaryDimensionRef.current?.attrID
+          primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? '',
+          secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? ''
         primaryAttrID && (dataConfiguration?.caseDataArray || []).forEach((aCaseData: CaseData) => {
           const anID = aCaseData.caseID,
             hCat = dataset?.getValue(anID, primaryAttrID),
@@ -251,8 +243,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
   usePlotResponders({
     graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
-    primaryAttrID: primaryDimensionRef.current?.attrID,
-    secondaryAttrID: secondaryDimensionRef.current?.attrID,
+    primaryAttrID: dataConfiguration?.attributeID(primaryAttrRole),
+    secondaryAttrID: dataConfiguration?.attributeID(secondaryAttrRole),
     legendAttrID: dataConfiguration?.attributeID('legend')
   })
 

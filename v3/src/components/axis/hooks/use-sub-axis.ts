@@ -22,18 +22,21 @@ export const useSubAxis = ({
                              enableAnimation
                            }: IUseAxis) => {
   const layout = useAxisLayoutContext(),
-    isNumeric = axisModel && isNumericAxisModel(axisModel),
-    place = axisModel?.place ?? 'bottom',
-    multiScale = layout.getAxisScale(place),
-    subAxisLength = multiScale.cellLength,
-    rangeMin = subAxisIndex * subAxisLength,
-    rangeMax = rangeMin + subAxisLength,
-    axisIsVertical = isVertical(place),
-    axis = axisPlaceToAxisFn(place),
-    type = axisModel?.type ?? 'empty'
+    isNumeric = axisModel && isNumericAxisModel(axisModel)
 
-  const refreshAxis = useCallback(() => {
-    const axisBounds = layout.getComputedBounds(place) as AxisBounds,
+  const refreshSubAxis = useCallback(() => {
+    const
+      place = axisModel?.place ?? 'bottom',
+      multiScale = layout.getAxisScale(place)
+    if (!multiScale) return // no scale, no axis (But this shouldn't happen)
+
+    const subAxisLength = multiScale?.cellLength ?? 0,
+      rangeMin = subAxisIndex * subAxisLength,
+      rangeMax = rangeMin + subAxisLength,
+      axisIsVertical = isVertical(place),
+      axis = axisPlaceToAxisFn(place),
+      type = axisModel?.type ?? 'empty',
+      axisBounds = layout.getComputedBounds(place) as AxisBounds,
       d3Scale: AxisScaleType = multiScale.scale.copy()
         .range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax]) as AxisScaleType,
       ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : d3Scale as ScaleBand<string>,
@@ -113,8 +116,8 @@ export const useSubAxis = ({
         drawCategoricalAxis()
         break
     }
-  }, [subAxisElt, place, axis, layout, showScatterPlotGridLines, enableAnimation,
-    type, centerCategoryLabels, axisIsVertical, rangeMin, rangeMax, axisModel, isNumeric, multiScale])
+  }, [subAxisElt, layout, showScatterPlotGridLines, enableAnimation,
+    centerCategoryLabels, axisModel, isNumeric, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -126,54 +129,53 @@ export const useSubAxis = ({
         },
         ({place: aPlace, scaleType}) => {
           layout.getAxisScale(aPlace)?.setScaleType(scaleType)
-          refreshAxis()
+          refreshSubAxis()
         }
       )
       return () => disposer()
     }
-  }, [isNumeric, axisModel, layout, refreshAxis])
+  }, [isNumeric, axisModel, layout, refreshSubAxis])
 
   // Install reaction to bring about rerender when layout's computedBounds changes
   useEffect(() => {
     const disposer = reaction(
-      () => layout.getComputedBounds(place),
-      () => refreshAxis(/*myBounds*/)
+      () => layout.getComputedBounds(axisModel?.place ?? 'bottom'),
+      () => refreshSubAxis(/*myBounds*/)
     )
     return () => disposer()
-  }, [place, layout, refreshAxis])
+  }, [layout, refreshSubAxis, axisModel?.place])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
     if (isNumeric) {
       const disposer = autorun(() => {
-        const numericModel = axisModel
-        if (numericModel.domain) {
-          const {domain} = numericModel
-          multiScale?.setDomain(domain)
-          refreshAxis()
+        if (axisModel.domain) {
+          const {domain} = axisModel
+          layout.getAxisScale(axisModel.place)?.setDomain(domain)
+          refreshSubAxis()
         }
       })
       return () => disposer()
     }
     // Note axisModelChanged as a dependent. Shouldn't be necessary.
-  }, [isNumeric, axisModel, refreshAxis, multiScale, place, layout])
+  }, [isNumeric, axisModel, refreshSubAxis, layout])
 
   // update d3 scale and axis when layout/range changes
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.getAxisLength(place)
+        return layout.getAxisLength(axisModel?.place ?? 'bottom')
       },
       () => {
-        refreshAxis()
+        refreshSubAxis()
       }
     )
     return () => disposer()
-  }, [axisModel, layout, refreshAxis, place])
+  }, [axisModel, layout, refreshSubAxis])
 
   // update on component refresh
   useEffect(() => {
-    refreshAxis()
-  }, [refreshAxis])
+    refreshSubAxis()
+  }, [refreshSubAxis])
 
 }
