@@ -12,7 +12,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 
-import styles from "./case-table-shared.scss"
+import styles from "./case-table-shared.module.scss"
 
 export const CollectionTable = observer(function CollectionTable() {
   const data = useDataSetContext()

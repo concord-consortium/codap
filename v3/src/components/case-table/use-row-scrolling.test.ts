@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react"
 import { MockAnimationFrame } from "../../test/mock-animation-frame"
 import { useRowScrolling } from "./use-row-scrolling"
 
-jest.mock("./case-table-shared.scss", () => ({
+jest.mock("./case-table-shared.module.scss", () => ({
   headerRowHeight: "30",
   bodyRowHeight: "18"
 }))

@@ -12,7 +12,7 @@ import { DataSet, toCanonical } from "../../models/data/data-set"
 import { ITileModel, TileModel } from "../../models/tiles/tile-model"
 import "./case-table-registration"
 
-jest.mock("./case-table-shared.scss", () => ({
+jest.mock("./case-table-shared.module.scss", () => ({
   headerRowHeight: "30",
   bodyRowHeight: "18"
 }))

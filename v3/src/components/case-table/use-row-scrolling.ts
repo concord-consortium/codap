@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react"
-import styles from "./case-table-shared.scss"
+import styles from "./case-table-shared.module.scss"
 
 interface IActiveScroll {
   startPos: number

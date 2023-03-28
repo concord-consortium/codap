@@ -1,5 +1,5 @@
 @use "../vars.scss";
-@use "./case-table-shared.scss" as shared;
+@use "./case-table-shared.module.scss" as shared;
 
 $table-body-font-size: 8pt;
 
