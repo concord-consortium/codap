@@ -43,8 +43,19 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          test: /\.tsx?$/,
-          loader: 'ts-loader',
+          test: /\.(ts|tsx)$/,
+          exclude: /(node_modules)/,
+          use: {
+            loader: "swc-loader",
+            options: {
+              jsc: {
+                parser: {
+                  syntax: "typescript",
+                  decorators: true,
+                }
+              }
+            }
+          }
         },
         // This code coverage instrumentation should only be added when needed. It makes
         // the code larger and slower
