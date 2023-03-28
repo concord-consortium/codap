@@ -1,6 +1,5 @@
 import { clsx } from "clsx"
 import React, { useMemo, useRef } from "react"
-// import { observer } from "mobx-react-lite"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -73,17 +72,17 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
   }
 
   const cases2 = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
+  const allCollapsed2 = everyCaseIsCollapsed()
   return (
     <>
       <div className="collection-table-spacer-divider" />
       <div className={classes} ref={handleRef}>
         <div className="spacer-top">
-          <title>Collapse all groups</title>
-          <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed()} onClick={handleTopClick} />
+          {!parentMost && <ExpandCollapseButton isCollapsed={allCollapsed2} onClick={handleTopClick}
+            title={allCollapsed2 ? 'Expand all groups' : 'Collapse all groups'} />}
         </div>
         <div className="spacer-mid">
           <div className="spacer-mid-interface">
-            <title>Collapse group</title>
             {cases2.map((value, index) => (
               <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
                 onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
@@ -105,13 +104,15 @@ interface ExpandCollapseButtonProps {
   styles?: {
     left?: string,
     top?: string,
-  }
+  },
+  title?: string,
 }
 
-function ExpandCollapseButton({ isCollapsed, onClick, styles }: ExpandCollapseButtonProps) {
+function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCollapseButtonProps) {
+  const buttonTitle = title ?? `${isCollapsed ? 'Expand' : 'Collapse'} group`
   return (
     <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}>
-      <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} />
+      <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} title={buttonTitle} />
     </button>
   )
 }
