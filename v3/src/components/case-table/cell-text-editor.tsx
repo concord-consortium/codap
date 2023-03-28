@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react"
-// import { textEditorClassname } from "react-data-grid"
+import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TEditorProps } from "./case-table-types"
 
@@ -38,7 +38,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TE
   return (
     <input
       data-testid="cell-text-editor"
-      // className={textEditorClassname}
+      className={textEditorClassname}
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}

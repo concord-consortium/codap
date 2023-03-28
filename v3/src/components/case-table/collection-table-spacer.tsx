@@ -5,7 +5,6 @@ import { useCollectionContext, useParentCollectionContext } from "../../hooks/us
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
-import { symParent } from "../../models/data/data-set-types"
 import { getNumericCssVariable } from "../../utilities/css-utils"
 import t from "../../utilities/translation/translate"
 import { kChildMostTableCollectionId } from "./case-table-types"
