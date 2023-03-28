@@ -14,8 +14,6 @@ import { kChildMostTableCollectionId } from "./case-table-types"
 interface IProps {
   onDrop?: (attrId: string) => void
 }
-// Make it an observer?
-// export const CollectionTableSpacer = observer(function CollectionTableSpacer({ onDrop }: IProps) {
 export function CollectionTableSpacer({ onDrop }: IProps) {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
@@ -47,19 +45,21 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
     setNodeRef(element)
   }
 
-  function handleAreaClick(e: React.MouseEvent) {
-    const parentGridBounds = parentGridRef.current?.getBoundingClientRect()
-    const rowHeaderHeight = getNumericCssVariable(parentGridRef.current, "--rdg-header-row-height") ?? 30
-    const rowHeight = getNumericCssVariable(parentGridRef.current, "--rdg-row-height") ?? 18
-    // TODO: real buttons; handle scrolled table
-    const clickedRow = Math.floor((e.clientY - (parentGridBounds?.top ?? 0) - rowHeaderHeight) / rowHeight)
-    const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-    const clickedCase = cases[clickedRow]
-    if (caseMetadata && clickedCase) {
-      const isCollapsed = caseMetadata.isCollapsed(clickedCase.__id__)
-      caseMetadata.setIsCollapsed(clickedCase.__id__, !isCollapsed)
-    }
-  }
+  // Keep for now in case of accessibility application (wider area of input)
+  // function handleAreaClick(e: React.MouseEvent) {
+  //   console.log('handleAreaClick')
+  //   const parentGridBounds = parentGridRef.current?.getBoundingClientRect()
+  //   const rowHeaderHeight = getNumericCssVariable(parentGridRef.current, "--rdg-header-row-height") ?? 30
+  //   const rowHeight = getNumericCssVariable(parentGridRef.current, "--rdg-row-height") ?? 18
+  //   // TODO: real buttons; handle scrolled table
+  //   const clickedRow = Math.floor((e.clientY - (parentGridBounds?.top ?? 0) - rowHeaderHeight) / rowHeight)
+  //   const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
+  //   const clickedCase = cases[clickedRow]
+  //   if (caseMetadata && clickedCase) {
+  //     const isCollapsed = caseMetadata.isCollapsed(clickedCase.__id__)
+  //     caseMetadata.setIsCollapsed(clickedCase.__id__, !isCollapsed)
+  //   }
+  // }
 
   function everyCaseIsCollapsed() : boolean {
     const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
@@ -68,34 +68,28 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
 
   function handleTopClick() {
     const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-    if (everyCaseIsCollapsed()) {
-      cases.forEach((value, index, array) => caseMetadata?.setIsCollapsed(value.__id__, false))
-    } else {
-      cases.forEach((value, index, array) => caseMetadata?.setIsCollapsed(value.__id__, true))
-    }
-  }
-
-  function handleButtonClick(id: string) {
-    // const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-    caseMetadata?.setIsCollapsed(id, !caseMetadata?.isCollapsed(id))
+    const allCollapsed = everyCaseIsCollapsed()
+    cases.forEach((value, index, array) => caseMetadata?.setIsCollapsed(value.__id__, !allCollapsed))
   }
 
   const cases2 = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
   return (
     <>
       <div className="collection-table-spacer-divider" />
-      <div className={classes} ref={handleRef} onClick={handleAreaClick}>
+      <div className={classes} ref={handleRef}>
         <div className="spacer-top">
-          <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed()} onClick={handleTopClick} />
           <title>Collapse all groups</title>
+          <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed()} onClick={handleTopClick} />
         </div>
         <div className="spacer-mid">
           <div className="spacer-mid-interface">
+            <title>Collapse group</title>
             {cases2.map((value, index) => (
               <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
-                onClick={() => handleButtonClick(value.__id__)} styles={{ left: '3px', top: `${(index * 18) + 4}px`}} />
+                onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
+                styles={{ left: '3px', top: `${(index * 18) + 4}px`}}
+              />
             ))}
-            <title>Collapse group</title>
           </div>
         </div>
         <div className="drop-message" style={msgStyle}>{isOver ? dropMessage : ""}</div>
@@ -116,15 +110,8 @@ interface ExpandCollapseButtonProps {
 
 function ExpandCollapseButton({ isCollapsed, onClick, styles }: ExpandCollapseButtonProps) {
   return (
-    <button type="button" className="expand-collapse-button"
-      onClick={onClick} style={styles}
-    >
+    <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}>
       <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} />
     </button>
   )
 }
-
-// Typechecking pass (SWC does not do typechecking) - how can we integrate this?
-
-// Any collection with expand/collapse buttons should not offer
-// vertical scrolling- it throws off the placement of the buttons.

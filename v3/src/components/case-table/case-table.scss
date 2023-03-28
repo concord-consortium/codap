@@ -28,14 +28,10 @@ $table-body-font-size: 8pt;
         }
       }
 
-
       .collection-table-spacer-divider {
         width: 1px;
         background-color: white;
       }
-      // Put a 1px white strip down the full length of either side, THEN put a 1px border on the bottom (not on top tho)
-      // er, make them transparent? and see what happens?
-
 
       .collection-table-spacer {
         position: relative;
@@ -44,7 +40,6 @@ $table-body-font-size: 8pt;
         background: white;
         display: flex;
         flex-direction: column;
-
 
         &.parentMost {
           width: 30px;
@@ -55,7 +50,6 @@ $table-body-font-size: 8pt;
           .spacer-mid {
             display: none;
           }
-
           .drop-message {
             left: 7px;
           }
@@ -71,30 +65,17 @@ $table-body-font-size: 8pt;
 
         .spacer-top {
           height: calc(vars.$title-bar-height + vars.$header-height - 1px);
-          background-color: hsl(0deg 0% 97.5%); // var(--rdg-header-background-color); // need to find/make the codap variable for this
-          // background-color: #E6E6E6;
+          background-color: #f9f9f9; // --rdg-header-background-color
           width: 100%;
-          border-bottom: 1px solid var(--codap-colors-chakra-border-color); // #E6E6E6;
+          border-bottom: 1px solid var(--codap-colors-chakra-border-color);
           overflow: hidden;
           position: relative;
-          -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-
-          // path {
-          //   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-          // }
 
           .expand-collapse-button {
             position: absolute;
             bottom: 6px;
             left: 3px;
           }
-          image {
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-          }
-          // border: 1px solid #E6E6E6;
-          // border: 1px solid #d3d3d3;
-          // background: #e6e6e6 url('../../../../../../static/dg/en/cert/source/resources/slickgrid/css/smoothness/images/ui-bg_glass_75_e6e6e6_1x400.png') 50% 50% repeat-x;
-          // background-color: #555555;
         }
 
         .spacer-mid {
@@ -102,26 +83,19 @@ $table-body-font-size: 8pt;
           flex-grow: 1;
 
           .spacer-mid-interface {
+            position: relative;
             width: 100%;
             height: 100%;
-            position: relative;
-            // overflow: hidden;
-
-            // .collapse-toggle {
-            //   width: 9px;
-            //   height: 9px;
-            //   cursor: pointer;
-            //   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-            // }
           }
         }
 
         .expand-collapse-button {
-          width: 9px;
-          height: 9px;
+          position: absolute;
           display: flex;
           cursor: pointer;
-          position: absolute;
+          width: 9px;
+          height: 9px;
+          -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
           .expand-collapse-image {
             width: 9px;
