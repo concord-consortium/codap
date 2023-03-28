@@ -6,12 +6,15 @@ import t from "../../../utilities/translation/translate"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
 import {MultiScale} from "../../graph/models/multi-scale"
+import {isVertical} from "../axis-types"
 
 import "./axis.scss"
 
 interface IProps {
   axisModel: INumericAxisModel
   axisWrapperElt: SVGGElement | null
+  numSubAxes?: number
+  subAxisIndex?: number
 }
 
 type D3Handler = (this: Element, event: any, d: any) => void
@@ -20,7 +23,8 @@ const axisDragHints = [ t("DG.CellLinearAxisView.lowerPanelTooltip"),
                         t("DG.CellLinearAxisView.midPanelTooltip"),
                         t("DG.CellLinearAxisView.upperPanelTooltip") ]
 
-export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWrapperElt}: IProps) {
+export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWrapperElt,
+                                                               numSubAxes = 1, subAxisIndex = 0}: IProps) {
   const rectRef = useRef() as React.RefObject<SVGSVGElement>,
     place = axisModel.place,
     layout = useAxisLayoutContext()
@@ -35,8 +39,13 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
       dragging = false
 
     const onDragStart: D3Handler = () => {
+      const subAxisLength = layout.getAxisLength(place) / numSubAxes,
+        rangeMin = subAxisIndex * subAxisLength,
+        rangeMax = (subAxisIndex + 1) * subAxisLength,
+        range = isVertical(place) ? [rangeMax, rangeMin] : [rangeMin, rangeMax]
         multiScale = layout.getAxisScale(place)
-        d3Scale = multiScale?.scale as ScaleContinuousNumeric<number, number>
+        d3Scale = (multiScale?.scale as ScaleContinuousNumeric<number, number>).copy()
+          .range(range)
         d3ScaleAtStart = d3Scale.copy()
         lower = d3ScaleAtStart.domain()[0]
         upper = d3ScaleAtStart.domain()[1]
@@ -139,7 +148,7 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
           .call(dragBehavior[behaviorIndex])
       })
     }
-  }, [axisModel, place, layout])
+  }, [axisModel, place, layout, numSubAxes, subAxisIndex])
 
   // update layout of axis drag rects when axis bounds change
   useEffect(() => {
@@ -149,7 +158,8 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
       },
       (axisBounds) => {
         const
-          length = layout.getAxisLength(place),
+          length = layout.getAxisLength(place) / numSubAxes,
+          start = subAxisIndex * length,
           rectSelection = select(rectRef.current),
           numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
         if (length != null && axisBounds != null) {
@@ -163,8 +173,10 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
               },
               (update) => {
                 update
-                  .attr('x', (d) => axisBounds.left + (place === 'bottom' ? (d * length / 3) : 0))
-                  .attr('y', (d) => axisBounds.top + (place === 'bottom' ? 0 : (d * length / 3)))
+                  .attr('x', (d) => axisBounds.left + (place === 'bottom'
+                    ? (start + d * length / 3) : 0))
+                  .attr('y', (d) => axisBounds.top + (place === 'bottom'
+                    ? 0 : (start + d * length / 3)))
                   .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width))
                   .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
               }
@@ -174,7 +186,7 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
       }, {fireImmediately: true}
     )
     return () => disposer()
-  }, [axisModel, layout, axisWrapperElt, place])
+  }, [axisModel, layout, axisWrapperElt, place, numSubAxes, subAxisIndex])
   return (
     <g className={'dragRect'} ref={rectRef}/>
   )

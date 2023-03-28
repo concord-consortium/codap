@@ -73,6 +73,7 @@ export const Axis = ({
     layout.getAxisScale?.(place).setRepetitions(numRepetitions)
     return range(numRepetitions).map(i => {
       return <SubAxis key={i}
+                      numSubAxes={numRepetitions}
                       subAxisIndex={i}
                       getAxisModel={getAxisModel}
                       enableAnimation={enableAnimation}

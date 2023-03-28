@@ -6,6 +6,7 @@ import {AxisDragRects} from "./axis-drag-rects"
 import "./axis.scss"
 
 interface ISubAxisProps {
+  numSubAxes: number
   subAxisIndex: number
   getAxisModel: () => IAxisModel | undefined
   enableAnimation: MutableRefObject<boolean>
@@ -15,7 +16,7 @@ interface ISubAxisProps {
 
 
 export const SubAxis = ({
-                          subAxisIndex, getAxisModel, showScatterPlotGridLines = false,
+                          numSubAxes, subAxisIndex, getAxisModel, showScatterPlotGridLines = false,
                           centerCategoryLabels = true, enableAnimation
                         }: ISubAxisProps) => {
   const
@@ -30,10 +31,15 @@ export const SubAxis = ({
   })
 
   return (
-    <g className='axis-wrapper' ref={subWrapperElt}>
+    <g className='sub-axis-wrapper' ref={subWrapperElt}>
       <g className='axis' ref={elt => setSubAxisElt(elt)} data-testid={`axis-${place}`}/>
       {axisModel?.type === 'numeric'
-        ? <AxisDragRects axisModel={axisModel as INumericAxisModel} axisWrapperElt={subWrapperElt.current}/> : null}
+        ? <AxisDragRects
+          axisModel={axisModel as INumericAxisModel}
+          axisWrapperElt={subWrapperElt.current}
+          numSubAxes={numSubAxes}
+          subAxisIndex={subAxisIndex}
+        /> : null}
     </g>
   )
 }

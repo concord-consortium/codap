@@ -71,7 +71,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         }, 0))
       }, 0))
     }, 0)
-  }, [dataset, dataConfiguration?.caseDataArray])
+  }, [dataset, dataConfiguration, extraPrimaryAttrRole, extraSecondaryAttrRole,
+    primaryAttrRole, secondaryAttrRole])
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
@@ -238,7 +239,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       }
 
     setPoints()
-  }, [dataConfiguration, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
+  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
+    extraPrimaryAttrRole, extraSecondaryAttrRole,
     enableAnimation, primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
   usePlotResponders({

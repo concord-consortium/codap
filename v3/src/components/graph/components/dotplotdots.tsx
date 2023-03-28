@@ -45,10 +45,10 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
 
         handleClickOnDot(event, tItsID, dataset)
         // Record the current values, so we can change them during the drag and restore them when done
-        const {selection} = dataConfiguration || {}
+        const {selection} = dataConfiguration || {},
+          primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? ''
         selection?.forEach(anID => {
-          const primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? '',
-            itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
+            const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
