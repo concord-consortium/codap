@@ -3,12 +3,12 @@ import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { CalculatorComponent } from "./calculator"
 import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
 import { CalculatorModel } from "./calculator-model"
+import { CalculatorTitleBar } from "./calculator-title-bar"
 import CalcIcon from '../../assets/icons/icon-calc.svg'
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2CalculatorComponent } from "../../v2/codap-v2-types"
 import { TileModel } from "../../models/tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
-import { CalculatorTitleBar } from "./calculator-title-bar"
 
 export const kCalculatorIdPrefix = "CALC"
 
