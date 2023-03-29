@@ -25,7 +25,6 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
   return prf.measure("Table.render", () => {
-
     // disable the overlay for the index column
     const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
                             ? `${active.id}` : undefined
