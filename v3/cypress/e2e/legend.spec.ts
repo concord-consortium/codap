@@ -16,7 +16,7 @@ const arrayOfValues = [
 ]
 
 context("Test legend with various attribute types", () => {
-    before(function () {
+    beforeEach(function () {
         const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
@@ -121,7 +121,7 @@ context("Test legend with various attribute types", () => {
 })
 
 context("Test drawing legend on existing legend", () => {
-    before(function () {
+    beforeEach(function () {
         const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
@@ -149,7 +149,8 @@ context("Test drawing legend on existing legend", () => {
         ah.verifyAxisLabel("y", arrayOfAttributes[2])
         lh.verifyLegendLabel(arrayOfAttributes[3])
         lh.verifyNumericLegend()
-        lh.dragAttributeToLegend(arrayOfAttributes[8]) // Diet => plot area
+        // Temporarily changing this because of #184764820
+        lh.dragAttributeToPlot(arrayOfAttributes[8]) // Diet => plot area
         lh.verifyLegendLabel(arrayOfAttributes[8])
         lh.verifyCategoricalLegend()
         ah.openAxisAttributeMenu("y")
@@ -181,7 +182,8 @@ context("Test drawing legend on existing legend", () => {
         ah.verifyAxisLabel("y", arrayOfAttributes[2])
         lh.verifyLegendLabel(arrayOfAttributes[3])
         lh.verifyNumericLegend()
-        lh.dragAttributeToLegend(arrayOfAttributes[4]) // Mass => plot area
+        // Temporarily changing this because of #184764820
+        lh.dragAttributeToPlot(arrayOfAttributes[4]) // Mass => plot area
         lh.verifyLegendLabel(arrayOfAttributes[4])
         lh.verifyNumericLegend()
         ah.openAxisAttributeMenu("y")
@@ -193,7 +195,7 @@ context("Test drawing legend on existing legend", () => {
     })
 })
 context("Test selecting and selecting categories in legend", () => {
-    before(function () {
+    beforeEach(function () {
         const queryParams = "?sample=mammals&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)

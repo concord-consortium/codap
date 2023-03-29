@@ -15,10 +15,13 @@ import "./point-format-panel.scss"
 
 interface IProps {
   graphModel: IGraphModel
+  panelRect?: DOMRect
+  buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void;
 }
 
-export const PointFormatPalette = observer(function PointFormatPalette({graphModel, setShowPalette}: IProps) {
+export const PointFormatPalette = observer(function PointFormatPalette({graphModel, panelRect, buttonRect,
+    setShowPalette}: IProps) {
   const dataConfiguration = useDataConfigurationContext()
   const legendAttrID = graphModel.getAttributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
@@ -60,8 +63,10 @@ categoriesRef.current?.forEach(cat => {
     <InspectorPalette
       title={t("DG.Inspector.styles")}
       Icon={<StylesIcon/>}
-      buttonLocation={115}
-      paletteTop={35}
+      paletteTop={35} //temporary setting until paletteTop can be dynamically set depending on component placement
+      setShowPalette={setShowPalette}
+      panelRect={panelRect}
+      buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
         <FormControl size="xs">

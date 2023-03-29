@@ -6,7 +6,7 @@ let lastRowIndex = undefined
 let middleRowIndex = undefined
 let numOfCases = undefined
 
-before(()=> {
+beforeEach(()=> {
     const queryParams = "?sample=mammals"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
@@ -67,23 +67,21 @@ context("case table ui", () => {
             table.getColumnHeader(1).should("contain", "Animal")
             table.getAttribute("Animal").should("exist")
         })
-        it("verify hide attribute", () => {
-            table.openAttributeMenu("Animal")
+        it("verify hide and showAll attribute", () => {
+            table.openAttributeMenu("Mammal")
             table.selectMenuItemFromAttributeMenu("Hide Attribute")
-            table.getColumnHeader(1).should("not.have.text", "Animal")
-            table.getAttribute("Animal").should("not.exist")
-        })
-        it("verify show all attributes", () => {
+            table.getColumnHeader(1).should("not.have.text", "Mammal")
+            table.getAttribute("Mammal").should("not.exist")
             table.openInspectorPanel()
             table.showAllAttributes()
-            table.getColumnHeader(1).should("contain", "Animal")
-            table.getAttribute("Animal").should("exist")
+            table.getColumnHeader(1).should("contain", "Mammal")
+            table.getAttribute("Mammal").should("exist")
         })
         it("verify delete attribute", () => {
-            table.openAttributeMenu("Animal")
+            table.openAttributeMenu("Mammal")
             table.selectMenuItemFromAttributeMenu("Delete Attribute")
-            table.getColumnHeader(1).should("not.have.text", "Animal")
-            table.getAttribute("Animal").should("not.exist")
+            table.getColumnHeader(1).should("not.have.text", "Mammal")
+            table.getAttribute("Mammal").should("not.exist")
             table.getColumnHeaders().should("have.length", numOfAttributes-1)
         })
     })

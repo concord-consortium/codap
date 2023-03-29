@@ -1,3 +1,6 @@
+// to silence TypeScript compiler with isolatedModules: true
+export {}
+
 //   let inFlightActions = 0
 
   // function derive(name?: string) {

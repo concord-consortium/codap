@@ -2,8 +2,9 @@ import {scaleBand, scaleLinear, scaleLog, scaleOrdinal} from "d3"
 import {action, computed, makeObservable, observable} from "mobx"
 import {createContext, useContext} from "react"
 import {AxisPlace, AxisPlaces, AxisBounds, AxisScaleType, isVertical} from "../../axis/axis-types"
-import {GraphPlace, kTitleBarHeight} from "../graphing-types"
+import {GraphPlace} from "../graphing-types"
 import {IScaleType} from "../../axis/models/axis-model"
+import {kTitleBarHeight} from "../../constants"
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 300

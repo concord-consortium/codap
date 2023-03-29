@@ -5,10 +5,16 @@ import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
 import { CalculatorModel } from "./calculator-model"
 import { CalculatorTitleBar } from "./calculator-title-bar"
 import CalcIcon from '../../assets/icons/icon-calc.svg'
+import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
+import { isV2CalculatorComponent } from "../../v2/codap-v2-types"
+import { TileModel } from "../../models/tiles/tile-model"
+import { typedId } from "../../utilities/js-utils"
+
+export const kCalculatorIdPrefix = "CALC"
 
 registerTileContentInfo({
   type: kCalculatorTileType,
-  prefix: "CALC",
+  prefix: kCalculatorIdPrefix,
   modelClass: CalculatorModel,
   defaultContent: () => CalculatorModel.create()
 })
@@ -20,7 +26,20 @@ registerTileComponentInfo({
   tileEltClass: kCalculatorTileClass,
   Icon: CalcIcon,
   isSingleton: true,
-  height: 162,
-  width: 145,
-  isFixedSize: true,
+  isFixedWidth: true,
+  isFixedHeight: true
+})
+
+registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
+  if (!isV2CalculatorComponent(v2Component)) return
+
+  const { name = "", title = "" } = v2Component.componentStorage
+  const calculatorTile = TileModel.create({
+    id: typedId(kCalculatorIdPrefix),
+    title,
+    content: CalculatorModel.create({ name })
+  })
+  insertTile(calculatorTile)
+
+  return calculatorTile
 })

@@ -1,5 +1,5 @@
 import { addDisposer, onAction } from "mobx-state-tree"
-import { ITileEnvironment } from "../tiles/tile-content"
+import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"

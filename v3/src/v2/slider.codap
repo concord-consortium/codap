@@ -1,0 +1,55 @@
+{
+  "name": "slider",
+  "guid": 1,
+  "id": 1,
+  "components": [
+    {
+      "type": "DG.SliderView",
+      "guid": 3,
+      "id": 3,
+      "componentStorage": {
+        "_links_": {
+          "model": {
+            "type": "DG.GlobalValue",
+            "id": 2
+          }
+        },
+        "lowerBound": -4.393617021276597,
+        "upperBound": 26.537806873977086,
+        "animationDirection": 1,
+        "animationMode": 1,
+        "restrictToMultiplesOf": null,
+        "maxPerSecond": null,
+        "userTitle": true,
+        "title": "mySlider",
+        "userSetTitle": true,
+        "cannotClose": false
+      },
+      "layout": {
+        "width": 750,
+        "height": 98,
+        "zIndex": 105,
+        "left": 5,
+        "top": 5,
+        "isVisible": true,
+        "right": 755,
+        "bottom": 103
+      },
+      "savedHeight": null
+    }
+  ],
+  "contexts": [],
+  "globalValues": [
+    {
+      "name": "mine",
+      "value": 3.1415926,
+      "guid": 2
+    }
+  ],
+  "appName": "DG",
+  "appVersion": "2.0",
+  "appBuildNum": "0670",
+  "lang": "en",
+  "idCount": 3,
+  "metadata": {}
+}

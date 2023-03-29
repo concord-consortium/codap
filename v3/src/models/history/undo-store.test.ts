@@ -897,15 +897,20 @@ async function expectEntryToBeComplete(manager: Instance<typeof TreeManager>, le
   let timedOut = false
   try {
     await when(
-      () => changeDocument.history.length >= length && changeDocument.history.at(length-1)?.state === "complete",
+      () => {
+        const _historyLength = changeDocument.history.length
+        return _historyLength >= length && changeDocument.history[_historyLength - 1]?.state === "complete"
+      },
       {timeout: 100})
   } catch (e) {
     timedOut = true
   }
+  const historyLength = changeDocument.history.length
+  const lastEntry = changeDocument.history[historyLength - 1]
   expect({
-    historyLength: changeDocument.history.length,
-    lastEntryState: changeDocument.history.at(-1)?.state,
-    activeExchanges: changeDocument.history.at(-1)?.activeExchanges.toJSON(),
+    historyLength,
+    lastEntryState: lastEntry?.state,
+    activeExchanges: lastEntry?.activeExchanges.toJSON(),
     timedOut
   }).toEqual({
     historyLength: length,

@@ -69,7 +69,7 @@ export interface counterProps {
   setCounter: React.Dispatch<React.SetStateAction<number>>
 }
 
-export const kTitleBarHeight = 25,
+export const
   transitionDuration = 1000,
   pointRadiusMax = 10,
   pointRadiusMin = 3,

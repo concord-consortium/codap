@@ -1,8 +1,12 @@
+import { DataSet } from "./data-set"
+
 describe("Derived data set functionality commented out until further notice", () => {
   it("passes a trivial test to silence the linter", () => {
-    expect(true).toBe(true)
+    const data = DataSet.create()
+    expect(data).toBeDefined()
   })
 })
+
 // eslint-disable-next-line jest/no-commented-out-tests
 // test("Derived DataSet functionality", () => {
 //   const dataset = DataSet.create({ name: "data" })

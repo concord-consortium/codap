@@ -7,12 +7,11 @@
   generally be MobX-observable.
  */
 import { action, computed, makeObservable, observable } from "mobx"
-import { getEnv } from "mobx-state-tree"
 import { createCodapDocument } from "./codap/create-codap-document"
 import { gDataBroker } from "./data/data-broker"
 import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
 import { ISharedDataSet, kSharedDataSetType } from "./shared/shared-data-set"
-import { ITileEnvironment } from "./tiles/tile-content"
+import { getSharedModelManager } from "./tiles/tile-environment"
 
 type AppMode = "normal" | "performance"
 
@@ -48,8 +47,7 @@ class AppState {
         gDataBroker.clear()
 
         // update data broker with the new data sets
-        const env: ITileEnvironment | undefined = getEnv(document)
-        const manager = env?.sharedModelManager
+        const manager = getSharedModelManager(document)
         manager?.getSharedModelsByType(kSharedDataSetType).forEach((model: ISharedDataSet) => {
           gDataBroker.addSharedDataSet(model)
         })

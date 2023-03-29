@@ -1,18 +1,18 @@
 @import "./../vars.scss";
 
-$pseudo-inspector-width: 40px;
+$slider-component-height: 98px;
 
 .slider-wrapper {
   position: relative;
   overflow: clip;
-  width: calc(100% - $pseudo-inspector-width);
-  height: 100px;
+  height: calc($slider-component-height - $title-bar-height);
   background: #fff;
+  border-radius: $border-radius-bottom-corners;
 
   .slider {
     button svg, .thumb-icon {
-      width:27px;
-      height:27px;
+      width: 27px;
+      height: 27px;
     }
 
     .thumb-icon {
@@ -47,34 +47,12 @@ $pseudo-inspector-width: 40px;
 
     .slider-thumb-icon {
       position: absolute;
-      top: 60px;
+      top: 42px;
 
       &.dragging {
-        top: 59px;
+        top: 41px;
         filter: drop-shadow(3px 1px 1px #555);
       }
     }
-  }
-}
-
-.app {
-  //temporary until we implement the real inspector
-  .free-tile-row {
-    .slider-wrapper {
-      width: 100%;
-    }
-  }
-  .inspector-temporary {
-    position: absolute;
-    width: $pseudo-inspector-width;
-    text-align: center;
-    input {
-      width: 34px;
-      background-color: transparentize($teal-dark, .5);
-      text-align: center;
-      color: white;
-    }
-    border-radius: $border-radius-four-corners;
-    border: 3px solid $teal-dark;
   }
 }

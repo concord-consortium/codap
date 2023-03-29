@@ -1,4 +1,4 @@
-import { destroy, Instance, types, getEnv, flow, SnapshotIn } from "mobx-state-tree"
+import { destroy, Instance, types, flow, SnapshotIn } from "mobx-state-tree"
 import { when } from "mobx"
 import { ITileBaseProps } from "../../components/tiles/tile-base-props"
 import { SharedModel, ISharedModel } from "../shared/shared-model"
@@ -6,10 +6,10 @@ import { SharedModelDocumentManager } from "./shared-model-document-manager"
 import { registerSharedModelInfo } from "../shared/shared-model-registry"
 import { registerTileComponentInfo } from "../tiles/tile-component-info"
 import { registerTileContentInfo } from "../tiles/tile-content-info"
-import { ITileEnvironment, TileContentModel } from "../tiles/tile-content"
+import { TileContentModel } from "../tiles/tile-content"
+import { getSharedModelManager } from "../tiles/tile-environment"
 import { createDocumentModel } from "./create-document-model"
 import { DocumentContentModel } from "./document-content"
-import { IDocumentModel } from "./document"
 import { TileModel } from "../tiles/tile-model"
 import { LegacyTileRowModel } from "./legacy-tile-row"
 
@@ -249,7 +249,7 @@ describe("SharedModelDocumentManager", () => {
 
     const manager = getSharedModelManager(docModel)
     const sharedModel = TestSharedModel.create({})
-    manager.addTileSharedModel(tileContent, sharedModel)
+    manager!.addTileSharedModel(tileContent, sharedModel)
 
     // The update function should be called right after it is added
     await expectUpdateToBeCalledTimes(tileContent, 1)
@@ -282,7 +282,7 @@ describe("SharedModelDocumentManager", () => {
     await expectUpdateToBeCalledTimes(tileContent, 0)
 
     const manager = getSharedModelManager(docModel)
-    manager.addTileSharedModel(tileContent, sharedModel)
+    manager!.addTileSharedModel(tileContent, sharedModel)
 
     // The update function should be called right after it is added
     await expectUpdateToBeCalledTimes(tileContent, 1)
@@ -523,7 +523,7 @@ describe("SharedModelDocumentManager", () => {
     const sharedModel = TestSharedModel.create({})
 
     // Add to the first tile (and document)
-    manager.addTileSharedModel(tileContent1, sharedModel)
+    manager!.addTileSharedModel(tileContent1, sharedModel)
     const sharedModelEntry = doc.sharedModelMap.get(sharedModel.id)
     expect(sharedModelEntry?.tiles[0]?.id).toBe("t1")
 
@@ -537,7 +537,7 @@ describe("SharedModelDocumentManager", () => {
     await expectUpdateToBeCalledTimes(tileContent2, 0)
 
     // Add to the second tile
-    manager.addTileSharedModel(tileContent2, sharedModel)
+    manager!.addTileSharedModel(tileContent2, sharedModel)
     expect(doc.sharedModelMap.get(sharedModel.id)).toBe(sharedModelEntry)
     expect(sharedModelEntry?.tiles[0]?.id).toBe("t1")
     expect(sharedModelEntry?.tiles[1]?.id).toBe("t2")
@@ -618,7 +618,7 @@ describe("SharedModelDocumentManager", () => {
 
     const manager = getSharedModelManager(docModel)
     const sharedModel1 = TestSharedModel.create({})
-    manager.addTileSharedModel(tileContent, sharedModel1)
+    manager!.addTileSharedModel(tileContent, sharedModel1)
 
     // The update function should be called right after it is added
     await expectUpdateToBeCalledTimes(tileContent, 1)
@@ -628,7 +628,7 @@ describe("SharedModelDocumentManager", () => {
     await expectUpdateToBeCalledTimes(tileContent, 2)
 
     const sharedModel2 = TestSharedModel.create({})
-    manager.addTileSharedModel(tileContent, sharedModel2)
+    manager!.addTileSharedModel(tileContent, sharedModel2)
 
     // The update function should be called right after second model is added
     await expectUpdateToBeCalledTimes(tileContent, 3)
@@ -888,9 +888,4 @@ describe("SharedModelDocumentManager", () => {
 async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number) {
   const updateCalledTimes = when(() => testTile.updateCount === times, {timeout: 100})
   return expect(updateCalledTimes).resolves.toBeUndefined()
-}
-
-function getSharedModelManager(docModel: IDocumentModel) {
-  const env: ITileEnvironment = getEnv(docModel)
-  return env.sharedModelManager!
 }

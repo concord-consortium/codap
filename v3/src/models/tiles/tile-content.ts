@@ -1,12 +1,8 @@
-import { getEnv, getSnapshot, Instance, types } from "mobx-state-tree"
+import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { ISharedModel } from "../shared/shared-model"
-import { ISharedModelManager } from "../shared/shared-model-manager"
+import { getTileEnvironment, ITileEnvironment } from "./tile-environment"
 import { tileModelHooks } from "./tile-model-hooks"
 import { kUnknownTileType } from "./unknown-types"
-
-export interface ITileEnvironment {
-  sharedModelManager?: ISharedModelManager;
-}
 
 // Generic "super class" of all tile content models
 export const TileContentModel = types.model("TileContentModel", {
@@ -38,7 +34,7 @@ export const TileContentModel = types.model("TileContentModel", {
   })
   .views(self => ({
     get tileEnv(): ITileEnvironment | undefined {
-      return getEnv(self)
+      return getTileEnvironment(self)
     },
     // Override in specific tile content model when external data (like from SharedModels) is needed when copying
     get tileSnapshotForCopy() {

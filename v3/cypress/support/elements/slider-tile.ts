@@ -2,7 +2,7 @@ export const SliderTileElements = {
   getSliderTile() {
     return cy.get(".codap-slider")
   },
-  getCollectionTitle() {
+  getComponentTitle() {
     return this.getSliderTile().find("[data-testid=editable-component-title]")
   }
 }
