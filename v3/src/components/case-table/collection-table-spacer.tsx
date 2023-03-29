@@ -59,30 +59,27 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
   //   }
   // }
 
-  function everyCaseIsCollapsed() : boolean {
-    const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-    return cases.every((value, index) => caseMetadata?.isCollapsed(value.__id__))
-  }
+  const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
+  const everyCaseIsCollapsed = cases.every((value) => caseMetadata?.isCollapsed(value.__id__))
 
   function handleTopClick() {
-    const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-    const allCollapsed = everyCaseIsCollapsed()
-    cases.forEach((value, index, array) => caseMetadata?.setIsCollapsed(value.__id__, !allCollapsed))
+    cases.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
   }
 
-  const cases2 = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-  const allCollapsed2 = everyCaseIsCollapsed()
+  const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`
+  const topButtonTooltip = t(topTooltipKey)
+
   return (
     <>
       <div className="collection-table-spacer-divider" />
       <div className={classes} ref={handleRef}>
         <div className="spacer-top">
-          {!parentMost && <ExpandCollapseButton isCollapsed={allCollapsed2} onClick={handleTopClick}
-            title={allCollapsed2 ? 'Expand all groups' : 'Collapse all groups'} />}
+          {!parentMost && <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed} onClick={handleTopClick}
+            title={topButtonTooltip} />}
         </div>
         <div className="spacer-mid">
           <div className="spacer-mid-interface">
-            {cases2.map((value, index) => (
+            {cases.map((value, index) => (
               <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
                 onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
                 styles={{ left: '3px', top: `${(index * 18) + 4}px`}}
@@ -108,10 +105,11 @@ interface ExpandCollapseButtonProps {
 }
 
 function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCollapseButtonProps) {
-  const buttonTitle = title ?? `${isCollapsed ? 'Expand' : 'Collapse'} group`
+  const tooltipKey = `DG.CaseTable.dividerView.${isCollapsed ? "expandGroupTooltip" : "collapseGroupTooltip"}`
+  const tooltip = title ?? t(tooltipKey)
   return (
     <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}>
-      <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} title={buttonTitle} />
+      <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} title={tooltip} />
     </button>
   )
 }
