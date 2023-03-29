@@ -28,11 +28,18 @@ $table-body-font-size: 8pt;
         }
       }
 
+      .collection-table-spacer-divider {
+        width: 1px;
+        background-color: white;
+      }
+
       .collection-table-spacer {
         position: relative;
         width: 48px;
         height: 100%;
         background: white;
+        display: flex;
+        flex-direction: column;
 
         &.parentMost {
           width: 30px;
@@ -48,6 +55,52 @@ $table-body-font-size: 8pt;
 
         &.over {
           background: rgba(255, 255, 0, 0.5);
+        }
+
+        .spacer-top {
+          height: calc(vars.$title-bar-height + vars.$header-height - 1px);
+          background-color: #f9f9f9; // --rdg-header-background-color
+          width: 100%;
+          border-bottom: 1px solid var(--codap-colors-chakra-border-color);
+          overflow: hidden;
+          position: relative;
+
+          .expand-collapse-button {
+            position: absolute;
+            bottom: 6px;
+            left: 3px;
+          }
+        }
+
+        .spacer-mid {
+          width: 100%;
+          flex-grow: 1;
+
+          .spacer-mid-interface {
+            position: relative;
+            width: 100%;
+            height: 100%;
+          }
+        }
+
+        .expand-collapse-button {
+          position: absolute;
+          display: flex;
+          cursor: pointer;
+          width: 9px;
+          height: 9px;
+          -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+          .expand-collapse-image {
+            width: 9px;
+            height: 9px;
+            &.closed {
+              background-image: url("../../assets/expand.gif");
+            }
+            &.open {
+              background-image: url("../../assets/collapse.gif");
+            }
+          }
         }
 
         .drop-message {
