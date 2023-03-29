@@ -7,6 +7,7 @@ $table-body-font-size: 8pt;
   position: relative;
   width: 100%;
   height: calc(100% - vars.$title-bar-height);
+  background-color: white;
 
   .case-table-content {
     width: 100%;
@@ -26,7 +27,7 @@ $table-body-font-size: 8pt;
           position: relative;
           width: 100%;
           height: 26px;
-          background-color: #bddfdf;
+          background-color: vars.$codap-teal-lighter;
 
           .collection-title {
             position: absolute;
@@ -40,7 +41,7 @@ $table-body-font-size: 8pt;
             white-space: nowrap;
             user-select: none;
             font-style: italic;
-            color: #0f2633;
+            color: #0f2633; // Not used anywhere else at the moment, so we're leaving it unnamed
           }
         }
       }

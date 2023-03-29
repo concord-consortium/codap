@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties, useState } from "react"
+import React, { CSSProperties } from "react"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
 import { CaseTableInspector } from "./case-table-inspector"
 import { kChildMostTableCollectionId, kIndexColumnKey } from "./case-table-types"
@@ -24,8 +24,6 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
   const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
-  const [tableScrollLeft, setTableScrollLeft] = useState(0)
-  const updateScrollPosition = (e: React.UIEvent<HTMLElement>) => setTableScrollLeft(e.currentTarget.scrollLeft)
   return prf.measure("Table.render", () => {
     // disable the overlay for the index column
     const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
@@ -40,20 +38,20 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
     return (
       <>
         <div ref={setNodeRef} className="case-table" data-testid="case-table">
-              <div className="case-table-content" onScroll={updateScrollPosition}>
-                {collections.map((collection, i) => {
-                  const key = collection?.id || kChildMostTableCollectionId
-                  const parent = i > 0 ? collections[i - 1] : undefined
-                  return (
-                    <ParentCollectionContext.Provider key={key} value={parent}>
-                      <CollectionContext.Provider key={key} value={collection}>
-                        <CollectionTable tableScrollLeft={tableScrollLeft} />
-                      </CollectionContext.Provider>
-                    </ParentCollectionContext.Provider>
-                  )
-                })}
-                <AttributeDragOverlay activeDragId={overlayDragId} />
-              </div>
+          <div className="case-table-content">
+            {collections.map((collection, i) => {
+              const key = collection?.id || kChildMostTableCollectionId
+              const parent = i > 0 ? collections[i - 1] : undefined
+              return (
+                <ParentCollectionContext.Provider key={key} value={parent}>
+                  <CollectionContext.Provider key={key} value={collection}>
+                    <CollectionTable />
+                  </CollectionContext.Provider>
+                </ParentCollectionContext.Provider>
+              )
+            })}
+            <AttributeDragOverlay activeDragId={overlayDragId} />
+          </div>
         </div>
         <NoCasesMessage />
         <CaseTableInspector show={uiState.isFocusedTile(tile?.id)} />
