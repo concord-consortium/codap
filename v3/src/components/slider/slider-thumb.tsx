@@ -31,10 +31,14 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   const tickTime = sliderModel.animationRate
   const runCount = useRef(0)
   const direction = sliderModel.animationDirection
+  const value = sliderModel.value
+  const axisMax = sliderModel.axis.max
+  const axisMin = sliderModel.axis.min
+
 
   useEffect(() => {
-    setThumbPos(scale(sliderModel.value) - kThumbOffset)
-  }, [length, scale, sliderModel.domain, sliderModel.value])
+    setThumbPos(scale(value) - kThumbOffset)
+  }, [length, scale, sliderModel.domain, value])
 
   const thumbStyle: CSSProperties = {
     left: thumbPos
@@ -74,37 +78,25 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   }, [isDragging, scale, sliderContainer, sliderModel])
 
   useEffect(() => {
-      if (running) {
-    if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
-    { sliderModel.setValue(sliderModel.axis.min) }
-    if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
-    { sliderModel.setValue(sliderModel.axis.max) }
-  }
+    if (running) {
+      if (direction === "lowToHigh" && value >= axisMax) sliderModel.setValue(axisMin)
+      if (direction === "highToLow" && value <= axisMin) sliderModel.setValue(axisMax)
+    }
   }, [running])
 
   // control slider value with play/pause
   useEffect(() => {
     const incrementModifier = direction === "highToLow" ? -1 : 1
-
-    if ((direction === "lowToHigh" && sliderModel.value < sliderModel.axis.max) ||
-        (direction === "highToLow" && sliderModel.value > sliderModel.axis.min)) {
-      console.log("sliderModel.value:", sliderModel.value)
-
-      if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
-        { sliderModel.setValue(sliderModel.axis.min) }
-      if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
-        { sliderModel.setValue(sliderModel.axis.max) }
+    if ((direction === "lowToHigh" && value < axisMax) || (direction === "highToLow" && value > axisMin)) {
+      if (direction === "lowToHigh" && value >= axisMax) sliderModel.setValue(axisMin)
+      if (direction === "highToLow" && value <= axisMin) sliderModel.setValue(axisMax)
 
       const id = setInterval(() => {
         running &&
-          sliderModel.setValue(sliderModel.value + sliderModel.increment * incrementModifier)
+          sliderModel.setValue(value + sliderModel.increment * incrementModifier)
         if (sliderModel.animationMode === "nonStop") {
-          if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max) {
-            sliderModel.setValue(sliderModel.axis.min)
-          }
-          if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min) {
-            sliderModel.setValue(sliderModel.axis.max)
-          }
+          if (direction === "lowToHigh" && value >= axisMax) { sliderModel.setValue(axisMin) }
+          if (direction === "highToLow" && value <= axisMin) { sliderModel.setValue(axisMax) }
         }
       }, tickTime)
       intervalRef.current = id
@@ -112,7 +104,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
     } else {
       setRunning(false)
     }
-    
+
     return () => clearInterval(intervalRef.current)
   })
 
