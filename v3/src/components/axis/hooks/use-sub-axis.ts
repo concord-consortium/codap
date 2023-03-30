@@ -6,7 +6,7 @@ import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {between} from "../../../utilities/math-utils"
 import {transitionDuration} from "../../graph/graphing-types"
-import {collisionExists, getCategoricalLabelPlacement, getStringBounds} from "../axis-utils"
+import {collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement, getStringBounds} from "../axis-utils"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -47,17 +47,22 @@ export const useSubAxis = ({
           : `translate(${axisBounds.left}, ${axisBounds.top})`
 
     const drawAxis = () => {
+        const numericScale = d3Scale as unknown as ScaleLinear<number, number>,
+          axisScale = axis(numericScale).tickSizeOuter(0)
+        if (!axisIsVertical && numericScale.ticks) {
+          axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
+        }
         select(subAxisElt)
           .attr("transform", initialTransform)
           .transition().duration(duration)
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore types are incompatible
-          .call(axis(d3Scale).tickSizeOuter(0))
+          .call(axisScale)
       },
 
       drawScatterPlotGridLines = () => {
         if (axis) {
-          const numericScale = d3Scale as ScaleLinear<number, number>
+          const numericScale = d3Scale as unknown as ScaleLinear<number, number>
           select(subAxisElt).selectAll('.zero, .grid').remove()
           const tickLength = layout.getAxisLength(otherPlace(place)) ?? 0
           select(subAxisElt).append('g')
