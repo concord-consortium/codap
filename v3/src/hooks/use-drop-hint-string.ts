@@ -3,12 +3,11 @@ import { AttributeType } from "../models/data/attribute"
 import {useDataSetContext} from "./use-data-set-context"
 import {getDragAttributeId} from "./use-drag-drop"
 import {useDataConfigurationContext} from "../components/graph/hooks/use-data-configuration-context"
-import {attrRoleToGraphPlace, GraphAttrRole, GraphPlace, IsGraphDropAllowed} from "../components/graph/graphing-types"
+import {attrRoleToGraphPlace, GraphAttrRole, GraphPlace} from "../components/graph/graphing-types"
 import t from "../utilities/translation/translate"
 
 export interface IUseDropHintStringProps {
   role: GraphAttrRole
-  isDropAllowed?: IsGraphDropAllowed
 }
 
 interface HintMapEntry {
@@ -61,19 +60,31 @@ export function determineBaseString(role: GraphAttrRole, dropType?: AttributeTyp
         existing: "addAttribute"
       }
     },
+    topSplit: {
+      categorical: {
+        empty: "layoutPlotsSideBySide",
+        existing: "layoutPlotsSideBySide"
+      }
+    },
+    rightSplit: {
+      categorical: {
+        empty: "layoutPlotsVertically",
+        existing: "layoutPlotsVertically"
+      }
+    }
   }
 
   const stringKey = dropType && stringMap[role]?.[dropType]?.[priorType ? "existing" : "empty"]
   return stringKey ? `DG.GraphView.${stringKey}` : undefined
 }
 
-export const useDropHintString = ({role, isDropAllowed} : IUseDropHintStringProps) => {
+export const useDropHintString = ({role} : IUseDropHintStringProps) => {
   const dataSet = useDataSetContext(),
     dataConfig = useDataConfigurationContext(),
     { active } = useDndContext(),
-    dragAttrId = getDragAttributeId(active),
+    dragAttrId = getDragAttributeId(active) ?? '',
     place = attrRoleToGraphPlace[role] as GraphPlace,
-    dropAllowed = isDropAllowed ? isDropAllowed(place, dragAttrId) : true
+    dropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop(place, dragAttrId)
 
   if (dataSet && active?.data.current && dropAllowed) {
     const dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId).name : undefined,

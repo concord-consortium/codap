@@ -47,8 +47,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   // control slider value with play/pause
   useEffect(() => {
-    const id = setInterval(() => { running && incrementSliderValue() }, tickTime)
-    intervalRef.current = id
+    intervalRef.current = setInterval(() => { running && incrementSliderValue() }, tickTime)
     return () => clearInterval(intervalRef.current)
   })
 

@@ -1,25 +1,25 @@
 /* eslint-disable testing-library/no-node-access */
 import { renderHook } from "@testing-library/react"
 import React from "react"
-import { GraphLayout } from "../../graph/models/graph-layout"
+import { SliderAxisLayout } from "../../slider/slider-layout"
 import { AxisLayoutContext } from "../models/axis-layout-context"
 import { INumericAxisModel, NumericAxisModel } from "../models/axis-model"
 import {IUseAxis, useAxis} from "./use-axis"
 
 describe("useNumericAxis", () => {
 
-  let layout: GraphLayout
+  let layout: SliderAxisLayout
   let axisModel: INumericAxisModel
   let axisElt: SVGGElement
   let useAxisOptions: IUseAxis
   let titleRef: React.RefObject<SVGGElement>
 
   beforeEach(() => {
-    layout = new GraphLayout()
+    layout = new SliderAxisLayout()
     axisModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     axisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
-    useAxisOptions = { axisModel, axisElt, titleRef, enableAnimation: { current: false },
-      showScatterPlotGridLines: false, centerCategoryLabels: true }  })
+    useAxisOptions = { axisModel, axisElt, titleRef, centerCategoryLabels: true }
+  })
 
   it("renders a simple horizontal axis", () => {
     renderHook(() => useAxis(useAxisOptions), {
@@ -55,7 +55,7 @@ describe("useNumericAxis", () => {
       )
     })
     axisModel.setDomain(0, 100)
-    expect(layout.getAxisScale("bottom")?.domain()).toEqual([0, 100])
+    expect(layout.getAxisMultiScale("bottom")?.domain).toEqual([0, 100])
   })
 
   it("updates scale when axis range changes", () => {
@@ -67,7 +67,7 @@ describe("useNumericAxis", () => {
       )
     })
     layout.setParentExtent(100, 100)
-    expect(layout.getAxisScale("bottom")?.range()).toEqual([0, 80])
+    expect(layout.getAxisMultiScale("bottom")?.cellLength).toEqual(100)
   })
 
   it("can switch between linear/log axes", () => {

@@ -6,7 +6,7 @@ import {GraphController} from "../models/graph-controller"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
-import {AxisPlace} from "../../axis/axis-types"
+import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
 import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
@@ -54,9 +54,9 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   useEffect(function setupPlotArea() {
-    if (xScale && xScale?.range().length > 0) {
+    if (xScale && xScale?.length > 0) {
       select(plotAreaSVGRef.current)
-        .attr('x', xScale?.range()[0])
+        .attr('x', 0 /*xScale?.length*/)
         .attr('y', 0)
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
@@ -103,7 +103,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
 
   useDataTips(dotsRef, dataset, graphModel)
 
-  const getPlotComponent = () => {
+  const renderPlotComponent = () => {
     const props = {
         xAttrID, yAttrID, dotsRef, enableAnimation
       },
@@ -116,11 +116,10 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     return typeToPlotComponentMap[plotType]
   }
 
-  const getGraphAxes = () => {
-    const places = ['left', 'bottom']
-    if (graphModel.getAxis('rightNumeric')) {
-      places.push('rightNumeric')
-    }
+  const renderGraphAxes = () => {
+    const places = AxisPlaces.filter((place: AxisPlace) => {
+      return !!graphModel.getAxis(place)
+    })
     return places.map((place: AxisPlace) => {
       return <GraphAxis key={place}
                         place={place}
@@ -132,6 +131,24 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     })
   }
 
+  const renderDroppableAddAttributes = () => {
+    const droppables: JSX.Element[] = []
+    if (plotType !== 'casePlot') {
+      const places = ['top', 'rightCat'].concat(plotType=== 'scatterPlot' ? ['yPlus', 'rightNumeric'] : [])
+      places.forEach((place: GraphPlace) => {
+        droppables.push(
+          <DroppableAddAttribute
+            key={place}
+            place={place}
+            plotType={plotType}
+            onDrop={handleChangeAttribute.bind(null, place)}
+          />
+        )
+      })
+    }
+    return droppables
+  }
+
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
@@ -141,11 +158,11 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
             ref={backgroundSvgRef}
           />
 
-          {getGraphAxes()}
+          {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
             <svg ref={dotsRef} className='graph-dot-area'>
-              {getPlotComponent()}
+              {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>
           </svg>
@@ -164,14 +181,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
             onTreatAttributeAs={handleTreatAttrAs}
           />
         </svg>
-        <DroppableAddAttribute
-          location={'yPlus'}
-          plotType={plotType}
-          onDrop={handleChangeAttribute.bind(null, 'yPlus')}/>
-        <DroppableAddAttribute
-          location={'rightNumeric'}
-          plotType={plotType}
-          onDrop={handleChangeAttribute.bind(null, 'rightNumeric')}/>
+        {renderDroppableAddAttributes()}
       </div>
     </DataConfigurationContext.Provider>
   )

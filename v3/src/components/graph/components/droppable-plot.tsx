@@ -19,7 +19,7 @@ const _DroppablePlot = ({graphElt, plotElt, onDropAttribute}: IProps) => {
   const isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true)
   const droppableId = `${instanceId}-plot-area-drop`
   const role = dataConfig?.noAttributesAssigned ? 'x' : 'legend'
-  const hintString = useDropHintString({role, isDropAllowed})
+  const hintString = useDropHintString({role})
 
   const handleIsActive = (active: Active) => {
     const droppedAttrId = getDragAttributeId(active) ?? ''
