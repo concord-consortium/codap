@@ -24,7 +24,7 @@ export const useAxis = ({
   const layout = useAxisLayoutContext(),
     isNumeric = axisModel && isNumericAxisModel(axisModel),
     place = axisModel?.place ?? 'bottom',
-    multiScale = layout.getAxisScale(place),
+    multiScale = layout.getAxisMultiScale(place),
     ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>
   const
     bandWidth = (ordinalScale?.bandwidth?.()) ?? 0,
@@ -112,7 +112,7 @@ export const useAxis = ({
           return {place: aPlace, scaleType}
         },
         ({place: aPlace, scaleType}) => {
-          layout.getAxisScale(aPlace)?.setScaleType(scaleType)
+          layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
           refreshAxisTitle()
         }
       )
@@ -133,13 +133,9 @@ export const useAxis = ({
   useEffect(function installDomainSync() {
     if (isNumeric) {
       const disposer = autorun(() => {
-        const numericModel = axisModel
-        if (numericModel.domain) {
-          const {domain} = numericModel
-          multiScale?.setDomain(domain)
-          layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-          refreshAxisTitle()
-        }
+        multiScale?.setNumericDomain(axisModel.domain)
+        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+        refreshAxisTitle()
       })
       return () => disposer()
     }

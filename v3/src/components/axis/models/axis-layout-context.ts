@@ -1,7 +1,6 @@
 import { createContext, useContext } from "react"
-import { AxisBounds, AxisPlace } from "../axis-types"
-import {MultiScale} from "../../graph/models/multi-scale"
-import {IScaleType} from "./axis-model"
+import { AxisBounds, AxisPlace, AxisScaleType, IScaleType } from "../axis-types"
+import {MultiScale} from "./multi-scale"
 
 export interface IAxisLayout {
   setParentExtent: (width: number, height: number) => void
@@ -11,7 +10,8 @@ export interface IAxisLayout {
   getAxisBounds: (place: AxisPlace) => AxisBounds | undefined
   setAxisBounds: (place: AxisPlace, bounds?: AxisBounds) => void
 
-  getAxisScale: (place: AxisPlace) => MultiScale | undefined
+  getAxisMultiScale: (place: AxisPlace) => MultiScale | undefined
+  getAxisScale: (place: AxisPlace) => AxisScaleType | undefined
   setAxisScaleType: (place: AxisPlace, scaleType: IScaleType) => void
 
   // desired/computed bounds via model
@@ -24,6 +24,7 @@ const nullAxisLayout: IAxisLayout = {
   getAxisLength: () => 0,
   getAxisBounds: () => undefined,
   setAxisBounds: () => undefined,
+  getAxisMultiScale: () => undefined,
   getAxisScale: () => undefined,
   setAxisScaleType: () => undefined,
   getComputedBounds: () => undefined,

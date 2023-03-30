@@ -95,8 +95,8 @@ export const CaseDots = function CaseDots(props: {
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined,
-      xLength = layout.getAxisScale('bottom')?.length ?? 0,
-      yLength = layout.getAxisScale('left')?.length ?? 0
+      xLength = layout.getAxisMultiScale('bottom')?.length ?? 0,
+      yLength = layout.getAxisMultiScale('left')?.length ?? 0
     dotsSelection
       .attr('transform', transform)
       .transition()

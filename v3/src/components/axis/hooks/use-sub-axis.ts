@@ -1,14 +1,14 @@
 import {ScaleBand, ScaleLinear, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect} from "react"
-import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, isVertical} from "../axis-types"
+import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, isVertical, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {otherPlace, IAxisModel, isNumericAxisModel} from "../models/axis-model"
+import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {between} from "../../../utilities/math-utils"
 import {transitionDuration} from "../../graph/graphing-types"
 import {collisionExists, getCategoricalLabelPlacement, getStringBounds} from "../axis-utils"
 
-export interface IUseAxis {
+export interface IUseSubAxis {
   subAxisIndex: number
   axisModel?: IAxisModel
   subAxisElt: SVGGElement | null
@@ -20,14 +20,14 @@ export interface IUseAxis {
 export const useSubAxis = ({
                              subAxisIndex, axisModel, subAxisElt, showScatterPlotGridLines, centerCategoryLabels,
                              enableAnimation
-                           }: IUseAxis) => {
+                           }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
     isNumeric = axisModel && isNumericAxisModel(axisModel)
 
   const refreshSubAxis = useCallback(() => {
     const
       place = axisModel?.place ?? 'bottom',
-      multiScale = layout.getAxisScale(place)
+      multiScale = layout.getAxisMultiScale(place)
     if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
     const subAxisLength = multiScale?.cellLength ?? 0,
@@ -128,7 +128,7 @@ export const useSubAxis = ({
           return {place: aPlace, scaleType}
         },
         ({place: aPlace, scaleType}) => {
-          layout.getAxisScale(aPlace)?.setScaleType(scaleType)
+          layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
           refreshSubAxis()
         }
       )
@@ -151,7 +151,7 @@ export const useSubAxis = ({
       const disposer = autorun(() => {
         if (axisModel.domain) {
           const {domain} = axisModel
-          layout.getAxisScale(axisModel.place)?.setDomain(domain)
+          layout.getAxisMultiScale(axisModel.place)?.setNumericDomain(domain)
           refreshSubAxis()
         }
       })

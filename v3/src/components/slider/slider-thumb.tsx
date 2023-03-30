@@ -18,7 +18,7 @@ const kThumbOffset = 8
 export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel} : IProps) {
   const layout = useAxisLayoutContext()
   const length = layout.getAxisLength("bottom")
-  const scale = layout.getAxisScale("bottom")
+  const scale = layout.getAxisMultiScale("bottom")
   const [thumbPos, setThumbPos] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   // offset from center of thumb to pointerDown

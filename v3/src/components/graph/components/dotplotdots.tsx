@@ -58,7 +58,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
 
     onDrag = useCallback((event: MouseEvent) => {
       const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
-        primaryAxisScale = layout.getAxisScale(primaryPlace)?.scale as ScaleLinear<number, number> | undefined
+        primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number> | undefined
       if (primaryAxisScale && dragID) {
         const newPos = primaryIsBottom ? event.clientX : event.clientY,
           deltaPixels = newPos - currPos.current,
@@ -127,10 +127,10 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         extraPrimaryRole = primaryIsBottom ? 'topSplit' : 'rightSplit',
         extraSecondaryPlace = primaryIsBottom ? 'rightCat' : 'top',
         extraSecondaryRole = primaryIsBottom ? 'rightSplit' : 'topSplit',
-        primaryAxisScale = layout.getAxisScale(primaryPlace)?.scale as ScaleLinear<number, number>,
-        extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace).scale as ScaleBand<string>,
-        secondaryAxisScale = layout.getAxisScale(secondaryPlace).scale as ScaleBand<string>,
-        extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace).scale as ScaleBand<string>,
+        primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>,
+        extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
+        secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
+        extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
         primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? '',
         extraPrimaryAttrID = dataConfiguration?.attributeID(extraPrimaryRole) ?? '',
         numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1),

@@ -1,16 +1,16 @@
 import { action, makeObservable, observable } from "mobx"
-import { AxisBounds, AxisPlace } from "../axis/axis-types"
+import { AxisBounds, AxisPlace, IScaleType } from "../axis/axis-types"
+import { IAxisLayout } from "../axis/models/axis-layout-context"
+import { MultiScale } from "../axis/models/multi-scale"
 import {
   kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth
 } from "./slider-types"
-import {MultiScale} from "../graph/models/multi-scale"
-import {IScaleType} from "../axis/models/axis-model"
 
-export class SliderAxisLayout {
+export class SliderAxisLayout implements IAxisLayout {
   @observable sliderWidth = kDefaultSliderWidth
   @observable sliderHeight = kDefaultSliderHeight
   @observable axisBounds?: AxisBounds
-  axisScale: MultiScale = new MultiScale({scaleType: "linear", orientation: "horizontal"})
+  axisMultiScale: MultiScale = new MultiScale({scaleType: "linear", orientation: "horizontal"})
   desiredExtent?: number
 
   constructor() {
@@ -20,7 +20,7 @@ export class SliderAxisLayout {
   @action setParentExtent(width: number, height: number) {
     this.sliderWidth = width
     this.sliderHeight = height
-    this.axisScale.setLength(this.sliderWidth)
+    this.axisMultiScale.setLength(this.sliderWidth)
   }
 
   getAxisLength(place: AxisPlace) {
@@ -35,13 +35,17 @@ export class SliderAxisLayout {
     this.axisBounds = bounds
   }
 
+  getAxisMultiScale(place: AxisPlace) {
+    return this.axisMultiScale
+  }
+
   getAxisScale(place: AxisPlace) {
-    return this.axisScale
+    return this.axisMultiScale.scale
   }
 
   @action setAxisScaleType(place: AxisPlace, scaleType: IScaleType) {
-    this.axisScale.setLength(this.sliderWidth)
-    this.axisScale.setScaleType(scaleType)
+    this.axisMultiScale.setLength(this.sliderWidth)
+    this.axisMultiScale.setScaleType(scaleType)
   }
 
   @action setDesiredExtent(place: any, extent: number) {

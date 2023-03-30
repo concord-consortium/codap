@@ -5,7 +5,7 @@ import {drag, ScaleContinuousNumeric, select} from "d3"
 import t from "../../../utilities/translation/translate"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
-import {MultiScale} from "../../graph/models/multi-scale"
+import {MultiScale} from "../models/multi-scale"
 import {isVertical} from "../axis-types"
 
 import "./axis.scss"
@@ -43,7 +43,7 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
         rangeMin = subAxisIndex * subAxisLength,
         rangeMax = (subAxisIndex + 1) * subAxisLength,
         range = isVertical(place) ? [rangeMax, rangeMin] : [rangeMin, rangeMax]
-        multiScale = layout.getAxisScale(place)
+        multiScale = layout.getAxisMultiScale(place)
         d3Scale = (multiScale?.scale as ScaleContinuousNumeric<number, number>).copy()
           .range(range)
         d3ScaleAtStart = d3Scale.copy()
@@ -57,7 +57,7 @@ export const AxisDragRects = observer(function AxisDragRects({axisModel, axisWra
       onDilateStart: D3Handler = (event: { x: number, y: number }) => {
         select(this)
           .classed('dragging', true)
-        multiScale = layout.getAxisScale(place)
+        multiScale = layout.getAxisMultiScale(place)
         d3Scale = multiScale?.scale as ScaleContinuousNumeric<number, number>
         d3ScaleAtStart = d3Scale.copy()
         lower = d3ScaleAtStart.domain()[0]

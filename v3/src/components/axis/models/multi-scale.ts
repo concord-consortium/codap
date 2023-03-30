@@ -1,7 +1,8 @@
 import {action, computed, makeObservable, observable} from "mobx"
-import {NumberValue, ScaleBand, scaleBand, ScaleLinear, scaleLinear, scaleLog, scaleOrdinal} from "d3"
-import {AxisScaleType} from "../../axis/axis-types"
-import {IScaleType} from "../../axis/models/axis-model"
+import {
+  NumberValue, ScaleBand, scaleBand, ScaleLinear, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
+} from "d3"
+import {AxisScaleType, IScaleType, ScaleNumericBaseType} from "../axis-types"
 
 interface IDataCoordinate {
   cell: number
@@ -47,12 +48,26 @@ export class MultiScale {
     makeObservable(this)
   }
 
+  @computed get numericScale() {
+    return ["linear", "log"].includes(this.scaleType)
+            ? this.scale as ScaleNumericBaseType
+            : undefined
+  }
+
+  @computed get categoricalScale() {
+    return this.scaleType === "ordinal"
+            ? this.scale as ScaleOrdinal<string, any>
+            : this.scaleType === "band"
+                ? this.scale as ScaleBand<string>
+                : undefined
+  }
+
   @computed get cellLength() {
     return this.length / this.repetitions
   }
 
   @computed get domain() {
-    return this.scale?.domain()
+    return this.scale.domain()
   }
 
   @action setScaleType(scaleType: IScaleType) {
@@ -62,17 +77,19 @@ export class MultiScale {
 
   @action setLength(length: number) {
     this.length = length
-    this.scale?.range(this.orientation === 'horizontal' ? [0, this.length] : [this.length, 0])
+    this.scale.range(this.orientation === 'horizontal' ? [0, this.length] : [this.length, 0])
   }
 
   @action setRepetitions(repetitions: number) {
     this.repetitions = repetitions
   }
 
-  @action setDomain(domain: Iterable<NumberValue> | Iterable<string>) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    this.scale?.domain(domain)
+  @action setNumericDomain(domain: Iterable<NumberValue>) {
+    this.numericScale?.domain(domain)
+  }
+
+  @action setCategoricalDomain(domain: Iterable<string>) {
+    this.categoricalScale?.domain(domain)
   }
 
   getScreenCoordinate(dataCoord: IDataCoordinate): number {

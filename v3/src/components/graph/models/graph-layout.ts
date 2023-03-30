@@ -1,9 +1,9 @@
 import {action, computed, makeObservable, observable} from "mobx"
 import {createContext, useContext} from "react"
-import {AxisPlace, AxisPlaces, AxisBounds, isVertical} from "../../axis/axis-types"
+import {AxisPlace, AxisPlaces, AxisBounds, isVertical, IScaleType} from "../../axis/axis-types"
 import {GraphPlace} from "../graphing-types"
-import {MultiScale} from "./multi-scale"
-import {IScaleType} from "../../axis/models/axis-model"
+import {IAxisLayout} from "../../axis/models/axis-layout-context"
+import {MultiScale} from "../../axis/models/multi-scale"
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 300
@@ -19,7 +19,7 @@ export interface Bounds {
 export const CategoricalLayouts = ["parallel", "perpendicular"] as const
 export type CategoricalLayout = typeof CategoricalLayouts[number]
 
-export class GraphLayout {
+export class GraphLayout implements IAxisLayout {
   @observable graphWidth = kDefaultGraphWidth
   @observable graphHeight = kDefaultGraphHeight
   @observable legendHeight = kDefaultLegendHeight
@@ -83,15 +83,19 @@ export class GraphLayout {
     }
   }
 
-  getAxisScale(place: AxisPlace) {
+  getAxisMultiScale(place: AxisPlace) {
     return this.axisScales.get(place) ??
       new MultiScale({scaleType: "ordinal", orientation: "horizontal"})
   }
 
+  getAxisScale(place: AxisPlace) {
+    return this.axisScales.get(place)?.scale
+  }
+
   @action setAxisScaleType(place: AxisPlace, scale: IScaleType) {
-    this.getAxisScale(place)?.setScaleType(scale)
+    this.getAxisMultiScale(place)?.setScaleType(scale)
     const length = isVertical(place) ? this.plotHeight : this.plotWidth
-    this.getAxisScale(place)?.setLength(length)
+    this.getAxisMultiScale(place)?.setLength(length)
   }
 
   @action setDesiredExtent(place: GraphPlace, extent: number) {
@@ -102,7 +106,7 @@ export class GraphLayout {
   updateScaleRanges(plotWidth: number, plotHeight: number) {
     AxisPlaces.forEach(place => {
       const length = isVertical(place) ? plotHeight : plotWidth
-      this.getAxisScale(place)?.setLength(length)
+      this.getAxisMultiScale(place)?.setLength(length)
     })
   }
 

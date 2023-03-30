@@ -4,18 +4,13 @@ import {GraphLayout} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel,
-  EmptyAxisModel,
-  IEmptyAxisModel,
-  INumericAxisModel,
-  isCategoricalAxisModel,
-  isNumericAxisModel,
-  NumericAxisModel
+  CategoricalAxisModel, EmptyAxisModel, IEmptyAxisModel, INumericAxisModel,
+  isCategoricalAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
+import {scaleTypeToD3Scale} from "../../axis/models/multi-scale"
 import {
   attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType
 } from "../graphing-types"
-import {scaleTypeToD3Scale} from "./multi-scale"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 import {CodapV2Document} from "../../../v2/codap-v2-document"
 import {ICodapV2GraphStorage, IGuidLink} from "../../../v2/codap-v2-types"
@@ -132,13 +127,14 @@ export class GraphController {
             graphModel?.setAxis(axisPlace, axisModel)
             setNiceDomain(dataConfig?.numericValuesForAttrRole(attrRole) ?? [], axisModel)
             layout.setAxisScaleType(axisPlace, 'linear')
-            layout?.getAxisScale(axisPlace)?.setDomain(axisModel.domain)
+            layout?.getAxisMultiScale(axisPlace)?.setNumericDomain(axisModel.domain)
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
             graphModel?.setAxis(axisPlace, axisModel)
             layout.setAxisScaleType(axisPlace, 'band')
-            layout?.getAxisScale(axisPlace)?.setDomain(dataConfig?.categorySetForAttrRole(attrRole) ?? [])
+            layout?.getAxisMultiScale(axisPlace)
+                  ?.setCategoricalDomain(dataConfig?.categorySetForAttrRole(attrRole) ?? [])
             break
           default:  // Only add empty axes to 'left' and 'bottom'
             if (['left', 'bottom'].includes(axisPlace)) {
@@ -217,7 +213,7 @@ export class GraphController {
             graphModel.setAxis(place, newAxisModel)
             layout.setAxisScaleType(place, 'band')
           }
-          layout.getAxisScale(place)?.setDomain(setOfValues)
+          layout.getAxisMultiScale(place)?.setCategoricalDomain(setOfValues)
         }
           break
         case 'empty': {

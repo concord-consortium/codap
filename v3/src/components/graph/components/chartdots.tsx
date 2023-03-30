@@ -99,10 +99,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         ? Array.from(dataConfiguration.categorySetForAttrRole(extraSecondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
-      primOrdinalScale = layout.getAxisScale(primaryAxisPlace)?.scale as ScaleBand<string>,
-      secOrdinalScale = layout.getAxisScale(secondaryAxisPlace)?.scale as ScaleBand<string>,
-      extraPrimOrdinalScale = layout.getAxisScale(extraPrimaryAxisPlace)?.scale as ScaleBand<string>,
-      extraSecOrdinalScale = layout.getAxisScale(extraSecondaryAxisPlace)?.scale as ScaleBand<string>,
+      primOrdinalScale = layout.getAxisScale(primaryAxisPlace) as ScaleBand<string>,
+      secOrdinalScale = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>,
+      extraPrimOrdinalScale = layout.getAxisScale(extraPrimaryAxisPlace) as ScaleBand<string>,
+      extraSecOrdinalScale = layout.getAxisScale(extraSecondaryAxisPlace) as ScaleBand<string>,
       primaryCellWidth = ((primOrdinalScale.bandwidth?.()) ?? 0) /
         (dataConfiguration?.numRepetitionsForPlace(primaryAxisPlace) ?? 1),
       primaryHeight = (secOrdinalScale.bandwidth ? secOrdinalScale.bandwidth()

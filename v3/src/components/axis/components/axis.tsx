@@ -2,7 +2,6 @@ import {Active} from "@dnd-kit/core"
 import React, {MutableRefObject, useRef, useState} from "react"
 import {createPortal} from "react-dom"
 import {range} from "d3"
-import {useGraphLayoutContext} from "../../graph/models/graph-layout"
 import {AxisPlace} from "../axis-types"
 import {DroppableAxis} from "./droppable-axis"
 import {axisPlaceToAttrRole, GraphPlace, IsGraphDropAllowed} from "../../graph/graphing-types"
@@ -11,9 +10,9 @@ import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
+import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
 import {AxisOrLegendAttributeMenu} from "./axis-or-legend-attribute-menu"
-import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 import {SubAxis} from "./sub-axis"
 
 import "./axis.scss"
@@ -31,17 +30,15 @@ interface IProps {
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
 }
 
-
 export const Axis = ({
                        parentSelector, label, getAxisModel, showScatterPlotGridLines = false,
                        centerCategoryLabels = true, isDropAllowed = () => true, onDropAttribute,
                        enableAnimation, onTreatAttributeAs, onRemoveAttribute
                      }: IProps) => {
   const
-    dataConfiguration = useDataConfigurationContext(),
     instanceId = useInstanceIdContext(),
     axisModel = getAxisModel(),
-    layout = useGraphLayoutContext(),
+    layout = useAxisLayoutContext(),
     place = axisModel?.place || 'bottom',
     droppableId = `${instanceId}-${place}-axis-drop`,
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
@@ -69,8 +66,7 @@ export const Axis = ({
   })
 
   const getSubAxes = () => {
-    const numRepetitions = dataConfiguration?.numRepetitionsForPlace(place) ?? 1
-    layout.getAxisScale?.(place).setRepetitions(numRepetitions)
+    const numRepetitions = layout.getAxisMultiScale(place)?.repetitions ?? 1
     return range(numRepetitions).map(i => {
       return <SubAxis key={i}
                       numSubAxes={numRepetitions}
