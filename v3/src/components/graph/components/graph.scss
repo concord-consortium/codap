@@ -9,7 +9,8 @@
 
   svg {
     width: 100%;
-    height: calc(100% - $title-bar-height);
+    height: 100%;
+    overflow: visible;
   }
 
   text {
