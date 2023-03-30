@@ -1,5 +1,4 @@
 const kCodapAppHeader = 95
-const kTitleBarHeight = 25
 const kGap = 5 // Also used to increment during search
 
 export const getPositionOfNewComponent = (iViewRect: {width: number, height: number}, iPosition = "top") => {
@@ -21,7 +20,7 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
       const tRes = (!isNaN(r1.x) && !isNaN(r1.y)) && !(r2.x > r1.x + r1.width ||
           r2.x + r2.width < r1.x ||
           r2.y > r1.y + r1.height ||
-          r2.y + r2.height < r1.y - kTitleBarHeight - kGap)
+          r2.y + r2.height < r1.y - kGap)
       return tRes
     }
 
@@ -83,7 +82,7 @@ export const getPositionOfNewComponent = (iViewRect: {width: number, height: num
         if (!onTopOfViewRectTopLeft(tLoc)) {
           tSuccess = true
         } else {
-          tLoc = { x: tLoc.x + kGap, y: tLoc.y + kTitleBarHeight }
+          tLoc = { x: tLoc.x + kGap, y: tLoc.y }
         }
       }
     }

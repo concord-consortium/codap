@@ -2,7 +2,6 @@ import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import {kTitleBarHeight} from '../../constants'
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
@@ -33,7 +32,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   useGraphController({graphController, graphModel})
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setParentExtent(width, height - kTitleBarHeight)
+    (width != null) && (height != null) && layout.setParentExtent(width, height)
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the graph component

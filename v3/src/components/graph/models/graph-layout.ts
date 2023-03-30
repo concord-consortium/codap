@@ -4,7 +4,6 @@ import {createContext, useContext} from "react"
 import {AxisPlace, AxisPlaces, AxisBounds, AxisScaleType, isVertical} from "../../axis/axis-types"
 import {GraphPlace} from "../graphing-types"
 import {IScaleType} from "../../axis/models/axis-model"
-import {kTitleBarHeight} from "../../constants"
 
 export const kDefaultGraphWidth = 480
 export const kDefaultGraphHeight = 300
@@ -139,7 +138,7 @@ export class GraphLayout {
     newBounds.set('left',
       {left: 0, top: 0, width: leftAxisWidth, height: plotHeight})
     newBounds.set('top',
-      {left: leftAxisWidth, top: kTitleBarHeight, width: graphWidth - leftAxisWidth - rightAxisWidth,
+      {left: leftAxisWidth, top: 0, width: graphWidth - leftAxisWidth - rightAxisWidth,
         height: topAxisHeight})
     newBounds.set('plot',
       {left: leftAxisWidth, top: topAxisHeight, width: plotWidth, height: plotHeight})
