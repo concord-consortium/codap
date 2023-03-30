@@ -11,12 +11,15 @@ import './slider.scss'
 interface IProps {
   sliderContainer: HTMLDivElement
   sliderModel: ISliderModel
+  running: boolean
+  setRunning: (running: boolean)=>void
 }
 
 // offset from left edge of thumb to center of thumb
 const kThumbOffset = 8
 
-export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel} : IProps) {
+export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel,
+    running, setRunning} : IProps) {
   const layout = useAxisLayoutContext()
   const length = layout.getAxisLength("bottom")
   const scale = layout.getAxisScale("bottom") as ScaleNumericBaseType
@@ -24,6 +27,10 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   const [isDragging, setIsDragging] = useState(false)
   // offset from center of thumb to pointerDown
   const downOffset = useRef(0)
+  const intervalRef = useRef<any>()
+  const tickTime = sliderModel.animationRate
+  const runCount = useRef(0)
+  const direction = sliderModel.animationDirection
 
   useEffect(() => {
     setThumbPos(scale(sliderModel.value) - kThumbOffset)
@@ -65,6 +72,49 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
       }
     }
   }, [isDragging, scale, sliderContainer, sliderModel])
+
+  useEffect(() => {
+      if (running) {
+    if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
+    { sliderModel.setValue(sliderModel.axis.min) }
+    if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
+    { sliderModel.setValue(sliderModel.axis.max) }
+  }
+  }, [running])
+
+  // control slider value with play/pause
+  useEffect(() => {
+    const incrementModifier = direction === "highToLow" ? -1 : 1
+
+    if ((direction === "lowToHigh" && sliderModel.value < sliderModel.axis.max) ||
+        (direction === "highToLow" && sliderModel.value > sliderModel.axis.min)) {
+      console.log("sliderModel.value:", sliderModel.value)
+
+      if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
+        { sliderModel.setValue(sliderModel.axis.min) }
+      if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
+        { sliderModel.setValue(sliderModel.axis.max) }
+
+      const id = setInterval(() => {
+        running &&
+          sliderModel.setValue(sliderModel.value + sliderModel.increment * incrementModifier)
+        if (sliderModel.animationMode === "nonStop") {
+          if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max) {
+            sliderModel.setValue(sliderModel.axis.min)
+          }
+          if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min) {
+            sliderModel.setValue(sliderModel.axis.max)
+          }
+        }
+      }, tickTime)
+      intervalRef.current = id
+      runCount.current = 1
+    } else {
+      setRunning(false)
+    }
+    
+    return () => clearInterval(intervalRef.current)
+  })
 
   const handlePointerDown = (e: React.PointerEvent) => {
     const containerX = sliderContainer?.getBoundingClientRect().x
