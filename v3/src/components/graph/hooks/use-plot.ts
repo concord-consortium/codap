@@ -5,7 +5,7 @@ import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/dat
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
-import {matchCirclesToData} from "../utilities/graph-utils"
+import {matchCirclesToData, turnOnAnimation} from "../utilities/graph-utils"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 
@@ -124,7 +124,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   // respond to dataset, x, y or legend attribute id change
   useEffect(() => {
-    enableAnimation.current = true
+    turnOnAnimation(enableAnimation)
     callRefreshPointPositions(false)
   }, [callRefreshPointPositions, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation])
 
