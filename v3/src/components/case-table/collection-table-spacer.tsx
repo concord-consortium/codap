@@ -70,9 +70,9 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
   const topButtonTooltip = t(topTooltipKey)
 
   return (
-    <>
-      <div className="collection-table-spacer-divider" />
-      <div className={classes} ref={handleRef}>
+    <div className={classes} ref={handleRef}>
+      <div className="spacer-divider" />
+      <div className="spacer-column">
         <div className="spacer-top">
           {!parentMost && <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed} onClick={handleTopClick}
             title={topButtonTooltip} />}
@@ -89,8 +89,8 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
         </div>
         <div className="drop-message" style={msgStyle}>{isOver ? dropMessage : ""}</div>
       </div>
-      <div className="collection-table-spacer-divider" />
-    </>
+      <div className="spacer-divider" />
+    </div>
   )
 }
 
