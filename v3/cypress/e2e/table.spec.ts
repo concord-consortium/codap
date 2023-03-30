@@ -252,4 +252,22 @@ context("case table ui", () => {
             numOfCases = (Number(numOfCases)-1).toString()
         })
     })
+
+    describe.only("collection table", () => {
+      it("does not show case expand/collapse ui in parentmost spacer", () => {
+
+      })
+      it("shows case expand/collapse ui in the spacers of non-parentmost collections", () => {
+
+      })
+      it("topmost spacer expand/collapse button expands all cases unless all are collapsed", () => {
+
+      })
+      it("individual case expand/collapse button expands/collapses only that case", () => {
+
+      })
+      it("topmost and individual case expand/collapse buttons play well together", () => {
+
+      })
+    })
 })
