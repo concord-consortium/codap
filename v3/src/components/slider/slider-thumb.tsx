@@ -74,12 +74,12 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   }, [isDragging, scale, sliderContainer, sliderModel])
 
   useEffect(() => {
-      if (running) {
-    if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
-    { sliderModel.setValue(sliderModel.axis.min) }
-    if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
-    { sliderModel.setValue(sliderModel.axis.max) }
-  }
+    if (running) {
+      if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
+      { sliderModel.setValue(sliderModel.axis.min) }
+      if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
+      { sliderModel.setValue(sliderModel.axis.max) }
+    }
   }, [running])
 
   // control slider value with play/pause
