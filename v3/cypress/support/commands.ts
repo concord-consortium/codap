@@ -13,9 +13,9 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
         graphTile: ".graph-plot svg",
         legend: ".graph-plot .droppable-legend",
         x_axis: ".codap-graph .droppable-axis.droppable-svg.bottom",
-        x_axis_label: ".codap-graph .axis-legend-attribute-menu:nth-child(4)>button",
+        x_axis_label: ".codap-graph .axis-legend-attribute-menu.bottom>button",
         y_axis: ".codap-graph .droppable-axis.droppable-svg.left",
-        y_axis_label: ".codap-graph .axis-legend-attribute-menu:nth-child(2)>button",
+        y_axis_label: ".codap-graph .axis-legend-attribute-menu.left>button",
         mapTile: ".dg.leaflet-container",
         newCollection: ".dg-table-drop-target"
     }
@@ -66,16 +66,12 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
             target_el = el.mapTile
             break
         case ("x1"):
+        case ("x"):
             target_el = el.x_axis
             break
-        case ("x"):
-            target_el = el.x_axis_label
-            break
         case ("y1"):
-            target_el = el.y_axis
-            break
         case ("y"):
-            target_el = el.y_axis_label
+            target_el = el.y_axis
             break
         case ("newCollection"):
             target_el = el.newCollection

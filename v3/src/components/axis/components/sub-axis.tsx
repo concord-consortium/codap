@@ -21,7 +21,6 @@ export const SubAxis = ({
                         }: ISubAxisProps) => {
   const
     axisModel = getAxisModel(),
-    place = axisModel?.place || 'bottom',
     subWrapperElt = useRef<SVGGElement | null>(null),
     [subAxisElt, setSubAxisElt] = useState<SVGGElement | null>(null)
 
@@ -32,7 +31,7 @@ export const SubAxis = ({
 
   return (
     <g className='sub-axis-wrapper' ref={subWrapperElt}>
-      <g className='axis' ref={elt => setSubAxisElt(elt)} data-testid={`axis-${place}`}/>
+      <g className='axis' ref={elt => setSubAxisElt(elt)}/>
       {axisModel?.type === 'numeric'
         ? <AxisDragRects
           axisModel={axisModel as INumericAxisModel}

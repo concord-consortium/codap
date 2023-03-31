@@ -79,7 +79,6 @@ describe("CategorySet", () => {
     expect(catKellyColors()).toEqual(numKellyColors(6))
     // remove "c"s
     a.removeValues(5, 2)
-    console.log(JSON.stringify(a.strValues))
     expect(categories.values).toEqual(["a", "x", "y", "z", "b"])
     expect(catKellyColors()).toEqual(numKellyColors(5))
     categories.move("z", "a")
