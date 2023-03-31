@@ -1,6 +1,6 @@
 import {MutableRefObject, RefObject, useCallback, useEffect} from "react"
 import {onAction} from "mobx-state-tree"
-import {matchCirclesToData, setNiceDomain, turnOnAnimation} from "../utilities/graph-utils"
+import {matchCirclesToData, setNiceDomain, startAnimation} from "../utilities/graph-utils"
 import {IGraphModel, isGraphVisualPropsAction} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {INumericAxisModel} from "../../axis/models/axis-model"
@@ -40,7 +40,7 @@ export function useGraphModel(props: IProps) {
       if (action.name === 'setPlotType') {
         const newPlotType = action.args?.[0]/*,
           attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]*/
-        turnOnAnimation(enableAnimation)
+        startAnimation(enableAnimation)
         // In case the y-values have changed we rescale
         if (newPlotType === 'scatterPlot') {
           const values = dataConfig.caseDataArray.map((anID:string) => dataset?.getNumeric(anID, yAttrID)) as number[]

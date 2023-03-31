@@ -9,11 +9,10 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
 import {
-  getScreenCoord,
   handleClickOnDot,
   setPointCoordinates,
   setPointSelection,
-  turnOnAnimation
+  startAnimation
 } from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
@@ -109,7 +108,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
               [dataConfiguration?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
             })
           })
-          turnOnAnimation(enableAnimation) // So points will animate back to original positions
+          startAnimation(enableAnimation) // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues)
           didDrag.current = false
         }

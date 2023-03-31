@@ -18,7 +18,7 @@ import {measureText} from "../../../hooks/use-measure-text"
  * Utility routines having to do with graph entities
  */
 
-export const turnOnAnimation = (enableAnimation: React.MutableRefObject<boolean>) => {
+export const startAnimation = (enableAnimation: React.MutableRefObject<boolean>) => {
   enableAnimation.current = true
   timeout(() => enableAnimation.current = false, 2000)
 }
@@ -144,7 +144,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
       dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
     allCaseData = dataConfiguration.joinedCaseDataArrays,
     caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`
-  turnOnAnimation(enableAnimation)
+  startAnimation(enableAnimation)
   select(dotsElement)
     .selectAll('circle')
     .data(allCaseData, caseDataKeyFunc)

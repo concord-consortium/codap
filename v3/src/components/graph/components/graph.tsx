@@ -17,7 +17,7 @@ import {Marquee} from "./marquee"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {setNiceDomain, turnOnAnimation} from "../utilities/graph-utils"
+import {setNiceDomain, startAnimation} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {isSetAttributeIDAction, useGraphModelContext} from "../models/graph-model"
@@ -89,7 +89,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
       if (isSetAttributeIDAction(action)) {
         const [role, attrID] = action.args,
           graphPlace = attrRoleToGraphPlace[role]
-        turnOnAnimation(enableAnimation)
+        startAnimation(enableAnimation)
         graphPlace && graphController?.handleAttributeAssignment(graphPlace, attrID)
       }
     }, true)
