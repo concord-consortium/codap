@@ -38,6 +38,7 @@ export class MultiScale {
   @observable repetitions = 1
   @observable length = 0
   @observable orientation: "horizontal" | "vertical"
+  @observable changeCount = 0
   // Subaxes copy this scale to do their rendering because they need to change the range.
   scale: AxisScaleType  // d3 scale whose range is the entire axis length.
 
@@ -90,6 +91,11 @@ export class MultiScale {
 
   @action setCategoricalDomain(domain: Iterable<string>) {
     this.categoricalScale?.domain(domain)
+    this.incrementChangeCount()
+  }
+
+  @action incrementChangeCount() {
+    this.changeCount++
   }
 
   getScreenCoordinate(dataCoord: IDataCoordinate): number {
