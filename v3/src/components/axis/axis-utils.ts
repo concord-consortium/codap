@@ -13,14 +13,6 @@ interface ICollisionProps {
   centerCategoryLabels: boolean
 }
 
-/**
- * Compute the best number of ticks for a given linear scale to prevent tick label collisions.
- * The function iteratively adjusts the number of ticks to find an optimal value that avoids
- * overlapping labels while maintaining a reasonable distribution of ticks.
- *
- * @param {ScaleLinear<number, number>} scale - The D3 linear scale for which to compute the optimal number of ticks.
- * @returns {number} - The computed optimal number of ticks for the given scale.
- */
 export const collisionExists = (props: ICollisionProps) => {
   /* A collision occurs when two labels overlap.
    * This can occur when labels are centered on the tick, or when they are left-aligned.
@@ -103,6 +95,14 @@ export const getCategoricalLabelPlacement = (
   return {translation: '', rotation: '', textAnchor: 'none', ...labelPlacement}
 }
 
+/**
+ * Compute the best number of ticks for a given linear scale to prevent tick label collisions.
+ * The function iteratively adjusts the number of ticks to find an optimal value that avoids
+ * overlapping labels while maintaining a reasonable distribution of ticks.
+ *
+ * @param {ScaleLinear<number, number>} scale - The D3 linear scale for which to compute the optimal number of ticks.
+ * @returns {number} - The computed optimal number of ticks for the given scale.
+ */
 export const computeBestNumberOfTicks = (scale: ScaleLinear<number, number>): number => {
   const formatter = scale.tickFormat()
 
