@@ -22,7 +22,8 @@ export const useSubAxis = ({
                              enableAnimation
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
-    isNumeric = axisModel && isNumericAxisModel(axisModel)
+    isNumeric = axisModel && isNumericAxisModel(axisModel),
+    multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0
 
   const refreshSubAxis = useCallback(() => {
     const
@@ -145,7 +146,7 @@ export const useSubAxis = ({
   useEffect(() => {
     const disposer = reaction(
       () => layout.getComputedBounds(axisModel?.place ?? 'bottom'),
-      () => refreshSubAxis(/*myBounds*/)
+      () => refreshSubAxis()
     )
     return () => disposer()
   }, [layout, refreshSubAxis, axisModel?.place])
@@ -162,7 +163,6 @@ export const useSubAxis = ({
       })
       return () => disposer()
     }
-    // Note axisModelChanged as a dependent. Shouldn't be necessary.
   }, [isNumeric, axisModel, refreshSubAxis, layout])
 
   // update d3 scale and axis when layout/range changes
@@ -181,6 +181,6 @@ export const useSubAxis = ({
   // update on component refresh
   useEffect(() => {
     refreshSubAxis()
-  }, [refreshSubAxis])
+  }, [refreshSubAxis, multiScaleChangeCount])
 
 }
