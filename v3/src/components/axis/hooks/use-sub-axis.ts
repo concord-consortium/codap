@@ -1,4 +1,4 @@
-import {ScaleBand, ScaleLinear, select} from "d3"
+import {format, ScaleBand, ScaleLinear, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect} from "react"
 import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, isVertical, otherPlace} from "../axis-types"
@@ -49,7 +49,7 @@ export const useSubAxis = ({
 
     const drawAxis = () => {
         const numericScale = d3Scale as unknown as ScaleLinear<number, number>,
-          axisScale = axis(numericScale).tickSizeOuter(0)
+          axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
         if (!axisIsVertical && numericScale.ticks) {
           axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
         }
