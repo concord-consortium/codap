@@ -6,6 +6,7 @@ import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 
 import './slider.scss'
+import { ScaleNumericBaseType } from "../axis/axis-types"
 
 interface IProps {
   sliderContainer: HTMLDivElement
@@ -22,6 +23,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   const layout = useAxisLayoutContext()
   const length = layout.getAxisLength("bottom")
   const scale = layout.getAxisMultiScale("bottom")
+  const numericScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
   const [thumbPos, setThumbPos] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   // offset from center of thumb to pointerDown
@@ -77,20 +79,20 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
 
   // slider settings low to high, high to low or back and forth, non-stop or once
   useEffect(() => {
-    // reset the slider if thumb is already at the end
-    if (direction === "lowToHigh" && sliderModel.value >= axisMax) sliderModel.setValue(axisMin)
-    if (direction === "highToLow" && sliderModel.value <= axisMin) sliderModel.setValue(axisMax)
     if (direction === "backAndForth") {
-      if (prevDirectionRef.current === "" || prevDirectionRef.current === "backAndForth") {
+      if (prevDirectionRef.current === "") {
         prevDirectionRef.current = "lowToHigh"
       }
     }
 
     const id = setInterval(() => {
       if (running) {
+        // reset the slider if thumb is already at the end
+        if (direction === "lowToHigh" && sliderModel.value >= axisMax) sliderModel.setValue(axisMin)
+        if (direction === "highToLow" && sliderModel.value <= axisMin) sliderModel.setValue(axisMax)
         const incrementModifier = direction === "highToLow" ||  prevDirectionRef.current === "highToLow"? -1 : 1
         sliderModel.setValue(sliderModel.value + sliderModel.increment * incrementModifier)
-        setThumbPos(scale(sliderModel.value + sliderModel.increment * incrementModifier) - kThumbOffset)
+        setThumbPos(numericScale(sliderModel.value + sliderModel.increment * incrementModifier) - kThumbOffset)
         if (sliderModel.animationMode === "nonStop") {
           if (sliderModel.value >= axisMax) {
             if (direction === "lowToHigh") sliderModel.setValue(axisMin)
@@ -111,8 +113,11 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
               (direction === "highToLow" && sliderModel.value <= axisMin)) {
             setRunning(false)
           }
-          if (direction === "backAndForth" && maxMinHitsRef.current >= 2) {
+          if (direction === "backAndForth" && maxMinHitsRef.current > 1 &&
+              ((sliderModel.value >= axisMax) || (sliderModel.value <=axisMin))) {
             setRunning(false)
+            if (sliderModel.value >= axisMax) sliderModel.setValue(axisMax)
+            if (sliderModel.value <=axisMin) sliderModel.setValue(axisMin)
           } else {
             if (sliderModel.value >= axisMax) {
               prevDirectionRef.current = "highToLow"
