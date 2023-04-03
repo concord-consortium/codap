@@ -2,7 +2,6 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
 import {ISliderModel} from "./slider-model"
-import { ScaleNumericBaseType } from "../axis/axis-types"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 
@@ -19,15 +18,15 @@ const kThumbOffset = 8
 export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel} : IProps) {
   const layout = useAxisLayoutContext()
   const length = layout.getAxisLength("bottom")
-  const scale = layout.getAxisScale("bottom") as ScaleNumericBaseType
+  const scale = layout.getAxisMultiScale("bottom")
   const [thumbPos, setThumbPos] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   // offset from center of thumb to pointerDown
   const downOffset = useRef(0)
 
   useEffect(() => {
-    setThumbPos(scale(sliderModel.value) - kThumbOffset)
-  }, [length, scale, sliderModel.domain, sliderModel.value])
+    setThumbPos((scale?.getScreenCoordinate({cell: 0, data: sliderModel.value}) ?? 0) - kThumbOffset)
+  }, [length, scale, scale?.length, sliderModel.domain, sliderModel.value])
 
   const thumbStyle: CSSProperties = {
     left: thumbPos
@@ -39,7 +38,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
     const handlePointerMove = (e: PointerEvent) => {
       if ((containerX != null) && isDragging) {
         const pixelTarget = e.clientX + downOffset.current
-        const scaledValue = scale.invert(pixelTarget - containerX)
+        const scaledValue = scale?.getDataCoordinate(pixelTarget - containerX).data ?? 0
         sliderModel.setValue(scaledValue)
       }
       e.preventDefault()

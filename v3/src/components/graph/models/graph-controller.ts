@@ -1,18 +1,13 @@
 import React from "react"
-import {scaleBand, scaleLinear, scaleOrdinal} from "d3"
 import {IGraphModel} from "./graph-model"
-import {GraphLayout, scaleTypeToD3Scale} from "./graph-layout"
+import {GraphLayout} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel,
-  EmptyAxisModel,
-  IEmptyAxisModel,
-  INumericAxisModel,
-  isCategoricalAxisModel,
-  isNumericAxisModel,
-  NumericAxisModel
+  CategoricalAxisModel, EmptyAxisModel, IEmptyAxisModel, INumericAxisModel,
+  isCategoricalAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
+import {scaleTypeToD3Scale} from "../../axis/models/multi-scale"
 import {
   attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType
 } from "../graphing-types"
@@ -71,11 +66,10 @@ export class GraphController {
           attrRole = axisPlaceToAttrRole[axisPlace]
         if (axisModel) {
           const axisScale = scaleTypeToD3Scale(axisModel.scale)
-          layout.setAxisScale(axisPlace, axisScale)
+          layout.setAxisScaleType(axisPlace, axisModel.scale)
           if (isNumericAxisModel(axisModel)) {
             axisScale.domain(axisModel.domain)
-          }
-          else if (isCategoricalAxisModel(axisModel)) {
+          } else if (isCategoricalAxisModel(axisModel)) {
             axisScale.domain(graphModel.config.categorySetForAttrRole(attrRole))
           }
         }
@@ -95,11 +89,14 @@ export class GraphController {
       firstV2GraphComponent = v2Document?.components.find(aComp => aComp.type === 'DG.GraphView'),
       storage = firstV2GraphComponent?.componentStorage as ICodapV2GraphStorage,
       links = storage?._links_ || {},
-      attrTypes: Record<string, string> = {x: 'empty', y: 'empty', legend: 'empty'}
+      attrTypes: Record<string, string> = {x: 'empty', y: 'empty', legend: 'empty'},
+      attrRoles = ['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend']
     Object.keys(links).forEach((aKey: keyof typeof links) => {
-      if (['xAttr', 'yAttr', 'y2Attr', 'legendAttr'].includes(aKey)) {
+      if (['xAttr', 'yAttr', 'y2Attr', 'legendAttr', 'topAttr', 'rightAttr'].includes(aKey)) {
         const match = aKey.match(/[a-z2]+/),
-          attrRole = (match?.[0] ?? 'x') as GraphAttrRole,
+          attrKey = match?.[0],
+          attrRole = ((attrKey === 'top' ? 'topSplit'
+            : attrKey === 'right' ? 'rightSplit' : attrKey) ?? 'x') as GraphAttrRole,
           v2AttrArray = Array.isArray(links[aKey]) ? links[aKey] as any[] : [links[aKey]]
         v2AttrArray.forEach((aLink: IGuidLink<"DG.Attribute">, index: number) => {
           const attrV2ID = aLink.id,
@@ -109,7 +106,7 @@ export class GraphController {
             attrSnapshot = {attributeID: attrID}
           if (index === 0) {
             graphModel?.setAttributeID(attrRole, attrID)
-            if (['x', 'y', 'rightNumeric'].includes(attrRole)) {
+            if (attrRoles.includes(attrRole)) {
               attrTypes[attrRole] = attribute?.type ?? 'empty'
             }
           } else if (attrRole === 'y') {
@@ -119,7 +116,7 @@ export class GraphController {
       }
     })
     graphModel?.setPlotType(plotChoices[attrTypes.x][attrTypes.y])
-    ;['x', 'y', 'rightNumeric'].forEach((attrRole: GraphAttrRole) => {
+    attrRoles.forEach((attrRole: GraphAttrRole) => {
       const axisPlace = attrRoleToAxisPlace[attrRole],
         attrType = attrTypes[attrRole]
       if (axisPlace) {
@@ -129,19 +126,21 @@ export class GraphController {
             axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
             graphModel?.setAxis(axisPlace, axisModel)
             setNiceDomain(dataConfig?.numericValuesForAttrRole(attrRole) ?? [], axisModel)
-            layout?.setAxisScale(axisPlace, scaleLinear().domain(axisModel.domain))
+            layout.setAxisScaleType(axisPlace, 'linear')
+            layout?.getAxisMultiScale(axisPlace)?.setNumericDomain(axisModel.domain)
             break
           case 'categorical':
             axisModel = CategoricalAxisModel.create({place: axisPlace})
             graphModel?.setAxis(axisPlace, axisModel)
-            layout?.setAxisScale(axisPlace,
-              scaleBand().domain(dataConfig?.categorySetForAttrRole(attrRole) ?? []))
+            layout.setAxisScaleType(axisPlace, 'band')
+            layout?.getAxisMultiScale(axisPlace)
+                  ?.setCategoricalDomain(dataConfig?.categorySetForAttrRole(attrRole) ?? [])
             break
-          default:  // Note that we never add an EmptyAxisModel to 'rightNumeric'
-            if (axisPlace !== 'rightNumeric') {
+          default:  // Only add empty axes to 'left' and 'bottom'
+            if (['left', 'bottom'].includes(axisPlace)) {
               axisModel = EmptyAxisModel.create({place: axisPlace})
               graphModel?.setAxis(axisPlace, axisModel)
-              layout?.setAxisScale(axisPlace, scaleOrdinal())
+              layout?.setAxisScaleType(axisPlace, 'ordinal')
             }
         }
       }
@@ -166,24 +165,26 @@ export class GraphController {
 
     const setPrimaryRoleAndPlotType = () => {
       const axisPlace = graphPlace as AxisPlace,
-        graphAttributeRole = axisPlaceToAttrRole[axisPlace],
-        attributeType = dataConfig.attributeType(graphPlaceToAttrRole[graphPlace]) ?? 'empty',
-        // rightNumeric only occurs in presence of scatterplot
-        primaryType = graphPlace === 'rightNumeric' ? 'numeric' : attributeType,
-        otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
-        otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
-        otherAttributeType = dataConfig.attributeType(graphPlaceToAttrRole[otherAxisPlace]) ?? 'empty',
-        // Numeric attributes get priority for primaryRole when present. First one that is already present
-        // and then the newly assigned one. If there is an already assigned categorical then its place is
-        // the primaryRole, or, lastly, the newly assigned place
-        primaryRole = otherAttributeType === 'numeric' ? otherAttrRole
-          : attributeType === 'numeric' ? graphAttributeRole
-            : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
-      dataConfig.setPrimaryRole(primaryRole)
+        graphAttributeRole = axisPlaceToAttrRole[axisPlace]
+      if (['left', 'bottom'].includes(axisPlace)) { // Only assignment to 'left' and 'bottom' change plotType
+        const attributeType = dataConfig.attributeType(graphPlaceToAttrRole[graphPlace]) ?? 'empty',
+          // rightNumeric only occurs in presence of scatterplot
+          primaryType = graphPlace === 'rightNumeric' ? 'numeric' : attributeType,
+          otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
+          otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
+          otherAttributeType = dataConfig.attributeType(graphPlaceToAttrRole[otherAxisPlace]) ?? 'empty',
+          // Numeric attributes get priority for primaryRole when present. First one that is already present
+          // and then the newly assigned one. If there is an already assigned categorical then its place is
+          // the primaryRole, or, lastly, the newly assigned place
+          primaryRole = otherAttributeType === 'numeric' ? otherAttrRole
+            : attributeType === 'numeric' ? graphAttributeRole
+              : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
+        dataConfig.setPrimaryRole(primaryRole)
+        graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
+      }
       if (dataConfig.attributeID(graphAttributeRole) !== attrID) {
         dataConfig.setAttribute(graphAttributeRole, {attributeID: attrID})
       }
-      graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
     }
 
     const setupAxis = (place: AxisPlace) => {
@@ -198,7 +199,7 @@ export class GraphController {
           if (currentType !== 'numeric') {
             const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
             graphModel.setAxis(place, newAxisModel)
-            layout.setAxisScale(place, scaleLinear())
+            layout.setAxisScaleType(place, 'linear')
             setNiceDomain(attr?.numValues || [], newAxisModel)
           } else {
             setNiceDomain(attr?.numValues || [], currAxisModel as INumericAxisModel)
@@ -210,14 +211,14 @@ export class GraphController {
           if (currentType !== 'categorical') {
             const newAxisModel = CategoricalAxisModel.create({place})
             graphModel.setAxis(place, newAxisModel)
-            layout.setAxisScale(place, scaleBand())
+            layout.setAxisScaleType(place, 'band')
           }
-          layout.getAxisScale(place)?.domain(setOfValues)
+          layout.getAxisMultiScale(place)?.setCategoricalDomain(setOfValues)
         }
           break
         case 'empty': {
           if (currentType !== 'empty') {
-            layout.setAxisScale(place, scaleOrdinal())
+            layout.setAxisScaleType(place, 'ordinal')
             const newAxisModel = attrRole !== 'rightNumeric'
               ? EmptyAxisModel.create({place}) : undefined
             graphModel.setAxis(place, newAxisModel as IEmptyAxisModel)

@@ -22,8 +22,8 @@ export const CaseDots = function CaseDots(props: {
     graphModel = useGraphModelContext(),
     dataset = useDataSetContext(),
     dataConfiguration = useDataConfigurationContext(),
-    legendAttrID = dataConfiguration?.attributeID('legend'),
     layout = useGraphLayoutContext(),
+    legendAttrID = dataConfiguration?.attributeID('legend'),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
     [dragID, setDragID] = useState(''),
@@ -95,18 +95,18 @@ export const CaseDots = function CaseDots(props: {
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined,
-      [xMin, xMax] = layout.getAxisScale('bottom')?.range() ?? [0, 1],
-      [yMin, yMax] = layout.getAxisScale('left')?.range() ?? [0, 1]
+      xLength = layout.getAxisMultiScale('bottom')?.length ?? 0,
+      yLength = layout.getAxisMultiScale('left')?.length ?? 0
     dotsSelection
       .attr('transform', transform)
       .transition()
       .duration(duration)
       .on('end', (id, i) => (i === dotsSelection.size() - 1) && onComplete?.())
       .attr('cx', (aCaseData:CaseData) => {
-        return xMin + pointRadius + randomPointsRef.current[aCaseData.caseID].x * (xMax - xMin - 2 * pointRadius)
+        return pointRadius + randomPointsRef.current[aCaseData.caseID].x * (xLength - 2 * pointRadius)
       })
       .attr('cy', (aCaseData:CaseData) => {
-        return yMax + pointRadius + randomPointsRef.current[aCaseData.caseID].y * (yMin - yMax - 2 * pointRadius)
+        return yLength - (pointRadius + randomPointsRef.current[aCaseData.caseID].y * (yLength - 2 * pointRadius))
       })
       .style('fill', (aCaseData:CaseData) => {
         const anID = aCaseData.caseID
