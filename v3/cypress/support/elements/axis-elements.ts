@@ -12,7 +12,7 @@ export const AxisElements = {
             case "y":
                 return this.getGraphTile().find("[data-testid=axis-left]").parent()
             case "legend":
-                return this.getGraphTile().find(".axis-legend-attribute-menu:nth-child(7)>button")
+                return this.getGraphTile().find(".axis-legend-attribute-menu.legend>button")
         }
     },
     getAxisLabel(axis) {
@@ -52,12 +52,12 @@ export const AxisElements = {
             case "X":
             case "x":
             default:
-                return this.getGraphTile().find(".axis-legend-attribute-menu:nth-child(4)>button")
+                return this.getGraphTile().find(".axis-legend-attribute-menu.bottom>button")
             case "Y":
             case "y":
-                return this.getGraphTile().find(".axis-legend-attribute-menu:nth-child(2)>button")
+                return this.getGraphTile().find(".axis-legend-attribute-menu.left>button")
             case "legend":
-                return this.getGraphTile().find(".axis-legend-attribute-menu:nth-child(7)>button")
+                return this.getGraphTile().find(".axis-legend-attribute-menu.legend>button")
         }
     },
     getAttributeFromAttributeMenu(axis) {

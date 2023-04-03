@@ -1,4 +1,5 @@
 import { getType, Instance, types } from "mobx-state-tree"
+import { CategorySet, ICategorySet } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
 import { ISharedModel, SharedModel } from "./shared-model"
 
@@ -9,6 +10,11 @@ export const CollectionTableMetadata = types.model("CollectionTable", {
   collapsed: types.map(types.boolean)
 })
 
+// utility function for retrieving a category set, creating it if it doesn't already exist
+export function getCategorySet(metadata: ISharedCaseMetadata, attrId: string): ICategorySet | undefined {
+  return metadata.categories.get(attrId) ?? metadata.addCategorySet(attrId)
+}
+
 export const SharedCaseMetadata = SharedModel
   .named(kSharedCaseMetadataType)
   .props({
@@ -16,6 +22,8 @@ export const SharedCaseMetadata = SharedModel
     data: types.safeReference(DataSet),
     // key is collection id
     collections: types.map(CollectionTableMetadata),
+    // key is attribute id
+    categories: types.map(CategorySet),
     // key is attribute id; value is width
     columnWidths: types.map(types.number),
     // key is attribute id; value is true (false values are deleted)
@@ -36,7 +44,7 @@ export const SharedCaseMetadata = SharedModel
     }
   }))
   .actions(self => ({
-    setData(data: IDataSet) {
+    setData(data?: IDataSet) {
       self.data = data
     },
     setColumnWidth(attrId: string, width?: number) {
@@ -73,6 +81,26 @@ export const SharedCaseMetadata = SharedModel
     },
     showAllAttributes() {
       self.hidden.clear()
+    }
+  }))
+  .actions(self => ({
+    removeCategorySet(attrId: string) {
+      self.categories.delete(attrId)
+    }
+  }))
+  .actions(self => ({
+    addCategorySet(attrId: string): ICategorySet | undefined {
+      let categorySet = self.categories.get(attrId)
+      if (!categorySet && self.data?.attrFromID(attrId)) {
+        // add category set to map
+        self.categories.set(attrId, { attribute: attrId })
+        categorySet = self.categories.get(attrId)
+        // remove category sets from map when attribute references are invalidated
+        categorySet?.onAttributeInvalidated(function(invalidAttrId: string) {
+          self.removeCategorySet(invalidAttrId)
+        })
+      }
+      return categorySet
     }
   }))
 export interface ISharedCaseMetadata extends Instance<typeof SharedCaseMetadata> {}

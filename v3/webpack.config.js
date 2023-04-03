@@ -5,6 +5,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const os = require('os')
 
 // DEPLOY_PATH is set by the s3-deploy-action its value will be:
@@ -13,8 +14,33 @@ const os = require('os')
 //   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
 const DEPLOY_PATH = process.env.DEPLOY_PATH
 
+
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
+
+  const webpackPlugins = [
+    new ESLintPlugin({
+      extensions: ['ts', 'tsx', 'js', 'jsx'],
+    }),
+    new MiniCssExtractPlugin({
+      filename: devMode ? 'assets/[name].css' : 'assets/[name].[contenthash].css',
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'index.html',
+      template: 'src/index.html',
+      favicon: 'src/public/favicon.ico',
+    }),
+    ...(DEPLOY_PATH ? [new HtmlWebpackPlugin({
+      filename: "index-top.html",
+      template: "src/index.html",
+      favicon: "src/public/favicon.ico",
+      publicPath: DEPLOY_PATH
+    })] : []),
+    new CleanWebpackPlugin(),
+  ];
+  if (!process.env.CODE_COVERAGE) {
+    webpackPlugins.push(new ForkTsCheckerWebpackPlugin())
+  }
 
   return {
     context: __dirname, // to automatically find tsconfig.json
@@ -39,12 +65,36 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
       filename: 'assets/index.[contenthash].js',
     },
+    cache: {
+      buildDependencies: {
+        config: [__filename],
+      },
+      type: 'filesystem',
+    },
     performance: { hints: false },
+    optimization: devMode ? {
+      removeAvailableModules: false,
+      removeEmptyChunks: false,
+      splitChunks: false,
+    } : {},
     module: {
       rules: [
         {
-          test: /\.tsx?$/,
-          loader: 'ts-loader',
+          test: /.(ts|tsx)$/,
+          include: path.resolve(__dirname, "src"),
+          use: process.env.CODE_COVERAGE ? { loader: "ts-loader" } : {
+            loader: "swc-loader",
+            options: {
+              jsc: {
+                parser: {
+                  syntax: "typescript",
+                  decorators: true,
+                  tsx: false,
+                  dynamicImport: false,
+                },
+              },
+            },
+          },
         },
         // This code coverage instrumentation should only be added when needed. It makes
         // the code larger and slower
@@ -158,25 +208,6 @@ module.exports = (env, argv) => {
         'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
       },
     },
-    plugins: [
-      new ESLintPlugin({
-        extensions: ['ts', 'tsx', 'js', 'jsx'],
-      }),
-      new MiniCssExtractPlugin({
-        filename: devMode ? 'assets/[name].css' : 'assets/[name].[contenthash].css',
-      }),
-      new HtmlWebpackPlugin({
-        filename: 'index.html',
-        template: 'src/index.html',
-        favicon: 'src/public/favicon.ico',
-      }),
-      ...(DEPLOY_PATH ? [new HtmlWebpackPlugin({
-        filename: "index-top.html",
-        template: "src/index.html",
-        favicon: "src/public/favicon.ico",
-        publicPath: DEPLOY_PATH
-      })] : []),
-      new CleanWebpackPlugin(),
-    ]
+    plugins: webpackPlugins,
   }
 }

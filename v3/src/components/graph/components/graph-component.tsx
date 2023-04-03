@@ -2,26 +2,26 @@ import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import {kTitleBarHeight} from '../../constants'
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
 import {useGraphController} from "../hooks/use-graph-controller"
+import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {uiState} from "../../../models/ui-state"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
-import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
+import {GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import { GraphInspector } from './graph-inspector'
+import {GraphInspector} from './graph-inspector'
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("graph")
   const { data } = useDataSet(graphModel?.data)
-  const layout = useMemo(() => new GraphLayout(), [])
+  const layout = useInitGraphLayout(graphModel)
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
   const enableAnimation = useRef(true)
   const dotsRef = useRef<SVGSVGElement>(null)
@@ -33,7 +33,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   useGraphController({graphController, graphModel})
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setParentExtent(width, height - kTitleBarHeight)
+    (width != null) && (height != null) && layout.setParentExtent(width, height)
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the graph component
