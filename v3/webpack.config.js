@@ -5,6 +5,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const os = require('os')
 
 // DEPLOY_PATH is set by the s3-deploy-action its value will be:
@@ -39,12 +40,34 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
       filename: 'assets/index.[contenthash].js',
     },
+    cache: {
+      buildDependencies: {
+        config: [__filename],
+      },
+      type: 'filesystem',
+    },
     performance: { hints: false },
+    optimization: devMode ? {
+      removeAvailableModules: false,
+      removeEmptyChunks: false,
+      splitChunks: false,
+    } : {},
     module: {
       rules: [
         {
-          test: /\.tsx?$/,
-          loader: 'ts-loader',
+          test: /.(ts|tsx)$/,
+          include: path.resolve(__dirname, 'src'),
+          use: {
+            loader: "swc-loader",
+            options: {
+              jsc: {
+                parser: {
+                  syntax: "typescript",
+                  decorators: true,
+                },
+              },
+            },
+          },
         },
         // This code coverage instrumentation should only be added when needed. It makes
         // the code larger and slower
@@ -177,6 +200,7 @@ module.exports = (env, argv) => {
         publicPath: DEPLOY_PATH
       })] : []),
       new CleanWebpackPlugin(),
+      new ForkTsCheckerWebpackPlugin(),
     ]
   }
 }

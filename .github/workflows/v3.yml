@@ -20,6 +20,13 @@ jobs:
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
+      - uses: actions/cache@v3
+        with:
+          path: node_modules/.cache/webpack/
+          key: ${{ GITHUB_REF_NAME }}-webpack-build
+          # fallback to use "main" branch cache
+          restore-keys: |
+            main-webpack-build
       - name: Build
         working-directory: v3
         run: npm run build
@@ -45,6 +52,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: node_modules/.cache/webpack/
+          key: ${{ GITHUB_REF_NAME }}-webpack-build
+          # fallback to use "main" branch cache
+          restore-keys: |
+            main-webpack-build
       - uses: cypress-io/github-action@v5
         with:
           working-directory: v3
@@ -92,6 +106,13 @@ jobs:
           # skip installing cypress since it isn't needed for just building
           # This decreases the deploy time quite a bit
           CYPRESS_INSTALL_BINARY: 0
+      - uses: actions/cache@v3
+        with:
+          path: node_modules/.cache/webpack/
+          key: ${{ GITHUB_REF_NAME }}-webpack-build
+          # fallback to use "main" branch cache
+          restore-keys: |
+            main-webpack-build
       - uses: concord-consortium/s3-deploy-action@v1
         with:
           bucket: models-resources
