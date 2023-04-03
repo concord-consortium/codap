@@ -21,6 +21,8 @@ jobs:
         working-directory: v3
         run: npm ci
       - uses: actions/cache@v3
+        env:
+          GITHUB_REF_NAME: GITHUB_REF_NAME
         with:
           path: node_modules/.cache/webpack/
           key: ${{ GITHUB_REF_NAME }}-webpack-build
@@ -53,6 +55,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - uses: actions/cache@v3
+        env:
+          GITHUB_REF_NAME: GITHUB_REF_NAME
         with:
           path: node_modules/.cache/webpack/
           key: ${{ GITHUB_REF_NAME }}-webpack-build
@@ -107,6 +111,8 @@ jobs:
           # This decreases the deploy time quite a bit
           CYPRESS_INSTALL_BINARY: 0
       - uses: actions/cache@v3
+        env:
+          GITHUB_REF_NAME: GITHUB_REF_NAME
         with:
           path: node_modules/.cache/webpack/
           key: ${{ GITHUB_REF_NAME }}-webpack-build
