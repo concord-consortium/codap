@@ -2,13 +2,17 @@ import { AxisHelper as ah } from "../support/helpers/axis-helper"
 
 const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet" ]
 
+// The `values` here are arrays of expected axis tick labels. When written there was an assumption
+// that the set of labels would not be dependent on the axis, but since the bottom axis is longer
+// than the left axis, recent labeling changes make that no longer the case. So now, these axis
+// labels are only correct if the attribute in question is placed on the "correct" axis.
 const arrayOfValues = [
     { attribute: "Mammal", values: [ ]},
     { attribute: "Order", values: [ ]},
-    { attribute: "LifeSpan", values: [ "0", "10", "20", "30", "40", "50", "60", "70", "80", "90" ]},
-    { attribute: "Height", values: [ "0", "1", "2", "3", "4", "5", "6", "7" ]},
-    { attribute: "Mass", values: [ "0", "1000", "2000", "3000", "4000", "5000", "6000", "7000" ]},
-    { attribute: "Sleep", values: [ ]},
+    { attribute: "LifeSpan", values: [...Array(21).keys()].map(i => `${5 * i - 5}`)},   // X
+    { attribute: "Height", values: [...Array(17).keys()].map(i => `${0.5 * i - 0.5}`)}, // X
+    { attribute: "Mass", values: [ "0", "1000", "2000", "3000", "4000", "5000", "6000", "7000" ]},  // Y
+    { attribute: "Sleep", values: [...Array(12).keys()].map(i => `${2 * i}`)},  // Y
     { attribute: "Speed", values: [ ]},
     { attribute: "Habitat", values: [ "both", "land", "water" ]},
     { attribute: "Diet", values: [ "both", "meat", "plants" ]},
@@ -59,15 +63,15 @@ context("Test graph axes with various attribute types", () => {
         ah.removeAttributeFromAxis(arrayOfAttributes[8], "y")
     })
     it("will add numeric attribute to y axis", () => {
-        cy.dragAttributeToTarget("table", arrayOfAttributes[3], "y") // Height => y-axis
+        cy.dragAttributeToTarget("table", arrayOfAttributes[5], "y") // Sleep => y-axis
         cy.wait(2000)
         ah.verifyTickMarksDoNotExist("x")
         ah.verifyGridLinesDoNotExist("x")
         ah.verifyYAxisTickMarksDisplayed()
         ah.verifyYAxisGridLinesNotDisplayed()
-        ah.verifyAxisTickLabels("y", arrayOfValues[3].values)
+        ah.verifyAxisTickLabels("y", arrayOfValues[5].values)
         ah.openAxisAttributeMenu("y")
-        ah.removeAttributeFromAxis(arrayOfAttributes[8], "y")
+        ah.removeAttributeFromAxis(arrayOfAttributes[5], "y")
     })
     it("will add categorical attribute to x axis and categorical attribute to y axis", () => {
         cy.dragAttributeToTarget("table", arrayOfAttributes[7], "x") // Habitat => x-axis
@@ -91,23 +95,23 @@ context("Test graph axes with various attribute types", () => {
     })
     it("will add categorical attribute to x axis and numeric attribute to y axis", () => {
         cy.dragAttributeToTarget("table", arrayOfAttributes[7], "x") // Habitat => x-axis
-        cy.dragAttributeToTarget("table", arrayOfAttributes[3], "y") // Height => y-axis
+        cy.dragAttributeToTarget("table", arrayOfAttributes[5], "y") // Sleep => y-axis
         cy.wait(2000)
         ah.verifyXAxisTickMarksNotDisplayed()
         ah.verifyXAxisGridLinesDisplayed()
         ah.verifyYAxisTickMarksDisplayed()
         ah.verifyYAxisGridLinesNotDisplayed()
         ah.verifyAxisTickLabels("x", arrayOfValues[7].values)
-        ah.verifyAxisTickLabels("y", arrayOfValues[3].values)
+        ah.verifyAxisTickLabels("y", arrayOfValues[5].values)
         ah.openAxisAttributeMenu("x")
         ah.removeAttributeFromAxis(arrayOfAttributes[7], "x")
         ah.verifyTickMarksDoNotExist("x")
         ah.verifyGridLinesDoNotExist("x")
         ah.verifyYAxisTickMarksDisplayed()
         ah.verifyYAxisGridLinesNotDisplayed()
-        ah.verifyAxisTickLabels("y", arrayOfValues[3].values)
+        ah.verifyAxisTickLabels("y", arrayOfValues[5].values)
         ah.openAxisAttributeMenu("y")
-        ah.removeAttributeFromAxis(arrayOfAttributes[3], "y")
+        ah.removeAttributeFromAxis(arrayOfAttributes[5], "y")
     })
     it("will add numeric attribute to x axis and categorical attribute to y axis", () => {
         cy.dragAttributeToTarget("table", arrayOfAttributes[3], "x") // Height => x-axis
@@ -131,14 +135,14 @@ context("Test graph axes with various attribute types", () => {
     })
     it("will add numeric attribute to x axis and numeric attribute to y axis", () => {
         cy.dragAttributeToTarget("table", arrayOfAttributes[3], "x") // Height => x-axis
-        cy.dragAttributeToTarget("table", arrayOfAttributes[2], "y") // LifeSpan => y-axis
+        cy.dragAttributeToTarget("table", arrayOfAttributes[4], "y") // Mass => y-axis
         cy.wait(2000)
         ah.verifyXAxisTickMarksDisplayed()
         ah.verifyYAxisTickMarksDisplayed()
         ah.verifyAxisTickLabels("x", arrayOfValues[3].values)
-        ah.verifyAxisTickLabels("y", arrayOfValues[2].values)
+        ah.verifyAxisTickLabels("y", arrayOfValues[4].values)
         ah.openAxisAttributeMenu("y")
-        ah.removeAttributeFromAxis(arrayOfAttributes[2], "y")
+        ah.removeAttributeFromAxis(arrayOfAttributes[4], "y")
         ah.verifyTickMarksDoNotExist("y")
         ah.verifyGridLinesDoNotExist("y")
         ah.verifyXAxisTickMarksDisplayed()
@@ -172,7 +176,7 @@ context("Test graph axes attribute menu", () => {
     })
     it("will add and remove categorical attribute to x axis from attribute menu", () => {
         ah.openAxisAttributeMenu("x")
-        ah.addAttributeToAxis(arrayOfAttributes[7], "x")
+        ah.addAttributeToAxis(arrayOfAttributes[7], "x") // Habitat => x-axis
         ah.verifyTickMarksDoNotExist("y")
         ah.verifyGridLinesDoNotExist("y")
         ah.verifyXAxisTickMarksNotDisplayed()
@@ -183,7 +187,7 @@ context("Test graph axes attribute menu", () => {
     })
     it("will add and remove numeric attribute to x axis from attribute menu", () => {
         ah.openAxisAttributeMenu("x")
-        ah.addAttributeToAxis(arrayOfAttributes[3], "x")
+        ah.addAttributeToAxis(arrayOfAttributes[3], "x") // Height => x-axis
         ah.verifyTickMarksDoNotExist("y")
         ah.verifyGridLinesDoNotExist("y")
         ah.verifyXAxisTickMarksDisplayed()
@@ -194,7 +198,7 @@ context("Test graph axes attribute menu", () => {
     })
     it("will add and remove categorical attribute to y axis from attribute menu", () => {
         ah.openAxisAttributeMenu("y")
-        ah.addAttributeToAxis(arrayOfAttributes[7], "y")
+        ah.addAttributeToAxis(arrayOfAttributes[7], "y") // Habitat => y-axis
         ah.verifyTickMarksDoNotExist("x")
         ah.verifyGridLinesDoNotExist("x")
         ah.verifyYAxisTickMarksNotDisplayed()
@@ -203,21 +207,21 @@ context("Test graph axes attribute menu", () => {
         ah.openAxisAttributeMenu("y")
         ah.removeAttributeFromAxis(arrayOfAttributes[7], "y")
     })
-    it("will add and remove numeric attribute to x axis from attribute menu", () => {
+    it("will add and remove numeric attribute to y axis from attribute menu", () => {
         ah.openAxisAttributeMenu("y")
-        ah.addAttributeToAxis(arrayOfAttributes[3], "y")
+        ah.addAttributeToAxis(arrayOfAttributes[4], "y") // Mass => y-axis
         ah.verifyTickMarksDoNotExist("x")
         ah.verifyGridLinesDoNotExist("x")
         ah.verifyYAxisTickMarksDisplayed()
         ah.verifyYAxisGridLinesNotDisplayed()
-        ah.verifyAxisTickLabels("y", arrayOfValues[3].values)
+        ah.verifyAxisTickLabels("y", arrayOfValues[4].values)
         ah.openAxisAttributeMenu("y")
-        ah.removeAttributeFromAxis(arrayOfAttributes[3], "y")
+        ah.removeAttributeFromAxis(arrayOfAttributes[4], "y")
     })
     // TODO: figure out why this test started failing on ci build (but works locally)
     it.skip("will treat numeric attribute on x axis to categorical", () => {
         ah.openAxisAttributeMenu("x")
-        ah.addAttributeToAxis(arrayOfAttributes[3], "x")
+        ah.addAttributeToAxis(arrayOfAttributes[3], "x") // Height => x-axis
         ah.openAxisAttributeMenu("x")
         ah.treatAttributeAsCategorical("x")
         ah.verifyTickMarksDoNotExist("y")
