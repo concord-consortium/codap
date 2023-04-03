@@ -61,6 +61,7 @@ module.exports = (env, argv) => {
             loader: "swc-loader",
             options: {
               jsc: {
+                preserveAllComments: process.env.CODE_COVERAGE,
                 parser: {
                   syntax: "typescript",
                   decorators: true,
