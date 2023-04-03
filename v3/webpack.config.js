@@ -14,8 +14,33 @@ const os = require('os')
 //   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
 const DEPLOY_PATH = process.env.DEPLOY_PATH
 
+
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
+
+  const webpackPlugins = [
+    new ESLintPlugin({
+      extensions: ['ts', 'tsx', 'js', 'jsx'],
+    }),
+    new MiniCssExtractPlugin({
+      filename: devMode ? 'assets/[name].css' : 'assets/[name].[contenthash].css',
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'index.html',
+      template: 'src/index.html',
+      favicon: 'src/public/favicon.ico',
+    }),
+    ...(DEPLOY_PATH ? [new HtmlWebpackPlugin({
+      filename: "index-top.html",
+      template: "src/index.html",
+      favicon: "src/public/favicon.ico",
+      publicPath: DEPLOY_PATH
+    })] : []),
+    new CleanWebpackPlugin(),
+  ];
+  if (!process.env.CODE_COVERAGE) {
+    webpackPlugins.push(new ForkTsCheckerWebpackPlugin())
+  }
 
   return {
     context: __dirname, // to automatically find tsconfig.json
@@ -183,26 +208,6 @@ module.exports = (env, argv) => {
         'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
       },
     },
-    plugins: [
-      new ESLintPlugin({
-        extensions: ['ts', 'tsx', 'js', 'jsx'],
-      }),
-      new MiniCssExtractPlugin({
-        filename: devMode ? 'assets/[name].css' : 'assets/[name].[contenthash].css',
-      }),
-      new HtmlWebpackPlugin({
-        filename: 'index.html',
-        template: 'src/index.html',
-        favicon: 'src/public/favicon.ico',
-      }),
-      ...(DEPLOY_PATH ? [new HtmlWebpackPlugin({
-        filename: "index-top.html",
-        template: "src/index.html",
-        favicon: "src/public/favicon.ico",
-        publicPath: DEPLOY_PATH
-      })] : []),
-      new CleanWebpackPlugin(),
-      process.env.CODE_COVERAGE ? null : new ForkTsCheckerWebpackPlugin(),
-    ]
+    plugins: webpackPlugins,
   }
 }
