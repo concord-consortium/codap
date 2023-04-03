@@ -64,6 +64,8 @@ module.exports = (env, argv) => {
                 parser: {
                   syntax: "typescript",
                   decorators: true,
+                  tsx: false,
+                  dynamicImport: false,
                 },
               },
             },
