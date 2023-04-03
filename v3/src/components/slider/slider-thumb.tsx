@@ -83,6 +83,8 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
       if (prevDirectionRef.current === "") {
         prevDirectionRef.current = "lowToHigh"
       }
+    } else {
+      prevDirectionRef.current = ""
     }
 
     const id = setInterval(() => {
