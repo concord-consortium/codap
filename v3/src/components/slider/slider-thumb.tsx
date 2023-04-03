@@ -29,16 +29,19 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   const downOffset = useRef(0)
   const intervalRef = useRef<any>()
   const tickTime = sliderModel.animationRate
-  const runCount = useRef(0)
   const direction = sliderModel.animationDirection
-
-  useEffect(() => {
-    setThumbPos(scale(sliderModel.value) - kThumbOffset)
-  }, [length, scale, sliderModel.domain, sliderModel.value])
+  const prevDirectionRef = useRef("")
+  const axisMax = sliderModel.axis.max
+  const axisMin = sliderModel.axis.min
+  const maxMinHitsRef = useRef(0)
 
   const thumbStyle: CSSProperties = {
     left: thumbPos
   }
+
+  //   useEffect(() => {
+  //   setThumbPos((scale?.getScreenCoordinate({cell: 0, data: sliderModel.value}) ?? 0) - kThumbOffset)
+  // }, [length, scale, scale?.length, sliderModel.domain, sliderModel.value])
 
   useEffect(() => {
     const containerX = sliderContainer?.getBoundingClientRect().x
@@ -73,47 +76,66 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
     }
   }, [isDragging, scale, sliderContainer, sliderModel])
 
+  // slider settings low to high, high to low or back and forth, non-stop or once
   useEffect(() => {
-    if (running) {
-      if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
-      { sliderModel.setValue(sliderModel.axis.min) }
-      if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
-      { sliderModel.setValue(sliderModel.axis.max) }
+    // reset the slider if thumb is already at the end
+    if (direction === "lowToHigh" && sliderModel.value >= axisMax) sliderModel.setValue(axisMin)
+    if (direction === "highToLow" && sliderModel.value <= axisMin) sliderModel.setValue(axisMax)
+    if (direction === "backAndForth") {
+      if (prevDirectionRef.current === "" || prevDirectionRef.current === "backAndForth") {
+        prevDirectionRef.current = "lowToHigh"
+      }
     }
-  }, [running])
 
-  // control slider value with play/pause
-  useEffect(() => {
-    const incrementModifier = direction === "highToLow" ? -1 : 1
-
-    if ((direction === "lowToHigh" && sliderModel.value < sliderModel.axis.max) ||
-        (direction === "highToLow" && sliderModel.value > sliderModel.axis.min)) {
-
-      if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max)
-        { sliderModel.setValue(sliderModel.axis.min) }
-      if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min)
-        { sliderModel.setValue(sliderModel.axis.max) }
-
-      const id = setInterval(() => {
-        running &&
-          sliderModel.setValue(sliderModel.value + sliderModel.increment * incrementModifier)
+    const id = setInterval(() => {
+      if (running) {
+        const incrementModifier = direction === "highToLow" ||  prevDirectionRef.current === "highToLow"? -1 : 1
+        sliderModel.setValue(sliderModel.value + sliderModel.increment * incrementModifier)
+        setThumbPos(scale(sliderModel.value + sliderModel.increment * incrementModifier) - kThumbOffset)
         if (sliderModel.animationMode === "nonStop") {
-          if (direction === "lowToHigh" && sliderModel.value >= sliderModel.axis.max) {
-            sliderModel.setValue(sliderModel.axis.min)
+          if (sliderModel.value >= axisMax) {
+            if (direction === "lowToHigh") sliderModel.setValue(axisMin)
+            if (direction === "backAndForth") {
+              sliderModel.setValue(axisMax)
+              prevDirectionRef.current = "highToLow"
+            }
           }
-          if (direction === "highToLow" && sliderModel.value <= sliderModel.axis.min) {
-            sliderModel.setValue(sliderModel.axis.max)
+          if (sliderModel.value <= axisMin) {
+            if (direction === "highToLow") sliderModel.setValue(axisMax)
+            if (direction === "backAndForth") {
+              sliderModel.setValue(axisMin)
+              prevDirectionRef.current = "lowToHigh"
+            }
+          }
+        } else {
+          if ((direction === "lowToHigh" && sliderModel.value >= axisMax) ||
+              (direction === "highToLow" && sliderModel.value <= axisMin)) {
+            setRunning(false)
+          }
+          if (direction === "backAndForth" && maxMinHitsRef.current >= 2) {
+            setRunning(false)
+          } else {
+            if (sliderModel.value >= axisMax) {
+              prevDirectionRef.current = "highToLow"
+              sliderModel.setValue(axisMax)
+              maxMinHitsRef.current += 1
+            }
+            if (sliderModel.value <=axisMin) {
+              prevDirectionRef.current = "lowToHigh"
+              sliderModel.setValue(axisMin)
+              maxMinHitsRef.current += 1
+            }
           }
         }
-      }, tickTime)
-      intervalRef.current = id
-      runCount.current = 1
-    } else {
-      setRunning(false)
-    }
+      }
+    }, tickTime)
+    intervalRef.current = id
 
-    return () => clearInterval(intervalRef.current)
-  })
+    return () => {
+      clearInterval(intervalRef.current)
+      maxMinHitsRef.current = 0
+    }
+  }, [running])
 
   const handlePointerDown = (e: React.PointerEvent) => {
     const containerX = sliderContainer?.getBoundingClientRect().x
