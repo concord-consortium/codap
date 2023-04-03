@@ -202,7 +202,7 @@ module.exports = (env, argv) => {
         publicPath: DEPLOY_PATH
       })] : []),
       new CleanWebpackPlugin(),
-      new ForkTsCheckerWebpackPlugin(),
+      process.env.CODE_COVERAGE ? {} : new ForkTsCheckerWebpackPlugin(),
     ]
   }
 }
