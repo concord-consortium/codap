@@ -23,8 +23,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: node_modules/.cache/webpack/
-          key: ${{ env.GITHUB_REF_NAME }}-webpack-build
-          # fallback to use "main" branch cache
+          key: ${{ env.GITHUB_HEAD_REF || env.GITHUB_REF_NAME }}-webpack-build
           restore-keys: |
             main-webpack-build
       - name: Build
@@ -55,8 +54,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: node_modules/.cache/webpack/
-          key: ${{ env.GITHUB_REF_NAME }}-webpack-build
-          # fallback to use "main" branch cache
+          key: ${{ env.GITHUB_HEAD_REF || env.GITHUB_REF_NAME }}-webpack-build
           restore-keys: |
             main-webpack-build
       - uses: cypress-io/github-action@v5
@@ -109,8 +107,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: node_modules/.cache/webpack/
-          key: ${{ env.GITHUB_REF_NAME }}-webpack-build
-          # fallback to use "main" branch cache
+          key: ${{ env.GITHUB_HEAD_REF || env.GITHUB_REF_NAME }}-webpack-build
           restore-keys: |
             main-webpack-build
       - uses: concord-consortium/s3-deploy-action@v1
