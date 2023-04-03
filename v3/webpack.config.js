@@ -56,12 +56,11 @@ module.exports = (env, argv) => {
       rules: [
         {
           test: /.(ts|tsx)$/,
-          include: path.resolve(__dirname, 'src'),
-          use: {
+          include: path.resolve(__dirname, "src"),
+          use: process.env.CODE_COVERAGE ? { loader: "ts-loader" } : {
             loader: "swc-loader",
             options: {
               jsc: {
-                preserveAllComments: process.env.CODE_COVERAGE,
                 parser: {
                   syntax: "typescript",
                   decorators: true,

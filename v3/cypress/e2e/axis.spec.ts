@@ -25,8 +25,7 @@ context("Test graph axes with various attribute types", () => {
         cy.visit(url)
         cy.wait(2500)
     })
-    // needs to be fixed
-    it.skip("will show default x axis label", () => {
+    it("will show default x axis label", () => {
         ah.verifyDefaultAxisLabel("x")
         ah.verifyDefaultAxisLabel("y")
     })
@@ -41,8 +40,7 @@ context("Test graph axes with various attribute types", () => {
         ah.openAxisAttributeMenu("x")
         ah.removeAttributeFromAxis(arrayOfAttributes[7], "x")
     })
-    // needs to be fixed
-    it.skip("will add numeric attribute to x axis", () => {
+    it("will add numeric attribute to x axis", () => {
         cy.dragAttributeToTarget("table", arrayOfAttributes[2], "x") // LifeSpan => x-axis
         cy.wait(2000)
         ah.verifyTickMarksDoNotExist("y")
@@ -115,8 +113,7 @@ context("Test graph axes with various attribute types", () => {
         ah.openAxisAttributeMenu("y")
         ah.removeAttributeFromAxis(arrayOfAttributes[5], "y")
     })
-    // needs fixin'
-    it.skip("will add numeric attribute to x axis and categorical attribute to y axis", () => {
+    it("will add numeric attribute to x axis and categorical attribute to y axis", () => {
         cy.dragAttributeToTarget("table", arrayOfAttributes[3], "x") // Height => x-axis
         cy.dragAttributeToTarget("table", arrayOfAttributes[7], "y") // Habitat => y-axis
         cy.wait(2000)
@@ -136,8 +133,7 @@ context("Test graph axes with various attribute types", () => {
         ah.openAxisAttributeMenu("x")
         ah.removeAttributeFromAxis(arrayOfAttributes[3], "x")
     })
-    // needs fixin'
-    it.skip("will add numeric attribute to x axis and numeric attribute to y axis", () => {
+    it("will add numeric attribute to x axis and numeric attribute to y axis", () => {
         cy.dragAttributeToTarget("table", arrayOfAttributes[3], "x") // Height => x-axis
         cy.dragAttributeToTarget("table", arrayOfAttributes[4], "y") // Mass => y-axis
         cy.wait(2000)
@@ -164,8 +160,7 @@ context("Test graph axes attribute menu", () => {
         cy.visit(url)
         cy.wait(2500)
     })
-    // needs to be fixed
-    it.skip("will open and close x axis attribute menu when clicked on default axis label", () => {
+    it("will open and close x axis attribute menu when clicked on default axis label", () => {
         ah.openAxisAttributeMenu("x")
         ah.verifyRemoveAttributeDoesNotExist("x")
         ah.verifyTreatAsOptionDoesNotExist("x")
@@ -190,8 +185,7 @@ context("Test graph axes attribute menu", () => {
         ah.openAxisAttributeMenu("x")
         ah.removeAttributeFromAxis(arrayOfAttributes[7], "x")
     })
-    // needs fixin'
-    it.skip("will add and remove numeric attribute to x axis from attribute menu", () => {
+    it("will add and remove numeric attribute to x axis from attribute menu", () => {
         ah.openAxisAttributeMenu("x")
         ah.addAttributeToAxis(arrayOfAttributes[3], "x") // Height => x-axis
         ah.verifyTickMarksDoNotExist("y")
