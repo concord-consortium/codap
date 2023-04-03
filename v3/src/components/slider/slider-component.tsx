@@ -76,13 +76,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             <Flex>
               <Flex>
                 <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
-                    { running ? <PauseIcon /> : <PlayIcon /> }
+                  { running ? <PauseIcon /> : <PlayIcon /> }
                 </Button>
               </Flex>
               <Flex className="slider-inputs">
                 <Flex>
                   <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
-                      onChange={handleSliderNameInput}  data-testid="slider-variable-name">
+                      onChange={handleSliderNameInput} data-testid="slider-variable-name">
                     <EditablePreview className="name-text"/>
                     <EditableInput className="name-text-input text-input"/>
                   </Editable>
