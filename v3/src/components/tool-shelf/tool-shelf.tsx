@@ -1,6 +1,5 @@
 import React from "react"
 import {Box, Flex, HStack, Tag, useToast} from "@chakra-ui/react"
-import { kDefaultTileHeight, kDefaultTileWidth } from "../constants"
 import t from "../../utilities/translation/translate"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -43,8 +42,8 @@ export const ToolShelf = ({content}: IProps) => {
   }
 
   const createTile = (tileType: string, componentInfo: ITileComponentInfo) => {
-    const width = componentInfo.defaultWidth || kDefaultTileWidth
-    const height = componentInfo.defaultHeight || kDefaultTileHeight
+    const width = componentInfo.defaultWidth
+    const height = componentInfo.defaultHeight
     if (row) {
       const newTile = createDefaultTileOfType(tileType)
       if (newTile) {

@@ -1,4 +1,4 @@
-import {extent, format, select} from "d3"
+import {extent, format, select, timeout} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
 import {CaseData, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
@@ -17,6 +17,11 @@ import {measureText} from "../../../hooks/use-measure-text"
 /**
  * Utility routines having to do with graph entities
  */
+
+export const startAnimation = (enableAnimation: React.MutableRefObject<boolean>) => {
+  enableAnimation.current = true
+  timeout(() => enableAnimation.current = false, 2000)
+}
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -139,7 +144,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
       dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
     allCaseData = dataConfiguration.joinedCaseDataArrays,
     caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`
-  enableAnimation.current = true
+  startAnimation(enableAnimation)
   select(dotsElement)
     .selectAll('circle')
     .data(allCaseData, caseDataKeyFunc)

@@ -2,25 +2,23 @@ import React from "react"
 import {observer} from "mobx-react-lite"
 import {Flex, FormControl, FormLabel, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
         NumberInputField, NumberInputStepper, Select} from "@chakra-ui/react"
-import t from "../../../utilities/translation/translate"
-import {ITileModel} from "../../../models/tiles/tile-model"
-import {isSliderModel} from "../slider-model"
 import {InspectorPalette} from "../../inspector-panel"
+import {ISliderModel} from "../slider-model"
+import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes} from "../slider-types"
+import t from "../../../utilities/translation/translate"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
 
 import "./slider-settings-panel.scss"
 
 interface IProps {
-  tile?: ITileModel
+  sliderModel: ISliderModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
 }
 
 export const SliderSettingsPalette =
-    observer(function SliderSettingsPalette({tile, panelRect, buttonRect, setShowPalette}: IProps) {
-  const sliderModel = isSliderModel(tile?.content) ? tile?.content : undefined
-  if (!sliderModel) return null
+    observer(function SliderSettingsPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
 
   const handleMultiplesOfChange = (value: string) => {
     const multipleOf = parseFloat(value)
@@ -47,7 +45,7 @@ export const SliderSettingsPalette =
         <FormControl size="xs">
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
-              <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf || 1}
+              <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf}
                   min={0.1} precision={2} step={1} onChange={handleMultiplesOfChange}>
                 <NumberInputField />
                 <NumberInputStepper>
@@ -62,7 +60,7 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
               <NumberInput className="slider-input animation-rate" size="xs" min={0.1} precision={2} step={1}
-                  defaultValue={sliderModel.animationRate || 1} onChange={handleAnimationRateChange}>
+                  defaultValue={sliderModel._animationRate} onChange={handleAnimationRateChange}>
                 <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
@@ -75,11 +73,11 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.direction")}
-              <Select className="slider-select direction" value={sliderModel.direction}
-                      onChange={e => sliderModel.setDirection(e.target.value)}>
-                <option value={"lowToHigh"}>{t("DG.Slider.lowToHigh")}</option>
-                <option value={"backAndForth"}>{t("DG.Slider.backAndForth")}</option>
-                <option value={"hightToLow"}>{t("DG.Slider.highToLow")}</option>
+              <Select className="slider-select direction" value={sliderModel.animationDirection}
+                      onChange={e => sliderModel.setAnimationDirection(e.target.value as AnimationDirection)}>
+                {AnimationDirections.map(direction => (
+                  <option key={direction} value={direction}>{t(`DG.Slider.${direction}`)}</option>
+                ))}
               </Select>
             </FormLabel>
           </Flex>
@@ -87,10 +85,11 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.mode")}
-              <Select className="slider-select mode" value={sliderModel.repetition}
-                      onChange={e => sliderModel.setRepetition(e.target.value)}>
-                <option value={"nonStop"}>{t("DG.Slider.nonStop")}</option>
-                <option value={"onceOnly"}>{t("DG.Slider.onceOnly")}</option>
+              <Select className="slider-select mode" value={sliderModel.animationMode}
+                      onChange={e => sliderModel.setAnimationMode(e.target.value as AnimationMode)}>
+                {AnimationModes.map(mode => (
+                  <option key={mode} value={mode}>{t(`DG.Slider.${mode}`)}</option>
+                ))}
               </Select>
             </FormLabel>
           </Flex>

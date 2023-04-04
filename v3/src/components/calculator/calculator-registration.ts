@@ -27,10 +27,13 @@ registerTileComponentInfo({
   Icon: CalcIcon,
   isSingleton: true,
   isFixedWidth: true,
-  isFixedHeight: true
+  isFixedHeight: true,
+  // must be in sync with rendered size for auto placement code
+  defaultHeight: 162,
+  defaultWidth: 137
 })
 
-registerV2TileImporter("DG.Calculator", ({ v2Component, v2Document, insertTile }) => {
+registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
   if (!isV2CalculatorComponent(v2Component)) return
 
   const { name = "", title = "" } = v2Component.componentStorage
@@ -40,4 +43,6 @@ registerV2TileImporter("DG.Calculator", ({ v2Component, v2Document, insertTile }
     content: CalculatorModel.create({ name })
   })
   insertTile(calculatorTile)
+
+  return calculatorTile
 })

@@ -1,3 +1,4 @@
+import { NumberInput, NumberInputField } from "@chakra-ui/react"
 import { format } from "d3"
 import { observer } from "mobx-react-lite"
 import React, {useState, useEffect} from "react"
@@ -15,36 +16,18 @@ const d3Format = format(`.${kDecimalPlaces}~f`)
 const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
 
 export const EditableSliderValue = observer(function EditableSliderValue({sliderModel} : IProps) {
-  const [isEditing, setIsEditing] = useState(false)
   const [candidate, setCandidate] = useState("")
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
-    switch (key) {
-      case "Escape":
-        break
-      case "Enter":
-      case "Tab":
-        e.currentTarget.blur()
-        break
+    if (key === "Escape"  || key === "Enter") {
+      e.currentTarget.blur()
     }
   }
 
-  const handleDisplayClick = () => {
-    setIsEditing(true)
-  }
 
-  const handleBlur = () => {
-    const myFloat = parseFloat(candidate)
-    if (isFinite(myFloat)) {
-      sliderModel.setValueRoundedToMultipleOf(myFloat)
-    } else {
-      setCandidate(formatValue(sliderModel))
-    }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCandidate(e.target.value)
+  const handleValueChange = (value: string) => {
+    setCandidate(value)
   }
 
   // keep display up-to-date
@@ -53,18 +36,9 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   }, [sliderModel, sliderModel.globalValue.value])
 
   return (
-    <div className={`editable-slider-value ${isEditing ? 'editing' : 'display'}`}>
-      { isEditing
-        ? <input
-            type="text"
-            className="number-input"
-            value={candidate}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            onChange={handleChange}
-          />
-        : <div onClick={handleDisplayClick}>{formatValue(sliderModel)}</div>
-      }
-    </div>
+    <NumberInput value={candidate} className="value-input"
+        onChange={handleValueChange} data-testid="slider-variable-value">
+      <NumberInputField className="value-text-input text-input" onKeyDown={handleKeyDown}/>
+    </NumberInput>
   )
 })

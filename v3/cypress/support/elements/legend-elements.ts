@@ -18,7 +18,7 @@ export const LegendElements = {
         return this.getLegend().find(".legend-categories>svg rect")
     },
     getLegendAttributeMenu() {
-        return this.getGraphTile().find(".axis-legend-attribute-menu:nth-child(7)>button")
+        return this.getGraphTile().find(".axis-legend-attribute-menu.legend>button")
     },
     getAttributeFromLegendMenu() {
         return this.getLegendAttributeMenu().parent()

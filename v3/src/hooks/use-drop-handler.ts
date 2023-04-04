@@ -87,7 +87,7 @@ export const useDropHandler = ({ selector, onImportDataSet, onImportV2Document, 
 
     function removeDragData(event: DragEvent) {
       if (event.dataTransfer) {
-        if (event.dataTransfer.items) {
+        if (event.dataTransfer?.items?.clear) {
           // Use DataTransferItemList interface to remove the drag data
           event.dataTransfer.items.clear()
         } else {

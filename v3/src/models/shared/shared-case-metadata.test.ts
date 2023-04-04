@@ -1,6 +1,7 @@
 import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { DataSet } from "../data/data-set"
-import { SharedCaseMetadata } from "./shared-case-metadata"
+import { getCategorySet, isSharedCaseMetadata, SharedCaseMetadata } from "./shared-case-metadata"
+import { SharedModel } from "./shared-model"
 
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
@@ -39,7 +40,14 @@ describe("SharedCaseMetadata", () => {
     tree.data.addAttribute({ id: "aId", name: "a" })
     tree.data.addAttribute({ id: "bId", name: "b" })
     tree.data.addAttribute({ id: "cId", name: "c" })
+    tree.metadata.setData(tree.data)
     addDefaultCases()
+  })
+
+  it("implements isSharedCaseMetadata", () => {
+    expect(isSharedCaseMetadata()).toBe(false)
+    expect(isSharedCaseMetadata(SharedModel.create())).toBe(false)
+    expect(isSharedCaseMetadata(tree.metadata)).toBe(true)
   })
 
   it("stores column widths and hidden attributes", () => {
@@ -64,13 +72,22 @@ describe("SharedCaseMetadata", () => {
     expect(tree.metadata.hidden.size).toBe(0)
   })
 
-  it("stores collapsed pseudo-cases", () => {
+  it("responds appropriately when no DataSet is associated", () => {
+    tree.metadata.setData()
     // ignores collapse calls before DataSet is associated
     expect(tree.metadata.isCollapsed("foo")).toBe(false)
     tree.metadata.setIsCollapsed("foo", true)
     expect(tree.metadata.isCollapsed("foo")).toBe(false)
+    // ignores category set calls before DataSet is associated
+    const categories = getCategorySet(tree.metadata, "foo")
+    expect(categories).toBeUndefined()
+  })
 
-    tree.metadata.setData(tree.data)
+  it("stores collapsed pseudo-cases", () => {
+    // ignores invalid ids
+    expect(tree.metadata.isCollapsed("foo")).toBe(false)
+    tree.metadata.setIsCollapsed("foo", true)
+    expect(tree.metadata.isCollapsed("foo")).toBe(false)
     // move attr "a" to a new collection (["aId"], ["bId", "cId"])
     tree.data.moveAttributeToNewCollection("aId")
     const collection = tree.data.collections[0]
@@ -83,5 +100,24 @@ describe("SharedCaseMetadata", () => {
     expect(tree.metadata.isCollapsed(case0.__id__)).toBe(false)
     expect(tree.metadata.collections.size).toBe(1)
     expect(tree.metadata.collections.get(collection.id)?.collapsed.size).toBe(0)
+  })
+
+  it("supports CategorySets", () => {
+    expect(tree.metadata.categories.size).toBe(0)
+    expect(tree.metadata.categories.get("aId")).toBeUndefined()
+    const set1 = getCategorySet(tree.metadata, "aId")
+    expect(tree.metadata.categories.size).toBe(1)
+    expect(tree.metadata.categories.get("aId")).toBe(set1)
+    const set2 = getCategorySet(tree.metadata, "aId")
+    expect(tree.metadata.categories.size).toBe(1)
+    expect(tree.metadata.categories.get("aId")).toBe(set1)
+    expect(set1).toBe(set2)
+    const noSet = getCategorySet(tree.metadata, "zId")
+    expect(noSet).toBeUndefined()
+    expect(tree.metadata.categories.size).toBe(1)
+    expect(tree.metadata.categories.get("zId")).toBeUndefined()
+    // removes set from map when its attribute is invalidated
+    tree.data.removeAttribute("aId")
+    expect(tree.metadata.categories.size).toBe(0)
   })
 })

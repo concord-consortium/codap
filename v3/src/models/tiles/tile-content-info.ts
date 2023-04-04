@@ -1,8 +1,11 @@
 import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
 import { TileContentModel, ITileContentModel } from "./tile-content"
 import { AppConfigModelType } from "../stores/app-config-model"
+import { ITileEnvironment } from "./tile-environment"
 
 export interface IDefaultContentOptions {
+  // environment in which the tile will be created
+  env?: ITileEnvironment;
   // title is only currently used by the Geometry and Table tiles
   title?: string;
   // url is added so the CLUE core can add an image tile to the document when a user

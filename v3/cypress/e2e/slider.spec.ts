@@ -8,7 +8,7 @@ context("Slider UI", () => {
         cy.wait(2500)
     })
     it("does not populate title bar from sample data", () => {
-      const collectionName = "Slider"
-      slider.getCollectionTitle().should("contain", collectionName)
+      const sliderName = "v1"
+      slider.getComponentTitle().should("contain", sliderName)
     })
 })

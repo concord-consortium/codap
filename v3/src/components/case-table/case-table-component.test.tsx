@@ -4,14 +4,13 @@ import userEvent from '@testing-library/user-event'
 import { getSnapshot } from "mobx-state-tree"
 import React from "react"
 import { CaseTableComponent } from "./case-table-component"
-import { kCaseTableTileType } from "./case-table-defs"
 import { CaseTableModel } from "./case-table-model"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useKeyStates } from "../../hooks/use-key-states"
 import { DataBroker } from "../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { ITileModel, TileModel } from "../../models/tiles/tile-model"
-import { registerTileTypes } from "../../register-tile-types"
+import "./case-table-registration"
 
 jest.mock("./case-table-shared.scss", () => ({
   headerRowHeight: "30",
@@ -24,8 +23,6 @@ const UseKeyStatesWrapper = () => {
 }
 
 describe("Case Table", () => {
-  registerTileTypes([kCaseTableTileType])
-
   let broker: DataBroker
   let tile: ITileModel
   beforeEach(() => {
@@ -43,7 +40,7 @@ describe("Case Table", () => {
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
-  it.skip("renders table with data", () => {
+  it("renders table with data", () => {
     const data = DataSet.create()
     data.addAttribute({ name: "a"})
     data.addAttribute({ name: "b" })
@@ -58,7 +55,7 @@ describe("Case Table", () => {
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
-  it.skip("selects rows when index cell is clicked", async () => {
+  it("selects rows when index cell is clicked", async () => {
     const user = userEvent.setup()
     const data = DataSet.create()
     data.addAttribute({ name: "a"})

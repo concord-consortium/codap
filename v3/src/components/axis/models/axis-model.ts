@@ -1,14 +1,5 @@
 import {Instance, types} from "mobx-state-tree"
-import {AxisPlace, AxisPlaces} from "../axis-types"
-
-export function otherPlace(aPlace: AxisPlace): AxisPlace {
-  return aPlace === 'bottom' ? 'left' : 'bottom'
-}
-
-export type AxisOrientation = "horizontal" | "vertical"
-
-export const ScaleTypes = ["linear", "log", "ordinal", "band"] as const
-export type IScaleType = typeof ScaleTypes[number]
+import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
 
 export const AxisModel = types.model("AxisModel", {
   type: types.optional(types.string, () => {

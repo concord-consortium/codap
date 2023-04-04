@@ -34,7 +34,7 @@ export const Legend = function Legend({
     instanceId = useInstanceIdContext(),
     droppableId = `${instanceId}-legend-area-drop`,
     role = 'legend' as GraphAttrRole,
-    hintString = useDropHintString({role, isDropAllowed}),
+    hintString = useDropHintString({role}),
     attributeIDs = useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
 
   const handleIsActive = (active: Active) => {
