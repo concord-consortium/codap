@@ -46,7 +46,7 @@ registerTileComponentInfo({
   defaultWidth: 300,
   isFixedHeight: true,
   // must be in sync with rendered size for auto placement code
-    defaultHeight: 73
+  defaultHeight: 73
 
 })
 
