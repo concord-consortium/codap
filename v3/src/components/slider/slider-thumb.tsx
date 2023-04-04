@@ -72,7 +72,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   }
 
   return (
-     <ThumbIcon
+    <ThumbIcon
       className={clsx("slider-thumb-icon", { dragging: isDragging })}
       onPointerDown={handlePointerDown}
       style={thumbStyle}
