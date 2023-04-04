@@ -117,6 +117,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   useEffect(() => {
     if (paletteRef.current) {
       setPaletteWidth(paletteRef.current.offsetWidth)
+      paletteRef.current.focus()
     }
   }, [])
 
