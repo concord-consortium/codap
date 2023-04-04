@@ -4,8 +4,10 @@ import ValuesIcon from "../../assets/icons/icon-values.svg"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import t from "../../utilities/translation/translate"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
+import { isSliderModel } from "./slider-model"
 
 export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
+  const sliderModel = tile?.content
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
@@ -15,6 +17,8 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   useEffect(()=>{
     !show && setShowPalette(undefined)
   }, [show])
+
+  if (!isSliderModel(sliderModel)) return null
 
   const handleRulerButton = () => {
     setShowPalette(showPalette === "measure" ? undefined : "measure")
@@ -31,7 +35,7 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
         <ValuesIcon />
       </InspectorButton>
       {showPalette === "measure" &&
-        <SliderSettingsPalette tile={tile} setShowPalette={setShowPalette}
+        <SliderSettingsPalette sliderModel={sliderModel} setShowPalette={setShowPalette}
           panelRect={panelRect} buttonRect={buttonRect}/>}
     </InspectorPanel>
   )
