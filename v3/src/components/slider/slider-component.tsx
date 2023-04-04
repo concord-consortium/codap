@@ -11,10 +11,8 @@ import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
-import { uiState } from "../../models/ui-state"
 import { CodapSliderThumb } from "./slider-thumb"
 import { EditableSliderValue } from "./editable-slider-value"
-import { SliderInspector } from "./slider-inspector"
 
 import './slider.scss'
 
@@ -104,7 +102,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             </svg>
           </div>
         </div>
-        <SliderInspector sliderModel={sliderModel} show={uiState.isFocusedTile(tile?.id)}/>
       </AxisLayoutContext.Provider>
     </InstanceIdContext.Provider>
   )

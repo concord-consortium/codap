@@ -32,8 +32,7 @@ export const CodapComponent = observer(function CodapComponent({
 
   if (!info) return null
 
-  const { TitleBar, Component, tileEltClass, isFixedWidth, isFixedHeight } = info
-
+  const { TitleBar, Component, InspectorPanel, tileEltClass, isFixedWidth, isFixedHeight } = info
   return (
     <DataSetContext.Provider value={dataset}>
       <div className={`codap-component ${tileEltClass}`} key={tile.id}
@@ -56,6 +55,7 @@ export const CodapComponent = observer(function CodapComponent({
           </div>
         }
       </div>
+      {InspectorPanel && <InspectorPanel tile={tile} show={uiState.isFocusedTile(tile?.id)}/>}
     </DataSetContext.Provider>
   )
 })

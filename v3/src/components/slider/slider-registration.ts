@@ -9,6 +9,7 @@ import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2SliderComponent } from "../../v2/codap-v2-types"
 import { SliderComponent } from "./slider-component"
+import { SliderInspector } from "./slider-inspector"
 import { kSliderTileType, kSliderTileClass } from "./slider-defs"
 import { SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
@@ -41,6 +42,7 @@ registerTileComponentInfo({
   type: kSliderTileType,
   TitleBar: SliderTitleBar,
   Component: SliderComponent,
+  InspectorPanel: SliderInspector,
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
   defaultWidth: 300,

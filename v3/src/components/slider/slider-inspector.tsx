@@ -1,16 +1,13 @@
 import React, { useEffect, useRef, useState } from "react"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import ValuesIcon from "../../assets/icons/icon-values.svg"
-import { ISliderModel } from "./slider-model"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import t from "../../utilities/translation/translate"
+import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
+import { isSliderModel } from "./slider-model"
 
-interface IProps {
-  sliderModel: ISliderModel
-  show: boolean
-}
-
-export const SliderInspector = ({ sliderModel, show }: IProps) => {
+export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
+  const sliderModel = tile?.content
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
@@ -21,6 +18,8 @@ export const SliderInspector = ({ sliderModel, show }: IProps) => {
     !show && setShowPalette(undefined)
   }, [show])
 
+  if (!isSliderModel(sliderModel)) return null
+
   const handleRulerButton = () => {
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
@@ -29,18 +28,15 @@ export const SliderInspector = ({ sliderModel, show }: IProps) => {
     buttonRef.current = ref.current
   }
 
-  return (show
-    ? <>
-        <InspectorPanel component="slider" setShowPalette={setShowPalette} ref={panelRef}>
-          <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
-            onButtonClick={handleRulerButton} setButtonRef={setButtonRef} testId={"slider-values-button"}>
-            <ValuesIcon />
-          </InspectorButton>
-          {showPalette === "measure" &&
-            <SliderSettingsPalette sliderModel={sliderModel} setShowPalette={setShowPalette}
-              panelRect={panelRect} buttonRect={buttonRect}/>}
-        </InspectorPanel>
-      </>
-    : null
+  return (
+    <InspectorPanel ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette}>
+      <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
+        onButtonClick={handleRulerButton} setButtonRef={setButtonRef} testId={"slider-values-button"}>
+        <ValuesIcon />
+      </InspectorButton>
+      {showPalette === "measure" &&
+        <SliderSettingsPalette sliderModel={sliderModel} setShowPalette={setShowPalette}
+          panelRect={panelRect} buttonRect={buttonRect}/>}
+    </InspectorPanel>
   )
 }
