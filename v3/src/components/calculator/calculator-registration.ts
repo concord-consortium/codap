@@ -28,6 +28,7 @@ registerTileComponentInfo({
   isSingleton: true,
   isFixedWidth: true,
   isFixedHeight: true,
+  // must be in sync with rendered size for auto placement code
   defaultHeight: 162,
   defaultWidth: 137
 })

@@ -2,6 +2,7 @@ import { useDndContext } from "@dnd-kit/core"
 import React, { useState } from "react"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../models/document/free-tile-row"
+import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
 
@@ -84,6 +85,10 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
                   : active && movingStyle
                       ? movingStyle
                       : tileStyle
+  // don't impose a width and height for fixed size components
+  const info = getTileComponentInfo(tileType)
+  if (info?.isFixedWidth) delete style?.width
+  if (info?.isFixedHeight) delete style?.height
   return (
     <div className="free-tile-component" style={style} key={tileId} ref={setNodeRef}>
       {tile && rowTile &&
