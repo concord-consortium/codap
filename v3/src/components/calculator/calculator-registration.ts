@@ -27,7 +27,10 @@ registerTileComponentInfo({
   Icon: CalcIcon,
   isSingleton: true,
   isFixedWidth: true,
-  isFixedHeight: true
+  isFixedHeight: true,
+  // must be in sync with rendered size for auto placement code
+  defaultHeight: 162,
+  defaultWidth: 137
 })
 
 registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {

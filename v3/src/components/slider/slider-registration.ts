@@ -44,7 +44,10 @@ registerTileComponentInfo({
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
   defaultWidth: 300,
-  isFixedHeight: true
+  isFixedHeight: true,
+  // must be in sync with rendered size for auto placement code
+  defaultHeight: 73
+
 })
 
 registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
