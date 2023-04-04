@@ -59,7 +59,7 @@ interface IInspectorMenuProps {
 export const InspectorMenu = ({children, icon, tooltip, testId, onOpen, onButtonClick}:IInspectorMenuProps) => {
   return (
     <Menu isLazy onOpen={onOpen}>
-      <MenuButton className="inspector-tool-button menu" title={tooltip} data-testid={testId}>
+      <MenuButton className="inspector-tool-button menu" title={tooltip} data-testid={testId} onClick={onButtonClick}>
         {icon}
         <MoreOptionsIcon className="more-options-icon"/>
       </MenuButton>
