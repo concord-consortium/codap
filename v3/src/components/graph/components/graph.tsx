@@ -159,7 +159,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
           {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
-            <svg ref={dotsRef} className={`graph-dot-area ${  instanceId}`}>
+            <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
               {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>
