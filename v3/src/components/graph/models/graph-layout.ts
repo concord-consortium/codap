@@ -155,7 +155,7 @@ export class GraphLayout implements IAxisLayout {
     return newBounds
   }
 
-  getComputedBounds(place: AxisPlace) {
+  getComputedBounds(place: GraphPlace) {
     return this.computedBounds.get(place)
   }
 }
