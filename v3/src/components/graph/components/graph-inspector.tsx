@@ -16,7 +16,7 @@ import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isGraphContentModel} from "../models/graph-content-model"
 
 
-export const GraphInspector = observer(({tile, show}: ITileInspectorPanelProps) => {
+export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()

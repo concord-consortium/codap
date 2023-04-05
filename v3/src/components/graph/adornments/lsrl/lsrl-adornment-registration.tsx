@@ -11,7 +11,7 @@ import { kLSRLClass, kLSRLLabelKey, kLSRLPrefix, kLSRLRedoAddKey,
 import { LSRLAdornment } from "./lsrl-adornment-component"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
-const Controls = observer(() => {
+const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)

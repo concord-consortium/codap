@@ -15,7 +15,7 @@ function isAliveMapContentModel(model?: ITileContentModel): model is IMapContent
   return !!model && isAlive(model) && isMapContentModel(model)
 }
 
-export const HideShowMenuList = observer(({tile}: IProps) => {
+export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const mapModel = isAliveMapContentModel(tile?.content) ? tile?.content : undefined
   const numSelected = mapModel?.numSelected() ?? 0
   const numUnselected = mapModel?.numUnselected() ?? 0

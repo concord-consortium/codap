@@ -9,7 +9,7 @@ interface IProps {
   tile?: ITileModel
 }
 
-export const HideShowMenuList = observer(({tile}: IProps) => {
+export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const toast = useToast()
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfiguration = graphModel?.dataConfiguration

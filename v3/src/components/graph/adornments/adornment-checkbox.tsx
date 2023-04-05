@@ -11,7 +11,7 @@ interface IProps {
   type: string
 }
 
-export const AdornmentCheckbox = observer(({classNameValue, labelKey, type}: IProps) => {
+export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameValue, labelKey, type}: IProps) {
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel?.adornmentsStore
   const existingAdornment = adornmentsStore.adornments.find(a => a.type === type)
