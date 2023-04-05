@@ -70,10 +70,20 @@ $table-body-font-size: 8pt;
 
         &.active {
           border: 5px solid rgba(255, 216, 102, 0.5);
+
+          .spacer-top {
+            border-bottom: 0;
+            background: white;
+          }
         }
 
         &.over {
           background: rgba(255, 255, 0, 0.5);
+
+          .spacer-top {
+            border-bottom: 0;
+            background: rgba(255, 255, 0, 0.5);
+          }
         }
 
         .spacer-top {

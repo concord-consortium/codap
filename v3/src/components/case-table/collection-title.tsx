@@ -3,17 +3,18 @@ import { useDndContext } from "@dnd-kit/core"
 import { Editable, EditableInput, EditablePreview } from "@chakra-ui/react"
 import throttle from "lodash/throttle"
 import {useResizeDetector} from "react-resize-detector"
+import { observer } from "mobx-react-lite"
+import pluralize from "pluralize"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useCollectionContext } from "../../hooks/use-collection-context"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 
-interface ICollectionTitleProps {
-  setTitle: (title: string) => void,
-  displayTitle: string,
-  defaultName: string,
-  caseCount: number,
-}
-
-// Does not handle component resize at the moment
-export const CollectionTitle = function CollectionTitle({ setTitle, displayTitle, defaultName, caseCount }
-  : ICollectionTitleProps) {
+export const CollectionTitle = observer(function CollectionTitle() {
+  const data = useDataSetContext()
+  const collection = useCollectionContext()
+  const { setTitle, displayTitle } = collection
+  const defaultName = pluralize((getCollectionAttrs(collection, data)[0]?.name) ?? '')
+  const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const titleRef = useRef<HTMLDivElement>(null)
@@ -78,4 +79,4 @@ export const CollectionTitle = function CollectionTitle({ setTitle, displayTitle
       </div>
     </div>
   )
-}
+})
