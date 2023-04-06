@@ -55,9 +55,8 @@ export const App = observer(function App() {
       gDataBroker.addDataAndMetadata(data, metadata)
     })
 
-    // sort components
-    const v2Components = v2Document.components.slice()
     // sort by zIndex so the resulting tiles will be ordered appropriately
+    const v2Components = v2Document.components.slice()
     v2Components.sort((a, b) => (a.layout.zIndex ?? 0) - (b.layout.zIndex ?? 0))
 
     // add components
@@ -83,6 +82,7 @@ export const App = observer(function App() {
     gDataBroker.prepareSnapshots()
     const docSnapshot = getSnapshot(v3Document)
     gDataBroker.completeSnapshots()
+    // use document snapshot
     appState.setDocument(docSnapshot)
   }, [])
 

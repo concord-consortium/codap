@@ -1,4 +1,4 @@
-import {Instance, types} from "mobx-state-tree"
+import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
 
 export const AxisModel = types.model("AxisModel", {
@@ -42,9 +42,8 @@ export const EmptyAxisModel = AxisModel
     min: 0,
     max: 0
   })
-
-export interface IEmptyAxisModel extends Instance<typeof CategoricalAxisModel> {
-}
+export interface IEmptyAxisModel extends Instance<typeof CategoricalAxisModel> {}
+export interface IEmptyAxisModelSnapshot extends SnapshotIn<typeof CategoricalAxisModel> {}
 
 export const CategoricalAxisModel = AxisModel
   .named("CategoricalAxisModel")
@@ -52,9 +51,8 @@ export const CategoricalAxisModel = AxisModel
     type: "categorical",
     scale: "band"
   })
-
-export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {
-}
+export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
+export interface ICategoricalAxisModelSnapshot extends SnapshotIn<typeof CategoricalAxisModel> {}
 
 export function isCategoricalAxisModel(axisModel: IAxisModel): axisModel is ICategoricalAxisModel {
   return axisModel.isCategorical
@@ -86,9 +84,8 @@ export const NumericAxisModel = AxisModel
       self.max = max
     }
   }))
-
-export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {
-}
+export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
+export interface INumericAxisModelSnapshot extends SnapshotIn<typeof NumericAxisModel> {}
 
 export function isNumericAxisModel(axisModel: IAxisModel): axisModel is INumericAxisModel {
   return axisModel.isNumeric
@@ -105,3 +102,5 @@ const axisTypeDispatcher = (axisSnap: any) => {
 export const AxisModelUnion = types.union({ dispatcher: axisTypeDispatcher },
   EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
 export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel
+export type IAxisModelSnapshotUnion =
+  IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot | INumericAxisModelSnapshot

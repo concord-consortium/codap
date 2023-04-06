@@ -50,8 +50,9 @@ export const DataConfigurationModel = types
     id: types.optional(types.identifier, () => typedId("DCON")),
     // determines stacking direction in categorical-categorical, for instance
     primaryRole: types.maybe(types.enumeration([...PrimaryAttrRoles])),
-    // keys are GraphAttrRoles
+    // keys are GraphAttrRoles, excluding y role
     _attributeDescriptions: types.map(AttributeDescription),
+    // all attributes for (left) y role
     _yAttributeDescriptions: types.array(AttributeDescription),
   })
   .volatile(() => ({
@@ -63,6 +64,9 @@ export const DataConfigurationModel = types
     pointsNeedUpdating: false
   }))
   .views(self => ({
+    get isEmpty() {
+      return self._attributeDescriptions.size + self._yAttributeDescriptions.length === 0
+    },
     get secondaryRole() {
       return self.primaryRole === 'x' ? 'y'
         : self.primaryRole === 'y' ? 'x'

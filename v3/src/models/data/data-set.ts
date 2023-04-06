@@ -739,6 +739,7 @@ export const DataSet = types.model("DataSet", {
         for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
           attribute.addValue()
         }
+        return attribute
       },
 
       setAttributeName(attributeID: string, name: string | (() => string)) {

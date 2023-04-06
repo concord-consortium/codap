@@ -5,7 +5,7 @@ const fs = require("fs")
 const path = require("path")
 
 describe(`V2 "bogus-document.codap"`, () => {
-  const file = path.join(__dirname, "./", "bogus-document.codap")
+  const file = path.join(__dirname, "../test/v2", "bogus-document.codap")
   const bogusJson = fs.readFileSync(file, "utf8")
   const bogusData = JSON.parse(bogusJson) as ICodapV2DocumentJson
 
@@ -20,7 +20,7 @@ describe(`V2 "bogus-document.codap"`, () => {
 })
 
 describe(`V2 "calculator.codap"`, () => {
-  const file = path.join(__dirname, "./", "calculator.codap")
+  const file = path.join(__dirname, "../test/v2", "calculator.codap")
   const calculatorJson = fs.readFileSync(file, "utf8")
   const calculatorDoc = JSON.parse(calculatorJson) as ICodapV2DocumentJson
 
@@ -44,7 +44,7 @@ describe(`V2 "calculator.codap"`, () => {
 
 describe(`V2 "mammals.codap"`, () => {
 
-  const file = path.join(__dirname, "./", "mammals.codap")
+  const file = path.join(__dirname, "../test/v2", "mammals.codap")
   const mammalsJson = fs.readFileSync(file, "utf8")
   const mammalsData = JSON.parse(mammalsJson) as ICodapV2DocumentJson
 
@@ -80,7 +80,7 @@ describe(`V2 "mammals.codap"`, () => {
 
 describe(`V2 "24cats.codap"`, () => {
 
-  const file = path.join(__dirname, "./", "24cats.codap")
+  const file = path.join(__dirname, "../test/v2", "24cats.codap")
   const catsJson = fs.readFileSync(file, "utf8")
   const catsData = JSON.parse(catsJson) as ICodapV2DocumentJson
 
@@ -111,7 +111,7 @@ describe(`V2 "24cats.codap"`, () => {
 
     // sex attribute should be in parent collection
     const v2SexAttr = catsData.contexts?.[0].collections?.[0].attrs?.[0]
-    expect(cats.getAttribute(v2SexAttr.guid)).toBeDefined()
+    expect(cats.getV2Attribute(v2SexAttr.guid)).toBeDefined()
     const dsSexAttr = data.collections[0].attributes[0]
     expect(dsSexAttr!.name).toBe(v2SexAttr.name)
     expect(dsSexAttr!.title).toBe(v2SexAttr.title)
