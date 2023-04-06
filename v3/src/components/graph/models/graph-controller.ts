@@ -65,12 +65,10 @@ export class GraphController {
         const axisModel = graphModel.getAxis(axisPlace),
           attrRole = axisPlaceToAttrRole[axisPlace]
         if (axisModel) {
-          const axisScale = scaleTypeToD3Scale(axisModel.scale)
           layout.setAxisScaleType(axisPlace, axisModel.scale)
-          if (isNumericAxisModel(axisModel)) {
-            axisScale.domain(axisModel.domain)
-          } else if (isCategoricalAxisModel(axisModel)) {
-            axisScale.domain(graphModel.config.categorySetForAttrRole(attrRole))
+          if (isCategoricalAxisModel(axisModel)) {
+            layout.getAxisMultiScale(axisPlace)
+              .setCategoricalDomain(dataConfig.categorySetForAttrRole(attrRole) ?? [])
           }
         }
       })
@@ -134,7 +132,7 @@ export class GraphController {
             graphModel?.setAxis(axisPlace, axisModel)
             layout.setAxisScaleType(axisPlace, 'band')
             layout?.getAxisMultiScale(axisPlace)
-                  ?.setCategoricalDomain(dataConfig?.categorySetForAttrRole(attrRole) ?? [])
+              ?.setCategoricalDomain(dataConfig?.categorySetForAttrRole(attrRole) ?? [])
             break
           default:  // Only add empty axes to 'left' and 'bottom'
             if (['left', 'bottom'].includes(axisPlace)) {
