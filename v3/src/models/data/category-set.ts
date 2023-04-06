@@ -137,6 +137,11 @@ export const CategorySet = types.model("CategorySet", {
   }
 })
 .views(self => ({
+  get lastMove() {
+    return self.moves.length > 0
+            ? self.moves[self.moves.length - 1]
+            : undefined
+  },
   colorForCategory(category: string) {
     const userColor = self.colors.get(category)
     const catIndex = self.index(category)
@@ -163,14 +168,22 @@ export const CategorySet = types.model("CategorySet", {
     const toIndex = (beforeValue != null) ? self.index(beforeValue) ?? self.values.length - 1 : self.values.length - 1
     const afterIndex = toIndex === 0 ? undefined : toIndex < fromIndex ? toIndex - 1 : toIndex
     const afterValue = afterIndex != null ? self.values[afterIndex] : undefined
-    self.moves.push({
+    const move: ICategoryMove = {
       value,
       fromIndex,
       toIndex,
       length: self.values.length,
       after: afterValue,
       before: beforeValue
-    })
+    }
+    // combine with last move if appropriate
+    if (value === self.lastMove?.value) {
+      move.fromIndex = self.lastMove.fromIndex
+      self.moves[self.moves.length - 1] = move
+    }
+    else {
+      self.moves.push(move)
+    }
     self.invalidate()
   },
   setColorForCategory(value: string, color: string) {
