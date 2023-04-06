@@ -46,7 +46,7 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
               <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf}
-                  min={0.1} precision={2} step={1} onChange={handleMultiplesOfChange}>
+                  min={0} step={0.5} onChange={handleMultiplesOfChange}>
                 <NumberInputField />
                 <NumberInputStepper>
                   <NumberIncrementStepper />
@@ -59,8 +59,8 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
-              <NumberInput className="slider-input animation-rate" size="xs" min={0.1} precision={2} step={1}
-                  defaultValue={sliderModel._animationRate} onChange={handleAnimationRateChange}>
+              <NumberInput className="slider-input animation-rate" size="xs" min={0.1} max={1.0} precision={2}
+                  step={0.1} defaultValue={sliderModel._animationRate} onChange={handleAnimationRateChange}>
                 <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
