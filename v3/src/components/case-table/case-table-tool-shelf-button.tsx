@@ -9,18 +9,17 @@ import "../tool-shelf/tool-shelf.scss"
 
 export const CaseTableToolShelfButton = () => {
   const data = useDataSetContext()
-  console.log("data", data)
 
   return (
     <Menu isLazy>
-      <MenuButton className="toolshelf-button menu table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
-          data-testid={"toolshelf-table-button-table"}>
+      <MenuButton className="tool-shelf-button menu table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
+          data-testid={"tool-shelf-button-table"}>
         <TableIcon />
         <Tag className='tool-shelf-tool-label table'>{t("DG.ToolButtonData.tableButton.title")}</Tag>
       </MenuButton>
       <MenuList>
         <MenuItem>{data?.name}
-          <TrashIcon className="toolshelf-menu-trash-icon"/>
+          <TrashIcon className="tool-shelf-menu-trash-icon"/>
         </MenuItem>
         <MenuItem>{t("DG.AppController.caseTableMenu.clipboardDataset")}</MenuItem>
         <MenuItem>{t("DG.AppController.caseTableMenu.newDataSet")}</MenuItem>

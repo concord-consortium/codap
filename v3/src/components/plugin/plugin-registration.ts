@@ -2,7 +2,6 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 // import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { PlaceholderTileComponent } from "../tiles/placeholder/placeholder-tile"
 import { ComponentTitleBar } from "../component-title-bar"
-import { ToolshelfButton } from "../tool-shelf/tool-shelf"
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
 export const kPluginIdPrefix = "PLIN"
@@ -20,10 +19,11 @@ registerTileComponentInfo({
   Component: PlaceholderTileComponent,
   tileEltClass: "codap-plugin",
   Icon: PluginsIcon,
-  ComponentToolshelfButton: ToolshelfButton,
-  position: 7,
-  toolshelfButtonOptions: {iconLabel: "DG.ToolButtonData.pluginMenu.title",
-                            buttonHint: "DG.ToolButtonData.pluginMenu.toolTip"},
+  shelf: {
+    position: 7,
+    label: "DG.ToolButtonData.pluginMenu.title",
+    hint: "DG.ToolButtonData.pluginMenu.toolTip"
+  },
   defaultWidth: 300,
   defaultHeight: 300
 })

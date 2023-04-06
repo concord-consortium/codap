@@ -2,7 +2,6 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 // import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { PlaceholderTileComponent } from "../tiles/placeholder/placeholder-tile"
 import { ComponentTitleBar } from "../component-title-bar"
-import { ToolshelfButton } from "../tool-shelf/tool-shelf"
 import MapIcon from "../../assets/icons/icon-map.svg"
 
 export const kMapIdPrefix = "_MAP"
@@ -20,10 +19,11 @@ registerTileComponentInfo({
   Component: PlaceholderTileComponent,
   tileEltClass: "codap-map",
   Icon: MapIcon,
-  ComponentToolshelfButton: ToolshelfButton,
-  position: 3,
-  toolshelfButtonOptions: {iconLabel: "DG.ToolButtonData.mapButton.title",
-                            buttonHint: "DG.ToolButtonData.mapButton.toolTip"},
+  shelf: {
+    position: 3,
+    label: "DG.ToolButtonData.mapButton.title",
+    hint: "DG.ToolButtonData.mapButton.toolTip"
+  },
   defaultWidth: 300,
   defaultHeight: 300
 })

@@ -1,5 +1,6 @@
 import React from "react"
 import {Box, Flex, HStack, Tag} from "@chakra-ui/react"
+import { SetRequired } from "type-fest"
 import t from "../../utilities/translation/translate"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -12,11 +13,8 @@ import './tool-shelf.scss'
 
 const kHeaderHeight = 25
 
-// Forces compiler to acknowledge that position in ITileComponentInfo is not undefined
-// because undefined position is already filtered out prior to being sorted
-interface IPositionedTileComponentInfo extends ITileComponentInfo {
-  position: number
-}
+// Type for components known to have shelf properties
+type IShelfTileComponentInfo = SetRequired<ITileComponentInfo, "shelf">
 
 interface IProps {
   content?: IDocumentContentModel
@@ -25,19 +23,19 @@ interface IProps {
 export const ToolShelf = ({content}: IProps) => {
   const keys = getTileComponentKeys()
   const entries = keys.map(key => getTileComponentInfo(key))
-                      .filter(info => info?.position != null) as IPositionedTileComponentInfo[]
-  entries.sort((a, b) => (a.position) - (b.position))
+                      .filter(info => info?.shelf != null) as IShelfTileComponentInfo[]
+  entries.sort((a, b) => a.shelf.position - b.shelf.position)
 
   return (
     <HStack className='tool-shelf' alignContent='center' data-testid='tool-shelf'>
-      <Flex className="toolshelf-component-buttons">
+      <Flex className="tool-shelf-component-buttons">
         {entries.map((entry, idx) => {
           if (!entry) return null
-          const { ComponentToolshelfButton, type, toolshelfButtonOptions } = entry
+          const { type, shelf: { ButtonComponent = ToolShelfButton, label, hint } } = entry
           return (
             <>
-              {ComponentToolshelfButton &&
-                <ComponentToolshelfButton tileType={type} key={`${type}-${idx}`} options={toolshelfButtonOptions}
+              {ButtonComponent &&
+                <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
                     content={content}
                 />
               }
@@ -49,13 +47,14 @@ export const ToolShelf = ({content}: IProps) => {
   )
 }
 
-export interface IToolshelfButtonProps {
-  tileType: string,
-  options?: {iconLabel?: string, buttonHint?: string, tileType?: string},
+export interface IToolShelfButtonProps {
+  tileType: string
+  label: string
+  hint: string
   content?: IDocumentContentModel
 }
 
-export const ToolshelfButton = ({tileType, options, content}: IToolshelfButtonProps) => {
+export const ToolShelfButton = ({tileType, label, hint, content}: IToolShelfButtonProps) => {
   const Icon = getTileComponentIcon(tileType)
 
   const row = content?.getRowByIndex(0)
@@ -104,16 +103,16 @@ export const ToolshelfButton = ({tileType, options, content}: IToolshelfButtonPr
     <Box
       as='button'
       bg='white'
-      title={t(options?.buttonHint || "")}
+      title={t(hint)}
       onClick={() => createComponent(tileType)}
-      data-testid={`tool-shelf-button-${t(options?.iconLabel || "")}`}
-      className="toolshelf-button"
+      data-testid={`tool-shelf-button-${t(label)}`}
+      className="tool-shelf-button"
       _hover={{ boxShadow: '1px 1px 1px 0px rgba(0, 0, 0, 0.5)' }}
       // :active styling is in css to override Chakra default
     >
       <>
         {Icon && <Icon />}
-        <Tag className='tool-shelf-tool-label'>{t(options?.iconLabel || "")}</Tag>
+        <Tag className='tool-shelf-tool-label'>{t(label)}</Tag>
       </>
     </Box>
   )

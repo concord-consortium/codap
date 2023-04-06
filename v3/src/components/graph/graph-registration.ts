@@ -10,7 +10,6 @@ import { TileModel } from "../../models/tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
 import { ComponentTitleBar } from "../component-title-bar"
 import { GraphInspector } from "./components/graph-inspector"
-import { ToolshelfButton } from "../tool-shelf/tool-shelf"
 
 export const kGraphIdPrefix = "GRPH"
 
@@ -28,10 +27,11 @@ registerTileComponentInfo({
   InspectorPanel: GraphInspector,
   tileEltClass: kGraphTileClass,
   Icon: GraphIcon,
-  ComponentToolshelfButton: ToolshelfButton,
-  position: 2,
-  toolshelfButtonOptions: {iconLabel: "DG.ToolButtonData.graphButton.title",
-                            buttonHint: "DG.ToolButtonData.graphButton.toolTip"},
+  shelf: {
+    position: 2,
+    label: "DG.ToolButtonData.graphButton.title",
+    hint: "DG.ToolButtonData.graphButton.toolTip"
+  },
   defaultWidth: 300,
   defaultHeight: 300
 })

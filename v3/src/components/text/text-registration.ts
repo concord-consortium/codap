@@ -2,7 +2,6 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 // import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { PlaceholderTileComponent } from "../tiles/placeholder/placeholder-tile"
 import { ComponentTitleBar } from "../component-title-bar"
-import { ToolshelfButton } from "../tool-shelf/tool-shelf"
 import TextIcon from '../../assets/icons/icon-text.svg'
 
 export const kTextIdPrefix = "TEXT"
@@ -20,10 +19,11 @@ registerTileComponentInfo({
   Component: PlaceholderTileComponent,
   tileEltClass: "codap-text",
   Icon: TextIcon,
-  ComponentToolshelfButton: ToolshelfButton,
-  position: 6,
-  toolshelfButtonOptions: {iconLabel: "DG.ToolButtonData.textButton.title",
-                            buttonHint: "DG.ToolButtonData.textButton.toolTip"},
+  shelf: {
+    position: 6,
+    label: "DG.ToolButtonData.textButton.title",
+    hint: "DG.ToolButtonData.textButton.toolTip"
+  },
   defaultWidth: 300,
   defaultHeight: 300
 })

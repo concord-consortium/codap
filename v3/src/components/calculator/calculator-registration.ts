@@ -9,7 +9,6 @@ import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2CalculatorComponent } from "../../v2/codap-v2-types"
 import { TileModel } from "../../models/tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
-import { ToolshelfButton } from "../tool-shelf/tool-shelf"
 
 export const kCalculatorIdPrefix = "CALC"
 
@@ -26,10 +25,11 @@ registerTileComponentInfo({
   Component: CalculatorComponent,
   tileEltClass: kCalculatorTileClass,
   Icon: CalcIcon,
-  ComponentToolshelfButton: ToolshelfButton,
-  position: 5,
-  toolshelfButtonOptions: {iconLabel: "DG.ToolButtonData.calcButton.title",
-                            buttonHint: "DG.ToolButtonData.calcButton.toolTip"},
+  shelf: {
+    position: 5,
+    label: "DG.ToolButtonData.calcButton.title",
+    hint: "DG.ToolButtonData.calcButton.toolTip"
+  },
   isSingleton: true,
   isFixedWidth: true,
   isFixedHeight: true,

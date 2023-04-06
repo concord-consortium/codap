@@ -10,14 +10,14 @@
   flex-direction: row;
   align-items: center;
 
-  .toolshelf-component-buttons {
+  .tool-shelf-component-buttons {
     height: $tool-shelf-height;
     background-color: white;
     border-right: solid #888888;
     align-items: center;
     padding: 0 5px;
 
-    .toolshelf-button {
+    .tool-shelf-button {
       height: 40px;
       width: 40px;
       margin-top: 5px;
@@ -51,7 +51,7 @@
   margin-top: 0!important;
 }
 
-.toolshelf-menu-trash-icon {
+.tool-shelf-menu-trash-icon {
   background-color: white;
   right: 6px;
   position: absolute;
