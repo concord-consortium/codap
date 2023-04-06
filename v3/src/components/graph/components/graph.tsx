@@ -102,7 +102,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     graphController?.handleAttributeAssignment(place, attrId)
   }
 
-  useDataTips(dotsRef, dataset, graphModel)
+  useDataTips({dotsRef, dataset, graphModel, enableAnimation})
 
   const renderPlotComponent = () => {
     const props = {
