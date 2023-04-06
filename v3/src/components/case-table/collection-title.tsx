@@ -8,6 +8,7 @@ import pluralize from "pluralize"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
+import t from "../../utilities/translation/translate"
 
 export const CollectionTitle = observer(function CollectionTitle() {
   const data = useDataSetContext()
@@ -67,10 +68,12 @@ export const CollectionTitle = observer(function CollectionTitle() {
     }
   }
 
+  const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
+
   return (
     <div className="collection-title-wrapper" ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
-        <Editable value={isEditing ? title : `${title} (${caseCount} cases)`}
+        <Editable value={isEditing ? title : `${title} (${caseCount} ${casesStr})`}
             onEdit={() => setIsEditing(true)} onSubmit={() => setIsEditing(false)} onCancel={() => setIsEditing(false)}
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeTitle}>
           <EditablePreview paddingY={0} />
