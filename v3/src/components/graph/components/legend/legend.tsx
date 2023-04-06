@@ -57,7 +57,7 @@ export const Legend = function Legend({
 
   return legendAttrID ? (
     <>
-      <svg ref={legendRef} className='legend'>
+      <svg ref={legendRef} className='legend-component'>
         { graphElt && createPortal(
           <AxisOrLegendAttributeMenu
             place="legend"
