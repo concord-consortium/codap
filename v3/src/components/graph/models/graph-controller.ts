@@ -5,16 +5,12 @@ import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   CategoricalAxisModel, EmptyAxisModel, IEmptyAxisModel, INumericAxisModel,
-  isCategoricalAxisModel, isNumericAxisModel, NumericAxisModel
+  isCategoricalAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import {scaleTypeToD3Scale} from "../../axis/models/multi-scale"
-import {
-  attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType
-} from "../graphing-types"
+import {axisPlaceToAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
-import {CodapV2Document} from "../../../v2/codap-v2-document"
-import {ICodapV2GraphStorage, IGuidLink} from "../../../v2/codap-v2-types"
 
+// keys are [primaryAxisType][secondaryAxisType]
 const plotChoices: Record<string, Record<string, PlotType>> = {
   empty: {empty: 'casePlot', numeric: 'dotPlot', categorical: 'dotChart'},
   numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
@@ -79,70 +75,6 @@ export class GraphController {
         pointStrokeColor: graphModel.pointStrokeColor
       })
     }
-  }
-
-  processV2Document(v2Document: CodapV2Document) {
-    const {graphModel, layout, /*dotsRef, enableAnimation,*/ dataset} = this,
-      dataConfig = graphModel?.config,
-      firstV2GraphComponent = v2Document?.components.find(aComp => aComp.type === 'DG.GraphView'),
-      storage = firstV2GraphComponent?.componentStorage as ICodapV2GraphStorage,
-      links = storage?._links_ || {},
-      attrTypes: Record<string, string> = {x: 'empty', y: 'empty', legend: 'empty'},
-      attrRoles = ['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend']
-    Object.keys(links).forEach((aKey: keyof typeof links) => {
-      if (['xAttr', 'yAttr', 'y2Attr', 'legendAttr', 'topAttr', 'rightAttr'].includes(aKey)) {
-        const match = aKey.match(/[a-z2]+/),
-          attrKey = match?.[0],
-          attrRole = ((attrKey === 'top' ? 'topSplit'
-            : attrKey === 'right' ? 'rightSplit' : attrKey) ?? 'x') as GraphAttrRole,
-          v2AttrArray = Array.isArray(links[aKey]) ? links[aKey] as any[] : [links[aKey]]
-        v2AttrArray.forEach((aLink: IGuidLink<"DG.Attribute">, index: number) => {
-          const attrV2ID = aLink.id,
-            attrName = v2Document?.getAttribute(attrV2ID)?.object.name,
-            attribute = dataset?.attrFromName(attrName),
-            attrID = attribute?.id ?? '',
-            attrSnapshot = {attributeID: attrID}
-          if (index === 0) {
-            graphModel?.setAttributeID(attrRole, attrID)
-            if (attrRoles.includes(attrRole)) {
-              attrTypes[attrRole] = attribute?.type ?? 'empty'
-            }
-          } else if (attrRole === 'y') {
-            dataConfig?.addYAttribute(attrSnapshot)
-          }
-        })
-      }
-    })
-    graphModel?.setPlotType(plotChoices[attrTypes.x][attrTypes.y])
-    attrRoles.forEach((attrRole: GraphAttrRole) => {
-      const axisPlace = attrRoleToAxisPlace[attrRole],
-        attrType = attrTypes[attrRole]
-      if (axisPlace) {
-        let axisModel
-        switch (attrType) {
-          case 'numeric':
-            axisModel = NumericAxisModel.create({place: axisPlace, min: 0, max: 1})
-            graphModel?.setAxis(axisPlace, axisModel)
-            setNiceDomain(dataConfig?.numericValuesForAttrRole(attrRole) ?? [], axisModel)
-            layout.setAxisScaleType(axisPlace, 'linear')
-            layout?.getAxisMultiScale(axisPlace)?.setNumericDomain(axisModel.domain)
-            break
-          case 'categorical':
-            axisModel = CategoricalAxisModel.create({place: axisPlace})
-            graphModel?.setAxis(axisPlace, axisModel)
-            layout.setAxisScaleType(axisPlace, 'band')
-            layout?.getAxisMultiScale(axisPlace)
-              ?.setCategoricalDomain(dataConfig?.categorySetForAttrRole(attrRole) ?? [])
-            break
-          default:  // Only add empty axes to 'left' and 'bottom'
-            if (['left', 'bottom'].includes(axisPlace)) {
-              axisModel = EmptyAxisModel.create({place: axisPlace})
-              graphModel?.setAxis(axisPlace, axisModel)
-              layout?.setAxisScaleType(axisPlace, 'ordinal')
-            }
-        }
-      }
-    })
   }
 
   handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {

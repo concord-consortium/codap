@@ -48,7 +48,9 @@ export function importValueToString(value: IValueType) {
   return value == null ? "" : typeof value === "string" ? value : JSON.stringify(value)
 }
 
-export const attributeTypes = ["categorical", "numeric", "date", "qualitative", "boundary", "checkbox"] as const
+export const attributeTypes = [
+  "categorical", "numeric", "date", "qualitative", "boundary", "checkbox", "color"
+] as const
 export type AttributeType = typeof attributeTypes[number]
 
 export const Attribute = types.model("Attribute", {

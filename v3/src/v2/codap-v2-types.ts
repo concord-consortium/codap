@@ -87,15 +87,18 @@ export interface IGuidLink<T extends string> {
   id: number
 }
 
-export interface ICodapV2CalculatorStorage {
+export interface ICodapV2BaseComponentStorage {
   // from DG.Component.toArchive
-  title: string
-  name: string
+  title?: string
+  name?: string
   userSetTitle: boolean
   cannotClose: boolean
 }
 
-export interface ICodapV2SliderStorage {
+export interface ICodapV2CalculatorStorage extends ICodapV2BaseComponentStorage {
+}
+
+export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
   // from SliderController.createComponentStorage
   _links_: {
     model: IGuidLink<"DG.GlobalValue">
@@ -107,13 +110,9 @@ export interface ICodapV2SliderStorage {
   restrictToMultiplesOf: number | null
   maxPerSecond: number | null
   userTitle: boolean
-  // from DG.Component.toArchive
-  title: string
-  userSetTitle: boolean
-  cannotClose: boolean
 }
 
-export interface ICodapV2TableStorage {
+export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
   }
@@ -126,20 +125,30 @@ export interface ICodapV2TableStorage {
   title: string
 }
 
-export interface ICodapV2PlotModel {
-  plotClass: string
-  plotModelStorage: any
+export interface ICodapV2PlotStorage {
+  verticalAxisIsY2: boolean
+  adornments: Record<string, any>
 }
 
-export interface ICodapV2GraphStorage {
+export interface ICodapV2PlotModel {
+  plotClass: string
+  plotModelStorage: ICodapV2PlotStorage
+}
+
+export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
     hiddenCases: any[]
     xColl: IGuidLink<"DG.Collection">
     xAttr: IGuidLink<"DG.Attribute">
     yColl: IGuidLink<"DG.Collection">
-    yAttr: IGuidLink<"DG.Attribute">
+    yAttr: IGuidLink<"DG.Attribute"> | Array<IGuidLink<"DG.Attribute">>
+    y2Coll: IGuidLink<"DG.Collection">
+    y2Attr: IGuidLink<"DG.Attribute">
+    rightColl: IGuidLink<"DG.Collection">
+    rightAttr: IGuidLink<"DG.Attribute">
   }
+  displayOnlySelected: boolean
   legendRole: number
   legendAttributeType: number
   pointColor: string
@@ -147,24 +156,38 @@ export interface ICodapV2GraphStorage {
   pointSizeMultiplier: 1
   transparency: number
   strokeTransparency: number
+  strokeSameAsFill: boolean
   isTransparent: boolean
+  plotBackgroundColor: string | null
+  plotBackgroundOpacity: number
+  plotBackgroundImageLockInfo: any
   xRole: number
   xAttributeType: number
   yRole: number
   yAttributeType: number
   y2Role: number
   y2AttributeType: number
+  topRole: number
+  topAttributeType: number
+  rightRole: number
+  rightAttributeType: number
   xAxisClass: string
+  xLowerBound?: number
+  xUpperBound?: number
   yAxisClass: string
+  yLowerBound?: number
+  yUpperBound?: number
   y2AxisClass: string
+  y2LowerBound?: number
+  y2UpperBound?: number
+  topAxisClass: string
+  rightAxisClass: string
   plotModels: ICodapV2PlotModel[]
-  title: string
 }
 
-export interface ICodapV2GuideStorage {
+export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentItemIndex?: number
   isVisible?: boolean
-  title?: string
   items: Array<{ itemTitle: string, url: string }>
 }
 

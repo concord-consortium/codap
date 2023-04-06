@@ -1,3 +1,4 @@
+import { IAttribute } from "../models/data/attribute"
 import { CollectionModel } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
@@ -11,6 +12,7 @@ export class CodapV2Document {
   private document: ICodapV2DocumentJson
   private guidMap: Record<number, { type: string, object: any }> = {}
   private dataMap: Record<number, ISharedDataSet> = {}
+  private v3AttrMap: Record<number, IAttribute> = {}
   private metadataMap: Record<number, ISharedCaseMetadata> = {}
 
   constructor(document: ICodapV2DocumentJson) {
@@ -52,8 +54,12 @@ export class CodapV2Document {
     return parentCaseId != null ? this.guidMap[parentCaseId]?.object as ICodapV2Case: undefined
   }
 
-  getAttribute(anID: number) {
-    return this.guidMap[anID]
+  getV2Attribute(v2Id: number) {
+    return this.guidMap[v2Id]
+  }
+
+  getV3Attribute(v2Id: number) {
+    return this.v3AttrMap[v2Id]
   }
 
   registerComponents(components?: CodapV2Component[]) {
@@ -121,9 +127,10 @@ export class CodapV2Document {
 
   registerAttributes(data: IDataSet, attributes: ICodapV2Attribute[], level: number) {
     attributes.forEach(attr => {
-      const { guid, name = "", title = "", type = "DG.Attribute", formula } = attr
+      const { guid, name = "", title = "", type, formula: _formula } = attr
+      const formula = _formula ? { display: _formula } : undefined
       this.guidMap[guid] = { type: type || "DG.Attribute", object: attr }
-      data.addAttribute({ name, formula, title })
+      this.v3AttrMap[guid] = data.addAttribute({ name, ...formula, title })
     })
   }
 

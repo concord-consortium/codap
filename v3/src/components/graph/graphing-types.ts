@@ -7,6 +7,7 @@ export type CaseData = { plotNum: number, caseID: string }
 export const GraphPlaces = [...AxisPlaces, "yPlus", "plot", "legend"] as const
 export type GraphPlace = typeof GraphPlaces[number]
 export const PrimaryAttrRoles = ['x', 'y'] as const
+export type PrimaryAttrRole = typeof PrimaryAttrRoles[number]
 export const TipAttrRoles =
   [...PrimaryAttrRoles, 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'caption'] as const
 export const GraphAttrRoles = [

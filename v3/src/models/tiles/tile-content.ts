@@ -57,7 +57,7 @@ export const TileContentModel = types.model("TileContentModel", {
      * @param sharedModel
      */
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
-      throw new Error("not implemented")
+      console.warn("updateAfterSharedModelChanges not implemented for:", self.type)
     }
   }))
   // Add an empty api so the api methods can be used on this generic type
