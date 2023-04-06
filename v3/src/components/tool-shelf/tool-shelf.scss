@@ -37,6 +37,11 @@
         padding: 0;
         min-height: 6px;
         background-color: white;
+
+        &.menu {
+          background-color: white;
+
+        }
       }
     }
   }
@@ -44,4 +49,13 @@
 
 .tool-shelf-span {
   margin-top: 0!important;
+}
+
+.toolshelf-menu-trash-icon {
+  background-color: white;
+  right: 6px;
+  position: absolute;
+  height: 11px;
+  width: 11px;
+  fill: black;
 }

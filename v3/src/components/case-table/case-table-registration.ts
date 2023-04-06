@@ -10,6 +10,7 @@ import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2TableComponent } from "../../v2/codap-v2-types"
 import { CaseTableInspector } from "./case-table-inspector"
+import { CaseTableToolShelfButton } from "./case-table-toolshelf-button"
 
 export const kCaseTableIdPrefix = "TABL"
 
@@ -27,6 +28,12 @@ registerTileComponentInfo({
   InspectorPanel: CaseTableInspector,
   tileEltClass: "codap-case-table",
   Icon: TableIcon,
+  ComponentToolshelfButton: CaseTableToolShelfButton,
+  position: 1,
+  toolshelfButtonOptions:{
+                      iconLabel: "DG.ToolButtonData.tableButton.title",
+                      buttonHint: "DG.ToolButtonData.tableButton.toolTip",
+                      },
   defaultWidth: 580,
   defaultHeight: 275
 })

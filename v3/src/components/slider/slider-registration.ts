@@ -15,6 +15,7 @@ import { SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import { AnimationDirections, AnimationModes, kDefaultAnimationDirection, kDefaultAnimationMode } from "./slider-types"
 import SliderIcon from '../../assets/icons/icon-slider.svg'
+import { ToolshelfButton } from "../tool-shelf/tool-shelf"
 
 export const kSliderIdPrefix = "SLID"
 
@@ -45,6 +46,10 @@ registerTileComponentInfo({
   InspectorPanel: SliderInspector,
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
+  ComponentToolshelfButton: ToolshelfButton,
+  position: 4,
+  toolshelfButtonOptions: {iconLabel: "DG.ToolButtonData.sliderButton.title",
+                            buttonHint: "DG.ToolButtonData.sliderButton.toolTip"},
   defaultWidth: 300,
   isFixedHeight: true,
   // must be in sync with rendered size for auto placement code
