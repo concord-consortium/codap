@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite"
 import React from "react"
 import { DataSetContext } from "../hooks/use-data-set-context"
 import { gDataBroker } from "../models/data/data-broker"
+import { InspectorPanelWrapper } from "./inspector-panel-wrapper"
 import { ITileBaseProps } from "./tiles/tile-base-props"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -32,7 +33,7 @@ export const CodapComponent = observer(function CodapComponent({
 
   if (!info) return null
 
-  const { TitleBar, Component, InspectorPanel, tileEltClass, isFixedWidth, isFixedHeight } = info
+  const { TitleBar, Component, tileEltClass, isFixedWidth, isFixedHeight } = info
   return (
     <DataSetContext.Provider value={dataset}>
       <div className={`codap-component ${tileEltClass}`} key={tile.id}
@@ -55,7 +56,7 @@ export const CodapComponent = observer(function CodapComponent({
           </div>
         }
       </div>
-      {InspectorPanel && <InspectorPanel tile={tile} show={uiState.isFocusedTile(tile?.id)}/>}
+      <InspectorPanelWrapper tile={tile} />
     </DataSetContext.Provider>
   )
 })

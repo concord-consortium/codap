@@ -26,7 +26,7 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     !show && setShowPalette(undefined)
   }, [active, show])
 
-  const handleResize = () => {
+  const handleClosePalette = () => {
     setShowPalette(undefined)
   }
 
@@ -45,11 +45,11 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   return (
     <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
       <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
-        testId={"graph-resize-button"} onButtonClick={handleResize}>
+        testId={"graph-resize-button"} onButtonClick={handleClosePalette}>
         <ScaleDataIcon />
       </InspectorButton>
       <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
-        icon={<HideShowIcon />} testId={"graph-hide-show-button"} >
+        icon={<HideShowIcon />} testId={"graph-hide-show-button"} onButtonClick={handleClosePalette}>
         <HideShowMenuList tile={tile} />
       </InspectorMenu>
       <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
