@@ -3,7 +3,7 @@ export const LegendElements = {
         return cy.get(".codap-graph")
     },
     getLegend() {
-        return this.getGraphTile().find(".graph-plot .legend")
+        return this.getGraphTile().find(".graph-plot .legend-component")
     },
     getLegendName() {
         return this.getLegend().find(".legend-label")
