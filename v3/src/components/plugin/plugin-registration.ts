@@ -4,7 +4,7 @@ import { PlaceholderTileComponent } from "../tiles/placeholder/placeholder-tile"
 import { ComponentTitleBar } from "../component-title-bar"
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 
-export const kPluginIdPrefix = "PLIN"
+export const kPluginIdPrefix = "PLUG"
 
 // registerTileContentInfo({
 //   type: "CodapPlugin",

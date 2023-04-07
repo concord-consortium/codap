@@ -4,7 +4,7 @@ import { PlaceholderTileComponent } from "../tiles/placeholder/placeholder-tile"
 import { ComponentTitleBar } from "../component-title-bar"
 import MapIcon from "../../assets/icons/icon-map.svg"
 
-export const kMapIdPrefix = "_MAP"
+export const kMapIdPrefix = "MAP_"
 
 // registerTileContentInfo({
 //   type: "CodapPMap",
