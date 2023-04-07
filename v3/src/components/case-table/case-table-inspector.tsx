@@ -16,7 +16,7 @@ import { useDataSet } from "../../hooks/use-data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../hooks/use-case-metadata"
 import { CaseTableModelContext } from "./use-case-table-model"
-
+import "./case-table-inspector.scss"
 
 export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -46,7 +46,7 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
               <ScaleDataIcon />
             </InspectorButton>
             <InspectorMenu tooltip={t("DG.Inspector.delete.toolTip")}
-              icon={<TrashIcon className="inspector-menu-icon"/>}
+              icon={<TrashIcon className="inspector-menu-icon trash-icon"/>}
               testId="delete-cases-button">
               <TrashMenuList />
             </InspectorMenu>

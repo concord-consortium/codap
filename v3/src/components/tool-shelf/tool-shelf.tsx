@@ -33,13 +33,9 @@ export const ToolShelf = ({content}: IProps) => {
           if (!entry) return null
           const { type, shelf: { ButtonComponent = ToolShelfButton, label, hint } } = entry
           return (
-            <>
-              {ButtonComponent &&
-                <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
-                    content={content}
-                />
-              }
-            </>
+            ButtonComponent
+              ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint} content={content} />
+              : null
           )
         })}
       </Flex>
