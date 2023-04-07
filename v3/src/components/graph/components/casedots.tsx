@@ -8,7 +8,7 @@ import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {handleClickOnDot, setPointSelection} from "../utilities/graph-utils"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
 import {useGraphModelContext} from "../models/graph-model"
@@ -87,9 +87,6 @@ export const CaseDots = function CaseDots(props: {
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const
       pointRadius = graphModel.getPointRadius(),
-      {computedBounds} = layout,
-      bounds = computedBounds.get('plot') as Bounds,
-      transform = `translate(${bounds.left}, ${bounds.top})`,
       dotsSelection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
@@ -98,7 +95,6 @@ export const CaseDots = function CaseDots(props: {
       xLength = layout.getAxisMultiScale('bottom')?.length ?? 0,
       yLength = layout.getAxisMultiScale('left')?.length ?? 0
     dotsSelection
-      .attr('transform', transform)
       .transition()
       .duration(duration)
       .on('end', (id, i) => (i === dotsSelection.size() - 1) && onComplete?.())
