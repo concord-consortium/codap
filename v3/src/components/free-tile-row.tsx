@@ -40,7 +40,7 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
   }
 
   return (
-    <div className="free-tile-row" ref={rowRef} onPointerDown={handlePointerDown}>
+    <div className="free-tile-row tile-row" ref={rowRef} onPointerDown={handlePointerDown}>
       {
         row?.tileIds.map(tileId => {
           const tile = getTile(tileId)

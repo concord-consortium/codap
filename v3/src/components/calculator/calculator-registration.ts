@@ -25,9 +25,17 @@ registerTileComponentInfo({
   Component: CalculatorComponent,
   tileEltClass: kCalculatorTileClass,
   Icon: CalcIcon,
+  shelf: {
+    position: 5,
+    label: "DG.ToolButtonData.calcButton.title",
+    hint: "DG.ToolButtonData.calcButton.toolTip"
+  },
   isSingleton: true,
   isFixedWidth: true,
-  isFixedHeight: true
+  isFixedHeight: true,
+  // must be in sync with rendered size for auto placement code
+  defaultHeight: 162,
+  defaultWidth: 137
 })
 
 registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {

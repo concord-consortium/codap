@@ -18,7 +18,7 @@ describe("Calculator registration", () => {
     expect(calculator).toBeDefined()
   })
   it("imports v2 calculator components", () => {
-    const file = path.join(__dirname, "../../v2", "calculator.codap")
+    const file = path.join(__dirname, "../../test/v2", "calculator.codap")
     const calculatorJson = fs.readFileSync(file, "utf8")
     const calculatorDoc = JSON.parse(calculatorJson) as ICodapV2DocumentJson
     const v2Document = new CodapV2Document(calculatorDoc)

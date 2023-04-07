@@ -7,27 +7,30 @@ import {
 import t from "../../../../utilities/translation/translate"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { missingColor } from "../../../../utilities/color-utils"
-import {IGraphModel} from "../../models/graph-model"
+import { ITileModel } from "../../../../models/tiles/tile-model"
+import { isGraphModel } from "../../models/graph-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 
 import "./point-format-panel.scss"
 
 interface IProps {
-  graphModel: IGraphModel
+  tile?: ITileModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void;
 }
 
-export const PointFormatPalette = observer(function PointFormatPalette({graphModel, panelRect, buttonRect,
+export const PointFormatPalette = observer(function PointFormatPalette({tile, panelRect, buttonRect,
     setShowPalette}: IProps) {
   const dataConfiguration = useDataConfigurationContext()
-  const legendAttrID = graphModel.getAttributeID("legend")
+  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
+  const legendAttrID = graphModel?.getAttributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
   const categoriesRef = useRef<Set<string> | undefined>()
   categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
 
+  if (!graphModel) return null
   const handlePointSizeMultiplierSetting = (val: any) => {
     graphModel.setPointSizeMultiplier(val)
   }
@@ -63,7 +66,6 @@ categoriesRef.current?.forEach(cat => {
     <InspectorPalette
       title={t("DG.Inspector.styles")}
       Icon={<StylesIcon/>}
-      paletteTop={35} //temporary setting until paletteTop can be dynamically set depending on component placement
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}

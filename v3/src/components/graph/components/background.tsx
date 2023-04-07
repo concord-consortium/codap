@@ -10,6 +10,7 @@ import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {MarqueeState} from "../models/marquee-state"
 import {useGraphModelContext} from "../models/graph-model"
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
 interface IProps {
   marqueeState: MarqueeState
@@ -43,6 +44,7 @@ const prepareTree = (areaSelector: string, circleSelector: string, offset: Point
 
 export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
   const {marqueeState} = props,
+    instanceId = useInstanceIdContext() || 'background',
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphModelContext(),
@@ -60,10 +62,10 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
 
   useEffect(() => {
     const onDragStart = (event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
-        const {computedBounds} = layout,
+      const {computedBounds} = layout,
           plotBounds = computedBounds.get('plot') as Bounds
         appState.beginPerformance()
-        selectionTree.current = prepareTree('.graph-dot-area', 'circle',
+        selectionTree.current = prepareTree(`.${instanceId}`, 'circle',
           {x: plotBounds.left, y: plotBounds.top})
         startX.current = event.x
         startY.current = event.y
@@ -135,7 +137,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
             .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
         }
       )
-  }, [bgRef, transform, dataset, plotHeight, plotWidth, graphModel, layout, marqueeState])
+  }, [bgRef, instanceId, transform, dataset, plotHeight, plotWidth, graphModel, layout, marqueeState])
 
   // respond to point properties change
   useEffect(function respondToGraphPointVisualAction() {

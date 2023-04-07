@@ -13,8 +13,13 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
     return `<p>${d}</p>`
   })
 
-export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,
-                            dataset: IDataSet | undefined, graphModel: IGraphModel) => {
+interface IUseDataTips {
+  dotsRef: React.RefObject<SVGSVGElement>,
+  dataset: IDataSet | undefined,
+  graphModel: IGraphModel,
+  enableAnimation: React.MutableRefObject<boolean>
+}
+export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUseDataTips) => {
   const hoverPointRadius = graphModel.getPointRadius('hover-drag'),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
@@ -24,7 +29,7 @@ export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,
   useEffect(() => {
 
     function okToTransition(target: any) {
-      return target.node()?.nodeName === 'circle' && dataset && /*!active(target.node()) &&*/
+      return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
         !target.property('isDragging')
     }
 
@@ -62,6 +67,6 @@ export const useDataTips = (dotsRef: React.RefObject<SVGSVGElement>,
       .on('mouseover', showDataTip)
       .on('mouseout', hideDataTip)
       .call(dataTip)
-  }, [dotsRef, dataset, roleAttrIDPairs, yAttrIDs,
+  }, [dotsRef, dataset, enableAnimation, roleAttrIDPairs, yAttrIDs,
     hoverPointRadius, pointRadius, selectedPointRadius])
 }

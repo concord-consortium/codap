@@ -31,7 +31,7 @@ describe("Slider registration", () => {
     expect(mockGlobalValueManager.addValue).toHaveBeenCalledTimes(1)
   })
   it("imports v2 slider components", () => {
-    const file = path.join(__dirname, "../../v2", "slider.codap")
+    const file = path.join(__dirname, "../../test/v2", "slider.codap")
     const sliderJson = fs.readFileSync(file, "utf8")
     const sliderDoc = JSON.parse(sliderJson) as ICodapV2DocumentJson
     const v2Document = new CodapV2Document(sliderDoc)

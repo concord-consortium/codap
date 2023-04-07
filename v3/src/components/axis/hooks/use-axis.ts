@@ -27,7 +27,6 @@ export const useAxis = ({
     multiScale = layout.getAxisMultiScale(place),
     ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>
   const
-    bandWidth = (ordinalScale?.bandwidth?.()) ?? 0,
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
     // Todo: Revisit and figure out whether we can remove the workaround.
@@ -49,6 +48,8 @@ export const useAxis = ({
     }
     const axisTitleHeight = getStringBounds(axisTitle).height,
       numbersHeight = getStringBounds('0').height,
+      repetitions = multiScale?.repetitions ?? 1,
+      bandWidth = ((ordinalScale?.bandwidth?.()) ?? 0) / repetitions,
       categories = ordinalScale?.domain() ?? [],
       collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
       maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categorySetForAttrRole(attrRole) ?? []),
@@ -70,8 +71,7 @@ export const useAxis = ({
       }
     }
     return desiredExtent
-  }, [bandWidth, centerCategoryLabels, ordinalScale, axisPlace, attrRole, dataConfiguration,
-    axisTitle, type, multiScale])
+  }, [centerCategoryLabels, ordinalScale, axisPlace, attrRole, dataConfiguration, axisTitle, type, multiScale])
 
   const refreshAxisTitle = useCallback(() => {
     const axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
@@ -151,15 +151,29 @@ export const useAxis = ({
       },
       () => {
         refreshAxisTitle()
+        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
       }
     )
     return () => disposer()
-  }, [axisModel, layout, refreshAxisTitle, axisPlace])
+  }, [axisModel, layout, refreshAxisTitle, axisPlace, computeDesiredExtent])
 
-  // Set desired extent
+  // Set desired extent when things change
   useEffect(() => {
     layout.setDesiredExtent(axisPlace, computeDesiredExtent())
   }, [computeDesiredExtent, axisPlace, attributeID, layout])
+
+  // Set desired extent when repetitions of my multiscale changes
+  useEffect(() => {
+    const disposer = reaction(
+      () => {
+        return layout.getAxisMultiScale(axisPlace)?.repetitions
+      },
+      () => {
+        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+      }
+    )
+    return () => disposer()
+  }, [computeDesiredExtent, axisPlace, layout])
 
   useEffect(function setupTitle() {
     if (titleRef) {

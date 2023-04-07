@@ -2,23 +2,24 @@ import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
 import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
-import { isWithinBounds } from "../utilities/view-utils"
+import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
 
 interface IProps {
   component?: string
+  show?: boolean
   children: ReactNode
   setShowPalette?: (palette: string | undefined) => void
 }
 
-export const InspectorPanel = forwardRef(({ component, setShowPalette, children }: IProps, ref) => {
+export const InspectorPanel = forwardRef(({ component, show, setShowPalette, children }: IProps, ref) => {
   useOutsidePointerDown({ref: ref as unknown as RefObject<HTMLElement>, handler: ()=> setShowPalette?.(undefined)})
-
-  return (
-    <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
-      {children}
-    </Box>
+  return (show
+    ? <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+        {children}
+      </Box>
+    : null
   )
 })
 
@@ -71,20 +72,40 @@ interface IInspectorPalette {
   children: ReactNode
   Icon?: ReactNode
   title?: string
-  paletteTop?: number
   panelRect?: DOMRect
   buttonRect?: DOMRect
-  buttonRef?: any
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelRect, buttonRect, buttonRef,
+export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
      setShowPalette}:IInspectorPalette) => {
   const panelTop = panelRect?.top || 0
+  const panelRight = panelRect?.right || 0
   const buttonTop = buttonRect?.top || 0
   const [paletteWidth, setPaletteWidth] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
-  const inBounds = panelRect && isWithinBounds(paletteWidth, panelRect)
+  const pointerRef = useRef<HTMLDivElement>(null)
+  const viewportEl = paletteRef.current?.closest(".tile-row")
+  const [inBounds, setInBounds] = useState(isWithinBounds(panelRight, paletteRef.current))
+  const paletteHeight = paletteRef.current?.offsetHeight
+  const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
+  const pointerTop = buttonTop - panelTop - 5
+  const pointerHeight = pointerRef.current?.offsetHeight
+  const pointerMidpoint = pointerHeight ? pointerTop + pointerHeight/2 : 13
+  const paletteTop = (tempPaletteTop && paletteHeight) &&
+    getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
+
+  useEffect(()=> {
+    const observer = viewportEl && new ResizeObserver(entries => {
+      entries.forEach(entry => {
+        if (panelRight && paletteRef.current) {
+          setInBounds(isWithinBounds(panelRight, paletteRef.current))
+        }
+      })
+    })
+    viewportEl && observer?.observe(viewportEl)
+    return () => observer?.disconnect()
+  }, [panelRight, viewportEl])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = e
@@ -103,7 +124,8 @@ export const InspectorPalette = ({children, Icon, title, paletteTop = 0,  panelR
     const pointerStyle = {top: buttonTop - panelTop - 5}
 
     return (
-      <div className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`} style={pointerStyle} />
+      <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
+            style={pointerStyle} />
     )
   }
 

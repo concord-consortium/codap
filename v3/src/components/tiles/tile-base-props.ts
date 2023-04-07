@@ -12,3 +12,7 @@ export interface ITileTitleBarProps extends ITileBaseProps {
   onHandleTitleBarClick?: (e: React.MouseEvent) => void
   onCloseTile?: (tileId: string) => void
 }
+
+export interface ITileInspectorPanelProps extends ITileBaseProps{
+  show?: boolean
+}

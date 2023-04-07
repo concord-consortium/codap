@@ -9,6 +9,7 @@ import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2SliderComponent } from "../../v2/codap-v2-types"
 import { SliderComponent } from "./slider-component"
+import { SliderInspector } from "./slider-inspector"
 import { kSliderTileType, kSliderTileClass } from "./slider-defs"
 import { SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
@@ -41,10 +42,19 @@ registerTileComponentInfo({
   type: kSliderTileType,
   TitleBar: SliderTitleBar,
   Component: SliderComponent,
+  InspectorPanel: SliderInspector,
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
+  shelf: {
+    position: 4,
+    label: "DG.ToolButtonData.sliderButton.title",
+    hint: "DG.ToolButtonData.sliderButton.toolTip"
+  },
   defaultWidth: 300,
-  isFixedHeight: true
+  isFixedHeight: true,
+  // must be in sync with rendered size for auto placement code
+  defaultHeight: 73
+
 })
 
 registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {

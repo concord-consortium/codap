@@ -42,7 +42,7 @@ describe("SliderModel", () => {
     slider.setValue(1)
     expect(slider.value).toBe(1)
     expect(slider.domain).toEqual([slider.axis.min, slider.axis.max])
-    expect(slider.increment).toBeCloseTo(0.1)
+    expect(slider.increment).toBeCloseTo(0.5)
     slider.setMultipleOf(2)
     slider.setValue(2.5)
     expect(slider.value).toBe(2)

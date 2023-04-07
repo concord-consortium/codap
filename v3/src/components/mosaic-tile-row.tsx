@@ -20,7 +20,7 @@ interface IMosaicTileRowProps {
 export const MosaicTileRowComponent = observer(function MosaicTileRowComponent(
   { content, row, getTile }: IMosaicTileRowProps) {
   return (
-    <div className="mosaic-tile-row">
+    <div className="mosaic-tile-row tile-row">
       {row &&
         <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root} getTile={getTile} />}
     </div>

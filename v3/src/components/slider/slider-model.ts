@@ -36,7 +36,7 @@ export const SliderModel = TileContentModel
     },
     get increment() {
       // TODO: implement v2 algorithm which determines default increment from axis bounds
-      return self.multipleOf || 0.1
+      return self.multipleOf || 0.5
     },
     get animationRate() {
       return self._animationRate ?? kDefaultAnimationRate

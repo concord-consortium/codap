@@ -1,6 +1,6 @@
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
-import React, {MutableRefObject, useEffect, useRef} from "react"
+import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {GraphController} from "../models/graph-controller"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
@@ -34,14 +34,12 @@ interface IProps {
   graphRef: MutableRefObject<HTMLDivElement>
 }
 
-const marqueeState = new MarqueeState()
-
-
 export const Graph = observer(function Graph({graphController, graphRef}: IProps) {
   const graphModel = useGraphModelContext(),
     { enableAnimation, dotsRef } = graphController,
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
+    marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     xScale = layout.getAxisScale("bottom"),
@@ -55,13 +53,16 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
+      const plotBounds = layout.getComputedBounds('plot'),
+        transform = `translate(${plotBounds?.left}, ${plotBounds?.top})`
       select(plotAreaSVGRef.current)
+        .attr('transform', transform)
         .attr('x', 0 /*xScale?.length*/)
         .attr('y', 0)
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
     }
-  }, [dataset, plotAreaSVGRef, layout.plotHeight, layout.plotWidth, xScale])
+  }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale])
 
   const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
@@ -101,7 +102,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     graphController?.handleAttributeAssignment(place, attrId)
   }
 
-  useDataTips(dotsRef, dataset, graphModel)
+  useDataTips({dotsRef, dataset, graphModel, enableAnimation})
 
   const renderPlotComponent = () => {
     const props = {
@@ -161,7 +162,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
           {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
-            <svg ref={dotsRef} className='graph-dot-area'>
+            <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
               {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>

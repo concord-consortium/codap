@@ -10,13 +10,20 @@ import { TrashMenuList } from "./inspector-panel/trash-menu-list"
 import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
 import t from "../../utilities/translation/translate"
 import { RulerMenuList } from "./inspector-panel/ruler-menu-list"
+import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
+import { ICaseTableModel, isCaseTableModel } from "./case-table-model"
+import { useDataSet } from "../../hooks/use-data-set"
+import { DataSetContext } from "../../hooks/use-data-set-context"
+import { CaseMetadataContext } from "../../hooks/use-case-metadata"
+import { CaseTableModelContext } from "./use-case-table-model"
 
-interface IProps {
-  show: boolean
-}
 
-export const CaseTableInspector = ({ show }: IProps) => {
+export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const [showInfoModal, setShowInfoModal] = useState(false)
+  const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
+  const { data, metadata } = useDataSet(tableModel?.data, tableModel?.metadata)
+
+  if (!tableModel) return null
 
   const handleButtonClick = (tool: string) => {
     switch (tool) {
@@ -24,30 +31,37 @@ export const CaseTableInspector = ({ show }: IProps) => {
         setShowInfoModal(true)
     }
   }
-  return (show
-    ? <InspectorPanel>
-        <InspectorButton tooltip={t("DG.Inspector.datasetInfo.toolTip")} showMoreOptions={true}
-          onButtonClick={()=>handleButtonClick("datasetInfo")} testId="dataset-info-button">
-          <InformationIcon />
-        </InspectorButton>
-        <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
-          testId="resize-table-button">
-          <ScaleDataIcon />
-        </InspectorButton>
-        <InspectorMenu tooltip={t("DG.Inspector.delete.toolTip")} icon={<TrashIcon className="inspector-menu-icon"/>}
-          testId="delete-cases-button">
-          <TrashMenuList />
-        </InspectorMenu>
-        <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
-            icon={<HideShowIcon />} testId="hide-show-button">
-          <HideShowMenuList />
-        </InspectorMenu>
-        <InspectorMenu tooltip={t("DG.Inspector.attributes.toolTip")}
-          icon={<ValuesIcon className="inspector-menu-icon"/>} testId="table-attributes-button">
-          <RulerMenuList />
-        </InspectorMenu>
-        {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
-      </InspectorPanel>
-    : null
+
+  return (
+    <DataSetContext.Provider value={data}>
+      <CaseMetadataContext.Provider value={metadata}>
+        <CaseTableModelContext.Provider value={tableModel}>
+          <InspectorPanel component="table" show={show}>
+            <InspectorButton tooltip={t("DG.Inspector.datasetInfo.toolTip")} showMoreOptions={true}
+              onButtonClick={()=>handleButtonClick("datasetInfo")} testId="dataset-info-button">
+              <InformationIcon />
+            </InspectorButton>
+            <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
+              testId="resize-table-button">
+              <ScaleDataIcon />
+            </InspectorButton>
+            <InspectorMenu tooltip={t("DG.Inspector.delete.toolTip")}
+              icon={<TrashIcon className="inspector-menu-icon"/>}
+              testId="delete-cases-button">
+              <TrashMenuList />
+            </InspectorMenu>
+            <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
+                icon={<HideShowIcon />} testId="hide-show-button">
+              <HideShowMenuList />
+            </InspectorMenu>
+            <InspectorMenu tooltip={t("DG.Inspector.attributes.toolTip")}
+              icon={<ValuesIcon className="inspector-menu-icon"/>} testId="table-attributes-button">
+              <RulerMenuList />
+            </InspectorMenu>
+            {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
+          </InspectorPanel>
+        </CaseTableModelContext.Provider>
+      </CaseMetadataContext.Provider>
+    </DataSetContext.Provider>
   )
 }

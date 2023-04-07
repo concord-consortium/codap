@@ -37,7 +37,6 @@ export const SliderSettingsPalette =
     <InspectorPalette
       title={t("DG.Inspector.values")}
       Icon={<ValuesIcon/>}
-      paletteTop={-50} //temporary setting until paletteTop can be dynamically set depending on component placement
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
@@ -46,8 +45,8 @@ export const SliderSettingsPalette =
         <FormControl size="xs">
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
-              <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf || 1}
-                  min={0.1} precision={2} step={1} onChange={handleMultiplesOfChange}>
+              <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf}
+                  min={0} step={0.5} onChange={handleMultiplesOfChange}>
                 <NumberInputField />
                 <NumberInputStepper>
                   <NumberIncrementStepper />
@@ -60,8 +59,8 @@ export const SliderSettingsPalette =
         <FormControl>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
-              <NumberInput className="slider-input animation-rate" size="xs" min={0.1} precision={2} step={1}
-                  defaultValue={sliderModel.animationRate || 1} onChange={handleAnimationRateChange}>
+              <NumberInput className="slider-input animation-rate" size="xs" min={0.1} max={1.0} precision={2}
+                  step={0.1} defaultValue={sliderModel._animationRate} onChange={handleAnimationRateChange}>
                 <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
