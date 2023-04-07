@@ -1,5 +1,13 @@
 import React, { SVGProps } from "react"
 import { ITileBaseProps, ITileInspectorPanelProps, ITileTitleBarProps } from "../../components/tiles/tile-base-props"
+import { type IToolShelfButtonProps } from "../../components/tool-shelf/tool-shelf"
+
+export interface IToolShelfOptions {
+  position: number
+  ButtonComponent?: React.FC<IToolShelfButtonProps>
+  label: string
+  hint: string
+}
 
 export interface ITileComponentInfo {
   type: string;
@@ -8,6 +16,7 @@ export interface ITileComponentInfo {
   InspectorPanel?: React.ComponentType<ITileInspectorPanelProps>;
   tileEltClass: string;
   Icon?: React.FC<SVGProps<SVGSVGElement>>;
+  shelf?: IToolShelfOptions;
   /**
    * By default the tool tile wrapper TileComponent will handle the selection of the
    * the tile when it gets a mouse down or touch start.
@@ -33,6 +42,10 @@ const gTileComponentInfoMap = new Map<string, ITileComponentInfo>()
 export function registerTileComponentInfo(tileComponentInfo: ITileComponentInfo) {
   // toLowerCase() for legacy support of tool names
   gTileComponentInfoMap.set(tileComponentInfo.type.toLowerCase(), tileComponentInfo)
+}
+
+export function getTileComponentKeys() {
+  return Array.from(gTileComponentInfoMap.keys())
 }
 
 // Tool id, e.g. kDrawingTileType, kGeometryTileType, etc.

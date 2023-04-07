@@ -45,6 +45,11 @@ registerTileComponentInfo({
   InspectorPanel: SliderInspector,
   tileEltClass: kSliderTileClass,
   Icon: SliderIcon,
+  shelf: {
+    position: 4,
+    label: "DG.ToolButtonData.sliderButton.title",
+    hint: "DG.ToolButtonData.sliderButton.toolTip"
+  },
   defaultWidth: 300,
   isFixedHeight: true,
   // must be in sync with rendered size for auto placement code
