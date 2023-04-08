@@ -39,13 +39,13 @@ export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
   const isActive = active && handleIsActive(active),
     placeKey = ['rightNumeric', 'rightCat'].includes(place) ? 'right' : place // both use same css
   const className = clsx(`add-attribute-drop-${placeKey}`, {over: isActive && isOver, active: isActive})
-  return (
+  return isActive ? (
     <div ref={setNodeRef} id={droppableId}
          className={className}>
       {isOver && hintString &&
          <DropHint hintText={hintString}/>
       }
     </div>
-  )
+  ) : null
 }
 
