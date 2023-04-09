@@ -53,12 +53,10 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
-      const plotBounds = layout.getComputedBounds('plot'),
-        transform = `translate(${plotBounds?.left}, ${plotBounds?.top})`
+      const plotBounds = layout.getComputedBounds('plot')
       select(plotAreaSVGRef.current)
-        .attr('transform', transform)
-        .attr('x', 0 /*xScale?.length*/)
-        .attr('y', 0)
+        .attr('x', plotBounds?.left || 0)
+        .attr('y', plotBounds?.top || 0)
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
     }

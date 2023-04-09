@@ -4,7 +4,7 @@ import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../g
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 import {
@@ -197,11 +197,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
       setPoints = () => {
         const duration = enableAnimation.current ? transitionDuration : 0,
-          plotBounds = layout.computedBounds.get('plot') as Bounds,
-          transform = `translate(${plotBounds.left}, ${plotBounds.top})`,
           pointRadius = graphModel.getPointRadius()
         selection
-          .attr('transform', transform)
           .transition()
           .duration(duration)
           .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())

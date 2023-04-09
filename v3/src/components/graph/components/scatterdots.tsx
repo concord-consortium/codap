@@ -7,7 +7,7 @@ import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
 import {
   getScreenCoord,
@@ -181,13 +181,11 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       numExtraPrimaryBands = dataConfiguration?.numRepetitionsForPlace('bottom') ?? 1,
       numExtraSecondaryBands = dataConfiguration?.numRepetitionsForPlace('left') ?? 1,
       numberOfPlots = dataConfiguration?.numberOfPlots || 1,
-      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
-      {computedBounds} = layout,
-      plotBounds = computedBounds.get('plot') as Bounds
+      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
       dataset, dotsRef, pointRadius: pointRadiusRef.current, selectedPointRadius: selectedPointRadiusRef.current,
-      plotBounds, selectedOnly, getScreenX, getScreenY, getLegendColor,
+      selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointColorAtIndex, enableAnimation, pointColor, pointStrokeColor
     })
   }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID, enableAnimation, graphModel,

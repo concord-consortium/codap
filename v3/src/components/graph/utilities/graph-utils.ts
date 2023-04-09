@@ -6,7 +6,6 @@ import {between} from "../../../utilities/math-utils"
 import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IDataSet} from "../../../models/data/data-set"
-import {Bounds} from "../models/graph-layout"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity,
   defaultSelectedStrokeWidth, defaultStrokeOpacity, defaultStrokeWidth
@@ -409,7 +408,6 @@ export interface ISetPointCoordinates {
   pointColor: string
   pointStrokeColor: string
   getPointColorAtIndex?: (index: number) => string
-  plotBounds: Bounds
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string, plotNum?:number) => number | null)
   getLegendColor?: ((anID: string) => string)
@@ -430,12 +428,10 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     },
 
     setPoints = () => {
-      const duration = enableAnimation.current ? transitionDuration : 0,
-        transform = `translate(${plotBounds.left}, ${plotBounds.top})`
+      const duration = enableAnimation.current ? transitionDuration : 0
 
       if (theSelection.size() > 0) {
         theSelection
-          .attr('transform', transform)
           .transition()
           .duration(duration)
           .on('end', (id, i) => (i === theSelection.size() - 1) && onComplete())
@@ -459,7 +455,7 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     {
       dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
       pointStrokeColor, pointColor, getPointColorAtIndex,
-      plotBounds, getScreenX, getScreenY, getLegendColor, enableAnimation,
+      getScreenX, getScreenY, getLegendColor, enableAnimation,
       onComplete = (() => {
         if (enableAnimation.current) {
           setPoints()
