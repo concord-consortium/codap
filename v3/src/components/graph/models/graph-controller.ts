@@ -4,8 +4,7 @@ import {GraphLayout} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, EmptyAxisModel, IEmptyAxisModel, INumericAxisModel,
-  isCategoricalAxisModel, NumericAxisModel
+  CategoricalAxisModel, EmptyAxisModel, INumericAxisModel, isCategoricalAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import {axisPlaceToAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
@@ -149,9 +148,12 @@ export class GraphController {
         case 'empty': {
           if (currentType !== 'empty') {
             layout.setAxisScaleType(place, 'ordinal')
-            const newAxisModel = attrRole !== 'rightNumeric'
-              ? EmptyAxisModel.create({place}) : undefined
-            graphModel.setAxis(place, newAxisModel as IEmptyAxisModel)
+            if (['left', 'bottom'].includes(place)) {
+              graphModel.setAxis(place, EmptyAxisModel.create({place}))
+            }
+            else {
+              graphModel.removeAxis(place)
+            }
           }
         }
       }

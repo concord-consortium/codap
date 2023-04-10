@@ -37,7 +37,6 @@ export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
     dragAttributeID && onDrop(dragAttributeID)
   })
 
-  // if (plotType === 'scatterPlot') {
   const isActive = active && handleIsActive(active),
     placeKey = ['rightNumeric', 'rightCat'].includes(place) ? 'right' : place // both use same css
   const className = clsx(`add-attribute-drop-${placeKey}`, {over: isActive && isOver, active: isActive})

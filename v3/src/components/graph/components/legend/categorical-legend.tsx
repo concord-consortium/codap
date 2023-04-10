@@ -7,13 +7,15 @@ import {useDataConfigurationContext} from "../../hooks/use-data-configuration-co
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
+import {kGraphFont} from "../../graphing-types"
+import {getStringBounds} from "../../../axis/axis-utils"
+import {axisGap} from "../../../axis/axis-types"
 
 import './legend.scss'
-import {kGraphFont} from "../../graphing-types"
+import graphVars from "../graph.scss"
 
 interface ICategoricalLegendProps {
   transform: string,
-  legendLabelRef: React.RefObject<SVGGElement>
 }
 
 interface Key {
@@ -36,7 +38,7 @@ const keySize = 15,
   padding = 5
 
 export const CategoricalLegend = memo(function CategoricalLegend(
-  {transform, legendLabelRef}: ICategoricalLegendProps) {
+  {transform}: ICategoricalLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     dataset = dataConfiguration?.dataset,
     layout = useGraphLayoutContext(),
@@ -50,6 +52,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
         columnWidth: 0
       }
     ),
+    labelHeight = getStringBounds('Wy', graphVars.graphLabelFont).height,
     // keyFunc = (index: number) => index,
     [keysElt, setKeysElt] = useState<SVGGElement | null>(null),
 
@@ -84,10 +87,9 @@ export const CategoricalLegend = memo(function CategoricalLegend(
         return 0
       }
       computeLayout()
-      const lod = layoutData.current,
-        labelHeight = legendLabelRef.current?.getBoundingClientRect().height ?? 0
-      return lod.numRows * (keySize + padding) + labelHeight
-    }, [computeLayout, legendLabelRef, dataConfiguration]),
+      const lod = layoutData.current
+      return lod.numRows * (keySize + padding) + labelHeight + axisGap
+    }, [computeLayout, dataConfiguration, labelHeight]),
 
     setupKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
@@ -103,7 +105,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
               .append('g')
               .attr('class', 'key')
           )
-        keysSelection.each(function (d, n, group) {
+        keysSelection.each(function () {
           const sel = select<SVGGElement, number>(this),
             size = sel.selectAll<SVGRectElement, number>('rect').size()
           if (size === 0) {
@@ -140,21 +142,22 @@ export const CategoricalLegend = memo(function CategoricalLegend(
               .attr('transform', transform)
               .style('fill', (index: number) => categoryData.current[index].color || 'white')
               .attr('x', (index: number) => {
-                return categoryData.current[index].column * layoutData.current.columnWidth
+                return axisGap + categoryData.current[index].column * layoutData.current.columnWidth
               })
               .attr('y',
-                (index: number) => 10 + categoryData.current[index].row * (keySize + padding))
+                (index: number) => labelHeight + categoryData.current[index].row * (keySize + padding))
             return update.select('text')
               .text((index: number) => categoryData.current[index].category)
               .attr('transform', transform)
               .attr('x', (index: number) => {
-                return categoryData.current[index].column * layoutData.current.columnWidth + keySize + 3
+                return axisGap +categoryData.current[index].column * layoutData.current.columnWidth + keySize + 3
               })
               .attr('y',
-                (index: number) => 1.5 * keySize + categoryData.current[index].row * (keySize + padding))
+                (index: number) =>
+                  labelHeight + 0.8 * keySize + categoryData.current[index].row * (keySize + padding))
           }
         )
-    }, [dataConfiguration, keysElt, transform])
+    }, [dataConfiguration, keysElt, transform, labelHeight])
 
   useEffect(function respondToSelectionChange() {
     return onAction(dataset, action => {
@@ -196,6 +199,12 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       refreshKeys()
     }
   }, [keysElt, categoryData, setupKeys, refreshKeys, dataConfiguration])
+
+  useEffect(function cleanup () {
+    return () => {
+      layout.setDesiredExtent('legend', 0)
+    }
+  }, [layout])
 
   return (
     <svg className='legend-categories' ref={elt => setKeysElt(elt)}></svg>

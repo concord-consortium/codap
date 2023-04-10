@@ -136,14 +136,16 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
       const plotPlaces: GraphPlace[] = plotType === 'scatterPlot' ? ['yPlus', 'rightNumeric'] : []
       const places: GraphPlace[] = ['top', 'rightCat', ...plotPlaces]
       places.forEach((place: GraphPlace) => {
-        droppables.push(
-          <DroppableAddAttribute
-            key={place}
-            place={place}
-            plotType={plotType}
-            onDrop={handleChangeAttribute.bind(null, place)}
-          />
-        )
+        if (!graphModel.getAxis(place as AxisPlace)) {
+          droppables.push(
+            <DroppableAddAttribute
+              key={place}
+              place={place}
+              plotType={plotType}
+              onDrop={handleChangeAttribute.bind(null, place)}
+            />
+          )
+        }
       })
     }
     return droppables

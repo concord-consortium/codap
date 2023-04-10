@@ -5,24 +5,28 @@ import {useDataConfigurationContext} from "../../hooks/use-data-configuration-co
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {choroplethLegend} from "./choroplethLegend/choroplethLegend"
-import {measureTextExtent} from "../../../../hooks/use-measure-text"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
-import {kChoroplethHeight, kGraphFont} from "../../graphing-types"
+import {kChoroplethHeight} from "../../graphing-types"
 import {axisGap} from "../../../axis/axis-types"
+import {getStringBounds} from "../../../axis/axis-utils"
+
+import graphVars from "../graph.scss"
 
 
 interface INumericLegendProps {
   legendAttrID: string
-  transform: string
 }
 
-export const NumericLegend = memo(function NumericLegend({transform, legendAttrID}: INumericLegendProps) {
+export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumericLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
     dataset = useDataSetContext(),
     quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
+    labelFont = graphVars.graphLabelFont,
+    labelHeight = getStringBounds(dataset?.attrFromID(legendAttrID).name ?? '', labelFont).height,
+    numberHeight = getStringBounds('0').height,
 
     refreshScale = useCallback(() => {
 
@@ -30,8 +34,7 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
           return 0
         }
-        const labelHeight = measureTextExtent(dataset?.attrFromID(legendAttrID).name ?? '', kGraphFont).height
-        return 2 * labelHeight + kChoroplethHeight + 2 * axisGap
+          return labelHeight + kChoroplethHeight + numberHeight + 2 * axisGap
       }
 
       if (choroplethElt) {
@@ -39,7 +42,7 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
         layout.setDesiredExtent('legend', computeDesiredExtent())
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
         const bounds = layout.computedBounds.get('legend'),
-          translate = `translate(${bounds?.left}, ${(bounds?.top ?? 0) + axisGap})`
+          translate = `translate(${bounds?.left}, ${(bounds?.top ?? 0) + labelHeight})`
         choroplethLegend(quantileScale.current, choroplethElt,
           {
             transform: translate, width: bounds?.width,
@@ -52,7 +55,7 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
             }
           })
       }
-    }, [choroplethElt, dataConfiguration, layout, dataset, legendAttrID])
+    }, [choroplethElt, dataConfiguration, layout, labelHeight, numberHeight])
 
   useEffect(function refresh() {
     refreshScale()
@@ -89,6 +92,12 @@ export const NumericLegend = memo(function NumericLegend({transform, legendAttrI
         refreshScale()
       })
   }, [dataConfiguration, refreshScale])
+
+  useEffect(function cleanup () {
+    return () => {
+      layout.setDesiredExtent('legend', 0)
+    }
+  }, [layout])
 
   return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)}></svg>
 })

@@ -6,7 +6,7 @@ import t from "../../../utilities/translation/translate"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
 import {MultiScale} from "../models/multi-scale"
-import {isVertical} from "../axis-types"
+import {isVertical} from "../../graph/graphing-types"
 
 import "./axis.scss"
 

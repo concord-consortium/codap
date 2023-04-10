@@ -75,6 +75,9 @@ export const DataConfigurationModel = types
     get y2AttributeDescriptionIsPresent() {
       return !!self._attributeDescriptions.get('rightNumeric')
     },
+    get yAttributeDescriptionsExcludingY2() {
+      return self._yAttributeDescriptions
+    },
     // Includes rightNumeric if present
     get yAttributeDescriptions() {
       const descriptions = self._yAttributeDescriptions,
@@ -132,6 +135,14 @@ export const DataConfigurationModel = types
     placeCanHaveZeroExtent(place: GraphPlace) {
       return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
         this.attributeID(graphPlaceToAttrRole[place]) === ''
+    },
+    placeCanShowClickHereCue(place: GraphPlace) {
+      const role = graphPlaceToAttrRole[place]
+      return ['left', 'bottom'].includes(place) && !this.attributeID(role)
+    },
+    placeAlwaysShowsClickHereCue(place: GraphPlace) {
+      return this.placeCanShowClickHereCue(place) &&
+        !this.attributeID(graphPlaceToAttrRole[place === 'left' ? 'bottom' : 'left'])
     }
   }))
   .views(self => ({

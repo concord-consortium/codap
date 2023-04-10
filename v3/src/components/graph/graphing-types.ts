@@ -15,6 +15,9 @@ export const GraphAttrRoles = [
 export type GraphAttrRole = typeof GraphAttrRoles[number]
 export type IsGraphDropAllowed = (place: GraphPlace, attrId?: string) => boolean
 
+export function isVertical(place: GraphPlace) {
+  return ["left", "rightCat", "rightNumeric", "yPlus"].includes(place)
+}
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",

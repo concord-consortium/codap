@@ -16,7 +16,10 @@ export const AxisElements = {
         }
     },
     getAxisLabel(axis) {
-        return this.getAxisElement(axis).find(".axis-title")
+        return this.getAxisElement(axis).find(".attribute-label")
+    },
+    getDefaultAxisLabel(axis) {
+        return this.getAxisElement(axis).find(".empty-label")
     },
     getTickMarks(axis) {
         return this.getAxisElement(axis).find(".tick line")

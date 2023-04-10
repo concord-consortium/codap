@@ -1,5 +1,4 @@
 import React, {useMemo, useRef} from "react"
-import {createPortal} from "react-dom"
 import {Active} from "@dnd-kit/core"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {Bounds, useGraphLayoutContext} from "../../models/graph-layout"
@@ -12,7 +11,6 @@ import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-dro
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {AttributeType} from "../../../../models/data/attribute"
 import {GraphAttrRole, GraphPlace} from "../../graphing-types"
-import {AxisOrLegendAttributeMenu} from "../../../axis/components/axis-or-legend-attribute-menu"
 
 interface ILegendProps {
   legendAttrID: string
@@ -26,17 +24,16 @@ export const Legend = function Legend({
                                         legendAttrID, graphElt,
                                         onDropAttribute, onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
+  useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
   const dataConfiguration = useDataConfigurationContext(),
     isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
-    legendLabelRef = useRef<SVGGElement>(null),
     legendRef = useRef() as React.RefObject<SVGSVGElement>,
     instanceId = useInstanceIdContext(),
     droppableId = `${instanceId}-legend-area-drop`,
     role = 'legend' as GraphAttrRole,
-    hintString = useDropHintString({role}),
-    attributeIDs = useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
+    hintString = useDropHintString({role})
 
   const handleIsActive = (active: Active) => {
     const droppedAttrId = getDragAttributeId(active) ?? ''
@@ -59,29 +56,15 @@ export const Legend = function Legend({
   return legendAttrID ? (
     <>
       <svg ref={legendRef} className='legend-component'>
-        { graphElt && createPortal(
-          <AxisOrLegendAttributeMenu
-            place="legend"
-            target={legendLabelRef.current}
-            portal={graphElt}
-            onChangeAttribute={onDropAttribute}
-            onRemoveAttribute={onRemoveAttribute}
-            onTreatAttributeAs={onTreatAttributeAs}
-          />,
-          graphElt)
-        }
         <AttributeLabel
-          ref={legendLabelRef}
-          transform={transform}
-          attributeIDs={attributeIDs}
-          orientation='horizontal'
-          attributeRole='legend'
+          place={'legend'}
+          onChangeAttribute={onDropAttribute}
+          onRemoveAttribute={onRemoveAttribute}
+          onTreatAttributeAs={onTreatAttributeAs}
         />
         {
-          attrType === 'categorical' ? <CategoricalLegend transform={transform}
-                                                          legendLabelRef={legendLabelRef}/>
-            : attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}
-                                                      transform={transform}/> : null
+          attrType === 'categorical' ? <CategoricalLegend transform={transform}/>
+            : attrType === 'numeric' ? <NumericLegend legendAttrID={legendAttrID}/> : null
         }
       </svg>
       <DroppableSvg

@@ -1,11 +1,11 @@
 import {format, ScaleBand, ScaleLinear, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect} from "react"
-import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, isVertical, otherPlace} from "../axis-types"
+import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {between} from "../../../utilities/math-utils"
-import {transitionDuration} from "../../graph/graphing-types"
+import {transitionDuration, isVertical} from "../../graph/graphing-types"
 import {collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement, getStringBounds} from "../axis-utils"
 
 export interface IUseSubAxis {

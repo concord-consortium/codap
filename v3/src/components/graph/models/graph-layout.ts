@@ -1,7 +1,7 @@
 import {action, computed, makeObservable, observable} from "mobx"
 import {createContext, useContext} from "react"
-import {AxisPlace, AxisPlaces, AxisBounds, isVertical, IScaleType} from "../../axis/axis-types"
-import {GraphPlace} from "../graphing-types"
+import {AxisPlace, AxisPlaces, AxisBounds, IScaleType} from "../../axis/axis-types"
+import {GraphPlace, isVertical} from "../graphing-types"
 import {IAxisLayout} from "../../axis/models/axis-layout-context"
 import {MultiScale} from "../../axis/models/multi-scale"
 
@@ -156,7 +156,7 @@ export class GraphLayout implements IAxisLayout {
   }
 
   getComputedBounds(place: GraphPlace) {
-    return this.computedBounds.get(place)
+    return this.computedBounds.get(place) as Bounds
   }
 }
 

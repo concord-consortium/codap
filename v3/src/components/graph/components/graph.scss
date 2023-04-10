@@ -1,11 +1,29 @@
 @import "../../vars.scss";
 
+$graph-label-font: 400 14px Montserrat-Regular, sans-serif;
+$graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
+
+:export {
+  graphLabelFont: $graph-label-font;
+  graphEmptyLabelFont: $graph-empty-label-font;
+}
+
 .graph-plot {
   position: relative;
   width: 100%;
   height: calc(100% - $title-bar-height);
-  background-color: aliceblue;
+  background-color: #F9F9F9;
 
+  .attribute-label {
+    fill: blue;
+    text-decoration: underline;
+    font: $graph-label-font;
+  }
+
+  .empty-label {
+    fill: #999;
+    font: $graph-empty-label-font;
+  }
 
   svg {
     width: 100%;
