@@ -1,4 +1,4 @@
-import { IDataSet } from "../data-model/data-set"
+import { IDataSet } from "../models/data/data-set"
 import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../utilities/csv-import"
 import abaloneCsv from "./abalone.csv"
 import catsCsv from "./cats.csv"
@@ -6,15 +6,15 @@ import coastersCsv from "./roller-coasters.csv"
 import mammalsCsv from "./mammals.csv"
 import fourCsv from "./four.csv"
 
-export const sampleData = ["abalone", "cats", "coasters", "mammals", "four"] as const
+export const sampleData = ["Abalone", "Cats", "Coasters", "Mammals", "Four"] as const
 export type SampleType = typeof sampleData[number]
 
 const sampleMap: Record<SampleType, string> = {
-  abalone: abaloneCsv,
-  cats: catsCsv,
-  coasters: coastersCsv,
-  four: fourCsv,
-  mammals: mammalsCsv
+  Abalone: abaloneCsv,
+  Cats: catsCsv,
+  Coasters: coastersCsv,
+  Four: fourCsv,
+  Mammals: mammalsCsv
 }
 
 export function importSample(sample: SampleType, onImportDataSet: (data: IDataSet) => void) {

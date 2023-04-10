@@ -1,7 +1,45 @@
 import { action, autorun, makeObservable, observable, ObservableSet, reaction } from "mobx"
-import { onAction, onPatch, onSnapshot, types } from "mobx-state-tree"
+import { Instance, onAction, onPatch, onSnapshot, types } from "mobx-state-tree"
 
 describe("Mobx State Tree", () => {
+
+  it("MST destroys objects when removing them from arrays", () => {
+    const jestBeforeDestroy = jest.fn()
+    const Entry = types.model("Entry", {})
+      .actions(self => ({
+        beforeDestroy() {
+          jestBeforeDestroy()
+        }
+      }))
+    const Container = types.model("Container", {
+      array: types.array(Entry)
+    })
+    .actions(self => ({
+      addEntry(entry: Instance<typeof Entry>) {
+        self.array.push(entry)
+      },
+      removeEntry(entry: Instance<typeof Entry>) {
+        return self.array.remove(entry)
+      }
+    }))
+    .actions(self => ({
+      firstToLast() {
+        const entry = self.array.shift()
+        entry && self.array.push(entry)
+      }
+    }))
+    const container = Container.create()
+    const entry1 = Entry.create()
+    const entry2 = Entry.create()
+    container.addEntry(entry1)
+    container.addEntry(entry2)
+    jestSpyConsole("warn", () => {
+      container.firstToLast()
+    })
+    expect(jestBeforeDestroy).toHaveBeenCalledTimes(1)
+    container.removeEntry(entry2)
+    expect(jestBeforeDestroy).toHaveBeenCalledTimes(2)
+  })
 
   it.skip("can compare observation performance between MobX and MST", () => {
     const kLoopCount = 500
@@ -188,7 +226,7 @@ describe("Mobx State Tree", () => {
     results.set("MST V(P) onSnapshot", "not called")
 
     function pad(s: string, length: number) {
-      return (s + "          ").substring(0, length)
+      return (`${s}          `).substring(0, length)
     }
 
     const resultsArray = Array.from(results.entries())

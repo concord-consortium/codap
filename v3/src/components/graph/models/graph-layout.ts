@@ -1,15 +1,13 @@
-import {ScaleBand, ScaleContinuousNumeric, ScaleOrdinal, scaleOrdinal} from "d3"
-import { action, computed, makeObservable, observable } from "mobx"
-import { createContext, useContext } from "react"
-import { AxisPlace, AxisPlaces } from "./axis-model"
-
-export type ScaleNumericBaseType = ScaleContinuousNumeric<number, number>
-export type ScaleType = ScaleContinuousNumeric<number, number> | ScaleOrdinal<string, any> | ScaleBand<string>
+import {action, computed, makeObservable, observable} from "mobx"
+import {createContext, useContext} from "react"
+import {AxisPlace, AxisPlaces, AxisBounds, isVertical, IScaleType} from "../../axis/axis-types"
+import {GraphPlace} from "../graphing-types"
+import {IAxisLayout} from "../../axis/models/axis-layout-context"
+import {MultiScale} from "../../axis/models/multi-scale"
 
 export const kDefaultGraphWidth = 480
-export const kDefaultGraphHeight = 0
-export const kDefaultPlotWidth = 0.8 * kDefaultGraphWidth
-export const kDefaultPlotHeight = 0.8 * kDefaultGraphHeight
+export const kDefaultGraphHeight = 300
+export const kDefaultLegendHeight = 0
 
 export interface Bounds {
   left: number
@@ -18,75 +16,151 @@ export interface Bounds {
   height: number
 }
 
-export class GraphLayout {
+export const CategoricalLayouts = ["parallel", "perpendicular"] as const
+export type CategoricalLayout = typeof CategoricalLayouts[number]
+
+export class GraphLayout implements IAxisLayout {
   @observable graphWidth = kDefaultGraphWidth
   @observable graphHeight = kDefaultGraphHeight
-  @observable margin = ({ top: 10, right: 30, bottom: 30, left: 60 })
-  @observable axisBounds: Map<AxisPlace, Bounds> = new Map()
-  axisScales: Map<AxisPlace, ScaleType> = new Map()
+  @observable legendHeight = kDefaultLegendHeight
+  // actual measured sizes of axis elements
+  @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
+  // desired/required size of axis elements
+  @observable desiredExtents: Map<GraphPlace, number> = new Map()
+  axisScales: Map<AxisPlace, MultiScale> = new Map()
 
   constructor() {
-    AxisPlaces.forEach(place => this.axisScales.set(place, scaleOrdinal()))
+    AxisPlaces.forEach(place => this.axisScales.set(place,
+      new MultiScale({scaleType: "ordinal",
+        orientation: isVertical(place) ? "vertical" : "horizontal"})))
     makeObservable(this)
   }
 
   @computed get plotWidth() {
-    return 0.8 * this.graphWidth
+    return this.computedBounds.get('plot')?.width || this.graphWidth
   }
 
   @computed get plotHeight() {
-    return 0.8 * this.graphHeight
+    return this.computedBounds.get('plot')?.height || this.graphHeight - this.legendHeight
   }
 
-  isHorizontal(place: AxisPlace) {
-    return ["bottom", "top"].includes(place)
-  }
-
-  isVertical(place: AxisPlace) {
-    return ["left", "right"].includes(place)
-  }
-
-  axisLength(place: AxisPlace) {
-    return this.isVertical(place) ? this.plotHeight : this.plotWidth
+  getAxisLength(place: AxisPlace) {
+    return isVertical(place) ? this.plotHeight : this.plotWidth
   }
 
   getAxisBounds(place: AxisPlace) {
     return this.axisBounds.get(place)
   }
 
-  @action setAxisBounds(place: AxisPlace, bounds: Bounds | undefined) {
+  @action setAxisBounds(place: AxisPlace, bounds: AxisBounds | undefined) {
     if (bounds) {
-      this.axisBounds.set(place, bounds)
-    }
-    else {
+      // We allow the axis to draw gridlines for bivariate numeric plots. Unfortunately, the gridlines end up as
+      // part of the axis dom element so that we get in here with bounds that span the entire width or height of
+      // the plot. We tried workarounds to get gridlines that were _not_ part of the axis element with the result
+      // that the gridlines got out of synch with axis tick marks during drag. So we have this inelegant solution
+      // that shouldn't affect the top and right axes when we get them but it may be worthwhile to
+      // (TODO) figure out if there's a better way to render gridlines on background (or plot) so this isn't necessary.
+
+      // given state of the graph, we may need to adjust the drop areas' bounds
+      const newBounds = bounds
+
+      if (place === "bottom") {
+        newBounds.height = Math.min(bounds.height, this.graphHeight - this.getAxisLength('left') - this.legendHeight)
+        newBounds.top = this.plotHeight
+      }
+
+      if (place === "left") {
+        newBounds.height = Math.min(bounds.height, this.graphHeight - this.legendHeight)
+        // if gridlines are present, axis will grow to .width + plotWidth, so we recalculate
+        if (bounds.width > this.plotWidth) {
+          newBounds.width -= this.plotWidth
+        }
+      }
+
+      this.axisBounds.set(place, newBounds)
+    } else {
       this.axisBounds.delete(place)
     }
   }
 
-  axisScale(place: AxisPlace) {
-    return this.axisScales.get(place)
+  getAxisMultiScale(place: AxisPlace) {
+    return this.axisScales.get(place) ??
+      new MultiScale({scaleType: "ordinal", orientation: "horizontal"})
   }
 
-  @action setAxisScale(place: AxisPlace, scale: ScaleType) {
-    scale.range(this.isVertical(place) ? [this.plotHeight, 0] : [0, this.plotWidth])
-    this.axisScales.set(place, scale)
+  getAxisScale(place: AxisPlace) {
+    return this.axisScales.get(place)?.scale
   }
 
-  @action setGraphExtent(width: number, height: number) {
-    const plotWidth = 0.8 * width
-    const plotHeight = 0.8 * height
+  @action setAxisScaleType(place: AxisPlace, scale: IScaleType) {
+    this.getAxisMultiScale(place)?.setScaleType(scale)
+    const length = isVertical(place) ? this.plotHeight : this.plotWidth
+    this.getAxisMultiScale(place)?.setLength(length)
+  }
 
-    // update d3 scale ranges before updating graph properties
+  @action setDesiredExtent(place: GraphPlace, extent: number) {
+    this.desiredExtents.set(place, extent)
+    this.updateScaleRanges(this.plotWidth, this.plotHeight)
+  }
+
+  updateScaleRanges(plotWidth: number, plotHeight: number) {
     AxisPlaces.forEach(place => {
-      const range = this.isVertical(place) ? [plotHeight, 0] : [0, plotWidth]
-      this.axisScale(place)?.range(range)
+      const length = isVertical(place) ? plotHeight : plotWidth
+      this.getAxisMultiScale(place)?.setLength(length)
     })
+  }
 
+  @action setParentExtent(width: number, height: number) {
     this.graphWidth = width
     this.graphHeight = height
+    this.updateScaleRanges(this.plotWidth, this.plotHeight)
+  }
+
+  /**
+   * We assume that all the desired extents have been set so that we can compute new bounds.
+   * We set the computedBounds only once at the end so there should be only one notification to respond to.
+   * Todo: Eventually there will be additional room set aside at the top for formulas
+   */
+  @computed get computedBounds() {
+    const {desiredExtents, graphWidth, graphHeight} = this,
+      topAxisHeight = desiredExtents.get('top') ?? 0,
+      leftAxisWidth = desiredExtents.get('left') ?? 20,
+      bottomAxisHeight = desiredExtents.get('bottom') ?? 20,
+      legendHeight = desiredExtents.get('legend') ?? 0,
+      v2AxisWidth = desiredExtents.get('rightNumeric') ?? 0,
+      rightAxisWidth = desiredExtents.get('rightCat') ?? 0,
+      newBounds: Map<GraphPlace, Bounds> = new Map(),
+      plotWidth = graphWidth - leftAxisWidth - v2AxisWidth - rightAxisWidth,
+      plotHeight = graphHeight - topAxisHeight - bottomAxisHeight - legendHeight
+    newBounds.set('left',
+      {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight})
+    newBounds.set('top',
+      {left: leftAxisWidth, top: 0, width: graphWidth - leftAxisWidth - rightAxisWidth,
+        height: topAxisHeight})
+    newBounds.set('plot',
+      {left: leftAxisWidth, top: topAxisHeight, width: plotWidth, height: plotHeight})
+    newBounds.set('bottom',
+      {left: leftAxisWidth, top: topAxisHeight + plotHeight, width: plotWidth,
+        height: bottomAxisHeight})
+    newBounds.set('legend',
+      {left: 6, top: graphHeight - legendHeight, width: graphWidth - 6,
+        height: legendHeight})
+    newBounds.set('rightNumeric',
+      {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: v2AxisWidth,
+        height: plotHeight})
+    newBounds.set('rightCat',
+      {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth,
+        height: plotHeight})
+    // console.log(`newBounds.left = ${JSON.stringify(newBounds.get('left'))}`)
+    return newBounds
+  }
+
+  getComputedBounds(place: GraphPlace) {
+    return this.computedBounds.get(place)
   }
 }
 
-export const GraphLayoutContext = createContext(new GraphLayout())
+export const GraphLayoutContext = createContext<GraphLayout>({} as GraphLayout)
+
 
 export const useGraphLayoutContext = () => useContext(GraphLayoutContext)

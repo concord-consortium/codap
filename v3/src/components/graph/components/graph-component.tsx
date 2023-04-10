@@ -1,67 +1,57 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import { getSnapshot } from "mobx-state-tree"
 import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import {DataBroker} from "../../../data-model/data-broker"
-import {DataSetContext} from "../../../hooks/use-data-set-context"
+import {ITileBaseProps} from '../../tiles/tile-base-props'
+import {useDataSet} from '../../../hooks/use-data-set'
+import {DataSetContext} from '../../../hooks/use-data-set-context'
+import {useGraphController} from "../hooks/use-graph-controller"
+import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
-import {EmptyAxisModel} from "../models/axis-model"
-import {DataConfigurationModel} from "../models/data-configuration-model"
-import {GraphLayout, GraphLayoutContext} from "../models/graph-layout"
-import {GraphModel} from "../models/graph-model"
+import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
+import {GraphLayoutContext} from "../models/graph-layout"
+import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import {CodapV2Document} from "../../../v2/codap-v2-document"
 
-const defaultGraphModel = GraphModel.create({
-  axes: {
-    bottom: EmptyAxisModel.create({place: 'bottom'}),
-    left: EmptyAxisModel.create({place: 'left'})
-  },
-  plotType: "casePlot",
-  config: getSnapshot(DataConfigurationModel.create())
-})
+export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
+  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
 
-interface IProps {
-  broker?: DataBroker
-  v2Document?: CodapV2Document
-}
-
-export const GraphComponent = observer(({broker, v2Document}: IProps) => {
   const instanceId = useNextInstanceId("graph")
-  const layout = useMemo(() => new GraphLayout(), [])
-  const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 200})
+  const { data } = useDataSet(graphModel?.data)
+  const layout = useInitGraphLayout(graphModel)
+  const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
   const enableAnimation = useRef(true)
-  const dataset = broker?.selectedDataSet || broker?.last
   const dotsRef = useRef<SVGSVGElement>(null)
+  const graphController = useMemo(
+    () => new GraphController({layout, enableAnimation, dotsRef, instanceId}),
+    [layout, instanceId]
+  )
 
-  const
-    graphController = useMemo(
-      () => new GraphController({
-        graphModel: defaultGraphModel,
-        dataset, layout, enableAnimation, instanceId, dotsRef, v2Document
-      }),
-      [dataset, layout, instanceId, v2Document])
+  useGraphController({graphController, graphModel})
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setGraphExtent(width, height)
+    (width != null) && (height != null) && layout.setParentExtent(width, height)
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the graph component
-  const {setNodeRef} = useDroppable({id: `${instanceId}-component-drop`, data: {accepts: ["attribute"]}})
+  const dropId = `${instanceId}-component-drop-overlay`
+  const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(graphRef.current)
 
+  if (!graphModel) return null
+
   return (
-    <DataSetContext.Provider value={dataset}>
+    <DataSetContext.Provider value={data}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
-          <Graph model={defaultGraphModel}
-                 graphController={graphController}
-                 graphRef={graphRef}
-                 enableAnimation={enableAnimation}
-                 dotsRef={dotsRef}
-          />
+          <AxisLayoutContext.Provider value={layout}>
+            <GraphModelContext.Provider value={graphModel}>
+              <Graph graphController={graphController}
+                      graphRef={graphRef}
+              />
+            </GraphModelContext.Provider>
+          </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>
     </DataSetContext.Provider>

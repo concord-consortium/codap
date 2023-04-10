@@ -1,12 +1,14 @@
-import {useToast} from "@chakra-ui/react"
-import {select} from "d3"
-import {tip as d3tip} from "d3-v6-tip"
 import {observer} from "mobx-react-lite"
 import {onAction} from "mobx-state-tree"
-import React, {MutableRefObject, useEffect, useRef} from "react"
-import {Axis} from "./axis"
+import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
+import {select} from "d3"
+import {GraphController} from "../models/graph-controller"
+import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
-import {kGraphClass, transitionDuration} from "../graphing-types"
+import {DroppablePlot} from "./droppable-plot"
+import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
+import {GraphAxis} from "./graph-axis"
+import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -15,159 +17,171 @@ import {Marquee} from "./marquee"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {AxisPlace, IAxisModel, attrPlaceToAxisPlace} from "../models/axis-model"
+import {setNiceDomain, startAnimation} from "../utilities/graph-utils"
+import {IAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {IGraphModel, isSetAttributeIDAction} from "../models/graph-model"
+import {isSetAttributeIDAction, useGraphModelContext} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {getPointTipText} from "../utilities/graph_utils"
-import {GraphController} from "../models/graph-controller"
 import {MarqueeState} from "../models/marquee-state"
+import {Legend} from "./legend/legend"
+import {AttributeType} from "../../../models/data/attribute"
+import {useDataTips} from "../hooks/use-data-tips"
 
 import "./graph.scss"
 
 interface IProps {
   graphController: GraphController
-  model: IGraphModel
   graphRef: MutableRefObject<HTMLDivElement>
-  enableAnimation: MutableRefObject<boolean>
-  dotsRef: React.RefObject<SVGSVGElement>
 }
 
-const marqueeState = new MarqueeState(),
-  dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
-    .attr('data-testid', 'graph-point-data-tip')
-    .html((d: string) => {
-      return "<p>" + d + "</p>"
-    })
+export const Graph = observer(function Graph({graphController, graphRef}: IProps) {
+  const graphModel = useGraphModelContext(),
+    { enableAnimation, dotsRef } = graphController,
+    {plotType} = graphModel,
+    instanceId = useInstanceIdContext(),
+    marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
+    dataset = useDataSetContext(),
+    layout = useGraphLayoutContext(),
+    xScale = layout.getAxisScale("bottom"),
+    svgRef = useRef<SVGSVGElement>(null),
+    plotAreaSVGRef = useRef<SVGSVGElement>(null),
+    backgroundSvgRef = useRef<SVGGElement>(null),
+    xAttrID = graphModel.getAttributeID('x'),
+    yAttrID = graphModel.getAttributeID('y')
 
-export const Graph = observer((
-    {graphController, model: graphModel, graphRef, enableAnimation, dotsRef}: IProps) => {
-    const xAxisModel = graphModel.getAxis("bottom") as IAxisModel,
-      yAxisModel = graphModel.getAxis("left") as IAxisModel,
-      {plotType} = graphModel,
-      instanceId = useInstanceIdContext(),
-      dataset = useDataSetContext(),
-      layout = useGraphLayoutContext(),
-      {margin} = layout,
-      xScale = layout.axisScale("bottom"),
-      transform = `translate(${margin.left}, 0)`,
-      svgRef = useRef<SVGSVGElement>(null),
-      plotAreaSVGRef = useRef<SVGSVGElement>(null),
-      xAttrID = graphModel.getAttributeID('x'),
-      yAttrID = graphModel.getAttributeID('y'),
-      pointRadius = graphModel.getPointRadius(),
-      hoverPointRadius = graphModel.getPointRadius('hover-drag')
+  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
-    useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
+  useEffect(function setupPlotArea() {
+    if (xScale && xScale?.length > 0) {
+      const plotBounds = layout.getComputedBounds('plot')
+      select(plotAreaSVGRef.current)
+        .attr('x', plotBounds?.left || 0)
+        .attr('y', plotBounds?.top || 0)
+        .attr('width', layout.plotWidth)
+        .attr('height', layout.plotHeight)
+    }
+  }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale])
 
-    useEffect(function setupPlotArea() {
-      if (xScale && xScale?.range().length > 0) {
-        select(plotAreaSVGRef.current)
-          .attr('x', xScale?.range()[0] + margin.left)
-          .attr('y', 0)
-          .attr('width', layout.plotWidth)
-          .attr('height', layout.plotHeight)
+  const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
+    const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
+    const attrRole = graphPlaceToAttrRole[computedPlace]
+    graphModel.setAttributeID(attrRole, attrId)
+  }
+
+  /**
+   * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
+   * do we have to do anything special. Otherwise, we can just call handleChangeAttribute.
+   */
+  const handleRemoveAttribute = (place: GraphPlace, idOfAttributeToRemove: string) => {
+    if (place === 'left' && graphModel.config?.yAttributeDescriptions.length > 1) {
+      graphModel.config?.removeYAttributeWithID(idOfAttributeToRemove)
+      const yAxisModel = graphModel.getAxis('left') as IAxisModel
+      setNiceDomain(graphModel.config.numericValuesForAttrRole('y'), yAxisModel)
+    } else {
+      handleChangeAttribute(place, '')
+    }
+  }
+
+  // respond to assignment of new attribute ID
+  useEffect(function handleNewAttributeID() {
+    const disposer = graphModel && onAction(graphModel, action => {
+      if (isSetAttributeIDAction(action)) {
+        const [role, attrID] = action.args,
+          graphPlace = attrRoleToGraphPlace[role]
+        startAnimation(enableAnimation)
+        graphPlace && graphController?.handleAttributeAssignment(graphPlace, attrID)
       }
-    }, [layout.plotHeight, layout.plotWidth, margin.left, xScale])
+    }, true)
+    return () => disposer?.()
+  }, [graphController, dataset, layout, enableAnimation, graphModel])
 
-    const toast = useToast()
-    const handleDropAttribute = (place: AxisPlace, attrId: string) => {
-    // TODO: will need to be more sophisticated
-    const attrPlace = place === "left" ? "y" : "x"
-      const attrName = dataset?.attrFromID(attrId)?.name
-      toast({
-        position: "top-right",
-        title: "Attribute dropped",
-        description: `The attribute ${attrName || attrId} was dropped on the ${place} axis!`,
-        status: "success"
+  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
+    graphModel.config.setAttributeType(graphPlaceToAttrRole[place], treatAs)
+    graphController?.handleAttributeAssignment(place, attrId)
+  }
+
+  useDataTips({dotsRef, dataset, graphModel, enableAnimation})
+
+  const renderPlotComponent = () => {
+    const props = {
+        xAttrID, yAttrID, dotsRef, enableAnimation
+      },
+      typeToPlotComponentMap = {
+        casePlot: <CaseDots {...props}/>,
+        dotChart: <ChartDots {...props}/>,
+        dotPlot: <DotPlotDots {...props}/>,
+        scatterPlot: <ScatterDots {...props}/>
+      }
+    return typeToPlotComponentMap[plotType]
+  }
+
+  const renderGraphAxes = () => {
+    const places = AxisPlaces.filter((place: AxisPlace) => {
+      return !!graphModel.getAxis(place)
+    })
+    return places.map((place: AxisPlace) => {
+      return <GraphAxis key={place}
+                        place={place}
+                        enableAnimation={enableAnimation}
+                        onDropAttribute={handleChangeAttribute}
+                        onRemoveAttribute={handleRemoveAttribute}
+                        onTreatAttributeAs={handleTreatAttrAs}
+      />
+    })
+  }
+
+  const renderDroppableAddAttributes = () => {
+    const droppables: JSX.Element[] = []
+    if (plotType !== 'casePlot') {
+      const places = ['top', 'rightCat'].concat(plotType=== 'scatterPlot' ? ['yPlus', 'rightNumeric'] : [])
+      places.forEach((place: GraphPlace) => {
+        droppables.push(
+          <DroppableAddAttribute
+            key={place}
+            place={place}
+            plotType={plotType}
+            onDrop={handleChangeAttribute.bind(null, place)}
+          />
+        )
       })
-      graphModel.setAttributeID(attrPlace, attrId)
     }
-    // respond to assignment of new attribute ID
-    useEffect(function handleNewAttributeID() {
-      const disposer = graphModel && onAction(graphModel, action => {
-        if (isSetAttributeIDAction(action)) {
-          const [place, attrID] = action.args,
-            axisPlace = attrPlaceToAxisPlace[place]
-          enableAnimation.current = true
-          axisPlace && graphController.handleAttributeAssignment(axisPlace, attrID)
-        }
-      }, true)
-      return () => disposer?.()
-    }, [graphController, dataset, layout, xAxisModel, yAxisModel, enableAnimation, graphModel])
+    return droppables
+  }
 
-    // We only need to make the following connection once
-    useEffect(function passDotsRefToController() {
-      graphController.setDotsRef(dotsRef)
-    }, [dotsRef, graphController])
+  return (
+    <DataConfigurationContext.Provider value={graphModel.config}>
+      <div className={kGraphClass} ref={graphRef} data-testid="graph">
+        <svg className='graph-svg' ref={svgRef}>
+          <Background
+            marqueeState={marqueeState}
+            ref={backgroundSvgRef}
+          />
 
-    // MouseOver events, if over an element, brings up hover text
-    function showDataTip(event: MouseEvent) {
-      const
-        target = select(event.target as SVGSVGElement)
-      if (target.node()?.nodeName === 'circle' && dataset) {
-        target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
-        const [, caseID] = target.property('id').split("_"),
-          attrIDs = graphModel.config.uniqueTipAttributes,
-          tipText = getPointTipText(dataset, caseID, attrIDs)
-        tipText !== '' && dataTip.show(tipText, event.target)
-      }
-    }
+          {renderGraphAxes()}
 
-    function hideDataTip(event: MouseEvent) {
-      dataTip.hide()
-      select(event.target as SVGSVGElement)
-        .transition().duration(transitionDuration).attr('r', pointRadius)
-    }
-
-    useEffect(function setupDataTip() {
-      select(dotsRef.current)
-        .on('mouseover', showDataTip)
-        .on('mouseout', hideDataTip)
-        .call(dataTip)
-    })
-
-    const getPlotComponent = () => {
-      const props = {
-        graphModel,
-      plotProps:{
-        xAttrID, yAttrID, dotsRef, enableAnimation,
-          xAxisModel,
-          yAxisModel
-      }
-    },
-        typeToPlotComponentMap = {
-          casePlot: <CaseDots {...props}/>,
-          dotChart: <ChartDots {...props}/>,
-          dotPlot: <DotPlotDots {...props}/>,
-          scatterPlot: <ScatterDots {...props}/>
-        }
-      return typeToPlotComponentMap[plotType]
-    }
-
-    return (
-      <DataConfigurationContext.Provider value={graphModel.config}>
-        <div className={kGraphClass} ref={graphRef} data-testid="graph">
-          <svg className='graph-svg' ref={svgRef}>
-            <Axis axisModel={yAxisModel} attributeID={yAttrID}
-                  transform={`translate(${margin.left - 1}, 0)`}
-                  onDropAttribute={handleDropAttribute}
-            />
-            <Axis axisModel={xAxisModel} attributeID={xAttrID}
-                  transform={`translate(${margin.left}, ${layout.plotHeight})`}
-                  onDropAttribute={handleDropAttribute}
-            />
-            <Background
-              transform={transform}
-              marqueeState={marqueeState}/>
-            <svg ref={plotAreaSVGRef} className='graph-dot-area'>
-              <svg ref={dotsRef}>
-                {getPlotComponent()}
-              </svg>
-              <Marquee marqueeState={marqueeState}/>
+          <svg ref={plotAreaSVGRef}>
+            <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
+              {renderPlotComponent()}
             </svg>
+            <Marquee marqueeState={marqueeState}/>
           </svg>
-        </div>
-      </DataConfigurationContext.Provider>
-    )
+
+          <DroppablePlot
+            graphElt={graphRef.current}
+            plotElt={backgroundSvgRef.current}
+            onDropAttribute={handleChangeAttribute}
+          />
+
+          <Legend
+            legendAttrID={graphModel.getAttributeID('legend')}
+            graphElt={graphRef.current}
+            onDropAttribute={handleChangeAttribute}
+            onRemoveAttribute={handleRemoveAttribute}
+            onTreatAttributeAs={handleTreatAttrAs}
+          />
+        </svg>
+        {renderDroppableAddAttributes()}
+      </div>
+    </DataConfigurationContext.Provider>
+  )
 })

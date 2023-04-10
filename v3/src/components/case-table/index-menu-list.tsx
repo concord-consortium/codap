@@ -1,8 +1,8 @@
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
-import React, { useState } from "react"
+import React from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { CodapModal } from "../codap-modal"
-import { InsertCasesModalContent } from "./insert-cases-modal"
+import { InsertCasesModal } from "./insert-cases-modal"
+import t from "../../utilities/translation/translate"
 
 interface IProps {
   caseId: string
@@ -13,16 +13,9 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
   const toast = useToast()
   const data = useDataSetContext()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [numCasesToInsert, setNumCasesToInsert] = useState(1)
-  const [insertPosition, setInsertPosition] = useState("after")
-
-  const handleInsertPositionChange = (value: any) => {
-    setInsertPosition(value)
-  }
-
-  const handleNumCasesToInsertChange = (value: string) => {
-    setNumCasesToInsert(parseInt(value, 10))
-  }
+  const deleteCasesItemText = data?.selection.size === 1
+                                ? t("DG.CaseTable.indexMenu.deleteCase")
+                                : t("DG.CaseTable.indexMenu.deleteCases")
 
   const handleInsertCase = () => {
     data?.addCases([{}], {before: caseId})
@@ -42,41 +35,21 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     })
   }
 
-  const handleDeleteCase = () => {
-    data?.removeCases([caseId])
-  }
-
-  const insertCases = () => {
-    onClose()
-    const casesToAdd = []
-    if (numCasesToInsert) {
-      for (let i=0; i < numCasesToInsert; i++) {
-        casesToAdd.push({})
-      }
-    }
-    data?.addCases(casesToAdd, {[insertPosition]: caseId})
+  const handleDeleteCases = () => {
+    data?.removeCases(Array.from(data.selection))
   }
 
   return (
     <>
-      <MenuList data-testid="index-menu-list" lineHeight="none" fontSize="small">
-        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>Move Data Entry Row Here</MenuItem>
-        <MenuItem onClick={handleInsertCase}>Insert Case</MenuItem>
-        <MenuItem onClick={handleInsertCases}>Insert Cases...</MenuItem>
-        <MenuItem onClick={handleDeleteCase}>Delete Case</MenuItem>
+      <MenuList data-testid="index-menu-list" >
+        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>
+          {t("DG.CaseTable.indexMenu.moveEntryRow")}
+        </MenuItem>
+        <MenuItem onClick={handleInsertCase}>{t("DG.CaseTable.indexMenu.insertCase")}</MenuItem>
+        <MenuItem onClick={handleInsertCases}>{t("DG.CaseTable.indexMenu.insertCases")}</MenuItem>
+        <MenuItem onClick={handleDeleteCases}>{deleteCasesItemText}</MenuItem>
       </MenuList>
-      <CodapModal
-          isOpen={isOpen}
-          onClose={onClose}
-          title="Insert Cases"
-          hasCloseButton={true}
-          Content={InsertCasesModalContent}
-          contentProps={{numCasesToInsert,
-                          insertPosition,
-                          onChangeNumCasesToInsert: handleNumCasesToInsertChange,
-                          onChangeInsertPosition: handleInsertPositionChange}}
-          buttons={[{ label: "Cancel", onClick: onClose },{ label: "Insert Cases", onClick: insertCases }]}
-      />
+      <InsertCasesModal caseId={caseId} isOpen={isOpen} onClose={onClose}/>
     </>
   )
 }

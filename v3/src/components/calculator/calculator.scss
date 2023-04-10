@@ -1,0 +1,58 @@
+@use "../vars.scss";
+
+$button-width: 30px;
+$button-height: 24px;
+
+// temporary until .codap-component can specify these globally
+// inspectors must be portaled first otherwise they'd be hidden
+.codap-component.calculator {
+  overflow: hidden;
+}
+
+.calculator-wrapper {
+  background: #333333;
+  padding: 2px 4px 4px 4px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .calculator {
+    flex-direction: column;
+    font-family: "museo-sans", sans-serif;
+    font-size: 12px;
+    margin-top: 3px;
+    background-color: #333333;
+
+    .calc-input {
+      height: 20px;
+      width: 100%;
+      border-radius: 3px;
+      border: 1px solid;
+      border-color: inherit;
+      background-color: white;
+      padding: 0 3px;
+    }
+
+    .calc-buttons {
+      margin-top: 3px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-evenly;
+      width: 131px;
+
+      .calc-button {
+        width: $button-width;
+        height: $button-height;
+        border: 0 none;
+        color: #555;
+        background-color: lightgray;
+        padding: 0;
+        margin: 1px;
+        min-width: 0; //override Chakra min-width
+        &.wide {
+          width: calc(($button-width * 2) + 2px);
+        }
+      }
+    }
+  }
+}

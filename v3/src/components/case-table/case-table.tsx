@@ -1,52 +1,74 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
-import DataGrid, { DataGridHandle } from "react-data-grid"
+import React, { CSSProperties } from "react"
 import { AttributeDragOverlay } from "./attribute-drag-overlay"
-import { kIndexColumnKey, TRow } from "./case-table-types"
-import { useColumns } from "./use-columns"
-import { useIndexColumn } from "./use-index-column"
-import { useRows } from "./use-rows"
-import { useSelectedRows } from "./use-selected-rows"
+import { kChildMostTableCollectionId, kIndexColumnKey } from "./case-table-types"
+import { CollectionTable } from "./collection-table"
+import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { ICollectionPropsModel } from "../../models/data/collection"
+import { ITileModel } from "../../models/tiles/tile-model"
 import { prf } from "../../utilities/profiler"
-import styles from "./case-table-shared.scss"
+import t from "../../utilities/translation/translate"
+
 import "./case-table.scss"
 
 interface IProps {
+  tile?: ITileModel
   setNodeRef: (element: HTMLElement | null) => void
 }
-export const CaseTable = observer(({ setNodeRef }: IProps) => {
+export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProps) {
+  const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
   return prf.measure("Table.render", () => {
-
-    const gridRef = useRef<DataGridHandle>(null)
-    const { active } = useDndContext()
+    // disable the overlay for the index column
     const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
                             ? `${active.id}` : undefined
 
-    const { selectedRows, setSelectedRows, handleRowClick } = useSelectedRows({ data, gridRef })
-
-    // columns
-    const indexColumn = useIndexColumn({ data })
-    const columns = useColumns({ data, indexColumn })
-
-    // rows
-    const { rows, handleRowsChange } = useRows(data)
-    const rowKey = (row: TRow) => row.__id__
-
     if (!data) return null
 
+    const collections: ICollectionPropsModel[] = data.collections.map(collection => collection)
+    // add the ungrouped "collection"
+    collections.push(data.ungrouped)
+
     return (
-      <div ref={setNodeRef} className="case-table" data-testid="case-table">
-        <DataGrid ref={gridRef} className="rdg-light"
-          columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-          rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          onRowClick={handleRowClick} onRowsChange={handleRowsChange}/>
-        <AttributeDragOverlay activeDragId={overlayDragId} />
-      </div>
+      <>
+        <div ref={setNodeRef} className="case-table" data-testid="case-table">
+          <div className="case-table-content">
+            {collections.map((collection, i) => {
+              const key = collection?.id || kChildMostTableCollectionId
+              const parent = i > 0 ? collections[i - 1] : undefined
+              return (
+                <ParentCollectionContext.Provider key={key} value={parent}>
+                  <CollectionContext.Provider key={key} value={collection}>
+                    <CollectionTable />
+                  </CollectionContext.Provider>
+                </ParentCollectionContext.Provider>
+              )
+            })}
+            <AttributeDragOverlay activeDragId={overlayDragId} />
+          </div>
+        </div>
+        <NoCasesMessage />
+      </>
     )
   })
 })
+
+// temporary until we have an input row
+export const NoCasesMessage = () => {
+  const data = useDataSetContext()
+  const style: CSSProperties = {
+    position: "absolute",
+    top: 54,
+    width: "100%",
+    textAlign: "center",
+    fontSize: 14,
+    fontStyle: "italic"
+  }
+  return !data?.cases.length
+          ? <div className="no-cases-message" style={style}>{t("V3.caseTable.noCases")}</div>
+          : null
+}

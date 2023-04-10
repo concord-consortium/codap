@@ -7,8 +7,20 @@
   "typescript.tsdk": "./node_modules/typescript/lib",
   "cSpell.words": [
     "Chakra",
+    "clsx",
+    "instanbul",
     "papaparse",
     "portaling",
     "ulid"
-  ]
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true
 }

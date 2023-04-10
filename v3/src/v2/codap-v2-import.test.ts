@@ -1,14 +1,52 @@
 import { CodapV2Document } from "./codap-v2-document"
-import { ICodapV2Document } from "./codap-v2-types"
+import { ICodapV2DocumentJson } from "./codap-v2-types"
 
 const fs = require("fs")
 const path = require("path")
 
+describe(`V2 "bogus-document.codap"`, () => {
+  const file = path.join(__dirname, "../test/v2", "bogus-document.codap")
+  const bogusJson = fs.readFileSync(file, "utf8")
+  const bogusData = JSON.parse(bogusJson) as ICodapV2DocumentJson
+
+  it("should warn on invalid document reference", () => {
+    jestSpyConsole("warn", spy => {
+      const bogus = new CodapV2Document(bogusData)
+      expect(bogus).toBeDefined()
+      expect(spy).toHaveBeenCalledTimes(1)
+    })
+  })
+
+})
+
+describe(`V2 "calculator.codap"`, () => {
+  const file = path.join(__dirname, "../test/v2", "calculator.codap")
+  const calculatorJson = fs.readFileSync(file, "utf8")
+  const calculatorDoc = JSON.parse(calculatorJson) as ICodapV2DocumentJson
+
+  it("should be importable", () => {
+    expect(calculatorDoc.name).toBe("Calculator Sample")
+    expect(calculatorDoc.components?.length).toBe(1)
+    expect(calculatorDoc.contexts?.length).toBe(0)
+    expect(calculatorDoc.globalValues?.length).toBe(0)
+  })
+
+  it("should be importable by CodapV2Document", () => {
+    const mammals = new CodapV2Document(calculatorDoc)
+    expect(mammals.components.length).toBe(1)
+    expect(mammals.contexts.length).toBe(0)
+    expect(mammals.globalValues.length).toBe(0)
+    expect(mammals.datasets.length).toBe(0)
+
+    expect(mammals.components.map(c => c.type)).toEqual(["DG.Calculator"])
+  })
+})
+
 describe(`V2 "mammals.codap"`, () => {
 
-  const file = path.join(__dirname, "./", "mammals.codap")
+  const file = path.join(__dirname, "../test/v2", "mammals.codap")
   const mammalsJson = fs.readFileSync(file, "utf8")
-  const mammalsData = JSON.parse(mammalsJson) as ICodapV2Document
+  const mammalsData = JSON.parse(mammalsJson) as ICodapV2DocumentJson
 
   it("should be importable", () => {
     expect(mammalsData.name).toBe("Mammals Sample")
@@ -27,9 +65,13 @@ describe(`V2 "mammals.codap"`, () => {
     expect(mammals.globalValues.length).toBe(0)
     expect(mammals.datasets.length).toBe(1)
 
-    const data = mammals.datasets[0]
+    const data = mammals.datasets[0].dataSet
     expect(data.attributes.length).toBe(9)
     expect(data.cases.length).toBe(27)
+
+    // mammals has no parent cases
+    const firstCase = mammals.contexts[0].collections[0].cases[0]
+    expect(mammals.getParentCase(firstCase)).toBeUndefined()
 
     expect(mammals.components.map(c => c.type))
       .toEqual(["DG.TableView", "DG.GuideView", "DG.GraphView", "DG.GraphView", "DG.GraphView"])
@@ -38,9 +80,9 @@ describe(`V2 "mammals.codap"`, () => {
 
 describe(`V2 "24cats.codap"`, () => {
 
-  const file = path.join(__dirname, "./", "24cats.codap")
+  const file = path.join(__dirname, "../test/v2", "24cats.codap")
   const catsJson = fs.readFileSync(file, "utf8")
-  const catsData = JSON.parse(catsJson) as ICodapV2Document
+  const catsData = JSON.parse(catsJson) as ICodapV2DocumentJson
 
   it("should be importable", () => {
     expect(catsData.name).toBe("24cats")
@@ -61,9 +103,22 @@ describe(`V2 "24cats.codap"`, () => {
     expect(cats.globalValues.length).toBe(0)
     expect(cats.datasets.length).toBe(1)
 
-    const data = cats.datasets[0]
+    const data = cats.datasets[0].dataSet
+    expect(data.collections.length).toBe(1)
+    expect(data.collections[0].attributes.length).toBe(1)
     expect(data.attributes.length).toBe(9)
     expect(data.cases.length).toBe(24)
+
+    // sex attribute should be in parent collection
+    const v2SexAttr = catsData.contexts?.[0].collections?.[0].attrs?.[0]
+    expect(cats.getV2Attribute(v2SexAttr.guid)).toBeDefined()
+    const dsSexAttr = data.collections[0].attributes[0]
+    expect(dsSexAttr!.name).toBe(v2SexAttr.name)
+    expect(dsSexAttr!.title).toBe(v2SexAttr.title)
+
+    // should be able to look up parent cases for child cases
+    const firstCase = cats.contexts[0].collections[1].cases[0]
+    expect(cats.getParentCase(firstCase)).toBeDefined()
 
     expect(cats.components.map(c => c.type))
       .toEqual(["DG.TableView", "DG.GraphView", "DG.TextView", "DG.TextView", "DG.GraphView"])

@@ -5,22 +5,57 @@
   width: 100%;
   background-color: #ececec;
   border-bottom: 1px solid #dcdbd8;
-  font-family: 'MuseoSans-500', 'sans-serif';
-  font-size: 11px;
   box-shadow: 0 0 0 1px #888888!important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
-  .button-stack {
-    margin-top: 5px;
-  }
-  .button-stack:hover {
-    border-right: solid 2px #888888;
-    border-bottom: solid 2px #888888;
-  }
-  .button-stack:active {
-    margin-top: 10px;
+  .tool-shelf-component-buttons {
+    height: $tool-shelf-height;
+    background-color: white;
+    border-right: solid #888888;
+    align-items: center;
+    padding: 0 5px;
+
+    .tool-shelf-button {
+      height: 40px;
+      width: 40px;
+      margin-top: 5px;
+      display: flex;
+      flex-direction: column;
+      justify-items: center;
+      align-items: center;
+      margin: 0 5px;
+      &:active {
+        box-shadow: 2px 2px 2px 0px rgb(0, 0, 0, 0.5) !important
+      }
+
+      .tool-shelf-tool-label {
+        font-family: "museo-sans", sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 0;
+        min-height: 6px;
+        background-color: white;
+
+        &.menu {
+          background-color: white;
+
+        }
+      }
+    }
   }
 }
 
 .tool-shelf-span {
   margin-top: 0!important;
+}
+
+.tool-shelf-menu-trash-icon {
+  background-color: white;
+  right: 6px;
+  position: absolute;
+  height: 11px;
+  width: 11px;
+  fill: black;
 }

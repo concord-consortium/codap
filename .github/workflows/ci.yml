@@ -5,16 +5,21 @@ on:
     paths-ignore: # don't run this workflow if it only contains v3 changes
       - 'v3/**'   # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-excluding-paths
       - '.github/workflows/v3.yml'
+      - '.github/workflows/build-num-increment.yml'
+    tags-ignore:
+      - '3.*'
+    branches-ignore:
+      - 'main'
 
 jobs:
   build_test:
     name: Build and Run Jest Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
       - name: Setup Ruby
-        uses: actions/setup-ruby@v1
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7'
       - name: Install Dependencies
@@ -79,7 +84,7 @@ jobs:
       # - cypress
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
       - name: Setup Ruby
         uses: actions/setup-ruby@v1

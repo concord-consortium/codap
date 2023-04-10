@@ -15,11 +15,11 @@ export const useKeyStates = () => {
       }
       Object.keys(keys).forEach(key => updateKey(key, keys[key]))
     }
-    window.addEventListener("keydown", handleKeyDown , { capture: true })
+    window.addEventListener("keydown", handleKeyDown, { capture: true })
     window.addEventListener("keyup", handleKeyUp, { capture: true })
     window.addEventListener("click", handleMouseEvent, { capture: true })
     return () => {
-      window.removeEventListener("keydown", handleKeyDown , { capture: true })
+      window.removeEventListener("keydown", handleKeyDown, { capture: true })
       window.removeEventListener("keyup", handleKeyUp, { capture: true })
       window.removeEventListener("click", handleMouseEvent, { capture: true })
     }

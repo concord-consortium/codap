@@ -1,0 +1,25 @@
+name: Release v3 Production
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The git tag for the version to use for index.html
+        required: true
+env:
+  BUCKET: models-resources
+  PREFIX: codap3
+  SRC_FILE: index-top.html
+  DEST_FILE: index.html
+  workingDirectory: v3
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - run: >
+          aws s3 cp
+          s3://${{ env.BUCKET }}/${{ env.PREFIX }}/version/${{ github.event.inputs.version }}/${{ env.SRC_FILE }}
+          s3://${{ env.BUCKET }}/${{ env.PREFIX }}/${{ env.DEST_FILE }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.V3_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.V3_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1

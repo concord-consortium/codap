@@ -1,0 +1,98 @@
+@import "./../vars.scss";
+
+$slider-component-height: 98px;
+
+.slider-wrapper {
+  position: relative;
+  overflow: clip;
+  height: calc($slider-component-height - $title-bar-height);
+  background: #fff;
+  border-radius: $border-radius-bottom-corners;
+
+  .slider {
+    bottom: 23px;
+    position: absolute;
+
+    .slider-thumb-icon {
+      position: relative;
+      cursor: grab;
+
+      &.dragging {
+        filter: drop-shadow(3px 1px 1px #555);
+        cursor: grabbing;
+      }
+    }
+  }
+
+  .slider-control {
+    align-items: center;
+    line-height: 1;
+    display: flex;
+    flex-wrap: wrap;
+
+    .play-pause {
+      border: none;
+      padding: 0;
+      line-height: 1;
+      background-color: transparent;
+      height: 24px;
+      width: 24px;
+      min-width: 0;
+
+      &.paused svg {
+        stroke: white;
+        fill: rgb(10, 167, 10);
+        height: 24px;
+        width: 24px;
+      }
+
+      &.running svg {
+        stroke-width: 4px;
+        stroke: rgb(226, 61, 61);
+        padding:3px;
+        height: 24px;
+        width: 24px;
+      }
+    }
+
+    .slider-inputs {
+      height: inherit;
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+
+      .name-input {
+        border-radius: 3px;
+        border: none;
+        max-height: 40px;
+        white-space: nowrap;
+        font-family: "museo-sans", sans-serif !important;
+        font-size: 14px !important;
+
+        .text-input {
+          padding-inline-start: 0 !important;
+          padding-inline-end: 0 !important;
+          border: none !important;
+        }
+      }
+
+      .value-input {
+        overflow-wrap: normal;
+        border-radius: 3px;
+        border: none;
+        .text-input {
+          font-family: "museo-sans", sans-serif !important;
+          font-size: 14px !important;
+          padding-inline-start: 0 !important;
+          padding-inline-end: 0 !important;
+          border: none !important;
+          height: inherit !important;
+        }
+      }
+
+      .equals-sign {
+        padding-bottom: 2px;
+      }
+    }
+  }
+}

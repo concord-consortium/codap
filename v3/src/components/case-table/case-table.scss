@@ -7,6 +7,144 @@ $table-body-font-size: 8pt;
   position: relative;
   width: 100%;
   height: calc(100% - vars.$title-bar-height);
+  background-color: white;
+
+  .case-table-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow-x: auto;
+
+    .collection-table {
+      display: flex;
+      align-items: stretch;
+
+      .collection-table-and-title {
+        display: flex;
+        flex-direction: column;
+
+        .collection-title-wrapper {
+          position: relative;
+          width: 100%;
+          height: 26px;
+          background-color: vars.$codap-teal-lighter;
+          display: flex;
+          align-items: center;
+
+          .collection-title {
+            position: absolute;
+            text-align: center;
+            font-family: "museo-sans", sans-serif;
+            font-size: 12px;
+            text-overflow: ellipsis;
+            cursor: text;
+            vertical-align: middle;
+            white-space: nowrap;
+            user-select: none;
+            font-style: italic;
+            color: #0f2633; // Not used anywhere else at the moment, so we're leaving it unnamed
+          }
+        }
+      }
+
+      .collection-table-spacer-divider {
+        width: 1px;
+        background-color: white;
+      }
+
+      .collection-table-spacer {
+        position: relative;
+        width: 48px;
+        height: 100%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+
+        &.parentMost {
+          width: 30px;
+
+          .drop-message {
+            left: 7px;
+          }
+        }
+
+        &.active {
+          border: 5px solid rgba(255, 216, 102, 0.5);
+
+          .spacer-top {
+            border-bottom: 0;
+            background: white;
+          }
+        }
+
+        &.over {
+          background: rgba(255, 255, 0, 0.5);
+
+          .spacer-top {
+            border-bottom: 0;
+            background: rgba(255, 255, 0, 0.5);
+          }
+        }
+
+        .spacer-top {
+          height: calc(vars.$title-bar-height + vars.$header-height - 1px);
+          background-color: #f9f9f9; // --rdg-header-background-color
+          width: 100%;
+          border-bottom: 1px solid var(--codap-colors-chakra-border-color);
+          overflow: hidden;
+          position: relative;
+
+          .expand-collapse-button {
+            position: absolute;
+            bottom: 6px;
+            left: 3px;
+          }
+        }
+
+        .spacer-mid {
+          width: 100%;
+          flex-grow: 1;
+
+          .spacer-mid-interface {
+            position: relative;
+            width: 100%;
+            height: 100%;
+          }
+        }
+
+        .expand-collapse-button {
+          position: absolute;
+          display: flex;
+          cursor: pointer;
+          width: 9px;
+          height: 9px;
+          -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+          .expand-collapse-image {
+            width: 9px;
+            height: 9px;
+            &.closed {
+              background-image: url("../../assets/expand.gif");
+            }
+            &.open {
+              background-image: url("../../assets/collapse.gif");
+            }
+          }
+        }
+
+        .drop-message {
+          position: absolute;
+          bottom: 0;
+          left: 17px;
+          transform: rotate(-90deg);
+          transform-origin: left;
+          white-space: nowrap;
+          font: 12px sans-serif;
+          opacity: 100%;
+        }
+      }
+    }
+  }
 
   .rdg {
     width: 100%;
@@ -14,6 +152,7 @@ $table-body-font-size: 8pt;
     font-family: 'Montserrat-Regular', sans-serif !important;
     font-size: $table-body-font-size !important;
     color: #222222;
+    border-radius: vars.$border-radius-bottom-corners;
 
     .rdg-header-row {
       line-height: 14px !important;
@@ -21,6 +160,10 @@ $table-body-font-size: 8pt;
       .codap-column-header {
         text-align: center;
         height: shared.$header-row-height-px !important;
+        &.index {
+          pointer-events: none;
+          cursor: auto;
+        }
 
         .codap-column-header-content {
           width: 100%;
@@ -70,8 +213,19 @@ $table-body-font-size: 8pt;
           display: flex;
           align-items: center;
           justify-content: center;
+
+          &.collapsed {
+            text-align: left
+          }
         }
       }
+
+      // RDG.beta.17 moved all CSS inside @layers, which decreased their priority
+      // so that some of Chakra's CSS takes precedence, including the gridlines.
+      // These lines assert the RDG gridlines precedence ahead of Chakra's CSS.
+      padding-inline: 4px;
+      border-inline-end: 1px solid var(--rdg-border-color);
+      border-block-end: 1px solid var(--rdg-border-color);
     }
   }
 
@@ -84,5 +238,16 @@ $table-body-font-size: 8pt;
     &.over {
       opacity: 30%;
     }
+  }
+}
+
+.codap-menu-list {
+  width: 190px;
+
+  .menu-item {
+    font-family: 'museo-sans', sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+    padding: 0 5px 0 20px;
   }
 }

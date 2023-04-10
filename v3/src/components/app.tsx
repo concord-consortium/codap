@@ -1,51 +1,100 @@
-import React, { useCallback, useEffect, useState } from "react"
-import { CaseTableComponent } from "./case-table/case-table-component"
+import { observer } from "mobx-react-lite"
+import { getSnapshot } from "mobx-state-tree"
+import React, { useCallback, useEffect } from "react"
 import { CodapDndContext } from "./codap-dnd-context"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import {Container} from "./container"
-import {DataSummary} from "./data-summary"
-import {gDataBroker} from "../data-model/data-broker"
-import {DataSet, IDataSet, toCanonical} from "../data-model/data-set"
-import { GraphComponent } from "./graph/components/graph-component"
-import {Text} from "./text"
+import { MenuBar } from "./menu-bar/menu-bar"
+import { appState } from "../models/app-state"
+import { addDefaultComponents } from "../models/codap/add-default-content"
+import { createCodapDocument } from "../models/codap/create-codap-document"
+import {gDataBroker} from "../models/data/data-broker"
+import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
+import { IDocumentModelSnapshot } from "../models/document/document"
+import { getTileComponentInfo } from "../models/tiles/tile-component-info"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
+import { ITileModel } from "../models/tiles/tile-model"
+import { DocumentContext } from "../hooks/use-document-context"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
-import {useSampleText} from "../hooks/use-sample-text"
-import Icon from "../assets/concord.png"
-import { importSample, sampleData, SampleType } from "../sample-data"
+import { registerTileTypes } from "../register-tile-types"
+import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
-import pkg from "../../package.json"
-import build from "../../build_number.json"
+import { importV2Component } from "../v2/codap-v2-tile-importers"
+import "../models/shared/shared-case-metadata-registration"
+import "../models/shared/shared-data-set-registration"
 
 import "./app.scss"
+
+registerTileTypes([])
+
+addDefaultComponents()
 
 export function handleImportDataSet(data: IDataSet) {
   // add data set
   gDataBroker.addDataSet(data)
 }
 
-export const App = () => {
-  const sampleText = useSampleText()
-  const [v2Document, setV2Document] = useState<CodapV2Document | undefined>()
+export const App = observer(function App() {
+  const codapDocument = appState.document
 
   useKeyStates()
 
   const _handleImportDataSet = useCallback((data: IDataSet) => {
     handleImportDataSet(data)
-    setV2Document(undefined)
   }, [])
 
-  const handleImportDocument = useCallback((document: CodapV2Document) => {
-    // add data sets
-    document.datasets.forEach(data => gDataBroker.addDataSet(data))
-    setV2Document(document)
+  const handleImportV2Document = useCallback((v2Document: CodapV2Document) => {
+    const v3Document = createCodapDocument(undefined, "free")
+    const sharedModelManager = getSharedModelManager(v3Document)
+    sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
+    // add shared models (data sets and case metadata)
+    v2Document.datasets.forEach((data, key) => {
+      const metadata = v2Document.metadata[key]
+      gDataBroker.addDataAndMetadata(data, metadata)
+    })
+
+    // sort by zIndex so the resulting tiles will be ordered appropriately
+    const v2Components = v2Document.components.slice()
+    v2Components.sort((a, b) => (a.layout.zIndex ?? 0) - (b.layout.zIndex ?? 0))
+
+    // add components
+    const { content } = v3Document
+    const row = content?.firstRow
+    v2Components.forEach(v2Component => {
+      const insertTile = (tile: ITileModel) => {
+        if (row && tile) {
+          const info = getTileComponentInfo(tile.content.type)
+          if (info) {
+            const { left, top, width, height } = v2Component.layout
+            // only apply imported width and height to resizable tiles
+            const _width = !info.isFixedWidth ? { width } : {}
+            const _height = !info?.isFixedHeight ? { height } : {}
+            content?.insertTileInRow(tile, row, { x: left, y: top, ..._width, ..._height })
+          }
+        }
+      }
+      importV2Component({ v2Component, v2Document, sharedModelManager, insertTile })
+    })
+
+    // retrieve document snapshot
+    gDataBroker.prepareSnapshots()
+    const docSnapshot = getSnapshot(v3Document)
+    gDataBroker.completeSnapshots()
+    // use document snapshot
+    appState.setDocument(docSnapshot)
+  }, [])
+
+  const handleImportV3Document = useCallback((document: IDocumentModelSnapshot) => {
+    appState.setDocument(document)
   }, [])
 
   useDropHandler({
     selector: "#app",
     onImportDataSet: _handleImportDataSet,
-    onImportDocument: handleImportDocument
+    onImportV2Document: handleImportV2Document,
+    onImportV3Document: handleImportV3Document
   })
 
   function createNewStarterDataset() {
@@ -57,10 +106,17 @@ export const App = () => {
   }
 
   useEffect(() => {
+    // connect the data broker to the shared model manager
+    if (!gDataBroker.sharedModelManager) {
+      const sharedModelManager = getSharedModelManager(appState.document)
+      sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
+    }
+
+    // create the initial sample data (if specified) or a new data set
     if (gDataBroker.dataSets.size === 0) {
-      const sample = sampleData.find(name => urlParams.sample === name)
+      const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
       if (sample) {
-        importSample(sample as SampleType, handleImportDataSet)
+        importSample(sample, handleImportDataSet)
       } else {
         createNewStarterDataset()
       }
@@ -69,25 +125,13 @@ export const App = () => {
 
   return (
     <CodapDndContext>
-      <div className="app" data-testid="app">
-        <ToolShelf/>
-        <Container>
-          {/* each top-level child will be wrapped in a CodapComponent */}
-          <DataSummary v2Document={v2Document} />
-          <div className="hello-codap3">
-            <div className="version-build-number">
-              <span>v{pkg.version}-build-{build.buildNumber}</span>
-            </div>
-            <div>
-              <img src={Icon}/>
-              <Text text={sampleText}/>
-              <p>Drag a CSV file into this window to get some data.</p>
-            </div>
-          </div>
-          <CaseTableComponent/>
-          <GraphComponent v2Document={v2Document}/>
-        </Container>
-      </div>
+      <DocumentContext.Provider value={appState.document.content}>
+        <div className="app" data-testid="app">
+          <MenuBar/>
+          <ToolShelf content={codapDocument.content}/>
+          <Container content={codapDocument.content}/>
+        </div>
+      </DocumentContext.Provider>
     </CodapDndContext>
   )
-}
+})

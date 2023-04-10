@@ -1,5 +1,5 @@
-import {equationString, getScreenCoord, lineToAxisIntercepts, ptInRect, valueLabelString} from "./graph_utils"
-import {DataSet, toCanonical} from "../../../data-model/data-set"
+import {equationString, getScreenCoord, lineToAxisIntercepts, ptInRect, valueLabelString} from "./graph-utils"
+import {DataSet, toCanonical} from "../../../models/data/data-set"
 import {scaleLinear} from "d3"
 
 describe("equationString", () => {

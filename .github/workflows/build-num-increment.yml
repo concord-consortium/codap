@@ -5,21 +5,27 @@ on:
       - main
     paths-ignore:
       - 'v3/build_number.json'
+      
 jobs:
   test:
     name: Increment value test
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Increment value
-        uses: yoichiro/gh-action-increment-value@main
+        working-directory: v3
+        run: ./increment_build_num.sh
+      - name: Commit files
+        run: |
+          git config --local user.email ${{ secrets.USER_EMAIL }}
+          git config --local user.name ${{ secrets.USER_NAME }}
+          git commit -a -m "Increment the build number"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
         with:
-          target_directory: 'v3'
-          target_file: 'build_number.json'
-          prefix: 'buildNumber":'
-          suffix: '}'
-          commit_message: 'Increment the build number '
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}

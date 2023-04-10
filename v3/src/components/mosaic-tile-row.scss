@@ -1,0 +1,22 @@
+.mosaic-tile-row {
+  width: 100%;
+  // TODO: will need to handle height dynamically to support multiple rows
+  height: 100%;
+  overflow: hidden;
+
+  .mosaic-tile-node {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+
+    &.row {
+      flex-direction: row;
+    }
+
+    &.column {
+      flex-direction: column;
+    }
+  }
+}

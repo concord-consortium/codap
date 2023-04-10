@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import React from "react"
-import { DataBroker } from "../../../data-model/data-broker"
-import { DataSet, toCanonical } from "../../../data-model/data-set"
+import { DataBroker } from "../../../models/data/data-broker"
+import { DataSet, toCanonical } from "../../../models/data/data-set"
 import { GraphComponent } from "./graph-component"
 
 describe.skip("Graph", () => {
@@ -18,17 +18,17 @@ describe.skip("Graph", () => {
   })
 
   it("renders with empty broker", () => {
-    render(<GraphComponent broker={broker} />)
+    render(<GraphComponent/>)
     expect(screen.getByTestId("graph")).toBeInTheDocument()
   })
 
   it("renders graph point for each case", () => {
     const data = DataSet.create()
-    data.addAttribute({ name: "xVariable"} )
+    data.addAttribute({ name: "xVariable"})
     data.addAttribute({ name: "yVariable" })
     data.addCases(toCanonical(data, [{ xVariable: 1, yVariable: 2 }, { xVariable: 3, yVariable: 4 }]))
     broker.addDataSet(data)
-    render(<GraphComponent broker={broker} />)
+    render(<GraphComponent/>)
     expect(screen.getByTestId("graph")).toBeInTheDocument()
     // rerender(<GraphComponent broker={broker} />)
     // expect(screen.getByText('xVariable')).toBeInTheDocument()
@@ -42,12 +42,12 @@ describe.skip("Graph", () => {
     data.addAttribute({ name: "yVariable" })
     data.addCases(toCanonical(data, [{ xVariable: 1, yVariable: 2 }, { xVariable: 3, yVariable: 4 }]))
     broker.addDataSet(data)
-    const { rerender } = render(<GraphComponent broker={broker} />)
+    const { rerender } = render(<GraphComponent/>)
     expect(screen.getByTestId("graph")).toBeInTheDocument()
     // expect(screen.getByText('xVariable')).toBeInTheDocument()
     // expect(screen.getByText('yVariable')).toBeInTheDocument()
     const plotTypeButton = screen.getByText("Dot Plot")
     await user.click(plotTypeButton)
-    rerender(<GraphComponent broker={broker} />)
+    rerender(<GraphComponent/>)
   })
 })

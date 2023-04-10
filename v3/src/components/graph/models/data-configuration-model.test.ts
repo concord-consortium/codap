@@ -1,5 +1,5 @@
 import { reaction } from "mobx"
-import { DataSet, IDataSet, toCanonical } from "../../../data-model/data-set"
+import { DataSet, IDataSet, toCanonical } from "../../../models/data/data-set"
 import { DataConfigurationModel } from "./data-configuration-model"
 
 describe("DataConfigurationModel", () => {
@@ -28,7 +28,7 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual([])
     expect(config.tipAttributes).toEqual([])
     expect(config.uniqueTipAttributes).toEqual([])
-    expect(config.cases).toEqual([])
+    expect(config.caseDataArray).toEqual([])
   })
 
   it("behaves as expected with empty/case plot", () => {
@@ -43,9 +43,13 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["caption"])
     expect(config.attributes).toEqual(["nId"])
     expect(config.uniqueAttributes).toEqual(["nId"])
-    expect(config.tipAttributes).toEqual(["nId"])
-    expect(config.uniqueTipAttributes).toEqual(["nId"])
-    expect(config.cases).toEqual(["c1", "c2", "c3"])
+    expect(config.tipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"},
+      {plotNum: 0, caseID: "c3"}
+    ])
   })
 
   it("behaves as expected with dot chart on x axis", () => {
@@ -61,9 +65,13 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["x", "caption"])
     expect(config.attributes).toEqual(["nId", "nId"])
     expect(config.uniqueAttributes).toEqual(["nId"])
-    expect(config.tipAttributes).toEqual(["nId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["nId"])
-    expect(config.cases).toEqual(["c1", "c3"])
+    expect(config.tipAttributes).toEqual([{attributeID: "nId", role: "x"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c3"}
+    ])
   })
 
   it("behaves as expected with dot plot on x axis", () => {
@@ -79,9 +87,14 @@ describe("DataConfigurationModel", () => {
     expect(config.places).toEqual(["x", "caption"])
     expect(config.attributes).toEqual(["xId", "nId"])
     expect(config.uniqueAttributes).toEqual(["xId", "nId"])
-    expect(config.tipAttributes).toEqual(["xId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["xId", "nId"])
-    expect(config.cases).toEqual(["c1", "c2"])
+    expect(config.tipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"}
+    ])
   })
 
   it("behaves as expected with scatter plot and explicit caption attribute", () => {
@@ -97,12 +110,14 @@ describe("DataConfigurationModel", () => {
     expect(config.attributeType("x")).toBe("numeric")
     expect(config.attributeType("y")).toBe("numeric")
     expect(config.attributeType("caption")).toBe("categorical")
-    expect(config.places).toEqual(["x", "y", "caption"])
-    expect(config.attributes).toEqual(["xId", "yId", "nId"])
-    expect(config.uniqueAttributes).toEqual(["xId", "yId", "nId"])
-    expect(config.tipAttributes).toEqual(["xId", "yId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["xId", "yId", "nId"])
-    expect(config.cases).toEqual(["c1"])
+    expect(config.places).toEqual(["x", "caption", "y"])
+    expect(config.attributes).toEqual(["xId", "nId", "yId"])
+    expect(config.uniqueAttributes).toEqual(["xId", "nId", "yId"])
+    expect(config.tipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
+      {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
+    expect(config.caseDataArray).toEqual([{plotNum: 0, caseID: "c1"}])
 
     // behaves as expected after removing x axis attribute
     config.setAttribute("x")
@@ -113,27 +128,43 @@ describe("DataConfigurationModel", () => {
     expect(config.attributeType("x")).toBeUndefined()
     expect(config.attributeType("y")).toBe("numeric")
     expect(config.attributeType("caption")).toBe("categorical")
-    expect(config.places).toEqual(["y", "caption"])
-    expect(config.attributes).toEqual(["yId", "nId"])
-    expect(config.uniqueAttributes).toEqual(["yId", "nId"])
-    expect(config.tipAttributes).toEqual(["yId", "nId"])
-    expect(config.uniqueTipAttributes).toEqual(["yId", "nId"])
-    expect(config.cases).toEqual(["c1", "c3"])
+    expect(config.places).toEqual(["caption", "y"])
+    expect(config.attributes).toEqual(["nId", "yId"])
+    expect(config.uniqueAttributes).toEqual(["nId", "yId"])
+    expect(config.tipAttributes).toEqual([{attributeID: "yId", role: "y"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.uniqueTipAttributes).toEqual([{attributeID: "yId", role: "y"},
+      {attributeID: "nId", role: "caption"}])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c3"}
+    ])
 
     // updates cases when values change
     data.setCaseValues([{ __id__: "c2", "yId": 2 }])
-    expect(config.cases).toEqual(["c1", "c2", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"},
+      {plotNum: 0, caseID: "c3"}
+    ])
 
     // triggers observers when values change
     const trigger = jest.fn()
-    reaction(() => config.cases, () => trigger())
+    reaction(() => config.caseDataArray, () => trigger())
     expect(trigger).not.toHaveBeenCalled()
     data.setCaseValues([{ __id__: "c2", "yId": "" }])
     expect(trigger).toHaveBeenCalledTimes(1)
-    expect(config.cases).toEqual(["c1", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c3"}
+    ])
     data.setCaseValues([{ __id__: "c2", "yId": "2" }])
     expect(trigger).toHaveBeenCalledTimes(2)
-    expect(config.cases).toEqual(["c1", "c2", "c3"])
+    expect(config.caseDataArray).toEqual([
+      {plotNum: 0, caseID: "c1"},
+      {plotNum: 0, caseID: "c2"},
+      {plotNum: 0, caseID: "c3"}
+    ])
   })
 
   it("selection behaves as expected", () => {
@@ -143,7 +174,7 @@ describe("DataConfigurationModel", () => {
 
     config.setDataset(data)
     data.selectAll()
-    expect(config.selection.length).toBe(3)
+    expect(config.selection.length).toBe(2)
 
     config.setAttribute("x", { attributeID: "xId" })
     expect(config.selection.length).toBe(2)
@@ -184,14 +215,14 @@ describe("DataConfigurationModel", () => {
   it("only allows x and y as primary place", () => {
     const config = DataConfigurationModel.create()
     config.setDataset(data)
-    config.setPrimaryPlace('y')
-    expect(config.primaryPlace).toBe("y")
-    config.setPrimaryPlace('caption')
-    expect(config.primaryPlace).toBe("y")
+    config.setPrimaryRole('y')
+    expect(config.primaryRole).toBe("y")
+    config.setPrimaryRole('caption')
+    expect(config.primaryRole).toBe("y")
   })
 
   it("returns an attribute values array and category set that ignore empty values", () => {
-    data.addCases(toCanonical(data,[
+    data.addCases(toCanonical(data, [
       { __id__: "c4", n: "n1", x: 1, y: 1 },
       { __id__: "c5", n: "", x: 6, y: 1 },
       { __id__: "c6", n: "n1", x: 6, y: 6 }]))
@@ -200,18 +231,18 @@ describe("DataConfigurationModel", () => {
     config.setAttribute("x", { attributeID: "xId" })
     config.setAttribute("y", { attributeID: "yId" })
     config.setAttribute("caption", { attributeID: "nId" })
-    expect(config.valuesForPlace("x")).toEqual(["1", "1", "6", "6"])
-    expect(config.valuesForPlace("y")).toEqual(["1", "1", "1", "6"])
-    expect(config.valuesForPlace("caption")).toEqual(["n1", "n1", "n1"])
-    expect(config.categorySetForPlace("x")).toEqual(new Set(["1", "6"]))
-    expect(config.categorySetForPlace("y")).toEqual(new Set(["1", "6"]))
-    expect(config.categorySetForPlace("caption")).toEqual(new Set(["n1"]))
-    expect(config.numericValuesForPlace("x")).toEqual([1, 1, 6, 6])
-    expect(config.numericValuesForPlace("caption")).toEqual([])
+    expect(config.valuesForAttrRole("x")).toEqual(["1", "1", "6", "6"])
+    expect(config.valuesForAttrRole("y")).toEqual(["1", "1", "1", "6"])
+    expect(config.valuesForAttrRole("caption")).toEqual(["n1", "n1", "n1"])
+    expect(config.categorySetForAttrRole("x")).toEqual(new Set(["1", "6"]))
+    expect(config.categorySetForAttrRole("y")).toEqual(new Set(["1", "6"]))
+    expect(config.categorySetForAttrRole("caption")).toEqual(new Set(["n1"]))
+    expect(config.numericValuesForAttrRole("x")).toEqual([1, 1, 6, 6])
+    expect(config.numericValuesForAttrRole("caption")).toEqual([])
 
     config.setAttribute("y")
-    expect(config.valuesForPlace("y")).toEqual([])
-    expect(config.categorySetForPlace("y")).toEqual(new Set(["__main__"]))
+    expect(config.valuesForAttrRole("y")).toEqual([])
+    expect(config.categorySetForAttrRole("y")).toEqual(new Set(["__main__"]))
   })
 
 })

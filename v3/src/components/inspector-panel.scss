@@ -1,0 +1,126 @@
+@import "./vars.scss";
+$inspector-panel-width: 50px;
+
+.inspector-panel {
+  position: absolute;
+  right: -50px;
+  top: 0;
+  width: $inspector-panel-width;
+  min-height: 50px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  .inspector-tool-button {
+    width: 40px;
+    height: 30px;
+    padding: 5px;
+    border: none !important;
+    margin: 5px;
+    background-color: $teal-dark;
+    &:hover {
+      background-color: $teal-light1;
+    }
+    &:active {
+      background-color: $teal-light3;
+    }
+
+    .more-options-icon {
+      width: 3px;
+      height: 3px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+    &.menu {
+      .inspector-menu-icon {
+        margin-left: 5px;
+      }
+      .more-options-icon {
+        width: 3px;
+        height: 3px;
+        position: relative;
+        left: -5px;
+      }
+    }
+  }
+}
+
+.codap-inspector-palette {
+  background-color: #EEE;
+  border: 0px #444 solid;
+  position: absolute;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  font-family: "museo-sans", sans-serif;
+  z-index: 5;
+
+  .codap-inspector-palette-header {
+    position: relative;
+    top: 0;
+    left: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-shadow: none;
+
+    .codap-inspector-palette-icon-container {
+      width: 30px;
+      height: 30px;
+      background-color: $teal-dark;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .codap-inspector-palette-header-title {
+      border-bottom: solid #C1C5C7 1px;
+      border-left: solid #C1C5C7 1px;
+      padding-left: 5px;
+      width: calc(100% - $header-height);
+      height: $header-height;
+      font-size: 12px;
+      line-height: $header-height;
+    }
+  }
+
+  .palette-form {
+    position: relative;
+    left: 0;
+    background-color: #EEE;
+
+    .form-title {
+      font-family: "museo-sans", sans-serif !important;
+      font-size: 12px;
+    }
+
+    .form-label {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+}
+
+.palette-pointer {
+  position: absolute;
+  z-index: 10;
+
+  &.arrow-left {
+    left: calc($inspector-panel-width - 10px);
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-right: 22px solid #EEE;
+  }
+  &.arrow-right {
+    right: calc($inspector-panel-width - 10px);
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-left: 22px solid #EEE;
+  }
+}

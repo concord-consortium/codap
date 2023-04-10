@@ -1,34 +1,84 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
+import { clsx } from "clsx"
+import { reaction } from "mobx"
+import React, { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { Menu, MenuButton } from "@chakra-ui/react"
-import { IDataSet } from "../../data-model/data-set"
-import { kIndexColumnKey, TColumn, TFormatterProps } from "./case-table-types"
+import { kIndexColumnKey, TColumn, TFormatterProps, TRow } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
+import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { IAttribute } from "../../models/data/attribute"
+import { symIndex, symParent } from "../../models/data/data-set-types"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
+import t from "../../utilities/translation/translate"
 
-interface IHookProps {
-  data?: IDataSet
-}
-export const useIndexColumn = ({ data }: IHookProps) => {
+export const useIndexColumn = () => {
+  const caseMetadata = useCaseMetadata()
+  const data = useDataSetContext()
+  const parentCollection = useParentCollectionContext()
+  const collection = useCollectionContext()
   // formatter/renderer
-  const formatter = useCallback(({ row: { __id__ } }: TFormatterProps) => {
-    const index = data?.caseIndexFromID(__id__)
+  const formatter = useCallback(({ row: { __id__, [symIndex]: _index, [symParent]: parentId } }: TFormatterProps) => {
+    const index = _index != null ? _index : data?.caseIndexFromID(__id__)
+    const collapsedCases = (data && parentId && caseMetadata?.isCollapsed(parentId))
+                            ? data.pseudoCaseMap[parentId]?.childPseudoCaseIds?.length ??
+                              data.pseudoCaseMap[parentId]?.childCaseIds.length
+                            : undefined
     return (
-      <IndexCell caseId={__id__} index={index} />
+      <IndexCell caseId={__id__} index={index} collapsedCases={collapsedCases} />
     )
-  }, [data])
+  }, [caseMetadata, data])
+  const [indexColumn, setIndexColumn] = useState<TColumn | undefined>()
 
-  // column definition
-  const indexColumn: TColumn = useMemo(() => ({
-    key: kIndexColumnKey,
-    name: "index",
-    minWidth: 52,
-    width: 52,
-    headerCellClass: "codap-column-header",
-    headerRenderer: ColumnHeader,
-    cellClass: "codap-index-cell",
-    formatter
-  }), [formatter])
+  useEffect(() => {
+    // rebuild index column definition when referenced properties change
+    const disposer = reaction(
+      () => {
+        const attrs: IAttribute[] = getCollectionAttrs(collection, data)
+        const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
+        const parentMetadata = caseMetadata && parentCollection
+                                ? caseMetadata?.collections.get(parentCollection.id)
+                                : undefined
+        const collapsed = new Set<string>()
+        data?.collectionGroups.forEach(collectionGroup => {
+          if (collectionGroup.collection.id === parentCollection?.id) {
+            parentMetadata?.collapsed.forEach((value, key) => {
+              const pCase = collectionGroup.groupsMap[key]?.pseudoCase
+              if (pCase) collapsed.add(pCase.__id__)
+            })
+          }
+        })
+        return { visible, collapsed }
+      },
+      ({ visible, collapsed }) => {
+        setIndexColumn({
+          key: kIndexColumnKey,
+          name: t("DG.CaseTable.indexColumnName"),
+          minWidth: 52,
+          width: 52,
+          headerCellClass: "codap-column-header index",
+          headerRenderer: ColumnHeader,
+          cellClass: "codap-index-cell",
+          // TODO: better type
+          colSpan(args: any) {
+            // collapsed rows span the entire table
+            if (args.type === "ROW") {
+              const row: TRow = args.row
+              const parentId = row[symParent]
+              if (parentId && collapsed.has(parentId)) {
+                return visible.length + 1
+              }
+            }
+          },
+          formatter
+        })
+      },
+      { fireImmediately: true }
+    )
+    return disposer
+  }, [caseMetadata, collection, data, data?.collectionGroups, data?.ungroupedAttributes, formatter, parentCollection])
 
   return indexColumn
 }
@@ -36,9 +86,10 @@ export const useIndexColumn = ({ data }: IHookProps) => {
 interface ICellProps {
   caseId: string
   index?: number
+  collapsedCases?: number
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
+export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps) => {
   const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
   const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
   const setNodeRef = (elt: HTMLButtonElement | null) => {
@@ -54,22 +105,56 @@ export const IndexCell = ({ caseId, index, onClick }: ICellProps) => {
     we can fix it ourselves by post-processing the role attribute for our parent.
    */
   useEffect(() => {
-    const parent = cellElt?.parentElement
-    if (parent?.classList.contains("rdg-cell") && parent?.getAttribute("role") === "gridcell") {
-      parent.setAttribute("role", "rowheader")
+    const parent = cellElt?.closest(".rdg-cell")
+    if (parent?.getAttribute("role") === "gridcell") {
+      parent?.setAttribute("role", "rowheader")
     }
     // no dependencies means we'll check/fix it after every render
   })
+
+  useEffect(() => {
+    const parent = cellElt?.closest(".rdg-cell")
+
+    // During cell navigation, RDG sets the focus to the .rdg-cell. For keyboard invocation
+    // of the index column menu, however, the focus needs to be on the Chakra MenuButton.
+    // Therefore, we intercept attempts to focus the .rdg-cell and focus our content instead.
+
+    const handleFocus = (e: FocusEvent) => {
+      // if the parent was focused, focus the child
+      if (e.target === e.currentTarget) {
+        cellElt?.focus()
+      }
+    }
+
+    parent?.addEventListener("focusin", handleFocus)
+    return () => parent?.removeEventListener("focusin", handleFocus)
+  }, [cellElt])
 
   // Find the parent CODAP component to display the index menu above the grid
   useEffect(() => {
     setCodapComponentElt(cellElt?.closest(".codap-component") as HTMLDivElement ?? null)
   }, [cellElt])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+      // Prevent Chakra from bringing up the menu in favor of cell navigation
+      e.preventDefault()
+    }
+  }
+
+  const classes = clsx("codap-index-content", { collapsed: collapsedCases != null })
+  const casesStr = t(collapsedCases === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
   return (
     <Menu isLazy>
-      <MenuButton ref={setNodeRef} className="codap-index-content" data-testid="codap-index-content-button">
-        {index != null ? `${index + 1}` : ""}
+      <MenuButton ref={setNodeRef} className={classes} data-testid="codap-index-content-button"
+                  onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
+        {collapsedCases != null
+          ? `${collapsedCases} ${casesStr}`
+          : index != null ? `${index + 1}` : ""}
       </MenuButton>
+      <VisuallyHidden id="sr-index-menu-instructions">
+        Press Enter to open the menu.
+      </VisuallyHidden>
       {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
     </Menu>
   )

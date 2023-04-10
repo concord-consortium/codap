@@ -2,10 +2,11 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {IMovableValueModel} from "./adornment-models"
-import { kGraphClassSelector } from "../graphing-types"
-import { INumericAxisModel } from "../models/axis-model"
-import {ScaleNumericBaseType, useGraphLayoutContext} from "../models/graph-layout"
-import {valueLabelString} from "../utilities/graph_utils"
+import {useAxisLayoutContext} from "../../axis/models/axis-layout-context"
+import {ScaleNumericBaseType} from "../../axis/axis-types"
+import {kGraphClassSelector} from "../graphing-types"
+import {INumericAxisModel} from "../../axis/models/axis-model"
+import {valueLabelString} from "../utilities/graph-utils"
 import "./movable-value.scss"
 
 export const MovableValue = (props: {
@@ -14,10 +15,9 @@ export const MovableValue = (props: {
   transform: string
 }) => {
   const {model, axis, transform} = props,
-    layout = useGraphLayoutContext(),
-    { margin } = layout,
-    xScale = layout.axisScale("bottom") as ScaleNumericBaseType,
-    yScale = layout.axisScale("left"),
+    layout = useAxisLayoutContext(),
+    xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
+    yScale = layout.getAxisScale("left"),
     valueRef = useRef<SVGSVGElement>(null),
     [bottom, top] = yScale?.range() || [0, 1],
     [valueObject, setValueObject] = useState<Record<string, any>>({
@@ -28,7 +28,7 @@ export const MovableValue = (props: {
     const { line, cover } = valueObject
     if (!line) return
 
-    [line, cover].forEach(aLine => {
+    ;[line, cover].forEach(aLine => {
       aLine
         .attr('x1', xScale(value))
         .attr('y1', top)
@@ -38,14 +38,14 @@ export const MovableValue = (props: {
   }, [bottom, top, valueObject, xScale])
 
   const refreshValueLabel = useCallback((value: number) => {
-    const leftEdge = margin.left,
+    const leftEdge = 0,
       screenX = xScale(value) + (leftEdge || 0),
       string = valueLabelString(value)
     select('div.movable-value-label')
       .style('left', `${screenX}px`)
       .style('top', 0)
       .html(string)
-  }, [xScale, margin.left])
+  }, [xScale])
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
@@ -64,7 +64,7 @@ export const MovableValue = (props: {
         const { domain } = axis
         return domain
       },
-      domain => {
+      () => {
         const { value } = model
         refreshValue(value)
         refreshValueLabel(value)
@@ -75,8 +75,8 @@ export const MovableValue = (props: {
 
   const
     dragValue = useCallback((event: MouseEvent) => {
-      model.setValue(xScale.invert(event.x - margin.left))
-    }, [margin.left, model, xScale])
+      model.setValue(xScale.invert(event.x))
+    }, [model, xScale])
 
   // Add the behavior to the line cover
   useEffect(function addBehaviors() {

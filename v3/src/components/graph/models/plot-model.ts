@@ -1,10 +1,10 @@
 import {Instance, types} from "mobx-state-tree"
-import {uniqueId} from "../../../utilities/js-utils"
+import {typedId} from "../../../utilities/js-utils"
 
 export const PlotModel = types
   .model('PlotModel', {
     // may not need this id
-    id: types.optional(types.identifier, () => uniqueId()),
+    id: types.optional(types.identifier, () => typedId("PLOT")),
     dataConfigurationID: types.string,
     // keys are PlotAttributeRoles
     attributeIDs: types.map(types.string),

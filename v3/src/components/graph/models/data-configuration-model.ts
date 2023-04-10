@@ -1,15 +1,21 @@
-import {Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
-import {attributeTypes} from "../../../data-model/attribute"
-import {IDataSet} from "../../../data-model/data-set"
-import {SetCaseValuesAction} from "../../../data-model/data-set-actions"
-import {FilteredCases, IFilteredChangedCases} from "../../../data-model/filtered-cases"
-import {uniqueId} from "../../../utilities/js-utils"
-
-export const PrimaryAttrPlaces = ['x', 'y'] as const
-export const TipAttrPlaces = [...PrimaryAttrPlaces, 'caption', 'y2'] as const
-export const GraphAttrPlaces = [
-  ...TipAttrPlaces, 'legend', 'polygon', 'topSplit', 'rightSplit'] as const
-export type GraphAttrPlace = typeof GraphAttrPlaces[number]
+import {observable} from "mobx"
+import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
+import {getSnapshot, Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
+import {AttributeType, attributeTypes} from "../../../models/data/attribute"
+import {IDataSet} from "../../../models/data/data-set"
+import {SetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
+import {typedId, uniqueId} from "../../../utilities/js-utils"
+import {kellyColors, missingColor} from "../../../utilities/color-utils"
+import {
+  CaseData,
+  GraphAttrRole,
+  GraphPlace,
+  graphPlaceToAttrRole,
+  PrimaryAttrRoles,
+  TipAttrRoles
+} from "../graphing-types"
+import {AxisPlace} from "../../axis/axis-types"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -17,58 +23,172 @@ export const AttributeDescription = types
     // user-specified type, e.g. treat as numeric
     type: types.maybe(types.enumeration([...attributeTypes]))
   })
+  .actions(self => ({
+    setType(type: AttributeType) {
+      self.type = type
+    }
+  }))
 
-export interface IAttributeDescription extends Instance<typeof AttributeDescription> {
-}
+export type RoleAttrIDPair = { role: GraphAttrRole, attributeID: string }
 
 export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof AttributeDescription> {
 }
 
+/**
+ * A note about cases:
+ * - For situations in which there is exactly one y-attribute, there exists one set of cases, filtered
+ *    by the presence of values for all assigned attributes, neglecting caption and legend.
+ *  - But when there is more than one y-attribute, there is one set of cases for each y-attribute. So
+ *    we have to choose the set of cases we are referring to. To keep the api as simple as possible we provide a
+ *    set of access methods that do not require the user to specify which set of cases they are
+ *    interested in. For these methods, the assumption is that the caseArrayNumber is 0.
+ *  -
+ */
+
 export const DataConfigurationModel = types
   .model('DataConfigurationModel', {
-    id: types.optional(types.identifier, () => uniqueId()),
+    id: types.optional(types.identifier, () => typedId("DCON")),
     // determines stacking direction in categorical-categorical, for instance
-    primaryPlace: types.maybe(types.enumeration([...PrimaryAttrPlaces])),
-    // keys are GraphAttrPlaces
-    attributeDescriptions: types.map(AttributeDescription)
+    primaryRole: types.maybe(types.enumeration([...PrimaryAttrRoles])),
+    // keys are GraphAttrRoles, excluding y role
+    _attributeDescriptions: types.map(AttributeDescription),
+    // all attributes for (left) y role
+    _yAttributeDescriptions: types.array(AttributeDescription),
   })
-  .volatile(self => ({
+  .volatile(() => ({
     dataset: undefined as IDataSet | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
-    filteredCases: undefined as FilteredCases | undefined,
-    handlers: new Map<string,(actionCall: ISerializedActionCall) => void>()
+    filteredCases: undefined as FilteredCases[] | undefined,
+    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
+    categorySets: observable.map<GraphAttrRole, Set<string> | null>(),
+    pointsNeedUpdating: false
   }))
   .views(self => ({
+    get isEmpty() {
+      return self._attributeDescriptions.size + self._yAttributeDescriptions.length === 0
+    },
+    get secondaryRole() {
+      return self.primaryRole === 'x' ? 'y'
+        : self.primaryRole === 'y' ? 'x'
+          : ''
+    },
+    get y2AttributeDescriptionIsPresent() {
+      return !!self._attributeDescriptions.get('rightNumeric')
+    },
+    // Includes rightNumeric if present
+    get yAttributeDescriptions() {
+      const descriptions = self._yAttributeDescriptions,
+        y2Description = self._attributeDescriptions.get('rightNumeric') ?? null
+      return descriptions.concat(y2Description ? [y2Description] : [])
+    },
+    // Includes rightNumeric if present
+    get yAttributeIDs() {
+      return this.yAttributeDescriptions.map((d: IAttributeDescriptionSnapshot) => d.attributeID)
+    },
+    /**
+     * No attribute descriptions beyond the first for y are returned.
+     * The rightNumeric attribute description is also not returned.
+     */
+    get attributeDescriptions() {
+      const descriptions = {...getSnapshot(self._attributeDescriptions)}
+      delete descriptions.rightNumeric
+      if (self._yAttributeDescriptions.length > 0) {
+        descriptions.y = self._yAttributeDescriptions[0]
+      }
+      return descriptions
+    },
     get defaultCaptionAttributeID() {
       // In v2, the caption is the attribute left-most in the child-most collection among plotted attributes
       // Until we have better support for hierarchical attributes, we just return the left-most attribute.
       return self.dataset?.attributes[0]?.id
     },
-    attributeID(place: GraphAttrPlace) {
-      let attrID = self.attributeDescriptions.get(place)?.attributeID
-      if ((place === "caption") && !attrID) {
+    /**
+     * For the 'y' role we return the first y-attribute, for 'rightNumeric' we return the last y-attribute.
+     * For all other roles we return the attribute description for the role.
+     */
+    attributeDescriptionForRole(role: GraphAttrRole) {
+      return role === 'y' ? this.yAttributeDescriptions[0]
+        : role === 'rightNumeric' ? self._attributeDescriptions.get('rightNumeric')
+          : this.attributeDescriptions[role]
+    },
+    attributeID(role: GraphAttrRole): string {
+      let attrID = this.attributeDescriptionForRole(role)?.attributeID
+      if ((role === "caption") && !attrID) {
         attrID = this.defaultCaptionAttributeID
       }
       return attrID
     },
-    attributeType(place: GraphAttrPlace) {
-      const desc = self.attributeDescriptions.get(place)
-      const attrID = this.attributeID(place)
+    attributeType(role: GraphAttrRole):string {
+      const desc = this.attributeDescriptionForRole(role)
+      const attrID = this.attributeID(role)
       const attr = attrID && self.dataset?.attrFromID(attrID)
       return desc?.type || attr?.type
     },
     get places() {
-      const places = new Set<string>(self.attributeDescriptions.keys())
+      const places = new Set<string>(Object.keys(this.attributeDescriptions))
       self.dataset?.attributes.length && places.add("caption")
-      return Array.from(places) as GraphAttrPlace[]
+      return Array.from(places) as GraphAttrRole[]
+    },
+    placeCanHaveZeroExtent(place: GraphPlace) {
+      return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
+        this.attributeID(graphPlaceToAttrRole[place]) === ''
     }
   }))
   .views(self => ({
-    filterCase(data: IDataSet, caseID: string) {
-      return Array.from(self.attributeDescriptions.entries()).every(([place, {attributeID}]) => {
-        // can still plot the case without a caption
-        if (place === "caption") return true
-        switch (self.attributeType(place as GraphAttrPlace)) {
+    get primaryAttributeID(): string {
+      return self.primaryRole && self.attributeID(self.primaryRole) || ''
+    },
+    get secondaryAttributeID(): string {
+      return self.secondaryRole && self.attributeID(self.secondaryRole) || ''
+    }
+  }))
+  .extend(() => {
+    // TODO: This is a hack to get around the fact that MST doesn't seem to cache this as expected
+    // when implemented as simple view.
+    let quantileScale: ScaleQuantile<string> | undefined = undefined
+
+    return {
+      views: {
+        get legendQuantileScale() {
+          if (!quantileScale) {
+            quantileScale = scaleQuantile(this.numericValuesForAttrRole('legend'), schemeBlues[5])
+          }
+          return quantileScale
+        },
+      },
+      actions: {
+        invalidateQuantileScale() {
+          quantileScale = undefined
+        }
+      }
+    }
+  })
+  .actions(self => ({
+    clearCategorySets() {
+      self.categorySets.clear()
+    },
+    setCategorySetForRole(role: GraphAttrRole, set: Set<string> | null) {
+      self.categorySets.set(role, set)
+    },
+    setPointsNeedUpdating(needUpdating: boolean) {
+      self.pointsNeedUpdating = needUpdating
+    }
+  }))
+  .views(self => ({
+    filterCase(data: IDataSet, caseID: string, caseArrayNumber: number) {
+      const hasY2 = !!self._attributeDescriptions.get('rightNumeric'),
+        numY = self._yAttributeDescriptions.length,
+        descriptions = {...self.attributeDescriptions}
+      if (hasY2 && caseArrayNumber === self._yAttributeDescriptions.length) {
+        descriptions.y = self._attributeDescriptions.get('rightNumeric') ?? descriptions.y
+      } else if (caseArrayNumber < numY) {
+        descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
+      }
+      delete descriptions.rightNumeric
+      return Object.entries(descriptions).every(([role, {attributeID}]) => {
+        // can still plot the case without a caption or a legend
+        if (["caption", "legend"].includes(role)) return true
+        switch (self.attributeType(role as GraphAttrRole)) {
           case "numeric":
             return isFinite(data.getNumeric(caseID, attributeID) ?? NaN)
           default:
@@ -83,6 +203,7 @@ export const DataConfigurationModel = types
       self.handlers.forEach(handler => handler(actionCall))
     },
     handleSetCaseValues(actionCall: SetCaseValuesAction, cases: IFilteredChangedCases) {
+      let [affectedCases, affectedAttrIDs] = actionCall.args
       // this is called by the FilteredCases object with additional information about
       // whether the value changes result in adding/removing any cases from the filtered set
       // a single call to setCaseValues can result in up to three calls to the handlers
@@ -95,8 +216,27 @@ export const DataConfigurationModel = types
       }
       if (cases.changed.length) {
         const idSet = new Set(cases.changed)
-        const changedCases = actionCall.args[0].filter(aCase => idSet.has(aCase.__id__))
+        const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
         self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
+      }
+      // Changes to case values require that existing cached categorySets be wiped.
+      // But if we know the ids of the attributes involved, we can determine whether
+      // an attribute that has a cache is involved
+      if (!affectedAttrIDs && affectedCases.length === 1) {
+        affectedAttrIDs = Object.keys(affectedCases[0])
+      }
+      if (affectedAttrIDs) {
+        for (const [key, desc] of Object.entries(self.attributeDescriptions)) {
+          if (affectedAttrIDs.includes(desc.attributeID)) {
+            self.setCategorySetForRole(key as GraphAttrRole, null)
+            if (key === "legend") {
+              self.invalidateQuantileScale()
+            }
+          }
+        }
+      } else {
+        self.clearCategorySets()
+        self.invalidateQuantileScale()
       }
     }
   }))
@@ -107,77 +247,374 @@ export const DataConfigurationModel = types
     get uniqueAttributes() {
       return Array.from(new Set<string>(this.attributes))
     },
-    get tipAttributes() {
-      return TipAttrPlaces
-        .map(place => self.attributeID(place))
-        .filter(id => !!id) as string[]
+    get tipAttributes(): RoleAttrIDPair[] {
+      return TipAttrRoles
+        .map(role => {
+          return {role, attributeID: self.attributeID(role)}
+        })
+        .filter(pair => !!pair.attributeID)
     },
     get uniqueTipAttributes() {
-      return Array.from(new Set<string>(this.tipAttributes))
+      const tipAttributes = this.tipAttributes,
+        idCounts: Record<string, number> = {}
+      tipAttributes.forEach((aPair: RoleAttrIDPair) => {
+        idCounts[aPair.attributeID] = (idCounts[aPair.attributeID] || 0) + 1
+      })
+      return tipAttributes.filter((aPair: RoleAttrIDPair) => {
+        if (idCounts[aPair.attributeID] > 1) {
+          idCounts[aPair.attributeID]--
+          return false
+        }
+        return true
+      })
     },
-    get cases() {
-      return self.filteredCases?.caseIds || []
+    get noAttributesAssigned() {
+      // The first attribute is always assigned as 'caption'. So it's really no attributes assigned except for that
+      return this.attributes.length <= 1
     },
+    get numberOfPlots() {
+      return this.filteredCases.length  // filteredCases is an array of CaseArrays
+    },
+    get hasY2Attribute() {
+      return !!self.attributeID('rightNumeric')
+    },
+    getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
+      return self.filteredCases
+        ? (self.filteredCases[caseArrayNumber]?.caseIds || []).map(id => {
+          return {plotNum: caseArrayNumber, caseID: id}
+        })
+        : []
+    },
+    getCaseDataArray(caseArrayNumber: number) {
+      const caseDataArray = this.getUnsortedCaseDataArray(caseArrayNumber),
+        legendAttrID = self.attributeID('legend')
+      if (legendAttrID) {
+        const categories = Array.from(this.categorySetForAttrRole('legend'))
+        caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
+          const cd1_Value = self.dataset?.getValue(cd1.caseID, legendAttrID),
+            cd2_value = self.dataset?.getValue(cd2.caseID, legendAttrID)
+          return categories.indexOf(cd1_Value) - categories.indexOf(cd2_value)
+        })
+      }
+      return caseDataArray
+    },
+    getSetOfAllGraphCaseIDs() {
+      const allGraphCaseIds = new Set<string>()
+      // todo: We're bypassing get caseDataArray to avoid infinite recursion. Is it necessary?
+      self.filteredCases?.forEach(aFilteredCases => {
+        if (aFilteredCases) {
+          aFilteredCases.caseIds.forEach(id => allGraphCaseIds.add(id))
+        }
+      })
+      return allGraphCaseIds
+    },
+    get joinedCaseDataArrays() {
+      const joinedCaseData: CaseData[] = []
+      self.filteredCases?.forEach((aFilteredCases, index) => {
+          aFilteredCases.caseIds.forEach(
+            (id) => joinedCaseData.push({plotNum: index, caseID: id}))
+        }
+      )
+      return joinedCaseData
+    },
+    get caseDataArray() {
+      return this.getCaseDataArray(0)
+    },
+    /**
+     * Note that in order to eliminate a selected case from the graph's selection, we have to check that it is not
+     * present in any of the case sets, not just the 0th one.
+     */
     get selection() {
-      if (!self.dataset || !self.filteredCases) return []
-      const selection = Array.from(self.dataset.selection)
-      return selection.filter(caseId => self.filteredCases?.hasCaseId(caseId))
+      if (!self.dataset || !self.filteredCases || !self.filteredCases[0]) return []
+      const selection = Array.from(self.dataset.selection),
+        allGraphCaseIds = this.getSetOfAllGraphCaseIDs()
+      return selection.filter((caseId: string) => allGraphCaseIds.has(caseId))
     }
   }))
   .views(self => (
     {
-      valuesForPlace(place: GraphAttrPlace): string[] {
-        const attrID = self.attributeID(place),
-          dataset = self.dataset
-        return attrID ? self.cases.map(anID => String(dataset?.getValue(anID, attrID)))
-          .filter(aValue => aValue !== '') : []
+      // Note that we have to go through each of the filteredCases in order to return all the values
+      valuesForAttrRole(role: GraphAttrRole): string[] {
+        const attrID = self.attributeID(role),
+          dataset = self.dataset,
+          allGraphCaseIds = Array.from(this.getSetOfAllGraphCaseIDs()),
+          allValues = attrID ? allGraphCaseIds.map((anID: string) => String(dataset?.getValue(anID, attrID)))
+            : []
+        return allValues.filter(aValue => aValue !== '')
       },
-      numericValuesForPlace(place: GraphAttrPlace):number[] {
-        return this.valuesForPlace(place).map((aValue:string) => Number(aValue))
-          .filter((aValue:number) => isFinite(aValue))
+      numericValuesForAttrRole(role: GraphAttrRole): number[] {
+        return this.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
+          .filter((aValue: number) => isFinite(aValue))
       },
-      categorySetForPlace(place: GraphAttrPlace): Set<string> {
-        const result: Set<string> = new Set(this.valuesForPlace(place))
-        result.delete('')
-        if (result.size === 0) {
-          result.add('__main__')
+      get numericValuesForYAxis() {
+        const allGraphCaseIds = Array.from(this.getSetOfAllGraphCaseIDs()),
+          allValues: number[] = []
+
+        return self.yAttributeIDs.reduce((acc: number[], yAttrID: string) => {
+          const values = allGraphCaseIds.map((anID: string) => Number(self.dataset?.getValue(anID, yAttrID)))
+          return acc.concat(values)
+        }, allValues)
+      },
+      categorySetForAttrRole(role: GraphAttrRole): Set<string> {
+        const existingSet = self.categorySets.get(role)
+        if (existingSet) {
+          return existingSet
+        } else {
+          const result: Set<string> = new Set(this.valuesForAttrRole(role).sort())
+          if (result.size === 0) {
+            result.add('__main__')
+          }
+          self.setCategorySetForRole(role, result)
+          return result
         }
-        return result
+      },
+      numRepetitionsForPlace(place: GraphPlace) {
+        let numRepetitions = 1
+        switch (place) {
+          case 'left':
+            numRepetitions = Math.max(this.categorySetForAttrRole('rightSplit').size, 1)
+            break
+          case 'bottom':
+            numRepetitions = Math.max(this.categorySetForAttrRole('topSplit').size, 1)
+        }
+        return numRepetitions
+      }
+    }))
+  .views(self => (
+    {
+      getLegendColorForCategory(cat: string): string {
+        const catIndex = Array.from(self.categorySetForAttrRole('legend')).indexOf(cat)
+        return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
+      },
+
+      getLegendColorForNumericValue(value: number): string {
+        return self.legendQuantileScale(value)
+      },
+
+      selectCasesForLegendValue(aValue: string, extend = false) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          selection = legendID && self.caseDataArray.filter((aCaseData: CaseData) => {
+            return dataset?.getValue(aCaseData.caseID, legendID) === aValue
+          }).map((aCaseData: CaseData) => aCaseData.caseID)
+        if (selection) {
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
+        }
+      },
+      allCasesForCategoryAreSelected(cat: string) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          selection = (legendID && self.caseDataArray.filter((aCaseData: CaseData) => {
+            return dataset?.getValue(aCaseData.caseID, legendID) === cat
+          }).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
+        return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
+      },
+      selectedCasesForLegendQuantile(quantile: number) {
+        const dataset = self.dataset,
+          legendID = self.attributeID('legend'),
+          thresholds = self.legendQuantileScale.quantiles(),
+          min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
+          max = quantile === thresholds.length ? Infinity : thresholds[quantile],
+          selection: string[] = legendID && legendID !== ''
+            ? self.caseDataArray.filter((aCaseData: CaseData) => {
+              const value = dataset?.getNumeric(aCaseData.caseID, legendID)
+              return value !== undefined && value >= min && value < max
+            }).map((aCaseData: CaseData) => aCaseData.caseID)
+            : []
+        return selection
+      },
+      selectCasesForLegendQuantile(quantile: number, extend = false) {
+        const selection = this.selectedCasesForLegendQuantile(quantile)
+        if (selection) {
+          if (extend) self.dataset?.selectCases(selection)
+          else self.dataset?.setSelectedCases(selection)
+        }
+      },
+      casesInQuantileAreSelected(quantile: number): boolean {
+        const selection = this.selectedCasesForLegendQuantile(quantile)
+        return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
+      }
+    }))
+  .views(self => (
+    {
+      getLegendColorForCase(id: string): string {
+        const legendID = self.attributeID('legend'),
+          legendType = self.attributeType('legend'),
+          legendValue = id && legendID ? self.dataset?.getValue(id, legendID) : null
+        return legendValue == null ? ''
+          : legendType === 'categorical' ? self.getLegendColorForCategory(legendValue)
+            : legendType === 'numeric' ? self.getLegendColorForNumericValue(Number(legendValue))
+              : ''
+      },
+      /**
+       * Called to determine whether the categories on an axis should be centered.
+       * If the attribute is playing a primary role, then it should be centered.
+       * If it is a secondary role, then it should not be centered.
+       * 'top' and 'rightCat' are always centered.
+       */
+      categoriesForAxisShouldBeCentered(place: AxisPlace) {
+        const role = graphPlaceToAttrRole[place],
+          primaryRole = self.primaryRole
+        return primaryRole === role || !['left', 'bottom'].includes(place)
+      },
+      graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop: string) {
+        const role = graphPlaceToAttrRole[place],
+          typeToDropIsNumeric = self.dataset?.attrFromID(idToDrop)?.type === 'numeric',
+          xIsNumeric = self.attributeType('x') === 'numeric',
+          existingID = self.attributeID(role)
+        if (place === 'yPlus') {
+          return xIsNumeric && typeToDropIsNumeric && !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
+        } else if (place === 'rightNumeric') {
+          return xIsNumeric && typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
+        } else if (['top', 'rightCat'].includes(place)) {
+          return !typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
+        }
+        else {
+          return !!idToDrop && existingID !== idToDrop
+        }
       }
     }))
   .actions(self => ({
-    setDataset(dataset: IDataSet) {
+    setDataset(dataset: IDataSet | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
       self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
-      self.attributeDescriptions.clear()
-      self.filteredCases = new FilteredCases({
-        source: dataset, filter: self.filterCase,
-        onSetCaseValues: self.handleSetCaseValues
-      })
+      self.filteredCases = []
+      if (dataset) {
+        self.filteredCases[0] = new FilteredCases({
+          source: dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        })
+      }
+      self.clearCategorySets()
+      self.invalidateQuantileScale()
     },
-    setPrimaryPlace(aPlace: GraphAttrPlace) {
-      if (aPlace === 'x' || aPlace === 'y') {
-        self.primaryPlace = aPlace
+    setPrimaryRole(role: GraphAttrRole) {
+      if (role === 'x' || role === 'y') {
+        self.primaryRole = role
       }
     },
-    setAttribute(place: GraphAttrPlace, desc?: IAttributeDescriptionSnapshot) {
-      if (desc) {
-        self.attributeDescriptions.set(place, desc)
+    setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+
+      const replaceYAttribute = (iDesc?: IAttributeDescriptionSnapshot) => {
+          self._yAttributeDescriptions.clear()
+          if (iDesc && iDesc.attributeID !== '') {
+            self._yAttributeDescriptions.push(iDesc)
+          }
+        },
+        setAttributeDescription = (iRole: GraphAttrRole, iDesc?: IAttributeDescriptionSnapshot) => {
+          if (iRole === 'y') {
+            replaceYAttribute(iDesc)
+          } else if (iDesc && iDesc.attributeID !== '') {
+            self._attributeDescriptions.set(iRole, iDesc)
+          } else {
+            self._attributeDescriptions.delete(iRole)
+          }
+        }
+
+      // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
+      // move whatever attribute is assigned to the given role to that axis.
+      if (['x', 'y'].includes(role)) {
+        const otherRole = role === 'x' ? 'y' : 'x',
+          otherDesc = self.attributeDescriptionForRole(otherRole)
+        if (otherDesc?.attributeID === desc?.attributeID) {
+          const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'empty'}
+          setAttributeDescription(otherRole,
+            {attributeID: currentDesc.attributeID, type: currentDesc.attributeType})
+          self.categorySets.set(otherRole, null)
+        }
+      }
+      if (role === 'y') {
+        self._yAttributeDescriptions.clear()
+        if (desc && desc.attributeID !== '') {
+          self._yAttributeDescriptions.push(desc)
+        }
+      } else if (role === 'rightNumeric') {
+        this.setY2Attribute(desc)
       } else {
-        self.attributeDescriptions.delete(place)
+        setAttributeDescription(role, desc)
       }
-      self.filteredCases?.invalidateCases()
+      self.filteredCases?.forEach((aFilteredCases) => {
+        aFilteredCases.invalidateCases()
+      })
+      self.categorySets.set(role, null)
+      if (role === 'legend') {
+        self.invalidateQuantileScale()
+      }
+    },
+    _addNewFilteredCases() {
+      self.dataset && self.filteredCases
+        ?.push(new FilteredCases({
+          casesArrayNumber: self.filteredCases.length,
+          source: self.dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        }))
+      self.setPointsNeedUpdating(true)
+    },
+    addYAttribute(desc: IAttributeDescriptionSnapshot) {
+      self._yAttributeDescriptions.push(desc)
+      this._addNewFilteredCases()
+    },
+    setY2Attribute(desc: IAttributeDescriptionSnapshot) {
+      const isNewAttribute = !self._attributeDescriptions.get('rightNumeric'),
+        isEmpty = desc.attributeID === ''
+      self._attributeDescriptions.set('rightNumeric', desc)
+      if (isNewAttribute) {
+        this._addNewFilteredCases()
+      } else if (isEmpty) {
+        self.filteredCases?.pop() // remove the last one because it is the array
+        self.setPointsNeedUpdating(true)
+      } else {
+        const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
+        existingFilteredCases?.invalidateCases()
+      }
+    },
+    removeYAttributeWithID(id: string) {
+      const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
+      if (index >= 0) {
+        self._yAttributeDescriptions.splice(index, 1)
+        self.filteredCases?.splice(index, 1)
+        self.setPointsNeedUpdating(true)
+      }
+    },
+    setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
+      if (role === 'y') {
+        self._yAttributeDescriptions[plotNumber]?.setType(type)
+      } else {
+        self._attributeDescriptions.get(role)?.setType(type)
+      }
+      self.categorySets.set(role, null) // We don't have to worry about y attributes except for the 0th one
+      self.filteredCases?.forEach((aFilteredCases) => {
+        aFilteredCases.invalidateCases()
+      })
     },
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
       self.handlers.set(id, handler)
-      return () => self.handlers.delete(id)
+      return () => {
+        self.handlers.delete(id)
+      }
     }
   }))
+
+/*
+export interface SetAttributeTypeAction extends ISerializedActionCall {
+  name: "setAttributeType"
+  args: [GraphAttrRole, AttributeType]
+}
+*/
+
+/*
+export function isSetAttributeTypeAction(action: ISerializedActionCall): action is SetAttributeTypeAction {
+  return action.name === "setAttributeType"
+}
+*/
 
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {
 }
 
+/*
 export interface IDataConfigurationSnapshot extends SnapshotIn<typeof DataConfigurationModel> {
 }
+*/

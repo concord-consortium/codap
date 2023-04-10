@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
+index 1f103ff..ffb4850 100644
+--- a/node_modules/react-data-grid/lib/bundle.cjs
++++ b/node_modules/react-data-grid/lib/bundle.cjs
+@@ -2879,6 +2879,7 @@ exports.headerRenderer = headerRenderer;
+ exports.sortIcon = sortIcon;
+ exports.sortPriority = sortPriority;
+ exports.textEditor = textEditor;
++exports.textEditorClassname = textEditorClassname; // [CC]
+ exports.toggleGroupFormatter = toggleGroupFormatter;
+ exports.useFocusRef = useFocusRef;
+ exports.useRowSelection = useRowSelection;
+diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
+index d12ce6b..bd10e93 100644
+--- a/node_modules/react-data-grid/lib/bundle.js
++++ b/node_modules/react-data-grid/lib/bundle.js
+@@ -2863,5 +2863,6 @@ function textEditor({
+   });
+ }
+ 
+-export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, sortIcon, sortPriority, textEditor, toggleGroupFormatter, useFocusRef, useRowSelection, valueFormatter };
++// [CC] (patch-package) export textEditorClassname
++export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, checkboxFormatter, DataGrid$1 as default, headerRenderer, sortIcon, sortPriority, textEditor, textEditorClassname, toggleGroupFormatter, useFocusRef, useRowSelection, valueFormatter };
+ //# sourceMappingURL=bundle.js.map
+diff --git a/node_modules/react-data-grid/lib/index.d.ts b/node_modules/react-data-grid/lib/index.d.ts
+index e12abf7..72d5a4e 100644
+--- a/node_modules/react-data-grid/lib/index.d.ts
++++ b/node_modules/react-data-grid/lib/index.d.ts
+@@ -394,6 +394,8 @@ export declare interface SummaryFormatterProps<TSummaryRow, TRow = unknown> {
+     isCellSelected: boolean;
+ }
+ 
++export declare const textEditorClassname: string; // [CC]
++
+ export declare function textEditor<TRow, TSummaryRow>({ row, column, onRowChange, onClose }: EditorProps<TRow, TSummaryRow>): JSX.Element;
+ 
+ export declare function ToggleGroup<R, SR>({ groupKey, isExpanded, isCellSelected, toggleGroup }: GroupFormatterProps<R, SR>): JSX.Element;

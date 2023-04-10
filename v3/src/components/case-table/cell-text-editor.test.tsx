@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import React from "react"
-import { DataSet } from "../../data-model/data-set"
+import { DataSet } from "../../models/data/data-set"
 import { TCalculatedColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 const mockUseDataSetContext = jest.fn()
