@@ -6,18 +6,19 @@ import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {DropHint} from "./drop-hint"
 import {GraphPlace, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
 interface IAddAttributeProps {
-  graphID: string
   place: GraphPlace
   plotType: PlotType
   onDrop: (attributeId: string) => void
 }
 
-export const DroppableAddAttribute = ({graphID, place, onDrop}: IAddAttributeProps) => {
-  const dataConfiguration = useDataConfigurationContext(),
+export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
+  const graphID = useInstanceIdContext(),
+    dataConfiguration = useDataConfigurationContext(),
     isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop,
-    droppableId = `graph-add-attribute-drop-${place}-${graphID}`,
+    droppableId = `${graphID}-add-attribute-${place}-drop`,
     role = graphPlaceToAttrRole[place],
     {active, isOver, setNodeRef} = useDroppable({id: droppableId}),
     hintString = useDropHintString({role})
@@ -49,4 +50,3 @@ export const DroppableAddAttribute = ({graphID, place, onDrop}: IAddAttributePro
     </div>
   ) : null
 }
-
