@@ -8,15 +8,16 @@ import {GraphPlace, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 
 interface IAddAttributeProps {
+  graphID: string
   place: GraphPlace
   plotType: PlotType
   onDrop: (attributeId: string) => void
 }
 
-export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
+export const DroppableAddAttribute = ({graphID, place, onDrop}: IAddAttributeProps) => {
   const dataConfiguration = useDataConfigurationContext(),
     isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop,
-    droppableId = `graph-add-attribute-drop-${place}`,
+    droppableId = `graph-add-attribute-drop-${place}-${graphID}`,
     role = graphPlaceToAttrRole[place],
     {active, isOver, setNodeRef} = useDroppable({id: droppableId}),
     hintString = useDropHintString({role})

@@ -38,7 +38,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
   const graphModel = useGraphModelContext(),
     { enableAnimation, dotsRef } = graphController,
     {plotType} = graphModel,
-    instanceId = useInstanceIdContext(),
+    instanceId = useInstanceIdContext() || 'graph',
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -138,6 +138,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
         droppables.push(
           <DroppableAddAttribute
             key={place}
+            graphID={instanceId}
             place={place}
             plotType={plotType}
             onDrop={handleChangeAttribute.bind(null, place)}
