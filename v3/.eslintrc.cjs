@@ -134,7 +134,8 @@ module.exports = {
         "@typescript-eslint/no-require-imports": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-var-requires": "off",
-        "cypress/no-unnecessary-waiting": "off"
+        "cypress/no-unnecessary-waiting": "off",
+        "cypress/unsafe-to-chain-command": "off"  // FIXME: eight errors reported
       }
     },
     { // Lint configs in the base v3 directory

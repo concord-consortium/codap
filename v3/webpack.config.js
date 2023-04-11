@@ -19,9 +19,6 @@ module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
 
   const webpackPlugins = [
-    new ESLintPlugin({
-      extensions: ['ts', 'tsx', 'js', 'jsx'],
-    }),
     new MiniCssExtractPlugin({
       filename: devMode ? 'assets/[name].css' : 'assets/[name].[contenthash].css',
     }),
@@ -37,7 +34,14 @@ module.exports = (env, argv) => {
       publicPath: DEPLOY_PATH
     })] : []),
     new CleanWebpackPlugin(),
-  ];
+  ]
+  if (devMode) {
+    // `build` script runs eslint independently in production mode,
+    // so we don't need to run it again as part of the webpack build
+    webpackPlugins.push(new ESLintPlugin({
+      extensions: ['ts', 'tsx', 'js', 'jsx'],
+    }))
+  }
   if (!process.env.CODE_COVERAGE) {
     webpackPlugins.push(new ForkTsCheckerWebpackPlugin())
   }
@@ -178,13 +182,10 @@ module.exports = (env, argv) => {
                         overrides: {
                           // don't minify "id"s (i.e. turn randomly-generated unique ids into "a", "b", ...)
                           // https://github.com/svg/svgo/blob/master/plugins/cleanupIDs.js
-                          cleanupIDs: { minify: false },
+                          cleanupIds: { minify: false },
                           // leave <line>s, <rect>s and <circle>s alone
                           // https://github.com/svg/svgo/blob/master/plugins/convertShapeToPath.js
                           convertShapeToPath: false,
-                          // leave "class"es and "id"s alone
-                          // https://github.com/svg/svgo/blob/master/plugins/prefixIds.js
-                          prefixIds: false,
                           // leave "stroke"s and "fill"s alone
                           // https://github.com/svg/svgo/blob/master/plugins/removeUnknownsAndDefaults.js
                           removeUnknownsAndDefaults: { defaultAttrs: false },
