@@ -52,14 +52,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   if (!isSliderModel(sliderModel)) return null
 
-  const incrementSliderValue = () => {
-    sliderModel.setValue(sliderModel.value + sliderModel.increment)
-  }
-
   const handleSliderNameInput = (name: string) => {
     sliderModel.setName(name)
-    
-  const titleM = measureText(sliderModel.name)
+  }
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
@@ -90,7 +85,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
           <div className="slider">
             <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
               running={running} setRunning={setRunning}
-             />            <svg style={axisStyle}>
+             />
+            <svg style={axisStyle}>
               <Axis
                 parentSelector={kSliderClassSelector}
                 getAxisModel={() => sliderModel.axis}
