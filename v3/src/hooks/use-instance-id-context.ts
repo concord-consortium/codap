@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from "react"
 
-export const InstanceIdContext = createContext<string | undefined>(undefined)
+export const InstanceIdContext = createContext("instance-id-not-provided")
 
 const sInstanceIds = new Map<string, number>()
 
