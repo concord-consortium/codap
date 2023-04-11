@@ -19,9 +19,6 @@ module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
 
   const webpackPlugins = [
-    new ESLintPlugin({
-      extensions: ['ts', 'tsx', 'js', 'jsx'],
-    }),
     new MiniCssExtractPlugin({
       filename: devMode ? 'assets/[name].css' : 'assets/[name].[contenthash].css',
     }),
@@ -38,6 +35,13 @@ module.exports = (env, argv) => {
     })] : []),
     new CleanWebpackPlugin(),
   ]
+  if (devMode) {
+    // `build` script runs eslint independently in production mode,
+    // so we don't need to run it again as part of the webpack build
+    webpackPlugins.push(new ESLintPlugin({
+      extensions: ['ts', 'tsx', 'js', 'jsx'],
+    }))
+  }
   if (!process.env.CODE_COVERAGE) {
     webpackPlugins.push(new ForkTsCheckerWebpackPlugin())
   }
