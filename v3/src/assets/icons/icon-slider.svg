@@ -10,6 +10,6 @@
     <rect x="14" y="2" fill="#102633" width="1" height="7.2"/>
     <rect x="12" y="2" fill="#102633" width="1" height="7.2"/>
     <rect x="10" y="2" fill="#102633" width="1" height="7.2"/>
-    <circle fill="#102633" cx="12.5" cy="18.5" r="2.6"/>
+    <circle pointer-events="none" fill="#102633" cx="12.5" cy="18.5" r="2.6"/>
   </g>
   </svg>
