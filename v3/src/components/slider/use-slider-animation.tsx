@@ -16,10 +16,11 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const maxMinHitsRef = useRef(0)
   const tempValue = sliderModel.value
 
-  const resetSlider = useCallback(() => {
+  const resetSlider = useCallback((val?: number) => {
     const dir = sliderModel.animationDirection
-    if (dir === "lowToHigh" && sliderModel.value >= sliderModel.axis.max) sliderModel.setValue(sliderModel.axis.min)
-    if (dir === "highToLow" && sliderModel.value <= sliderModel.axis.min) sliderModel.setValue(sliderModel.axis.max)
+    const testValue = val || sliderModel.value
+    if (dir === "lowToHigh" && testValue >= sliderModel.axis.max) sliderModel.setValue(sliderModel.axis.min)
+    if (dir === "highToLow" && testValue <= sliderModel.axis.min) sliderModel.setValue(sliderModel.axis.max)
     return sliderModel.value
   }, [sliderModel])
 
@@ -55,7 +56,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
         setRunning(false)
         return sliderModel.axis.max
       } else {
-        return resetSlider()
+        return resetSlider(newValue)
       }
     }
     const belowMin = (val: number) => {
@@ -74,15 +75,15 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
           return sliderModel.axis.min
         }
         else {
-          return resetSlider()
+          return resetSlider(newValue)
         }
       }
       sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 
   const handleBackAndForthAnimation = (newValue: number) => {
-    const reachedLimit = (prevDirectionRef.current === 'lowToHigh' && sliderModel.value >= sliderModel.axis.max) ||
-                         (prevDirectionRef.current === 'highToLow' && sliderModel.value <= sliderModel.axis.min)
+    const reachedLimit = (prevDirectionRef.current === 'lowToHigh' && newValue >= sliderModel.axis.max) ||
+                         (prevDirectionRef.current === 'highToLow' && newValue <= sliderModel.axis.min)
 
     const aboveMax = (val: number) => {
       prevDirectionRef.current = 'highToLow'
