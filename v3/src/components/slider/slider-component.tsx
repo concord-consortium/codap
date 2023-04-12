@@ -29,15 +29,12 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // width and positioning
   useEffect(() => {
     if ((width != null) && (height != null)) {
-      layout.setParentExtent(width, height)
+      layout.setParentExtent(width - 30, height)
     }
   }, [width, height, layout])
 
   const axisStyle: CSSProperties = {
-    position: "absolute",
-    left: 0,
-    width,
-    height: 30
+    width: width ? width-30 : width,
   }
 
   // control slider value with play/pause
@@ -93,13 +90,17 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
           </Flex>
           <div className="slider">
             <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel} />
-            <svg style={axisStyle}>
-              <Axis
-                parentSelector={kSliderClassSelector}
-                getAxisModel={() => sliderModel.axis}
-                enableAnimation={animationRef}
-              />
-            </svg>
+            <div className="slider-axis-wrapper" style={axisStyle}>
+              <div className="axis-end min" />
+              <svg className="slider-axis">
+                <Axis
+                  parentSelector={kSliderClassSelector}
+                  getAxisModel={() => sliderModel.axis}
+                  enableAnimation={animationRef}
+                />
+              </svg>
+              <div className="axis-end max" />
+            </div>
           </div>
         </div>
       </AxisLayoutContext.Provider>

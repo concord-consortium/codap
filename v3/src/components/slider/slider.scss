@@ -10,16 +10,45 @@ $slider-component-height: 98px;
   border-radius: $border-radius-bottom-corners;
 
   .slider {
-    bottom: 23px;
     position: absolute;
+    margin: 0 15px;
+    bottom: -8px;
 
     .slider-thumb-icon {
       position: relative;
+      bottom: 7px;
       cursor: grab;
 
       &.dragging {
         filter: drop-shadow(3px 1px 1px #555);
         cursor: grabbing;
+      }
+    }
+    .slider-axis-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      bottom: 12px;
+      left: 0;
+      height: 17px;
+
+      .axis-end {
+        position: relative;
+        top: -7px;
+        height: 15px;
+        width: 2px;
+        background-color: #888;
+
+        &.min {
+          left: 0;
+        }
+        &.max {
+          right: 0;
+        }
+      }
+
+      .slider-axis {
+        width: 100%;
       }
     }
   }

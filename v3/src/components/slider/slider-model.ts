@@ -22,7 +22,7 @@ export const SliderModel = TileContentModel
     animationMode: types.optional(types.enumeration([...AnimationModes]), kDefaultAnimationMode),
     // clients should use animationRate view defined below
     _animationRate: types.maybe(types.number),  // frames per second
-    axis: types.optional(NumericAxisModel, { place: 'bottom', min: 0, max: 12 })
+    axis: types.optional(NumericAxisModel, { place: 'bottom', min: -0.9, max: 11.78 })
   })
   .views(self => ({
     get name() {
