@@ -16,6 +16,8 @@ import { EditableSliderValue } from "./editable-slider-value"
 
 import './slider.scss'
 
+const kAxisMargin = 30
+
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = tile?.content
   const instanceId = useNextInstanceId("slider")
@@ -29,12 +31,12 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // width and positioning
   useEffect(() => {
     if ((width != null) && (height != null)) {
-      layout.setParentExtent(width - 30, height)
+      layout.setParentExtent(width - kAxisMargin, height)
     }
   }, [width, height, layout])
 
   const axisStyle: CSSProperties = {
-    width: width ? width-30 : width,
+    width: width ? width - kAxisMargin : width,
   }
 
   // control slider value with play/pause
