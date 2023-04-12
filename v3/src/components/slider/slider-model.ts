@@ -96,6 +96,12 @@ export const SliderModel = TileContentModel
         // no need to store the default value
         self._animationRate = rate === kDefaultAnimationRate ? undefined : Math.abs(rate)
       }
+    },
+    setAxisMin(n: number) {
+      self.axis.min = n
+    },
+    setAxisMax(n: number) {
+      self.axis.max = n
     }
   }))
 
