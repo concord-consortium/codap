@@ -70,25 +70,17 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       <AxisLayoutContext.Provider value={layout}>
         <div className={kSliderClass} ref={sliderRef}>
           <Flex className="slider-control">
-            <Flex>
-              <Flex>
-                <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
-                  { running ? <PauseIcon /> : <PlayIcon /> }
-                </Button>
-              </Flex>
-              <Flex className="slider-inputs">
-                <Flex>
-                  <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
-                      onChange={handleSliderNameInput} data-testid="slider-variable-name">
-                    <EditablePreview className="name-text"/>
-                    <EditableInput className="name-text-input text-input"/>
-                  </Editable>
-                </Flex>
-                <Flex>
-                  <span className="equals-sign">&nbsp;=&nbsp;</span>
-                  <EditableSliderValue sliderModel={sliderModel} />
-                </Flex>
-              </Flex>
+            <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
+              { running ? <PauseIcon /> : <PlayIcon /> }
+            </Button>
+            <Flex className="slider-inputs">
+              <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
+                  onChange={handleSliderNameInput} data-testid="slider-variable-name">
+                <EditablePreview className="name-text"/>
+                <EditableInput className="name-text-input text-input"/>
+              </Editable>
+              <span className="equals-sign">&nbsp;=&nbsp;</span>
+              <EditableSliderValue sliderModel={sliderModel} />
             </Flex>
           </Flex>
           <div className="slider">

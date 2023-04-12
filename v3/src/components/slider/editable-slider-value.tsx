@@ -47,7 +47,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   return (
     <NumberInput value={candidate} className="value-input"
         onChange={handleValueChange} data-testid="slider-variable-value">
-      <NumberInputField className="value-text-input text-input" onKeyDown={handleKeyDown} onBlur={handleSubmitValue}/>
+      <NumberInputField className="value-text-input text-input" maxLength={15} onKeyDown={handleKeyDown} onBlur={handleSubmitValue} />
     </NumberInput>
   )
 })
