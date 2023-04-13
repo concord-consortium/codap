@@ -20,7 +20,7 @@ export class SliderAxisLayout implements IAxisLayout {
   @action setParentExtent(width: number, height: number) {
     this.sliderWidth = width
     this.sliderHeight = height
-    this.axisMultiScale.setLength(this.sliderWidth - 4)
+    this.axisMultiScale.setLength(this.sliderWidth)
   }
 
   getAxisLength(place: AxisPlace) {
