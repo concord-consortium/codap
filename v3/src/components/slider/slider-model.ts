@@ -22,7 +22,7 @@ export const SliderModel = TileContentModel
     animationMode: types.optional(types.enumeration([...AnimationModes]), kDefaultAnimationMode),
     // clients should use animationRate view defined below
     _animationRate: types.maybe(types.number),  // frames per second
-    axis: types.optional(NumericAxisModel, { place: 'bottom', min: -0.9, max: 11.78 })
+    axis: types.optional(NumericAxisModel, { place: 'bottom', min: -0.5, max: 11.5 })
   })
   .views(self => ({
     get name() {
@@ -48,6 +48,28 @@ export const SliderModel = TileContentModel
     }
   }))
   .actions(self => ({
+    setValue(n: number) {
+      // keep value in bounds of axis min and max when thumbnail is dragged
+      if (n < self.axis.min) { n = self.axis.min }
+      else if (n > self.axis.max) { n = self.axis.max }
+      else if (self.multipleOf) {
+        n = Math.round(n / self.multipleOf) * self.multipleOf
+      }
+      self.globalValue.setValue(n)
+    },
+  }))
+  .actions(self => ({
+    afterCreate() {
+      addDisposer(self, reaction(
+        () => { return self.axis.domain },
+        () => {
+          // keep the thumbnail within axis bounds when axis bounds are changed
+          if (self.value < self.axis.min) self.setValue(self.axis.min)
+          if (self.value > self.axis.max) self.setValue(self.axis.max)
+        },
+        { fireImmediately: true }
+      ))
+    },
     afterAttach() {
       // register our link to the global value manager when we're attached to the document
       addDisposer(self, reaction(
@@ -73,12 +95,6 @@ export const SliderModel = TileContentModel
     },
     setName(name: string) {
       self.globalValue.setName(name)
-    },
-    setValue(n: number) {
-      if (self.multipleOf) {
-        n = Math.round(n / self.multipleOf) * self.multipleOf
-      }
-      self.globalValue.setValue(n)
     },
     setMultipleOf(n: number) {
       if (n) {

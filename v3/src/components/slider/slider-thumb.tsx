@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
-import {ISliderModel} from "./slider-model"
+import { ISliderModel } from "./slider-model"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 
@@ -13,7 +13,7 @@ interface IProps {
 }
 
 // offset from left edge of thumb to center of thumb
-const kThumbOffset = 8
+const kThumbOffset = 10
 
 export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel} : IProps) {
   const layout = useAxisLayoutContext()
@@ -39,9 +39,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
       if ((containerX != null) && isDragging) {
         const pixelTarget = e.clientX + downOffset.current
         const scaledValue = scale?.getDataCoordinate(pixelTarget - containerX).data ?? 0
-        if (sliderModel.value < sliderModel.axis.min) { sliderModel.setValue(sliderModel.axis.min) }
-          else if (sliderModel.value > sliderModel.axis.max) { sliderModel.setValue(sliderModel.axis.max) }
-          else { sliderModel.setValue(scaledValue) }
+        sliderModel.setValue(scaledValue)
       }
       e.preventDefault()
       e.stopImmediatePropagation()
