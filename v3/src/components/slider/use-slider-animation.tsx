@@ -14,13 +14,12 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const mode = sliderModel.animationMode
   const prevDirectionRef = useRef("")
   const maxMinHitsRef = useRef(0)
-  const tempValue = sliderModel.value
 
   const resetSlider = useCallback((val?: number) => {
     const dir = sliderModel.animationDirection
     const testValue = val || sliderModel.value
-    if (dir === "lowToHigh" && testValue >= sliderModel.axis.max) sliderModel.setValue(sliderModel.axis.min)
-    if (dir === "highToLow" && testValue <= sliderModel.axis.min) sliderModel.setValue(sliderModel.axis.max)
+    if (dir === "lowToHigh" && testValue > sliderModel.axis.max) sliderModel.setValue(sliderModel.axis.min)
+    if (dir === "highToLow" && testValue < sliderModel.axis.min) sliderModel.setValue(sliderModel.axis.max)
     return sliderModel.value
   }, [sliderModel])
 
@@ -41,13 +40,14 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
           break
         case "backAndForth":
           handleBackAndForthAnimation(newValue)
+          break
       }
     }
   }, tickTime)
 
   const moveSlider = () => {
     const incrementModifier = direction === 'highToLow' || prevDirectionRef.current === 'highToLow' ? -1 : 1
-    return tempValue + sliderModel.increment * incrementModifier
+    return sliderModel.value + sliderModel.increment * incrementModifier
   }
 
   const handleLowToHighAnimation = (newValue: number) => {
@@ -101,11 +101,9 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       maxMinHitsRef.current = 1 //prevents first time run from doing 3 laps
     }
 
-    if (mode === "onceOnly") {
-      if (maxMinHitsRef.current > 1 && reachedLimit) {
-        setRunning(false)
-        maxMinHitsRef.current = 0
-      }
+    if (mode === "onceOnly" && maxMinHitsRef.current > 1 && reachedLimit) {
+      setRunning(false)
+      maxMinHitsRef.current = 0
       sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
     } else {
       sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))

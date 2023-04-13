@@ -22,9 +22,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
-  const [isEditingName, setIsEditingName] = useState(false)
-  const intervalRef = useRef<any>()
-  const tickTime = 60
   const animationRef = useRef(false)
 
   // width and positioning
