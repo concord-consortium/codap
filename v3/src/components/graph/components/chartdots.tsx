@@ -160,10 +160,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
           secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? ''
         primaryAttrID && (dataConfiguration?.caseDataArray || []).forEach((aCaseData: CaseData) => {
           const anID = aCaseData.caseID,
-            hCat = dataset?.getValue(anID, primaryAttrID),
-            vCat = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__',
-            extraHCat = extraPrimaryAttrID ? dataset?.getValue(anID, extraPrimaryAttrID) : '__main__',
-            extraVCat = extraSecondaryAttrID ? dataset?.getValue(anID, extraSecondaryAttrID) : '__main__'
+            hCat = dataset?.getStrValue(anID, primaryAttrID),
+            vCat = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) : '__main__',
+            extraHCat = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) : '__main__',
+            extraVCat = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) : '__main__'
           if (hCat && vCat && extraHCat && extraVCat &&
             catMap[hCat] && catMap[hCat][vCat] && catMap[hCat][vCat][extraHCat] &&
             catMap[hCat][vCat][extraHCat][extraVCat]) {

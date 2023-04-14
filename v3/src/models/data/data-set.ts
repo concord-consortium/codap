@@ -595,6 +595,26 @@ export const DataSet = types.model("DataSet", {
                 ? cachedCase[attributeID]
                 : attr && (index != null) ? attr.value(index) : undefined
       },
+      getStrValue(caseID: string, attributeID: string) {
+        // The values of a pseudo-case are considered to be the values of the first real case.
+        // For grouped attributes, these will be the grouped values. Clients shouldn't be
+        // asking for ungrouped values from pseudo-cases.
+        const _caseId = self.pseudoCaseMap[caseID]
+                          ? self.pseudoCaseMap[caseID].childCaseIds[0]
+                          : caseID
+        const index = _caseId ? self.caseIDMap[_caseId] : undefined
+        return index != null
+                ? this.getStrValueAtIndex(self.caseIDMap[_caseId], attributeID)
+                : ""
+      },
+      getStrValueAtIndex(index: number, attributeID: string) {
+        const attr = attrIDMap[attributeID],
+              caseID = self.cases[index]?.__id__,
+              cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
+        return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
+                ? `${cachedCase[attributeID]}`  // TODO: respect attribute formatting
+                : attr && (index != null) ? attr.value(index) : ""
+      },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         // The values of a pseudo-case are considered to be the values of the first real case.
         // For grouped attributes, these will be the grouped values. Clients shouldn't be

@@ -157,7 +157,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
         xValue = dataset?.getNumeric(anID, xAttrID) ?? NaN,
         xScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>,
         topSplitID = dataConfiguration?.attributeID('topSplit') ?? '',
-        topCoordValue = dataset?.getValue(anID, topSplitID) ?? '',
+        topCoordValue = dataset?.getStrValue(anID, topSplitID) ?? '',
         topScale = layout.getAxisScale('top') as ScaleBand<string>
       return xScale(xValue) / numExtraPrimaryBands + (topScale(topCoordValue) || 0)
     }
@@ -168,7 +168,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
         yScale = (hasY2Attribute && plotNum === numberOfPlots - 1 ? v2Scale : yScaleRef.current) as
           ScaleLinear<number, number>,
         rightSplitID = dataConfiguration?.attributeID('rightSplit') ?? '',
-        rightCoordValue = dataset?.getValue(anID, rightSplitID) ?? '',
+        rightCoordValue = dataset?.getStrValue(anID, rightSplitID) ?? '',
         rightScale = layout.getAxisScale('rightCat') as ScaleBand<string>,
         rightScreenCoord = ((rightCoordValue && rightScale(rightCoordValue)) || 0)
       return yScale(yValue) / numExtraSecondaryBands + rightScreenCoord
