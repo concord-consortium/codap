@@ -6,7 +6,7 @@ import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
-import { kSliderClass, kSliderClassSelector } from "./slider-types"
+import { kDefaultSignificantDigits, kSliderClass, kSliderClassSelector } from "./slider-types"
 import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
@@ -25,13 +25,25 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const intervalRef = useRef<any>()
   const tickTime = 60
   const animationRef = useRef(false)
+  const multiScale = layout.getAxisMultiScale("bottom")
+  const domain = layout.getAxisBounds("bottom")
+  const [sigFig, setSigFig] = useState(kDefaultSignificantDigits)
+  // const sigFig = multiScale.numericSignificantDigits
 
+  // console.log("sigFig", sigFig)
   // width and positioning
   useEffect(() => {
     if ((width != null) && (height != null)) {
       layout.setParentExtent(width, height)
     }
   }, [width, height, layout])
+
+  // useEffect(() => {
+  //   console.log("domain", domain)
+  //   if (sliderModel) {
+  //     setSigFig(multiScale.numericSignificantDigits)
+  //   }
+  // }, [domain, multiScale, sliderModel, sliderModel.axis])
 
   const axisStyle: CSSProperties = {
     position: "absolute",
@@ -45,6 +57,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     intervalRef.current = setInterval(() => { running && incrementSliderValue() }, tickTime)
     return () => clearInterval(intervalRef.current)
   })
+
 
   const toggleRunning = () => {
     setRunning(!running)
@@ -80,7 +93,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 <EditableInput className="name-text-input text-input"/>
               </Editable>
               <span className="equals-sign">&nbsp;=&nbsp;</span>
-              <EditableSliderValue sliderModel={sliderModel} />
+              <EditableSliderValue sliderModel={sliderModel} sigFig={sigFig} domain={domain} multiScale={multiScale} setSigFig={setSigFig} />
             </Flex>
           </Flex>
           <div className="slider">

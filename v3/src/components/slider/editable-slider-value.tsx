@@ -5,18 +5,33 @@ import React, {useState, useEffect} from "react"
 import { ISliderModel } from "./slider-model"
 
 import './slider.scss'
+import { MultiScale } from "../axis/models/multi-scale"
 
 interface IProps {
   sliderModel: ISliderModel
+  sigFig: number
+  domain: any
+  multiScale: MultiScale
+  setSigFig: (sigFig: number) => void
 }
 
-const kDecimalPlaces = 2
-const d3Format = format(`.${kDecimalPlaces}~f`)
 
-const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
 
-export const EditableSliderValue = observer(function EditableSliderValue({sliderModel} : IProps) {
+// const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
+
+export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, sigFig, domain, multiScale, setSigFig} : IProps) {
   const [candidate, setCandidate] = useState("")
+  const d3Format = format(`.${sigFig}~s`)
+  const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
+  console.log("sigFig", sigFig)
+
+  useEffect(() => {
+    console.log(multiScale)
+    if (sliderModel) {
+      setSigFig(multiScale.numericSignificantDigits)
+      setCandidate(formatValue(sliderModel))
+    }
+  }, [domain, multiScale, sliderModel, sliderModel.axis])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e

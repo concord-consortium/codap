@@ -71,6 +71,17 @@ export class MultiScale {
     return this.scale.domain()
   }
 
+  @computed get numericSignificantDigits() {
+    if (["linear"].includes(this.scaleType)) {
+      const numericScale = this.scale as ScaleLinear<number, number>,
+        onePixelDelta = numericScale.invert(1) - numericScale.invert(0)
+        console.log("onePixelDelta", onePixelDelta)
+      return Math.max(0, Math.ceil(-Math.log10(onePixelDelta)))
+    } else {
+      return NaN
+    }
+  }
+
   @action setScaleType(scaleType: IScaleType) {
     this.scaleType = scaleType
     this.scale = scaleTypeToD3Scale(scaleType)
@@ -120,5 +131,4 @@ export class MultiScale {
     }
     return {data: NaN}
   }
-
 }
