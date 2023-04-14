@@ -50,10 +50,17 @@ export const SliderModel = TileContentModel
   .actions(self => ({
     setValue(n: number) {
       // keep value in bounds of axis min and max when thumbnail is dragged
-      if (n < self.axis.min) { n = self.axis.min }
-      else if (n > self.axis.max) { n = self.axis.max }
-      else if (self.multipleOf) {
+      const keepValueInBounds = (num: number) => {
+        if (num < self.axis.min) return self.axis.min
+        else if (num > self.axis.max) return self.axis.max
+        else return num
+      }
+
+      if (self.multipleOf) {
         n = Math.round(n / self.multipleOf) * self.multipleOf
+        n = keepValueInBounds(n)
+      } else {
+        n = keepValueInBounds(n)
       }
       self.globalValue.setValue(n)
     },
@@ -61,7 +68,7 @@ export const SliderModel = TileContentModel
   .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
-        () => { return self.axis.domain },
+        () => self.axis.domain,
         () => {
           // keep the thumbnail within axis bounds when axis bounds are changed
           if (self.value < self.axis.min) self.setValue(self.axis.min)

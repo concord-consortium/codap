@@ -31,7 +31,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // width and positioning
   useEffect(() => {
     if ((width != null) && (height != null)) {
-      layout.setParentExtent(width - kAxisMargin - 4, height)
+      layout.setParentExtent(width - kAxisMargin, height)
     }
   }, [width, height, layout])
 

@@ -3,7 +3,7 @@ import { AxisBounds, AxisPlace, IScaleType } from "../axis/axis-types"
 import { IAxisLayout } from "../axis/models/axis-layout-context"
 import { MultiScale } from "../axis/models/multi-scale"
 import {
-  kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth
+  kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth, kSliderWidthLayoutAdj
 } from "./slider-types"
 
 export class SliderAxisLayout implements IAxisLayout {
@@ -18,7 +18,7 @@ export class SliderAxisLayout implements IAxisLayout {
   }
 
   @action setParentExtent(width: number, height: number) {
-    this.sliderWidth = width
+    this.sliderWidth = width - kSliderWidthLayoutAdj
     this.sliderHeight = height
     this.axisMultiScale.setLength(this.sliderWidth)
   }
