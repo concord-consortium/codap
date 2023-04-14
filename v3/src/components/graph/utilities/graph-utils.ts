@@ -103,11 +103,11 @@ export function getPointTipText(caseID: string, attributeIDs: string[], dataset?
     attrArray = (attributeIDs.map(attrID => {
       const attribute = dataset?.attrFromID(attrID),
         name = attribute?.name,
-        isNumeric = attribute?.type === 'numeric',
-        value = isNumeric
-          ? float(dataset?.getNumeric(caseID, attrID) ?? 0)
-          : dataset?.getValue(caseID, attrID)
-      return (value && (isNumeric && isFinite(value)) || (!isNumeric && value !== '')) ? `${name}: ${value}` : ''
+        numValue = dataset?.getNumeric(caseID, attrID),
+        value = numValue != null
+                  ? isFinite(numValue) ? float(numValue) : ''
+                  : dataset?.getValue(caseID, attrID)
+      return value ? `${name}: ${value}` : ''
     }))
   // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
   return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
