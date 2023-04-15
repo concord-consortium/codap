@@ -1,5 +1,6 @@
 import {action, computed, makeObservable, observable} from "mobx"
 import {
+  format,
   NumberValue, ScaleBand, scaleBand, ScaleLinear, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
 } from "d3"
 import {AxisScaleType, IScaleType, ScaleNumericBaseType} from "../axis-types"
@@ -71,17 +72,6 @@ export class MultiScale {
     return this.scale.domain()
   }
 
-  @computed get numericSignificantDigits() {
-    if (["linear"].includes(this.scaleType)) {
-      const numericScale = this.scale as ScaleLinear<number, number>,
-        onePixelDelta = numericScale.invert(1) - numericScale.invert(0)
-        console.log("onePixelDelta", onePixelDelta)
-      return Math.max(0, Math.ceil(-Math.log10(onePixelDelta)))
-    } else {
-      return NaN
-    }
-  }
-
   @action setScaleType(scaleType: IScaleType) {
     this.scaleType = scaleType
     this.scale = scaleTypeToD3Scale(scaleType)
@@ -130,5 +120,31 @@ export class MultiScale {
       return {cell, data: numericScale.invert(screenCoordinate)}
     }
     return {data: NaN}
+  }
+
+  formatValueForScale(value: number) {
+
+    function formatNumber(n: number, dom: [number, number], range: [number, number]): string {
+      // Calculate the number of significant digits based on domain and range
+      const resolution = (dom[1] - dom[0]) / (range[1] - range[0])
+      const logResolution = Math.log10(resolution)
+      const sigDigits = Math.ceil(logResolution) - 1
+
+      // Find the scaling factor based on significant digits
+      const scalingFactor = Math.pow(10, sigDigits)
+
+      // Round the number to the nearest significant digit
+      const roundedNumber = Math.round(n / scalingFactor) * scalingFactor
+
+      // Use D3 format to generate a string with the appropriate number of decimal places
+      return format('.9')(roundedNumber)
+    }
+
+    if (this.scaleType === 'linear') {
+      const domain = this.scale.domain() as [number, number]
+      return formatNumber(value, domain, [0, this.cellLength])
+    }
+    return String(value)
+
   }
 }
