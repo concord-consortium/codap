@@ -34,7 +34,7 @@ export const CaseDots = function CaseDots(props: {
       enableAnimation.current = false // We don't want to animate points until end of drag
       target.current = select(event.target as SVGSVGElement)
       const aCaseData: CaseData = target.current.node().__data__
-      if (target.current.node()?.nodeName === 'circle') {
+      if (aCaseData && target.current.node()?.nodeName === 'circle') {
         target.current.transition()
           .attr('r', dragPointRadius)
         setDragID(aCaseData.caseID)

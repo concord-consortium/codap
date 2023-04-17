@@ -16,14 +16,14 @@ interface IProps {
   marqueeState: MarqueeState
 }
 
-const prepareTree = (areaSelector: string, circleSelector: string, offset: Point): typeof RTree => {
+const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
     select(areaSelector).selectAll(circleSelector)
       .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
           rect = {
-            x: Number(element.cx.baseVal.value) + offset.x,
-            y: Number(element.cy.baseVal.value) + offset.y,
+            x: Number(element.cx.baseVal.value),
+            y: Number(element.cy.baseVal.value),
             w: 1, h: 1
           }
         selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
@@ -65,16 +65,15 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       const {computedBounds} = layout,
           plotBounds = computedBounds.get('plot') as Bounds
         appState.beginPerformance()
-        selectionTree.current = prepareTree(`.${instanceId}`, 'circle',
-          {x: plotBounds.left, y: plotBounds.top})
-        startX.current = event.x
-        startY.current = event.y
+        selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
+        startX.current = event.x - plotBounds.left
+        startY.current = event.y - plotBounds.top
         width.current = 0
         height.current = 0
         if (!event.sourceEvent.shiftKey) {
           dataset.current?.setSelectedCases([])
         }
-        marqueeState.setMarqueeRect({x: event.x, y: event.y, width: 0, height: 0})
+        marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
       },
 
       onDrag = (event: { dx: number; dy: number }) => {

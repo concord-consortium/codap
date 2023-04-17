@@ -34,10 +34,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     selectedDataObjects = useRef<Record<string, number>>({})
 
   const onDragStart = useCallback((event: any) => {
+      target.current = select(event.target as SVGSVGElement)
+      const aCaseData: CaseData = target.current.node().__data__
+      if (!aCaseData) return
       dataset?.beginCaching()
       didDrag.current = false
-      target.current = select(event.target as SVGSVGElement)
-      const tItsID: string = target.current.datum()?.caseID ?? ''
+      const tItsID: string = aCaseData.caseID
       if (target.current.node()?.nodeName === 'circle') {
         enableAnimation.current = false // We don't want to animate points until end of drag
         appState.beginPerformance()
@@ -53,7 +55,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         const {selection} = dataConfiguration || {},
           primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? ''
         selection?.forEach(anID => {
-            const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
+          const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
           if (itsValue != null) {
             selectedDataObjects.current[anID] = itsValue
           }
