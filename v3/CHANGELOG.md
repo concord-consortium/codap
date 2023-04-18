@@ -1,4 +1,24 @@
 # Changelog
+## Version 3.0.0-pre.1198 - Apr 18, 2023
+
+### Features/Improvements
+- Dropping a categorical attribute on the **top** or **right** edge of a plot splits the graph into sub-graphs containing points belonging to each category [#181947373](https://www.pivotaltracker.com/story/show/181947373)
+- Fix basic import of v2 graph components [#184890806](https://www.pivotaltracker.com/story/show/184890806)
+- Graphs should be properly restored with imported jsons [#184392252](https://www.pivotaltracker.com/story/show/184392252)
+- Graph should have a serializable model that can be exported and imported [#182835566](https://www.pivotaltracker.com/story/show/182835566)
+
+### Bug Fixes
+- Dragging an attribute into one graph tile influences another graph tile [#184910642](https://www.pivotaltracker.com/story/show/184910642)
+- Marquee selection and point dragging in two separate graphs with case plots are not independent [#184805552](https://www.pivotaltracker.com/story/show/184805552)
+- Large numbers in slider values are resetting always to 9007199254740991 [#184879611](https://www.pivotaltracker.com/story/show/184879611)
+- Inadvertent numeric axis scale reversal [#184847177](https://www.pivotaltracker.com/story/show/184847177)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   38203 bytes |                               0% |
+|  index.js | 3015152 bytes |                            0.06% |
+
 ## Version 3.0.0-pre.1190 - Apr 10, 2023
 
 ### Features/Improvements
