@@ -2,7 +2,7 @@ import {onAction} from "mobx-state-tree"
 import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {CaseData, InternalizedData, Point, rTreeRect} from "../graphing-types"
+import {CaseData, InternalizedData, rTreeRect} from "../graphing-types"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
