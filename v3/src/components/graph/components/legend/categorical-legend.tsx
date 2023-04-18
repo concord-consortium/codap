@@ -110,13 +110,13 @@ export const CategoricalLegend = memo(function CategoricalLegend(
             sel.append('rect')
               .attr('width', keySize)
               .attr('height', keySize)
-              .on('click',
-                (event, i: number) => {
+              // @ts-expect-error strictFunctionTypes
+              .on('click', (event, i: number) => {
                   dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
                 })
             sel.append('text')
-              .on('click',
-                (event, i: number) => {
+              // @ts-expect-error strictFunctionTypes
+              .on('click', (event, i: number) => {
                   dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
                 })
           }

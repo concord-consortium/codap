@@ -145,7 +145,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   startAnimation(enableAnimation)
   select(dotsElement)
     .selectAll('circle')
-    .data(allCaseData, caseDataKeyFunc)
+    .data(allCaseData, caseDataKeyFunc as AnyFn)
     .join(
       // @ts-expect-error void => Selection
       (enter) => {
@@ -368,17 +368,16 @@ export function setPointSelection(props: ISetPointSelection) {
     legendID = dataConfiguration.attributeID('legend')
   // First set the class based on selection
   dots.selectAll('circle')
-    .classed('graph-dot-highlighted',
-      (aCaseData: CaseData) => !!(dataset?.isCaseSelected(aCaseData.caseID)))
+    .classed('graph-dot-highlighted', ((aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID)) as AnyFn)
     // Then set properties to defaults w/o selection
     .attr('r', pointRadius)
     .style('stroke', pointStrokeColor)
-    .style('fill', (aCaseData:CaseData) => {
+    .style('fill', ((aCaseData:CaseData) => {
       return legendID
         ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID)
         : aCaseData.plotNum && getPointColorAtIndex
           ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
-    })
+    }) as AnyFn)
     .style('stroke-width', defaultStrokeWidth)
     .style('stroke-opacity', defaultStrokeOpacity)
 
@@ -434,19 +433,19 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
           .transition()
           .duration(duration)
           .on('end', (id, i) => (i === theSelection.size() - 1) && onComplete())
-          .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
-          .attr('cy', (aCaseData: CaseData) => {
+          .attr('cx', ((aCaseData: CaseData) => getScreenX(aCaseData.caseID)) as AnyFn)
+          .attr('cy', ((aCaseData: CaseData) => {
             return getScreenY(aCaseData.caseID, aCaseData.plotNum)
-          })
-          .attr('r', (aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
-            ? selectedPointRadius : pointRadius)
-          .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData))
-          .style('stroke', (aCaseData: CaseData) =>
+          }) as AnyFn)
+          .attr('r', ((aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
+            ? selectedPointRadius : pointRadius) as AnyFn)
+          .style('fill', ((aCaseData: CaseData) => lookupLegendColor(aCaseData)) as AnyFn)
+          .style('stroke', ((aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (aCaseData: CaseData) =>
+            ? defaultSelectedStroke : pointStrokeColor) as AnyFn)
+          .style('stroke-width', ((aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStrokeWidth : defaultStrokeWidth)
+            ? defaultSelectedStrokeWidth : defaultStrokeWidth) as AnyFn)
       }
     }
 

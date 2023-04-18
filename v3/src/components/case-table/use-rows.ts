@@ -33,6 +33,7 @@ export const useRows = () => {
   const resetRowCache = useCallback(() => {
     rowCache.clear()
     let prevParent: string | undefined
+    // @ts-expect-error strictFunctionTypes
     cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
       const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })

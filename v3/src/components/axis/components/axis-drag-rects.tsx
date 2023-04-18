@@ -149,6 +149,7 @@ export const AxisDragRects = observer(
           )
         numbering.forEach((behaviorIndex, axisIndex) => {
           rectSelection.select(`.dragRect.${classPrefix}-${classPostfixes[axisIndex]}`)
+            // @ts-expect-error strictFunctionTypes
             .call(dragBehavior[behaviorIndex])
         })
       }

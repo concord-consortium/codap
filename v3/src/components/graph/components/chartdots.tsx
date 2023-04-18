@@ -203,7 +203,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
           .duration(duration)
           .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
           .attr('r', pointRadius)
-          .attr(primaryCenterKey, (aCaseData: CaseData) => {
+          .attr(primaryCenterKey, ((aCaseData: CaseData) => {
             const anID = aCaseData.caseID
             if (cellIndices[anID]) {
               const {column} = cellIndices[anID],
@@ -213,8 +213,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
             } else {
               return 0
             }
-          })
-          .attr(secondaryCenterKey, (aCaseData: CaseData) => {
+          }) as AnyFn)
+          .attr(secondaryCenterKey, ((aCaseData: CaseData) => {
             const anID = aCaseData.caseID
             if (cellIndices[anID] && secOrdinalScale) {
               const {row} = cellIndices[anID],
@@ -225,14 +225,14 @@ export const ChartDots = function ChartDots(props: PlotProps) {
             } else {
               return 0
             }
-          })
-          .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID))
-          .style('stroke', (aCaseData: CaseData) =>
+          }) as AnyFn)
+          .style('fill', ((aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID)) as AnyFn)
+          .style('stroke', ((aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (aCaseData: CaseData) =>
+              ? defaultSelectedStroke : pointStrokeColor) as AnyFn)
+          .style('stroke-width', ((aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStrokeWidth : defaultStrokeWidth)
+              ? defaultSelectedStrokeWidth : defaultStrokeWidth) as AnyFn)
       }
 
     setPoints()

@@ -12,6 +12,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useAxis} from "../hooks/use-axis"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
+import {AttributeType} from "../../../models/data/attribute"
 import {AxisOrLegendAttributeMenu} from "./axis-or-legend-attribute-menu"
 import {SubAxis} from "./sub-axis"
 
@@ -27,7 +28,7 @@ interface IProps {
   isDropAllowed?: IsGraphDropAllowed
   onDropAttribute?: (place: AxisPlace, attrId: string) => void
   onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
-  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 export const Axis = ({
@@ -93,9 +94,9 @@ export const Axis = ({
           target={titleRef.current}
           portal={parentElt}
           place={place}
-          onChangeAttribute={onDropAttribute}
-          onRemoveAttribute={onRemoveAttribute}
-          onTreatAttributeAs={onTreatAttributeAs}
+          onChangeAttribute={onDropAttribute as AnyFn}
+          onRemoveAttribute={onRemoveAttribute as AnyFn}
+          onTreatAttributeAs={onTreatAttributeAs as AnyFn}
         />, parentElt)
       }
 

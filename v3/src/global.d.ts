@@ -10,3 +10,7 @@ declare namespace process {
     NODE_ENV: string; // e.g. "development" or "production"
   }
 }
+
+// Temporary workaround for `strictFunctionTypes` issues
+// TODO: figure out a better solution
+declare type AnyFn = any

@@ -19,6 +19,7 @@ interface IProps {
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
     select(areaSelector).selectAll(circleSelector)
+      // @ts-expect-error strictFunctionTypes
       .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
           rect = {
@@ -123,6 +124,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         (enter) => {
           enter.append('rect')
             .attr('class', 'graph-background')
+            // @ts-expect-error strictFunctionTypes
             .call(dragBehavior)
         },
         (update) => {

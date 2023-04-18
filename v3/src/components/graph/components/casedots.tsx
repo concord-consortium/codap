@@ -98,22 +98,22 @@ export const CaseDots = function CaseDots(props: {
       .transition()
       .duration(duration)
       .on('end', (id, i) => (i === dotsSelection.size() - 1) && onComplete?.())
-      .attr('cx', (aCaseData:CaseData) => {
+      .attr('cx', ((aCaseData: CaseData) => {
         return pointRadius + randomPointsRef.current[aCaseData.caseID].x * (xLength - 2 * pointRadius)
-      })
-      .attr('cy', (aCaseData:CaseData) => {
+      }) as AnyFn)
+      .attr('cy', ((aCaseData: CaseData) => {
         return yLength - (pointRadius + randomPointsRef.current[aCaseData.caseID].y * (yLength - 2 * pointRadius))
-      })
-      .style('fill', (aCaseData:CaseData) => {
+      }) as AnyFn)
+      .style('fill', ((aCaseData: CaseData) => {
         const anID = aCaseData.caseID
         return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? graphModel.pointColor
-      })
-      .style('stroke', (aCaseData:CaseData) => (legendAttrID && dataset?.isCaseSelected(aCaseData.caseID))
-        ? defaultSelectedStroke : graphModel.pointStrokeColor)
-      .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id))
-        ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-      .attr('r', (aCaseData:CaseData) => pointRadius + (dataset?.isCaseSelected(aCaseData.caseID)
-        ? pointRadiusSelectionAddend : 0))
+      }) as AnyFn)
+      .style('stroke', ((aCaseData: CaseData) => (legendAttrID && dataset?.isCaseSelected(aCaseData.caseID))
+        ? defaultSelectedStroke : graphModel.pointStrokeColor) as AnyFn)
+      .style('stroke-width', ((id: string) => (legendAttrID && dataset?.isCaseSelected(id))
+        ? defaultSelectedStrokeWidth : defaultStrokeWidth) as AnyFn)
+      .attr('r', ((aCaseData: CaseData) => pointRadius + (dataset?.isCaseSelected(aCaseData.caseID)
+        ? pointRadiusSelectionAddend : 0)) as AnyFn)
   }, [dataset, legendAttrID, dataConfiguration, graphModel,
     layout, dotsRef, enableAnimation])
 

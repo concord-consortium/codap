@@ -89,6 +89,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .attr("transform", `${transform} translate(0,${kChoroplethHeight})`)
     .call(axisBottom(x)
       .ticks(ticks)
+      // @ts-expect-error strictFunctionTypes
       .tickFormat(tickFormat)
       .tickSize(tickSize)
       .tickValues(tickValues))

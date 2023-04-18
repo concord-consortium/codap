@@ -126,7 +126,9 @@ export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps
       }
     }
 
+    // @ts-expect-error strictFunctionTypes
     parent?.addEventListener("focusin", handleFocus)
+    // @ts-expect-error strictFunctionTypes
     return () => parent?.removeEventListener("focusin", handleFocus)
   }, [cellElt])
 
