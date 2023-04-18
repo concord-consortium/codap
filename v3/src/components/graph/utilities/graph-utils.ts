@@ -104,8 +104,7 @@ export function getPointTipText(caseID: string, attributeIDs: string[], dataset?
       const attribute = dataset?.attrFromID(attrID),
         name = attribute?.name,
         numValue = dataset?.getNumeric(caseID, attrID),
-        value = numValue != null
-                  ? isFinite(numValue) ? float(numValue) : ''
+        value = numValue != null && isFinite(numValue) ? float(numValue)
                   : dataset?.getValue(caseID, attrID)
       return value ? `${name}: ${value}` : ''
     }))

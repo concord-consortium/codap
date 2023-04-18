@@ -46,12 +46,14 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
 
   const onDragStart = useCallback((event: MouseEvent) => {
+      target.current = select(event.target as SVGSVGElement)
+      const aCaseData: CaseData = target.current.node().__data__
+      if (!aCaseData) return
       dataset?.beginCaching()
       secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
       enableAnimation.current = false // We don't want to animate points until end of drag
       didDrag.current = false
-      target.current = select(event.target as SVGSVGElement)
-      const tItsID = target.current.datum()?.caseID ?? ''
+      const tItsID = aCaseData.caseID
       plotNumRef.current = target.current.datum()?.plotNum ?? 0
       if (target.current.node()?.nodeName === 'circle') {
         appState.beginPerformance()
