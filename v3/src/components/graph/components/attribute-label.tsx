@@ -9,12 +9,12 @@ import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {isVertical, GraphPlace, graphPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
 import {useGraphModelContext} from "../models/graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
+import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
 import {AxisPlace} from "../../axis/axis-types"
 import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
 
 import graphVars from "./graph.scss"
-import {useTileModelContext} from "../../../hooks/use-tile-model-context";
 
 interface IAttributeLabelProps {
   place: GraphPlace
@@ -31,7 +31,9 @@ export const AttributeLabel = observer(
       {isTileSelected} = useTileModelContext(),
       dataset = dataConfiguration?.dataset,
       labelRef = useRef<SVGGElement>(null),
-      showClickHereCue = dataConfiguration?.placeShouldShowClickHereCue(place, isTileSelected()) ?? false,
+      useClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false,
+      hideClickHereCue = useClickHereCue &&
+        !dataConfiguration?.placeAlwaysShowsClickHereCue(place) && !isTileSelected(),
       parentElt = labelRef.current?.closest(kGraphClassSelector) as HTMLDivElement ?? null
 
     const getAttributeIDs = useCallback(() => {
@@ -45,17 +47,16 @@ export const AttributeLabel = observer(
     }, [dataConfiguration, graphModel.plotType, place])
 
     const getLabel = useCallback(() => {
-      if (showClickHereCue) {
+      if (useClickHereCue) {
         return t('DG.AxisView.emptyGraphCue')
       }
-      const attrIDs = getAttributeIDs(),
-      label = attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
+      const attrIDs = getAttributeIDs()
+      return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
         .filter(aName => aName !== '').join(', ')
-      return label === '' ? '' : label
-    }, [dataset, getAttributeIDs, showClickHereCue])
+    }, [dataset, getAttributeIDs, useClickHereCue])
 
     const refreshAxisTitle = useCallback(() => {
-      const labelFont = showClickHereCue ? graphVars.graphEmptyLabelFont : graphVars.graphLabelFont,
+      const labelFont = useClickHereCue ? graphVars.graphEmptyLabelFont : graphVars.graphLabelFont,
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
@@ -70,7 +71,7 @@ export const AttributeLabel = observer(
           : place === 'legend' ? labelBounds.height / 2
             : place === 'top' ? labelBounds.height : bounds.height - labelBounds.height / 2,
         tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : '',
-        className = showClickHereCue ? 'empty-label' : 'attribute-label'
+        className = useClickHereCue ? 'empty-label' : 'attribute-label'
       select(labelRef.current)
         .selectAll(`text.${className}`)
         .data([1])
@@ -83,11 +84,12 @@ export const AttributeLabel = observer(
             update
               .attr("transform", labelTransform + tRotation)
               .attr('class', className)
+              .style('visibility', hideClickHereCue ? 'hidden' : 'visible')
               .attr('x', tX)
               .attr('y', tY)
               .text(label)
           })
-    }, [layout, place, labelRef, getLabel, showClickHereCue])
+    }, [layout, place, labelRef, getLabel, useClickHereCue, hideClickHereCue])
 
     useEffect(function observeAttributeNameChange() {
       const disposer = dataConfiguration?.onAction(action => {
@@ -114,7 +116,7 @@ export const AttributeLabel = observer(
     useEffect(function setupTitle() {
 
       const removeUnusedLabel = () => {
-        const classNameToRemove = showClickHereCue ? 'attribute-label' : 'empty-label'
+        const classNameToRemove = useClickHereCue ? 'attribute-label' : 'empty-label'
         select(labelRef.current)
           .selectAll(`text.${classNameToRemove}`)
           .remove()
@@ -123,7 +125,7 @@ export const AttributeLabel = observer(
       if (labelRef) {
         removeUnusedLabel()
         const anchor = place === 'legend' ? 'start' : 'middle',
-          className = showClickHereCue ? 'empty-label' : 'attribute-label'
+          className = useClickHereCue ? 'empty-label' : 'attribute-label'
         select(labelRef.current)
           .selectAll(`text.${className}`)
           .data([1])
@@ -137,7 +139,7 @@ export const AttributeLabel = observer(
             })
         refreshAxisTitle()
       }
-    }, [labelRef, place, showClickHereCue, refreshAxisTitle])
+    }, [labelRef, place, useClickHereCue, refreshAxisTitle])
 
     // Respond to changes in attributeID assigned to my place
     useEffect(() => {
