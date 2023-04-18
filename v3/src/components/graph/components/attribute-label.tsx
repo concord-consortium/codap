@@ -14,6 +14,7 @@ import {AxisPlace} from "../../axis/axis-types"
 import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
 
 import graphVars from "./graph.scss"
+import {useTileModelContext} from "../../../hooks/use-tile-model-context";
 
 interface IAttributeLabelProps {
   place: GraphPlace
@@ -27,9 +28,10 @@ export const AttributeLabel = observer(
     const graphModel = useGraphModelContext(),
       dataConfiguration = useDataConfigurationContext(),
       layout = useGraphLayoutContext(),
+      {isTileSelected} = useTileModelContext(),
       dataset = dataConfiguration?.dataset,
       labelRef = useRef<SVGGElement>(null),
-      showClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false,
+      showClickHereCue = dataConfiguration?.placeShouldShowClickHereCue(place, isTileSelected()) ?? false,
       parentElt = labelRef.current?.closest(kGraphClassSelector) as HTMLDivElement ?? null
 
     const getAttributeIDs = useCallback(() => {
@@ -46,9 +48,10 @@ export const AttributeLabel = observer(
       if (showClickHereCue) {
         return t('DG.AxisView.emptyGraphCue')
       }
-      const attrIDs = getAttributeIDs()
-      return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
+      const attrIDs = getAttributeIDs(),
+      label = attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
         .filter(aName => aName !== '').join(', ')
+      return label === '' ? '' : label
     }, [dataset, getAttributeIDs, showClickHereCue])
 
     const refreshAxisTitle = useCallback(() => {

@@ -143,6 +143,10 @@ export const DataConfigurationModel = types
     placeAlwaysShowsClickHereCue(place: GraphPlace) {
       return this.placeCanShowClickHereCue(place) &&
         !this.attributeID(graphPlaceToAttrRole[place === 'left' ? 'bottom' : 'left'])
+    },
+    placeShouldShowClickHereCue(place: GraphPlace, tileHasFocus: boolean) {
+      return this.placeAlwaysShowsClickHereCue(place) ||
+        (this.placeCanShowClickHereCue(place) && tileHasFocus)
     }
   }))
   .views(self => ({
