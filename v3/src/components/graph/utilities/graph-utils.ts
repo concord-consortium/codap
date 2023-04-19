@@ -1,6 +1,7 @@
 import {extent, format, select, timeout} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
+import {selectCircles, selectDots} from "../d3-types"
 import {CaseData, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "../../../utilities/math-utils"
 import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
@@ -128,7 +129,7 @@ export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: ID
 
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
-  dotsElement: SVGGElement | null
+  dotsElement: SVGSVGElement | null
   pointRadius: number
   pointColor: string
   pointStrokeColor: string
@@ -141,24 +142,22 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   const {dataConfiguration, enableAnimation, instanceId,
       dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
     allCaseData = dataConfiguration.joinedCaseDataArrays,
-    caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`
+    caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`,
+    circles = selectCircles(dotsElement)
+  if (!circles) return
   startAnimation(enableAnimation)
-  select(dotsElement)
-    .selectAll('circle')
+  circles
     .data(allCaseData, caseDataKeyFunc)
     .join(
-      // @ts-expect-error void => Selection
-      (enter) => {
+      (enter) =>
         enter.append('circle')
           .attr('class', 'graph-dot')
-          .property('id', (anID: string) => `${instanceId}_${anID}`)
-      },
-      (update) => {
+          .property('id', (anID: string) => `${instanceId}_${anID}`),
+      (update) =>
         update.attr('r', pointRadius)
           .style('fill', pointColor)
           .style('stroke', pointStrokeColor)
           .style('stroke-width', defaultStrokeWidth)
-      }
     )
   select(dotsElement).on('click',
     (event: MouseEvent) => {
@@ -363,13 +362,14 @@ export function setPointSelection(props: ISetPointSelection) {
     {dotsRef, dataConfiguration, pointRadius, selectedPointRadius,
       pointColor, pointStrokeColor, getPointColorAtIndex} = props,
     dataset = dataConfiguration.dataset,
-    dotsSvgElement = dotsRef.current,
-    dots = select(dotsSvgElement),
+    dots = selectCircles(dotsRef.current),
     legendID = dataConfiguration.attributeID('legend')
+
+  if (!dots) return
+
   // First set the class based on selection
-  dots.selectAll('circle')
-    .classed('graph-dot-highlighted',
-      (aCaseData: CaseData) => !!(dataset?.isCaseSelected(aCaseData.caseID)))
+  dots
+    .classed('graph-dot-highlighted', (aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID))
     // Then set properties to defaults w/o selection
     .attr('r', pointRadius)
     .style('stroke', pointStrokeColor)
@@ -429,7 +429,7 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     setPoints = () => {
       const duration = enableAnimation.current ? transitionDuration : 0
 
-      if (theSelection.size() > 0) {
+      if (theSelection?.size()) {
         theSelection
           .transition()
           .duration(duration)
@@ -463,6 +463,6 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       })
     } = props,
 
-    theSelection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
+    theSelection = selectDots(dotsRef.current, selectedOnly)
   setPoints()
 }

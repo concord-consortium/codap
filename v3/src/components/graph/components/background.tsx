@@ -18,7 +18,7 @@ interface IProps {
 
 const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
-    select(areaSelector).selectAll(circleSelector)
+    select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
       .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
           rect = {
@@ -105,7 +105,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         selectionTree.current = null
         appState.endPerformance()
       },
-      dragBehavior = drag()
+      dragBehavior = drag<SVGRectElement, number>()
         .on("start", onDragStart)
         .on("drag", onDrag)
         .on("end", onDragEnd),
@@ -119,13 +119,11 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       .selectAll('rect')
       .data([1])
       .join(
-        // @ts-expect-error void => Selection
-        (enter) => {
+        (enter) =>
           enter.append('rect')
             .attr('class', 'graph-background')
-            .call(dragBehavior)
-        },
-        (update) => {
+            .call(dragBehavior),
+        (update) =>
           update
             .attr('transform', transform)
             .attr('width', plotWidth)
@@ -134,7 +132,6 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
             .attr('y', 0)
             .style('fill', graphModel.plotBackgroundColor)
             .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
-        }
       )
   }, [bgRef, instanceId, transform, dataset, plotHeight, plotWidth, graphModel, layout, marqueeState])
 

@@ -4,15 +4,16 @@ import {Axis} from "../../axis/components/axis"
 import {axisPlaceToAttrRole, GraphPlace, kGraphClassSelector} from "../graphing-types"
 import t from "../../../utilities/translation/translate"
 import {observer} from "mobx-react-lite"
+import {AttributeType} from "../../../models/data/attribute"
 import {useGraphModelContext} from "../models/graph-model"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 
 interface IProps {
   place: AxisPlace
   enableAnimation: MutableRefObject<boolean>
-  onDropAttribute?: (place: AxisPlace, attrId: string) => void
-  onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
-  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onDropAttribute?: (place: GraphPlace, attrId: string) => void
+  onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
+  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 export const GraphAxis = observer(function GraphAxis(

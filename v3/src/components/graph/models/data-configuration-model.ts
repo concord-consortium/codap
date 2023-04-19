@@ -3,7 +3,7 @@ import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {getSnapshot, Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {SetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
@@ -178,13 +178,13 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
-    filterCase(data: IDataSet, caseID: string, caseArrayNumber: number) {
+    filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
       const hasY2 = !!self._attributeDescriptions.get('rightNumeric'),
         numY = self._yAttributeDescriptions.length,
         descriptions = {...self.attributeDescriptions}
       if (hasY2 && caseArrayNumber === self._yAttributeDescriptions.length) {
         descriptions.y = self._attributeDescriptions.get('rightNumeric') ?? descriptions.y
-      } else if (caseArrayNumber < numY) {
+      } else if (caseArrayNumber != null && caseArrayNumber < numY) {
         descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
       }
       delete descriptions.rightNumeric
@@ -432,9 +432,9 @@ export const DataConfigurationModel = types
           primaryRole = self.primaryRole
         return primaryRole === role || !['left', 'bottom'].includes(place)
       },
-      graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop: string) {
+      graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, idToDrop?: string) {
         const role = graphPlaceToAttrRole[place],
-          typeToDropIsNumeric = self.dataset?.attrFromID(idToDrop)?.type === 'numeric',
+          typeToDropIsNumeric = !!idToDrop && self.dataset?.attrFromID(idToDrop)?.type === 'numeric',
           xIsNumeric = self.attributeType('x') === 'numeric',
           existingID = self.attributeID(role)
         if (place === 'yPlus') {
@@ -455,7 +455,8 @@ export const DataConfigurationModel = types
       if (actionCall.name === "setCaseValues") return
       self.handlers.forEach(handler => handler(actionCall))
     },
-    handleSetCaseValues(actionCall: SetCaseValuesAction, cases: IFilteredChangedCases) {
+    handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
+      if (!isSetCaseValuesAction(actionCall)) return
       let [affectedCases, affectedAttrIDs] = actionCall.args
       // this is called by the FilteredCases object with additional information about
       // whether the value changes result in adding/removing any cases from the filtered set

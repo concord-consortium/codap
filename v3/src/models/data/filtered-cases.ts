@@ -3,7 +3,7 @@ import { ISerializedActionCall, onAction } from "mobx-state-tree"
 import { IDataSet } from "./data-set"
 import { isSetCaseValuesAction } from "./data-set-actions"
 
-export type FilterFn = (data: IDataSet, caseId: string, casesArrayNumber?:number) => boolean
+export type FilterFn = (data: IDataSet, caseId: string, casesArrayNumber?: number) => boolean
 
 export interface IFilteredChangedCases {
   added: string[]   // ids of cases that newly pass the filter

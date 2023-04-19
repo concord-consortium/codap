@@ -1,6 +1,7 @@
 import {randomUniform, select} from "d3"
 import {onAction} from "mobx-state-tree"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import { selectDots } from "../d3-types"
 import {CaseData, pointRadiusSelectionAddend, transitionDuration} from "../graphing-types"
 import {ICase} from "../../../models/data/data-set-types"
 import {isAddCasesAction} from "../../../models/data/data-set-actions"
@@ -85,37 +86,38 @@ export const CaseDots = function CaseDots(props: {
   }, [dataConfiguration, graphModel, dotsRef])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
+    if (!dotsRef.current) return
     const
       pointRadius = graphModel.getPointRadius(),
-      dotsSelection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
+      dotsSelection = selectDots(dotsRef.current, selectedOnly),
       duration = enableAnimation.current ? transitionDuration : 0,
       onComplete = enableAnimation.current ? () => {
         enableAnimation.current = false
       } : undefined,
       xLength = layout.getAxisMultiScale('bottom')?.length ?? 0,
       yLength = layout.getAxisMultiScale('left')?.length ?? 0
+    if (!dotsSelection) return
     dotsSelection
       .transition()
       .duration(duration)
       .on('end', (id, i) => (i === dotsSelection.size() - 1) && onComplete?.())
-      .attr('cx', (aCaseData:CaseData) => {
+      .attr('cx', (aCaseData: CaseData) => {
         return pointRadius + randomPointsRef.current[aCaseData.caseID].x * (xLength - 2 * pointRadius)
       })
-      .attr('cy', (aCaseData:CaseData) => {
+      .attr('cy', (aCaseData: CaseData) => {
         return yLength - (pointRadius + randomPointsRef.current[aCaseData.caseID].y * (yLength - 2 * pointRadius))
       })
-      .style('fill', (aCaseData:CaseData) => {
+      .style('fill', (aCaseData: CaseData) => {
         const anID = aCaseData.caseID
         return (legendAttrID && anID && dataConfiguration?.getLegendColorForCase(anID)) ?? graphModel.pointColor
       })
-      .style('stroke', (aCaseData:CaseData) => (legendAttrID && dataset?.isCaseSelected(aCaseData.caseID))
+      .style('stroke', (aCaseData: CaseData) => (legendAttrID && dataset?.isCaseSelected(aCaseData.caseID))
         ? defaultSelectedStroke : graphModel.pointStrokeColor)
-      .style('stroke-width', (id: string) => (legendAttrID && dataset?.isCaseSelected(id))
+      .style('stroke-width', (aCaseData: CaseData) => (legendAttrID && dataset?.isCaseSelected(aCaseData.caseID))
         ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-      .attr('r', (aCaseData:CaseData) => pointRadius + (dataset?.isCaseSelected(aCaseData.caseID)
+      .attr('r', (aCaseData: CaseData) => pointRadius + (dataset?.isCaseSelected(aCaseData.caseID)
         ? pointRadiusSelectionAddend : 0))
-  }, [dataset, legendAttrID, dataConfiguration, graphModel,
-    layout, dotsRef, enableAnimation])
+  }, [dataset, legendAttrID, dataConfiguration, graphModel, layout, dotsRef, enableAnimation])
 
   useEffect(function initDistribution() {
     const {cases} = dataset || {}

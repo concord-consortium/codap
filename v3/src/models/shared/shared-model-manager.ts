@@ -62,7 +62,7 @@ export interface ISharedModelManager {
    *
    * @param sharedModelType the MST model "class" of the shared model
    */
-  findFirstSharedModelByType<IT extends typeof SharedModelUnion>(
+  findFirstSharedModelByType<IT extends typeof SharedModel>(
     sharedModelType: IT, providerId?: string): IT["Type"] | undefined;
 
   /**
@@ -70,7 +70,7 @@ export interface ISharedModelManager {
    *
    * @param sharedModelType the MST model "class" of the shared model
    */
-  getSharedModelsByType<IT extends typeof SharedModelUnion>(type: string): IT["Type"][];
+  getSharedModelsByType<IT extends typeof SharedModel>(type: string): IT["Type"][];
 
   /**
    * Add a shared model to the container if it doesn't exist.
