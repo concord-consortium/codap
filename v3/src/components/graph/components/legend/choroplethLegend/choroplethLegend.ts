@@ -89,6 +89,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .attr("transform", `${transform} translate(0,${kChoroplethHeight})`)
     .call(axisBottom(x)
       .ticks(ticks)
+      // @ts-expect-error strictFunctionTypes
       .tickFormat(tickFormat)
       .tickSize(tickSize)
       .tickValues(tickValues))
@@ -99,14 +100,12 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .selectAll('text')
     .data([Number(minValue), Number(maxValue)])
     .join(
-      // @ts-expect-error void => Selection
-      (enter) => {
+      (enter) =>
         enter.append('text')
           .attr('y', kChoroplethHeight)
           .style('text-anchor', (d, i) => i ? 'end' : 'start')
           .attr('x', (d, i) => i * width)
           .text((d, i) => format(`.${significantDigits[i === 0 ? 0 : 5]}r`)(d))
-      }
     )
 
   return svg.node()

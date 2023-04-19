@@ -1,8 +1,8 @@
 import { action, computed, makeObservable, observable } from "mobx"
 import { getParentOfType, hasParentOfType, IAnyStateTreeNode } from "mobx-state-tree"
 import { IDocumentContentModel } from "./document-content"
-import { ISharedModel } from "../shared/shared-model"
-import { ISharedModelManager, SharedModelUnion } from "../shared/shared-model-manager"
+import { ISharedModel, SharedModel } from "../shared/shared-model"
+import { ISharedModelManager } from "../shared/shared-model-manager"
 import { ITileModel, TileModel } from "../tiles/tile-model"
 
 
@@ -40,7 +40,7 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
     this.document = document
   }
 
-  findFirstSharedModelByType<IT extends typeof SharedModelUnion>(
+  findFirstSharedModelByType<IT extends typeof SharedModel>(
     sharedModelType: IT, providerId?: string): IT["Type"] | undefined {
     if (!this.document) {
       console.warn("findFirstSharedModelByType has no document")
@@ -48,7 +48,7 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
     return this.document?.getFirstSharedModelByType(sharedModelType, providerId)
   }
 
-  getSharedModelsByType<IT extends typeof SharedModelUnion>(type: string): IT["Type"][] {
+  getSharedModelsByType<IT extends typeof SharedModel>(type: string): IT["Type"][] {
     return this.document?.getSharedModelsByType<IT>(type) || []
   }
 

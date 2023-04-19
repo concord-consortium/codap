@@ -13,17 +13,14 @@ export const Marquee = observer(function Marquee(props:{marqueeState: MarqueeSta
     select(marqueeRef.current).selectAll('rect')
       .data([1, 2])
       .join(
-        // @ts-expect-error void => Selection
-        (enter) => {
+        (enter) =>
           enter.append('rect')
-            .attr('class', (d: number) => d === 1 ? 'marquee-back' : 'marquee')
-        },
-        (update) => {
+            .attr('class', (d: number) => d === 1 ? 'marquee-back' : 'marquee'),
+        (update) =>
           update.attr('x', width < 0 ? x + width : x)
             .attr('y', height < 0 ? y + height : y)
             .attr('width', Math.abs(width))
             .attr('height', Math.abs(height))
-        }
       )
   }, [marqueeRect])
 

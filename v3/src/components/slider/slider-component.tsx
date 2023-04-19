@@ -16,35 +16,26 @@ import { EditableSliderValue } from "./editable-slider-value"
 
 import './slider.scss'
 
+const kAxisMargin = 30
+
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = tile?.content
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
-  const intervalRef = useRef<any>()
-  const tickTime = 60
   const animationRef = useRef(false)
 
   // width and positioning
   useEffect(() => {
     if ((width != null) && (height != null)) {
-      layout.setParentExtent(width, height)
+      layout.setParentExtent(width - kAxisMargin, height)
     }
   }, [width, height, layout])
 
   const axisStyle: CSSProperties = {
-    position: "absolute",
-    left: 0,
-    width,
-    height: 30
+    width: width ? width - kAxisMargin : width,
   }
-
-  // control slider value with play/pause
-  useEffect(() => {
-    intervalRef.current = setInterval(() => { running && incrementSliderValue() }, tickTime)
-    return () => clearInterval(intervalRef.current)
-  })
 
   const toggleRunning = () => {
     setRunning(!running)
@@ -56,10 +47,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }, [])
 
   if (!isSliderModel(sliderModel)) return null
-
-  const incrementSliderValue = () => {
-    sliderModel.setValue(sliderModel.value + sliderModel.increment)
-  }
 
   const handleSliderNameInput = (name: string) => {
     sliderModel.setName(name)
@@ -84,14 +71,20 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             </Flex>
           </Flex>
           <div className="slider">
-            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel} />
-            <svg style={axisStyle}>
-              <Axis
-                parentSelector={kSliderClassSelector}
-                getAxisModel={() => sliderModel.axis}
-                enableAnimation={animationRef}
-              />
-            </svg>
+            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
+              running={running} setRunning={setRunning}
+            />
+            <div className="slider-axis-wrapper" style={axisStyle}>
+              <div className="axis-end min" />
+              <svg className="slider-axis">
+                <Axis
+                  parentSelector={kSliderClassSelector}
+                  getAxisModel={() => sliderModel.axis}
+                  enableAnimation={animationRef}
+                />
+              </svg>
+              <div className="axis-end max" />
+            </div>
           </div>
         </div>
       </AxisLayoutContext.Provider>

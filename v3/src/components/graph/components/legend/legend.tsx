@@ -10,6 +10,7 @@ import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
+import {AttributeType} from "../../../../models/data/attribute"
 import {GraphAttrRole, GraphPlace} from "../../graphing-types"
 import {AxisOrLegendAttributeMenu} from "../../../axis/components/axis-or-legend-attribute-menu"
 
@@ -18,7 +19,7 @@ interface ILegendProps {
   graphElt: HTMLDivElement | null
   onDropAttribute: (place: GraphPlace, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
-  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 export const Legend = function Legend({

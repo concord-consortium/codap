@@ -3,6 +3,7 @@ export const kSliderClassSelector = `.${kSliderClass}`
 
 export const kDefaultSliderWidth = 300
 export const kDefaultSliderHeight = 200
+export const kSliderWidthLayoutAdj = 4
 
 export const kDefaultSliderAxisTop = 0
 export const kDefaultSliderAxisHeight = 24
@@ -19,3 +20,5 @@ export type AnimationMode = typeof AnimationModes[number]
 export const kDefaultAnimationMode = "onceOnly"
 
 export const kDefaultAnimationRate = 20 // frames/second
+
+export type FixValueFn = (value: number) => number

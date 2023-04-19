@@ -53,7 +53,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
       }
     }
 
+    // @ts-expect-error strictFunctionTypes
     parent?.addEventListener("focusin", handleFocus)
+    // @ts-expect-error strictFunctionTypes
     return () => parent?.removeEventListener("focusin", handleFocus)
   }, [cellElt, contentElt])
 

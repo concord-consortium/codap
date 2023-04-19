@@ -133,7 +133,8 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
   const renderDroppableAddAttributes = () => {
     const droppables: JSX.Element[] = []
     if (plotType !== 'casePlot') {
-      const places = ['top', 'rightCat'].concat(plotType=== 'scatterPlot' ? ['yPlus', 'rightNumeric'] : [])
+      const plotPlaces: GraphPlace[] = plotType === 'scatterPlot' ? ['yPlus', 'rightNumeric'] : []
+      const places: GraphPlace[] = ['top', 'rightCat', ...plotPlaces]
       places.forEach((place: GraphPlace) => {
         droppables.push(
           <DroppableAddAttribute
