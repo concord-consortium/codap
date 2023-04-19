@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
-import {ISliderModel} from "./slider-model"
+import { ISliderModel } from "./slider-model"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { useSliderAnimation } from "./use-slider-animation"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
@@ -16,7 +16,7 @@ interface IProps {
 }
 
 // offset from left edge of thumb to center of thumb
-export const kThumbOffset = 8
+const kThumbOffset = 10
 
 export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel,
     running, setRunning} : IProps) {

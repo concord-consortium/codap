@@ -16,6 +16,8 @@ import { EditableSliderValue } from "./editable-slider-value"
 
 import './slider.scss'
 
+const kAxisMargin = 30
+
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = tile?.content
   const instanceId = useNextInstanceId("slider")
@@ -27,15 +29,12 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // width and positioning
   useEffect(() => {
     if ((width != null) && (height != null)) {
-      layout.setParentExtent(width, height)
+      layout.setParentExtent(width - kAxisMargin, height)
     }
   }, [width, height, layout])
 
   const axisStyle: CSSProperties = {
-    position: "absolute",
-    left: 0,
-    width,
-    height: 30
+    width: width ? width - kAxisMargin : width,
   }
 
   const toggleRunning = () => {
@@ -74,14 +73,18 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
           <div className="slider">
             <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
               running={running} setRunning={setRunning}
-             />
-            <svg style={axisStyle}>
-              <Axis
-                parentSelector={kSliderClassSelector}
-                getAxisModel={() => sliderModel.axis}
-                enableAnimation={animationRef}
-              />
-            </svg>
+            />
+            <div className="slider-axis-wrapper" style={axisStyle}>
+              <div className="axis-end min" />
+              <svg className="slider-axis">
+                <Axis
+                  parentSelector={kSliderClassSelector}
+                  getAxisModel={() => sliderModel.axis}
+                  enableAnimation={animationRef}
+                />
+              </svg>
+              <div className="axis-end max" />
+            </div>
           </div>
         </div>
       </AxisLayoutContext.Provider>

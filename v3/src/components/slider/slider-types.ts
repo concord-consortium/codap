@@ -3,6 +3,7 @@ export const kSliderClassSelector = `.${kSliderClass}`
 
 export const kDefaultSliderWidth = 300
 export const kDefaultSliderHeight = 200
+export const kSliderWidthLayoutAdj = 4
 
 export const kDefaultSliderAxisTop = 0
 export const kDefaultSliderAxisHeight = 24
