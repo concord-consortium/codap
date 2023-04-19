@@ -41,7 +41,7 @@ export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumeri
         valuesRef.current = dataConfiguration?.numericValuesForAttrRole('legend') ?? []
         layout.setDesiredExtent('legend', computeDesiredExtent())
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
-        const bounds = layout.computedBounds.get('legend'),
+        const bounds = layout.computedBounds.legend,
           translate = `translate(${bounds?.left}, ${(bounds?.top ?? 0) + labelHeight})`
         choroplethLegend(quantileScale.current, choroplethElt,
           {

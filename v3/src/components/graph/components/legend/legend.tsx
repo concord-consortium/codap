@@ -1,7 +1,7 @@
 import React, {useMemo, useRef} from "react"
 import {Active} from "@dnd-kit/core"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import {Bounds, useGraphLayoutContext} from "../../models/graph-layout"
+import {useGraphLayoutContext} from "../../models/graph-layout"
 import {AttributeLabel} from "../attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
@@ -50,7 +50,7 @@ export const Legend = function Legend({
     onDropAttribute('legend', dragAttributeID)
   })
 
-  const legendBounds = layout.computedBounds.get('legend') as Bounds,
+  const legendBounds = layout.computedBounds.legend,
     transform = `translate(${legendBounds.left}, ${legendBounds.top})`
 
   return legendAttrID ? (

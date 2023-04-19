@@ -37,11 +37,11 @@ export class GraphLayout implements IAxisLayout {
   }
 
   @computed get plotWidth() {
-    return this.computedBounds.get('plot')?.width || this.graphWidth
+    return this.computedBounds.plot.width || this.graphWidth
   }
 
   @computed get plotHeight() {
-    return this.computedBounds.get('plot')?.height || this.graphHeight - this.legendHeight
+    return this.computedBounds.plot.height || this.graphHeight - this.legendHeight
   }
 
   getAxisLength(place: AxisPlace) {
@@ -129,34 +129,24 @@ export class GraphLayout implements IAxisLayout {
       legendHeight = desiredExtents.get('legend') ?? 0,
       v2AxisWidth = desiredExtents.get('rightNumeric') ?? 0,
       rightAxisWidth = desiredExtents.get('rightCat') ?? 0,
-      newBounds: Map<GraphPlace, Bounds> = new Map(),
       plotWidth = graphWidth - leftAxisWidth - v2AxisWidth - rightAxisWidth,
-      plotHeight = graphHeight - topAxisHeight - bottomAxisHeight - legendHeight
-    newBounds.set('left',
-      {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight})
-    newBounds.set('top',
-      {left: leftAxisWidth, top: 0, width: graphWidth - leftAxisWidth - rightAxisWidth,
-        height: topAxisHeight})
-    newBounds.set('plot',
-      {left: leftAxisWidth, top: topAxisHeight, width: plotWidth, height: plotHeight})
-    newBounds.set('bottom',
-      {left: leftAxisWidth, top: topAxisHeight + plotHeight, width: plotWidth,
-        height: bottomAxisHeight})
-    newBounds.set('legend',
-      {left: 6, top: graphHeight - legendHeight, width: graphWidth - 6,
-        height: legendHeight})
-    newBounds.set('rightNumeric',
-      {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: v2AxisWidth,
-        height: plotHeight})
-    newBounds.set('rightCat',
-      {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth,
-        height: plotHeight})
-    // console.log(`newBounds.left = ${JSON.stringify(newBounds.get('left'))}`)
+      plotHeight = graphHeight - topAxisHeight - bottomAxisHeight - legendHeight,
+      newBounds: Record<GraphPlace, Bounds> = {
+        left: {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight},
+        top: {left: leftAxisWidth, top: 0, width: graphWidth - leftAxisWidth - rightAxisWidth, height: topAxisHeight},
+        plot: {left: leftAxisWidth, top: topAxisHeight, width: plotWidth, height: plotHeight},
+        bottom: {left: leftAxisWidth, top: topAxisHeight + plotHeight, width: plotWidth, height: bottomAxisHeight},
+        legend: {left: 6, top: graphHeight - legendHeight, width: graphWidth - 6, height: legendHeight},
+        rightNumeric: {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: v2AxisWidth, height: plotHeight},
+        rightCat: {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth, height: plotHeight},
+        // TODO: fix this (was missing before)
+        yPlus: {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight}
+      }
     return newBounds
   }
 
   getComputedBounds(place: GraphPlace) {
-    return this.computedBounds.get(place) as Bounds
+    return this.computedBounds[place]
   }
 }
 
