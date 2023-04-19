@@ -104,9 +104,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     if (mode === "onceOnly" && maxMinHitsRef.current > 1 && reachedLimit) {
       setRunning(false)
       maxMinHitsRef.current = 0
-      sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
-    } else {
-      sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
     }
+    sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 }
