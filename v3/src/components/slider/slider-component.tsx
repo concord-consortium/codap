@@ -24,8 +24,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
-  const intervalRef = useRef<any>()
-  const tickTime = 60
   const animationRef = useRef(false)
 
   // width and positioning
@@ -39,12 +37,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     width: width ? width - kAxisMargin : width,
   }
 
-  // control slider value with play/pause
-  useEffect(() => {
-    intervalRef.current = setInterval(() => { running && incrementSliderValue() }, tickTime)
-    return () => clearInterval(intervalRef.current)
-  })
-
   const toggleRunning = () => {
     setRunning(!running)
   }
@@ -56,10 +48,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   if (!isSliderModel(sliderModel)) return null
 
-  const incrementSliderValue = () => {
-    sliderModel.setValue(sliderModel.value + sliderModel.increment)
-  }
-
   const handleSliderNameInput = (name: string) => {
     sliderModel.setName(name)
   }
@@ -69,29 +57,23 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       <AxisLayoutContext.Provider value={layout}>
         <div className={kSliderClass} ref={sliderRef}>
           <Flex className="slider-control">
-            <Flex>
-              <Flex>
-                <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
-                  { running ? <PauseIcon /> : <PlayIcon /> }
-                </Button>
-              </Flex>
-              <Flex className="slider-inputs">
-                <Flex>
-                  <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
-                      onChange={handleSliderNameInput} data-testid="slider-variable-name">
-                    <EditablePreview className="name-text"/>
-                    <EditableInput className="name-text-input text-input"/>
-                  </Editable>
-                </Flex>
-                <Flex>
-                  <span className="equals-sign">&nbsp;=&nbsp;</span>
-                  <EditableSliderValue sliderModel={sliderModel} />
-                </Flex>
-              </Flex>
+            <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
+              { running ? <PauseIcon /> : <PlayIcon /> }
+            </Button>
+            <Flex className="slider-inputs">
+              <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
+                  onChange={handleSliderNameInput} data-testid="slider-variable-name">
+                <EditablePreview className="name-text"/>
+                <EditableInput className="name-text-input text-input"/>
+              </Editable>
+              <span className="equals-sign">&nbsp;=&nbsp;</span>
+              <EditableSliderValue sliderModel={sliderModel} />
             </Flex>
           </Flex>
           <div className="slider">
-            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel} />
+            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
+              running={running} setRunning={setRunning}
+            />
             <div className="slider-axis-wrapper" style={axisStyle}>
               <div className="axis-end min" />
               <svg className="slider-axis">

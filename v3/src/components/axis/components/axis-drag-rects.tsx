@@ -39,7 +39,7 @@ export const AxisDragRects = observer(
         dilationAnchorCoord: number,
         dragging = false
 
-      const onDragStart: D3Handler = () => {
+      const onDragStart: D3Handler = function() {
           const subAxisLength = layout.getAxisLength(place) / numSubAxes,
             rangeMin = subAxisIndex * subAxisLength,
             rangeMax = (subAxisIndex + 1) * subAxisLength,
@@ -50,12 +50,12 @@ export const AxisDragRects = observer(
           d3ScaleAtStart = d3Scale.copy()
           lower = d3ScaleAtStart.domain()[0]
           upper = d3ScaleAtStart.domain()[1]
-          select(this as Element)
+          select(this)
             .classed('dragging', true)
           axisModel.setTransitionDuration(0)
         },
 
-        onDilateStart: D3Handler = (event: { x: number, y: number }) => {
+        onDilateStart: D3Handler = function(event: { x: number, y: number }) {
           select(this)
             .classed('dragging', true)
           multiScale = layout.getAxisMultiScale(place)
@@ -107,7 +107,7 @@ export const AxisDragRects = observer(
           }
         },
 
-        onDragEnd = () => {
+        onDragEnd: D3Handler = function() {
           select(this)
             .classed('dragging', false)
           dragging = false

@@ -76,11 +76,11 @@ export const useRows = () => {
           const attr = data?.attributes[colIndex]
           const cellSpan = cell.querySelector(".cell-span")
           if (data && caseId && attr && cellSpan) {
-            const strValue = data.getValue(caseId, attr.id)
+            const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
             const formatStr = attr.format || kDefaultFormatStr
             const formatted = (numValue != null) && isFinite(numValue) ? format(formatStr)(numValue) : strValue
-            cellSpan.textContent = formatted
+            cellSpan.textContent = formatted ?? ""
             setCachedDomAttr(caseId, attr.id)
           }
         })

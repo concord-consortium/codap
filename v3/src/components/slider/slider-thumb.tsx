@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
 import { ISliderModel } from "./slider-model"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
+import { useSliderAnimation } from "./use-slider-animation"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 
 import './slider.scss'
@@ -10,24 +11,21 @@ import './slider.scss'
 interface IProps {
   sliderContainer: HTMLDivElement
   sliderModel: ISliderModel
+  running: boolean
+  setRunning: (running: boolean)=>void
 }
 
 // offset from left edge of thumb to center of thumb
 const kThumbOffset = 10
 
-export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel} : IProps) {
+export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel,
+    running, setRunning} : IProps) {
   const layout = useAxisLayoutContext()
-  const length = layout.getAxisLength("bottom")
   const scale = layout.getAxisMultiScale("bottom")
-  const [thumbPos, setThumbPos] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   // offset from center of thumb to pointerDown
   const downOffset = useRef(0)
-
-  useEffect(() => {
-    setThumbPos((scale?.getScreenCoordinate({cell: 0, data: sliderModel.value}) ?? 0) - kThumbOffset)
-  }, [length, scale, scale?.length, sliderModel.domain, sliderModel.value])
-
+  const thumbPos = (scale?.getScreenCoordinate({cell: 0, data: sliderModel.value}) ?? 0) - kThumbOffset
   const thumbStyle: CSSProperties = {
     left: thumbPos
   }
@@ -70,6 +68,8 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
     downOffset.current = thumbPos + kThumbOffset - (e.clientX - containerX)
     setIsDragging(true)
   }
+
+  useSliderAnimation({sliderModel, running, setRunning})
 
   return (
     <ThumbIcon
