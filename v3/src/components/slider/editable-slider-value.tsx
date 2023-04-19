@@ -29,6 +29,13 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     setCandidate(value)
   }
 
+  const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
+    const inputValue = parseFloat(e.target.value)
+    if (isFinite(inputValue)) {
+      sliderModel.encompassValue(inputValue)
+    }
+  }
+
   // keep display up-to-date
   useEffect(()=> {
     setCandidate(formatValue(sliderModel))
@@ -37,7 +44,8 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   return (
     <NumberInput value={candidate} className="value-input"
         onChange={handleValueChange} data-testid="slider-variable-value">
-      <NumberInputField className="value-text-input text-input" maxLength={15} onKeyDown={handleKeyDown} />
+      <NumberInputField className="value-text-input text-input" maxLength={15}
+        onKeyDown={handleKeyDown} onBlur={handleSubmitValue} />
     </NumberInput>
   )
 })
