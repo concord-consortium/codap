@@ -2,6 +2,7 @@ import { select, Selection } from "d3"
 import { CaseData } from "./graphing-types"
 
 // For proper typing of D3 callbacks, the initial selection must be typed appropriately.
+
 // type arguments:
 //  SVGCircleElement: type of element being selected
 //  CaseData: type of data attached to selected element

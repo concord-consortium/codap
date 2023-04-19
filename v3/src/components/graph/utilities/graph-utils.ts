@@ -149,18 +149,15 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   circles
     .data(allCaseData, caseDataKeyFunc)
     .join(
-      // @ts-expect-error void => Selection
-      (enter) => {
+      (enter) =>
         enter.append('circle')
           .attr('class', 'graph-dot')
-          .property('id', (anID: string) => `${instanceId}_${anID}`)
-      },
-      (update) => {
+          .property('id', (anID: string) => `${instanceId}_${anID}`),
+      (update) =>
         update.attr('r', pointRadius)
           .style('fill', pointColor)
           .style('stroke', pointStrokeColor)
           .style('stroke-width', defaultStrokeWidth)
-      }
     )
   select(dotsElement).on('click',
     (event: MouseEvent) => {

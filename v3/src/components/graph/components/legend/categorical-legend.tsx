@@ -131,10 +131,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
         .selectAll('g')
         .data(range(0, numCategories ?? 0))
         .join(
-          // @ts-expect-error void => Selection
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          () => {
-          },
+          enter => enter,
           update => {
             update.select('rect')
               .classed('legend-rect-selected',
@@ -149,7 +146,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
               })
               .attr('y',
                 (index: number) => 10 + categoryData.current[index].row * (keySize + padding))
-            update.select('text')
+            return update.select('text')
               .text((index: number) => categoryData.current[index].category)
               .attr('transform', transform)
               .attr('x', (index: number) => {
