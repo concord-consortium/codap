@@ -230,12 +230,12 @@ export const ChartDots = function ChartDots(props: PlotProps) {
             }
           })
           .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID))
-          .style('stroke', ((aCaseData: CaseData) =>
+          .style('stroke', (aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStroke : pointStrokeColor))
-          .style('stroke-width', ((aCaseData: CaseData) =>
+              ? defaultSelectedStroke : pointStrokeColor)
+          .style('stroke-width', (aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStrokeWidth : defaultStrokeWidth))
+              ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
 
     setPoints()
