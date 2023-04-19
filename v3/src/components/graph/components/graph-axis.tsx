@@ -11,8 +11,8 @@ import {useDataConfigurationContext} from "../hooks/use-data-configuration-conte
 interface IProps {
   place: AxisPlace
   enableAnimation: MutableRefObject<boolean>
-  onDropAttribute?: (place: AxisPlace, attrId: string) => void
-  onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
+  onDropAttribute?: (place: GraphPlace, attrId: string) => void
+  onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 

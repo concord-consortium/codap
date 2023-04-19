@@ -178,7 +178,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
             graphElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
             onRemoveAttribute={handleRemoveAttribute}
-            onTreatAttributeAs={handleTreatAttrAs as AnyFn}
+            onTreatAttributeAs={handleTreatAttrAs}
           />
         </svg>
         {renderDroppableAddAttributes()}

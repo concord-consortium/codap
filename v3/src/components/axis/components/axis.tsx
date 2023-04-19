@@ -2,7 +2,6 @@ import {Active} from "@dnd-kit/core"
 import React, {MutableRefObject, useRef, useState} from "react"
 import {createPortal} from "react-dom"
 import {range} from "d3"
-import {AxisPlace} from "../axis-types"
 import {DroppableAxis} from "./droppable-axis"
 import {axisPlaceToAttrRole, GraphPlace, IsGraphDropAllowed} from "../../graph/graphing-types"
 import {useAxisBoundsProvider} from "../hooks/use-axis-bounds"
@@ -26,8 +25,8 @@ interface IProps {
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
   isDropAllowed?: IsGraphDropAllowed
-  onDropAttribute?: (place: AxisPlace, attrId: string) => void
-  onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
+  onDropAttribute?: (place: GraphPlace, attrId: string) => void
+  onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
@@ -94,9 +93,9 @@ export const Axis = ({
           target={titleRef.current}
           portal={parentElt}
           place={place}
-          onChangeAttribute={onDropAttribute as AnyFn}
-          onRemoveAttribute={onRemoveAttribute as AnyFn}
-          onTreatAttributeAs={onTreatAttributeAs as AnyFn}
+          onChangeAttribute={onDropAttribute}
+          onRemoveAttribute={onRemoveAttribute}
+          onTreatAttributeAs={onTreatAttributeAs}
         />, parentElt)
       }
 
