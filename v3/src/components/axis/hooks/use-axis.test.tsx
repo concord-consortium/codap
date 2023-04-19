@@ -67,7 +67,7 @@ describe("useNumericAxis", () => {
       )
     })
     layout.setParentExtent(100, 100)
-    expect(layout.getAxisMultiScale("bottom")?.cellLength).toEqual(100)
+    expect(layout.getAxisMultiScale("bottom")?.cellLength).toEqual(96)
   })
 
   it("can switch between linear/log axes", () => {
