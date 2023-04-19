@@ -1,5 +1,6 @@
-import {ScaleBand, select} from "d3"
+import {ScaleBand} from "d3"
 import React, {useCallback} from "react"
+import { selectDots } from "../d3-types"
 import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -98,7 +99,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       extraSecCatsArray: string[] = (dataConfiguration && extraSecondaryAttrRole)
         ? Array.from(dataConfiguration.categorySetForAttrRole(extraSecondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
-      selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
+      selection = selectDots(dotsRef.current, selectedOnly),
       primOrdinalScale = layout.getAxisScale(primaryAxisPlace) as ScaleBand<string>,
       secOrdinalScale = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>,
       extraPrimOrdinalScale = layout.getAxisScale(extraPrimaryAxisPlace) as ScaleBand<string>,
@@ -114,6 +115,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
           { cell: { p: number, s: number, ep: number, es: number }, numSoFar: number }>>>> = {},
       legendAttrID = dataConfiguration?.attributeID('legend'),
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+
+    if (!selection) return
 
     const computeCellParams = () => {
         primCatsArray.forEach((primeCat, i) => {
@@ -203,7 +206,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
           .duration(duration)
           .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
           .attr('r', pointRadius)
-          .attr(primaryCenterKey, ((aCaseData: CaseData) => {
+          .attr(primaryCenterKey, (aCaseData: CaseData) => {
             const anID = aCaseData.caseID
             if (cellIndices[anID]) {
               const {column} = cellIndices[anID],
@@ -213,8 +216,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
             } else {
               return 0
             }
-          }) as AnyFn)
-          .attr(secondaryCenterKey, ((aCaseData: CaseData) => {
+          })
+          .attr(secondaryCenterKey, (aCaseData: CaseData) => {
             const anID = aCaseData.caseID
             if (cellIndices[anID] && secOrdinalScale) {
               const {row} = cellIndices[anID],
@@ -225,14 +228,14 @@ export const ChartDots = function ChartDots(props: PlotProps) {
             } else {
               return 0
             }
-          }) as AnyFn)
-          .style('fill', ((aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID)) as AnyFn)
+          })
+          .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID))
           .style('stroke', ((aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStroke : pointStrokeColor) as AnyFn)
+              ? defaultSelectedStroke : pointStrokeColor))
           .style('stroke-width', ((aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStrokeWidth : defaultStrokeWidth) as AnyFn)
+              ? defaultSelectedStrokeWidth : defaultStrokeWidth))
       }
 
     setPoints()

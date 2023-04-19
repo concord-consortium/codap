@@ -1,6 +1,7 @@
 import {extent, format, select, timeout} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
+import {selectCircles, selectDots} from "../d3-types"
 import {CaseData, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "../../../utilities/math-utils"
 import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
@@ -128,7 +129,7 @@ export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: ID
 
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
-  dotsElement: SVGGElement | null
+  dotsElement: SVGSVGElement | null
   pointRadius: number
   pointColor: string
   pointStrokeColor: string
@@ -141,11 +142,12 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   const {dataConfiguration, enableAnimation, instanceId,
       dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
     allCaseData = dataConfiguration.joinedCaseDataArrays,
-    caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`
+    caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`,
+    circles = selectCircles(dotsElement)
+  if (!circles) return
   startAnimation(enableAnimation)
-  select(dotsElement)
-    .selectAll('circle')
-    .data(allCaseData, caseDataKeyFunc as AnyFn)
+  circles
+    .data(allCaseData, caseDataKeyFunc)
     .join(
       // @ts-expect-error void => Selection
       (enter) => {
@@ -363,21 +365,23 @@ export function setPointSelection(props: ISetPointSelection) {
     {dotsRef, dataConfiguration, pointRadius, selectedPointRadius,
       pointColor, pointStrokeColor, getPointColorAtIndex} = props,
     dataset = dataConfiguration.dataset,
-    dotsSvgElement = dotsRef.current,
-    dots = select(dotsSvgElement),
+    dots = selectCircles(dotsRef.current),
     legendID = dataConfiguration.attributeID('legend')
+
+  if (!dots) return
+
   // First set the class based on selection
-  dots.selectAll('circle')
-    .classed('graph-dot-highlighted', ((aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID)) as AnyFn)
+  dots
+    .classed('graph-dot-highlighted', (aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID))
     // Then set properties to defaults w/o selection
     .attr('r', pointRadius)
     .style('stroke', pointStrokeColor)
-    .style('fill', ((aCaseData:CaseData) => {
+    .style('fill', (aCaseData:CaseData) => {
       return legendID
         ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID)
         : aCaseData.plotNum && getPointColorAtIndex
           ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
-    }) as AnyFn)
+    })
     .style('stroke-width', defaultStrokeWidth)
     .style('stroke-opacity', defaultStrokeOpacity)
 
@@ -428,24 +432,24 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     setPoints = () => {
       const duration = enableAnimation.current ? transitionDuration : 0
 
-      if (theSelection.size() > 0) {
+      if (theSelection?.size()) {
         theSelection
           .transition()
           .duration(duration)
           .on('end', (id, i) => (i === theSelection.size() - 1) && onComplete())
-          .attr('cx', ((aCaseData: CaseData) => getScreenX(aCaseData.caseID)) as AnyFn)
-          .attr('cy', ((aCaseData: CaseData) => {
+          .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
+          .attr('cy', (aCaseData: CaseData) => {
             return getScreenY(aCaseData.caseID, aCaseData.plotNum)
-          }) as AnyFn)
-          .attr('r', ((aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
-            ? selectedPointRadius : pointRadius) as AnyFn)
-          .style('fill', ((aCaseData: CaseData) => lookupLegendColor(aCaseData)) as AnyFn)
-          .style('stroke', ((aCaseData: CaseData) =>
+          })
+          .attr('r', (aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
+            ? selectedPointRadius : pointRadius)
+          .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData))
+          .style('stroke', (aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStroke : pointStrokeColor) as AnyFn)
-          .style('stroke-width', ((aCaseData: CaseData) =>
+            ? defaultSelectedStroke : pointStrokeColor)
+          .style('stroke-width', (aCaseData: CaseData) =>
             (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStrokeWidth : defaultStrokeWidth) as AnyFn)
+            ? defaultSelectedStrokeWidth : defaultStrokeWidth)
       }
     }
 
@@ -462,6 +466,6 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       })
     } = props,
 
-    theSelection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot')
+    theSelection = selectDots(dotsRef.current, selectedOnly)
   setPoints()
 }
