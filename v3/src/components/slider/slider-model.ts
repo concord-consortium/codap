@@ -9,7 +9,7 @@ import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-con
 import { kSliderTileType } from "./slider-defs"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes,
-  kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate
+  FixValueFn, kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate
 } from "./slider-types"
 
 export const SliderModel = TileContentModel
@@ -96,6 +96,11 @@ export const SliderModel = TileContentModel
         // no need to store the default value
         self._animationRate = rate === kDefaultAnimationRate ? undefined : Math.abs(rate)
       }
+    },
+    validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
+      if (value < self.axis.min) return belowMin(value)
+      if (value > self.axis.max) return aboveMax(value)
+      return value
     }
   }))
 

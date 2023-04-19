@@ -22,8 +22,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
-  const intervalRef = useRef<any>()
-  const tickTime = 60
   const animationRef = useRef(false)
 
   // width and positioning
@@ -40,12 +38,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     height: 30
   }
 
-  // control slider value with play/pause
-  useEffect(() => {
-    intervalRef.current = setInterval(() => { running && incrementSliderValue() }, tickTime)
-    return () => clearInterval(intervalRef.current)
-  })
-
   const toggleRunning = () => {
     setRunning(!running)
   }
@@ -56,10 +48,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }, [])
 
   if (!isSliderModel(sliderModel)) return null
-
-  const incrementSliderValue = () => {
-    sliderModel.setValue(sliderModel.value + sliderModel.increment)
-  }
 
   const handleSliderNameInput = (name: string) => {
     sliderModel.setName(name)
@@ -84,7 +72,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             </Flex>
           </Flex>
           <div className="slider">
-            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel} />
+            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
+              running={running} setRunning={setRunning}
+             />
             <svg style={axisStyle}>
               <Axis
                 parentSelector={kSliderClassSelector}
