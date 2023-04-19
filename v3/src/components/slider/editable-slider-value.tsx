@@ -10,7 +10,6 @@ interface IProps {
   sliderModel: ISliderModel
 }
 
-const kAxisGap = 0.5
 const kDecimalPlaces = 2
 const d3Format = format(`.${kDecimalPlaces}~f`)
 
@@ -32,10 +31,8 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
 
   const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputValue = parseFloat(e.target.value)
-    if (!isNaN(inputValue)) {
-      if (inputValue < sliderModel.axis.min) sliderModel.setAxisMin(inputValue - kAxisGap)
-      if (inputValue > sliderModel.axis.max) sliderModel.setAxisMax(inputValue + kAxisGap)
-      sliderModel.setValue(inputValue)
+    if (isFinite(inputValue)) {
+      sliderModel.encompassValue(inputValue)
     }
   }
 
@@ -47,7 +44,8 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   return (
     <NumberInput value={candidate} className="value-input"
         onChange={handleValueChange} data-testid="slider-variable-value">
-      <NumberInputField className="value-text-input text-input" maxLength={15} onKeyDown={handleKeyDown} onBlur={handleSubmitValue} />
+      <NumberInputField className="value-text-input text-input" maxLength={15}
+        onKeyDown={handleKeyDown} onBlur={handleSubmitValue} />
     </NumberInput>
   )
 })

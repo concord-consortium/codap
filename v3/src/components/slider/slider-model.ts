@@ -130,7 +130,24 @@ export const SliderModel = TileContentModel
       if (value < self.axis.min) return belowMin(value)
       if (value > self.axis.max) return aboveMax(value)
       return value
-    }
+    },
+  }))
+  .actions(self => ({
+    encompassValue(input: number) {
+      const tAxis = self.axis
+      const tLower = tAxis.min
+      const tUpper = tAxis.max
+      const tValue = input
+      if ((tValue < tLower) || (tValue > tUpper)) {
+        if (tValue < tLower) {
+          self.setAxisMin(tValue - (tUpper - tValue) / 10)
+        } else {
+          self.setAxisMax(tValue + (tValue - tLower) / 10)
+        }
+        self.setValue(input)
+      }
+
+    },
   }))
 
 export interface ISliderModel extends Instance<typeof SliderModel> {}
