@@ -14,6 +14,7 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
   if (!isV2GraphComponent(v2Component)) return
 
   const { title = "", _links_: links } = v2Component.componentStorage
+  type TLinksKey = keyof typeof links
   const contextId = links.context.id
   const { data, metadata } = v2Document.getDataAndMetadata(contextId)
 
@@ -36,7 +37,7 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
   const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
 
   // configure attributes
-  Object.keys(links).forEach((aKey: keyof typeof links) => {
+  ;(Object.keys(links) as TLinksKey[]).forEach((aKey: TLinksKey) => {
     if (['xAttr', 'yAttr', 'y2Attr', 'legendAttr', 'topAttr', 'rightAttr'].includes(aKey)) {
       const attrKey = aKey.match(/[a-z2]+/)?.[0]  // matches before the "Attr"
       if (!attrKey) return
@@ -98,7 +99,7 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
     }
   })
   // use empty axes for left/bottom if there are no other axes there
-  ;["bottom", "left"].forEach((place: AxisPlace) => {
+  ;(["bottom", "left"] as const).forEach(place => {
     if (!axes[place]) axes[place] = { place, type: "empty" }
   })
 

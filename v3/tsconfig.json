@@ -13,10 +13,6 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "strict": true,
-    // todo: Figure out how to not require this
-    "noImplicitThis": false,
-    // todo: Figure out how to not require this
-    "strictFunctionTypes": false,
     "types": [],
     "jsx": "react",
     "lib": ["dom", "dom.iterable", "es2018"]

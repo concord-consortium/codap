@@ -10,7 +10,7 @@ import { action, computed, makeObservable, observable } from "mobx"
 import { createCodapDocument } from "./codap/create-codap-document"
 import { gDataBroker } from "./data/data-broker"
 import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
-import { ISharedDataSet, kSharedDataSetType } from "./shared/shared-data-set"
+import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
 
 type AppMode = "normal" | "performance"
@@ -48,7 +48,7 @@ class AppState {
 
         // update data broker with the new data sets
         const manager = getSharedModelManager(document)
-        manager?.getSharedModelsByType(kSharedDataSetType).forEach((model: ISharedDataSet) => {
+        manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType).forEach((model: ISharedDataSet) => {
           gDataBroker.addSharedDataSet(model)
         })
       }

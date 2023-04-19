@@ -5,6 +5,7 @@ import { useDataConfigurationContext } from "../../graph/hooks/use-data-configur
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
+import { AttributeType } from "../../../models/data/attribute"
 import t from "../../../utilities/translation/translate"
 
 interface IProps {
@@ -13,7 +14,7 @@ interface IProps {
   portal: HTMLElement | null
   onChangeAttribute: (place: GraphPlace, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
-  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 const removeAttrItemLabelKeys: Record<string, string> = {

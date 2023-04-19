@@ -9,7 +9,7 @@ import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-con
 import { kSliderTileType } from "./slider-defs"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes,
-  kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate
+  FixValueFn, kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate
 } from "./slider-types"
 
 export const SliderModel = TileContentModel
@@ -22,7 +22,7 @@ export const SliderModel = TileContentModel
     animationMode: types.optional(types.enumeration([...AnimationModes]), kDefaultAnimationMode),
     // clients should use animationRate view defined below
     _animationRate: types.maybe(types.number),  // frames per second
-    axis: types.optional(NumericAxisModel, { place: 'bottom', min: 0, max: 12 })
+    axis: types.optional(NumericAxisModel, { place: 'bottom', min: -0.5, max: 11.5 })
   })
   .views(self => ({
     get name() {
@@ -48,6 +48,35 @@ export const SliderModel = TileContentModel
     }
   }))
   .actions(self => ({
+    setValue(n: number) {
+      // keep value in bounds of axis min and max when thumbnail is dragged
+      const keepValueInBounds = (num: number) => {
+        if (num < self.axis.min) return self.axis.min
+        else if (num > self.axis.max) return self.axis.max
+        else return num
+      }
+
+      if (self.multipleOf) {
+        n = Math.round(n / self.multipleOf) * self.multipleOf
+        n = keepValueInBounds(n)
+      } else {
+        n = keepValueInBounds(n)
+      }
+      self.globalValue.setValue(n)
+    },
+  }))
+  .actions(self => ({
+    afterCreate() {
+      addDisposer(self, reaction(
+        () => self.axis.domain,
+        () => {
+          // keep the thumbnail within axis bounds when axis bounds are changed
+          if (self.value < self.axis.min) self.setValue(self.axis.min)
+          if (self.value > self.axis.max) self.setValue(self.axis.max)
+        },
+        { fireImmediately: true }
+      ))
+    },
     afterAttach() {
       // register our link to the global value manager when we're attached to the document
       addDisposer(self, reaction(
@@ -74,12 +103,6 @@ export const SliderModel = TileContentModel
     setName(name: string) {
       self.globalValue.setName(name)
     },
-    setValue(n: number) {
-      if (self.multipleOf) {
-        n = Math.round(n / self.multipleOf) * self.multipleOf
-      }
-      self.globalValue.setValue(n)
-    },
     setMultipleOf(n: number) {
       if (n) {
         self.multipleOf = Math.abs(n)
@@ -96,7 +119,35 @@ export const SliderModel = TileContentModel
         // no need to store the default value
         self._animationRate = rate === kDefaultAnimationRate ? undefined : Math.abs(rate)
       }
-    }
+    },
+    setAxisMin(n: number) {
+      self.axis.min = n
+    },
+    setAxisMax(n: number) {
+      self.axis.max = n
+    },
+    validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
+      if (value < self.axis.min) return belowMin(value)
+      if (value > self.axis.max) return aboveMax(value)
+      return value
+    },
+  }))
+  .actions(self => ({
+    encompassValue(input: number) {
+      const tAxis = self.axis
+      const tLower = tAxis.min
+      const tUpper = tAxis.max
+      const tValue = input
+      if ((tValue < tLower) || (tValue > tUpper)) {
+        if (tValue < tLower) {
+          self.setAxisMin(tValue - (tUpper - tValue) / 10)
+        } else {
+          self.setAxisMax(tValue + (tValue - tLower) / 10)
+        }
+        self.setValue(input)
+      }
+
+    },
   }))
 
 export interface ISliderModel extends Instance<typeof SliderModel> {}

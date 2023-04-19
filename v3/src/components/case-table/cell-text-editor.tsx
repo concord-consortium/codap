@@ -23,7 +23,7 @@ function autoFocusAndSelect(input: HTMLInputElement | null) {
 
 export default function CellTextEditor({ row, column, onRowChange, onClose }: TEditorProps) {
   const data = useDataSetContext()
-  const initialValueRef = useRef(data?.getValue(row.__id__, column.key))
+  const initialValueRef = useRef(data?.getStrValue(row.__id__, column.key))
   const valueRef = useRef(initialValueRef.current)
 
   useEffect(()=>{

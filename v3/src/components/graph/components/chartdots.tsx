@@ -1,5 +1,6 @@
-import {ScaleBand, select} from "d3"
+import {ScaleBand} from "d3"
 import React, {useCallback} from "react"
+import { selectDots } from "../d3-types"
 import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -98,7 +99,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       extraSecCatsArray: string[] = (dataConfiguration && extraSecondaryAttrRole)
         ? Array.from(dataConfiguration.categorySetForAttrRole(extraSecondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
-      selection = select(dotsRef.current).selectAll(selectedOnly ? '.graph-dot-highlighted' : '.graph-dot'),
+      selection = selectDots(dotsRef.current, selectedOnly),
       primOrdinalScale = layout.getAxisScale(primaryAxisPlace) as ScaleBand<string>,
       secOrdinalScale = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>,
       extraPrimOrdinalScale = layout.getAxisScale(extraPrimaryAxisPlace) as ScaleBand<string>,
@@ -114,6 +115,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
           { cell: { p: number, s: number, ep: number, es: number }, numSoFar: number }>>>> = {},
       legendAttrID = dataConfiguration?.attributeID('legend'),
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+
+    if (!selection) return
 
     const computeCellParams = () => {
         primCatsArray.forEach((primeCat, i) => {
@@ -160,10 +163,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
           secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? ''
         primaryAttrID && (dataConfiguration?.caseDataArray || []).forEach((aCaseData: CaseData) => {
           const anID = aCaseData.caseID,
-            hCat = dataset?.getValue(anID, primaryAttrID),
-            vCat = secondaryAttrID ? dataset?.getValue(anID, secondaryAttrID) : '__main__',
-            extraHCat = extraPrimaryAttrID ? dataset?.getValue(anID, extraPrimaryAttrID) : '__main__',
-            extraVCat = extraSecondaryAttrID ? dataset?.getValue(anID, extraSecondaryAttrID) : '__main__'
+            hCat = dataset?.getStrValue(anID, primaryAttrID),
+            vCat = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) : '__main__',
+            extraHCat = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) : '__main__',
+            extraVCat = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) : '__main__'
           if (hCat && vCat && extraHCat && extraVCat &&
             catMap[hCat] && catMap[hCat][vCat] && catMap[hCat][vCat][extraHCat] &&
             catMap[hCat][vCat][extraHCat][extraVCat]) {

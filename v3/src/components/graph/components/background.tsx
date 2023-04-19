@@ -2,7 +2,7 @@ import {onAction} from "mobx-state-tree"
 import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
-import {CaseData, InternalizedData, Point, rTreeRect} from "../graphing-types"
+import {CaseData, InternalizedData, rTreeRect} from "../graphing-types"
 import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
@@ -16,14 +16,14 @@ interface IProps {
   marqueeState: MarqueeState
 }
 
-const prepareTree = (areaSelector: string, circleSelector: string, offset: Point): typeof RTree => {
+const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
     const selectionTree = RTree(10)
-    select(areaSelector).selectAll(circleSelector)
+    select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
       .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
           rect = {
-            x: Number(element.cx.baseVal.value) + offset.x,
-            y: Number(element.cy.baseVal.value) + offset.y,
+            x: Number(element.cx.baseVal.value),
+            y: Number(element.cy.baseVal.value),
             w: 1, h: 1
           }
         selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
@@ -65,16 +65,15 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       const {computedBounds} = layout,
           plotBounds = computedBounds.get('plot') as Bounds
         appState.beginPerformance()
-        selectionTree.current = prepareTree(`.${instanceId}`, 'circle',
-          {x: plotBounds.left, y: plotBounds.top})
-        startX.current = event.x
-        startY.current = event.y
+        selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
+        startX.current = event.x - plotBounds.left
+        startY.current = event.y - plotBounds.top
         width.current = 0
         height.current = 0
         if (!event.sourceEvent.shiftKey) {
           dataset.current?.setSelectedCases([])
         }
-        marqueeState.setMarqueeRect({x: event.x, y: event.y, width: 0, height: 0})
+        marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
       },
 
       onDrag = (event: { dx: number; dy: number }) => {
@@ -106,7 +105,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         selectionTree.current = null
         appState.endPerformance()
       },
-      dragBehavior = drag()
+      dragBehavior = drag<SVGRectElement, number>()
         .on("start", onDragStart)
         .on("drag", onDrag)
         .on("end", onDragEnd),
@@ -120,13 +119,11 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       .selectAll('rect')
       .data([1])
       .join(
-        // @ts-expect-error void => Selection
-        (enter) => {
+        (enter) =>
           enter.append('rect')
             .attr('class', 'graph-background')
-            .call(dragBehavior)
-        },
-        (update) => {
+            .call(dragBehavior),
+        (update) =>
           update
             .attr('transform', transform)
             .attr('width', plotWidth)
@@ -135,7 +132,6 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
             .attr('y', 0)
             .style('fill', graphModel.plotBackgroundColor)
             .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
-        }
       )
   }, [bgRef, instanceId, transform, dataset, plotHeight, plotWidth, graphModel, layout, marqueeState])
 

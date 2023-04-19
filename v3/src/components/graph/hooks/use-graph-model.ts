@@ -43,7 +43,7 @@ export function useGraphModel(props: IProps) {
         startAnimation(enableAnimation)
         // In case the y-values have changed we rescale
         if (newPlotType === 'scatterPlot') {
-          const values = dataConfig.caseDataArray.map((anID:string) => dataset?.getNumeric(anID, yAttrID)) as number[]
+          const values = dataConfig.caseDataArray.map(({ caseID }) => dataset?.getNumeric(caseID, yAttrID)) as number[]
           setNiceDomain(values || [], yAxisModel as INumericAxisModel)
         }
       }

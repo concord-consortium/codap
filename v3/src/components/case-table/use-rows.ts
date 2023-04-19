@@ -33,6 +33,7 @@ export const useRows = () => {
   const resetRowCache = useCallback(() => {
     rowCache.clear()
     let prevParent: string | undefined
+    // @ts-expect-error strictFunctionTypes
     cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
       const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
@@ -76,11 +77,11 @@ export const useRows = () => {
           const attr = data?.attributes[colIndex]
           const cellSpan = cell.querySelector(".cell-span")
           if (data && caseId && attr && cellSpan) {
-            const strValue = data.getValue(caseId, attr.id)
+            const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
             const formatStr = attr.format || kDefaultFormatStr
             const formatted = (numValue != null) && isFinite(numValue) ? format(formatStr)(numValue) : strValue
-            cellSpan.textContent = formatted
+            cellSpan.textContent = formatted ?? ""
             setCachedDomAttr(caseId, attr.id)
           }
         })

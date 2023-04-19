@@ -1,7 +1,7 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {reaction} from "mobx"
-import {drag, ScaleContinuousNumeric, select} from "d3"
+import {drag, ScaleContinuousNumeric, select, Selection} from "d3"
 import t from "../../../utilities/translation/translate"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
@@ -9,6 +9,21 @@ import {MultiScale} from "../models/multi-scale"
 import {isVertical} from "../axis-types"
 
 import "./axis.scss"
+
+// type arguments:
+//  SVGRectElement: type of element being selected
+//  RectIndices: type of data attached to selected element
+//  SVGGElement: type of parent element selected by initial/global select
+//  unknown: type of data attached to parent element (none in this case)
+export type RectIndices = [number, number, number]  // data signify lower, middle, upper rectangles
+export type DragRectSelection = Selection<SVGRectElement, RectIndices, SVGGElement, unknown>
+
+// selects all `.dragRect` elements, optionally with additional classes, e.g. `.dragRect.additional.classes`
+export function selectDragRects(parent: SVGGElement | null, additionalClasses = ""): DragRectSelection | null {
+  return parent
+          ? select(parent).selectAll<SVGRectElement, RectIndices>(`.dragRect${additionalClasses}`)
+          : null
+}
 
 interface IProps {
   axisModel: INumericAxisModel
@@ -25,7 +40,7 @@ const axisDragHints = [t("DG.CellLinearAxisView.lowerPanelTooltip"),
 
 export const AxisDragRects = observer(
   function AxisDragRects({axisModel, axisWrapperElt, numSubAxes = 1, subAxisIndex = 0}: IProps) {
-    const rectRef = useRef() as React.RefObject<SVGSVGElement>,
+    const rectRef = useRef() as React.RefObject<SVGGElement>,
       place = axisModel.place,
       layout = useAxisLayoutContext()
 
@@ -39,7 +54,7 @@ export const AxisDragRects = observer(
         dilationAnchorCoord: number,
         dragging = false
 
-      const onDragStart: D3Handler = () => {
+      const onDragStart: D3Handler = function() {
           const subAxisLength = layout.getAxisLength(place) / numSubAxes,
             rangeMin = subAxisIndex * subAxisLength,
             rangeMax = (subAxisIndex + 1) * subAxisLength,
@@ -50,12 +65,12 @@ export const AxisDragRects = observer(
           d3ScaleAtStart = d3Scale.copy()
           lower = d3ScaleAtStart.domain()[0]
           upper = d3ScaleAtStart.domain()[1]
-          select(this as Element)
+          select(this)
             .classed('dragging', true)
           axisModel.setTransitionDuration(0)
         },
 
-        onDilateStart: D3Handler = (event: { x: number, y: number }) => {
+        onDilateStart: D3Handler = function(event: { x: number, y: number }) {
           select(this)
             .classed('dragging', true)
           multiScale = layout.getAxisMultiScale(place)
@@ -107,49 +122,45 @@ export const AxisDragRects = observer(
           }
         },
 
-        onDragEnd = () => {
+        onDragEnd: D3Handler = function() {
           select(this)
             .classed('dragging', false)
           dragging = false
         }
 
       if (rectRef.current) {
-        const rectSelection = select(rectRef.current)
-
         // Add three rects in which the user can drag to dilate or translate the axis scale
         const
           classPrefix = place === 'bottom' ? 'h' : 'v',
-          numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0],
+          numbering: RectIndices = place === 'bottom' ? [0, 1, 2] : [2, 1, 0],
           classPostfixes = place === 'bottom'
             ? ['lower-dilate', 'translate', 'upper-dilate']
             : ['upper-dilate', 'translate', 'lower-dilate'],
-          dragBehavior = [drag()  // lower
+          dragBehavior = [drag<SVGRectElement, RectIndices>()  // lower
             .on("start", onDilateStart)
             .on("drag", onLowerDilateDrag)
             .on("end", onDragEnd),
-            drag()  // middle
+            drag<SVGRectElement, RectIndices>()  // middle
               .on("start", onDragStart)
               .on("drag", onDragTranslate)
               .on("end", onDragEnd),
-            drag()  // upper
+            drag<SVGRectElement, RectIndices>()  // upper
               .on("start", onDilateStart)
               .on("drag", onUpperDilateDrag)
               .on("end", onDragEnd)]
-        rectSelection
-          .selectAll('.dragRect')
-          .data(numbering)// data signify lower, middle, upper rectangles
+
+        selectDragRects(rectRef.current)
+          ?.data(numbering)// data signify lower, middle, upper rectangles
           .join(
-            // @ts-expect-error void => Selection
-            (enter) => {
+            (enter) =>
               enter.append('rect')
                 .attr('class', (d) => `dragRect ${classPrefix}-${classPostfixes[d]}`)
                 .append('title')
                 .text((d: number) => axisDragHints[numbering[d]])
-            }
           )
         numbering.forEach((behaviorIndex, axisIndex) => {
-          rectSelection.select(`.dragRect.${classPrefix}-${classPostfixes[axisIndex]}`)
-            .call(dragBehavior[behaviorIndex])
+          const indexedRects = selectDragRects(rectRef.current, `.${classPrefix}-${classPostfixes[axisIndex]}`)
+          indexedRects?.call(dragBehavior[behaviorIndex])
         })
       }
     }, [axisModel, place, layout, numSubAxes, subAxisIndex])
@@ -164,18 +175,13 @@ export const AxisDragRects = observer(
           const
             length = layout.getAxisLength(place) / numSubAxes,
             start = subAxisIndex * length,
-            rectSelection = select(rectRef.current),
             numbering = place === 'bottom' ? [0, 1, 2] : [2, 1, 0]
           if (length != null && axisBounds != null) {
-            rectSelection
-              .selectAll('.dragRect')
-              .data(numbering)// data signify lower, middle, upper rectangles
+            selectDragRects(rectRef.current)
+              ?.data(numbering)// data signify lower, middle, upper rectangles
               .join(
-                // @ts-expect-error void => Selection
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
-                () => {
-                },
-                (update) => {
+                enter => enter,
+                (update) =>
                   update
                     .attr('x', (d) => axisBounds.left + (place === 'bottom'
                       ? (start + d * length / 3) : 0))
@@ -183,15 +189,14 @@ export const AxisDragRects = observer(
                       ? 0 : (start + d * length / 3)))
                     .attr('width', () => (place === 'bottom' ? length / 3 : axisBounds.width))
                     .attr('height', () => (place === 'bottom' ? axisBounds.height : length / 3))
-                }
               )
-            rectSelection.selectAll('.dragRect').raise()
+            selectDragRects(rectRef.current)?.raise()
           }
         }, {fireImmediately: true}
       )
       return () => disposer()
     }, [axisModel, layout, axisWrapperElt, place, numSubAxes, subAxisIndex])
     return (
-      <g className={'dragRect'} ref={rectRef}/>
+      <g className={'dragRectWrapper'} ref={rectRef}/>
     )
   })
