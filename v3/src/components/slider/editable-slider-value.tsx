@@ -1,28 +1,18 @@
 import {NumberInput, NumberInputField} from "@chakra-ui/react"
-import {format, formatSpecifier, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {useState, useEffect} from "react"
 import {ISliderModel} from "./slider-model"
+import {MultiScale} from "../axis/models/multi-scale"
 
 import './slider.scss'
-import {MultiScale} from "../axis/models/multi-scale"
 
 interface IProps {
   sliderModel: ISliderModel
-  sigFig: number
   domain: any
   multiScale: MultiScale
-  setSigFig: (sigFig: number) => void
 }
 
-export const EditableSliderValue = observer(function EditableSliderValue({
-                                                                           sliderModel,
-                                                                           sigFig,
-                                                                           domain,
-                                                                           multiScale,
-                                                                           setSigFig
-                                                                         }: IProps) {
-
+export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
   const formatValue = (model: ISliderModel) => multiScale.formatValueForScale(model.globalValue.value)
 
