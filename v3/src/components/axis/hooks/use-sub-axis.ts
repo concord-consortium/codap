@@ -4,8 +4,9 @@ import {MutableRefObject, useCallback, useEffect} from "react"
 import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
+import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
-import {transitionDuration, isVertical} from "../../graph/graphing-types"
+import {transitionDuration} from "../../graph/graphing-types"
 import {collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement, getStringBounds} from "../axis-utils"
 
 export interface IUseSubAxis {

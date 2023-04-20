@@ -10,12 +10,12 @@ import {kellyColors, missingColor} from "../../../utilities/color-utils"
 import {
   CaseData,
   GraphAttrRole,
-  GraphPlace,
   graphPlaceToAttrRole,
   PrimaryAttrRoles,
   TipAttrRoles
 } from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
+import {GraphPlace} from "../../axis-graph-shared"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {

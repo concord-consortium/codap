@@ -6,7 +6,8 @@ import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   CategoricalAxisModel, EmptyAxisModel, INumericAxisModel, isCategoricalAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import {axisPlaceToAttrRole, GraphPlace, graphPlaceToAttrRole, PlotType} from "../graphing-types"
+import {axisPlaceToAttrRole, graphPlaceToAttrRole, PlotType} from "../graphing-types"
+import {GraphPlace} from "../../axis-graph-shared"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 
 // keys are [primaryAxisType][secondaryAxisType]

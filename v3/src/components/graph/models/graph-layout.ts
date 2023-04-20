@@ -1,7 +1,7 @@
 import {action, computed, makeObservable, observable} from "mobx"
 import {createContext, useContext} from "react"
 import {AxisPlace, AxisPlaces, AxisBounds, IScaleType} from "../../axis/axis-types"
-import {GraphPlace, isVertical} from "../graphing-types"
+import {GraphPlace, isVertical} from "../../axis-graph-shared"
 import {IAxisLayout} from "../../axis/models/axis-layout-context"
 import {MultiScale} from "../../axis/models/multi-scale"
 

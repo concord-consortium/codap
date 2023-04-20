@@ -35,6 +35,33 @@ $graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
     fill: black;
     font: 12px sans-serif;
   }
+
+  .axis {
+    background-color: white;
+
+    line {
+      stroke: #DDDDDD;
+    }
+  }
+  .axis-click-cue {
+    fill: #999999 !important;
+    font-size: 12px !important;
+    font-family: Montserrat-Regular, sans-serif !important;
+  }
+
+  .grid .tick line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+    pointer-events: none;
+  }
+
+  .zero .tick line {
+    stroke: #444444;
+    stroke-opacity: 0.8;
+    shape-rendering: crispEdges;
+    pointer-events: none;
+  }
 }
 
 .graph-dot-area {

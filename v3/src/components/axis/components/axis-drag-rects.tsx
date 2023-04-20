@@ -5,8 +5,8 @@ import {drag, ScaleContinuousNumeric, select, Selection} from "d3"
 import t from "../../../utilities/translation/translate"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
+import {isVertical} from "../../axis-graph-shared"
 import {MultiScale} from "../models/multi-scale"
-import {isVertical} from "../../graph/graphing-types"
 
 import "./axis.scss"
 

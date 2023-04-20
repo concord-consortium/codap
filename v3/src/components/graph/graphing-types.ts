@@ -1,11 +1,10 @@
 import React from "react"
-import {AxisPlace, AxisPlaces} from "../axis/axis-types"
+import {AxisPlace} from "../axis/axis-types"
+import {GraphPlace} from "../axis-graph-shared"
 
  // The data stored with each plot element (e.g. 'circle')
 export type CaseData = { plotNum: number, caseID: string }
 
-export const GraphPlaces = [...AxisPlaces, "yPlus", "plot", "legend"] as const
-export type GraphPlace = typeof GraphPlaces[number]
 export const PrimaryAttrRoles = ['x', 'y'] as const
 export type PrimaryAttrRole = typeof PrimaryAttrRoles[number]
 export const TipAttrRoles =
@@ -15,9 +14,6 @@ export const GraphAttrRoles = [
 export type GraphAttrRole = typeof GraphAttrRoles[number]
 export type IsGraphDropAllowed = (place: GraphPlace, attrId?: string) => boolean
 
-export function isVertical(place: GraphPlace) {
-  return ["left", "rightCat", "rightNumeric", "yPlus"].includes(place)
-}
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",

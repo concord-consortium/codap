@@ -10,7 +10,8 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {AttributeType} from "../../../../models/data/attribute"
-import {GraphAttrRole, GraphPlace} from "../../graphing-types"
+import {GraphAttrRole} from "../../graphing-types"
+import {GraphPlace} from "../../../axis-graph-shared"
 
 interface ILegendProps {
   legendAttrID: string
