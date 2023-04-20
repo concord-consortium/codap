@@ -6,7 +6,7 @@ export const LegendElements = {
         return this.getGraphTile().find(".graph-plot .legend-component")
     },
     getLegendName() {
-        return this.getLegend().find(".legend-label")
+        return this.getLegend().find(".attribute-label")
     },
     getCategoricalLegendCategories() {
         return this.getLegend().find(".legend-categories>.key")

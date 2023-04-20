@@ -3,7 +3,8 @@ import { AttributeType } from "../models/data/attribute"
 import {useDataSetContext} from "./use-data-set-context"
 import {getDragAttributeId} from "./use-drag-drop"
 import {useDataConfigurationContext} from "../components/graph/hooks/use-data-configuration-context"
-import {attrRoleToGraphPlace, GraphAttrRole, GraphPlace} from "../components/graph/graphing-types"
+import {attrRoleToGraphPlace, GraphAttrRole} from "../components/graph/graphing-types"
+import {GraphPlace} from "../components/axis-graph-shared"
 import t from "../utilities/translation/translate"
 
 export interface IUseDropHintStringProps {

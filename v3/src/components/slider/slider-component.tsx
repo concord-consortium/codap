@@ -6,7 +6,7 @@ import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
-import { kSliderClass, kSliderClassSelector } from "./slider-types"
+import { kSliderClass } from "./slider-types"
 import { Axis } from "../axis/components/axis"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
@@ -78,7 +78,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
               <div className="axis-end min" />
               <svg className="slider-axis">
                 <Axis
-                  parentSelector={kSliderClassSelector}
                   getAxisModel={() => sliderModel.axis}
                   enableAnimation={animationRef}
                 />

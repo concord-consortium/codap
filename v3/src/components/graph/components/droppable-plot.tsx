@@ -3,9 +3,9 @@ import React, {memo} from "react"
 import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {GraphPlace} from "../graphing-types"
 import {DroppableSvg} from "./droppable-svg"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {GraphPlace} from "../../axis-graph-shared"
 
 interface IProps {
   graphElt: HTMLDivElement | null

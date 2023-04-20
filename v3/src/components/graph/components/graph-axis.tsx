@@ -1,12 +1,20 @@
-import React, {MutableRefObject} from "react"
-import {AxisPlace} from "../../axis/axis-types"
-import {Axis} from "../../axis/components/axis"
-import {axisPlaceToAttrRole, GraphPlace, kGraphClassSelector} from "../graphing-types"
-import t from "../../../utilities/translation/translate"
+import React, {MutableRefObject, useEffect} from "react"
 import {observer} from "mobx-react-lite"
+import {Active} from "@dnd-kit/core"
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {useGraphModelContext} from "../models/graph-model"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphLayoutContext} from "../models/graph-layout"
+import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
+import {AxisPlace} from "../../axis/axis-types"
+import {Axis} from "../../axis/components/axis"
+import {axisPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
+import {GraphPlace} from "../../axis-graph-shared"
+import {DroppableAxis} from "../../axis/components/droppable-axis"
+import {AttributeLabel} from "./attribute-label"
+import {useDropHintString} from "../../../hooks/use-drop-hint-string"
+import {useAxisBoundsProvider} from "../../axis/hooks/use-axis-bounds"
 
 interface IProps {
   place: AxisPlace
@@ -18,35 +26,60 @@ interface IProps {
 
 export const GraphAxis = observer(function GraphAxis(
   {place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
-  const dataConfig = useDataConfigurationContext()
-  const isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true)
-  const dataset = dataConfig?.dataset
-  const graphModel = useGraphModelContext()
-  const role = axisPlaceToAttrRole[place]
-  const attrId = graphModel.getAttributeID(role)
+  const dataConfig = useDataConfigurationContext(),
+    isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
+    graphModel = useGraphModelContext(),
+    instanceId = useInstanceIdContext(),
+    layout = useGraphLayoutContext(),
+    droppableId = `${instanceId}-${place}-axis-drop`,
+    hintString = useDropHintString({role: axisPlaceToAttrRole[place]})
 
-  const getLabel = () => {
-    const isScatterPlot = graphModel.plotType === 'scatterPlot',
-      yAttributeDescriptions = dataConfig?.yAttributeDescriptions || []
-    return place === 'left' && isScatterPlot
-      ? yAttributeDescriptions.map((desc, index) => {
-        const isY2 = desc.attributeID === graphModel.getAttributeID('rightNumeric')
-        return (desc.attributeID && !isY2 && dataset?.attrFromID(desc.attributeID)?.name) || ''
-      }).filter(aName => aName !== '').join(', ')
-      : (attrId && dataset?.attrFromID(attrId)?.name) || t('DG.AxisView.emptyGraphCue')
+  const handleIsActive = (active: Active) => {
+    const droppedAttrId = getDragAttributeId(active) ?? ''
+    if (isDropAllowed) {
+      return isDropAllowed(place, droppedAttrId)
+    } else {
+      return !!droppedAttrId
+    }
   }
 
+  const {parentElt, wrapperElt,
+    setWrapperElt} = useAxisBoundsProvider(place, kGraphClassSelector)
+
+  useDropHandler(droppableId, active => {
+    const droppedAttrId = getDragAttributeId(active)
+    droppedAttrId && isDropAllowed(place, droppedAttrId) && onDropAttribute?.(place, droppedAttrId)
+  })
+
+  useEffect(function cleanup () {
+    return () => {
+      layout.setDesiredExtent(place, 0)
+    }
+  }, [layout, place])
+
   return (
-    <Axis parentSelector={kGraphClassSelector}
-          getAxisModel={() => graphModel.getAxis(place)}
-          label={getLabel()}
-          enableAnimation={enableAnimation}
-          showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
-          centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
-          isDropAllowed={isDropAllowed}
-          onDropAttribute={onDropAttribute}
-          onRemoveAttribute={onRemoveAttribute}
-          onTreatAttributeAs={onTreatAttributeAs}
-    />
+    <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
+      <Axis getAxisModel={() => graphModel.getAxis(place)}
+            label={''}  // Remove
+            enableAnimation={enableAnimation}
+            showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
+            centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
+      />
+      <AttributeLabel
+        place={place}
+        onChangeAttribute={onDropAttribute}
+        onRemoveAttribute={onRemoveAttribute}
+        onTreatAttributeAs={onTreatAttributeAs}
+      />
+      {onDropAttribute &&
+         <DroppableAxis
+            place={`${place}`}
+            dropId={droppableId}
+            hintString={hintString}
+            portal={parentElt}
+            target={wrapperElt}
+            onIsActive={handleIsActive}
+         />}
+    </g>
   )
 })

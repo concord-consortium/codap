@@ -114,6 +114,9 @@ export const GraphModel = TileContentModel
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
     },
+    removeAxis(place: AxisPlace) {
+      self.axes.delete(place)
+    },
     setAttributeID(role: GraphAttrRole, id: string) {
       if (role === 'yPlus') {
         self.config.addYAttribute({attributeID: id})

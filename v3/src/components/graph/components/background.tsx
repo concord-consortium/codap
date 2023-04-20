@@ -3,7 +3,7 @@ import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTree from 'rtree'
 import {CaseData, InternalizedData, rTreeRect} from "../graphing-types"
-import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
@@ -48,7 +48,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphModelContext(),
-    bounds = layout.computedBounds.get('plot') as Bounds,
+    bounds = layout.computedBounds.plot,
     plotWidth = bounds.width,
     plotHeight = bounds.height,
     transform = `translate(${bounds.left}, ${bounds.top})`,
@@ -63,7 +63,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
   useEffect(() => {
     const onDragStart = (event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
       const {computedBounds} = layout,
-          plotBounds = computedBounds.get('plot') as Bounds
+          plotBounds = computedBounds.plot
         appState.beginPerformance()
         selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
         startX.current = event.x - plotBounds.left

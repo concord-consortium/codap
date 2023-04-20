@@ -1,9 +1,10 @@
 import {format, ScaleBand, ScaleLinear, select} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect} from "react"
-import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, isVertical, otherPlace} from "../axis-types"
+import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
+import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
 import {transitionDuration} from "../../graph/graphing-types"
 import {collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement, getStringBounds} from "../axis-utils"
@@ -87,9 +88,9 @@ export const useSubAxis = ({
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {translation, rotation, textAnchor} = getCategoricalLabelPlacement(place, centerCategoryLabels,
               collision, bandWidth, textHeight)
+          if (!subAxisElt) return
           select(subAxisElt)
             .attr("transform", initialTransform)
-            // @ts-expect-error types are incompatible
             .call(axis(ordinalScale).tickSizeOuter(0))
             // Remove everything but the path the forms the axis line
             .selectAll('g').remove()
