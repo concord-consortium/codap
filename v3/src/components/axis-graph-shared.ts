@@ -1,4 +1,4 @@
-import {AxisPlace, AxisPlaces} from "./axis/axis-types"
+import {AxisPlaces} from "./axis/axis-types"
 
 export const GraphPlaces = [...AxisPlaces, "yPlus", "plot", "legend"] as const
 export type GraphPlace = typeof GraphPlaces[number]

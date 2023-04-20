@@ -139,8 +139,7 @@ export class GraphLayout implements IAxisLayout {
         legend: {left: 6, top: graphHeight - legendHeight, width: graphWidth - 6, height: legendHeight},
         rightNumeric: {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: v2AxisWidth, height: plotHeight},
         rightCat: {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth, height: plotHeight},
-        // TODO: fix this (was missing before)
-        yPlus: {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight}
+        yPlus: {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight} // This value is not used
       }
     return newBounds
   }

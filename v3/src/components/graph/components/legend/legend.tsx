@@ -25,7 +25,6 @@ export const Legend = function Legend({
                                         legendAttrID, graphElt,
                                         onDropAttribute, onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
-  useMemo(() => legendAttrID ? [legendAttrID] : [], [legendAttrID])
   const dataConfiguration = useDataConfigurationContext(),
     isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
     layout = useGraphLayoutContext(),
