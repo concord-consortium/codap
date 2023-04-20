@@ -14,6 +14,7 @@ export const GraphAttrRoles = [
 export type GraphAttrRole = typeof GraphAttrRoles[number]
 export type IsGraphDropAllowed = (place: GraphPlace, attrId?: string) => boolean
 
+export type IDotsRef = React.RefObject<SVGSVGElement | null | undefined>
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",
@@ -44,7 +45,7 @@ export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {
 }
 
 export interface PlotProps {
-  dotsRef: React.RefObject<SVGSVGElement>
+  dotsRef: IDotsRef
   enableAnimation: React.MutableRefObject<boolean>
 }
 

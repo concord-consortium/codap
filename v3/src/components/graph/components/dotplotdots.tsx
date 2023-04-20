@@ -121,9 +121,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
-      pointColor, pointStrokeColor,
       dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
-      selectedPointRadius: graphModel.getPointRadius('select')
+      pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select')
     })
   }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
 
@@ -256,7 +255,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           ? dataConfiguration?.getLegendColorForCase : undefined
 
       setPointCoordinates({
-        dataset, pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select'),
+        dataset, pointRadius: graphModel.getPointRadius(),
+        selectedPointRadius: graphModel.getPointRadius('select'),
         dotsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, enableAnimation
       })

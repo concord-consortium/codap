@@ -8,7 +8,7 @@ import {INumericAxisModel} from "../../axis/models/axis-model"
 interface IProps {
   graphModel: IGraphModel
   enableAnimation: MutableRefObject<boolean>
-  dotsRef: RefObject<SVGSVGElement>
+  dotsRef: RefObject<SVGSVGElement | undefined>
   instanceId: string | undefined
 }
 

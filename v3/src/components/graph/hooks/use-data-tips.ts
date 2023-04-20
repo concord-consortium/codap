@@ -2,7 +2,7 @@ import {select} from "d3"
 import React, {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import {IGraphModel} from "../models/graph-model"
-import {CaseData, transitionDuration} from "../graphing-types"
+import {CaseData, IDotsRef, transitionDuration} from "../graphing-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {getPointTipText} from "../utilities/graph-utils"
 import {RoleAttrIDPair} from "../models/data-configuration-model"
@@ -14,7 +14,7 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   })
 
 interface IUseDataTips {
-  dotsRef: React.RefObject<SVGSVGElement>,
+  dotsRef: IDotsRef,
   dataset: IDataSet | undefined,
   graphModel: IGraphModel,
   enableAnimation: React.MutableRefObject<boolean>
@@ -63,7 +63,7 @@ export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUse
       }
     }
 
-    select(dotsRef.current)
+    dotsRef.current && select(dotsRef.current)
       .on('mouseover', showDataTip)
       .on('mouseout', hideDataTip)
       .call(dataTip)

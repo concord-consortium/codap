@@ -33,11 +33,12 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement>
+  dotsRef: MutableRefObject<SVGSVGElement | null | undefined>
 }
 
-export const Graph = observer(function Graph({graphController, graphRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
   const graphModel = useGraphModelContext(),
-    { enableAnimation, dotsRef } = graphController,
+    {enableAnimation} = graphController,
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
@@ -48,9 +49,8 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y')
-
-  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
+    yAttrID = graphModel.getAttributeID('y'),
+    canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
@@ -105,7 +105,7 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
 
   const renderPlotComponent = () => {
     const props = {
-        xAttrID, yAttrID, dotsRef, enableAnimation
+        xAttrID, yAttrID, dotsRef, enableAnimation, canvasRef
       },
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
@@ -153,6 +153,12 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     return droppables
   }
 
+  const setDotsRef = (elt:SVGSVGElement | null) =>  {
+      dotsRef.current = elt
+  }
+
+  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
+
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
@@ -165,7 +171,10 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
           {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
-            <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
+            <svg ref={
+              (elt) => setDotsRef(elt)
+            }
+                 className={`graph-dot-area ${instanceId}`}>
               {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>

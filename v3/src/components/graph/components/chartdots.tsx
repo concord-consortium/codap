@@ -1,16 +1,13 @@
 import {ScaleBand} from "d3"
 import React, {useCallback} from "react"
 import { selectDots } from "../d3-types"
-import {attrRoleToAxisPlace, CaseData, PlotProps, transitionDuration} from "../graphing-types"
+import {attrRoleToAxisPlace, CaseData, PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {setPointSelection} from "../utilities/graph-utils"
+import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
-import {
-  defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth
-} from "../../../utilities/color-utils"
 
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
 
@@ -182,65 +179,38 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       cellIndices = buildMapOfIndicesByCase(),
       baseCoord = primaryIsBottom ? 0 : layout.getAxisLength('left'),
       signForOffset = primaryIsBottom ? 1 : -1,
-      primaryCenterKey = primaryIsBottom ? 'cx' : 'cy',
-      secondaryCenterKey = primaryIsBottom ? 'cy' : 'cx',
-
-      lookupLegendColor = (id: string) => {
-        const isSelected = dataset?.isCaseSelected(id),
-          legendColor = getLegendColor?.(id) ?? ''
-        return legendColor !== '' ? legendColor
-          : isSelected ? defaultSelectedColor : graphModel.pointColor
-      },
-      onComplete = () => {
-        if (enableAnimation.current) {
-          enableAnimation.current = false
-          setPoints()
+      pointRadius = graphModel.getPointRadius(),
+      getPrimaryScreenCoord = (anID: string) => {
+        if (cellIndices[anID]) {
+          const {column} = cellIndices[anID],
+            {p, ep} = cellIndices[anID].cell
+          return baseCoord + signForOffset * ((p + 0.5) * primaryCellWidth + ep * extraPrimCellWidth) +
+            (column + 0.5) * pointDiameter - cellParams.numPointsInRow * pointDiameter / 2
+        } else {
+          return 0
         }
       },
+      getSecondaryScreenCoord = (anID: string) => {
+        if (cellIndices[anID] && secOrdinalScale) {
+          const {row} = cellIndices[anID],
+            {s, es} = cellIndices[anID].cell
+          return secOrdinalScale.range()[0] -
+            signForOffset * (s * primaryHeight + es * extraSecCellWidth +
+              (row + 0.5) * pointDiameter + row * cellParams.overlap)
+        } else {
+          return 0
+        }
+      },
+      getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
+      getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
 
-      setPoints = () => {
-        const duration = enableAnimation.current ? transitionDuration : 0,
-          pointRadius = graphModel.getPointRadius()
-        selection
-          .transition()
-          .duration(duration)
-          .on('end', (id, i) => (i === selection.size() - 1) && onComplete?.())
-          .attr('r', pointRadius)
-          .attr(primaryCenterKey, (aCaseData: CaseData) => {
-            const anID = aCaseData.caseID
-            if (cellIndices[anID]) {
-              const {column} = cellIndices[anID],
-                {p, ep} = cellIndices[anID].cell
-              return baseCoord + signForOffset * ((p + 0.5) * primaryCellWidth + ep * extraPrimCellWidth) +
-                (column + 0.5) * pointDiameter - cellParams.numPointsInRow * pointDiameter / 2
-            } else {
-              return 0
-            }
-          })
-          .attr(secondaryCenterKey, (aCaseData: CaseData) => {
-            const anID = aCaseData.caseID
-            if (cellIndices[anID] && secOrdinalScale) {
-              const {row} = cellIndices[anID],
-                {s, es} = cellIndices[anID].cell
-              return secOrdinalScale.range()[0] -
-                signForOffset * (s * primaryHeight + es * extraSecCellWidth +
-                  (row + 0.5) * pointDiameter + row * cellParams.overlap)
-            } else {
-              return 0
-            }
-          })
-          .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData.caseID))
-          .style('stroke', (aCaseData: CaseData) =>
-            (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStroke : pointStrokeColor)
-          .style('stroke-width', (aCaseData: CaseData) =>
-            (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-              ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-      }
-
-    setPoints()
+    setPointCoordinates({
+      dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
+      dotsRef, selectedOnly, pointColor, pointStrokeColor,
+      getScreenX, getScreenY, getLegendColor, enableAnimation
+    })
   }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
-    extraPrimaryAttrRole, extraSecondaryAttrRole,
+    extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor,
     enableAnimation, primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
   usePlotResponders({

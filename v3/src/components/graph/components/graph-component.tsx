@@ -1,6 +1,6 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import React, {useEffect, useMemo, useRef} from "react"
+import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
@@ -20,15 +20,15 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const instanceId = useNextInstanceId("graph")
   const { data } = useDataSet(graphModel?.data)
   const layout = useInitGraphLayout(graphModel)
-  const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 10})
+  const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 1})
   const enableAnimation = useRef(true)
-  const dotsRef = useRef<SVGSVGElement>(null)
+  const dotsRef:MutableRefObject<SVGSVGElement | undefined> = useRef<SVGSVGElement>()
   const graphController = useMemo(
-    () => new GraphController({layout, enableAnimation, dotsRef, instanceId}),
+    () => new GraphController({layout, enableAnimation, instanceId}),
     [layout, instanceId]
   )
 
-  useGraphController({graphController, graphModel})
+  useGraphController({graphController, graphModel, dotsRef})
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setParentExtent(width, height)
@@ -49,6 +49,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
             <GraphModelContext.Provider value={graphModel}>
               <Graph graphController={graphController}
                       graphRef={graphRef}
+                      dotsRef={dotsRef}
               />
             </GraphModelContext.Provider>
           </AxisLayoutContext.Provider>

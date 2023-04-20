@@ -11,14 +11,14 @@ import { CaseData } from "./graphing-types"
 export type DotSelection = Selection<SVGCircleElement, CaseData, SVGSVGElement, unknown>
 
 // selects all `circle` elements
-export function selectCircles(svg: SVGSVGElement | null): DotSelection | null {
+export function selectCircles(svg: SVGSVGElement | undefined | null): DotSelection | null {
   return svg
           ? select(svg).selectAll("circle")
           : null
 }
 
 // selects all `.graph-dot` or `.graph-dot-highlighted` elements
-export function selectDots(svg: SVGSVGElement | null, selectedOnly = false): DotSelection | null {
+export function selectDots(svg: SVGSVGElement | undefined | null, selectedOnly = false): DotSelection | null {
   const innerSelector = selectedOnly ? ".graph-dot-highlighted" : ".graph-dot"
   return svg
           ? select(svg).selectAll(innerSelector)

@@ -186,12 +186,13 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, dotsRef, pointRadius: pointRadiusRef.current, selectedPointRadius: selectedPointRadiusRef.current,
+      dataset, dotsRef, pointRadius: pointRadiusRef.current,
+      selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointColorAtIndex, enableAnimation, pointColor, pointStrokeColor
     })
-  }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID, enableAnimation, graphModel,
-    yScaleRef])
+  }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID,
+    enableAnimation, graphModel, yScaleRef])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const xAttrID = dataConfiguration?.attributeID('x') ?? '',
