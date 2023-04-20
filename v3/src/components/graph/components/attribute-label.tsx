@@ -5,22 +5,22 @@ import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import t from "../../../utilities/translation/translate"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {AttributeType} from "../../../models/data/attribute"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {isVertical, GraphPlace, graphPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
 import {useGraphModelContext} from "../models/graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
-import {AxisPlace} from "../../axis/axis-types"
 import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
 
 import graphVars from "./graph.scss"
 
 interface IAttributeLabelProps {
   place: GraphPlace
-  onChangeAttribute?: (place: AxisPlace, attrId: string) => void
-  onRemoveAttribute?: (place: AxisPlace, attrId: string) => void
-  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: string) => void
+  onChangeAttribute?: (place: GraphPlace, attrId: string) => void
+  onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
+  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 export const AttributeLabel = observer(
@@ -76,11 +76,8 @@ export const AttributeLabel = observer(
         .selectAll(`text.${className}`)
         .data([1])
         .join(
-          // @ts-expect-error void => Selection
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          () => {
-          },
-          (update) => {
+          enter => enter,
+          (update) =>
             update
               .attr("transform", labelTransform + tRotation)
               .attr('class', className)
@@ -88,7 +85,7 @@ export const AttributeLabel = observer(
               .attr('x', tX)
               .attr('y', tY)
               .text(label)
-          })
+        )
     }, [layout, place, labelRef, getLabel, useClickHereCue, hideClickHereCue])
 
     useEffect(function observeAttributeNameChange() {
@@ -130,13 +127,12 @@ export const AttributeLabel = observer(
           .selectAll(`text.${className}`)
           .data([1])
           .join(
-            // @ts-expect-error void => Selection
-            (enter) => {
+            (enter) =>
               enter.append('text')
                 .attr('class', className)
                 .attr('text-anchor', anchor)
                 .attr('data-testid', `attribute-label-${place}`)
-            })
+          )
         refreshAxisTitle()
       }
     }, [labelRef, place, useClickHereCue, refreshAxisTitle])

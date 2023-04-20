@@ -150,7 +150,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
               .text((index: number) => categoryData.current[index].category)
               .attr('transform', transform)
               .attr('x', (index: number) => {
-                return axisGap +categoryData.current[index].column * layoutData.current.columnWidth + keySize + 3
+                return axisGap + categoryData.current[index].column * layoutData.current.columnWidth + keySize + 3
               })
               .attr('y',
                 (index: number) =>

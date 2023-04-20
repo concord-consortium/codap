@@ -87,9 +87,9 @@ export const useSubAxis = ({
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {translation, rotation, textAnchor} = getCategoricalLabelPlacement(place, centerCategoryLabels,
               collision, bandWidth, textHeight)
+          if (!subAxisElt) return
           select(subAxisElt)
             .attr("transform", initialTransform)
-            // @ts-expect-error types are incompatible
             .call(axis(ordinalScale).tickSizeOuter(0))
             // Remove everything but the path the forms the axis line
             .selectAll('g').remove()
