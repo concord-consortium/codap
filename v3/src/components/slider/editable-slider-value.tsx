@@ -15,9 +15,6 @@ interface IProps {
   setSigFig: (sigFig: number) => void
 }
 
-
-// const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
-
 export const EditableSliderValue = observer(function EditableSliderValue({
                                                                            sliderModel,
                                                                            sigFig,
@@ -31,7 +28,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({
 
   useEffect(() => {
     if (sliderModel) {
-      setCandidate(multiScale.formatValueForScale(sliderModel.globalValue.value))
+      setCandidate(multiScale.formatValueForScale(sliderModel.value))
     }
   }, [domain, multiScale, sliderModel, sliderModel.axis])
 
@@ -50,6 +47,8 @@ export const EditableSliderValue = observer(function EditableSliderValue({
     const inputValue = parseFloat(e.target.value)
     if (isFinite(inputValue)) {
       sliderModel.encompassValue(inputValue)
+      setCandidate(multiScale.formatValueForScale(sliderModel.value))
+      sliderModel.setValue(inputValue)
     }
   }
 
