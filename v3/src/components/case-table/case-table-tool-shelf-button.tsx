@@ -1,10 +1,12 @@
 import React from "react"
 import { Menu, MenuButton, MenuItem, MenuList, Tag} from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import t from "../../utilities/translation/translate"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { appState } from "../../models/app-state"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
-import { observer } from "mobx-react-lite"
+import { DataSet, toCanonical } from "../../models/data/data-set"
+import { gDataBroker } from "../../models/data/data-broker"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 
@@ -15,6 +17,14 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   const manager = getSharedModelManager(document)
   const datasets = manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
 
+  const handleCreateNewDataSet = () => {
+    const newData = [{AttributeName: ""}]
+    const ds = DataSet.create({name: "New Dataset"})
+    ds.addAttribute({name: "AttributeName"})
+    ds.addCases(toCanonical(ds, newData))
+    gDataBroker.addDataSet(ds)
+  }
+  
   return (
     <MenuList>
       {datasets?.map(ds => {
@@ -26,7 +36,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
         )
       })}
       <MenuItem>{t("DG.AppController.caseTableMenu.clipboardDataset")}</MenuItem>
-      <MenuItem>{t("DG.AppController.caseTableMenu.newDataSet")}</MenuItem>
+      <MenuItem onClick={handleCreateNewDataSet}>{t("DG.AppController.caseTableMenu.newDataSet")}</MenuItem>
     </MenuList>
   )
 })
