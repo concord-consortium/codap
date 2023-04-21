@@ -122,7 +122,7 @@ context("Test legend with various attribute types", () => {
 
 context("Test drawing legend on existing legend", () => {
     beforeEach(function () {
-        const queryParams = "?sample=mammals&mouseSensor"
+        const queryParams = "?sample=mammals&dashboard&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)
@@ -196,7 +196,7 @@ context("Test drawing legend on existing legend", () => {
 })
 context("Test selecting and selecting categories in legend", () => {
     beforeEach(function () {
-        const queryParams = "?sample=mammals&mouseSensor"
+        const queryParams = "?sample=mammals&dashboard&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)
