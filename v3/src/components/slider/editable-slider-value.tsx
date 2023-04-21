@@ -16,6 +16,7 @@ interface IProps {
 export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
 
+  // when `domain` is not included in the dependency, slider value shows NaN
   useEffect(() => {
     if (sliderModel) {
       setCandidate(multiScale.formatValueForScale(sliderModel.value))

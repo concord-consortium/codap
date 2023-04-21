@@ -143,7 +143,6 @@ export const SliderModel = TileContentModel
         } else {
           self.setAxisMax(tValue + (tValue - tLower) / 10)
         }
-        self.setValue(input)
       }
     },
   }))
