@@ -7,6 +7,8 @@ import { appState } from "../../models/app-state"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { gDataBroker } from "../../models/data/data-broker"
+import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { uiState } from "../../models/ui-state"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 
@@ -23,15 +25,27 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     ds.addAttribute({name: "AttributeName"})
     ds.addCases(toCanonical(ds, newData))
     gDataBroker.addDataSet(ds)
+    createDefaultTileOfType("CodapCaseTable")
   }
-  
+
+  const handleOpenDataSetTable = () => {
+    const existingTableTiles = document.content?.getTilesOfType("CodapCaseTable")
+    if (existingTableTiles) {
+      const tileIds: string[] = []
+      existingTableTiles.forEach(tile => tileIds.push(tile.id))
+      // we're going to assume there's only one table in the document for now and it belongs to the dataset
+       uiState.setFocusedTile(tileIds[0])
+    }
+  }
+
   return (
     <MenuList>
       {datasets?.map(ds => {
         const dataSetName = ds.dataSet.name
         return (
-          <MenuItem key={dataSetName}>{dataSetName}
-            <TrashIcon className="tool-shelf-menu-trash-icon"/>
+          <MenuItem key={dataSetName} onClick={handleOpenDataSetTable}>
+            {dataSetName}
+            <TrashIcon className="tool-shelf-menu-trash-icon" />
           </MenuItem>
         )
       })}
