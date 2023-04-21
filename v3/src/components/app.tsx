@@ -122,11 +122,9 @@ export const App = observer(function App() {
     if (gDataBroker.dataSets.size === 0) {
       const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
       if (sample) {
-        console.log("in if sample")
         importSample(sample, handleImportDataSet)
-        addDefaultComponents()
       }
-      else if (getSearchParams().includes("dashboard")) {
+      if (urlParams.dashboard !== undefined) {
         createNewStarterDataset()
         addDefaultComponents()
       }
