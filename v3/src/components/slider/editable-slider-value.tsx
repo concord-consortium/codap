@@ -3,24 +3,24 @@ import {observer} from "mobx-react-lite"
 import React, {useState, useEffect} from "react"
 import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
+import { AxisBounds } from "../axis/axis-types"
 
 import './slider.scss'
 
 interface IProps {
   sliderModel: ISliderModel
-  domain: any
+  domain: AxisBounds | undefined
   multiScale: MultiScale
 }
 
 export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
-  const formatValue = (model: ISliderModel) => multiScale.formatValueForScale(model.globalValue.value)
 
   useEffect(() => {
     if (sliderModel) {
       setCandidate(multiScale.formatValueForScale(sliderModel.value))
     }
-  }, [domain, multiScale, sliderModel, sliderModel.axis])
+  }, [domain, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const {key} = e
@@ -41,11 +41,6 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
       sliderModel.setValue(inputValue)
     }
   }
-
-  // keep display up-to-date
-  useEffect(() => {
-    setCandidate(formatValue(sliderModel))
-  }, [sliderModel, sliderModel.globalValue.value])
 
   return (
     <NumberInput value={candidate} className="value-input"

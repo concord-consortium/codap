@@ -28,6 +28,8 @@ export const scaleTypeToD3Scale = (iScaleType: IScaleType) => {
   }
 }
 
+export type AxisExtent = [number, number]
+
 /**
  * This class is used to by plots to compute screen coordinates from data coordinates. It can also invert
  * the process, computing data coordinates from screen coordinates.
@@ -122,9 +124,11 @@ export class MultiScale {
     return {data: NaN}
   }
 
+  /** To display values for a numeric axis we use just the number of significant figures required to distinguish
+  *   the value for one screen pixel from the value for the adjacent screen pixel.
+  * **/
   formatValueForScale(value: number) {
-
-    function formatNumber(n: number, dom: [number, number], range: [number, number]): string {
+    function formatNumber(n: number, dom: AxisExtent, range: AxisExtent): string {
       // Calculate the number of significant digits based on domain and range
       const resolution = (dom[1] - dom[0]) / (range[1] - range[0])
       const logResolution = Math.log10(resolution)
@@ -145,6 +149,5 @@ export class MultiScale {
       return formatNumber(value, domain, [0, this.cellLength])
     }
     return String(value)
-
   }
 }
