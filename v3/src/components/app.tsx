@@ -19,7 +19,7 @@ import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
-import { urlParams } from "../utilities/url-params"
+import { getSearchParams, urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { importV2Component } from "../v2/codap-v2-tile-importers"
 import "../models/shared/shared-case-metadata-registration"
@@ -29,11 +29,17 @@ import "./app.scss"
 
 registerTileTypes([])
 
-addDefaultComponents()
-
 export function handleImportDataSet(data: IDataSet) {
   // add data set
   gDataBroker.addDataSet(data)
+}
+
+export function createNewStarterDataset() {
+  const newData = [{AttributeName: ""}]
+  const ds = DataSet.create({name: "New Dataset"})
+  ds.addAttribute({name: "AttributeName"})
+  ds.addCases(toCanonical(ds, newData))
+  gDataBroker.addDataSet(ds)
 }
 
 export const App = observer(function App() {
@@ -97,13 +103,13 @@ export const App = observer(function App() {
     onImportV3Document: handleImportV3Document
   })
 
-  function createNewStarterDataset() {
-    const newData = [{AttributeName: ""}]
-    const ds = DataSet.create({name: "New Dataset"})
-    ds.addAttribute({name: "AttributeName"})
-    ds.addCases(toCanonical(ds, newData))
-    gDataBroker.addDataSet(ds)
-  }
+  // function createNewStarterDataset() {
+  //   const newData = [{AttributeName: ""}]
+  //   const ds = DataSet.create({name: "New Dataset"})
+  //   ds.addAttribute({name: "AttributeName"})
+  //   ds.addCases(toCanonical(ds, newData))
+  //   gDataBroker.addDataSet(ds)
+  // }
 
   useEffect(() => {
     // connect the data broker to the shared model manager
@@ -116,9 +122,13 @@ export const App = observer(function App() {
     if (gDataBroker.dataSets.size === 0) {
       const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
       if (sample) {
+        console.log("in if sample")
         importSample(sample, handleImportDataSet)
-      } else {
+        addDefaultComponents()
+      }
+      else if (getSearchParams().includes("dashboard")) {
         createNewStarterDataset()
+        addDefaultComponents()
       }
     }
   }, [])
