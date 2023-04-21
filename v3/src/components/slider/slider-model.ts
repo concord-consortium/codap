@@ -73,8 +73,7 @@ export const SliderModel = TileContentModel
           // keep the thumbnail within axis bounds when axis bounds are changed
           if (self.value < self.axis.min) self.setValue(self.axis.min)
           if (self.value > self.axis.max) self.setValue(self.axis.max)
-        },
-        { fireImmediately: true }
+        }
       ))
     },
     afterAttach() {
@@ -144,9 +143,7 @@ export const SliderModel = TileContentModel
         } else {
           self.setAxisMax(tValue + (tValue - tLower) / 10)
         }
-        self.setValue(input)
       }
-
     },
   }))
 
