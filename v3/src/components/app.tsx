@@ -19,7 +19,7 @@ import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
-import { getSearchParams, urlParams } from "../utilities/url-params"
+import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { importV2Component } from "../v2/codap-v2-tile-importers"
 import "../models/shared/shared-case-metadata-registration"
@@ -32,14 +32,6 @@ registerTileTypes([])
 export function handleImportDataSet(data: IDataSet) {
   // add data set
   gDataBroker.addDataSet(data)
-}
-
-export function createNewStarterDataset() {
-  const newData = [{AttributeName: ""}]
-  const ds = DataSet.create({name: "New Dataset"})
-  ds.addAttribute({name: "AttributeName"})
-  ds.addCases(toCanonical(ds, newData))
-  gDataBroker.addDataSet(ds)
 }
 
 export const App = observer(function App() {
@@ -103,13 +95,13 @@ export const App = observer(function App() {
     onImportV3Document: handleImportV3Document
   })
 
-  // function createNewStarterDataset() {
-  //   const newData = [{AttributeName: ""}]
-  //   const ds = DataSet.create({name: "New Dataset"})
-  //   ds.addAttribute({name: "AttributeName"})
-  //   ds.addCases(toCanonical(ds, newData))
-  //   gDataBroker.addDataSet(ds)
-  // }
+  function createNewStarterDataset() {
+    const newData = [{AttributeName: ""}]
+    const ds = DataSet.create({name: "New Dataset"})
+    ds.addAttribute({name: "AttributeName"})
+    ds.addCases(toCanonical(ds, newData))
+    gDataBroker.addDataSet(ds)
+  }
 
   useEffect(() => {
     // connect the data broker to the shared model manager
