@@ -15,6 +15,7 @@ import {DroppableAxis} from "../../axis/components/droppable-axis"
 import {AttributeLabel} from "./attribute-label"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useAxisBoundsProvider} from "../../axis/hooks/use-axis-bounds"
+import {isAlive} from "mobx-state-tree";
 
 interface IProps {
   place: AxisPlace
@@ -53,7 +54,11 @@ export const GraphAxis = observer(function GraphAxis(
 
   useEffect(function cleanup () {
     return () => {
-      layout.setDesiredExtent(place, 0)
+      // This gets called when the component is unmounted, which happens when the graph is closed.
+      // In that case setting the desired extent in the layout will cause MST model errors.
+      if (isAlive(graphModel)) {
+        layout.setDesiredExtent(place, 0)
+      }
     }
   }, [layout, place])
 
