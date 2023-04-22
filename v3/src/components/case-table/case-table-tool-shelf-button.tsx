@@ -13,28 +13,49 @@ import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 
 import "../tool-shelf/tool-shelf.scss"
+import { kCaseTableTileType } from "./case-table-defs"
+import { getPositionOfNewComponent } from "../../utilities/view-utils"
 
 export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMenuList() {
   const document = appState.document
+  const content = document.content
   const manager = getSharedModelManager(document)
   const datasets = manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+  const existingTableTiles = document.content?.getTilesOfType(kCaseTableTileType)
+  const tileIds: string[] = []
+  existingTableTiles?.forEach(tile => tileIds.push(tile.id))
+  const row = content?.getRowByIndex(0)
+  if (!row) return null
 
+  // console.log("context", context)
   const handleCreateNewDataSet = () => {
     const newData = [{AttributeName: ""}]
     const ds = DataSet.create({name: "New Dataset"})
     ds.addAttribute({name: "AttributeName"})
     ds.addCases(toCanonical(ds, newData))
     gDataBroker.addDataSet(ds)
-    createDefaultTileOfType("CodapCaseTable")
+    createDefaultTileOfType(kCaseTableTileType)
   }
 
   const handleOpenDataSetTable = () => {
-    const existingTableTiles = document.content?.getTilesOfType("CodapCaseTable")
-    if (existingTableTiles) {
-      const tileIds: string[] = []
-      existingTableTiles.forEach(tile => tileIds.push(tile.id))
+    console.log("in handle", existingTableTiles)
+
+    if (existingTableTiles?.length !== 0) {
       // we're going to assume there's only one table in the document for now and it belongs to the dataset
        uiState.setFocusedTile(tileIds[0])
+    } else {
+      const tableTile = createDefaultTileOfType(kCaseTableTileType)
+      if (!tableTile) return
+      const tileSize = {width: 580, height: 300}
+      const {x, y} = getPositionOfNewComponent(tileSize)
+      const tableOptions = { x, y, width: 580, height: 300 }
+      content?.insertTileInRow(tableTile, row, tableOptions)    }
+  }
+
+  const handleRemoveDataSet = (dsId?: string) => {
+    if (dsId) {
+      content?.getTile(dsId)
+      console.log("dsId", content?.getTile(dsId))
     }
   }
 
@@ -45,7 +66,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
         return (
           <MenuItem key={dataSetName} onClick={handleOpenDataSetTable}>
             {dataSetName}
-            <TrashIcon className="tool-shelf-menu-trash-icon" />
+            <TrashIcon className="tool-shelf-menu-trash-icon" onClick={()=>handleRemoveDataSet(ds.dataSet.id)}/>
           </MenuItem>
         )
       })}
