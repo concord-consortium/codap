@@ -16,7 +16,7 @@ export const CodapModal = forwardRef(({ children, isOpen, onClose, modalWidth
 }: IProps, ref: React.LegacyRef<HTMLElement> | undefined) => {
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal" size="xs">
+    <Modal isCentered isOpen={isOpen} onClose={onClose} data-testid="codap-modal" size="xs">
       <ModalOverlay />
       <ModalContent ref={ref} className="codap-modal-content" w={modalWidth || "400px"}>
         {children}

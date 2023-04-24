@@ -59,3 +59,21 @@
   width: 11px;
   fill: black;
 }
+
+.delete-data-set-modal-body {
+  display: flex;
+  flex-direction: row;
+  padding: 20px 10px;
+
+  .delete-data-set-modal-text {
+    margin: 10px;
+
+    .warning {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .description {
+      font-size: 12px;
+    }
+  }
+}
