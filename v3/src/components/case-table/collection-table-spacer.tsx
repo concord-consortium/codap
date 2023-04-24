@@ -78,7 +78,22 @@ export function CollectionTableSpacer({ onDrop }: IProps) {
             title={topButtonTooltip} />}
         </div>
         <div className="spacer-mid">
-          <div className="spacer-mid-interface">
+          <svg className="spacer-mid-layer lower-layer">
+            {cases.map((value, index) => {
+              if (index === 0) {
+                return null
+              }
+              let y2 = 0;
+              for (let i = 0; i < index; i++) {
+                y2 += 18 * (caseMetadata?.isCollapsed(value.__id__) ? 1 : 1)
+              }
+              // y1 is (preceding collapsed cases * 18) + (preceding open cases) -let's look at what the buttons are doing
+              // for y2, how do we get the number of associated cases?
+              // Get the number of cases preceding this one
+              return <CurvedSpline key={value.__id__} y1={index * 18} y2={y2} />
+            })}
+          </svg>
+          <div className="spacer-mid-layer">
             {cases.map((value, index) => (
               <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
                 onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
@@ -113,3 +128,17 @@ function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCol
     </button>
   )
 }
+
+interface CurvedSplineProps {
+  y1: number;
+  y2: number;
+}
+
+function CurvedSpline({ y1, y2 }: CurvedSplineProps) {
+  const pathData = `M0,${y1} H12 Q28,${y1},28,${y1 + 18} T44,${y2} H48`
+  return (
+    <path d={pathData} fill="none" stroke="#808080" />
+  )
+}
+
+// Adjust the initial movement
