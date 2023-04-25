@@ -14,6 +14,9 @@ export const SharedDataSet = SharedModel
 .actions(self => ({
   setDataSet(data: IDataSet) {
     self.dataSet = data
+  },
+  setDataSetName(name: string) {
+    self.dataSet.name = name
   }
 }))
 export interface ISharedDataSet extends Instance<typeof SharedDataSet> {}
