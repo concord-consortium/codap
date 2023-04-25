@@ -1,4 +1,25 @@
 # Changelog
+
+## Version 3.0.0-pre.1208 - Apr 25, 2023
+
+### Features/Improvements
+- Slider animation [#184210591](https://www.pivotaltracker.com/story/show/184210591)
+- Slider axis scale should accommodate the new user-specified slider value if necessary [#184742335](https://www.pivotaltracker.com/story/show/184742335)
+
+### Bug Fixes
+- Slider thumb in Slider icon from toolshelf expands [#184918759](https://www.pivotaltracker.com/story/show/184918759)
+- Slider axis ends should be inset from tile edges [#184742327](https://www.pivotaltracker.com/story/show/184742327)
+- When a slider axis is rescaled, the slider value changes to keep the slider thumb in view [#184742338](https://www.pivotaltracker.com/story/show/184742338)
+- A graph with one empty axis should not display "click here" tag unless the graph is selected [#184902952](https://www.pivotaltracker.com/story/show/184902952)
+- Drop zone for empty x or y axis is missing when graph tile not selected and attribute present on other axis [#184980011](https://www.pivotaltracker.com/story/show/184980011)
+- Graph selection tool doesn't align with mouse cursor [#184953906](https://www.pivotaltracker.com/story/show/184953906)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   38964 bytes |                            1.99% |
+|  index.js | 3019798 bytes |                            0.15% |
+
 ## Version 3.0.0-pre.1198 - Apr 18, 2023
 
 ### Features/Improvements
