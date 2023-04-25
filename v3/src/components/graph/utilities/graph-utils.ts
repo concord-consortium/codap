@@ -382,19 +382,16 @@ export function setPointSelection(props: ISetPointSelection) {
     .style('stroke-width', defaultStrokeWidth)
     .style('stroke-opacity', defaultStrokeOpacity)
 
-  const selectedDots = dots.selectAll('.graph-dot-highlighted')
+  const selectedDots = selectDots(dotsRef.current, true)
   // How we deal with this depends on whether there is a legend or not
   if (legendID) {
-    selectedDots
-      .style('stroke', defaultSelectedStroke)
+    selectedDots?.style('stroke', defaultSelectedStroke)
       .style('stroke-width', defaultSelectedStrokeWidth)
       .style('stroke-opacity', defaultSelectedStrokeOpacity)
   } else {
-    selectedDots
-      .style('fill', defaultSelectedColor)
+    selectedDots?.style('fill', defaultSelectedColor)
   }
-  selectedDots
-    .attr('r', selectedPointRadius)
+  selectedDots?.attr('r', selectedPointRadius)
     .raise()
 }
 

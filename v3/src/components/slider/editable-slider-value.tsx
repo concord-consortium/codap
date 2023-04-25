@@ -1,26 +1,31 @@
-import { NumberInput, NumberInputField } from "@chakra-ui/react"
-import { format } from "d3"
-import { observer } from "mobx-react-lite"
+import {NumberInput, NumberInputField} from "@chakra-ui/react"
+import {observer} from "mobx-react-lite"
 import React, {useState, useEffect} from "react"
-import { ISliderModel } from "./slider-model"
+import {ISliderModel} from "./slider-model"
+import {MultiScale} from "../axis/models/multi-scale"
+import { AxisBounds } from "../axis/axis-types"
 
 import './slider.scss'
 
 interface IProps {
   sliderModel: ISliderModel
+  domain: AxisBounds | undefined
+  multiScale: MultiScale
 }
 
-const kDecimalPlaces = 2
-const d3Format = format(`.${kDecimalPlaces}~f`)
-
-const formatValue = (model: ISliderModel) => d3Format(model.globalValue.value)
-
-export const EditableSliderValue = observer(function EditableSliderValue({sliderModel} : IProps) {
+export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
 
+  // when `domain` is not included in the dependency, slider value shows NaN
+  useEffect(() => {
+    if (sliderModel) {
+      setCandidate(multiScale.formatValueForScale(sliderModel.value))
+    }
+  }, [domain, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const { key } = e
-    if (key === "Escape"  || key === "Enter") {
+    const {key} = e
+    if (key === "Escape" || key === "Enter") {
       e.currentTarget.blur()
     }
   }
@@ -33,13 +38,10 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     const inputValue = parseFloat(e.target.value)
     if (isFinite(inputValue)) {
       sliderModel.encompassValue(inputValue)
+      setCandidate(multiScale.formatValueForScale(sliderModel.value))
+      sliderModel.setValue(inputValue)
     }
   }
-
-  // keep display up-to-date
-  useEffect(()=> {
-    setCandidate(formatValue(sliderModel))
-  }, [sliderModel, sliderModel.globalValue.value])
 
   return (
     <NumberInput value={candidate} className="value-input"
