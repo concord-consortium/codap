@@ -1,7 +1,8 @@
 import {onAction} from "mobx-state-tree"
 import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {drag, select} from "d3"
-import RTree from 'rtree'
+import RTreeLib from 'rtree'
+type RTree = ReturnType<typeof RTreeLib>
 import {CaseData, InternalizedData, rTreeRect} from "../graphing-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
@@ -16,8 +17,8 @@ interface IProps {
   marqueeState: MarqueeState
 }
 
-const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
-    const selectionTree = RTree(10)
+const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
+    const selectionTree = RTreeLib(10)
     select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
       .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
@@ -28,7 +29,6 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
           }
         selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
       })
-    // @ts-expect-error fromJSON
     return selectionTree
   },
 
@@ -57,7 +57,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     startY = useRef(0),
     width = useRef(0),
     height = useRef(0),
-    selectionTree = useRef<typeof RTree | null>(null),
+    selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
   useEffect(() => {

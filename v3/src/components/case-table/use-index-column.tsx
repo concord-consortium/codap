@@ -6,6 +6,7 @@ import { createPortal } from "react-dom"
 import { kIndexColumnKey, TColumn, TFormatterProps, TRow } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
+import { useRdgCellFocus } from "./use-rdg-cell-focus"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -90,10 +91,13 @@ interface ICellProps {
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
 export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps) => {
-  const [cellElt, setCellElt] = useState<HTMLElement | null>(null)
-  const [codapComponentElt, setCodapComponentElt] = useState<HTMLElement | null>(null)
-  const setNodeRef = (elt: HTMLButtonElement | null) => {
-    setCellElt(elt)
+  const [menuButton, setMenuButton] = useState<HTMLButtonElement | null>(null)
+  const cellElt: HTMLDivElement | null = menuButton?.closest(".rdg-cell") ?? null
+  // Find the parent CODAP component to display the index menu above the grid
+  const portalElt: HTMLDivElement | null = menuButton?.closest(".codap-component") ?? null
+
+  function setMenuButtonRef(elt: HTMLButtonElement | null) {
+    setMenuButton(elt)
   }
 
   /*
@@ -105,37 +109,14 @@ export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps
     we can fix it ourselves by post-processing the role attribute for our parent.
    */
   useEffect(() => {
-    const parent = cellElt?.closest(".rdg-cell")
-    if (parent?.getAttribute("role") === "gridcell") {
-      parent?.setAttribute("role", "rowheader")
+    if (cellElt?.getAttribute("role") === "gridcell") {
+      cellElt?.setAttribute("role", "rowheader")
     }
     // no dependencies means we'll check/fix it after every render
   })
 
-  useEffect(() => {
-    const parent = cellElt?.closest(".rdg-cell")
-
-    // During cell navigation, RDG sets the focus to the .rdg-cell. For keyboard invocation
-    // of the index column menu, however, the focus needs to be on the Chakra MenuButton.
-    // Therefore, we intercept attempts to focus the .rdg-cell and focus our content instead.
-
-    const handleFocus = (e: FocusEvent) => {
-      // if the parent was focused, focus the child
-      if (e.target === e.currentTarget) {
-        cellElt?.focus()
-      }
-    }
-
-    // @ts-expect-error strictFunctionTypes
-    parent?.addEventListener("focusin", handleFocus)
-    // @ts-expect-error strictFunctionTypes
-    return () => parent?.removeEventListener("focusin", handleFocus)
-  }, [cellElt])
-
-  // Find the parent CODAP component to display the index menu above the grid
-  useEffect(() => {
-    setCodapComponentElt(cellElt?.closest(".codap-component") as HTMLDivElement ?? null)
-  }, [cellElt])
+  // focus our content when the cell is focused
+  useRdgCellFocus(cellElt, menuButton)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {
@@ -148,7 +129,7 @@ export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps
   const casesStr = t(collapsedCases === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
   return (
     <Menu isLazy>
-      <MenuButton ref={setNodeRef} className={classes} data-testid="codap-index-content-button"
+      <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
                   onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
         {collapsedCases != null
           ? `${collapsedCases} ${casesStr}`
@@ -157,7 +138,7 @@ export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps
       <VisuallyHidden id="sr-index-menu-instructions">
         Press Enter to open the menu.
       </VisuallyHidden>
-      {codapComponentElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, codapComponentElt)}
+      {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
     </Menu>
   )
 }
