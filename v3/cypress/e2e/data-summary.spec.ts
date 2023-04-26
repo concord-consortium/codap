@@ -2,7 +2,7 @@ import { DataSummaryTileElements as dataSummary } from "../support/elements/data
 
 context("Data summary UI", () => {
     beforeEach(function () {
-        const queryParams = "?sample=mammals&mouseSensor"
+        const queryParams = "?sample=mammals&dashboard&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)
