@@ -1,5 +1,6 @@
 import React, {MutableRefObject, useEffect} from "react"
 import {observer} from "mobx-react-lite"
+import {isAlive} from "mobx-state-tree"
 import {Active} from "@dnd-kit/core"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {AttributeType} from "../../../models/data/attribute"
@@ -53,9 +54,13 @@ export const GraphAxis = observer(function GraphAxis(
 
   useEffect(function cleanup () {
     return () => {
-      layout.setDesiredExtent(place, 0)
+      // This gets called when the component is unmounted, which happens when the graph is closed.
+      // In that case setting the desired extent in the layout will cause MST model errors.
+      if (isAlive(graphModel)) {
+        layout.setDesiredExtent(place, 0)
+      }
     }
-  }, [layout, place])
+  }, [layout, place, graphModel])
 
   return (
     <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
