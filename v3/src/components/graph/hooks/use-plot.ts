@@ -8,8 +8,8 @@ import {IGraphModel} from "../models/graph-model"
 import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useDataConfigurationContext} from "./use-data-configuration-context";
-import {GraphAttrRoles} from "../graphing-types";
+import {useDataConfigurationContext} from "./use-data-configuration-context"
+import {GraphAttrRoles} from "../graphing-types"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -102,7 +102,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }
     )
     return () => disposer()
-  }, [callRefreshPointPositions, xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain])
+  }, [callRefreshPointPositions, dataConfiguration, enableAnimation])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
@@ -162,7 +162,5 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         !graphModel.config?.pointsNeedUpdating && callRefreshPointPositions(false)
       })
   }, [graphModel, callRefreshPointPositions])
-
-
 
 }
