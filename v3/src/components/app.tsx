@@ -115,9 +115,10 @@ export const App = observer(function App() {
       const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
       if (sample) {
         importSample(sample, handleImportDataSet)
+      } else {
+        createNewStarterDataset()
       }
       if (urlParams.dashboard !== undefined) {
-        createNewStarterDataset()
         addDefaultComponents()
       }
     }
