@@ -244,11 +244,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     enableAnimation, primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
   usePlotResponders({
-    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation,
-    primaryAttrID: dataConfiguration?.attributeID(primaryAttrRole),
-    secondaryAttrID: dataConfiguration?.attributeID(secondaryAttrRole),
-    legendAttrID: dataConfiguration?.attributeID('legend')
-  })
+    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation })
 
   return (
     <></>

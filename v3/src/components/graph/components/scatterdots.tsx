@@ -227,9 +227,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
   usePlotResponders({
-    graphModel, primaryAttrID: dataConfiguration?.attributeID('x') ?? '',
-    secondaryAttrID: secondaryAttrIDsRef.current[0],
-    layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
+    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (

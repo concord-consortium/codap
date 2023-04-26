@@ -8,6 +8,8 @@ import {IGraphModel} from "../models/graph-model"
 import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {useDataConfigurationContext} from "./use-data-configuration-context";
+import {GraphAttrRoles} from "../graphing-types";
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -33,9 +35,6 @@ export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) 
 
 export interface IPlotResponderProps {
   graphModel: IGraphModel
-  primaryAttrID?: string
-  secondaryAttrID?: string
-  legendAttrID?: string
   layout: GraphLayout
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
@@ -45,10 +44,11 @@ export interface IPlotResponderProps {
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
   const {
-      graphModel, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation,
+      graphModel, enableAnimation,
       refreshPointPositions, refreshPointSelection, dotsRef, layout
     } = props,
     dataset = useDataSetContext(),
+    dataConfiguration = useDataConfigurationContext(),
     // numberOfScales = layout.axisScales.entries().size(),
     xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
     yNumeric = graphModel.getAxis('left') as INumericAxisModel,
@@ -81,13 +81,25 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [])
 
-  // respond to axis domain changes (e.g. axis dragging)
+  // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
     const disposer = reaction(
       () => [xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain],
       () => {
         callRefreshPointPositions(false)
       }, {fireImmediately: true}
+    )
+    return () => disposer()
+  }, [callRefreshPointPositions, xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain])
+
+  // respond to attribute assignment changes
+  useEffect(() => {
+    const disposer = reaction(
+      () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
+      () => {
+        startAnimation(enableAnimation)
+        callRefreshPointPositions(false)
+      }
     )
     return () => disposer()
   }, [callRefreshPointPositions, xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain])
@@ -124,16 +136,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [dataset, callRefreshPointPositions, refreshPointSelection])
 
-  // respond to dataset, x, y or legend attribute id change
-  useEffect(() => {
-    startAnimation(enableAnimation)
-    callRefreshPointPositions(false)
-  }, [callRefreshPointPositions, primaryAttrID, secondaryAttrID, legendAttrID, enableAnimation])
-
   // respond to added or removed cases and change in attribute type
   useEffect(function handleAddRemoveCases() {
-    const dataConfiguration = graphModel.config
-    const disposer = dataConfiguration.onAction(action => {
+    const disposer = dataConfiguration?.onAction(action => {
       if (['addCases', 'removeCases', 'setAttributeType'].includes(action.name)) {
         matchCirclesToData({
           dataConfiguration,
@@ -145,7 +150,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         })
         callRefreshPointPositions(false)
       }
-    })
+    }) || (() => true)
     return () => disposer()
   }, [dataset, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
