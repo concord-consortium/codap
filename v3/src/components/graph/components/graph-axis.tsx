@@ -1,5 +1,6 @@
 import React, {MutableRefObject, useEffect} from "react"
 import {observer} from "mobx-react-lite"
+import {isAlive} from "mobx-state-tree"
 import {Active} from "@dnd-kit/core"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {AttributeType} from "../../../models/data/attribute"
@@ -15,7 +16,6 @@ import {DroppableAxis} from "../../axis/components/droppable-axis"
 import {AttributeLabel} from "./attribute-label"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useAxisBoundsProvider} from "../../axis/hooks/use-axis-bounds"
-import {isAlive} from "mobx-state-tree";
 
 interface IProps {
   place: AxisPlace
@@ -60,7 +60,7 @@ export const GraphAxis = observer(function GraphAxis(
         layout.setDesiredExtent(place, 0)
       }
     }
-  }, [layout, place])
+  }, [layout, place, graphModel])
 
   return (
     <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
