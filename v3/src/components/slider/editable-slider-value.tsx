@@ -1,6 +1,6 @@
 import {NumberInput, NumberInputField} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import React, {useState, useEffect, useCallback} from "react"
+import React, {useState, useEffect} from "react"
 import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
 import { AxisBounds } from "../axis/axis-types"
