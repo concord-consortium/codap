@@ -505,6 +505,15 @@ export const DataConfigurationModel = types
     }
   }))
   .actions(self => ({
+    _addNewFilteredCases() {
+      self.dataset && self.filteredCases
+        ?.push(new FilteredCases({
+          casesArrayNumber: self.filteredCases.length,
+          source: self.dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        }))
+      self.setPointsNeedUpdating(true)
+    },
     setDataset(dataset: IDataSet | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
@@ -515,6 +524,14 @@ export const DataConfigurationModel = types
           source: dataset, filter: self.filterCase,
           onSetCaseValues: self.handleSetCaseValues
         })
+        // make sure there are enough filteredCases to hold all the y attributes
+        while( self.filteredCases.length < self._yAttributeDescriptions.length) {
+          this._addNewFilteredCases()
+        }
+        // A y2 attribute is optional, so only add a new filteredCases if there is one.
+        if( self.hasY2Attribute) {
+          this._addNewFilteredCases()
+        }
       }
       self.clearCategorySets()
       self.invalidateQuantileScale()
@@ -554,15 +571,6 @@ export const DataConfigurationModel = types
       if (role === 'legend') {
         self.invalidateQuantileScale()
       }
-    },
-    _addNewFilteredCases() {
-      self.dataset && self.filteredCases
-        ?.push(new FilteredCases({
-          casesArrayNumber: self.filteredCases.length,
-          source: self.dataset, filter: self.filterCase,
-          onSetCaseValues: self.handleSetCaseValues
-        }))
-      self.setPointsNeedUpdating(true)
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot) {
       self._yAttributeDescriptions.push(desc)
