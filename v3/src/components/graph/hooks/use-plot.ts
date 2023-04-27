@@ -59,7 +59,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   * refreshing the plot's point positions. That, by itself, would be a reason to ensure that
   * the actual refreshPointPositions function is only called once. But another, even more important reason is
   * that there is no guarantee that when callRefreshPointPositions is invoked, the d3 points in the plot
-  * have been synched with the data configuration's notion of which cases are plottable. Delaying the actual
+  * have been synced with the data configuration's notion of which cases are plottable. Delaying the actual
   * plotting of points until the next event cycle ensures that the data configuration's filter process will
   * have had a chance to take place. */
   const timer = useRef<any>()
@@ -152,7 +152,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }
     }) || (() => true)
     return () => disposer()
-  }, [dataset, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+  }, [dataset, dataConfiguration, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.
