@@ -8,7 +8,7 @@ import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
-import {attrRoleToGraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
+import {attrRoleToGraphPlace, graphPlaceToAttrRole, IDotsRef, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -33,11 +33,12 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement>
+  dotsRef: IDotsRef
 }
 
-export const Graph = observer(function Graph({graphController, graphRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
   const graphModel = useGraphModelContext(),
-    { enableAnimation, dotsRef } = graphController,
+    {enableAnimation} = graphController,
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
@@ -49,8 +50,6 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     backgroundSvgRef = useRef<SVGGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
-
-  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
@@ -152,6 +151,8 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     }
     return droppables
   }
+
+  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>

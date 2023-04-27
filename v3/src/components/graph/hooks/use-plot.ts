@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {autorun, reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {IDotsRef} from "../graphing-types"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
@@ -38,7 +39,7 @@ export interface IPlotResponderProps {
   layout: GraphLayout
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  dotsRef: React.RefObject<SVGSVGElement>
+  dotsRef: IDotsRef
   enableAnimation: React.MutableRefObject<boolean>
 }
 

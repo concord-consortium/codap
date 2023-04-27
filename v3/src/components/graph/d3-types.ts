@@ -1,5 +1,9 @@
 import { select, Selection } from "d3"
-import { CaseData } from "./graphing-types"
+
+ // The data stored with each plot element (e.g. 'circle')
+export type CaseData = { plotNum: number, caseID: string }
+
+export type DotsElt = SVGSVGElement | null
 
 // For proper typing of D3 callbacks, the initial selection must be typed appropriately.
 
@@ -11,14 +15,14 @@ import { CaseData } from "./graphing-types"
 export type DotSelection = Selection<SVGCircleElement, CaseData, SVGSVGElement, unknown>
 
 // selects all `circle` elements
-export function selectCircles(svg: SVGSVGElement | null): DotSelection | null {
+export function selectCircles(svg: DotsElt): DotSelection | null {
   return svg
           ? select(svg).selectAll("circle")
           : null
 }
 
 // selects all `.graph-dot` or `.graph-dot-highlighted` elements
-export function selectDots(svg: SVGSVGElement | null, selectedOnly = false): DotSelection | null {
+export function selectDots(svg: DotsElt, selectedOnly = false): DotSelection | null {
   const innerSelector = selectedOnly ? ".graph-dot-highlighted" : ".graph-dot"
   return svg
           ? select(svg).selectAll(innerSelector)
