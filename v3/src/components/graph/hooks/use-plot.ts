@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {autorun, reaction} from "mobx"
 import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {IDotsRef} from "../graphing-types"
+import {IDotsRef, GraphAttrRoles} from "../graphing-types"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
@@ -10,7 +10,6 @@ import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useDataConfigurationContext} from "./use-data-configuration-context"
-import {GraphAttrRoles} from "../graphing-types"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
