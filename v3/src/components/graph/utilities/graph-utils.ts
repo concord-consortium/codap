@@ -432,7 +432,6 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
         theSelection
           .transition()
           .duration(duration)
-          // .on('end', (id, i) => (i === theSelection.size() - 1) && onComplete())
           .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
           .attr('cy', (aCaseData: CaseData) => {
             return getScreenY(aCaseData.caseID, aCaseData.plotNum)

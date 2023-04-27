@@ -21,7 +21,8 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const instanceId = useNextInstanceId("graph")
   const { data } = useDataSet(graphModel?.data)
   const layout = useInitGraphLayout(graphModel)
-  const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 1})
+  // Removed deboucing, but we can bring it back if we find we need it
+  const {width, height, ref: graphRef} = useResizeDetector(/*{refreshMode: "debounce", refreshRate: 15}*/)
   const enableAnimation = useRef(true)
   const dotsRef = useRef<DotsElt>(null)
   const graphController = useMemo(

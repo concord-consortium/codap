@@ -49,8 +49,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y'),
-    canvasRef = useRef<HTMLCanvasElement>(null)
+    yAttrID = graphModel.getAttributeID('y')
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
@@ -105,7 +104,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
 
   const renderPlotComponent = () => {
     const props = {
-        xAttrID, yAttrID, dotsRef, enableAnimation, canvasRef
+        xAttrID, yAttrID, dotsRef, enableAnimation
       },
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,

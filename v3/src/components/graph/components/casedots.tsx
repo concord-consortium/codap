@@ -91,12 +91,6 @@ export const CaseDots = function CaseDots(props: {
       pointRadius = graphModel.getPointRadius(),
       selectedPointRadius = graphModel.getPointRadius('select'),
       {pointColor, pointStrokeColor} = graphModel,
-      // dotsSelection = selectDots(dotsRef.current, selectedOnly),
-      /*
-                onComplete = enableAnimation.current ? () => {
-                  enableAnimation.current = false
-                } : undefined,
-            */
       xLength = layout.getAxisMultiScale('bottom')?.length ?? 0,
       yLength = layout.getAxisMultiScale('left')?.length ?? 0,
       getScreenX = (anID: string) => {
