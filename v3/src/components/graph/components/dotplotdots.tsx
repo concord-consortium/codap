@@ -265,10 +265,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       enableAnimation, primaryIsBottom, pointColor, pointStrokeColor])
 
   usePlotResponders({
-    graphModel, primaryAttrID: dataConfiguration?.attributeID(primaryAttrRole) ?? '',
-    secondaryAttrID: dataConfiguration?.attributeID(secondaryAttrRole),
-    legendAttrID: dataConfiguration?.attributeID('legend'),
-    layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
+    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (
