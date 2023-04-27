@@ -1,8 +1,8 @@
 import {extent, format, select, timeout} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {selectCircles, selectDots} from "../d3-types"
-import {CaseData, IDotsRef, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
+import {CaseData, DotsElt, selectCircles, selectDots} from "../d3-types"
+import {IDotsRef, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "../../../utilities/math-utils"
 import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
@@ -133,7 +133,7 @@ export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: ID
 
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
-  dotsElement: SVGSVGElement | undefined | null
+  dotsElement: DotsElt
   pointRadius: number
   pointColor: string
   pointStrokeColor: string

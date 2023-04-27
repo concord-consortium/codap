@@ -1,6 +1,6 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
+import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
@@ -13,6 +13,7 @@ import {GraphController} from "../models/graph-controller"
 import {GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
+import {DotsElt} from '../d3-types'
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
@@ -22,7 +23,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const layout = useInitGraphLayout(graphModel)
   const {width, height, ref: graphRef} = useResizeDetector({refreshMode: "debounce", refreshRate: 1})
   const enableAnimation = useRef(true)
-  const dotsRef:MutableRefObject<SVGSVGElement | undefined> = useRef<SVGSVGElement>()
+  const dotsRef = useRef<DotsElt>(null)
   const graphController = useMemo(
     () => new GraphController({layout, enableAnimation, instanceId}),
     [layout, instanceId]

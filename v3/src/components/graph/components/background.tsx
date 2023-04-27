@@ -3,7 +3,8 @@ import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {drag, select} from "d3"
 import RTreeLib from 'rtree'
 type RTree = ReturnType<typeof RTreeLib>
-import {CaseData, InternalizedData, rTreeRect} from "../graphing-types"
+import {CaseData} from "../d3-types"
+import {InternalizedData, rTreeRect} from "../graphing-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"

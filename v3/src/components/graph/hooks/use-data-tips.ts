@@ -2,10 +2,11 @@ import {select} from "d3"
 import React, {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import {IGraphModel} from "../models/graph-model"
-import {CaseData, IDotsRef, transitionDuration} from "../graphing-types"
+import {IDotsRef, transitionDuration} from "../graphing-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {getPointTipText} from "../utilities/graph-utils"
 import {RoleAttrIDPair} from "../models/data-configuration-model"
+import { CaseData } from "../d3-types"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')

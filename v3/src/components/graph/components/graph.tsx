@@ -8,7 +8,7 @@ import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
-import {attrRoleToGraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
+import {attrRoleToGraphPlace, graphPlaceToAttrRole, IDotsRef, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -33,7 +33,7 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement>
-  dotsRef: MutableRefObject<SVGSVGElement | null | undefined>
+  dotsRef: IDotsRef
 }
 
 export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
@@ -153,10 +153,6 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return droppables
   }
 
-  const setDotsRef = (elt:SVGSVGElement | null) =>  {
-      dotsRef.current = elt
-  }
-
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   return (
@@ -171,10 +167,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
-            <svg ref={
-              (elt) => setDotsRef(elt)
-            }
-                 className={`graph-dot-area ${instanceId}`}>
+            <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
               {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>

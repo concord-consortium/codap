@@ -7,13 +7,8 @@ import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
-import {
-  CaseData,
-  GraphAttrRole,
-  graphPlaceToAttrRole,
-  PrimaryAttrRoles,
-  TipAttrRoles
-} from "../graphing-types"
+import {CaseData} from "../d3-types"
+import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 

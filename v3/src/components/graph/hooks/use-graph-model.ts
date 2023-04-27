@@ -1,14 +1,15 @@
-import {MutableRefObject, RefObject, useCallback, useEffect} from "react"
+import {MutableRefObject, useCallback, useEffect} from "react"
 import {onAction} from "mobx-state-tree"
 import {matchCirclesToData, setNiceDomain, startAnimation} from "../utilities/graph-utils"
 import {IGraphModel, isGraphVisualPropsAction} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {INumericAxisModel} from "../../axis/models/axis-model"
+import {IDotsRef} from "../graphing-types"
 
 interface IProps {
   graphModel: IGraphModel
   enableAnimation: MutableRefObject<boolean>
-  dotsRef: RefObject<SVGSVGElement | undefined>
+  dotsRef: IDotsRef
   instanceId: string | undefined
 }
 
