@@ -525,11 +525,11 @@ export const DataConfigurationModel = types
           onSetCaseValues: self.handleSetCaseValues
         })
         // make sure there are enough filteredCases to hold all the y attributes
-        while( self.filteredCases.length < self._yAttributeDescriptions.length) {
+        while (self.filteredCases.length < self._yAttributeDescriptions.length) {
           this._addNewFilteredCases()
         }
         // A y2 attribute is optional, so only add a new filteredCases if there is one.
-        if( self.hasY2Attribute) {
+        if (self.hasY2Attribute) {
           this._addNewFilteredCases()
         }
       }
