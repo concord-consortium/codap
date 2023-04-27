@@ -1,12 +1,13 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
 import React, { CSSProperties, useRef, memo } from "react"
-import { GraphPlace, graphPlaceToAttrRole } from "../../graph/graphing-types"
+import t from "../../../utilities/translation/translate"
+import {GraphPlace} from "../../axis-graph-shared"
+import { graphPlaceToAttrRole } from "../../graph/graphing-types"
 import { useDataConfigurationContext } from "../../graph/hooks/use-data-configuration-context"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute"
-import t from "../../../utilities/translation/translate"
 
 interface IProps {
   place: GraphPlace,
@@ -45,7 +46,7 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
   return (
     <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef}>
       <Menu>
-        {({ isOpen, onClose }) => {
+        {({ onClose }) => {
           onCloseRef.current = onClose
           return (
             <>

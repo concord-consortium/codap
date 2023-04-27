@@ -8,7 +8,7 @@ import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
-import {attrRoleToGraphPlace, GraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
+import {attrRoleToGraphPlace, graphPlaceToAttrRole, IDotsRef, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
@@ -19,6 +19,7 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain, startAnimation} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
+import {GraphPlace} from "../../axis-graph-shared"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {isSetAttributeIDAction, useGraphModelContext} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -32,11 +33,12 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement>
+  dotsRef: IDotsRef
 }
 
-export const Graph = observer(function Graph({graphController, graphRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
   const graphModel = useGraphModelContext(),
-    { enableAnimation, dotsRef } = graphController,
+    {enableAnimation} = graphController,
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
@@ -48,8 +50,6 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
     backgroundSvgRef = useRef<SVGGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
-
-  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
@@ -136,18 +136,23 @@ export const Graph = observer(function Graph({graphController, graphRef}: IProps
       const plotPlaces: GraphPlace[] = plotType === 'scatterPlot' ? ['yPlus', 'rightNumeric'] : []
       const places: GraphPlace[] = ['top', 'rightCat', ...plotPlaces]
       places.forEach((place: GraphPlace) => {
-        droppables.push(
-          <DroppableAddAttribute
-            key={place}
-            place={place}
-            plotType={plotType}
-            onDrop={handleChangeAttribute.bind(null, place)}
-          />
-        )
+        // Since an axis is already a droppable, we only need to render a droppable if there is no axis
+        if (!graphModel.getAxis(place as AxisPlace)) {
+          droppables.push(
+            <DroppableAddAttribute
+              key={place}
+              place={place}
+              plotType={plotType}
+              onDrop={handleChangeAttribute.bind(null, place)}
+            />
+          )
+        }
       })
     }
     return droppables
   }
+
+  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   return (
     <DataConfigurationContext.Provider value={graphModel.config}>

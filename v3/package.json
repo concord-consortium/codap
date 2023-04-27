@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-pre.1198",
+  "version": "3.0.0-pre.1208",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
@@ -51,6 +51,7 @@
     "start:secure:no-certs": "webpack serve --no-https-request-cert",
     "build": "npm-run-all lint:build build:webpack",
     "build:webpack": "webpack --mode production",
+    "clean:cache": "rimraf node_modules/.cache",
     "lint": "eslint --cache \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
     "lint:build": "eslint --cache --cache-location \".eslintcache.build\" -c \".eslintrc.build.cjs\" \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --cache --fix \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",

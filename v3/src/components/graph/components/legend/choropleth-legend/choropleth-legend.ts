@@ -13,7 +13,7 @@ import {
   scaleLinear,
   format,
   // range,
-  select, range, min, max, ScaleQuantile
+  select, range, min, max, ScaleQuantile, NumberValue
 } from "d3"
 import {kChoroplethHeight} from "../../../graphing-types"
 import {neededSigDigitsArrayForQuantiles} from "../../../../../utilities/math-utils"
@@ -40,7 +40,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     minValue = min(scale.domain()) ?? 0,
     maxValue = max(scale.domain()) ?? 0
 
-  let tickFormat: string | ((i: number) => string) = '.2r',
+  let tickFormat: string | ((i: NumberValue) => string) = '.2r',
     tickValues: number[] = []
 
   select(choroplethElt).selectAll("*").remove()
@@ -82,14 +82,13 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     })
 
   tickValues = range(thresholds.length)
-  tickFormat = (i: number) => thresholdFormat(thresholds[i])
+  tickFormat = (i: NumberValue) => thresholdFormat(thresholds[Number(i)])
 
   svg.append("g")
     .attr('class', 'legend-axis')
     .attr("transform", `${transform} translate(0,${kChoroplethHeight})`)
     .call(axisBottom(x)
       .ticks(ticks)
-      // @ts-expect-error strictFunctionTypes
       .tickFormat(tickFormat)
       .tickSize(tickSize)
       .tickValues(tickValues))

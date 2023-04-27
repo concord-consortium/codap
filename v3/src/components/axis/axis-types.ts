@@ -29,10 +29,6 @@ export function isHorizontal(place: AxisPlace) {
   return ["bottom", "top"].includes(place)
 }
 
-export function isVertical(place: AxisPlace) {
-  return ["left", "rightCat", "rightNumeric"].includes(place)
-}
-
 export interface AxisBounds {
   left: number
   top: number

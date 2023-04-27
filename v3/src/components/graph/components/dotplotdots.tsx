@@ -1,7 +1,8 @@
 import {max, range, ScaleBand, ScaleLinear, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useRef, useState} from "react"
-import {CaseData, PlotProps} from "../graphing-types"
+import {CaseData} from "../d3-types"
+import {PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -121,9 +122,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
-      pointColor, pointStrokeColor,
       dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
-      selectedPointRadius: graphModel.getPointRadius('select')
+      pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select')
     })
   }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
 
@@ -256,7 +256,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           ? dataConfiguration?.getLegendColorForCase : undefined
 
       setPointCoordinates({
-        dataset, pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select'),
+        dataset, pointRadius: graphModel.getPointRadius(),
+        selectedPointRadius: graphModel.getPointRadius('select'),
         dotsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, enableAnimation
       })
@@ -265,10 +266,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       enableAnimation, primaryIsBottom, pointColor, pointStrokeColor])
 
   usePlotResponders({
-    graphModel, primaryAttrID: dataConfiguration?.attributeID(primaryAttrRole) ?? '',
-    secondaryAttrID: dataConfiguration?.attributeID(secondaryAttrRole),
-    legendAttrID: dataConfiguration?.attributeID('legend'),
-    layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
+    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
   })
 
   return (

@@ -1,6 +1,6 @@
 import { format } from "d3"
 import { reaction } from "mobx"
-import { onAction } from "mobx-state-tree"
+import { getSnapshot, onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
@@ -23,17 +23,17 @@ export const useRows = () => {
   const rowCache = useMemo(() => new Map<string, TRow>(), [])
   const [rows, setRows] = useState<TRow[]>([])
 
-  const cases = useMemo(() => (data?.collectionGroups?.length
+  const cases = useMemo(() => data?.collectionGroups?.length
                                 ? data.getCasesForCollection(collection?.id ?? "")
-                                // disable warning for "unnecessary" dependency on data?.collectionGroups
-                                // eslint-disable-next-line react-hooks/exhaustive-deps
-                                : data?.cases) || [], [collection?.id, data, data?.collectionGroups])
+                                : data ? getSnapshot(data.cases) as IGroupedCase[] : [],
+                        // disable warning for "unnecessary" dependency on data?.collectionGroups
+                        // eslint-disable-next-line react-hooks/exhaustive-deps
+                        [collection?.id, data, data?.collectionGroups])
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
     rowCache.clear()
     let prevParent: string | undefined
-    // @ts-expect-error strictFunctionTypes
     cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
       const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })

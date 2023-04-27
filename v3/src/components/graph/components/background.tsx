@@ -1,9 +1,11 @@
 import {onAction} from "mobx-state-tree"
 import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
 import {drag, select} from "d3"
-import RTree from 'rtree'
-import {CaseData, InternalizedData, rTreeRect} from "../graphing-types"
-import {Bounds, useGraphLayoutContext} from "../models/graph-layout"
+import RTreeLib from 'rtree'
+type RTree = ReturnType<typeof RTreeLib>
+import {CaseData} from "../d3-types"
+import {InternalizedData, rTreeRect} from "../graphing-types"
+import {useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
@@ -16,8 +18,8 @@ interface IProps {
   marqueeState: MarqueeState
 }
 
-const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
-    const selectionTree = RTree(10)
+const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
+    const selectionTree = RTreeLib(10)
     select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
       .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
@@ -28,7 +30,6 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
           }
         selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
       })
-    // @ts-expect-error fromJSON
     return selectionTree
   },
 
@@ -48,7 +49,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphModelContext(),
-    bounds = layout.computedBounds.get('plot') as Bounds,
+    bounds = layout.computedBounds.plot,
     plotWidth = bounds.width,
     plotHeight = bounds.height,
     transform = `translate(${bounds.left}, ${bounds.top})`,
@@ -57,13 +58,13 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     startY = useRef(0),
     width = useRef(0),
     height = useRef(0),
-    selectionTree = useRef<typeof RTree | null>(null),
+    selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
   useEffect(() => {
     const onDragStart = (event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
       const {computedBounds} = layout,
-          plotBounds = computedBounds.get('plot') as Bounds
+          plotBounds = computedBounds.plot
         appState.beginPerformance()
         selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
         startX.current = event.x - plotBounds.left

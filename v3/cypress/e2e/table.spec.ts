@@ -7,7 +7,7 @@ let middleRowIndex = undefined
 let numOfCases = undefined
 
 beforeEach(()=> {
-    const queryParams = "?sample=mammals"
+    const queryParams = "?sample=mammals&dashboard"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2000)

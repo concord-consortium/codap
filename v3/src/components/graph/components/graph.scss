@@ -1,11 +1,29 @@
 @import "../../vars.scss";
 
+$graph-label-font: 400 14px Montserrat-Regular, sans-serif;
+$graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
+
+:export {
+  graphLabelFont: $graph-label-font;
+  graphEmptyLabelFont: $graph-empty-label-font;
+}
+
 .graph-plot {
   position: relative;
   width: 100%;
   height: calc(100% - $title-bar-height);
-  background-color: aliceblue;
+  background-color: #F9F9F9;
 
+  .attribute-label {
+    fill: blue;
+    text-decoration: underline;
+    font: $graph-label-font;
+  }
+
+  .empty-label {
+    fill: #999;
+    font: $graph-empty-label-font;
+  }
 
   svg {
     width: 100%;
@@ -16,6 +34,33 @@
   text {
     fill: black;
     font: 12px sans-serif;
+  }
+
+  .axis {
+    background-color: white;
+
+    line {
+      stroke: #DDDDDD;
+    }
+  }
+  .axis-click-cue {
+    fill: #999999 !important;
+    font-size: 12px !important;
+    font-family: Montserrat-Regular, sans-serif !important;
+  }
+
+  .grid .tick line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+    pointer-events: none;
+  }
+
+  .zero .tick line {
+    stroke: #444444;
+    stroke-opacity: 0.8;
+    shape-rendering: crispEdges;
+    pointer-events: none;
   }
 }
 

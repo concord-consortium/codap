@@ -7,15 +7,10 @@ import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
-import {
-  CaseData,
-  GraphAttrRole,
-  GraphPlace,
-  graphPlaceToAttrRole,
-  PrimaryAttrRoles,
-  TipAttrRoles
-} from "../graphing-types"
+import {CaseData} from "../d3-types"
+import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
+import {GraphPlace} from "../../axis-graph-shared"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -75,6 +70,9 @@ export const DataConfigurationModel = types
     get y2AttributeDescriptionIsPresent() {
       return !!self._attributeDescriptions.get('rightNumeric')
     },
+    get yAttributeDescriptionsExcludingY2() {
+      return self._yAttributeDescriptions
+    },
     // Includes rightNumeric if present
     get yAttributeDescriptions() {
       const descriptions = self._yAttributeDescriptions,
@@ -132,6 +130,18 @@ export const DataConfigurationModel = types
     placeCanHaveZeroExtent(place: GraphPlace) {
       return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
         this.attributeID(graphPlaceToAttrRole[place]) === ''
+    },
+    placeCanShowClickHereCue(place: GraphPlace) {
+      const role = graphPlaceToAttrRole[place]
+      return ['left', 'bottom'].includes(place) && !this.attributeID(role)
+    },
+    placeAlwaysShowsClickHereCue(place: GraphPlace) {
+      return this.placeCanShowClickHereCue(place) &&
+        !this.attributeID(graphPlaceToAttrRole[place === 'left' ? 'bottom' : 'left'])
+    },
+    placeShouldShowClickHereCue(place: GraphPlace, tileHasFocus: boolean) {
+      return this.placeAlwaysShowsClickHereCue(place) ||
+        (this.placeCanShowClickHereCue(place) && tileHasFocus)
     }
   }))
   .views(self => ({
