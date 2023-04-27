@@ -1,6 +1,6 @@
 import {NumberInput, NumberInputField} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useCallback} from "react"
 import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
 import { AxisBounds } from "../axis/axis-types"
@@ -16,12 +16,12 @@ interface IProps {
 export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
 
-  // when `domain` is not included in the dependency, slider value shows NaN
+  // when `domain` and `multiScale.cellLength` are not included in the dependency, slider value shows NaN
   useEffect(() => {
     if (sliderModel) {
       setCandidate(multiScale.formatValueForScale(sliderModel.value))
     }
-  }, [domain, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
+  }, [domain, multiScale.cellLength, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const {key} = e
@@ -38,8 +38,8 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
     const inputValue = parseFloat(e.target.value)
     if (isFinite(inputValue)) {
       sliderModel.encompassValue(inputValue)
-      setCandidate(multiScale.formatValueForScale(sliderModel.value))
       sliderModel.setValue(inputValue)
+      setCandidate(multiScale.formatValueForScale(sliderModel.value))
     }
   }
 
