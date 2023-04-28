@@ -9,19 +9,24 @@ import './slider.scss'
 
 interface IProps {
   sliderModel: ISliderModel
-  domain: AxisBounds | undefined
+  axisBounds: AxisBounds | undefined
   multiScale: MultiScale
+  // domain: string[] | number[]
 }
 
-export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
+export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, axisBounds, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
+  const domain = multiScale.scale.domain()
+
+  console.log('refresh Editable, domain = ', domain)
 
   // when `domain` is not included in the dependency, slider value shows NaN
   useEffect(() => {
     if (sliderModel) {
+      console.log("in useEffect multiscale.domain", domain)
       setCandidate(multiScale.formatValueForScale(sliderModel.value))
     }
-  }, [domain, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
+  }, [axisBounds, domain, multiScale.cellLength, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const {key} = e
