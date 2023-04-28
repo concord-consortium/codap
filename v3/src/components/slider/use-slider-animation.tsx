@@ -18,14 +18,20 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const resetSlider = useCallback((val?: number) => {
     const dir = sliderModel.animationDirection
     const testValue = val || sliderModel.value
-    if (dir === "lowToHigh" && testValue > sliderModel.axis.max) sliderModel.setValue(sliderModel.axis.min)
-    if (dir === "highToLow" && testValue < sliderModel.axis.min) sliderModel.setValue(sliderModel.axis.max)
+    if (dir === "lowToHigh" && testValue >= sliderModel.axis.max) sliderModel.setValue(sliderModel.axis.min)
+    if (dir === "highToLow" && testValue <= sliderModel.axis.min) sliderModel.setValue(sliderModel.axis.max)
     return sliderModel.value
   }, [sliderModel])
 
   useEffect(()=> {
     running && resetSlider()
   }, [running, resetSlider])
+
+  useEffect(()=> {
+    if (sliderModel.animationDirection === "lowToHigh" || sliderModel.animationDirection === "highToLow") {
+      prevDirectionRef.current = ""
+    }
+  }, [sliderModel.animationDirection])
 
   useInterval(() => {
     if (running) {
