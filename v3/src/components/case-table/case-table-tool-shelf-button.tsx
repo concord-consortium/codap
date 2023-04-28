@@ -19,6 +19,8 @@ import AlertIcon from "../../assets/icons/icon-alert.svg"
 
 import "../tool-shelf/tool-shelf.scss"
 
+const kDefaultTableSize = { width: 186, height: 200 }
+
 export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMenuList() {
   const document = appState.document
   const content = document.content
@@ -30,50 +32,48 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   const row = content?.getRowByIndex(0)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [modalOpen, setModalOpen] = useState(false)
-  const [dataSetToDelete, setDataSetToDelete] = useState("")
+  const [dataSetIdToDeleteId, setDataSetIdToDelete] = useState("")
 
   if (!row) return null
 
   const handleCreateNewDataSet = () => {
+    const tile = createDefaultTileOfType(kCaseTableTileType)
+    if (!tile) return
     const newData = [{ AttributeName: "" }]
     const ds = DataSet.create({ name: "New Dataset" })
     ds.addAttribute({ name: "AttributeName" })
     ds.addCases(toCanonical(ds, newData))
-    gDataBroker.addDataSet(ds)
-    createDefaultTileOfType(kCaseTableTileType)
+    const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
+    manager?.addTileSharedModel(tile.content, sharedData, true)
+    manager?.addTileSharedModel(tile.content, caseMetadata, true)
+
+    const width = kDefaultTableSize.width
+    const height = kDefaultTableSize.height
+    const {x, y} = getPositionOfNewComponent({width, height})
+    content?.insertTileInRow(tile, row, {x, y, width, height})
   }
 
-  const handleOpenDataSetTable = () => {
+  const handleOpenDataSetTable = (dsId: string) => {
     if (existingTableTiles?.length !== 0) {
+      gDataBroker.setSelectedDataSetId(dsId)
       // we're going to assume there's only one table in the document for now and it belongs to the dataset
       uiState.setFocusedTile(tileIds[0])
-    } else {
-      const tableTile = createDefaultTileOfType(kCaseTableTileType)
-      if (!tableTile) return
-      const tileSize = { width: 580, height: 300 }
-      const { x, y } = getPositionOfNewComponent(tileSize)
-      const tableOptions = { x, y, width: 580, height: 300 }
-      content?.insertTileInRow(tableTile, row, tableOptions)
     }
   }
 
-  //not yet functional
-  //CODAP crashes with an MST error in the data-configuration model
-  const handleRemoveDataSet = (dsId: string) => {
+  const handleOpenRemoveDataSetModal = (dsId: string) => {
     setModalOpen(true)
     onOpen()
-    setDataSetToDelete(dsId)
+    setDataSetIdToDelete(dsId)
   }
-
   return (
     <>
       <MenuList>
         {datasets?.map((ds, idx) => {
-          const dataSetName = ds.dataSet.name
           return (
-            <MenuItem key={`${dataSetName}-${idx}`} onClick={handleOpenDataSetTable}>
-              {dataSetName}
-              <TrashIcon className="tool-shelf-menu-trash-icon" onClick={() => handleRemoveDataSet(ds.dataSet.id)} />
+            <MenuItem key={`${ds.dataSet.id}`} onClick={()=>handleOpenDataSetTable(ds.dataSet.id)}>
+              {ds.dataSet.name}
+              <TrashIcon className="tool-shelf-menu-trash-icon" onClick={() => handleOpenRemoveDataSetModal(ds.dataSet.id)} />
             </MenuItem>
           )
         })}
@@ -81,7 +81,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
         <MenuItem onClick={handleCreateNewDataSet}>{t("DG.AppController.caseTableMenu.newDataSet")}</MenuItem>
       </MenuList>
       {modalOpen &&
-        <DeleteDataSetModal dataSetId={dataSetToDelete} isOpen={isOpen} onClose={onClose}setModalOpen={setModalOpen}/>}
+        <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose}setModalOpen={setModalOpen}/>}
     </>
   )
 })
@@ -107,6 +107,11 @@ interface IDeleteDataSetModalProps {
 }
 
 export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: IDeleteDataSetModalProps) => {
+  const data = gDataBroker.getDataSet(dataSetId)
+  const document = appState.document
+  const content = document.content
+  const manager = getSharedModelManager(document)
+
   const handleCancel = () => {
     setModalOpen(false)
     onClose()
@@ -116,7 +121,8 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
     setModalOpen(false)
     onClose()
     if (dataSetId) {
-      console.log("dataSetId", dataSetId)
+      console.log("in tool shelf button dataSetId", dataSetId)
+      manager?.removeSharedModel(dataSetId)
       gDataBroker.removeDataSet(dataSetId)
     }
   }
@@ -130,11 +136,13 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
                    }]
 
   return (
-    <CodapModal isOpen={isOpen} onClose={onClose} data-testid="delete-data-set-modal">
+    <CodapModal isOpen={isOpen} onClose={onClose} modalWidth={"500px"} data-testid="delete-data-set-modal">
       <ModalBody className="delete-data-set-modal-body">
         <AlertIcon />
         <div className="delete-data-set-modal-text">
-          <p className="warning">{t("DG.TableController.deleteDataSet.confirmMessage")}</p>
+          <p className="warning">
+            {t("DG.TableController.deleteDataSet.confirmMessage", { vars: [data?.name || ""] })}
+          </p>
           <p className="description">{t("DG.TableController.deleteDataSet.confirmDescription")}</p>
         </div>
       </ModalBody>
