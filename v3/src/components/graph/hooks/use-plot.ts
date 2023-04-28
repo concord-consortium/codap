@@ -7,6 +7,7 @@ import {INumericAxisModel} from "../../axis/models/axis-model"
 import {GraphLayout} from "../models/graph-layout"
 import {IGraphModel} from "../models/graph-model"
 import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
+import {useCurrent} from "../../../hooks/use-current"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useDataConfigurationContext} from "./use-data-configuration-context"
@@ -53,7 +54,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
     yNumeric = graphModel.getAxis('left') as INumericAxisModel,
     v2Numeric = graphModel.getAxis('rightNumeric') as INumericAxisModel,
-    instanceId = useInstanceIdContext()
+    instanceId = useInstanceIdContext(),
+    refreshPointPositionsRef = useCurrent(refreshPointPositions)
 
   /* This routine is frequently called many times in a row when something about the graph changes that requires
   * refreshing the plot's point positions. That, by itself, would be a reason to ensure that
@@ -68,10 +70,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       return
     }
     timer.current = setTimeout(() => {
-      refreshPointPositions(selectedOnly)
+      refreshPointPositionsRef.current(selectedOnly)
       timer.current = null
     }, 10)
-  }, [refreshPointPositions])
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current)
+        timer.current = null
+      }
+    }
+  }, [refreshPointPositionsRef])
 
   useEffect(function doneWithTimer() {
     return () => {

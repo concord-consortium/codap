@@ -4,7 +4,7 @@ import {isInteger} from "lodash"
 import {CaseData, DotsElt, selectCircles, selectDots} from "../d3-types"
 import {IDotsRef, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
 import {between} from "../../../utilities/math-utils"
-import {IAxisModel, INumericAxisModel} from "../../axis/models/axis-model"
+import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {
@@ -96,10 +96,10 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
 }
 
 export function setNiceDomain(values: number[], axisModel: IAxisModel) {
-  if (axisModel.type === 'numeric') {
+  if (isNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     const {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
-    ;(axisModel as INumericAxisModel).setDomain(niceMin, niceMax)
+    axisModel.setDomain(niceMin, niceMax)
   }
 }
 
