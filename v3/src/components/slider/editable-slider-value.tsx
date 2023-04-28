@@ -5,6 +5,7 @@ import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
 
 import './slider.scss'
+import { autorun } from "mobx"
 
 interface IProps {
   sliderModel: ISliderModel
@@ -13,16 +14,17 @@ interface IProps {
 
 export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
-  const axisModel = sliderModel.axis
-  const axisMin = axisModel?.min
-  const axisMax = axisModel?.max
 
-  // when `multiScale.cellLength` is not included in the dependency, slider value shows NaN
   useEffect(() => {
-    if (sliderModel) {
-      setCandidate(multiScale.formatValueForScale(sliderModel.value))
-    }
-  }, [axisMin, axisMax, multiScale.cellLength, multiScale, sliderModel, sliderModel.value])
+    return autorun(() => {
+      // trigger update on domain change
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const domain = sliderModel.domain
+      if (sliderModel) {
+        setCandidate(multiScale.formatValueForScale(sliderModel.value))
+      }
+    })
+  }, [multiScale, sliderModel])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const {key} = e
@@ -40,7 +42,6 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
     if (isFinite(inputValue)) {
       sliderModel.encompassValue(inputValue)
       sliderModel.setValue(inputValue)
-      setCandidate(multiScale.formatValueForScale(sliderModel.value))
     }
   }
 
