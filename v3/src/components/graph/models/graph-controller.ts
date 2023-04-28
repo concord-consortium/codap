@@ -4,7 +4,7 @@ import {GraphLayout} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, EmptyAxisModel, INumericAxisModel, isCategoricalAxisModel, NumericAxisModel
+  CategoricalAxisModel, EmptyAxisModel, INumericAxisModel, isCategoricalAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import {axisPlaceToAttrRole, graphPlaceToAttrRole, IDotsRef, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
@@ -62,9 +62,12 @@ export class GraphController {
           attrRole = axisPlaceToAttrRole[axisPlace]
         if (axisModel) {
           layout.setAxisScaleType(axisPlace, axisModel.scale)
+          const axisMultiScale = layout.getAxisMultiScale(axisPlace)
           if (isCategoricalAxisModel(axisModel)) {
-            layout.getAxisMultiScale(axisPlace)
-              .setCategoricalDomain(dataConfig.categorySetForAttrRole(attrRole) ?? [])
+            axisMultiScale.setCategoricalDomain(dataConfig.categorySetForAttrRole(attrRole) ?? [])
+          }
+          if (isNumericAxisModel(axisModel)) {
+            axisMultiScale.setNumericDomain(axisModel.domain)
           }
         }
       })
