@@ -27,6 +27,8 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     running && resetSlider()
   }, [running, resetSlider])
 
+  // Reset the prevDirectionRef to blank when user changes animation direction.
+  // Otherwise the increment modifier in moveSlider() stays to -1 because the logic check will always return true
   useEffect(()=> {
     if (sliderModel.animationDirection === "lowToHigh" || sliderModel.animationDirection === "highToLow") {
       prevDirectionRef.current = ""
