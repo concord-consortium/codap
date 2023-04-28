@@ -3,25 +3,26 @@ import {observer} from "mobx-react-lite"
 import React, {useState, useEffect} from "react"
 import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
-import { AxisBounds } from "../axis/axis-types"
 
 import './slider.scss'
 
 interface IProps {
   sliderModel: ISliderModel
-  domain: AxisBounds | undefined
   multiScale: MultiScale
 }
 
-export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
+export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
+  const axisModel = sliderModel.axis
+  const axisMin = axisModel?.min
+  const axisMax = axisModel?.max
 
-  // when `domain` and `multiScale.cellLength` are not included in the dependency, slider value shows NaN
+  // when `multiScale.cellLength` is not included in the dependency, slider value shows NaN
   useEffect(() => {
     if (sliderModel) {
       setCandidate(multiScale.formatValueForScale(sliderModel.value))
     }
-  }, [domain, multiScale.cellLength, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
+  }, [axisMin, axisMax, multiScale.cellLength, multiScale, sliderModel, sliderModel.value])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const {key} = e
