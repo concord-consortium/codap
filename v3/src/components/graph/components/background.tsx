@@ -1,6 +1,6 @@
 import {onAction} from "mobx-state-tree"
 import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
-import {drag, select} from "d3"
+import {drag, select, color, range} from "d3"
 import RTreeLib from 'rtree'
 type RTree = ReturnType<typeof RTreeLib>
 import {CaseData} from "../d3-types"
@@ -62,6 +62,14 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     previousMarqueeRect = useRef<rTreeRect>()
 
   useEffect(() => {
+    const bgColor = String(color(graphModel.plotBackgroundColor)),
+      darkBgColor = String(color(graphModel.plotBackgroundColor)?.darker(0.2)),
+      numRows = layout.getAxisMultiScale('left').repetitions,
+      numCols = layout.getAxisMultiScale('bottom').repetitions,
+      cellWidth = plotWidth / numCols,
+      cellHeight = plotHeight / numRows,
+      row = (index: number) => Math.floor(index / numCols),
+      col = (index: number) => index % numCols
     const onDragStart = (event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
       const {computedBounds} = layout,
           plotBounds = computedBounds.plot
@@ -118,7 +126,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     })
     select(groupElement)
       .selectAll('rect')
-      .data([1])
+      .data(range(numRows * numCols))
       .join(
         (enter) =>
           enter.append('rect')
@@ -127,11 +135,11 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         (update) =>
           update
             .attr('transform', transform)
-            .attr('width', plotWidth)
-            .attr('height', plotHeight)
-            .attr('x', 0)
-            .attr('y', 0)
-            .style('fill', graphModel.plotBackgroundColor)
+            .attr('width', cellWidth)
+            .attr('height', cellHeight)
+            .attr('x', d => cellWidth * col(d))
+            .attr('y', d => cellHeight * row(d))
+            .style('fill', d => d % 2 === 0 ? bgColor : darkBgColor)
             .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
       )
   }, [bgRef, instanceId, transform, dataset, plotHeight, plotWidth, graphModel, layout, marqueeState])
