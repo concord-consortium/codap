@@ -24,7 +24,6 @@ export const CaseDots = function CaseDots(props: {
     dataset = useDataSetContext(),
     dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
-    legendAttrID = dataConfiguration?.attributeID('legend'),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
     [dragID, setDragID] = useState(''),
