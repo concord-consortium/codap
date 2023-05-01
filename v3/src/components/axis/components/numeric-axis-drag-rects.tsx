@@ -1,29 +1,15 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {reaction} from "mobx"
-import {drag, ScaleContinuousNumeric, select, Selection} from "d3"
+import {drag, ScaleContinuousNumeric, select} from "d3"
 import t from "../../../utilities/translation/translate"
+import {RectIndices, selectDragRects} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {MultiScale} from "../models/multi-scale"
 
 import "./axis.scss"
-
-// type arguments:
-//  SVGRectElement: type of element being selected
-//  RectIndices: type of data attached to selected element
-//  SVGGElement: type of parent element selected by initial/global select
-//  unknown: type of data attached to parent element (none in this case)
-export type RectIndices = [number, number, number]  // data signify lower, middle, upper rectangles
-export type DragRectSelection = Selection<SVGRectElement, RectIndices, SVGGElement, unknown>
-
-// selects all `.dragRect` elements, optionally with additional classes, e.g. `.dragRect.additional.classes`
-export function selectDragRects(parent: SVGGElement | null, additionalClasses = ""): DragRectSelection | null {
-  return parent
-          ? select(parent).selectAll<SVGRectElement, RectIndices>(`.dragRect${additionalClasses}`)
-          : null
-}
 
 interface IProps {
   axisModel: INumericAxisModel
@@ -38,8 +24,8 @@ const axisDragHints = [t("DG.CellLinearAxisView.lowerPanelTooltip"),
   t("DG.CellLinearAxisView.midPanelTooltip"),
   t("DG.CellLinearAxisView.upperPanelTooltip")]
 
-export const AxisDragRects = observer(
-  function AxisDragRects({axisModel, axisWrapperElt, numSubAxes = 1, subAxisIndex = 0}: IProps) {
+export const NumericAxisDragRects = observer(
+  function NumericAxisDragRects({axisModel, axisWrapperElt, numSubAxes = 1, subAxisIndex = 0}: IProps) {
     const rectRef = useRef() as React.RefObject<SVGGElement>,
       place = axisModel.place,
       layout = useAxisLayoutContext()

@@ -31,6 +31,9 @@ export const SharedCaseMetadata = SharedModel
     hidden: types.map(types.boolean)
   })
   .views(self => ({
+    categorySet(attrId: string) {
+      return self.categories.get(attrId)
+    },
     columnWidth(attrId: string) {
       return self.columnWidths.get(attrId)
     },

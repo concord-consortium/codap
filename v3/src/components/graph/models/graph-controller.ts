@@ -61,7 +61,7 @@ export class GraphController {
           layout.setAxisScaleType(axisPlace, axisModel.scale)
           const axisMultiScale = layout.getAxisMultiScale(axisPlace)
           if (isCategoricalAxisModel(axisModel)) {
-            axisMultiScale.setCategoricalDomain(dataConfig.categorySetForAttrRole(attrRole) ?? [])
+            axisMultiScale.setCategoricalDomain(dataConfig.categoryArrayForAttrRole(attrRole) ?? [])
           }
           if (isNumericAxisModel(axisModel)) {
             axisMultiScale.setNumericDomain(axisModel.domain)
@@ -137,7 +137,7 @@ export class GraphController {
         }
           break
         case 'categorical': {
-          const setOfValues = dataConfig.categorySetForAttrRole(attrRole)
+          const setOfValues = dataConfig.categoryArrayForAttrRole(attrRole)
           if (currentType !== 'categorical') {
             const newAxisModel = CategoricalAxisModel.create({place})
             graphModel.setAxis(place, newAxisModel)

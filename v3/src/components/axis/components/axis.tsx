@@ -4,6 +4,7 @@ import {useAxis} from "../hooks/use-axis"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
 import {SubAxis} from "./sub-axis"
+import {ICategorySet} from "../../../models/data/category-set"
 
 import "./axis.scss"
 
@@ -13,12 +14,14 @@ interface IProps {
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
+  getCategorySet?: () => ICategorySet | undefined  // only used for categorical axes
 }
 
 export const Axis = ({
                        label, getAxisModel, showScatterPlotGridLines = false,
+                       enableAnimation,
                        centerCategoryLabels = true,
-                       enableAnimation
+                       getCategorySet
                      }: IProps) => {
   const
     axisModel = getAxisModel(),
@@ -40,15 +43,16 @@ export const Axis = ({
                       enableAnimation={enableAnimation}
                       showScatterPlotGridLines={showScatterPlotGridLines}
                       centerCategoryLabels={centerCategoryLabels}
+                      // getCategorySet={getCategorySet}
       />
     })
   }
 
   return (
     <>
-        <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}>
-          {getSubAxes()}
-        </g>
+      <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}>
+        {getSubAxes()}
+      </g>
     </>
   )
 }

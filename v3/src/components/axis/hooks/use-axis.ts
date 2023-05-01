@@ -51,7 +51,7 @@ export const useAxis = ({
       bandWidth = ((ordinalScale?.bandwidth?.()) ?? 0) / repetitions,
       categories = ordinalScale?.domain() ?? [],
       collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
-      maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categorySetForAttrRole(attrRole) ?? []),
+      maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? []),
       d3Scale = multiScale?.scale ?? (type === 'numeric' ? scaleLinear() : scaleOrdinal())
     let desiredExtent = axisTitleHeight + 2 * axisGap
     let ticks: string[] = []

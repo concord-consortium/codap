@@ -1,7 +1,7 @@
 import React, {MutableRefObject, useRef, useState} from "react"
 import {useSubAxis} from "../hooks/use-sub-axis"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
-import {AxisDragRects} from "./axis-drag-rects"
+import {NumericAxisDragRects} from "./numeric-axis-drag-rects"
 
 import "./axis.scss"
 
@@ -12,12 +12,13 @@ interface ISubAxisProps {
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
+  // getCategorySet?: () => ICategorySet | undefined  // only used for categorical axes
 }
 
 
 export const SubAxis = ({
                           numSubAxes, subAxisIndex, getAxisModel, showScatterPlotGridLines = false,
-                          centerCategoryLabels = true, enableAnimation
+                          centerCategoryLabels = true, enableAnimation/*, getCategorySet*/
                         }: ISubAxisProps) => {
   const
     axisModel = getAxisModel(),
@@ -33,12 +34,22 @@ export const SubAxis = ({
     <g className='sub-axis-wrapper' ref={subWrapperElt}>
       <g className='axis' ref={elt => setSubAxisElt(elt)}/>
       {axisModel?.type === 'numeric'
-        ? <AxisDragRects
+        ? <NumericAxisDragRects
           axisModel={axisModel as INumericAxisModel}
           axisWrapperElt={subWrapperElt.current}
           numSubAxes={numSubAxes}
           subAxisIndex={subAxisIndex}
-        /> : null}
+        />
+        : null
+        /* : axisModel?.type === 'categorical'
+          ? <CategoricalAxisDragRects
+            axisModel={axisModel as ICategoricalAxisModel}
+            axisWrapperElt={subWrapperElt.current}
+            numSubAxes={numSubAxes}
+            subAxisIndex={subAxisIndex}
+            getCategorySet={getCategorySet}
+          /> :*/
+          }
     </g>
   )
 }

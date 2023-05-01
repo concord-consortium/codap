@@ -1,4 +1,5 @@
-import {axisBottom, axisLeft, axisRight, axisTop, ScaleBand, ScaleContinuousNumeric, ScaleOrdinal} from "d3"
+import {axisBottom, axisLeft, axisRight, axisTop,
+  ScaleBand, ScaleContinuousNumeric, ScaleOrdinal, select, Selection} from "d3"
 
 export const axisGap = 5
 
@@ -38,3 +39,19 @@ export interface AxisBounds {
 
 export type ScaleNumericBaseType = ScaleContinuousNumeric<number, number>
 export type AxisScaleType = ScaleNumericBaseType | ScaleOrdinal<string, any> | ScaleBand<string>
+
+// type arguments:
+//  SVGRectElement: type of element being selected
+//  RectIndices: type of data attached to selected element
+//  SVGGElement: type of parent element selected by initial/global select
+//  unknown: type of data attached to parent element (none in this case)
+export type RectIndices = [number, number, number]  // data signify lower, middle, upper rectangles
+export type DragRectSelection = Selection<SVGRectElement, RectIndices, SVGGElement, unknown>
+
+// selects all `.dragRect` elements, optionally with additional classes, e.g. `.dragRect.additional.classes`
+export function selectDragRects(parent: SVGGElement | null, additionalClasses = ""): DragRectSelection | null {
+  return parent
+    ? select(parent).selectAll<SVGRectElement, RectIndices>(`.dragRect${additionalClasses}`)
+    : null
+}
+
