@@ -438,7 +438,7 @@ SC.stringsFor("ko", {
     "DG.TableController.setScoreDlg.formulaHint": "이 속성의 값을 계산하기 위한 수식을 입력하세요.",
     "DG.TableController.newAttributeTooltip": "테이블에 새 속성 추가",
     "DG.TableController.attributeEditor.title": "속성의 특성",
-    "DG.CaseTableDropTarget.dropMessage": "새 콜렉션 생성을 위해 속성을 드래그하세요.",
+    "DG.CaseTableDropTarget.dropMessage": "새 콜렉션 생성을 위해 속성을 드래그하세요",
     "DG.CaseTable.defaultAttrName": "새 속성",
     "DG.CaseTable.indexColumnName": "인덱스",
     "DG.CaseTable.indexColumnTooltip": "콜렉션 내의 행 번호",
