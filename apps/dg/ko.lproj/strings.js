@@ -1066,5 +1066,6 @@ SC.stringsFor("ko", {
     "DG.plugin.Choosy.description": "많은 속성을 가진 데이터셋을 구성하고 단순화합니다.",
     "DG.plugin.Transformers.title": "변환도구",
     "DG.plugin.Transformers.description": "강력한 기능의 도구를 이용하여 데이터셋을 변환합니다.",
-    "DG.Locale.name.ko": "한국어"
+    "DG.Locale.name.ko": "한국어",
+    "DG.Locale.name.pl": "Polski"
 });
