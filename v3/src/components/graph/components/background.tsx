@@ -1,8 +1,7 @@
-import {onAction} from "mobx-state-tree"
-import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
+import {autorun} from "mobx"
+import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {drag, select, color, range} from "d3"
 import RTreeLib from 'rtree'
-
 type RTree = ReturnType<typeof RTreeLib>
 import {CaseData} from "../d3-types"
 import {InternalizedData, rTreeRect} from "../graphing-types"
@@ -50,10 +49,6 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphModelContext(),
-    bounds = layout.computedBounds.plot,
-    plotWidth = bounds.width,
-    plotHeight = bounds.height,
-    transform = `translate(${bounds.left}, ${bounds.top})`,
     bgRef = ref as MutableRefObject<SVGGElement | null>,
     startX = useRef(0),
     startY = useRef(0),
@@ -106,59 +101,46 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       selectionTree.current = null
       appState.endPerformance()
     }, [marqueeState]),
-    dragBehavior = drag<SVGRectElement, number>()
+    dragBehavior = useMemo(() => drag<SVGRectElement, number>()
       .on("start", onDragStart)
       .on("drag", onDrag)
-      .on("end", onDragEnd)
-
-  const refreshBackground = useCallback(() => {
-    const bgColor = String(color(graphModel.plotBackgroundColor)),
-      darkBgColor = String(color(graphModel.plotBackgroundColor)?.darker(0.2)),
-      numRows = layout.getAxisMultiScale('left').repetitions,
-      numCols = layout.getAxisMultiScale('bottom').repetitions,
-      cellWidth = plotWidth / numCols,
-      cellHeight = plotHeight / numRows,
-      row = (index: number) => Math.floor(index / numCols),
-      col = (index: number) => index % numCols,
-      groupElement = bgRef.current
-    select(groupElement)
-      .selectAll('rect')
-      .data(range(numRows * numCols))
-      .join('rect')
-      .attr('class', 'plot-cell-background')
-      .attr('transform', transform)
-      .attr('width', cellWidth)
-      .attr('height', cellHeight)
-      .attr('x', d => cellWidth * col(d))
-      .attr('y', d => cellHeight * row(d))
-      .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
-      .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      .call(dragBehavior)
-  }, [bgRef, dragBehavior, graphModel.isTransparent, graphModel.plotBackgroundColor, layout,
-    plotHeight, plotWidth, transform])
+      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
 
   useEffect(() => {
-    const groupElement = bgRef.current
-    select(groupElement).on('click', (event) => {
-      if (!event.shiftKey) {
-        dataset.current?.selectAll(false)
-      }
+    return autorun(() => {
+      const { left, top, width: plotWidth, height: plotHeight } = layout.computedBounds.plot,
+        transform = `translate(${left}, ${top})`,
+        { isTransparent, plotBackgroundColor } = graphModel,
+        bgColor = String(color(plotBackgroundColor)),
+        darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
+        numRows = layout.getAxisMultiScale('left').repetitions,
+        numCols = layout.getAxisMultiScale('bottom').repetitions,
+        cellWidth = plotWidth / numCols,
+        cellHeight = plotHeight / numRows,
+        row = (index: number) => Math.floor(index / numCols),
+        col = (index: number) => index % numCols,
+        groupElement = bgRef.current
+      select(groupElement)
+        // clicking on the background deselects all cases
+        .on('click', (event) => {
+          if (!event.shiftKey) {
+            dataset.current?.selectAll(false)
+          }
+        })
+        .selectAll<SVGRectElement, number>('rect')
+        .data(range(numRows * numCols))
+        .join('rect')
+        .attr('class', 'plot-cell-background')
+        .attr('transform', transform)
+        .attr('width', cellWidth)
+        .attr('height', cellHeight)
+        .attr('x', d => cellWidth * col(d))
+        .attr('y', d => cellHeight * row(d))
+        .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
+        .style('fill-opacity', isTransparent ? 0 : 1)
+        .call(dragBehavior)
     })
-    refreshBackground()
-  }, [dataset, bgRef, refreshBackground])
-
-  // respond to point properties change
-  useEffect(function respondToGraphPointVisualAction() {
-    const disposer = onAction(graphModel, action => {
-      if (['setPlotBackgroundColor', 'setIsTransparent'].includes(action.name)) {
-        refreshBackground()
-      }
-    }, true)
-
-    return () => disposer()
-  }, [graphModel, bgRef, refreshBackground])
+  }, [bgRef, dataset, dragBehavior, graphModel, layout])
 
   return (
     <g ref={bgRef}/>
