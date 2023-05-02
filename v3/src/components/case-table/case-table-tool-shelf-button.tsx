@@ -75,7 +75,9 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           return (
             <MenuItem key={`${ds.dataSet.id}`} onClick={()=>handleOpenDataSetTable(ds.id)}>
               {ds.dataSet.name}
-              <TrashIcon className="tool-shelf-menu-trash-icon" onClick={() => handleOpenRemoveDataSetModal(ds.dataSet.id)} />
+              <TrashIcon className="tool-shelf-menu-trash-icon"
+                  onClick={() => handleOpenRemoveDataSetModal(ds.dataSet.id)}
+              />
             </MenuItem>
           )
         })}
@@ -83,7 +85,9 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
         <MenuItem onClick={handleCreateNewDataSet}>{t("DG.AppController.caseTableMenu.newDataSet")}</MenuItem>
       </MenuList>
       {modalOpen &&
-        <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose} setModalOpen={setModalOpen}/>}
+        <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose}
+            setModalOpen={setModalOpen}/>
+      }
     </>
   )
 })
@@ -130,15 +134,18 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
   }
 
   const buttons = [{label: t("DG.TableController.deleteDataSet.cancelButtonTitle"),
+                    className: "cancel",
                     onClick: handleCancel
                    },
                    {
                     label: t("DG.TableController.deleteDataSet.okButtonTitle"),
+                    className: "delete",
                     onClick: handleDeleteDataSet
                    }]
 
   return (
-    <CodapModal isOpen={isOpen} onClose={onClose} modalWidth={"500px"} data-testid="delete-data-set-modal">
+    <CodapModal isOpen={isOpen} onClose={onClose} modalWidth={"500px"} modalHeight={"129px"}
+      data-testid="delete-data-set-modal">
       <ModalBody className="delete-data-set-modal-body">
         <AlertIcon />
         <div className="delete-data-set-modal-text">
@@ -148,14 +155,15 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
           <p className="description">{t("DG.TableController.deleteDataSet.confirmDescription")}</p>
         </div>
       </ModalBody>
-      <ModalFooter>
+      <ModalFooter className="delete-data-set-modal-footer">
         {buttons.map((b: any, i) => {
           const key = `${i}-${b.className}`
           return (
             <Tooltip key={`delete-data-set-button-${key}`} label={b.tooltip} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
-              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}>
+              <Button key={key} className={`delete-data-set-button-${b.className}`} size="xs" variant="ghost" ml="5"
+                  onClick={b.onClick} data-testid={`${b.label}-button`}>
                 {b.label}
               </Button>
             </Tooltip>
