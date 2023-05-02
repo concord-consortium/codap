@@ -1430,6 +1430,10 @@ input, textarea {
     transform: rotate(0deg);
 }
 
+.dg-table-drop-target .sc-label-view:lang(ko) {
+    transform: rotate(0deg);
+}
+
 .dg-table-drop-target.dg-table-drop-target-show .sc-label-view {
     outline: 4px solid #ffe4b3;
 }
