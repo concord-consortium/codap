@@ -51,13 +51,15 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     const height = kDefaultTableSize.height
     const {x, y} = getPositionOfNewComponent({width, height})
     content?.insertTileInRow(tile, row, {x, y, width, height})
+    uiState.setFocusedTile(tile.id)
   }
 
   const handleOpenDataSetTable = (dsId: string) => {
     if (existingTableTiles?.length !== 0) {
-      gDataBroker.setSelectedDataSetId(dsId)
-      // we're going to assume there's only one table in the document for now and it belongs to the dataset
-      uiState.setFocusedTile(tileIds[0])
+      const model = manager?.getSharedModelsByType("SharedDataSet").find(m =>  m.id === dsId)
+      const tiles = manager?.getSharedModelTiles(model)
+      const tableTile = tiles?.find(tile => tile.content.type === "CodapCaseTable")
+      tableTile && uiState.setFocusedTile(tableTile.id)
     }
   }
 
@@ -71,7 +73,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       <MenuList>
         {datasets?.map((ds, idx) => {
           return (
-            <MenuItem key={`${ds.dataSet.id}`} onClick={()=>handleOpenDataSetTable(ds.dataSet.id)}>
+            <MenuItem key={`${ds.dataSet.id}`} onClick={()=>handleOpenDataSetTable(ds.id)}>
               {ds.dataSet.name}
               <TrashIcon className="tool-shelf-menu-trash-icon" onClick={() => handleOpenRemoveDataSetModal(ds.dataSet.id)} />
             </MenuItem>
@@ -81,7 +83,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
         <MenuItem onClick={handleCreateNewDataSet}>{t("DG.AppController.caseTableMenu.newDataSet")}</MenuItem>
       </MenuList>
       {modalOpen &&
-        <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose}setModalOpen={setModalOpen}/>}
+        <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose} setModalOpen={setModalOpen}/>}
     </>
   )
 })
@@ -117,11 +119,11 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
     onClose()
   }
   const handleDeleteDataSet = () => {
-    console.log("delete data set")
+    // console.log("delete data set")
     setModalOpen(false)
     onClose()
     if (dataSetId) {
-      console.log("in tool shelf button dataSetId", dataSetId)
+      // console.log("in tool shelf button dataSetId", dataSetId)
       manager?.removeSharedModel(dataSetId)
       gDataBroker.removeDataSet(dataSetId)
     }
