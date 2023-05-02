@@ -1066,5 +1066,6 @@ SC.stringsFor("es", {
     "DG.plugin.Choosy.description": "Organizar y simplificar datasets con muchos atributos.",
     "DG.plugin.Transformers.title": "Transformadores",
     "DG.plugin.Transformers.description": "Transformar datasets con una colección de herramientas poderosas.",
-    "DG.Locale.name.ko": "Coreano"
+    "DG.Locale.name.ko": "Coreano",
+    "DG.Locale.name.pl": "Polski"
 });
