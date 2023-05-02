@@ -556,7 +556,7 @@ DG = SC.Application.create((function () // closure
         langName: '한국어',
         langDigraph: 'ko',
         countryDigraph: 'KO',
-        icon: 'flag flag-ko'
+        icon: 'flag flag-kr'
       },
       {
         langName: 'Bokmål',
@@ -569,6 +569,12 @@ DG = SC.Application.create((function () // closure
         langDigraph: 'nn',
         countryDigraph: 'NO',
         icon: 'flag flag-no'
+      },
+      {
+        langName: 'Polski',
+        langDigraph: 'pl',
+        countryDigraph: 'PL',
+        icon: 'flag flag-pl'
       },
       {
         langName: 'Português do Brasil',
