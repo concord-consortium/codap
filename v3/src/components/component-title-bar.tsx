@@ -3,7 +3,6 @@ import { useDndContext, useDraggable } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
-import { useDataSetContext } from "../hooks/use-data-set-context"
 import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
@@ -13,9 +12,8 @@ import "./component-title-bar.scss"
 
 export const ComponentTitleBar = observer(function ComponentTitleBar(
     { tile, getTitle, children, onCloseTile }: ITileTitleBarProps) {
-  const data = useDataSetContext()
   // perform all title-related model access here so only title is re-rendered when properties change
-  const title = getTitle?.() || tile?.title || data?.name || t("DG.AppController.createDataSet.name")
+  const title = getTitle?.() || tile?.title || t("DG.AppController.createDataSet.name")
   const [isEditing, setIsEditing] = useState(false)
   const { active } = useDndContext()
   const dragging = !!active
