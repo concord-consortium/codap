@@ -107,8 +107,7 @@ export class DataBroker {
 
   @action
   removeDataSet(id: string) {
-    this.sharedModelManager?.removeSharedModel(id)
-    // this.dataSets.delete(id)
+    this.dataSets.delete(id)
   }
 
   @action

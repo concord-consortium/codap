@@ -5,7 +5,8 @@ import { observer } from "mobx-react-lite"
 import t from "../../utilities/translation/translate"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { appState } from "../../models/app-state"
-import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
+import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
+import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { gDataBroker } from "../../models/data/data-broker"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -54,12 +55,34 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     uiState.setFocusedTile(tile.id)
   }
 
-  const handleOpenDataSetTable = (dsId: string) => {
+  const openTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
+    const tile = createDefaultTileOfType(kCaseTableTileType)
+      if (!tile) return
+      manager?.addTileSharedModel(tile.content, model, true)
+      manager?.addTileSharedModel(tile.content, caseMetadata, true)
+
+      const width = kDefaultTableSize.width
+      const height = kDefaultTableSize.height
+      const {x, y} = getPositionOfNewComponent({width, height})
+      content?.insertTileInRow(tile, row, {x, y, width, height})
+      uiState.setFocusedTile(tile.id)
+  }
+
+  const handleOpenDataSetTable = (dataset: ISharedDataSet) => {
+    const model = manager?.getSharedModelsByType("SharedDataSet").find(m =>  m.id === dataset.id) as ISharedDataSet
+    const caseMetadatas = manager?.getSharedModelsByType("SharedCaseMetadata") as ISharedCaseMetadata[]
+    const caseMetadata = caseMetadatas.find(cm => cm.data?.id === model.dataSet.id)
+    if (!model || !caseMetadata) return
     if (existingTableTiles?.length !== 0) {
-      const model = manager?.getSharedModelsByType("SharedDataSet").find(m =>  m.id === dsId)
       const tiles = manager?.getSharedModelTiles(model)
       const tableTile = tiles?.find(tile => tile.content.type === "CodapCaseTable")
-      tableTile && uiState.setFocusedTile(tableTile.id)
+      if (tableTile) { // a case table for the data set already exists in document
+        uiState.setFocusedTile(tableTile.id)
+      } else { // open a table and add it to the shared model manager
+        openTableForDataset(model, caseMetadata)
+      }
+    } else {
+      openTableForDataset(model, caseMetadata)
     }
   }
 
@@ -71,12 +94,12 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   return (
     <>
       <MenuList>
-        {datasets?.map((ds, idx) => {
+        {datasets?.map((dataset, idx) => {
           return (
-            <MenuItem key={`${ds.dataSet.id}`} onClick={()=>handleOpenDataSetTable(ds.id)}>
-              {ds.dataSet.name}
+            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>handleOpenDataSetTable(dataset)}>
+              {dataset.dataSet.name}
               <TrashIcon className="tool-shelf-menu-trash-icon"
-                  onClick={() => handleOpenRemoveDataSetModal(ds.dataSet.id)}
+                  onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)}
               />
             </MenuItem>
           )
@@ -115,7 +138,6 @@ interface IDeleteDataSetModalProps {
 export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: IDeleteDataSetModalProps) => {
   const data = gDataBroker.getDataSet(dataSetId)
   const document = appState.document
-  const content = document.content
   const manager = getSharedModelManager(document)
 
   const handleCancel = () => {
@@ -123,11 +145,9 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
     onClose()
   }
   const handleDeleteDataSet = () => {
-    // console.log("delete data set")
     setModalOpen(false)
     onClose()
     if (dataSetId) {
-      // console.log("in tool shelf button dataSetId", dataSetId)
       manager?.removeSharedModel(dataSetId)
       gDataBroker.removeDataSet(dataSetId)
     }

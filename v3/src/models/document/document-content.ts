@@ -1,4 +1,5 @@
 import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { ISharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { SharedModelUnion } from "../shared/shared-model-manager"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
@@ -15,7 +16,10 @@ import { ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
 export const SharedModelEntry = types.model("SharedModelEntry", {
   sharedModel: SharedModelUnion,
   provider: types.safeReference(TileModel, {acceptsUndefined: true}),
-  tiles: types.array(types.safeReference(TileModel, {acceptsUndefined: false}))
+  tiles: types.array(types.safeReference(TileModel, {
+    acceptsUndefined: false,
+    onInvalidated: () => console.log("SharedModelEntry tile invalidated")
+  }))
 })
 .actions(self => ({
   addTile(tile: ITileModel, isProvider?: boolean) {
@@ -202,7 +206,17 @@ export const DocumentContentModel = types
 
       return sharedModelEntry
     },
+    removeSharedModel(sharedModelToDelete: ISharedModel, sharedCaseMetadataToDelete: ISharedCaseMetadata,
+           tileToRemove: ITileModel | undefined) {
+      self.sharedModelMap.delete(sharedModelToDelete.id)
+      self.sharedModelMap.delete(sharedCaseMetadataToDelete.id)
 
+      console.log("sharedModelMap after delete", self.sharedModelMap)
+      console.log("tiles",self.getTilesOfType("CodapGraph"))
+      if (tileToRemove) {
+        self.deleteTile(tileToRemove.id)
+      }
+    }
   }))
 export interface IDocumentContentModel extends Instance<typeof DocumentContentModel> {}
 export interface IDocumentContentSnapshotIn extends SnapshotIn<typeof DocumentContentModel> {}

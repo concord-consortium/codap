@@ -1,8 +1,10 @@
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
+import { appState } from "../models/app-state"
 import { IDocumentContentModel } from "../models/document/document-content"
 import { IFreeTileRow } from "../models/document/free-tile-row"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
 import { FreeTileComponent } from "./free-tile-component"
@@ -36,6 +38,13 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
   }
 
   function handleCloseTile(tileId: string) {
+    const document = appState.document
+    const manager = getSharedModelManager(document)
+    const tile = getTile(tileId)
+    const sharedModels = manager?.getTileSharedModels(tile?.content)
+    sharedModels?.forEach(model => {
+      manager?.removeTileSharedModel(tile?.content, model)
+    })
     tileId && content?.deleteTile(tileId)
   }
 
