@@ -521,7 +521,6 @@ export const DataConfigurationModel = types
       self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
       self.filteredCases = []
       if (dataset) {
-        self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
         self.filteredCases[0] = new FilteredCases({
           source: dataset, filter: self.filterCase,
           onSetCaseValues: self.handleSetCaseValues

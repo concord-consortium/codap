@@ -16,10 +16,7 @@ import { ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
 export const SharedModelEntry = types.model("SharedModelEntry", {
   sharedModel: SharedModelUnion,
   provider: types.safeReference(TileModel, {acceptsUndefined: true}),
-  tiles: types.array(types.safeReference(TileModel, {
-    acceptsUndefined: false,
-    onInvalidated: () => console.log("SharedModelEntry tile invalidated")
-  }))
+  tiles: types.array(types.safeReference(TileModel, {acceptsUndefined: false}))
 })
 .actions(self => ({
   addTile(tile: ITileModel, isProvider?: boolean) {
