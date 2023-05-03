@@ -1,11 +1,11 @@
 import {NumberInput, NumberInputField} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
+import { autorun } from "mobx"
 import React, {useState, useEffect} from "react"
 import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
 
 import './slider.scss'
-import { autorun } from "mobx"
 
 interface IProps {
   sliderModel: ISliderModel
@@ -20,9 +20,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
       // trigger update on domain change
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const domain = sliderModel.domain
-      if (sliderModel) {
-        setCandidate(multiScale.formatValueForScale(sliderModel.value))
-      }
+      setCandidate(multiScale.formatValueForScale(sliderModel.value))
     })
   }, [multiScale, sliderModel])
 
