@@ -1,5 +1,4 @@
 import {observer} from "mobx-react-lite"
-import {onAction} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {GraphController} from "../models/graph-controller"
@@ -27,6 +26,7 @@ import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {useDataTips} from "../hooks/use-data-tips"
+import {onAnyAction} from "../../../utilities/mst-utils"
 
 import "./graph.scss"
 
@@ -84,14 +84,14 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
-    const disposer = graphModel && onAction(graphModel, action => {
+    const disposer = graphModel && onAnyAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
         const [role, attrID] = action.args,
           graphPlace = attrRoleToGraphPlace[role]
         startAnimation(enableAnimation)
         graphPlace && graphController?.handleAttributeAssignment(graphPlace, attrID)
       }
-    }, true)
+    })
     return () => disposer?.()
   }, [graphController, dataset, layout, enableAnimation, graphModel])
 

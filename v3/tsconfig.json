@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "outDir": "./dist/",
     "sourceMap": true,
     "noImplicitAny": true,
@@ -15,7 +16,10 @@
     "strict": true,
     "types": [],
     "jsx": "react",
-    "lib": ["dom", "dom.iterable", "es2018"]
+    "lib": ["dom", "dom.iterable", "es2018"],
+    "paths": {
+      "mobx-state-tree": ["node_modules/@concord-consortium/mobx-state-tree/dist"]
+    }
   },
   "include": [
     "./src/**/*",

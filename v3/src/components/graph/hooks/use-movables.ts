@@ -1,9 +1,9 @@
-import {onAction} from "mobx-state-tree"
 import {useCallback, useEffect} from "react"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {useGraphModelContext} from "../models/graph-model"
 import {IMovableLineModel, IMovableValueModel} from "../adornments/adornment-models"
+import {onAnyAction} from "../../../utilities/mst-utils"
 
 interface IProps {
   movableLineModel: IMovableLineModel
@@ -31,13 +31,13 @@ export function useMovables(props: IProps) {
 
   // respond to change in attribute id
   useEffect(function installActionResponse() {
-    const disposer = graphModel && onAction(graphModel, action => {
+    const disposer = graphModel && onAnyAction(graphModel, action => {
         switch (action.name) {
           case 'setAttributeID':
           case 'setCases':
             updateMovables()
         }
-      }, true)
+      })
     return () => disposer?.()
   }, [updateMovables, graphModel])
 }

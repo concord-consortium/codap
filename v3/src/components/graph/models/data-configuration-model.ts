@@ -1,12 +1,13 @@
 import {observable} from "mobx"
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
-import {getSnapshot, Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
+import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
+import {onAnyAction} from "../../../utilities/mst-utils"
 import {CaseData} from "../d3-types"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
@@ -517,7 +518,7 @@ export const DataConfigurationModel = types
     setDataset(dataset: IDataSet | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
-      self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
+      self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
       self.filteredCases = []
       if (dataset) {
         self.filteredCases[0] = new FilteredCases({

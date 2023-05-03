@@ -1,5 +1,6 @@
 import { action, computed, makeObservable, observable } from "mobx"
-import { ISerializedActionCall, onAction } from "mobx-state-tree"
+import { ISerializedActionCall } from "mobx-state-tree"
+import { onAnyAction } from "../../utilities/mst-utils"
 import { IDataSet } from "./data-set"
 import { isSetCaseValuesAction } from "./data-set-actions"
 
@@ -38,8 +39,8 @@ export class FilteredCases {
     makeObservable(this)
 
     this.onActionDisposers = [
-      onAction(this.source, this.handleBeforeAction, false),  // runs before the action
-      onAction(this.source, this.handleAction, true),         // runs after the action
+      onAnyAction(this.source, this.handleBeforeAction, { attachAfter: false }),  // runs before the action
+      onAnyAction(this.source, this.handleAction, { attachAfter: true }),         // runs after the action
     ]
   }
 

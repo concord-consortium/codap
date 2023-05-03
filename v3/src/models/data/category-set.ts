@@ -1,5 +1,6 @@
-import { addDisposer, Instance, isValidReference, onAction, types } from "mobx-state-tree"
+import { addDisposer, Instance, isValidReference, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
+import { onAnyAction } from "../../utilities/mst-utils"
 import { Attribute } from "./attribute"
 
 interface ICategoryMove {
@@ -152,14 +153,14 @@ export const CategorySet = types.model("CategorySet", {
   afterAttach() {
     // invalidate the cached categories when necessary
     if (isValidReference(() => self.attribute)) {
-      addDisposer(self, onAction(self.attribute, action => {
+      addDisposer(self, onAnyAction(self.attribute, action => {
         const actionsInvalidatingCategories = [
           "clearFormula", "setDisplayFormula", "addValue", "addValues", "setValue", "setValues", "removeValues"
         ]
         if (actionsInvalidatingCategories.includes(action.name)) {
           self.invalidate()
         }
-      }, true))
+      }))
     }
   },
   move(value: string, beforeValue?: string) {
