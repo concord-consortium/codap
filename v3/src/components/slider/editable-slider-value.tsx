@@ -1,27 +1,28 @@
 import {NumberInput, NumberInputField} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
+import { autorun } from "mobx"
 import React, {useState, useEffect} from "react"
 import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
-import { AxisBounds } from "../axis/axis-types"
 
 import './slider.scss'
 
 interface IProps {
   sliderModel: ISliderModel
-  domain: AxisBounds | undefined
   multiScale: MultiScale
 }
 
-export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, domain, multiScale}: IProps) {
+export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
 
-  // when `domain` is not included in the dependency, slider value shows NaN
   useEffect(() => {
-    if (sliderModel) {
+    return autorun(() => {
+      // trigger update on domain change
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const domain = sliderModel.domain
       setCandidate(multiScale.formatValueForScale(sliderModel.value))
-    }
-  }, [domain, multiScale, sliderModel, sliderModel.axis, sliderModel.value])
+    })
+  }, [multiScale, sliderModel])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const {key} = e
@@ -38,7 +39,6 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
     const inputValue = parseFloat(e.target.value)
     if (isFinite(inputValue)) {
       sliderModel.encompassValue(inputValue)
-      setCandidate(multiScale.formatValueForScale(sliderModel.value))
       sliderModel.setValue(inputValue)
     }
   }
