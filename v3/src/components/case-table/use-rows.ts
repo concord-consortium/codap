@@ -1,6 +1,6 @@
 import { format } from "d3"
 import { reaction } from "mobx"
-import { getSnapshot, onAction } from "mobx-state-tree"
+import { getSnapshot } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
@@ -12,6 +12,7 @@ import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../m
 import {
   AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
 } from "../../models/data/data-set-actions"
+import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 
 export const useRows = () => {
@@ -108,15 +109,15 @@ export const useRows = () => {
     syncRowsToRdg()
 
     // update the cache on data changes
-    const beforeDisposer = data && onAction(data, action => {
+    const beforeDisposer = data && onAnyAction(data, action => {
       if (isRemoveCasesAction(action)) {
         const caseIds = action.args[0]
         // have to determine the lowest index before the cases are actually removed
         lowestIndex.current = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => index != null))
       }
-    }, false)
-    const afterDisposer = data && onAction(data, action => {
-      prf.measure("Table.useRows[onAction]", () => {
+    }, { attachAfter: false })
+    const afterDisposer = data && onAnyAction(data, action => {
+      prf.measure("Table.useRows[onAnyAction]", () => {
         let updateRows = true
 
         const getCasesToUpdate = (_cases: ICase[], index?: number) => {
@@ -174,17 +175,17 @@ export const useRows = () => {
           }
         }
       })
-    }, true)
+    })
 
     // update the cache on metadata changes
-    const metadataDisposer = caseMetadata && onAction(caseMetadata, action => {
+    const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
       switch (action.name) {
         case "setIsCollapsed":
           resetRowCache()
           break
       }
       syncRowsToRdg()
-    }, true)
+    })
     return () => {
       beforeDisposer?.()
       afterDisposer?.()

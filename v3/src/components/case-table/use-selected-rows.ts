@@ -1,5 +1,4 @@
 import { reaction } from "mobx"
-import { onAction } from "mobx-state-tree"
 import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
@@ -10,6 +9,7 @@ import { TCellClickArgs } from "./case-table-types"
 import { useRowScrolling } from "./use-row-scrolling"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 
 interface UseSelectedRows {
@@ -93,8 +93,8 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
   }, [syncRowSelectionToRdg])
 
   useEffect(() => {
-    const disposer = data && onAction(data, action => {
-      prf.measure("Table.useSelectedRows[onAction]", () => {
+    const disposer = data && onAnyAction(data, action => {
+      prf.measure("Table.useSelectedRows[onAnyAction]", () => {
         if (isSelectionAction(action)) {
           if (appState.appMode === "performance") {
             syncRowSelectionToDom()
@@ -111,7 +111,7 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
           }
         }
       })
-    }, true)
+    })
     return () => disposer?.()
   }, [collection, data, scrollClosestRowIntoView, syncRowSelectionToDom, syncRowSelectionToRdg])
 

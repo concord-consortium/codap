@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {autorun, reaction} from "mobx"
-import {onAction} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {IDotsRef, GraphAttrRoles} from "../graphing-types"
 import {INumericAxisModel} from "../../axis/models/axis-model"
@@ -11,6 +10,7 @@ import {useCurrent} from "../../../hooks/use-current"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useDataConfigurationContext} from "./use-data-configuration-context"
+import {onAnyAction} from "../../../utilities/mst-utils"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
@@ -126,7 +126,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to selection and value changes
   useEffect(() => {
     if (dataset) {
-      const disposer = onAction(dataset, action => {
+      const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
           refreshPointSelection()
         } else if (isSetCaseValuesAction(action)) {
@@ -139,7 +139,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         } else if (["addCases", "removeCases"].includes(action.name)) {
           callRefreshPointPositions(false)
         }
-      }, true)
+      })
       return () => disposer()
     }
   }, [dataset, callRefreshPointPositions, refreshPointSelection])

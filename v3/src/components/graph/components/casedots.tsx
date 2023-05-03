@@ -1,5 +1,4 @@
 import {randomUniform, select} from "d3"
-import {onAction} from "mobx-state-tree"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData} from "../d3-types"
 import {IDotsRef} from "../graphing-types"
@@ -11,6 +10,7 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
+import {onAnyAction} from "../../../utilities/mst-utils"
 
 export const CaseDots = function CaseDots(props: {
   dotsRef: IDotsRef
@@ -118,11 +118,11 @@ export const CaseDots = function CaseDots(props: {
     }
 
     initCases(cases)
-    const disposer = dataset && onAction(dataset, action => {
+    const disposer = dataset && onAnyAction(dataset, action => {
       if (isAddCasesAction(action)) {
         initCases(action.args[0])
       }
-    }, true)
+    })
 
     return () => disposer?.()
   }, [dataset])
