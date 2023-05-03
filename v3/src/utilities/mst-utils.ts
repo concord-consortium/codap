@@ -51,6 +51,8 @@ export function getDocumentContentFromNode(target: IAnyStateTreeNode): IDocument
  * which should be run regardless of this check for consistency.
  *
  * See mst-detached-error.md and mobx-react-mst.test.tsx for more details.
+ * https://github.com/concord-consortium/collaborative-learning/blob/master/docs/mst-detached-error.md
+ * https://github.com/concord-consortium/collaborative-learning/blob/master/src/components/mobx-react-mst.test.tsx
  */
 export function verifyAlive(target: IAnyStateTreeNode, source = "unknown") {
   if (!isAlive(target)) {
