@@ -17,7 +17,7 @@ export const AxisModel = types.model("AxisModel", {
         ? "vertical" : "horizontal"
     },
     get isNumeric() {
-      return ["linear", "log"].includes(self.scale)
+      return self.type === "numeric"
     },
     get isCategorical() {
       return self.type === "categorical"

@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-pre.1208",
+  "version": "3.0.0-pre.1220",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
@@ -35,7 +35,8 @@
     ],
     "moduleNameMapper": {
       "\\.(csv|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
+      "\\.(css|less|sass|scss)$": "identity-obj-proxy",
+      "mobx-state-tree": "@concord-consortium/mobx-state-tree"
     },
     "moduleFileExtensions": [
       "ts",
@@ -87,6 +88,9 @@
     "extends": "@istanbuljs/nyc-config-typescript",
     "all": true,
     "report-dir": "coverage-cypress"
+  },
+  "overrides": {
+    "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree@5.1.8-cc.1"
   },
   "devDependencies": {
     "@cypress/code-coverage": "^3.10.4",
@@ -160,6 +164,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.5.5",
+    "@concord-consortium/mobx-state-tree": "^5.1.8-cc.1",
     "@dnd-kit/core": "^6.0.8",
     "clsx": "^1.2.1",
     "d3": "^7.8.4",
@@ -170,7 +175,6 @@
     "mathjs": "^11.8.0",
     "mobx": "^6.9.0",
     "mobx-react-lite": "^3.4.3",
-    "mobx-state-tree": "^5.1.8",
     "nanoid": "^4.0.2",
     "papaparse": "^5.4.1",
     "pluralize": "^8.0.0",

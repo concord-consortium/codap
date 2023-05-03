@@ -1,14 +1,15 @@
-import {MutableRefObject, RefObject, useCallback, useEffect} from "react"
-import {onAction} from "mobx-state-tree"
+import {MutableRefObject, useCallback, useEffect} from "react"
 import {matchCirclesToData, setNiceDomain, startAnimation} from "../utilities/graph-utils"
 import {IGraphModel, isGraphVisualPropsAction} from "../models/graph-model"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {INumericAxisModel} from "../../axis/models/axis-model"
+import {IDotsRef} from "../graphing-types"
+import {onAnyAction} from "../../../utilities/mst-utils"
 
 interface IProps {
   graphModel: IGraphModel
   enableAnimation: MutableRefObject<boolean>
-  dotsRef: RefObject<SVGSVGElement>
+  dotsRef: IDotsRef
   instanceId: string | undefined
 }
 
@@ -36,7 +37,7 @@ export function useGraphModel(props: IProps) {
 
   // respond to change in plotType
   useEffect(function installPlotTypeAction() {
-    const disposer = onAction(graphModel, action => {
+    const disposer = onAnyAction(graphModel, action => {
       if (action.name === 'setPlotType') {
         const newPlotType = action.args?.[0]/*,
           attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]*/
@@ -47,17 +48,17 @@ export function useGraphModel(props: IProps) {
           setNiceDomain(values || [], yAxisModel as INumericAxisModel)
         }
       }
-    }, true)
+    })
     return () => disposer()
   }, [dataConfig.caseDataArray, dataset, enableAnimation, graphModel, yAttrID, yAxisModel])
 
   // respond to point properties change
   useEffect(function respondToGraphPointVisualAction() {
-    const disposer = onAction(graphModel, action => {
+    const disposer = onAnyAction(graphModel, action => {
       if (isGraphVisualPropsAction(action)) {
         callMatchCirclesToData()
       }
-    }, true)
+    })
     return () => disposer()
   }, [callMatchCirclesToData, graphModel])
 
