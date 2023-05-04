@@ -116,8 +116,11 @@ export const App = observer(function App() {
       if (sample) {
         importSample(sample, handleImportDataSet)
       }
+      // we have to create a new starter data set only if none is imported to show the dashboard
       if (urlParams.dashboard !== undefined) {
-        createNewStarterDataset()
+        if (!sample) {
+          createNewStarterDataset()
+        }
         addDefaultComponents()
       }
     }
