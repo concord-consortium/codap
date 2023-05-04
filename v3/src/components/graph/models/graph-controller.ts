@@ -46,7 +46,7 @@ export class GraphController {
     this.graphModel = props.graphModel
     this.dataset = props.dataset
     if (this.graphModel.config.dataset !== props.dataset) {
-      this.graphModel.config.setDataset(props.dataset)
+      this.graphModel.config.setDataset(props.dataset, this.graphModel.metadata)
     }
     this.initializeGraph(props.dotsRef)
   }
