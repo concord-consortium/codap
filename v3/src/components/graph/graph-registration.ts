@@ -8,6 +8,7 @@ import { GraphInspector } from "./components/graph-inspector"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { v2GraphImporter } from "./v2-graph-importer"
+import { GraphComponentTitleBar } from "./components/graph-component-title-bar"
 
 registerTileContentInfo({
   type: kGraphTileType,
@@ -18,7 +19,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kGraphTileType,
-  TitleBar: ComponentTitleBar,
+  TitleBar: GraphComponentTitleBar,
   Component: GraphComponent,
   InspectorPanel: GraphInspector,
   tileEltClass: kGraphTileClass,
