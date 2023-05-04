@@ -1,24 +1,25 @@
 import { Tooltip, Menu, MenuButton, Input, VisuallyHidden } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import React, { useEffect, useRef, useState } from "react"
-import { uniqueName } from "../../utilities/js-utils"
-import { kIndexColumnKey, THeaderRendererProps } from "./case-table-types"
-import { ColumnHeaderDivider } from "./column-header-divider"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { kDefaultAttributeName } from "../../models/data/attribute"
+import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu"
 import { CaseTablePortal } from "./case-table-portal"
-import { kDefaultAttributeName } from "../../models/data/attribute"
+import { kIndexColumnKey, THeaderRendererProps } from "./case-table-types"
+import { ColumnHeaderDivider } from "./column-header-divider"
+import { useRdgCellFocus } from "./use-rdg-cell-focus"
 
 export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) => {
   const { active } = useDndContext()
   const data = useDataSetContext()
   const instanceId = useInstanceIdContext() || "table"
-  const [contentElt, setContentElt] = useState<HTMLElement | null>(null)
-  const cellElt = contentElt?.parentElement || null
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const [contentElt, setContentElt] = useState<HTMLDivElement | null>(null)
+  const cellElt: HTMLDivElement | null = contentElt?.closest(".rdg-cell") ?? null
   const isMenuOpen = useRef(false)
-  const menuListElt = useRef<HTMLDivElement>(null)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
   const [modalIsOpen, setModalIsOpen] = useState(false)
@@ -32,32 +33,15 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
 
   const setCellRef = (elt: HTMLDivElement | null) => {
     setContentElt(elt)
-    setDragNodeRef(elt?.parentElement || null)
+    setDragNodeRef(elt?.closest(".rdg-cell") || null)
   }
 
   useEffect(() => {
     onCloseRef.current?.()
   }, [dragging])
 
-  useEffect(() => {
-    const parent = cellElt?.closest(".rdg-cell")
-
-    // During cell navigation, RDG sets the focus to the .rdg-cell. For keyboard invocation
-    // of the column header menu, however, the focus needs to be on the Chakra MenuButton.
-    // Therefore, we intercept attempts to focus the .rdg-cell and focus our content instead.
-
-    const handleFocus = (e: FocusEvent) => {
-      if (e.target === e.currentTarget) {
-        const menuButton = contentElt?.querySelector("button")
-        menuButton?.focus()
-      }
-    }
-
-    // @ts-expect-error strictFunctionTypes
-    parent?.addEventListener("focusin", handleFocus)
-    // @ts-expect-error strictFunctionTypes
-    return () => parent?.removeEventListener("focusin", handleFocus)
-  }, [cellElt, contentElt])
+  // focus our content when the cell is focused
+  useRdgCellFocus(cellElt, menuButtonRef.current)
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
@@ -119,7 +103,8 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                       onKeyDown={handleInputKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
                     />
                   : <>
-                      <MenuButton className="codap-attribute-button" disabled={column?.key === kIndexColumnKey}
+                      <MenuButton className="codap-attribute-button" ref={menuButtonRef}
+                          disabled={column?.key === kIndexColumnKey}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${column?.name}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
@@ -135,7 +120,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
                     </>
                 }
               <CaseTablePortal>
-                <AttributeMenuList ref={menuListElt} column={column} onRenameAttribute={handleRenameAttribute}
+                <AttributeMenuList column={column} onRenameAttribute={handleRenameAttribute}
                   onModalOpen={handleModalOpen}
                 />
               </CaseTablePortal>

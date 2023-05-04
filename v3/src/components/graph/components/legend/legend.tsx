@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from "react"
+import React, {useRef} from "react"
 import {Active} from "@dnd-kit/core"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../../models/graph-layout"

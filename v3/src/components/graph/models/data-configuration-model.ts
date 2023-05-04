@@ -1,19 +1,15 @@
 import {observable} from "mobx"
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
-import {getSnapshot, Instance, ISerializedActionCall, onAction, SnapshotIn, types} from "mobx-state-tree"
+import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {kellyColors, missingColor} from "../../../utilities/color-utils"
-import {
-  CaseData,
-  GraphAttrRole,
-  graphPlaceToAttrRole,
-  PrimaryAttrRoles,
-  TipAttrRoles
-} from "../graphing-types"
+import {onAnyAction} from "../../../utilities/mst-utils"
+import {CaseData} from "../d3-types"
+import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 
@@ -510,16 +506,33 @@ export const DataConfigurationModel = types
     }
   }))
   .actions(self => ({
+    _addNewFilteredCases() {
+      self.dataset && self.filteredCases
+        ?.push(new FilteredCases({
+          casesArrayNumber: self.filteredCases.length,
+          source: self.dataset, filter: self.filterCase,
+          onSetCaseValues: self.handleSetCaseValues
+        }))
+      self.setPointsNeedUpdating(true)
+    },
     setDataset(dataset: IDataSet | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
-      self.actionHandlerDisposer = onAction(self.dataset, self.handleAction, true)
+      self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
       self.filteredCases = []
       if (dataset) {
         self.filteredCases[0] = new FilteredCases({
           source: dataset, filter: self.filterCase,
           onSetCaseValues: self.handleSetCaseValues
         })
+        // make sure there are enough filteredCases to hold all the y attributes
+        while (self.filteredCases.length < self._yAttributeDescriptions.length) {
+          this._addNewFilteredCases()
+        }
+        // A y2 attribute is optional, so only add a new filteredCases if there is one.
+        if (self.hasY2Attribute) {
+          this._addNewFilteredCases()
+        }
       }
       self.clearCategorySets()
       self.invalidateQuantileScale()
@@ -559,15 +572,6 @@ export const DataConfigurationModel = types
       if (role === 'legend') {
         self.invalidateQuantileScale()
       }
-    },
-    _addNewFilteredCases() {
-      self.dataset && self.filteredCases
-        ?.push(new FilteredCases({
-          casesArrayNumber: self.filteredCases.length,
-          source: self.dataset, filter: self.filterCase,
-          onSetCaseValues: self.handleSetCaseValues
-        }))
-      self.setPointsNeedUpdating(true)
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot) {
       self._yAttributeDescriptions.push(desc)

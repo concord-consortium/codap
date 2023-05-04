@@ -25,6 +25,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
   const animationRef = useRef(false)
+  const multiScale = layout.getAxisMultiScale("bottom")
 
   // width and positioning
   useEffect(() => {
@@ -67,7 +68,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 <EditableInput className="name-text-input text-input"/>
               </Editable>
               <span className="equals-sign">&nbsp;=&nbsp;</span>
-              <EditableSliderValue sliderModel={sliderModel} />
+              <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale} />
             </Flex>
           </Flex>
           <div className="slider">

@@ -29,8 +29,6 @@ import "./app.scss"
 
 registerTileTypes([])
 
-addDefaultComponents()
-
 export function handleImportDataSet(data: IDataSet) {
   // add data set
   gDataBroker.addDataSet(data)
@@ -117,8 +115,10 @@ export const App = observer(function App() {
       const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
       if (sample) {
         importSample(sample, handleImportDataSet)
-      } else {
+      }
+      if (urlParams.dashboard !== undefined) {
         createNewStarterDataset()
+        addDefaultComponents()
       }
     }
   }, [])

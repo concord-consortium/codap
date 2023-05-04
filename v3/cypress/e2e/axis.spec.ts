@@ -20,7 +20,7 @@ const arrayOfValues = [
 
 context("Test graph axes with various attribute types", () => {
     beforeEach(function () {
-        const queryParams = "?sample=mammals&mouseSensor"
+        const queryParams = "?sample=mammals&dashboard&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)
@@ -155,7 +155,7 @@ context("Test graph axes with various attribute types", () => {
 
 context("Test graph axes attribute menu", () => {
     beforeEach(function () {
-        const queryParams = "?sample=mammals&mouseSensor"
+        const queryParams = "?sample=mammals&dashboard&mouseSensor"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         cy.wait(2500)

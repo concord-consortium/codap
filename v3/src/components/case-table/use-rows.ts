@@ -1,6 +1,6 @@
 import { format } from "d3"
 import { reaction } from "mobx"
-import { onAction } from "mobx-state-tree"
+import { getSnapshot } from "mobx-state-tree"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
@@ -12,6 +12,7 @@ import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../m
 import {
   AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
 } from "../../models/data/data-set-actions"
+import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 
 export const useRows = () => {
@@ -23,17 +24,17 @@ export const useRows = () => {
   const rowCache = useMemo(() => new Map<string, TRow>(), [])
   const [rows, setRows] = useState<TRow[]>([])
 
-  const cases = useMemo(() => (data?.collectionGroups?.length
+  const cases = useMemo(() => data?.collectionGroups?.length
                                 ? data.getCasesForCollection(collection?.id ?? "")
-                                // disable warning for "unnecessary" dependency on data?.collectionGroups
-                                // eslint-disable-next-line react-hooks/exhaustive-deps
-                                : data?.cases) || [], [collection?.id, data, data?.collectionGroups])
+                                : data ? getSnapshot(data.cases) as IGroupedCase[] : [],
+                        // disable warning for "unnecessary" dependency on data?.collectionGroups
+                        // eslint-disable-next-line react-hooks/exhaustive-deps
+                        [collection?.id, data, data?.collectionGroups])
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
     rowCache.clear()
     let prevParent: string | undefined
-    // @ts-expect-error strictFunctionTypes
     cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
       const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
@@ -108,15 +109,15 @@ export const useRows = () => {
     syncRowsToRdg()
 
     // update the cache on data changes
-    const beforeDisposer = data && onAction(data, action => {
+    const beforeDisposer = data && onAnyAction(data, action => {
       if (isRemoveCasesAction(action)) {
         const caseIds = action.args[0]
         // have to determine the lowest index before the cases are actually removed
         lowestIndex.current = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => index != null))
       }
-    }, false)
-    const afterDisposer = data && onAction(data, action => {
-      prf.measure("Table.useRows[onAction]", () => {
+    }, { attachAfter: false })
+    const afterDisposer = data && onAnyAction(data, action => {
+      prf.measure("Table.useRows[onAnyAction]", () => {
         let updateRows = true
 
         const getCasesToUpdate = (_cases: ICase[], index?: number) => {
@@ -174,17 +175,17 @@ export const useRows = () => {
           }
         }
       })
-    }, true)
+    })
 
     // update the cache on metadata changes
-    const metadataDisposer = caseMetadata && onAction(caseMetadata, action => {
+    const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
       switch (action.name) {
         case "setIsCollapsed":
           resetRowCache()
           break
       }
       syncRowsToRdg()
-    }, true)
+    })
     return () => {
       beforeDisposer?.()
       afterDisposer?.()

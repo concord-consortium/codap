@@ -4,9 +4,9 @@ import {GraphLayout} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, EmptyAxisModel, INumericAxisModel, isCategoricalAxisModel, NumericAxisModel
+  CategoricalAxisModel, EmptyAxisModel, isCategoricalAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import {axisPlaceToAttrRole, graphPlaceToAttrRole, PlotType} from "../graphing-types"
+import {axisPlaceToAttrRole, graphPlaceToAttrRole, IDotsRef, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 
@@ -20,13 +20,13 @@ const plotChoices: Record<string, Record<string, PlotType>> = {
 interface IGraphControllerConstructorProps {
   layout: GraphLayout
   enableAnimation: React.MutableRefObject<boolean>
-  dotsRef: React.RefObject<SVGSVGElement>
   instanceId: string
 }
 
 interface IGraphControllerProps {
   graphModel: IGraphModel
   dataset: IDataSet | undefined
+  dotsRef: IDotsRef
 }
 
 export class GraphController {
@@ -34,14 +34,12 @@ export class GraphController {
   layout: GraphLayout
   dataset?: IDataSet
   enableAnimation: React.MutableRefObject<boolean>
-  dotsRef: React.RefObject<SVGSVGElement>
   instanceId: string
 
-  constructor({layout, enableAnimation, dotsRef, instanceId}: IGraphControllerConstructorProps) {
+  constructor({layout, enableAnimation, instanceId}: IGraphControllerConstructorProps) {
     this.layout = layout
     this.instanceId = instanceId
     this.enableAnimation = enableAnimation
-    this.dotsRef = dotsRef
   }
 
   setProperties(props: IGraphControllerProps) {
@@ -50,11 +48,13 @@ export class GraphController {
     if (this.graphModel.config.dataset !== props.dataset) {
       this.graphModel.config.setDataset(props.dataset)
     }
-    this.initializeGraph()
+    this.initializeGraph(props.dotsRef)
   }
 
-  initializeGraph() {
-    const {graphModel, dotsRef, enableAnimation, instanceId, layout} = this,
+  initializeGraph(dotsRef: IDotsRef) {
+    const {graphModel,
+        enableAnimation,
+        instanceId, layout} = this,
       dataConfig = graphModel?.config
     if (dataConfig && layout && dotsRef.current) {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
@@ -62,9 +62,12 @@ export class GraphController {
           attrRole = axisPlaceToAttrRole[axisPlace]
         if (axisModel) {
           layout.setAxisScaleType(axisPlace, axisModel.scale)
+          const axisMultiScale = layout.getAxisMultiScale(axisPlace)
           if (isCategoricalAxisModel(axisModel)) {
-            layout.getAxisMultiScale(axisPlace)
-              .setCategoricalDomain(dataConfig.categorySetForAttrRole(attrRole) ?? [])
+            axisMultiScale.setCategoricalDomain(dataConfig.categorySetForAttrRole(attrRole) ?? [])
+          }
+          if (isNumericAxisModel(axisModel)) {
+            axisMultiScale.setNumericDomain(axisModel.domain)
           }
         }
       })
@@ -98,8 +101,7 @@ export class GraphController {
         graphAttributeRole = axisPlaceToAttrRole[axisPlace]
       if (['left', 'bottom'].includes(axisPlace)) { // Only assignment to 'left' and 'bottom' change plotType
         const attributeType = dataConfig.attributeType(graphPlaceToAttrRole[graphPlace]) ?? 'empty',
-          // rightNumeric only occurs in presence of scatterplot
-          primaryType = graphPlace === 'rightNumeric' ? 'numeric' : attributeType,
+          primaryType = attributeType,
           otherAxisPlace = axisPlace === 'bottom' ? 'left' : 'bottom',
           otherAttrRole = axisPlaceToAttrRole[otherAxisPlace],
           otherAttributeType = dataConfig.attributeType(graphPlaceToAttrRole[otherAxisPlace]) ?? 'empty',
@@ -126,13 +128,13 @@ export class GraphController {
         currentType = currAxisModel?.type ?? 'empty'
       switch (attrType) {
         case 'numeric': {
-          if (currentType !== 'numeric') {
+          if (!currAxisModel || !isNumericAxisModel(currAxisModel)) {
             const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
             graphModel.setAxis(place, newAxisModel)
             layout.setAxisScaleType(place, 'linear')
             setNiceDomain(attr?.numValues || [], newAxisModel)
           } else {
-            setNiceDomain(attr?.numValues || [], currAxisModel as INumericAxisModel)
+            setNiceDomain(attr?.numValues || [], currAxisModel)
           }
         }
           break

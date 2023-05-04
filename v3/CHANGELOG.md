@@ -1,4 +1,50 @@
 # Changelog
+
+## Version 3.0.0-pre.1220 - May 1, 2023
+
+### Features/Improvements
+- Import Graph Legends when importing graph components [#184942564](https://www.pivotaltracker.com/story/show/184942564)
+- Resolve default document confusion [#184771920](https://www.pivotaltracker.com/story/show/184771920)
+- Slider animation [#184210591](https://www.pivotaltracker.com/story/show/184210591)
+
+### Bug Fixes
+- Graph points are not highlighting when selected [#185024369](https://www.pivotaltracker.com/story/show/185024369)
+- Legend attribute menu doesn't open for numeric legends [#184922380](https://www.pivotaltracker.com/story/show/184922380)
+- Dragging certain codap files into v3 crashes codap [#183680385](https://www.pivotaltracker.com/story/show/183680385)
+- Missing plot point for the last row in case table [#184428764](https://www.pivotaltracker.com/story/show/184428764)
+- Graph split plots do not redraw when switching some categorical variables [#184980432](https://www.pivotaltracker.com/story/show/184980432)
+- Axis rescale with abalone performs poorly [#185047664](https://www.pivotaltracker.com/story/show/185047664)
+- Plot points should not appear in x- or y-axis areas [#184083861](https://www.pivotaltracker.com/story/show/184083861)
+- Dragging CODAP docs with no graph or case plot, cases don't show in plot [#183704458](https://www.pivotaltracker.com/story/show/183704458)
+- Unable to properly display slider values < 0.01 [#184846919](https://www.pivotaltracker.com/story/show/184846919)
+- Imported jsons with graphs that have numeric attributes fail to restore graphs [#184992350](https://www.pivotaltracker.com/story/show/184992350)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   38964 bytes |                               0% |
+|  index.js | 3018956 bytes |                           -0.03% |
+
+## Version 3.0.0-pre.1208 - Apr 25, 2023
+
+### Features/Improvements
+- Slider animation [#184210591](https://www.pivotaltracker.com/story/show/184210591)
+- Slider axis scale should accommodate the new user-specified slider value if necessary [#184742335](https://www.pivotaltracker.com/story/show/184742335)
+
+### Bug Fixes
+- Slider thumb in Slider icon from toolshelf expands [#184918759](https://www.pivotaltracker.com/story/show/184918759)
+- Slider axis ends should be inset from tile edges [#184742327](https://www.pivotaltracker.com/story/show/184742327)
+- When a slider axis is rescaled, the slider value changes to keep the slider thumb in view [#184742338](https://www.pivotaltracker.com/story/show/184742338)
+- A graph with one empty axis should not display "click here" tag unless the graph is selected [#184902952](https://www.pivotaltracker.com/story/show/184902952)
+- Drop zone for empty x or y axis is missing when graph tile not selected and attribute present on other axis [#184980011](https://www.pivotaltracker.com/story/show/184980011)
+- Graph selection tool doesn't align with mouse cursor [#184953906](https://www.pivotaltracker.com/story/show/184953906)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   38964 bytes |                            1.99% |
+|  index.js | 3019798 bytes |                            0.15% |
+
 ## Version 3.0.0-pre.1198 - Apr 18, 2023
 
 ### Features/Improvements

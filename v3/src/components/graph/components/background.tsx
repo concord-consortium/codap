@@ -1,8 +1,10 @@
-import {onAction} from "mobx-state-tree"
-import React, {forwardRef, MutableRefObject, useEffect, useRef} from "react"
-import {drag, select} from "d3"
-import RTree from 'rtree'
-import {CaseData, InternalizedData, rTreeRect} from "../graphing-types"
+import {autorun} from "mobx"
+import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
+import {drag, select, color, range} from "d3"
+import RTreeLib from 'rtree'
+type RTree = ReturnType<typeof RTreeLib>
+import {CaseData} from "../d3-types"
+import {InternalizedData, rTreeRect} from "../graphing-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
@@ -16,8 +18,8 @@ interface IProps {
   marqueeState: MarqueeState
 }
 
-const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree => {
-    const selectionTree = RTree(10)
+const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
+    const selectionTree = RTreeLib(10)
     select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
       .each((datum: InternalizedData, index, groups) => {
         const element: any = groups[index],
@@ -28,7 +30,6 @@ const prepareTree = (areaSelector: string, circleSelector: string): typeof RTree
           }
         selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
       })
-    // @ts-expect-error fromJSON
     return selectionTree
   },
 
@@ -48,105 +49,98 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphModelContext(),
-    bounds = layout.computedBounds.plot,
-    plotWidth = bounds.width,
-    plotHeight = bounds.height,
-    transform = `translate(${bounds.left}, ${bounds.top})`,
     bgRef = ref as MutableRefObject<SVGGElement | null>,
     startX = useRef(0),
     startY = useRef(0),
     width = useRef(0),
     height = useRef(0),
-    selectionTree = useRef<typeof RTree | null>(null),
+    selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
-  useEffect(() => {
-    const onDragStart = (event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
+  const onDragStart = useCallback((event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
       const {computedBounds} = layout,
-          plotBounds = computedBounds.plot
-        appState.beginPerformance()
-        selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
-        startX.current = event.x - plotBounds.left
-        startY.current = event.y - plotBounds.top
-        width.current = 0
-        height.current = 0
-        if (!event.sourceEvent.shiftKey) {
-          dataset.current?.setSelectedCases([])
-        }
-        marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-      },
-
-      onDrag = (event: { dx: number; dy: number }) => {
-        if (event.dx !== 0 || event.dy !== 0) {
-          previousMarqueeRect.current = rectNormalize(
-            {x: startX.current, y: startY.current, w: width.current, h: height.current})
-          width.current = width.current + event.dx
-          height.current = height.current + event.dy
-          const marqueeRect = marqueeState.marqueeRect
-          marqueeState.setMarqueeRect({
-            x: marqueeRect.x, y: marqueeRect.y,
-            width: marqueeRect.width + event.dx,
-            height: marqueeRect.height + event.dy
-          })
-          const currentRect = rectNormalize({
-              x: startX.current, y: startY.current,
-              w: width.current,
-              h: height.current
-            }),
-            newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
-            newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
-          newSelection.length && dataset.current?.selectCases(newSelection, true)
-          newDeselection.length && dataset.current?.selectCases(newDeselection, false)
-        }
-      },
-
-      onDragEnd = () => {
-        marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
-        selectionTree.current = null
-        appState.endPerformance()
-      },
-      dragBehavior = drag<SVGRectElement, number>()
-        .on("start", onDragStart)
-        .on("drag", onDrag)
-        .on("end", onDragEnd),
-      groupElement = bgRef.current
-    select(groupElement).on('click', (event) => {
-      if (!event.shiftKey) {
-        dataset.current?.selectAll(false)
+        plotBounds = computedBounds.plot
+      appState.beginPerformance()
+      selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
+      startX.current = event.x - plotBounds.left
+      startY.current = event.y - plotBounds.top
+      width.current = 0
+      height.current = 0
+      if (!event.sourceEvent.shiftKey) {
+        dataset.current?.setSelectedCases([])
       }
+      marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
+    }, [dataset, instanceId, layout, marqueeState]),
+
+    onDrag = useCallback((event: { dx: number; dy: number }) => {
+      if (event.dx !== 0 || event.dy !== 0) {
+        previousMarqueeRect.current = rectNormalize(
+          {x: startX.current, y: startY.current, w: width.current, h: height.current})
+        width.current = width.current + event.dx
+        height.current = height.current + event.dy
+        const marqueeRect = marqueeState.marqueeRect
+        marqueeState.setMarqueeRect({
+          x: marqueeRect.x, y: marqueeRect.y,
+          width: marqueeRect.width + event.dx,
+          height: marqueeRect.height + event.dy
+        })
+        const currentRect = rectNormalize({
+            x: startX.current, y: startY.current,
+            w: width.current,
+            h: height.current
+          }),
+          newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
+          newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
+        newSelection.length && dataset.current?.selectCases(newSelection, true)
+        newDeselection.length && dataset.current?.selectCases(newDeselection, false)
+      }
+    }, [dataset, marqueeState]),
+
+    onDragEnd = useCallback(() => {
+      marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
+      selectionTree.current = null
+      appState.endPerformance()
+    }, [marqueeState]),
+    dragBehavior = useMemo(() => drag<SVGRectElement, number>()
+      .on("start", onDragStart)
+      .on("drag", onDrag)
+      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
+
+  useEffect(() => {
+    return autorun(() => {
+      const { left, top, width: plotWidth, height: plotHeight } = layout.computedBounds.plot,
+        transform = `translate(${left}, ${top})`,
+        { isTransparent, plotBackgroundColor } = graphModel,
+        bgColor = String(color(plotBackgroundColor)),
+        darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
+        numRows = layout.getAxisMultiScale('left').repetitions,
+        numCols = layout.getAxisMultiScale('bottom').repetitions,
+        cellWidth = plotWidth / numCols,
+        cellHeight = plotHeight / numRows,
+        row = (index: number) => Math.floor(index / numCols),
+        col = (index: number) => index % numCols,
+        groupElement = bgRef.current
+      select(groupElement)
+        // clicking on the background deselects all cases
+        .on('click', (event) => {
+          if (!event.shiftKey) {
+            dataset.current?.selectAll(false)
+          }
+        })
+        .selectAll<SVGRectElement, number>('rect')
+        .data(range(numRows * numCols))
+        .join('rect')
+        .attr('class', 'plot-cell-background')
+        .attr('transform', transform)
+        .attr('width', cellWidth)
+        .attr('height', cellHeight)
+        .attr('x', d => cellWidth * col(d))
+        .attr('y', d => cellHeight * row(d))
+        .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
+        .style('fill-opacity', isTransparent ? 0 : 1)
+        .call(dragBehavior)
     })
-    select(groupElement)
-      .selectAll('rect')
-      .data([1])
-      .join(
-        (enter) =>
-          enter.append('rect')
-            .attr('class', 'graph-background')
-            .call(dragBehavior),
-        (update) =>
-          update
-            .attr('transform', transform)
-            .attr('width', plotWidth)
-            .attr('height', plotHeight)
-            .attr('x', 0)
-            .attr('y', 0)
-            .style('fill', graphModel.plotBackgroundColor)
-            .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
-      )
-  }, [bgRef, instanceId, transform, dataset, plotHeight, plotWidth, graphModel, layout, marqueeState])
-
-  // respond to point properties change
-  useEffect(function respondToGraphPointVisualAction() {
-    const disposer = onAction(graphModel, action => {
-      if (['setPlotBackgroundColor', 'setIsTransparent'].includes(action.name)) {
-        select(bgRef.current).selectAll('rect')
-          .style('fill', graphModel.plotBackgroundColor)
-          .style('fill-opacity', graphModel.isTransparent ? 0 : 1)
-      }
-    }, true)
-
-    return () => disposer()
-  }, [graphModel, bgRef])
+  }, [bgRef, dataset, dragBehavior, graphModel, layout])
 
   return (
     <g ref={bgRef}/>
