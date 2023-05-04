@@ -1,5 +1,4 @@
 import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
-import { ISharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { SharedModelUnion } from "../shared/shared-model-manager"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
@@ -203,15 +202,12 @@ export const DocumentContentModel = types
 
       return sharedModelEntry
     },
-    removeSharedModel(sharedModelToDelete: ISharedModel, sharedCaseMetadataToDelete: ISharedCaseMetadata,
-           tileToRemove: ITileModel | undefined) {
-      self.sharedModelMap.delete(sharedModelToDelete.id)
-      self.sharedModelMap.delete(sharedCaseMetadataToDelete.id)
-
-      console.log("sharedModelMap after delete", self.sharedModelMap)
-      console.log("tiles",self.getTilesOfType("CodapGraph"))
-      if (tileToRemove) {
-        self.deleteTile(tileToRemove.id)
+    removeSharedModelsAndTiles(sharedModels: ISharedModel[], tile?: ITileModel) {
+      sharedModels.forEach(sharedModel => {
+        self.sharedModelMap.delete(sharedModel.id)
+      })
+      if (tile?.id) {
+        self.deleteTile(tile.id)
       }
     }
   }))
