@@ -8,7 +8,6 @@
     "node": ">= 18",
     "npm": ">= 9"
   },
-  "engineStrict": true,
   "jest": {
     "preset": "ts-jest/presets/js-with-ts",
     "resolver": "<rootDir>/src/test/jest-resolver.js",
