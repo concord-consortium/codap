@@ -41,7 +41,7 @@ export const CollectionTable = observer(function CollectionTable() {
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
-      <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
+      <CollectionTableSpacer onDrop={handleNewCollectionDrop} rowHeight={+styles.bodyRowHeight}/>
       <div className="collection-table-and-title">
         <CollectionTitle />
         <DataGrid ref={gridRef} className="rdg-light"

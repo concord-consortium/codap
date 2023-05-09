@@ -21,7 +21,7 @@ const getRowTop = (rowIndex: number) => rowIndex >= 1
 
 const getRowRange = (rowIndex: number) => [getRowTop(rowIndex), getRowTop(rowIndex + 1)]
 
-const getVisibleRange = (gridElt: HTMLDivElement) => {
+export const getVisibleRange = (gridElt: HTMLDivElement) => {
   const gridBounds = gridElt.getBoundingClientRect()
   const viewTop = gridElt.scrollTop
   // exclude column header row from visibility considerations
