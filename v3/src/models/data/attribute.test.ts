@@ -185,13 +185,19 @@ describe("Attribute", () => {
     process.env.NODE_ENV = "development"
     const x = Attribute.create({ name: "x", values: ["1", "2", "3"] })
     expect(x.values).toBeUndefined()
-    expect(x.strValues.length).toBe(3)
+    expect(x.strValues).toEqual(["1", "2", "3"])
+    expect(x.numValues).toEqual([1, 2, 3])
     expect(getSnapshot(x).values).toBeUndefined()
     x.prepareSnapshot()
+    const xSnapshot = getSnapshot(x)
     expect(Object.isFrozen(x.values)).toBe(true)
-    expect(getSnapshot(x).values).toEqual(["1", "2", "3"])
+    expect(xSnapshot.values).toEqual(["1", "2", "3"])
     x.completeSnapshot()
     expect(getSnapshot(x).values).toBeUndefined()
+
+    const x2 = Attribute.create(xSnapshot)
+    expect(x2.strValues).toEqual(["1", "2", "3"])
+    expect(x2.numValues).toEqual([1, 2, 3])
 
     const y = Attribute.create({ name: "y" })
     expect(y.values).toBeUndefined()
@@ -208,12 +214,19 @@ describe("Attribute", () => {
     process.env.NODE_ENV = "production"
     const x = Attribute.create({ name: "x", values: ["1", "2", "3"] })
     expect(x.values).toBe(x.strValues)
+    expect(x.strValues).toEqual(["1", "2", "3"])
+    expect(x.numValues).toEqual([1, 2, 3])
     expect(Object.isFrozen(x.values)).toBe(false)
     expect(getSnapshot(x).values).toEqual(["1", "2", "3"])
     x.prepareSnapshot()
-    expect(getSnapshot(x).values).toEqual(["1", "2", "3"])
+    const xSnapshot = getSnapshot(x)
+    expect(xSnapshot.values).toEqual(["1", "2", "3"])
     x.completeSnapshot()
     expect(getSnapshot(x).values).toEqual(["1", "2", "3"])
+
+    const x2 = Attribute.create(xSnapshot)
+    expect(x2.strValues).toEqual(["1", "2", "3"])
+    expect(x2.numValues).toEqual([1, 2, 3])
 
     const y = Attribute.create({ name: "y", values: undefined })
     expect(y.values).toEqual([])

@@ -107,8 +107,6 @@ export const Attribute = types.model("Attribute", {
     if (isDevelopment()) {
       // copy the frozen values into volatile `strValues`
       self.strValues = [...(self.values || [])]
-      // cache the numeric conversion of each value in volatile `numValues`
-      self.numValues = self.strValues.map(v => self.toNumeric(v))
       // clear frozen `values` so clients aren't tempted to access them and
       // so we're not maintaining a triplicate copy of the data in memory.
       self.values = undefined
@@ -118,6 +116,8 @@ export const Attribute = types.model("Attribute", {
       if (!self.values) self.values = []
       self.strValues = self.values
     }
+    // cache the numeric conversion of each value in volatile `numValues`
+    self.numValues = self.strValues.map(v => self.toNumeric(v))
   },
   // should be called before retrieving snapshot (i.e. before serialization)
   prepareSnapshot() {
