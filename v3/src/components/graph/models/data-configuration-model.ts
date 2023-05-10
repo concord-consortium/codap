@@ -279,12 +279,19 @@ export const DataConfigurationModel = types
           return acc.concat(values)
         }, allValues)
       },
+      /**
+       * Todo: This method is inefficient since it has to go through all the cases in the graph to determine
+       * which categories are present. It should be replaced by some sort of functionality that allows
+       * caching of the categories that have been determined to be valid.
+       * @param role
+       */
       categorySetForAttrRole(role: GraphAttrRole): string[] {
         let categoryArray: string[] = []
         if (self.metadata) {
           const attributeID = self.attributeID(role) || '',
-            categorySet = getCategorySet(self.metadata, attributeID)
-          categoryArray = categorySet?.values || ['__main__']
+            categorySet = getCategorySet(self.metadata, attributeID),
+            validValues: Set<string> = new Set(this.valuesForAttrRole(role))
+          categoryArray = (categorySet?.values || ['__main__']).filter((aValue: string) => validValues.has(aValue))
         }
         if (categoryArray.length === 0) {
           categoryArray = ['__main__']
@@ -447,8 +454,7 @@ export const DataConfigurationModel = types
           return xIsNumeric && typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
         } else if (['top', 'rightCat'].includes(place)) {
           return !typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
-        }
-        else {
+        } else {
           return !!idToDrop && existingID !== idToDrop
         }
       }
@@ -506,7 +512,7 @@ export const DataConfigurationModel = types
         }))
       self.setPointsNeedUpdating(true)
     },
-    setDataset(dataset: IDataSet | undefined, metadata?: ISharedCaseMetadata | undefined) {
+    setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
       self.actionHandlerDisposer?.()
       self.dataset = dataset
       self.metadata = metadata
