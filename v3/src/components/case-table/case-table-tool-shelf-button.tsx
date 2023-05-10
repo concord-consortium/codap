@@ -37,15 +37,10 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
   if (!row) return null
 
-  const handleCreateNewDataSet = () => {
+  const openTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
     const tile = createDefaultTileOfType(kCaseTableTileType)
     if (!tile) return
-    const newData = [{ AttributeName: "" }]
-    const ds = DataSet.create({ name: "New Dataset" })
-    ds.addAttribute({ name: "AttributeName" })
-    ds.addCases(toCanonical(ds, newData))
-    const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
-    manager?.addTileSharedModel(tile.content, sharedData, true)
+    manager?.addTileSharedModel(tile.content, model, true)
     manager?.addTileSharedModel(tile.content, caseMetadata, true)
 
     const width = kDefaultTableSize.width
@@ -55,33 +50,29 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     uiState.setFocusedTile(tile.id)
   }
 
-  const openTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
+  const handleCreateNewDataSet = () => {
+    const newData = [{ AttributeName: "" }]
+    const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
+    ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
+    ds.addCases(toCanonical(ds, newData))
     const tile = createDefaultTileOfType(kCaseTableTileType)
-      if (!tile) return
-      manager?.addTileSharedModel(tile.content, model, true)
-      manager?.addTileSharedModel(tile.content, caseMetadata, true)
-
-      const width = kDefaultTableSize.width
-      const height = kDefaultTableSize.height
-      const {x, y} = getPositionOfNewComponent({width, height})
-      content?.insertTileInRow(tile, row, {x, y, width, height})
-      uiState.setFocusedTile(tile.id)
+    if (!tile) return
+    const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
+    openTableForDataset(sharedData, caseMetadata)
   }
 
   const handleOpenDataSetTable = (dataset: ISharedDataSet) => {
-    const model = manager?.getSharedModelsByType("SharedDataSet").find(m =>  m.id === dataset.id) as ISharedDataSet
-    const caseMetadatas = manager?.getSharedModelsByType("SharedCaseMetadata") as ISharedCaseMetadata[]
-    const caseMetadata = caseMetadatas.find(cm => cm.data?.id === model.dataSet.id)
+    const model =
+            manager?.getSharedModelsByType("SharedDataSet").find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
+    const caseMetadatas = manager?.getSharedModelsByType("SharedCaseMetadata") as ISharedCaseMetadata[] | undefined
+    const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
     if (!model || !caseMetadata) return
-    if (existingTableTiles?.length !== 0) {
-      const tiles = manager?.getSharedModelTiles(model)
-      const tableTile = tiles?.find(tile => tile.content.type === "CodapCaseTable")
-      if (tableTile) { // a case table for the data set already exists in document
-        uiState.setFocusedTile(tableTile.id)
-      } else { // open a table and add it to the shared model manager
-        openTableForDataset(model, caseMetadata)
-      }
-    } else {
+    const tiles = manager?.getSharedModelTiles(model)
+    const tableTile = tiles?.find(tile => tile.content.type === "CodapCaseTable")
+    if (tableTile) { // a case table for the data set already exists in document
+      uiState.setFocusedTile(tableTile.id)
+    }
+    else { // opens a table for the selected dataset and add it to the shared model manager
       openTableForDataset(model, caseMetadata)
     }
   }

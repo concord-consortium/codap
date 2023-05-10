@@ -96,9 +96,9 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
     const sharedModelToDelete = sharedDatasets[dataSetToDeleteIndex]
     const sharedCaseMetadataToDelete = sharedMetadatas[metadataToDeleteIndex]
     // remove table associated with data set from document
-    const tileToRemove = this.getSharedModelTiles(sharedModelToDelete)
-                              .find(tile => tile.content.type === kCaseTableTileType)
-    this.document.removeSharedModelsAndTiles([sharedModelToDelete, sharedCaseMetadataToDelete], tileToRemove)
+    const tilesToRemove = this.getSharedModelTiles(sharedModelToDelete)
+                              .filter(tile => tile.content.type === kCaseTableTileType)
+    this.document.removeSharedModelsAndTiles([sharedModelToDelete, sharedCaseMetadataToDelete], tilesToRemove)
   }
 
   addTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: ISharedModel, isProvider = false): void {

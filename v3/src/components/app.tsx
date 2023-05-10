@@ -22,6 +22,8 @@ import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { importV2Component } from "../v2/codap-v2-tile-importers"
+import t from "../utilities/translation/translate"
+
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
@@ -97,8 +99,8 @@ export const App = observer(function App() {
 
   function createNewStarterDataset() {
     const newData = [{AttributeName: ""}]
-    const ds = DataSet.create({name: "New Dataset"})
-    ds.addAttribute({name: "AttributeName"})
+    const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
+    ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
     ds.addCases(toCanonical(ds, newData))
     gDataBroker.addDataSet(ds)
   }
@@ -132,7 +134,7 @@ export const App = observer(function App() {
         <div className="app" data-testid="app">
           <MenuBar/>
           <ToolShelf content={codapDocument.content}/>
-          <Container content={codapDocument.content}/>
+          <Container document={codapDocument}/>
         </div>
       </DocumentContext.Provider>
     </CodapDndContext>
