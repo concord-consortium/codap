@@ -98,9 +98,10 @@ export const App = observer(function App() {
   })
 
   function createNewStarterDataset() {
-    const newData = [{AttributeName: ""}]
+    const attributeName = t("DG.AppController.createDataSet.initialAttribute")
+    const newData = [{[attributeName]: ""}]
     const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
-    ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
+    ds.addAttribute({ name: attributeName })
     ds.addCases(toCanonical(ds, newData))
     gDataBroker.addDataSet(ds)
   }
@@ -134,7 +135,7 @@ export const App = observer(function App() {
         <div className="app" data-testid="app">
           <MenuBar/>
           <ToolShelf content={codapDocument.content}/>
-          <Container document={codapDocument}/>
+          <Container content={codapDocument.content}/>
         </div>
       </DocumentContext.Provider>
     </CodapDndContext>

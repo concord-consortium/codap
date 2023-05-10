@@ -1,7 +1,7 @@
 import React from "react"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
-import { IDocumentModel } from "../models/document/document"
+import { IDocumentContentModel } from "../models/document/document-content"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { isFreeTileRow } from "../models/document/free-tile-row"
 import { isMosaicTileRow } from "../models/document/mosaic-tile-row"
@@ -10,16 +10,15 @@ import { getDragTileId, useContainerDroppable } from "../hooks/use-drag-drop"
 import "./container.scss"
 
 interface IProps {
-  document: IDocumentModel
+  content?: IDocumentContentModel
 }
-export const Container: React.FC<IProps> = ({ document }) => {
+export const Container: React.FC<IProps> = ({ content }) => {
   // TODO: handle the possibility of multiple rows
-  const content = document.content
   const row = content?.getRowByIndex(0)
   const getTile = (tileId: string) => content?.getTile(tileId)
 
   const handleCloseTile = (tileId: string) => {
-    const manager = getSharedModelManager(document)
+    const manager = getSharedModelManager(content)
     const tile = getTile(tileId)
     const sharedModels = manager?.getTileSharedModels(tile?.content)
     sharedModels?.forEach(model => {

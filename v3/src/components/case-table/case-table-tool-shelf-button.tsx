@@ -62,8 +62,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   }
 
   const handleOpenDataSetTable = (dataset: ISharedDataSet) => {
-    const model =
-            manager?.getSharedModelsByType("SharedDataSet").find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
+    const model = manager?.getSharedModelsByType("SharedDataSet")
+                    .find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
     const caseMetadatas = manager?.getSharedModelsByType("SharedCaseMetadata") as ISharedCaseMetadata[] | undefined
     const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
     if (!model || !caseMetadata) return

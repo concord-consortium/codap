@@ -23,7 +23,8 @@ export const MosaicTileRowComponent = observer(function MosaicTileRowComponent(
   return (
     <div className="mosaic-tile-row tile-row">
       {row &&
-        <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root} getTile={getTile} onCloseTile={onCloseTile} />}
+        <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root}
+          getTile={getTile} onCloseTile={onCloseTile} />}
     </div>
   )
 })

@@ -86,8 +86,8 @@ export interface ISharedModelManager {
    */
   addSharedModel(sharedModel: ISharedModel): void;
 
-    /**
-   * Removes a shared model to the container.
+  /**
+   * Removes a shared model from the container.
    *
    * @param sharedModel the existing shared model that is going to be
    * removed from the document.
