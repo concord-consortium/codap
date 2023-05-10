@@ -284,11 +284,11 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
 
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`
   const topButtonTooltip = t(topTooltipKey)
-  const y2Arr: number[] = []
-  const getRowTop = (rowIndex: number) => rowIndex >= 1
-                                          ? (rowIndex) * rowHeight
-                                          // ? +tableStyle.headerRowHeight + (rowIndex - 1) * +tableStyle.bodyRowHeight
-                                          : 0
+  const bottomsArr: number[] = []
+  const getRowTop = (rowIndex: number) => rowIndex >= 1 ? rowIndex * rowHeight : 0
+  const getPreviousBottoms = (idx: number) => {
+    return idx > 0 ? bottomsArr[idx-1] : 0
+  }
 
   return (
     <>
@@ -302,37 +302,20 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
             <div className="spacer-mid">
               <svg className="spacer-mid-layer lower-layer">
                 {parentCases.map((parentCase, index) => {
-                  const numChildCases = data.pseudoCaseMap[parentCase.__id__]?.childPseudoCaseIds?.length ??
-                                        data.pseudoCaseMap[parentCase.__id__]?.childCaseIds.length
-                  const lastChildCaseOfParent = data.pseudoCaseMap[parentCase.__id__]?.childPseudoCaseIds ? data.pseudoCaseMap[parentCase.__id__]?.childPseudoCaseIds?.slice(-1)
-                                                  : data.pseudoCaseMap[parentCase.__id__]?.childCaseIds.slice(-1)
-                  const rowOfLastChild = lastChildCaseOfParent && rows.find(row => row.__id__ === lastChildCaseOfParent[0])
+                  const parentCaseId = parentCase.__id__
+                  const numChildCases = data.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds?.length ??
+                                        data.pseudoCaseMap[parentCaseId]?.childCaseIds.length
+                  const lastChildCaseOfParent = data.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds
+                                                  ? data.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds?.slice(-1)
+                                                  : data.pseudoCaseMap[parentCaseId]?.childCaseIds.slice(-1)
+                  const rowOfLastChild = lastChildCaseOfParent &&
+                                            rows.find(row => row.__id__ === lastChildCaseOfParent[0])
                   const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
-                  const rowTop= rowIndexOfLastChild && getRowTop(rowIndexOfLastChild)
-                  const rowBottom = rowIndexOfLastChild && getRowTop(rowIndexOfLastChild + 1) || 18
-                                      // (rowHeight * numChildCases) + (index > 0 ? y2Arr[index - 1] : 0)
-                  // console.log("[rowTop, rowBottom]", rowTop, rowBottom)
-                  // console.log("caseMetadata?.isCollapsed(id)", caseMetadata?.isCollapsed(id))
-                  let y2 = 0
-                  // let newy2Arr: number[] = []
-                  for (let i = 0; i < index; i++) {
-                    y2 = (rowHeight * numChildCases) + (index > 0 ? y2Arr[index - 1] : 0)
-                    // y2 = 18 * (caseMetadata?.isCollapsed(id) ? 1 : numChildCases)
-                    // const y2 = 18 * (numChildCases ? numChildCases
-                    //                                 : caseMetadata?.isCollapsed(id)
-                    //                                     ? 0 : 1)
-                    y2Arr.push(y2)
-                  }
-                  // prevY2Ref.current += y2
-                  // console.log("y1", (index + 1) * 18, "y2", y2 )
-//                     newy2Arr = y2Arr.map((elem, idx) => y2Arr.slice(0,idx + 1).reduce((a, b) => a + b));
-// console.log(y2Arr)
-                  // y1 is (preceding collapsed cases * 18) + (preceding open cases) -let's look at what the buttons are doing
-                  // for y2, how do we get the number of associated cases?
-                  // Get the number of cases preceding this one
-                  // return <CurvedSpline key={`${id}-${index}`} y1={(index + 1) * 18} y2={y2} />
-                  return <CurvedSpline key={`${parentCase.__id__}-${index}`} y1={(index + 1) * 18} y2={rowBottom} numChildCases={numChildCases}/>
-
+                  const rowBottom = rowIndexOfLastChild
+                                      ? getRowTop(rowIndexOfLastChild + 1)
+                                      : getPreviousBottoms(index) + rowHeight
+                  bottomsArr.push(rowBottom)
+                  return <CurvedSpline key={`${parentCaseId}-${index}`} y1={(index + 1) * 18} y2={rowBottom} numChildCases={numChildCases}/>
                 })}
               </svg>
               <div className="spacer-mid-layer">
