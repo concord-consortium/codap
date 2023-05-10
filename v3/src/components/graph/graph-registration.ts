@@ -2,7 +2,7 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { kGraphIdPrefix, kGraphTileClass, kGraphTileType } from "./graph-defs"
 import { createGraphModel, GraphModel } from "./models/graph-model"
-import { ComponentTitleBar } from "../component-title-bar"
+import { GraphComponentTitleBar } from "./components/graph-component-title-bar"
 import { GraphComponent } from "./components/graph-component"
 import { GraphInspector } from "./components/graph-inspector"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
@@ -18,7 +18,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kGraphTileType,
-  TitleBar: ComponentTitleBar,
+  TitleBar: GraphComponentTitleBar,
   Component: GraphComponent,
   InspectorPanel: GraphInspector,
   tileEltClass: kGraphTileClass,

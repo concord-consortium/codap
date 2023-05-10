@@ -73,8 +73,8 @@ export class DataBroker {
   }
 
   @action
-  addDataSet(ds: IDataSet) {
-    const sharedModel = SharedDataSet.create()
+  addDataSet(ds: IDataSet, providerId?: string) {
+    const sharedModel = SharedDataSet.create({providerId})
     sharedModel.setDataSet(ds)
     this.sharedModelManager?.addSharedModel(sharedModel)
 

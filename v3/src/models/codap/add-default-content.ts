@@ -8,8 +8,10 @@ import { urlParams } from "../../utilities/url-params"
 import { appState } from "../app-state"
 import { IFreeTileInRowOptions } from "../document/free-tile-row"
 import { IMosaicTileInRowOptions, isMosaicTileRow } from "../document/mosaic-tile-row"
+import { SharedCaseMetadata } from "../shared/shared-case-metadata"
+import { SharedDataSet } from "../shared/shared-data-set"
 import { getTileContentInfo } from "../tiles/tile-content-info"
-import { getTileEnvironment } from "../tiles/tile-environment"
+import { getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { TileModel } from "../tiles/tile-model"
 
 // const isDashboard = urlParams.dashboard !== undefined
@@ -28,6 +30,8 @@ export function createDefaultTileOfType(tileType: string) {
 // TODO: Eliminate (or hide behind a URL parameter) default dashboard content
 export function addDefaultComponents() {
   const content = appState.document.content
+  const manager = getSharedModelManager(appState.document)
+
   if (!content) return
 
   const row = content.getRowByIndex(0)
@@ -40,9 +44,13 @@ export function addDefaultComponents() {
   const kGap = 10
 
   setTimeout(() => {
+    const sharedData = manager?.findFirstSharedModelByType<typeof SharedDataSet>(SharedDataSet)
+    const caseMetadata = manager?.findFirstSharedModelByType<typeof SharedCaseMetadata>(SharedCaseMetadata)
     if (isTableOnly) {
       const tableTile = createDefaultTileOfType(kCaseTableTileType)
       if (!tableTile) return
+      sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
+      caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
       const tableOptions: ILayoutOptions = isMosaicTileRow(row)
               ? undefined
               : { x: 2, y: 2, width: 800, height: 500 }
@@ -58,6 +66,8 @@ export function addDefaultComponents() {
 
       const tableTile = createDefaultTileOfType(kCaseTableTileType)
       if (!tableTile) return
+      sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
+      caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
       const tableOptions: ILayoutOptions = isMosaicTileRow(row)
               ? { splitTileId: summaryTile.id, direction: "column" }
               : { x: 2, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
@@ -82,6 +92,8 @@ export function addDefaultComponents() {
 
       const graphTile = createDefaultTileOfType(kGraphTileType)
       if (graphTile) {
+        sharedData && manager?.addTileSharedModel(graphTile.content, sharedData)
+        caseMetadata && manager?.addTileSharedModel(graphTile.content, caseMetadata)
         const graphOptions = isMosaicTileRow(row)
                 ? { splitTileId: tableTile.id, direction: "row" }
                 : { x: kFullWidth + kGap, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }

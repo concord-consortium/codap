@@ -87,6 +87,14 @@ export interface ISharedModelManager {
   addSharedModel(sharedModel: ISharedModel): void;
 
   /**
+   * Removes a shared model from the container.
+   *
+   * @param sharedModel the existing shared model that is going to be
+   * removed from the document.
+   */
+  removeSharedModel(sharedModelId: string): void;
+
+  /**
    * Add a shared model to the container if it doesn't exist and add a link to
    * the tile from the shared model.
    *

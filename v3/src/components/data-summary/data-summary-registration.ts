@@ -1,6 +1,6 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { ComponentTitleBar } from "../component-title-bar"
+import { DataSummaryTitleBar } from "./data-summary-title-bar"
 import { DataSummary } from "./data-summary"
 import { kDataSummaryTileClass, kDataSummaryTileType } from "./data-summary-defs"
 import { DataSummaryModel } from "./data-summary-model"
@@ -14,7 +14,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kDataSummaryTileType,
-  TitleBar: ComponentTitleBar,
+  TitleBar: DataSummaryTitleBar,
   Component: DataSummary,
   tileEltClass: kDataSummaryTileClass,
 })

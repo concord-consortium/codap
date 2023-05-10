@@ -202,7 +202,16 @@ export const DocumentContentModel = types
 
       return sharedModelEntry
     },
-
+    removeSharedModelsAndTiles(sharedModels: ISharedModel[], tiles?: ITileModel[]) {
+      sharedModels.forEach(sharedModel => {
+        self.sharedModelMap.delete(sharedModel.id)
+      })
+      if (tiles) {
+        tiles.forEach(tile => {
+          self.deleteTile(tile.id)
+        })
+      }
+    }
   }))
 export interface IDocumentContentModel extends Instance<typeof DocumentContentModel> {}
 export interface IDocumentContentSnapshotIn extends SnapshotIn<typeof DocumentContentModel> {}
