@@ -14,7 +14,6 @@ import { useRows } from "./use-rows"
 const kDividerWidth = 48,
       kRelationParentMargin = 12,
       kRelationChildMargin = 4,
-      kExpandCollapseIconSize = { width: 9, height: 9 },
       // The color of the lines bounding the relationship regions
       kRelationStrokeColor = '#808080', // middle gray
       // The color of the shaded area of the relationship regions
@@ -88,174 +87,10 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
         // leftAdapter = parentCollection && parentCollection.get('gridAdapter'),
 
   // const updateParentChildRelations = (ix: number, iParentRow: number, iParentID: string, iChildIDRange: ChildRange) => {
-  //   // const isRightCollapsed = iChildIDRange.isCollapsed || iChildIDRange.isContained;
-  //   const isChildCollapsed = iChildIDRange.isCollapsed
-  //   const childVisibleRange = childGridRef.current && getVisibleRange(childGridRef.current as HTMLDivElement)
-  //   const topChildRow = childVisibleRange[0]
-  //   const bottomChildRow = childVisibleRange[1]
-  //   // .getRowById(
-  //   //       isChildCollapsed ? iParentID : iChildIDRange.firstChildID)
-  //   // const bottomRightRow = rightAdapter.get('gridDataView').getRowById(
-  //   //       isChildCollapsed ? iParentID : iChildIDRange.lastChildID)
-  //   const rowBounds = getRowBounds(parentCollection, childCollection, iParentRow,
-  //     topChildRow, bottomChildRow)
-  //   // if (SC.none(rowBounds)) {
-  //   //   return;
-  //   // }
-  //   const isFillRequired = iParentRow % 2
-  //   const isBottomRequired = iChildIDRange.renderBottom
-  //   const imageUrl = determineImageURL(iChildIDRange)
-  //   const imagePos = {x: 3, y: rowBounds.leftTop - leftScrollTop + 5}
-  //   const imageSize = kExpandCollapseIconSize
-  //   const action = iChildIDRange.isContained? 'none': iChildIDRange.isCollapsed? 'expand': 'collapse'
-  //   const imageTitle = (action === 'collapse')? "DG.CaseTable.dividerView.collapseGroupTooltip".loc()
-  //       (action === 'expand')? "DG.CaseTable.dividerView.expandGroupTooltip".loc(): ''
-  //   const touchPathStr = getImageTouchZonePath(imagePos, imageSize);
-  //   const topPathStr = buildPathStr(rowBounds.leftTop - leftScrollTop,
-  //         rowBounds.rightTop - rightScrollTop);
-  //   const bottomPathStr = isBottomRequired? buildPathStr( rowBounds.leftBottom - leftScrollTop + 1,
-  //       rowBounds.rightBottom - rightScrollTop + 1): '';
-  //   const fillPathStr = isFillRequired ? buildFillPathStr(
-  //         rowBounds.leftTop - leftScrollTop,
-  //         rowBounds.rightTop - rightScrollTop,
-  //         rowBounds.leftBottom - leftScrollTop + 1,
-  //         rowBounds.rightBottom - rightScrollTop + 1) : '';
-
-  //   // const relation = this_._parentChildRelationsMap[ix];data.pseudoCaseMap
-  //   const relation = data?.pseudoCaseMap[ix]
-  //   if (!relation) {
-  //     // relation = data?.pseudoCaseMap[ix] = {}
-  //     relation?.top = this_._paper.path(topPathStr).attr(
-  //         {stroke: RDV_RELATION_STROKE_COLOR});
-  //     relation?.bottom = this_._paper.path(bottomPathStr).attr(
-  //         {stroke: RDV_RELATION_STROKE_COLOR});
-  //     if (!isBottomRequired) {
-  //       relation.bottom.hide();
-  //     }
-  //     relation.area = this_._paper.path(fillPathStr).attr(
-  //           {fill: RDV_RELATION_FILL_COLOR, stroke: 'transparent'});
-  //     if (!isFillRequired) relation.area.hide();
-  //     // The touch object is a transparent rectangle which is larger than the
-  //     // expand/collapse icon which responds to touch. This makes it easier to
-  //     // hit the expand/collapse icon on touch platforms.
-  //     // if ((SC.browser.os === SC.OS.ios) || (SC.browser.os === SC.OS.android)) {
-  //     //   relation.touch = this_._paper.path(touchPathStr)
-  //     //       .attr({fill: 'transparent', stroke: 'transparent'})
-  //     //       .touchstart(function (iEvent) {
-  //     //         SC.run(expandCollapseClickHandler.call(relation.icon,
-  //     //             iEvent));
-  //     //       });
-  //     // }
-  //     relation.icon = this_._paper
-  //         .image(imageUrl, imagePos.x, imagePos.y, imageSize.width,
-  //             imageSize.height)
-  //         .setClass(action)
-  //         .click(function (iEvent) {
-  //           SC.run(expandCollapseClickHandler.call(this, iEvent));
-  //         }).attr('title', imageTitle);
-  //   } else {
-  //     updatePathOrHide(relation.top, true, topPathStr);
-  //     updatePathOrHide(relation.bottom, isBottomRequired, bottomPathStr);
-  //     updatePathOrHide(relation.area, isFillRequired, fillPathStr);
-  //     updatePathOrHide(relation.touch, true, touchPathStr);
-  //     relation.icon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y, title: imageTitle})
-  //         .setClass(action)
-  //         .show();
-  //   }
-  //   relation.icon.dgParentID = iParentID;
-  //   relation.icon.dgChildIDRange = iChildIDRange;
-  //   return relation;
   // }
 
-  // function hideRelationshipElements(ix) {
-  //   const relation = this_._parentChildRelationsMap[ix];
-  //   if (relation) {
-  //     updatePathOrHide(relation.icon, false, '');
-  //     updatePathOrHide(relation.top, false, '');
-  //     updatePathOrHide(relation.bottom, false, '');
-  //     updatePathOrHide(relation.area, false, '');
-  //     updatePathOrHide(relation.touch, false, '');
-  //   }
+  // const updateRelationsLines = () => {
   // }
-
-  const updateRelationsLines = () => {
-    // if (!parentCollection || !childCollection || parentGridRef.current?.clientWidth === 0 || childGridRef.current?.clientWidth === 0) {
-    //   //DG.log('DoDraw called on RelationDividerView, but tables not ready.');
-    //   return;
-    // }
-
-    // const leftViewport = leftTable.get('gridViewport');
-    // const viewportCount = leftViewport.bottom - leftViewport.top;
-    // const leftDataView = leftAdapter.get('gridDataView');
-    // const rightDataView = rightAdapter.get('gridDataView');
-    // const rightProtoCase = rightAdapter.getProtoCase();
-    // const rightProtoCaseID = rightProtoCase && rightProtoCase.get('id');
-    // const rightProtoCaseIndex = rightDataView && rightDataView.getRowById(rightProtoCaseID);
-    // const protoCaseParentID = rightProtoCase && rightProtoCase.get('parentCaseID');
-    // let ix: number;
-    // const rowIx: number;
-    // const parentID: string;
-    // const parentCase;
-    // const nextParentCase;
-    // const lastParentCase;
-    // const childIDRange;
-    // const hasProtoCaseChild;
-    // const firstChildID: string;
-    // const firstChildIndex: number;
-    // const lastChildID: string;
-    // const lastChildIndex: number;
-
-    // // DG.assert(leftViewport, 'leftViewport missing');
-    // // DG.assert(leftDataView, 'leftDataView missing');
-
-    // for (ix = 0; ix < viewportCount; ++ix) {
-    //   const parentItem = leftDataView.getItem(leftViewport.top + ix);
-    //   if (parentItem && !parentItem._isProtoCase)
-    //     lastParentCase = parentItem;
-    // }
-
-    // // for each visible row in the left-hand table compute the relationship
-    // // graphic
-    // for (ix = 0; ix < viewportCount; ix += 1) {
-    //   rowIx = ix + leftViewport.top;
-    //   parentCase = leftDataView.getItem(rowIx);
-    //   nextParentCase = leftDataView.getItem(rowIx + 1);
-
-    //   // if we found a parent case, compute the extent of its children and
-    //   // its state, then make the appropriate graphics. Otherwise, hide
-    //   // whatever elements may already be present.
-    //   if (parentCase && parentCase.children[0]) {
-    //     parentID = parentCase.get('id');
-    //     hasProtoCaseChild = (protoCaseParentID === parentID) ||
-    //                           (!protoCaseParentID && (parentCase === lastParentCase));
-    //     firstChildID = parentCase.children[0].get('id');
-    //     firstChildIndex = rightDataView && rightDataView.getRowById(firstChildID);
-    //     if (hasProtoCaseChild && (rightProtoCaseIndex < firstChildIndex)) {
-    //       firstChildID = rightProtoCaseID;
-    //     }
-    //     lastChildID = parentCase.children[parentCase.children.length - 1].get('id');
-    //     lastChildIndex = rightDataView && rightDataView.getRowById(lastChildID);
-    //     if (hasProtoCaseChild && (rightProtoCaseIndex > lastChildIndex)) {
-    //       lastChildID = rightProtoCaseID;
-    //     }
-    //     childIDRange = {
-    //       firstChildID: firstChildID,
-    //       lastChildID: lastChildID,
-    //       isCollapsed: leftAdapter.model.isCollapsedNode(parentCase),
-    //       isContained: (parentCase.get('collection').get('id') !==
-    //                     leftAdapter.get('collection').get('id')),
-    //       renderBottom: !nextParentCase || nextParentCase._isProtoCase
-    //     };
-    //     updateParentChildRelations(ix, rowIx, parentID, childIDRange);
-    //   } else {
-    //     hideRelationshipElements(ix);
-    //   }
-    // }
-    // // if the viewport has shrunk, hide additional lines
-    // for (ix = viewportCount; ix < data.pseudoCaseMap.length; ix += 1) {
-    //   hideRelationshipElements(ix);
-    // }
-  }
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
@@ -432,11 +267,9 @@ function CurvedSpline({ y1, y2, numChildCases }: CurvedSplineProps) {
     }
   const pathData = buildPathStr(y1, y2)
   const fillData = buildFillPathStr(y1, y2, y1+18, numChildCases || 1)
-  // const pathData = `M0,${y1} H12 Q28,${y1},28,${y1 + 18} T44,${y2} H48`
   return (
     <>
       <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
-      {/* <path d={fillData} fill="none" stroke={kRelationFillColor} /> */}
     </>
   )
 }
