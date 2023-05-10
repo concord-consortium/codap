@@ -16,13 +16,15 @@ interface IMosaicTileRowProps {
   row: IMosaicTileRow
   content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
+  onCloseTile: (tileId: string) => void
 }
 export const MosaicTileRowComponent = observer(function MosaicTileRowComponent(
-  { content, row, getTile }: IMosaicTileRowProps) {
+  { content, row, getTile, onCloseTile }: IMosaicTileRowProps) {
   return (
     <div className="mosaic-tile-row tile-row">
       {row &&
-        <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root} getTile={getTile} />}
+        <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root}
+          getTile={getTile} onCloseTile={onCloseTile} />}
     </div>
   )
 })
@@ -54,6 +56,7 @@ interface INodeOrTileProps extends IExtentProps {
   nodeOrTileId: string
   content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
+  onCloseTile: (tileId: string) => void
 }
 export const MosaicNodeOrTileComponent = observer(function MosaicNodeOrTileComponent(
   { nodeOrTileId, ...others }: INodeOrTileProps) {
@@ -76,6 +79,7 @@ interface IMosaicNodeProps extends IExtentProps {
   row: IMosaicTileRow
   node: IMosaicTileNode
   getTile: (tileId: string) => ITileModel | undefined
+  onCloseTile: (tileId: string) => void
 }
 export const MosaicNodeComponent = observer(
   function MosaicNodeComponent(
@@ -97,22 +101,19 @@ export const MosaicNodeComponent = observer(
 interface IMosaicTileProps extends IExtentProps {
   tile: ITileModel
   content?: IDocumentContentModel
+  onCloseTile: (tileId: string) => void
 }
 export const MosaicTileComponent = observer(
   function MosaicTileComponent(
-  { content, tile, direction, pctExtent }: IMosaicTileProps) {
+  { content, tile, direction, pctExtent, onCloseTile }: IMosaicTileProps) {
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
 
-  const handleCloseTile = (tileId: string) => {
-    content?.deleteTile(tileId)
-  }
-
   return (
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
-        <CodapComponent tile={tile} onCloseTile={handleCloseTile}/>
+        <CodapComponent tile={tile} onCloseTile={onCloseTile}/>
       }
     </div>
   )

@@ -7,7 +7,7 @@ export interface ITileBaseProps {
 
 export interface ITileTitleBarProps extends ITileBaseProps {
   // pass accessor function so that only title bar is re-rendered when title changes
-  getTitle?: () => string
+  getTitle?: () => string | undefined
   children?: ReactNode
   onHandleTitleBarClick?: (e: React.MouseEvent) => void
   onCloseTile?: (tileId: string) => void

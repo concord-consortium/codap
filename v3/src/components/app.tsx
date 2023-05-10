@@ -22,6 +22,8 @@ import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { importV2Component } from "../v2/codap-v2-tile-importers"
+import t from "../utilities/translation/translate"
+
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
@@ -96,9 +98,10 @@ export const App = observer(function App() {
   })
 
   function createNewStarterDataset() {
-    const newData = [{AttributeName: ""}]
-    const ds = DataSet.create({name: "New Dataset"})
-    ds.addAttribute({name: "AttributeName"})
+    const attributeName = t("DG.AppController.createDataSet.initialAttribute")
+    const newData = [{[attributeName]: ""}]
+    const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
+    ds.addAttribute({ name: attributeName })
     ds.addCases(toCanonical(ds, newData))
     gDataBroker.addDataSet(ds)
   }
@@ -116,8 +119,11 @@ export const App = observer(function App() {
       if (sample) {
         importSample(sample, handleImportDataSet)
       }
+      // we have to create a new starter data set only if none is imported to show the dashboard
       if (urlParams.dashboard !== undefined) {
-        createNewStarterDataset()
+        if (!sample) {
+          createNewStarterDataset()
+        }
         addDefaultComponents()
       }
     }

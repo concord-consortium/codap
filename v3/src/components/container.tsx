@@ -2,6 +2,7 @@ import React from "react"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
 import { IDocumentContentModel } from "../models/document/document-content"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { isFreeTileRow } from "../models/document/free-tile-row"
 import { isMosaicTileRow } from "../models/document/mosaic-tile-row"
 import { getDragTileId, useContainerDroppable } from "../hooks/use-drag-drop"
@@ -16,6 +17,15 @@ export const Container: React.FC<IProps> = ({ content }) => {
   const row = content?.getRowByIndex(0)
   const getTile = (tileId: string) => content?.getTile(tileId)
 
+  const handleCloseTile = (tileId: string) => {
+    const manager = getSharedModelManager(content)
+    const tile = getTile(tileId)
+    const sharedModels = manager?.getTileSharedModels(tile?.content)
+    sharedModels?.forEach(model => {
+      manager?.removeTileSharedModel(tile?.content, model)
+    })
+    tileId && content?.deleteTile(tileId)
+  }
 
   const { setNodeRef } = useContainerDroppable("codap-container", evt => {
     const dragTileId = getDragTileId(evt.active)
@@ -30,9 +40,9 @@ export const Container: React.FC<IProps> = ({ content }) => {
   return (
     <div className="codap-container" ref={setNodeRef}>
       {isMosaicTileRow(row) &&
-        <MosaicTileRowComponent content={content} row={row} getTile={getTile} />}
+        <MosaicTileRowComponent content={content} row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
       {isFreeTileRow(row) &&
-        <FreeTileRowComponent content={content} row={row} getTile={getTile} />}
+        <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
     </div>
   )
 }

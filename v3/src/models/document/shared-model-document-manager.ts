@@ -4,6 +4,9 @@ import { IDocumentContentModel } from "./document-content"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { ITileModel, TileModel } from "../tiles/tile-model"
+import { SharedDataSet } from "../shared/shared-data-set"
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 
 
 function getTileModel(tileContentModel: IAnyStateTreeNode) {
@@ -78,6 +81,24 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
     // register it with the document if necessary.
     // This won't re-add it if it is already there
     return this.document.addSharedModel(sharedModel)
+  }
+
+  // TODO: Need to make this usable in CLUE
+  removeSharedModel(dataSetId: string) {
+    if (!this.document || !dataSetId) {
+      console.warn("removeSharedModel has no document or data set ID. this will have no effect")
+      return
+    }
+    const sharedDatasets = this.document.getSharedModelsByType<typeof SharedDataSet>("SharedDataSet")
+    const sharedMetadatas = this.document.getSharedModelsByType<typeof SharedCaseMetadata>("SharedCaseMetadata")
+    const dataSetToDeleteIndex = sharedDatasets.map(model => model.dataSet.id).indexOf(dataSetId)
+    const metadataToDeleteIndex = sharedMetadatas.map(model => model.data?.id).indexOf(dataSetId)
+    const sharedModelToDelete = sharedDatasets[dataSetToDeleteIndex]
+    const sharedCaseMetadataToDelete = sharedMetadatas[metadataToDeleteIndex]
+    // remove table associated with data set from document
+    const tilesToRemove = this.getSharedModelTiles(sharedModelToDelete)
+                              .filter(tile => tile.content.type === kCaseTableTileType)
+    this.document.removeSharedModelsAndTiles([sharedModelToDelete, sharedCaseMetadataToDelete], tilesToRemove)
   }
 
   addTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: ISharedModel, isProvider = false): void {
