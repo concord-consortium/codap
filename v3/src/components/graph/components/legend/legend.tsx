@@ -7,16 +7,17 @@ import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
 import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
-import {getDragAttributeId, useDropHandler} from "../../../../hooks/use-drag-drop"
+import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {AttributeType} from "../../../../models/data/attribute"
+import {IDataSet} from "../../../../models/data/data-set"
 import {GraphAttrRole} from "../../graphing-types"
 import {GraphPlace} from "../../../axis-graph-shared"
 
 interface ILegendProps {
   legendAttrID: string
   graphElt: HTMLDivElement | null
-  onDropAttribute: (place: GraphPlace, attrId: string) => void
+  onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
@@ -36,18 +37,18 @@ export const Legend = function Legend({
     hintString = useDropHintString({role})
 
   const handleIsActive = (active: Active) => {
-    const droppedAttrId = getDragAttributeId(active) ?? ''
+    const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
     if (isDropAllowed) {
-      return isDropAllowed('legend', droppedAttrId)
+      return isDropAllowed('legend', dataSet, droppedAttrId)
     } else {
       return !!droppedAttrId
     }
   }
 
   useDropHandler(droppableId, active => {
-    const dragAttributeID = getDragAttributeId(active)
-    dragAttributeID && isDropAllowed('legend', dragAttributeID) &&
-    onDropAttribute('legend', dragAttributeID)
+    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(active) || {}
+    dataSet && dragAttributeID && isDropAllowed('legend', dataSet, dragAttributeID) &&
+     onDropAttribute('legend', dataSet, dragAttributeID)
   })
 
   const legendBounds = layout.computedBounds.legend,

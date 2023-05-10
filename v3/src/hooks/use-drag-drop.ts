@@ -1,5 +1,8 @@
-import { Active, DataRef, DragEndEvent, Modifier, useDndMonitor, useDraggable, UseDraggableArguments,
-    useDroppable, UseDroppableArguments} from "@dnd-kit/core"
+import {
+  Active, DataRef, DragEndEvent, Modifier, useDndMonitor,
+  useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
+} from "@dnd-kit/core"
+import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
 
 // list of draggable types
@@ -14,27 +17,30 @@ export interface IDragData {
 
 export interface IDragAttributeData extends IDragData {
   type: "attribute"
+  dataSet?: IDataSet
   attributeId: string
 }
 export function isDragAttributeData(data: DataRef): data is DataRef<IDragAttributeData> {
   return data.current?.type === "attribute"
 }
-export const getDragAttributeId = (active: Active | null) => {
-  return active && isDragAttributeData(active.data) ? active.data.current?.attributeId : undefined
+export function getDragAttributeInfo(active: Active | null): Omit<IDragAttributeData, "type"> | undefined {
+  const { dataSet, attributeId } = active?.data.current as IDragAttributeData || {}
+  return dataSet && attributeId ? { dataSet, attributeId } : undefined
 }
 
 export interface IUseDraggableAttribute extends Omit<UseDraggableArguments, "id"> {
   // should generally include instanceId to support dragging from multiple component instances
   prefix: string
+  dataSet?: IDataSet
   attributeId: string
 }
-export const useDraggableAttribute = ({ prefix, attributeId, ...others }: IUseDraggableAttribute) => {
+export const useDraggableAttribute = ({ prefix, dataSet, attributeId, ...others }: IUseDraggableAttribute) => {
   // RDG expects all cells to have tabIndex of -1 except for the selected/active/clicked cell.
   // For instance, it calls scrollIntoView(gridRef.current?.querySelector('[tabindex="0"]')).
   // DnDKit sets the tabIndex of draggable elements to 0 by default for keyboard accessibility.
   // For now we set it to -1 to meet RDG's expectations and we'll worry about keyboard drag later.
   const attributes = { tabIndex: -1 }
-  const data: IDragAttributeData = { type: "attribute", attributeId }
+  const data: IDragAttributeData = { type: "attribute", dataSet, attributeId }
   return useDraggable({ ...others, id: `${prefix}-${attributeId}`, attributes, data })
 }
 

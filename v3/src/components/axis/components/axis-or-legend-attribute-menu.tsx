@@ -8,12 +8,13 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute"
+import { IDataSet } from "../../../models/data/data-set"
 
 interface IProps {
   place: GraphPlace,
   target: SVGGElement | null
   portal: HTMLElement | null
-  onChangeAttribute: (place: GraphPlace, attrId: string) => void
+  onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
@@ -54,7 +55,7 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
               <MenuList>
                 { data?.attributes?.map((attr) => {
                   return (
-                    <MenuItem onClick={() => onChangeAttribute(place, attr.id)} key={attr.id}>
+                    <MenuItem onClick={() => onChangeAttribute(place, data, attr.id)} key={attr.id}>
                       {attr.name}
                     </MenuItem>
                   )

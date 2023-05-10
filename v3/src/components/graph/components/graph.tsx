@@ -25,6 +25,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
+import {IDataSet} from "../../../models/data/data-set"
 import {useDataTips} from "../hooks/use-data-tips"
 import {onAnyAction} from "../../../utilities/mst-utils"
 
@@ -62,10 +63,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     }
   }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale])
 
-  const handleChangeAttribute = (place: GraphPlace, attrId: string) => {
+  const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
-    graphModel.setAttributeID(attrRole, attrId)
+    graphModel.setAttributeID(attrRole, dataSet.id, attrId)
   }
 
   /**
@@ -78,7 +79,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
       const yAxisModel = graphModel.getAxis('left') as IAxisModel
       setNiceDomain(graphModel.config.numericValuesForAttrRole('y'), yAxisModel)
     } else {
-      handleChangeAttribute(place, '')
+      dataset && handleChangeAttribute(place, dataset, '')
     }
   }
 
@@ -86,10 +87,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAnyAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
-        const [role, attrID] = action.args,
+        const [role, dataSetId, attrID] = action.args,
           graphPlace = attrRoleToGraphPlace[role]
         startAnimation(enableAnimation)
-        graphPlace && graphController?.handleAttributeAssignment(graphPlace, attrID)
+        graphPlace && graphController?.handleAttributeAssignment(graphPlace, dataSetId, attrID)
       }
     })
     return () => disposer?.()
@@ -97,7 +98,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
 
   const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
     graphModel.config.setAttributeType(graphPlaceToAttrRole[place], treatAs)
-    graphController?.handleAttributeAssignment(place, attrId)
+    dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
   }
 
   useDataTips({dotsRef, dataset, graphModel, enableAnimation})
