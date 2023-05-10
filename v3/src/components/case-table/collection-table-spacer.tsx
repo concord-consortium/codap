@@ -257,7 +257,6 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
     // }
   }
 
-
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
   //   console.log('handleAreaClick')
@@ -277,6 +276,7 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
   const parentCaseIds = Object.keys(data.pseudoCaseMap)
   const parentCases = parentCollection ? data.getCasesForCollection(parentCollection.id) : []
   const everyCaseIsCollapsed = parentCases.every((value) => caseMetadata?.isCollapsed(value.__id__))
+  console.log("parentCases", parentCases)
 
   function handleTopClick() {
     parentCases.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
@@ -301,37 +301,37 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
         {!parentMost &&
             <div className="spacer-mid">
               <svg className="spacer-mid-layer lower-layer">
-                {parentCaseIds.map((id, index) => {
-                    const numChildCases = data.pseudoCaseMap[id]?.childPseudoCaseIds?.length ??
-                                          data.pseudoCaseMap[id]?.childCaseIds.length
-                    const lastChildCaseOfParent = data.pseudoCaseMap[id]?.childPseudoCaseIds ? data.pseudoCaseMap[id]?.childPseudoCaseIds?.slice(-1)
-                                                    : data.pseudoCaseMap[id]?.childCaseIds.slice(-1)
-                    const rowOfLastChild = lastChildCaseOfParent && rows.find(row => row.__id__ === lastChildCaseOfParent[0])
-                    const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
-                    const rowTop= rowIndexOfLastChild && getRowTop(rowIndexOfLastChild)
-                    const rowBottom = rowIndexOfLastChild && getRowTop(rowIndexOfLastChild + 1) || 18
-                                        // (rowHeight * numChildCases) + (index > 0 ? y2Arr[index - 1] : 0)
-                    console.log("[rowTop, rowBottom]", rowTop, rowBottom)
-                    // console.log("caseMetadata?.isCollapsed(id)", caseMetadata?.isCollapsed(id))
-                    let y2 = 0
-                    // let newy2Arr: number[] = []
-                    // for (let i = 0; i < index; i++) {
-                      y2 = (rowHeight * numChildCases) + (index > 0 ? y2Arr[index - 1] : 0)
-                      // y2 = 18 * (caseMetadata?.isCollapsed(id) ? 1 : numChildCases)
-                      // const y2 = 18 * (numChildCases ? numChildCases
-                      //                                 : caseMetadata?.isCollapsed(id)
-                      //                                     ? 0 : 1)
-                      y2Arr.push(y2)
-                    // }
-                    // prevY2Ref.current += y2
-                    // console.log("y1", (index + 1) * 18, "y2", y2 )
+                {parentCases.map((parentCase, index) => {
+                  const numChildCases = data.pseudoCaseMap[parentCase.__id__]?.childPseudoCaseIds?.length ??
+                                        data.pseudoCaseMap[parentCase.__id__]?.childCaseIds.length
+                  const lastChildCaseOfParent = data.pseudoCaseMap[parentCase.__id__]?.childPseudoCaseIds ? data.pseudoCaseMap[parentCase.__id__]?.childPseudoCaseIds?.slice(-1)
+                                                  : data.pseudoCaseMap[parentCase.__id__]?.childCaseIds.slice(-1)
+                  const rowOfLastChild = lastChildCaseOfParent && rows.find(row => row.__id__ === lastChildCaseOfParent[0])
+                  const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
+                  const rowTop= rowIndexOfLastChild && getRowTop(rowIndexOfLastChild)
+                  const rowBottom = rowIndexOfLastChild && getRowTop(rowIndexOfLastChild + 1) || 18
+                                      // (rowHeight * numChildCases) + (index > 0 ? y2Arr[index - 1] : 0)
+                  // console.log("[rowTop, rowBottom]", rowTop, rowBottom)
+                  // console.log("caseMetadata?.isCollapsed(id)", caseMetadata?.isCollapsed(id))
+                  let y2 = 0
+                  // let newy2Arr: number[] = []
+                  for (let i = 0; i < index; i++) {
+                    y2 = (rowHeight * numChildCases) + (index > 0 ? y2Arr[index - 1] : 0)
+                    // y2 = 18 * (caseMetadata?.isCollapsed(id) ? 1 : numChildCases)
+                    // const y2 = 18 * (numChildCases ? numChildCases
+                    //                                 : caseMetadata?.isCollapsed(id)
+                    //                                     ? 0 : 1)
+                    y2Arr.push(y2)
+                  }
+                  // prevY2Ref.current += y2
+                  // console.log("y1", (index + 1) * 18, "y2", y2 )
 //                     newy2Arr = y2Arr.map((elem, idx) => y2Arr.slice(0,idx + 1).reduce((a, b) => a + b));
-console.log(y2Arr)
-                    // y1 is (preceding collapsed cases * 18) + (preceding open cases) -let's look at what the buttons are doing
-                    // for y2, how do we get the number of associated cases?
-                    // Get the number of cases preceding this one
-                    // return <CurvedSpline key={`${id}-${index}`} y1={(index + 1) * 18} y2={y2} />
-                    return <CurvedSpline key={`${id}-${index}`} y1={(index + 1) * 18} y2={rowBottom} numChildCases={numChildCases}/>
+// console.log(y2Arr)
+                  // y1 is (preceding collapsed cases * 18) + (preceding open cases) -let's look at what the buttons are doing
+                  // for y2, how do we get the number of associated cases?
+                  // Get the number of cases preceding this one
+                  // return <CurvedSpline key={`${id}-${index}`} y1={(index + 1) * 18} y2={y2} />
+                  return <CurvedSpline key={`${parentCase.__id__}-${index}`} y1={(index + 1) * 18} y2={rowBottom} numChildCases={numChildCases}/>
 
                 })}
               </svg>
@@ -395,7 +395,7 @@ function CurvedSpline({ y1, y2, numChildCases }: CurvedSplineProps) {
       if (iStartY === iEndY) {
         return `M0, ${iStartY} h${kDividerWidth}`
       }
-      console.log("iEndY", iEndY)
+      // console.log("iEndY", iEndY)
       // startPoint, endPoint, midPoint, controlPoint relate to the Bezier portion of the path
       const startPoint = { x: kRelationParentMargin, y: iStartY },
           endPoint = { x: kDividerWidth - kRelationChildMargin, y: iEndY },
@@ -408,7 +408,7 @@ function CurvedSpline({ y1, y2, numChildCases }: CurvedSplineProps) {
       // midPoint.x, midPoint.y: Midpoint of curve (endpoint of first Bezier curve),
       // endPoint.x, endPoint.y: Endpoint of second Bezier curve (assumes reflected control point),
       // kRelationChildMargin: Horizontal segment
-      console.log("startPoint", startPoint, "endPoint", endPoint, "midPoint", midPoint, "controlPoint", controlPoint)
+      // console.log("startPoint", startPoint, "endPoint", endPoint, "midPoint", midPoint, "controlPoint", controlPoint)
       // M0,${y1} H12 Q28,${y1},28,${y1 + 18} T44,${y2} H48
 
       return (
