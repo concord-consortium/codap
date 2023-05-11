@@ -9,7 +9,7 @@ import { ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet } fr
 
 export function getTileSharedModels(tile: ITileContentModel) {
   const sharedModelManager = getSharedModelManager(tile)
-  return sharedModelManager?.getTileSharedModels(tile)
+  return sharedModelManager?.getTileSharedModels(tile) ?? []
 }
 
 export function getDataSetFromId(node: IAnyStateTreeNode, id: string): IDataSet | undefined {
@@ -20,23 +20,23 @@ export function getDataSetFromId(node: IAnyStateTreeNode, id: string): IDataSet 
 }
 
 export function getTileDataSet(tile: ITileContentModel): IDataSet | undefined {
-  const sharedDataSet = getTileSharedModels(tile)?.find(m => isSharedDataSet(m))
+  const sharedDataSet = getTileSharedModels(tile).find(m => isSharedDataSet(m))
   return isSharedDataSet(sharedDataSet) ? sharedDataSet.dataSet : undefined
 }
 
 export function getTileCaseMetadata(tile: ITileContentModel) {
-  const sharedCaseMetadata = getTileSharedModels(tile)?.find(m => isSharedCaseMetadata(m))
+  const sharedCaseMetadata = getTileSharedModels(tile).find(m => isSharedCaseMetadata(m))
   return isSharedCaseMetadata(sharedCaseMetadata) ? sharedCaseMetadata : undefined
 }
 
 export function isTileLinkedToDataSet(tile: ITileContentModel, dataSet: IDataSet) {
   const sharedModels = getTileSharedModels(tile)
-  return !!sharedModels?.find(sharedModel => isSharedDataSet(sharedModel) && sharedModel.dataSet.id === dataSet.id)
+  return !!sharedModels.find(sharedModel => isSharedDataSet(sharedModel) && sharedModel.dataSet.id === dataSet.id)
 }
 
 export function isTileLinkedToOtherDataSet(tile: ITileContentModel, dataSet: IDataSet) {
   const sharedModels = getTileSharedModels(tile)
-  return !!sharedModels?.find(sharedModel => isSharedDataSet(sharedModel) && sharedModel.dataSet.id !== dataSet.id)
+  return !!sharedModels.find(sharedModel => isSharedDataSet(sharedModel) && sharedModel.dataSet.id !== dataSet.id)
 }
 
 export function unlinkTileFromDataSets(tile: ITileContentModel) {

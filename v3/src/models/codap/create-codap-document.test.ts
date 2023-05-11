@@ -35,7 +35,7 @@ describe("createCodapDocument", () => {
   })
 
   it("creates an empty document with mosaic layout", () => {
-    const doc = createCodapDocument(undefined, "mosaic")
+    const doc = createCodapDocument(undefined, { layout: "mosaic" })
     expect(doc.key).toBe("test-1")
     expect(doc.type).toBe("CODAP")
     expect(omitUndefined(getSnapshot(doc.content!))).toEqual({
