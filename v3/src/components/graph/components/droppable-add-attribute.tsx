@@ -2,17 +2,18 @@ import React from "react"
 import {clsx} from "clsx"
 import {Active, useDroppable} from "@dnd-kit/core"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
-import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
+import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {DropHint} from "./drop-hint"
 import {graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {IDataSet} from "../../../models/data/data-set"
 
 interface IAddAttributeProps {
   place: GraphPlace
   plotType: PlotType
-  onDrop: (attributeId: string) => void
+  onDrop: (dataSet: IDataSet, attributeId: string) => void
 }
 
 export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
@@ -25,17 +26,17 @@ export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
     hintString = useDropHintString({role})
 
   const handleIsActive = (iActive: Active) => {
-    const droppedAttrId = getDragAttributeId(iActive) ?? ''
+    const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(iActive) || {}
     if (isDropAllowed) {
-      return isDropAllowed(place, droppedAttrId)
+      return isDropAllowed(place, dataSet, droppedAttrId)
     } else {
       return !!droppedAttrId
     }
   }
 
   useDropHandler(droppableId, iActive => {
-    const dragAttributeID = getDragAttributeId(iActive)
-    dragAttributeID && onDrop(dragAttributeID)
+    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(active) || {}
+    dataSet && dragAttributeID && onDrop(dataSet, dragAttributeID)
   })
 
   const isActive = active && handleIsActive(active),

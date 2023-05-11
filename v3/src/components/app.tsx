@@ -46,7 +46,7 @@ export const App = observer(function App() {
   }, [])
 
   const handleImportV2Document = useCallback((v2Document: CodapV2Document) => {
-    const v3Document = createCodapDocument(undefined, "free")
+    const v3Document = createCodapDocument(undefined, { layout: "free" })
     const sharedModelManager = getSharedModelManager(v3Document)
     sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
     // add shared models (data sets and case metadata)

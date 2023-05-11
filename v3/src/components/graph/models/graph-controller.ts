@@ -2,6 +2,7 @@ import React from "react"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
 import {IDataSet} from "../../../models/data/data-set"
+import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   CategoricalAxisModel, EmptyAxisModel, isCategoricalAxisModel, isNumericAxisModel, NumericAxisModel
@@ -80,8 +81,9 @@ export class GraphController {
     }
   }
 
-  handleAttributeAssignment(graphPlace: GraphPlace, attrID: string) {
-    const {graphModel, layout, dataset} = this,
+  handleAttributeAssignment(graphPlace: GraphPlace, dataSetID: string, attrID: string) {
+    const {graphModel, layout} = this,
+      dataset = getDataSetFromId(graphModel, dataSetID),
       dataConfig = graphModel?.config
     if (!(graphModel && layout && dataset && dataConfig)) {
       return

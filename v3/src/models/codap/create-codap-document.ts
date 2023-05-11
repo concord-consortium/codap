@@ -12,14 +12,19 @@ import "../global/global-value-manager-registration"
 const { version } = pkg
 const { buildNumber } = build
 
-export function createCodapDocument(snapshot?: IDocumentModelSnapshot, layout?: "free" | "mosaic"): IDocumentModel {
+interface IOptions {
+  layout?: "free" | "mosaic"
+  noGlobals?: boolean
+}
+export function createCodapDocument(snapshot?: IDocumentModelSnapshot, options?: IOptions): IDocumentModel {
+  const { layout = "free", noGlobals = false } = options || {}
   const document = createDocumentModel({ type: "CODAP", version, build: `${buildNumber}`, ...snapshot })
   // create the content if there isn't any
   if (!document.content) {
     document.setContent(getSnapshot(DocumentContentModel.create()))
   }
   // add the global value manager if there isn't one
-  if (document.content && !document.content.getFirstSharedModelByType(GlobalValueManager)) {
+  if (document.content && !noGlobals && !document.content.getFirstSharedModelByType(GlobalValueManager)) {
     document.content.addSharedModel(GlobalValueManager.create())
   }
   // create the default tile container ("row")

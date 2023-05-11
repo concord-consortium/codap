@@ -6,6 +6,7 @@ import {select} from "d3"
 import t from "../../../utilities/translation/translate"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {AttributeType} from "../../../models/data/attribute"
+import {IDataSet} from "../../../models/data/data-set"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {GraphPlace, isVertical} from "../../axis-graph-shared"
 import {graphPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
@@ -19,7 +20,7 @@ import graphVars from "./graph.scss"
 
 interface IAttributeLabelProps {
   place: GraphPlace
-  onChangeAttribute?: (place: GraphPlace, attrId: string) => void
+  onChangeAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }

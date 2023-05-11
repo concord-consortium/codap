@@ -4,10 +4,11 @@ import {isAlive} from "mobx-state-tree"
 import {Active} from "@dnd-kit/core"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {AttributeType} from "../../../models/data/attribute"
+import {IDataSet} from "../../../models/data/data-set"
 import {useGraphModelContext} from "../models/graph-model"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {getDragAttributeId, useDropHandler} from "../../../hooks/use-drag-drop"
+import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {AxisPlace} from "../../axis/axis-types"
 import {Axis} from "../../axis/components/axis"
 import {axisPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
@@ -20,7 +21,7 @@ import {useAxisBoundsProvider} from "../../axis/hooks/use-axis-bounds"
 interface IProps {
   place: AxisPlace
   enableAnimation: MutableRefObject<boolean>
-  onDropAttribute?: (place: GraphPlace, attrId: string) => void
+  onDropAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
@@ -36,9 +37,9 @@ export const GraphAxis = observer(function GraphAxis(
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]})
 
   const handleIsActive = (active: Active) => {
-    const droppedAttrId = getDragAttributeId(active) ?? ''
+    const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
     if (isDropAllowed) {
-      return isDropAllowed(place, droppedAttrId)
+      return isDropAllowed(place, dataSet, droppedAttrId)
     } else {
       return !!droppedAttrId
     }
@@ -48,8 +49,9 @@ export const GraphAxis = observer(function GraphAxis(
     setWrapperElt} = useAxisBoundsProvider(place, kGraphClassSelector)
 
   useDropHandler(droppableId, active => {
-    const droppedAttrId = getDragAttributeId(active)
-    droppedAttrId && isDropAllowed(place, droppedAttrId) && onDropAttribute?.(place, droppedAttrId)
+    const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
+    dataSet && droppedAttrId && isDropAllowed(place, dataSet, droppedAttrId) &&
+      onDropAttribute?.(place, dataSet, droppedAttrId)
   })
 
   useEffect(function cleanup () {

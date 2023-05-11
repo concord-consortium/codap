@@ -1,7 +1,7 @@
 import {useDndContext} from "@dnd-kit/core"
 import { AttributeType } from "../models/data/attribute"
 import {useDataSetContext} from "./use-data-set-context"
-import {getDragAttributeId} from "./use-drag-drop"
+import {getDragAttributeInfo} from "./use-drag-drop"
 import {useDataConfigurationContext} from "../components/graph/hooks/use-data-configuration-context"
 import {attrRoleToGraphPlace, GraphAttrRole} from "../components/graph/graphing-types"
 import {GraphPlace} from "../components/axis-graph-shared"
@@ -83,9 +83,9 @@ export const useDropHintString = ({role} : IUseDropHintStringProps) => {
   const dataSet = useDataSetContext(),
     dataConfig = useDataConfigurationContext(),
     { active } = useDndContext(),
-    dragAttrId = getDragAttributeId(active) ?? '',
+    { attributeId: dragAttrId = "" } = getDragAttributeInfo(active) || {},
     place = attrRoleToGraphPlace[role] as GraphPlace,
-    dropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop(place, dragAttrId)
+    dropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop(place, dataSet, dragAttrId)
 
   if (dataSet && active?.data.current && dropAllowed) {
     const dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId).name : undefined,
