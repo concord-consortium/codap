@@ -65,7 +65,7 @@ export const CategorySet = types.model("CategorySet", {
       // build default category set order (order of occurrence)
       // could default to alphameric sort order if desired instead
       self.attribute.strValues.forEach(value => {
-        if (_indexMap.get(value) == null) {
+        if (value !== '' && _indexMap.get(value) == null) {
           _indexMap.set(value, _values.length)
           _values.push(value)
         }
