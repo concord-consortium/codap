@@ -108,10 +108,9 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
   //   }
   // }
 
-  const parentCaseIds = Object.keys(data.pseudoCaseMap)
+  // const parentCaseIds = Object.keys(data.pseudoCaseMap)
   const parentCases = parentCollection ? data.getCasesForCollection(parentCollection.id) : []
   const everyCaseIsCollapsed = parentCases.every((value) => caseMetadata?.isCollapsed(value.__id__))
-  console.log("parentCases", parentCases)
 
   function handleTopClick() {
     parentCases.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
@@ -121,9 +120,7 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
   const topButtonTooltip = t(topTooltipKey)
   const bottomsArr: number[] = []
   const getRowTop = (rowIndex: number) => rowIndex >= 1 ? rowIndex * rowHeight : 0
-  const getPreviousBottoms = (idx: number) => {
-    return idx > 0 ? bottomsArr[idx-1] : 0
-  }
+  const getPreviousBottoms = (idx: number) => idx > 0 ? bottomsArr[idx-1] : 0
 
   return (
     <>
@@ -150,7 +147,10 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
                                       ? getRowTop(rowIndexOfLastChild + 1)
                                       : getPreviousBottoms(index) + rowHeight
                   bottomsArr.push(rowBottom)
-                  return <CurvedSpline key={`${parentCaseId}-${index}`} y1={(index + 1) * 18} y2={rowBottom} numChildCases={numChildCases}/>
+                  return <CurvedSpline key={`${parentCaseId}-${index}`} y1={(index + 1) * 18} y2={rowBottom}
+                            numChildCases={numChildCases} even={(index + 1) % 2 === 0} rowHeight={rowHeight}
+                            isCollapsed={caseMetadata?.isCollapsed(parentCaseId)}
+                         />
                 })}
               </svg>
               <div className="spacer-mid-layer">
@@ -194,11 +194,14 @@ function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCol
 interface CurvedSplineProps {
   y1: number;
   y2: number;
-  numChildCases?: number;
+  numChildCases: number;
+  even: boolean;
+  rowHeight: number;
+  isCollapsed: string | boolean | undefined;
 }
 
-function CurvedSpline({ y1, y2, numChildCases }: CurvedSplineProps) {
-    /**
+function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed }: CurvedSplineProps) {
+  /**
     Builds the SVG path string which renders from the specified Y coordinate
     on the left table (iStartY) to the specified Y coordinate on the right
     table (iEndY). The path consists of a short horizontal segment (width
@@ -213,7 +216,6 @@ function CurvedSpline({ y1, y2, numChildCases }: CurvedSplineProps) {
       if (iStartY === iEndY) {
         return `M0, ${iStartY} h${kDividerWidth}`
       }
-      // console.log("iEndY", iEndY)
       // startPoint, endPoint, midPoint, controlPoint relate to the Bezier portion of the path
       const startPoint = { x: kRelationParentMargin, y: iStartY },
           endPoint = { x: kDividerWidth - kRelationChildMargin, y: iEndY },
@@ -265,12 +267,16 @@ function CurvedSpline({ y1, y2, numChildCases }: CurvedSplineProps) {
         `${buildPathStr(iStartY1, iEndY1)} V${endPoint2.y} h${- kRelationChildMargin} Q${controlPoint2.x},${controlPoint2.y} ${midPoint2.x},${midPoint2.y} T${startPoint2.x},${startPoint2.y} h${- kRelationParentMargin} Z`
       )
     }
+  const collapsedCaseHeight = isCollapsed ? rowHeight : numChildCases * rowHeight
   const pathData = buildPathStr(y1, y2)
-  const fillData = buildFillPathStr(y1, y2, y1+18, numChildCases || 1)
+  const fillData = buildFillPathStr((y1 - rowHeight), y2 - collapsedCaseHeight, y1, y2 || rowHeight)
   return (
-    <>
-      <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
-    </>
+    even
+      ? <>
+          <path d={fillData} fill={kRelationFillColor} stroke ="none" />
+          <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
+        </>
+      : <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
   )
 }
 // Adjust the initial movement
