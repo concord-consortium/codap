@@ -114,11 +114,12 @@ export const GraphModel = TileContentModel
       self.axes.delete(place)
     },
     setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
-      const dataSet = getDataSetFromId(self, dataSetID)
-      if (dataSet && isTileLinkedToOtherDataSet(self, dataSet)) {
-        linkTileToDataSet(self, dataSet)
+      const currDataSet = getTileDataSet(self)
+      const newDataSet = getDataSetFromId(self, dataSetID)
+      if (newDataSet && (!currDataSet || isTileLinkedToOtherDataSet(self, newDataSet))) {
+        linkTileToDataSet(self, newDataSet)
         self.config.clearAttributes()
-        self.config.setDataset(dataSet)
+        self.config.setDataset(newDataSet, getTileCaseMetadata(self))
       }
       if (role === 'yPlus') {
         self.config.addYAttribute({attributeID: id})
