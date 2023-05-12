@@ -93,6 +93,7 @@ $table-body-font-size: 8pt;
           border-bottom: 1px solid var(--codap-colors-chakra-border-color);
           overflow: hidden;
           position: relative;
+          z-index: 5; // hides the expand/collapse button when scrolled
 
           .expand-collapse-button {
             position: absolute;

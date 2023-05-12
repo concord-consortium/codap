@@ -1,4 +1,5 @@
 import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
 import React, { useMemo, useRef } from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
@@ -7,8 +8,8 @@ import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 // import { getNumericCssconstiable } from "../../utilities/css-utils"
 import t from "../../utilities/translation/translate"
+import { ICaseTableModel } from "./case-table-model"
 import { kChildMostTableCollectionId } from "./case-table-types"
-import { getVisibleRange } from "./use-row-scrolling"
 import { useRows } from "./use-rows"
 
 const kDividerWidth = 48,
@@ -20,16 +21,18 @@ const kDividerWidth = 48,
       kRelationFillColor = '#EEEEEE',   // pale gray
       kTouchMargin = 5
 
-type ChildRange = {firstChildID: string, lastChildID: string, isCollapsed: boolean}
-
 interface IProps {
+  tableModel?: ICaseTableModel
   rowHeight: number
   onDrop?: (attrId: string) => void
 }
-export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
+export const CollectionTableSpacer = observer(function CollectionTableSpacer(props: IProps) {
+  const { tableModel, rowHeight, onDrop } = props
   const data = useDataSetContext()
+  const { rows } = useRows()
   const caseMetadata = useCaseMetadata()
   const parentCollection = useParentCollectionContext()
+  const parentCollectionId = parentCollection?.id
   const childCollection = useCollectionContext()
   const childCollectionId = childCollection?.id || kChildMostTableCollectionId
   const parentMost = !parentCollection
@@ -37,9 +40,6 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
     const dragAttributeID = getDragAttributeId(_active)
     dragAttributeID && onDrop?.(dragAttributeID)
   })
-  // console.log("parentCollection", parentCollection)
-  // console.log("childCollection", childCollection)
-
   const classes = clsx("collection-table-spacer", { active: !!getDragAttributeId(active), over: isOver, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
@@ -50,6 +50,8 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
   const kMargin = 10
   const msgStyle: React.CSSProperties =
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
+  const parentScrollTop = parentCollectionId && tableModel?.scrollTopMap.get(parentCollectionId) || 0
+  const childScrollTop = childCollectionId && tableModel?.scrollTopMap.get(childCollectionId) || 0
 
   const handleRef = (element: HTMLElement | null) => {
     const tableContent = element?.closest(".case-table-content") ?? null
@@ -64,33 +66,7 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
     setNodeRef(element)
   }
 
-  // console.log("parentGridRef.current", parentGridRef.current?.scrollTop)
-  // console.log("childGridRef.current", childGridRef.current?.scrollTop)
-  const parentVisibleRange = parentGridRef.current && getVisibleRange(parentGridRef.current as HTMLDivElement)
-  const childVisibleRange = childGridRef.current && getVisibleRange(childGridRef.current as HTMLDivElement)
-  // console.log("parentVisibleRange", parentVisibleRange)
-  // console.log("childVisibleRange", childVisibleRange)
-  const { rows } = useRows()
-  // console.log("rows", rows)
-
-  // const [rowTop, rowBottom] = getRowRange(rowIndex)
-
-  // const parentViewPort = parentGridRef.current && useRowScrolling(parentGridRef.current as HTMLDivElement)
-  // const childViewPort = childGridRef.current && useRowScrolling(childGridRef.current as HTMLDivElement)
-  // console.log("parentViewPort", parentViewPort)
-
   if (!data) return null
-
-  const parentScrollTop = (parentGridRef.current?.scrollTop) || 0,
-        // rightAdapter = childCollection && childCollection.get('gridAdapter'),
-        childScrollTop = (childGridRef && childGridRef.current?.scrollTop) || 0
-        // leftAdapter = parentCollection && parentCollection.get('gridAdapter'),
-
-  // const updateParentChildRelations = (ix: number, iParentRow: number, iParentID: string, iChildIDRange: ChildRange) => {
-  // }
-
-  // const updateRelationsLines = () => {
-  // }
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
@@ -108,7 +84,6 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
   //   }
   // }
 
-  // const parentCaseIds = Object.keys(data.pseudoCaseMap)
   const parentCases = parentCollection ? data.getCasesForCollection(parentCollection.id) : []
   const everyCaseIsCollapsed = parentCases.every((value) => caseMetadata?.isCollapsed(value.__id__))
 
@@ -147,9 +122,13 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
                                       ? getRowTop(rowIndexOfLastChild + 1)
                                       : getPreviousBottoms(index) + rowHeight
                   bottomsArr.push(rowBottom)
-                  return <CurvedSpline key={`${parentCaseId}-${index}`} y1={(index + 1) * 18} y2={rowBottom}
-                            numChildCases={numChildCases} even={(index + 1) % 2 === 0} rowHeight={rowHeight}
-                            isCollapsed={caseMetadata?.isCollapsed(parentCaseId)}
+                  return <CurvedSpline key={`${parentCaseId}-${index}`}
+                                        y1={((index + 1) * rowHeight) - parentScrollTop}
+                                        y2={rowBottom - childScrollTop}
+                                        numChildCases={numChildCases}
+                                        even={(index + 1) % 2 === 0}
+                                        rowHeight={rowHeight}
+                                        isCollapsed={caseMetadata?.isCollapsed(parentCaseId)}
                          />
                 })}
               </svg>
@@ -157,7 +136,7 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
                 {parentCases.map((value, index) => (
                   <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
                     onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
-                    styles={{ left: '3px', top: `${(index * 18) + 4}px`}}
+                    styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
                   />
                 ))}
               </div>
@@ -169,7 +148,7 @@ export function CollectionTableSpacer({ rowHeight, onDrop }: IProps) {
       <div className="collection-table-spacer-divider" />
     </>
   )
-}
+})
 
 interface ExpandCollapseButtonProps {
   isCollapsed: boolean,
@@ -232,7 +211,8 @@ function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed }: C
       // M0,${y1} H12 Q28,${y1},28,${y1 + 18} T44,${y2} H48
 
       return (
-        `M0,${startPoint.y} h${kRelationParentMargin} Q${controlPoint.x},${controlPoint.y} ${midPoint.x},${midPoint.y} T${endPoint.x},${endPoint.y} h${kRelationChildMargin}`
+        `M0,${startPoint.y} h${kRelationParentMargin} Q${controlPoint.x},${controlPoint.y} ${midPoint.x},${midPoint.y}
+          T${endPoint.x},${endPoint.y} h${kRelationChildMargin}`
       )
     }
 
