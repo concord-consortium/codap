@@ -8,10 +8,12 @@ import {
   pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
 import {DataConfigurationModel} from "./data-configuration-model"
+import {isSharedDataSet} from "../../../models/shared/shared-data-set"
 import {
-  getDataSetFromId, getTileCaseMetadata, getTileDataSet, isTileLinkedToOtherDataSet, linkTileToDataSet
+  getDataSetFromId, getTileCaseMetadata, getTileDataSet, isTileLinkedToDataSet, linkTileToDataSet
 } from "../../../models/shared/shared-data-utils"
 import {ISharedModel} from "../../../models/shared/shared-model"
+import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
 import {
   defaultBackgroundColor,
@@ -104,8 +106,18 @@ export const GraphModel = TileContentModel
     }
   }))
   .actions(self => ({
-    updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
-      // TODO
+    afterAttach() {
+      if (self.data || self.metadata) {
+        self.config.setDataset(self.data, self.metadata)
+      }
+    },
+    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
+      if (type === "link") {
+        self.config.setDataset(self.data, self.metadata)
+      }
+      else if (type === "unlink" && isSharedDataSet(sharedModel)) {
+        self.config.setDataset(undefined, undefined)
+      }
     },
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
@@ -114,9 +126,8 @@ export const GraphModel = TileContentModel
       self.axes.delete(place)
     },
     setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
-      const currDataSet = getTileDataSet(self)
       const newDataSet = getDataSetFromId(self, dataSetID)
-      if (newDataSet && (!currDataSet || isTileLinkedToOtherDataSet(self, newDataSet))) {
+      if (newDataSet && !isTileLinkedToDataSet(self, newDataSet)) {
         linkTileToDataSet(self, newDataSet)
         self.config.clearAttributes()
         self.config.setDataset(newDataSet, getTileCaseMetadata(self))

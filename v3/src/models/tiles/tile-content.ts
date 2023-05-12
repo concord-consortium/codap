@@ -1,5 +1,6 @@
 import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { ISharedModel } from "../shared/shared-model"
+import { SharedModelChangeType } from "../shared/shared-model-manager"
 import { getTileEnvironment, ITileEnvironment } from "./tile-environment"
 import { tileModelHooks } from "./tile-model-hooks"
 import { kUnknownTileType } from "./unknown-types"
@@ -56,7 +57,7 @@ export const TileContentModel = types.model("TileContentModel", {
      *
      * @param sharedModel
      */
-    updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
+    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
       console.warn("updateAfterSharedModelChanges not implemented for:", self.type)
     }
   }))

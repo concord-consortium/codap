@@ -1,7 +1,6 @@
 import React from "react"
 import {IGraphModel} from "./graph-model"
 import {GraphLayout} from "./graph-layout"
-import {IDataSet} from "../../../models/data/data-set"
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
@@ -26,14 +25,12 @@ interface IGraphControllerConstructorProps {
 
 interface IGraphControllerProps {
   graphModel: IGraphModel
-  dataset: IDataSet | undefined
   dotsRef: IDotsRef
 }
 
 export class GraphController {
   graphModel?: IGraphModel
   layout: GraphLayout
-  dataset?: IDataSet
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
 
@@ -45,9 +42,8 @@ export class GraphController {
 
   setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
-    this.dataset = props.dataset
-    if (this.graphModel.config.dataset !== props.dataset) {
-      this.graphModel.config.setDataset(props.dataset, this.graphModel.metadata)
+    if (this.graphModel.config.dataset !== this.graphModel.data) {
+      this.graphModel.config.setDataset(this.graphModel.data, this.graphModel.metadata)
     }
     this.initializeGraph(props.dotsRef)
   }

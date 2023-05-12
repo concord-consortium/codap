@@ -113,20 +113,31 @@ export const App = observer(function App() {
       sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
     }
 
-    // create the initial sample data (if specified) or a new data set
-    if (gDataBroker.dataSets.size === 0) {
-      const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
-      if (sample) {
-        importSample(sample, handleImportDataSet)
-      }
-      // we have to create a new starter data set only if none is imported to show the dashboard
-      if (urlParams.dashboard !== undefined) {
-        if (!sample) {
+    async function initialize() {
+      // create the initial sample data (if specified) or a new data set
+      if (gDataBroker.dataSets.size === 0) {
+        const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
+        const isDashboard = urlParams.dashboard !== undefined
+        if (sample) {
+          try {
+            const data = await importSample(sample)
+            handleImportDataSet(data)
+          }
+          catch (e) {
+            console.warn(`Failed to import sample "${sample}"`)
+          }
+        }
+        else if (isDashboard) {
           createNewStarterDataset()
         }
-        addDefaultComponents()
+        // we have to create a new starter data set only if none is imported to show the dashboard
+        if (isDashboard) {
+          addDefaultComponents()
+        }
       }
     }
+
+    initialize()
   }, [])
 
   return (
