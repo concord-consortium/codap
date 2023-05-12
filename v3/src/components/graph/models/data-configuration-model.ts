@@ -518,11 +518,12 @@ export const DataConfigurationModel = types
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
       self.actionHandlerDisposer?.()
+      self.actionHandlerDisposer = undefined
       self.dataset = dataset
       self.metadata = metadata
-      self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
       self.filteredCases = []
       if (dataset) {
+        self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
         self.filteredCases[0] = new FilteredCases({
           source: dataset, filter: self.filterCase,
           onSetCaseValues: self.handleSetCaseValues
