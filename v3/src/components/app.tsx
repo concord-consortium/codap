@@ -11,6 +11,7 @@ import { createCodapDocument } from "../models/codap/create-codap-document"
 import {gDataBroker} from "../models/data/data-broker"
 import {DataSet, IDataSet, toCanonical} from "../models/data/data-set"
 import { IDocumentModelSnapshot } from "../models/document/document"
+import { wrapSerialization } from "../models/shared/shared-data-utils"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -79,9 +80,7 @@ export const App = observer(function App() {
     })
 
     // retrieve document snapshot
-    gDataBroker.prepareSnapshots()
-    const docSnapshot = getSnapshot(v3Document)
-    gDataBroker.completeSnapshots()
+    const docSnapshot = wrapSerialization(v3Document, () => getSnapshot(v3Document))
     // use document snapshot
     appState.setDocument(docSnapshot)
   }, [])

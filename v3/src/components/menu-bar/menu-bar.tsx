@@ -3,7 +3,7 @@ import React from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import { appState } from "../../models/app-state"
-import { gDataBroker } from "../../models/data/data-broker"
+import { wrapSerialization } from "../../models/shared/shared-data-utils"
 import { HamburgerIcon } from "./hamburger-icon"
 
 import "./menu-bar.scss"
@@ -46,9 +46,7 @@ function download(path: string, filename: string) {
 
 function handleExportDocument() {
   // Convert JSON to string
-  gDataBroker.prepareSnapshots()
-  const data = JSON.stringify(appState.document)
-  gDataBroker.completeSnapshots()
+  const data = wrapSerialization(appState.document, () => JSON.stringify(appState.document))
 
   // Create a Blob object
   const blob = new Blob([data], { type: 'application/json' })

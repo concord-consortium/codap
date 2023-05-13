@@ -1,3 +1,4 @@
+import { getSnapshot } from "mobx-state-tree"
 import { createCodapDocument } from "../codap/create-codap-document"
 import { IDocumentModel } from "../document/document"
 import { TileContentModel } from "../tiles/tile-content"
@@ -8,7 +9,7 @@ import { SharedCaseMetadata } from "./shared-case-metadata"
 import { SharedDataSet } from "./shared-data-set"
 import {
   getDataSetFromId, getTileCaseMetadata, getTileDataSet, getTileSharedModels, isTileLinkedToDataSet,
-  linkTileToDataSet, unlinkTileFromDataSets
+  linkTileToDataSet, unlinkTileFromDataSets, wrapSerialization
 } from "./shared-data-utils"
 import "./shared-data-set-registration"
 import "./shared-case-metadata-registration"
@@ -111,5 +112,11 @@ describe("SharedDataUtils", () => {
     expect(isTileLinkedToDataSet(tile.content, sharedDataSet2.dataSet)).toBe(true)
     expect(getTileDataSet(tile.content)).toBe(sharedDataSet2.dataSet)
     expect(getTileCaseMetadata(tile.content)).toBe(sharedMetadata2)
+  })
+
+  it("wrapSerialization calls the serialization callback", () => {
+    const serialize = jest.fn(() => getSnapshot(document))
+    wrapSerialization(document, () => serialize())
+    expect(serialize).toHaveBeenCalledTimes(1)
   })
 })
